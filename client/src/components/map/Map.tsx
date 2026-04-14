@@ -6,8 +6,8 @@ import { factoriesApi } from '../../lib/api';
 import { useMapStore } from '../../stores/mapStore';
 import { Loader2, Maximize2 } from 'lucide-react';
 
-const MAPTILER_KEY = import.meta.env.VITE_MAP_TOKEN || '';
-const STYLE_URL = `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`;
+// MapTiler style base URL - key added at runtime for retry support
+const MAPTILER_STYLE_BASE = 'https://api.maptiler.com/maps/dataviz-dark/style.json';
 
 // Custom darker style overrides applied after map loads
 const DARK_STYLE_OVERRIDES = {
@@ -128,47 +128,60 @@ export default function Map() {
     []
   );
 
-  // Initialize map
+  // Initialize map with retry logic
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    if (!MAPTILER_KEY) {
-      console.error('MapTiler API key is not set');
-      setMapError('MapTiler API key is missing. Please set VITE_MAPTILER_API_KEY in .env');
-      return;
-    }
+    let retryCount = 0;
+    const maxRetries = 3;
 
-    try {
-      map.current = new maplibregl.Map({
-        container: mapContainer.current,
-        style: STYLE_URL,
-        center: INITIAL_VIEW.center,
-        zoom: INITIAL_VIEW.zoom,
-        minZoom: 3,
-        maxZoom: 18,
-        attributionControl: false,
-        // Performance: reduce tile loading at edges
-        renderWorldCopies: false,
-      });
-    } catch (err) {
-      console.error('Failed to create map:', err);
-      setMapError('Failed to initialize map');
-      return;
-    }
+    const initMap = () => {
+      // Get key fresh each attempt
+      const styleUrl = `${MAPTILER_STYLE_BASE}?key=${import.meta.env.VITE_MAP_TOKEN || ''}`;
 
-    const currentMap = map.current;
-
-    // Handle map errors
-    currentMap.on('error', (e) => {
-      console.error('Map error:', e);
-      if (e.error?.message?.includes('style') || e.error?.message?.includes('Style')) {
-        setMapError(e.error?.message || 'Failed to load map style');
+      try {
+        map.current = new maplibregl.Map({
+          container: mapContainer.current!,
+          style: styleUrl,
+          center: INITIAL_VIEW.center,
+          zoom: INITIAL_VIEW.zoom,
+          minZoom: 3,
+          maxZoom: 18,
+          attributionControl: false,
+          renderWorldCopies: false,
+        });
+      } catch (err) {
+        console.error('Failed to create map:', err);
+        if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(initMap, 500);
+          return;
+        }
+        setMapError('Failed to initialize map');
+        return;
       }
-    });
 
-    // Note: Zoom controls removed for cleaner UI - use scroll/pinch to zoom
+      const currentMap = map.current;
 
-    currentMap.on('load', () => {
+      // Handle map errors with auto-retry
+      currentMap.on('error', (e) => {
+        console.error('Map error:', e);
+        const isStyleError = e.error?.message?.includes('style') ||
+                            e.error?.message?.includes('Style') ||
+                            e.error?.message?.includes('401');
+        if (isStyleError && retryCount < maxRetries) {
+          retryCount++;
+          map.current?.remove();
+          map.current = null;
+          setTimeout(initMap, 500);
+        } else if (isStyleError) {
+          setMapError('Failed to load map. Please check your API key.');
+        }
+      });
+
+      // Note: Zoom controls removed for cleaner UI - use scroll/pinch to zoom
+
+      currentMap.on('load', () => {
       setMapLoaded(true);
 
       // Apply darker style overrides and hide all non-US details
@@ -475,14 +488,21 @@ export default function Map() {
       });
     });
 
-    // Track zoom level for reset button
-    currentMap.on('zoom', () => {
-      setIsZoomedIn(currentMap.getZoom() > 5);
-    });
+      // Track zoom level for reset button
+      currentMap.on('zoom', () => {
+        setIsZoomedIn(currentMap.getZoom() > 5);
+      });
+    }; // end initMap
+
+    // Small delay on initial load to ensure env is ready
+    const initTimer = setTimeout(initMap, 100);
 
     return () => {
-      currentMap.remove();
-      map.current = null;
+      clearTimeout(initTimer);
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
   }, [selectFactory, setHoveredFactory, handleMapClick, setSidebarOpen, updateViewport]);
 
