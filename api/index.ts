@@ -28,7 +28,12 @@ app.use('/api/map', mapRouter);
 
 // Health check
 app.get('/api/health', (_req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    hasDbUrl: !!process.env.DATABASE_URL,
+    nodeEnv: process.env.NODE_ENV,
+  });
 });
 
 // 404 handler
