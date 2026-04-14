@@ -124,6 +124,8 @@ export const companies = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     name: text('name').notNull(),
+    // Aliases: alternate names, DBAs, abbreviations (e.g., ["SpaceX", "Space Exploration Technologies"])
+    aliases: text('aliases').array(),
     industry: text('industry'), // Legacy field, kept for backward compatibility
     description: text('description'),
     headquartersLat: text('headquarters_lat'),

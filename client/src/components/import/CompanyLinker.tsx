@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Building2,
   Search,
@@ -9,6 +9,62 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { companiesApi, type Company } from '../../lib/api';
+
+// Simple fuzzy matching score (lower is better)
+function fuzzyScore(str1: string, str2: string): number {
+  const s1 = str1.toLowerCase().trim();
+  const s2 = str2.toLowerCase().trim();
+
+  // Exact match
+  if (s1 === s2) return 0;
+
+  // One contains the other
+  if (s1.includes(s2) || s2.includes(s1)) return 1;
+
+  // Remove common suffixes/prefixes for comparison
+  const normalize = (s: string) => s
+    .replace(/\b(inc|llc|corp|corporation|company|co|ltd|limited|technologies|tech)\b\.?/gi, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+
+  const n1 = normalize(s1);
+  const n2 = normalize(s2);
+
+  if (n1 === n2) return 0.5;
+  if (n1.includes(n2) || n2.includes(n1)) return 1.5;
+
+  // Check for common abbreviations
+  const abbrev1 = s1.split(/\s+/).map(w => w[0]).join('').toLowerCase();
+  const abbrev2 = s2.split(/\s+/).map(w => w[0]).join('').toLowerCase();
+
+  if (abbrev1 === n2 || abbrev2 === n1 || abbrev1 === abbrev2) return 2;
+
+  // Levenshtein distance (simplified)
+  const len = Math.max(n1.length, n2.length);
+  if (len === 0) return 100;
+
+  let matches = 0;
+  const shorter = n1.length < n2.length ? n1 : n2;
+  const longer = n1.length >= n2.length ? n1 : n2;
+
+  for (let i = 0; i < shorter.length; i++) {
+    if (longer.includes(shorter[i])) matches++;
+  }
+
+  const similarity = matches / longer.length;
+  return similarity > 0.7 ? 3 : similarity > 0.5 ? 4 : 100;
+}
+
+// Create company via API
+async function createCompany(name: string): Promise<Company> {
+  const response = await fetch('/api/companies', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!response.ok) throw new Error('Failed to create company');
+  return response.json();
+}
 
 export interface CompanyLinkConfig {
   mode: 'auto' | 'manual' | 'column';
@@ -96,23 +152,23 @@ export default function CompanyLinker({
     const newMappings = new Map(config.companyMappings);
 
     for (const [finalName] of groupedCompanies) {
-      // Find best match
-      const normalizedName = finalName.toLowerCase().trim();
-      const exactMatch = existingCompanies.find(
-        (c) => c.name.toLowerCase().trim() === normalizedName
-      );
-      if (exactMatch) {
-        newMappings.set(finalName, exactMatch.id);
-      } else {
-        // Partial match
-        const partialMatch = existingCompanies.find(
-          (c) =>
-            c.name.toLowerCase().includes(normalizedName) ||
-            normalizedName.includes(c.name.toLowerCase())
-        );
-        if (partialMatch) {
-          newMappings.set(finalName, partialMatch.id);
+      // Skip if already mapped
+      if (newMappings.has(finalName)) continue;
+
+      // Find best match using fuzzy scoring
+      let bestMatch: Company | null = null;
+      let bestScore = 5; // Threshold - only match if score < 5
+
+      for (const company of existingCompanies) {
+        const score = fuzzyScore(finalName, company.name);
+        if (score < bestScore) {
+          bestScore = score;
+          bestMatch = company;
         }
+      }
+
+      if (bestMatch) {
+        newMappings.set(finalName, bestMatch.id);
       }
     }
 
@@ -238,26 +294,54 @@ function CompanyRow({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const queryClient = useQueryClient();
 
-  // Filter companies for dropdown
+  // Mutation for instant company creation
+  const createMutation = useMutation({
+    mutationFn: createCompany,
+    onSuccess: (newCompany) => {
+      // Invalidate companies cache to refresh list
+      queryClient.invalidateQueries({ queryKey: ['companies'] });
+      // Select the newly created company
+      onSelect(newCompany.id);
+    },
+  });
+
+  // Filter and sort companies by fuzzy match score
   const filteredOptions = useMemo(() => {
-    if (!search) return existingCompanies.slice(0, 10);
-    const query = search.toLowerCase();
+    const query = search || companyName;
     return existingCompanies
-      .filter((c) => c.name.toLowerCase().includes(query))
-      .slice(0, 10);
-  }, [existingCompanies, search]);
+      .map((c) => ({ company: c, score: fuzzyScore(query, c.name) }))
+      .filter((x) => x.score < 10)
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 10)
+      .map((x) => x.company);
+  }, [existingCompanies, search, companyName]);
+
+  // Best suggestion for display
+  const bestSuggestion = useMemo(() => {
+    if (currentMapping) return null;
+    const sorted = existingCompanies
+      .map((c) => ({ company: c, score: fuzzyScore(companyName, c.name) }))
+      .filter((x) => x.score < 3)
+      .sort((a, b) => a.score - b.score);
+    return sorted[0]?.company || null;
+  }, [existingCompanies, companyName, currentMapping]);
 
   // Get display text
   const getDisplayText = () => {
+    if (createMutation.isPending) return 'Creating...';
     if (linkedCompany) return linkedCompany.name;
     if (currentMapping === 'create') return `Create "${companyName}"`;
+    if (bestSuggestion) return `Match: ${bestSuggestion.name}?`;
     return 'Select action...';
   };
 
   const getStatusColor = () => {
+    if (createMutation.isPending) return 'text-sky-400 border-sky-500/30';
     if (linkedCompany) return 'text-emerald-400 border-emerald-500/30';
     if (currentMapping === 'create') return 'text-amber-400 border-amber-500/30';
+    if (bestSuggestion) return 'text-violet-400 border-violet-500/30';
     return 'text-fg-muted border-border-subtle';
   };
 
@@ -310,21 +394,26 @@ function CompanyRow({
               </div>
 
               <div className="max-h-[250px] overflow-y-auto p-1">
-                {/* Create new option */}
+                {/* Create new option - instantly creates company */}
                 <button
                   onClick={() => {
-                    onSelect('create');
+                    createMutation.mutate(companyName);
                     setIsOpen(false);
                     setSearch('');
                   }}
+                  disabled={createMutation.isPending}
                   className={`
                     w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-left
-                    hover:bg-bg-surface transition-colors
+                    hover:bg-bg-surface transition-colors disabled:opacity-50
                     ${currentMapping === 'create' ? 'bg-amber-500/10 text-amber-400' : 'text-fg-default'}
                   `}
                 >
-                  <Plus className="w-4 h-4" />
-                  Create new company
+                  {createMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
+                  Create "{companyName}"
                 </button>
 
                 {/* Divider */}

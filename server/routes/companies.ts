@@ -122,15 +122,28 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/companies - Create company
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { name, industry, description, headquartersLat, headquartersLng } = req.body;
+    const { name, aliases, industry, description, headquartersLat, headquartersLng } = req.body;
 
     if (!name) {
       res.status(400).json({ error: 'Name is required' });
       return;
     }
 
+    // Check if company with this name already exists
+    const existing = await db.select({ id: companies.id, name: companies.name })
+      .from(companies)
+      .where(ilike(companies.name, name))
+      .limit(1);
+
+    if (existing.length > 0) {
+      // Return existing company instead of error (upsert behavior for import flow)
+      res.status(200).json(existing[0]);
+      return;
+    }
+
     const result = await db.insert(companies).values({
       name,
+      aliases: aliases || null,
       industry,
       description,
       headquartersLat,
