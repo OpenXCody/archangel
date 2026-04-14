@@ -6,8 +6,13 @@ import { factoriesApi } from '../../lib/api';
 import { useMapStore } from '../../stores/mapStore';
 import { Loader2, Maximize2 } from 'lucide-react';
 
-const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
+const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY || '';
 const STYLE_URL = `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`;
+
+// Debug: log env var status (remove after fixing)
+if (typeof window !== 'undefined') {
+  console.log('MapTiler key present:', !!MAPTILER_KEY, 'Length:', MAPTILER_KEY.length);
+}
 
 // Custom darker style overrides applied after map loads
 const DARK_STYLE_OVERRIDES = {
