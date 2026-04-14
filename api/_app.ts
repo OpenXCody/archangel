@@ -1,6 +1,6 @@
 // Vercel serverless handler wrapping Express
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import express from 'express';
+import type { Request, Response } from 'express';
 import cors from 'cors';
 
 const app = express();
@@ -27,6 +27,6 @@ app.use((req, res) => {
 });
 
 // Export handler function for Vercel
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default function handler(req: Request, res: Response) {
   return app(req, res);
 }
