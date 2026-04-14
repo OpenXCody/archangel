@@ -320,6 +320,18 @@ app.get('/api/skills', async (req, res) => {
       conditions.push(eq(skills.category, category as string));
     }
 
+    const [countResult] = await db
+      .select({ total: count() })
+      .from(skills)
+      .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined);
+
+    const total = countResult?.total ?? 0;
+
+    const result = await db
+      .select()
+      .from(skills)
+      .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined)
+      .orderBy(skills.name)
       .limit(limitNum)
       .offset(offsetNum);
 
