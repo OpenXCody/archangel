@@ -41,6 +41,9 @@ drizzle/meta/
 # Claude Code local settings
 .claude/
 
+# Bundled API (generated during build)
+api/index.mjs
+
 # Uploads (temp files)
 uploads/
 
