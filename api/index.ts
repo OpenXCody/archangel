@@ -68,6 +68,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// UUID validation helper
+const isValidUUID = (id: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+
 // Health check
 app.get('/api/health', async (req, res) => {
   res.json({
@@ -102,20 +106,28 @@ app.get('/api/stats/counts', async (req, res) => {
   }
 });
 
-// Companies list
+// Companies list (offset-based pagination for stable sorting)
 app.get('/api/companies', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
   try {
-    const { cursor, limit = '20', search } = req.query;
+    const { offset = '0', limit = '20', search } = req.query;
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     const conditions: any[] = [];
-    if (cursor) conditions.push(gt(companies.id, cursor as string));
     if (search) {
       const searchTerm = `%${search}%`;
       conditions.push(or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm)));
     }
+
+    // Get total count for pagination info
+    const [countResult] = await db
+      .select({ total: count() })
+      .from(companies)
+      .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined);
+
+    const total = countResult?.total ?? 0;
 
     const result = await db
       .select({
@@ -129,27 +141,33 @@ app.get('/api/companies', async (req, res) => {
       .from(companies)
       .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined)
       .orderBy(sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id) DESC`, companies.name)
-      .limit(limitNum + 1);
+      .limit(limitNum)
+      .offset(offsetNum);
 
-    const hasMore = result.length > limitNum;
-    const data = hasMore ? result.slice(0, limitNum) : result;
+    const hasMore = offsetNum + result.length < total;
 
-    res.json({ data, nextCursor: hasMore ? data[data.length - 1].id : null });
+    res.json({
+      data: result,
+      total,
+      offset: offsetNum,
+      limit: limitNum,
+      hasMore,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Factories list
+// Factories list (offset-based pagination)
 app.get('/api/factories', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
   try {
-    const { cursor, limit = '20', search } = req.query;
+    const { offset = '0', limit = '20', search, state, company } = req.query;
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     const conditions: any[] = [];
-    if (cursor) conditions.push(gt(factories.id, cursor as string));
     if (search) {
       const searchTerm = `%${search}%`;
       conditions.push(or(
@@ -158,6 +176,20 @@ app.get('/api/factories', async (req, res) => {
         ilike(factories.state, searchTerm)
       ));
     }
+    if (state) {
+      conditions.push(eq(factories.state, state as string));
+    }
+    if (company) {
+      conditions.push(eq(factories.companyId, company as string));
+    }
+
+    // Get total count
+    const [countResult] = await db
+      .select({ total: count() })
+      .from(factories)
+      .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined);
+
+    const total = countResult?.total ?? 0;
 
     const result = await db
       .select({
@@ -175,12 +207,18 @@ app.get('/api/factories', async (req, res) => {
       .from(factories)
       .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined)
       .orderBy(factories.name)
-      .limit(limitNum + 1);
+      .limit(limitNum)
+      .offset(offsetNum);
 
-    const hasMore = result.length > limitNum;
-    const data = hasMore ? result.slice(0, limitNum) : result;
+    const hasMore = offsetNum + result.length < total;
 
-    res.json({ data, nextCursor: hasMore ? data[data.length - 1].id : null });
+    res.json({
+      data: result,
+      total,
+      offset: offsetNum,
+      limit: limitNum,
+      hasMore,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -226,49 +264,68 @@ app.get('/api/factories/geojson', async (req, res) => {
   }
 });
 
-// Occupations list
+// Occupations list (offset-based pagination)
 app.get('/api/occupations', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
   try {
-    const { cursor, limit = '20' } = req.query;
+    const { offset = '0', limit = '20', search } = req.query;
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
+
+    const conditions: any[] = [];
+    if (search) {
+      const searchTerm = `%${search}%`;
+      conditions.push(ilike(occupations.title, searchTerm));
+    }
+
+    const [countResult] = await db
+      .select({ total: count() })
+      .from(occupations)
+      .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined);
+
+    const total = countResult?.total ?? 0;
 
     const result = await db
       .select()
       .from(occupations)
-      .where(cursor ? gt(occupations.id, cursor as string) : undefined)
+      .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined)
       .orderBy(occupations.title)
-      .limit(limitNum + 1);
+      .limit(limitNum)
+      .offset(offsetNum);
 
-    const hasMore = result.length > limitNum;
-    const data = hasMore ? result.slice(0, limitNum) : result;
+    const hasMore = offsetNum + result.length < total;
 
-    res.json({ data, nextCursor: hasMore ? data[data.length - 1].id : null });
+    res.json({ data: result, total, offset: offsetNum, limit: limitNum, hasMore });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Skills list
+// Skills list (offset-based pagination)
 app.get('/api/skills', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
   try {
-    const { cursor, limit = '20' } = req.query;
+    const { offset = '0', limit = '20', search, category } = req.query;
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
-    const result = await db
-      .select()
-      .from(skills)
-      .where(cursor ? gt(skills.id, cursor as string) : undefined)
-      .orderBy(skills.name)
-      .limit(limitNum + 1);
+    const conditions: any[] = [];
+    if (search) {
+      const searchTerm = `%${search}%`;
+      conditions.push(or(ilike(skills.name, searchTerm), ilike(skills.category, searchTerm)));
+    }
+    if (category) {
+      conditions.push(eq(skills.category, category as string));
+    }
 
-    const hasMore = result.length > limitNum;
-    const data = hasMore ? result.slice(0, limitNum) : result;
+      .limit(limitNum)
+      .offset(offsetNum);
 
-    res.json({ data, nextCursor: hasMore ? data[data.length - 1].id : null });
+    const hasMore = offsetNum + result.length < total;
+
+    res.json({ data: result, total, offset: offsetNum, limit: limitNum, hasMore });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -278,8 +335,12 @@ app.get('/api/skills', async (req, res) => {
 app.get('/api/factories/:id', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
+  const { id } = req.params;
+  if (!isValidUUID(id)) {
+    return res.status(400).json({ error: 'Invalid factory ID format' });
+  }
+
   try {
-    const { id } = req.params;
     const result = await db
       .select({
         id: factories.id,
@@ -325,8 +386,12 @@ app.get('/api/factories/:id', async (req, res) => {
 app.get('/api/companies/:id', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
+  const { id } = req.params;
+  if (!isValidUUID(id)) {
+    return res.status(400).json({ error: 'Invalid company ID format' });
+  }
+
   try {
-    const { id } = req.params;
     const result = await db
       .select()
       .from(companies)
@@ -362,8 +427,12 @@ app.get('/api/companies/:id', async (req, res) => {
 app.get('/api/occupations/:id', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
+  const { id } = req.params;
+  if (!isValidUUID(id)) {
+    return res.status(400).json({ error: 'Invalid occupation ID format' });
+  }
+
   try {
-    const { id } = req.params;
     const result = await db
       .select()
       .from(occupations)
@@ -384,8 +453,12 @@ app.get('/api/occupations/:id', async (req, res) => {
 app.get('/api/skills/:id', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
+  const { id } = req.params;
+  if (!isValidUUID(id)) {
+    return res.status(400).json({ error: 'Invalid skill ID format' });
+  }
+
   try {
-    const { id } = req.params;
     const result = await db
       .select()
       .from(skills)

@@ -4,8 +4,12 @@ const API_BASE = import.meta.env.VITE_API_URL ||
 
 export interface PaginatedResponse<T> {
   data: T[];
-  nextCursor: string | null;
-  total?: number;
+  total: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+  // Legacy cursor support for backwards compatibility
+  nextCursor?: string | null;
 }
 
 // Related entity types
@@ -144,11 +148,14 @@ export type Entity = Company | Factory | Occupation | Skill;
 export type EntityDetail = CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail;
 
 interface FetchOptions {
-  cursor?: string;
+  offset?: number;
   limit?: number;
   search?: string;
   sort?: string;
   order?: 'asc' | 'desc';
+  state?: string;
+  company?: string;
+  category?: string;
   [key: string]: string | number | boolean | undefined;
 }
 

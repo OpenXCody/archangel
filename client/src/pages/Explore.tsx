@@ -102,7 +102,9 @@ export default function Explore() {
     setSearchParams(params);
   };
 
-  // Companies query - always enabled to support quick tab switching
+  const PAGE_SIZE = 20;
+
+  // Companies query - offset-based pagination
   const {
     data: companiesData,
     fetchNextPage: fetchNextCompanies,
@@ -112,14 +114,16 @@ export default function Explore() {
     isFetching: isFetchingCompanies,
   } = useInfiniteQuery({
     queryKey: ['explore-companies'],
-    queryFn: ({ pageParam }) =>
-      companiesApi.list({ cursor: pageParam, limit: 20 }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    staleTime: 1000 * 60 * 5, // 5 min cache
+    queryFn: ({ pageParam = 0 }) =>
+      companiesApi.list({ offset: pageParam, limit: PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined,
+    staleTime: 1000 * 60 * 5,
+    enabled: activeTab === 'all' || activeTab === 'companies',
   });
 
-  // Factories query
+  // Factories query - offset-based pagination
   const {
     data: factoriesData,
     fetchNextPage: fetchNextFactories,
@@ -129,14 +133,16 @@ export default function Explore() {
     isFetching: isFetchingFactories,
   } = useInfiniteQuery({
     queryKey: ['explore-factories'],
-    queryFn: ({ pageParam }) =>
-      factoriesApi.list({ cursor: pageParam, limit: 20 }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    queryFn: ({ pageParam = 0 }) =>
+      factoriesApi.list({ offset: pageParam, limit: PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined,
     staleTime: 1000 * 60 * 5,
+    enabled: activeTab === 'all' || activeTab === 'factories',
   });
 
-  // Occupations query
+  // Occupations query - offset-based pagination
   const {
     data: occupationsData,
     fetchNextPage: fetchNextOccupations,
@@ -146,14 +152,16 @@ export default function Explore() {
     isFetching: isFetchingOccupations,
   } = useInfiniteQuery({
     queryKey: ['explore-occupations'],
-    queryFn: ({ pageParam }) =>
-      occupationsApi.list({ cursor: pageParam, limit: 20 }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    queryFn: ({ pageParam = 0 }) =>
+      occupationsApi.list({ offset: pageParam, limit: PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined,
     staleTime: 1000 * 60 * 5,
+    enabled: activeTab === 'all' || activeTab === 'occupations',
   });
 
-  // Skills query
+  // Skills query - offset-based pagination
   const {
     data: skillsData,
     fetchNextPage: fetchNextSkills,
@@ -163,11 +171,13 @@ export default function Explore() {
     isFetching: isFetchingSkills,
   } = useInfiniteQuery({
     queryKey: ['explore-skills'],
-    queryFn: ({ pageParam }) =>
-      skillsApi.list({ cursor: pageParam, limit: 20 }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    queryFn: ({ pageParam = 0 }) =>
+      skillsApi.list({ offset: pageParam, limit: PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined,
     staleTime: 1000 * 60 * 5,
+    enabled: activeTab === 'all' || activeTab === 'skills',
   });
 
   // Grouped data for "All" tab
