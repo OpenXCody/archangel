@@ -266,6 +266,134 @@ app.get('/api/skills', async (req, res) => {
   }
 });
 
+// Factory detail
+app.get('/api/factories/:id', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+
+  try {
+    const { id } = req.params;
+    const result = await db
+      .select({
+        id: factories.id,
+        name: factories.name,
+        companyId: factories.companyId,
+        specialization: factories.specialization,
+        description: factories.description,
+        latitude: factories.latitude,
+        longitude: factories.longitude,
+        state: factories.state,
+        workforceSize: factories.workforceSize,
+        openPositions: factories.openPositions,
+        createdAt: factories.createdAt,
+      })
+      .from(factories)
+      .where(eq(factories.id, id))
+      .limit(1);
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Factory not found' });
+    }
+
+    const factory = result[0];
+
+    // Get company if linked
+    let company = null;
+    if (factory.companyId) {
+      const companyResult = await db
+        .select({ id: companies.id, name: companies.name, industry: companies.industry })
+        .from(companies)
+        .where(eq(companies.id, factory.companyId))
+        .limit(1);
+      company = companyResult[0] || null;
+    }
+
+    res.json({ ...factory, company });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Company detail
+app.get('/api/companies/:id', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+
+  try {
+    const { id } = req.params;
+    const result = await db
+      .select()
+      .from(companies)
+      .where(eq(companies.id, id))
+      .limit(1);
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+
+    const company = result[0];
+
+    // Get factories for this company
+    const factoryList = await db
+      .select({
+        id: factories.id,
+        name: factories.name,
+        state: factories.state,
+        specialization: factories.specialization,
+        workforceSize: factories.workforceSize,
+      })
+      .from(factories)
+      .where(eq(factories.companyId, id))
+      .orderBy(factories.name);
+
+    res.json({ ...company, factories: factoryList });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Occupation detail
+app.get('/api/occupations/:id', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+
+  try {
+    const { id } = req.params;
+    const result = await db
+      .select()
+      .from(occupations)
+      .where(eq(occupations.id, id))
+      .limit(1);
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Occupation not found' });
+    }
+
+    res.json(result[0]);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Skill detail
+app.get('/api/skills/:id', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+
+  try {
+    const { id } = req.params;
+    const result = await db
+      .select()
+      .from(skills)
+      .where(eq(skills.id, id))
+      .limit(1);
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Skill not found' });
+    }
+
+    res.json(result[0]);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 404
 app.use((req, res) => {
   res.status(404).json({ error: 'not found', path: req.path });
