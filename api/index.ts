@@ -106,12 +106,12 @@ app.get('/api/stats/counts', async (req, res) => {
   }
 });
 
-// Companies list (offset-based pagination for stable sorting)
+// Companies list (offset-based pagination with filters and sorting)
 app.get('/api/companies', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
   try {
-    const { offset = '0', limit = '20', search } = req.query;
+    const { offset = '0', limit = '20', search, industry, sort = 'name', order = 'asc' } = req.query;
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
@@ -119,6 +119,9 @@ app.get('/api/companies', async (req, res) => {
     if (search) {
       const searchTerm = `%${search}%`;
       conditions.push(or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm)));
+    }
+    if (industry) {
+      conditions.push(eq(companies.industry, industry as string));
     }
 
     // Get total count for pagination info
@@ -128,6 +131,18 @@ app.get('/api/companies', async (req, res) => {
       .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined);
 
     const total = countResult?.total ?? 0;
+
+    // Build order by clause
+    let orderByClause;
+    if (sort === 'factoryCount') {
+      orderByClause = order === 'desc'
+        ? sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id) DESC, ${companies.name} ASC`
+        : sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id) ASC, ${companies.name} ASC`;
+    } else {
+      orderByClause = order === 'desc'
+        ? sql`${companies.name} DESC`
+        : sql`${companies.name} ASC`;
+    }
 
     const result = await db
       .select({
@@ -140,7 +155,7 @@ app.get('/api/companies', async (req, res) => {
       })
       .from(companies)
       .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined)
-      .orderBy(sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id) DESC`, companies.name)
+      .orderBy(orderByClause)
       .limit(limitNum)
       .offset(offsetNum);
 
@@ -158,12 +173,12 @@ app.get('/api/companies', async (req, res) => {
   }
 });
 
-// Factories list (offset-based pagination)
+// Factories list (offset-based pagination with filters and sorting)
 app.get('/api/factories', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
   try {
-    const { offset = '0', limit = '20', search, state, company } = req.query;
+    const { offset = '0', limit = '20', search, state, company, industry, sort = 'name', order = 'asc' } = req.query;
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
@@ -182,6 +197,10 @@ app.get('/api/factories', async (req, res) => {
     if (company) {
       conditions.push(eq(factories.companyId, company as string));
     }
+    if (industry) {
+      // industry maps to specialization in factories
+      conditions.push(eq(factories.specialization, industry as string));
+    }
 
     // Get total count
     const [countResult] = await db
@@ -190,6 +209,18 @@ app.get('/api/factories', async (req, res) => {
       .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined);
 
     const total = countResult?.total ?? 0;
+
+    // Build order by clause
+    let orderByClause;
+    if (sort === 'workforceSize') {
+      orderByClause = order === 'desc'
+        ? sql`${factories.workforceSize} DESC NULLS LAST, ${factories.name} ASC`
+        : sql`${factories.workforceSize} ASC NULLS LAST, ${factories.name} ASC`;
+    } else {
+      orderByClause = order === 'desc'
+        ? sql`${factories.name} DESC`
+        : sql`${factories.name} ASC`;
+    }
 
     const result = await db
       .select({
@@ -206,7 +237,7 @@ app.get('/api/factories', async (req, res) => {
       })
       .from(factories)
       .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined)
-      .orderBy(factories.name)
+      .orderBy(orderByClause)
       .limit(limitNum)
       .offset(offsetNum);
 
