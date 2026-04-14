@@ -69,6 +69,7 @@ export default defineConfig({
     outDir: '../dist',
     emptyOutDir: true,
     sourcemap: true,
+    chunkSizeWarningLimit: 1000, // MapLibre is large
     rollupOptions: {
       output: {
         manualChunks: {
