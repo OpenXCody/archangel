@@ -1,54 +1,73 @@
-import 'dotenv/config';
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import companiesRouter from '../server/routes/companies';
-import factoriesRouter from '../server/routes/factories';
-import occupationsRouter from '../server/routes/occupations';
-import skillsRouter from '../server/routes/skills';
-import importRouter from '../server/routes/import';
-import statsRouter from '../server/routes/stats';
-import searchRouter from '../server/routes/search';
-import mapRouter from '../server/routes/map';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const app = express();
+// Lazy load Express app to catch initialization errors
+let app: any = null;
+let initError: Error | null = null;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+async function getApp() {
+  if (initError) throw initError;
+  if (app) return app;
 
-// API Routes - mounted at /api in vercel.json rewrites
-app.use('/api/companies', companiesRouter);
-app.use('/api/factories', factoriesRouter);
-app.use('/api/occupations', occupationsRouter);
-app.use('/api/skills', skillsRouter);
-app.use('/api/import', importRouter);
-app.use('/api/stats', statsRouter);
-app.use('/api/search', searchRouter);
-app.use('/api/map', mapRouter);
+  try {
+    const express = (await import('express')).default;
+    const cors = (await import('cors')).default;
 
-// Health check
-app.get('/api/health', (_req: Request, res: Response) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    hasDbUrl: !!process.env.DATABASE_URL,
-    nodeEnv: process.env.NODE_ENV,
-  });
-});
+    // Dynamically import routes
+    const { db } = await import('../server/db');
+    const companiesRouter = (await import('../server/routes/companies')).default;
+    const factoriesRouter = (await import('../server/routes/factories')).default;
+    const occupationsRouter = (await import('../server/routes/occupations')).default;
+    const skillsRouter = (await import('../server/routes/skills')).default;
+    const importRouter = (await import('../server/routes/import')).default;
+    const statsRouter = (await import('../server/routes/stats')).default;
+    const searchRouter = (await import('../server/routes/search')).default;
+    const mapRouter = (await import('../server/routes/map')).default;
 
-// 404 handler
-app.use((_req: Request, res: Response) => {
-  res.status(404).json({ error: 'Not Found', message: 'Route not found' });
-});
+    app = express();
+    app.use(cors());
+    app.use(express.json());
 
-// Error handling middleware
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Error:', err.message);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
-  });
-});
+    // Mount routes
+    app.use('/api/companies', companiesRouter);
+    app.use('/api/factories', factoriesRouter);
+    app.use('/api/occupations', occupationsRouter);
+    app.use('/api/skills', skillsRouter);
+    app.use('/api/import', importRouter);
+    app.use('/api/stats', statsRouter);
+    app.use('/api/search', searchRouter);
+    app.use('/api/map', mapRouter);
 
-// Export for Vercel serverless
-export default app;
+    // Health check
+    app.get('/api/health', (_req: any, res: any) => {
+      res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        dbConnected: !!db,
+      });
+    });
+
+    // 404 handler
+    app.use((_req: any, res: any) => {
+      res.status(404).json({ error: 'Not Found' });
+    });
+
+    return app;
+  } catch (err) {
+    initError = err as Error;
+    throw err;
+  }
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    const expressApp = await getApp();
+    return expressApp(req, res);
+  } catch (err: any) {
+    console.error('API initialization error:', err);
+    res.status(500).json({
+      error: 'API initialization failed',
+      message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    });
+  }
+}
