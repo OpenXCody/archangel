@@ -1,4 +1,5 @@
-// Minimal Express app for Vercel - no database
+// Vercel serverless handler wrapping Express
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import express from 'express';
 import cors from 'cors';
 
@@ -6,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health check - no database needed
+// Health check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -15,7 +16,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Minimal test
+// Test
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API works!' });
 });
@@ -25,4 +26,7 @@ app.use((req, res) => {
   res.status(404).json({ error: 'not found', path: req.path });
 });
 
-export default app;
+// Export handler function for Vercel
+export default function handler(req: VercelRequest, res: VercelResponse) {
+  return app(req, res);
+}

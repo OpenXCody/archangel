@@ -24234,7 +24234,7 @@ var require_lib3 = __commonJS({
 // api/_app.ts
 var app_exports = {};
 __export(app_exports, {
-  default: () => app_default
+  default: () => handler
 });
 module.exports = __toCommonJS(app_exports);
 var import_express = __toESM(require_express2(), 1);
@@ -24255,7 +24255,9 @@ app.get("/api/test", (req, res) => {
 app.use((req, res) => {
   res.status(404).json({ error: "not found", path: req.path });
 });
-var app_default = app;
+function handler(req, res) {
+  return app(req, res);
+}
 /*! Bundled license information:
 
 depd/index.js:
