@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS "factories_specialization_idx" ON "factories" USING btree ("specialization");

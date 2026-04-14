@@ -204,6 +204,7 @@ export const factories = pgTable(
     stateIdx: index('factories_state_idx').on(table.state),
     stateIdIdx: index('factories_state_id_idx').on(table.stateId),
     nameIdx: index('factories_name_idx').on(table.name),
+    specializationIdx: index('factories_specialization_idx').on(table.specialization),
   })
 );
 
