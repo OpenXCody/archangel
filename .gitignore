@@ -42,7 +42,7 @@ drizzle/meta/
 .claude/
 
 # Bundled API (generated during build)
-api/index.mjs
+api/index.js
 
 # Uploads (temp files)
 uploads/
