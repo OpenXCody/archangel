@@ -1,7 +1,7 @@
 // Vercel Serverless API - Inline handlers (no external imports from server/)
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { eq, gt, ilike, or, sql, count } from 'drizzle-orm';
+import { eq, ilike, or, sql, count, and, ne } from 'drizzle-orm';
 import { pgTable, uuid, text, integer, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 // ========== SCHEMA (inline) ==========
@@ -53,6 +53,32 @@ const states = pgTable('states', {
   code: varchar('code', { length: 2 }).notNull(),
   name: text('name').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+const industries = pgTable('industries', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+const companyIndustries = pgTable('company_industries', {
+  companyId: uuid('company_id').notNull(),
+  industryId: uuid('industry_id').notNull(),
+});
+
+const factoryOccupations = pgTable('factory_occupations', {
+  factoryId: uuid('factory_id').notNull(),
+  occupationId: uuid('occupation_id').notNull(),
+  headcount: integer('headcount'),
+  avgSalaryMin: integer('avg_salary_min'),
+  avgSalaryMax: integer('avg_salary_max'),
+});
+
+const occupationSkills = pgTable('occupation_skills', {
+  occupationId: uuid('occupation_id').notNull(),
+  skillId: uuid('skill_id').notNull(),
+  importance: text('importance'),
 });
 
 // ========== DATABASE ==========
@@ -453,10 +479,24 @@ app.get('/api/factories/:id', async (req, res) => {
       company = companyResult[0] || null;
     }
 
+    // Get occupations at this factory via junction table
+    const factoryOccupationsList = await db
+      .select({
+        id: occupations.id,
+        title: occupations.title,
+        onetCode: occupations.onetCode,
+        headcount: factoryOccupations.headcount,
+        avgSalaryMin: factoryOccupations.avgSalaryMin,
+        avgSalaryMax: factoryOccupations.avgSalaryMax,
+      })
+      .from(factoryOccupations)
+      .innerJoin(occupations, eq(factoryOccupations.occupationId, occupations.id))
+      .where(eq(factoryOccupations.factoryId, id));
+
     res.json({
       ...factory,
       company,
-      occupations: [], // Placeholder - populate when factory_occupations junction table exists
+      occupations: factoryOccupationsList,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -485,7 +525,7 @@ app.get('/api/companies/:id', async (req, res) => {
 
     const company = result[0];
 
-    // Get factories for this company
+    // Get factories for this company (include coordinates for map fly-to)
     const factoryList = await db
       .select({
         id: factories.id,
@@ -493,16 +533,30 @@ app.get('/api/companies/:id', async (req, res) => {
         state: factories.state,
         specialization: factories.specialization,
         workforceSize: factories.workforceSize,
+        openPositions: factories.openPositions,
+        latitude: factories.latitude,
+        longitude: factories.longitude,
       })
       .from(factories)
       .where(eq(factories.companyId, id))
       .orderBy(factories.name);
 
+    // Get industries for this company via junction table
+    const companyIndustriesList = await db
+      .select({
+        id: industries.id,
+        name: industries.name,
+      })
+      .from(companyIndustries)
+      .innerJoin(industries, eq(companyIndustries.industryId, industries.id))
+      .where(eq(companyIndustries.companyId, id));
+
     res.json({
       ...company,
       factories: factoryList,
-      industries: [], // Placeholder - populate when company_industries junction table exists
+      industries: companyIndustriesList,
       factoryCount: factoryList.length,
+      totalWorkforce: factoryList.reduce((sum, f) => sum + (f.workforceSize || 0), 0),
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -529,10 +583,42 @@ app.get('/api/occupations/:id', async (req, res) => {
       return res.status(404).json({ error: 'Occupation not found' });
     }
 
+    const occupation = result[0];
+
+    // Get skills required for this occupation via junction table
+    const occupationSkillsList = await db
+      .select({
+        id: skills.id,
+        name: skills.name,
+        category: skills.category,
+        importance: occupationSkills.importance,
+      })
+      .from(occupationSkills)
+      .innerJoin(skills, eq(occupationSkills.skillId, skills.id))
+      .where(eq(occupationSkills.occupationId, id));
+
+    // Get factories hiring this occupation via junction table (include coordinates for map fly-to)
+    const occupationFactoriesList = await db
+      .select({
+        id: factories.id,
+        name: factories.name,
+        state: factories.state,
+        companyId: factories.companyId,
+        companyName: sql<string>`(SELECT name FROM companies WHERE companies.id = ${factories.companyId})`,
+        headcount: factoryOccupations.headcount,
+        avgSalaryMin: factoryOccupations.avgSalaryMin,
+        avgSalaryMax: factoryOccupations.avgSalaryMax,
+        latitude: factories.latitude,
+        longitude: factories.longitude,
+      })
+      .from(factoryOccupations)
+      .innerJoin(factories, eq(factoryOccupations.factoryId, factories.id))
+      .where(eq(factoryOccupations.occupationId, id));
+
     res.json({
-      ...result[0],
-      skills: [], // Placeholder - populate when occupation_skills junction table exists
-      factories: [], // Placeholder - populate when factory_occupations junction table exists
+      ...occupation,
+      skills: occupationSkillsList,
+      factories: occupationFactoriesList,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -559,21 +645,34 @@ app.get('/api/skills/:id', async (req, res) => {
       return res.status(404).json({ error: 'Skill not found' });
     }
 
-    // Get related skills (same category)
     const skill = result[0];
+
+    // Get occupations that require this skill via junction table
+    const skillOccupationsList = await db
+      .select({
+        id: occupations.id,
+        title: occupations.title,
+        onetCode: occupations.onetCode,
+        importance: occupationSkills.importance,
+      })
+      .from(occupationSkills)
+      .innerJoin(occupations, eq(occupationSkills.occupationId, occupations.id))
+      .where(eq(occupationSkills.skillId, id));
+
+    // Get related skills (same category)
     let relatedSkills: any[] = [];
     if (skill.category) {
       relatedSkills = await db
-        .select({ id: skills.id, name: skills.name })
+        .select({ id: skills.id, name: skills.name, category: skills.category })
         .from(skills)
-        .where(sql`${skills.category} = ${skill.category} AND ${skills.id} != ${skill.id}`)
+        .where(and(eq(skills.category, skill.category), ne(skills.id, id)))
         .orderBy(skills.name)
         .limit(10);
     }
 
     res.json({
       ...skill,
-      occupations: [], // Placeholder - populate when occupation_skills junction table exists
+      occupations: skillOccupationsList,
       relatedSkills,
     });
   } catch (err: any) {
