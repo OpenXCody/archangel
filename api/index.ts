@@ -68,9 +68,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// UUID validation helper
+// UUID validation helper (accepts any valid UUID format, not just v4)
 const isValidUUID = (id: string) =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
 // Health check
 app.get('/api/health', async (req, res) => {

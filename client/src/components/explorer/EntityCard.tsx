@@ -1,6 +1,9 @@
+import { memo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Building2, Factory, Briefcase, Wrench, ChevronRight, MapPin, Users } from 'lucide-react';
 import type { Company, Factory as FactoryType, Occupation, Skill, EntityType } from '../../lib/api';
+import { companiesApi, factoriesApi, occupationsApi, skillsApi } from '../../lib/api';
 
 interface EntityCardProps {
   type: EntityType;
@@ -65,13 +68,19 @@ function formatNumber(n: number): string {
   return n.toString();
 }
 
+// Shared card props
+interface CardProps {
+  onMouseEnter?: () => void;
+}
+
 // Company Card - cleaner design with stats at bottom
-function CompanyCard({ data }: { data: Company }) {
+function CompanyCard({ data, onMouseEnter }: { data: Company } & CardProps) {
   const Icon = ENTITY_CONFIG.companies.icon;
 
   return (
     <Link
       to={`/companies/${data.id}`}
+      onMouseEnter={onMouseEnter}
       className={`
         group block p-4
         bg-white/[0.02]
@@ -128,12 +137,13 @@ function CompanyCard({ data }: { data: Company }) {
 }
 
 // Factory Card
-function FactoryCard({ data }: { data: FactoryType }) {
+function FactoryCard({ data, onMouseEnter }: { data: FactoryType } & CardProps) {
   const Icon = ENTITY_CONFIG.factories.icon;
 
   return (
     <Link
       to={`/factories/${data.id}`}
+      onMouseEnter={onMouseEnter}
       className={`
         group block p-4
         bg-white/[0.02]
@@ -199,12 +209,13 @@ function FactoryCard({ data }: { data: FactoryType }) {
 }
 
 // Occupation Card
-function OccupationCard({ data }: { data: Occupation }) {
+function OccupationCard({ data, onMouseEnter }: { data: Occupation } & CardProps) {
   const Icon = ENTITY_CONFIG.occupations.icon;
 
   return (
     <Link
       to={`/occupations/${data.id}`}
+      onMouseEnter={onMouseEnter}
       className={`
         group block p-4
         bg-white/[0.02]
@@ -261,12 +272,13 @@ function OccupationCard({ data }: { data: Occupation }) {
 }
 
 // Skill Card
-function SkillCard({ data }: { data: Skill }) {
+function SkillCard({ data, onMouseEnter }: { data: Skill } & CardProps) {
   const Icon = ENTITY_CONFIG.skills.icon;
 
   return (
     <Link
       to={`/skills/${data.id}`}
+      onMouseEnter={onMouseEnter}
       className={`
         group block p-4
         bg-white/[0.02]
@@ -314,18 +326,64 @@ function SkillCard({ data }: { data: Skill }) {
   );
 }
 
-// Main EntityCard - routes to appropriate card type
-export default function EntityCard({ type, data }: EntityCardProps) {
+// Main EntityCard - routes to appropriate card type with prefetch on hover
+function EntityCardInner({ type, data }: EntityCardProps) {
+  const queryClient = useQueryClient();
+
+  // Prefetch entity detail on hover for instant navigation
+  const handleMouseEnter = useCallback(() => {
+    const id = data.id;
+    switch (type) {
+      case 'companies':
+        queryClient.prefetchQuery({
+          queryKey: ['company', id],
+          queryFn: () => companiesApi.get(id),
+          staleTime: 60000,
+        });
+        break;
+      case 'factories':
+        queryClient.prefetchQuery({
+          queryKey: ['factory', id],
+          queryFn: () => factoriesApi.get(id),
+          staleTime: 60000,
+        });
+        break;
+      case 'occupations':
+        queryClient.prefetchQuery({
+          queryKey: ['occupation', id],
+          queryFn: () => occupationsApi.get(id),
+          staleTime: 60000,
+        });
+        break;
+      case 'skills':
+        queryClient.prefetchQuery({
+          queryKey: ['skill', id],
+          queryFn: () => skillsApi.get(id),
+          staleTime: 60000,
+        });
+        break;
+    }
+  }, [queryClient, type, data.id]);
+
+  const cardProps = { onMouseEnter: handleMouseEnter };
+
   switch (type) {
     case 'companies':
-      return <CompanyCard data={data as Company} />;
+      return <CompanyCard data={data as Company} {...cardProps} />;
     case 'factories':
-      return <FactoryCard data={data as FactoryType} />;
+      return <FactoryCard data={data as FactoryType} {...cardProps} />;
     case 'occupations':
-      return <OccupationCard data={data as Occupation} />;
+      return <OccupationCard data={data as Occupation} {...cardProps} />;
     case 'skills':
-      return <SkillCard data={data as Skill} />;
+      return <SkillCard data={data as Skill} {...cardProps} />;
     default:
       return null;
   }
 }
+
+// Memoized export - only re-renders when type or data.id changes
+const EntityCard = memo(EntityCardInner, (prev, next) =>
+  prev.type === next.type && prev.data.id === next.data.id
+);
+
+export default EntityCard;

@@ -68,14 +68,22 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
-    sourcemap: true,
+    sourcemap: false, // Disable in production for smaller bundles
     chunkSizeWarningLimit: 1000, // MapLibre is large
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log in production
+        drop_debugger: true,
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           map: ['maplibre-gl'],
           query: ['@tanstack/react-query', 'zustand'],
+          ui: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-popover'],
         },
       },
     },

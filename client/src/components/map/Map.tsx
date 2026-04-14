@@ -247,13 +247,18 @@ export default function Map() {
         console.error('Failed to load US states layer:', err);
       }
 
+      // Responsive cluster settings - smaller on mobile for better touch targets
+      const isMobile = window.innerWidth < 768;
+      const clusterRadius = isMobile ? 50 : 80;
+      const clusterMaxZoom = isMobile ? 10 : 12;
+
       // Add factories source with optimized clustering for scale
       currentMap.addSource('factories', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
         cluster: true,
-        clusterMaxZoom: 12, // Cluster until zoom 12 (was 11)
-        clusterRadius: 80, // Larger radius for more aggressive clustering (was 60)
+        clusterMaxZoom,
+        clusterRadius,
         clusterMinPoints: 3, // Require 3+ points to cluster
         // Generate cluster properties for richer clusters
         clusterProperties: {
