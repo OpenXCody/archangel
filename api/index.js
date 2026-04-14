@@ -80031,3 +80031,4 @@ xlsx/xlsx.js:
   (*! xlsx.js (C) 2013-present SheetJS -- http://sheetjs.com *)
   (*! sheetjs (C) 2013-present SheetJS -- http://sheetjs.com *)
 */
+module.exports = module.exports.default || module.exports;

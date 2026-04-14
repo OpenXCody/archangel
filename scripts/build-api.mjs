@@ -14,6 +14,10 @@ await esbuild.build({
     'child_process', 'cluster', 'dgram', 'readline', 'repl', 'tty',
     'v8', 'vm', 'worker_threads', 'perf_hooks', 'async_hooks', 'assert',
   ],
+  footer: {
+    // Vercel expects module.exports to be the handler/app directly
+    js: 'module.exports = module.exports.default || module.exports;',
+  },
 });
 
 console.log('API bundled successfully to api/index.js');
