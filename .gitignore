@@ -41,8 +41,8 @@ drizzle/meta/
 # Claude Code local settings
 .claude/
 
-# Bundled API (generated during build)
-api/index.js
+# Bundled API - committed for Vercel
+# api/index.js
 
 # Uploads (temp files)
 uploads/
