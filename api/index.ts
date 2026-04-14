@@ -255,11 +255,45 @@ app.get('/api/factories', async (req, res) => {
   }
 });
 
-// Factories GeoJSON
+// Factories GeoJSON (with optional filters)
 app.get('/api/factories/geojson', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
   try {
+    const { company, states, industry, bounds } = req.query;
+
+    // Build filter conditions
+    const conditions: any[] = [
+      sql`${factories.latitude} IS NOT NULL AND ${factories.longitude} IS NOT NULL`
+    ];
+
+    if (company) {
+      conditions.push(eq(factories.companyId, company as string));
+    }
+
+    if (states) {
+      // States can be comma-separated list
+      const stateList = (states as string).split(',').map(s => s.trim()).filter(Boolean);
+      if (stateList.length > 0) {
+        conditions.push(sql`${factories.state} IN (${sql.join(stateList.map(s => sql`${s}`), sql`, `)})`);
+      }
+    }
+
+    if (industry) {
+      conditions.push(eq(factories.specialization, industry as string));
+    }
+
+    // Viewport bounds filter: "minLng,minLat,maxLng,maxLat"
+    if (bounds) {
+      const [minLng, minLat, maxLng, maxLat] = (bounds as string).split(',').map(Number);
+      if (!isNaN(minLng) && !isNaN(minLat) && !isNaN(maxLng) && !isNaN(maxLat)) {
+        conditions.push(sql`CAST(${factories.longitude} AS DECIMAL) >= ${minLng}`);
+        conditions.push(sql`CAST(${factories.longitude} AS DECIMAL) <= ${maxLng}`);
+        conditions.push(sql`CAST(${factories.latitude} AS DECIMAL) >= ${minLat}`);
+        conditions.push(sql`CAST(${factories.latitude} AS DECIMAL) <= ${maxLat}`);
+      }
+    }
+
     const result = await db
       .select({
         id: factories.id,
@@ -271,7 +305,7 @@ app.get('/api/factories/geojson', async (req, res) => {
         companyId: factories.companyId,
       })
       .from(factories)
-      .where(sql`${factories.latitude} IS NOT NULL AND ${factories.longitude} IS NOT NULL`);
+      .where(sql`${sql.join(conditions, sql` AND `)}`);
 
     const features = result.map((f) => ({
       type: 'Feature' as const,
@@ -419,7 +453,11 @@ app.get('/api/factories/:id', async (req, res) => {
       company = companyResult[0] || null;
     }
 
-    res.json({ ...factory, company });
+    res.json({
+      ...factory,
+      company,
+      occupations: [], // Placeholder - populate when factory_occupations junction table exists
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -460,7 +498,12 @@ app.get('/api/companies/:id', async (req, res) => {
       .where(eq(factories.companyId, id))
       .orderBy(factories.name);
 
-    res.json({ ...company, factories: factoryList });
+    res.json({
+      ...company,
+      factories: factoryList,
+      industries: [], // Placeholder - populate when company_industries junction table exists
+      factoryCount: factoryList.length,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -486,7 +529,11 @@ app.get('/api/occupations/:id', async (req, res) => {
       return res.status(404).json({ error: 'Occupation not found' });
     }
 
-    res.json(result[0]);
+    res.json({
+      ...result[0],
+      skills: [], // Placeholder - populate when occupation_skills junction table exists
+      factories: [], // Placeholder - populate when factory_occupations junction table exists
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -512,7 +559,23 @@ app.get('/api/skills/:id', async (req, res) => {
       return res.status(404).json({ error: 'Skill not found' });
     }
 
-    res.json(result[0]);
+    // Get related skills (same category)
+    const skill = result[0];
+    let relatedSkills: any[] = [];
+    if (skill.category) {
+      relatedSkills = await db
+        .select({ id: skills.id, name: skills.name })
+        .from(skills)
+        .where(sql`${skills.category} = ${skill.category} AND ${skills.id} != ${skill.id}`)
+        .orderBy(skills.name)
+        .limit(10);
+    }
+
+    res.json({
+      ...skill,
+      occupations: [], // Placeholder - populate when occupation_skills junction table exists
+      relatedSkills,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

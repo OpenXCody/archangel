@@ -331,33 +331,36 @@ function EntityCardInner({ type, data }: EntityCardProps) {
   const queryClient = useQueryClient();
 
   // Prefetch entity detail on hover for instant navigation
+  // Query keys must match EntityDetail.tsx: [entityType, id] where entityType is plural
   const handleMouseEnter = useCallback(() => {
     const id = data.id;
+
+    // Use switch for proper TypeScript type inference
     switch (type) {
       case 'companies':
         queryClient.prefetchQuery({
-          queryKey: ['company', id],
+          queryKey: ['companies', id],
           queryFn: () => companiesApi.get(id),
           staleTime: 60000,
         });
         break;
       case 'factories':
         queryClient.prefetchQuery({
-          queryKey: ['factory', id],
+          queryKey: ['factories', id],
           queryFn: () => factoriesApi.get(id),
           staleTime: 60000,
         });
         break;
       case 'occupations':
         queryClient.prefetchQuery({
-          queryKey: ['occupation', id],
+          queryKey: ['occupations', id],
           queryFn: () => occupationsApi.get(id),
           staleTime: 60000,
         });
         break;
       case 'skills':
         queryClient.prefetchQuery({
-          queryKey: ['skill', id],
+          queryKey: ['skills', id],
           queryFn: () => skillsApi.get(id),
           staleTime: 60000,
         });
