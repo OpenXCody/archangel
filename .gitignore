@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.output/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Capacitor
+ios/
+android/
+
+# Testing
+coverage/
+
+# Vercel
+.vercel/
+
+# Drizzle
+drizzle/meta/
+
+# Temp files
+*.tmp
+*.temp
+
+# Claude Code local settings
+.claude/
+
+# Uploads (temp files)
+uploads/
+
+# Test files
+test-*.csv
