@@ -1,11 +1,8 @@
 // Vercel Serverless API - Inline handlers (no external imports from server/)
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { eq, gt, ilike, or, sql, count } from 'drizzle-orm';
-import {
-  pgTable, uuid, text, integer, timestamp, pgEnum, index, uniqueIndex, primaryKey, varchar,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 // ========== SCHEMA (inline) ==========
 const companies = pgTable('companies', {
@@ -148,8 +145,19 @@ app.get('/api/factories', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
   try {
-    const { cursor, limit = '20' } = req.query;
+    const { cursor, limit = '20', search } = req.query;
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+
+    const conditions: any[] = [];
+    if (cursor) conditions.push(gt(factories.id, cursor as string));
+    if (search) {
+      const searchTerm = `%${search}%`;
+      conditions.push(or(
+        ilike(factories.name, searchTerm),
+        ilike(factories.specialization, searchTerm),
+        ilike(factories.state, searchTerm)
+      ));
+    }
 
     const result = await db
       .select({
@@ -165,7 +173,7 @@ app.get('/api/factories', async (req, res) => {
         createdAt: factories.createdAt,
       })
       .from(factories)
-      .where(cursor ? gt(factories.id, cursor as string) : undefined)
+      .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined)
       .orderBy(factories.name)
       .limit(limitNum + 1);
 
@@ -394,13 +402,168 @@ app.get('/api/skills/:id', async (req, res) => {
   }
 });
 
+// Global search
+app.get('/api/search', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+
+  try {
+    const { q, types, limit = '5' } = req.query;
+    const query = (q as string || '').trim();
+
+    if (!query) {
+      return res.json({
+        query: '',
+        results: {
+          companies: { count: 0, items: [] },
+          factories: { count: 0, items: [] },
+          occupations: { count: 0, items: [] },
+          skills: { count: 0, items: [] },
+          states: { count: 0, items: [] },
+        },
+        totalCount: 0,
+      });
+    }
+
+    const limitNum = Math.min(parseInt(limit as string, 10) || 5, 20);
+    const searchTerm = `%${query}%`;
+    const typeFilter = types ? (types as string).split(',') : null;
+
+    const shouldSearch = (type: string) => !typeFilter || typeFilter.includes(type);
+
+    // Search companies
+    let companyResults: any[] = [];
+    let companyCount = 0;
+    if (shouldSearch('companies')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(companies)
+          .where(or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm))),
+        db.select({ id: companies.id, name: companies.name, industry: companies.industry })
+          .from(companies)
+          .where(or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm)))
+          .orderBy(companies.name)
+          .limit(limitNum),
+      ]);
+      companyCount = countRes[0]?.count ?? 0;
+      companyResults = dataRes.map(c => ({
+        id: c.id,
+        name: c.name,
+        type: 'companies' as const,
+        subtitle: c.industry,
+      }));
+    }
+
+    // Search factories
+    let factoryResults: any[] = [];
+    let factoryCount = 0;
+    if (shouldSearch('factories')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(factories)
+          .where(or(ilike(factories.name, searchTerm), ilike(factories.specialization, searchTerm), ilike(factories.state, searchTerm))),
+        db.select({ id: factories.id, name: factories.name, state: factories.state, specialization: factories.specialization })
+          .from(factories)
+          .where(or(ilike(factories.name, searchTerm), ilike(factories.specialization, searchTerm), ilike(factories.state, searchTerm)))
+          .orderBy(factories.name)
+          .limit(limitNum),
+      ]);
+      factoryCount = countRes[0]?.count ?? 0;
+      factoryResults = dataRes.map(f => ({
+        id: f.id,
+        name: f.name,
+        type: 'factories' as const,
+        subtitle: f.specialization,
+        meta: f.state,
+      }));
+    }
+
+    // Search occupations
+    let occupationResults: any[] = [];
+    let occupationCount = 0;
+    if (shouldSearch('occupations')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(occupations)
+          .where(ilike(occupations.title, searchTerm)),
+        db.select({ id: occupations.id, title: occupations.title, onetCode: occupations.onetCode })
+          .from(occupations)
+          .where(ilike(occupations.title, searchTerm))
+          .orderBy(occupations.title)
+          .limit(limitNum),
+      ]);
+      occupationCount = countRes[0]?.count ?? 0;
+      occupationResults = dataRes.map(o => ({
+        id: o.id,
+        name: o.title,
+        type: 'occupations' as const,
+        meta: o.onetCode,
+      }));
+    }
+
+    // Search skills
+    let skillResults: any[] = [];
+    let skillCount = 0;
+    if (shouldSearch('skills')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(skills)
+          .where(or(ilike(skills.name, searchTerm), ilike(skills.category, searchTerm))),
+        db.select({ id: skills.id, name: skills.name, category: skills.category })
+          .from(skills)
+          .where(or(ilike(skills.name, searchTerm), ilike(skills.category, searchTerm)))
+          .orderBy(skills.name)
+          .limit(limitNum),
+      ]);
+      skillCount = countRes[0]?.count ?? 0;
+      skillResults = dataRes.map(s => ({
+        id: s.id,
+        name: s.name,
+        type: 'skills' as const,
+        subtitle: s.category,
+      }));
+    }
+
+    // Search states
+    let stateResults: any[] = [];
+    let stateCount = 0;
+    if (shouldSearch('states')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(states)
+          .where(or(ilike(states.name, searchTerm), ilike(states.code, searchTerm))),
+        db.select({ id: states.id, name: states.name, code: states.code })
+          .from(states)
+          .where(or(ilike(states.name, searchTerm), ilike(states.code, searchTerm)))
+          .orderBy(states.name)
+          .limit(limitNum),
+      ]);
+      stateCount = countRes[0]?.count ?? 0;
+      stateResults = dataRes.map(s => ({
+        id: s.code,
+        name: s.name,
+        type: 'states' as const,
+        meta: s.code,
+      }));
+    }
+
+    res.json({
+      query,
+      results: {
+        companies: { count: companyCount, items: companyResults },
+        factories: { count: factoryCount, items: factoryResults },
+        occupations: { count: occupationCount, items: occupationResults },
+        skills: { count: skillCount, items: skillResults },
+        states: { count: stateCount, items: stateResults },
+      },
+      totalCount: companyCount + factoryCount + occupationCount + skillCount + stateCount,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 404
 app.use((req, res) => {
   res.status(404).json({ error: 'not found', path: req.path });
 });
 
 // ========== VERCEL HANDLER ==========
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   // Extract the actual path from query param (set by rewrite)
   const pathParam = req.query.path;
   const subPath = Array.isArray(pathParam) ? pathParam.join('/') : (pathParam || '');
