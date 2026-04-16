@@ -184,13 +184,24 @@ export const COLUMN_MAPPING_HINTS: Record<string, { aliases: string[]; dataType:
   companyId: { aliases: ['company_id', 'companyid', 'parent_id'], dataType: 'text' },
 
   // Other fields
-  industry: { aliases: ['industry', 'sector', 'naics', 'sic', 'business_type'], dataType: 'text' },
+  industry: { aliases: ['industry', 'sector', 'business_type'], dataType: 'text' },
   description: { aliases: ['description', 'desc', 'about', 'summary', 'notes', 'details'], dataType: 'text' },
   specialization: { aliases: ['specialization', 'specialty', 'focus', 'product', 'product_line'], dataType: 'text' },
-  workforceSize: { aliases: ['workforce', 'workforce_size', 'employees', 'headcount', 'emp_count', 'num_employees', 'worker_count'], dataType: 'numeric' },
+  workforceSize: { aliases: ['workforce', 'workforce_size', 'employees', 'employee_count', 'headcount', 'emp_count', 'num_employees', 'worker_count'], dataType: 'numeric' },
   openPositions: { aliases: ['open_positions', 'openings', 'vacancies', 'jobs', 'hiring'], dataType: 'numeric' },
   onetCode: { aliases: ['onet', 'onet_code', 'o_net', 'soc', 'soc_code'], dataType: 'text' },
   category: { aliases: ['category', 'cat', 'group', 'skill_category', 'skill_type', 'classification'], dataType: 'text' },
+
+  // Industry classification (NAICS, stored as reference on factory)
+  primaryNaics: { aliases: ['naics', 'naics_code', 'primary_naics', 'naics_primary'], dataType: 'text' },
+  primaryNaicsDescription: { aliases: ['naics_description', 'primary_naics_description', 'naics_desc', 'naics_label'], dataType: 'text' },
+
+  // Data provenance (from Pillar golden records)
+  sourceCount: { aliases: ['source_count', 'sources_count', 'num_sources'], dataType: 'numeric' },
+  confidence: { aliases: ['confidence', 'confidence_score', 'match_confidence'], dataType: 'numeric' },
+
+  // External reference — not a factory column; handled via external_references post-insert
+  epaRegistryId: { aliases: ['epa_registry_id', 'epa_id', 'frs_id', 'epa_frs'], dataType: 'text' },
 };
 
 /**
@@ -313,7 +324,8 @@ function getTargetFieldsForEntity(entityType: string): string[] {
     case 'factories':
       return [
         'name', 'companyId', 'companyName', 'address', 'city', 'state', 'country', 'zipCode',
-        'latitude', 'longitude', 'specialization', 'description', 'workforceSize', 'openPositions'
+        'latitude', 'longitude', 'specialization', 'description', 'workforceSize', 'openPositions',
+        'primaryNaics', 'primaryNaicsDescription', 'sourceCount', 'confidence', 'epaRegistryId',
       ];
     case 'occupations':
       return ['title', 'description', 'onetCode'];

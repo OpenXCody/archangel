@@ -13,14 +13,16 @@ import {
 } from 'lucide-react';
 import {
   searchApi,
-  type SearchEntityType,
   type SearchResultItem,
 } from '../../lib/api';
 import { useMapStore, type MapEntityType } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
 
+// Map-relevant entity types (refs, schools, programs are not map-related)
+type MapSearchableEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states';
+
 // Map search entity type to map entity type
-const searchToMapType: Record<Exclude<SearchEntityType, 'states'>, MapEntityType> = {
+const searchToMapType: Record<Exclude<MapSearchableEntityType, 'states'>, MapEntityType> = {
   companies: 'company',
   factories: 'factory',
   occupations: 'occupation',
@@ -28,7 +30,7 @@ const searchToMapType: Record<Exclude<SearchEntityType, 'states'>, MapEntityType
 };
 
 const ENTITY_CONFIG: Record<
-  SearchEntityType,
+  MapSearchableEntityType,
   { icon: React.ElementType; label: string; iconClass: string }
 > = {
   companies: { icon: Building2, label: 'Company', iconClass: 'text-amber-500' },
@@ -79,10 +81,10 @@ export default function MapSearch() {
     staleTime: 30000,
   });
 
-  // Flatten results for keyboard navigation
+  // Flatten results for keyboard navigation (only map-relevant entity types)
   const flatResults = useCallback((): SearchResultItem[] => {
     if (!searchResults) return [];
-    const order: SearchEntityType[] = ['states', 'factories', 'companies', 'occupations', 'skills'];
+    const order: MapSearchableEntityType[] = ['states', 'factories', 'companies', 'occupations', 'skills'];
     return order.flatMap((type) => searchResults.results[type]?.items || []);
   }, [searchResults]);
 
@@ -105,7 +107,7 @@ export default function MapSearch() {
         setFilters({ company: item.id, companyName: item.name });
       }
 
-      const mapType = searchToMapType[item.type];
+      const mapType = searchToMapType[item.type as Exclude<MapSearchableEntityType, 'states'>];
       if (mapType === 'factory') {
         selectFactory(item.id);
       } else {
@@ -409,7 +411,7 @@ export default function MapSearch() {
               </div>
             ) : hasResults ? (
               <div className="py-2">
-                {(['states', 'factories', 'companies', 'occupations', 'skills'] as SearchEntityType[]).map((type) => {
+                {(['states', 'factories', 'companies', 'occupations', 'skills'] as MapSearchableEntityType[]).map((type) => {
                   const items = searchResults?.results[type]?.items || [];
                   if (items.length === 0) return null;
 

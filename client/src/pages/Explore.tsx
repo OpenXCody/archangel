@@ -2,18 +2,24 @@ import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { Building2, Factory, Briefcase, Wrench, Loader2, Layers, Search, ChevronDown } from 'lucide-react';
+import { Building2, Factory, Briefcase, Wrench, Loader2, Layers, Search, ChevronDown, Boxes, GraduationCap, BookOpen } from 'lucide-react';
 import {
   companiesApi,
   factoriesApi,
   occupationsApi,
   skillsApi,
+  refsApi,
+  schoolsApi,
+  programsApi,
   statsApi,
   type EntityType,
   type Company,
   type Factory as FactoryType,
   type Occupation,
   type Skill,
+  type Ref,
+  type School,
+  type Program,
 } from '../lib/api';
 import EntityCard from '../components/explorer/EntityCard';
 import FilterBar, { type FilterState, SORT_OPTIONS } from '../components/explorer/FilterBar';
@@ -26,9 +32,15 @@ const TABS: { id: TabType; label: string; icon: React.ElementType; color: string
   { id: 'factories', label: 'Factories', icon: Factory, color: 'text-sky-400' },
   { id: 'occupations', label: 'Occupations', icon: Briefcase, color: 'text-violet-400' },
   { id: 'skills', label: 'Skills', icon: Wrench, color: 'text-emerald-500' },
+  { id: 'refs', label: 'Refs', icon: Boxes, color: 'text-teal-500' },
+  { id: 'schools', label: 'Schools', icon: GraduationCap, color: 'text-indigo-500' },
+  { id: 'programs', label: 'Programs', icon: BookOpen, color: 'text-fuchsia-500' },
 ];
 
-const SECTION_CONFIG: Record<EntityType, {
+// Only include browsable entity types (not persons)
+type BrowsableEntityType = Exclude<EntityType, 'persons'>;
+
+const SECTION_CONFIG: Record<BrowsableEntityType, {
   label: string;
   icon: React.ElementType;
   color: string;
@@ -38,6 +50,9 @@ const SECTION_CONFIG: Record<EntityType, {
   factories: { label: 'Factories', icon: Factory, color: 'text-sky-400', bgColor: 'bg-sky-400/10' },
   occupations: { label: 'Occupations', icon: Briefcase, color: 'text-violet-400', bgColor: 'bg-violet-400/10' },
   skills: { label: 'Skills', icon: Wrench, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10' },
+  refs: { label: 'Elements', icon: Boxes, color: 'text-teal-500', bgColor: 'bg-teal-500/10' },
+  schools: { label: 'Schools', icon: GraduationCap, color: 'text-indigo-500', bgColor: 'bg-indigo-500/10' },
+  programs: { label: 'Programs', icon: BookOpen, color: 'text-fuchsia-500', bgColor: 'bg-fuchsia-500/10' },
 };
 
 // Reusable Load More button component
@@ -112,7 +127,10 @@ type TaggedEntity =
   | { type: 'companies'; data: Company }
   | { type: 'factories'; data: FactoryType }
   | { type: 'occupations'; data: Occupation }
-  | { type: 'skills'; data: Skill };
+  | { type: 'skills'; data: Skill }
+  | { type: 'refs'; data: Ref }
+  | { type: 'schools'; data: School }
+  | { type: 'programs'; data: Program };
 
 function VirtualizedGrid({
   items,
@@ -230,8 +248,8 @@ function VirtualizedSection({
   onLoadMore,
   totalCount,
 }: {
-  type: EntityType;
-  items: (Company | FactoryType | Occupation | Skill)[];
+  type: BrowsableEntityType;
+  items: (Company | FactoryType | Occupation | Skill | Ref | School | Program)[];
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
@@ -242,7 +260,7 @@ function VirtualizedSection({
 
   // Group items into rows
   const rows = useMemo(() => {
-    const result: (Company | FactoryType | Occupation | Skill)[][] = [];
+    const result: (Company | FactoryType | Occupation | Skill | Ref | School | Program)[][] = [];
     for (let i = 0; i < items.length; i += columnCount) {
       result.push(items.slice(i, i + columnCount));
     }
@@ -390,8 +408,10 @@ export default function Explore() {
 
   // Get current sort config
   const sortConfig = useMemo(() => {
-    const options = SORT_OPTIONS[activeTab] || SORT_OPTIONS.all;
-    return options.find(o => o.value === sortValue) || options[0];
+    // Only use sort options for browsable tabs (not persons)
+    const tabKey = activeTab === 'persons' ? 'all' : activeTab;
+    const options = SORT_OPTIONS[tabKey as keyof typeof SORT_OPTIONS] || SORT_OPTIONS.all;
+    return options.find((o: typeof options[number]) => o.value === sortValue) || options[0];
   }, [activeTab, sortValue]);
 
   // Fetch entity counts for tab badges
@@ -545,13 +565,73 @@ export default function Explore() {
     enabled: activeTab === 'all' || activeTab === 'skills',
   });
 
+  // Refs query
+  const {
+    data: refsData,
+    fetchNextPage: fetchNextRefs,
+    hasNextPage: hasNextRefs,
+    isFetchingNextPage: isFetchingNextRefs,
+    isLoading: isLoadingRefs,
+    isFetching: isFetchingRefs,
+  } = useInfiniteQuery({
+    queryKey: ['explore-refs', sortConfig],
+    queryFn: ({ pageParam = 0 }) =>
+      refsApi.list({ offset: pageParam, limit: PAGE_SIZE, sort: sortConfig.field, order: sortConfig.order }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined,
+    staleTime: 1000 * 60 * 5,
+    enabled: activeTab === 'all' || activeTab === 'refs',
+  });
+
+  // Schools query
+  const {
+    data: schoolsData,
+    fetchNextPage: fetchNextSchools,
+    hasNextPage: hasNextSchools,
+    isFetchingNextPage: isFetchingNextSchools,
+    isLoading: isLoadingSchools,
+    isFetching: isFetchingSchools,
+  } = useInfiniteQuery({
+    queryKey: ['explore-schools', sortConfig],
+    queryFn: ({ pageParam = 0 }) =>
+      schoolsApi.list({ offset: pageParam, limit: PAGE_SIZE, sort: sortConfig.field, order: sortConfig.order }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined,
+    staleTime: 1000 * 60 * 5,
+    enabled: activeTab === 'all' || activeTab === 'schools',
+  });
+
+  // Programs query
+  const {
+    data: programsData,
+    fetchNextPage: fetchNextPrograms,
+    hasNextPage: hasNextPrograms,
+    isFetchingNextPage: isFetchingNextPrograms,
+    isLoading: isLoadingPrograms,
+    isFetching: isFetchingPrograms,
+  } = useInfiniteQuery({
+    queryKey: ['explore-programs', sortConfig],
+    queryFn: ({ pageParam = 0 }) =>
+      programsApi.list({ offset: pageParam, limit: PAGE_SIZE, sort: sortConfig.field, order: sortConfig.order }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined,
+    staleTime: 1000 * 60 * 5,
+    enabled: activeTab === 'all' || activeTab === 'programs',
+  });
+
   // Grouped data for "All" tab
   const groupedItems = useMemo(() => ({
     companies: companiesData?.pages.flatMap(p => p.data) ?? [],
     factories: factoriesData?.pages.flatMap(p => p.data) ?? [],
     occupations: occupationsData?.pages.flatMap(p => p.data) ?? [],
     skills: skillsData?.pages.flatMap(p => p.data) ?? [],
-  }), [companiesData, factoriesData, occupationsData, skillsData]);
+    refs: refsData?.pages.flatMap(p => p.data) ?? [],
+    schools: schoolsData?.pages.flatMap(p => p.data) ?? [],
+    programs: programsData?.pages.flatMap(p => p.data) ?? [],
+  }), [companiesData, factoriesData, occupationsData, skillsData, refsData, schoolsData, programsData]);
 
   // Combine data for single entity type tabs
   const items = useMemo(() => {
@@ -559,7 +639,10 @@ export default function Explore() {
       | { type: 'companies'; data: Company }
       | { type: 'factories'; data: FactoryType }
       | { type: 'occupations'; data: Occupation }
-      | { type: 'skills'; data: Skill };
+      | { type: 'skills'; data: Skill }
+      | { type: 'refs'; data: Ref }
+      | { type: 'schools'; data: School }
+      | { type: 'programs'; data: Program };
 
     const result: TaggedEntity[] = [];
 
@@ -579,24 +662,39 @@ export default function Explore() {
       skillsData?.pages.forEach((page) => {
         page.data.forEach((item) => result.push({ type: 'skills', data: item }));
       });
+    } else if (activeTab === 'refs') {
+      refsData?.pages.forEach((page) => {
+        page.data.forEach((item) => result.push({ type: 'refs', data: item }));
+      });
+    } else if (activeTab === 'schools') {
+      schoolsData?.pages.forEach((page) => {
+        page.data.forEach((item) => result.push({ type: 'schools', data: item }));
+      });
+    } else if (activeTab === 'programs') {
+      programsData?.pages.forEach((page) => {
+        page.data.forEach((item) => result.push({ type: 'programs', data: item }));
+      });
     }
 
     return result;
-  }, [activeTab, companiesData, factoriesData, occupationsData, skillsData]);
+  }, [activeTab, companiesData, factoriesData, occupationsData, skillsData, refsData, schoolsData, programsData]);
 
   // Total items for "All" tab
   const totalGroupedItems = useMemo(() =>
     groupedItems.companies.length +
     groupedItems.factories.length +
     groupedItems.occupations.length +
-    groupedItems.skills.length,
+    groupedItems.skills.length +
+    groupedItems.refs.length +
+    groupedItems.schools.length +
+    groupedItems.programs.length,
   [groupedItems]);
 
   // Loading states - check specific tab
   const isLoadingCurrentTab = useMemo(() => {
     if (activeTab === 'all') {
       // For "all" tab, show loading if any query is doing initial load
-      return isLoadingCompanies || isLoadingFactories || isLoadingOccupations || isLoadingSkills;
+      return isLoadingCompanies || isLoadingFactories || isLoadingOccupations || isLoadingSkills || isLoadingRefs || isLoadingSchools || isLoadingPrograms;
     }
     // For specific tabs, check that tab's loading state
     switch (activeTab) {
@@ -604,35 +702,44 @@ export default function Explore() {
       case 'factories': return isLoadingFactories;
       case 'occupations': return isLoadingOccupations;
       case 'skills': return isLoadingSkills;
+      case 'refs': return isLoadingRefs;
+      case 'schools': return isLoadingSchools;
+      case 'programs': return isLoadingPrograms;
       default: return false;
     }
-  }, [activeTab, isLoadingCompanies, isLoadingFactories, isLoadingOccupations, isLoadingSkills]);
+  }, [activeTab, isLoadingCompanies, isLoadingFactories, isLoadingOccupations, isLoadingSkills, isLoadingRefs, isLoadingSchools, isLoadingPrograms]);
 
   // Check if we're fetching (for background indicator)
   const isFetchingCurrentTab = useMemo(() => {
     if (activeTab === 'all') {
-      return isFetchingCompanies || isFetchingFactories || isFetchingOccupations || isFetchingSkills;
+      return isFetchingCompanies || isFetchingFactories || isFetchingOccupations || isFetchingSkills || isFetchingRefs || isFetchingSchools || isFetchingPrograms;
     }
     switch (activeTab) {
       case 'companies': return isFetchingCompanies;
       case 'factories': return isFetchingFactories;
       case 'occupations': return isFetchingOccupations;
       case 'skills': return isFetchingSkills;
+      case 'refs': return isFetchingRefs;
+      case 'schools': return isFetchingSchools;
+      case 'programs': return isFetchingPrograms;
       default: return false;
     }
-  }, [activeTab, isFetchingCompanies, isFetchingFactories, isFetchingOccupations, isFetchingSkills]);
+  }, [activeTab, isFetchingCompanies, isFetchingFactories, isFetchingOccupations, isFetchingSkills, isFetchingRefs, isFetchingSchools, isFetchingPrograms]);
 
   // Has more for current tab
   const hasMore = useMemo(() => {
     switch (activeTab) {
-      case 'all': return hasNextCompanies || hasNextFactories || hasNextOccupations || hasNextSkills;
+      case 'all': return hasNextCompanies || hasNextFactories || hasNextOccupations || hasNextSkills || hasNextRefs || hasNextSchools || hasNextPrograms;
       case 'companies': return hasNextCompanies;
       case 'factories': return hasNextFactories;
       case 'occupations': return hasNextOccupations;
       case 'skills': return hasNextSkills;
+      case 'refs': return hasNextRefs;
+      case 'schools': return hasNextSchools;
+      case 'programs': return hasNextPrograms;
       default: return false;
     }
-  }, [activeTab, hasNextCompanies, hasNextFactories, hasNextOccupations, hasNextSkills]);
+  }, [activeTab, hasNextCompanies, hasNextFactories, hasNextOccupations, hasNextSkills, hasNextRefs, hasNextSchools, hasNextPrograms]);
 
   const loadMore = useCallback(() => {
     switch (activeTab) {
@@ -648,8 +755,17 @@ export default function Explore() {
       case 'skills':
         if (hasNextSkills) fetchNextSkills();
         break;
+      case 'refs':
+        if (hasNextRefs) fetchNextRefs();
+        break;
+      case 'schools':
+        if (hasNextSchools) fetchNextSchools();
+        break;
+      case 'programs':
+        if (hasNextPrograms) fetchNextPrograms();
+        break;
     }
-  }, [activeTab, hasNextCompanies, hasNextFactories, hasNextOccupations, hasNextSkills, fetchNextCompanies, fetchNextFactories, fetchNextOccupations, fetchNextSkills]);
+  }, [activeTab, hasNextCompanies, hasNextFactories, hasNextOccupations, hasNextSkills, hasNextRefs, hasNextSchools, hasNextPrograms, fetchNextCompanies, fetchNextFactories, fetchNextOccupations, fetchNextSkills, fetchNextRefs, fetchNextSchools, fetchNextPrograms]);
 
   const getTabCount = (tab: TabType): number => {
     if (!counts) return 0;
@@ -673,6 +789,18 @@ export default function Explore() {
   const loadMoreSkills = useCallback(() => {
     if (hasNextSkills) fetchNextSkills();
   }, [hasNextSkills, fetchNextSkills]);
+
+  const loadMoreRefs = useCallback(() => {
+    if (hasNextRefs) fetchNextRefs();
+  }, [hasNextRefs, fetchNextRefs]);
+
+  const loadMoreSchools = useCallback(() => {
+    if (hasNextSchools) fetchNextSchools();
+  }, [hasNextSchools, fetchNextSchools]);
+
+  const loadMorePrograms = useCallback(() => {
+    if (hasNextPrograms) fetchNextPrograms();
+  }, [hasNextPrograms, fetchNextPrograms]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -741,10 +869,10 @@ export default function Explore() {
       </div>
 
       {/* Filter Bar */}
-      {activeTab !== 'all' && (
+      {activeTab !== 'all' && activeTab !== 'persons' && (
         <div className="mb-6">
           <FilterBar
-            activeTab={activeTab}
+            activeTab={activeTab as BrowsableEntityType}
             sortValue={sortValue}
             onSortChange={setSortValue}
             filters={filters}
@@ -804,6 +932,30 @@ export default function Explore() {
               onLoadMore={loadMoreSkills}
               totalCount={counts?.skills ?? groupedItems.skills.length}
             />
+            <VirtualizedSection
+              type="refs"
+              items={groupedItems.refs}
+              hasMore={hasNextRefs ?? false}
+              isLoadingMore={isFetchingNextRefs}
+              onLoadMore={loadMoreRefs}
+              totalCount={counts?.refs ?? groupedItems.refs.length}
+            />
+            <VirtualizedSection
+              type="schools"
+              items={groupedItems.schools}
+              hasMore={hasNextSchools ?? false}
+              isLoadingMore={isFetchingNextSchools}
+              onLoadMore={loadMoreSchools}
+              totalCount={counts?.schools ?? groupedItems.schools.length}
+            />
+            <VirtualizedSection
+              type="programs"
+              items={groupedItems.programs}
+              hasMore={hasNextPrograms ?? false}
+              isLoadingMore={isFetchingNextPrograms}
+              onLoadMore={loadMorePrograms}
+              totalCount={counts?.programs ?? groupedItems.programs.length}
+            />
           </div>
         )
       ) : items.length === 0 ? (
@@ -823,7 +975,11 @@ export default function Explore() {
             activeTab === 'companies' ? isFetchingNextCompanies :
             activeTab === 'factories' ? isFetchingNextFactories :
             activeTab === 'occupations' ? isFetchingNextOccupations :
-            isFetchingNextSkills
+            activeTab === 'skills' ? isFetchingNextSkills :
+            activeTab === 'refs' ? isFetchingNextRefs :
+            activeTab === 'schools' ? isFetchingNextSchools :
+            activeTab === 'programs' ? isFetchingNextPrograms :
+            false
           }
           onLoadMore={loadMore}
         />

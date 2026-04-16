@@ -525,6 +525,21 @@ export function prepareForInsert(
       }
       if (data.workforceSize) cleaned.workforceSize = parseInt(String(data.workforceSize), 10);
       if (data.openPositions) cleaned.openPositions = parseInt(String(data.openPositions), 10);
+      if (data.primaryNaics) {
+        cleaned.primaryNaics = String(data.primaryNaics).trim().slice(0, 6);
+      }
+      if (data.primaryNaicsDescription) {
+        cleaned.primaryNaicsDescription = String(data.primaryNaicsDescription).trim();
+      }
+      if (data.sourceCount !== undefined && data.sourceCount !== null && data.sourceCount !== '') {
+        const n = parseInt(String(data.sourceCount), 10);
+        if (!isNaN(n)) cleaned.sourceCount = Math.max(1, n);
+      }
+      if (data.confidence !== undefined && data.confidence !== null && data.confidence !== '') {
+        const n = parseInt(String(data.confidence), 10);
+        if (!isNaN(n)) cleaned.confidence = Math.max(0, Math.min(100, n));
+      }
+      // epaRegistryId is intentionally NOT copied — handled in route via external_references
       break;
 
     case 'occupations':

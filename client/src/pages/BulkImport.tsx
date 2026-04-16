@@ -31,12 +31,13 @@ import DataTransformer, {
   type TransformConfig,
   type TransformResult,
 } from '../components/import/DataTransformer';
-import type { EntityType } from '../lib/api';
+// Importable entity types (core entities only, not refs/schools/programs/persons)
+type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const ENTITY_CONFIG: Record<
-  EntityType,
+  ImportableEntityType,
   { icon: React.ElementType; label: string; color: string }
 > = {
   companies: { icon: Building2, label: 'Companies', color: 'text-amber-500' },
@@ -94,14 +95,14 @@ export default function BulkImport() {
   const [file, setFile] = useState<File | null>(initialFile || null);
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
-  const [entityType, setEntityType] = useState<EntityType>('factories');
+  const [entityType, setEntityType] = useState<ImportableEntityType>('factories');
   const [fileId, setFileId] = useState<string | null>(null);
 
   // Column mapping state
   const [mappings, setMappings] = useState<ColumnMapping[]>([]);
 
   // Reset mappings when entity type changes (so ColumnMapper re-auto-maps for new entity type)
-  const handleEntityTypeChange = (newType: EntityType) => {
+  const handleEntityTypeChange = (newType: ImportableEntityType) => {
     if (newType !== entityType) {
       setMappings([]); // Clear mappings so they get re-auto-suggested
     }
@@ -544,8 +545,8 @@ function PreviewStep({
   file: File;
   parsedData: ParsedData | null;
   parseError: string | null;
-  entityType: EntityType;
-  onEntityTypeChange: (type: EntityType) => void;
+  entityType: ImportableEntityType;
+  onEntityTypeChange: (type: ImportableEntityType) => void;
   onChangeFile: () => void;
   onContinue: () => void;
   isLoading: boolean;
@@ -642,7 +643,7 @@ function PreviewStep({
         <div className="relative inline-block">
           <select
             value={entityType}
-            onChange={(e) => onEntityTypeChange(e.target.value as EntityType)}
+            onChange={(e) => onEntityTypeChange(e.target.value as ImportableEntityType)}
             className="
               appearance-none pl-10 pr-8 py-2 rounded-lg
               bg-bg-elevated border border-border-subtle
@@ -704,7 +705,7 @@ function MapStep({
   showTransformHint,
 }: {
   parsedData: ParsedData;
-  entityType: EntityType;
+  entityType: ImportableEntityType;
   mappings: ColumnMapping[];
   onMappingsChange: (mappings: ColumnMapping[]) => void;
   onBack: () => void;

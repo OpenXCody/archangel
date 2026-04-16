@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db';
-import { companies, factories, occupations, skills, states } from '../db/schema';
+import { companies, factories, occupations, skills, states, refs, schools, programs } from '../db/schema';
 import { ilike, or, count } from 'drizzle-orm';
 
 const router = Router();
@@ -41,7 +41,7 @@ function sortByRelevance<T extends { name: string }>(items: T[], query: string):
 interface SearchResultItem {
   id: string;
   name: string;
-  type: 'companies' | 'factories' | 'occupations' | 'skills' | 'states';
+  type: 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'refs' | 'schools' | 'programs';
   subtitle?: string;
   meta?: string;
 }
@@ -54,6 +54,9 @@ interface SearchResults {
     occupations: { count: number; items: SearchResultItem[] };
     skills: { count: number; items: SearchResultItem[] };
     states: { count: number; items: SearchResultItem[] };
+    refs: { count: number; items: SearchResultItem[] };
+    schools: { count: number; items: SearchResultItem[] };
+    programs: { count: number; items: SearchResultItem[] };
   };
   totalCount: number;
 }
@@ -71,10 +74,10 @@ router.get('/', async (req: Request, res: Response) => {
     const searchPattern = `%${query}%`;
     const maxLimit = Math.min(parseInt(limit as string) || 5, 20);
 
-    // Parse types filter
+    // Parse types filter (persons excluded from search for privacy)
     const typeFilter = types
       ? (types as string).split(',').map(t => t.trim())
-      : ['companies', 'factories', 'occupations', 'skills', 'states'];
+      : ['companies', 'factories', 'occupations', 'skills', 'states', 'refs', 'schools', 'programs'];
 
     const results: SearchResults = {
       query,
@@ -84,6 +87,9 @@ router.get('/', async (req: Request, res: Response) => {
         occupations: { count: 0, items: [] },
         skills: { count: 0, items: [] },
         states: { count: 0, items: [] },
+        refs: { count: 0, items: [] },
+        schools: { count: 0, items: [] },
+        programs: { count: 0, items: [] },
       },
       totalCount: 0,
     };
@@ -305,13 +311,145 @@ router.get('/', async (req: Request, res: Response) => {
       };
     }
 
+    // Search refs (elements)
+    if (typeFilter.includes('refs')) {
+      const [refResults, refCount] = await Promise.all([
+        db
+          .select({
+            id: refs.id,
+            name: refs.name,
+            type: refs.type,
+            manufacturer: refs.manufacturer,
+          })
+          .from(refs)
+          .where(
+            or(
+              ilike(refs.name, searchPattern),
+              ilike(refs.description, searchPattern),
+              ilike(refs.manufacturer, searchPattern)
+            )
+          )
+          .limit(maxLimit),
+        db
+          .select({ count: count() })
+          .from(refs)
+          .where(
+            or(
+              ilike(refs.name, searchPattern),
+              ilike(refs.description, searchPattern),
+              ilike(refs.manufacturer, searchPattern)
+            )
+          ),
+      ]);
+
+      const refItems = refResults.map((r) => ({
+        id: r.id,
+        name: r.name,
+        type: 'refs' as const,
+        subtitle: r.type,
+        meta: r.manufacturer || undefined,
+      }));
+
+      results.results.refs = {
+        count: refCount[0]?.count ?? 0,
+        items: sortByRelevance(refItems, query),
+      };
+    }
+
+    // Search schools
+    if (typeFilter.includes('schools')) {
+      const [schoolResults, schoolCount] = await Promise.all([
+        db
+          .select({
+            id: schools.id,
+            name: schools.name,
+            schoolType: schools.schoolType,
+            state: schools.state,
+          })
+          .from(schools)
+          .where(
+            or(
+              ilike(schools.name, searchPattern),
+              ilike(schools.description, searchPattern)
+            )
+          )
+          .limit(maxLimit),
+        db
+          .select({ count: count() })
+          .from(schools)
+          .where(
+            or(
+              ilike(schools.name, searchPattern),
+              ilike(schools.description, searchPattern)
+            )
+          ),
+      ]);
+
+      const schoolItems = schoolResults.map((s) => ({
+        id: s.id,
+        name: s.name,
+        type: 'schools' as const,
+        subtitle: s.schoolType || undefined,
+        meta: s.state || undefined,
+      }));
+
+      results.results.schools = {
+        count: schoolCount[0]?.count ?? 0,
+        items: sortByRelevance(schoolItems, query),
+      };
+    }
+
+    // Search programs
+    if (typeFilter.includes('programs')) {
+      const [programResults, programCount] = await Promise.all([
+        db
+          .select({
+            id: programs.id,
+            title: programs.title,
+            credentialType: programs.credentialType,
+          })
+          .from(programs)
+          .where(
+            or(
+              ilike(programs.title, searchPattern),
+              ilike(programs.description, searchPattern)
+            )
+          )
+          .limit(maxLimit),
+        db
+          .select({ count: count() })
+          .from(programs)
+          .where(
+            or(
+              ilike(programs.title, searchPattern),
+              ilike(programs.description, searchPattern)
+            )
+          ),
+      ]);
+
+      const programItems = programResults.map((p) => ({
+        id: p.id,
+        name: p.title,
+        type: 'programs' as const,
+        subtitle: p.credentialType || undefined,
+      }));
+
+      results.results.programs = {
+        count: programCount[0]?.count ?? 0,
+        items: sortByRelevance(programItems, query),
+      };
+    }
+
     // Calculate total count
     results.totalCount =
       results.results.companies.count +
       results.results.factories.count +
       results.results.occupations.count +
       results.results.skills.count +
-      results.results.states.count;
+      results.results.states.count +
+      results.results.refs.count +
+      results.results.schools.count +
+      results.results.programs.count;
 
     res.json(results);
   } catch (error) {

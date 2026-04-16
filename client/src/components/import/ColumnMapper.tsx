@@ -6,10 +6,12 @@ import {
   ChevronDown,
   SkipForward,
 } from 'lucide-react';
-import type { EntityType } from '../../lib/api';
+
+// Importable entity types (core entities only, not refs/schools/programs/persons)
+type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
 
 // Target fields for each entity type
-const TARGET_FIELDS: Record<EntityType, { field: string; label: string; required: boolean; dataType?: 'numeric' | 'text' | 'state' }[]> = {
+const TARGET_FIELDS: Record<ImportableEntityType, { field: string; label: string; required: boolean; dataType?: 'numeric' | 'text' | 'state' }[]> = {
   companies: [
     { field: 'name', label: 'Name', required: true, dataType: 'text' },
     { field: 'industry', label: 'Industry', required: false, dataType: 'text' },
@@ -109,10 +111,12 @@ export interface ColumnMapping {
 interface ColumnMapperProps {
   sourceColumns: string[];
   sampleData: Record<string, unknown>[];
-  entityType: EntityType;
+  entityType: ImportableEntityType;
   initialMappings?: ColumnMapping[];
   onChange: (mappings: ColumnMapping[]) => void;
 }
+
+export type { ImportableEntityType };
 
 export default function ColumnMapper({
   sourceColumns,
@@ -442,7 +446,7 @@ function MappingRow({
 // Export helper to check if all required fields are mapped
 export function areRequiredFieldsMapped(
   mappings: ColumnMapping[],
-  entityType: EntityType
+  entityType: ImportableEntityType
 ): boolean {
   const targetFields = TARGET_FIELDS[entityType];
   const requiredFields = targetFields.filter((f) => f.required).map((f) => f.field);

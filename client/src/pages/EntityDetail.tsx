@@ -9,22 +9,32 @@ import {
   Wrench,
   MapPin,
   ChevronRight,
+  Boxes,
+  GraduationCap,
+  BookOpen,
+  Clock,
 } from 'lucide-react';
 import {
   companiesApi,
   factoriesApi,
   occupationsApi,
   skillsApi,
+  refsApi,
+  schoolsApi,
+  programsApi,
   type EntityType,
   type CompanyDetail,
   type FactoryDetail,
   type OccupationDetail,
   type SkillDetail,
+  type RefDetail,
+  type SchoolDetail,
+  type ProgramDetail,
 } from '../lib/api';
 
 // Entity type configs - monochrome with entity accent colors only on icons
 const ENTITY_CONFIG: Record<
-  EntityType,
+  Exclude<EntityType, 'persons'>,
   {
     icon: React.ElementType;
     label: string;
@@ -61,13 +71,37 @@ const ENTITY_CONFIG: Record<
     iconClass: 'text-emerald-500',
     borderClass: 'border-white/10',
   },
+  refs: {
+    icon: Boxes,
+    label: 'Element',
+    badgeClass: 'bg-white/5 text-fg-muted border-white/10',
+    iconClass: 'text-teal-500',
+    borderClass: 'border-white/10',
+  },
+  schools: {
+    icon: GraduationCap,
+    label: 'School',
+    badgeClass: 'bg-white/5 text-fg-muted border-white/10',
+    iconClass: 'text-indigo-500',
+    borderClass: 'border-white/10',
+  },
+  programs: {
+    icon: BookOpen,
+    label: 'Program',
+    badgeClass: 'bg-white/5 text-fg-muted border-white/10',
+    iconClass: 'text-fuchsia-500',
+    borderClass: 'border-white/10',
+  },
 };
 
-function getEntityType(pathname: string): EntityType {
+function getEntityType(pathname: string): Exclude<EntityType, 'persons'> {
   if (pathname.includes('/companies')) return 'companies';
   if (pathname.includes('/factories')) return 'factories';
   if (pathname.includes('/occupations')) return 'occupations';
   if (pathname.includes('/skills')) return 'skills';
+  if (pathname.includes('/refs')) return 'refs';
+  if (pathname.includes('/schools')) return 'schools';
+  if (pathname.includes('/programs')) return 'programs';
   return 'companies';
 }
 
@@ -399,8 +433,210 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
   );
 }
 
+// Ref Detail View (Elements: materials, machines, standards, processes, certifications)
+function RefDetailView({ data }: { data: RefDetail }) {
+  // Format ref type for display
+  const typeLabel = data.type.charAt(0).toUpperCase() + data.type.slice(1);
+
+  return (
+    <>
+      {/* Type + Manufacturer badge */}
+      <div className="flex flex-wrap gap-2 mt-4">
+        <span className="px-2 py-1 rounded-full text-xs bg-teal-500/10 text-teal-400 border border-teal-500/20">
+          {typeLabel}
+        </span>
+        {data.manufacturer && (
+          <span className="px-2 py-1 rounded-full text-xs bg-white/5 text-fg-muted border border-white/10">
+            {data.manufacturer}
+          </span>
+        )}
+      </div>
+
+      {/* Tags */}
+      {data.tags && data.tags.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-3">
+          {data.tags.map((tag, i) => (
+            <span key={i} className="px-2 py-0.5 rounded text-xs bg-white/5 text-fg-soft">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
+        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+          <div className="text-2xl font-semibold text-fg-default">{data.skills?.length || 0}</div>
+          <div className="text-sm text-fg-muted">Skills</div>
+        </div>
+      </div>
+
+      {/* Aliases */}
+      {data.aliases?.length > 0 && (
+        <Section title="Also known as" count={data.aliases.length}>
+          <div className="flex flex-wrap gap-2">
+            {data.aliases.map((alias) => (
+              <span key={alias.id} className="px-3 py-1 rounded-full text-sm bg-white/5 text-fg-muted border border-white/10">
+                {alias.aliasText}
+              </span>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Skills that reference this element */}
+      {data.skills?.length > 0 && (
+        <Section title="Referenced by skills" count={data.skills.length}>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {data.skills.map((skill) => (
+              <RelatedCard
+                key={skill.id}
+                to={`/skills/${skill.id}`}
+                icon={Wrench}
+                iconClass="text-emerald-500"
+                title={skill.name}
+                subtitle={skill.category}
+              />
+            ))}
+          </div>
+        </Section>
+      )}
+    </>
+  );
+}
+
+// School Detail View
+function SchoolDetailView({ data }: { data: SchoolDetail }) {
+  return (
+    <>
+      {/* Location + Type */}
+      <div className="flex flex-wrap gap-2 mt-4">
+        {data.state && (
+          <FilterPill to={`/explore?tab=schools&state=${encodeURIComponent(data.state)}`}>
+            <MapPin className="w-3 h-3" />
+            {data.state}
+          </FilterPill>
+        )}
+        {data.schoolType && (
+          <span className="px-2 py-1 rounded-full text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            {data.schoolType}
+          </span>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
+        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+          <div className="text-2xl font-semibold text-fg-default">{data.programs?.length || 0}</div>
+          <div className="text-sm text-fg-muted">Programs</div>
+        </div>
+      </div>
+
+      {/* Programs */}
+      {data.programs?.length > 0 && (
+        <Section title="Programs offered" count={data.programs.length}>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {data.programs.map((program) => (
+              <RelatedCard
+                key={program.id}
+                to={`/programs/${program.id}`}
+                icon={BookOpen}
+                iconClass="text-fuchsia-500"
+                title={program.title}
+                subtitle={program.credentialType ? `${program.credentialType} · ${program.skillCount} skills` : `${program.skillCount} skills`}
+              />
+            ))}
+          </div>
+        </Section>
+      )}
+    </>
+  );
+}
+
+// Program Detail View
+function ProgramDetailView({ data }: { data: ProgramDetail }) {
+  return (
+    <>
+      {/* Parent school link */}
+      {data.school && (
+        <Link
+          to={`/schools/${data.school.id}`}
+          className="
+            inline-flex items-center gap-2 mt-4 px-4 py-2
+            bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg
+            text-fg-muted hover:bg-white/[0.05] hover:text-fg-default transition-colors
+          "
+        >
+          <GraduationCap className="w-4 h-4 text-indigo-500" />
+          <span>{data.school.name}</span>
+          <ChevronRight className="w-4 h-4" />
+        </Link>
+      )}
+
+      {/* Credential type + Duration */}
+      <div className="flex flex-wrap gap-2 mt-4">
+        {data.credentialType && (
+          <span className="px-2 py-1 rounded-full text-xs bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20">
+            {data.credentialType}
+          </span>
+        )}
+        {data.durationHours && (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-white/5 text-fg-muted border border-white/10">
+            <Clock className="w-3 h-3" />
+            {data.durationHours} hours
+          </span>
+        )}
+        {data.cipCode && (
+          <span className="px-2 py-1 rounded-full text-xs bg-white/5 text-fg-soft font-mono border border-white/10">
+            CIP: {data.cipCode}
+          </span>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
+        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+          <div className="text-2xl font-semibold text-fg-default">{data.skills?.length || 0}</div>
+          <div className="text-sm text-fg-muted">Skills Taught</div>
+        </div>
+      </div>
+
+      {/* Aliases */}
+      {data.aliases?.length > 0 && (
+        <Section title="Also known as" count={data.aliases.length}>
+          <div className="flex flex-wrap gap-2">
+            {data.aliases.map((alias) => (
+              <span key={alias.id} className="px-3 py-1 rounded-full text-sm bg-white/5 text-fg-muted border border-white/10">
+                {alias.aliasText}
+              </span>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Skills taught */}
+      {data.skills?.length > 0 && (
+        <Section title="Skills taught" count={data.skills.length}>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {data.skills.map((skill) => (
+              <RelatedCard
+                key={skill.id}
+                to={`/skills/${skill.id}`}
+                icon={Wrench}
+                iconClass="text-emerald-500"
+                title={skill.name}
+                subtitle={skill.category}
+              />
+            ))}
+          </div>
+        </Section>
+      )}
+    </>
+  );
+}
+
 // Helper to get API fetch function
-function getEntityFetcher(entityType: EntityType, id: string) {
+function getEntityFetcher(entityType: Exclude<EntityType, 'persons'>, id: string) {
   switch (entityType) {
     case 'companies':
       return () => companiesApi.get(id);
@@ -410,32 +646,53 @@ function getEntityFetcher(entityType: EntityType, id: string) {
       return () => occupationsApi.get(id);
     case 'skills':
       return () => skillsApi.get(id);
+    case 'refs':
+      return () => refsApi.get(id);
+    case 'schools':
+      return () => schoolsApi.get(id);
+    case 'programs':
+      return () => programsApi.get(id);
   }
 }
 
+// Union type for all entity details
+type AnyEntityDetail = CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail | RefDetail | SchoolDetail | ProgramDetail;
+
 // Type guard helpers
-function isCompanyDetail(data: CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail): data is CompanyDetail {
+function isCompanyDetail(data: AnyEntityDetail): data is CompanyDetail {
   return 'factories' in data && 'industries' in data;
 }
 
-function isFactoryDetail(data: CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail): data is FactoryDetail {
+function isFactoryDetail(data: AnyEntityDetail): data is FactoryDetail {
   return 'company' in data && 'occupations' in data && 'latitude' in data;
 }
 
-function isOccupationDetail(data: CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail): data is OccupationDetail {
-  return 'skills' in data && 'factories' in data && !('industries' in data);
+function isOccupationDetail(data: AnyEntityDetail): data is OccupationDetail {
+  return 'skills' in data && 'factories' in data && !('industries' in data) && !('school' in data);
 }
 
-function isSkillDetail(data: CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail): data is SkillDetail {
+function isSkillDetail(data: AnyEntityDetail): data is SkillDetail {
   return 'relatedSkills' in data;
+}
+
+function isRefDetail(data: AnyEntityDetail): data is RefDetail {
+  return 'type' in data && 'manufacturer' in data && 'properties' in data;
+}
+
+function isSchoolDetail(data: AnyEntityDetail): data is SchoolDetail {
+  return 'programs' in data && 'schoolType' in data;
+}
+
+function isProgramDetail(data: AnyEntityDetail): data is ProgramDetail {
+  return 'school' in data && 'cipCode' in data;
 }
 
 // Main EntityDetail component
 export default function EntityDetail() {
   const { id, type: routeType } = useParams<{ id: string; type?: string }>();
-  const entityType = (routeType as EntityType) || getEntityType(window.location.pathname);
+  const entityType = (routeType as Exclude<EntityType, 'persons'>) || getEntityType(window.location.pathname);
 
-  const { data, isLoading, error } = useQuery<CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail>({
+  const { data, isLoading, error } = useQuery<AnyEntityDetail>({
     queryKey: [entityType, id],
     queryFn: getEntityFetcher(entityType, id!),
     enabled: !!id,
@@ -505,6 +762,9 @@ export default function EntityDetail() {
       {isFactoryDetail(data) && <FactoryDetailView data={data} />}
       {isOccupationDetail(data) && <OccupationDetailView data={data} />}
       {isSkillDetail(data) && <SkillDetailView data={data} />}
+      {isRefDetail(data) && <RefDetailView data={data} />}
+      {isSchoolDetail(data) && <SchoolDetailView data={data} />}
+      {isProgramDetail(data) && <ProgramDetailView data={data} />}
     </div>
   );
 }
