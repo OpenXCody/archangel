@@ -1,21 +1,18 @@
 import { Router, Request, Response } from 'express';
-import { eq, gt, ilike, or, sql } from 'drizzle-orm';
+import { eq, ilike, or, sql } from 'drizzle-orm';
 import { db, companies, factories, companyIndustries, industries } from '../db';
 
 const router = Router();
 
-// GET /api/companies - List companies with cursor-based pagination
+// GET /api/companies - List companies with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { cursor, limit = '20', search, industry } = req.query;
+    const { offset = '0', limit = '20', search, industry, sort = 'name', order = 'asc' } = req.query;
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     // Build where conditions
     const conditions = [];
-
-    if (cursor) {
-      conditions.push(gt(companies.id, cursor as string));
-    }
 
     if (search) {
       const searchTerm = `%${search}%`;
@@ -32,8 +29,27 @@ router.get('/', async (req: Request, res: Response) => {
       conditions.push(eq(companies.industry, industry as string));
     }
 
-    // Query with factory count, sorted by most connections (factoryCount) descending
-    // Note: Using raw SQL for the subquery to ensure proper column reference
+    // Get total count
+    const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+    const countResult = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(companies)
+      .where(whereClause);
+    const total = countResult[0]?.count ?? 0;
+
+    // Build order by clause
+    let orderByClause;
+    if (sort === 'factoryCount') {
+      orderByClause = order === 'desc'
+        ? sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id) DESC, ${companies.name} ASC`
+        : sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id) ASC, ${companies.name} ASC`;
+    } else {
+      orderByClause = order === 'desc'
+        ? sql`${companies.name} DESC`
+        : sql`${companies.name} ASC`;
+    }
+
+    // Query with factory count
     const result = await db
       .select({
         id: companies.id,
@@ -47,18 +63,19 @@ router.get('/', async (req: Request, res: Response) => {
         totalWorkforce: sql<number>`(SELECT COALESCE(SUM(workforce_size), 0)::int FROM factories WHERE factories.company_id = companies.id)`,
       })
       .from(companies)
-      .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined)
-      .orderBy(sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id) DESC`, companies.name)
-      .limit(limitNum + 1);
+      .where(whereClause)
+      .orderBy(orderByClause)
+      .limit(limitNum)
+      .offset(offsetNum);
 
-    // Check if there are more results
-    const hasMore = result.length > limitNum;
-    const data = hasMore ? result.slice(0, limitNum) : result;
-    const nextCursor = hasMore ? data[data.length - 1].id : null;
+    const hasMore = offsetNum + result.length < total;
 
     res.json({
-      data,
-      nextCursor,
+      data: result,
+      total,
+      offset: offsetNum,
+      limit: limitNum,
+      hasMore,
     });
   } catch (error) {
     console.error('Error fetching companies:', error);

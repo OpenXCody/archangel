@@ -9,6 +9,10 @@ import importRouter from './routes/import';
 import statsRouter from './routes/stats';
 import searchRouter from './routes/search';
 import mapRouter from './routes/map';
+import refsRouter from './routes/refs';
+import schoolsRouter from './routes/schools';
+import programsRouter from './routes/programs';
+import personsRouter from './routes/persons';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +30,10 @@ app.use('/api/import', importRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/map', mapRouter);
+app.use('/api/refs', refsRouter);
+app.use('/api/schools', schoolsRouter);
+app.use('/api/programs', programsRouter);
+app.use('/api/persons', personsRouter);
 
 // Health check
 app.get('/api/health', (_req: Request, res: Response) => {

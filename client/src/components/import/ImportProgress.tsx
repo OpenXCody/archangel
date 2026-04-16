@@ -13,7 +13,8 @@ import {
   Briefcase,
   Wrench,
 } from 'lucide-react';
-import type { EntityType } from '../../lib/api';
+// Importable entity types (core entities only, not refs/schools/programs/persons)
+type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
 
 export interface ImportResult {
   batchId: string;
@@ -29,12 +30,12 @@ interface ImportProgressProps {
   progress: { current: number; total: number } | null;
   result: ImportResult | null;
   error: string | null;
-  entityType: EntityType;
+  entityType: ImportableEntityType;
   onImportAnother: () => void;
   onDone: () => void;
 }
 
-const ENTITY_CONFIG: Record<EntityType, { icon: React.ElementType; label: string; path: string }> = {
+const ENTITY_CONFIG: Record<ImportableEntityType, { icon: React.ElementType; label: string; path: string }> = {
   companies: { icon: Building2, label: 'companies', path: '/explore?tab=companies' },
   factories: { icon: Factory, label: 'factories', path: '/explore?tab=factories' },
   occupations: { icon: Briefcase, label: 'occupations', path: '/explore?tab=occupations' },

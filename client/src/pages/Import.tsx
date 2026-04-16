@@ -15,11 +15,11 @@ import {
 } from 'lucide-react';
 import FileDropZone from '../components/import/FileDropZone';
 import ManualEntryForm from '../components/import/ManualEntryForm';
-import type { EntityType } from '../lib/api';
-
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-type TabType = 'bulk' | EntityType;
+// Importable entity types (core entities only, not refs/schools/programs/persons)
+type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
+type TabType = 'bulk' | ImportableEntityType;
 
 const TABS: { type: TabType; icon: React.ElementType; label: string; color: string }[] = [
   { type: 'bulk', icon: Upload, label: 'Bulk Import', color: 'amber' },
@@ -191,7 +191,7 @@ export default function Import() {
       {/* Manual entry form for entity types */}
       {activeTab !== 'bulk' && (
         <ManualEntryForm
-          entityType={activeTab}
+          entityType={activeTab as ImportableEntityType}
           onSuccess={() => {
             // Could show a toast or refetch counts
           }}

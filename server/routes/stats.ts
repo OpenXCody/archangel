@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
-import { db, companies, factories, occupations, skills } from '../db';
+import { db, companies, factories, occupations, skills, refs, schools, programs, persons } from '../db';
 
 const router = Router();
 
@@ -23,16 +23,40 @@ router.get('/counts', async (_req: Request, res: Response) => {
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(skills);
 
+    const [refsCount] = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(refs);
+
+    const [schoolsCount] = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(schools);
+
+    const [programsCount] = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(programs);
+
+    const [personsCount] = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(persons);
+
     const counts = {
       companies: companiesCount.count,
       factories: factoriesCount.count,
       occupations: occupationsCount.count,
       skills: skillsCount.count,
+      refs: refsCount.count,
+      schools: schoolsCount.count,
+      programs: programsCount.count,
+      persons: personsCount.count,
       total:
         companiesCount.count +
         factoriesCount.count +
         occupationsCount.count +
-        skillsCount.count,
+        skillsCount.count +
+        refsCount.count +
+        schoolsCount.count +
+        programsCount.count,
+      // Note: persons excluded from total as they're not browsable in the same way
     };
 
     res.json(counts);

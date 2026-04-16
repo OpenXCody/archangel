@@ -10,8 +10,8 @@ import {
   prepareForInsert,
   EntityType,
 } from '../lib/validators';
-import { db, companies, factories, occupations, skills, importBatches, errorQueue } from '../db';
-import { eq, desc, ilike } from 'drizzle-orm';
+import { db, companies, factories, occupations, skills, importBatches, errorQueue, states, externalReferences } from '../db';
+import { eq, desc, ilike, and } from 'drizzle-orm';
 
 const router = Router();
 
@@ -280,6 +280,27 @@ router.post('/execute', async (req: Request, res: Response) => {
     let errorsQueued = 0;
     let companiesCreated = companyIdLookup.size;
 
+    // Pre-load state code → id for FK resolution (only relevant for factories)
+    const stateIdByCode = new Map<string, string>();
+    if (entityType === 'factories') {
+      const allStates = await db.select({ id: states.id, code: states.code }).from(states);
+      for (const s of allStates) {
+        stateIdByCode.set(s.code.toUpperCase(), s.id);
+      }
+    }
+
+    // Pre-load existing EPA registry IDs to dedupe re-imports
+    const existingEpaRegistry = new Set<string>();
+    if (entityType === 'factories') {
+      const existing = await db.select({ externalId: externalReferences.externalId })
+        .from(externalReferences)
+        .where(and(
+          eq(externalReferences.entityType, 'factories'),
+          eq(externalReferences.source, 'EPA_ECHO')
+        ));
+      for (const e of existing) existingEpaRegistry.add(e.externalId);
+    }
+
     // Process valid rows
     for (const { rowNumber, data } of mappedRows) {
       // Skip if user requested or validation failed
@@ -311,9 +332,22 @@ router.post('/execute', async (req: Request, res: Response) => {
               }
             }
           }
+
+          // Dedup on EPA registry ID — skip if we already imported this factory
+          const epaRegistryId = typeof data.epaRegistryId === 'string' ? data.epaRegistryId.trim() : '';
+          if (epaRegistryId && existingEpaRegistry.has(epaRegistryId)) {
+            skipped++;
+            continue;
+          }
         }
 
         const cleanedData = prepareForInsert(data, entityType as EntityType);
+
+        // Resolve stateId FK from 2-letter state code for factories
+        if (entityType === 'factories' && typeof cleanedData.state === 'string' && cleanedData.state.length === 2) {
+          const sid = stateIdByCode.get(cleanedData.state);
+          if (sid) cleanedData.stateId = sid;
+        }
 
         // Insert based on entity type
         switch (entityType) {
@@ -321,10 +355,25 @@ router.post('/execute', async (req: Request, res: Response) => {
             await db.insert(companies).values(cleanedData as typeof companies.$inferInsert);
             created++;
             break;
-          case 'factories':
-            await db.insert(factories).values(cleanedData as typeof factories.$inferInsert);
+          case 'factories': {
+            const [inserted] = await db.insert(factories)
+              .values(cleanedData as typeof factories.$inferInsert)
+              .returning({ id: factories.id });
             created++;
+
+            // Write EPA registry ID to external_references (provenance, not a factory column)
+            const epaRegistryId = typeof data.epaRegistryId === 'string' ? data.epaRegistryId.trim() : '';
+            if (inserted && epaRegistryId) {
+              await db.insert(externalReferences).values({
+                entityType: 'factories',
+                entityId: inserted.id,
+                source: 'EPA_ECHO',
+                externalId: epaRegistryId,
+              });
+              existingEpaRegistry.add(epaRegistryId);
+            }
             break;
+          }
           case 'occupations':
             await db.insert(occupations).values(cleanedData as typeof occupations.$inferInsert);
             created++;

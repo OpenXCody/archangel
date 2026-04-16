@@ -13,7 +13,10 @@ import {
   Search,
 } from 'lucide-react';
 import { US_STATES } from '../../../../shared/states';
-import type { EntityType, Company, Skill } from '../../lib/api';
+import type { Company, Skill } from '../../lib/api';
+
+// Importable entity types (core entities only, not refs/schools/programs/persons)
+type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -45,7 +48,7 @@ const INDUSTRIES = [
 ];
 
 interface ManualEntryFormProps {
-  entityType: EntityType;
+  entityType: ImportableEntityType;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -627,7 +630,7 @@ function SkillForm({
 
 // Entity icon and label configs
 const ENTITY_CONFIG: Record<
-  EntityType,
+  ImportableEntityType,
   { icon: React.ElementType; label: string; singularLabel: string; color: string }
 > = {
   companies: {

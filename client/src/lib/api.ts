@@ -137,15 +137,139 @@ export interface Skill {
   occupationCount?: number;
 }
 
+// Skill tree relations
+export interface SkillTreeNode {
+  id: string;
+  name: string;
+  category: string | null;
+  childCount?: number;
+}
+
 // Skill with relations
 export interface SkillDetail extends Skill {
+  parent: SkillTreeNode | null;
+  children: SkillTreeNode[];
   occupations: RelatedOccupationWithImportance[];
+  programs: RelatedProgramWithImportance[];
+  refs: Record<string, RelatedRef[]>;
   relatedSkills: RelatedSkill[];
 }
 
-export type EntityType = 'companies' | 'factories' | 'occupations' | 'skills';
-export type Entity = Company | Factory | Occupation | Skill;
-export type EntityDetail = CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail;
+export interface RelatedProgramWithImportance {
+  id: string;
+  title: string;
+  credentialType: string | null;
+  importance: 'required' | 'preferred' | 'nice_to_have';
+}
+
+export interface RelatedRef {
+  id: string;
+  name: string;
+  type: RefType;
+  manufacturer: string | null;
+}
+
+// Ref types
+export type RefType = 'material' | 'machine' | 'standard' | 'process' | 'certification';
+
+export interface Ref {
+  id: string;
+  type: RefType;
+  name: string;
+  description: string | null;
+  manufacturer: string | null;
+  tags: string[] | null;
+  createdAt: string;
+  skillCount?: number;
+}
+
+export interface RefDetail extends Ref {
+  properties: Record<string, unknown> | null;
+  skills: RelatedSkill[];
+  aliases: { id: string; aliasText: string }[];
+}
+
+// School types
+export interface School {
+  id: string;
+  name: string;
+  description: string | null;
+  state: string | null;
+  schoolType: string | null;
+  headquartersLat: string | null;
+  headquartersLng: string | null;
+  createdAt: string;
+  programCount?: number;
+}
+
+export interface SchoolDetail extends School {
+  programs: {
+    id: string;
+    title: string;
+    credentialType: string | null;
+    cipCode: string | null;
+    durationHours: number | null;
+    skillCount: number;
+  }[];
+}
+
+// Program types
+export interface Program {
+  id: string;
+  title: string;
+  description: string | null;
+  schoolId: string | null;
+  schoolName?: string | null;
+  cipCode: string | null;
+  credentialType: string | null;
+  durationHours: number | null;
+  isOpenSource: boolean;
+  createdAt: string;
+  skillCount?: number;
+}
+
+export interface ProgramDetail extends Program {
+  school: {
+    id: string;
+    name: string;
+    schoolType: string | null;
+    state: string | null;
+  } | null;
+  skills: RelatedSkill[];
+  aliases: { id: string; aliasText: string }[];
+}
+
+// Person types (read-only, no create/update from UI)
+export interface Person {
+  id: string;
+  fullName: string;
+  currentTitle: string | null;
+  currentEmployerId: string | null;
+  employerName?: string | null;
+  locationState: string | null;
+  createdAt: string;
+  skillCount?: number;
+}
+
+export interface PersonDetail extends Person {
+  employer: RelatedCompany | null;
+  proficiencies: {
+    id: string;
+    skillId: string;
+    skillName: string;
+    machineRefId: string | null;
+    machineRefName: string | null;
+    materialRefId: string | null;
+    materialRefName: string | null;
+    level: 'awareness' | 'novice' | 'competent' | 'proficient' | 'expert';
+    yearsExperience: number | null;
+    verifiedAt: string | null;
+  }[];
+}
+
+export type EntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'refs' | 'schools' | 'programs' | 'persons';
+export type Entity = Company | Factory | Occupation | Skill | Ref | School | Program | Person;
+export type EntityDetail = CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail | RefDetail | SchoolDetail | ProgramDetail | PersonDetail;
 
 interface FetchOptions {
   offset?: number;
@@ -243,12 +367,52 @@ export const skillsApi = {
     apiFetch<SkillDetail>(`/skills/${id}`),
 };
 
+// Refs API
+export const refsApi = {
+  list: (options: FetchOptions = {}) =>
+    apiFetch<PaginatedResponse<Ref>>(`/refs${buildQueryString(options)}`),
+
+  get: (id: string) =>
+    apiFetch<RefDetail>(`/refs/${id}`),
+};
+
+// Schools API
+export const schoolsApi = {
+  list: (options: FetchOptions = {}) =>
+    apiFetch<PaginatedResponse<School>>(`/schools${buildQueryString(options)}`),
+
+  get: (id: string) =>
+    apiFetch<SchoolDetail>(`/schools/${id}`),
+};
+
+// Programs API
+export const programsApi = {
+  list: (options: FetchOptions = {}) =>
+    apiFetch<PaginatedResponse<Program>>(`/programs${buildQueryString(options)}`),
+
+  get: (id: string) =>
+    apiFetch<ProgramDetail>(`/programs/${id}`),
+};
+
+// Persons API (read-only)
+export const personsApi = {
+  list: (options: FetchOptions = {}) =>
+    apiFetch<PaginatedResponse<Person>>(`/persons${buildQueryString(options)}`),
+
+  get: (id: string) =>
+    apiFetch<PersonDetail>(`/persons/${id}`),
+};
+
 // Entity counts for tabs
 export interface EntityCounts {
   companies: number;
   factories: number;
   occupations: number;
   skills: number;
+  refs: number;
+  schools: number;
+  programs: number;
+  persons: number;
   total: number;
 }
 
@@ -258,7 +422,7 @@ export const statsApi = {
 };
 
 // Search types
-export type SearchEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states';
+export type SearchEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'refs' | 'schools' | 'programs';
 
 export interface SearchResultItem {
   id: string;
@@ -276,6 +440,9 @@ export interface SearchResults {
     occupations: { count: number; items: SearchResultItem[] };
     skills: { count: number; items: SearchResultItem[] };
     states: { count: number; items: SearchResultItem[] };
+    refs: { count: number; items: SearchResultItem[] };
+    schools: { count: number; items: SearchResultItem[] };
+    programs: { count: number; items: SearchResultItem[] };
   };
   totalCount: number;
 }
@@ -309,6 +476,14 @@ export function getEntityApi(type: EntityType) {
       return occupationsApi;
     case 'skills':
       return skillsApi;
+    case 'refs':
+      return refsApi;
+    case 'schools':
+      return schoolsApi;
+    case 'programs':
+      return programsApi;
+    case 'persons':
+      return personsApi;
   }
 }
 

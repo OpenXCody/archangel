@@ -11,7 +11,10 @@ export type SortOption = {
   order: 'asc' | 'desc';
 };
 
-const SORT_OPTIONS: Record<EntityType | 'all', SortOption[]> = {
+// Only include browsable entity types (not persons - those are read-only internal data)
+type BrowsableTabType = 'all' | Exclude<EntityType, 'persons'>;
+
+export const SORT_OPTIONS: Record<BrowsableTabType, SortOption[]> = {
   all: [
     { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
     { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
@@ -34,6 +37,18 @@ const SORT_OPTIONS: Record<EntityType | 'all', SortOption[]> = {
     { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
     { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
   ],
+  refs: [
+    { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
+    { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
+  ],
+  schools: [
+    { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
+    { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
+  ],
+  programs: [
+    { value: 'name-asc', label: 'Title A-Z', field: 'title', order: 'asc' },
+    { value: 'name-desc', label: 'Title Z-A', field: 'title', order: 'desc' },
+  ],
 };
 
 // Filter types
@@ -44,7 +59,7 @@ export interface FilterState {
 }
 
 export interface FilterBarProps {
-  activeTab: EntityType | 'all';
+  activeTab: BrowsableTabType;
   sortValue: string;
   onSortChange: (value: string) => void;
   filters: FilterState;
@@ -387,6 +402,3 @@ export default function FilterBar({
     </div>
   );
 }
-
-// Export sort options for use in queries
-export { SORT_OPTIONS };

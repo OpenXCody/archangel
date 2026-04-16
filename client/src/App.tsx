@@ -39,6 +39,9 @@ function App() {
               <Route path="/factories/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
               <Route path="/occupations/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
               <Route path="/skills/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
+              <Route path="/refs/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
+              <Route path="/schools/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
+              <Route path="/programs/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
             </Route>
           </Routes>
         </Suspense>

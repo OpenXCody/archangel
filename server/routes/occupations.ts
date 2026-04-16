@@ -1,21 +1,18 @@
 import { Router, Request, Response } from 'express';
-import { eq, gt, ilike, or, sql } from 'drizzle-orm';
+import { eq, ilike, or, sql } from 'drizzle-orm';
 import { db, occupations, occupationSkills, skills, factoryOccupations, factories } from '../db';
 
 const router = Router();
 
-// GET /api/occupations - List occupations with cursor-based pagination
+// GET /api/occupations - List occupations with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { cursor, limit = '20', search } = req.query;
+    const { offset = '0', limit = '20', search, order = 'asc' } = req.query;
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     // Build where conditions
     const conditions = [];
-
-    if (cursor) {
-      conditions.push(gt(occupations.id, cursor as string));
-    }
 
     if (search) {
       const searchTerm = `%${search}%`;
@@ -27,7 +24,20 @@ router.get('/', async (req: Request, res: Response) => {
       );
     }
 
-    // Query with skill and factory counts, sorted by most connections (factoryCount + skillCount) descending
+    // Get total count
+    const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+    const countResult = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(occupations)
+      .where(whereClause);
+    const total = countResult[0]?.count ?? 0;
+
+    // Build order by clause
+    const orderByClause = order === 'desc'
+      ? sql`${occupations.title} DESC`
+      : sql`${occupations.title} ASC`;
+
+    // Query with skill and factory counts
     const result = await db
       .select({
         id: occupations.id,
@@ -39,22 +49,19 @@ router.get('/', async (req: Request, res: Response) => {
         factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factory_occupations WHERE factory_occupations.occupation_id = occupations.id)`,
       })
       .from(occupations)
-      .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined)
-      .orderBy(
-        sql`(SELECT COUNT(*) FROM factory_occupations WHERE factory_occupations.occupation_id = occupations.id) DESC`,
-        sql`(SELECT COUNT(*) FROM occupation_skills WHERE occupation_skills.occupation_id = occupations.id) DESC`,
-        occupations.title
-      )
-      .limit(limitNum + 1);
+      .where(whereClause)
+      .orderBy(orderByClause)
+      .limit(limitNum)
+      .offset(offsetNum);
 
-    // Check if there are more results
-    const hasMore = result.length > limitNum;
-    const data = hasMore ? result.slice(0, limitNum) : result;
-    const nextCursor = hasMore ? data[data.length - 1].id : null;
+    const hasMore = offsetNum + result.length < total;
 
     res.json({
-      data,
-      nextCursor,
+      data: result,
+      total,
+      offset: offsetNum,
+      limit: limitNum,
+      hasMore,
     });
   } catch (error) {
     console.error('Error fetching occupations:', error);

@@ -22,6 +22,12 @@ const INITIAL_VIEW = {
   zoom: 4,
 };
 
+// US bounds including Alaska and Hawaii
+const US_BOUNDS: [[number, number], [number, number]] = [
+  [-180, 15], // Southwest - includes all of Alaska, Hawaii
+  [-60, 73],  // Northeast - includes northern Alaska
+];
+
 // US States GeoJSON from GitHub (reliable CDN)
 const STATES_GEOJSON_URL = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
 
@@ -147,6 +153,7 @@ export default function Map() {
           zoom: INITIAL_VIEW.zoom,
           minZoom: 3,
           maxZoom: 18,
+          maxBounds: US_BOUNDS,
           attributionControl: false,
           renderWorldCopies: false,
         });

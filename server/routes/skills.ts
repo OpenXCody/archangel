@@ -1,21 +1,18 @@
 import { Router, Request, Response } from 'express';
-import { eq, gt, ilike, or, sql, and, ne } from 'drizzle-orm';
-import { db, skills, occupationSkills, occupations } from '../db';
+import { eq, ilike, or, sql, and, ne, isNull } from 'drizzle-orm';
+import { db, skills, occupationSkills, occupations, skillRefs, refs, programSkills, programs } from '../db';
 
 const router = Router();
 
-// GET /api/skills - List skills with cursor-based pagination
+// GET /api/skills - List skills with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { cursor, limit = '20', search, category } = req.query;
+    const { offset = '0', limit = '20', search, category, order = 'asc', parent, rootOnly } = req.query;
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     // Build where conditions
     const conditions = [];
-
-    if (cursor) {
-      conditions.push(gt(skills.id, cursor as string));
-    }
 
     if (search) {
       const searchTerm = `%${search}%`;
@@ -32,29 +29,56 @@ router.get('/', async (req: Request, res: Response) => {
       conditions.push(eq(skills.category, category as string));
     }
 
-    // Query with occupation count, sorted by most connections (occupationCount) descending
+    // Filter by parent skill (for tree navigation)
+    if (parent) {
+      conditions.push(eq(skills.parentSkillId, parent as string));
+    }
+
+    // Filter to only root skills (no parent)
+    if (rootOnly === 'true') {
+      conditions.push(isNull(skills.parentSkillId));
+    }
+
+    // Get total count
+    const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+    const countResult = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(skills)
+      .where(whereClause);
+    const total = countResult[0]?.count ?? 0;
+
+    // Build order by clause
+    const orderByClause = order === 'desc'
+      ? sql`${skills.name} DESC`
+      : sql`${skills.name} ASC`;
+
+    // Query with occupation count, program count, and tree info
     const result = await db
       .select({
         id: skills.id,
         name: skills.name,
         category: skills.category,
         description: skills.description,
+        parentSkillId: skills.parentSkillId,
         createdAt: skills.createdAt,
         occupationCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.skill_id = skills.id)`,
+        programCount: sql<number>`(SELECT COUNT(*)::int FROM program_skills WHERE program_skills.skill_id = skills.id)`,
+        childCount: sql<number>`(SELECT COUNT(*)::int FROM skills AS children WHERE children.parent_skill_id = skills.id)`,
       })
       .from(skills)
-      .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined)
-      .orderBy(sql`(SELECT COUNT(*) FROM occupation_skills WHERE occupation_skills.skill_id = skills.id) DESC`, skills.name)
-      .limit(limitNum + 1);
+      .where(whereClause)
+      .orderBy(orderByClause)
+      .limit(limitNum)
+      .offset(offsetNum);
 
-    // Check if there are more results
-    const hasMore = result.length > limitNum;
-    const data = hasMore ? result.slice(0, limitNum) : result;
-    const nextCursor = hasMore ? data[data.length - 1].id : null;
+    const hasMore = offsetNum + result.length < total;
 
     res.json({
-      data,
-      nextCursor,
+      data: result,
+      total,
+      offset: offsetNum,
+      limit: limitNum,
+      hasMore,
     });
   } catch (error) {
     console.error('Error fetching skills:', error);
@@ -77,6 +101,31 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     const skill = skillResult[0];
 
+    // Get parent skill (if any)
+    let parent = null;
+    if (skill.parentSkillId) {
+      const parentResult = await db
+        .select({
+          id: skills.id,
+          name: skills.name,
+          category: skills.category,
+        })
+        .from(skills)
+        .where(eq(skills.id, skill.parentSkillId));
+      parent = parentResult[0] || null;
+    }
+
+    // Get child skills (direct children only)
+    const children = await db
+      .select({
+        id: skills.id,
+        name: skills.name,
+        category: skills.category,
+        childCount: sql<number>`(SELECT COUNT(*)::int FROM skills AS grandchildren WHERE grandchildren.parent_skill_id = skills.id)`,
+      })
+      .from(skills)
+      .where(eq(skills.parentSkillId, id));
+
     // Get occupations requiring this skill with importance level
     const occupationsResult = await db
       .select({
@@ -88,6 +137,39 @@ router.get('/:id', async (req: Request, res: Response) => {
       .from(occupationSkills)
       .innerJoin(occupations, eq(occupationSkills.occupationId, occupations.id))
       .where(eq(occupationSkills.skillId, id));
+
+    // Get programs teaching this skill
+    const programsResult = await db
+      .select({
+        id: programs.id,
+        title: programs.title,
+        credentialType: programs.credentialType,
+        importance: programSkills.importance,
+      })
+      .from(programSkills)
+      .innerJoin(programs, eq(programSkills.programId, programs.id))
+      .where(eq(programSkills.skillId, id));
+
+    // Get referenced elements (refs) grouped by type
+    const refsResult = await db
+      .select({
+        id: refs.id,
+        name: refs.name,
+        type: refs.type,
+        manufacturer: refs.manufacturer,
+      })
+      .from(skillRefs)
+      .innerJoin(refs, eq(skillRefs.refId, refs.id))
+      .where(eq(skillRefs.skillId, id));
+
+    // Group refs by type
+    const refsByType: Record<string, typeof refsResult> = {};
+    for (const ref of refsResult) {
+      if (!refsByType[ref.type]) {
+        refsByType[ref.type] = [];
+      }
+      refsByType[ref.type].push(ref);
+    }
 
     // Get related skills (same category)
     let relatedSkills: { id: string; name: string; category: string | null }[] = [];
@@ -105,7 +187,11 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     res.json({
       ...skill,
+      parent,
+      children,
       occupations: occupationsResult,
+      programs: programsResult,
+      refs: refsByType,
       relatedSkills,
     });
   } catch (error) {
