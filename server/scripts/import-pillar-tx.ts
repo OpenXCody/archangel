@@ -12,6 +12,7 @@
  *   npx tsx server/scripts/import-pillar-tx.ts
  */
 import postgres from 'postgres';
+import { normalizeCompanyName } from '../../shared/companyNormalization.js';
 
 const archUrl = process.env.DATABASE_URL;
 const pillarUrl = process.env.PILLAR_DATABASE_URL;
@@ -91,19 +92,37 @@ async function main() {
         continue;
       }
 
-      // Find or create company
-      const cacheKey = String(r.company_name).toLowerCase().trim();
+      // Find or create company — normalize first to collapse "3M" and "3M Company" etc.
+      const normalized = normalizeCompanyName(r.company_name) ?? r.company_name;
+      const cacheKey = normalized.toLowerCase().trim();
       let companyId = companyCache.get(cacheKey);
       if (!companyId) {
+        // Lookup: match canonical name OR any existing alias
         const existing = await arch`
-          SELECT id FROM companies WHERE LOWER(name) = ${cacheKey} LIMIT 1
+          SELECT id FROM companies
+          WHERE LOWER(name) = ${cacheKey}
+             OR EXISTS (SELECT 1 FROM unnest(COALESCE(aliases, ARRAY[]::text[])) AS a WHERE LOWER(a) = ${cacheKey})
+          LIMIT 1
         `;
         if (existing.length > 0) {
           companyId = existing[0].id as string;
+          // If the raw Pillar name differs from canonical, record it as an alias
+          if (r.company_name !== normalized) {
+            await arch`
+              UPDATE companies
+              SET aliases = (
+                SELECT array_agg(DISTINCT a)
+                FROM unnest(COALESCE(aliases, ARRAY[]::text[]) || ARRAY[${r.company_name}]) AS a
+                WHERE a IS NOT NULL AND a <> name
+              )
+              WHERE id = ${companyId}
+            `;
+          }
         } else {
+          const aliases = r.company_name !== normalized ? [r.company_name] : [];
           const [inserted] = await arch`
-            INSERT INTO companies (name, industry)
-            VALUES (${r.company_name}, 'Manufacturing')
+            INSERT INTO companies (name, industry, aliases)
+            VALUES (${normalized}, 'Manufacturing', ${aliases}::text[])
             RETURNING id
           `;
           companyId = inserted.id as string;

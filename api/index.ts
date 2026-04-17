@@ -81,6 +81,56 @@ const occupationSkills = pgTable('occupation_skills', {
   importance: text('importance'),
 });
 
+// New entities: refs (elements library), schools, programs, persons
+const refs = pgTable('refs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  type: text('type').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  manufacturer: text('manufacturer'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+const skillRefs = pgTable('skill_refs', {
+  skillId: uuid('skill_id').notNull(),
+  refId: uuid('ref_id').notNull(),
+});
+
+const schools = pgTable('schools', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  state: text('state'),
+  stateId: uuid('state_id'),
+  schoolType: text('school_type'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+const programs = pgTable('programs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  schoolId: uuid('school_id'),
+  title: text('title').notNull(),
+  description: text('description'),
+  cipCode: text('cip_code'),
+  credentialType: text('credential_type'),
+  durationHours: integer('duration_hours'),
+  isOpenSource: integer('is_open_source'),
+  curriculumUrl: text('curriculum_url'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+const programSkills = pgTable('program_skills', {
+  programId: uuid('program_id').notNull(),
+  skillId: uuid('skill_id').notNull(),
+  importance: text('importance'),
+});
+
+const persons = pgTable('persons', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  fullName: text('full_name').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // ========== DATABASE ==========
 const connectionString = process.env.DATABASE_URL || '';
 const client = connectionString ? postgres(connectionString, { max: 1 }) : null;
@@ -112,20 +162,35 @@ app.get('/api/stats/counts', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
   try {
-    const [companyCount, factoryCount, occupationCount, skillCount] = await Promise.all([
+    const [companyCount, factoryCount, occupationCount, skillCount, refCount, schoolCount, programCount, personCount] = await Promise.all([
       db.select({ count: count() }).from(companies),
       db.select({ count: count() }).from(factories),
       db.select({ count: count() }).from(occupations),
       db.select({ count: count() }).from(skills),
+      db.select({ count: count() }).from(refs),
+      db.select({ count: count() }).from(schools),
+      db.select({ count: count() }).from(programs),
+      db.select({ count: count() }).from(persons),
     ]);
 
+    const c = companyCount[0]?.count ?? 0;
+    const f = factoryCount[0]?.count ?? 0;
+    const o = occupationCount[0]?.count ?? 0;
+    const s = skillCount[0]?.count ?? 0;
+    const r = refCount[0]?.count ?? 0;
+    const sch = schoolCount[0]?.count ?? 0;
+    const p = programCount[0]?.count ?? 0;
+    const pr = personCount[0]?.count ?? 0;
     res.json({
-      companies: companyCount[0]?.count ?? 0,
-      factories: factoryCount[0]?.count ?? 0,
-      occupations: occupationCount[0]?.count ?? 0,
-      skills: skillCount[0]?.count ?? 0,
-      total: (companyCount[0]?.count ?? 0) + (factoryCount[0]?.count ?? 0) +
-             (occupationCount[0]?.count ?? 0) + (skillCount[0]?.count ?? 0),
+      companies: c,
+      factories: f,
+      occupations: o,
+      skills: s,
+      refs: r,
+      schools: sch,
+      programs: p,
+      persons: pr,
+      total: c + f + o + s + r + sch + p,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -833,6 +898,125 @@ app.get('/api/search', async (req, res) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Refs list (filter by type, search)
+app.get('/api/refs', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+  try {
+    const { offset = '0', limit = '20', search, type } = req.query;
+    const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
+    const conditions: any[] = [];
+    if (search) conditions.push(or(ilike(refs.name, `%${search}%`), ilike(refs.description, `%${search}%`)));
+    if (type) conditions.push(eq(refs.type, type as string));
+    const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+    const [countRes] = await db.select({ total: count() }).from(refs).where(whereClause);
+    const total = countRes?.total ?? 0;
+    const result = await db.select().from(refs).where(whereClause).orderBy(refs.name).limit(limitNum).offset(offsetNum);
+    res.json({ data: result, total, offset: offsetNum, limit: limitNum, hasMore: offsetNum + result.length < total });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Ref detail
+app.get('/api/refs/:id', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+  const { id } = req.params;
+  if (!isValidUUID(id)) return res.status(400).json({ error: 'Invalid ref ID' });
+  try {
+    const [r] = await db.select().from(refs).where(eq(refs.id, id)).limit(1);
+    if (!r) return res.status(404).json({ error: 'Ref not found' });
+    const linkedSkills = await db.select({ id: skills.id, name: skills.name, category: skills.category })
+      .from(skillRefs).innerJoin(skills, eq(skillRefs.skillId, skills.id))
+      .where(eq(skillRefs.refId, id));
+    res.json({ ...r, skills: linkedSkills });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Schools list
+app.get('/api/schools', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+  try {
+    const { offset = '0', limit = '20', search, state } = req.query;
+    const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
+    const conditions: any[] = [];
+    if (search) conditions.push(or(ilike(schools.name, `%${search}%`), ilike(schools.description, `%${search}%`)));
+    if (state) conditions.push(eq(schools.state, state as string));
+    const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+    const [countRes] = await db.select({ total: count() }).from(schools).where(whereClause);
+    const total = countRes?.total ?? 0;
+    const result = await db
+      .select({
+        id: schools.id, name: schools.name, description: schools.description,
+        state: schools.state, schoolType: schools.schoolType, createdAt: schools.createdAt,
+        programCount: sql<number>`(SELECT COUNT(*)::int FROM programs WHERE programs.school_id = schools.id)`,
+      })
+      .from(schools).where(whereClause).orderBy(schools.name).limit(limitNum).offset(offsetNum);
+    res.json({ data: result, total, offset: offsetNum, limit: limitNum, hasMore: offsetNum + result.length < total });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// School detail
+app.get('/api/schools/:id', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+  const { id } = req.params;
+  if (!isValidUUID(id)) return res.status(400).json({ error: 'Invalid school ID' });
+  try {
+    const [s] = await db.select().from(schools).where(eq(schools.id, id)).limit(1);
+    if (!s) return res.status(404).json({ error: 'School not found' });
+    const schoolPrograms = await db
+      .select({ id: programs.id, title: programs.title, credentialType: programs.credentialType, cipCode: programs.cipCode })
+      .from(programs).where(eq(programs.schoolId, id)).orderBy(programs.title);
+    res.json({ ...s, programs: schoolPrograms });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Programs list
+app.get('/api/programs', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+  try {
+    const { offset = '0', limit = '20', search, schoolId } = req.query;
+    const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
+    const conditions: any[] = [];
+    if (search) conditions.push(or(ilike(programs.title, `%${search}%`), ilike(programs.description, `%${search}%`)));
+    if (schoolId) conditions.push(eq(programs.schoolId, schoolId as string));
+    const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+    const [countRes] = await db.select({ total: count() }).from(programs).where(whereClause);
+    const total = countRes?.total ?? 0;
+    const result = await db
+      .select({
+        id: programs.id, title: programs.title, description: programs.description,
+        credentialType: programs.credentialType, durationHours: programs.durationHours,
+        schoolId: programs.schoolId,
+        schoolName: sql<string>`(SELECT name FROM schools WHERE schools.id = programs.school_id)`,
+        skillCount: sql<number>`(SELECT COUNT(*)::int FROM program_skills WHERE program_skills.program_id = programs.id)`,
+      })
+      .from(programs).where(whereClause).orderBy(programs.title).limit(limitNum).offset(offsetNum);
+    res.json({ data: result, total, offset: offsetNum, limit: limitNum, hasMore: offsetNum + result.length < total });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Program detail
+app.get('/api/programs/:id', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+  const { id } = req.params;
+  if (!isValidUUID(id)) return res.status(400).json({ error: 'Invalid program ID' });
+  try {
+    const [p] = await db.select().from(programs).where(eq(programs.id, id)).limit(1);
+    if (!p) return res.status(404).json({ error: 'Program not found' });
+    let school = null;
+    if (p.schoolId) {
+      const [s] = await db.select({ id: schools.id, name: schools.name, state: schools.state }).from(schools).where(eq(schools.id, p.schoolId)).limit(1);
+      school = s || null;
+    }
+    const programSkillList = await db
+      .select({ id: skills.id, name: skills.name, category: skills.category, importance: programSkills.importance })
+      .from(programSkills).innerJoin(skills, eq(programSkills.skillId, skills.id))
+      .where(eq(programSkills.programId, id));
+    res.json({ ...p, school, skills: programSkillList });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
 
 // 404
