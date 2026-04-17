@@ -1,9 +1,10 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import maplibregl, { Map as MapLibreMap, GeoJSONSource, MapMouseEvent, LngLatBounds } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useQuery } from '@tanstack/react-query';
 import { factoriesApi } from '../../lib/api';
 import { useMapStore } from '../../stores/mapStore';
+import { US_STATES } from '@shared/states';
 import { Loader2, Maximize2 } from 'lucide-react';
 
 // MapTiler style base URL - key added at runtime for retry support
@@ -97,6 +98,40 @@ export default function Map() {
     staleTime: 30 * 1000, // 30 seconds - shorter for viewport changes
     placeholderData: (previousData) => previousData, // Keep previous data while loading
   });
+
+  // State-level factory counts (for the continental-zoom choropleth)
+  const { data: stateCounts } = useQuery<Record<string, number>>({
+    queryKey: ['state-counts'],
+    queryFn: () => fetch('/api/map/state-counts').then(r => r.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Raw US states GeoJSON geometry
+  const { data: statesGeoJSONRaw } = useQuery<GeoJSON.FeatureCollection>({
+    queryKey: ['states-geojson'],
+    queryFn: () => fetch(STATES_GEOJSON_URL).then(r => r.json()),
+    staleTime: Infinity,
+  });
+
+  // Merge counts into states GeoJSON so the fill layer can key off
+  // feature.properties.factoryCount. Name → 2-letter-code map comes from
+  // shared/states.ts; the upstream GeoJSON uses full names on properties.name.
+  const statesWithCounts = useMemo(() => {
+    if (!statesGeoJSONRaw || !stateCounts) return null;
+    // Plain object lookup — the component itself is named `Map`, which
+    // shadows the built-in Map constructor inside this file.
+    const nameToCode: Record<string, string> = {};
+    for (const s of US_STATES) nameToCode[s.name] = s.code;
+    return {
+      ...statesGeoJSONRaw,
+      features: statesGeoJSONRaw.features.map((f) => {
+        const name = f.properties?.name as string | undefined;
+        const code = name ? nameToCode[name] : undefined;
+        const count = code ? (stateCounts[code] ?? 0) : 0;
+        return { ...f, properties: { ...(f.properties ?? {}), stateCode: code, factoryCount: count } };
+      }),
+    } as GeoJSON.FeatureCollection;
+  }, [statesGeoJSONRaw, stateCounts]);
 
   // Handle click outside markers to close panel
   const handleMapClick = useCallback((e: MapMouseEvent) => {
@@ -220,13 +255,49 @@ export default function Map() {
         });
       }
 
-      // Add state boundaries layer
+      // States source (empty at init — populated by effect below once both
+      // GeoJSON geometry and factory counts have loaded)
       try {
         currentMap.addSource('states', {
           type: 'geojson',
-          data: STATES_GEOJSON_URL,
+          data: { type: 'FeatureCollection', features: [] },
         });
 
+        // Choropleth fill — shaded by factory count. Two interpolate
+        // expressions multiplied:
+        //   1) count-driven opacity with gentle stops so small states still
+        //      register and dense states don't saturate
+        //   2) zoom-driven fade-out so the fill cedes the map to individual
+        //      pins at zoom 6+
+        currentMap.addLayer({
+          id: 'state-fills',
+          type: 'fill',
+          source: 'states',
+          paint: {
+            // Muted cool gray. Different from pin-white and highlight-blue
+            // so they each own their visual role.
+            'fill-color': '#94A3B8',
+            'fill-opacity': [
+              '*',
+              ['interpolate', ['linear'], ['get', 'factoryCount'],
+                0, 0,
+                50, 0.04,
+                200, 0.08,
+                800, 0.14,
+                2500, 0.22,
+                6000, 0.28,
+              ],
+              ['interpolate', ['linear'], ['zoom'],
+                3, 1,
+                5, 1,
+                6, 0,
+              ],
+            ],
+          },
+        });
+
+        // Border layer sits on top of the fill so state outlines stay
+        // visible through shading.
         currentMap.addLayer({
           id: 'state-borders',
           type: 'line',
@@ -247,7 +318,7 @@ export default function Map() {
           },
         });
       } catch (err) {
-        console.error('Failed to load US states layer:', err);
+        console.error('Failed to add US states layers:', err);
       }
 
       // Factories source — clustering OFF. With ~1k points, performance is
@@ -289,10 +360,13 @@ export default function Map() {
             '#ffffff',
           ],
           'circle-radius': zoomCaseRadius([13, 16, 22, 30], [9, 12, 16, 22], [7, 9, 12, 16]),
+          // Fade in as the choropleth fades out — continental view belongs
+          // to the fills, individual pins belong to zoom 6+.
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, 0.18,
-            5, 0.22,
+            3, 0,
+            5, 0,
+            6, 0.22,
             8, 0.26,
             12, 0.32,
           ],
@@ -314,7 +388,12 @@ export default function Map() {
             '#ffffff',
           ],
           'circle-radius': zoomCaseRadius([5.5, 6.5, 8, 10], [4, 5, 6.5, 9], [3, 4, 5.5, 7]),
-          'circle-opacity': 1,
+          'circle-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            3, 0,
+            5, 0,
+            6, 1,
+          ],
         },
       });
 
@@ -435,6 +514,16 @@ export default function Map() {
     // id synthesis needed.
     source.setData(factoriesGeoJSON);
   }, [factoriesGeoJSON, mapLoaded]);
+
+  // Populate the states source once both the GeoJSON geometry and the
+  // factory counts have loaded. Re-fires on mapLoaded so fresh map
+  // instances get the data after a route-level remount.
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !statesWithCounts) return;
+    const source = map.current.getSource('states') as GeoJSONSource | undefined;
+    if (!source) return;
+    source.setData(statesWithCounts);
+  }, [statesWithCounts, mapLoaded]);
 
   // Optimized selection update - only update changed features
   useEffect(() => {

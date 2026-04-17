@@ -157,6 +157,23 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// State factory counts — for the continental-zoom choropleth
+app.get('/api/map/state-counts', async (_req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+  try {
+    const rows = await db
+      .select({ state: factories.state, count: count() })
+      .from(factories)
+      .where(sql`${factories.state} IS NOT NULL`)
+      .groupBy(factories.state);
+    const out: Record<string, number> = {};
+    for (const r of rows) if (r.state) out[r.state] = r.count;
+    res.json(out);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Stats counts
 app.get('/api/stats/counts', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
