@@ -452,7 +452,11 @@ export default function Map() {
 
       // Factory marker click — use top-level feature.id (we no longer
       // duplicate it into properties to save payload bytes).
+      // Gate by zoom: below 6 the pins are invisible (opacity 0) but
+      // queryRenderedFeatures still hits them. We don't want users
+      // accidentally selecting an invisible pin when they click a state.
       currentMap.on('click', 'factory-points', (e) => {
+        if (currentMap.getZoom() < 6) return;
         if (!e.features?.[0]) return;
         const factoryId = e.features[0].id;
         if (typeof factoryId === 'string') {
@@ -469,8 +473,10 @@ export default function Map() {
         }
       });
 
-      // Hover on factory markers
+      // Hover on factory markers — same zoom gate as click so you can't
+      // hover an invisible pin at continental zoom.
       currentMap.on('mouseenter', 'factory-points', (e) => {
+        if (currentMap.getZoom() < 6) return;
         currentMap.getCanvas().style.cursor = 'pointer';
         const id = e.features?.[0]?.id;
         if (typeof id === 'string') {
@@ -506,9 +512,13 @@ export default function Map() {
       let hoveredStateCode: string | null = null;
       currentMap.on('click', 'state-fills', (e) => {
         if (!e.features?.[0]) return;
-        // If a pin sits under the click, let the pin handler win.
-        const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
-        if (pinHit.length > 0) return;
+        // Only cede priority to pin clicks when pins are actually visible
+        // (zoom >= 6). Below that, pins are opacity-0 but still registered
+        // as hit-testable by MapLibre, which would steal state clicks.
+        if (currentMap.getZoom() >= 6) {
+          const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
+          if (pinHit.length > 0) return;
+        }
         const code = e.features[0].properties?.stateCode as string | undefined;
         if (!code) return;
         selectState(code);
