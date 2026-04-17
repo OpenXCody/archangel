@@ -260,7 +260,7 @@ export default function Map() {
         data: { type: 'FeatureCollection', features: [] },
       });
 
-      // Glow layer — subtle halo, grows with zoom, barely visible at continental view
+      // Glow layer — halo under each pin, grows with zoom
       currentMap.addLayer({
         id: 'factory-points-glow',
         type: 'circle',
@@ -275,23 +275,24 @@ export default function Map() {
           'circle-radius': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            ['interpolate', ['linear'], ['zoom'], 3, 5, 5, 8, 8, 14, 12, 22],
+            ['interpolate', ['linear'], ['zoom'], 3, 7, 5, 10, 8, 16, 12, 24],
             ['boolean', ['feature-state', 'hover'], false],
-            ['interpolate', ['linear'], ['zoom'], 3, 4, 5, 6, 8, 11, 12, 18],
-            ['interpolate', ['linear'], ['zoom'], 3, 2.5, 5, 4, 8, 7, 12, 12],
+            ['interpolate', ['linear'], ['zoom'], 3, 6, 5, 8, 8, 13, 12, 20],
+            ['interpolate', ['linear'], ['zoom'], 3, 4.5, 5, 6, 8, 9, 12, 14],
           ],
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, 0.06,
-            5, 0.1,
-            8, 0.18,
-            12, 0.25,
+            3, 0.14,
+            5, 0.18,
+            8, 0.22,
+            12, 0.28,
           ],
           'circle-blur': 0.6,
         },
       });
 
-      // Pin cores — small at continental zoom, grow as you drill in
+      // Pin cores — small at continental zoom but still visible on HiDPI,
+      // grow as you drill in
       currentMap.addLayer({
         id: 'factory-points',
         type: 'circle',
@@ -306,16 +307,15 @@ export default function Map() {
           'circle-radius': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            ['interpolate', ['linear'], ['zoom'], 3, 3, 5, 4, 8, 6, 12, 9],
+            ['interpolate', ['linear'], ['zoom'], 3, 4, 5, 5, 8, 7, 12, 10],
             ['boolean', ['feature-state', 'hover'], false],
-            ['interpolate', ['linear'], ['zoom'], 3, 2.5, 5, 3.5, 8, 5, 12, 8],
-            ['interpolate', ['linear'], ['zoom'], 3, 1.2, 5, 2, 8, 3.5, 12, 6],
+            ['interpolate', ['linear'], ['zoom'], 3, 3.5, 5, 4.5, 8, 6, 12, 9],
+            ['interpolate', ['linear'], ['zoom'], 3, 2.5, 5, 3.5, 8, 5, 12, 7],
           ],
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, 0.75,
-            5, 0.85,
-            8, 1,
+            3, 0.9,
+            5, 1,
           ],
         },
       });
