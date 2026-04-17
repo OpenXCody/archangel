@@ -263,29 +263,53 @@ export default function Map() {
           data: { type: 'FeatureCollection', features: [] },
         });
 
-        // Choropleth fill — shaded by factory count, hard-cut at zoom 6+.
+        // Choropleth fill — shaded by factory count, fading out across
+        // zoom 5 → 6.5 so pins can take over without a hard cut.
         // MapLibre rejects data-interpolate wrapped inside zoom-interpolate,
-        // so we use `step` on zoom for the fade-out (acceptable: at zoom 6
-        // pins fade in and the sudden hand-off isn't visually jarring).
+        // so we hand-build a multi-step fade via `step` on zoom. Each step
+        // is its own count-driven interpolate with scaled output stops.
         currentMap.addLayer({
           id: 'state-fills',
           type: 'fill',
           source: 'states',
           paint: {
-            // Muted cool gray — different from pin-white and highlight-blue
-            // so each owns its visual role.
-            'fill-color': '#94A3B8',
+            // Slightly more committed than slate-400 so the tint reads as
+            // territory rather than a translucent wash that the base-map
+            // texture bleeds through. Still single-hue.
+            'fill-color': '#7B8FA8',
             'fill-opacity': [
               'step', ['zoom'],
+              // < zoom 5 — full shading
               ['interpolate', ['linear'], ['get', 'factoryCount'],
                 0, 0,
-                50, 0.05,
-                200, 0.09,
-                800, 0.16,
-                2500, 0.24,
-                6000, 0.3,
+                50, 0.12,
+                200, 0.18,
+                800, 0.26,
+                2500, 0.34,
+                6000, 0.4,
               ],
-              6, 0,
+              5, ['interpolate', ['linear'], ['get', 'factoryCount'],
+                0, 0,
+                50, 0.12,
+                200, 0.18,
+                800, 0.26,
+                2500, 0.34,
+                6000, 0.4,
+              ],
+              5.5, ['interpolate', ['linear'], ['get', 'factoryCount'],
+                0, 0,
+                50, 0.07,
+                200, 0.11,
+                800, 0.16,
+                2500, 0.21,
+                6000, 0.25,
+              ],
+              6, ['interpolate', ['linear'], ['get', 'factoryCount'],
+                0, 0,
+                2500, 0.08,
+                6000, 0.1,
+              ],
+              6.5, 0,
             ],
           },
         });
@@ -354,15 +378,18 @@ export default function Map() {
             '#ffffff',
           ],
           'circle-radius': zoomCaseRadius([13, 16, 22, 30], [9, 12, 16, 22], [7, 9, 12, 16]),
-          // Fade in as the choropleth fades out — continental view belongs
-          // to the fills, individual pins belong to zoom 6+.
+          // Fade in across zoom 5 → 6.5 so the crossfade with the choropleth
+          // is smooth. Peak glow opacity pulled down slightly so mid-zoom
+          // doesn't bloom.
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
             3, 0,
             5, 0,
-            6, 0.22,
-            8, 0.26,
-            12, 0.32,
+            5.5, 0.05,
+            6, 0.12,
+            6.5, 0.18,
+            8, 0.2,
+            12, 0.24,
           ],
           'circle-blur': 0.6,
         },
@@ -382,11 +409,16 @@ export default function Map() {
             '#ffffff',
           ],
           'circle-radius': zoomCaseRadius([5.5, 6.5, 8, 10], [4, 5, 6.5, 9], [3, 4, 5.5, 7]),
+          // Smoother crossfade across zoom 5 → 6.5. Peak opacity holds at
+          // 0.9 (was 1) — the full-white-blob at dense mid-zoom was too hot.
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
             3, 0,
             5, 0,
-            6, 1,
+            5.5, 0.15,
+            6, 0.45,
+            6.5, 0.75,
+            8, 0.9,
           ],
         },
       });
