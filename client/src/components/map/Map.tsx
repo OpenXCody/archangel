@@ -107,6 +107,8 @@ export default function Map() {
       layers: [
         'factory-points',
         'factory-points-glow',
+        'factory-clusters',
+        'factory-clusters-glow',
       ],
     });
 
@@ -251,20 +253,71 @@ export default function Map() {
       }
 
       // Responsive cluster settings - smaller on mobile for better touch targets
-      // Factories source — clustering intentionally OFF.
-      // With ~1k points, individual pins render fine at any zoom; clustering
-      // produced giant blobs at continental zoom that obscured state-level
-      // variance. We scale radius/opacity with zoom instead.
+      const isMobile = window.innerWidth < 768;
+      const clusterRadius = isMobile ? 50 : 80;
+      const clusterMaxZoom = isMobile ? 10 : 12;
+
+      // Add factories source with optimized clustering for scale
       currentMap.addSource('factories', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
+        cluster: true,
+        clusterMaxZoom,
+        clusterRadius,
+        clusterMinPoints: 3, // Require 3+ points to cluster
+        // Generate cluster properties for richer clusters
+        clusterProperties: {
+          totalWorkforce: ['+', ['get', 'workforceSize']],
+        },
       });
 
-      // Glow layer — subtle halo, grows with zoom, barely visible at continental view
+      // Simplified cluster styling - single glow layer instead of 4
+      currentMap.addLayer({
+        id: 'factory-clusters-glow',
+        type: 'circle',
+        source: 'factories',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#60A5FA',
+          'circle-radius': [
+            'interpolate', ['linear'], ['get', 'point_count'],
+            2, 20,
+            10, 30,
+            50, 45,
+            100, 60,
+            500, 80,
+          ],
+          'circle-opacity': 0.2,
+          'circle-blur': 0.6,
+        },
+      });
+
+      // Cluster core
+      currentMap.addLayer({
+        id: 'factory-clusters',
+        type: 'circle',
+        source: 'factories',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#93C5FD',
+          'circle-radius': [
+            'interpolate', ['linear'], ['get', 'point_count'],
+            2, 8,
+            10, 12,
+            50, 16,
+            100, 20,
+            500, 26,
+          ],
+          'circle-opacity': 0.9,
+        },
+      });
+
+      // Individual factory markers - simplified glow
       currentMap.addLayer({
         id: 'factory-points-glow',
         type: 'circle',
         source: 'factories',
+        filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': [
             'case',
@@ -275,27 +328,27 @@ export default function Map() {
           'circle-radius': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            ['interpolate', ['linear'], ['zoom'], 3, 5, 5, 8, 8, 14, 12, 22],
+            18,
             ['boolean', ['feature-state', 'hover'], false],
-            ['interpolate', ['linear'], ['zoom'], 3, 4, 5, 6, 8, 11, 12, 18],
-            ['interpolate', ['linear'], ['zoom'], 3, 2.5, 5, 4, 8, 7, 12, 12],
+            14,
+            10,
           ],
           'circle-opacity': [
-            'interpolate', ['linear'], ['zoom'],
-            3, 0.06,
-            5, 0.1,
-            8, 0.18,
-            12, 0.25,
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            0.3,
+            0.15,
           ],
           'circle-blur': 0.6,
         },
       });
 
-      // Pin cores — small at continental zoom, grow as you drill in
+      // Individual factory markers
       currentMap.addLayer({
         id: 'factory-points',
         type: 'circle',
         source: 'factories',
+        filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': [
             'case',
@@ -306,21 +359,16 @@ export default function Map() {
           'circle-radius': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            ['interpolate', ['linear'], ['zoom'], 3, 3, 5, 4, 8, 6, 12, 9],
+            7,
             ['boolean', ['feature-state', 'hover'], false],
-            ['interpolate', ['linear'], ['zoom'], 3, 2.5, 5, 3.5, 8, 5, 12, 8],
-            ['interpolate', ['linear'], ['zoom'], 3, 1.2, 5, 2, 8, 3.5, 12, 6],
+            6,
+            4,
           ],
-          'circle-opacity': [
-            'interpolate', ['linear'], ['zoom'],
-            3, 0.75,
-            5, 0.85,
-            8, 1,
-          ],
+          'circle-opacity': 1,
         },
       });
 
-      // Selected marker ring — scales with zoom so the ring stays proportional
+      // Selected marker ring
       currentMap.addLayer({
         id: 'factory-selected',
         type: 'circle',
@@ -328,13 +376,7 @@ export default function Map() {
         filter: ['==', ['get', 'id'], ''],
         paint: {
           'circle-color': 'transparent',
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            3, 5,
-            5, 8,
-            8, 12,
-            12, 18,
-          ],
+          'circle-radius': 12,
           'circle-stroke-color': '#60A5FA',
           'circle-stroke-width': 2,
           'circle-stroke-opacity': 0.6,
@@ -342,6 +384,49 @@ export default function Map() {
       });
 
       // === EVENT HANDLERS ===
+
+      // Cluster click - zoom to fit all factories in the cluster
+      const handleClusterClick = async (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) => {
+        if (!e.features?.[0]) return;
+        const clusterId = e.features[0].properties?.cluster_id;
+        if (!clusterId) return;
+
+        const source = currentMap.getSource('factories') as GeoJSONSource;
+
+        try {
+          // Get all points in this cluster (up to 1000)
+          const leaves = await source.getClusterLeaves(clusterId, 1000, 0);
+
+          if (!leaves || leaves.length === 0) return;
+
+          // Calculate bounds that contain all factories in the cluster
+          const coordinates = leaves
+            .filter((f): f is GeoJSON.Feature<GeoJSON.Point> =>
+              f.geometry?.type === 'Point'
+            )
+            .map(f => f.geometry.coordinates as [number, number]);
+
+          if (coordinates.length === 0) return;
+
+          // Create bounds from all coordinates
+          const bounds = coordinates.reduce(
+            (bounds, coord) => bounds.extend(coord),
+            new maplibregl.LngLatBounds(coordinates[0], coordinates[0])
+          );
+
+          // Fit map to show all factories with padding
+          currentMap.fitBounds(bounds, {
+            padding: { top: 50, bottom: 50, left: 50, right: 50 },
+            maxZoom: 14,
+            duration: 500,
+          });
+        } catch (err) {
+          console.error('Error getting cluster leaves:', err);
+        }
+      };
+
+      currentMap.on('click', 'factory-clusters', handleClusterClick);
+      currentMap.on('click', 'factory-clusters-glow', handleClusterClick);
 
       // Factory marker click
       currentMap.on('click', 'factory-points', (e) => {
@@ -386,6 +471,16 @@ export default function Map() {
           hoveredFactoryIdRef.current = null;
           setHoveredFactory(null);
         }
+      });
+
+      // Cluster hover
+      ['factory-clusters', 'factory-clusters-glow'].forEach((layerId) => {
+        currentMap.on('mouseenter', layerId, () => {
+          currentMap.getCanvas().style.cursor = 'pointer';
+        });
+        currentMap.on('mouseleave', layerId, () => {
+          currentMap.getCanvas().style.cursor = '';
+        });
       });
 
       // Map click (for closing panel)
