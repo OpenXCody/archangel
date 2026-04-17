@@ -474,11 +474,11 @@ export default function Map() {
 
       // Factory marker click — use top-level feature.id (we no longer
       // duplicate it into properties to save payload bytes).
-      // Gate by zoom: below 6 the pins are invisible (opacity 0) but
-      // queryRenderedFeatures still hits them. We don't want users
-      // accidentally selecting an invisible pin when they click a state.
+      // Gate by zoom to avoid selecting invisible pins at continental
+      // zoom — unless a company filter is active, in which case pins are
+      // deliberately visible at every zoom and should be clickable.
       currentMap.on('click', 'factory-points', (e) => {
-        if (currentMap.getZoom() < 6) return;
+        if (currentMap.getZoom() < 6 && !pinsAlwaysVisibleRef.current) return;
         if (!e.features?.[0]) return;
         const factoryId = e.features[0].id;
         if (typeof factoryId === 'string') {
@@ -495,10 +495,10 @@ export default function Map() {
         }
       });
 
-      // Hover on factory markers — same zoom gate as click so you can't
-      // hover an invisible pin at continental zoom.
+      // Hover on factory markers — same zoom gate as click. Respects the
+      // company-filter override too.
       currentMap.on('mouseenter', 'factory-points', (e) => {
-        if (currentMap.getZoom() < 6) return;
+        if (currentMap.getZoom() < 6 && !pinsAlwaysVisibleRef.current) return;
         currentMap.getCanvas().style.cursor = 'pointer';
         const id = e.features?.[0]?.id;
         if (typeof id === 'string') {
@@ -535,9 +535,8 @@ export default function Map() {
       currentMap.on('click', 'state-fills', (e) => {
         if (!e.features?.[0]) return;
         // Only cede priority to pin clicks when pins are actually visible
-        // (zoom >= 6). Below that, pins are opacity-0 but still registered
-        // as hit-testable by MapLibre, which would steal state clicks.
-        if (currentMap.getZoom() >= 6) {
+        // (zoom >= 6, OR a company filter is active and they're forced on).
+        if (currentMap.getZoom() >= 6 || pinsAlwaysVisibleRef.current) {
           const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
           if (pinHit.length > 0) return;
         }
@@ -664,6 +663,43 @@ export default function Map() {
   useEffect(() => {
     statesWithCountsRef.current = statesWithCounts;
   }, [statesWithCounts]);
+
+  // When a company filter is active we force pins to be visible at every
+  // zoom — otherwise "Locate All Factories" on a national company flies
+  // to continental view and the pins are opacity 0. Ref mirror lets the
+  // click/hover handlers (captured in the load callback) check this too.
+  const pinsAlwaysVisible = !!filters.company;
+  const pinsAlwaysVisibleRef = useRef(pinsAlwaysVisible);
+  useEffect(() => {
+    pinsAlwaysVisibleRef.current = pinsAlwaysVisible;
+  }, [pinsAlwaysVisible]);
+
+  // Default zoom-based opacity curves, used when no company filter
+  // forces pins on. Kept in one place so the effect below has a single
+  // source of truth.
+  const defaultPointOpacity: any = [
+    'interpolate', ['linear'], ['zoom'],
+    3, 0, 5.8, 0, 6.2, 0.25, 6.8, 0.6, 7.5, 0.85, 9, 0.9,
+  ];
+  const defaultGlowOpacity: any = [
+    'interpolate', ['linear'], ['zoom'],
+    3, 0, 5.8, 0, 6.2, 0.08, 6.8, 0.15, 8, 0.2, 12, 0.24,
+  ];
+
+  // Swap pin paint opacity when the company filter toggles. With a filter
+  // active the result set is small enough that always-on doesn't bloom.
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    const m = map.current;
+    if (!m.getLayer('factory-points') || !m.getLayer('factory-points-glow')) return;
+    try {
+      m.setPaintProperty('factory-points', 'circle-opacity',
+        pinsAlwaysVisible ? 0.85 : defaultPointOpacity);
+      m.setPaintProperty('factory-points-glow', 'circle-opacity',
+        pinsAlwaysVisible ? 0.22 : defaultGlowOpacity);
+    } catch { /* layers may not be ready yet — the effect re-fires with mapLoaded */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinsAlwaysVisible, mapLoaded]);
 
   // Track the previously-selected state so we can clear its feature-state
   // when a different state (or nothing) is selected. Also drives the

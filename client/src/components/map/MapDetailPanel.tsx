@@ -319,8 +319,11 @@ function CompanyView({ company }: { company: CompanyDetail }) {
   const showAllFactories = () => {
     if (!company.factories?.length) return;
 
-    // Set filter to show only this company's factories
-    setFilters({ company: company.id, companyName: company.name });
+    // Set filter to show only this company's factories. Also clear any
+    // lingering state filter (a user can arrive here via
+    // state → top-company → "locate all" and we'd otherwise scope to
+    // state × company instead of nationwide for the company).
+    setFilters({ company: company.id, companyName: company.name, states: [] });
 
     // If there's only one factory, zoom to it
     if (company.factories.length === 1) {
