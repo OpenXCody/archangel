@@ -178,6 +178,9 @@ app.get('/api/map/states/:code/overview', async (req, res) => {
       FROM factories f
       INNER JOIN companies c ON c.id = f.company_id
       WHERE f.state = ${code}
+        AND c.name ~ '[A-Za-z]{2,}'
+        AND c.name NOT LIKE '#%'
+        AND c.name NOT LIKE '(%'
       GROUP BY c.id, c.name
       ORDER BY count DESC, c.name ASC
       LIMIT 10
@@ -231,8 +234,16 @@ app.get('/api/stats/counts', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
   try {
+    // Same junk-name filter as the Companies list — the headline count
+    // should reflect what the user can actually browse, not the inflated
+    // bulk-import total.
+    const companyNameFilter = and(
+      sql`${companies.name} ~ '[A-Za-z]{2,}'`,
+      sql`${companies.name} NOT LIKE '#%'`,
+      sql`${companies.name} NOT LIKE '(%'`,
+    );
     const [companyCount, factoryCount, occupationCount, skillCount, refCount, schoolCount, programCount, personCount] = await Promise.all([
-      db.select({ count: count() }).from(companies),
+      db.select({ count: count() }).from(companies).where(companyNameFilter),
       db.select({ count: count() }).from(factories),
       db.select({ count: count() }).from(occupations),
       db.select({ count: count() }).from(skills),
@@ -276,6 +287,14 @@ app.get('/api/companies', async (req, res) => {
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     const conditions: any[] = [];
+    // Exclude obvious junk names that got imported as companies — pure
+    // numeric facility codes (0145000399), hash-prefixed IDs (#1110),
+    // lone paren leaders ((former Woods...), or names with no letters.
+    // These are artifacts of the bulk Pillar import where some facilities
+    // had addresses or numeric codes in the company_name column.
+    conditions.push(sql`${companies.name} ~ '[A-Za-z]{2,}'`);
+    conditions.push(sql`${companies.name} NOT LIKE '#%'`);
+    conditions.push(sql`${companies.name} NOT LIKE '(%'`);
     if (search) {
       const searchTerm = `%${search}%`;
       conditions.push(or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm)));
@@ -840,16 +859,22 @@ app.get('/api/search', async (req, res) => {
 
     const shouldSearch = (type: string) => !typeFilter || typeFilter.includes(type);
 
-    // Search companies
+    // Search companies — same junk-name filter as the list endpoint
     let companyResults: any[] = [];
     let companyCount = 0;
     if (shouldSearch('companies')) {
+      const nameFilter = and(
+        sql`${companies.name} ~ '[A-Za-z]{2,}'`,
+        sql`${companies.name} NOT LIKE '#%'`,
+        sql`${companies.name} NOT LIKE '(%'`,
+      );
+      const searchFilter = or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm));
       const [countRes, dataRes] = await Promise.all([
         db.select({ count: count() }).from(companies)
-          .where(or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm))),
+          .where(and(nameFilter, searchFilter)),
         db.select({ id: companies.id, name: companies.name, industry: companies.industry })
           .from(companies)
-          .where(or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm)))
+          .where(and(nameFilter, searchFilter))
           .orderBy(companies.name)
           .limit(limitNum),
       ]);
@@ -892,18 +917,20 @@ app.get('/api/search', async (req, res) => {
       const [countRes, dataRes] = await Promise.all([
         db.select({ count: count() }).from(occupations)
           .where(ilike(occupations.title, searchTerm)),
-        db.select({ id: occupations.id, title: occupations.title, onetCode: occupations.onetCode })
+        db.select({ id: occupations.id, title: occupations.title })
           .from(occupations)
           .where(ilike(occupations.title, searchTerm))
           .orderBy(occupations.title)
           .limit(limitNum),
       ]);
       occupationCount = countRes[0]?.count ?? 0;
+      // O*NET code intentionally omitted from search `meta` — it's a
+      // reference taxonomy, not a user-facing identifier. Shows only on
+      // occupation detail pages as a small tag.
       occupationResults = dataRes.map(o => ({
         id: o.id,
         name: o.title,
         type: 'occupations' as const,
-        meta: o.onetCode,
       }));
     }
 

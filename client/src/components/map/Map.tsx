@@ -686,8 +686,27 @@ export default function Map() {
     3, 0, 5.8, 0, 6.2, 0.08, 6.8, 0.15, 8, 0.2, 12, 0.24,
   ];
 
+  // Default state-fills opacity curve — mirrors the inline paint set up
+  // in the load callback so the company-filter toggle can restore it.
+  const defaultStateFillOpacity: any = [
+    'step', ['zoom'],
+    ['interpolate', ['linear'], ['get', 'factoryCount'],
+      0, 0, 50, 0.12, 200, 0.18, 800, 0.28, 2500, 0.38, 6000, 0.44,
+    ],
+    5.5, ['interpolate', ['linear'], ['get', 'factoryCount'],
+      0, 0, 50, 0.08, 200, 0.12, 800, 0.18, 2500, 0.26, 6000, 0.3,
+    ],
+    6, ['interpolate', ['linear'], ['get', 'factoryCount'],
+      0, 0, 2500, 0.06, 6000, 0.08,
+    ],
+    6.3, 0,
+  ];
+
   // Swap pin paint opacity when the company filter toggles. With a filter
   // active the result set is small enough that always-on doesn't bloom.
+  // Also dim the state-fills so the choropleth doesn't read as "this is
+  // the filtered company's density" — the choropleth is an all-factories
+  // reference and should step back when the focus is one company.
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     const m = map.current;
@@ -697,6 +716,13 @@ export default function Map() {
         pinsAlwaysVisible ? 0.85 : defaultPointOpacity);
       m.setPaintProperty('factory-points-glow', 'circle-opacity',
         pinsAlwaysVisible ? 0.22 : defaultGlowOpacity);
+      // Dim state fills while a company filter is on — keeps them as a
+      // subtle territory guide without competing with the pin story.
+      if (m.getLayer('state-fills')) {
+        m.setPaintProperty('state-fills', 'fill-opacity', pinsAlwaysVisible
+          ? 0.04
+          : defaultStateFillOpacity);
+      }
     } catch { /* layers may not be ready yet — the effect re-fires with mapLoaded */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pinsAlwaysVisible, mapLoaded]);
