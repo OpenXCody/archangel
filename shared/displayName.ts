@@ -44,13 +44,31 @@ function titleCaseWord(word: string, isFirst: boolean): string {
   return leading + lower.charAt(0).toUpperCase() + lower.slice(1) + trailing;
 }
 
+function fixAcronymsInPlace(name: string): string {
+  // Even if the source is already properly cased, we still want known
+  // corporate acronyms to be ALL CAPS ("Cemex" → "CEMEX", "Basf" → "BASF").
+  return name
+    .split(/(\s+)/)
+    .map((chunk) => {
+      if (/^\s+$/.test(chunk)) return chunk;
+      const match = chunk.match(/^([^A-Za-z0-9]*)([A-Za-z0-9].*?)([^A-Za-z0-9]*)$/);
+      if (!match) return chunk;
+      const [, leading, core, trailing] = match;
+      if (ACRONYMS.has(core.toUpperCase())) {
+        return leading + core.toUpperCase() + trailing;
+      }
+      return chunk;
+    })
+    .join('');
+}
+
 function smartTitleCase(name: string): string {
   // Only title-case if the input is majority uppercase — otherwise respect
-  // whatever the source already provided.
+  // whatever the source already provided (but still fix known acronyms).
   const letters = name.replace(/[^A-Za-z]/g, '');
   if (letters.length === 0) return name;
   const upperRatio = [...letters].filter((c) => c === c.toUpperCase()).length / letters.length;
-  if (upperRatio < 0.7) return name;
+  if (upperRatio < 0.7) return fixAcronymsInPlace(name);
   return name
     .split(/(\s+)/)
     .map((chunk, i) => (/^\s+$/.test(chunk) ? chunk : titleCaseWord(chunk, i === 0)))
