@@ -396,14 +396,16 @@ export default function Explore() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = (searchParams.get('tab') as TabType) || 'all';
 
-  // Filter and sort state
-  const [sortValue, setSortValue] = useState('name-asc');
+  // Filter and sort state. Companies default to factory-count so the big
+  // manufacturers surface before the long tail of 1-factory bulk-import rows.
+  const defaultSortFor = (tab: TabType) => tab === 'companies' ? 'factories-desc' : 'name-asc';
+  const [sortValue, setSortValue] = useState(() => defaultSortFor(activeTab));
   const [filters, setFilters] = useState<FilterState>({});
 
   // Reset filters when tab changes
   useEffect(() => {
     setFilters({});
-    setSortValue('name-asc');
+    setSortValue(defaultSortFor(activeTab));
   }, [activeTab]);
 
   // Get current sort config

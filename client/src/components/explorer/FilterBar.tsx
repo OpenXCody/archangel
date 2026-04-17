@@ -20,9 +20,9 @@ export const SORT_OPTIONS: Record<BrowsableTabType, SortOption[]> = {
     { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
   ],
   companies: [
+    { value: 'factories-desc', label: 'Factory count (high to low)', field: 'factoryCount', order: 'desc' },
     { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
     { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
-    { value: 'factories-desc', label: 'Factory count (high to low)', field: 'factoryCount', order: 'desc' },
   ],
   factories: [
     { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
