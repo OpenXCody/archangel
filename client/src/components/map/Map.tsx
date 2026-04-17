@@ -279,16 +279,8 @@ export default function Map() {
             'fill-color': '#7B8FA8',
             'fill-opacity': [
               'step', ['zoom'],
-              // < zoom 5 — full shading
+              // < zoom 5.5 — full shading
               ['interpolate', ['linear'], ['get', 'factoryCount'],
-                0, 0,
-                50, 0.12,
-                200, 0.18,
-                800, 0.26,
-                2500, 0.34,
-                6000, 0.4,
-              ],
-              5, ['interpolate', ['linear'], ['get', 'factoryCount'],
                 0, 0,
                 50, 0.12,
                 200, 0.18,
@@ -298,18 +290,18 @@ export default function Map() {
               ],
               5.5, ['interpolate', ['linear'], ['get', 'factoryCount'],
                 0, 0,
-                50, 0.07,
-                200, 0.11,
-                800, 0.16,
-                2500, 0.21,
+                50, 0.08,
+                200, 0.12,
+                800, 0.17,
+                2500, 0.22,
                 6000, 0.25,
               ],
               6, ['interpolate', ['linear'], ['get', 'factoryCount'],
                 0, 0,
-                2500, 0.08,
-                6000, 0.1,
+                2500, 0.06,
+                6000, 0.08,
               ],
-              6.5, 0,
+              6.3, 0,
             ],
           },
         });
@@ -378,16 +370,15 @@ export default function Map() {
             '#ffffff',
           ],
           'circle-radius': zoomCaseRadius([13, 16, 22, 30], [9, 12, 16, 22], [7, 9, 12, 16]),
-          // Fade in across zoom 5 → 6.5 so the crossfade with the choropleth
-          // is smooth. Peak glow opacity pulled down slightly so mid-zoom
-          // doesn't bloom.
+          // Pins hold at zero while the choropleth is the primary view.
+          // Start lifting at zoom 5.8, past the fill's fade-out point, so
+          // the two layers don't overlap and compound into bloom.
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
             3, 0,
-            5, 0,
-            5.5, 0.05,
-            6, 0.12,
-            6.5, 0.18,
+            5.8, 0,
+            6.2, 0.08,
+            6.8, 0.15,
             8, 0.2,
             12, 0.24,
           ],
@@ -409,16 +400,17 @@ export default function Map() {
             '#ffffff',
           ],
           'circle-radius': zoomCaseRadius([5.5, 6.5, 8, 10], [4, 5, 6.5, 9], [3, 4, 5.5, 7]),
-          // Smoother crossfade across zoom 5 → 6.5. Peak opacity holds at
-          // 0.9 (was 1) — the full-white-blob at dense mid-zoom was too hot.
+          // Cores stay fully hidden until fills have faded (zoom ~6.3),
+          // then ramp in across 6 → 7.5. Peak at 0.9 to avoid hot-white
+          // bloom when overlapping in dense regions.
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
             3, 0,
-            5, 0,
-            5.5, 0.15,
-            6, 0.45,
-            6.5, 0.75,
-            8, 0.9,
+            5.8, 0,
+            6.2, 0.25,
+            6.8, 0.6,
+            7.5, 0.85,
+            9, 0.9,
           ],
         },
       });
