@@ -17,6 +17,7 @@ import {
 } from '../../lib/api';
 import { useMapStore, type MapEntityType } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
+import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 
 // Map-relevant entity types (refs, schools, programs are not map-related)
 type MapSearchableEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states';
@@ -104,7 +105,7 @@ export default function MapSearch() {
 
       // If it's a company, also set the company filter to show only their factories
       if (item.type === 'companies') {
-        setFilters({ company: item.id, companyName: item.name });
+        setFilters({ company: item.id, companyName: formatCompanyName(item.name) });
       }
 
       const mapType = searchToMapType[item.type as Exclude<MapSearchableEntityType, 'states'>];
@@ -451,7 +452,13 @@ export default function MapSearch() {
                             >
                               <Icon className={`w-4 h-4 flex-shrink-0 ${config.iconClass}`} />
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm text-fg-default truncate">{item.name}</p>
+                                <p className="text-sm text-fg-default truncate">
+                                  {item.type === 'factories'
+                                    ? formatFactoryName(item.name)
+                                    : item.type === 'companies'
+                                    ? formatCompanyName(item.name)
+                                    : item.name}
+                                </p>
                                 {item.subtitle && (
                                   <p className="text-xs text-fg-soft truncate">{item.subtitle}</p>
                                 )}

@@ -27,6 +27,7 @@ import {
 } from '../../lib/api';
 import { useMapStore, type MapEntityType } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
+import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 
 // State overview shape returned by /api/map/states/:code/overview
 interface StateOverview {
@@ -79,7 +80,7 @@ function StateView({ data }: { data: StateOverview }) {
                 onClick={() => selectEntity('company', c.id)}
                 className="w-full group flex items-center justify-between text-sm py-1.5 px-2 -mx-2 rounded-md hover:bg-white/[0.04] transition-colors text-left"
               >
-                <span className="text-fg-default truncate group-hover:text-fg-default">{c.name}</span>
+                <span className="text-fg-default truncate group-hover:text-fg-default">{formatCompanyName(c.name)}</span>
                 <span className="ml-2 flex items-center gap-1 flex-shrink-0 text-fg-soft text-xs">
                   {c.count}
                   <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />
@@ -188,7 +189,7 @@ function ConnectedNode({
         <div>
           {subtitle && <div className="text-xs text-fg-soft">{subtitle}</div>}
           <div className="text-sm font-medium text-fg-default group-hover:text-white">
-            {name}
+            {type === 'factory' ? formatFactoryName(name) : type === 'company' ? formatCompanyName(name) : name}
           </div>
         </div>
       </div>
@@ -209,7 +210,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
     <>
       {/* Factory Name & Industry */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-fg-default mb-1">{factory.name}</h2>
+        <h2 className="text-xl font-semibold text-fg-default mb-1">{formatFactoryName(factory.name)}</h2>
         <p className="text-sm text-fg-muted">
           {factory.specialization || factory.company?.industry || 'Manufacturing'}
         </p>
@@ -323,7 +324,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
     // lingering state filter (a user can arrive here via
     // state → top-company → "locate all" and we'd otherwise scope to
     // state × company instead of nationwide for the company).
-    setFilters({ company: company.id, companyName: company.name, states: [] });
+    setFilters({ company: company.id, companyName: formatCompanyName(company.name), states: [] });
 
     // If there's only one factory, zoom to it
     if (company.factories.length === 1) {
@@ -379,7 +380,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
     <>
       {/* Company Name & Industry */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-fg-default mb-1">{company.name}</h2>
+        <h2 className="text-xl font-semibold text-fg-default mb-1">{formatCompanyName(company.name)}</h2>
         <p className="text-sm text-fg-muted">{company.industry || 'Manufacturing'}</p>
       </div>
 
