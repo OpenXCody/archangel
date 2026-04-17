@@ -385,32 +385,29 @@ app.get('/api/factories/geojson', async (req, res) => {
       }
     }
 
+    // Minimal select — the map only needs id + coords. Richer attributes
+    // (name, workforce, company) load via /api/factories/:id on click.
     const result = await db
       .select({
         id: factories.id,
-        name: factories.name,
         latitude: factories.latitude,
         longitude: factories.longitude,
-        state: factories.state,
-        workforceSize: factories.workforceSize,
-        companyId: factories.companyId,
       })
       .from(factories)
       .where(sql`${sql.join(conditions, sql` AND `)}`);
 
+    // Round coords to 4 decimals (~11m precision — plenty for pin display)
+    // and set id at top level only (no duplication into properties).
     const features = result.map((f) => ({
       type: 'Feature' as const,
       id: f.id,
-      properties: {
-        id: f.id,
-        name: f.name,
-        state: f.state,
-        workforceSize: f.workforceSize,
-        companyId: f.companyId,
-      },
+      properties: {},
       geometry: {
         type: 'Point' as const,
-        coordinates: [parseFloat(f.longitude!), parseFloat(f.latitude!)],
+        coordinates: [
+          Math.round(parseFloat(f.longitude!) * 10000) / 10000,
+          Math.round(parseFloat(f.latitude!) * 10000) / 10000,
+        ],
       },
     }));
 

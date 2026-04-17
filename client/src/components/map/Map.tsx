@@ -336,11 +336,12 @@ export default function Map() {
 
       // === EVENT HANDLERS ===
 
-      // Factory marker click
+      // Factory marker click — use top-level feature.id (we no longer
+      // duplicate it into properties to save payload bytes).
       currentMap.on('click', 'factory-points', (e) => {
         if (!e.features?.[0]) return;
-        const factoryId = e.features[0].properties?.id;
-        if (factoryId) {
+        const factoryId = e.features[0].id;
+        if (typeof factoryId === 'string') {
           selectFactory(factoryId);
 
           const geometry = e.features[0].geometry;
@@ -357,8 +358,8 @@ export default function Map() {
       // Hover on factory markers
       currentMap.on('mouseenter', 'factory-points', (e) => {
         currentMap.getCanvas().style.cursor = 'pointer';
-        if (e.features?.[0]?.properties?.id) {
-          const id = e.features[0].properties.id;
+        const id = e.features?.[0]?.id;
+        if (typeof id === 'string') {
           hoveredFactoryIdRef.current = id;
           setHoveredFactory(id);
 
@@ -425,14 +426,9 @@ export default function Map() {
     const source = currentMap.getSource('factories') as GeoJSONSource | undefined;
     if (!source) return;
 
-    const dataWithIds = {
-      ...factoriesGeoJSON,
-      features: factoriesGeoJSON.features.map((f) => ({
-        ...f,
-        id: f.properties?.id,
-      })),
-    };
-    source.setData(dataWithIds);
+    // Server provides top-level `id` on each feature already — no client-side
+    // id synthesis needed.
+    source.setData(factoriesGeoJSON);
   }, [factoriesGeoJSON, mapLoaded]);
 
   // Optimized selection update - only update changed features
