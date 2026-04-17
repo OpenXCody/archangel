@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type MapEntityType = 'factory' | 'company' | 'occupation' | 'skill';
+export type MapEntityType = 'factory' | 'company' | 'occupation' | 'skill' | 'state';
 
 interface NavigationEntry {
   type: MapEntityType;
@@ -48,6 +48,7 @@ interface MapStore {
   // Actions
   selectEntity: (type: MapEntityType, id: string) => void;
   selectFactory: (id: string | null) => void;
+  selectState: (code: string | null) => void;
   setHoveredFactory: (id: string | null) => void;
   setSidebarOpen: (open: boolean) => void;
   clearSelection: () => void;
@@ -118,6 +119,16 @@ export const useMapStore = create<MapStore>((set, get) => ({
     };
   }),
 
+  // State click — select state, scope pins/fills to it, open the overview sidebar.
+  // Passing null clears the state selection.
+  selectState: (code) => set((state) => ({
+    selectedEntityType: code ? 'state' : null,
+    selectedEntityId: code,
+    navigationHistory: code ? state.navigationHistory : [],
+    sidebarOpen: code !== null,
+    filters: { ...state.filters, states: code ? [code] : [] },
+  })),
+
   setHoveredFactory: (id) => set({ hoveredFactoryId: id }),
 
   setSidebarOpen: (open) => set({
@@ -164,9 +175,17 @@ export const useMapStore = create<MapStore>((set, get) => ({
 
   flyTo: (target) => set({ flyToTarget: target }),
 
-  resetView: () => set({
+  // Reset view — fly back to continental US AND clear selection + filters so
+  // a persistent selected ring / filter chip doesn't stick around.
+  resetView: () => set((state) => ({
     flyToTarget: { ...INITIAL_VIEW },
-  }),
+    selectedEntityType: null,
+    selectedEntityId: null,
+    hoveredFactoryId: null,
+    navigationHistory: [],
+    sidebarOpen: false,
+    filters: { ...state.filters, states: [], company: null, companyName: null, industry: null },
+  })),
 
   clearFlyTo: () => set({ flyToTarget: null }),
 }));

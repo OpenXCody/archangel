@@ -157,6 +157,58 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// State overview — driven by click on a state fill. Returns the stats
+// shown in the sidebar: totals, top cities, top companies, top industries.
+app.get('/api/map/states/:code/overview', async (req, res) => {
+  if (!db) return res.status(500).json({ error: 'Database not connected' });
+  const code = String(req.params.code).toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) return res.status(400).json({ error: 'Invalid state code' });
+  try {
+    const [totalsRow] = await db
+      .select({
+        totalFactories: count(),
+        totalWorkforce: sql<number>`COALESCE(SUM(${factories.workforceSize}), 0)::int`,
+        totalCompanies: sql<number>`COUNT(DISTINCT ${factories.companyId})::int`,
+      })
+      .from(factories)
+      .where(eq(factories.state, code));
+
+    const topCompanies: any = await db.execute(sql`
+      SELECT c.id, c.name, COUNT(*)::int AS count
+      FROM factories f
+      INNER JOIN companies c ON c.id = f.company_id
+      WHERE f.state = ${code}
+      GROUP BY c.id, c.name
+      ORDER BY count DESC, c.name ASC
+      LIMIT 10
+    `);
+
+    // primary_naics may or may not be populated — fall back to grouping by the
+    // full code when no NAICS description is stored.
+    const topIndustries: any = await db.execute(sql`
+      SELECT
+        COALESCE(primary_naics_description, primary_naics, 'Unclassified') AS label,
+        COUNT(*)::int AS count
+      FROM factories
+      WHERE state = ${code} AND primary_naics IS NOT NULL
+      GROUP BY label
+      ORDER BY count DESC
+      LIMIT 8
+    `);
+
+    res.json({
+      code,
+      totalFactories: totalsRow?.totalFactories ?? 0,
+      totalCompanies: totalsRow?.totalCompanies ?? 0,
+      totalWorkforce: totalsRow?.totalWorkforce ?? 0,
+      topCompanies: Array.from(topCompanies).map((r: any) => ({ id: r.id, name: r.name, count: r.count })),
+      topIndustries: Array.from(topIndustries).map((r: any) => ({ label: r.label, count: r.count })),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // State factory counts — for the continental-zoom choropleth
 app.get('/api/map/state-counts', async (_req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });

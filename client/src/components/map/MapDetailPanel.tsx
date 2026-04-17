@@ -26,6 +26,76 @@ import {
   type SkillDetail,
 } from '../../lib/api';
 import { useMapStore, type MapEntityType } from '../../stores/mapStore';
+import { US_STATES } from '@shared/states';
+
+// State overview shape returned by /api/map/states/:code/overview
+interface StateOverview {
+  code: string;
+  totalFactories: number;
+  totalCompanies: number;
+  totalWorkforce: number;
+  topCompanies: { id: string; name: string; count: number }[];
+  topIndustries: { label: string; count: number }[];
+}
+
+// Panel body for a selected state. Mirrors Pillar's StateDetail
+// aesthetic: big totals up top, then top companies + top industries.
+function StateView({ data }: { data: StateOverview }) {
+  const name = US_STATES.find(s => s.code === data.code)?.name ?? data.code;
+  return (
+    <>
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold text-fg-default tracking-tight">{name}</h2>
+        <p className="text-sm text-fg-soft mt-0.5">State overview</p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 mb-6">
+        <div className="rounded-lg border border-border-subtle bg-white/[0.02] px-3 py-2.5">
+          <div className="text-[10px] uppercase tracking-wider text-fg-soft">Factories</div>
+          <div className="text-lg font-semibold text-fg-default mt-0.5">{data.totalFactories.toLocaleString()}</div>
+        </div>
+        <div className="rounded-lg border border-border-subtle bg-white/[0.02] px-3 py-2.5">
+          <div className="text-[10px] uppercase tracking-wider text-fg-soft">Companies</div>
+          <div className="text-lg font-semibold text-fg-default mt-0.5">{data.totalCompanies.toLocaleString()}</div>
+        </div>
+        <div className="rounded-lg border border-border-subtle bg-white/[0.02] px-3 py-2.5">
+          <div className="text-[10px] uppercase tracking-wider text-fg-soft">Workforce</div>
+          <div className="text-lg font-semibold text-fg-default mt-0.5">
+            {data.totalWorkforce > 0 ? data.totalWorkforce.toLocaleString() : '—'}
+          </div>
+        </div>
+      </div>
+
+      {data.topCompanies.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">Top Companies</h3>
+          <div className="space-y-1">
+            {data.topCompanies.slice(0, 8).map((c) => (
+              <div key={c.id} className="flex items-center justify-between text-sm py-1">
+                <span className="text-fg-default truncate">{c.name}</span>
+                <span className="text-fg-soft text-xs ml-2 flex-shrink-0">{c.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data.topIndustries.length > 0 && (
+        <div>
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">Top Industries</h3>
+          <div className="space-y-1">
+            {data.topIndustries.map((ind, i) => (
+              <div key={i} className="flex items-center justify-between text-sm py-1">
+                <span className="text-fg-muted truncate">{ind.label}</span>
+                <span className="text-fg-soft text-xs ml-2 flex-shrink-0">{ind.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 interface MapDetailPanelProps {
   isMobile?: boolean;
@@ -37,6 +107,7 @@ const entityConfig: Record<MapEntityType, { icon: typeof Factory; color: string;
   company: { icon: Building2, color: 'text-amber-500', bgColor: 'bg-amber-500/10', label: 'Company' },
   occupation: { icon: Briefcase, color: 'text-blue-800', bgColor: 'bg-blue-800/10', label: 'Occupation' },
   skill: { icon: Wrench, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10', label: 'Skill' },
+  state: { icon: MapPin, color: 'text-slate-300', bgColor: 'bg-slate-500/10', label: 'State' },
 };
 
 // Connected node link component
@@ -624,8 +695,14 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
     enabled: selectedEntityType === 'skill' && !!selectedEntityId,
   });
 
-  const isLoading = factoryLoading || companyLoading || occupationLoading || skillLoading;
-  const hasData = factory || company || occupation || skill;
+  const { data: stateOverview, isLoading: stateLoading } = useQuery<StateOverview>({
+    queryKey: ['state-overview', selectedEntityId],
+    queryFn: () => fetch(`/api/map/states/${selectedEntityId}/overview`).then(r => r.json()),
+    enabled: selectedEntityType === 'state' && !!selectedEntityId,
+  });
+
+  const isLoading = factoryLoading || companyLoading || occupationLoading || skillLoading || stateLoading;
+  const hasData = factory || company || occupation || skill || stateOverview;
 
   // Close on ESC key
   useEffect(() => {
@@ -724,6 +801,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
             {selectedEntityType === 'company' && company && <CompanyView company={company} />}
             {selectedEntityType === 'occupation' && occupation && <OccupationView occupation={occupation} />}
             {selectedEntityType === 'skill' && skill && <SkillView skill={skill} />}
+            {selectedEntityType === 'state' && stateOverview && <StateView data={stateOverview} />}
           </>
         )}
       </div>

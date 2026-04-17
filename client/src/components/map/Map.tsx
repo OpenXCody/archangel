@@ -54,9 +54,11 @@ export default function Map() {
     selectedEntityType,
     selectedEntityId,
     selectFactory,
+    selectState,
     setHoveredFactory,
     hoveredFactoryId,
     setSidebarOpen,
+    clearSelection,
     filters,
     flyToTarget,
     clearFlyTo,
@@ -256,11 +258,14 @@ export default function Map() {
       }
 
       // States source (empty at init — populated by effect below once both
-      // GeoJSON geometry and factory counts have loaded)
+      // GeoJSON geometry and factory counts have loaded). promoteId lifts
+      // stateCode to the feature id so hover/selected feature-state calls
+      // can key off it.
       try {
         currentMap.addSource('states', {
           type: 'geojson',
           data: { type: 'FeatureCollection', features: [] },
+          promoteId: 'stateCode',
         });
 
         // Choropleth fill — shaded by factory count, fading out across
@@ -273,33 +278,40 @@ export default function Map() {
           type: 'fill',
           source: 'states',
           paint: {
-            // Slightly more committed than slate-400 so the tint reads as
-            // territory rather than a translucent wash that the base-map
-            // texture bleeds through. Still single-hue.
-            'fill-color': '#7B8FA8',
+            // Selected → amber accent, hovered → brightened slate, default →
+            // neutral light slate. Using color to indicate hot/cold in
+            // addition to opacity was the missing piece — the low-contrast
+            // uniform tint didn't read.
+            'fill-color': [
+              'case',
+              ['boolean', ['feature-state', 'selected'], false], '#F5E8D0',
+              ['boolean', ['feature-state', 'hover'], false], '#D8E2EB',
+              '#B8C5D4',
+            ],
             'fill-opacity': [
               'step', ['zoom'],
-              // < zoom 5.5 — full shading
+              // Wider range so high-count states pop vs. low-count states.
+              // Low states still barely tinted; high states reach ~55%.
               ['interpolate', ['linear'], ['get', 'factoryCount'],
                 0, 0,
-                50, 0.12,
-                200, 0.18,
-                800, 0.26,
-                2500, 0.34,
-                6000, 0.4,
+                50, 0.08,
+                200, 0.16,
+                800, 0.28,
+                2500, 0.42,
+                6000, 0.55,
               ],
               5.5, ['interpolate', ['linear'], ['get', 'factoryCount'],
                 0, 0,
-                50, 0.08,
-                200, 0.12,
+                50, 0.06,
+                200, 0.1,
                 800, 0.17,
-                2500, 0.22,
-                6000, 0.25,
+                2500, 0.26,
+                6000, 0.34,
               ],
               6, ['interpolate', ['linear'], ['get', 'factoryCount'],
                 0, 0,
-                2500, 0.06,
-                6000, 0.08,
+                2500, 0.08,
+                6000, 0.1,
               ],
               6.3, 0,
             ],
@@ -487,6 +499,70 @@ export default function Map() {
       // Map click (for closing panel)
       currentMap.on('click', handleMapClick);
 
+      // ─── State fill interactions ────────────────────────────────────
+      // Click a state → select it, set filter, fly to fit its bounds.
+      // Only fire when no factory pin was clicked on top (pins have priority
+      // via queryRenderedFeatures shortcut inside the factory-click path).
+      let hoveredStateCode: string | null = null;
+      currentMap.on('click', 'state-fills', (e) => {
+        if (!e.features?.[0]) return;
+        // If a pin sits under the click, let the pin handler win.
+        const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
+        if (pinHit.length > 0) return;
+        const code = e.features[0].properties?.stateCode as string | undefined;
+        if (!code) return;
+        selectState(code);
+        // Compute bbox from the feature geometry and fit the camera.
+        const geom = e.features[0].geometry;
+        const bounds = new maplibregl.LngLatBounds();
+        const extend = (coords: any) => {
+          if (typeof coords[0] === 'number') {
+            bounds.extend(coords as [number, number]);
+          } else {
+            for (const c of coords) extend(c);
+          }
+        };
+        if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
+          extend((geom as any).coordinates);
+        }
+        if (!bounds.isEmpty()) {
+          currentMap.fitBounds(bounds, {
+            padding: { top: 80, bottom: 80, left: 80, right: 420 }, // room for sidebar
+            maxZoom: 7,
+            duration: 800,
+          });
+        }
+      });
+
+      // Hover a state → brighten its fill + cursor pointer.
+      currentMap.on('mousemove', 'state-fills', (e) => {
+        if (currentMap.getZoom() >= 6) return; // hover only meaningful at choropleth zooms
+        const f = e.features?.[0];
+        const code = f?.properties?.stateCode as string | undefined;
+        if (!code) return;
+        currentMap.getCanvas().style.cursor = 'pointer';
+        if (hoveredStateCode && hoveredStateCode !== code) {
+          currentMap.setFeatureState({ source: 'states', id: hoveredStateCode }, { hover: false });
+        }
+        hoveredStateCode = code;
+        currentMap.setFeatureState({ source: 'states', id: code }, { hover: true });
+      });
+      currentMap.on('mouseleave', 'state-fills', () => {
+        currentMap.getCanvas().style.cursor = '';
+        if (hoveredStateCode) {
+          currentMap.setFeatureState({ source: 'states', id: hoveredStateCode }, { hover: false });
+          hoveredStateCode = null;
+        }
+      });
+
+      // Right-click anywhere → clear any lingering selection (factory or
+      // state). Addresses the "persistent blue ring after closing sidebar"
+      // bug: reset-view and empty-click don't always drop the selection.
+      currentMap.on('contextmenu', (e) => {
+        e.preventDefault();
+        clearSelection();
+      });
+
       // Track viewport for data loading
       currentMap.on('moveend', () => {
         updateViewport(currentMap);
@@ -542,6 +618,27 @@ export default function Map() {
     if (!source) return;
     source.setData(statesWithCounts);
   }, [statesWithCounts, mapLoaded]);
+
+  // Track the previously-selected state so we can clear its feature-state
+  // when a different state (or nothing) is selected.
+  const previousSelectedStateRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    const currentMap = map.current;
+    const prev = previousSelectedStateRef.current;
+    const next = selectedEntityType === 'state' ? selectedEntityId : null;
+    if (prev && prev !== next) {
+      try {
+        currentMap.setFeatureState({ source: 'states', id: prev }, { selected: false });
+      } catch { /* source may not be ready */ }
+    }
+    if (next) {
+      try {
+        currentMap.setFeatureState({ source: 'states', id: next }, { selected: true });
+      } catch { /* source may not be ready */ }
+    }
+    previousSelectedStateRef.current = next;
+  }, [selectedEntityType, selectedEntityId, mapLoaded]);
 
   // Optimized selection update - only update changed features
   useEffect(() => {
