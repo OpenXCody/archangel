@@ -364,28 +364,36 @@ export default function MapSearch() {
                 )}
               </div>
 
-              {/* Active company/industry filters */}
-              {(filters.company || filters.industry) && (
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-white/5">
-                  {filters.company && (
-                    <button
-                      onClick={() => clearFilter('company')}
-                      className="flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
-                    >
-                      <Building2 className="w-3 h-3" />
-                      {filters.companyName || 'Company'}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  {filters.industry && (
-                    <button
-                      onClick={() => clearFilter('industry')}
-                      className="flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-sky-500/10 text-sky-400 border border-sky-500/20 hover:bg-sky-500/20 transition-colors"
-                    >
-                      {filters.industry}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
+              {/* Company filter — own labeled section, parallel to states */}
+              {filters.company && (
+                <div className="pt-3 border-t border-white/5">
+                  <label className="text-xs text-fg-soft uppercase tracking-wider mb-1.5 block">
+                    Filter by Company
+                  </label>
+                  <button
+                    onClick={() => clearFilter('company')}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+                  >
+                    <Building2 className="w-3 h-3" />
+                    {filters.companyName || 'Company'}
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+
+              {/* Industry filter — own labeled section */}
+              {filters.industry && (
+                <div className="pt-3 border-t border-white/5">
+                  <label className="text-xs text-fg-soft uppercase tracking-wider mb-1.5 block">
+                    Filter by Industry
+                  </label>
+                  <button
+                    onClick={() => clearFilter('industry')}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-sky-500/10 text-sky-400 border border-sky-500/20 hover:bg-sky-500/20 transition-colors"
+                  >
+                    {filters.industry}
+                    <X className="w-3 h-3" />
+                  </button>
                 </div>
               )}
 
