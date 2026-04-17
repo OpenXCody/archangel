@@ -31,6 +31,7 @@ import {
   type SchoolDetail,
   type ProgramDetail,
 } from '../lib/api';
+import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 
 // Entity type configs - monochrome with entity accent colors only on icons
 const ENTITY_CONFIG: Record<
@@ -236,7 +237,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
                 to={`/factories/${factory.id}`}
                 icon={Factory}
                 iconClass="text-sky-400"
-                title={factory.name}
+                title={formatFactoryName(factory.name)}
                 subtitle={factory.state ? `${factory.specialization || ''} ${factory.specialization ? '·' : ''} ${factory.state}`.trim() : factory.specialization}
               />
             ))}
@@ -262,7 +263,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
           "
         >
           <Building2 className="w-4 h-4 text-amber-500" />
-          <span>{data.company.name}</span>
+          <span>{formatCompanyName(data.company.name)}</span>
           <ChevronRight className="w-4 h-4" />
         </Link>
       )}
@@ -360,7 +361,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
                 to={`/factories/${factory.id}`}
                 icon={Factory}
                 iconClass="text-sky-400"
-                title={factory.name}
+                title={formatFactoryName(factory.name)}
                 subtitle={factory.state}
               />
             ))}
@@ -727,7 +728,12 @@ export default function EntityDetail() {
   }
 
   // Get name and description based on entity type
-  const name = 'title' in data ? data.title : 'name' in data ? data.name : '';
+  const rawName = 'title' in data ? data.title : 'name' in data ? data.name : '';
+  const name = entityType === 'factories'
+    ? formatFactoryName(rawName)
+    : entityType === 'companies'
+    ? formatCompanyName(rawName)
+    : rawName;
   const description = 'description' in data ? data.description : null;
 
   return (

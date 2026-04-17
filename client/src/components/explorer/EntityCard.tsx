@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Building2, Factory, Briefcase, Wrench, ChevronRight, MapPin, Users, Boxes, GraduationCap, BookOpen, Clock } from 'lucide-react';
 import type { Company, Factory as FactoryType, Occupation, Skill, Ref, School, Program, EntityType } from '../../lib/api';
 import { companiesApi, factoriesApi, occupationsApi, skillsApi, refsApi, schoolsApi, programsApi } from '../../lib/api';
+import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 
 interface EntityCardProps {
   type: EntityType;
@@ -121,7 +122,7 @@ function CompanyCard({ data, onMouseEnter }: { data: Company } & CardProps) {
             <Icon className="w-4 h-4 text-amber-500" />
           </div>
           <h3 className="font-medium text-fg-default truncate group-hover:text-white">
-            {data.name}
+            {formatCompanyName(data.name)}
           </h3>
         </div>
         <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0 mt-1" />
@@ -185,7 +186,7 @@ function FactoryCard({ data, onMouseEnter }: { data: FactoryType } & CardProps) 
             <Icon className="w-4 h-4 text-sky-400" />
           </div>
           <h3 className="font-medium text-fg-default truncate group-hover:text-white">
-            {data.name}
+            {formatFactoryName(data.name)}
           </h3>
         </div>
         <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0 mt-1" />
