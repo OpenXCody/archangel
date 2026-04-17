@@ -84,6 +84,9 @@ export function formatFactoryName(raw: string | null | undefined): string {
   // "1-2-3 Copy Center" are left alone.
   name = name.replace(/^#?\d+\s+[-–]\s*/, '');
 
+  // Strip trailing EPA ID in parens: "… (0145000399)"
+  name = name.replace(/\s*\(\d{4,}[-\d]*\)\s*$/, '');
+
   // Strip a bare "(FORMER …)" that's the entire name — leaves nothing
   // useful, so fall back to the original trimmed string.
   const strippedFormer = name.replace(/^\(FORMER\s+[^)]+\)\s*$/i, '').trim();
