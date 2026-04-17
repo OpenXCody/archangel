@@ -12,6 +12,10 @@ const ACRONYMS = new Set([
   'HVAC', 'PCB', 'CNC', 'IT', 'IP', 'AI', 'ML', 'RV',
   'II', 'III', 'IV', 'VI', 'VII', 'VIII', 'IX',
   'TX', 'CA', 'FL', 'IL', 'MI', 'WA', 'OR', 'AZ', 'NV', 'CO', 'GA',
+  // Common corporate acronyms observed in the dataset
+  'ADM', 'BASF', 'BAE', 'BMW', 'BP', 'CEMEX', 'APAC', 'AECOM', 'AMD',
+  'GE', 'GM', 'IBM', 'HP', 'AT&T', 'JP', 'UPS', 'FMC', 'FCA',
+  'PPG', 'RPM', 'TDK', 'KLA', 'TSMC', 'ASML', 'NXP', 'ST', 'SK',
 ]);
 
 const LOWERCASE_WORDS = new Set([
