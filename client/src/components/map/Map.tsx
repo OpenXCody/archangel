@@ -184,6 +184,11 @@ export default function Map() {
       currentMap.on('load', () => {
       setMapLoaded(true);
 
+      // Force a resize once the style loads in case container dimensions
+      // weren't final when the map was created (lazy-loaded route, fonts
+      // settling, etc.). Without this, the camera can end up off-center.
+      currentMap.resize();
+
       // Apply darker style overrides and hide all non-US details
       const style = currentMap.getStyle();
       if (style?.layers) {
