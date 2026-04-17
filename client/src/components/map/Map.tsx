@@ -253,14 +253,10 @@ export default function Map() {
       // Factories source — clustering OFF. With ~1k points, performance is
       // fine; visual density should come from real pins, not from cluster
       // circles painted over them.
-      try {
-        currentMap.addSource('factories', {
-          type: 'geojson',
-          data: { type: 'FeatureCollection', features: [] },
-        });
-      } catch (e) {
-        console.error('[Map] addSource factories failed:', e);
-      }
+      currentMap.addSource('factories', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
 
       // Helper: produce an interpolate expression where each zoom stop has
       // case-based output for selected / hover / default. This shape is
@@ -276,85 +272,67 @@ export default function Map() {
 
       // Pin glow — halo that grows with zoom, low opacity so overlapping
       // halos in dense regions softly bloom rather than forming hard blobs.
-      try {
-        currentMap.addLayer({
-          id: 'factory-points-glow',
-          type: 'circle',
-          source: 'factories',
-          paint: {
-            'circle-color': [
-              'case',
-              ['boolean', ['feature-state', 'selected'], false],
-              '#60A5FA',
-              '#ffffff',
-            ],
-            'circle-radius': zoomCaseRadius([13, 16, 22, 30], [9, 12, 16, 22], [7, 9, 12, 16]),
-            'circle-opacity': [
-              'interpolate', ['linear'], ['zoom'],
-              3, 0.18,
-              5, 0.22,
-              8, 0.26,
-              12, 0.32,
-            ],
-            'circle-blur': 0.6,
-          },
-        });
-      } catch (e) {
-        console.error('[Map] addLayer factory-points-glow failed:', e);
-      }
+      currentMap.addLayer({
+        id: 'factory-points-glow',
+        type: 'circle',
+        source: 'factories',
+        paint: {
+          'circle-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            '#60A5FA',
+            '#ffffff',
+          ],
+          'circle-radius': zoomCaseRadius([13, 16, 22, 30], [9, 12, 16, 22], [7, 9, 12, 16]),
+          'circle-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            3, 0.18,
+            5, 0.22,
+            8, 0.26,
+            12, 0.32,
+          ],
+          'circle-blur': 0.6,
+        },
+      });
 
       // Pin cores — above the HiDPI visibility floor at continental zoom,
       // grow naturally as you drill in so city zoom shows real markers.
-      try {
-        currentMap.addLayer({
-          id: 'factory-points',
-          type: 'circle',
-          source: 'factories',
-          paint: {
-            'circle-color': [
-              'case',
-              ['boolean', ['feature-state', 'selected'], false],
-              '#60A5FA',
-              '#ffffff',
-            ],
-            'circle-radius': zoomCaseRadius([5.5, 6.5, 8, 10], [4, 5, 6.5, 9], [3, 4, 5.5, 7]),
-            'circle-opacity': 1,
-          },
-        });
-      } catch (e) {
-        console.error('[Map] addLayer factory-points failed:', e);
-      }
+      currentMap.addLayer({
+        id: 'factory-points',
+        type: 'circle',
+        source: 'factories',
+        paint: {
+          'circle-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            '#60A5FA',
+            '#ffffff',
+          ],
+          'circle-radius': zoomCaseRadius([5.5, 6.5, 8, 10], [4, 5, 6.5, 9], [3, 4, 5.5, 7]),
+          'circle-opacity': 1,
+        },
+      });
 
       // Selected marker ring — also zoom-scaled so it stays proportional
-      try {
-        currentMap.addLayer({
-          id: 'factory-selected',
-          type: 'circle',
-          source: 'factories',
-          filter: ['==', ['get', 'id'], ''],
-          paint: {
-            'circle-color': 'transparent',
-            'circle-radius': [
-              'interpolate', ['linear'], ['zoom'],
-              3, 9,
-              5, 11,
-              8, 14,
-              12, 18,
-            ],
-            'circle-stroke-color': '#60A5FA',
-            'circle-stroke-width': 2,
-            'circle-stroke-opacity': 0.6,
-          },
-        });
-      } catch (e) {
-        console.error('[Map] addLayer factory-selected failed:', e);
-      }
-
-      // Log final layer state so we can tell what actually landed
-      try {
-        const factoryLayers = currentMap.getStyle()?.layers?.filter(l => l.id.startsWith('factory')).map(l => l.id);
-        console.log('[Map] factory layers after init:', factoryLayers);
-      } catch { /* ignore */ }
+      currentMap.addLayer({
+        id: 'factory-selected',
+        type: 'circle',
+        source: 'factories',
+        filter: ['==', ['get', 'id'], ''],
+        paint: {
+          'circle-color': 'transparent',
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            3, 9,
+            5, 11,
+            8, 14,
+            12, 18,
+          ],
+          'circle-stroke-color': '#60A5FA',
+          'circle-stroke-width': 2,
+          'circle-stroke-opacity': 0.6,
+        },
+      });
 
       // === EVENT HANDLERS ===
 
