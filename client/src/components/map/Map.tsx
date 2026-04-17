@@ -265,6 +265,7 @@ export default function Map() {
       // Pin glow — halo that grows with zoom. Low opacity so overlapping
       // glows in dense regions (Houston, LA basin) create a soft bloom
       // instead of a hard blob.
+      console.log('[Map] before glow addLayer, existing:', currentMap.getStyle()?.layers?.filter(l => l.id.startsWith('factory')).map(l => l.id));
       try {
         currentMap.addLayer({
           id: 'factory-points-glow',
@@ -298,6 +299,7 @@ export default function Map() {
       } catch (e) {
         console.error('[Map] addLayer factory-points-glow failed:', e);
       }
+      console.log('[Map] after glow addLayer, existing:', currentMap.getStyle()?.layers?.filter(l => l.id.startsWith('factory')).map(l => l.id));
 
       // Pin cores — small at continental zoom but above the HiDPI visibility
       // floor; grow naturally as you drill in so city zoom shows real markers.
@@ -327,6 +329,7 @@ export default function Map() {
       } catch (e) {
         console.error('[Map] addLayer factory-points failed:', e);
       }
+      console.log('[Map] after points addLayer, existing:', currentMap.getStyle()?.layers?.filter(l => l.id.startsWith('factory')).map(l => l.id));
 
       // Selected marker ring — also zoom-scaled so it stays proportional
       try {
