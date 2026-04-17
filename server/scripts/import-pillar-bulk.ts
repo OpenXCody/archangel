@@ -24,6 +24,7 @@
 import crypto from 'node:crypto';
 import postgres from 'postgres';
 import { normalizeCompanyName } from '../../shared/companyNormalization.js';
+import { isAddressStub } from '../../shared/addressStubFilter.js';
 
 const archUrl = process.env.DATABASE_URL;
 const pillarUrl = process.env.PILLAR_DATABASE_URL;
@@ -112,13 +113,20 @@ async function main() {
   const enriched: EnrichedRow[] = [];
   let skippedBlockedName = 0;
   let skippedEpaDup = 0;
+  let skippedAddressStub = 0;
   for (const r of pillarRows) {
+    // Reject address-stub / property-owner LLC rows. Pattern match on
+    // both facility and company name — either being a stub is enough.
+    if (isAddressStub(r.name) || isAddressStub(r.company_name)) {
+      skippedAddressStub++;
+      continue;
+    }
     const canonical = normalizeCompanyName(r.company_name) ?? r.company_name;
     if (!canonical) { skippedBlockedName++; continue; }
     if (r.epa_registry_id && existingEpa.has(r.epa_registry_id)) { skippedEpaDup++; continue; }
     enriched.push({ ...r, __canonical: canonical });
   }
-  console.log(`  after dedup: ${enriched.length.toLocaleString()} rows (${skippedEpaDup.toLocaleString()} EPA dups, ${skippedBlockedName} blocked names)`);
+  console.log(`  after dedup: ${enriched.length.toLocaleString()} rows (${skippedEpaDup.toLocaleString()} EPA dups, ${skippedBlockedName} blocked names, ${skippedAddressStub.toLocaleString()} address stubs)`);
 
   // ─── 4. Insert missing companies in bulk ─────────────────────────────
   const canonicalNeeded = new Set<string>();
