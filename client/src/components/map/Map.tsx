@@ -512,8 +512,13 @@ export default function Map() {
         const code = e.features[0].properties?.stateCode as string | undefined;
         if (!code) return;
         selectState(code);
-        // Compute bbox from the feature geometry and fit the camera.
-        const geom = e.features[0].geometry;
+        // Tiled features have their geometry clipped to tile boundaries, so
+        // we look up the full feature from our in-memory dataset to get an
+        // accurate bbox for fitBounds.
+        const fullFeature = statesWithCountsRef.current?.features?.find(
+          (f) => (f.properties as any)?.stateCode === code
+        );
+        const geom = fullFeature?.geometry ?? e.features[0].geometry;
         const bounds = new maplibregl.LngLatBounds();
         const extend = (coords: any) => {
           if (typeof coords[0] === 'number') {
@@ -527,7 +532,7 @@ export default function Map() {
         }
         if (!bounds.isEmpty()) {
           currentMap.fitBounds(bounds, {
-            padding: { top: 80, bottom: 80, left: 80, right: 420 }, // room for sidebar
+            padding: { top: 80, bottom: 80, left: 80, right: 420 },
             maxZoom: 7,
             duration: 800,
           });
@@ -618,6 +623,15 @@ export default function Map() {
     if (!source) return;
     source.setData(statesWithCounts);
   }, [statesWithCounts, mapLoaded]);
+
+  // Ref mirror of statesWithCounts so the state-click handler (captured
+  // inside the load callback) can access the latest full GeoJSON for
+  // bbox computation. Without this, it would close over the initial
+  // `null` value.
+  const statesWithCountsRef = useRef<GeoJSON.FeatureCollection | null>(null);
+  useEffect(() => {
+    statesWithCountsRef.current = statesWithCounts;
+  }, [statesWithCounts]);
 
   // Track the previously-selected state so we can clear its feature-state
   // when a different state (or nothing) is selected.
