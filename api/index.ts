@@ -396,12 +396,13 @@ app.get('/api/factories/geojson', async (req, res) => {
       .from(factories)
       .where(sql`${sql.join(conditions, sql` AND `)}`);
 
-    // Round coords to 4 decimals (~11m precision — plenty for pin display)
-    // and set id at top level only (no duplication into properties).
+    // Minimal shape: round coords to 4 decimals (~11m) and keep id only in
+    // properties. The client source uses `promoteId: 'id'` to lift it for
+    // feature-state lookups — MapLibre ignores string ids at the top level,
+    // so property-based id is the smallest valid shape.
     const features = result.map((f) => ({
       type: 'Feature' as const,
-      id: f.id,
-      properties: {},
+      properties: { id: f.id },
       geometry: {
         type: 'Point' as const,
         coordinates: [

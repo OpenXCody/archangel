@@ -253,9 +253,14 @@ export default function Map() {
       // Factories source — clustering OFF. With ~1k points, performance is
       // fine; visual density should come from real pins, not from cluster
       // circles painted over them.
+      // `promoteId: 'id'` lifts properties.id to the feature id MapLibre
+      // uses for feature-state (hover/selected). Our ids are UUID strings;
+      // MapLibre doesn't treat string top-level ids as ids, so promoteId
+      // is the clean way to use them.
       currentMap.addSource('factories', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
+        promoteId: 'id',
       });
 
       // Helper: produce an interpolate expression where each zoom stop has
