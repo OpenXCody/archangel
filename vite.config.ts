@@ -28,7 +28,8 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // Remove console.log in production
+        // drop_console temporarily off while we debug a missing-layer issue
+        drop_console: false,
         drop_debugger: true,
       },
     },
