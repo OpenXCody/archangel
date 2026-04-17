@@ -40,8 +40,11 @@ interface StateOverview {
 
 // Panel body for a selected state. Mirrors Pillar's StateDetail
 // aesthetic: big totals up top, then top companies + top industries.
+// Top companies are clickable — selectEntity navigates into the
+// company detail view inside this same sidebar.
 function StateView({ data }: { data: StateOverview }) {
   const name = US_STATES.find(s => s.code === data.code)?.name ?? data.code;
+  const selectEntity = useMapStore((s) => s.selectEntity);
   return (
     <>
       <div className="mb-5">
@@ -69,12 +72,19 @@ function StateView({ data }: { data: StateOverview }) {
       {data.topCompanies.length > 0 && (
         <div className="mb-6">
           <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">Top Companies</h3>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {data.topCompanies.slice(0, 8).map((c) => (
-              <div key={c.id} className="flex items-center justify-between text-sm py-1">
-                <span className="text-fg-default truncate">{c.name}</span>
-                <span className="text-fg-soft text-xs ml-2 flex-shrink-0">{c.count}</span>
-              </div>
+              <button
+                key={c.id}
+                onClick={() => selectEntity('company', c.id)}
+                className="w-full group flex items-center justify-between text-sm py-1.5 px-2 -mx-2 rounded-md hover:bg-white/[0.04] transition-colors text-left"
+              >
+                <span className="text-fg-default truncate group-hover:text-fg-default">{c.name}</span>
+                <span className="ml-2 flex items-center gap-1 flex-shrink-0 text-fg-soft text-xs">
+                  {c.count}
+                  <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />
+                </span>
+              </button>
             ))}
           </div>
         </div>

@@ -278,48 +278,47 @@ export default function Map() {
           type: 'fill',
           source: 'states',
           paint: {
-            // Selected → amber accent, hovered → brightened slate, default →
-            // neutral light slate. Using color to indicate hot/cold in
-            // addition to opacity was the missing piece — the low-contrast
-            // uniform tint didn't read.
+            // One cool-neutral hue. Selection is identified by a dedicated
+            // border layer below, not by a contrasting fill color — keeps
+            // the whole choropleth in one tonal family so warm base-map
+            // texture can't bleed through as "beige" or "tan".
             'fill-color': [
               'case',
-              ['boolean', ['feature-state', 'selected'], false], '#F5E8D0',
-              ['boolean', ['feature-state', 'hover'], false], '#D8E2EB',
-              '#B8C5D4',
+              ['boolean', ['feature-state', 'hover'], false], '#C6D1DE',
+              '#A3B1C2',
             ],
             'fill-opacity': [
               'step', ['zoom'],
-              // Wider range so high-count states pop vs. low-count states.
-              // Low states still barely tinted; high states reach ~55%.
+              // Floor (0.12) means even low-count states mask most of the
+              // base texture instead of fading toward it. Top end softened
+              // (0.44 vs 0.55) so high-count states don't dominate.
               ['interpolate', ['linear'], ['get', 'factoryCount'],
                 0, 0,
-                50, 0.08,
-                200, 0.16,
+                50, 0.12,
+                200, 0.18,
                 800, 0.28,
-                2500, 0.42,
-                6000, 0.55,
+                2500, 0.38,
+                6000, 0.44,
               ],
               5.5, ['interpolate', ['linear'], ['get', 'factoryCount'],
                 0, 0,
-                50, 0.06,
-                200, 0.1,
-                800, 0.17,
+                50, 0.08,
+                200, 0.12,
+                800, 0.18,
                 2500, 0.26,
-                6000, 0.34,
+                6000, 0.3,
               ],
               6, ['interpolate', ['linear'], ['get', 'factoryCount'],
                 0, 0,
-                2500, 0.08,
-                6000, 0.1,
+                2500, 0.06,
+                6000, 0.08,
               ],
               6.3, 0,
             ],
           },
         });
 
-        // Border layer sits on top of the fill so state outlines stay
-        // visible through shading.
+        // Base border layer — subtle, always visible.
         currentMap.addLayer({
           id: 'state-borders',
           type: 'line',
@@ -337,6 +336,29 @@ export default function Map() {
               3, 0.7,
               10, 0.5,
             ],
+          },
+        });
+
+        // Selected-state border — sits on top, brighter and thicker,
+        // visible at all zooms. This is how the user identifies "which
+        // state am I in" after zooming past the choropleth-fade zoom.
+        // Filter starts empty (matches nothing); updated via setFilter
+        // whenever the selected state changes.
+        currentMap.addLayer({
+          id: 'state-selected-border',
+          type: 'line',
+          source: 'states',
+          filter: ['==', ['get', 'stateCode'], ''],
+          paint: {
+            'line-color': '#93C5FD', // sky-300 — matches pin highlight family
+            'line-width': [
+              'interpolate', ['linear'], ['zoom'],
+              3, 1.5,
+              6, 2,
+              10, 2.5,
+            ],
+            'line-opacity': 0.8,
+            'line-blur': 0.2,
           },
         });
       } catch (err) {
@@ -644,7 +666,8 @@ export default function Map() {
   }, [statesWithCounts]);
 
   // Track the previously-selected state so we can clear its feature-state
-  // when a different state (or nothing) is selected.
+  // when a different state (or nothing) is selected. Also drives the
+  // state-selected-border layer's filter so exactly one state is outlined.
   const previousSelectedStateRef = useRef<string | null>(null);
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
@@ -661,6 +684,10 @@ export default function Map() {
         currentMap.setFeatureState({ source: 'states', id: next }, { selected: true });
       } catch { /* source may not be ready */ }
     }
+    // Update the selected-border filter to show exactly the one state (or none)
+    try {
+      currentMap.setFilter('state-selected-border', ['==', ['get', 'stateCode'], next ?? '']);
+    } catch { /* layer may not be ready */ }
     previousSelectedStateRef.current = next;
   }, [selectedEntityType, selectedEntityId, mapLoaded]);
 
