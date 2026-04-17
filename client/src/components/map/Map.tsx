@@ -262,10 +262,20 @@ export default function Map() {
         console.error('[Map] addSource factories failed:', e);
       }
 
-      // Pin glow — halo that grows with zoom. Low opacity so overlapping
-      // glows in dense regions (Houston, LA basin) create a soft bloom
-      // instead of a hard blob.
-      console.log('[Map] before glow addLayer, existing:', currentMap.getStyle()?.layers?.filter(l => l.id.startsWith('factory')).map(l => l.id));
+      // Helper: produce an interpolate expression where each zoom stop has
+      // case-based output for selected / hover / default. This shape is
+      // required — MapLibre rejects `case → interpolate(zoom)` nesting but
+      // accepts `interpolate(zoom) → case` as stop outputs.
+      const zoomCaseRadius = (selectedVal: number[], hoverVal: number[], defaultVal: number[]) => [
+        'interpolate', ['linear'], ['zoom'],
+        3, ['case', ['boolean', ['feature-state', 'selected'], false], selectedVal[0], ['boolean', ['feature-state', 'hover'], false], hoverVal[0], defaultVal[0]],
+        5, ['case', ['boolean', ['feature-state', 'selected'], false], selectedVal[1], ['boolean', ['feature-state', 'hover'], false], hoverVal[1], defaultVal[1]],
+        8, ['case', ['boolean', ['feature-state', 'selected'], false], selectedVal[2], ['boolean', ['feature-state', 'hover'], false], hoverVal[2], defaultVal[2]],
+        12, ['case', ['boolean', ['feature-state', 'selected'], false], selectedVal[3], ['boolean', ['feature-state', 'hover'], false], hoverVal[3], defaultVal[3]],
+      ] as maplibregl.DataDrivenPropertyValueSpecification<number>;
+
+      // Pin glow — halo that grows with zoom, low opacity so overlapping
+      // halos in dense regions softly bloom rather than forming hard blobs.
       try {
         currentMap.addLayer({
           id: 'factory-points-glow',
@@ -278,14 +288,7 @@ export default function Map() {
               '#60A5FA',
               '#ffffff',
             ],
-            'circle-radius': [
-              'case',
-              ['boolean', ['feature-state', 'selected'], false],
-              ['interpolate', ['linear'], ['zoom'], 3, 13, 5, 16, 8, 22, 12, 30],
-              ['boolean', ['feature-state', 'hover'], false],
-              ['interpolate', ['linear'], ['zoom'], 3, 9, 5, 12, 8, 16, 12, 22],
-              ['interpolate', ['linear'], ['zoom'], 3, 7, 5, 9, 8, 12, 12, 16],
-            ],
+            'circle-radius': zoomCaseRadius([13, 16, 22, 30], [9, 12, 16, 22], [7, 9, 12, 16]),
             'circle-opacity': [
               'interpolate', ['linear'], ['zoom'],
               3, 0.18,
@@ -299,10 +302,9 @@ export default function Map() {
       } catch (e) {
         console.error('[Map] addLayer factory-points-glow failed:', e);
       }
-      console.log('[Map] after glow addLayer, existing:', currentMap.getStyle()?.layers?.filter(l => l.id.startsWith('factory')).map(l => l.id));
 
-      // Pin cores — small at continental zoom but above the HiDPI visibility
-      // floor; grow naturally as you drill in so city zoom shows real markers.
+      // Pin cores — above the HiDPI visibility floor at continental zoom,
+      // grow naturally as you drill in so city zoom shows real markers.
       try {
         currentMap.addLayer({
           id: 'factory-points',
@@ -315,21 +317,13 @@ export default function Map() {
               '#60A5FA',
               '#ffffff',
             ],
-            'circle-radius': [
-              'case',
-              ['boolean', ['feature-state', 'selected'], false],
-              ['interpolate', ['linear'], ['zoom'], 3, 5.5, 5, 6.5, 8, 8, 12, 10],
-              ['boolean', ['feature-state', 'hover'], false],
-              ['interpolate', ['linear'], ['zoom'], 3, 4, 5, 5, 8, 6.5, 12, 9],
-              ['interpolate', ['linear'], ['zoom'], 3, 3, 5, 4, 8, 5.5, 12, 7],
-            ],
+            'circle-radius': zoomCaseRadius([5.5, 6.5, 8, 10], [4, 5, 6.5, 9], [3, 4, 5.5, 7]),
             'circle-opacity': 1,
           },
         });
       } catch (e) {
         console.error('[Map] addLayer factory-points failed:', e);
       }
-      console.log('[Map] after points addLayer, existing:', currentMap.getStyle()?.layers?.filter(l => l.id.startsWith('factory')).map(l => l.id));
 
       // Selected marker ring — also zoom-scaled so it stays proportional
       try {
