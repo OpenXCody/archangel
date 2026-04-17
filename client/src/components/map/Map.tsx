@@ -263,35 +263,31 @@ export default function Map() {
           data: { type: 'FeatureCollection', features: [] },
         });
 
-        // Choropleth fill — shaded by factory count. Two interpolate
-        // expressions multiplied:
-        //   1) count-driven opacity with gentle stops so small states still
-        //      register and dense states don't saturate
-        //   2) zoom-driven fade-out so the fill cedes the map to individual
-        //      pins at zoom 6+
+        // Choropleth fill — shaded by factory count, faded out at zoom 6+.
+        // MapLibre requires zoom-interpolate to be the outermost expression
+        // on a paint property; we nest the count-driven scale as the stop
+        // outputs, and the zoom-6 stop forces opacity to 0.
+        const countScale: any = ['interpolate', ['linear'], ['get', 'factoryCount'],
+          0, 0,
+          50, 0.04,
+          200, 0.08,
+          800, 0.14,
+          2500, 0.22,
+          6000, 0.28,
+        ];
         currentMap.addLayer({
           id: 'state-fills',
           type: 'fill',
           source: 'states',
           paint: {
-            // Muted cool gray. Different from pin-white and highlight-blue
-            // so they each own their visual role.
+            // Muted cool gray — different from pin-white and highlight-blue
+            // so each owns its visual role.
             'fill-color': '#94A3B8',
             'fill-opacity': [
-              '*',
-              ['interpolate', ['linear'], ['get', 'factoryCount'],
-                0, 0,
-                50, 0.04,
-                200, 0.08,
-                800, 0.14,
-                2500, 0.22,
-                6000, 0.28,
-              ],
-              ['interpolate', ['linear'], ['zoom'],
-                3, 1,
-                5, 1,
-                6, 0,
-              ],
+              'interpolate', ['linear'], ['zoom'],
+              3, countScale,
+              5, countScale,
+              6, 0,
             ],
           },
         });
