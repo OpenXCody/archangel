@@ -516,33 +516,26 @@ export default function Map() {
     };
   }, [selectFactory, setHoveredFactory, handleMapClick, setSidebarOpen, updateViewport]);
 
-  // Update factories data when loaded
+  // Update factories data when loaded.
+  // Depends on mapLoaded too — so that after a route-level remount
+  // (Map → Nodes → Map), the freshly-created map source gets populated
+  // even though the cached GeoJSON reference hasn't changed.
   useEffect(() => {
-    if (!map.current || !factoriesGeoJSON) return;
+    if (!map.current || !mapLoaded || !factoriesGeoJSON) return;
 
     const currentMap = map.current;
+    const source = currentMap.getSource('factories') as GeoJSONSource | undefined;
+    if (!source) return;
 
-    const updateSource = () => {
-      const source = currentMap.getSource('factories') as GeoJSONSource;
-      if (source) {
-        // Add IDs to features for feature state (required for hover/selection)
-        const dataWithIds = {
-          ...factoriesGeoJSON,
-          features: factoriesGeoJSON.features.map((f) => ({
-            ...f,
-            id: f.properties?.id,
-          })),
-        };
-        source.setData(dataWithIds);
-      }
+    const dataWithIds = {
+      ...factoriesGeoJSON,
+      features: factoriesGeoJSON.features.map((f) => ({
+        ...f,
+        id: f.properties?.id,
+      })),
     };
-
-    if (currentMap.isStyleLoaded()) {
-      updateSource();
-    } else {
-      currentMap.once('load', updateSource);
-    }
-  }, [factoriesGeoJSON]);
+    source.setData(dataWithIds);
+  }, [factoriesGeoJSON, mapLoaded]);
 
   // Optimized selection update - only update changed features
   useEffect(() => {
