@@ -179,8 +179,9 @@ app.get('/api/map/states/:code/overview', async (req, res) => {
       INNER JOIN companies c ON c.id = f.company_id
       WHERE f.state = ${code}
         AND c.name ~ '[A-Za-z]{2,}'
-        AND c.name NOT LIKE '#%'
-        AND c.name NOT LIKE '(%'
+        AND c.name !~ '^[#(]'
+        AND c.name !~ '^\d+\s'
+        AND c.name !~ '^\d+/\d'
       GROUP BY c.id, c.name
       ORDER BY count DESC, c.name ASC
       LIMIT 10
@@ -239,8 +240,9 @@ app.get('/api/stats/counts', async (req, res) => {
     // bulk-import total.
     const companyNameFilter = and(
       sql`${companies.name} ~ '[A-Za-z]{2,}'`,
-      sql`${companies.name} NOT LIKE '#%'`,
-      sql`${companies.name} NOT LIKE '(%'`,
+      sql`${companies.name} !~ '^[#(]'`,
+      sql`${companies.name} !~ '^\\d+\\s'`,
+      sql`${companies.name} !~ '^\\d+/\\d'`,
     );
     const [companyCount, factoryCount, occupationCount, skillCount, refCount, schoolCount, programCount, personCount] = await Promise.all([
       db.select({ count: count() }).from(companies).where(companyNameFilter),
@@ -293,8 +295,10 @@ app.get('/api/companies', async (req, res) => {
     // These are artifacts of the bulk Pillar import where some facilities
     // had addresses or numeric codes in the company_name column.
     conditions.push(sql`${companies.name} ~ '[A-Za-z]{2,}'`);
-    conditions.push(sql`${companies.name} NOT LIKE '#%'`);
-    conditions.push(sql`${companies.name} NOT LIKE '(%'`);
+    conditions.push(sql`${companies.name} !~ '^[#(]'`);
+    // Address-like leaders: "1 Commerce Drive", "10 Day Parts", "10/120 S..."
+    conditions.push(sql`${companies.name} !~ '^\\d+\\s'`);
+    conditions.push(sql`${companies.name} !~ '^\\d+/\\d'`);
     if (search) {
       const searchTerm = `%${search}%`;
       conditions.push(or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm)));
@@ -865,8 +869,9 @@ app.get('/api/search', async (req, res) => {
     if (shouldSearch('companies')) {
       const nameFilter = and(
         sql`${companies.name} ~ '[A-Za-z]{2,}'`,
-        sql`${companies.name} NOT LIKE '#%'`,
-        sql`${companies.name} NOT LIKE '(%'`,
+        sql`${companies.name} !~ '^[#(]'`,
+        sql`${companies.name} !~ '^\\d+\\s'`,
+        sql`${companies.name} !~ '^\\d+/\\d'`,
       );
       const searchFilter = or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm));
       const [countRes, dataRes] = await Promise.all([
