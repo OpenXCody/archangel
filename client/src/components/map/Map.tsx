@@ -65,6 +65,21 @@ export default function Map() {
     resetView,
   } = useMapStore();
 
+  // Stable refs for callbacks to avoid recreating map on every render
+  const selectFactoryRef = useRef(selectFactory);
+  const selectStateRef = useRef(selectState);
+  const setHoveredFactoryRef = useRef(setHoveredFactory);
+  const setSidebarOpenRef = useRef(setSidebarOpen);
+  const clearSelectionRef = useRef(clearSelection);
+  
+  useEffect(() => {
+    selectFactoryRef.current = selectFactory;
+    selectStateRef.current = selectState;
+    setHoveredFactoryRef.current = setHoveredFactory;
+    setSidebarOpenRef.current = setSidebarOpen;
+    clearSelectionRef.current = clearSelection;
+  });
+
   // Track if map is zoomed in (for showing reset button)
   const [isZoomedIn, setIsZoomedIn] = useState(false);
 
@@ -136,7 +151,8 @@ export default function Map() {
   }, [statesGeoJSONRaw, stateCounts]);
 
   // Handle click outside markers to close panel
-  const handleMapClick = useCallback((e: MapMouseEvent) => {
+  // Moved inside init to use stable ref, avoiding useCallback dependency issues
+  const handleMapClickRef = useRef((e: MapMouseEvent) => {
     if (!map.current) return;
 
     // Check all marker layers including glow
@@ -148,19 +164,18 @@ export default function Map() {
     });
 
     if (features.length === 0) {
-      setSidebarOpen(false);
+      setSidebarOpenRef.current(false);
     }
-  }, [setSidebarOpen]);
+  });
 
-  // Debounced viewport update
-  const updateViewport = useCallback(
+  // Debounced viewport update - created once and stored in ref
+  const updateViewportRef = useRef(
     debounce((currentMap: MapLibreMap) => {
       setViewport({
         bounds: currentMap.getBounds(),
         zoom: currentMap.getZoom(),
       });
-    }, 300),
-    []
+    }, 300)
   );
 
   // Initialize map with retry logic
@@ -217,12 +232,16 @@ export default function Map() {
       // Note: Zoom controls removed for cleaner UI - use scroll/pinch to zoom
 
       currentMap.on('load', () => {
-      setMapLoaded(true);
-
       // Force a resize once the style loads in case container dimensions
       // weren't final when the map was created (lazy-loaded route, fonts
-      // settling, etc.). Without this, the camera can end up off-center.
+      // settling, etc.). Critically, we must also recenter after resize -
+      // resize() alone recalculates canvas size but doesn't fix the center.
+      // Without this explicit recenter, the viewport can drift (Pacific bug).
       currentMap.resize();
+      currentMap.setCenter(INITIAL_VIEW.center);
+      currentMap.setZoom(INITIAL_VIEW.zoom);
+
+      setMapLoaded(true);
 
       // Apply darker style overrides and hide all non-US details
       const style = currentMap.getStyle();
@@ -482,7 +501,7 @@ export default function Map() {
         if (!e.features?.[0]) return;
         const factoryId = e.features[0].id;
         if (typeof factoryId === 'string') {
-          selectFactory(factoryId);
+          selectFactoryRef.current(factoryId);
 
           const geometry = e.features[0].geometry;
           if (geometry.type === 'Point') {
@@ -503,7 +522,7 @@ export default function Map() {
         const id = e.features?.[0]?.id;
         if (typeof id === 'string') {
           hoveredFactoryIdRef.current = id;
-          setHoveredFactory(id);
+          setHoveredFactoryRef.current(id);
 
           currentMap.setFeatureState(
             { source: 'factories', id },
@@ -520,12 +539,12 @@ export default function Map() {
             { hover: false }
           );
           hoveredFactoryIdRef.current = null;
-          setHoveredFactory(null);
+          setHoveredFactoryRef.current(null);
         }
       });
 
       // Map click (for closing panel)
-      currentMap.on('click', handleMapClick);
+      currentMap.on('click', handleMapClickRef.current);
 
       // ─── State fill interactions ────────────────────────────────────
       // Click a state → select it, set filter, fly to fit its bounds.
@@ -542,7 +561,7 @@ export default function Map() {
         }
         const code = e.features[0].properties?.stateCode as string | undefined;
         if (!code) return;
-        selectState(code);
+        selectStateRef.current(code);
         // Tiled features have their geometry clipped to tile boundaries, so
         // we look up the full feature from our in-memory dataset to get an
         // accurate bbox for fitBounds.
@@ -596,12 +615,12 @@ export default function Map() {
       // bug: reset-view and empty-click don't always drop the selection.
       currentMap.on('contextmenu', (e) => {
         e.preventDefault();
-        clearSelection();
+        clearSelectionRef.current();
       });
 
       // Track viewport for data loading
       currentMap.on('moveend', () => {
-        updateViewport(currentMap);
+        updateViewportRef.current(currentMap);
       });
 
       // Set initial viewport
@@ -626,8 +645,10 @@ export default function Map() {
         map.current.remove();
         map.current = null;
       }
+      // Reset mapLoaded so data effects will fire on remount
+      setMapLoaded(false);
     };
-  }, [selectFactory, setHoveredFactory, handleMapClick, setSidebarOpen, updateViewport]);
+  }, []); // Empty deps - map is created once, callbacks use stable refs
 
   // Update factories data when loaded.
   // Depends on mapLoaded too — so that after a route-level remount
@@ -637,12 +658,21 @@ export default function Map() {
     if (!map.current || !mapLoaded || !factoriesGeoJSON) return;
 
     const currentMap = map.current;
-    const source = currentMap.getSource('factories') as GeoJSONSource | undefined;
-    if (!source) return;
-
-    // Server provides top-level `id` on each feature already — no client-side
-    // id synthesis needed.
-    source.setData(factoriesGeoJSON);
+    
+    // Retry logic: source might not be ready immediately after style loads
+    const updateSource = () => {
+      const source = currentMap.getSource('factories') as GeoJSONSource | undefined;
+      if (!source) {
+        console.warn('Factories source not ready, retrying...');
+        setTimeout(updateSource, 100);
+        return;
+      }
+      // Server provides top-level `id` on each feature already — no client-side
+      // id synthesis needed.
+      source.setData(factoriesGeoJSON);
+    };
+    
+    updateSource();
   }, [factoriesGeoJSON, mapLoaded]);
 
   // Populate the states source once both the GeoJSON geometry and the
@@ -650,9 +680,21 @@ export default function Map() {
   // instances get the data after a route-level remount.
   useEffect(() => {
     if (!map.current || !mapLoaded || !statesWithCounts) return;
-    const source = map.current.getSource('states') as GeoJSONSource | undefined;
-    if (!source) return;
-    source.setData(statesWithCounts);
+    
+    const currentMap = map.current;
+    
+    // Retry logic: source might not be ready immediately after style loads
+    const updateSource = () => {
+      const source = currentMap.getSource('states') as GeoJSONSource | undefined;
+      if (!source) {
+        console.warn('States source not ready, retrying...');
+        setTimeout(updateSource, 100);
+        return;
+      }
+      source.setData(statesWithCounts);
+    };
+    
+    updateSource();
   }, [statesWithCounts, mapLoaded]);
 
   // Ref mirror of statesWithCounts so the state-click handler (captured
