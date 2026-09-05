@@ -143,7 +143,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const flatResults = useCallback((): SearchResultItem[] => {
     if (!searchResults) return [];
     const order: SearchEntityType[] = ['companies', 'factories', 'occupations', 'skills', 'states'];
-    return order.flatMap((type) => searchResults.results[type].items);
+    return order.flatMap((type) => searchResults.results[type]?.items || []);
   }, [searchResults]);
 
   // Save recent search
@@ -401,7 +401,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
             {hasQuery && hasResults && (
               <div className="py-2">
                 {(Object.keys(ENTITY_CONFIG) as SearchEntityType[]).map((type) => {
-                  const items = searchResults?.results[type].items || [];
+                  const items = searchResults?.results[type]?.items || [];
                   if (items.length === 0) return null;
 
                   const config = ENTITY_CONFIG[type];
@@ -412,7 +412,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                       <h4 className="text-xs font-medium text-fg-soft uppercase tracking-wider mb-2">
                         {type}
                         <span className="ml-2 text-fg-soft/50">
-                          {searchResults?.results[type].count}
+                          {searchResults?.results[type]?.count || 0}
                         </span>
                       </h4>
                       <div className="space-y-1">
