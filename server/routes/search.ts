@@ -79,6 +79,8 @@ router.get('/', async (req: Request, res: Response) => {
       ? (types as string).split(',').map(t => t.trim())
       : ['companies', 'factories', 'occupations', 'skills', 'states', 'refs', 'schools', 'programs'];
 
+    // IMPORTANT: Always initialize ALL 8 entity type buckets, even when empty.
+    // Client ENTITY_CONFIG expects all 8 keys present in response to prevent crashes.
     const results: SearchResults = {
       query,
       results: {
