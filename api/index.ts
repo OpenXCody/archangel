@@ -852,6 +852,9 @@ app.get('/api/search', async (req, res) => {
           occupations: { count: 0, items: [] },
           skills: { count: 0, items: [] },
           states: { count: 0, items: [] },
+          refs: { count: 0, items: [] },
+          schools: { count: 0, items: [] },
+          programs: { count: 0, items: [] },
         },
         totalCount: 0,
       });
@@ -983,6 +986,74 @@ app.get('/api/search', async (req, res) => {
       }));
     }
 
+    // Search refs (elements)
+    let refResults: any[] = [];
+    let refCount = 0;
+    if (shouldSearch('refs')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(refs)
+          .where(or(ilike(refs.name, searchTerm), ilike(refs.description, searchTerm), ilike(refs.manufacturer, searchTerm))),
+        db.select({ id: refs.id, name: refs.name, type: refs.type, manufacturer: refs.manufacturer })
+          .from(refs)
+          .where(or(ilike(refs.name, searchTerm), ilike(refs.description, searchTerm), ilike(refs.manufacturer, searchTerm)))
+          .orderBy(refs.name)
+          .limit(limitNum),
+      ]);
+      refCount = countRes[0]?.count ?? 0;
+      refResults = dataRes.map(r => ({
+        id: r.id,
+        name: r.name,
+        type: 'refs' as const,
+        subtitle: r.type,
+        meta: r.manufacturer,
+      }));
+    }
+
+    // Search schools
+    let schoolResults: any[] = [];
+    let schoolCount = 0;
+    if (shouldSearch('schools')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(schools)
+          .where(or(ilike(schools.name, searchTerm), ilike(schools.description, searchTerm))),
+        db.select({ id: schools.id, name: schools.name, schoolType: schools.schoolType, state: schools.state })
+          .from(schools)
+          .where(or(ilike(schools.name, searchTerm), ilike(schools.description, searchTerm)))
+          .orderBy(schools.name)
+          .limit(limitNum),
+      ]);
+      schoolCount = countRes[0]?.count ?? 0;
+      schoolResults = dataRes.map(s => ({
+        id: s.id,
+        name: s.name,
+        type: 'schools' as const,
+        subtitle: s.schoolType,
+        meta: s.state,
+      }));
+    }
+
+    // Search programs
+    let programResults: any[] = [];
+    let programCount = 0;
+    if (shouldSearch('programs')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(programs)
+          .where(or(ilike(programs.title, searchTerm), ilike(programs.description, searchTerm))),
+        db.select({ id: programs.id, title: programs.title, credentialType: programs.credentialType })
+          .from(programs)
+          .where(or(ilike(programs.title, searchTerm), ilike(programs.description, searchTerm)))
+          .orderBy(programs.title)
+          .limit(limitNum),
+      ]);
+      programCount = countRes[0]?.count ?? 0;
+      programResults = dataRes.map(p => ({
+        id: p.id,
+        name: p.title,
+        type: 'programs' as const,
+        subtitle: p.credentialType,
+      }));
+    }
+
     res.json({
       query,
       results: {
@@ -991,8 +1062,11 @@ app.get('/api/search', async (req, res) => {
         occupations: { count: occupationCount, items: occupationResults },
         skills: { count: skillCount, items: skillResults },
         states: { count: stateCount, items: stateResults },
+        refs: { count: refCount, items: refResults },
+        schools: { count: schoolCount, items: schoolResults },
+        programs: { count: programCount, items: programResults },
       },
-      totalCount: companyCount + factoryCount + occupationCount + skillCount + stateCount,
+      totalCount: companyCount + factoryCount + occupationCount + skillCount + stateCount + refCount + schoolCount + programCount,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
