@@ -155,11 +155,12 @@ export default function Map() {
   const handleMapClickRef = useRef((e: MapMouseEvent) => {
     if (!map.current) return;
 
-    // Check all marker layers including glow
+    // Check all marker layers including glow and tap targets
     const features = map.current.queryRenderedFeatures(e.point, {
       layers: [
         'factory-points',
         'factory-points-glow',
+        'factory-tap-targets',
       ],
     });
 
@@ -195,10 +196,15 @@ export default function Map() {
           style: styleUrl,
           center: INITIAL_VIEW.center,
           zoom: INITIAL_VIEW.zoom,
-          minZoom: 3,
+          minZoom: 3.5, // Prevent zooming out beyond usable continental USA view
           maxZoom: 18,
           attributionControl: false,
           renderWorldCopies: false,
+          // Constrain bounds to keep USA roughly centered and prevent excessive panning
+          maxBounds: [
+            [-170, 15], // Southwest [lng, lat]
+            [-50, 72]   // Northeast [lng, lat]
+          ],
         });
       } catch (err) {
         console.error('Failed to create map:', err);
@@ -491,10 +497,31 @@ export default function Map() {
         },
       });
 
+      // Invisible tap targets — larger hit areas at low zoom for mobile usability.
+      // At continental zoom (z3-5), visual dots are tiny (1.2-2.5px) but tap targets are 8-12px.
+      // Fades away at higher zoom where visual dots are large enough to tap directly.
+      currentMap.addLayer({
+        id: 'factory-tap-targets',
+        type: 'circle',
+        source: 'factories',
+        paint: {
+          'circle-color': 'transparent',
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            3, 10,   // Large tap target at continental zoom
+            4, 12,
+            5, 10,
+            6, 6,    // Smaller as visual dots grow
+            7, 0,    // Invisible at close zoom - visual dots are large enough
+          ],
+          'circle-opacity': 0, // Always invisible - just for hit detection
+        },
+      });
+
       // === EVENT HANDLERS ===
 
-      // Factory marker click — dots are now visible and clickable at all zoom levels
-      currentMap.on('click', 'factory-points', (e) => {
+      // Factory marker click handler — shared by visual dots and invisible tap targets
+      const handleFactoryClick = (e: maplibregl.MapMouseEvent) => {
         if (!e.features?.[0]) return;
         const factoryId = e.features[0].id;
         if (typeof factoryId === 'string') {
@@ -504,7 +531,7 @@ export default function Map() {
           if (geometry.type === 'Point') {
             // On mobile, add bottom padding so marker is centered ABOVE the bottom sheet
             const isMobile = window.innerWidth < 768;
-            const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
+            const bottomSheetHeight = isMobile ? window.innerHeight * 0.40 : 0;
             
             currentMap.flyTo({
               center: geometry.coordinates as [number, number],
@@ -516,10 +543,14 @@ export default function Map() {
             });
           }
         }
-      });
+      };
 
-      // Hover on factory markers — dots are now interactive at all zoom levels
-      currentMap.on('mouseenter', 'factory-points', (e) => {
+      // Attach click handler to both visual dots and tap targets
+      currentMap.on('click', 'factory-points', handleFactoryClick);
+      currentMap.on('click', 'factory-tap-targets', handleFactoryClick);
+
+      // Hover on factory markers — both visual dots and tap targets
+      const handleFactoryMouseEnter = (e: maplibregl.MapMouseEvent) => {
         currentMap.getCanvas().style.cursor = 'pointer';
         const id = e.features?.[0]?.id;
         if (typeof id === 'string') {
@@ -531,9 +562,9 @@ export default function Map() {
             { hover: true }
           );
         }
-      });
+      };
 
-      currentMap.on('mouseleave', 'factory-points', () => {
+      const handleFactoryMouseLeave = () => {
         currentMap.getCanvas().style.cursor = '';
         if (hoveredFactoryIdRef.current) {
           currentMap.setFeatureState(
@@ -543,7 +574,13 @@ export default function Map() {
           hoveredFactoryIdRef.current = null;
           setHoveredFactoryRef.current(null);
         }
-      });
+      };
+
+      // Attach hover handlers to both visual dots and tap targets
+      currentMap.on('mouseenter', 'factory-points', handleFactoryMouseEnter);
+      currentMap.on('mouseenter', 'factory-tap-targets', handleFactoryMouseEnter);
+      currentMap.on('mouseleave', 'factory-points', handleFactoryMouseLeave);
+      currentMap.on('mouseleave', 'factory-tap-targets', handleFactoryMouseLeave);
 
       // Map click (for closing panel)
       currentMap.on('click', handleMapClickRef.current);
@@ -557,7 +594,9 @@ export default function Map() {
         // Only cede priority to pin clicks when pins are actually visible
         // (zoom >= 8, OR a company filter is active and they're forced on).
         if (currentMap.getZoom() >= 8 || pinsAlwaysVisibleRef.current) {
-          const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
+          const pinHit = currentMap.queryRenderedFeatures(e.point, { 
+            layers: ['factory-points', 'factory-points-glow', 'factory-tap-targets'] 
+          });
           if (pinHit.length > 0) return;
         }
         const code = e.features[0].properties?.stateCode as string | undefined;

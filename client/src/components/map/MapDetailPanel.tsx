@@ -151,7 +151,7 @@ function ConnectedNode({
         // If we have coordinates, fly to the factory with mobile-aware padding
         if (lat && lng) {
           const isMobile = window.innerWidth < 768;
-          const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
+          const bottomSheetHeight = isMobile ? window.innerHeight * 0.40 : 0;
           
           flyTo({ 
             lat, 
@@ -341,7 +341,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
       const f = company.factories[0];
       if (f.latitude && f.longitude) {
         const isMobile = window.innerWidth < 768;
-        const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
+        const bottomSheetHeight = isMobile ? window.innerHeight * 0.40 : 0;
         
         flyTo({
           lat: parseFloat(f.latitude),
@@ -384,7 +384,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
 
     // Add padding to account for the sidebar (380px on right) or bottom sheet on mobile
     const isMobile = window.innerWidth < 768;
-    const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
+    const bottomSheetHeight = isMobile ? window.innerHeight * 0.40 : 0;
     
     flyTo({
       lat: centerLat,
