@@ -353,9 +353,11 @@ function VirtualizedSection({
                     </div>
                   ) : (
                     <div
-                      className="grid gap-3"
+                      className="grid gap-3 max-w-full"
                       style={{
                         gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
+                        maxWidth: '100%',
+                        overflow: 'hidden'
                       }}
                     >
                       {row?.map((item) => (
@@ -371,7 +373,7 @@ function VirtualizedSection({
       ) : (
         <>
           {/* Non-virtualized grid for small lists */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 max-w-full overflow-x-hidden">
             {items.map((item) => (
               <EntityCard key={item.id} type={type} data={item} />
             ))}
@@ -805,9 +807,9 @@ export default function Explore() {
   }, [hasNextPrograms, fetchNextPrograms]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 overflow-x-hidden">
       {/* Header with search hint */}
-      <div className="mb-8">
+      <div className="mb-8 overflow-x-hidden">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-fg-default mb-2">Node Explorer</h1>
@@ -830,8 +832,8 @@ export default function Explore() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6">
-        <div className="flex flex-wrap gap-2 p-1 bg-bg-surface rounded-xl border border-border-subtle">
+      <div className="mb-6 overflow-x-hidden">
+        <div className="flex flex-wrap gap-2 p-1 bg-bg-surface rounded-xl border border-border-subtle max-w-full">
           {TABS.map(({ id, label, icon: Icon, color }) => {
             const isActive = activeTab === id;
             const count = getTabCount(id);
