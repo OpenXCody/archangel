@@ -54,15 +54,15 @@ function StateView({ data }: { data: StateOverview }) {
       </div>
 
       <div className="grid grid-cols-3 gap-2 mb-6">
-        <div className="rounded-lg border border-border-subtle bg-white/[0.02] px-3 py-2.5">
+        <div className="rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
           <div className="text-[10px] uppercase tracking-wider text-fg-soft">Factories</div>
           <div className="text-lg font-semibold text-fg-default mt-0.5">{data.totalFactories.toLocaleString()}</div>
         </div>
-        <div className="rounded-lg border border-border-subtle bg-white/[0.02] px-3 py-2.5">
+        <div className="rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
           <div className="text-[10px] uppercase tracking-wider text-fg-soft">Companies</div>
           <div className="text-lg font-semibold text-fg-default mt-0.5">{data.totalCompanies.toLocaleString()}</div>
         </div>
-        <div className="rounded-lg border border-border-subtle bg-white/[0.02] px-3 py-2.5">
+        <div className="rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
           <div className="text-[10px] uppercase tracking-wider text-fg-soft">Workforce</div>
           <div className="text-lg font-semibold text-fg-default mt-0.5">
             {data.totalWorkforce > 0 ? data.totalWorkforce.toLocaleString() : '—'}
@@ -189,7 +189,7 @@ function ConnectedNode({
       disabled={!id}
       className={`
         flex items-center justify-between p-3 w-full text-left
-        bg-white/[0.02] border border-white/10 rounded-lg
+        bg-bg-elevated border border-white/10 rounded-lg
         ${id ? 'hover:bg-white/[0.05] hover:border-white/20 cursor-pointer' : 'opacity-60 cursor-default'}
         transition-all group
       `}
@@ -228,7 +228,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
 
       {/* Stats Grid - mobile-optimized with better spacing */}
       <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Workforce</span>
@@ -237,7 +237,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
             {factory.workforceSize?.toLocaleString() || '—'}
           </div>
         </div>
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Open Positions</span>
@@ -406,7 +406,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
 
       {/* Stats Grid - mobile-optimized */}
       <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Factory className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Factories</span>
@@ -415,7 +415,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
             {company.factories?.length || 0}
           </div>
         </div>
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Total Workforce</span>
@@ -508,7 +508,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
 
       {/* Stats Grid - mobile-optimized */}
       <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Factory className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Factories</span>
@@ -517,7 +517,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
             {occupation.factories?.length || 0}
           </div>
         </div>
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Skills</span>
@@ -610,7 +610,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
 
       {/* Stats - mobile-optimized */}
       <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Briefcase className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Occupations</span>
@@ -619,7 +619,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
             {skill.occupations?.length || 0}
           </div>
         </div>
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Related Skills</span>
@@ -761,7 +761,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
     <aside
       className={`
         ${panelClasses}
-        bg-bg-surface/95 backdrop-blur-md
+        bg-bg-surface
         ${isMobile ? 'border-t' : 'border-l'} border-border-subtle
         flex flex-col
         overflow-hidden
