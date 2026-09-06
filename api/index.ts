@@ -3,7 +3,6 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { eq, ilike, or, sql, count, and, ne } from 'drizzle-orm';
 import { pgTable, uuid, text, integer, timestamp, varchar } from 'drizzle-orm/pg-core';
-import { globalSearch } from '../server/lib/globalSearch';
 
 // ========== SCHEMA (inline) ==========
 const companies = pgTable('companies', {
@@ -836,7 +835,7 @@ app.get('/api/skills/:id', async (req, res) => {
   }
 });
 
-// Global search (all 8 entity types)
+// Global search
 app.get('/api/search', async (req, res) => {
   if (!db) return res.status(500).json({ error: 'Database not connected' });
 
@@ -853,24 +852,148 @@ app.get('/api/search', async (req, res) => {
           occupations: { count: 0, items: [] },
           skills: { count: 0, items: [] },
           states: { count: 0, items: [] },
-          refs: { count: 0, items: [] },
-          schools: { count: 0, items: [] },
-          programs: { count: 0, items: [] },
         },
         totalCount: 0,
       });
     }
 
-    const limitNum = parseInt(limit as string, 10) || 5;
-    const typeFilter = types ? (types as string).split(',').map(t => t.trim()) : undefined;
+    const limitNum = Math.min(parseInt(limit as string, 10) || 5, 20);
+    const searchTerm = `%${query}%`;
+    const typeFilter = types ? (types as string).split(',') : null;
 
-    const results = await globalSearch({
+    const shouldSearch = (type: string) => !typeFilter || typeFilter.includes(type);
+
+    // Search companies — same junk-name filter as the list endpoint
+    let companyResults: any[] = [];
+    let companyCount = 0;
+    if (shouldSearch('companies')) {
+      const nameFilter = and(
+        sql`${companies.name} ~ '[A-Za-z]{2,}'`,
+        sql`${companies.name} !~ '^[#(]'`,
+        sql`${companies.name} !~ '^\\d+\\s'`,
+        sql`${companies.name} !~ '^\\d+/\\d'`,
+      );
+      const searchFilter = or(ilike(companies.name, searchTerm), ilike(companies.industry, searchTerm));
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(companies)
+          .where(and(nameFilter, searchFilter)),
+        db.select({ id: companies.id, name: companies.name, industry: companies.industry })
+          .from(companies)
+          .where(and(nameFilter, searchFilter))
+          .orderBy(companies.name)
+          .limit(limitNum),
+      ]);
+      companyCount = countRes[0]?.count ?? 0;
+      companyResults = dataRes.map(c => ({
+        id: c.id,
+        name: c.name,
+        type: 'companies' as const,
+        subtitle: c.industry,
+      }));
+    }
+
+    // Search factories
+    let factoryResults: any[] = [];
+    let factoryCount = 0;
+    if (shouldSearch('factories')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(factories)
+          .where(or(ilike(factories.name, searchTerm), ilike(factories.specialization, searchTerm), ilike(factories.state, searchTerm))),
+        db.select({ id: factories.id, name: factories.name, state: factories.state, specialization: factories.specialization })
+          .from(factories)
+          .where(or(ilike(factories.name, searchTerm), ilike(factories.specialization, searchTerm), ilike(factories.state, searchTerm)))
+          .orderBy(factories.name)
+          .limit(limitNum),
+      ]);
+      factoryCount = countRes[0]?.count ?? 0;
+      factoryResults = dataRes.map(f => ({
+        id: f.id,
+        name: f.name,
+        type: 'factories' as const,
+        subtitle: f.specialization,
+        meta: f.state,
+      }));
+    }
+
+    // Search occupations
+    let occupationResults: any[] = [];
+    let occupationCount = 0;
+    if (shouldSearch('occupations')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(occupations)
+          .where(ilike(occupations.title, searchTerm)),
+        db.select({ id: occupations.id, title: occupations.title })
+          .from(occupations)
+          .where(ilike(occupations.title, searchTerm))
+          .orderBy(occupations.title)
+          .limit(limitNum),
+      ]);
+      occupationCount = countRes[0]?.count ?? 0;
+      // O*NET code intentionally omitted from search `meta` — it's a
+      // reference taxonomy, not a user-facing identifier. Shows only on
+      // occupation detail pages as a small tag.
+      occupationResults = dataRes.map(o => ({
+        id: o.id,
+        name: o.title,
+        type: 'occupations' as const,
+      }));
+    }
+
+    // Search skills
+    let skillResults: any[] = [];
+    let skillCount = 0;
+    if (shouldSearch('skills')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(skills)
+          .where(or(ilike(skills.name, searchTerm), ilike(skills.category, searchTerm))),
+        db.select({ id: skills.id, name: skills.name, category: skills.category })
+          .from(skills)
+          .where(or(ilike(skills.name, searchTerm), ilike(skills.category, searchTerm)))
+          .orderBy(skills.name)
+          .limit(limitNum),
+      ]);
+      skillCount = countRes[0]?.count ?? 0;
+      skillResults = dataRes.map(s => ({
+        id: s.id,
+        name: s.name,
+        type: 'skills' as const,
+        subtitle: s.category,
+      }));
+    }
+
+    // Search states
+    let stateResults: any[] = [];
+    let stateCount = 0;
+    if (shouldSearch('states')) {
+      const [countRes, dataRes] = await Promise.all([
+        db.select({ count: count() }).from(states)
+          .where(or(ilike(states.name, searchTerm), ilike(states.code, searchTerm))),
+        db.select({ id: states.id, name: states.name, code: states.code })
+          .from(states)
+          .where(or(ilike(states.name, searchTerm), ilike(states.code, searchTerm)))
+          .orderBy(states.name)
+          .limit(limitNum),
+      ]);
+      stateCount = countRes[0]?.count ?? 0;
+      stateResults = dataRes.map(s => ({
+        id: s.code,
+        name: s.name,
+        type: 'states' as const,
+        meta: s.code,
+      }));
+    }
+
+    res.json({
       query,
-      types: typeFilter,
-      limit: limitNum,
+      results: {
+        companies: { count: companyCount, items: companyResults },
+        factories: { count: factoryCount, items: factoryResults },
+        occupations: { count: occupationCount, items: occupationResults },
+        skills: { count: skillCount, items: skillResults },
+        states: { count: stateCount, items: stateResults },
+      },
+      totalCount: companyCount + factoryCount + occupationCount + skillCount + stateCount,
     });
-
-    res.json(results);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
