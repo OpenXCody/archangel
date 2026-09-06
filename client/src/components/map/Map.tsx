@@ -7,8 +7,9 @@ import { useMapStore } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
 import { Loader2, Maximize2 } from 'lucide-react';
 
-// MapTiler style base URL - key added at runtime for retry support
-const MAPTILER_STYLE_BASE = 'https://api.maptiler.com/maps/dataviz-dark/style.json';
+// MapTiler style URL with key
+const getMapTilerStyleUrl = () => 
+  `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${import.meta.env.VITE_MAP_TOKEN || ''}`;
 
 // Custom darker style overrides applied after map loads
 const DARK_STYLE_OVERRIDES = {
@@ -187,8 +188,7 @@ export default function Map() {
     const maxRetries = 3;
 
     const initMap = () => {
-      // Get key fresh each attempt
-      const styleUrl = { version: 8, sources: { osm: { type: 'raster', tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256, maxzoom: 19 } }, layers: [{ id: 'osm', type: 'raster', source: 'osm', paint: { 'raster-opacity': 0.6 } }], glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf' };
+      const styleUrl = getMapTilerStyleUrl();
 
       try {
         map.current = new maplibregl.Map({
@@ -521,7 +521,7 @@ export default function Map() {
       // === EVENT HANDLERS ===
 
       // Factory marker click handler — shared by visual dots and invisible tap targets
-      const handleFactoryClick = (e: maplibregl.MapMouseEvent) => {
+      const handleFactoryClick = (e: maplibregl.MapLayerMouseEvent) => {
         if (!e.features?.[0]) return;
         const factoryId = e.features[0].id;
         if (typeof factoryId === 'string') {
@@ -550,7 +550,7 @@ export default function Map() {
       currentMap.on('click', 'factory-tap-targets', handleFactoryClick);
 
       // Hover on factory markers — both visual dots and tap targets
-      const handleFactoryMouseEnter = (e: maplibregl.MapMouseEvent) => {
+      const handleFactoryMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
         currentMap.getCanvas().style.cursor = 'pointer';
         const id = e.features?.[0]?.id;
         if (typeof id === 'string') {
