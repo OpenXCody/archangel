@@ -1,8 +1,9 @@
-// Vercel Serverless API - Inline handlers (no external imports from server/)
+// Vercel Serverless API
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { eq, ilike, or, sql, count, and, ne } from 'drizzle-orm';
 import { pgTable, uuid, text, integer, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { globalSearch } from '../server/lib/globalSearch';
 
 // ========== SCHEMA (inline) ==========
 const companies = pgTable('companies', {
@@ -863,7 +864,6 @@ app.get('/api/search', async (req, res) => {
     const limitNum = parseInt(limit as string, 10) || 5;
     const typeFilter = types ? (types as string).split(',').map(t => t.trim()) : undefined;
 
-    const { globalSearch } = await import('../server/lib/globalSearch');
     const results = await globalSearch({
       query,
       types: typeFilter,
