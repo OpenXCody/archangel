@@ -821,8 +821,15 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-3 md:p-4">
+      {/* Content - #6: Independent scroll, no overscroll propagation */}
+      <div 
+        className="flex-1 overflow-y-auto p-3 md:p-4"
+        style={{ 
+          overscrollBehavior: 'contain',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y'
+        }}
+      >
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-6 h-6 text-fg-muted animate-spin" />
