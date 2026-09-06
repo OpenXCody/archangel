@@ -13,7 +13,7 @@ import {
   Loader2,
   ArrowLeft,
   Tag,
-  Maximize2,
+  Home,
 } from 'lucide-react';
 import {
   factoriesApi,
@@ -148,9 +148,19 @@ function ConnectedNode({
       // For factories, use selectFactory and fly to location if available
       if (type === 'factory') {
         selectFactory(id);
-        // If we have coordinates, fly to the factory
+        // If we have coordinates, fly to the factory with mobile-aware padding
         if (lat && lng) {
-          flyTo({ lat, lng, zoom: 10 });
+          const isMobile = window.innerWidth < 768;
+          const bottomSheetHeight = isMobile ? window.innerHeight * 0.45 : 0;
+          
+          flyTo({ 
+            lat, 
+            lng, 
+            zoom: 10,
+            padding: isMobile
+              ? { top: 20, bottom: bottomSheetHeight + 20, left: 20, right: 20 }
+              : { top: 20, bottom: 20, left: 20, right: 400 },
+          });
         }
       } else {
         selectEntity(type, id);
@@ -216,23 +226,23 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-fg-muted mb-1">
-            <Users className="w-4 h-4" />
-            <span className="text-xs">Workforce</span>
+      {/* Stats Grid - mobile-optimized with better spacing */}
+      <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
+        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
+            <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="text-[10px] md:text-xs">Workforce</span>
           </div>
-          <div className="text-2xl font-semibold text-fg-default">
+          <div className="text-xl md:text-2xl font-semibold text-fg-default">
             {factory.workforceSize?.toLocaleString() || '—'}
           </div>
         </div>
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-fg-muted mb-1">
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-xs">Open Positions</span>
+        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
+            <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="text-[10px] md:text-xs">Open Positions</span>
           </div>
-          <div className="text-2xl font-semibold text-fg-default">
+          <div className="text-xl md:text-2xl font-semibold text-fg-default">
             {factory.openPositions?.toLocaleString() || '—'}
           </div>
         </div>
@@ -330,11 +340,16 @@ function CompanyView({ company }: { company: CompanyDetail }) {
     if (company.factories.length === 1) {
       const f = company.factories[0];
       if (f.latitude && f.longitude) {
+        const isMobile = window.innerWidth < 768;
+        const bottomSheetHeight = isMobile ? window.innerHeight * 0.45 : 0;
+        
         flyTo({
           lat: parseFloat(f.latitude),
           lng: parseFloat(f.longitude),
           zoom: 10,
-          padding: { right: 400, top: 20, bottom: 20, left: 20 },
+          padding: isMobile
+            ? { top: 20, bottom: bottomSheetHeight + 20, left: 20, right: 20 }
+            : { right: 400, top: 20, bottom: 20, left: 20 },
         });
       }
       return;
@@ -367,12 +382,17 @@ function CompanyView({ company }: { company: CompanyDetail }) {
     else if (maxSpread < 5) zoom = 6;
     else if (maxSpread < 10) zoom = 5;
 
-    // Add padding to account for the sidebar (380px on right)
+    // Add padding to account for the sidebar (380px on right) or bottom sheet on mobile
+    const isMobile = window.innerWidth < 768;
+    const bottomSheetHeight = isMobile ? window.innerHeight * 0.45 : 0;
+    
     flyTo({
       lat: centerLat,
       lng: centerLng,
       zoom,
-      padding: { right: 400, top: 20, bottom: 20, left: 20 },
+      padding: isMobile
+        ? { top: 20, bottom: bottomSheetHeight + 20, left: 20, right: 20 }
+        : { right: 400, top: 20, bottom: 20, left: 20 },
     });
   };
 
@@ -384,23 +404,23 @@ function CompanyView({ company }: { company: CompanyDetail }) {
         <p className="text-sm text-fg-muted">{company.industry || 'Manufacturing'}</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-fg-muted mb-1">
-            <Factory className="w-4 h-4" />
-            <span className="text-xs">Factories</span>
+      {/* Stats Grid - mobile-optimized */}
+      <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
+        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
+            <Factory className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="text-[10px] md:text-xs">Factories</span>
           </div>
-          <div className="text-2xl font-semibold text-fg-default">
+          <div className="text-xl md:text-2xl font-semibold text-fg-default">
             {company.factories?.length || 0}
           </div>
         </div>
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-fg-muted mb-1">
-            <Users className="w-4 h-4" />
-            <span className="text-xs">Total Workforce</span>
+        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
+            <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="text-[10px] md:text-xs">Total Workforce</span>
           </div>
-          <div className="text-2xl font-semibold text-fg-default">
+          <div className="text-xl md:text-2xl font-semibold text-fg-default">
             {totalWorkforce.toLocaleString()}
           </div>
         </div>
@@ -486,23 +506,23 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
         )}
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-fg-muted mb-1">
-            <Factory className="w-4 h-4" />
-            <span className="text-xs">Factories</span>
+      {/* Stats Grid - mobile-optimized */}
+      <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
+        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
+            <Factory className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="text-[10px] md:text-xs">Factories</span>
           </div>
-          <div className="text-2xl font-semibold text-fg-default">
+          <div className="text-xl md:text-2xl font-semibold text-fg-default">
             {occupation.factories?.length || 0}
           </div>
         </div>
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-fg-muted mb-1">
-            <Wrench className="w-4 h-4" />
-            <span className="text-xs">Skills</span>
+        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
+            <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="text-[10px] md:text-xs">Skills</span>
           </div>
-          <div className="text-2xl font-semibold text-fg-default">
+          <div className="text-xl md:text-2xl font-semibold text-fg-default">
             {occupation.skills?.length || 0}
           </div>
         </div>
@@ -588,23 +608,23 @@ function SkillView({ skill }: { skill: SkillDetail }) {
         )}
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-fg-muted mb-1">
-            <Briefcase className="w-4 h-4" />
-            <span className="text-xs">Occupations</span>
+      {/* Stats - mobile-optimized */}
+      <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
+        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
+            <Briefcase className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="text-[10px] md:text-xs">Occupations</span>
           </div>
-          <div className="text-2xl font-semibold text-fg-default">
+          <div className="text-xl md:text-2xl font-semibold text-fg-default">
             {skill.occupations?.length || 0}
           </div>
         </div>
-        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-fg-muted mb-1">
-            <Wrench className="w-4 h-4" />
-            <span className="text-xs">Related Skills</span>
+        <div className="bg-white/[0.02] border border-white/10 rounded-lg p-3 md:p-4">
+          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
+            <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="text-[10px] md:text-xs">Related Skills</span>
           </div>
-          <div className="text-2xl font-semibold text-fg-default">
+          <div className="text-xl md:text-2xl font-semibold text-fg-default">
             {skill.relatedSkills?.length || 0}
           </div>
         </div>
@@ -734,7 +754,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
   const Icon = config?.icon || Factory;
 
   const panelClasses = isMobile
-    ? 'fixed inset-x-0 bottom-0 h-[60vh] rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300'
+    ? 'fixed inset-x-0 bottom-0 h-[45vh] max-h-[85vh] rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300'
     : 'absolute top-0 right-0 w-[380px] h-full z-50 animate-in slide-in-from-right duration-300';
 
   return (
@@ -742,7 +762,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
       className={`
         ${panelClasses}
         bg-bg-surface/95 backdrop-blur-md
-        border-l border-border-subtle
+        ${isMobile ? 'border-t' : 'border-l'} border-border-subtle
         flex flex-col
         overflow-hidden
       `}
@@ -750,25 +770,26 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
       aria-label={`${config?.label || 'Entity'} details`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border-subtle">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-border-subtle">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
           {canGoBack() && (
             <button
               onClick={goBack}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors flex-shrink-0"
               aria-label="Go back"
+              title="Go back"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           )}
-          <div className={`p-2 rounded-lg ${config?.bgColor || 'bg-sky-400/10'}`}>
-            <Icon className={`w-5 h-5 ${config?.color || 'text-sky-400'}`} />
+          <div className={`p-1.5 md:p-2 rounded-lg flex-shrink-0 ${config?.bgColor || 'bg-sky-400/10'}`}>
+            <Icon className={`w-4 h-4 md:w-5 md:h-5 ${config?.color || 'text-sky-400'}`} />
           </div>
-          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-white/5 border border-white/10 text-fg-muted">
-            {config?.label || 'Entity'} Node
+          <span className="px-2 py-0.5 text-[10px] md:text-xs font-medium rounded-full bg-white/5 border border-white/10 text-fg-muted truncate">
+            {config?.label || 'Entity'}
           </span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {/* Reset view button */}
           <button
             onClick={() => {
@@ -777,10 +798,10 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
               setSidebarOpen(false);
             }}
             className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
-            aria-label="Reset to full US view"
-            title="Reset view"
+            aria-label="Reset to US map view"
+            title="Reset to US map"
           >
-            <Maximize2 className="w-4 h-4" />
+            <Home className="w-4 h-4" />
           </button>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -788,13 +809,13 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
             aria-label="Close panel"
             title="Close"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-3 md:p-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-6 h-6 text-fg-muted animate-spin" />
