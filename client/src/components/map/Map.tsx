@@ -384,9 +384,9 @@ export default function Map() {
         console.error('Failed to add US states layers:', err);
       }
 
-      // Factories source — clustering OFF. With ~1k points, performance is
-      // fine; visual density should come from real pins, not from cluster
-      // circles painted over them.
+      // Factories source with clustering enabled to handle ~40k+ points.
+      // Clusters prevent the "blob" at continental/state zoom. Progressive
+      // zoom tiers: state/cluster selection → regional clusters → individual pins.
       // `promoteId: 'id'` lifts properties.id to the feature id MapLibre
       // uses for feature-state (hover/selected). Our ids are UUID strings;
       // MapLibre doesn't treat string top-level ids as ids, so promoteId
@@ -395,6 +395,13 @@ export default function Map() {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
         promoteId: 'id',
+        cluster: true,
+        clusterMaxZoom: 8, // Stop clustering at zoom 8, show individual markers
+        clusterRadius: 50, // Cluster radius in pixels
+        clusterProperties: {
+          // Aggregate workforce size for cluster tooltips
+          totalWorkforce: ['+', ['get', 'workforceSize']],
+        },
       });
 
       // Helper: produce an interpolate expression where each zoom stop has
@@ -409,12 +416,65 @@ export default function Map() {
         12, ['case', ['boolean', ['feature-state', 'selected'], false], selectedVal[3], ['boolean', ['feature-state', 'hover'], false], hoverVal[3], defaultVal[3]],
       ] as maplibregl.DataDrivenPropertyValueSpecification<number>;
 
+      // Cluster circle layer — appears when zoomed out, shows aggregated factory counts.
+      // Size and color intensity scale with point count. Visible from zoom 3 → 8.
+      currentMap.addLayer({
+        id: 'factory-clusters',
+        type: 'circle',
+        source: 'factories',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            '#60A5FA', // 1-99 factories: sky-400
+            100,
+            '#3B82F6', // 100-999: blue-500
+            1000,
+            '#2563EB', // 1000+: blue-600
+          ],
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            15,  // 1-99: small
+            100, 20,  // 100-999: medium
+            1000, 28, // 1000+: large
+          ],
+          'circle-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            3, 0.7,
+            8, 0.85,
+          ],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.8,
+        },
+      });
+
+      // Cluster count label — shows number inside cluster circle
+      currentMap.addLayer({
+        id: 'factory-cluster-count',
+        type: 'symbol',
+        source: 'factories',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': ['get', 'point_count_abbreviated'],
+          'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+          'text-size': 12,
+        },
+        paint: {
+          'text-color': '#ffffff',
+        },
+      });
+
       // Pin glow — halo that grows with zoom, low opacity so overlapping
       // halos in dense regions softly bloom rather than forming hard blobs.
+      // Filter: only show unclustered points (clusters have point_count property).
       currentMap.addLayer({
         id: 'factory-points-glow',
         type: 'circle',
         source: 'factories',
+        filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': [
             'case',
@@ -423,30 +483,30 @@ export default function Map() {
             '#ffffff',
           ],
           'circle-radius': zoomCaseRadius([13, 16, 22, 30], [9, 12, 16, 22], [7, 9, 12, 16]),
-          // Subtle visibility at continental zoom (3-5), increasing as user zooms in.
-          // This provides progressive disclosure — users can see markers exist even
-          // at full-US view, with visual emphasis shifting from choropleth to markers
-          // as they zoom in.
+          // Glow layer follows the same opacity curve as cores: only appear
+          // after clusters stop (zoom 8+) to maintain clean hit-target tiers.
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, 0.05,
-            4, 0.08,
-            5.8, 0.1,
-            6.2, 0.12,
-            6.8, 0.18,
-            8, 0.22,
+            3, 0,
+            7.5, 0,
+            8, 0.08,
+            8.5, 0.15,
+            9, 0.2,
             12, 0.24,
           ],
           'circle-blur': 0.6,
         },
       });
 
-      // Pin cores — visible at all zoom levels for progressive disclosure.
-      // Grow naturally as you drill in so city zoom shows real markers.
+      // Pin cores — individual points only appear AFTER clusters stop (zoom 8+).
+      // This ensures clean hit-target separation: states+clusters at
+      // continental/mid zoom, individual dots at close zoom.
+      // Filter: only show unclustered points (clusters have point_count property).
       currentMap.addLayer({
         id: 'factory-points',
         type: 'circle',
         source: 'factories',
+        filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': [
             'case',
@@ -455,18 +515,15 @@ export default function Map() {
             '#ffffff',
           ],
           'circle-radius': zoomCaseRadius([5.5, 6.5, 8, 10], [4, 5, 6.5, 9], [3, 4, 5.5, 7]),
-          // Start with low but visible opacity at continental zoom (0.15-0.2),
-          // ramping up as zoom increases. This provides clear affordance that
-          // markers exist and are clickable, while maintaining visual hierarchy
-          // where choropleth dominates at low zoom and markers take over at high zoom.
+          // Individual points only appear AFTER clusters stop (zoom 8+).
+          // This ensures clean hit-target separation: states+clusters at
+          // continental/mid zoom, individual dots at close zoom.
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, 0.15,
-            4, 0.2,
-            5.8, 0.3,
-            6.2, 0.45,
-            6.8, 0.65,
-            7.5, 0.85,
+            3, 0,
+            7.5, 0,
+            8, 0.3,
+            8.5, 0.7,
             9, 0.9,
           ],
         },
@@ -495,11 +552,42 @@ export default function Map() {
 
       // === EVENT HANDLERS ===
 
-      // Factory marker click — use top-level feature.id (we no longer
-      // duplicate it into properties to save payload bytes).
-      // Markers are now visible and clickable at all zoom levels for
-      // better affordance and progressive disclosure.
+      // Cluster click — zoom into the cluster to expand it
+      currentMap.on('click', 'factory-clusters', async (e) => {
+        if (!e.features?.[0]) return;
+        const clusterId = e.features[0].properties?.cluster_id;
+        const source = currentMap.getSource('factories') as maplibregl.GeoJSONSource;
+        
+        try {
+          const zoom = await source.getClusterExpansionZoom(clusterId);
+          const geometry = e.features[0].geometry;
+          if (geometry.type === 'Point') {
+            currentMap.easeTo({
+              center: geometry.coordinates as [number, number],
+              zoom: zoom + 0.5,
+              duration: 500,
+            });
+          }
+        } catch (err) {
+          console.error('Failed to get cluster expansion zoom:', err);
+        }
+      });
+
+      // Cluster hover — show pointer cursor
+      currentMap.on('mouseenter', 'factory-clusters', () => {
+        currentMap.getCanvas().style.cursor = 'pointer';
+      });
+
+      currentMap.on('mouseleave', 'factory-clusters', () => {
+        currentMap.getCanvas().style.cursor = '';
+      });
+
+      // Factory marker click — individual dots are only hit targets at
+      // close zoom (8+), after clusters have stopped. This enforces the
+      // zoom-tier interaction model: states+clusters at continental/mid,
+      // individual dots at close. Company filter overrides (pins always on).
       currentMap.on('click', 'factory-points', (e) => {
+        if (currentMap.getZoom() < 8 && !pinsAlwaysVisibleRef.current) return;
         if (!e.features?.[0]) return;
         const factoryId = e.features[0].id;
         if (typeof factoryId === 'string') {
@@ -507,17 +595,26 @@ export default function Map() {
 
           const geometry = e.features[0].geometry;
           if (geometry.type === 'Point') {
+            // On mobile, add bottom padding so marker is centered ABOVE the bottom sheet
+            const isMobile = window.innerWidth < 768;
+            const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
+            
             currentMap.flyTo({
               center: geometry.coordinates as [number, number],
               zoom: Math.max(currentMap.getZoom(), 8),
               duration: 500,
+              padding: isMobile 
+                ? { top: 20, bottom: bottomSheetHeight + 20, left: 20, right: 20 }
+                : { top: 20, bottom: 20, left: 20, right: 400 },
             });
           }
         }
       });
 
-      // Hover on factory markers — markers are now interactive at all zoom levels.
+      // Hover on factory markers — same zoom gate as click (8+). Company
+      // filter overrides to keep pins always interactive.
       currentMap.on('mouseenter', 'factory-points', (e) => {
+        if (currentMap.getZoom() < 8 && !pinsAlwaysVisibleRef.current) return;
         currentMap.getCanvas().style.cursor = 'pointer';
         const id = e.features?.[0]?.id;
         if (typeof id === 'string') {
@@ -552,9 +649,12 @@ export default function Map() {
       let hoveredStateCode: string | null = null;
       currentMap.on('click', 'state-fills', (e) => {
         if (!e.features?.[0]) return;
-        // Check if a pin was clicked first (pins always have priority now)
-        const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
-        if (pinHit.length > 0) return;
+        // Only cede priority to pin clicks when pins are actually visible
+        // (zoom >= 8, OR a company filter is active and they're forced on).
+        if (currentMap.getZoom() >= 8 || pinsAlwaysVisibleRef.current) {
+          const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
+          if (pinHit.length > 0) return;
+        }
         const code = e.features[0].properties?.stateCode as string | undefined;
         if (!code) return;
         selectStateRef.current(code);
@@ -585,9 +685,10 @@ export default function Map() {
         }
       });
 
-      // Hover a state → brighten its fill + cursor pointer.
+      // Hover a state → brighten its fill + cursor pointer. Only at
+      // zooms where clusters are the primary interaction (< 8).
       currentMap.on('mousemove', 'state-fills', (e) => {
-        if (currentMap.getZoom() >= 6) return; // hover only meaningful at choropleth zooms
+        if (currentMap.getZoom() >= 8) return;
         const f = e.features?.[0];
         const code = f?.properties?.stateCode as string | undefined;
         if (!code) return;
@@ -713,15 +814,15 @@ export default function Map() {
   }, [pinsAlwaysVisible]);
 
   // Default zoom-based opacity curves, used when no company filter
-  // forces pins on. Kept in one place so the effect below has a single
-  // source of truth. Updated to provide visibility at all zoom levels.
+  // forces pins on. Individual points only appear after clusters stop
+  // (zoom 8+) to enforce clean hit-target tiers.
   const defaultPointOpacity: any = [
     'interpolate', ['linear'], ['zoom'],
-    3, 0.15, 4, 0.2, 5.8, 0.3, 6.2, 0.45, 6.8, 0.65, 7.5, 0.85, 9, 0.9,
+    3, 0, 7.5, 0, 8, 0.3, 8.5, 0.7, 9, 0.9,
   ];
   const defaultGlowOpacity: any = [
     'interpolate', ['linear'], ['zoom'],
-    3, 0.05, 4, 0.08, 5.8, 0.1, 6.2, 0.12, 6.8, 0.18, 8, 0.22, 12, 0.24,
+    3, 0, 7.5, 0, 8, 0.08, 8.5, 0.15, 9, 0.2, 12, 0.24,
   ];
 
   // Default state-fills opacity curve — mirrors the inline paint set up
