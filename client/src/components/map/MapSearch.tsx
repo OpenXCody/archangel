@@ -207,7 +207,7 @@ export default function MapSearch() {
       {/* Search container */}
       <div
         className={`
-          bg-bg-surface/95 backdrop-blur-md
+          bg-bg-surface
           border border-white/10
           transition-all duration-200
           ${showDropdown ? 'rounded-2xl' : 'rounded-xl'}
