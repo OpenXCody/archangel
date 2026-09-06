@@ -156,12 +156,11 @@ export default function Map() {
   const handleMapClickRef = useRef((e: MapMouseEvent) => {
     if (!map.current) return;
 
-    // Check all marker layers including glow and tap targets
+    // Check all marker layers including glow
     const features = map.current.queryRenderedFeatures(e.point, {
       layers: [
         'factory-points',
         'factory-points-glow',
-        'factory-tap-targets',
       ],
     });
 
@@ -196,13 +195,13 @@ export default function Map() {
           style: styleUrl,
           center: INITIAL_VIEW.center,
           zoom: INITIAL_VIEW.zoom,
-          minZoom: 3.5, // Prevent zooming out beyond usable continental USA view
+          minZoom: 3, // #1: Allow zoom out to see full USA including west coast
           maxZoom: 18,
           attributionControl: false,
           renderWorldCopies: false,
-          // Constrain bounds to keep USA roughly centered and prevent excessive panning
+          // #1: Wider bounds to ensure west coast (CA, WA, OR) fully visible at min zoom
           maxBounds: [
-            [-170, 15], // Southwest [lng, lat]
+            [-180, 15], // Southwest [lng, lat] - extended west to include Alaska/Hawaii conceptually
             [-50, 72]   // Northeast [lng, lat]
           ],
         });
@@ -404,8 +403,9 @@ export default function Map() {
       });
 
       // Pin glow — white halo with controlled blur/opacity per design spec.
-      // DRASTICALLY reduced at continental zoom (z3-5) to prevent white-out AND Chrome crash.
-      // Glow is nearly invisible at z3-4 to prevent WebGL/memory overload from thousands of overlapping circles.
+      // Overlapping halos in dense regions softly bloom without hard edges.
+      // Design spec: z3-5 blur 4-6 opacity 0.12-0.18, z6-8 blur 6-8 opacity 0.18-0.22, z≥9 blur 8-10 opacity 0.22-0.28
+      // Selected/hover: +0.08 opacity
       currentMap.addLayer({
         id: 'factory-points-glow',
         type: 'circle',
@@ -414,26 +414,24 @@ export default function Map() {
           'circle-color': '#ffffff',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 4, ['boolean', ['feature-state', 'hover'], false], 3, 1.5],
-            4, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4, 2],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 3],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 4],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 9, ['boolean', ['feature-state', 'hover'], false], 8, 7],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 10, ['boolean', ['feature-state', 'hover'], false], 9, 8],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 12, ['boolean', ['feature-state', 'hover'], false], 11, 10],
           ],
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 0.12, ['boolean', ['feature-state', 'hover'], false], 0.10, 0.015],
-            4, ['case', ['boolean', ['feature-state', 'selected'], false], 0.15, ['boolean', ['feature-state', 'hover'], false], 0.12, 0.03],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 0.20, ['boolean', ['feature-state', 'hover'], false], 0.18, 0.08],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 0.2, ['boolean', ['feature-state', 'hover'], false], 0.18, 0.12],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 0.26, ['boolean', ['feature-state', 'hover'], false], 0.24, 0.18],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 0.26, ['boolean', ['feature-state', 'hover'], false], 0.24, 0.18],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 0.3, ['boolean', ['feature-state', 'hover'], false], 0.28, 0.22],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 0.36, ['boolean', ['feature-state', 'hover'], false], 0.34, 0.28],
           ],
           'circle-blur': [
             'interpolate', ['linear'], ['zoom'],
-            3, 0.7,
-            5, 0.65,
+            3, 0.5,
+            5, 0.55,
             6, 0.55,
             8, 0.6,
             9, 0.65,
@@ -442,8 +440,8 @@ export default function Map() {
       });
 
       // Pin cores — white dots visible at all zoom levels per design spec.
-      // DRASTICALLY reduced at continental zoom (z3-5) to prevent white-out AND Chrome crash.
-      // Tiny subtle dots at z3-4, then ramp up visibility at z5+.
+      // Design spec: z3-5 diameter 3-4px opacity 0.55-0.65, z6-8 diameter 5-6px opacity 0.75-0.85, z≥9 diameter 7-8px max opacity 0.90-0.95
+      // Selected/hover: +1-2px core, opacity 1.0
       currentMap.addLayer({
         id: 'factory-points',
         type: 'circle',
@@ -452,9 +450,8 @@ export default function Map() {
           'circle-color': '#ffffff',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 3.5, ['boolean', ['feature-state', 'hover'], false], 3, 1.2],
-            4, ['case', ['boolean', ['feature-state', 'selected'], false], 4, ['boolean', ['feature-state', 'hover'], false], 3.5, 1.5],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4.5, 2.5],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4, 3],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 4],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 7, ['boolean', ['feature-state', 'hover'], false], 6, 5],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 9, ['boolean', ['feature-state', 'hover'], false], 8, 7],
@@ -462,9 +459,8 @@ export default function Map() {
           ],
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.12],
-            4, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.20],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.40],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.55],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.65],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.75],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.85],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.90],
@@ -497,27 +493,6 @@ export default function Map() {
         },
       });
 
-      // Invisible tap targets — larger hit areas at low zoom for mobile usability.
-      // At continental zoom (z3-5), visual dots are tiny (1.2-2.5px) but tap targets are 8-12px.
-      // Fades away at higher zoom where visual dots are large enough to tap directly.
-      currentMap.addLayer({
-        id: 'factory-tap-targets',
-        type: 'circle',
-        source: 'factories',
-        paint: {
-          'circle-color': 'transparent',
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            3, 10,   // Large tap target at continental zoom
-            4, 12,
-            5, 10,
-            6, 6,    // Smaller as visual dots grow
-            7, 0,    // Invisible at close zoom - visual dots are large enough
-          ],
-          'circle-opacity': 0, // Always invisible - just for hit detection
-        },
-      });
-
       // === EVENT HANDLERS ===
 
       // Factory marker click handler — shared by visual dots and invisible tap targets
@@ -531,7 +506,7 @@ export default function Map() {
           if (geometry.type === 'Point') {
             // On mobile, add bottom padding so marker is centered ABOVE the bottom sheet
             const isMobile = window.innerWidth < 768;
-            const bottomSheetHeight = isMobile ? window.innerHeight * 0.40 : 0;
+            const bottomSheetHeight = isMobile ? window.innerHeight * 0.35 : 0;
             
             currentMap.flyTo({
               center: geometry.coordinates as [number, number],
@@ -545,9 +520,8 @@ export default function Map() {
         }
       };
 
-      // Attach click handler to both visual dots and tap targets
+      // Factory marker click — dots are now visible and clickable at all zoom levels
       currentMap.on('click', 'factory-points', handleFactoryClick);
-      currentMap.on('click', 'factory-tap-targets', handleFactoryClick);
 
       // Hover on factory markers — both visual dots and tap targets
       const handleFactoryMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
@@ -576,11 +550,9 @@ export default function Map() {
         }
       };
 
-      // Attach hover handlers to both visual dots and tap targets
+      // Hover on factory markers — dots are now interactive at all zoom levels
       currentMap.on('mouseenter', 'factory-points', handleFactoryMouseEnter);
-      currentMap.on('mouseenter', 'factory-tap-targets', handleFactoryMouseEnter);
       currentMap.on('mouseleave', 'factory-points', handleFactoryMouseLeave);
-      currentMap.on('mouseleave', 'factory-tap-targets', handleFactoryMouseLeave);
 
       // Map click (for closing panel)
       currentMap.on('click', handleMapClickRef.current);
@@ -591,11 +563,10 @@ export default function Map() {
       let hoveredStateCode: string | null = null;
       currentMap.on('click', 'state-fills', (e) => {
         if (!e.features?.[0]) return;
-        // Only cede priority to pin clicks when pins are actually visible
-        // (zoom >= 8, OR a company filter is active and they're forced on).
-        if (currentMap.getZoom() >= 8 || pinsAlwaysVisibleRef.current) {
+        // #5: Zoomed-in state doesn't steal dot taps - check for pin clicks first at zoom >= 6
+        if (currentMap.getZoom() >= 6) {
           const pinHit = currentMap.queryRenderedFeatures(e.point, { 
-            layers: ['factory-points', 'factory-points-glow', 'factory-tap-targets'] 
+            layers: ['factory-points', 'factory-points-glow'] 
           });
           if (pinHit.length > 0) return;
         }
@@ -758,14 +729,14 @@ export default function Map() {
   }, [pinsAlwaysVisible]);
 
   // Default zoom-based opacity curves per design spec, used when no company
-  // filter forces pins on. DRASTICALLY reduced at continental zoom to prevent white-out AND Chrome crash.
+  // filter forces pins on. White dots visible at all zoom levels with controlled opacity.
   const defaultPointOpacity: any = [
     'interpolate', ['linear'], ['zoom'],
-    3, 0.12, 4, 0.20, 5, 0.40, 6, 0.75, 8, 0.85, 9, 0.90, 12, 0.95,
+    3, 0.55, 5, 0.65, 6, 0.75, 8, 0.85, 9, 0.90, 12, 0.95,
   ];
   const defaultGlowOpacity: any = [
     'interpolate', ['linear'], ['zoom'],
-    3, 0.015, 4, 0.03, 5, 0.08, 6, 0.18, 8, 0.22, 9, 0.28,
+    3, 0.12, 5, 0.18, 6, 0.18, 8, 0.22, 9, 0.28,
   ];
 
   // Default state-fills opacity curve — mirrors the inline paint set up

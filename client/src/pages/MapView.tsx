@@ -127,12 +127,7 @@ export default function MapView() {
       {/* Detail panel - slides in from right (desktop) or bottom (mobile) */}
       {sidebarOpen && <MapDetailPanel isMobile={isMobile} />}
 
-      {/* Mobile drag handle indicator when panel is open */}
-      {sidebarOpen && isMobile && (
-        <div className="fixed bottom-[calc(40vh-12px)] left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
-          <div className="w-12 h-1.5 rounded-full bg-white/30 shadow-sm" />
-        </div>
-      )}
+      {/* #4: Fake drag handle removed - no non-functional decorative UI */}
 
       {/* Context menu */}
       {contextMenu && (
