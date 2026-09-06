@@ -120,7 +120,7 @@ export default function MapView() {
 
       {/* Mobile drag handle indicator when panel is open */}
       {sidebarOpen && isMobile && (
-        <div className="fixed bottom-[calc(45vh-12px)] left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
+        <div className="fixed bottom-[calc(32vh-12px)] left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
           <div className="w-12 h-1.5 rounded-full bg-white/30 shadow-sm" />
         </div>
       )}

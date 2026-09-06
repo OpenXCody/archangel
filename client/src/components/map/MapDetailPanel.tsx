@@ -151,7 +151,7 @@ function ConnectedNode({
         // If we have coordinates, fly to the factory with mobile-aware padding
         if (lat && lng) {
           const isMobile = window.innerWidth < 768;
-          const bottomSheetHeight = isMobile ? window.innerHeight * 0.45 : 0;
+          const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
           
           flyTo({ 
             lat, 
@@ -341,7 +341,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
       const f = company.factories[0];
       if (f.latitude && f.longitude) {
         const isMobile = window.innerWidth < 768;
-        const bottomSheetHeight = isMobile ? window.innerHeight * 0.45 : 0;
+        const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
         
         flyTo({
           lat: parseFloat(f.latitude),
@@ -384,7 +384,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
 
     // Add padding to account for the sidebar (380px on right) or bottom sheet on mobile
     const isMobile = window.innerWidth < 768;
-    const bottomSheetHeight = isMobile ? window.innerHeight * 0.45 : 0;
+    const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
     
     flyTo({
       lat: centerLat,
@@ -754,7 +754,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
   const Icon = config?.icon || Factory;
 
   const panelClasses = isMobile
-    ? 'fixed inset-x-0 bottom-0 h-[45vh] max-h-[85vh] rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300'
+    ? 'fixed inset-x-0 bottom-0 h-[32vh] max-h-[85vh] rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300'
     : 'absolute top-0 right-0 w-[380px] h-full z-50 animate-in slide-in-from-right duration-300';
 
   return (

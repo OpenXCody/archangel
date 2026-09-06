@@ -597,7 +597,7 @@ export default function Map() {
           if (geometry.type === 'Point') {
             // On mobile, add bottom padding so marker is centered ABOVE the bottom sheet
             const isMobile = window.innerWidth < 768;
-            const bottomSheetHeight = isMobile ? window.innerHeight * 0.45 : 0;
+            const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
             
             currentMap.flyTo({
               center: geometry.coordinates as [number, number],
