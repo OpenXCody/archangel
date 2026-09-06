@@ -21,7 +21,7 @@ const DARK_STYLE_OVERRIDES = {
 
 const INITIAL_VIEW = {
   center: [-98.5, 39.8] as [number, number],
-  zoom: 4,
+  zoom: 3.5, // Lower initial zoom to show more USA on mobile
 };
 
 // US States GeoJSON from GitHub (reliable CDN)
@@ -195,14 +195,14 @@ export default function Map() {
           style: styleUrl,
           center: INITIAL_VIEW.center,
           zoom: INITIAL_VIEW.zoom,
-          minZoom: 3, // #1: Allow zoom out to see full USA including west coast
+          minZoom: 2.8, // #1: Lower minZoom to allow full USA view on narrow mobile (390px)
           maxZoom: 18,
           attributionControl: false,
           renderWorldCopies: false,
-          // #1: Wider bounds to ensure west coast (CA, WA, OR) fully visible at min zoom
+          // #1: Full USA bounds - west coast (CA/WA/OR) fully visible at min zoom
           maxBounds: [
-            [-180, 15], // Southwest [lng, lat] - extended west to include Alaska/Hawaii conceptually
-            [-50, 72]   // Northeast [lng, lat]
+            [-180, 20], // Southwest - extended to show full west coast
+            [-50, 72]   // Northeast
           ],
         });
       } catch (err) {
@@ -506,7 +506,7 @@ export default function Map() {
           if (geometry.type === 'Point') {
             // On mobile, add bottom padding so marker is centered ABOVE the bottom sheet
             const isMobile = window.innerWidth < 768;
-            const bottomSheetHeight = isMobile ? window.innerHeight * 0.35 : 0;
+            const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
             
             currentMap.flyTo({
               center: geometry.coordinates as [number, number],
