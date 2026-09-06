@@ -423,24 +423,26 @@ export default function Map() {
             '#ffffff',
           ],
           'circle-radius': zoomCaseRadius([13, 16, 22, 30], [9, 12, 16, 22], [7, 9, 12, 16]),
-          // Pins hold at zero while the choropleth is the primary view.
-          // Start lifting at zoom 5.8, past the fill's fade-out point, so
-          // the two layers don't overlap and compound into bloom.
+          // Subtle visibility at continental zoom (3-5), increasing as user zooms in.
+          // This provides progressive disclosure — users can see markers exist even
+          // at full-US view, with visual emphasis shifting from choropleth to markers
+          // as they zoom in.
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, 0,
-            5.8, 0,
-            6.2, 0.08,
-            6.8, 0.15,
-            8, 0.2,
+            3, 0.05,
+            4, 0.08,
+            5.8, 0.1,
+            6.2, 0.12,
+            6.8, 0.18,
+            8, 0.22,
             12, 0.24,
           ],
           'circle-blur': 0.6,
         },
       });
 
-      // Pin cores — above the HiDPI visibility floor at continental zoom,
-      // grow naturally as you drill in so city zoom shows real markers.
+      // Pin cores — visible at all zoom levels for progressive disclosure.
+      // Grow naturally as you drill in so city zoom shows real markers.
       currentMap.addLayer({
         id: 'factory-points',
         type: 'circle',
@@ -453,15 +455,17 @@ export default function Map() {
             '#ffffff',
           ],
           'circle-radius': zoomCaseRadius([5.5, 6.5, 8, 10], [4, 5, 6.5, 9], [3, 4, 5.5, 7]),
-          // Cores stay fully hidden until fills have faded (zoom ~6.3),
-          // then ramp in across 6 → 7.5. Peak at 0.9 to avoid hot-white
-          // bloom when overlapping in dense regions.
+          // Start with low but visible opacity at continental zoom (0.15-0.2),
+          // ramping up as zoom increases. This provides clear affordance that
+          // markers exist and are clickable, while maintaining visual hierarchy
+          // where choropleth dominates at low zoom and markers take over at high zoom.
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, 0,
-            5.8, 0,
-            6.2, 0.25,
-            6.8, 0.6,
+            3, 0.15,
+            4, 0.2,
+            5.8, 0.3,
+            6.2, 0.45,
+            6.8, 0.65,
             7.5, 0.85,
             9, 0.9,
           ],
@@ -493,11 +497,9 @@ export default function Map() {
 
       // Factory marker click — use top-level feature.id (we no longer
       // duplicate it into properties to save payload bytes).
-      // Gate by zoom to avoid selecting invisible pins at continental
-      // zoom — unless a company filter is active, in which case pins are
-      // deliberately visible at every zoom and should be clickable.
+      // Markers are now visible and clickable at all zoom levels for
+      // better affordance and progressive disclosure.
       currentMap.on('click', 'factory-points', (e) => {
-        if (currentMap.getZoom() < 6 && !pinsAlwaysVisibleRef.current) return;
         if (!e.features?.[0]) return;
         const factoryId = e.features[0].id;
         if (typeof factoryId === 'string') {
@@ -514,10 +516,8 @@ export default function Map() {
         }
       });
 
-      // Hover on factory markers — same zoom gate as click. Respects the
-      // company-filter override too.
+      // Hover on factory markers — markers are now interactive at all zoom levels.
       currentMap.on('mouseenter', 'factory-points', (e) => {
-        if (currentMap.getZoom() < 6 && !pinsAlwaysVisibleRef.current) return;
         currentMap.getCanvas().style.cursor = 'pointer';
         const id = e.features?.[0]?.id;
         if (typeof id === 'string') {
@@ -548,17 +548,13 @@ export default function Map() {
 
       // ─── State fill interactions ────────────────────────────────────
       // Click a state → select it, set filter, fly to fit its bounds.
-      // Only fire when no factory pin was clicked on top (pins have priority
-      // via queryRenderedFeatures shortcut inside the factory-click path).
+      // Always check for pin clicks first (pins have priority at all zoom levels).
       let hoveredStateCode: string | null = null;
       currentMap.on('click', 'state-fills', (e) => {
         if (!e.features?.[0]) return;
-        // Only cede priority to pin clicks when pins are actually visible
-        // (zoom >= 6, OR a company filter is active and they're forced on).
-        if (currentMap.getZoom() >= 6 || pinsAlwaysVisibleRef.current) {
-          const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
-          if (pinHit.length > 0) return;
-        }
+        // Check if a pin was clicked first (pins always have priority now)
+        const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
+        if (pinHit.length > 0) return;
         const code = e.features[0].properties?.stateCode as string | undefined;
         if (!code) return;
         selectStateRef.current(code);
@@ -706,10 +702,10 @@ export default function Map() {
     statesWithCountsRef.current = statesWithCounts;
   }, [statesWithCounts]);
 
-  // When a company filter is active we force pins to be visible at every
+  // When a company filter is active we force pins to full visibility at every
   // zoom — otherwise "Locate All Factories" on a national company flies
-  // to continental view and the pins are opacity 0. Ref mirror lets the
-  // click/hover handlers (captured in the load callback) check this too.
+  // to continental view and the pins remain at their default low opacity.
+  // Ref mirror lets the click/hover handlers (captured in the load callback) check this too.
   const pinsAlwaysVisible = !!filters.company;
   const pinsAlwaysVisibleRef = useRef(pinsAlwaysVisible);
   useEffect(() => {
@@ -718,14 +714,14 @@ export default function Map() {
 
   // Default zoom-based opacity curves, used when no company filter
   // forces pins on. Kept in one place so the effect below has a single
-  // source of truth.
+  // source of truth. Updated to provide visibility at all zoom levels.
   const defaultPointOpacity: any = [
     'interpolate', ['linear'], ['zoom'],
-    3, 0, 5.8, 0, 6.2, 0.25, 6.8, 0.6, 7.5, 0.85, 9, 0.9,
+    3, 0.15, 4, 0.2, 5.8, 0.3, 6.2, 0.45, 6.8, 0.65, 7.5, 0.85, 9, 0.9,
   ];
   const defaultGlowOpacity: any = [
     'interpolate', ['linear'], ['zoom'],
-    3, 0, 5.8, 0, 6.2, 0.08, 6.8, 0.15, 8, 0.2, 12, 0.24,
+    3, 0.05, 4, 0.08, 5.8, 0.1, 6.2, 0.12, 6.8, 0.18, 8, 0.22, 12, 0.24,
   ];
 
   // Default state-fills opacity curve — mirrors the inline paint set up
