@@ -49,7 +49,7 @@ export default function Layout() {
                     key={to}
                     to={to}
                     className={`
-                      flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium
+                      flex items-center gap-2 px-3 lg:px-4 py-2 rounded-full text-sm font-medium
                       transition-colors
                       ${isActive
                         ? 'bg-bg-elevated text-fg-default'
@@ -64,9 +64,9 @@ export default function Layout() {
               })}
             </nav>
 
-            {/* Logo - hidden until desktop to prevent nav overlap */}
-            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 hidden lg:flex">
-              <span className="text-lg font-semibold tracking-tight text-fg-default">
+            {/* Logo - compact on tablet, full size on desktop */}
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 hidden md:flex">
+              <span className="text-base lg:text-lg font-semibold tracking-tight text-fg-default">
                 ARCHANGEL
               </span>
             </div>
