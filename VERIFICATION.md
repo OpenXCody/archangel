@@ -52,15 +52,29 @@
 
 ### ✅ Preserved from #7
 - [x] Opaque MapDetailPanel (solid `#141414`, no glass)
+- [x] Inner sheet cards solid `#1A1A1A` (bg-bg-elevated)
+- [x] Search bar solid dark (removed `backdrop-blur-md`)
 - [x] Center-above-sheet layout
 - [x] 32vh bottom sheet peek
 - [x] MAP-NAV lifecycle
 - [x] State selection and choropleth
 
+### ✅ Counts Display
+- [x] Factory counts NEVER visible on map face
+- [x] Removed cluster count labels (blue circles with numbers)
+- [x] Counts available in tooltip/sheet only
+
 ## Build Status
 ✅ TypeScript: Clean (no errors)
 ✅ Vite Production Build: Success
 ✅ Bundle size: ~796KB map chunk (no significant change)
+
+## Design QA Ready
+Screenshot-ready PR with solid opaque chrome throughout:
+- ✅ White dots at all zoom levels (no blue badges)
+- ✅ Solid map detail panel and search bar (no frosted glass)
+- ✅ Controlled glow for density perception
+- ✅ Clean once-ui / HeroUI dark craft aesthetic
 
 ## Visual Intent
 Continental view (z3-5): Subtle white density overlay, no blue badges
