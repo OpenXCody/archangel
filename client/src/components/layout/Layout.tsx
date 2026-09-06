@@ -48,6 +48,7 @@ export default function Layout() {
                   <NavLink
                     key={to}
                     to={to}
+                    aria-label={label}
                     className={`
                       flex items-center gap-2 px-3 lg:px-4 py-2 rounded-full text-sm font-medium
                       transition-colors
@@ -58,7 +59,7 @@ export default function Layout() {
                     `}
                   >
                     <Icon className="w-4 h-4" />
-                    <span className="hidden sm:inline">{label}</span>
+                    <span className="hidden lg:inline">{label}</span>
                   </NavLink>
                 );
               })}
