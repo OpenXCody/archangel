@@ -148,7 +148,7 @@ export default function Import() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-bg-surface rounded-xl mb-6 overflow-x-auto -mx-4 px-5 sm:mx-0 sm:px-1">
+      <div className="flex gap-1 p-1 bg-bg-surface rounded-xl mb-6 overflow-x-auto min-w-0">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.type;
@@ -157,16 +157,16 @@ export default function Import() {
               key={tab.type}
               onClick={() => setActiveTab(tab.type)}
               className={`
-                flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg text-sm font-medium
-                whitespace-nowrap transition-all duration-200 flex-shrink-0
+                flex items-center gap-2 px-3 md:px-4 py-2.5 rounded-lg text-sm font-medium
+                whitespace-nowrap transition-all duration-200 min-w-0
                 ${isActive
                   ? 'bg-bg-elevated text-fg-default shadow-sm'
                   : 'text-fg-muted hover:text-fg-default hover:bg-bg-elevated/50'
                 }
               `}
             >
-              <Icon className={`w-4 h-4 ${isActive ? getTabIconColor(tab.color) : ''}`} />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? getTabIconColor(tab.color) : ''}`} />
+              <span className="hidden md:inline">{tab.label}</span>
             </button>
           );
         })}
