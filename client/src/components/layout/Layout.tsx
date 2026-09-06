@@ -64,8 +64,8 @@ export default function Layout() {
               })}
             </nav>
 
-            {/* Logo */}
-            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+            {/* Logo - hidden on mobile to prevent nav overlap */}
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 hidden md:flex">
               <span className="text-lg font-semibold tracking-tight text-fg-default">
                 ARCHANGEL
               </span>
