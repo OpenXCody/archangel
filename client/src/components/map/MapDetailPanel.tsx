@@ -754,7 +754,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
   const Icon = config?.icon || Factory;
 
   const panelClasses = isMobile
-    ? 'fixed inset-x-0 bottom-0 h-[32vh] max-h-[85vh] rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300'
+    ? 'fixed inset-x-0 bottom-0 h-[40vh] max-h-[85vh] rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300'
     : 'absolute top-0 right-0 w-[380px] h-full z-50 animate-in slide-in-from-right duration-300';
 
   return (
@@ -766,11 +766,16 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
         flex flex-col
         overflow-hidden
       `}
+      style={isMobile ? {
+        paddingLeft: 'max(0.75rem, env(safe-area-inset-left))',
+        paddingRight: 'max(0.75rem, env(safe-area-inset-right))',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      } : undefined}
       role="complementary"
       aria-label={`${config?.label || 'Entity'} details`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-border-subtle">
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-border-subtle flex-shrink-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
           {canGoBack() && (
             <button

@@ -399,8 +399,7 @@ export default function Map() {
 
       // Pin glow — white halo with controlled blur/opacity per design spec.
       // Overlapping halos in dense regions softly bloom without hard edges.
-      // Design spec: z3-5 blur 4-6 opacity 0.12-0.18, z6-8 blur 6-8 opacity 0.18-0.22, z≥9 blur 8-10 opacity 0.22-0.28
-      // Selected/hover: +0.08 opacity
+      // REDUCED at continental zoom (z3-5) to prevent white-out: smaller radius, lower opacity
       currentMap.addLayer({
         id: 'factory-points-glow',
         type: 'circle',
@@ -409,24 +408,26 @@ export default function Map() {
           'circle-color': '#ffffff',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 4],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4, 2.5],
+            4, ['case', ['boolean', ['feature-state', 'selected'], false], 5.5, ['boolean', ['feature-state', 'hover'], false], 4.5, 3],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 7, ['boolean', ['feature-state', 'hover'], false], 6, 4],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 9, ['boolean', ['feature-state', 'hover'], false], 8, 7],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 10, ['boolean', ['feature-state', 'hover'], false], 9, 8],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 12, ['boolean', ['feature-state', 'hover'], false], 11, 10],
           ],
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 0.2, ['boolean', ['feature-state', 'hover'], false], 0.18, 0.12],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 0.26, ['boolean', ['feature-state', 'hover'], false], 0.24, 0.18],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 0.15, ['boolean', ['feature-state', 'hover'], false], 0.12, 0.04],
+            4, ['case', ['boolean', ['feature-state', 'selected'], false], 0.18, ['boolean', ['feature-state', 'hover'], false], 0.15, 0.06],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 0.22, ['boolean', ['feature-state', 'hover'], false], 0.20, 0.10],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 0.26, ['boolean', ['feature-state', 'hover'], false], 0.24, 0.18],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 0.3, ['boolean', ['feature-state', 'hover'], false], 0.28, 0.22],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 0.36, ['boolean', ['feature-state', 'hover'], false], 0.34, 0.28],
           ],
           'circle-blur': [
             'interpolate', ['linear'], ['zoom'],
-            3, 0.5,
-            5, 0.55,
+            3, 0.6,
+            5, 0.6,
             6, 0.55,
             8, 0.6,
             9, 0.65,
@@ -435,8 +436,7 @@ export default function Map() {
       });
 
       // Pin cores — white dots visible at all zoom levels per design spec.
-      // Design spec: z3-5 diameter 3-4px opacity 0.55-0.65, z6-8 diameter 5-6px opacity 0.75-0.85, z≥9 diameter 7-8px max opacity 0.90-0.95
-      // Selected/hover: +1-2px core, opacity 1.0
+      // REDUCED at continental zoom (z3-5) to prevent white-out: smaller dots, lower opacity
       currentMap.addLayer({
         id: 'factory-points',
         type: 'circle',
@@ -445,8 +445,9 @@ export default function Map() {
           'circle-color': '#ffffff',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4, 3],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 4],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 4, ['boolean', ['feature-state', 'hover'], false], 3.5, 2],
+            4, ['case', ['boolean', ['feature-state', 'selected'], false], 4.5, ['boolean', ['feature-state', 'hover'], false], 4, 2.5],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 5.5, ['boolean', ['feature-state', 'hover'], false], 5, 3.5],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 7, ['boolean', ['feature-state', 'hover'], false], 6, 5],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 9, ['boolean', ['feature-state', 'hover'], false], 8, 7],
@@ -454,8 +455,9 @@ export default function Map() {
           ],
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.55],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.65],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.25],
+            4, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.35],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.50],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.75],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.85],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.90],
@@ -716,14 +718,14 @@ export default function Map() {
   }, [pinsAlwaysVisible]);
 
   // Default zoom-based opacity curves per design spec, used when no company
-  // filter forces pins on. White dots visible at all zoom levels with controlled opacity.
+  // filter forces pins on. REDUCED at continental zoom to prevent white-out.
   const defaultPointOpacity: any = [
     'interpolate', ['linear'], ['zoom'],
-    3, 0.55, 5, 0.65, 6, 0.75, 8, 0.85, 9, 0.90, 12, 0.95,
+    3, 0.25, 4, 0.35, 5, 0.50, 6, 0.75, 8, 0.85, 9, 0.90, 12, 0.95,
   ];
   const defaultGlowOpacity: any = [
     'interpolate', ['linear'], ['zoom'],
-    3, 0.12, 5, 0.18, 6, 0.18, 8, 0.22, 9, 0.28,
+    3, 0.04, 4, 0.06, 5, 0.10, 6, 0.18, 8, 0.22, 9, 0.28,
   ];
 
   // Default state-fills opacity curve — mirrors the inline paint set up
