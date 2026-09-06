@@ -187,7 +187,7 @@ export default function Map() {
 
     const initMap = () => {
       // Get key fresh each attempt
-      const styleUrl = { version: 8, sources: { osm: { type: 'raster', tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256, maxzoom: 19 } }, layers: [{ id: 'osm', type: 'raster', source: 'osm', paint: { 'raster-opacity': 0.6 } }], glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf' };
+      const styleUrl = `${MAPTILER_STYLE_BASE}?key=${import.meta.env.VITE_MAP_TOKEN || ''}`;
 
       try {
         map.current = new maplibregl.Map({
@@ -398,8 +398,8 @@ export default function Map() {
       });
 
       // Pin glow — white halo with controlled blur/opacity per design spec.
-      // DRASTICALLY reduced at continental zoom (z3-5) to prevent white-out AND Chrome crash.
-      // Glow is nearly invisible at z3-4 to prevent WebGL/memory overload from thousands of overlapping circles.
+      // Overlapping halos in dense regions softly bloom without hard edges.
+      // REDUCED at continental zoom (z3-5) to prevent white-out: smaller radius, lower opacity
       currentMap.addLayer({
         id: 'factory-points-glow',
         type: 'circle',
@@ -408,26 +408,26 @@ export default function Map() {
           'circle-color': '#ffffff',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 4, ['boolean', ['feature-state', 'hover'], false], 3, 1.5],
-            4, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4, 2],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 3],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4, 2.5],
+            4, ['case', ['boolean', ['feature-state', 'selected'], false], 5.5, ['boolean', ['feature-state', 'hover'], false], 4.5, 3],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 7, ['boolean', ['feature-state', 'hover'], false], 6, 4],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 9, ['boolean', ['feature-state', 'hover'], false], 8, 7],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 10, ['boolean', ['feature-state', 'hover'], false], 9, 8],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 12, ['boolean', ['feature-state', 'hover'], false], 11, 10],
           ],
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 0.12, ['boolean', ['feature-state', 'hover'], false], 0.10, 0.015],
-            4, ['case', ['boolean', ['feature-state', 'selected'], false], 0.15, ['boolean', ['feature-state', 'hover'], false], 0.12, 0.03],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 0.20, ['boolean', ['feature-state', 'hover'], false], 0.18, 0.08],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 0.15, ['boolean', ['feature-state', 'hover'], false], 0.12, 0.04],
+            4, ['case', ['boolean', ['feature-state', 'selected'], false], 0.18, ['boolean', ['feature-state', 'hover'], false], 0.15, 0.06],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 0.22, ['boolean', ['feature-state', 'hover'], false], 0.20, 0.10],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 0.26, ['boolean', ['feature-state', 'hover'], false], 0.24, 0.18],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 0.3, ['boolean', ['feature-state', 'hover'], false], 0.28, 0.22],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 0.36, ['boolean', ['feature-state', 'hover'], false], 0.34, 0.28],
           ],
           'circle-blur': [
             'interpolate', ['linear'], ['zoom'],
-            3, 0.7,
-            5, 0.65,
+            3, 0.6,
+            5, 0.6,
             6, 0.55,
             8, 0.6,
             9, 0.65,
@@ -436,8 +436,7 @@ export default function Map() {
       });
 
       // Pin cores — white dots visible at all zoom levels per design spec.
-      // DRASTICALLY reduced at continental zoom (z3-5) to prevent white-out AND Chrome crash.
-      // Tiny subtle dots at z3-4, then ramp up visibility at z5+.
+      // REDUCED at continental zoom (z3-5) to prevent white-out: smaller dots, lower opacity
       currentMap.addLayer({
         id: 'factory-points',
         type: 'circle',
@@ -446,9 +445,9 @@ export default function Map() {
           'circle-color': '#ffffff',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 3.5, ['boolean', ['feature-state', 'hover'], false], 3, 1.2],
-            4, ['case', ['boolean', ['feature-state', 'selected'], false], 4, ['boolean', ['feature-state', 'hover'], false], 3.5, 1.5],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4.5, 2.5],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 4, ['boolean', ['feature-state', 'hover'], false], 3.5, 2],
+            4, ['case', ['boolean', ['feature-state', 'selected'], false], 4.5, ['boolean', ['feature-state', 'hover'], false], 4, 2.5],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 5.5, ['boolean', ['feature-state', 'hover'], false], 5, 3.5],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 7, ['boolean', ['feature-state', 'hover'], false], 6, 5],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 9, ['boolean', ['feature-state', 'hover'], false], 8, 7],
@@ -456,9 +455,9 @@ export default function Map() {
           ],
           'circle-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.12],
-            4, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.20],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.40],
+            3, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.25],
+            4, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.35],
+            5, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.50],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.75],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.85],
             9, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.90],
@@ -719,14 +718,14 @@ export default function Map() {
   }, [pinsAlwaysVisible]);
 
   // Default zoom-based opacity curves per design spec, used when no company
-  // filter forces pins on. DRASTICALLY reduced at continental zoom to prevent white-out AND Chrome crash.
+  // filter forces pins on. REDUCED at continental zoom to prevent white-out.
   const defaultPointOpacity: any = [
     'interpolate', ['linear'], ['zoom'],
-    3, 0.12, 4, 0.20, 5, 0.40, 6, 0.75, 8, 0.85, 9, 0.90, 12, 0.95,
+    3, 0.25, 4, 0.35, 5, 0.50, 6, 0.75, 8, 0.85, 9, 0.90, 12, 0.95,
   ];
   const defaultGlowOpacity: any = [
     'interpolate', ['linear'], ['zoom'],
-    3, 0.015, 4, 0.03, 5, 0.08, 6, 0.18, 8, 0.22, 9, 0.28,
+    3, 0.04, 4, 0.06, 5, 0.10, 6, 0.18, 8, 0.22, 9, 0.28,
   ];
 
   // Default state-fills opacity curve — mirrors the inline paint set up
