@@ -183,8 +183,8 @@ function EntityBadge({ type }: { type: EntityCategory }) {
 
   return (
     <span
-      className={`text-[9px] font-normal px-1.5 py-0.5 rounded-full border ${styles[type]}`}
-      style={{ fontSize: '9px' }}
+      className={`text-[9px] font-light px-1.5 py-0.5 rounded-full border ${styles[type]}`}
+      style={{ fontSize: '9px', fontWeight: '300' }}
     >
       {labels[type]}
     </span>
@@ -333,7 +333,7 @@ function CompanyItem({ company }: { company: CompanyNode }) {
   const hasMore = company.factories.length > 5;
 
   return (
-    <div className="bg-bg-surface border border-border-subtle rounded-xl p-4 space-y-2">
+    <div className="rounded-xl p-4 space-y-2" style={{ backgroundColor: '#090c12', border: '1px solid #1e2230' }}>
       <div className="flex items-center gap-2">
         <Building2 className="w-4 h-4 text-amber-500 shrink-0" />
         <span className="font-medium text-fg-default">{company.name}</span>
@@ -386,10 +386,10 @@ export default function NodesV2() {
           <div>
             <h1 className="text-2xl font-semibold text-fg-default mb-2">Node Explorer v2</h1>
             <p className="text-fg-muted flex items-center gap-2">
-              <span>Browse the knowledge graph</span>
+              <span>Browse the graph</span>
               <span className="hidden md:inline-flex items-center gap-1">
                 or press
-                <kbd className="inline-flex items-center gap-0.5 px-2 py-1 bg-bg-surface border border-border-subtle rounded text-xs text-fg-soft">
+                <kbd className="inline-flex items-center gap-0.5 px-2 py-1 rounded text-xs" style={{ backgroundColor: '#090c12', border: '1px solid #1e2230', color: '#9ca3af' }}>
                   <span className="text-[10px]">⌘</span>K
                 </kbd>
                 to search
@@ -399,9 +399,9 @@ export default function NodesV2() {
         </div>
       </div>
 
-      {/* Category Navigation - 2 column grid, equal spacing */}
+      {/* Category Navigation - 2 column grid, 6px gap */}
       <div className="mb-6">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2" style={{ gap: '6px' }}>
           {categories.map(({ id, label, icon: Icon, count }) => {
             const isActive = activeCategory === id;
             return (
@@ -410,13 +410,16 @@ export default function NodesV2() {
                 onClick={() => setActiveCategory(id)}
                 className={`
                   flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium
-                  transition-colors
+                  transition-colors border border-transparent
                   ${
                     isActive
-                      ? 'bg-bg-elevated text-fg-default border-2 border-border-subtle'
-                      : 'bg-bg-surface text-fg-muted hover:text-fg-default hover:bg-bg-elevated border-2 border-transparent'
+                      ? 'text-fg-default'
+                      : 'bg-bg-surface text-fg-muted hover:text-fg-default hover:bg-bg-elevated'
                   }
                 `}
+                style={{
+                  backgroundColor: isActive ? '#11141d' : undefined,
+                }}
               >
                 <div className="flex items-center gap-2">
                   <Icon className="w-4 h-4" />
