@@ -193,14 +193,12 @@ function EntityBadge({ type }: { type: EntityCategory }) {
 
 // Expandable node component
 function ExpandableNode({
-  type,
   children,
   count,
   isExpanded,
   onToggle,
   leftBarColor,
 }: {
-  type: 'factory' | 'occupation' | 'skill';
   children: React.ReactNode;
   count?: number;
   isExpanded: boolean;
@@ -258,7 +256,6 @@ function OccupationItem({ occupation }: { occupation: OccupationNode }) {
 
       {occupation.skills.length > 0 && (
         <ExpandableNode
-          type="skill"
           count={occupation.skills.length}
           isExpanded={isExpanded}
           onToggle={() => setIsExpanded(!isExpanded)}
@@ -306,7 +303,6 @@ function FactoryItem({ factory }: { factory: FactoryNode }) {
 
       {factory.occupationCount > 0 && (
         <ExpandableNode
-          type="occupation"
           count={factory.occupationCount}
           isExpanded={isExpanded}
           onToggle={() => setIsExpanded(!isExpanded)}
@@ -349,7 +345,6 @@ function CompanyItem({ company }: { company: CompanyNode }) {
 
       {company.factoryCount > 0 && (
         <ExpandableNode
-          type="factory"
           count={company.factoryCount}
           isExpanded={isExpanded}
           onToggle={() => setIsExpanded(!isExpanded)}
