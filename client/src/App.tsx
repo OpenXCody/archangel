@@ -8,6 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 const MapView = lazy(() => import('./pages/MapView'));
 const Tree = lazy(() => import('./pages/Tree'));
 const Explore = lazy(() => import('./pages/Explore'));
+const NodesV2 = lazy(() => import('./pages/NodesV2'));
 const Import = lazy(() => import('./pages/Import'));
 const BulkImport = lazy(() => import('./pages/BulkImport'));
 const EntityDetail = lazy(() => import('./pages/EntityDetail'));
@@ -32,6 +33,7 @@ function App() {
               <Route path="/map" element={<ErrorBoundary><MapView /></ErrorBoundary>} />
               <Route path="/tree" element={<ErrorBoundary><Tree /></ErrorBoundary>} />
               <Route path="/explore" element={<ErrorBoundary><Explore /></ErrorBoundary>} />
+              <Route path="/nodes-v2" element={<ErrorBoundary><NodesV2 /></ErrorBoundary>} />
               <Route path="/import" element={<ErrorBoundary><Import /></ErrorBoundary>} />
               <Route path="/import/bulk" element={<ErrorBoundary><BulkImport /></ErrorBoundary>} />
               <Route path="/entities/:type/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
