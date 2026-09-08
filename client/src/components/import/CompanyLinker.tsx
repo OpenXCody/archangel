@@ -8,7 +8,7 @@ import {
   Loader2,
   ChevronDown,
 } from 'lucide-react';
-import { companiesApi, type Company } from '../../lib/api';
+import { companiesApi, type Company, API_BASE, adminFetch } from '../../lib/api';
 
 // Simple fuzzy matching score (lower is better)
 function fuzzyScore(str1: string, str2: string): number {
@@ -57,7 +57,7 @@ function fuzzyScore(str1: string, str2: string): number {
 
 // Create company via API
 async function createCompany(name: string): Promise<Company> {
-  const response = await fetch('/api/companies', {
+  const response = await adminFetch(`${API_BASE}/companies`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),

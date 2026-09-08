@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import FileDropZone from '../components/import/FileDropZone';
 import ManualEntryForm from '../components/import/ManualEntryForm';
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { API_BASE, adminFetch } from '../lib/api';
+import { PageContainer, PageHeader } from '../components/layout/Page';
 
 // Importable entity types (core entities only, not refs/schools/programs/persons)
 type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
@@ -52,7 +53,7 @@ export default function Import() {
     queryKey: ['importBatches', 'recent'],
     queryFn: async () => {
       try {
-        const res = await fetch(`${API_BASE}/import/batches?limit=5`);
+        const res = await adminFetch(`${API_BASE}/import/batches?limit=5`);
         if (!res.ok) return [];
         const data = await res.json();
         return data.data || [];
@@ -135,17 +136,14 @@ export default function Import() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <PageContainer size="narrow">
       {/* Full-page drop overlay */}
       <FileDropZone onFileAccepted={handleFileDrop} isFullPage />
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-fg-default mb-2">Data Import</h1>
-        <p className="text-fg-muted">
-          Add companies, factories, occupations, and skills to the database.
-        </p>
-      </div>
+      <PageHeader
+        title="Data Import"
+        description="Add companies, factories, occupations, and skills to the database."
+      />
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 bg-bg-surface rounded-xl mb-6 overflow-x-auto -mx-4 px-5 sm:mx-0 sm:px-1">
@@ -231,7 +229,7 @@ export default function Import() {
           to save
         </span>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
-import { db, factories } from '../db';
+import { db, factories } from '../db/index.js';
 
 const router = Router();
 
@@ -60,6 +60,32 @@ const STATE_CODE_TO_NAME: Record<string, string> = {
   PR: 'Puerto Rico',
 };
 
+// GET /api/map/state-counts - Factory counts keyed by state code.
+// Mirrors the production handler in api/index.ts so the local dev server
+// serves the same shape the map choropleth expects.
+router.get('/state-counts', async (_req: Request, res: Response) => {
+  try {
+    const rows = await db
+      .select({
+        state: factories.state,
+        count: sql<number>`COUNT(*)::int`,
+      })
+      .from(factories)
+      .where(sql`${factories.state} IS NOT NULL`)
+      .groupBy(factories.state);
+
+    const out: Record<string, number> = {};
+    for (const row of rows) {
+      if (row.state) out[row.state] = row.count;
+    }
+
+    res.json(out);
+  } catch (error) {
+    console.error('Error fetching state counts:', error);
+    res.status(500).json({ error: 'Failed to fetch state counts' });
+  }
+});
+
 // GET /api/map/states/summary - Get aggregated statistics for all states
 router.get('/states/summary', async (_req: Request, res: Response) => {
   try {
@@ -87,6 +113,71 @@ router.get('/states/summary', async (_req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching states summary:', error);
     res.status(500).json({ error: 'Failed to fetch states summary' });
+  }
+});
+
+// GET /api/map/states/:code/overview - Panel data for a selected state.
+// Mirrors the production handler in api/index.ts.
+router.get('/states/:code/overview', async (req: Request, res: Response) => {
+  const code = String(req.params.code).toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) {
+    res.status(400).json({ error: 'Invalid state code' });
+    return;
+  }
+
+  try {
+    const [totalsRow] = await db
+      .select({
+        totalFactories: sql<number>`COUNT(*)::int`,
+        totalWorkforce: sql<number>`COALESCE(SUM(${factories.workforceSize}), 0)::int`,
+        totalCompanies: sql<number>`COUNT(DISTINCT ${factories.companyId})::int`,
+      })
+      .from(factories)
+      .where(sql`${factories.state} = ${code}`);
+
+    const topCompanies = await db.execute(sql`
+      SELECT c.id, c.name, COUNT(*)::int AS count
+      FROM factories f
+      INNER JOIN companies c ON c.id = f.company_id
+      WHERE f.state = ${code}
+        AND c.name ~ '[A-Za-z]{2,}'
+        AND c.name !~ '^[#(]'
+        AND c.name !~ '^\\d+\\s'
+        AND c.name !~ '^\\d+/\\d'
+      GROUP BY c.id, c.name
+      ORDER BY count DESC, c.name ASC
+      LIMIT 10
+    `);
+
+    const topIndustries = await db.execute(sql`
+      SELECT
+        COALESCE(primary_naics_description, primary_naics, 'Unclassified') AS label,
+        COUNT(*)::int AS count
+      FROM factories
+      WHERE state = ${code} AND primary_naics IS NOT NULL
+      GROUP BY label
+      ORDER BY count DESC
+      LIMIT 8
+    `);
+
+    res.json({
+      code,
+      totalFactories: totalsRow?.totalFactories ?? 0,
+      totalCompanies: totalsRow?.totalCompanies ?? 0,
+      totalWorkforce: totalsRow?.totalWorkforce ?? 0,
+      topCompanies: Array.from(topCompanies as Iterable<Record<string, unknown>>).map((r) => ({
+        id: r.id,
+        name: r.name,
+        count: r.count,
+      })),
+      topIndustries: Array.from(topIndustries as Iterable<Record<string, unknown>>).map((r) => ({
+        label: r.label,
+        count: r.count,
+      })),
+    });
+  } catch (error) {
+    console.error('Error fetching state overview:', error);
+    res.status(500).json({ error: 'Failed to fetch state overview' });
   }
 });
 

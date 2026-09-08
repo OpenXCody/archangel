@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql } from 'drizzle-orm';
-import { db, schools, programs } from '../db';
+import { db, schools, programs } from '../db/index.js';
+import { uuidParam } from '../middleware/validateUuid.js';
 
 const router = Router();
+router.param('id', uuidParam);
 
 // GET /api/schools - List schools with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {

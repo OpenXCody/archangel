@@ -1,4 +1,4 @@
-import { db, companies, factories, occupations, skills } from '../db';
+import { db, companies, factories, occupations, skills } from '../db/index.js';
 
 export type EntityType = 'companies' | 'factories' | 'occupations' | 'skills';
 

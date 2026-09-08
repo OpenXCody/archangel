@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../db';
-import { companies, factories, occupations, skills, states, refs, schools, programs } from '../db/schema';
-import { ilike, or, count } from 'drizzle-orm';
+import { db } from '../db/index.js';
+import { companies, factories, occupations, skills, states, refs, schools, programs } from '../db/schema.js';
+import { ilike, or, and, count } from 'drizzle-orm';
+import { browsableCompanyFilter } from '../lib/companyFilters.js';
 
 const router = Router();
 
@@ -106,10 +107,13 @@ router.get('/', async (req: Request, res: Response) => {
           })
           .from(companies)
           .where(
-            or(
-              ilike(companies.name, searchPattern),
-              ilike(companies.industry, searchPattern),
-              ilike(companies.description, searchPattern)
+            and(
+              browsableCompanyFilter,
+              or(
+                ilike(companies.name, searchPattern),
+                ilike(companies.industry, searchPattern),
+                ilike(companies.description, searchPattern)
+              )
             )
           )
           .limit(maxLimit),
@@ -117,10 +121,13 @@ router.get('/', async (req: Request, res: Response) => {
           .select({ count: count() })
           .from(companies)
           .where(
-            or(
-              ilike(companies.name, searchPattern),
-              ilike(companies.industry, searchPattern),
-              ilike(companies.description, searchPattern)
+            and(
+              browsableCompanyFilter,
+              or(
+                ilike(companies.name, searchPattern),
+                ilike(companies.industry, searchPattern),
+                ilike(companies.description, searchPattern)
+              )
             )
           ),
       ]);

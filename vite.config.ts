@@ -1,15 +1,58 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
-// PWA plugin disabled: during active deploys the service worker aggressively
-// caches old HTML + chunks and breaks the app when chunk hashes rotate.
-// Reintroduce vite-plugin-pwa once the app is stable if offline/installable
-// support is wanted.
+// PWA: installable on iOS/Android home screens from the same build.
+// The earlier attempt cached index.html and broke on deploys; this config
+// never caches navigations, drops outdated precaches, and takes over
+// immediately (skipWaiting + clientsClaim), so a new deploy wins on reload.
 
 export default defineConfig({
   plugins: [
     react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      includeAssets: ['icons/*.png', 'data/*.geojson'],
+      manifest: {
+        name: 'Archangel',
+        short_name: 'Archangel',
+        description: 'US Manufacturing Workforce Intelligence Platform',
+        theme_color: '#0f0f0f',
+        background_color: '#0f0f0f',
+        display: 'standalone',
+        orientation: 'any',
+        start_url: '/map',
+        scope: '/',
+        icons: [
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+        // Never serve a cached shell: HTML always comes from the network.
+        navigateFallback: null,
+        globPatterns: ['**/*.{js,css,png,svg,woff2,geojson}'],
+        // API responses are never cached by the service worker.
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: ({ url }) => url.hostname === 'api.maptiler.com',
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'maptiler', expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 7 } },
+          },
+        ],
+      },
+      devOptions: { enabled: false },
+    }),
   ],
   resolve: {
     alias: {
@@ -28,7 +71,8 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // Strip console in production
+        // Strip chatty logs but keep error/warn so ErrorBoundary output survives in prod
+        pure_funcs: ['console.log', 'console.debug', 'console.info'],
         drop_debugger: true,
       },
     },
@@ -45,6 +89,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    host: true, // reachable from phones/tablets on the same network for device testing
     proxy: {
       '/api': {
         target: 'http://localhost:3000',

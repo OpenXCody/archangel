@@ -30,14 +30,15 @@ Archangel visualizes the US manufacturing ecosystem. Users explore **Companies �
 ```
 archangel/
 ├── client/src/           # React app
-│   ├── components/       # ui/, layout/, map/, explorer/, import/, search/
+│   ├── components/       # ui/ (shadcn), layout/ (Layout, Page shell), map/, explorer/, import/, search/
 │   ├── pages/            # MapView, NodeExplorer, DataImport, entity/*
 │   ├── stores/           # Zustand stores
 │   └── lib/              # api.ts, platform.ts, utils.ts
-├── server/               # Express API
-│   ├── routes/           # companies, factories, occupations, skills, search, map, import
+├── server/               # Express API (app.ts is THE app; index.ts listens locally, api/index.ts serves it on Vercel)
+│   ├── routes/           # companies, factories, occupations, skills, refs, schools, programs, persons, search, map, stats, import
+│   ├── middleware/       # adminAuth (x-admin-secret), validateUuid, cache
 │   └── db/               # schema.ts, index.ts
-├── shared/               # types.ts, colors.ts, states.ts, validation.ts
+├── shared/               # states.ts, tokens.ts, displayName.ts, companyNormalization.ts, addressStubFilter.ts
 ├── specs/                # Detailed specifications (READ THESE)
 └── public/data/          # us-states.geojson
 ```
@@ -65,12 +66,13 @@ archangel/
 **Public (read-only):**
 - `/` → redirect to `/map`
 - `/map` → Map View
-- `/explore` → Node Explorer  
-- `/companies/:id`, `/factories/:id`, `/occupations/:id`, `/skills/:id`, `/states/:code`
+- `/explore` → Node Explorer
+- `/tree` → Tree View (placeholder)
+- `/companies/:id`, `/factories/:id`, `/occupations/:id`, `/skills/:id`, `/refs/:id`, `/schools/:id`, `/programs/:id`
 
-**Admin (isolated):**
-- `/data/import` → Data Import
-- `/data/errors` → Error Queue
+**Admin (gated by `ADMIN_SECRET` via `AdminKeyGate`):**
+- `/import` → Data Import
+- `/import/bulk` → Bulk Import
 
 ## API Endpoints
 
@@ -78,7 +80,8 @@ archangel/
 - `GET /api/factories` — list, `GET /api/factories/geojson` — map data
 - `GET /api/occupations`, `GET /api/skills` — lists
 - `GET /api/search?q=` — global search
-- `GET /api/map/states/summary` — choropleth data
+- `GET /api/map/state-counts` — choropleth data; `GET /api/map/states/:code/overview` — state panel
+- `GET /api/import/status` — whether an admin key is required/valid; all other `/api/import/*` and every POST/PUT/DELETE need `x-admin-secret`
 - `POST /api/import/parse`, `/validate`, `/execute` — import pipeline
 
 ## Code Style
@@ -87,6 +90,10 @@ archangel/
 - Functional components with hooks
 - Tailwind for styling (see design system)
 - Use semantic color tokens: `bg-bg-surface`, `text-fg-muted`
+- New pages compose `PageContainer` / `PageHeader` / `PageSection` / `EmptyState` from `components/layout/Page.tsx`; primitives come from `components/ui/` (shadcn)
+- Grids must set a mobile base (`grid-cols-1`) before breakpoint columns, and truncated children need `min-w-0`
+- Env: MapTiler key is `VITE_MAP_TOKEN`; writes need `ADMIN_SECRET`
+- Server/api relative imports MUST end in `.js` (`from './routes/map.js'`, `from '../db/index.js'`): the function runs as Node ESM on Vercel. `npm run lint` enforces it
 - Entity badges use: `bg-{color}-500/10 text-{color}-500`
 
 ## Common Commands
@@ -96,5 +103,6 @@ npm run dev          # Start dev server
 npm run build        # Production build
 npm run db:migrate   # Run migrations
 npm run db:seed      # Seed test data
-npx cap sync         # Sync to mobile
+npm run test:ui      # Playwright responsive suite (7 device profiles)
+npm run lint         # ESLint (no `any`)
 ```

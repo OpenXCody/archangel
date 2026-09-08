@@ -1,8 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { eq, ilike, or, sql } from 'drizzle-orm';
-import { db, companies, factories, companyIndustries, industries } from '../db';
+import { eq, ilike, or, sql, type SQL } from 'drizzle-orm';
+import { db, companies, factories, companyIndustries, industries } from '../db/index.js';
+import { browsableCompanyFilter } from '../lib/companyFilters.js';
+import { uuidParam } from '../middleware/validateUuid.js';
 
 const router = Router();
+router.param('id', uuidParam);
 
 // GET /api/companies - List companies with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
@@ -12,17 +15,16 @@ router.get('/', async (req: Request, res: Response) => {
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     // Build where conditions
-    const conditions = [];
+    const conditions: SQL[] = [browsableCompanyFilter];
 
     if (search) {
       const searchTerm = `%${search}%`;
-      conditions.push(
-        or(
-          ilike(companies.name, searchTerm),
-          ilike(companies.industry, searchTerm),
-          ilike(companies.description, searchTerm)
-        )
+      const searchCondition = or(
+        ilike(companies.name, searchTerm),
+        ilike(companies.industry, searchTerm),
+        ilike(companies.description, searchTerm)
       );
+      if (searchCondition) conditions.push(searchCondition);
     }
 
     if (industry) {

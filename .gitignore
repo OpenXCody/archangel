@@ -49,3 +49,10 @@ uploads/
 
 # Test files
 test-*.csv
+
+# Local .env backups (never commit)
+.env.bak.*
+
+# Playwright
+test-results/
+playwright-report/

@@ -23,6 +23,7 @@ import {
 } from '../lib/api';
 import EntityCard from '../components/explorer/EntityCard';
 import FilterBar, { type FilterState, SORT_OPTIONS } from '../components/explorer/FilterBar';
+import { PageContainer, PageHeader } from '../components/layout/Page';
 
 type TabType = 'all' | EntityType;
 
@@ -371,7 +372,7 @@ function VirtualizedSection({
       ) : (
         <>
           {/* Non-virtualized grid for small lists */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item) => (
               <EntityCard key={item.id} type={type} data={item} />
             ))}
@@ -805,29 +806,27 @@ export default function Explore() {
   }, [hasNextPrograms, fetchNextPrograms]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header with search hint */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-fg-default mb-2">Node Explorer</h1>
-            <p className="text-fg-muted flex items-center gap-2">
-              Browse all entities or press
-              <kbd className="inline-flex items-center gap-0.5 px-2 py-1 bg-bg-surface border border-border-subtle rounded text-xs text-fg-soft">
-                <span className="text-[10px]">&#8984;</span>K
-              </kbd>
-              to search.
-            </p>
-          </div>
-          {/* Background fetch indicator */}
-          {isFetchingCurrentTab && !isLoadingCurrentTab && (
+    <PageContainer>
+      <PageHeader
+        title="Node Explorer"
+        description={
+          <span className="inline-flex flex-wrap items-center gap-2">
+            Browse all entities or press
+            <kbd className="inline-flex items-center gap-0.5 rounded border border-border-subtle bg-bg-surface px-2 py-1 text-xs text-fg-soft">
+              <span className="text-[10px]">&#8984;</span>K
+            </kbd>
+            to search.
+          </span>
+        }
+        actions={
+          isFetchingCurrentTab && !isLoadingCurrentTab ? (
             <div className="flex items-center gap-2 text-xs text-fg-muted">
               <Loader2 className="w-3 h-3 animate-spin" />
               Syncing...
             </div>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
       {/* Tabs */}
       <div className="mb-6">
@@ -986,6 +985,6 @@ export default function Explore() {
           onLoadMore={loadMore}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

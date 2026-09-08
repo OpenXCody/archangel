@@ -18,7 +18,7 @@ import type { Company, Skill } from '../../lib/api';
 // Importable entity types (core entities only, not refs/schools/programs/persons)
 type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { API_BASE, adminFetch } from '../../lib/api';
 
 // Skill categories based on O*NET
 const SKILL_CATEGORIES = [
@@ -675,7 +675,7 @@ export default function ManualEntryForm({
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
-      const response = await fetch(`${API_BASE}/${entityType}`, {
+      const response = await adminFetch(`${API_BASE}/${entityType}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

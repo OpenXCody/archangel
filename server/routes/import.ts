@@ -2,28 +2,27 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import crypto from 'crypto';
-import { parseFile, suggestColumnMappings, ParsedFile } from '../lib/parsers';
+import { parseFile, suggestColumnMappings, ParsedFile } from '../lib/parsers.js';
 import {
   validateRows,
   mapRowsToFields,
   prepareForInsert,
   EntityType,
-} from '../lib/validators';
-import { db, companies, factories, occupations, skills, importBatches, errorQueue, states, externalReferences } from '../db';
-import { eq, desc, ilike, and } from 'drizzle-orm';
+} from '../lib/validators.js';
+import { db, companies, factories, occupations, skills, importBatches, errorQueue, states, externalReferences, importUploads } from '../db/index.js';
+import { eq, desc, ilike, and, lt } from 'drizzle-orm';
 
 const router = Router();
 
-// Configure multer for file uploads
-const uploadDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Uploads land in the OS temp dir (the only writable location on Vercel)
+// and are deleted as soon as they've been parsed.
+const uploadDir = path.join(os.tmpdir(), 'archangel-uploads');
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
+    fs.mkdir(uploadDir, { recursive: true }, (err) => cb(err, uploadDir));
   },
   filename: (_req, file, cb) => {
     const uniqueId = crypto.randomUUID();
@@ -48,8 +47,37 @@ const upload = multer({
   },
 });
 
-// In-memory store for parsed files (in production, use Redis or similar)
-const parsedFiles = new Map<string, ParsedFile>();
+// Parsed uploads live in Postgres between the parse → map → validate →
+// execute steps, so the flow works across serverless instances. Rows older
+// than this are swept on the next upload.
+const UPLOAD_TTL_MS = 2 * 60 * 60 * 1000;
+
+async function saveParsed(parsed: ParsedFile): Promise<void> {
+  await db.insert(importUploads).values({
+    id: parsed.fileId,
+    fileName: parsed.fileName,
+    rowCount: parsed.rowCount,
+    payload: parsed,
+  });
+}
+
+async function loadParsed(fileId: string): Promise<ParsedFile | null> {
+  if (typeof fileId !== 'string' || !/^[0-9a-f-]{36}$/i.test(fileId)) return null;
+  const [row] = await db.select({ payload: importUploads.payload })
+    .from(importUploads)
+    .where(eq(importUploads.id, fileId))
+    .limit(1);
+  return row ? (row.payload as ParsedFile) : null;
+}
+
+async function deleteParsed(fileId: string): Promise<void> {
+  await db.delete(importUploads).where(eq(importUploads.id, fileId));
+}
+
+async function sweepExpiredUploads(): Promise<void> {
+  const cutoff = new Date(Date.now() - UPLOAD_TTL_MS);
+  await db.delete(importUploads).where(lt(importUploads.createdAt, cutoff));
+}
 
 // POST /api/import/parse - Upload and parse file
 router.post('/parse', upload.single('file'), async (req: Request, res: Response) => {
@@ -64,10 +92,16 @@ router.post('/parse', upload.single('file'), async (req: Request, res: Response)
     const fileName = req.file.originalname;
     const sheetName = req.body.sheetName;
 
-    const parsed = parseFile(filePath, fileName, fileId, { sheetName });
+    let parsed: ParsedFile;
+    try {
+      parsed = parseFile(filePath, fileName, fileId, { sheetName });
+    } finally {
+      // The parsed rows are what we keep; the file itself is done.
+      fs.promises.unlink(filePath).catch(() => undefined);
+    }
 
-    // Store parsed data for later use
-    parsedFiles.set(fileId, parsed);
+    await sweepExpiredUploads().catch((err) => console.warn('Upload sweep failed:', err));
+    await saveParsed(parsed);
 
     // Return preview (without full data)
     res.json({
@@ -101,7 +135,7 @@ router.post('/map', async (req: Request, res: Response) => {
       return;
     }
 
-    const parsed = parsedFiles.get(fileId);
+    const parsed = await loadParsed(fileId);
     if (!parsed) {
       res.status(404).json({ error: 'File not found. Please upload the file again.' });
       return;
@@ -131,7 +165,7 @@ router.post('/validate', async (req: Request, res: Response) => {
       return;
     }
 
-    const parsed = parsedFiles.get(fileId);
+    const parsed = await loadParsed(fileId);
     if (!parsed) {
       res.status(404).json({ error: 'File not found. Please upload the file again.' });
       return;
@@ -192,7 +226,7 @@ router.post('/execute', async (req: Request, res: Response) => {
       return;
     }
 
-    const parsed = parsedFiles.get(fileId);
+    const parsed = await loadParsed(fileId);
     if (!parsed) {
       res.status(404).json({ error: 'File not found. Please upload the file again.' });
       return;
@@ -275,10 +309,10 @@ router.post('/execute', async (req: Request, res: Response) => {
     );
 
     let created = 0;
-    let updated = 0;
+    const updated = 0;
     let skipped = 0;
     let errorsQueued = 0;
-    let companiesCreated = companyIdLookup.size;
+    const companiesCreated = companyIdLookup.size;
 
     // Pre-load state code → id for FK resolution (only relevant for factories)
     const stateIdByCode = new Map<string, string>();
@@ -431,8 +465,8 @@ router.post('/execute', async (req: Request, res: Response) => {
       })
       .where(eq(importBatches.id, batch.id));
 
-    // Clean up parsed file from memory
-    parsedFiles.delete(fileId);
+    // The upload has served its purpose.
+    await deleteParsed(fileId);
 
     res.json({
       batchId: batch.id,

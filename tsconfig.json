@@ -27,7 +27,8 @@
   "include": [
     "client/src/**/*",
     "shared/**/*",
-    "server/**/*"
+    "server/**/*",
+    "api/**/*"
   ],
   "exclude": ["node_modules", "dist"]
 }

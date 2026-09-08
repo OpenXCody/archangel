@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql } from 'drizzle-orm';
-import { db, factories, companies, factoryOccupations, occupations } from '../db';
+import { db, factories, companies, factoryOccupations, occupations } from '../db/index.js';
+import { uuidParam } from '../middleware/validateUuid.js';
 
 const router = Router();
+router.param('id', uuidParam);
 
 // GET /api/factories - List factories with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {

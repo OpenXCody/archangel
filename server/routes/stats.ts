@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
-import { db, companies, factories, occupations, skills, refs, schools, programs, persons } from '../db';
+import { db, companies, factories, occupations, skills, refs, schools, programs, persons } from '../db/index.js';
+import { browsableCompanyFilter } from '../lib/companyFilters.js';
 
 const router = Router();
 
@@ -9,7 +10,8 @@ router.get('/counts', async (_req: Request, res: Response) => {
   try {
     const [companiesCount] = await db
       .select({ count: sql<number>`COUNT(*)::int` })
-      .from(companies);
+      .from(companies)
+      .where(browsableCompanyFilter);
 
     const [factoriesCount] = await db
       .select({ count: sql<number>`COUNT(*)::int` })

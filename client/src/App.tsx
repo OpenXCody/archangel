@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import Layout from './components/layout/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
+import AdminKeyGate from './components/import/AdminKeyGate';
 
 // Lazy load pages for code splitting
 const MapView = lazy(() => import('./pages/MapView'));
@@ -32,8 +33,8 @@ function App() {
               <Route path="/map" element={<ErrorBoundary><MapView /></ErrorBoundary>} />
               <Route path="/tree" element={<ErrorBoundary><Tree /></ErrorBoundary>} />
               <Route path="/explore" element={<ErrorBoundary><Explore /></ErrorBoundary>} />
-              <Route path="/import" element={<ErrorBoundary><Import /></ErrorBoundary>} />
-              <Route path="/import/bulk" element={<ErrorBoundary><BulkImport /></ErrorBoundary>} />
+              <Route path="/import" element={<ErrorBoundary><AdminKeyGate><Import /></AdminKeyGate></ErrorBoundary>} />
+              <Route path="/import/bulk" element={<ErrorBoundary><AdminKeyGate><BulkImport /></AdminKeyGate></ErrorBoundary>} />
               <Route path="/entities/:type/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
               <Route path="/companies/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
               <Route path="/factories/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />

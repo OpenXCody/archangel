@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql, and, ne, isNull } from 'drizzle-orm';
-import { db, skills, occupationSkills, occupations, skillRefs, refs, programSkills, programs } from '../db';
+import { db, skills, occupationSkills, occupations, skillRefs, refs, programSkills, programs } from '../db/index.js';
+import { uuidParam } from '../middleware/validateUuid.js';
 
 const router = Router();
+router.param('id', uuidParam);
 
 // GET /api/skills - List skills with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {

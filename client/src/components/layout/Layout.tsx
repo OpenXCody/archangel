@@ -76,6 +76,8 @@ export default function Layout() {
             {!isMapView && (
               <button
                 onClick={() => setIsSearchOpen(true)}
+                aria-label="Search"
+                title="Search (⌘K)"
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full
                   bg-bg-elevated border border-border-subtle
                   text-sm text-fg-muted hover:text-fg-default

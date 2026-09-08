@@ -34,7 +34,8 @@ import DataTransformer, {
 // Importable entity types (core entities only, not refs/schools/programs/persons)
 type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { API_BASE, adminFetch } from '../lib/api';
+import { PageContainer } from '../components/layout/Page';
 
 const ENTITY_CONFIG: Record<
   ImportableEntityType,
@@ -149,7 +150,7 @@ export default function BulkImport() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      const response = await fetch(`${API_BASE}/import/parse`, {
+      const response = await adminFetch(`${API_BASE}/import/parse`, {
         method: 'POST',
         body: formData,
       });
@@ -192,7 +193,7 @@ export default function BulkImport() {
           }));
       }
 
-      const response = await fetch(`${API_BASE}/import/validate`, {
+      const response = await adminFetch(`${API_BASE}/import/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -219,7 +220,7 @@ export default function BulkImport() {
         ...resolutions.filter((r) => r.action === 'skip').map((r) => r.row),
       ];
 
-      const response = await fetch(`${API_BASE}/import/execute`, {
+      const response = await adminFetch(`${API_BASE}/import/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -355,7 +356,7 @@ export default function BulkImport() {
   // No file selected
   if (!file) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <PageContainer size="narrow">
         <button
           onClick={() => navigate('/import')}
           className="flex items-center gap-2 text-sm text-fg-muted hover:text-fg-default mb-6"
@@ -373,7 +374,7 @@ export default function BulkImport() {
             Select file
           </button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -382,7 +383,7 @@ export default function BulkImport() {
   const currentStepIndex = STEPS.indexOf(step);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <PageContainer size="narrow">
       {/* Back button */}
       <button
         onClick={() => navigate('/import')}
@@ -491,7 +492,7 @@ export default function BulkImport() {
           />
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

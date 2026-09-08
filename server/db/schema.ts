@@ -1,17 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  integer,
-  timestamp,
-  pgEnum,
-  index,
-  uniqueIndex,
-  primaryKey,
-  varchar,
-  jsonb,
-  boolean,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, pgEnum, index, uniqueIndex, primaryKey, varchar, jsonb, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // ============================================
@@ -163,6 +150,8 @@ export const companies = pgTable(
   (table) => ({
     nameIdx: uniqueIndex('companies_name_idx').on(table.name),
     industryIdx: index('companies_industry_idx').on(table.industry),
+    nameTrgmIdx: index('companies_name_trgm_idx').using('gin', table.name.op('gin_trgm_ops')),
+    industryTrgmIdx: index('companies_industry_trgm_idx').using('gin', table.industry.op('gin_trgm_ops')),
   })
 );
 
@@ -244,7 +233,9 @@ export const factories = pgTable(
     stateIdIdx: index('factories_state_id_idx').on(table.stateId),
     cityIdx: index('factories_city_idx').on(table.city),
     nameIdx: index('factories_name_idx').on(table.name),
+    nameTrgmIdx: index('factories_name_trgm_idx').using('gin', table.name.op('gin_trgm_ops')),
     specializationIdx: index('factories_specialization_idx').on(table.specialization),
+    specializationTrgmIdx: index('factories_specialization_trgm_idx').using('gin', table.specialization.op('gin_trgm_ops')),
     primaryNaicsIdx: index('factories_primary_naics_idx').on(table.primaryNaics),
   })
 );
@@ -277,6 +268,7 @@ export const occupations = pgTable(
   (table) => ({
     titleIdx: uniqueIndex('occupations_title_idx').on(table.title),
     onetIdx: index('occupations_onet_idx').on(table.onetCode),
+    titleTrgmIdx: index('occupations_title_trgm_idx').using('gin', table.title.op('gin_trgm_ops')),
   })
 );
 
@@ -304,6 +296,7 @@ export const skills = pgTable(
   },
   (table) => ({
     nameIdx: uniqueIndex('skills_name_idx').on(table.name),
+    nameTrgmIdx: index('skills_name_trgm_idx').using('gin', table.name.op('gin_trgm_ops')),
     categoryIdx: index('skills_category_idx').on(table.category),
     categoryIdIdx: index('skills_category_id_idx').on(table.categoryId),
     parentIdx: index('skills_parent_idx').on(table.parentSkillId),
@@ -588,6 +581,7 @@ export const refs = pgTable(
     typeNameIdx: uniqueIndex('refs_type_name_idx').on(table.type, table.name),
     typeIdx: index('refs_type_idx').on(table.type),
     nameIdx: index('refs_name_idx').on(table.name),
+    nameTrgmIdx: index('refs_name_trgm_idx').using('gin', table.name.op('gin_trgm_ops')),
   })
 );
 
@@ -674,6 +668,7 @@ export const schools = pgTable(
   },
   (table) => ({
     nameIdx: uniqueIndex('schools_name_idx').on(table.name),
+    nameTrgmIdx: index('schools_name_trgm_idx').using('gin', table.name.op('gin_trgm_ops')),
     stateIdx: index('schools_state_idx').on(table.state),
   })
 );
@@ -709,6 +704,7 @@ export const programs = pgTable(
     schoolIdx: index('programs_school_idx').on(table.schoolId),
     cipIdx: index('programs_cip_idx').on(table.cipCode),
     titleIdx: index('programs_title_idx').on(table.title),
+    titleTrgmIdx: index('programs_title_trgm_idx').using('gin', table.title.op('gin_trgm_ops')),
   })
 );
 
@@ -875,3 +871,17 @@ export const entityLinks = pgTable(
     entityIdx: index('entity_links_entity_idx').on(table.entityType, table.entityId),
   })
 );
+
+// ============================================
+// IMPORT_UPLOADS (parsed upload payloads awaiting validate/execute)
+// Replaces the old in-process Map so the multi-step import flow survives
+// serverless instances that don't share memory. Rows are short-lived.
+// ============================================
+
+export const importUploads = pgTable('import_uploads', {
+  id: uuid('id').primaryKey(),
+  fileName: text('file_name').notNull(),
+  rowCount: integer('row_count').notNull(),
+  payload: jsonb('payload').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

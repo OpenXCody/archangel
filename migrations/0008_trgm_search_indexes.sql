@@ -1,0 +1,10 @@
+-- Trigram indexes so ILIKE '%term%' search uses an index (pg_trgm is enabled).
+CREATE INDEX CONCURRENTLY IF NOT EXISTS companies_name_trgm_idx ON companies USING gin (name gin_trgm_ops);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS companies_industry_trgm_idx ON companies USING gin (industry gin_trgm_ops);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS factories_name_trgm_idx ON factories USING gin (name gin_trgm_ops);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS factories_specialization_trgm_idx ON factories USING gin (specialization gin_trgm_ops);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS occupations_title_trgm_idx ON occupations USING gin (title gin_trgm_ops);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS skills_name_trgm_idx ON skills USING gin (name gin_trgm_ops);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS refs_name_trgm_idx ON refs USING gin (name gin_trgm_ops);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS schools_name_trgm_idx ON schools USING gin (name gin_trgm_ops);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS programs_title_trgm_idx ON programs USING gin (title gin_trgm_ops);
