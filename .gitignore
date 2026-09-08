@@ -56,3 +56,6 @@ test-*.csv
 # Playwright
 test-results/
 playwright-report/
+
+# data-repair audit output
+geo-cleanup-audit.json
