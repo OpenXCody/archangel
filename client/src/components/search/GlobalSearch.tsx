@@ -502,7 +502,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-4 px-4 py-2 border-t border-white/5 text-xs text-fg-soft">
+          <div className="hidden sm:flex items-center gap-4 px-4 py-2 border-t border-white/5 text-xs text-fg-soft">
             <span className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">
                 <span className="text-[10px]">&#8593;&#8595;</span>

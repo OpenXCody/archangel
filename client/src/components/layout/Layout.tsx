@@ -73,8 +73,8 @@ export default function Layout() {
             </nav>
 
             {/* Center: Logo - visible on tablet+ */}
-            <div className="flex items-center justify-center flex-1 min-w-0 hidden md:flex">
-              <span className="text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap">
+            <div className="flex items-center justify-center flex-1 min-w-0">
+              <span className="text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap">
                 ARCHANGEL
               </span>
             </div>

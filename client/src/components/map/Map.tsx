@@ -23,6 +23,18 @@ const INITIAL_VIEW = {
   zoom: 4,
 };
 
+// Continental US. The default view fits this box so the whole country is on
+// screen at any viewport shape — a fixed zoom felt cramped on portrait phones.
+const US_BOUNDS: [[number, number], [number, number]] = [[-125.0, 24.4], [-66.9, 49.4]];
+
+function fitUS(m: MapLibreMap, animate: boolean) {
+  const mobile = window.innerWidth < 768;
+  m.fitBounds(US_BOUNDS, {
+    padding: mobile ? { top: 96, bottom: 24, left: 12, right: 12 } : { top: 96, bottom: 40, left: 40, right: 40 },
+    duration: animate ? 600 : 0,
+  });
+}
+
 // US States GeoJSON, shipped with the app (client/public/data)
 const STATES_GEOJSON_URL = '/data/us-states.geojson';
 
@@ -199,7 +211,7 @@ export default function Map() {
           style: styleUrl,
           center: INITIAL_VIEW.center,
           zoom: INITIAL_VIEW.zoom,
-          minZoom: 3,
+          minZoom: 2,
           maxZoom: 18,
           attributionControl: false,
           renderWorldCopies: false,
@@ -242,8 +254,7 @@ export default function Map() {
       // resize() alone recalculates canvas size but doesn't fix the center.
       // Without this explicit recenter, the viewport can drift (Pacific bug).
       currentMap.resize();
-      currentMap.setCenter(INITIAL_VIEW.center);
-      currentMap.setZoom(INITIAL_VIEW.zoom);
+      fitUS(currentMap, false);
 
       setMapLoaded(true);
 
@@ -525,7 +536,7 @@ export default function Map() {
         const id = e.features?.[0]?.id;
         if (typeof id === 'string') {
           hoveredFactoryIdRef.current = id;
-          setHoveredFactoryRef.current(id);
+          setHoveredFactoryRef.current(id, { x: e.point.x, y: e.point.y });
 
           currentMap.setFeatureState(
             { source: 'factories', id },
@@ -564,36 +575,7 @@ export default function Map() {
         const code = e.features[0].properties?.stateCode as string | undefined;
         if (!code) return;
         selectStateRef.current(code);
-        // Tiled features have their geometry clipped to tile boundaries, so
-        // we look up the full feature from our in-memory dataset to get an
-        // accurate bbox for fitBounds.
-        const fullFeature = statesWithCountsRef.current?.features?.find(
-          (f) => (f.properties as { stateCode?: string } | null)?.stateCode === code
-        );
-        const geom = fullFeature?.geometry ?? e.features[0].geometry;
-        const bounds = new maplibregl.LngLatBounds();
-        type Coords = number[] | Coords[];
-        const extend = (coords: Coords) => {
-          if (typeof coords[0] === 'number') {
-            bounds.extend(coords as [number, number]);
-          } else {
-            for (const c of coords as Coords[]) extend(c);
-          }
-        };
-        if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
-          extend((geom as GeoJSON.Polygon | GeoJSON.MultiPolygon).coordinates);
-        }
-        if (!bounds.isEmpty()) {
-          // Keep the whole state visible next to (desktop) or above (phone) the panel.
-          const isMobile = window.innerWidth < 768;
-          currentMap.fitBounds(bounds, {
-            padding: isMobile
-              ? { top: 90, bottom: Math.round(window.innerHeight * 0.32) + 24, left: 24, right: 24 }
-              : { top: 80, bottom: 80, left: 80, right: 420 },
-            maxZoom: 7,
-            duration: 800,
-          });
-        }
+        fitStateRef.current(currentMap, code, e.features[0].geometry);
       });
 
       // Hover a state → brighten its fill + cursor pointer. Only at
@@ -710,6 +692,42 @@ export default function Map() {
   // bbox computation. Without this, it would close over the initial
   // `null` value.
   const statesWithCountsRef = useRef<GeoJSON.FeatureCollection | null>(null);
+
+  // Fit the viewport to a state, keeping it clear of the desktop panel or the
+  // phone bottom sheet. Uses our full in-memory geometry (tile features are
+  // clipped at tile edges) and falls back to whatever geometry was clicked.
+  const fitStateRef = useRef((m: MapLibreMap, code: string, fallback?: GeoJSON.Geometry) => {
+    const full = statesWithCountsRef.current?.features?.find(
+      (f) => (f.properties as { stateCode?: string } | null)?.stateCode === code
+    );
+    const geom = full?.geometry ?? fallback;
+    if (!geom || (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon')) return;
+    const bounds = new maplibregl.LngLatBounds();
+    type Coords = number[] | Coords[];
+    const extend = (coords: Coords) => {
+      if (typeof coords[0] === 'number') bounds.extend(coords as [number, number]);
+      else for (const c of coords as Coords[]) extend(c);
+    };
+    extend(geom.coordinates as Coords);
+    if (bounds.isEmpty()) return;
+    const isMobile = window.innerWidth < 768;
+    m.fitBounds(bounds, {
+      padding: isMobile
+        ? { top: 90, bottom: Math.round(window.innerHeight * 0.32) + 24, left: 24, right: 24 }
+        : { top: 80, bottom: 80, left: 80, right: 420 },
+      maxZoom: 7,
+      duration: 800,
+    });
+  });
+
+  // A shared link like /map?state=TX selects the state before the map exists;
+  // once tiles and geometry are ready, frame it exactly as a click would.
+  const initialStateFitDone = useRef(false);
+  useEffect(() => {
+    if (initialStateFitDone.current || !mapLoaded || !map.current || !statesWithCounts) return;
+    initialStateFitDone.current = true;
+    if (selectedEntityType === 'state' && selectedEntityId) fitStateRef.current(map.current, selectedEntityId);
+  }, [mapLoaded, statesWithCounts, selectedEntityType, selectedEntityId]);
   useEffect(() => {
     statesWithCountsRef.current = statesWithCounts;
   }, [statesWithCounts]);
@@ -896,6 +914,12 @@ export default function Map() {
     if (!map.current || !flyToTarget) return;
 
     const currentMap = map.current;
+
+    if (flyToTarget.fit === 'us') {
+      fitUS(currentMap, true);
+      clearFlyTo();
+      return;
+    }
 
     // Build flyTo options
     const flyToOptions: maplibregl.FlyToOptions = {

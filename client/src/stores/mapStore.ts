@@ -18,6 +18,8 @@ interface FlyToTarget {
   lng: number;
   lat: number;
   zoom?: number;
+  /** Fit the whole continental US instead of flying to a point. */
+  fit?: 'us';
   // Padding to account for UI elements (sidebar, etc.)
   padding?: {
     top?: number;
@@ -32,6 +34,8 @@ interface MapStore {
   selectedEntityType: MapEntityType | null;
   selectedEntityId: string | null;
   hoveredFactoryId: string | null;
+  /** Screen position (map-container px) of the hovered pin, for the preview card. */
+  hoverPoint: { x: number; y: number } | null;
 
   // Navigation history for back button
   navigationHistory: NavigationEntry[];
@@ -49,7 +53,7 @@ interface MapStore {
   selectEntity: (type: MapEntityType, id: string) => void;
   selectFactory: (id: string | null) => void;
   selectState: (code: string | null) => void;
-  setHoveredFactory: (id: string | null) => void;
+  setHoveredFactory: (id: string | null, point?: { x: number; y: number }) => void;
   setSidebarOpen: (open: boolean) => void;
   clearSelection: () => void;
   goBack: () => void;
@@ -73,6 +77,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
   selectedEntityType: null,
   selectedEntityId: null,
   hoveredFactoryId: null,
+  hoverPoint: null,
   navigationHistory: [],
   filters: {
     states: [],
@@ -129,7 +134,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
     filters: { ...state.filters, states: code ? [code] : [] },
   })),
 
-  setHoveredFactory: (id) => set({ hoveredFactoryId: id }),
+  setHoveredFactory: (id, point) => set({ hoveredFactoryId: id, hoverPoint: id && point ? point : null }),
 
   setSidebarOpen: (open) => set({
     sidebarOpen: open,
@@ -178,7 +183,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
   // Reset view — fly back to continental US AND clear selection + filters so
   // a persistent selected ring / filter chip doesn't stick around.
   resetView: () => set((state) => ({
-    flyToTarget: { ...INITIAL_VIEW },
+    flyToTarget: { ...INITIAL_VIEW, fit: 'us' },
     selectedEntityType: null,
     selectedEntityId: null,
     hoveredFactoryId: null,

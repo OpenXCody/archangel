@@ -1,7 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   X,
+  ChevronUp,
+  ChevronDown,
   Factory,
   Building2,
   Briefcase,
@@ -13,7 +15,6 @@ import {
   Loader2,
   ArrowLeft,
   Tag,
-  Home,
 } from 'lucide-react';
 import {
   factoriesApi,
@@ -695,14 +696,14 @@ function SkillView({ skill }: { skill: SkillDetail }) {
 }
 
 export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps) {
+  // Phone sheet: peek (32vh) or expanded (85vh). The handle and the chevron both toggle it.
+  const [expanded, setExpanded] = useState(false);
   const {
     selectedEntityType,
     selectedEntityId,
     setSidebarOpen,
     goBack,
     canGoBack,
-    resetView,
-    clearFilters,
   } = useMapStore();
 
   // Fetch entity details based on type
@@ -755,7 +756,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
   const Icon = config?.icon || Factory;
 
   const panelClasses = isMobile
-    ? 'fixed inset-x-0 bottom-0 h-[32vh] max-h-[85vh] rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300'
+    ? `fixed inset-x-0 bottom-0 ${expanded ? 'h-[85vh]' : 'h-[32vh]'} rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300 transition-[height]`
     : 'absolute top-0 right-0 w-[380px] h-full z-50 animate-in slide-in-from-right duration-300';
 
   return (
@@ -770,6 +771,16 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
       role="complementary"
       aria-label={`${config?.label || 'Entity'} details`}
     >
+      {isMobile && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-label={expanded ? 'Collapse details' : 'Expand details'}
+          className="absolute left-1/2 top-1.5 z-10 -translate-x-1/2 rounded-full px-6 py-2"
+        >
+          <span className="block h-1.5 w-12 rounded-full bg-white/30" />
+        </button>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between p-3 md:p-4 border-b border-border-subtle">
         <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
@@ -791,23 +802,21 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
           </span>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Reset view button */}
-          <button
-            onClick={() => {
-              clearFilters();
-              resetView();
-              setSidebarOpen(false);
-            }}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
-            aria-label="Reset to US map view"
-            title="Reset to US map"
-          >
-            <Home className="w-4 h-4" />
-          </button>
+          {isMobile && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
+              aria-label={expanded ? 'Collapse details' : 'Expand details'}
+              title={expanded ? 'Collapse' : 'Expand'}
+            >
+              {expanded ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+            </button>
+          )}
           <button
             onClick={() => setSidebarOpen(false)}
             className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
-            aria-label="Close panel"
+            aria-label="Close details"
             title="Close"
           >
             <X className="w-4 h-4 md:w-5 md:h-5" />

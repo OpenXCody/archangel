@@ -77,8 +77,9 @@ export default function MapSearch() {
   // Search query
   const { data: searchResults, isLoading } = useQuery({
     queryKey: ['map-search', debouncedQuery],
-    queryFn: () => searchApi.search(debouncedQuery, { limit: 5 }),
-    enabled: debouncedQuery.length >= 1,
+    // Only the types the map can act on — skipping refs/schools/programs cuts the query fan-out by ~40%.
+    queryFn: () => searchApi.search(debouncedQuery, { limit: 5, types: ['companies', 'factories', 'occupations', 'skills', 'states'] }),
+    enabled: debouncedQuery.length >= 2,
     staleTime: 30000,
   });
 
@@ -129,6 +130,9 @@ export default function MapSearch() {
 
       switch (e.key) {
         case 'Escape':
+          // Escape clears and closes in one press — the box is blurred after,
+          // so there is no second keystroke to catch.
+          setQuery('');
           setIsFocused(false);
           inputRef.current?.blur();
           break;
@@ -172,7 +176,7 @@ export default function MapSearch() {
   }, []);
 
   const results = flatResults();
-  const hasQuery = debouncedQuery.length >= 1;
+  const hasQuery = debouncedQuery.length >= 2;
   const hasResults = results.length > 0;
   const showDropdown = isFocused && (hasQuery || showFilters);
 
@@ -203,7 +207,7 @@ export default function MapSearch() {
   };
 
   return (
-    <div className="absolute top-4 left-4 z-40" ref={dropdownRef}>
+    <div className="absolute top-4 left-4 right-4 z-40 sm:right-auto sm:w-[22rem] md:w-[26rem]" ref={dropdownRef}>
       {/* Search container */}
       <div
         className={`

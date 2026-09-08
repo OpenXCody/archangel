@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -109,6 +109,23 @@ function getEntityType(pathname: string): Exclude<EntityType, 'persons'> {
 }
 
 // Section component for related entities
+
+/** Returns to wherever you came from (explorer tab, map, search); falls back to the entity's tab. */
+function BackButton({ fallback }: { fallback: string }) {
+  const navigate = useNavigate();
+  const canGoBack = ((window.history.state as { idx?: number } | null)?.idx ?? 0) > 0;
+  return (
+    <button
+      type="button"
+      onClick={() => (canGoBack ? navigate(-1) : navigate(fallback))}
+      className="inline-flex items-center gap-2 text-sm text-fg-muted hover:text-fg-default mb-6"
+    >
+      <ArrowLeft className="w-4 h-4" />
+      Back
+    </button>
+  );
+}
+
 function Section({
   title,
   count,
@@ -760,13 +777,7 @@ export default function EntityDetail() {
   if (error || !data) {
     return (
       <PageContainer size="narrow">
-        <Link
-          to="/explore"
-          className="inline-flex items-center gap-2 text-sm text-fg-muted hover:text-fg-default mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Explorer
-        </Link>
+        <BackButton fallback={`/explore?tab=${entityType}`} />
         <div className="text-center py-20">
           <p className="text-fg-muted">Entity not found</p>
         </div>
@@ -785,14 +796,7 @@ export default function EntityDetail() {
 
   return (
     <PageContainer size="narrow">
-      {/* Back link */}
-      <Link
-        to="/explore"
-        className="inline-flex items-center gap-2 text-sm text-fg-muted hover:text-fg-default mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Explorer
-      </Link>
+      <BackButton fallback={`/explore?tab=${entityType}`} />
 
       {/* Header - glass morphism card */}
       <div className="flex items-start gap-4">

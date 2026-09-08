@@ -4,6 +4,7 @@ import Map from '../components/map/Map';
 import MapDetailPanel from '../components/map/MapDetailPanel';
 import MapSearch from '../components/map/MapSearch';
 import MapContextMenu from '../components/map/MapContextMenu';
+import MapHoverCard from '../components/map/MapHoverCard';
 import { useMapStore } from '../stores/mapStore';
 
 // Custom hook for responsive detection
@@ -35,36 +36,43 @@ export default function MapView() {
     selectedEntityType,
     selectedEntityId,
     selectFactory,
+    selectState,
+    clearSelection,
     sidebarOpen,
   } = useMapStore();
 
-  // For URL sync, only track factory selections
-  const selectedFactoryId = selectedEntityType === 'factory' ? selectedEntityId : null;
+  // URL ⇄ selection. Both factories and states live in the query string so a
+  // selection is shareable and browser Back walks through what you looked at.
+  const urlFactory = searchParams.get('factory');
+  const urlState = searchParams.get('state')?.toUpperCase() ?? null;
 
-  // Sync URL -> store on mount
   useEffect(() => {
-    const factoryFromUrl = searchParams.get('factory');
-    if (factoryFromUrl && factoryFromUrl !== selectedFactoryId) {
-      selectFactory(factoryFromUrl);
+    if (urlFactory) {
+      if (selectedEntityType !== 'factory' || selectedEntityId !== urlFactory) selectFactory(urlFactory);
+      return;
     }
-  }, []); // Only run on mount
+    if (urlState) {
+      if (selectedEntityType !== 'state' || selectedEntityId !== urlState) selectState(urlState);
+      return;
+    }
+    if (selectedEntityType === 'factory' || selectedEntityType === 'state') clearSelection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlFactory, urlState]);
 
-  // Sync store -> URL on selection change
   useEffect(() => {
+    // Read the live store, not this render's snapshot: on first mount the
+    // URL→store effect above has just selected the state, and the snapshot
+    // would still say "nothing selected" and strip it back out of the URL.
+    const live = useMapStore.getState();
+    const wantFactory = live.selectedEntityType === 'factory' ? live.selectedEntityId : null;
+    const wantState = live.selectedEntityType === 'state' ? live.selectedEntityId : null;
+    if ((urlFactory ?? null) === wantFactory && (urlState ?? null) === wantState) return;
     const params = new URLSearchParams(searchParams);
-
-    if (selectedFactoryId) {
-      params.set('factory', selectedFactoryId);
-    } else {
-      params.delete('factory');
-    }
-
-    // Only update if different to avoid infinite loops
-    const currentFactory = searchParams.get('factory');
-    if (currentFactory !== selectedFactoryId) {
-      setSearchParams(params, { replace: true });
-    }
-  }, [selectedFactoryId, searchParams, setSearchParams]);
+    if (wantFactory) params.set('factory', wantFactory); else params.delete('factory');
+    if (wantState) params.set('state', wantState); else params.delete('state');
+    setSearchParams(params);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEntityType, selectedEntityId]);
 
   // Handle right-click on map
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
@@ -115,15 +123,11 @@ export default function MapView() {
       {/* Map search with filters */}
       <MapSearch />
 
+      {/* Hover preview for pins (pointer devices only) */}
+      {!isMobile && <MapHoverCard />}
+
       {/* Detail panel - slides in from right (desktop) or bottom (mobile) */}
       {sidebarOpen && <MapDetailPanel isMobile={isMobile} />}
-
-      {/* Mobile drag handle indicator when panel is open */}
-      {sidebarOpen && isMobile && (
-        <div className="fixed bottom-[calc(32vh-12px)] left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
-          <div className="w-12 h-1.5 rounded-full bg-white/30 shadow-sm" />
-        </div>
-      )}
 
       {/* Context menu */}
       {contextMenu && (

@@ -22,10 +22,20 @@ import {
   type Program,
 } from '../lib/api';
 import EntityCard from '../components/explorer/EntityCard';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import FilterBar, { type FilterState, SORT_OPTIONS } from '../components/explorer/FilterBar';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 
 type TabType = 'all' | EntityType;
+
+const PRIMARY_TABS: TabType[] = ['companies', 'factories', 'occupations', 'skills'];
+const MORE_TABS: TabType[] = ['all', 'refs', 'schools', 'programs'];
+
+function abbreviateCount(n: number): string {
+  if (n >= 10_000) return `${Math.round(n / 1000)}K`;
+  if (n >= 1_000) return `${(n / 1000).toFixed(1)}K`;
+  return String(n);
+}
 
 const TABS: { id: TabType; label: string; icon: React.ElementType; color: string }[] = [
   { id: 'all', label: 'All', icon: Layers, color: 'text-fg-muted' },
@@ -299,7 +309,7 @@ function OverviewSection({
 
 export default function Explore() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = (searchParams.get('tab') as TabType) || 'all';
+  const activeTab = (searchParams.get('tab') as TabType) || 'companies';
 
   // Browser Back from a detail page should land where you left the list.
   // Native restoration can't — the virtualized list hasn't got its height yet —
@@ -395,7 +405,7 @@ export default function Explore() {
 
   const setActiveTab = (tab: TabType) => {
     const params = new URLSearchParams(searchParams);
-    if (tab === 'all') {
+    if (tab === 'companies') {
       params.delete('tab');
     } else {
       params.set('tab', tab);
@@ -406,11 +416,12 @@ export default function Explore() {
   const PAGE_SIZE = 20;
 
   // Build query params with filters and sort
+  // The overview shows the biggest manufacturers first, matching the Companies tab's default.
   const companiesQueryParams = useMemo(() => ({
-    sort: sortConfig.field,
-    order: sortConfig.order,
+    sort: activeTab === 'all' ? 'factoryCount' : sortConfig.field,
+    order: activeTab === 'all' ? 'desc' : sortConfig.order,
     ...(filters.industry && { industry: filters.industry }),
-  }), [sortConfig, filters.industry]);
+  }), [activeTab, sortConfig, filters.industry]);
 
   const factoriesQueryParams = useMemo(() => ({
     sort: sortConfig.field,
@@ -749,11 +760,14 @@ export default function Explore() {
         title="Node Explorer"
         description={
           <span className="inline-flex flex-wrap items-center gap-2">
-            Browse all entities or press
-            <kbd className="inline-flex items-center gap-0.5 rounded border border-border-subtle bg-bg-surface px-2 py-1 text-xs text-fg-soft">
-              <span className="text-[10px]">&#8984;</span>K
-            </kbd>
-            to search.
+            Browse every company, factory, occupation and skill.
+            <span className="hidden items-center gap-2 sm:inline-flex">
+              Press
+              <kbd className="inline-flex items-center gap-0.5 rounded border border-border-subtle bg-bg-surface px-2 py-1 text-xs text-fg-soft">
+                <span className="text-[10px]">&#8984;</span>K
+              </kbd>
+              to search.
+            </span>
           </span>
         }
         actions={
@@ -766,45 +780,66 @@ export default function Explore() {
         }
       />
 
-      {/* Tabs */}
-      <div className="mb-6">
-        <div className="flex flex-wrap gap-2 p-1 bg-bg-surface rounded-xl border border-border-subtle">
-          {TABS.map(({ id, label, icon: Icon, color }) => {
+      {/* Tabs: the four core entities up front, the rest behind More */}
+      <div className="mb-6 flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-xl border border-border-subtle bg-bg-surface p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {PRIMARY_TABS.map((id) => {
+            const tab = TABS.find((t) => t.id === id)!;
+            const Icon = tab.icon;
             const isActive = activeTab === id;
             const count = getTabCount(id);
-
             return (
               <button
                 key={id}
+                type="button"
                 onClick={() => setActiveTab(id)}
-                className={`
-                  flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium
-                  transition-all
-                  ${isActive
-                    ? 'bg-bg-elevated text-fg-default shadow-sm'
-                    : 'text-fg-muted hover:text-fg-default hover:bg-bg-elevated/50'
-                  }
-                `}
+                className={`flex shrink-0 items-center gap-1.5 rounded-lg px-1.5 py-2 text-xs font-medium transition-colors sm:gap-2 sm:px-3 sm:text-sm ${
+                  isActive ? 'bg-bg-elevated text-fg-default shadow-sm' : 'text-fg-muted hover:bg-bg-elevated/50 hover:text-fg-default'
+                }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? color : ''}`} />
-                <span>{label}</span>
+                <Icon className={`hidden h-4 w-4 sm:block ${isActive ? tab.color : ''}`} />
+                <span>{tab.label}</span>
                 {count > 0 && (
-                  <span
-                    className={`
-                      ml-1 px-2 py-0.5 rounded-full text-xs
-                      ${isActive
-                        ? 'bg-bg-surface text-fg-muted'
-                        : 'bg-bg-elevated text-fg-soft'
-                      }
-                    `}
-                  >
-                    {count}
+                  <span className={`hidden rounded-full px-1.5 py-0.5 text-[11px] tabular-nums md:inline ${isActive ? 'bg-bg-surface text-fg-muted' : 'bg-bg-elevated text-fg-soft'}`}>
+                    {abbreviateCount(count)}
                   </span>
                 )}
               </button>
             );
           })}
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={`flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-border-subtle px-2.5 text-xs font-medium transition-colors sm:gap-2 sm:px-3 sm:text-sm ${
+                MORE_TABS.includes(activeTab) ? 'bg-bg-elevated text-fg-default' : 'bg-bg-surface text-fg-muted hover:text-fg-default'
+              }`}
+              aria-label="More views"
+            >
+              {(() => {
+                const active = MORE_TABS.includes(activeTab) ? TABS.find((t) => t.id === activeTab) : null;
+                const Icon = active?.icon ?? Layers;
+                return (<><Icon className={`h-4 w-4 ${active ? active.color : ''}`} /><span className={active ? '' : 'hidden sm:inline'}>{active ? (active.id === 'all' ? 'Overview' : active.label) : 'More'}</span></>);
+              })()}
+              <ChevronDown className="h-4 w-4 text-fg-soft" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[12rem]">
+            {MORE_TABS.map((id) => {
+              const tab = TABS.find((t) => t.id === id)!;
+              const Icon = tab.icon;
+              const count = getTabCount(id);
+              return (
+                <DropdownMenuItem key={id} onSelect={() => setActiveTab(id)} className="gap-2">
+                  <Icon className={`h-4 w-4 ${tab.color}`} />
+                  <span className="flex-1">{id === 'all' ? 'Overview' : tab.label}</span>
+                  {count > 0 && <span className="text-xs tabular-nums text-fg-soft">{abbreviateCount(count)}</span>}
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Filter Bar */}
