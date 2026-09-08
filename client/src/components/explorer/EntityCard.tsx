@@ -106,7 +106,7 @@ function CompanyCard({ data, onMouseEnter }: { data: Company } & CardProps) {
       to={`/companies/${data.id}`}
       onMouseEnter={onMouseEnter}
       className={`
-        group block p-4
+        group block p-4 min-w-0
         bg-white/[0.02]
         border border-white/10 rounded-xl
         hover:bg-white/[0.04]
@@ -170,7 +170,7 @@ function FactoryCard({ data, onMouseEnter }: { data: FactoryType } & CardProps) 
       to={`/factories/${data.id}`}
       onMouseEnter={onMouseEnter}
       className={`
-        group block p-4
+        group block p-4 min-w-0
         bg-white/[0.02]
         border border-white/10 rounded-xl
         hover:bg-white/[0.04]
@@ -243,7 +243,7 @@ function OccupationCard({ data, onMouseEnter }: { data: Occupation } & CardProps
       to={`/occupations/${data.id}`}
       onMouseEnter={onMouseEnter}
       className={`
-        group block p-4
+        group block p-4 min-w-0
         bg-white/[0.02]
         border border-white/10 rounded-xl
         hover:bg-white/[0.04]
@@ -307,7 +307,7 @@ function SkillCard({ data, onMouseEnter }: { data: Skill } & CardProps) {
       to={`/skills/${data.id}`}
       onMouseEnter={onMouseEnter}
       className={`
-        group block p-4
+        group block p-4 min-w-0
         bg-white/[0.02]
         border border-white/10 rounded-xl
         hover:bg-white/[0.04]
@@ -366,7 +366,7 @@ function RefCard({ data, onMouseEnter }: { data: Ref } & CardProps) {
       to={`/refs/${data.id}`}
       onMouseEnter={onMouseEnter}
       className={`
-        group block p-4
+        group block p-4 min-w-0
         bg-white/[0.02]
         border border-white/10 rounded-xl
         hover:bg-white/[0.04]
@@ -430,7 +430,7 @@ function SchoolCard({ data, onMouseEnter }: { data: School } & CardProps) {
       to={`/schools/${data.id}`}
       onMouseEnter={onMouseEnter}
       className={`
-        group block p-4
+        group block p-4 min-w-0
         bg-white/[0.02]
         border border-white/10 rounded-xl
         hover:bg-white/[0.04]
@@ -495,7 +495,7 @@ function ProgramCard({ data, onMouseEnter }: { data: Program } & CardProps) {
       to={`/programs/${data.id}`}
       onMouseEnter={onMouseEnter}
       className={`
-        group block p-4
+        group block p-4 min-w-0
         bg-white/[0.02]
         border border-white/10 rounded-xl
         hover:bg-white/[0.04]

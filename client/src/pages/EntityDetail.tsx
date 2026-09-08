@@ -32,6 +32,7 @@ import {
   type ProgramDetail,
 } from '../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import { PageContainer } from '../components/layout/Page';
 
 // Entity type configs - monochrome with entity accent colors only on icons
 const ENTITY_CONFIG: Record<
@@ -172,7 +173,7 @@ function RelatedCard({
     <Link
       to={to}
       className="
-        group flex items-start gap-3 p-3
+        group flex items-start gap-3 p-3 min-w-0
         bg-white/[0.02] backdrop-blur-sm
         border border-white/10 rounded-lg
         hover:bg-white/[0.05] hover:border-white/20
@@ -230,7 +231,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
       {/* Factories section */}
       {data.factories?.length > 0 && (
         <Section title="Factories" count={data.factories.length}>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.factories.map((factory) => (
               <RelatedCard
                 key={factory.id}
@@ -300,7 +301,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
       {/* Occupations at this facility */}
       {data.occupations?.length > 0 && (
         <Section title="Occupations at this facility" count={data.occupations.length}>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.occupations.map((occ) => (
               <RelatedCard
                 key={occ.id}
@@ -336,7 +337,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
       {/* Skills - no importance badges */}
       {data.skills?.length > 0 && (
         <Section title="Skills" count={data.skills.length}>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {data.skills.map((skill) => (
               <RelatedCard
                 key={skill.id}
@@ -354,7 +355,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
       {/* Factories with this role */}
       {data.factories?.length > 0 && (
         <Section title="Factories with this role" count={data.factories.length}>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.factories.map((factory) => (
               <RelatedCard
                 key={factory.id}
@@ -400,7 +401,7 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
       {/* Occupations - no importance badges */}
       {data.occupations?.length > 0 && (
         <Section title="Occupations requiring this skill" count={data.occupations.length}>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.occupations.map((occ) => (
               <RelatedCard
                 key={occ.id}
@@ -417,7 +418,7 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
       {/* Related Skills (same category) */}
       {data.relatedSkills?.length > 0 && (
         <Section title="Related Skills" count={data.relatedSkills.length}>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {data.relatedSkills.map((skill) => (
               <RelatedCard
                 key={skill.id}
@@ -488,7 +489,7 @@ function RefDetailView({ data }: { data: RefDetail }) {
       {/* Skills that reference this element */}
       {data.skills?.length > 0 && (
         <Section title="Referenced by skills" count={data.skills.length}>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {data.skills.map((skill) => (
               <RelatedCard
                 key={skill.id}
@@ -536,7 +537,7 @@ function SchoolDetailView({ data }: { data: SchoolDetail }) {
       {/* Programs */}
       {data.programs?.length > 0 && (
         <Section title="Programs offered" count={data.programs.length}>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.programs.map((program) => (
               <RelatedCard
                 key={program.id}
@@ -618,7 +619,7 @@ function ProgramDetailView({ data }: { data: ProgramDetail }) {
       {/* Skills taught */}
       {data.skills?.length > 0 && (
         <Section title="Skills taught" count={data.skills.length}>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {data.skills.map((skill) => (
               <RelatedCard
                 key={skill.id}
@@ -712,7 +713,7 @@ export default function EntityDetail() {
 
   if (error || !data) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <PageContainer size="narrow">
         <Link
           to="/explore"
           className="inline-flex items-center gap-2 text-sm text-fg-muted hover:text-fg-default mb-6"
@@ -723,7 +724,7 @@ export default function EntityDetail() {
         <div className="text-center py-20">
           <p className="text-fg-muted">Entity not found</p>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -737,7 +738,7 @@ export default function EntityDetail() {
   const description = 'description' in data ? data.description : null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <PageContainer size="narrow">
       {/* Back link */}
       <Link
         to="/explore"
@@ -771,6 +772,6 @@ export default function EntityDetail() {
       {isRefDetail(data) && <RefDetailView data={data} />}
       {isSchoolDetail(data) && <SchoolDetailView data={data} />}
       {isProgramDetail(data) && <ProgramDetailView data={data} />}
-    </div>
+    </PageContainer>
   );
 }

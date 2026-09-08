@@ -23,8 +23,8 @@ const INITIAL_VIEW = {
   zoom: 4,
 };
 
-// US States GeoJSON from GitHub (reliable CDN)
-const STATES_GEOJSON_URL = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
+// US States GeoJSON, shipped with the app (client/public/data)
+const STATES_GEOJSON_URL = '/data/us-states.geojson';
 
 // Debounce helper for viewport updates
 function debounce<T extends (...args: Parameters<T>) => void>(
@@ -126,7 +126,11 @@ export default function Map() {
   // Raw US states GeoJSON geometry
   const { data: statesGeoJSONRaw } = useQuery<GeoJSON.FeatureCollection>({
     queryKey: ['states-geojson'],
-    queryFn: () => fetch(STATES_GEOJSON_URL).then(r => r.json()),
+    queryFn: async () => {
+      const res = await fetch(STATES_GEOJSON_URL);
+      if (!res.ok) throw new Error(`States GeoJSON failed: HTTP ${res.status}`);
+      return res.json();
+    },
     staleTime: Infinity,
   });
 

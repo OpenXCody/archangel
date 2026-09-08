@@ -35,6 +35,7 @@ import DataTransformer, {
 type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
 
 import { API_BASE, adminFetch } from '../lib/api';
+import { PageContainer } from '../components/layout/Page';
 
 const ENTITY_CONFIG: Record<
   ImportableEntityType,
@@ -355,7 +356,7 @@ export default function BulkImport() {
   // No file selected
   if (!file) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <PageContainer size="narrow">
         <button
           onClick={() => navigate('/import')}
           className="flex items-center gap-2 text-sm text-fg-muted hover:text-fg-default mb-6"
@@ -373,7 +374,7 @@ export default function BulkImport() {
             Select file
           </button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -382,7 +383,7 @@ export default function BulkImport() {
   const currentStepIndex = STEPS.indexOf(step);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <PageContainer size="narrow">
       {/* Back button */}
       <button
         onClick={() => navigate('/import')}
@@ -491,7 +492,7 @@ export default function BulkImport() {
           />
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

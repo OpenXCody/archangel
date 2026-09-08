@@ -16,6 +16,7 @@ import {
 import FileDropZone from '../components/import/FileDropZone';
 import ManualEntryForm from '../components/import/ManualEntryForm';
 import { API_BASE, adminFetch } from '../lib/api';
+import { PageContainer, PageHeader } from '../components/layout/Page';
 
 // Importable entity types (core entities only, not refs/schools/programs/persons)
 type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
@@ -135,17 +136,14 @@ export default function Import() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <PageContainer size="narrow">
       {/* Full-page drop overlay */}
       <FileDropZone onFileAccepted={handleFileDrop} isFullPage />
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-fg-default mb-2">Data Import</h1>
-        <p className="text-fg-muted">
-          Add companies, factories, occupations, and skills to the database.
-        </p>
-      </div>
+      <PageHeader
+        title="Data Import"
+        description="Add companies, factories, occupations, and skills to the database."
+      />
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 bg-bg-surface rounded-xl mb-6 overflow-x-auto -mx-4 px-5 sm:mx-0 sm:px-1">
@@ -231,7 +229,7 @@ export default function Import() {
           to save
         </span>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

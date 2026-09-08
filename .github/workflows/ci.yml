@@ -16,3 +16,22 @@ jobs:
       - run: npm run build
         env:
           VITE_MAP_TOKEN: ci-placeholder
+
+  # Responsive smoke suite. Needs live API access, so it runs only when the
+  # repo variable RUN_UI_TESTS=true and DATABASE_URL / VITE_MAP_TOKEN secrets exist.
+  responsive:
+    if: ${{ vars.RUN_UI_TESTS == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:ui
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          VITE_MAP_TOKEN: ${{ secrets.VITE_MAP_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: responsive-screens, path: test-results/screens }
