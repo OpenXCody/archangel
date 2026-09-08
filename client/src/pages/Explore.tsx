@@ -275,7 +275,7 @@ function OverviewSection({
           </div>
           <div>
             <h2 className="text-base font-medium text-fg-default">{config.label}</h2>
-            <p className="text-xs text-fg-muted">{totalCount.toLocaleString()} total</p>
+            <p className="text-xs text-fg-muted">Showing {shown.length} of {totalCount.toLocaleString()}</p>
           </div>
         </div>
         {remaining > 0 && (

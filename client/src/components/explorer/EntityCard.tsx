@@ -2,7 +2,7 @@ import { memo, useCallback, type ElementType, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  Building2, Factory, Briefcase, Wrench, ChevronRight, MapPin, Boxes, GraduationCap, BookOpen, Clock, Tag, GitBranch, Award,
+  Building2, Factory, Briefcase, Wrench, ChevronRight, MapPin, Boxes, GraduationCap, BookOpen, Clock, Tag, GitBranch, Award, Users,
 } from 'lucide-react';
 import type { Company, Factory as FactoryType, Occupation, Skill, Ref, School, Program, EntityType } from '../../lib/api';
 import { companiesApi, factoriesApi, occupationsApi, skillsApi, refsApi, schoolsApi, programsApi } from '../../lib/api';
@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
  * size and every piece of information sits in the same place:
  *
  *   [icon]  Name                                   ›     32px
- *           one line of descriptive text                 20px  (blank if none)
+ *           one line of descriptive text                 20px  (occupations, skills, refs, schools, programs only)
  *           [tag] [tag] [tag]                            24px  (blank if none)
  *
  * Row 3 tags are, in order: classifiers (category, type, location), a linked
@@ -51,7 +51,7 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 // ---------------------------------------------------------------------------
 
 const TAG_BASE =
-  'relative z-10 inline-flex h-6 shrink-0 items-center gap-1 rounded border border-border-subtle bg-bg-base/60 px-1.5 text-[11px] leading-none';
+  'relative z-10 inline-flex h-6 shrink-0 select-none items-center gap-1 rounded border border-border-subtle bg-bg-base/60 px-1.5 text-[11px] leading-none';
 
 /** Count of linked entities — icon in the target entity's colour, deep-links to that section. */
 function CountTag({ type, count, one, many, to }: { type: BrowsableType; count?: number; one: string; many: string; to: string }) {
@@ -70,7 +70,7 @@ function CountTag({ type, count, one, many, to }: { type: BrowsableType; count?:
 function AttrTag({ icon: Icon, value, title }: { icon: ElementType; value?: string | null; title?: string }) {
   if (!value) return null;
   return (
-    <span title={title ?? value} className={cn(TAG_BASE, 'min-w-0 max-w-[11rem] text-fg-muted')}>
+    <span title={title ?? value} className={cn(TAG_BASE, 'min-w-0 max-w-[11rem] cursor-default text-fg-muted')}>
       <Icon className="h-3 w-3 shrink-0 text-fg-soft" />
       <span className="truncate">{value}</span>
     </span>
@@ -97,17 +97,17 @@ interface ShellProps {
   type: BrowsableType;
   to: string;
   name: string;
-  /** Row 2. Joined with " · " into one truncating line. */
+  /** Row 2, joined with " · " into one truncating line. Omit the prop entirely to drop the row (companies, factories). */
   meta?: (string | null | undefined | false)[];
   /** Row 3. */
   tags?: ReactNode;
   onMouseEnter?: () => void;
 }
 
-function CardShell({ type, to, name, meta = [], tags, onMouseEnter }: ShellProps) {
+function CardShell({ type, to, name, meta, tags, onMouseEnter }: ShellProps) {
   const cfg = ENTITY[type];
   const Icon = cfg.icon;
-  const metaText = meta.filter((m): m is string => typeof m === 'string' && m.trim().length > 0).join(' · ');
+  const metaText = (meta ?? []).filter((m): m is string => typeof m === 'string' && m.trim().length > 0).join(' · ');
   return (
     <article
       onMouseEnter={onMouseEnter}
@@ -129,11 +129,14 @@ function CardShell({ type, to, name, meta = [], tags, onMouseEnter }: ShellProps
         <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft transition-transform group-hover:translate-x-0.5 group-hover:text-fg-muted" />
       </div>
 
-      <p className="mt-1.5 h-5 truncate pl-[42px] text-xs leading-5 text-fg-muted" title={metaText || undefined}>
-        {metaText}
-      </p>
+      {meta !== undefined && (
+        <p className="mt-1.5 h-5 truncate pl-[42px] text-xs leading-5 text-fg-muted" title={metaText || undefined}>
+          {metaText}
+        </p>
+      )}
 
-      <div className="mt-2 flex h-6 min-w-0 items-center gap-1.5 overflow-hidden pl-[42px]">
+      {/* Fixed-height, wrapping row: tags that don't fit wrap onto a hidden second line instead of being cut mid-word. */}
+      <div className="mt-2 flex h-6 min-w-0 flex-wrap content-start items-center gap-1.5 overflow-hidden pl-[42px]">
         {tags}
       </div>
     </article>
@@ -148,16 +151,22 @@ type CardProps<T> = { data: T; onMouseEnter?: () => void };
 
 function CompanyCard({ data, onMouseEnter }: CardProps<Company>) {
   const industry = data.industry && data.industry.trim().toLowerCase() !== GENERIC_INDUSTRY ? data.industry : null;
-  const workforce = data.totalWorkforce ? `${formatCount(data.totalWorkforce)} workforce` : null;
   const base = `/companies/${data.id}`;
   return (
     <CardShell
       type="companies" to={base} name={formatCompanyName(data.name)} onMouseEnter={onMouseEnter}
-      meta={[industry, workforce]}
       tags={
         <>
           <CountTag type="factories" count={data.factoryCount} one="factory" many="factories" to={`${base}#factories`} />
           <CountTag type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`${base}#occupations`} />
+          {data.totalWorkforce ? (
+            <span title={`${data.totalWorkforce.toLocaleString()} workforce`} className={cn(TAG_BASE, 'cursor-default text-fg-muted')}>
+              <Users className="h-3 w-3 text-fg-soft" />
+              <span className="font-medium tabular-nums text-fg-default">{formatCount(data.totalWorkforce)}</span>
+              <span className="text-fg-soft">workforce</span>
+            </span>
+          ) : null}
+          <AttrTag icon={Tag} value={industry} />
         </>
       }
     />
@@ -169,7 +178,6 @@ function FactoryCard({ data, onMouseEnter }: CardProps<FactoryType>) {
   return (
     <CardShell
       type="factories" to={base} name={formatFactoryName(data.name)} onMouseEnter={onMouseEnter}
-      meta={[data.specialization]}
       tags={
         <>
           <AttrTag icon={MapPin} value={data.state} />
@@ -209,7 +217,7 @@ function SkillCard({ data, onMouseEnter }: CardProps<Skill>) {
           <CountTag type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`${base}#occupations`} />
           <CountTag type="programs" count={data.programCount} one="program" many="programs" to={`${base}#programs`} />
           {data.childCount ? (
-            <span title={`${data.childCount} sub-skills`} className={cn(TAG_BASE, 'text-fg-muted')}>
+            <span title={`${data.childCount} sub-skills`} className={cn(TAG_BASE, 'cursor-default text-fg-muted')}>
               <GitBranch className="h-3 w-3 text-fg-soft" />
               <span className="font-medium tabular-nums text-fg-default">{data.childCount}</span>
               <span className="text-fg-soft">{plural(data.childCount, 'sub-skill', 'sub-skills')}</span>
@@ -267,7 +275,7 @@ function ProgramCard({ data, onMouseEnter }: CardProps<Program>) {
           <AttrTag icon={Award} value={data.credentialType} />
           <CountTag type="skills" count={data.skillCount} one="skill" many="skills" to={`${base}#skills`} />
           {data.durationHours ? (
-            <span title={`${data.durationHours.toLocaleString()} hours`} className={cn(TAG_BASE, 'text-fg-muted')}>
+            <span title={`${data.durationHours.toLocaleString()} hours`} className={cn(TAG_BASE, 'cursor-default text-fg-muted')}>
               <Clock className="h-3 w-3 text-fg-soft" />
               <span className="font-medium tabular-nums text-fg-default">{formatCount(data.durationHours)}</span>
               <span className="text-fg-soft">hours</span>
