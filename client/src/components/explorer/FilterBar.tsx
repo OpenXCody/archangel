@@ -120,7 +120,7 @@ function Dropdown({
       {isOpen && (
         <div className="
           absolute top-full left-0 mt-1 z-50
-          min-w-[180px] max-h-[280px] overflow-y-auto
+          min-w-[180px] max-w-[calc(100vw-2rem)] max-h-[280px] overflow-y-auto
           bg-bg-surface/95 backdrop-blur-xl
           border border-border-subtle rounded-lg
           shadow-lg
@@ -210,8 +210,8 @@ function SortDropdown({
 
       {isOpen && (
         <div className="
-          absolute top-full right-0 mt-1 z-50
-          min-w-[200px]
+          absolute top-full left-0 sm:left-auto sm:right-0 mt-1 z-50
+          min-w-[180px] max-w-[calc(100vw-2rem)]
           bg-bg-surface/95 backdrop-blur-xl
           border border-border-subtle rounded-lg
           shadow-lg

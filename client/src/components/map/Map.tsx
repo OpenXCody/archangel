@@ -21,8 +21,14 @@ const DARK_STYLE_OVERRIDES = {
 
 const INITIAL_VIEW = {
   center: [-98.5, 39.8] as [number, number],
-  zoom: 3.5, // Lower initial zoom to show more USA on mobile
+  zoom: 3.2, // Sprint 1+4a: Lower initial zoom for full USA view on mobile ~390px
 };
+
+// Sprint 1+4a: Continental USA bounds for fitBounds on mobile
+const CONTINENTAL_USA_BOUNDS: [[number, number], [number, number]] = [
+  [-125, 24], // Southwest (includes full West coast CA/WA/OR)
+  [-66, 50]   // Northeast (includes Maine)
+];
 
 // US States GeoJSON from GitHub (reliable CDN)
 const STATES_GEOJSON_URL = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
@@ -195,13 +201,13 @@ export default function Map() {
           style: styleUrl,
           center: INITIAL_VIEW.center,
           zoom: INITIAL_VIEW.zoom,
-          minZoom: 2.8, // #1: Lower minZoom to allow full USA view on narrow mobile (390px)
+          minZoom: 2.5, // Sprint 1+4a: Lower minZoom for full USA view on narrow mobile (390px)
           maxZoom: 18,
           attributionControl: false,
           renderWorldCopies: false,
-          // #1: Full USA bounds - west coast (CA/WA/OR) fully visible at min zoom
+          // Sprint 1+4a: Permissive bounds to allow full USA framing on mobile
           maxBounds: [
-            [-180, 20], // Southwest - extended to show full west coast
+            [-180, 15], // Southwest - extended for mobile viewport
             [-50, 72]   // Northeast
           ],
         });
@@ -243,8 +249,19 @@ export default function Map() {
       // resize() alone recalculates canvas size but doesn't fix the center.
       // Without this explicit recenter, the viewport can drift (Pacific bug).
       currentMap.resize();
-      currentMap.setCenter(INITIAL_VIEW.center);
-      currentMap.setZoom(INITIAL_VIEW.zoom);
+      
+      // Sprint 1+4a: On mobile (~390px), use fitBounds to ensure full continental USA
+      // with West coast (CA/WA/OR) is visible at max zoom-out
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        currentMap.fitBounds(CONTINENTAL_USA_BOUNDS, {
+          padding: { top: 20, bottom: 20, left: 20, right: 20 },
+          duration: 0, // No animation on initial load
+        });
+      } else {
+        currentMap.setCenter(INITIAL_VIEW.center);
+        currentMap.setZoom(INITIAL_VIEW.zoom);
+      }
 
       setMapLoaded(true);
 
@@ -406,6 +423,7 @@ export default function Map() {
       // Overlapping halos in dense regions softly bloom without hard edges.
       // Design spec: z3-5 blur 4-6 opacity 0.12-0.18, z6-8 blur 6-8 opacity 0.18-0.22, z≥9 blur 8-10 opacity 0.22-0.28
       // Selected/hover: +0.08 opacity
+      // Sprint 1+4a: Reduce radius 50-60% at continental zoom (z2.8-3.5) to prevent dense white-out
       currentMap.addLayer({
         id: 'factory-points-glow',
         type: 'circle',
@@ -414,7 +432,8 @@ export default function Map() {
           'circle-color': '#ffffff',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 4],
+            2.8, ['case', ['boolean', ['feature-state', 'selected'], false], 3, ['boolean', ['feature-state', 'hover'], false], 2.5, 2],
+            3.5, ['case', ['boolean', ['feature-state', 'selected'], false], 4, ['boolean', ['feature-state', 'hover'], false], 3.5, 3],
             5, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 9, ['boolean', ['feature-state', 'hover'], false], 8, 7],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 10, ['boolean', ['feature-state', 'hover'], false], 9, 8],
@@ -442,6 +461,7 @@ export default function Map() {
       // Pin cores — white dots visible at all zoom levels per design spec.
       // Design spec: z3-5 diameter 3-4px opacity 0.55-0.65, z6-8 diameter 5-6px opacity 0.75-0.85, z≥9 diameter 7-8px max opacity 0.90-0.95
       // Selected/hover: +1-2px core, opacity 1.0
+      // Sprint 1+4a: Reduce radius 50-60% at continental zoom (z2.8-3.5) to prevent dense white-out
       currentMap.addLayer({
         id: 'factory-points',
         type: 'circle',
@@ -450,7 +470,8 @@ export default function Map() {
           'circle-color': '#ffffff',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4, 3],
+            2.8, ['case', ['boolean', ['feature-state', 'selected'], false], 2.5, ['boolean', ['feature-state', 'hover'], false], 2, 1.5],
+            3.5, ['case', ['boolean', ['feature-state', 'selected'], false], 3.5, ['boolean', ['feature-state', 'hover'], false], 3, 2.5],
             5, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 4],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 7, ['boolean', ['feature-state', 'hover'], false], 6, 5],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
