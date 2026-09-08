@@ -141,9 +141,19 @@ export interface Company {
 }
 
 // Company with relations
+export interface CompanyOccupation {
+  id: string;
+  title: string;
+  onetCode: string | null;
+  /** How many of the company's factories employ this occupation. */
+  factoryCount: number;
+  headcount: number;
+}
+
 export interface CompanyDetail extends Company {
   factories: RelatedFactory[];
   industries: RelatedIndustry[];
+  occupations?: CompanyOccupation[];
 }
 
 export interface Factory {

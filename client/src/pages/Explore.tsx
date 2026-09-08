@@ -301,6 +301,40 @@ export default function Explore() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = (searchParams.get('tab') as TabType) || 'all';
 
+  // Browser Back from a detail page should land where you left the list.
+  // Native restoration can't — the virtualized list hasn't got its height yet —
+  // so remember scrollY per tab and put it back once the cards have rendered.
+  const scrollKey = `explore.scroll.${activeTab}`;
+  // Remember where you were per tab so Back from a detail page lands there.
+  // While navigating away the document shrinks and the browser clamps scrollY
+  // before our cleanup runs, so only trust readings taken at (roughly) full
+  // height and write the last trusted one on unmount.
+  const [savedScroll] = useState(() => Number(sessionStorage.getItem(scrollKey) || 0));
+  const lastGood = useRef({ y: 0, h: 0 });
+  useEffect(() => {
+    lastGood.current = { y: window.scrollY, h: document.documentElement.scrollHeight };
+    const onScroll = () => {
+      const h = document.documentElement.scrollHeight;
+      if (h < lastGood.current.h * 0.6) return; // clamp during a route change, not a real scroll
+      lastGood.current = { y: window.scrollY, h };
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      sessionStorage.setItem(scrollKey, String(lastGood.current.y));
+    };
+  }, [scrollKey]);
+  useEffect(() => {
+    if (!savedScroll) return;
+    let tries = 0;
+    const attempt = () => {
+      if (document.documentElement.scrollHeight - window.innerHeight >= savedScroll) { window.scrollTo(0, savedScroll); return; }
+      if (tries++ < 40) setTimeout(attempt, 50);
+    };
+    attempt();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Filter and sort state. Companies default to factory-count so the big
   // manufacturers surface before the long tail of 1-factory bulk-import rows.
   const defaultSortFor = (tab: TabType) => tab === 'companies' ? 'factories-desc' : 'name-asc';

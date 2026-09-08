@@ -12,6 +12,7 @@ const Explore = lazy(() => import('./pages/Explore'));
 const Import = lazy(() => import('./pages/Import'));
 const BulkImport = lazy(() => import('./pages/BulkImport'));
 const EntityDetail = lazy(() => import('./pages/EntityDetail'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Loading fallback component
 function PageLoader() {
@@ -43,6 +44,7 @@ function App() {
               <Route path="/refs/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
               <Route path="/schools/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
               <Route path="/programs/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
         </Suspense>

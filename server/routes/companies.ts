@@ -126,11 +126,28 @@ router.get('/:id', async (req: Request, res: Response) => {
       .innerJoin(industries, eq(companyIndustries.industryId, industries.id))
       .where(eq(companyIndustries.companyId, id));
 
+    // Occupations across all of this company's factories, with how many of
+    // its factories employ each — what the explorer's "N occupations" tag
+    // links to.
+    const companyOccupations = await db.execute(sql`
+      SELECT o.id, o.title, o.onet_code AS "onetCode",
+             COUNT(DISTINCT fo.factory_id)::int AS "factoryCount",
+             COALESCE(SUM(fo.headcount), 0)::int AS headcount
+      FROM factory_occupations fo
+      INNER JOIN factories f ON f.id = fo.factory_id
+      INNER JOIN occupations o ON o.id = fo.occupation_id
+      WHERE f.company_id = ${id}
+      GROUP BY o.id, o.title, o.onet_code
+      ORDER BY "factoryCount" DESC, o.title ASC
+    `);
+
     res.json({
       ...company,
       factories: companyFactories,
       industries: companyIndustriesResult,
+      occupations: Array.from(companyOccupations as Iterable<Record<string, unknown>>),
       factoryCount: companyFactories.length,
+      occupationCount: (companyOccupations as unknown as { length?: number }).length ?? Array.from(companyOccupations as Iterable<unknown>).length,
       totalWorkforce: companyFactories.reduce((sum, f) => sum + (f.workforceSize || 0), 0),
     });
   } catch (error) {

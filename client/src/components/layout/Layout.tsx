@@ -17,6 +17,13 @@ export default function Layout() {
   // Hide global search on map view (it has its own search)
   const isMapView = location.pathname === '/map';
 
+  // Tab / history / bookmark titles. Detail pages override with the entity name.
+  useEffect(() => {
+    const section = navItems.find((n) => location.pathname === n.to || location.pathname.startsWith(`${n.to}/`))?.label;
+    const isDetail = /^\/(companies|factories|occupations|skills|refs|schools|programs)\/[^/]+$/.test(location.pathname);
+    if (!isDetail) document.title = section ? `${section} · Archangel` : 'Archangel';
+  }, [location.pathname]);
+
   // Global keyboard shortcut for search (Cmd+K / Ctrl+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -78,7 +85,7 @@ export default function Layout() {
                 onClick={() => setIsSearchOpen(true)}
                 aria-label="Search"
                 title="Search (⌘K)"
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full
+                className="flex h-10 items-center gap-2 px-3 rounded-full
                   bg-bg-elevated border border-border-subtle
                   text-sm text-fg-muted hover:text-fg-default
                   transition-colors flex-shrink-0"

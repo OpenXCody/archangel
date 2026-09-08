@@ -240,6 +240,9 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     <>
       {/* Backdrop */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search"
         className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />

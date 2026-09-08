@@ -555,12 +555,12 @@ export default function Map() {
       let hoveredStateCode: string | null = null;
       currentMap.on('click', 'state-fills', (e) => {
         if (!e.features?.[0]) return;
-        // Only cede priority to pin clicks when pins are actually visible
-        // (zoom >= 8, OR a company filter is active and they're forced on).
-        if (currentMap.getZoom() >= 8 || pinsAlwaysVisibleRef.current) {
-          const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
-          if (pinHit.length > 0) return;
-        }
+        // If the user clicked a visible pin, the pin wins — at any zoom. Pins are
+        // drawn from zoom 3 up, so gating this on zoom >= 8 meant a click on a
+        // dot at zoom 6 selected the factory and then immediately re-selected
+        // the state underneath it.
+        const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
+        if (pinHit.length > 0) return;
         const code = e.features[0].properties?.stateCode as string | undefined;
         if (!code) return;
         selectStateRef.current(code);
@@ -584,8 +584,12 @@ export default function Map() {
           extend((geom as GeoJSON.Polygon | GeoJSON.MultiPolygon).coordinates);
         }
         if (!bounds.isEmpty()) {
+          // Keep the whole state visible next to (desktop) or above (phone) the panel.
+          const isMobile = window.innerWidth < 768;
           currentMap.fitBounds(bounds, {
-            padding: { top: 80, bottom: 80, left: 80, right: 420 },
+            padding: isMobile
+              ? { top: 90, bottom: Math.round(window.innerHeight * 0.32) + 24, left: 24, right: 24 }
+              : { top: 80, bottom: 80, left: 80, right: 420 },
             maxZoom: 7,
             duration: 800,
           });

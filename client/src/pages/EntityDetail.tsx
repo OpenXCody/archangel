@@ -220,14 +220,44 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
         </div>
       )}
 
-      {/* Stats - only show factory count as that's the real relationship */}
+      {/* Stats: the same three numbers the explorer card shows */}
       {(data.factoryCount || 0) > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
           <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
-            <div className="text-2xl font-semibold text-fg-default">{data.factoryCount}</div>
+            <div className="text-2xl font-semibold text-fg-default">{data.factoryCount?.toLocaleString()}</div>
             <div className="text-sm text-fg-muted">Factories</div>
           </div>
+          {(data.occupations?.length || 0) > 0 && (
+            <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+              <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length}</div>
+              <div className="text-sm text-fg-muted">Occupations</div>
+            </div>
+          )}
+          {(data.totalWorkforce || 0) > 0 && (
+            <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+              <div className="text-2xl font-semibold text-fg-default">{data.totalWorkforce?.toLocaleString()}</div>
+              <div className="text-sm text-fg-muted">Workforce</div>
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Occupations across this company's factories */}
+      {(data.occupations?.length || 0) > 0 && (
+        <Section title="Occupations" count={data.occupations?.length}>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {data.occupations?.map((occ) => (
+              <RelatedCard
+                key={occ.id}
+                to={`/occupations/${occ.id}`}
+                icon={Briefcase}
+                iconClass="text-violet-400"
+                title={occ.title}
+                subtitle={`${occ.factoryCount} ${occ.factoryCount === 1 ? 'factory' : 'factories'}${occ.headcount ? ` · ${occ.headcount.toLocaleString()} headcount` : ''}`}
+              />
+            ))}
+          </div>
+        </Section>
       )}
 
       {/* Factories section */}
@@ -701,6 +731,12 @@ export default function EntityDetail() {
     queryFn: getEntityFetcher(entityType, id!),
     enabled: !!id,
   });
+
+  // Tab title = the entity's name while you're on its page.
+  useEffect(() => {
+    const name = data && ('name' in data ? data.name : 'title' in data ? data.title : null);
+    if (name) document.title = `${name} · Archangel`;
+  }, [data]);
 
   // Cards deep-link to sections (#factories, #occupations, …); scroll once the data is on the page.
   const { hash } = useLocation();
