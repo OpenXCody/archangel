@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import FileDropZone from '../components/import/FileDropZone';
 import ManualEntryForm from '../components/import/ManualEntryForm';
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { API_BASE, adminFetch } from '../lib/api';
 
 // Importable entity types (core entities only, not refs/schools/programs/persons)
 type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
@@ -52,7 +52,7 @@ export default function Import() {
     queryKey: ['importBatches', 'recent'],
     queryFn: async () => {
       try {
-        const res = await fetch(`${API_BASE}/import/batches?limit=5`);
+        const res = await adminFetch(`${API_BASE}/import/batches?limit=5`);
         if (!res.ok) return [];
         const data = await res.json();
         return data.data || [];

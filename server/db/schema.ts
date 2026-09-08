@@ -1,17 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  integer,
-  timestamp,
-  pgEnum,
-  index,
-  uniqueIndex,
-  primaryKey,
-  varchar,
-  jsonb,
-  boolean,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, pgEnum, index, uniqueIndex, primaryKey, varchar, jsonb, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // ============================================
@@ -875,3 +862,17 @@ export const entityLinks = pgTable(
     entityIdx: index('entity_links_entity_idx').on(table.entityType, table.entityId),
   })
 );
+
+// ============================================
+// IMPORT_UPLOADS (parsed upload payloads awaiting validate/execute)
+// Replaces the old in-process Map so the multi-step import flow survives
+// serverless instances that don't share memory. Rows are short-lived.
+// ============================================
+
+export const importUploads = pgTable('import_uploads', {
+  id: uuid('id').primaryKey(),
+  fileName: text('file_name').notNull(),
+  rowCount: integer('row_count').notNull(),
+  payload: jsonb('payload').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

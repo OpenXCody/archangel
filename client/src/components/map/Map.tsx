@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import maplibregl, { Map as MapLibreMap, GeoJSONSource, MapMouseEvent, LngLatBounds } from 'maplibre-gl';
+import maplibregl, { Map as MapLibreMap, GeoJSONSource, MapMouseEvent, LngLatBounds, type ExpressionSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useQuery } from '@tanstack/react-query';
-import { factoriesApi } from '../../lib/api';
+import { factoriesApi, mapApi } from '../../lib/api';
 import { useMapStore } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
 import { Loader2, Maximize2 } from 'lucide-react';
@@ -119,7 +119,7 @@ export default function Map() {
   // State-level factory counts (for the continental-zoom choropleth)
   const { data: stateCounts } = useQuery<Record<string, number>>({
     queryKey: ['state-counts'],
-    queryFn: () => fetch('/api/map/state-counts').then(r => r.json()),
+    queryFn: () => mapApi.stateCounts(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -564,19 +564,20 @@ export default function Map() {
         // we look up the full feature from our in-memory dataset to get an
         // accurate bbox for fitBounds.
         const fullFeature = statesWithCountsRef.current?.features?.find(
-          (f) => (f.properties as any)?.stateCode === code
+          (f) => (f.properties as { stateCode?: string } | null)?.stateCode === code
         );
         const geom = fullFeature?.geometry ?? e.features[0].geometry;
         const bounds = new maplibregl.LngLatBounds();
-        const extend = (coords: any) => {
+        type Coords = number[] | Coords[];
+        const extend = (coords: Coords) => {
           if (typeof coords[0] === 'number') {
             bounds.extend(coords as [number, number]);
           } else {
-            for (const c of coords) extend(c);
+            for (const c of coords as Coords[]) extend(c);
           }
         };
         if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
-          extend((geom as any).coordinates);
+          extend((geom as GeoJSON.Polygon | GeoJSON.MultiPolygon).coordinates);
         }
         if (!bounds.isEmpty()) {
           currentMap.fitBounds(bounds, {
@@ -717,18 +718,18 @@ export default function Map() {
 
   // Default zoom-based opacity curves per design spec, used when no company
   // filter forces pins on. White dots visible at all zoom levels with controlled opacity.
-  const defaultPointOpacity: any = [
+  const defaultPointOpacity: ExpressionSpecification = [
     'interpolate', ['linear'], ['zoom'],
     3, 0.55, 5, 0.65, 6, 0.75, 8, 0.85, 9, 0.90, 12, 0.95,
   ];
-  const defaultGlowOpacity: any = [
+  const defaultGlowOpacity: ExpressionSpecification = [
     'interpolate', ['linear'], ['zoom'],
     3, 0.12, 5, 0.18, 6, 0.18, 8, 0.22, 9, 0.28,
   ];
 
   // Default state-fills opacity curve — mirrors the inline paint set up
   // in the load callback so the company-filter toggle can restore it.
-  const defaultStateFillOpacity: any = [
+  const defaultStateFillOpacity: ExpressionSpecification = [
     'step', ['zoom'],
     ['interpolate', ['linear'], ['get', 'factoryCount'],
       0, 0, 50, 0.12, 200, 0.18, 800, 0.28, 2500, 0.38, 6000, 0.44,

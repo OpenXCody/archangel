@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql } from 'drizzle-orm';
 import { db, persons, personSkillRefs, companies } from '../db';
+import { uuidParam } from '../middleware/validateUuid';
 
 const router = Router();
+router.param('id', uuidParam);
 
 // GET /api/persons - List persons with offset-based pagination
 // Note: No create/update routes - data lands via import pipeline

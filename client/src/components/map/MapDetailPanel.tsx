@@ -24,6 +24,7 @@ import {
   type CompanyDetail,
   type OccupationDetail,
   type SkillDetail,
+  mapApi,
 } from '../../lib/api';
 import { useMapStore, type MapEntityType } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
@@ -731,7 +732,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
 
   const { data: stateOverview, isLoading: stateLoading } = useQuery<StateOverview>({
     queryKey: ['state-overview', selectedEntityId],
-    queryFn: () => fetch(`/api/map/states/${selectedEntityId}/overview`).then(r => r.json()),
+    queryFn: () => mapApi.stateOverview(selectedEntityId as string),
     enabled: selectedEntityType === 'state' && !!selectedEntityId,
   });
 

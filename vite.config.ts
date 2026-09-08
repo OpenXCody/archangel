@@ -28,7 +28,8 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // Strip console in production
+        // Strip chatty logs but keep error/warn so ErrorBoundary output survives in prod
+        pure_funcs: ['console.log', 'console.debug', 'console.info'],
         drop_debugger: true,
       },
     },

@@ -49,3 +49,6 @@ uploads/
 
 # Test files
 test-*.csv
+
+# Local .env backups (never commit)
+.env.bak.*

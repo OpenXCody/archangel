@@ -1,6 +1,59 @@
 // Use relative URL in production (same domain), localhost in dev
-const API_BASE = import.meta.env.VITE_API_URL ||
+export const API_BASE = import.meta.env.VITE_API_URL ||
   (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api');
+
+// ---------------------------------------------------------------------------
+// Admin access. Writes and the import pipeline are gated server-side by an
+// ADMIN_SECRET; the key is entered once in the Data page and kept in this
+// browser only.
+// ---------------------------------------------------------------------------
+const ADMIN_SECRET_STORAGE_KEY = 'archangel.adminSecret';
+export const ADMIN_HEADER = 'x-admin-secret';
+
+export function getAdminSecret(): string | null {
+  try { return window.localStorage.getItem(ADMIN_SECRET_STORAGE_KEY); } catch { return null; }
+}
+export function setAdminSecret(secret: string): void {
+  try { window.localStorage.setItem(ADMIN_SECRET_STORAGE_KEY, secret); } catch { /* private mode */ }
+}
+export function clearAdminSecret(): void {
+  try { window.localStorage.removeItem(ADMIN_SECRET_STORAGE_KEY); } catch { /* ignore */ }
+}
+/** Headers to spread into any request that changes data. */
+export function adminHeaders(): Record<string, string> {
+  const secret = getAdminSecret();
+  return secret ? { [ADMIN_HEADER]: secret } : {};
+}
+
+/** Thrown when the server wants an admin key we don't have (or have wrong). */
+export class AdminAuthError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'AdminAuthError';
+    this.status = status;
+  }
+}
+
+/**
+ * `fetch` that carries the admin key. Use for uploads (FormData) and any
+ * hand-built request that can't go through apiFetch. Content-Type is left
+ * to the caller so multipart bodies keep their boundary.
+ */
+export async function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(init.headers);
+  for (const [k, v] of Object.entries(adminHeaders())) headers.set(k, v);
+  const response = await fetch(input, { ...init, headers });
+  if (response.status === 401 || response.status === 503) {
+    const body = await response.clone().json().catch(() => ({}));
+    if (body && typeof body.error === 'string' && /admin/i.test(body.error)) {
+      throw new AdminAuthError(body.error, response.status);
+    }
+  }
+  return response;
+}
+
+export interface ImportStatus { authRequired: boolean; authorized: boolean }
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -284,17 +337,24 @@ interface FetchOptions {
 }
 
 async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const method = (options?.method ?? 'GET').toUpperCase();
+  const isWrite = method !== 'GET' && method !== 'HEAD';
   const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(isWrite ? adminHeaders() : {}),
       ...options?.headers,
     },
-    ...options,
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Network error' }));
-    throw new Error(error.message || `HTTP ${response.status}`);
+    const message: string = error.error || error.message || `HTTP ${response.status}`;
+    if ((response.status === 401 || response.status === 503) && /admin/i.test(message)) {
+      throw new AdminAuthError(message, response.status);
+    }
+    throw new Error(message);
   }
 
   return response.json();
@@ -500,8 +560,23 @@ export interface StatesSummaryResponse {
   states: StateSummary[];
 }
 
+export interface StateOverview {
+  code: string;
+  totalFactories: number;
+  totalCompanies: number;
+  totalWorkforce: number;
+  topCompanies: { id: string; name: string; count: number }[];
+  topIndustries: { label: string; count: number }[];
+}
+
 // Map API
 export const mapApi = {
   statesSummary: () =>
     apiFetch<StatesSummaryResponse>('/map/states/summary'),
+  /** Factory count per 2-letter state code — drives the choropleth. */
+  stateCounts: () =>
+    apiFetch<Record<string, number>>('/map/state-counts'),
+  /** Panel data for a selected state. */
+  stateOverview: (code: string) =>
+    apiFetch<StateOverview>(`/map/states/${encodeURIComponent(code)}/overview`),
 };

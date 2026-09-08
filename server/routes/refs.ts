@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql } from 'drizzle-orm';
 import { db, refs, refAliases, skillRefs, skills } from '../db';
+import { uuidParam } from '../middleware/validateUuid';
 
 const router = Router();
+router.param('id', uuidParam);
 
 // GET /api/refs - List refs with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
