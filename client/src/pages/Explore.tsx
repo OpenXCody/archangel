@@ -1,8 +1,8 @@
-import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useMemo, useRef, useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { Building2, Factory, Briefcase, Wrench, Loader2, Layers, Search, ChevronDown, Boxes, GraduationCap, BookOpen } from 'lucide-react';
+import { useWindowVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+import { Building2, Factory, Briefcase, Wrench, Loader2, Layers, Search, ChevronDown, ChevronRight, Boxes, GraduationCap, BookOpen } from 'lucide-react';
 import {
   companiesApi,
   factoriesApi,
@@ -144,7 +144,7 @@ function VirtualizedGrid({
   isLoadingMore: boolean;
   onLoadMore: () => void;
 }) {
-  const parentRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const columnCount = useColumnCount();
 
   // Group items into rows based on column count
@@ -159,11 +159,17 @@ function VirtualizedGrid({
   // Add one extra row for the Load More button if needed
   const totalRows = hasMore ? rows.length + 1 : rows.length;
 
-  const virtualizer = useVirtualizer({
+  // Rows are positioned in window-scroll space; scrollMargin is where the list
+  // starts on the page. Read after layout and re-render once so it's exact.
+  const [scrollMargin, setScrollMargin] = useState(0);
+  useLayoutEffect(() => {
+    setScrollMargin(listRef.current?.offsetTop ?? 0);
+  }, [columnCount]);
+  const virtualizer = useWindowVirtualizer({
     count: totalRows,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 132, // uniform card (120px) + row gap; measureElement corrects it
+    estimateSize: () => 126, // 114px card + 12px row gap; measureElement corrects it
     overscan: 5,
+    scrollMargin,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
@@ -180,11 +186,7 @@ function VirtualizedGrid({
   }, [virtualItems, rows.length, hasMore, isLoadingMore, onLoadMore]);
 
   return (
-    <div
-      ref={parentRef}
-      className="h-[calc(100vh-300px)] overflow-auto"
-      style={{ contain: 'strict' }}
-    >
+    <div ref={listRef}>
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,
@@ -207,7 +209,7 @@ function VirtualizedGrid({
                 top: 0,
                 left: 0,
                 width: '100%',
-                transform: `translateY(${virtualRow.start}px)`,
+                transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
               }}
             >
               {isLoadMoreRow ? (
@@ -242,13 +244,12 @@ function VirtualizedGrid({
   );
 }
 
-// Virtualized section for "All" tab
-function VirtualizedSection({
+// Overview section for the "All" tab: a taste of each type plus a link to
+// the full tab. (Nested scroll boxes per type were the old approach — the
+// page should be the only thing that scrolls.)
+function OverviewSection({
   type,
   items,
-  hasMore,
-  isLoadingMore,
-  onLoadMore,
   totalCount,
 }: {
   type: BrowsableEntityType;
@@ -258,141 +259,40 @@ function VirtualizedSection({
   onLoadMore: () => void;
   totalCount: number;
 }) {
-  const parentRef = useRef<HTMLDivElement>(null);
   const columnCount = useColumnCount();
-
-  // Group items into rows
-  const rows = useMemo(() => {
-    const result: (Company | FactoryType | Occupation | Skill | Ref | School | Program)[][] = [];
-    for (let i = 0; i < items.length; i += columnCount) {
-      result.push(items.slice(i, i + columnCount));
-    }
-    return result;
-  }, [items, columnCount]);
-
-  const totalRows = hasMore ? rows.length + 1 : rows.length;
-
-  const virtualizer = useVirtualizer({
-    count: totalRows,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 132, // uniform card (120px) + row gap; measureElement corrects it
-    overscan: 3,
-  });
-
-  const virtualItems = virtualizer.getVirtualItems();
-
-  // Auto-load when nearing end
-  useEffect(() => {
-    const lastItem = virtualItems[virtualItems.length - 1];
-    if (!lastItem) return;
-
-    if (lastItem.index >= rows.length - 3 && hasMore && !isLoadingMore) {
-      onLoadMore();
-    }
-  }, [virtualItems, rows.length, hasMore, isLoadingMore, onLoadMore]);
-
   const config = SECTION_CONFIG[type];
   const Icon = config.icon;
-
   if (items.length === 0) return null;
-
-  // For small lists (< 50 items), render without virtualization for simplicity
-  const shouldVirtualize = items.length >= 50;
+  const shown = items.slice(0, columnCount * 2);
+  const remaining = Math.max(totalCount - shown.length, 0);
 
   return (
     <section>
-      {/* Section Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-3 flex items-end justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-lg ${config.bgColor}`}>
             <Icon className={`w-4 h-4 ${config.color}`} />
           </div>
           <div>
             <h2 className="text-base font-medium text-fg-default">{config.label}</h2>
-            <p className="text-xs text-fg-muted">
-              {items.length} of {totalCount} loaded
-            </p>
+            <p className="text-xs text-fg-muted">{totalCount.toLocaleString()} total</p>
           </div>
         </div>
-      </div>
-
-      {shouldVirtualize ? (
-        <div
-          ref={parentRef}
-          className="h-[400px] overflow-auto"
-          style={{ contain: 'strict' }}
-        >
-          <div
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              width: '100%',
-              position: 'relative',
-            }}
+        {remaining > 0 && (
+          <Link
+            to={`/explore?tab=${type}`}
+            className="inline-flex items-center gap-1 text-sm text-fg-muted transition-colors hover:text-fg-default"
           >
-            {virtualItems.map((virtualRow: VirtualItem) => {
-              const isLoadMoreRow = virtualRow.index === rows.length;
-              const row = rows[virtualRow.index];
-
-              return (
-                <div
-                  key={virtualRow.key}
-                  ref={virtualizer.measureElement}
-                  data-index={virtualRow.index}
-                  className="pb-3"
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                >
-                  {isLoadMoreRow ? (
-                    <div className="flex justify-center py-4">
-                      <LoadMoreButton
-                        onClick={onLoadMore}
-                        isLoading={isLoadingMore}
-                        hasMore={hasMore}
-                        compact
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      className="grid gap-3"
-                      style={{
-                        gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
-                      }}
-                    >
-                      {row?.map((item) => (
-                        <EntityCard key={item.id} type={type} data={item} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Non-virtualized grid for small lists */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
-              <EntityCard key={item.id} type={type} data={item} />
-            ))}
-          </div>
-          {hasMore && (
-            <div className="flex justify-center mt-4">
-              <LoadMoreButton
-                onClick={onLoadMore}
-                isLoading={isLoadingMore}
-                hasMore={hasMore}
-                compact
-              />
-            </div>
-          )}
-        </>
-      )}
+            View all {totalCount.toLocaleString()}
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        )}
+      </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {shown.map((item) => (
+          <EntityCard key={item.id} type={type} data={item} />
+        ))}
+      </div>
     </section>
   );
 }
@@ -905,7 +805,7 @@ export default function Explore() {
           </div>
         ) : (
           <div className="space-y-10">
-            <VirtualizedSection
+            <OverviewSection
               type="companies"
               items={groupedItems.companies}
               hasMore={hasNextCompanies ?? false}
@@ -913,7 +813,7 @@ export default function Explore() {
               onLoadMore={loadMoreCompanies}
               totalCount={counts?.companies ?? groupedItems.companies.length}
             />
-            <VirtualizedSection
+            <OverviewSection
               type="factories"
               items={groupedItems.factories}
               hasMore={hasNextFactories ?? false}
@@ -921,7 +821,7 @@ export default function Explore() {
               onLoadMore={loadMoreFactories}
               totalCount={counts?.factories ?? groupedItems.factories.length}
             />
-            <VirtualizedSection
+            <OverviewSection
               type="occupations"
               items={groupedItems.occupations}
               hasMore={hasNextOccupations ?? false}
@@ -929,7 +829,7 @@ export default function Explore() {
               onLoadMore={loadMoreOccupations}
               totalCount={counts?.occupations ?? groupedItems.occupations.length}
             />
-            <VirtualizedSection
+            <OverviewSection
               type="skills"
               items={groupedItems.skills}
               hasMore={hasNextSkills ?? false}
@@ -937,7 +837,7 @@ export default function Explore() {
               onLoadMore={loadMoreSkills}
               totalCount={counts?.skills ?? groupedItems.skills.length}
             />
-            <VirtualizedSection
+            <OverviewSection
               type="refs"
               items={groupedItems.refs}
               hasMore={hasNextRefs ?? false}
@@ -945,7 +845,7 @@ export default function Explore() {
               onLoadMore={loadMoreRefs}
               totalCount={counts?.refs ?? groupedItems.refs.length}
             />
-            <VirtualizedSection
+            <OverviewSection
               type="schools"
               items={groupedItems.schools}
               hasMore={hasNextSchools ?? false}
@@ -953,7 +853,7 @@ export default function Explore() {
               onLoadMore={loadMoreSchools}
               totalCount={counts?.schools ?? groupedItems.schools.length}
             />
-            <VirtualizedSection
+            <OverviewSection
               type="programs"
               items={groupedItems.programs}
               hasMore={hasNextPrograms ?? false}

@@ -2,7 +2,7 @@ import { memo, useCallback, type ElementType, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  Building2, Factory, Briefcase, Wrench, ChevronRight, MapPin, Users, Boxes, GraduationCap, BookOpen, Clock,
+  Building2, Factory, Briefcase, Wrench, ChevronRight, MapPin, Boxes, GraduationCap, BookOpen, Clock, Tag, GitBranch, Award,
 } from 'lucide-react';
 import type { Company, Factory as FactoryType, Occupation, Skill, Ref, School, Program, EntityType } from '../../lib/api';
 import { companiesApi, factoriesApi, occupationsApi, skillsApi, refsApi, schoolsApi, programsApi } from '../../lib/api';
@@ -10,24 +10,28 @@ import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { cn } from '@/lib/utils';
 
 /**
- * One card layout for every entity type — three fixed rows so a grid of
- * mixed cards lines up and virtualized rows measure identically:
+ * The one card. Three fixed-height rows so every card in a grid is the same
+ * size and every piece of information sits in the same place:
  *
- *   [icon] Name ........................................ ›
- *          one line of context (industry, location, description)
- *          [chip] [chip]   ← counts of linked entities, each a deep link
+ *   [icon]  Name                                   ›     32px
+ *           one line of descriptive text                 20px  (blank if none)
+ *           [tag] [tag] [tag]                            24px  (blank if none)
+ *
+ * Row 3 tags are, in order: classifiers (category, type, location), a linked
+ * parent (company, school), then counts of linked entities. Count tags deep-
+ * link into the matching section of the detail page.
  */
 
 type BrowsableType = Exclude<EntityType, 'persons'>;
 
-const ENTITY: Record<BrowsableType, { icon: ElementType; text: string; accent: string; hover: string }> = {
-  companies:   { icon: Building2,     text: 'text-amber-500',   accent: 'border-l-amber-500',   hover: 'hover:border-amber-500/30' },
-  factories:   { icon: Factory,       text: 'text-sky-400',     accent: 'border-l-sky-400',     hover: 'hover:border-sky-400/30' },
-  occupations: { icon: Briefcase,     text: 'text-violet-400',  accent: 'border-l-violet-400',  hover: 'hover:border-violet-400/30' },
-  skills:      { icon: Wrench,        text: 'text-emerald-500', accent: 'border-l-emerald-500', hover: 'hover:border-emerald-500/30' },
-  refs:        { icon: Boxes,         text: 'text-teal-500',    accent: 'border-l-teal-500',    hover: 'hover:border-teal-500/30' },
-  schools:     { icon: GraduationCap, text: 'text-indigo-500',  accent: 'border-l-indigo-500',  hover: 'hover:border-indigo-500/30' },
-  programs:    { icon: BookOpen,      text: 'text-fuchsia-500', accent: 'border-l-fuchsia-500', hover: 'hover:border-fuchsia-500/30' },
+const ENTITY: Record<BrowsableType, { icon: ElementType; text: string; bg: string }> = {
+  companies:   { icon: Building2,     text: 'text-amber-500',   bg: 'bg-amber-500/10' },
+  factories:   { icon: Factory,       text: 'text-sky-400',     bg: 'bg-sky-400/10' },
+  occupations: { icon: Briefcase,     text: 'text-violet-400',  bg: 'bg-violet-400/10' },
+  skills:      { icon: Wrench,        text: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+  refs:        { icon: Boxes,         text: 'text-teal-500',    bg: 'bg-teal-500/10' },
+  schools:     { icon: GraduationCap, text: 'text-indigo-500',  bg: 'bg-indigo-500/10' },
+  programs:    { icon: BookOpen,      text: 'text-fuchsia-500', bg: 'bg-fuchsia-500/10' },
 };
 
 /** Industry value the bulk import stamped on nearly every company; not worth a line. */
@@ -40,140 +44,120 @@ function formatCount(n: number): string {
   return String(n);
 }
 
-function plural(n: number, one: string, many: string): string {
-  return n === 1 ? one : many;
-}
+const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 // ---------------------------------------------------------------------------
-// Building blocks
+// Tags
 // ---------------------------------------------------------------------------
 
-interface ChipProps {
-  icon: ElementType;
-  iconClass: string;
-  value: ReactNode;
-  label?: string;
-  to?: string;
-  title?: string;
-}
+const TAG_BASE =
+  'relative z-10 inline-flex h-6 shrink-0 items-center gap-1 rounded border border-border-subtle bg-bg-base/60 px-1.5 text-[11px] leading-none';
 
-/** Linked-entity count. Sits above the card's stretched link so it's independently clickable. */
-function Chip({ icon: Icon, iconClass, value, label, to, title }: ChipProps) {
-  const cls = cn(
-    'relative z-10 inline-flex h-7 min-w-0 max-w-full items-center gap-1.5 rounded-md border border-white/5 bg-white/[0.03] px-2 text-xs',
-    to && 'transition-colors hover:border-white/10 hover:bg-white/[0.07]',
-  );
-  const body = (
-    <>
-      <Icon className={cn('h-3 w-3 shrink-0', iconClass)} />
-      <span className="min-w-0 truncate font-medium text-fg-default tabular-nums">{value}</span>
-      {label && <span className="shrink-0 text-fg-soft">{label}</span>}
-    </>
-  );
-  return to ? (
-    <Link to={to} title={title} className={cls}>{body}</Link>
-  ) : (
-    <span title={title} className={cls}>{body}</span>
-  );
-}
-
-/** Count chip that renders nothing when there's nothing to count. */
-function CountChip({ type, count, one, many, to }: { type: BrowsableType; count?: number; one: string; many: string; to: string }) {
+/** Count of linked entities — icon in the target entity's colour, deep-links to that section. */
+function CountTag({ type, count, one, many, to }: { type: BrowsableType; count?: number; one: string; many: string; to: string }) {
   if (!count) return null;
+  const Icon = ENTITY[type].icon;
   return (
-    <Chip
-      icon={ENTITY[type].icon}
-      iconClass={ENTITY[type].text}
-      value={formatCount(count)}
-      label={plural(count, one, many)}
-      to={to}
-      title={`${count.toLocaleString()} ${plural(count, one, many)}`}
-    />
+    <Link to={to} title={`${count.toLocaleString()} ${plural(count, one, many)}`} className={cn(TAG_BASE, 'transition-colors hover:border-border-strong hover:bg-bg-elevated')}>
+      <Icon className={cn('h-3 w-3', ENTITY[type].text)} />
+      <span className="font-medium tabular-nums text-fg-default">{formatCount(count)}</span>
+      <span className="text-fg-soft">{plural(count, one, many)}</span>
+    </Link>
   );
 }
 
-/** "A • B" with nulls dropped. */
-function Meta({ parts }: { parts: ReactNode[] }) {
-  const shown = parts.filter((p) => p !== null && p !== undefined && p !== '' && p !== false);
-  if (shown.length === 0) return null;
+/** Classifier or location — muted, not clickable. */
+function AttrTag({ icon: Icon, value, title }: { icon: ElementType; value?: string | null; title?: string }) {
+  if (!value) return null;
   return (
-    <>
-      {shown.map((part, i) => (
-        <span key={i} className="inline-flex min-w-0 items-center gap-1">
-          {i > 0 && <span className="mx-1 text-fg-soft">•</span>}
-          <span className="truncate">{part}</span>
-        </span>
-      ))}
-    </>
+    <span title={title ?? value} className={cn(TAG_BASE, 'min-w-0 max-w-[11rem] text-fg-muted')}>
+      <Icon className="h-3 w-3 shrink-0 text-fg-soft" />
+      <span className="truncate">{value}</span>
+    </span>
   );
 }
+
+/** Linked parent entity (company, school) — coloured icon, clickable. */
+function LinkTag({ type, value, to }: { type: BrowsableType; value?: string | null; to?: string | null }) {
+  if (!value || !to) return null;
+  const Icon = ENTITY[type].icon;
+  return (
+    <Link to={to} title={value} className={cn(TAG_BASE, 'min-w-0 max-w-[11rem] transition-colors hover:border-border-strong hover:bg-bg-elevated')}>
+      <Icon className={cn('h-3 w-3 shrink-0', ENTITY[type].text)} />
+      <span className="truncate text-fg-default">{value}</span>
+    </Link>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Shell
+// ---------------------------------------------------------------------------
 
 interface ShellProps {
   type: BrowsableType;
   to: string;
   name: string;
-  meta?: ReactNode;
-  chips?: ReactNode;
+  /** Row 2. Joined with " · " into one truncating line. */
+  meta?: (string | null | undefined | false)[];
+  /** Row 3. */
+  tags?: ReactNode;
   onMouseEnter?: () => void;
 }
 
-function CardShell({ type, to, name, meta, chips, onMouseEnter }: ShellProps) {
+function CardShell({ type, to, name, meta = [], tags, onMouseEnter }: ShellProps) {
   const cfg = ENTITY[type];
   const Icon = cfg.icon;
+  const metaText = meta.filter((m): m is string => typeof m === 'string' && m.trim().length > 0).join(' · ');
   return (
     <article
       onMouseEnter={onMouseEnter}
-      className={cn(
-        'group relative flex h-full min-w-0 flex-col gap-2 rounded-xl border border-l-4 border-white/10 bg-white/[0.02] p-3.5 transition-colors hover:bg-white/[0.04]',
-        cfg.accent, cfg.hover,
-      )}
+      className="group relative flex h-full min-w-0 flex-col rounded-lg border border-border-subtle bg-bg-surface p-3 transition-colors hover:border-border-strong hover:bg-bg-elevated"
     >
-      <div className="flex min-w-0 items-center gap-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04]">
+      <div className="flex h-8 min-w-0 items-center gap-2.5">
+        <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-md', cfg.bg)}>
           <Icon className={cn('h-4 w-4', cfg.text)} />
         </span>
-        <h3 className="min-w-0 flex-1 truncate font-medium text-fg-default group-hover:text-white">
-          {/* Stretched link: the pseudo-element covers the whole card. */}
-          <Link to={to} className="after:absolute after:inset-0 after:rounded-xl after:content-[''] focus-visible:outline-none focus-visible:after:outline focus-visible:after:outline-2 focus-visible:after:outline-accent-primary">
+        <h3 className="min-w-0 flex-1 truncate text-[15px] font-medium leading-6 text-fg-default">
+          {/* Stretched link: the pseudo-element makes the whole card the click target. */}
+          <Link
+            to={to}
+            className="after:absolute after:inset-0 after:rounded-lg after:content-[''] focus-visible:outline-none focus-visible:after:outline focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-accent-primary"
+          >
             {name}
           </Link>
         </h3>
         <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft transition-transform group-hover:translate-x-0.5 group-hover:text-fg-muted" />
       </div>
 
-      <div className="flex min-h-5 min-w-0 items-center overflow-hidden pl-[42px] text-xs text-fg-muted">
-        {meta}
-      </div>
+      <p className="mt-1.5 h-5 truncate pl-[42px] text-xs leading-5 text-fg-muted" title={metaText || undefined}>
+        {metaText}
+      </p>
 
-      <div className="flex min-h-7 min-w-0 items-center gap-1.5 overflow-hidden pl-[42px]">
-        {chips}
+      <div className="mt-2 flex h-6 min-w-0 items-center gap-1.5 overflow-hidden pl-[42px]">
+        {tags}
       </div>
     </article>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Per-type cards: only decide what goes in the three rows
+// Per-type cards — only decide what fills the three rows
 // ---------------------------------------------------------------------------
 
 type CardProps<T> = { data: T; onMouseEnter?: () => void };
 
 function CompanyCard({ data, onMouseEnter }: CardProps<Company>) {
   const industry = data.industry && data.industry.trim().toLowerCase() !== GENERIC_INDUSTRY ? data.industry : null;
-  const workforce = data.totalWorkforce && data.totalWorkforce > 0 ? (
-    <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{formatCount(data.totalWorkforce)} workforce</span>
-  ) : null;
+  const workforce = data.totalWorkforce ? `${formatCount(data.totalWorkforce)} workforce` : null;
+  const base = `/companies/${data.id}`;
   return (
     <CardShell
-      type="companies"
-      to={`/companies/${data.id}`}
-      name={formatCompanyName(data.name)}
-      onMouseEnter={onMouseEnter}
-      meta={<Meta parts={[industry, workforce]} />}
-      chips={
+      type="companies" to={base} name={formatCompanyName(data.name)} onMouseEnter={onMouseEnter}
+      meta={[industry, workforce]}
+      tags={
         <>
-          <CountChip type="factories" count={data.factoryCount} one="factory" many="factories" to={`/companies/${data.id}#factories`} />
-          <CountChip type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`/companies/${data.id}#occupations`} />
+          <CountTag type="factories" count={data.factoryCount} one="factory" many="factories" to={`${base}#factories`} />
+          <CountTag type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`${base}#occupations`} />
         </>
       }
     />
@@ -181,28 +165,16 @@ function CompanyCard({ data, onMouseEnter }: CardProps<Company>) {
 }
 
 function FactoryCard({ data, onMouseEnter }: CardProps<FactoryType>) {
-  const location = data.state ? (
-    <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{data.state}</span>
-  ) : null;
+  const base = `/factories/${data.id}`;
   return (
     <CardShell
-      type="factories"
-      to={`/factories/${data.id}`}
-      name={formatFactoryName(data.name)}
-      onMouseEnter={onMouseEnter}
-      meta={<Meta parts={[location, data.specialization]} />}
-      chips={
+      type="factories" to={base} name={formatFactoryName(data.name)} onMouseEnter={onMouseEnter}
+      meta={[data.specialization]}
+      tags={
         <>
-          {data.companyId && data.companyName && (
-            <Chip
-              icon={ENTITY.companies.icon}
-              iconClass={ENTITY.companies.text}
-              value={formatCompanyName(data.companyName)}
-              to={`/companies/${data.companyId}`}
-              title={`Company: ${data.companyName}`}
-            />
-          )}
-          <CountChip type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`/factories/${data.id}#occupations`} />
+          <AttrTag icon={MapPin} value={data.state} />
+          <LinkTag type="companies" value={data.companyName ? formatCompanyName(data.companyName) : null} to={data.companyId ? `/companies/${data.companyId}` : null} />
+          <CountTag type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`${base}#occupations`} />
         </>
       }
     />
@@ -210,35 +182,39 @@ function FactoryCard({ data, onMouseEnter }: CardProps<FactoryType>) {
 }
 
 function OccupationCard({ data, onMouseEnter }: CardProps<Occupation>) {
+  const base = `/occupations/${data.id}`;
   return (
     <CardShell
-      type="occupations"
-      to={`/occupations/${data.id}`}
-      name={data.title}
-      onMouseEnter={onMouseEnter}
-      meta={<Meta parts={[data.description]} />}
-      chips={
+      type="occupations" to={base} name={data.title} onMouseEnter={onMouseEnter}
+      meta={[data.description]}
+      tags={
         <>
-          <CountChip type="skills" count={data.skillCount} one="skill" many="skills" to={`/occupations/${data.id}#skills`} />
-          <CountChip type="factories" count={data.factoryCount} one="factory" many="factories" to={`/occupations/${data.id}#factories`} />
+          <CountTag type="skills" count={data.skillCount} one="skill" many="skills" to={`${base}#skills`} />
+          <CountTag type="factories" count={data.factoryCount} one="factory" many="factories" to={`${base}#factories`} />
         </>
       }
     />
   );
 }
 
-function SkillCard({ data, onMouseEnter }: CardProps<Skill & { programCount?: number }>) {
+function SkillCard({ data, onMouseEnter }: CardProps<Skill>) {
+  const base = `/skills/${data.id}`;
   return (
     <CardShell
-      type="skills"
-      to={`/skills/${data.id}`}
-      name={data.name}
-      onMouseEnter={onMouseEnter}
-      meta={<Meta parts={[data.category, data.description]} />}
-      chips={
+      type="skills" to={base} name={data.name} onMouseEnter={onMouseEnter}
+      meta={[data.description]}
+      tags={
         <>
-          <CountChip type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`/skills/${data.id}#occupations`} />
-          <CountChip type="programs" count={data.programCount} one="program" many="programs" to={`/skills/${data.id}#programs`} />
+          <AttrTag icon={Tag} value={data.category} />
+          <CountTag type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`${base}#occupations`} />
+          <CountTag type="programs" count={data.programCount} one="program" many="programs" to={`${base}#programs`} />
+          {data.childCount ? (
+            <span title={`${data.childCount} sub-skills`} className={cn(TAG_BASE, 'text-fg-muted')}>
+              <GitBranch className="h-3 w-3 text-fg-soft" />
+              <span className="font-medium tabular-nums text-fg-default">{data.childCount}</span>
+              <span className="text-fg-soft">{plural(data.childCount, 'sub-skill', 'sub-skills')}</span>
+            </span>
+          ) : null}
         </>
       }
     />
@@ -246,49 +222,57 @@ function SkillCard({ data, onMouseEnter }: CardProps<Skill & { programCount?: nu
 }
 
 function RefCard({ data, onMouseEnter }: CardProps<Ref>) {
+  const base = `/refs/${data.id}`;
   return (
     <CardShell
-      type="refs"
-      to={`/refs/${data.id}`}
-      name={data.name}
-      onMouseEnter={onMouseEnter}
-      meta={<Meta parts={[data.type, data.manufacturer]} />}
-      chips={<CountChip type="skills" count={data.skillCount} one="skill" many="skills" to={`/refs/${data.id}#skills`} />}
+      type="refs" to={base} name={data.name} onMouseEnter={onMouseEnter}
+      meta={[data.description]}
+      tags={
+        <>
+          <AttrTag icon={Tag} value={data.type} />
+          <AttrTag icon={Building2} value={data.manufacturer} title={data.manufacturer ? `Manufacturer: ${data.manufacturer}` : undefined} />
+          <CountTag type="skills" count={data.skillCount} one="skill" many="skills" to={`${base}#skills`} />
+        </>
+      }
     />
   );
 }
 
 function SchoolCard({ data, onMouseEnter }: CardProps<School>) {
-  const location = data.state ? (
-    <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{data.state}</span>
-  ) : null;
+  const base = `/schools/${data.id}`;
   return (
     <CardShell
-      type="schools"
-      to={`/schools/${data.id}`}
-      name={data.name}
-      onMouseEnter={onMouseEnter}
-      meta={<Meta parts={[location, data.schoolType]} />}
-      chips={<CountChip type="programs" count={data.programCount} one="program" many="programs" to={`/schools/${data.id}#programs`} />}
+      type="schools" to={base} name={data.name} onMouseEnter={onMouseEnter}
+      meta={[data.description]}
+      tags={
+        <>
+          <AttrTag icon={MapPin} value={data.state} />
+          <AttrTag icon={Tag} value={data.schoolType} />
+          <CountTag type="programs" count={data.programCount} one="program" many="programs" to={`${base}#programs`} />
+        </>
+      }
     />
   );
 }
 
 function ProgramCard({ data, onMouseEnter }: CardProps<Program>) {
-  const hours = data.durationHours && data.durationHours > 0 ? (
-    <Chip icon={Clock} iconClass="text-fg-muted" value={formatCount(data.durationHours)} label="hours" />
-  ) : null;
+  const base = `/programs/${data.id}`;
   return (
     <CardShell
-      type="programs"
-      to={`/programs/${data.id}`}
-      name={data.title}
-      onMouseEnter={onMouseEnter}
-      meta={<Meta parts={[data.schoolName, data.credentialType]} />}
-      chips={
+      type="programs" to={base} name={data.title} onMouseEnter={onMouseEnter}
+      meta={[data.description]}
+      tags={
         <>
-          <CountChip type="skills" count={data.skillCount} one="skill" many="skills" to={`/programs/${data.id}#skills`} />
-          {hours}
+          <LinkTag type="schools" value={data.schoolName} to={data.schoolId ? `/schools/${data.schoolId}` : null} />
+          <AttrTag icon={Award} value={data.credentialType} />
+          <CountTag type="skills" count={data.skillCount} one="skill" many="skills" to={`${base}#skills`} />
+          {data.durationHours ? (
+            <span title={`${data.durationHours.toLocaleString()} hours`} className={cn(TAG_BASE, 'text-fg-muted')}>
+              <Clock className="h-3 w-3 text-fg-soft" />
+              <span className="font-medium tabular-nums text-fg-default">{formatCount(data.durationHours)}</span>
+              <span className="text-fg-soft">hours</span>
+            </span>
+          ) : null}
         </>
       }
     />
@@ -304,20 +288,21 @@ interface EntityCardProps {
   data: Company | FactoryType | Occupation | Skill | Ref | School | Program;
 }
 
+const FETCHERS: Record<BrowsableType, (id: string) => Promise<unknown>> = {
+  companies: companiesApi.get,
+  factories: factoriesApi.get,
+  occupations: occupationsApi.get,
+  skills: skillsApi.get,
+  refs: refsApi.get,
+  schools: schoolsApi.get,
+  programs: programsApi.get,
+};
+
 function EntityCardInner({ type, data }: EntityCardProps) {
   const queryClient = useQueryClient();
   const prefetch = useCallback(() => {
-    const fetchers: Record<BrowsableType, (id: string) => Promise<unknown>> = {
-      companies: companiesApi.get,
-      factories: factoriesApi.get,
-      occupations: occupationsApi.get,
-      skills: skillsApi.get,
-      refs: refsApi.get,
-      schools: schoolsApi.get,
-      programs: programsApi.get,
-    };
     if (type === 'persons') return;
-    queryClient.prefetchQuery({ queryKey: [type, data.id], queryFn: () => fetchers[type](data.id), staleTime: 60_000 });
+    queryClient.prefetchQuery({ queryKey: [type, data.id], queryFn: () => FETCHERS[type](data.id), staleTime: 60_000 });
   }, [queryClient, type, data.id]);
 
   switch (type) {

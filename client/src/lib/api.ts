@@ -191,6 +191,8 @@ export interface Skill {
   description: string | null;
   createdAt: string;
   occupationCount?: number;
+  programCount?: number;
+  childCount?: number;
 }
 
 // Skill tree relations
