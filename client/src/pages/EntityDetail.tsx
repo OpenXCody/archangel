@@ -1,4 +1,5 @@
-import { useParams, Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -117,8 +118,9 @@ function Section({
   count?: number;
   children: React.ReactNode;
 }) {
+  const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   return (
-    <div className="mt-8">
+    <div id={id} className="mt-8 scroll-mt-20">
       <h2 className="text-sm font-medium text-fg-soft uppercase tracking-wider mb-4 flex items-center gap-2">
         {title}
         {count !== undefined && (
@@ -699,6 +701,14 @@ export default function EntityDetail() {
     queryFn: getEntityFetcher(entityType, id!),
     enabled: !!id,
   });
+
+  // Cards deep-link to sections (#factories, #occupations, …); scroll once the data is on the page.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash || !data) return;
+    const el = document.getElementById(hash.slice(1));
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [hash, data]);
 
   const config = ENTITY_CONFIG[entityType];
   const Icon = config.icon;

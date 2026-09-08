@@ -63,6 +63,7 @@ router.get('/', async (req: Request, res: Response) => {
         createdAt: companies.createdAt,
         factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factories WHERE factories.company_id = companies.id)`,
         totalWorkforce: sql<number>`(SELECT COALESCE(SUM(workforce_size), 0)::int FROM factories WHERE factories.company_id = companies.id)`,
+        occupationCount: sql<number>`(SELECT COUNT(DISTINCT fo.occupation_id)::int FROM factory_occupations fo INNER JOIN factories f ON f.id = fo.factory_id WHERE f.company_id = companies.id)`,
       })
       .from(companies)
       .where(whereClause)

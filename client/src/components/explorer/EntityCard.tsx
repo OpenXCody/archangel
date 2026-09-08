@@ -1,651 +1,336 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, type ElementType, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Building2, Factory, Briefcase, Wrench, ChevronRight, MapPin, Users, Boxes, GraduationCap, BookOpen, Clock } from 'lucide-react';
+import {
+  Building2, Factory, Briefcase, Wrench, ChevronRight, MapPin, Users, Boxes, GraduationCap, BookOpen, Clock,
+} from 'lucide-react';
 import type { Company, Factory as FactoryType, Occupation, Skill, Ref, School, Program, EntityType } from '../../lib/api';
 import { companiesApi, factoriesApi, occupationsApi, skillsApi, refsApi, schoolsApi, programsApi } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import { cn } from '@/lib/utils';
+
+/**
+ * One card layout for every entity type — three fixed rows so a grid of
+ * mixed cards lines up and virtualized rows measure identically:
+ *
+ *   [icon] Name ........................................ ›
+ *          one line of context (industry, location, description)
+ *          [chip] [chip]   ← counts of linked entities, each a deep link
+ */
+
+type BrowsableType = Exclude<EntityType, 'persons'>;
+
+const ENTITY: Record<BrowsableType, { icon: ElementType; text: string; accent: string; hover: string }> = {
+  companies:   { icon: Building2,     text: 'text-amber-500',   accent: 'border-l-amber-500',   hover: 'hover:border-amber-500/30' },
+  factories:   { icon: Factory,       text: 'text-sky-400',     accent: 'border-l-sky-400',     hover: 'hover:border-sky-400/30' },
+  occupations: { icon: Briefcase,     text: 'text-violet-400',  accent: 'border-l-violet-400',  hover: 'hover:border-violet-400/30' },
+  skills:      { icon: Wrench,        text: 'text-emerald-500', accent: 'border-l-emerald-500', hover: 'hover:border-emerald-500/30' },
+  refs:        { icon: Boxes,         text: 'text-teal-500',    accent: 'border-l-teal-500',    hover: 'hover:border-teal-500/30' },
+  schools:     { icon: GraduationCap, text: 'text-indigo-500',  accent: 'border-l-indigo-500',  hover: 'hover:border-indigo-500/30' },
+  programs:    { icon: BookOpen,      text: 'text-fuchsia-500', accent: 'border-l-fuchsia-500', hover: 'hover:border-fuchsia-500/30' },
+};
+
+/** Industry value the bulk import stamped on nearly every company; not worth a line. */
+const GENERIC_INDUSTRY = 'manufacturing';
+
+function formatCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 10_000) return `${Math.round(n / 1000)}K`;
+  if (n >= 1_000) return `${(n / 1000).toFixed(1)}K`;
+  return String(n);
+}
+
+function plural(n: number, one: string, many: string): string {
+  return n === 1 ? one : many;
+}
+
+// ---------------------------------------------------------------------------
+// Building blocks
+// ---------------------------------------------------------------------------
+
+interface ChipProps {
+  icon: ElementType;
+  iconClass: string;
+  value: ReactNode;
+  label?: string;
+  to?: string;
+  title?: string;
+}
+
+/** Linked-entity count. Sits above the card's stretched link so it's independently clickable. */
+function Chip({ icon: Icon, iconClass, value, label, to, title }: ChipProps) {
+  const cls = cn(
+    'relative z-10 inline-flex h-7 min-w-0 max-w-full items-center gap-1.5 rounded-md border border-white/5 bg-white/[0.03] px-2 text-xs',
+    to && 'transition-colors hover:border-white/10 hover:bg-white/[0.07]',
+  );
+  const body = (
+    <>
+      <Icon className={cn('h-3 w-3 shrink-0', iconClass)} />
+      <span className="min-w-0 truncate font-medium text-fg-default tabular-nums">{value}</span>
+      {label && <span className="shrink-0 text-fg-soft">{label}</span>}
+    </>
+  );
+  return to ? (
+    <Link to={to} title={title} className={cls}>{body}</Link>
+  ) : (
+    <span title={title} className={cls}>{body}</span>
+  );
+}
+
+/** Count chip that renders nothing when there's nothing to count. */
+function CountChip({ type, count, one, many, to }: { type: BrowsableType; count?: number; one: string; many: string; to: string }) {
+  if (!count) return null;
+  return (
+    <Chip
+      icon={ENTITY[type].icon}
+      iconClass={ENTITY[type].text}
+      value={formatCount(count)}
+      label={plural(count, one, many)}
+      to={to}
+      title={`${count.toLocaleString()} ${plural(count, one, many)}`}
+    />
+  );
+}
+
+/** "A • B" with nulls dropped. */
+function Meta({ parts }: { parts: ReactNode[] }) {
+  const shown = parts.filter((p) => p !== null && p !== undefined && p !== '' && p !== false);
+  if (shown.length === 0) return null;
+  return (
+    <>
+      {shown.map((part, i) => (
+        <span key={i} className="inline-flex min-w-0 items-center gap-1">
+          {i > 0 && <span className="mx-1 text-fg-soft">•</span>}
+          <span className="truncate">{part}</span>
+        </span>
+      ))}
+    </>
+  );
+}
+
+interface ShellProps {
+  type: BrowsableType;
+  to: string;
+  name: string;
+  meta?: ReactNode;
+  chips?: ReactNode;
+  onMouseEnter?: () => void;
+}
+
+function CardShell({ type, to, name, meta, chips, onMouseEnter }: ShellProps) {
+  const cfg = ENTITY[type];
+  const Icon = cfg.icon;
+  return (
+    <article
+      onMouseEnter={onMouseEnter}
+      className={cn(
+        'group relative flex h-full min-w-0 flex-col gap-2 rounded-xl border border-l-4 border-white/10 bg-white/[0.02] p-3.5 transition-colors hover:bg-white/[0.04]',
+        cfg.accent, cfg.hover,
+      )}
+    >
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04]">
+          <Icon className={cn('h-4 w-4', cfg.text)} />
+        </span>
+        <h3 className="min-w-0 flex-1 truncate font-medium text-fg-default group-hover:text-white">
+          {/* Stretched link: the pseudo-element covers the whole card. */}
+          <Link to={to} className="after:absolute after:inset-0 after:rounded-xl after:content-[''] focus-visible:outline-none focus-visible:after:outline focus-visible:after:outline-2 focus-visible:after:outline-accent-primary">
+            {name}
+          </Link>
+        </h3>
+        <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft transition-transform group-hover:translate-x-0.5 group-hover:text-fg-muted" />
+      </div>
+
+      <div className="flex min-h-5 min-w-0 items-center overflow-hidden pl-[42px] text-xs text-fg-muted">
+        {meta}
+      </div>
+
+      <div className="flex min-h-7 min-w-0 items-center gap-1.5 overflow-hidden pl-[42px]">
+        {chips}
+      </div>
+    </article>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Per-type cards: only decide what goes in the three rows
+// ---------------------------------------------------------------------------
+
+type CardProps<T> = { data: T; onMouseEnter?: () => void };
+
+function CompanyCard({ data, onMouseEnter }: CardProps<Company>) {
+  const industry = data.industry && data.industry.trim().toLowerCase() !== GENERIC_INDUSTRY ? data.industry : null;
+  const workforce = data.totalWorkforce && data.totalWorkforce > 0 ? (
+    <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{formatCount(data.totalWorkforce)} workforce</span>
+  ) : null;
+  return (
+    <CardShell
+      type="companies"
+      to={`/companies/${data.id}`}
+      name={formatCompanyName(data.name)}
+      onMouseEnter={onMouseEnter}
+      meta={<Meta parts={[industry, workforce]} />}
+      chips={
+        <>
+          <CountChip type="factories" count={data.factoryCount} one="factory" many="factories" to={`/companies/${data.id}#factories`} />
+          <CountChip type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`/companies/${data.id}#occupations`} />
+        </>
+      }
+    />
+  );
+}
+
+function FactoryCard({ data, onMouseEnter }: CardProps<FactoryType>) {
+  const location = data.state ? (
+    <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{data.state}</span>
+  ) : null;
+  return (
+    <CardShell
+      type="factories"
+      to={`/factories/${data.id}`}
+      name={formatFactoryName(data.name)}
+      onMouseEnter={onMouseEnter}
+      meta={<Meta parts={[location, data.specialization]} />}
+      chips={
+        <>
+          {data.companyId && data.companyName && (
+            <Chip
+              icon={ENTITY.companies.icon}
+              iconClass={ENTITY.companies.text}
+              value={formatCompanyName(data.companyName)}
+              to={`/companies/${data.companyId}`}
+              title={`Company: ${data.companyName}`}
+            />
+          )}
+          <CountChip type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`/factories/${data.id}#occupations`} />
+        </>
+      }
+    />
+  );
+}
+
+function OccupationCard({ data, onMouseEnter }: CardProps<Occupation>) {
+  return (
+    <CardShell
+      type="occupations"
+      to={`/occupations/${data.id}`}
+      name={data.title}
+      onMouseEnter={onMouseEnter}
+      meta={<Meta parts={[data.description]} />}
+      chips={
+        <>
+          <CountChip type="skills" count={data.skillCount} one="skill" many="skills" to={`/occupations/${data.id}#skills`} />
+          <CountChip type="factories" count={data.factoryCount} one="factory" many="factories" to={`/occupations/${data.id}#factories`} />
+        </>
+      }
+    />
+  );
+}
+
+function SkillCard({ data, onMouseEnter }: CardProps<Skill & { programCount?: number }>) {
+  return (
+    <CardShell
+      type="skills"
+      to={`/skills/${data.id}`}
+      name={data.name}
+      onMouseEnter={onMouseEnter}
+      meta={<Meta parts={[data.category, data.description]} />}
+      chips={
+        <>
+          <CountChip type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`/skills/${data.id}#occupations`} />
+          <CountChip type="programs" count={data.programCount} one="program" many="programs" to={`/skills/${data.id}#programs`} />
+        </>
+      }
+    />
+  );
+}
+
+function RefCard({ data, onMouseEnter }: CardProps<Ref>) {
+  return (
+    <CardShell
+      type="refs"
+      to={`/refs/${data.id}`}
+      name={data.name}
+      onMouseEnter={onMouseEnter}
+      meta={<Meta parts={[data.type, data.manufacturer]} />}
+      chips={<CountChip type="skills" count={data.skillCount} one="skill" many="skills" to={`/refs/${data.id}#skills`} />}
+    />
+  );
+}
+
+function SchoolCard({ data, onMouseEnter }: CardProps<School>) {
+  const location = data.state ? (
+    <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{data.state}</span>
+  ) : null;
+  return (
+    <CardShell
+      type="schools"
+      to={`/schools/${data.id}`}
+      name={data.name}
+      onMouseEnter={onMouseEnter}
+      meta={<Meta parts={[location, data.schoolType]} />}
+      chips={<CountChip type="programs" count={data.programCount} one="program" many="programs" to={`/schools/${data.id}#programs`} />}
+    />
+  );
+}
+
+function ProgramCard({ data, onMouseEnter }: CardProps<Program>) {
+  const hours = data.durationHours && data.durationHours > 0 ? (
+    <Chip icon={Clock} iconClass="text-fg-muted" value={formatCount(data.durationHours)} label="hours" />
+  ) : null;
+  return (
+    <CardShell
+      type="programs"
+      to={`/programs/${data.id}`}
+      name={data.title}
+      onMouseEnter={onMouseEnter}
+      meta={<Meta parts={[data.schoolName, data.credentialType]} />}
+      chips={
+        <>
+          <CountChip type="skills" count={data.skillCount} one="skill" many="skills" to={`/programs/${data.id}#skills`} />
+          {hours}
+        </>
+      }
+    />
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Dispatcher + hover prefetch (detail pages use queryKey [type, id])
+// ---------------------------------------------------------------------------
 
 interface EntityCardProps {
   type: EntityType;
   data: Company | FactoryType | Occupation | Skill | Ref | School | Program;
 }
 
-const ENTITY_CONFIG: Record<
-  Exclude<EntityType, 'persons'>,
-  {
-    icon: React.ElementType;
-    iconClass: string;
-    hoverBorder: string;
-    borderAccent: string;
-  }
-> = {
-  companies: {
-    icon: Building2,
-    iconClass: 'text-amber-500',
-    hoverBorder: 'hover:border-amber-500/30',
-    borderAccent: 'border-l-4 border-l-amber-500',
-  },
-  factories: {
-    icon: Factory,
-    iconClass: 'text-sky-400',
-    hoverBorder: 'hover:border-sky-400/30',
-    borderAccent: 'border-l-4 border-l-sky-400',
-  },
-  occupations: {
-    icon: Briefcase,
-    iconClass: 'text-violet-400',
-    hoverBorder: 'hover:border-violet-400/30',
-    borderAccent: 'border-l-4 border-l-violet-400',
-  },
-  skills: {
-    icon: Wrench,
-    iconClass: 'text-emerald-500',
-    hoverBorder: 'hover:border-emerald-500/30',
-    borderAccent: 'border-l-4 border-l-emerald-500',
-  },
-  refs: {
-    icon: Boxes,
-    iconClass: 'text-teal-500',
-    hoverBorder: 'hover:border-teal-500/30',
-    borderAccent: 'border-l-4 border-l-teal-500',
-  },
-  schools: {
-    icon: GraduationCap,
-    iconClass: 'text-indigo-500',
-    hoverBorder: 'hover:border-indigo-500/30',
-    borderAccent: 'border-l-4 border-l-indigo-500',
-  },
-  programs: {
-    icon: BookOpen,
-    iconClass: 'text-fuchsia-500',
-    hoverBorder: 'hover:border-fuchsia-500/30',
-    borderAccent: 'border-l-4 border-l-fuchsia-500',
-  },
-};
-
-// Compact stat pill component
-function StatPill({
-  icon: Icon,
-  value,
-  label,
-  colorClass
-}: {
-  icon: React.ElementType;
-  value: number | string;
-  label: string;
-  colorClass: string;
-}) {
-  return (
-    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.03] border border-white/5`}>
-      <Icon className={`w-3 h-3 ${colorClass}`} />
-      <span className="text-xs text-fg-default font-medium">{value}</span>
-      <span className="text-xs text-fg-soft">{label}</span>
-    </div>
-  );
-}
-
-// Format large numbers compactly
-function formatNumber(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
-  return n.toString();
-}
-
-// Shared card props
-interface CardProps {
-  onMouseEnter?: () => void;
-}
-
-// Company Card - cleaner design with stats at bottom
-function CompanyCard({ data, onMouseEnter }: { data: Company } & CardProps) {
-  const Icon = ENTITY_CONFIG.companies.icon;
-
-  return (
-    <Link
-      to={`/companies/${data.id}`}
-      onMouseEnter={onMouseEnter}
-      className={`
-        group block p-4 min-w-0
-        bg-white/[0.02]
-        border border-white/10 rounded-xl
-        hover:bg-white/[0.04]
-        ${ENTITY_CONFIG.companies.hoverBorder}
-        ${ENTITY_CONFIG.companies.borderAccent}
-        transition-all duration-200
-      `}
-    >
-      {/* Header: Icon + Name */}
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="p-1.5 rounded-lg bg-amber-500/10 flex-shrink-0">
-            <Icon className="w-4 h-4 text-amber-500" />
-          </div>
-          <h3 className="font-medium text-fg-default truncate group-hover:text-white">
-            {formatCompanyName(data.name)}
-          </h3>
-        </div>
-        <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0 mt-1" />
-      </div>
-
-      {/* Industry */}
-      {data.industry && (
-        <p className="text-xs text-fg-muted mb-2 ml-9">{data.industry}</p>
-      )}
-
-      {/* Description - truncated */}
-      {data.description && (
-        <p className="text-sm text-fg-soft line-clamp-2 mb-3">{data.description}</p>
-      )}
-
-      {/* Stats row */}
-      <div className="flex flex-wrap gap-2">
-        {data.factoryCount !== undefined && data.factoryCount > 0 && (
-          <StatPill
-            icon={Factory}
-            value={data.factoryCount}
-            label={data.factoryCount === 1 ? 'factory' : 'factories'}
-            colorClass="text-sky-400"
-          />
-        )}
-        {data.totalWorkforce !== undefined && data.totalWorkforce > 0 && (
-          <StatPill
-            icon={Users}
-            value={formatNumber(data.totalWorkforce)}
-            label="employees"
-            colorClass="text-fg-muted"
-          />
-        )}
-      </div>
-    </Link>
-  );
-}
-
-// Factory Card
-function FactoryCard({ data, onMouseEnter }: { data: FactoryType } & CardProps) {
-  const Icon = ENTITY_CONFIG.factories.icon;
-
-  return (
-    <Link
-      to={`/factories/${data.id}`}
-      onMouseEnter={onMouseEnter}
-      className={`
-        group block p-4 min-w-0
-        bg-white/[0.02]
-        border border-white/10 rounded-xl
-        hover:bg-white/[0.04]
-        ${ENTITY_CONFIG.factories.hoverBorder}
-        ${ENTITY_CONFIG.factories.borderAccent}
-        transition-all duration-200
-      `}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="p-1.5 rounded-lg bg-sky-400/10 flex-shrink-0">
-            <Icon className="w-4 h-4 text-sky-400" />
-          </div>
-          <h3 className="font-medium text-fg-default truncate group-hover:text-white">
-            {formatFactoryName(data.name)}
-          </h3>
-        </div>
-        <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0 mt-1" />
-      </div>
-
-      {/* Location + Company */}
-      <div className="flex items-center gap-2 text-xs text-fg-muted mb-2 ml-9">
-        {data.state && (
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3 h-3" />
-            {data.state}
-          </span>
-        )}
-        {data.state && data.companyName && <span className="text-fg-soft">•</span>}
-        {data.companyName && (
-          <span className="truncate">{data.companyName}</span>
-        )}
-      </div>
-
-      {/* Specialization */}
-      {data.specialization && (
-        <p className="text-sm text-fg-soft line-clamp-2 mb-3">{data.specialization}</p>
-      )}
-
-      {/* Stats */}
-      <div className="flex flex-wrap gap-2">
-        {data.workforceSize != null && data.workforceSize > 0 && (
-          <StatPill
-            icon={Users}
-            value={formatNumber(data.workforceSize)}
-            label="employees"
-            colorClass="text-fg-muted"
-          />
-        )}
-        {data.occupationCount !== undefined && data.occupationCount > 0 && (
-          <StatPill
-            icon={Briefcase}
-            value={data.occupationCount}
-            label="roles"
-            colorClass="text-violet-400"
-          />
-        )}
-      </div>
-    </Link>
-  );
-}
-
-// Occupation Card
-function OccupationCard({ data, onMouseEnter }: { data: Occupation } & CardProps) {
-  const Icon = ENTITY_CONFIG.occupations.icon;
-
-  return (
-    <Link
-      to={`/occupations/${data.id}`}
-      onMouseEnter={onMouseEnter}
-      className={`
-        group block p-4 min-w-0
-        bg-white/[0.02]
-        border border-white/10 rounded-xl
-        hover:bg-white/[0.04]
-        ${ENTITY_CONFIG.occupations.hoverBorder}
-        ${ENTITY_CONFIG.occupations.borderAccent}
-        transition-all duration-200
-      `}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="p-1.5 rounded-lg bg-violet-400/10 flex-shrink-0">
-            <Icon className="w-4 h-4 text-violet-400" />
-          </div>
-          <h3 className="font-medium text-fg-default truncate group-hover:text-white">
-            {data.title}
-          </h3>
-        </div>
-        <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0 mt-1" />
-      </div>
-
-      {/* O*NET Code */}
-      {data.onetCode && (
-        <p className="text-xs text-fg-soft font-mono mb-2 ml-9">O*NET: {data.onetCode}</p>
-      )}
-
-      {/* Description */}
-      {data.description && (
-        <p className="text-sm text-fg-soft line-clamp-2 mb-3">{data.description}</p>
-      )}
-
-      {/* Stats */}
-      <div className="flex flex-wrap gap-2">
-        {data.skillCount !== undefined && data.skillCount > 0 && (
-          <StatPill
-            icon={Wrench}
-            value={data.skillCount}
-            label="skills"
-            colorClass="text-emerald-500"
-          />
-        )}
-        {data.factoryCount !== undefined && data.factoryCount > 0 && (
-          <StatPill
-            icon={Factory}
-            value={data.factoryCount}
-            label="factories"
-            colorClass="text-sky-400"
-          />
-        )}
-      </div>
-    </Link>
-  );
-}
-
-// Skill Card
-function SkillCard({ data, onMouseEnter }: { data: Skill } & CardProps) {
-  const Icon = ENTITY_CONFIG.skills.icon;
-
-  return (
-    <Link
-      to={`/skills/${data.id}`}
-      onMouseEnter={onMouseEnter}
-      className={`
-        group block p-4 min-w-0
-        bg-white/[0.02]
-        border border-white/10 rounded-xl
-        hover:bg-white/[0.04]
-        ${ENTITY_CONFIG.skills.hoverBorder}
-        ${ENTITY_CONFIG.skills.borderAccent}
-        transition-all duration-200
-      `}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="p-1.5 rounded-lg bg-emerald-500/10 flex-shrink-0">
-            <Icon className="w-4 h-4 text-emerald-500" />
-          </div>
-          <h3 className="font-medium text-fg-default truncate group-hover:text-white">
-            {data.name}
-          </h3>
-        </div>
-        <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0 mt-1" />
-      </div>
-
-      {/* Category */}
-      {data.category && (
-        <p className="text-xs text-fg-muted mb-2 ml-9">{data.category}</p>
-      )}
-
-      {/* Description */}
-      {data.description && (
-        <p className="text-sm text-fg-soft line-clamp-2 mb-3">{data.description}</p>
-      )}
-
-      {/* Stats */}
-      <div className="flex flex-wrap gap-2">
-        {data.occupationCount !== undefined && data.occupationCount > 0 && (
-          <StatPill
-            icon={Briefcase}
-            value={data.occupationCount}
-            label="occupations"
-            colorClass="text-violet-400"
-          />
-        )}
-      </div>
-    </Link>
-  );
-}
-
-// Ref Card (Elements: materials, machines, standards, processes, certifications)
-function RefCard({ data, onMouseEnter }: { data: Ref } & CardProps) {
-  const Icon = ENTITY_CONFIG.refs.icon;
-
-  // Format ref type for display
-  const typeLabel = data.type.charAt(0).toUpperCase() + data.type.slice(1);
-
-  return (
-    <Link
-      to={`/refs/${data.id}`}
-      onMouseEnter={onMouseEnter}
-      className={`
-        group block p-4 min-w-0
-        bg-white/[0.02]
-        border border-white/10 rounded-xl
-        hover:bg-white/[0.04]
-        ${ENTITY_CONFIG.refs.hoverBorder}
-        ${ENTITY_CONFIG.refs.borderAccent}
-        transition-all duration-200
-      `}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="p-1.5 rounded-lg bg-teal-500/10 flex-shrink-0">
-            <Icon className="w-4 h-4 text-teal-500" />
-          </div>
-          <h3 className="font-medium text-fg-default truncate group-hover:text-white">
-            {data.name}
-          </h3>
-        </div>
-        <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0 mt-1" />
-      </div>
-
-      {/* Type badge + Manufacturer */}
-      <div className="flex items-center gap-2 text-xs text-fg-muted mb-2 ml-9">
-        <span className="px-1.5 py-0.5 bg-teal-500/10 text-teal-400 rounded text-[10px] uppercase font-medium">
-          {typeLabel}
-        </span>
-        {data.manufacturer && (
-          <>
-            <span className="text-fg-soft">•</span>
-            <span className="truncate">{data.manufacturer}</span>
-          </>
-        )}
-      </div>
-
-      {/* Description */}
-      {data.description && (
-        <p className="text-sm text-fg-soft line-clamp-2 mb-3">{data.description}</p>
-      )}
-
-      {/* Stats */}
-      <div className="flex flex-wrap gap-2">
-        {data.skillCount !== undefined && data.skillCount > 0 && (
-          <StatPill
-            icon={Wrench}
-            value={data.skillCount}
-            label="skills"
-            colorClass="text-emerald-500"
-          />
-        )}
-      </div>
-    </Link>
-  );
-}
-
-// School Card
-function SchoolCard({ data, onMouseEnter }: { data: School } & CardProps) {
-  const Icon = ENTITY_CONFIG.schools.icon;
-
-  return (
-    <Link
-      to={`/schools/${data.id}`}
-      onMouseEnter={onMouseEnter}
-      className={`
-        group block p-4 min-w-0
-        bg-white/[0.02]
-        border border-white/10 rounded-xl
-        hover:bg-white/[0.04]
-        ${ENTITY_CONFIG.schools.hoverBorder}
-        ${ENTITY_CONFIG.schools.borderAccent}
-        transition-all duration-200
-      `}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="p-1.5 rounded-lg bg-indigo-500/10 flex-shrink-0">
-            <Icon className="w-4 h-4 text-indigo-500" />
-          </div>
-          <h3 className="font-medium text-fg-default truncate group-hover:text-white">
-            {data.name}
-          </h3>
-        </div>
-        <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0 mt-1" />
-      </div>
-
-      {/* Location + Type */}
-      <div className="flex items-center gap-2 text-xs text-fg-muted mb-2 ml-9">
-        {data.state && (
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3 h-3" />
-            {data.state}
-          </span>
-        )}
-        {data.state && data.schoolType && <span className="text-fg-soft">•</span>}
-        {data.schoolType && (
-          <span className="truncate">{data.schoolType}</span>
-        )}
-      </div>
-
-      {/* Description */}
-      {data.description && (
-        <p className="text-sm text-fg-soft line-clamp-2 mb-3">{data.description}</p>
-      )}
-
-      {/* Stats */}
-      <div className="flex flex-wrap gap-2">
-        {data.programCount !== undefined && data.programCount > 0 && (
-          <StatPill
-            icon={BookOpen}
-            value={data.programCount}
-            label="programs"
-            colorClass="text-fuchsia-500"
-          />
-        )}
-      </div>
-    </Link>
-  );
-}
-
-// Program Card
-function ProgramCard({ data, onMouseEnter }: { data: Program } & CardProps) {
-  const Icon = ENTITY_CONFIG.programs.icon;
-
-  return (
-    <Link
-      to={`/programs/${data.id}`}
-      onMouseEnter={onMouseEnter}
-      className={`
-        group block p-4 min-w-0
-        bg-white/[0.02]
-        border border-white/10 rounded-xl
-        hover:bg-white/[0.04]
-        ${ENTITY_CONFIG.programs.hoverBorder}
-        ${ENTITY_CONFIG.programs.borderAccent}
-        transition-all duration-200
-      `}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="p-1.5 rounded-lg bg-fuchsia-500/10 flex-shrink-0">
-            <Icon className="w-4 h-4 text-fuchsia-500" />
-          </div>
-          <h3 className="font-medium text-fg-default truncate group-hover:text-white">
-            {data.title}
-          </h3>
-        </div>
-        <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0 mt-1" />
-      </div>
-
-      {/* School + Credential */}
-      <div className="flex items-center gap-2 text-xs text-fg-muted mb-2 ml-9">
-        {data.schoolName && (
-          <span className="truncate">{data.schoolName}</span>
-        )}
-        {data.schoolName && data.credentialType && <span className="text-fg-soft">•</span>}
-        {data.credentialType && (
-          <span className="px-1.5 py-0.5 bg-fuchsia-500/10 text-fuchsia-400 rounded text-[10px] uppercase font-medium">
-            {data.credentialType}
-          </span>
-        )}
-      </div>
-
-      {/* Description */}
-      {data.description && (
-        <p className="text-sm text-fg-soft line-clamp-2 mb-3">{data.description}</p>
-      )}
-
-      {/* Stats */}
-      <div className="flex flex-wrap gap-2">
-        {data.durationHours != null && data.durationHours > 0 && (
-          <StatPill
-            icon={Clock}
-            value={data.durationHours}
-            label="hours"
-            colorClass="text-fg-muted"
-          />
-        )}
-        {data.skillCount !== undefined && data.skillCount > 0 && (
-          <StatPill
-            icon={Wrench}
-            value={data.skillCount}
-            label="skills"
-            colorClass="text-emerald-500"
-          />
-        )}
-      </div>
-    </Link>
-  );
-}
-
-// Main EntityCard - routes to appropriate card type with prefetch on hover
 function EntityCardInner({ type, data }: EntityCardProps) {
   const queryClient = useQueryClient();
-
-  // Prefetch entity detail on hover for instant navigation
-  // Query keys must match EntityDetail.tsx: [entityType, id] where entityType is plural
-  const handleMouseEnter = useCallback(() => {
-    const id = data.id;
-
-    // Use switch for proper TypeScript type inference
-    switch (type) {
-      case 'companies':
-        queryClient.prefetchQuery({
-          queryKey: ['companies', id],
-          queryFn: () => companiesApi.get(id),
-          staleTime: 60000,
-        });
-        break;
-      case 'factories':
-        queryClient.prefetchQuery({
-          queryKey: ['factories', id],
-          queryFn: () => factoriesApi.get(id),
-          staleTime: 60000,
-        });
-        break;
-      case 'occupations':
-        queryClient.prefetchQuery({
-          queryKey: ['occupations', id],
-          queryFn: () => occupationsApi.get(id),
-          staleTime: 60000,
-        });
-        break;
-      case 'skills':
-        queryClient.prefetchQuery({
-          queryKey: ['skills', id],
-          queryFn: () => skillsApi.get(id),
-          staleTime: 60000,
-        });
-        break;
-      case 'refs':
-        queryClient.prefetchQuery({
-          queryKey: ['refs', id],
-          queryFn: () => refsApi.get(id),
-          staleTime: 60000,
-        });
-        break;
-      case 'schools':
-        queryClient.prefetchQuery({
-          queryKey: ['schools', id],
-          queryFn: () => schoolsApi.get(id),
-          staleTime: 60000,
-        });
-        break;
-      case 'programs':
-        queryClient.prefetchQuery({
-          queryKey: ['programs', id],
-          queryFn: () => programsApi.get(id),
-          staleTime: 60000,
-        });
-        break;
-    }
+  const prefetch = useCallback(() => {
+    const fetchers: Record<BrowsableType, (id: string) => Promise<unknown>> = {
+      companies: companiesApi.get,
+      factories: factoriesApi.get,
+      occupations: occupationsApi.get,
+      skills: skillsApi.get,
+      refs: refsApi.get,
+      schools: schoolsApi.get,
+      programs: programsApi.get,
+    };
+    if (type === 'persons') return;
+    queryClient.prefetchQuery({ queryKey: [type, data.id], queryFn: () => fetchers[type](data.id), staleTime: 60_000 });
   }, [queryClient, type, data.id]);
 
-  const cardProps = { onMouseEnter: handleMouseEnter };
-
   switch (type) {
-    case 'companies':
-      return <CompanyCard data={data as Company} {...cardProps} />;
-    case 'factories':
-      return <FactoryCard data={data as FactoryType} {...cardProps} />;
-    case 'occupations':
-      return <OccupationCard data={data as Occupation} {...cardProps} />;
-    case 'skills':
-      return <SkillCard data={data as Skill} {...cardProps} />;
-    case 'refs':
-      return <RefCard data={data as Ref} {...cardProps} />;
-    case 'schools':
-      return <SchoolCard data={data as School} {...cardProps} />;
-    case 'programs':
-      return <ProgramCard data={data as Program} {...cardProps} />;
-    default:
-      return null;
+    case 'companies':   return <CompanyCard data={data as Company} onMouseEnter={prefetch} />;
+    case 'factories':   return <FactoryCard data={data as FactoryType} onMouseEnter={prefetch} />;
+    case 'occupations': return <OccupationCard data={data as Occupation} onMouseEnter={prefetch} />;
+    case 'skills':      return <SkillCard data={data as Skill} onMouseEnter={prefetch} />;
+    case 'refs':        return <RefCard data={data as Ref} onMouseEnter={prefetch} />;
+    case 'schools':     return <SchoolCard data={data as School} onMouseEnter={prefetch} />;
+    case 'programs':    return <ProgramCard data={data as Program} onMouseEnter={prefetch} />;
+    default:            return null;
   }
 }
 
-// Memoized export - only re-renders when type or data.id changes
-const EntityCard = memo(EntityCardInner, (prev, next) =>
-  prev.type === next.type && prev.data.id === next.data.id
-);
-
+const EntityCard = memo(EntityCardInner);
 export default EntityCard;

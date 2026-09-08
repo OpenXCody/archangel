@@ -137,6 +137,7 @@ export interface Company {
   createdAt: string;
   factoryCount?: number;
   totalWorkforce?: number;
+  occupationCount?: number;
 }
 
 // Company with relations
