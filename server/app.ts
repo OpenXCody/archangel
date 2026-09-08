@@ -13,6 +13,7 @@ import schoolsRouter from './routes/schools';
 import programsRouter from './routes/programs';
 import personsRouter from './routes/persons';
 import { requireAdmin, requireAdminForWrites, adminAuthRequired, isAuthorizedAdmin } from './middleware/adminAuth';
+import { publicCache } from './middleware/cache';
 
 /**
  * The one Express app. `server/index.ts` listens on it for local dev;
@@ -35,20 +36,25 @@ app.get('/api/import/status', (req: Request, res: Response) => {
   res.json({ authRequired: adminAuthRequired(), authorized: isAuthorizedAdmin(req) });
 });
 
+// Edge caching. The two heaviest map payloads get 5 minutes; everything else
+// public gets 1 minute. Admin writes are never cached (GET-only middleware).
+app.get('/api/factories/geojson', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
+app.get('/api/map/state-counts', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
+
 // Public reads, admin-gated writes
-app.use('/api/companies', requireAdminForWrites, companiesRouter);
-app.use('/api/factories', requireAdminForWrites, factoriesRouter);
-app.use('/api/occupations', requireAdminForWrites, occupationsRouter);
-app.use('/api/skills', requireAdminForWrites, skillsRouter);
-app.use('/api/refs', requireAdminForWrites, refsRouter);
-app.use('/api/schools', requireAdminForWrites, schoolsRouter);
-app.use('/api/programs', requireAdminForWrites, programsRouter);
-app.use('/api/persons', requireAdminForWrites, personsRouter);
+app.use('/api/companies', publicCache(60), requireAdminForWrites, companiesRouter);
+app.use('/api/factories', publicCache(60), requireAdminForWrites, factoriesRouter);
+app.use('/api/occupations', publicCache(60), requireAdminForWrites, occupationsRouter);
+app.use('/api/skills', publicCache(60), requireAdminForWrites, skillsRouter);
+app.use('/api/refs', publicCache(60), requireAdminForWrites, refsRouter);
+app.use('/api/schools', publicCache(60), requireAdminForWrites, schoolsRouter);
+app.use('/api/programs', publicCache(60), requireAdminForWrites, programsRouter);
+app.use('/api/persons', publicCache(60), requireAdminForWrites, personsRouter);
 
 // Read-only
-app.use('/api/stats', statsRouter);
-app.use('/api/search', searchRouter);
-app.use('/api/map', mapRouter);
+app.use('/api/stats', publicCache(60), statsRouter);
+app.use('/api/search', publicCache(60), searchRouter);
+app.use('/api/map', publicCache(60), mapRouter);
 
 // Admin-only pipeline
 app.use('/api/import', requireAdmin, importRouter);
