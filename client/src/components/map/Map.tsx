@@ -7,8 +7,9 @@ import { useMapStore } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
 import { Loader2, Maximize2 } from 'lucide-react';
 
-// MapTiler style base URL - key added at runtime for retry support
-const MAPTILER_STYLE_BASE = 'https://api.maptiler.com/maps/dataviz-dark/style.json';
+// MapTiler style URL with key
+const getMapTilerStyleUrl = () => 
+  `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${import.meta.env.VITE_MAP_TOKEN || ''}`;
 
 // Custom darker style overrides applied after map loads
 const DARK_STYLE_OVERRIDES = {
@@ -20,8 +21,14 @@ const DARK_STYLE_OVERRIDES = {
 
 const INITIAL_VIEW = {
   center: [-98.5, 39.8] as [number, number],
-  zoom: 4,
+  zoom: 3.2, // Sprint 1+4a: Lower initial zoom for full USA view on mobile ~390px
 };
+
+// Sprint 1+4a: Continental USA bounds for fitBounds on mobile
+const CONTINENTAL_USA_BOUNDS: [[number, number], [number, number]] = [
+  [-125, 24], // Southwest (includes full West coast CA/WA/OR)
+  [-66, 50]   // Northeast (includes Maine)
+];
 
 // US States GeoJSON from GitHub (reliable CDN)
 const STATES_GEOJSON_URL = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
@@ -186,8 +193,7 @@ export default function Map() {
     const maxRetries = 3;
 
     const initMap = () => {
-      // Get key fresh each attempt
-      const styleUrl = `${MAPTILER_STYLE_BASE}?key=${import.meta.env.VITE_MAP_TOKEN || ''}`;
+      const styleUrl = getMapTilerStyleUrl();
 
       try {
         map.current = new maplibregl.Map({
@@ -195,10 +201,15 @@ export default function Map() {
           style: styleUrl,
           center: INITIAL_VIEW.center,
           zoom: INITIAL_VIEW.zoom,
-          minZoom: 3,
+          minZoom: 2.5, // Sprint 1+4a: Lower minZoom for full USA view on narrow mobile (390px)
           maxZoom: 18,
           attributionControl: false,
           renderWorldCopies: false,
+          // Sprint 1+4a: Permissive bounds to allow full USA framing on mobile
+          maxBounds: [
+            [-180, 15], // Southwest - extended for mobile viewport
+            [-50, 72]   // Northeast
+          ],
         });
       } catch (err) {
         console.error('Failed to create map:', err);
@@ -238,8 +249,19 @@ export default function Map() {
       // resize() alone recalculates canvas size but doesn't fix the center.
       // Without this explicit recenter, the viewport can drift (Pacific bug).
       currentMap.resize();
-      currentMap.setCenter(INITIAL_VIEW.center);
-      currentMap.setZoom(INITIAL_VIEW.zoom);
+      
+      // Sprint 1+4a: On mobile (~390px), use fitBounds to ensure full continental USA
+      // with West coast (CA/WA/OR) is visible at max zoom-out
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        currentMap.fitBounds(CONTINENTAL_USA_BOUNDS, {
+          padding: { top: 20, bottom: 20, left: 20, right: 20 },
+          duration: 0, // No animation on initial load
+        });
+      } else {
+        currentMap.setCenter(INITIAL_VIEW.center);
+        currentMap.setZoom(INITIAL_VIEW.zoom);
+      }
 
       setMapLoaded(true);
 
@@ -401,6 +423,7 @@ export default function Map() {
       // Overlapping halos in dense regions softly bloom without hard edges.
       // Design spec: z3-5 blur 4-6 opacity 0.12-0.18, z6-8 blur 6-8 opacity 0.18-0.22, z≥9 blur 8-10 opacity 0.22-0.28
       // Selected/hover: +0.08 opacity
+      // Sprint 1+4a: Reduce radius 50-60% at continental zoom (z2.8-3.5) to prevent dense white-out
       currentMap.addLayer({
         id: 'factory-points-glow',
         type: 'circle',
@@ -409,7 +432,8 @@ export default function Map() {
           'circle-color': '#ffffff',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 4],
+            2.8, ['case', ['boolean', ['feature-state', 'selected'], false], 3, ['boolean', ['feature-state', 'hover'], false], 2.5, 2],
+            3.5, ['case', ['boolean', ['feature-state', 'selected'], false], 4, ['boolean', ['feature-state', 'hover'], false], 3.5, 3],
             5, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 9, ['boolean', ['feature-state', 'hover'], false], 8, 7],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 10, ['boolean', ['feature-state', 'hover'], false], 9, 8],
@@ -437,6 +461,7 @@ export default function Map() {
       // Pin cores — white dots visible at all zoom levels per design spec.
       // Design spec: z3-5 diameter 3-4px opacity 0.55-0.65, z6-8 diameter 5-6px opacity 0.75-0.85, z≥9 diameter 7-8px max opacity 0.90-0.95
       // Selected/hover: +1-2px core, opacity 1.0
+      // Sprint 1+4a: Reduce radius 50-60% at continental zoom (z2.8-3.5) to prevent dense white-out
       currentMap.addLayer({
         id: 'factory-points',
         type: 'circle',
@@ -445,7 +470,8 @@ export default function Map() {
           'circle-color': '#ffffff',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4, 3],
+            2.8, ['case', ['boolean', ['feature-state', 'selected'], false], 2.5, ['boolean', ['feature-state', 'hover'], false], 2, 1.5],
+            3.5, ['case', ['boolean', ['feature-state', 'selected'], false], 3.5, ['boolean', ['feature-state', 'hover'], false], 3, 2.5],
             5, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 4],
             6, ['case', ['boolean', ['feature-state', 'selected'], false], 7, ['boolean', ['feature-state', 'hover'], false], 6, 5],
             8, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
@@ -490,8 +516,8 @@ export default function Map() {
 
       // === EVENT HANDLERS ===
 
-      // Factory marker click — dots are now visible and clickable at all zoom levels
-      currentMap.on('click', 'factory-points', (e) => {
+      // Factory marker click handler — shared by visual dots and invisible tap targets
+      const handleFactoryClick = (e: maplibregl.MapLayerMouseEvent) => {
         if (!e.features?.[0]) return;
         const factoryId = e.features[0].id;
         if (typeof factoryId === 'string') {
@@ -513,10 +539,13 @@ export default function Map() {
             });
           }
         }
-      });
+      };
 
-      // Hover on factory markers — dots are now interactive at all zoom levels
-      currentMap.on('mouseenter', 'factory-points', (e) => {
+      // Factory marker click — dots are now visible and clickable at all zoom levels
+      currentMap.on('click', 'factory-points', handleFactoryClick);
+
+      // Hover on factory markers — both visual dots and tap targets
+      const handleFactoryMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
         currentMap.getCanvas().style.cursor = 'pointer';
         const id = e.features?.[0]?.id;
         if (typeof id === 'string') {
@@ -528,9 +557,9 @@ export default function Map() {
             { hover: true }
           );
         }
-      });
+      };
 
-      currentMap.on('mouseleave', 'factory-points', () => {
+      const handleFactoryMouseLeave = () => {
         currentMap.getCanvas().style.cursor = '';
         if (hoveredFactoryIdRef.current) {
           currentMap.setFeatureState(
@@ -540,7 +569,11 @@ export default function Map() {
           hoveredFactoryIdRef.current = null;
           setHoveredFactoryRef.current(null);
         }
-      });
+      };
+
+      // Hover on factory markers — dots are now interactive at all zoom levels
+      currentMap.on('mouseenter', 'factory-points', handleFactoryMouseEnter);
+      currentMap.on('mouseleave', 'factory-points', handleFactoryMouseLeave);
 
       // Map click (for closing panel)
       currentMap.on('click', handleMapClickRef.current);
@@ -551,10 +584,11 @@ export default function Map() {
       let hoveredStateCode: string | null = null;
       currentMap.on('click', 'state-fills', (e) => {
         if (!e.features?.[0]) return;
-        // Only cede priority to pin clicks when pins are actually visible
-        // (zoom >= 8, OR a company filter is active and they're forced on).
-        if (currentMap.getZoom() >= 8 || pinsAlwaysVisibleRef.current) {
-          const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
+        // #5: Zoomed-in state doesn't steal dot taps - check for pin clicks first at zoom >= 6
+        if (currentMap.getZoom() >= 6) {
+          const pinHit = currentMap.queryRenderedFeatures(e.point, { 
+            layers: ['factory-points', 'factory-points-glow'] 
+          });
           if (pinHit.length > 0) return;
         }
         const code = e.features[0].properties?.stateCode as string | undefined;

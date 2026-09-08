@@ -766,11 +766,16 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
         flex flex-col
         overflow-hidden
       `}
+      style={isMobile ? {
+        paddingLeft: 'max(0.75rem, env(safe-area-inset-left))',
+        paddingRight: 'max(0.75rem, env(safe-area-inset-right))',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      } : undefined}
       role="complementary"
       aria-label={`${config?.label || 'Entity'} details`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-border-subtle">
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-border-subtle flex-shrink-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
           {canGoBack() && (
             <button
@@ -790,19 +795,21 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
           </span>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Reset view button */}
-          <button
-            onClick={() => {
-              clearFilters();
-              resetView();
-              setSidebarOpen(false);
-            }}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
-            aria-label="Reset to US map view"
-            title="Reset to US map"
-          >
-            <Home className="w-4 h-4" />
-          </button>
+          {/* #3: Home control removed from mobile sheet - only show on desktop */}
+          {!isMobile && (
+            <button
+              onClick={() => {
+                clearFilters();
+                resetView();
+                setSidebarOpen(false);
+              }}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
+              aria-label="Reset to US map view"
+              title="Reset to US map"
+            >
+              <Home className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={() => setSidebarOpen(false)}
             className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
@@ -814,8 +821,15 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-3 md:p-4">
+      {/* Content - #6: Independent scroll, no overscroll propagation */}
+      <div 
+        className="flex-1 overflow-y-auto p-3 md:p-4"
+        style={{ 
+          overscrollBehavior: 'contain',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y'
+        }}
+      >
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-6 h-6 text-fg-muted animate-spin" />
