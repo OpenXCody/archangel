@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import * as schema from './schema';
+import * as schema from './schema.js';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -26,7 +26,7 @@ export const db = drizzle(client, { schema });
 export const hasDatabaseUrl = Boolean(connectionString);
 
 // Export schema for use in other files
-export * from './schema';
+export * from './schema.js';
 
 // Export types inferred from schema
 export type Database = typeof db;

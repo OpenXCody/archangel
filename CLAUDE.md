@@ -93,6 +93,7 @@ archangel/
 - New pages compose `PageContainer` / `PageHeader` / `PageSection` / `EmptyState` from `components/layout/Page.tsx`; primitives come from `components/ui/` (shadcn)
 - Grids must set a mobile base (`grid-cols-1`) before breakpoint columns, and truncated children need `min-w-0`
 - Env: MapTiler key is `VITE_MAP_TOKEN`; writes need `ADMIN_SECRET`
+- Server/api relative imports MUST end in `.js` (`from './routes/map.js'`, `from '../db/index.js'`): the function runs as Node ESM on Vercel. `npm run lint` enforces it
 - Entity badges use: `bg-{color}-500/10 text-{color}-500`
 
 ## Common Commands

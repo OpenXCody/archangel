@@ -1,19 +1,19 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import companiesRouter from './routes/companies';
-import factoriesRouter from './routes/factories';
-import occupationsRouter from './routes/occupations';
-import skillsRouter from './routes/skills';
-import importRouter from './routes/import';
-import statsRouter from './routes/stats';
-import searchRouter from './routes/search';
-import mapRouter from './routes/map';
-import refsRouter from './routes/refs';
-import schoolsRouter from './routes/schools';
-import programsRouter from './routes/programs';
-import personsRouter from './routes/persons';
-import { requireAdmin, requireAdminForWrites, adminAuthRequired, isAuthorizedAdmin } from './middleware/adminAuth';
-import { publicCache } from './middleware/cache';
+import companiesRouter from './routes/companies.js';
+import factoriesRouter from './routes/factories.js';
+import occupationsRouter from './routes/occupations.js';
+import skillsRouter from './routes/skills.js';
+import importRouter from './routes/import.js';
+import statsRouter from './routes/stats.js';
+import searchRouter from './routes/search.js';
+import mapRouter from './routes/map.js';
+import refsRouter from './routes/refs.js';
+import schoolsRouter from './routes/schools.js';
+import programsRouter from './routes/programs.js';
+import personsRouter from './routes/persons.js';
+import { requireAdmin, requireAdminForWrites, adminAuthRequired, isAuthorizedAdmin } from './middleware/adminAuth.js';
+import { publicCache } from './middleware/cache.js';
 
 /**
  * The one Express app. `server/index.ts` listens on it for local dev;

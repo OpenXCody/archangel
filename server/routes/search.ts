@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../db';
-import { companies, factories, occupations, skills, states, refs, schools, programs } from '../db/schema';
+import { db } from '../db/index.js';
+import { companies, factories, occupations, skills, states, refs, schools, programs } from '../db/schema.js';
 import { ilike, or, and, count } from 'drizzle-orm';
-import { browsableCompanyFilter } from '../lib/companyFilters';
+import { browsableCompanyFilter } from '../lib/companyFilters.js';
 
 const router = Router();
 

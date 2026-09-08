@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { db } from '../db';
+import { db } from '../db/index.js';
 import {
   skills,
   refs,
@@ -7,7 +7,7 @@ import {
   programs,
   programSkills,
   skillRefs,
-} from '../db/schema';
+} from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 
 // ============================================

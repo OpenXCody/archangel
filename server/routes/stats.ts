@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
-import { db, companies, factories, occupations, skills, refs, schools, programs, persons } from '../db';
-import { browsableCompanyFilter } from '../lib/companyFilters';
+import { db, companies, factories, occupations, skills, refs, schools, programs, persons } from '../db/index.js';
+import { browsableCompanyFilter } from '../lib/companyFilters.js';
 
 const router = Router();
 

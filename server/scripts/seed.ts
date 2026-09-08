@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { db } from '../db';
+import { db } from '../db/index.js';
 import {
   states,
   industries,
@@ -11,7 +11,7 @@ import {
   skills,
   factoryOccupations,
   occupationSkills,
-} from '../db/schema';
+} from '../db/schema.js';
 
 // ============================================
 // US STATES DATA (50 states + DC)

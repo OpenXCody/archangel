@@ -1,7 +1,7 @@
 // Vercel serverless entry. Hands every /api/* request to the same Express app
 // that `npm run dev` runs, so production and local serve identical routes.
 import type { IncomingMessage, ServerResponse } from 'http';
-import { app } from '../server/app';
+import { app } from '../server/app.js';
 
 export default function handler(req: IncomingMessage, res: ServerResponse): void {
   // vercel.json rewrites /api/:path* -> /api and passes the matched segment

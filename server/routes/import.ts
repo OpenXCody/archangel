@@ -4,14 +4,14 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import crypto from 'crypto';
-import { parseFile, suggestColumnMappings, ParsedFile } from '../lib/parsers';
+import { parseFile, suggestColumnMappings, ParsedFile } from '../lib/parsers.js';
 import {
   validateRows,
   mapRowsToFields,
   prepareForInsert,
   EntityType,
-} from '../lib/validators';
-import { db, companies, factories, occupations, skills, importBatches, errorQueue, states, externalReferences, importUploads } from '../db';
+} from '../lib/validators.js';
+import { db, companies, factories, occupations, skills, importBatches, errorQueue, states, externalReferences, importUploads } from '../db/index.js';
 import { eq, desc, ilike, and, lt } from 'drizzle-orm';
 
 const router = Router();

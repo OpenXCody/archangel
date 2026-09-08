@@ -1,5 +1,5 @@
 import { sql, type SQL } from 'drizzle-orm';
-import { companies } from '../db/schema';
+import { companies } from '../db/schema.js';
 
 /**
  * Excludes junk rows that arrived as "companies" during bulk imports:

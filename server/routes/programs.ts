@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql } from 'drizzle-orm';
-import { db, programs, programSkills, skills, schools, programAliases } from '../db';
-import { uuidParam } from '../middleware/validateUuid';
+import { db, programs, programSkills, skills, schools, programAliases } from '../db/index.js';
+import { uuidParam } from '../middleware/validateUuid.js';
 
 const router = Router();
 router.param('id', uuidParam);
