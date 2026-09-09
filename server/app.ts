@@ -12,6 +12,7 @@ import refsRouter from './routes/refs.js';
 import schoolsRouter from './routes/schools.js';
 import programsRouter from './routes/programs.js';
 import personsRouter from './routes/persons.js';
+import reviewRouter from './routes/review.js';
 import { requireAdmin, requireAdminForWrites, adminAuthRequired, isAuthorizedAdmin } from './middleware/adminAuth.js';
 import { publicCache } from './middleware/cache.js';
 
@@ -56,8 +57,9 @@ app.use('/api/stats', publicCache(60), statsRouter);
 app.use('/api/search', publicCache(60), searchRouter);
 app.use('/api/map', publicCache(60), mapRouter);
 
-// Admin-only pipeline
+// Admin-only pipeline + data review queue
 app.use('/api/import', requireAdmin, importRouter);
+app.use('/api/review', requireAdmin, reviewRouter);
 
 // 404
 app.use((_req: Request, res: Response) => {

@@ -101,7 +101,7 @@ export default function AdminKeyGate({ children }: { children: ReactNode }) {
   return (
     <>
       {data?.authRequired && getAdminSecret() && (
-        <div className="mb-4 flex items-center justify-end">
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-end px-4 pt-3 sm:px-6">
           <button
             type="button"
             onClick={signOut}

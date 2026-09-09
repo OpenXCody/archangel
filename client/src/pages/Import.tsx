@@ -17,13 +17,16 @@ import FileDropZone from '../components/import/FileDropZone';
 import ManualEntryForm from '../components/import/ManualEntryForm';
 import { API_BASE, adminFetch } from '../lib/api';
 import { PageContainer, PageHeader } from '../components/layout/Page';
+import ReviewQueue from '../components/import/ReviewQueue';
+import { ClipboardCheck } from 'lucide-react';
 
 // Importable entity types (core entities only, not refs/schools/programs/persons)
 type ImportableEntityType = 'companies' | 'factories' | 'occupations' | 'skills';
-type TabType = 'bulk' | ImportableEntityType;
+type TabType = 'bulk' | 'review' | ImportableEntityType;
 
 const TABS: { type: TabType; icon: React.ElementType; label: string; color: string }[] = [
   { type: 'bulk', icon: Upload, label: 'Bulk Import', color: 'amber' },
+  { type: 'review', icon: ClipboardCheck, label: 'Review', color: 'emerald' },
   { type: 'companies', icon: Building2, label: 'Companies', color: 'amber' },
   { type: 'factories', icon: Factory, label: 'Factories', color: 'blue' },
   { type: 'occupations', icon: Briefcase, label: 'Occupations', color: 'blue' },
@@ -186,8 +189,24 @@ export default function Import() {
         </div>
       )}
 
+      {/* Review queue: factories the NAICS enrichment couldn't verify */}
+      {activeTab === 'review' && (
+        <div className="bg-bg-surface border border-border-subtle rounded-xl p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-bg-elevated text-emerald-500">
+              <ClipboardCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-fg-default">Review queue</h2>
+              <p className="text-sm text-fg-muted">EPA sites without a verified manufacturing NAICS. Keep real plants; remove the rest (restorable).</p>
+            </div>
+          </div>
+          <ReviewQueue />
+        </div>
+      )}
+
       {/* Manual entry form for entity types */}
-      {activeTab !== 'bulk' && (
+      {activeTab !== 'bulk' && activeTab !== 'review' && (
         <ManualEntryForm
           entityType={activeTab as ImportableEntityType}
           onSuccess={() => {

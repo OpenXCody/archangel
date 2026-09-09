@@ -885,3 +885,31 @@ export const importUploads = pgTable('import_uploads', {
   payload: jsonb('payload').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// ============================================
+// FACTORY_REVIEW (manual review queue fed by scripts/enrich-naics.mjs)
+// A factory lands here when EPA has no NAICS for it, or only a
+// non-manufacturing one. Resolution: 'keep' | 'quarantine' | 'not_a_factory'.
+// ============================================
+
+export const factoryReview = pgTable('factory_review', {
+  factoryId: uuid('factory_id').primaryKey().references(() => factories.id, { onDelete: 'cascade' }),
+  reason: text('reason').notNull(),
+  naics: text('naics'),
+  naicsAll: text('naics_all'),
+  sicAll: text('sic_all'),
+  epaName: text('epa_name'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  resolvedAt: timestamp('resolved_at'),
+  resolution: text('resolution'),
+});
+
+// Factories removed from the live table but kept for audit/restore.
+export const factoriesQuarantine = pgTable('factories_quarantine', {
+  id: uuid('id').primaryKey(),
+  reason: text('reason').notNull(),
+  quarantinedAt: timestamp('quarantined_at').defaultNow().notNull(),
+  row: jsonb('row').notNull(),
+  externalRefs: jsonb('external_refs'),
+  occupationLinks: jsonb('occupation_links'),
+});

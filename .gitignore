@@ -59,3 +59,5 @@ playwright-report/
 
 # data-repair audit output
 geo-cleanup-audit.json
+enrich-naics.checkpoint.json
+enrich-naics-audit.json
