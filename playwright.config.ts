@@ -9,6 +9,9 @@ export default defineConfig({
   testDir: './tests',
   timeout: 45_000,
   retries: 0,
+  // Seven parallel map loads saturate the local API (7 × 6.7 MB GeoJSON on one
+  // event loop) and stall font/tile loading; three keeps the run honest.
+  workers: 3,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'http://localhost:5173',

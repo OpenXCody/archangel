@@ -6,10 +6,17 @@ const API = 'http://localhost:3000/api';
 const STATIC_ROUTES = ['/map', '/explore', '/import', '/import/bulk', '/tree'];
 
 async function firstId(request: APIRequestContext, path: string): Promise<string | null> {
-  const res = await request.get(`${API}${path}?limit=1`);
-  if (!res.ok()) return null;
-  const body = (await res.json()) as { data?: Array<{ id: string }> };
-  return body.data?.[0]?.id ?? null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await request.get(`${API}${path}?limit=1`);
+      if (!res.ok()) return null;
+      const body = (await res.json()) as { data?: Array<{ id: string }> };
+      return body.data?.[0]?.id ?? null;
+    } catch {
+      // the dev API can drop a connection under parallel map loads — try once more
+    }
+  }
+  return null;
 }
 
 async function assertHealthyLayout(page: Page, label: string): Promise<void> {
@@ -25,8 +32,9 @@ async function assertHealthyLayout(page: Page, label: string): Promise<void> {
   // readable text, or — for canvas-first pages like the map — live controls.
   expect(metrics.bodyText > 20 || metrics.interactive >= 3, `${label}: page rendered nothing`).toBe(true);
   await expect(page.getByText('Something went wrong'), `${label}: ErrorBoundary tripped`).toHaveCount(0);
+  // Evidence, not an assertion: a slow tile or font server must not fail a layout check.
   const file = `test-results/screens/${test.info().project.name}${label.replace(/[/#:]/g, '_')}.png`;
-  await page.screenshot({ path: file, fullPage: false });
+  await page.screenshot({ path: file, fullPage: false, timeout: 10_000 }).catch(() => undefined);
 }
 
 for (const route of STATIC_ROUTES) {
