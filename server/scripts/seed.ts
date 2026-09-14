@@ -72,7 +72,7 @@ const US_STATES = [
 ];
 
 // ============================================
-// INDUSTRIES (10 controlled vocabulary items)
+// INDUSTRIES (11 controlled vocabulary items)
 // ============================================
 
 const INDUSTRIES_DATA = [
@@ -86,6 +86,7 @@ const INDUSTRIES_DATA = [
   { name: 'Medical & Pharmaceuticals', description: 'Medical devices, pharmaceuticals, and healthcare equipment' },
   { name: 'Metals & Fabrication', description: 'Steel production, metal fabrication, and foundries' },
   { name: 'Polymers & Composites', description: 'Plastics, rubber, composites, and polymer processing' },
+  { name: 'Shipbuilding', description: 'Naval and commercial shipbuilding, ship repair, and marine vessels' },
 ];
 
 // ============================================

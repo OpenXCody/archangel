@@ -44,6 +44,7 @@ const INDUSTRIES = [
   'Medical & Pharmaceuticals',
   'Metals & Fabrication',
   'Polymers & Composites',
+  'Shipbuilding',
   'Other',
 ];
 
