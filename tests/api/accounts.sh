@@ -13,6 +13,8 @@ API=${API:-http://localhost:3000/api}
 DB=${DB:-postgresql://postgres:postgres@127.0.0.1:5432/archangel}
 case "$API" in http://localhost:*|http://127.0.0.1:*) ;; *) echo "Refusing to run against $API: local only."; exit 2;; esac
 D=$(mktemp -d)
+# A fresh address per run, so repeat runs do not trip the sign-in throttle.
+RUN=$(date +%s)
 fail=0
 req() { # jar method path [json]  -> prints "status body"
   local jar=$1 m=$2 p=$3 d=${4:-}
@@ -38,11 +40,11 @@ OCC=$(psql "$DB" -tAc "SELECT occupation_id FROM occupation_skills GROUP BY 1 OR
 SK=$(psql "$DB" -tAc "SELECT skill_id FROM occupation_skills WHERE occupation_id='$OCC' AND stage IS DISTINCT FROM 3 ORDER BY skill_id LIMIT 1")
 
 check "me when signed out"            200 "$(req anon GET /auth/me)" '"user":null'
-check "sign-up rejects short password" 400 "$(req s POST /auth/sign-up '{"email":"seeker@e2e.test","name":"Sam Seeker","password":"short"}')"
-check "sign-up seeker"                201 "$(req s POST /auth/sign-up '{"email":"Seeker@E2E.test","name":"Sam Seeker","password":"correct horse"}')" '"email":"seeker@e2e.test"'
-check "sign-up duplicate"             409 "$(req x POST /auth/sign-up '{"email":"seeker@e2e.test","name":"Dup","password":"correct horse"}')"
-check "sign-in wrong password"        401 "$(req x POST /auth/sign-in '{"email":"seeker@e2e.test","password":"wrong password"}')"
-check "sign-in seeker (new jar)"      200 "$(req s2 POST /auth/sign-in '{"email":"seeker@e2e.test","password":"correct horse"}')" '"isEmployer":false'
+check "sign-up rejects short password" 400 "$(req s POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Sam Seeker","password":"short"}')"
+check "sign-up seeker"                201 "$(req s POST /auth/sign-up '{"email":"Seeker-'"$RUN"'@E2E.test","name":"Sam Seeker","password":"correct horse"}')" '"email":"seeker-'"$RUN"'@e2e.test"'
+check "sign-up duplicate"             409 "$(req x POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Dup","password":"correct horse"}')"
+check "sign-in wrong password"        401 "$(req x POST /auth/sign-in '{"email":"seeker-'"$RUN"'@e2e.test","password":"wrong password"}')"
+check "sign-in seeker (new jar)"      200 "$(req s2 POST /auth/sign-in '{"email":"seeker-'"$RUN"'@e2e.test","password":"correct horse"}')" '"isEmployer":false'
 check "me requires sign-in"           401 "$(req anon GET /me/skills)"
 check "profile update"                200 "$(req s PATCH /me '{"homeZip":"78701","about":"Machinist in training"}')" '"homeZip":"78701"'
 check "profile bad zip"               400 "$(req s PATCH /me '{"homeZip":"abc"}')"
@@ -51,16 +53,16 @@ check "bad skill status"              400 "$(req s PUT /me/skills/$SK '{"status"
 check "add goal"                      200 "$(req s PUT /me/goals/$OCC)"
 check "goals show 1 held"             200 "$(req s GET /me/goals)" '"heldSkills":1'
 
-check "sign-up employer"              201 "$(req e POST /auth/sign-up '{"email":"emp@e2e.test","name":"Erin Employer","password":"correct horse"}')"
-check "sign-up admin"                 201 "$(req a POST /auth/sign-up '{"email":"admin@e2e.test","name":"Ada Admin","password":"correct horse"}')"
+check "sign-up employer"              201 "$(req e POST /auth/sign-up '{"email":"emp-'"$RUN"'@e2e.test","name":"Erin Employer","password":"correct horse"}')"
+check "sign-up admin"                 201 "$(req a POST /auth/sign-up '{"email":"admin-'"$RUN"'@e2e.test","name":"Ada Admin","password":"correct horse"}')"
 check "claim-admin without key"       403 "$(req a POST /auth/claim-admin)"
-psql "$DB" -qtAc "UPDATE users SET is_admin=true WHERE email='admin@e2e.test'" >/dev/null
+psql "$DB" -qtAc "UPDATE users SET is_admin=true WHERE email='admin-$RUN@e2e.test'" >/dev/null
 check "admin overview as admin"       200 "$(req a GET /admin/overview)" '"users":'
 check "employer posts before joining" 403 "$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\",\"payMin\":2400,\"payMax\":2900}")"
 check "request membership"            201 "$(req e POST /employer/memberships "{\"companyId\":\"$TXC\"}")" '"status":"requested"'
 check "still cannot post (requested)" 403 "$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\",\"payMin\":2400,\"payMax\":2900}")"
-EID=$(psql "$DB" -tAc "SELECT id FROM users WHERE email='emp@e2e.test'")
-check "admin sees request"            200 "$(req a GET '/admin/memberships?status=requested')" 'emp@e2e.test'
+EID=$(psql "$DB" -tAc "SELECT id FROM users WHERE email='emp-$RUN@e2e.test'")
+check "admin sees request"            200 "$(req a GET '/admin/memberships?status=requested')" 'emp-'"$RUN"'@e2e.test'
 check "admin approves"                200 "$(req a PATCH /admin/memberships "{\"companyId\":\"$TXC\",\"userId\":\"$EID\",\"decision\":\"approve\"}")" '"status":"active"'
 check "me now employer"               200 "$(req e GET /auth/me)" '"isEmployer":true'
 check "post without pay"              400 "$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\"}")"
