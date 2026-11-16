@@ -346,6 +346,8 @@ const companyProfile = {
   slug: companies.slug,
   domain: companies.domain,
   featured: companies.featured,
+  industry: companies.industry,
+  description: companies.description,
 };
 
 // GET /api/admin/companies?q= - company type-ahead with the profile fields,
@@ -368,13 +370,20 @@ router.get(
 /** A bare hostname: labels of letters, digits and hyphens, then a letters-only ending. */
 const HOSTNAME = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 
-// PATCH /api/admin/companies/:id { domain?: string | null, featured?: boolean }
-// The logo is looked up from the domain; a featured company is listed and drawn first.
+// PATCH /api/admin/companies/:id { domain?, featured?, industry?, description? }
+// The logo is looked up from the domain; a featured company is listed and drawn
+// first; industry and description are the one line that introduces it.
 router.patch(
   '/companies/:id',
   handle(async (req, res) => {
-    const body: { domain?: unknown; featured?: unknown } = req.body ?? {};
-    const change: { domain?: string | null; featured?: boolean; updatedAt: Date } = { updatedAt: new Date() };
+    const body: { domain?: unknown; featured?: unknown; industry?: unknown; description?: unknown } = req.body ?? {};
+    const change: {
+      domain?: string | null;
+      featured?: boolean;
+      industry?: string | null;
+      description?: string | null;
+      updatedAt: Date;
+    } = { updatedAt: new Date() };
 
     if (body.domain !== undefined) {
       if (body.domain === null || body.domain === '') {
@@ -391,7 +400,21 @@ router.patch(
       if (typeof body.featured !== 'boolean') return res.status(400).json({ error: 'featured must be true or false.' });
       change.featured = body.featured;
     }
-    if (change.domain === undefined && change.featured === undefined) {
+    // Free text: trimmed, single-spaced, null when emptied.
+    for (const [field, max] of [['industry', 80], ['description', 600]] as const) {
+      const value = body[field];
+      if (value === undefined) continue;
+      if (value !== null && typeof value !== 'string') return res.status(400).json({ error: `${field} must be text.` });
+      const text = (value ?? '').replace(/\s+/g, ' ').trim();
+      if (text.length > max) return res.status(400).json({ error: `${field} is limited to ${max} characters.` });
+      change[field] = text || null;
+    }
+    if (
+      change.domain === undefined &&
+      change.featured === undefined &&
+      change.industry === undefined &&
+      change.description === undefined
+    ) {
       return res.status(400).json({ error: 'Nothing to change.' });
     }
 
