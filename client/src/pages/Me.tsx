@@ -13,6 +13,7 @@ import {
   useRemoveGoal,
   useRemoveSkill,
   useSetSkillStatus,
+  useChangePassword,
   useSignOut,
   useUpdateApplication,
   useUpdateProfile,
@@ -38,6 +39,7 @@ import {
   fieldClass,
   outlineButtonClass,
   rowClass,
+  textButtonClass,
   useDebouncedValue,
 } from '../components/account/parts';
 import { SkillStatusControl } from '../components/account/SkillStatusButton';
@@ -153,7 +155,97 @@ function ProfileSection({ user }: { user: AccountUser }) {
           )}
         </div>
       </form>
+      <PasswordChange email={user.email} />
     </PageSection>
+  );
+}
+
+/**
+ * Changing the password stays out of the way: one quiet line under the
+ * account card, which opens two fields. Other devices are signed out by the
+ * change; this one stays signed in.
+ */
+function PasswordChange({ email }: { email: string }) {
+  const change = useChangePassword();
+  const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+
+  const close = () => {
+    setOpen(false);
+    setCurrent('');
+    setNext('');
+  };
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    if (change.isPending) return;
+    change.mutate({ current, next }, { onSuccess: close });
+  };
+
+  if (!open) {
+    return (
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 px-1">
+        <button
+          type="button"
+          onClick={() => {
+            change.reset();
+            setOpen(true);
+          }}
+          className={textButtonClass}
+        >
+          Change password
+        </button>
+        {change.isSuccess && (
+          <span role="status" className="inline-flex items-center gap-1.5 text-sm text-success">
+            <Check className="h-4 w-4" />
+            Password changed.
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} noValidate className={cn(cardClass, 'mt-3 space-y-4 p-4 sm:p-6')} data-password-form>
+      {/* Not shown: it tells a password manager which account the new password belongs to. */}
+      <input type="email" name="email" autoComplete="username" value={email} readOnly hidden />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="Current password" htmlFor="password-current">
+          <input
+            id="password-current"
+            type="password"
+            autoComplete="current-password"
+            autoFocus
+            maxLength={200}
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+            className={fieldClass}
+          />
+        </Field>
+        <Field label="New password" htmlFor="password-next" hint="At least 8 characters.">
+          <input
+            id="password-next"
+            type="password"
+            autoComplete="new-password"
+            maxLength={200}
+            value={next}
+            onChange={(e) => setNext(e.target.value)}
+            className={fieldClass}
+          />
+        </Field>
+      </div>
+      <ErrorNote error={change.error} />
+      <div className="flex flex-wrap items-center gap-4">
+        <Button type="submit" disabled={!current || !next || change.isPending} className="h-10 rounded-lg">
+          {change.isPending && <Loader2 className="animate-spin" />}
+          Change password
+        </Button>
+        <button type="button" disabled={change.isPending} onClick={close} className={textButtonClass}>
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }
 

@@ -204,13 +204,18 @@ export default function Jobs() {
             title="No open jobs"
             description="Jobs posted by employers appear here."
             action={
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button asChild className="h-10 rounded-lg">
-                  <Link to="/employer">Post a job</Link>
-                </Button>
-                <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
-                  <Link to="/explore?tab=occupations">Browse careers</Link>
-                </Button>
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button asChild className="h-10 rounded-lg">
+                    <Link to="/explore?tab=occupations">Browse careers</Link>
+                  </Button>
+                  <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
+                    <Link to="/map">Open the map</Link>
+                  </Button>
+                </div>
+                <Link to="/employer" className="text-sm text-fg-muted underline underline-offset-4 hover:text-fg-default">
+                  Post a job
+                </Link>
               </div>
             }
           />

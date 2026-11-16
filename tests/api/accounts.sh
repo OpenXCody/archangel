@@ -3,8 +3,8 @@
 # sign-up through hiring, including the refusals. Prints one line per check
 # and exits non-zero if any fail.
 #
-# LOCAL ONLY: it creates and deletes users and invites (emails ending
-# @e2e.test) and promotes one to admin directly in the database. For the
+# LOCAL ONLY: it creates and deletes users, invites and password reset links
+# (emails ending @e2e.test) and promotes one to admin directly in the database. For the
 # "last admin" check it takes the admin role from any other local admin for a
 # moment, and it edits one company's domain and featured flag; both are put
 # back on exit, however the script ends. Never point it at production.
@@ -206,6 +206,74 @@ T4=$(printf '%s' "$OUT" | j token)
 sql "UPDATE invites SET expires_at = now() - interval '2 days' WHERE email='old-$RUN@e2e.test'" >/dev/null
 check "expired invite is not found"   404 "$(req anon GET /auth/invite/$T4)"
 expect "expired invite is not listed" 0 "$(req a GET /admin/invites | grep -c "old-$RUN@e2e.test")"
+
+# --- Passwords: a person changes their own; an admin's link resets one -------
+SEEKER="seeker-$RUN@e2e.test"
+signin() { printf '{"email":"%s","password":"%s"}' "$SEEKER" "$1"; }
+resetlink() { req a POST /admin/users/$1/reset-link; }
+sessions() { sql "SELECT COUNT(*) FROM sessions WHERE user_id='$SID'"; }
+
+check "change password needs sign-in" 401 "$(req anon POST /auth/password '{"current":"correct horse","next":"battery staple"}')"
+check "change password, wrong current" 400 "$(req s POST /auth/password '{"current":"not my password","next":"battery staple"}')" 'not your current password'
+check "change password, no current"   400 "$(req s POST /auth/password '{"next":"battery staple"}')"
+check "change password, short new"    400 "$(req s POST /auth/password '{"current":"correct horse","next":"short"}')" 'at least 8'
+check "refusals kept the password"    200 "$(req p POST /auth/sign-in "$(signin 'correct horse')")"
+expect "three sessions before the change" 3 "$(sessions)"
+OUT=$(req s POST /auth/password '{"current":"correct horse","next":"battery staple"}')
+check "change password"               200 "$OUT" '"ok":true'
+expect "change returns no hash"       0 "$(printf '%s' "$OUT" | grep -ci 'hash\|scrypt')"
+check "current session is kept"       200 "$(req s GET /auth/me)" "\"email\":\"$SEEKER\""
+check "other session is ended"        200 "$(req s2 GET /auth/me)" '"user":null'
+check "other session is ended (2)"    200 "$(req p GET /auth/me)" '"user":null'
+expect "one session after the change" 1 "$(sessions)"
+check "old password no longer signs in" 401 "$(req s2 POST /auth/sign-in "$(signin 'correct horse')")"
+check "new password signs in"         200 "$(req s2 POST /auth/sign-in "$(signin 'battery staple')")" '"isEmployer":false'
+
+check "reset link needs sign-in"      401 "$(req anon POST /admin/users/$SID/reset-link)"
+check "403 reset link"                403 "$(req s POST /admin/users/$EID/reset-link)"
+expect "refused reset link was not created" 0 "$(sql "SELECT COUNT(*) FROM password_resets WHERE user_id='$EID'")"
+check "reset link, unknown person"    404 "$(resetlink $NOBODY)"
+check "reset link, bad id"            400 "$(resetlink not-an-id)"
+OUT=$(resetlink $SID)
+check "create reset link"             201 "$OUT" '"link":"/sign-in?reset='
+check "reset link says when it expires" 201 "$OUT" '"expiresAt":"'
+expect "reset link returns no hash"   0 "$(printf '%s' "$OUT" | grep -ci 'hash')"
+R0=$(printf '%s' "$OUT" | j 'link.split("reset=")[1]')
+expect "reset link lasts 24 hours"    t "$(sql "SELECT expires_at - created_at BETWEEN interval '23 hours 59 minutes' AND interval '24 hours 1 minute' FROM password_resets WHERE user_id='$SID'")"
+check "reset lookup"                  200 "$(req anon GET /auth/reset/$R0)" "{\"email\":\"$SEEKER\"}"
+R1=$(resetlink $SID | j 'link.split("reset=")[1]')
+check "new link replaces the old one" 404 "$(req anon GET /auth/reset/$R0)"
+check "replaced link sets no password" 400 "$(req anon POST /auth/reset "{\"token\":\"$R0\",\"password\":\"reset password\"}")" 'not valid'
+expect "one unused link per person"   1 "$(sql "SELECT COUNT(*) FROM password_resets WHERE user_id='$SID' AND used_at IS NULL")"
+expect "only the reset token's hash is stored" t "$(sql "SELECT token_hash = encode(sha256('$R1'::bytea), 'hex') FROM password_resets WHERE user_id='$SID'")"
+check "reset lookup, unknown token"   404 "$(req anon GET /auth/reset/not-a-token)"
+HDR=$(curl -s -D - -o /dev/null "$API/auth/reset/$R1" | tr -d '\r' | grep -i '^cache-control')
+case "$HDR" in *no-store*) echo "ok    reset lookup is not cacheable";; *) echo "FAIL  reset cache header: $HDR"; fail=1;; esac
+check "reset without a token"         400 "$(req anon POST /auth/reset '{"password":"reset password"}')"
+check "reset, short password"         400 "$(req anon POST /auth/reset "{\"token\":\"$R1\",\"password\":\"short\"}")" 'at least 8'
+check "short password left the link usable" 200 "$(req anon GET /auth/reset/$R1)"
+expect "two sessions before the reset" 2 "$(sessions)"
+OUT=$(req r POST /auth/reset "{\"token\":\"$R1\",\"password\":\"reset password\"}")
+check "reset sets the password and signs in" 200 "$OUT" "\"email\":\"$SEEKER\""
+expect "reset returns no hash"        0 "$(printf '%s' "$OUT" | grep -ci 'hash\|scrypt')"
+check "reset session is signed in"    200 "$(req r GET /auth/me)" "\"email\":\"$SEEKER\""
+check "reset ended every earlier session" 200 "$(req s GET /auth/me)" '"user":null'
+check "reset ended every earlier session (2)" 200 "$(req s2 GET /auth/me)" '"user":null'
+expect "only the new session is left" 1 "$(sessions)"
+expect "reset link is marked used"    t "$(sql "SELECT used_at IS NOT NULL FROM password_resets WHERE user_id='$SID'")"
+check "used link is not found"        404 "$(req anon GET /auth/reset/$R1)"
+check "used link cannot be used twice" 400 "$(req w POST /auth/reset "{\"token\":\"$R1\",\"password\":\"second password\"}")" 'not valid'
+check "second use changed nothing"    401 "$(req w POST /auth/sign-in "$(signin 'second password')")"
+check "password before the reset no longer signs in" 401 "$(req s POST /auth/sign-in "$(signin 'battery staple')")"
+check "reset password signs in"       200 "$(req s POST /auth/sign-in "$(signin 'reset password')")" '"isEmployer":false'
+R2=$(resetlink $SID | j 'link.split("reset=")[1]')
+sql "UPDATE password_resets SET expires_at = now() - interval '1 hour' WHERE user_id='$SID' AND used_at IS NULL" >/dev/null
+check "expired link is not found"     404 "$(req anon GET /auth/reset/$R2)"
+check "expired link sets no password" 400 "$(req w POST /auth/reset "{\"token\":\"$R2\",\"password\":\"expired password\"}")" 'not valid'
+check "expired link changed nothing"  200 "$(req s GET /auth/me)" "\"email\":\"$SEEKER\""
+R3=$(resetlink $SID | j 'link.split("reset=")[1]')
+check "change password with a link pending" 200 "$(req s POST /auth/password '{"current":"reset password","next":"correct horse"}')"
+check "changing the password retires the link" 404 "$(req anon GET /auth/reset/$R3)"
 
 check "cannot delete self"            409 "$(req a DELETE /admin/users/$AID)" 'their own account'
 check "delete user"                   200 "$(req a DELETE /admin/users/$IID)"

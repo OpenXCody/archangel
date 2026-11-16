@@ -167,15 +167,20 @@ export const useMapStore = create<MapStore>((set, get) => ({
     hoverInfo: id && info ? info : null,
   }),
 
-  setSidebarOpen: (open) => set({
+  setSidebarOpen: (open) => set((state) => ({
     sidebarOpen: open,
     // Clear selection and history when closing sidebar (but don't reset view position)
     ...(open ? {} : {
       selectedEntityType: null,
       selectedEntityId: null,
       navigationHistory: [],
+      // Choosing a company narrows the map to its sites. Closing that
+      // company's panel ends it: the rest of the map comes back.
+      ...(state.selectedEntityType === 'company' && state.filters.company === state.selectedEntityId
+        ? { filters: { ...state.filters, company: null, companyName: null } }
+        : {}),
     }),
-  }),
+  })),
 
   clearSelection: () => set({
     selectedEntityType: null,

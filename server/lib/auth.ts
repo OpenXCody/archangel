@@ -52,7 +52,12 @@ export async function verifyPassword(password: string, stored: string): Promise<
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
-/** What is stored for a secret token (a session, an invite): its SHA-256, never the token. */
+/** Why a password cannot be used, in words for the person, or null when it can. One rule everywhere. */
+export function passwordProblem(password: string): string | null {
+  return password.length < 8 || password.length > 200 ? 'Use a password of at least 8 characters.' : null;
+}
+
+/** What is stored for a secret token (a session, an invite, a password reset): its SHA-256, never the token. */
 export function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
@@ -94,6 +99,12 @@ export async function endSession(req: Request, res: Response): Promise<void> {
   const token = readSessionToken(req);
   if (token) await db.delete(sessions).where(eq(sessions.tokenHash, hashToken(token)));
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; ${cookieAttributes(0)}`);
+}
+
+/** The stored hash of this request's session token, or null without one. For ending every session but this one. */
+export function currentSessionHash(req: Request): string | null {
+  const token = readSessionToken(req);
+  return token ? hashToken(token) : null;
 }
 
 /** The signed-in user for this request, or null. Cached on the request. */
@@ -168,7 +179,8 @@ export function cleanText(value: unknown, max: number, min = 0): string | null {
 
 // --- Sign-in throttle --------------------------------------------------------
 // Per server instance, so it slows guessing rather than stopping a distributed
-// attempt. Ten tries per address-and-email pair every ten minutes.
+// attempt. Ten tries per address-and-email pair every ten minutes. Where no
+// email is known yet (a password reset link), a fixed word takes its place.
 
 const attempts = new Map<string, { count: number; resetAt: number }>();
 const MAX_ATTEMPTS = 10;

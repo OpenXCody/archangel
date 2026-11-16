@@ -1,13 +1,15 @@
 import { Router } from 'express';
-import { and, eq } from 'drizzle-orm';
-import { db, users, companies, companyMembers, invites } from '../db/index.js';
+import { and, eq, isNull, ne } from 'drizzle-orm';
+import { db, users, sessions, companies, companyMembers, invites, passwordResets } from '../db/index.js';
 import {
   cleanText,
+  currentSessionHash,
   endSession,
   getSessionUser,
   handle,
   hashPassword,
   normalizeEmail,
+  passwordProblem,
   requireUser,
   startSession,
   tooManyAttempts,
@@ -16,6 +18,7 @@ import {
   type SessionUser,
 } from '../lib/auth.js';
 import { MAX_INVITE_TOKEN_LENGTH, usableInvite } from '../lib/invites.js';
+import { MAX_RESET_TOKEN_LENGTH, usableReset } from '../lib/passwordResets.js';
 import { hasValidAdminSecret } from '../middleware/adminAuth.js';
 
 const router = Router();
@@ -49,6 +52,10 @@ router.get(
 );
 
 const INVALID_INVITE = 'That invite link is not valid. Ask an admin for a new one.';
+const INVALID_RESET = 'That reset link is not valid. Ask an admin for a new one.';
+const TOO_MANY = 'Too many attempts. Try again in a few minutes.';
+/** The throttle is keyed by address and email; a reset link is tried before any email is known. */
+const RESET_ATTEMPTS = 'password-reset';
 
 // GET /api/auth/invite/:token - what an invite link grants, for the sign-up
 // form. 404 for a link that is unknown, expired or already used, without
@@ -83,13 +90,12 @@ router.post(
     const inviteToken: unknown = req.body?.invite ?? null;
     if (!email) return res.status(400).json({ error: 'Enter a valid email address.' });
     if (!name) return res.status(400).json({ error: 'Enter your name.' });
-    if (password.length < 8 || password.length > 200) {
-      return res.status(400).json({ error: 'Use a password of at least 8 characters.' });
-    }
+    const weak = passwordProblem(password);
+    if (weak) return res.status(400).json({ error: weak });
     if (inviteToken !== null && (typeof inviteToken !== 'string' || !inviteToken || inviteToken.length > MAX_INVITE_TOKEN_LENGTH)) {
       return res.status(400).json({ error: INVALID_INVITE });
     }
-    if (tooManyAttempts(req, email)) return res.status(429).json({ error: 'Too many attempts. Try again in a few minutes.' });
+    if (tooManyAttempts(req, email)) return res.status(429).json({ error: TOO_MANY });
 
     const passwordHash = await hashPassword(password);
     // Nothing is written before every check has passed, so an early return leaves no trace.
@@ -112,7 +118,14 @@ router.post(
       if (existing) return { problem: 'exists' as const };
 
       const isAdmin = invite?.role === 'admin';
-      const [created] = await tx.insert(users).values({ email, name, passwordHash, isAdmin }).returning({ id: users.id });
+      // Two sign-ups for one address sent together (a double click) both pass
+      // the check above; the second must lose quietly, not fail.
+      const [created] = await tx
+        .insert(users)
+        .values({ email, name, passwordHash, isAdmin })
+        .onConflictDoNothing()
+        .returning({ id: users.id });
+      if (!created) return { problem: 'exists' as const };
       if (invite) {
         if (invite.role === 'employer' && invite.companyId) {
           await tx.insert(companyMembers).values({ companyId: invite.companyId, userId: created.id, role: 'member', status: 'active' });
@@ -144,7 +157,7 @@ router.post(
     const password = typeof req.body?.password === 'string' ? req.body.password : '';
     const invalid = () => res.status(401).json({ error: 'That email and password do not match an account.' });
     if (!email || !password) return invalid();
-    if (tooManyAttempts(req, email)) return res.status(429).json({ error: 'Too many attempts. Try again in a few minutes.' });
+    if (tooManyAttempts(req, email)) return res.status(429).json({ error: TOO_MANY });
 
     const [row] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     if (!row || !(await verifyPassword(password, row.passwordHash))) return invalid();
@@ -170,6 +183,111 @@ router.post(
   handle(async (req, res) => {
     await endSession(req, res);
     res.json({ ok: true });
+  })
+);
+
+// POST /api/auth/password { current, next } - a signed-in person changes their
+// own password. Every other session of theirs ends; this one carries on.
+router.post(
+  '/password',
+  requireUser,
+  handle(async (req, res) => {
+    const user = req.user!;
+    const current = typeof req.body?.current === 'string' ? req.body.current : '';
+    const next = typeof req.body?.next === 'string' ? req.body.next : '';
+    if (!current) return res.status(400).json({ error: 'Enter your current password.' });
+    const weak = passwordProblem(next);
+    if (weak) return res.status(400).json({ error: weak });
+    // A guess at the current password counts like a guess at sign-in.
+    if (tooManyAttempts(req, user.email)) return res.status(429).json({ error: TOO_MANY });
+
+    const [row] = await db.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, user.id)).limit(1);
+    if (!row || !(await verifyPassword(current, row.passwordHash))) {
+      return res.status(400).json({ error: 'That is not your current password.' });
+    }
+
+    const passwordHash = await hashPassword(next);
+    const keep = currentSessionHash(req);
+    await db.transaction(async (tx) => {
+      await tx.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, user.id));
+      await tx.delete(sessions).where(keep ? and(eq(sessions.userId, user.id), ne(sessions.tokenHash, keep)) : eq(sessions.userId, user.id));
+      // A reset link made before this change has nothing left to do.
+      await tx.delete(passwordResets).where(and(eq(passwordResets.userId, user.id), isNull(passwordResets.usedAt)));
+    });
+    clearAttempts(req, user.email);
+    res.json({ ok: true });
+  })
+);
+
+// GET /api/auth/reset/:token - whose password a reset link sets, for the
+// page it opens. 404 for a link that is unknown, expired or already used,
+// without saying which.
+router.get(
+  '/reset/:token',
+  handle(async (req, res) => {
+    const { token } = req.params;
+    const [reset] =
+      token.length <= MAX_RESET_TOKEN_LENGTH
+        ? await db
+            .select({ email: users.email })
+            .from(passwordResets)
+            .innerJoin(users, eq(users.id, passwordResets.userId))
+            .where(usableReset(token))
+            .limit(1)
+        : [];
+    if (!reset) return res.status(404).json({ error: INVALID_RESET });
+    res.json(reset);
+  })
+);
+
+// POST /api/auth/reset { token, password } - choose a new password through a
+// reset link. The password, the link's use and the end of every session that
+// person had are written together or not at all; then they are signed in.
+router.post(
+  '/reset',
+  handle(async (req, res) => {
+    const token: unknown = req.body?.token;
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+    if (typeof token !== 'string' || !token || token.length > MAX_RESET_TOKEN_LENGTH) {
+      return res.status(400).json({ error: INVALID_RESET });
+    }
+    const weak = passwordProblem(password);
+    if (weak) return res.status(400).json({ error: weak });
+    if (tooManyAttempts(req, RESET_ATTEMPTS)) return res.status(429).json({ error: TOO_MANY });
+
+    const passwordHash = await hashPassword(password);
+    const person = await db.transaction(async (tx) => {
+      // Locked, so the same link cannot be used twice at once.
+      const [reset] = await tx
+        .select({ id: passwordResets.id, userId: passwordResets.userId })
+        .from(passwordResets)
+        .where(usableReset(token))
+        .limit(1)
+        .for('update');
+      if (!reset) return null;
+      const [updated] = await tx
+        .update(users)
+        .set({ passwordHash, updatedAt: new Date() })
+        .where(eq(users.id, reset.userId))
+        .returning({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+          isAdmin: users.isAdmin,
+          homeZip: users.homeZip,
+          about: users.about,
+        });
+      await tx.update(passwordResets).set({ usedAt: new Date() }).where(eq(passwordResets.id, reset.id));
+      await tx.delete(sessions).where(eq(sessions.userId, reset.userId));
+      return updated ?? null;
+    });
+    if (!person) return res.status(400).json({ error: INVALID_RESET });
+
+    clearAttempts(req, RESET_ATTEMPTS);
+    // Whatever sign-in tries led to the reset are forgotten with it.
+    clearAttempts(req, person.email);
+    await startSession(res, person.id);
+    res.json(await accountPayload(person));
   })
 );
 

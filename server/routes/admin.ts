@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { and, desc, eq, gt, ilike, isNotNull, isNull, or, sql } from 'drizzle-orm';
-import { db, users, companies, companyMembers, invites, occupations } from '../db/index.js';
+import { db, users, companies, companyMembers, invites, occupations, passwordResets } from '../db/index.js';
 import { cleanText, handle, newToken, hashToken, normalizeEmail } from '../lib/auth.js';
 import { INVITE_DAYS, invitePath, isInviteRole } from '../lib/invites.js';
+import { RESET_HOURS, resetPath } from '../lib/passwordResets.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 
 /**
- * Admin Tools: people, company access, invites and data upkeep.
+ * Admin Tools: people, company access, invites, password resets and data upkeep.
  * Mounted behind requireAdminUser, so `req.user` is always a signed-in admin.
  */
 const router = Router();
@@ -216,6 +217,29 @@ router.delete(
     if (outcome === 'missing') return res.status(404).json({ error: 'Person not found' });
     if (outcome === 'last') return res.status(409).json({ error: LAST_ADMIN });
     res.json({ ok: true });
+  })
+);
+
+// POST /api/admin/users/:id/reset-link - a one-time link through which that
+// person chooses a new password. It replaces any link of theirs not yet used.
+// The token is in this response and nowhere else. `link` is a path on this
+// site, like an invite's `path`: the page showing it knows its own origin.
+router.post(
+  '/users/:id/reset-link',
+  handle(async (req, res) => {
+    const { id } = req.params;
+    const token = newToken();
+    const expiresAt = new Date(Date.now() + RESET_HOURS * 60 * 60 * 1000);
+    const created = await db.transaction(async (tx) => {
+      // Locked, so the person cannot be deleted, nor a second link made, in between.
+      const [person] = await tx.select({ id: users.id }).from(users).where(eq(users.id, id)).limit(1).for('update');
+      if (!person) return false;
+      await tx.delete(passwordResets).where(and(eq(passwordResets.userId, id), isNull(passwordResets.usedAt)));
+      await tx.insert(passwordResets).values({ userId: id, tokenHash: hashToken(token), createdBy: req.user!.id, expiresAt });
+      return true;
+    });
+    if (!created) return res.status(404).json({ error: 'Person not found' });
+    res.status(201).json({ link: resetPath(token), expiresAt });
   })
 );
 

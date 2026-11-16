@@ -87,6 +87,8 @@ Roles are relationships, not account types (`server/lib/auth.ts`):
 
 **Invites** (`invites` table, `server/lib/invites.ts`): an admin creates a one-time link for an email address (`/sign-in?invite=<token>`), as a user, an employer of one company, or an admin. The link is shown once (only the token's hash is stored), lasts 14 days, and there is one pending invite per address. There is no email service: the admin passes the link on. Signing up through it creates the account, applies the role and marks the invite accepted in one transaction. An address that already has an account is not invited; its roles are changed under People.
 
+**Passwords** (`password_resets` table, `server/lib/passwordResets.ts`): a signed-in person changes their own on `/me` (`POST /api/auth/password { current, next }`), which ends their other sessions. Someone who cannot sign in gets a one-time link from an admin (People → Manage → Password reset link; `POST /api/admin/users/:id/reset-link`). It opens `/sign-in?reset=<token>`, is shown once (only the token's hash is stored), lasts 24 hours and replaces any unused link for that person. Using it sets the password, ends all of that person's sessions and signs them in. There is no email service and no "forgot password" flow: the admin passes the link on.
+
 **Admin Tools** (`/admin`, `client/src/pages/Admin.tsx`, tabs in `client/src/components/admin/`) is reached from "Admin Tools" in the account menu, shown to admins only. Tabs (`?tab=`): `people` (search, roles, company access, delete), `access` (requests to join a company), `invites`, `data` (counts, import tools, career paths awaiting review, a company's domain and featured flag). To anyone who is not an admin the page is the not-found page.
 
 Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in responses are `no-store`.
@@ -102,17 +104,17 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 ## API Endpoints
 
 - Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search`, `/api/map/*`, `/api/stats/counts`, `/api/explore/overview` (everything the Explore overview shows, in one response), `/api/explore/facets` (the industries and skill categories the browse lists filter by), `/api/jobs`, `/api/jobs/:id`
-- `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, claim-admin, `invite/:token` (what an invite grants; 404 when unknown, used or expired)
+- `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, claim-admin, `invite/:token` (what an invite grants; 404 when unknown, used or expired), `password` (change your own), `reset/:token` (whose password a reset link sets; 404 when unknown, used or expired), `reset` POST `{ token, password }`
 - `/api/me/*` profile, skills, goals, applications
 - `/api/jobs` POST/PATCH (company members), `/:id/apply`, `/:id/applications` (ranked), `/applications/:id`
 - `/api/employer/*` memberships and the employer dashboard
-- `/api/admin/*` (signed-in admin only: 401 signed out, 403 otherwise): `overview`; `users` (`?q=`, paged), `users/:id` PATCH `{ isAdmin }` and DELETE; `memberships` GET, POST (add a person to a company), PATCH (approve or remove); `invites` GET, POST, `invites/:id` DELETE; `paths?status=draft`; `companies?q=`, `companies/:id` PATCH `{ domain, featured }`
+- `/api/admin/*` (signed-in admin only: 401 signed out, 403 otherwise): `overview`; `users` (`?q=`, paged), `users/:id` PATCH `{ isAdmin }` and DELETE; `users/:id/reset-link` POST; `memberships` GET, POST (add a person to a company), PATCH (approve or remove); `invites` GET, POST, `invites/:id` DELETE; `paths?status=draft`; `companies?q=`, `companies/:id` PATCH `{ domain, featured }`
 - `/api/import/*`, `/api/review/*` (admin)
 - `PUT /api/occupations/:id/path` sets a career's skills and stages in bulk (admin)
 
 ## Migrations
 
-`scripts/migrate.mjs` applies the SQL files it lists (0010 onward) once each, before every build (`npm run build`), and skips when `DATABASE_URL` is unset. New tables go in a new idempotent SQL file in `migrations/`, added to the list in that script, and mirrored in `server/db/schema.ts`. Migrations 0000-0009 predate the runner. `0015_invites.sql` adds the `invites` table.
+`scripts/migrate.mjs` applies the SQL files it lists (0010 onward) once each, before every build (`npm run build`), and skips when `DATABASE_URL` is unset. New tables go in a new idempotent SQL file in `migrations/`, added to the list in that script, and mirrored in `server/db/schema.ts`. Migrations 0000-0009 predate the runner. `0015_invites.sql` adds the `invites` table. `0020_password_resets.sql` adds the `password_resets` table.
 
 ## Map
 

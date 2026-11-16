@@ -19,6 +19,7 @@ import { EmptyState, PageSection } from '../layout/Page';
 import { LoadError } from '../account/parts';
 import CompanyLogo from '../CompanyLogo';
 import { exploreHref } from './ExploreNav';
+import { SEARCH_SHORTCUT } from '../../lib/shortcut';
 
 /** Industry value the bulk import stamped on nearly every company; it says nothing. */
 const GENERIC_INDUSTRY = 'manufacturing';
@@ -83,7 +84,7 @@ function SearchField() {
       <Search className="h-5 w-5 shrink-0 text-fg-soft" />
       <span className="min-w-0 flex-1 truncate text-base text-fg-soft sm:text-lg">Companies, careers, skills</span>
       <kbd className="hidden shrink-0 items-center gap-0.5 rounded-md bg-bg-elevated px-2 py-1 text-xs text-fg-soft sm:inline-flex">
-        <span className="text-[10px]">&#8984;</span>K
+        {SEARCH_SHORTCUT}
       </kbd>
     </button>
   );

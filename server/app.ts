@@ -31,6 +31,10 @@ import { publicCache } from './middleware/cache.js';
 export const app = express();
 
 app.disable('x-powered-by');
+// On Vercel every request arrives through its proxy, which sets
+// X-Forwarded-For itself. Trusting it makes req.ip the visitor's address, so
+// the sign-in throttle counts per visitor instead of lumping everyone together.
+if (process.env.VERCEL) app.set('trust proxy', true);
 app.use(cors());
 // A repeated query parameter (?state=TX&state=CA) arrives as an array, and an
 // object-shaped one (?state[a]=b) as an object. Every route reads single text
