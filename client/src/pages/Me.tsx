@@ -291,7 +291,7 @@ function SkillRow({ skill, busy, onChange, onRemove }: { skill: MySkill; busy: b
     <li className={cn(rowClass, 'flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3')}>
       <Link
         to={`/skills/${skill.skillId}`}
-        className="min-w-0 flex-1 basis-40 break-words text-sm font-medium text-fg-default underline-offset-4 hover:underline"
+        className="min-w-0 flex-1 basis-28 break-words text-sm font-medium text-fg-default underline-offset-4 hover:underline"
       >
         {skill.name}
       </Link>
@@ -351,7 +351,7 @@ function SkillSearch({ mySkills, onAdd, pendingId, disabled }: SkillSearchProps)
           role="searchbox"
           enterKeyHint="search"
           aria-label="Search skills to add"
-          placeholder="Add a skill: search by name, e.g. welding"
+          placeholder="Add a skill, e.g. welding"
           autoComplete="off"
           value={term}
           disabled={disabled}
@@ -511,21 +511,25 @@ function ApplicationRow({ application }: { application: MyApplication }) {
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {confirming ? (
             <>
-              <span className="text-sm text-fg-muted">Withdraw this application? You cannot apply to this job again.</span>
-              <Button type="button" variant="destructive" size="sm" disabled={update.isPending} onClick={withdraw} className="h-9">
-                {update.isPending && <Loader2 className="animate-spin" />}
-                Yes, withdraw
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={update.isPending}
-                onClick={() => setConfirming(false)}
-                className={cn('h-9', outlineButtonClass)}
-              >
-                Keep it
-              </Button>
+              <span className="min-w-0 flex-1 basis-56 text-sm text-fg-muted">
+                Withdraw this application? You cannot apply to this job again.
+              </span>
+              <div className="flex shrink-0 gap-2">
+                <Button type="button" variant="destructive" size="sm" disabled={update.isPending} onClick={withdraw} className="h-9">
+                  {update.isPending && <Loader2 className="animate-spin" />}
+                  Yes, withdraw
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={update.isPending}
+                  onClick={() => setConfirming(false)}
+                  className={cn('h-9', outlineButtonClass)}
+                >
+                  Keep it
+                </Button>
+              </div>
             </>
           ) : (
             <Button

@@ -234,9 +234,8 @@ function RequestsSection() {
               data-request-email={request.userEmail}
             >
               <div className="min-w-0 flex-1 basis-64">
-                <p className="break-words text-sm font-medium text-fg-default">
-                  {request.userName} <span className="break-all font-normal text-fg-muted">{request.userEmail}</span>
-                </p>
+                <p className="break-words text-sm font-medium text-fg-default">{request.userName}</p>
+                <p className="break-all text-sm text-fg-muted">{request.userEmail}</p>
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-fg-muted">
                   <CompanyIcon className={cn('h-4 w-4 shrink-0', ENTITY.company.text)} />
                   <span className="min-w-0 break-words">

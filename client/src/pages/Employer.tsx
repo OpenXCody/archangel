@@ -294,7 +294,7 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
                       <span className={cn('shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium', state.className)}>{state.label}</span>
                     </div>
                     <p className="mt-0.5 break-words text-sm text-fg-muted">
-                      {[job.factoryName, job.city].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
+                      Job #{job.serial} · {[job.factoryName, job.city].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
                     </p>
                     <p className="mt-1 text-sm text-fg-default">
                       {job.applicants} {job.applicants === 1 ? 'applicant' : 'applicants'}

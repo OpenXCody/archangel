@@ -284,6 +284,7 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   const { job, myApplication } = data;
   const apply = useApply(job.id);
   const [note, setNote] = useState('');
+  const [applyAsManager, setApplyAsManager] = useState(false);
 
   if (myApplication) {
     return (
@@ -307,17 +308,26 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
     return <CardNote>This job is not taking applications.</CardNote>;
   }
 
-  if (data.canManage) {
-    // The people who run the job read its applicants; they do not apply to it.
+  if (data.canManage && !applyAsManager) {
+    // The people who run the job mostly come here for its applicants, not to apply.
     return (
-      <div className={cn(cardClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4 sm:p-6')}>
-        <p className="min-w-0 flex-1 basis-56 text-sm text-fg-muted">
-          You manage this job for {job.companyName}, so there is no apply form for you.{' '}
+      <div className={cn(cardClass, 'p-4 sm:p-6')}>
+        <p className="text-sm text-fg-muted">
+          You manage this job for {job.companyName}.{' '}
           {job.applyUrl ? 'People apply on your own site.' : 'People who apply are listed further down.'}
         </p>
-        <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
-          <a href="#manage-job">Go to applicants</a>
-        </Button>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-3">
+          <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
+            <a href="#manage-job">{job.applyUrl ? 'Manage this job' : 'Go to applicants'}</a>
+          </Button>
+          <button
+            type="button"
+            onClick={() => setApplyAsManager(true)}
+            className="text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default"
+          >
+            Apply to it myself
+          </button>
+        </div>
       </div>
     );
   }
@@ -398,6 +408,8 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
 function ManageSection({ job }: { job: JobDetailData }) {
   const applicants = useJobApplicants(job.id);
   const count = applicants.data?.applications.length;
+  // With an application link the company collects applications itself.
+  const offsite = Boolean(job.applyUrl);
 
   return (
     <div id="manage-job" className="mt-10 scroll-mt-16 border-t border-border-subtle pt-8">
@@ -415,7 +427,9 @@ function ManageSection({ job }: { job: JobDetailData }) {
             Applicants{typeof count === 'number' ? ` (${count})` : ''}
           </span>
         }
-        description="Ranked by required skills held, then optional skills held, then who applied first."
+        description={
+          offsite && !count ? undefined : 'Ranked by required skills held, then optional skills held, then who applied first.'
+        }
       >
         {applicants.isPending ? (
           <RowsSkeleton rows={2} />
@@ -423,14 +437,18 @@ function ManageSection({ job }: { job: JobDetailData }) {
           <LoadError error={applicants.error} onRetry={() => void applicants.refetch()} retrying={applicants.isFetching} />
         ) : (
           <>
-            {applicants.data.skillsAreSelfReported && (
+            {applicants.data.skillsAreSelfReported && !(offsite && count === 0) && (
               <p className={cn(cardClass, 'mb-3 flex items-start gap-2 p-3 text-sm text-fg-muted')}>
                 <Info className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>Skills are self-reported by applicants. Nothing here has been verified.</span>
               </p>
             )}
             {applicants.data.applications.length === 0 ? (
-              <CardNote>Nobody has applied yet. Applicants appear here as soon as they do.</CardNote>
+              <CardNote>
+                {offsite
+                  ? 'People apply to this job on your own site, so applicants are not listed here.'
+                  : 'Nobody has applied yet. Applicants appear here as soon as they do.'}
+              </CardNote>
             ) : (
               <ol className="space-y-3">
                 {applicants.data.applications.map((applicant, index) => (
@@ -620,20 +638,22 @@ function ApplicantCard({ applicant, rank }: { applicant: Applicant; rank: number
           <span className="min-w-0 flex-1 basis-48 text-sm text-fg-default">
             Mark {applicant.applicant.name} as {applicationStatusLabel(pendingFinal).toLowerCase()}? This is final and cannot be changed.
           </span>
-          <Button type="button" size="sm" disabled={move.isPending} onClick={() => moveTo(pendingFinal)} className="h-9">
-            {move.isPending && <Loader2 className="animate-spin" />}
-            Confirm
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={move.isPending}
-            onClick={() => setPendingFinal(null)}
-            className={cn('h-9', outlineButtonClass)}
-          >
-            Cancel
-          </Button>
+          <div className="flex shrink-0 gap-2">
+            <Button type="button" size="sm" disabled={move.isPending} onClick={() => moveTo(pendingFinal)} className="h-9">
+              {move.isPending && <Loader2 className="animate-spin" />}
+              Confirm
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={move.isPending}
+              onClick={() => setPendingFinal(null)}
+              className={cn('h-9', outlineButtonClass)}
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       )}
       <ErrorNote error={move.error} className="mt-3" />

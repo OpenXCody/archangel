@@ -52,7 +52,8 @@ router.patch(
   '/memberships',
   handle(async (req, res) => {
     const { companyId, userId, decision } = req.body ?? {};
-    if (typeof companyId !== 'string' || typeof userId !== 'string') {
+    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (typeof companyId !== 'string' || typeof userId !== 'string' || !UUID.test(companyId) || !UUID.test(userId)) {
       return res.status(400).json({ error: 'companyId and userId are required.' });
     }
     const match = and(eq(companyMembers.companyId, companyId), eq(companyMembers.userId, userId));

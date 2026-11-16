@@ -52,7 +52,7 @@ export default function Layout() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-bg-surface border-b border-border-subtle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-14 gap-4">
+          <div className="flex items-center justify-between h-14 gap-2 sm:gap-4">
             {/* Left: Navigation */}
             <nav className="flex items-center gap-1 flex-shrink-0">
               {visibleNavItems.map(({ to, icon: Icon, label }) => {
@@ -81,7 +81,8 @@ export default function Layout() {
 
             {/* Center: Logo - visible on tablet+ */}
             <div className="flex items-center justify-center flex-1 min-w-0">
-              <span className="text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap">
+              {/* With the admin item, search and the account control, a phone has no room left for the wordmark. */}
+              <span className={`text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap ${visibleNavItems.length > 3 && !isMapView ? 'hidden sm:inline' : ''}`}>
                 ARCHANGEL
               </span>
             </div>

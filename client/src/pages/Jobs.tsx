@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { BriefcaseBusiness, Clock, Loader2, MapPin, Search, SearchX, X } from 'lucide-react';
@@ -30,8 +30,10 @@ export default function Jobs() {
   const debouncedTerm = useDebouncedValue(term.trim(), 300);
 
   // Typing updates the URL a beat later; the URL is what the list reads.
+  const writtenQ = useRef(q);
   useEffect(() => {
     if (debouncedTerm === q) return;
+    writtenQ.current = debouncedTerm;
     const params = new URLSearchParams(searchParams);
     if (debouncedTerm) params.set('q', debouncedTerm);
     else params.delete('q');
@@ -39,6 +41,13 @@ export default function Jobs() {
     // Only a change in what was typed should write the URL.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedTerm]);
+
+  // The URL changed without our typing (Back, or the Jobs link in the header): show what it says.
+  useEffect(() => {
+    if (q === writtenQ.current) return;
+    writtenQ.current = q;
+    setTerm(q);
+  }, [q]);
 
   const setCareer = (value: string) => {
     const params = new URLSearchParams(searchParams);
