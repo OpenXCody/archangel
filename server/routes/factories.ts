@@ -5,6 +5,7 @@ import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { packPins } from '../../shared/pins.js';
+import { pageLimit } from '../lib/paging.js';
 
 /** A company with this many factories nationwide counts as established. */
 const ESTABLISHED_MIN_SITES = 5;
@@ -17,7 +18,7 @@ router.use(uuidQuery('company'));
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, state, company, industry, sort = 'name', order = 'asc' } = req.query;
-    const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const limitNum = pageLimit(limit, 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     // Build where conditions. Public reads only ever see in-scope factories.

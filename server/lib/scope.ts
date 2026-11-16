@@ -1,5 +1,5 @@
 import { sql, type SQL } from 'drizzle-orm';
-import { SCOPE } from '../../shared/scope.js';
+import { SCOPE, type FocusArea } from '../../shared/scope.js';
 
 /**
  * Region scope for public reads.
@@ -81,4 +81,18 @@ export function factoryInBox(bounds: [[number, number], [number, number]], facto
     AND ${lat}::float8 BETWEEN ${south} AND ${north}
     AND ${lng}::float8 BETWEEN ${west} AND ${east}
   )`;
+}
+
+/**
+ * The factory lies inside a focus area's drawn boundary, not just the box
+ * around it. The box test comes first (cheap, and it guards the casts); the
+ * polygon test is Postgres's own point-in-polygon.
+ */
+export function factoryInArea(area: Pick<FocusArea, 'bounds' | 'ring'>, factoryTable = 'factories'): SQL {
+  const lat = column(factoryTable, 'latitude');
+  const lng = column(factoryTable, 'longitude');
+  const polygon = `(${area.ring.map(([x, y]) => `(${Number(x)},${Number(y)})`).join(',')})`;
+  return sql`(CASE WHEN ${factoryInBox(area.bounds, factoryTable)}
+    THEN ${polygon}::polygon @> point(${lng}::float8, ${lat}::float8)
+    ELSE false END)`;
 }

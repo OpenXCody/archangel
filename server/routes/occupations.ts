@@ -4,6 +4,7 @@ import { db, occupations, occupationSkills, skills, factoryOccupations, factorie
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
+import { pageLimit } from '../lib/paging.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -12,7 +13,7 @@ router.param('id', uuidParam);
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, order = 'asc' } = req.query;
-    const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const limitNum = pageLimit(limit, 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     // Build where conditions

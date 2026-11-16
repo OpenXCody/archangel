@@ -17,15 +17,24 @@ function secretsMatch(provided: string, expected: string): boolean {
   return timingSafeEqual(a, b);
 }
 
-/** True when the deployment requires an admin secret for writes. */
-export function adminAuthRequired(): boolean {
-  return Boolean(process.env.ADMIN_SECRET) || isProductionLike();
+/**
+ * Writes are open to everyone only when a developer asks for it in so many
+ * words (ALLOW_OPEN_WRITES=1) on a machine that is not a deployment. Without
+ * it the gate is closed: forgetting a setting must never open the database.
+ */
+function openWritesAllowed(): boolean {
+  return process.env.ALLOW_OPEN_WRITES === '1' && !isProductionLike() && !process.env.ADMIN_SECRET;
 }
 
-/** True when this request carries a valid admin secret. */
+/** True when the deployment requires an admin secret or account for writes. */
+export function adminAuthRequired(): boolean {
+  return !openWritesAllowed();
+}
+
+/** True when this request carries a valid admin secret (or writes are explicitly open). */
 export function isAuthorizedAdmin(req: Request): boolean {
   const expected = process.env.ADMIN_SECRET;
-  if (!expected) return !isProductionLike(); // dev convenience: no secret configured = open locally
+  if (!expected) return openWritesAllowed();
   const provided = req.header(ADMIN_HEADER);
   return typeof provided === 'string' && secretsMatch(provided, expected);
 }
@@ -48,8 +57,8 @@ export async function isAdminRequest(req: Request): Promise<boolean> {
  * Gate a whole router behind admin access.
  * - A signed-in admin account passes.
  * - ADMIN_SECRET set: a matching x-admin-secret header passes.
- * - ADMIN_SECRET unset, local dev: allowed (so `npm run dev` just works).
- * - ADMIN_SECRET unset, production, no admin account: refused with a setup hint.
+ * - ALLOW_OPEN_WRITES=1 on a developer's machine: allowed.
+ * - Otherwise refused.
  */
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   isAdminRequest(req).then((ok) => {
@@ -57,14 +66,7 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
       next();
       return;
     }
-    if (!process.env.ADMIN_SECRET && isProductionLike()) {
-      res.status(503).json({
-        error: 'Admin access is not configured',
-        hint: 'Set ADMIN_SECRET in the deployment environment to enable data changes.',
-      });
-      return;
-    }
-    res.status(401).json({ error: 'Admin access required', header: ADMIN_HEADER });
+    res.status(401).json({ error: 'Admin access required. Sign in with an admin account.' });
   }, next);
 }
 

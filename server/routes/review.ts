@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { eq, sql, isNull, and, desc } from 'drizzle-orm';
 import { db, factories, companies, factoryReview, factoriesQuarantine, externalReferences, entityLinks, factoryOccupations } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
+import { pageLimit } from '../lib/paging.js';
 
 /**
  * Manual review queue for factories the NAICS enrichment couldn't verify
@@ -34,7 +35,7 @@ router.get('/summary', async (_req: Request, res: Response) => {
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { status = 'pending', reason, limit = '50', offset = '0' } = req.query;
-    const limitNum = Math.min(parseInt(limit as string, 10) || 50, 200);
+    const limitNum = pageLimit(limit, 50, 200);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
     const conditions = [status === 'resolved' ? sql`${factoryReview.resolvedAt} IS NOT NULL` : isNull(factoryReview.resolvedAt)];
     if (typeof reason === 'string' && reason) conditions.push(eq(factoryReview.reason, reason));

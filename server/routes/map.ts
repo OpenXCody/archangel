@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { sql, type SQL } from 'drizzle-orm';
 import { db, factories } from '../db/index.js';
-import { factoryInBox, factoryInScope, isStateInScope } from '../lib/scope.js';
+import { factoryInArea, factoryInScope, isStateInScope } from '../lib/scope.js';
 import { FOCUS_AREAS, focusArea } from '../../shared/scope.js';
 
 const router = Router();
@@ -209,7 +209,7 @@ router.get('/areas', (_req: Request, res: Response) => {
 });
 
 // GET /api/map/areas/:id/overview - Panel data for a focus area, the same
-// shape as a state's. Factories are taken from the area's bounding box.
+// shape as a state's. Factories are those inside the area's drawn boundary.
 router.get('/areas/:id/overview', async (req: Request, res: Response) => {
   const area = focusArea(String(req.params.id));
   if (!area) {
@@ -217,7 +217,7 @@ router.get('/areas/:id/overview', async (req: Request, res: Response) => {
     return;
   }
   try {
-    const overview = await buildOverview((t) => factoryInBox(area.bounds, t));
+    const overview = await buildOverview((t) => factoryInArea(area, t));
     res.json({ id: area.id, name: area.name, description: area.description, bounds: area.bounds, ...overview });
   } catch (error) {
     console.error('Error fetching area overview:', error);
