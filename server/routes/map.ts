@@ -163,7 +163,25 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
     LIMIT 8
   `);
 
+  // Careers typical of the industries found here. Each factory counts toward
+  // the careers of its industry, the industry's leading careers most (a
+  // fabrication shop says "welder" louder than "receiving inspector"), so the
+  // list reflects what this place mostly makes. Careers found in every
+  // industry are left out: they would lead every list and say nothing about
+  // the place.
+  const careers = await db.execute(sql`
+    SELECT o.id, o.title, COUNT(*)::int AS count, SUM(1.0 / io.rank) AS weight
+    FROM factories f
+    INNER JOIN industry_occupations io ON io.industry = f.primary_naics_description AND io.common = false
+    INNER JOIN occupations o ON o.id = io.occupation_id
+    WHERE ${inSet('f')} AND ${factoryInScope('f')}
+    GROUP BY o.id, o.title
+    ORDER BY weight DESC, o.title ASC
+    LIMIT 8
+  `);
+
   return {
+    careers: Array.from(careers as Iterable<Record<string, unknown>>).map((r) => ({ id: r.id, title: r.title, count: r.count })),
     totalFactories: totalsRow?.totalFactories ?? 0,
     totalCompanies: totalsRow?.totalCompanies ?? 0,
     totalWorkforce: totalsRow?.totalWorkforce ?? 0,

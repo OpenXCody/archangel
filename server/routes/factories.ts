@@ -298,10 +298,28 @@ router.get('/:id', async (req: Request, res: Response) => {
       .innerJoin(occupations, eq(factoryOccupations.occupationId, occupations.id))
       .where(eq(factoryOccupations.factoryId, id));
 
+    // With no careers recorded for this plant, the careers typical of its
+    // industry: what kind of work a plant like this has, not a claim about it.
+    const industryName = factory.industry;
+    const typicalCareers =
+      factoryOccupationsResult.length === 0 && industryName
+        ? Array.from(
+            (await db.execute(sql`
+              SELECT o.id, o.title
+              FROM industry_occupations io
+              INNER JOIN occupations o ON o.id = io.occupation_id
+              WHERE io.industry = ${industryName}
+              ORDER BY io.rank ASC
+              LIMIT 10
+            `)) as Iterable<Record<string, unknown>>
+          ).map((r) => ({ id: String(r.id), title: String(r.title) }))
+        : [];
+
     res.json({
       ...factory,
       company,
       nearby,
+      typicalCareers,
       occupations: factoryOccupationsResult,
       jobs: await listOpenJobs(eq(jobs.factoryId, id)),
     });

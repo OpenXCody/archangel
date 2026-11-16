@@ -74,6 +74,14 @@ The map opens on the continental US. A focus area is somewhere to go, not a limi
 
 Pins carry a tier: 2 featured employer (`companies.featured`), 1 established company (five or more factories nationwide), 0 other. `companies.domain` is used for logos. Curated lists live in `data/` and load through generated migrations (`scripts/build-*-sql.mjs`).
 
+## Careers and plants
+
+Two different links, kept apart:
+- `factory_occupations`: careers recorded for one plant (headcount, pay). Empty in production today.
+- `industry_occupations`: careers typical of an industry (the 21 NAICS manufacturing subsectors in `factories.primary_naics_description`), curated in `data/careers/industries.json` and loaded by `scripts/build-industry-careers-sql.mjs` (migration `0021`). It says what kind of work an industry has, never that a given plant employs it, and the wording on screen keeps that distinction ("Careers in this industry", "Where this work is done").
+
+From it: a career lists its industries with plant counts and leading states (`GET /api/occupations/:id` → `industries`, `everywhere`, `elsewhereToo`, `topStates`); a plant with no recorded careers lists its industry's (`GET /api/factories/:id` → `typicalCareers`); a state or focus area lists the careers its industry mix points to (`careers` on the map overviews, weighted toward each industry's leading careers). Careers marked `common` (found in every industry) are left out of area lists.
+
 ## Words
 
 On screen an occupation is a **Career**, and a job is one opening for a career at one factory. Code, routes and tables still say `occupation`. A career's skills carry a stage: 1 Introduction, 2 Fundamentals, 3 Advanced.
@@ -114,7 +122,7 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 
 ## Migrations
 
-`scripts/migrate.mjs` applies the SQL files it lists (0010 onward) once each, before every build (`npm run build`), and skips when `DATABASE_URL` is unset. New tables go in a new idempotent SQL file in `migrations/`, added to the list in that script, and mirrored in `server/db/schema.ts`. Migrations 0000-0009 predate the runner. `0015_invites.sql` adds the `invites` table. `0020_password_resets.sql` adds the `password_resets` table.
+`scripts/migrate.mjs` applies the SQL files it lists (0010 onward) once each, before every build (`npm run build`), and skips when `DATABASE_URL` is unset. New tables go in a new idempotent SQL file in `migrations/`, added to the list in that script, and mirrored in `server/db/schema.ts`. Migrations 0000-0009 predate the runner. `0015_invites.sql` adds the `invites` table. `0020_password_resets.sql` adds the `password_resets` table. `0021_industry_careers.sql` adds and fills `industry_occupations`.
 
 ## Map
 

@@ -236,6 +236,8 @@ export interface FactoryDetail extends Factory {
   company: FactoryCompany | null;
   /** The company's other sites, closest first (up to five). */
   nearby?: SisterSite[];
+  /** Careers typical of this plant's industry, when none are recorded for the plant itself. */
+  typicalCareers?: { id: string; title: string }[];
   occupations: RelatedOccupation[];
 }
 
@@ -258,6 +260,14 @@ export interface OccupationDetail extends Occupation {
   skills: RelatedSkill[];
   factories: RelatedFactoryWithHeadcount[];
   jobs?: CareerJob[];
+  /** Industries where this work is typically done, with their factory counts. */
+  industries?: { name: string; factoryCount: number }[];
+  /** True when the career is found in plants of every industry rather than a few. */
+  everywhere?: boolean;
+  /** True when it is listed for some industries and found in the others as well. */
+  elsewhereToo?: boolean;
+  /** States with the most factories in those industries. */
+  topStates?: { code: string; factoryCount: number }[];
 }
 
 export interface Skill {
@@ -661,6 +671,8 @@ export interface RegionOverview {
   totalWorkforce: number;
   topCompanies: TopCompany[];
   topIndustries: { label: string; count: number }[];
+  /** Careers typical of the industries found here, the most characteristic first. */
+  careers?: { id: string; title: string }[];
 }
 
 export interface StateOverview extends RegionOverview {

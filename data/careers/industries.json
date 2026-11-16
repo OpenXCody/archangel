@@ -1,0 +1,413 @@
+{
+  "note": "Careers typical of each industry (NAICS manufacturing subsector, as factories.primary_naics_description names it). 'everywhere' lists careers found in plants of every industry. Titles must match occupations.title exactly. Order is the order shown. This is a curated starting point: it says what kind of work an industry has, not that a given plant employs it. In process industries (chemicals, food, paper and the like) the maintenance and controls trades are the work, so they lead those lists.",
+  "everywhere": [
+    "Maintenance Technician",
+    "Industrial Electrician",
+    "Millwright",
+    "PLC Technician",
+    "Controls Technician",
+    "Automation Technician",
+    "Quality Control Inspector",
+    "Manufacturing Engineer",
+    "Quality Engineer",
+    "Industrial Engineer",
+    "Controls Engineer",
+    "PLC Programmer",
+    "Automation Engineer"
+  ],
+  "industries": [
+    {
+      "industry": "Fabricated Metal Product Manufacturing",
+      "careers": [
+        "Welder",
+        "MIG Welder",
+        "TIG Welder",
+        "Certified Welder",
+        "Robotic Welder Operator",
+        "Sheet Metal Worker",
+        "Machinist",
+        "CNC Machine Operator",
+        "CNC Mill Operator",
+        "CNC Lathe Operator",
+        "CNC Programmer",
+        "Stamping Press Operator",
+        "Tool and Die Maker",
+        "Setup Technician",
+        "Heat Treat Operator",
+        "Grinding Machine Operator",
+        "Laser Welding Technician",
+        "CMM Operator",
+        "NDT Technician",
+        "Jig and Fixture Builder",
+        "First Article Inspector",
+        "Metrology Engineer",
+        "PT Level II Inspector",
+        "ET Level II Inspector",
+        "Receiving Inspector"
+      ]
+    },
+    {
+      "industry": "Machinery Manufacturing",
+      "careers": [
+        "Machinist",
+        "CNC Programmer",
+        "CNC Mill Operator",
+        "CNC Lathe Operator",
+        "CAM Programmer",
+        "NC Programmer",
+        "Welder",
+        "MIG Welder",
+        "Production Assembler",
+        "Mechanical Engineer",
+        "Tool and Die Maker",
+        "Jig and Fixture Builder",
+        "Hydraulics Technician",
+        "CMM Operator",
+        "Mechatronics Engineer",
+        "Test Technician",
+        "Tooling Engineer",
+        "EDM Operator",
+        "Grinding Machine Operator",
+        "Gage Maker",
+        "Motion Control Engineer",
+        "Additive Manufacturing Engineer",
+        "Assembly Process Engineer",
+        "Cobot Technician",
+        "Test Engineer",
+        "Metrology Engineer",
+        "Receiving Inspector"
+      ]
+    },
+    {
+      "industry": "Transportation Equipment Manufacturing",
+      "careers": [
+        "Aerospace Assembler",
+        "Aerostructures Mechanic",
+        "Aircraft Mechanic",
+        "Avionics Technician",
+        "Composite Technician",
+        "Prepreg Layup Technician",
+        "Composite Bonding Technician",
+        "Autoclave Operator",
+        "NDI Composite Inspector",
+        "NDT Technician",
+        "Body Weld Technician",
+        "Spot Weld Technician",
+        "Stamping Press Operator",
+        "Body Dimensional Inspector",
+        "Giga Press Operator",
+        "Die Cast Setup Technician",
+        "Robot Programmer",
+        "Robotics Technician",
+        "Drive Unit Assembler",
+        "Wire Harness Assembler",
+        "Rocket Engine Technician",
+        "CNC Programmer",
+        "Machinist",
+        "Battery Module Assembler",
+        "Pack Assembly Technician",
+        "Die Try-Out Specialist",
+        "Die Maintenance Technician",
+        "Composite Repair Technician",
+        "First Article Inspector",
+        "Supplier Quality Engineer",
+        "Additive Manufacturing Engineer",
+        "Assembly Process Engineer",
+        "Cobot Technician",
+        "Vision Systems Engineer",
+        "Metrology Engineer",
+        "ET Level II Inspector",
+        "PT Level II Inspector",
+        "UT Level III Inspector",
+        "Industrial CT Scanner Operator",
+        "Receiving Inspector"
+      ]
+    },
+    {
+      "industry": "Computer and Electronic Product Manufacturing",
+      "careers": [
+        "Semiconductor Process Technician",
+        "Wafer Fab Operator",
+        "Cleanroom Technician",
+        "Photo Operator",
+        "Dry Etch Technician",
+        "Wet Etch Technician",
+        "CVD Process Technician",
+        "PVD Sputter Technician",
+        "Ion Implant Operator",
+        "Diffusion Furnace Operator",
+        "CMP Operator",
+        "Fab Metrology Technician",
+        "Defect Review Technician",
+        "Wafer Probe Technician",
+        "Wire Bond Operator",
+        "Die Attach Operator",
+        "Flip Chip Bonder",
+        "SMT Line Operator",
+        "PCB Assembler",
+        "BGA Rework Technician",
+        "Electronics Assembler",
+        "Electronics Technician",
+        "Test Technician",
+        "Server Assembly Tech",
+        "Fab Equipment Engineer",
+        "Etch Process Engineer",
+        "Litho Process Engineer",
+        "Yield Engineer",
+        "Process Integration Engineer",
+        "Test Engineer Semiconductor",
+        "Failure Analysis Engineer",
+        "EUV Scanner Operator",
+        "Epitaxy Technician",
+        "Package Engineer",
+        "Vacuum Systems Engineer",
+        "Manufacturing Test Engineer",
+        "ALD Process Technician",
+        "CD Metrology Technician",
+        "Overlay Metrology Tech",
+        "CMP Process Engineer",
+        "CVD Process Engineer",
+        "CVD Equipment Engineer",
+        "Diffusion Process Engineer",
+        "Etch Equipment Engineer",
+        "Implant Process Engineer",
+        "Litho Equipment Engineer",
+        "PVD Process Engineer",
+        "Wet Process Engineer",
+        "Reliability Engineer Semi",
+        "Vision Systems Engineer",
+        "Test Engineer"
+      ]
+    },
+    {
+      "industry": "Electrical Equipment, Appliance, and Component Manufacturing",
+      "careers": [
+        "Wire Harness Assembler",
+        "Electronics Assembler",
+        "Electronics Technician",
+        "Cell Assembly Technician",
+        "Cell Formation Technician",
+        "Electrode Coating Technician",
+        "Electrolyte Fill Technician",
+        "Battery Module Assembler",
+        "Pack Assembly Technician",
+        "Battery Cell Engineer",
+        "Power Module Technician",
+        "Busbar Welding Technician",
+        "Hairpin Stator Technician",
+        "Electrical Engineer",
+        "Test Technician",
+        "Laser Welding Technician",
+        "Manufacturing Test Engineer",
+        "Assembly Process Engineer",
+        "Test Engineer"
+      ]
+    },
+    {
+      "industry": "Primary Metal Manufacturing",
+      "careers": [
+        "Heat Treat Operator",
+        "Casting Process Engineer",
+        "Casting CNC Machinist",
+        "Die Cast Setup Technician",
+        "NDT Technician",
+        "MT Level II Inspector",
+        "UT Level II Inspector",
+        "RT Level II Inspector",
+        "Welder",
+        "Grinding Machine Operator",
+        "Hydraulics Technician",
+        "PT Level II Inspector",
+        "ET Level II Inspector",
+        "UT Level III Inspector",
+        "Industrial CT Scanner Operator"
+      ]
+    },
+    {
+      "industry": "Miscellaneous Manufacturing",
+      "careers": [
+        "Medical Device Assembler",
+        "Sterilization Technician",
+        "Swiss-Type Lathe Operator",
+        "CNC Machine Operator",
+        "Cleanroom Technician",
+        "First Article Inspector",
+        "Metrology Technician",
+        "Additive Manufacturing Technician",
+        "Machinist",
+        "Additive Manufacturing Engineer"
+      ]
+    },
+    {
+      "industry": "Plastics and Rubber Products Manufacturing",
+      "careers": [
+        "Setup Technician",
+        "Maintenance Technician",
+        "Tool and Die Maker",
+        "Robotics Technician",
+        "Industrial Electrician",
+        "Tooling Engineer",
+        "CMM Operator",
+        "Hydraulics Technician",
+        "Die Maintenance Technician",
+        "Cobot Technician"
+      ]
+    },
+    {
+      "industry": "Chemical Manufacturing",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Controls Technician",
+        "Millwright",
+        "PLC Technician",
+        "Automation Technician",
+        "Facilities Engineer",
+        "Hydraulics Technician",
+        "Metrology Technician"
+      ]
+    },
+    {
+      "industry": "Petroleum and Coal Products Manufacturing",
+      "careers": [
+        "Controls Technician",
+        "Industrial Electrician",
+        "Millwright",
+        "Certified Welder",
+        "Maintenance Technician",
+        "PLC Technician",
+        "Welder",
+        "NDT Technician",
+        "UT Level II Inspector",
+        "Phased Array UT Technician",
+        "Hydraulics Technician",
+        "Facilities Engineer"
+      ]
+    },
+    {
+      "industry": "Nonmetallic Mineral Product Manufacturing",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Controls Technician",
+        "Millwright",
+        "PLC Technician",
+        "Automation Technician",
+        "Hydraulics Technician",
+        "Heat Treat Operator",
+        "Welder"
+      ]
+    },
+    {
+      "industry": "Food Manufacturing",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Controls Technician",
+        "Millwright",
+        "PLC Technician",
+        "Automation Technician",
+        "Robotics Technician",
+        "Hydraulics Technician",
+        "Facilities Engineer",
+        "Vision Systems Engineer"
+      ]
+    },
+    {
+      "industry": "Beverage and Tobacco Product Manufacturing",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Controls Technician",
+        "Millwright",
+        "PLC Technician",
+        "Automation Technician",
+        "Robotics Technician",
+        "Hydraulics Technician",
+        "Facilities Engineer"
+      ]
+    },
+    {
+      "industry": "Wood Product Manufacturing",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Controls Technician",
+        "Millwright",
+        "PLC Technician",
+        "Automation Technician",
+        "CNC Machine Operator",
+        "Hydraulics Technician",
+        "Setup Technician"
+      ]
+    },
+    {
+      "industry": "Paper Manufacturing",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Controls Technician",
+        "Millwright",
+        "PLC Technician",
+        "Automation Technician",
+        "Hydraulics Technician",
+        "Setup Technician",
+        "Facilities Engineer"
+      ]
+    },
+    {
+      "industry": "Printing and Related Support Activities",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Setup Technician",
+        "Hydraulics Technician"
+      ]
+    },
+    {
+      "industry": "Furniture and Related Product Manufacturing",
+      "careers": [
+        "CNC Machine Operator",
+        "Sheet Metal Worker",
+        "Welder",
+        "MIG Welder",
+        "Production Assembler"
+      ]
+    },
+    {
+      "industry": "Textile Mills",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Setup Technician"
+      ]
+    },
+    {
+      "industry": "Textile Product Mills",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Setup Technician",
+        "Production Assembler"
+      ]
+    },
+    {
+      "industry": "Leather and Allied Product Manufacturing",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Production Assembler",
+        "Setup Technician"
+      ]
+    },
+    {
+      "industry": "Apparel Manufacturing",
+      "careers": [
+        "Maintenance Technician",
+        "Industrial Electrician",
+        "Production Assembler",
+        "Setup Technician"
+      ]
+    }
+  ]
+}
