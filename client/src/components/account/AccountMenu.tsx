@@ -12,12 +12,18 @@ import {
 import { cn } from '@/lib/utils';
 import { accountRoles, errorMessage, signInPath, useAccount, useSessionExpiryWatch, useSignOut } from '../../lib/account';
 
-/** Titles for the account pages, for the browser tab. Null for any other path. */
-export function accountPageTitle(pathname: string): string | null {
+/**
+ * Titles for the account pages, for the browser tab. Null for any other path.
+ * Admin Tools and the import tools it links to are named only for an admin:
+ * to anyone else those pages do not exist.
+ */
+export function accountPageTitle(pathname: string, isAdmin: boolean): string | null {
   if (pathname === '/sign-in') return 'Sign in';
   if (pathname === '/me') return 'Profile';
   if (pathname === '/employer') return 'Employer';
-  if (pathname === '/admin') return 'Admin';
+  if (pathname === '/admin') return isAdmin ? 'Admin Tools' : null;
+  if (pathname === '/import') return 'Import';
+  if (pathname === '/import/bulk') return 'Bulk import';
   return null;
 }
 
@@ -111,7 +117,7 @@ export default function AccountMenu() {
           <DropdownMenuItem asChild className={itemClass}>
             <Link to="/admin">
               <ShieldCheck className="text-fg-muted" />
-              Admin
+              Admin Tools
             </Link>
           </DropdownMenuItem>
         )}

@@ -242,20 +242,20 @@ export default function ColumnMapper({
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-fg-default">Map your columns</h3>
         <div className="flex items-center gap-2 text-sm">
-          <span className={mappedCount > 0 ? 'text-emerald-400' : 'text-fg-muted'}>
+          <span className={mappedCount > 0 ? 'text-success' : 'text-fg-muted'}>
             {mappedCount} of {sourceColumns.length} mapped
           </span>
-          {mappedCount > 0 && <Check className="w-4 h-4 text-emerald-400" />}
+          {mappedCount > 0 && <Check className="w-4 h-4 text-success" />}
         </div>
       </div>
 
       {/* Missing required fields warning */}
       {missingRequired.length > 0 && (
-        <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
-          <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+        <div className="mb-4 p-3 rounded-lg bg-warning/10 border border-warning/20 flex items-start gap-2">
+          <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm text-amber-400 font-medium">Required fields missing</p>
-            <p className="text-sm text-amber-400/70 mt-0.5">
+            <p className="text-sm text-warning font-medium">Required fields missing</p>
+            <p className="text-sm text-warning/70 mt-0.5">
               Please map: {missingRequired.map((f) => f.label).join(', ')}
             </p>
           </div>
@@ -278,15 +278,15 @@ export default function ColumnMapper({
       {/* Legend */}
       <div className="mt-6 pt-4 border-t border-border-subtle flex items-center gap-6 text-xs text-fg-muted">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-emerald-500" />
+          <div className="w-3 h-3 rounded-full bg-success" />
           <span>Mapped</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-amber-500" />
+          <div className="w-3 h-3 rounded-full bg-warning" />
           <span>Required (missing)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-gray-500" />
+          <div className="w-3 h-3 rounded-full bg-bg-elevated" />
           <span>Skipped</span>
         </div>
       </div>
@@ -319,8 +319,8 @@ function MappingRow({
             className={`
               w-2 h-2 rounded-full flex-shrink-0
               ${mapping.targetField
-                ? 'bg-emerald-500'
-                : 'bg-gray-500'
+                ? 'bg-success'
+                : 'bg-bg-elevated'
               }
             `}
           />
@@ -361,10 +361,10 @@ function MappingRow({
               </>
             ) : selectedTarget ? (
               <>
-                <Check className="w-4 h-4 text-emerald-400" />
+                <Check className="w-4 h-4 text-success" />
                 {selectedTarget.label}
                 {selectedTarget.required && (
-                  <span className="text-red-400 text-xs">*</span>
+                  <span className="text-danger text-xs">*</span>
                 )}
               </>
             ) : (
@@ -423,11 +423,11 @@ function MappingRow({
                       ${isSelected ? 'bg-bg-surface' : ''}
                     `}
                   >
-                    {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
+                    {isSelected && <Check className="w-4 h-4 text-success" />}
                     {!isSelected && <div className="w-4" />}
                     <span>{field.label}</span>
                     {field.required && (
-                      <span className="text-red-400 text-xs">*</span>
+                      <span className="text-danger text-xs">*</span>
                     )}
                     {isUsed && (
                       <span className="text-xs text-fg-soft ml-auto">already mapped</span>

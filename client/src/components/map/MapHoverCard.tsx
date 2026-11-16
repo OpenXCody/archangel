@@ -45,7 +45,7 @@ export default function MapHoverCard() {
     >
       <div className="map-overlay rounded-lg p-3">
         <div className="flex items-start gap-2.5">
-          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white/[0.06]">
+          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-tint/[0.06]">
             <Factory className="h-3.5 w-3.5 text-fg-muted" />
           </span>
           <div className="min-w-0 flex-1">
@@ -62,7 +62,7 @@ export default function MapHoverCard() {
           <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
             {info.industry && <span className="min-w-0 truncate">{info.industry}</span>}
             {info.openJobs > 0 && (
-              <span className="inline-flex items-center gap-1 font-medium text-sky-300">
+              <span className="inline-flex items-center gap-1 font-medium text-info">
                 <Briefcase className="h-3 w-3 shrink-0" />
                 {info.openJobs.toLocaleString()} open {info.openJobs === 1 ? 'job' : 'jobs'}
               </span>

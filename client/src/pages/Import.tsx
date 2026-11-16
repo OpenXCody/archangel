@@ -177,7 +177,7 @@ export default function Import() {
       {activeTab === 'bulk' && (
         <div className="bg-bg-surface border border-border-subtle rounded-xl p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-bg-elevated text-amber-500">
+            <div className="p-2 rounded-lg bg-bg-elevated text-warning">
               <Upload className="w-5 h-5" />
             </div>
             <div>
@@ -193,7 +193,7 @@ export default function Import() {
       {activeTab === 'review' && (
         <div className="bg-bg-surface border border-border-subtle rounded-xl p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-bg-elevated text-emerald-500">
+            <div className="p-2 rounded-lg bg-bg-elevated text-success">
               <ClipboardCheck className="w-5 h-5" />
             </div>
             <div>
@@ -256,11 +256,11 @@ export default function Import() {
 function getTabIconColor(color: string): string {
   switch (color) {
     case 'amber':
-      return 'text-amber-500';
+      return 'text-warning';
     case 'blue':
-      return 'text-blue-400';
+      return 'text-info';
     case 'emerald':
-      return 'text-emerald-500';
+      return 'text-success';
     default:
       return '';
   }
@@ -282,13 +282,13 @@ function ActivityItem({
   const getEntityIcon = () => {
     switch (batch.entityType) {
       case 'companies':
-        return <Building2 className="w-4 h-4 text-amber-500" />;
+        return <Building2 className="w-4 h-4 text-warning" />;
       case 'factories':
-        return <Factory className="w-4 h-4 text-blue-400" />;
+        return <Factory className="w-4 h-4 text-info" />;
       case 'occupations':
-        return <Briefcase className="w-4 h-4 text-blue-600" />;
+        return <Briefcase className="w-4 h-4 text-info" />;
       case 'skills':
-        return <Wrench className="w-4 h-4 text-emerald-500" />;
+        return <Wrench className="w-4 h-4 text-success" />;
       default:
         return <FileSpreadsheet className="w-4 h-4 text-fg-muted" />;
     }
@@ -309,16 +309,16 @@ function ActivityItem({
         className={`
           w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
           ${isSuccess
-            ? 'bg-emerald-500/10'
+            ? 'bg-success/10'
             : isFailed
-              ? 'bg-red-500/10'
-              : 'bg-blue-500/10'
+              ? 'bg-danger/10'
+              : 'bg-info/10'
           }
         `}
       >
-        {isSuccess && <Check className="w-4 h-4 text-emerald-500" />}
-        {isFailed && <AlertCircle className="w-4 h-4 text-red-500" />}
-        {isPending && <Clock className="w-4 h-4 text-blue-400 animate-pulse" />}
+        {isSuccess && <Check className="w-4 h-4 text-success" />}
+        {isFailed && <AlertCircle className="w-4 h-4 text-danger" />}
+        {isPending && <Clock className="w-4 h-4 text-info animate-pulse" />}
       </div>
 
       {/* Content */}
@@ -346,7 +346,7 @@ function ActivityItem({
         <p className="text-xs text-fg-soft mt-0.5">
           {formatRelativeTime(batch.createdAt)}
           {batch.skippedCount > 0 && (
-            <span className="text-amber-400 ml-2">
+            <span className="text-warning ml-2">
               {batch.skippedCount} skipped
             </span>
           )}

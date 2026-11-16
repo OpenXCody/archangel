@@ -95,23 +95,23 @@ export default function ValidationResults({
     <div>
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-          <div className="flex items-center gap-2 text-emerald-400">
+        <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+          <div className="flex items-center gap-2 text-success">
             <Check className="w-5 h-5" />
             <span className="text-2xl font-semibold">{validCount}</span>
           </div>
-          <p className="text-sm text-emerald-400/70 mt-1">Ready to import</p>
+          <p className="text-sm text-success/70 mt-1">Ready to import</p>
         </div>
-        <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
-          <div className="flex items-center gap-2 text-red-400">
+        <div className="p-4 rounded-lg bg-danger/10 border border-danger/20">
+          <div className="flex items-center gap-2 text-danger">
             <AlertCircle className="w-5 h-5" />
             <span className="text-2xl font-semibold">{unresolvedCount}</span>
           </div>
-          <p className="text-sm text-red-400/70 mt-1">
+          <p className="text-sm text-danger/70 mt-1">
             {unresolvedCount === 1 ? 'Error to fix' : 'Errors to fix'}
           </p>
         </div>
-        <div className="p-4 rounded-lg bg-gray-500/10 border border-gray-500/20">
+        <div className="p-4 rounded-lg bg-bg-elevated border border-border-strong">
           <div className="flex items-center gap-2 text-fg-muted">
             <span className="text-2xl font-semibold">{totalRows}</span>
           </div>
@@ -121,9 +121,9 @@ export default function ValidationResults({
 
       {/* Resolved indicator */}
       {resolvedCount > 0 && (
-        <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center gap-2">
-          <Check className="w-5 h-5 text-blue-400" />
-          <span className="text-sm text-blue-400">
+        <div className="mb-4 p-3 rounded-lg bg-info/10 border border-info/20 flex items-center gap-2">
+          <Check className="w-5 h-5 text-info" />
+          <span className="text-sm text-info">
             {resolvedCount} {resolvedCount === 1 ? 'issue' : 'issues'} resolved
           </span>
         </div>
@@ -152,7 +152,7 @@ export default function ValidationResults({
       {/* No errors */}
       {errorRows.length === 0 && (
         <div className="text-center py-8">
-          <Check className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+          <Check className="w-12 h-12 text-success mx-auto mb-3" />
           <h4 className="text-lg font-medium text-fg-default">All rows valid!</h4>
           <p className="text-sm text-fg-muted mt-1">
             {validCount} rows are ready to import
@@ -227,7 +227,7 @@ function ErrorRow({
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center gap-3 p-3 text-left"
       >
-        <div className={`${isResolved ? 'text-emerald-400' : 'text-red-400'}`}>
+        <div className={`${isResolved ? 'text-success' : 'text-danger'}`}>
           {isResolved ? <Check className="w-5 h-5" /> : errorIcon}
         </div>
         <div className="flex-1 min-w-0">
@@ -238,7 +238,7 @@ function ErrorRow({
             </span>
           </div>
           {isResolved && resolution && (
-            <p className="text-xs text-emerald-400 mt-0.5">
+            <p className="text-xs text-success mt-0.5">
               {resolution.action === 'skip' && 'Will be skipped'}
               {resolution.action === 'edit' && `Changed to: ${(resolution as { newValue: string }).newValue}`}
               {resolution.action === 'map' && `Mapped to: ${(resolution as { mappedValue: string }).mappedValue}`}
@@ -262,13 +262,13 @@ function ErrorRow({
               <div key={i} className="pl-8">
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-fg-muted font-medium">{error.field}:</span>
-                  <span className="text-red-400">
+                  <span className="text-danger">
                     {error.value != null ? `"${error.value}"` : '(empty)'}
                   </span>
                 </div>
                 <p className="text-xs text-fg-soft mt-0.5">{error.message}</p>
                 {error.suggestion && (
-                  <p className="text-xs text-blue-400 mt-0.5">
+                  <p className="text-xs text-info mt-0.5">
                     Suggestion: {error.suggestion}
                   </p>
                 )}
@@ -292,7 +292,7 @@ function ErrorRow({
                     flex-1 px-3 py-1.5 rounded-md text-sm
                     bg-bg-surface border border-border-subtle
                     text-fg-default placeholder:text-fg-soft
-                    focus:outline-none focus:border-blue-500
+                    focus:outline-none focus:border-info
                   "
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') submitEdit();

@@ -17,6 +17,7 @@
  * No layer here uses text, so the map needs no glyph server, which keeps the
  * keyless plain style free of anything that could fail to load.
  */
+import type { Theme } from '../../lib/theme';
 import type {
   ExpressionSpecification,
   Map as MapLibreMap,
@@ -51,24 +52,94 @@ export const LAYER = {
  */
 export const PIN_INTERACTIVE_MIN_ZOOM = 5.5;
 
-const COLOR = {
-  canvas: '#080808',
-  water: '#050505',
-  placeName: '#c4c4c4',
-  stateFill: '#A3B1C2',
-  stateFillActive: '#C6D1DE',
-  stateBorder: '#3d3d3d',
-  stateSelected: '#93C5FD',
-  areaFill: '#BAE6FD',
-  areaGlow: '#7DD3FC',
-  areaOutline: '#E0F2FE',
-  pinFeatured: '#ffffff',
-  pinEstablished: '#ececec',
-  pinOther: '#aab1ba',
-  pinStroke: '#0a0a0a',
-  hiringRing: '#7DD3FC', // the one accent, shared with the geofence: this factory is hiring
-  selectedRing: '#38BDF8', // sky-400: Factory
-} as const;
+interface MapPalette {
+  canvas: string;
+  water: string;
+  placeName: string;
+  stateFill: string;
+  stateFillActive: string;
+  stateBorder: string;
+  stateSelected: string;
+  areaFill: string;
+  areaGlow: string;
+  areaOutline: string;
+  pinFeatured: string;
+  pinEstablished: string;
+  pinOther: string;
+  /** The thin edge that keeps neighbouring pins apart: the land's own tone. */
+  pinStroke: string;
+  /** The one accent, shared with the geofence: this factory is hiring. */
+  hiringRing: string;
+  /** The hovered or selected pin, redrawn on top. */
+  pinActive: string;
+  selectedRing: string;
+  /** Density glow, from nothing to its strongest. */
+  glow: [string, string, string, string, string];
+}
+
+// Lights on a dark land, or ink on a light one. Same layers, same rules.
+const PALETTE: Record<Theme, MapPalette> = {
+  dark: {
+    canvas: '#080808',
+    water: '#050505',
+    placeName: '#c4c4c4',
+    stateFill: '#A3B1C2',
+    stateFillActive: '#C6D1DE',
+    stateBorder: '#3d3d3d',
+    stateSelected: '#93C5FD',
+    areaFill: '#BAE6FD',
+    areaGlow: '#7DD3FC',
+    areaOutline: '#E0F2FE',
+    pinFeatured: '#ffffff',
+    pinEstablished: '#ececec',
+    pinOther: '#aab1ba',
+    pinStroke: '#0a0a0a',
+    hiringRing: '#7DD3FC',
+    pinActive: '#ffffff',
+    selectedRing: '#38BDF8',
+    glow: [
+      'rgba(160, 190, 220, 0)',
+      'rgba(160, 190, 220, 0.02)',
+      'rgba(175, 200, 226, 0.07)',
+      'rgba(200, 220, 238, 0.15)',
+      'rgba(230, 240, 250, 0.24)',
+    ],
+  },
+  light: {
+    canvas: '#f1f2f4',
+    water: '#d5dbe2',
+    placeName: '#39414a',
+    stateFill: '#5b6b7e',
+    stateFillActive: '#34465c',
+    stateBorder: '#b9c0c8',
+    stateSelected: '#0369A1',
+    areaFill: '#38BDF8',
+    areaGlow: '#0EA5E9',
+    areaOutline: '#0369A1',
+    pinFeatured: '#0b0d10',
+    pinEstablished: '#262b31',
+    pinOther: '#59616b',
+    pinStroke: '#f1f2f4',
+    hiringRing: '#0284C7',
+    pinActive: '#0b0d10',
+    selectedRing: '#0284C7',
+    glow: [
+      'rgba(40, 60, 84, 0)',
+      'rgba(40, 60, 84, 0.03)',
+      'rgba(40, 60, 84, 0.08)',
+      'rgba(34, 52, 74, 0.15)',
+      'rgba(28, 44, 64, 0.22)',
+    ],
+  },
+};
+
+/** The palette of the theme the map was created in. A theme change recreates the map. */
+let COLOR: MapPalette = PALETTE.dark;
+
+/** Choose the palette. Call before creating the map. */
+export function setMapPalette(theme: Theme): void {
+  COLOR = PALETTE[theme];
+}
 
 /** The app's page background (--color-bg-base), so the keyless map sits flush with the shell. */
 function appBaseColor(): string {
@@ -77,21 +148,21 @@ function appBaseColor(): string {
 
 /**
  * Basemap used when there is no MapTiler key (local dev, CI, previews): a
- * plain dark canvas with no external sources, so nothing can fail to load.
+ * plain canvas in the app's page colour with no external sources, so nothing can fail to load.
  * The app's own layers (state shapes, geofences, clusters, pins) draw on top.
  * It has no `glyphs` and needs none: the app adds no text layers.
  */
-export function plainDarkStyle(): StyleSpecification {
+export function plainStyle(): StyleSpecification {
   return {
     version: 8,
-    name: 'Archangel plain dark',
+    name: 'Archangel plain',
     sources: {},
     layers: [{ id: 'background', type: 'background', paint: { 'background-color': appBaseColor() } }],
   };
 }
 
 /**
- * Darken the MapTiler basemap and strip it to what orients: land, water,
+ * Recolour the MapTiler basemap to the theme and strip it to what orients: land, water,
  * roads and settlement names. Returns the id of the lowest place-name layer;
  * the app's layers are inserted beneath it so names draw over the pins.
  */
@@ -112,7 +183,7 @@ export function quietBasemap(map: MapLibreMap): string | undefined {
           /city|town|village|place|suburb|capital|neighbou?r/.test(id) &&
           !/country|continent|state|ocean|sea|lake|river|water|road|street|highway|poi|airport|park|peak/.test(id);
         if (isPlaceName) {
-          // Light enough to read on the dark land, haloed so it also reads over a pin.
+          // Clear against the land, haloed so it also reads over a pin.
           map.setPaintProperty(layer.id, 'text-color', COLOR.placeName);
           map.setPaintProperty(layer.id, 'text-halo-color', COLOR.canvas);
           map.setPaintProperty(layer.id, 'text-halo-width', 1.6);
@@ -313,11 +384,11 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
       'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 2, 5, 4, 11, 6, 24, 7.5, 38],
       'heatmap-color': [
         'interpolate', ['linear'], ['heatmap-density'],
-        0, 'rgba(160, 190, 220, 0)',
-        0.2, 'rgba(160, 190, 220, 0.02)',
-        0.45, 'rgba(175, 200, 226, 0.07)',
-        0.75, 'rgba(200, 220, 238, 0.15)',
-        1, 'rgba(230, 240, 250, 0.24)',
+        0, COLOR.glow[0],
+        0.2, COLOR.glow[1],
+        0.45, COLOR.glow[2],
+        0.75, COLOR.glow[3],
+        1, COLOR.glow[4],
       ],
       'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 2, 1, 5.5, 0.9, 6.5, 0.5, 7.5, 0],
     },
@@ -368,7 +439,7 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
   }, beforeId);
 
   // The hovered and the selected pin, redrawn on top of their neighbours:
-  // a full-white dot with a ring, larger than any pin at the same zoom.
+  // the strongest dot with a ring, larger than any pin at the same zoom.
   const isSelected: ExpressionSpecification = ['==', ['get', 'kind'], 'selected'];
   map.addLayer({
     id: LAYER.activePins,
@@ -376,9 +447,9 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
     source: SOURCE.activePins,
     layout: { 'circle-sort-key': ['case', isSelected, 1, 0] },
     paint: {
-      'circle-color': '#ffffff',
+      'circle-color': COLOR.pinActive,
       'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 5, 7, 6.5, 9, 8, 12, 10.5, 15, 13.5],
-      'circle-stroke-color': ['case', isSelected, COLOR.selectedRing, '#ffffff'],
+      'circle-stroke-color': ['case', isSelected, COLOR.selectedRing, COLOR.pinActive],
       'circle-stroke-width': ['case', isSelected, 3, 4],
       'circle-stroke-opacity': ['case', isSelected, 0.95, 0.35],
     },

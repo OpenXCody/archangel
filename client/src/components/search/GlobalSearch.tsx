@@ -30,49 +30,49 @@ const ENTITY_CONFIG: Record<
   companies: {
     icon: Building2,
     label: 'Company',
-    iconClass: 'text-amber-500',
+    iconClass: 'text-fg-muted',
     path: '/companies',
   },
   factories: {
     icon: Factory,
     label: 'Factory',
-    iconClass: 'text-sky-400',
+    iconClass: 'text-fg-muted',
     path: '/factories',
   },
   occupations: {
     icon: Briefcase,
     label: 'Career',
-    iconClass: 'text-violet-400',
+    iconClass: 'text-fg-muted',
     path: '/occupations',
   },
   skills: {
     icon: Wrench,
     label: 'Skill',
-    iconClass: 'text-emerald-500',
+    iconClass: 'text-fg-muted',
     path: '/skills',
   },
   states: {
     icon: MapPin,
     label: 'State',
-    iconClass: 'text-indigo-500',
+    iconClass: 'text-fg-muted',
     path: '/states',
   },
   refs: {
     icon: Boxes,
     label: 'Element',
-    iconClass: 'text-teal-500',
+    iconClass: 'text-fg-muted',
     path: '/refs',
   },
   schools: {
     icon: GraduationCap,
     label: 'School',
-    iconClass: 'text-indigo-500',
+    iconClass: 'text-fg-muted',
     path: '/schools',
   },
   programs: {
     icon: BookOpen,
     label: 'Program',
-    iconClass: 'text-fuchsia-500',
+    iconClass: 'text-fg-muted',
     path: '/programs',
   },
 };
@@ -255,14 +255,14 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
         <div
           className="
             overflow-hidden rounded-xl
-            bg-bg-surface/95 backdrop-blur-xl
-            border border-white/10
+            bg-bg-surface
+            border border-tint/10
             shadow-2xl
           "
           onClick={(e) => e.stopPropagation()}
         >
           {/* Search input */}
-          <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
+          <div className="flex items-center gap-3 border-b border-tint/10 px-4 py-3">
             <Search className="w-5 h-5 text-fg-soft flex-shrink-0" />
             <input
               ref={inputRef}
@@ -291,20 +291,20 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                 <X className="w-4 h-4" />
               </button>
             )}
-            <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white/5 text-xs text-fg-soft border border-white/10">
+            <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-tint/5 text-xs text-fg-soft border border-tint/10">
               esc
             </kbd>
           </div>
 
           {/* Type filters */}
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-white/5">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-tint/5">
             <button
               onClick={() => setTypeFilter(null)}
               className={`
                 px-2.5 py-1 text-xs rounded-full transition-colors
                 ${!typeFilter
-                  ? 'bg-white/10 text-fg-default'
-                  : 'text-fg-soft hover:text-fg-muted hover:bg-white/5'
+                  ? 'bg-tint/10 text-fg-default'
+                  : 'text-fg-soft hover:text-fg-muted hover:bg-tint/5'
                 }
               `}
             >
@@ -320,8 +320,8 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                   className={`
                     flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full transition-colors
                     ${typeFilter === type
-                      ? 'bg-white/10 text-fg-default'
-                      : 'text-fg-soft hover:text-fg-muted hover:bg-white/5'
+                      ? 'bg-tint/10 text-fg-default'
+                      : 'text-fg-soft hover:text-fg-muted hover:bg-tint/5'
                     }
                   `}
                 >
@@ -354,7 +354,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                       key={search}
                       className="
                         flex items-center gap-3 px-3 py-2 rounded-lg
-                        hover:bg-white/5 cursor-pointer group
+                        hover:bg-tint/5 cursor-pointer group
                       "
                       onClick={() => setQuery(search)}
                     >
@@ -377,7 +377,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
 
             {/* Quick links (when no query) */}
             {!hasQuery && (
-              <div className="px-4 py-3 border-t border-white/5">
+              <div className="px-4 py-3 border-t border-tint/5">
                 <h4 className="text-xs font-medium text-fg-soft uppercase tracking-wider mb-2">
                   Quick Links
                 </h4>
@@ -390,7 +390,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                         key={link.path}
                         className="
                           flex items-center gap-3 px-3 py-2 rounded-lg
-                          hover:bg-white/5 cursor-pointer
+                          hover:bg-tint/5 cursor-pointer
                         "
                         onClick={() => navigateToQuickLink(link.path)}
                       >
@@ -417,7 +417,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                     <div key={type} className="px-4 py-2">
                       <h4 className="text-xs font-medium text-fg-soft uppercase tracking-wider mb-2">
                         {groupName(type)}
-                        <span className="ml-2 text-fg-soft/50">
+                        <span className="ml-2 text-fg-soft">
                           {searchResults?.results[type]?.count || 0}
                         </span>
                       </h4>
@@ -433,7 +433,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                               key={`${item.type}-${item.id}`}
                               className={`
                                 flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer
-                                ${isSelected ? 'bg-white/10' : 'hover:bg-white/5'}
+                                ${isSelected ? 'bg-tint/10' : 'hover:bg-tint/5'}
                               `}
                               onClick={() => navigateToResult(item)}
                               onMouseEnter={() => setSelectedIndex(globalIndex)}
@@ -453,7 +453,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                               <span
                                 className={`
                                   text-xs px-2 py-0.5 rounded-full
-                                  bg-white/5 text-fg-soft border border-white/10
+                                  bg-tint/5 text-fg-soft border border-tint/10
                                 `}
                               >
                                 {config.label}
@@ -485,8 +485,8 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                       onClick={() => navigateToQuickLink(link.path)}
                       className="
                         px-3 py-1.5 text-sm rounded-lg
-                        bg-white/5 text-fg-muted
-                        hover:bg-white/10 transition-colors
+                        bg-tint/5 text-fg-muted
+                        hover:bg-tint/10 transition-colors
                       "
                     >
                       Browse {link.type}
@@ -505,21 +505,21 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           </div>
 
           {/* Footer */}
-          <div className="hidden sm:flex items-center gap-4 px-4 py-2 border-t border-white/5 text-xs text-fg-soft">
+          <div className="hidden sm:flex items-center gap-4 px-4 py-2 border-t border-tint/5 text-xs text-fg-soft">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">
+              <kbd className="px-1.5 py-0.5 rounded bg-tint/5 border border-tint/10">
                 <span className="text-[10px]">&#8593;&#8595;</span>
               </kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">
+              <kbd className="px-1.5 py-0.5 rounded bg-tint/5 border border-tint/10">
                 <span className="text-[10px]">&#9166;</span>
               </kbd>
               Select
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">esc</kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-tint/5 border border-tint/10">esc</kbd>
               Close
             </span>
           </div>

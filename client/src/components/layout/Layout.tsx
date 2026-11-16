@@ -1,24 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Map, Layers, Upload, Search, BriefcaseBusiness } from 'lucide-react';
+import { Map, Layers, Search, BriefcaseBusiness } from 'lucide-react';
 import GlobalSearch from '../search/GlobalSearch';
 import AccountMenu, { accountPageTitle } from '../account/AccountMenu';
-import { useAdminStatus } from '../../lib/adminStatus';
+import { useAccount } from '../../lib/account';
 
+// The same for everyone. Admin pages are reached from "Admin Tools" in the account menu.
 const navItems = [
-  { to: '/map', icon: Map, label: 'Map', adminOnly: false },
-  { to: '/explore', icon: Layers, label: 'Explore', adminOnly: false },
-  { to: '/jobs', icon: BriefcaseBusiness, label: 'Jobs', adminOnly: false },
-  // Shown only to an authorized admin. The /import routes gate themselves
-  // (AdminKeyGate), so an admin without a key yet can still open /import.
-  { to: '/import', icon: Upload, label: 'Data', adminOnly: true },
+  { to: '/map', icon: Map, label: 'Map' },
+  { to: '/explore', icon: Layers, label: 'Explore' },
+  { to: '/jobs', icon: BriefcaseBusiness, label: 'Jobs' },
 ];
 
 export default function Layout() {
   const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { isAdmin } = useAdminStatus();
-  const visibleNavItems = navItems.filter((item) => !item.adminOnly || isAdmin);
+  const { data: account } = useAccount();
+  const isAdmin = Boolean(account?.user?.isAdmin);
 
   // Hide global search on map view (it has its own search)
   const isMapView = location.pathname === '/map';
@@ -27,10 +25,10 @@ export default function Layout() {
   useEffect(() => {
     const section =
       navItems.find((n) => location.pathname === n.to || location.pathname.startsWith(`${n.to}/`))?.label ??
-      accountPageTitle(location.pathname);
+      accountPageTitle(location.pathname, isAdmin);
     const isDetail = /^\/(companies|factories|occupations|skills|refs|schools|programs)\/[^/]+$/.test(location.pathname);
     if (!isDetail) document.title = section ? `${section} · Archangel` : 'Archangel';
-  }, [location.pathname]);
+  }, [location.pathname, isAdmin]);
 
   // Global keyboard shortcut for search (Cmd+K / Ctrl+K)
   useEffect(() => {
@@ -55,7 +53,7 @@ export default function Layout() {
           <div className="flex items-center justify-between h-14 gap-2 sm:gap-4">
             {/* Left: Navigation */}
             <nav className="flex items-center gap-1 flex-shrink-0">
-              {visibleNavItems.map(({ to, icon: Icon, label }) => {
+              {navItems.map(({ to, icon: Icon, label }) => {
                 const isActive = location.pathname === to || location.pathname.startsWith(`${to}/`);
 
                 return (
@@ -81,8 +79,7 @@ export default function Layout() {
 
             {/* Center: Logo - visible on tablet+ */}
             <div className="flex items-center justify-center flex-1 min-w-0">
-              {/* With the admin item, search and the account control, a phone has no room left for the wordmark. */}
-              <span className={`text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap ${visibleNavItems.length > 3 && !isMapView ? 'hidden sm:inline' : ''}`}>
+              <span className="text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap">
                 ARCHANGEL
               </span>
             </div>

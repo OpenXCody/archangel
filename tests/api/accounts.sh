@@ -3,8 +3,11 @@
 # sign-up through hiring, including the refusals. Prints one line per check
 # and exits non-zero if any fail.
 #
-# LOCAL ONLY: it creates and deletes users (emails ending @e2e.test) and
-# promotes one to admin directly in the database. Never point it at production.
+# LOCAL ONLY: it creates and deletes users and invites (emails ending
+# @e2e.test) and promotes one to admin directly in the database. For the
+# "last admin" check it takes the admin role from any other local admin for a
+# moment, and it edits one company's domain and featured flag; both are put
+# back on exit, however the script ends. Never point it at production.
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/accounts.sh
 # Needs a running dev API with ADMIN_SECRET unset, seeded data that includes
 # Texas and non-Texas factories, and psql, curl and node on the PATH.
@@ -29,9 +32,21 @@ check() { # name expected-status actual-output [grep-pattern]
     echo "FAIL  $name: wanted $want ${pat:+matching /$pat/ }got $code $(printf '%s' "$body" | head -c 200)"; fail=1
   else echo "ok    $name"; fi
 }
+expect() { # name wanted got
+  if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "FAIL  $1: wanted $2 got $3"; fail=1; fi
+}
+sql() { psql "$DB" -qtAc "$1"; }
 j() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s.split('\n').slice(0,-1).join('\n'));console.log(eval('o.'+process.argv[1]))})" "$1"; }
 
-psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@e2e.test'" >/dev/null
+psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'" >/dev/null
+# Whatever this run borrows from the local database goes back on exit.
+OTHER_ADMINS=''; PROFILE_ID=''; PROFILE_DOMAIN=''; PROFILE_FEATURED=''
+restore_local() {
+  [ -n "$OTHER_ADMINS" ] && psql "$DB" -qtAc "UPDATE users SET is_admin=true WHERE id IN ($OTHER_ADMINS)" >/dev/null
+  [ -n "$PROFILE_ID" ] && psql "$DB" -qtAc "UPDATE companies SET domain=NULLIF('$PROFILE_DOMAIN',''), featured='$PROFILE_FEATURED' WHERE id='$PROFILE_ID'" >/dev/null
+  return 0
+}
+trap restore_local EXIT
 TXF=$(psql "$DB" -tAc "SELECT id FROM factories WHERE state='TX' AND company_id IS NOT NULL LIMIT 1")
 TXC=$(psql "$DB" -tAc "SELECT company_id FROM factories WHERE id='$TXF'")
 CAF=$(psql "$DB" -tAc "SELECT id FROM factories WHERE state='CA' AND company_id IS NOT NULL LIMIT 1")
@@ -89,12 +104,135 @@ check "no change after withdrawn"     409 "$(req e PATCH /jobs/applications/$APP
 check "close job"                     200 "$(req e PATCH /jobs/$JOB '{"status":"closed","closedReason":"filled"}')"
 check "closed job hidden from public" 404 "$(req anon GET /jobs/$JOB)"
 check "closed job visible to applicant" 200 "$(req s GET /jobs/$JOB)" '"isOpen":false'
+
+# --- Admin Tools: people, company access, invites, data ----------------------
+AID=$(sql "SELECT id FROM users WHERE email='admin-$RUN@e2e.test'")
+SID=$(sql "SELECT id FROM users WHERE email='seeker-$RUN@e2e.test'")
+NOBODY=00000000-0000-4000-8000-000000000000
+INV="inv-$RUN@e2e.test"
+
+check "admin routes need sign-in"     401 "$(req anon GET /admin/users)"
+# A signed-in person who is not an admin is refused on every admin route.
+check "403 list users"                403 "$(req s GET /admin/users)"
+check "403 promote"                   403 "$(req s PATCH /admin/users/$SID '{"isAdmin":true}')"
+check "403 delete user"               403 "$(req s DELETE /admin/users/$EID)"
+check "403 add membership"            403 "$(req s POST /admin/memberships "{\"companyId\":\"$CAC\",\"userId\":\"$SID\"}")"
+check "403 list invites"              403 "$(req s GET /admin/invites)"
+check "403 create invite"             403 "$(req s POST /admin/invites "{\"email\":\"$INV\",\"role\":\"admin\"}")"
+check "403 revoke invite"             403 "$(req s DELETE /admin/invites/$NOBODY)"
+check "403 list paths"                403 "$(req s GET '/admin/paths?status=draft')"
+check "403 search companies"          403 "$(req s GET '/admin/companies?q=te')"
+check "403 edit company"              403 "$(req s PATCH /admin/companies/$TXC '{"featured":true}')"
+check "403 overview"                  403 "$(req s GET /admin/overview)"
+check "refusals changed nothing"      200 "$(req s GET /auth/me)" '"isAdmin":false'
+expect "refused invite was not created" 0 "$(sql "SELECT COUNT(*) FROM invites WHERE email='$INV'")"
+
+OUT=$(req a GET /admin/users)
+check "admin lists users"             200 "$OUT" "seeker-$RUN@e2e.test"
+check "list shows company roles"      200 "$OUT" '"status":"active"'
+OUT=$(req a GET "/admin/users?q=SEEKER-$RUN")
+check "search by email"               200 "$OUT" "seeker-$RUN@e2e.test"
+expect "search by email finds one"    1 "$(printf '%s' "$OUT" | j users.length)"
+OUT=$(req a GET '/admin/users?q=erin%20empl&limit=1')
+check "search by name"                200 "$OUT" "emp-$RUN@e2e.test"
+expect "search with no match"         0 "$(req a GET '/admin/users?q=no-such-person-%25' | j total)"
+
+check "promote"                       200 "$(req a PATCH /admin/users/$SID '{"isAdmin":true}')" '"isAdmin":true'
+check "promoted person is admin"      200 "$(req s GET /admin/overview)" '"users":'
+check "cannot demote self"            409 "$(req a PATCH /admin/users/$AID '{"isAdmin":false}')" 'their own admin role'
+check "demote"                        200 "$(req a PATCH /admin/users/$SID '{"isAdmin":false}')" '"isAdmin":false'
+check "demoted person is refused"     403 "$(req s GET /admin/overview)"
+check "promote needs a boolean"       400 "$(req a PATCH /admin/users/$SID '{"isAdmin":"yes"}')"
+check "promote unknown person"        404 "$(req a PATCH /admin/users/$NOBODY '{"isAdmin":true}')"
+check "promote bad id"                400 "$(req a PATCH /admin/users/not-an-id '{"isAdmin":true}')"
+# With every other admin role set aside, the one admin left cannot be removed.
+OTHER_ADMINS=$(sql "SELECT string_agg(quote_literal(id::text), ',') FROM users WHERE is_admin AND id <> '$AID'")
+[ -n "$OTHER_ADMINS" ] && sql "UPDATE users SET is_admin=false WHERE id IN ($OTHER_ADMINS)" >/dev/null
+check "cannot remove the last admin"  409 "$(req a PATCH /admin/users/$AID '{"isAdmin":false}')" 'last admin'
+expect "last admin is still admin"    t "$(sql "SELECT is_admin FROM users WHERE id='$AID'")"
+restore_local; OTHER_ADMINS=''
+
+check "add membership"                201 "$(req a POST /admin/memberships "{\"companyId\":\"$CAC\",\"userId\":\"$SID\"}")" '"status":"active"'
+check "added person is employer"      200 "$(req s GET /auth/me)" '"isEmployer":true'
+check "add membership, unknown person" 404 "$(req a POST /admin/memberships "{\"companyId\":\"$CAC\",\"userId\":\"$NOBODY\"}")"
+check "remove membership"             200 "$(req a PATCH /admin/memberships "{\"companyId\":\"$CAC\",\"userId\":\"$SID\",\"decision\":\"remove\"}")" '"status":"removed"'
+check "removed person is not employer" 200 "$(req s GET /auth/me)" '"isEmployer":false'
+
+check "invite needs an email"         400 "$(req a POST /admin/invites '{"email":"nope","role":"user"}')"
+check "invite needs a known role"     400 "$(req a POST /admin/invites "{\"email\":\"$INV\",\"role\":\"owner\"}")"
+check "employer invite needs a company" 400 "$(req a POST /admin/invites "{\"email\":\"$INV\",\"role\":\"employer\"}")"
+check "no invite for an existing account" 409 "$(req a POST /admin/invites "{\"email\":\"Seeker-$RUN@e2e.test\",\"role\":\"user\"}")"
+OUT=$(req a POST /admin/invites "{\"email\":\"$INV\",\"role\":\"user\"}")
+check "create invite"                 201 "$OUT" '"path":"/sign-in?invite='
+T0=$(printf '%s' "$OUT" | j token)
+OUT=$(req a POST /admin/invites "{\"email\":\"INV-$RUN@E2E.test\",\"role\":\"employer\",\"companyId\":\"$TXC\"}")
+check "create employer invite"        201 "$OUT" '"role":"employer"'
+T1=$(printf '%s' "$OUT" | j token)
+check "earlier invite is replaced"    404 "$(req anon GET /auth/invite/$T0)"
+expect "one pending invite per email" 1 "$(sql "SELECT COUNT(*) FROM invites WHERE email='$INV' AND accepted_at IS NULL")"
+expect "only the token's hash is stored" t "$(sql "SELECT token_hash = encode(sha256('$T1'::bytea), 'hex') FROM invites WHERE email='$INV'")"
+check "pending invites list"          200 "$(req a GET /admin/invites)" "\"email\":\"$INV\""
+check "invite lookup"                 200 "$(req anon GET /auth/invite/$T1)" "\"email\":\"$INV\",\"role\":\"employer\",\"companyName\":\""
+check "invite lookup, unknown token"  404 "$(req anon GET /auth/invite/not-a-token)"
+HDR=$(curl -s -D - -o /dev/null "$API/auth/invite/$T1" | tr -d '\r' | grep -i '^cache-control')
+case "$HDR" in *no-store*) echo "ok    invite lookup is not cacheable";; *) echo "FAIL  invite cache header: $HDR"; fail=1;; esac
+check "invite sign-up, wrong email"   400 "$(req w POST /auth/sign-up "{\"email\":\"wrong-$RUN@e2e.test\",\"name\":\"Wrong\",\"password\":\"correct horse\",\"invite\":\"$T1\"}")" 'different email'
+check "invite sign-up, bad token"     400 "$(req w POST /auth/sign-up "{\"email\":\"wrong-$RUN@e2e.test\",\"name\":\"Wrong\",\"password\":\"correct horse\",\"invite\":\"not-a-token\"}")"
+expect "failed sign-ups made no account" 0 "$(sql "SELECT COUNT(*) FROM users WHERE email='wrong-$RUN@e2e.test'")"
+check "wrong email left the invite usable" 200 "$(req anon GET /auth/invite/$T1)"
+check "invite sign-up applies the role" 201 "$(req i POST /auth/sign-up "{\"email\":\"Inv-$RUN@E2E.test\",\"name\":\"Ivy Invited\",\"password\":\"correct horse\",\"invite\":\"$T1\"}")" '"isEmployer":true'
+IID=$(sql "SELECT id FROM users WHERE email='$INV'")
+expect "invited membership is active" active "$(sql "SELECT status FROM company_members WHERE user_id='$IID' AND company_id='$TXC'")"
+expect "invite is marked accepted"    t "$(sql "SELECT accepted_at IS NOT NULL AND accepted_by='$IID' FROM invites WHERE email='$INV'")"
+check "invite cannot be used twice"   400 "$(req w POST /auth/sign-up "{\"email\":\"wrong-$RUN@e2e.test\",\"name\":\"Wrong\",\"password\":\"correct horse\",\"invite\":\"$T1\"}")"
+check "used invite, same email again" 400 "$(req w POST /auth/sign-up "{\"email\":\"$INV\",\"name\":\"Ivy Again\",\"password\":\"correct horse\",\"invite\":\"$T1\"}")"
+check "used invite is not found"      404 "$(req anon GET /auth/invite/$T1)"
+OUT=$(req a GET /admin/invites)
+expect "accepted invite is not listed" 0 "$(printf '%s' "$OUT" | grep -c "\"email\":\"$INV\"")"
+expect "accepted invites are counted" 1 "$(printf '%s' "$OUT" | j 'accepted >= 1 ? 1 : 0')"
+OUT=$(req a POST /admin/invites "{\"email\":\"adm2-$RUN@e2e.test\",\"role\":\"admin\"}")
+T2=$(printf '%s' "$OUT" | j token)
+check "admin invite sign-up"          201 "$(req i2 POST /auth/sign-up "{\"email\":\"adm2-$RUN@e2e.test\",\"name\":\"Ana Admin\",\"password\":\"correct horse\",\"invite\":\"$T2\"}")" '"isAdmin":true'
+check "invited admin is admin"        200 "$(req i2 GET /admin/overview)" '"users":'
+OUT=$(req a POST /admin/invites "{\"email\":\"rev-$RUN@e2e.test\",\"role\":\"user\"}")
+T3=$(printf '%s' "$OUT" | j token); ID3=$(printf '%s' "$OUT" | j invite.id)
+check "revoke"                        200 "$(req a DELETE /admin/invites/$ID3)"
+check "revoked invite is not found"   404 "$(req anon GET /auth/invite/$T3)"
+check "revoked invite cannot sign up" 400 "$(req w POST /auth/sign-up "{\"email\":\"rev-$RUN@e2e.test\",\"name\":\"Rev\",\"password\":\"correct horse\",\"invite\":\"$T3\"}")"
+expect "revoked sign-up made no account" 0 "$(sql "SELECT COUNT(*) FROM users WHERE email='rev-$RUN@e2e.test'")"
+check "revoke twice"                  404 "$(req a DELETE /admin/invites/$ID3)"
+OUT=$(req a POST /admin/invites "{\"email\":\"old-$RUN@e2e.test\",\"role\":\"user\"}")
+T4=$(printf '%s' "$OUT" | j token)
+sql "UPDATE invites SET expires_at = now() - interval '2 days' WHERE email='old-$RUN@e2e.test'" >/dev/null
+check "expired invite is not found"   404 "$(req anon GET /auth/invite/$T4)"
+expect "expired invite is not listed" 0 "$(req a GET /admin/invites | grep -c "old-$RUN@e2e.test")"
+
+check "cannot delete self"            409 "$(req a DELETE /admin/users/$AID)" 'their own account'
+check "delete user"                   200 "$(req a DELETE /admin/users/$IID)"
+check "deleted user is signed out"    200 "$(req i GET /auth/me)" '"user":null'
+expect "deleted user's rows are gone" 0 "$(sql "SELECT (SELECT COUNT(*) FROM company_members WHERE user_id='$IID') + (SELECT COUNT(*) FROM sessions WHERE user_id='$IID')")"
+check "delete user twice"             404 "$(req a DELETE /admin/users/$IID)"
+
+check "draft career paths"            200 "$(req a GET '/admin/paths?status=draft')" '"paths":\['
+PROFILE_ID=$TXC
+PROFILE_DOMAIN=$(sql "SELECT COALESCE(domain,'') FROM companies WHERE id='$TXC'")
+PROFILE_FEATURED=$(sql "SELECT featured FROM companies WHERE id='$TXC'")
+TERM=$(node -e 'console.log(encodeURIComponent(process.argv[1].slice(0, 4)))' "$(sql "SELECT name FROM companies WHERE id='$TXC'")")
+check "company search"                200 "$(req a GET "/admin/companies?q=$TERM")" '"featured":'
+check "domain with a scheme"          400 "$(req a PATCH /admin/companies/$TXC '{"domain":"https://example.com/about"}')"
+check "domain with a path"            400 "$(req a PATCH /admin/companies/$TXC '{"domain":"example.com/about"}')"
+check "empty company change"          400 "$(req a PATCH /admin/companies/$TXC '{}')"
+check "set domain and featured"       200 "$(req a PATCH /admin/companies/$TXC '{"domain":" Example-E2E.com ","featured":true}')" '"domain":"example-e2e.com","featured":true'
+check "clear domain"                  200 "$(req a PATCH /admin/companies/$TXC '{"domain":null,"featured":false}')" '"domain":null,"featured":false'
+check "edit unknown company"          404 "$(req a PATCH /admin/companies/$NOBODY '{"featured":true}')"
+restore_local; PROFILE_ID=''
+
 check "sign-out"                      200 "$(req s POST /auth/sign-out)"
 check "me after sign-out"             200 "$(req s GET /auth/me)" '"user":null'
 HDR=$(curl -s -D - -o /dev/null "$API/auth/me" | tr -d '\r' | grep -i '^cache-control' )
 case "$HDR" in *no-store*) echo "ok    auth responses are not cacheable";; *) echo "FAIL  cache header: $HDR"; fail=1;; esac
 CK=$(grep -c HttpOnly "$D/e" || true); [ "$CK" -ge 1 ] && echo "ok    session cookie is HttpOnly" || { echo "FAIL  cookie not HttpOnly"; fail=1; }
-psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@e2e.test'" >/dev/null
+psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'" >/dev/null
 rm -rf "$D"
 [ $fail -eq 0 ] && echo "ALL PASSED" || echo "SOME FAILED"
 exit $fail

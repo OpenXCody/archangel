@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2, Maximize2, Minus, Plus } from 'lucide-react';
 import { factoriesApi, mapApi } from '../../lib/api';
 import { useMapStore, type PinInfo } from '../../stores/mapStore';
+import { currentTheme, type Theme } from '../../lib/theme';
 import { US_STATES } from '@shared/states';
 import { FOCUS_AREAS, focusArea } from '@shared/scope';
 import {
@@ -29,7 +30,8 @@ import {
   addAppLayers,
   LAYER,
   PIN_INTERACTIVE_MIN_ZOOM,
-  plainDarkStyle,
+  plainStyle,
+  setMapPalette,
   quietBasemap,
   setStateShadingDimmed,
   SOURCE,
@@ -43,7 +45,17 @@ declare global {
 }
 
 // MapTiler style base URL - key added at runtime for retry support
-const MAPTILER_STYLE_BASE = 'https://api.maptiler.com/maps/dataviz-dark/style.json';
+/** MapTiler's quiet basemap, in the variant that matches the theme. */
+const MAPTILER_STYLE: Record<Theme, string> = {
+  dark: 'https://api.maptiler.com/maps/dataviz-dark/style.json',
+  light: 'https://api.maptiler.com/maps/dataviz-light/style.json',
+};
+
+/**
+ * Where the map was when it was last torn down. A theme change recreates the
+ * map (MapView keys it on the theme); it reopens here instead of starting over.
+ */
+let resumeCamera: { center: [number, number]; zoom: number } | null = null;
 
 // US States GeoJSON, shipped with the app (client/public/data)
 const STATES_GEOJSON_URL = '/data/us-states.geojson';
@@ -225,11 +237,17 @@ export default function Map() {
       const mapKey = (import.meta.env.VITE_MAP_TOKEN as string | undefined)?.trim() || '';
       const keyless = basemapUnavailable || mapKey === '';
 
+      const theme = currentTheme();
+      setMapPalette(theme);
+      const resumed = resumeCamera;
+      resumeCamera = null;
+      const camera = resumed ?? initialCamera();
+
       try {
         map.current = new maplibregl.Map({
           container: mapContainer.current!,
-          style: keyless ? plainDarkStyle() : `${MAPTILER_STYLE_BASE}?key=${mapKey}`,
-          ...initialCamera(),
+          style: keyless ? plainStyle() : `${MAPTILER_STYLE[theme]}?key=${mapKey}`,
+          ...camera,
           minZoom: 2,
           maxZoom: 18,
           // Added below, bottom-left, so the panel and the zoom buttons never cover it.
@@ -282,7 +300,7 @@ export default function Map() {
         // settling, etc.). Critically, we must also re-fit after resize -
         // resize() alone recalculates canvas size but doesn't fix the center.
         currentMap.resize();
-        fitUS(currentMap, { animate: false });
+        if (!resumed) fitUS(currentMap, { animate: false });
 
         try {
           // MapTiler basemap only; the plain style is already exactly what we want.
@@ -465,6 +483,8 @@ export default function Map() {
       clearTimeout(initTimer);
       if (map.current) {
         if (window.__archangelMap === map.current) delete window.__archangelMap;
+        const center = map.current.getCenter();
+        resumeCamera = { center: [center.lng, center.lat], zoom: map.current.getZoom() };
         map.current.remove();
         map.current = null;
       }
@@ -664,7 +684,7 @@ export default function Map() {
             <span className="text-sm text-fg-muted">{mapError}</span>
             <button
               onClick={() => window.location.reload()}
-              className="mt-2 px-4 py-2 text-sm bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+              className="mt-2 px-4 py-2 text-sm bg-tint/10 rounded-lg hover:bg-tint/20 transition-colors"
             >
               Retry
             </button>

@@ -58,51 +58,51 @@ const ENTITY_CONFIG: Record<
   companies: {
     icon: Building2,
     label: 'Company',
-    badgeClass: 'bg-white/5 text-fg-muted border-white/10',
-    iconClass: 'text-amber-500',
-    borderClass: 'border-white/10',
+    badgeClass: 'bg-tint/5 text-fg-muted border-tint/10',
+    iconClass: 'text-fg-muted',
+    borderClass: 'border-tint/10',
   },
   factories: {
     icon: Factory,
     label: 'Factory',
-    badgeClass: 'bg-white/5 text-fg-muted border-white/10',
-    iconClass: 'text-sky-400',
-    borderClass: 'border-white/10',
+    badgeClass: 'bg-tint/5 text-fg-muted border-tint/10',
+    iconClass: 'text-fg-muted',
+    borderClass: 'border-tint/10',
   },
   occupations: {
     icon: Briefcase,
     label: 'Career',
-    badgeClass: 'bg-white/5 text-fg-muted border-white/10',
-    iconClass: 'text-violet-400',
-    borderClass: 'border-white/10',
+    badgeClass: 'bg-tint/5 text-fg-muted border-tint/10',
+    iconClass: 'text-fg-muted',
+    borderClass: 'border-tint/10',
   },
   skills: {
     icon: Wrench,
     label: 'Skill',
-    badgeClass: 'bg-white/5 text-fg-muted border-white/10',
-    iconClass: 'text-emerald-500',
-    borderClass: 'border-white/10',
+    badgeClass: 'bg-tint/5 text-fg-muted border-tint/10',
+    iconClass: 'text-fg-muted',
+    borderClass: 'border-tint/10',
   },
   refs: {
     icon: Boxes,
     label: 'Element',
-    badgeClass: 'bg-white/5 text-fg-muted border-white/10',
-    iconClass: 'text-teal-500',
-    borderClass: 'border-white/10',
+    badgeClass: 'bg-tint/5 text-fg-muted border-tint/10',
+    iconClass: 'text-fg-muted',
+    borderClass: 'border-tint/10',
   },
   schools: {
     icon: GraduationCap,
     label: 'School',
-    badgeClass: 'bg-white/5 text-fg-muted border-white/10',
-    iconClass: 'text-indigo-500',
-    borderClass: 'border-white/10',
+    badgeClass: 'bg-tint/5 text-fg-muted border-tint/10',
+    iconClass: 'text-fg-muted',
+    borderClass: 'border-tint/10',
   },
   programs: {
     icon: BookOpen,
     label: 'Program',
-    badgeClass: 'bg-white/5 text-fg-muted border-white/10',
-    iconClass: 'text-fuchsia-500',
-    borderClass: 'border-white/10',
+    badgeClass: 'bg-tint/5 text-fg-muted border-tint/10',
+    iconClass: 'text-fg-muted',
+    borderClass: 'border-tint/10',
   },
 };
 
@@ -153,7 +153,7 @@ function Section({
       <h2 className="text-sm font-medium text-fg-soft uppercase tracking-wider mb-4 flex items-center gap-2">
         {title}
         {count !== undefined && (
-          <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-fg-muted border border-white/10">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-tint/5 text-fg-muted border border-tint/10">
             {count}
           </span>
         )}
@@ -176,8 +176,8 @@ function FilterPill({
       to={to}
       className="
         inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm
-        bg-white/5 border border-white/10 text-fg-muted
-        transition-colors hover:bg-white/10 hover:text-fg-default
+        bg-tint/5 border border-tint/10 text-fg-muted
+        transition-colors hover:bg-tint/10 hover:text-fg-default
       "
     >
       {children}
@@ -205,15 +205,15 @@ function RelatedCard({
       to={to}
       className="
         group flex items-start gap-3 p-3 min-w-0
-        bg-white/[0.02] backdrop-blur-sm
-        border border-white/10 rounded-lg
-        hover:bg-white/[0.05] hover:border-white/20
+        bg-tint/[0.02] backdrop-blur-sm
+        border border-tint/10 rounded-lg
+        hover:bg-tint/[0.05] hover:border-tint/20
         transition-all duration-200
       "
     >
       <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${iconClass}`} />
       <div className="flex-1 min-w-0">
-        <span className="font-medium text-fg-default truncate block group-hover:text-white">
+        <span className="font-medium text-fg-default truncate block">
           {title}
         </span>
         {subtitle && <p className="text-sm text-fg-soft truncate">{subtitle}</p>}
@@ -252,18 +252,18 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
       {/* Stats: the same three numbers the explorer card shows */}
       {(data.factoryCount || 0) > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-          <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+          <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
             <div className="text-2xl font-semibold text-fg-default">{data.factoryCount?.toLocaleString()}</div>
             <div className="text-sm text-fg-muted">Factories</div>
           </div>
           {(data.occupations?.length || 0) > 0 && (
-            <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+            <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
               <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length}</div>
               <div className="text-sm text-fg-muted">Careers</div>
             </div>
           )}
           {(data.totalWorkforce || 0) > 0 && (
-            <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+            <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
               <div className="text-2xl font-semibold text-fg-default">{data.totalWorkforce?.toLocaleString()}</div>
               <div className="text-sm text-fg-muted">Workforce</div>
             </div>
@@ -282,7 +282,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
                 key={occ.id}
                 to={`/occupations/${occ.id}`}
                 icon={Briefcase}
-                iconClass="text-violet-400"
+                iconClass="text-fg-muted"
                 title={occ.title}
                 subtitle={`${occ.factoryCount} ${occ.factoryCount === 1 ? 'factory' : 'factories'}${occ.headcount ? ` · ${occ.headcount.toLocaleString()} headcount` : ''}`}
               />
@@ -300,7 +300,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
                 key={factory.id}
                 to={`/factories/${factory.id}`}
                 icon={Factory}
-                iconClass="text-sky-400"
+                iconClass="text-fg-muted"
                 title={formatFactoryName(factory.name)}
                 subtitle={factory.state ? `${factory.specialization || ''} ${factory.specialization ? '·' : ''} ${factory.state}`.trim() : factory.specialization}
               />
@@ -322,11 +322,11 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
           to={`/companies/${data.company.id}`}
           className="
             inline-flex items-center gap-2 mt-4 px-4 py-2
-            bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg
-            text-fg-muted hover:bg-white/[0.05] hover:text-fg-default transition-colors
+            bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg
+            text-fg-muted hover:bg-tint/[0.05] hover:text-fg-default transition-colors
           "
         >
-          <Building2 className="w-4 h-4 text-amber-500" />
+          <Building2 className="w-4 h-4 text-fg-muted" />
           <span>{formatCompanyName(data.company.name)}</span>
           <ChevronRight className="w-4 h-4" />
         </Link>
@@ -345,7 +345,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
       {/* Stats - only occupation count (real relationship) */}
       {(data.occupations?.length || 0) > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-          <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+          <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
             <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length || 0}</div>
             <div className="text-sm text-fg-muted">Careers</div>
           </div>
@@ -372,7 +372,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
                 key={occ.id}
                 to={`/occupations/${occ.id}`}
                 icon={Briefcase}
-                iconClass="text-violet-400"
+                iconClass="text-fg-muted"
                 title={occ.title}
               />
             ))}
@@ -394,7 +394,7 @@ function OpenJobsSection({ jobs, empty, showCareer = false }: { jobs: CareerJob[
               key={job.id}
               to={`/jobs/${job.id}`}
               icon={Briefcase}
-              iconClass="text-violet-400"
+              iconClass="text-fg-muted"
               title={job.title}
               subtitle={[
                 showCareer ? job.occupationTitle : job.companyName,
@@ -438,19 +438,19 @@ function PathSkill({ skill, status }: { skill: RelatedSkill; status: SkillStatus
         group flex items-center gap-3 p-3 min-w-0 rounded-lg border transition-all duration-200
         ${
           status === 'held'
-            ? 'bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500/50'
-            : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.05] hover:border-white/20'
+            ? 'bg-bg-elevated border-border-strong hover:border-border-strong'
+            : 'bg-tint/[0.02] border-tint/10 hover:bg-tint/[0.05] hover:border-tint/20'
         }
       `}
     >
       {status === 'held' ? (
-        <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-500" aria-label="You have this skill" />
+        <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-success" aria-label="Held" />
       ) : status === 'learning' ? (
-        <CircleDashed className="w-5 h-5 flex-shrink-0 text-amber-500" aria-label="You are learning this skill" />
+        <CircleDashed className="w-5 h-5 flex-shrink-0 text-fg-muted" aria-label="Learning" />
       ) : (
-        <Wrench className="w-5 h-5 flex-shrink-0 text-emerald-500" />
+        <Wrench className="w-5 h-5 flex-shrink-0 text-fg-muted" />
       )}
-      <span className="flex-1 min-w-0 font-medium leading-snug text-fg-default break-words group-hover:text-white">{skill.name}</span>
+      <span className="flex-1 min-w-0 font-medium leading-snug text-fg-default break-words">{skill.name}</span>
       <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0" />
     </Link>
   );
@@ -482,15 +482,15 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
       </div>
 
       <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-6">
-        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{skills.length}</div>
           <div className="text-sm text-fg-muted">Skills</div>
         </div>
-        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{jobs.length}</div>
           <div className="text-sm text-fg-muted">Open jobs</div>
         </div>
-        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.factories?.length || 0}</div>
           <div className="text-sm text-fg-muted">Factories</div>
         </div>
@@ -500,8 +500,8 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
       {skills.length > 0 && (
         <Section id="skills" title={hasStages ? 'Path' : 'Skills'} count={skills.length}>
           {hasStages && data.pathStatus === 'draft' && (
-            <p className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-fg-muted">
-              <span className="font-medium text-amber-500">Draft path.</span> A starting point that has not been
+            <p className="mb-4 rounded-lg border border-border-strong bg-bg-elevated px-3 py-2 text-sm text-fg-muted">
+              <span className="font-medium text-fg-default">Draft path.</span> A starting point that has not been
               reviewed by a person yet.
             </p>
           )}
@@ -520,7 +520,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
                         <PathSkill key={skill.id} skill={skill} status={statusBySkill.get(skill.id)} />
                       ))
                     ) : (
-                      <p className="rounded-lg border border-dashed border-white/10 p-3 text-sm text-fg-soft">
+                      <p className="rounded-lg border border-dashed border-tint/10 p-3 text-sm text-fg-soft">
                         Nothing at this stage yet.
                       </p>
                     )}
@@ -553,7 +553,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
                 key={factory.id}
                 to={`/factories/${factory.id}`}
                 icon={Factory}
-                iconClass="text-sky-400"
+                iconClass="text-fg-muted"
                 title={formatFactoryName(factory.name)}
                 subtitle={factory.state}
               />
@@ -583,11 +583,11 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
 
       {/* Stats - occupation and related skill counts (real relationships) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length || 0}</div>
           <div className="text-sm text-fg-muted">Careers</div>
         </div>
-        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.relatedSkills?.length || 0}</div>
           <div className="text-sm text-fg-muted">Related Skills</div>
         </div>
@@ -602,7 +602,7 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
                 key={occ.id}
                 to={`/occupations/${occ.id}`}
                 icon={Briefcase}
-                iconClass="text-violet-400"
+                iconClass="text-fg-muted"
                 title={occ.title}
               />
             ))}
@@ -619,7 +619,7 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
                 key={skill.id}
                 to={`/skills/${skill.id}`}
                 icon={Wrench}
-                iconClass="text-emerald-500"
+                iconClass="text-fg-muted"
                 title={skill.name}
               />
             ))}
@@ -639,11 +639,11 @@ function RefDetailView({ data }: { data: RefDetail }) {
     <>
       {/* Type + Manufacturer badge */}
       <div className="flex flex-wrap gap-2 mt-4">
-        <span className="px-2 py-1 rounded-full text-xs bg-teal-500/10 text-teal-400 border border-teal-500/20">
+        <span className="px-2 py-1 rounded-full text-xs bg-bg-elevated text-fg-muted border border-border-strong">
           {typeLabel}
         </span>
         {data.manufacturer && (
-          <span className="px-2 py-1 rounded-full text-xs bg-white/5 text-fg-muted border border-white/10">
+          <span className="px-2 py-1 rounded-full text-xs bg-tint/5 text-fg-muted border border-tint/10">
             {data.manufacturer}
           </span>
         )}
@@ -653,7 +653,7 @@ function RefDetailView({ data }: { data: RefDetail }) {
       {data.tags && data.tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-3">
           {data.tags.map((tag, i) => (
-            <span key={i} className="px-2 py-0.5 rounded text-xs bg-white/5 text-fg-soft">
+            <span key={i} className="px-2 py-0.5 rounded text-xs bg-tint/5 text-fg-soft">
               {tag}
             </span>
           ))}
@@ -662,7 +662,7 @@ function RefDetailView({ data }: { data: RefDetail }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.skills?.length || 0}</div>
           <div className="text-sm text-fg-muted">Skills</div>
         </div>
@@ -673,7 +673,7 @@ function RefDetailView({ data }: { data: RefDetail }) {
         <Section title="Also known as" count={data.aliases.length}>
           <div className="flex flex-wrap gap-2">
             {data.aliases.map((alias) => (
-              <span key={alias.id} className="px-3 py-1 rounded-full text-sm bg-white/5 text-fg-muted border border-white/10">
+              <span key={alias.id} className="px-3 py-1 rounded-full text-sm bg-tint/5 text-fg-muted border border-tint/10">
                 {alias.aliasText}
               </span>
             ))}
@@ -690,7 +690,7 @@ function RefDetailView({ data }: { data: RefDetail }) {
                 key={skill.id}
                 to={`/skills/${skill.id}`}
                 icon={Wrench}
-                iconClass="text-emerald-500"
+                iconClass="text-fg-muted"
                 title={skill.name}
                 subtitle={skill.category}
               />
@@ -715,7 +715,7 @@ function SchoolDetailView({ data }: { data: SchoolDetail }) {
           </FilterPill>
         )}
         {data.schoolType && (
-          <span className="px-2 py-1 rounded-full text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <span className="px-2 py-1 rounded-full text-xs bg-bg-elevated text-fg-muted border border-border-strong">
             {data.schoolType}
           </span>
         )}
@@ -723,7 +723,7 @@ function SchoolDetailView({ data }: { data: SchoolDetail }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.programs?.length || 0}</div>
           <div className="text-sm text-fg-muted">Programs</div>
         </div>
@@ -738,7 +738,7 @@ function SchoolDetailView({ data }: { data: SchoolDetail }) {
                 key={program.id}
                 to={`/programs/${program.id}`}
                 icon={BookOpen}
-                iconClass="text-fuchsia-500"
+                iconClass="text-fg-muted"
                 title={program.title}
                 subtitle={program.credentialType ? `${program.credentialType} · ${program.skillCount} skills` : `${program.skillCount} skills`}
               />
@@ -760,11 +760,11 @@ function ProgramDetailView({ data }: { data: ProgramDetail }) {
           to={`/schools/${data.school.id}`}
           className="
             inline-flex items-center gap-2 mt-4 px-4 py-2
-            bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg
-            text-fg-muted hover:bg-white/[0.05] hover:text-fg-default transition-colors
+            bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg
+            text-fg-muted hover:bg-tint/[0.05] hover:text-fg-default transition-colors
           "
         >
-          <GraduationCap className="w-4 h-4 text-indigo-500" />
+          <GraduationCap className="w-4 h-4 text-fg-muted" />
           <span>{data.school.name}</span>
           <ChevronRight className="w-4 h-4" />
         </Link>
@@ -773,18 +773,18 @@ function ProgramDetailView({ data }: { data: ProgramDetail }) {
       {/* Credential type + Duration */}
       <div className="flex flex-wrap gap-2 mt-4">
         {data.credentialType && (
-          <span className="px-2 py-1 rounded-full text-xs bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20">
+          <span className="px-2 py-1 rounded-full text-xs bg-bg-elevated text-fg-muted border border-border-strong">
             {data.credentialType}
           </span>
         )}
         {data.durationHours && (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-white/5 text-fg-muted border border-white/10">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-tint/5 text-fg-muted border border-tint/10">
             <Clock className="w-3 h-3" />
             {data.durationHours} hours
           </span>
         )}
         {data.cipCode && (
-          <span className="px-2 py-1 rounded-full text-xs bg-white/5 text-fg-soft font-mono border border-white/10">
+          <span className="px-2 py-1 rounded-full text-xs bg-tint/5 text-fg-soft font-mono border border-tint/10">
             CIP: {data.cipCode}
           </span>
         )}
@@ -792,7 +792,7 @@ function ProgramDetailView({ data }: { data: ProgramDetail }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.skills?.length || 0}</div>
           <div className="text-sm text-fg-muted">Skills Taught</div>
         </div>
@@ -803,7 +803,7 @@ function ProgramDetailView({ data }: { data: ProgramDetail }) {
         <Section title="Also known as" count={data.aliases.length}>
           <div className="flex flex-wrap gap-2">
             {data.aliases.map((alias) => (
-              <span key={alias.id} className="px-3 py-1 rounded-full text-sm bg-white/5 text-fg-muted border border-white/10">
+              <span key={alias.id} className="px-3 py-1 rounded-full text-sm bg-tint/5 text-fg-muted border border-tint/10">
                 {alias.aliasText}
               </span>
             ))}
@@ -820,7 +820,7 @@ function ProgramDetailView({ data }: { data: ProgramDetail }) {
                 key={skill.id}
                 to={`/skills/${skill.id}`}
                 icon={Wrench}
-                iconClass="text-emerald-500"
+                iconClass="text-fg-muted"
                 title={skill.name}
                 subtitle={skill.category}
               />
@@ -956,7 +956,7 @@ export default function EntityDetail() {
         {isCompanyDetail(data) ? (
           <CompanyLogo name={name} domain={data.domain} size={58} className="rounded-xl" />
         ) : (
-          <div className="p-3 rounded-xl bg-white/[0.02] backdrop-blur-sm border border-white/10">
+          <div className="p-3 rounded-xl bg-tint/[0.02] backdrop-blur-sm border border-tint/10">
             <Icon className={`w-8 h-8 ${config.iconClass}`} />
           </div>
         )}

@@ -68,6 +68,20 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
   }, next);
 }
 
+/**
+ * Gate a router behind a signed-in admin account, and nothing else: no admin
+ * key and no local-dev opening. For /api/admin, where every action is a
+ * person's (who may not demote or delete themselves) and manages other people.
+ * 401 signed out, 403 signed in without the role.
+ */
+export function requireAdminUser(req: Request, res: Response, next: NextFunction): void {
+  getSessionUser(req).then((user) => {
+    if (!user) res.status(401).json({ error: 'Sign in required' });
+    else if (!user.isAdmin) res.status(403).json({ error: 'Admin access required' });
+    else next();
+  }, next);
+}
+
 /** Same gate, applied only to mutating methods so public reads stay open. */
 export function requireAdminForWrites(req: Request, res: Response, next: NextFunction): void {
   if (MUTATING_METHODS.has(req.method)) {

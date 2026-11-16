@@ -36,6 +36,14 @@ export const rowClass = 'border-t border-border-subtle first:border-t-0';
 /** Outline buttons need a border that shows on the dark surface. */
 export const outlineButtonClass = 'border-border-strong bg-transparent text-fg-default shadow-none hover:bg-bg-elevated';
 
+/**
+ * A plain text action inside a row. Destructive ones look the same: the
+ * confirmation, not the button, carries the weight.
+ */
+export const textButtonClass =
+  'text-sm font-medium text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default ' +
+  'disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50';
+
 interface FieldProps {
   label: string;
   htmlFor: string;

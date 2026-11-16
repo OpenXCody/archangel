@@ -32,12 +32,12 @@ const searchToMapType: Record<Exclude<MapSearchableEntityType, 'states'>, MapEnt
 };
 
 const GROUP_CONFIG: Record<ResultGroupId, { icon: React.ElementType; heading: string; iconClass: string }> = {
-  states: { icon: MapPin, heading: 'States', iconClass: 'text-indigo-400' },
+  states: { icon: MapPin, heading: 'States', iconClass: 'text-fg-muted' },
   places: { icon: Navigation, heading: 'Places', iconClass: 'text-fg-muted' },
-  factories: { icon: Factory, heading: 'Factories', iconClass: 'text-sky-400' },
-  companies: { icon: Building2, heading: 'Companies', iconClass: 'text-amber-500' },
-  occupations: { icon: Briefcase, heading: 'Careers', iconClass: 'text-violet-400' },
-  skills: { icon: Wrench, heading: 'Skills', iconClass: 'text-emerald-500' },
+  factories: { icon: Factory, heading: 'Factories', iconClass: 'text-fg-muted' },
+  companies: { icon: Building2, heading: 'Companies', iconClass: 'text-fg-muted' },
+  occupations: { icon: Briefcase, heading: 'Careers', iconClass: 'text-fg-muted' },
+  skills: { icon: Wrench, heading: 'Skills', iconClass: 'text-fg-muted' },
 };
 
 /** Somewhere to go first, then the things that are there. */
@@ -76,7 +76,7 @@ function AreaChips() {
             aria-pressed={active}
             title={`Go to the ${area.name} focus area`}
             className={`map-overlay map-overlay-button inline-flex shrink-0 items-center rounded-full px-3 py-1.5 text-xs font-medium ${
-              active ? 'border-sky-200/70 text-fg-default' : 'text-fg-muted'
+              active ? 'border-border-strong text-fg-default' : 'text-fg-muted'
             }`}
           >
             {area.name}
@@ -294,7 +294,7 @@ export default function MapSearch() {
           map-overlay
           transition-[border-radius] duration-200
           ${showDropdown ? 'rounded-2xl' : 'rounded-xl'}
-          ${isFocused ? 'ring-1 ring-sky-400/60' : ''}
+          ${isFocused ? 'ring-1 ring-tint/20' : ''}
         `}
       >
         {/* Search input row */}
@@ -345,11 +345,11 @@ export default function MapSearch() {
               transition-colors
               ${showFilters || activeFilterCount > 0
                 ? filters.company
-                  ? 'bg-amber-500/10 text-amber-400' // Company filter = amber
+                  ? 'bg-bg-elevated text-fg-muted' // Company filter = amber
                   : filters.states.length > 0
-                    ? 'bg-indigo-500/10 text-indigo-400' // State filter = indigo
-                    : 'bg-sky-400/10 text-sky-400' // Default
-                : 'text-fg-muted hover:text-fg-default hover:bg-white/5'
+                    ? 'bg-bg-elevated text-fg-muted' // State filter = indigo
+                    : 'bg-bg-elevated text-fg-muted' // Default
+                : 'text-fg-muted hover:text-fg-default hover:bg-tint/5'
               }
             `}
           >
@@ -357,10 +357,10 @@ export default function MapSearch() {
             {activeFilterCount > 0 && (
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
                 filters.company
-                  ? 'bg-amber-500/20'
+                  ? 'bg-bg-elevated'
                   : filters.states.length > 0
-                    ? 'bg-indigo-500/20'
-                    : 'bg-sky-400/20'
+                    ? 'bg-bg-elevated'
+                    : 'bg-bg-elevated'
               }`}>
                 {activeFilterCount}
               </span>
@@ -379,7 +379,7 @@ export default function MapSearch() {
                 </label>
                 <div className="relative">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 text-fg-muted flex-shrink-0" />
                     <input
                       ref={stateInputRef}
                       type="text"
@@ -395,7 +395,7 @@ export default function MapSearch() {
                         px-3 py-2 rounded-lg text-sm
                         bg-bg-base border border-border-strong
                         text-fg-default placeholder:text-fg-muted
-                        focus:outline-none focus:border-indigo-400/60
+                        focus:outline-none focus:border-border-strong
                       "
                     />
                   </div>
@@ -416,8 +416,8 @@ export default function MapSearch() {
                               className={`
                                 w-full px-3 py-2 text-left text-sm flex items-center justify-between
                                 ${isSelected
-                                  ? 'bg-indigo-500/10 text-indigo-300 cursor-default'
-                                  : 'hover:bg-white/5 text-fg-default'
+                                  ? 'bg-bg-elevated text-fg-muted cursor-default'
+                                  : 'hover:bg-tint/5 text-fg-default'
                                 }
                               `}
                             >
@@ -440,7 +440,7 @@ export default function MapSearch() {
                         <button
                           key={stateCode}
                           onClick={() => removeState(stateCode)}
-                          className="flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/20 transition-colors"
+                          className="flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-bg-elevated text-fg-muted border border-border-strong hover:bg-bg-elevated transition-colors"
                         >
                           {stateName}
                           <X className="w-3 h-3" />
@@ -459,7 +459,7 @@ export default function MapSearch() {
                   </label>
                   <button
                     onClick={() => clearFilter('company')}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-bg-elevated text-fg-muted border border-border-strong hover:bg-bg-elevated transition-colors"
                   >
                     <Building2 className="w-3 h-3" />
                     {filters.companyName || 'Company'}
@@ -476,7 +476,7 @@ export default function MapSearch() {
                   </label>
                   <button
                     onClick={() => clearFilter('industry')}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-sky-500/10 text-sky-400 border border-sky-500/20 hover:bg-sky-500/20 transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-bg-elevated text-fg-muted border border-border-strong hover:bg-bg-elevated transition-colors"
                   >
                     {filters.industry}
                     <X className="w-3 h-3" />
@@ -488,7 +488,7 @@ export default function MapSearch() {
               {activeFilterCount > 0 && (
                 <button
                   onClick={clearAllFilters}
-                  className="w-full px-3 py-2 rounded-lg text-xs text-fg-muted hover:text-fg-default hover:bg-white/5 transition-colors border border-border-strong"
+                  className="w-full px-3 py-2 rounded-lg text-xs text-fg-muted hover:text-fg-default hover:bg-tint/5 transition-colors border border-border-strong"
                 >
                   Clear all filters
                 </button>
@@ -530,7 +530,7 @@ export default function MapSearch() {
                               key={row.key}
                               className={`
                                 flex items-center gap-3 px-3 py-2 rounded-lg w-full text-left
-                                ${index === selectedIndex ? 'bg-white/10' : 'hover:bg-white/5'}
+                                ${index === selectedIndex ? 'bg-tint/10' : 'hover:bg-tint/5'}
                                 transition-colors
                               `}
                               onClick={() => chooseRow(row)}
