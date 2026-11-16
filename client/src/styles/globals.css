@@ -164,17 +164,131 @@ input {
   .text-accent-primary { color: var(--color-accent-primary); }
 }
 
-/* Glass morphism effects */
-.glass {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+/*
+ * Map overlay surface.
+ *
+ * The ONE surface for anything that floats over the map: the hover card, the
+ * search box and its dropdown, the context menu, the area chips and label,
+ * the reset and zoom buttons. It is nearly opaque with a border and a shadow,
+ * so what it says reads the same over dark land, a lit state or a field of
+ * pins. Do not hand-roll translucent glass for a map overlay; use this.
+ *
+ * Text on it: --color-fg-default (15:1) or --color-fg-muted (7:1). Not
+ * --color-fg-soft, which is 3:1 here and fails WCAG AA for text.
+ */
+@layer components {
+  .map-overlay {
+    background-color: var(--color-bg-elevated);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 97%, transparent);
+    border: 1px solid var(--color-border-strong);
+    color: var(--color-fg-default);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  /* A control on the surface (or the surface itself, when it is one button). */
+  .map-overlay-button {
+    color: var(--color-fg-muted);
+    transition: color 0.15s ease;
+  }
+  .map-overlay-button:hover:not(:disabled),
+  .map-overlay-button[aria-pressed='true'] {
+    color: var(--color-fg-default);
+    /* A wash laid over the surface colour, so the surface stays opaque. */
+    background-image: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08));
+  }
+  .map-overlay-button:disabled {
+    color: var(--color-fg-soft);
+    cursor: default;
+  }
+
+  /* Name tag anchored to a focus area's boundary (a MapLibre marker). */
+  .map-area-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 9999px;
+    border-color: rgba(186, 230, 253, 0.6);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .map-area-label::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+    background: #bae6fd;
+    box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.3);
+  }
+  /* The stem from the tag to the boundary: down from a tag above the area, up from one below it. */
+  .map-area-label::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 1px;
+    height: 8px;
+    background: rgba(224, 242, 254, 0.85);
+  }
+  .map-area-label.is-below::after {
+    top: auto;
+    bottom: 100%;
+  }
+  .map-area-label:hover {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08));
+  }
+  /* MapLibre writes the marker's opacity inline, so hide with visibility. */
+  .map-area-label.is-hidden {
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
 
-.glass-hover:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
+/*
+ * MapLibre attribution. The basemap's terms require it, so it stays, but as
+ * a quiet dark "i" that opens on click instead of a white pill. Scoped under
+ * .archangel-map so it outranks maplibre-gl.css whichever loads first. The
+ * container lifts with the phone sheet so the credit is never covered.
+ */
+.archangel-map .maplibregl-ctrl-bottom-left {
+  bottom: var(--map-covered-bottom, 0px);
+  transition: bottom 0.2s ease;
+}
+.archangel-map .maplibregl-ctrl-attrib.maplibregl-compact {
+  margin: 0 0 14px 12px;
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-fg-muted);
+  font-size: 11px;
+  line-height: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.archangel-map .maplibregl-ctrl-attrib a {
+  color: var(--color-fg-muted);
+}
+.archangel-map .maplibregl-ctrl-attrib a:hover {
+  color: var(--color-fg-default);
+}
+.archangel-map .maplibregl-ctrl-attrib-button {
+  background-color: transparent;
+  /* The same "i" MapLibre ships, in --color-fg-muted instead of black. */
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='%23a6a6a6' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E");
+}
+.archangel-map .maplibregl-ctrl-attrib-button:hover,
+.archangel-map .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+/* MapLibre rings the button on any focus, so it stays lit after a click. */
+.archangel-map .maplibregl-ctrl-attrib-button:focus {
+  box-shadow: none;
+}
+.archangel-map .maplibregl-ctrl-attrib-button:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-accent-primary);
 }
 
 /* Scrollbar styling */

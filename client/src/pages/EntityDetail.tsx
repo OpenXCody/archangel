@@ -41,6 +41,7 @@ import {
   type ProgramDetail,
 } from '../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import CompanyLogo from '../components/CompanyLogo';
 import { PageContainer } from '../components/layout/Page';
 
 // Entity type configs - monochrome with entity accent colors only on icons
@@ -945,9 +946,13 @@ export default function EntityDetail() {
 
       {/* Header - glass morphism card */}
       <div className="flex items-start gap-4">
-        <div className="p-3 rounded-xl bg-white/[0.02] backdrop-blur-sm border border-white/10">
-          <Icon className={`w-8 h-8 ${config.iconClass}`} />
-        </div>
+        {isCompanyDetail(data) ? (
+          <CompanyLogo name={name} domain={data.domain} size={58} className="rounded-xl" />
+        ) : (
+          <div className="p-3 rounded-xl bg-white/[0.02] backdrop-blur-sm border border-white/10">
+            <Icon className={`w-8 h-8 ${config.iconClass}`} />
+          </div>
+        )}
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2 flex-wrap">
             <h1 className="text-2xl font-semibold text-fg-default">{name}</h1>

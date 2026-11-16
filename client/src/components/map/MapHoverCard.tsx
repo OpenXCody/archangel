@@ -1,78 +1,87 @@
-import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Factory, Building2, MapPin, Briefcase, Users } from 'lucide-react';
-import { factoriesApi } from '../../lib/api';
+import { Briefcase, Building2, Factory, MapPin, Star } from 'lucide-react';
 import { useMapStore } from '../../stores/mapStore';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import { PANEL_WIDTH_PX } from './camera';
+
+const CARD_WIDTH_PX = 264;
+const EDGE_GAP_PX = 8;
 
 /**
  * Preview card for the pin under the cursor — enough to decide whether to
  * click, without clicking. Pointer devices only (no hover on touch).
+ *
+ * Everything on it comes from the pin's own properties, which the map already
+ * holds, so it is complete the moment it appears: no request, nothing to wait
+ * for.
  */
 export default function MapHoverCard() {
-  const hoveredId = useMapStore((s) => s.hoveredFactoryId);
+  const info = useMapStore((s) => s.hoverInfo);
   const point = useMapStore((s) => s.hoverPoint);
   const selectedId = useMapStore((s) => s.selectedEntityId);
+  const panelOpen = useMapStore((s) => s.sidebarOpen);
 
-  // Settle for a beat so sweeping across a dense cluster doesn't fetch per pin.
-  const [stableId, setStableId] = useState<string | null>(null);
-  useEffect(() => {
-    if (!hoveredId) { setStableId(null); return; }
-    const t = setTimeout(() => setStableId(hoveredId), 120);
-    return () => clearTimeout(t);
-  }, [hoveredId]);
+  if (!info || !point || info.id === selectedId) return null;
 
-  // Same key the detail page uses, so a click after hover is instant.
-  const { data } = useQuery({
-    queryKey: ['factories', stableId],
-    queryFn: () => factoriesApi.get(stableId as string),
-    enabled: Boolean(stableId),
-    staleTime: 5 * 60_000,
-  });
+  // Below the pin near the top of the map (where the search box is), above it otherwise.
+  const below = point.y < 220;
+  // Centered on the pin, but never off the edge or under the panel.
+  const visibleWidth = window.innerWidth - (panelOpen ? PANEL_WIDTH_PX : 0);
+  const half = CARD_WIDTH_PX / 2;
+  const centerX = Math.min(Math.max(point.x, half + EDGE_GAP_PX), Math.max(half + EDGE_GAP_PX, visibleWidth - half - EDGE_GAP_PX));
+  const arrowX = Math.min(Math.max(point.x - (centerX - half), 14), CARD_WIDTH_PX - 14);
 
-  if (!stableId || !point || stableId === selectedId) return null;
-
-  const below = point.y < 200;
-  const style = { left: point.x, top: below ? point.y + 14 : point.y - 14 };
-  const occupationCount = data?.occupations?.length ?? 0;
+  const place = [info.city, info.state].filter(Boolean).join(', ');
+  const arrow = 'absolute h-2.5 w-2.5 -translate-x-1/2 rotate-45 border-border-strong bg-bg-elevated';
 
   return (
     <div
       role="tooltip"
-      style={style}
-      className={`pointer-events-none absolute z-40 w-64 -translate-x-1/2 ${below ? '' : '-translate-y-full'}`}
+      style={{ left: centerX - half, top: below ? point.y + 16 : point.y - 16, width: CARD_WIDTH_PX }}
+      className={`pointer-events-none absolute z-40 ${below ? '' : '-translate-y-full'}`}
     >
-      {below && <div className="mx-auto mb-[-5px] h-2.5 w-2.5 rotate-45 border-l border-t border-border-subtle bg-bg-surface" />}
-      <div className="rounded-lg border border-border-subtle bg-bg-surface/95 p-3 shadow-xl backdrop-blur">
-        <div className="flex items-start gap-2">
-          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-sky-400/10">
+      <div className="map-overlay rounded-lg p-3">
+        <div className="flex items-start gap-2.5">
+          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-sky-400/15">
             <Factory className="h-3.5 w-3.5 text-sky-400" />
           </span>
-          <div className="min-w-0">
-            <div className="truncate text-sm font-medium text-fg-default">{data ? formatFactoryName(data.name) : 'Loading…'}</div>
-            {data?.company && (
-              <div className="flex items-center gap-1 truncate text-xs text-amber-500/90">
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold text-fg-default">{formatFactoryName(info.name)}</div>
+            {info.companyName && (
+              <div className="mt-0.5 flex items-center gap-1 text-xs text-amber-400">
                 <Building2 className="h-3 w-3 shrink-0" />
-                <span className="truncate">{formatCompanyName(data.company.name)}</span>
+                <span className="truncate">{formatCompanyName(info.companyName)}</span>
+                {info.tier === 2 && (
+                  <Star className="h-3 w-3 shrink-0 fill-current" aria-label="Featured employer" />
+                )}
               </div>
             )}
           </div>
         </div>
-        {data && (
-          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-fg-muted">
-            {data.state && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{data.state}</span>}
-            {data.specialization && <span className="truncate">{data.specialization}</span>}
-            {occupationCount > 0 && (
-              <span className="inline-flex items-center gap-1"><Briefcase className="h-3 w-3 text-violet-400" />{occupationCount} {occupationCount === 1 ? 'career' : 'careers'}</span>
+        {(place || info.industry || info.openJobs > 0) && (
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
+            {place && (
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3 w-3 shrink-0" />
+                {place}
+              </span>
             )}
-            {data.workforceSize ? (
-              <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{data.workforceSize.toLocaleString()} workforce</span>
-            ) : null}
+            {info.industry && <span className="min-w-0 truncate">{info.industry}</span>}
+            {info.openJobs > 0 && (
+              <span className="inline-flex items-center gap-1 font-medium text-violet-300">
+                <Briefcase className="h-3 w-3 shrink-0" />
+                {info.openJobs.toLocaleString()} open {info.openJobs === 1 ? 'job' : 'jobs'}
+              </span>
+            )}
           </div>
         )}
-        <div className="mt-2 text-[10px] uppercase tracking-wider text-fg-soft">Click for details</div>
+        <div className="mt-2.5 text-[10px] font-medium uppercase tracking-wider text-fg-muted">Click for details</div>
       </div>
-      {!below && <div className="mx-auto mt-[-5px] h-2.5 w-2.5 rotate-45 border-b border-r border-border-subtle bg-bg-surface" />}
+      {/* Pointer to the pin: a rotated square tucked half under the card's edge. */}
+      <span
+        aria-hidden="true"
+        style={{ left: arrowX }}
+        className={below ? `${arrow} -top-[5px] border-l border-t` : `${arrow} -bottom-[5px] border-b border-r`}
+      />
     </div>
   );
 }

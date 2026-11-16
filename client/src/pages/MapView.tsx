@@ -7,7 +7,8 @@ import MapContextMenu from '../components/map/MapContextMenu';
 import MapHoverCard from '../components/map/MapHoverCard';
 import { useMapStore } from '../stores/mapStore';
 import { PHONE_LAYOUT_QUERY } from '../components/map/camera';
-import { SCOPE } from '@shared/scope';
+import { focusArea } from '@shared/scope';
+import { US_STATES } from '@shared/states';
 
 // Custom hook for responsive detection
 function useMediaQuery(query: string): boolean {
@@ -40,41 +41,53 @@ export default function MapView() {
     selectedEntityId,
     selectFactory,
     selectState,
+    selectArea,
     clearSelection,
     sidebarOpen,
   } = useMapStore();
 
-  // URL ⇄ selection. Both factories and states live in the query string so a
-  // selection is shareable and browser Back walks through what you looked at.
+  // URL ⇄ selection. Factories, focus areas and states live in the query
+  // string so a selection is shareable and browser Back walks through what
+  // you looked at. An id we do not know is ignored.
   const urlFactory = searchParams.get('factory');
-  // Only the state we cover can be selected; any other ?state= is ignored.
+  const urlAreaParam = searchParams.get('area');
+  const urlArea = urlAreaParam && focusArea(urlAreaParam) ? urlAreaParam : null;
   const urlStateParam = searchParams.get('state')?.toUpperCase() ?? null;
-  const urlState = urlStateParam === SCOPE.stateCode ? urlStateParam : null;
+  const urlState = US_STATES.some((s) => s.code === urlStateParam) ? urlStateParam : null;
 
   useEffect(() => {
     if (urlFactory) {
       if (selectedEntityType !== 'factory' || selectedEntityId !== urlFactory) selectFactory(urlFactory);
       return;
     }
+    if (urlArea) {
+      if (selectedEntityType !== 'area' || selectedEntityId !== urlArea) selectArea(urlArea);
+      return;
+    }
     if (urlState) {
       if (selectedEntityType !== 'state' || selectedEntityId !== urlState) selectState(urlState);
       return;
     }
-    if (selectedEntityType === 'factory' || selectedEntityType === 'state') clearSelection();
+    if (selectedEntityType === 'factory' || selectedEntityType === 'area' || selectedEntityType === 'state') {
+      clearSelection();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlFactory, urlState]);
+  }, [urlFactory, urlArea, urlState]);
 
   useEffect(() => {
     // Read the live store, not this render's snapshot: on first mount the
-    // URL→store effect above has just selected the state, and the snapshot
+    // URL→store effect above has just made the selection, and the snapshot
     // would still say "nothing selected" and strip it back out of the URL.
     const live = useMapStore.getState();
-    const wantFactory = live.selectedEntityType === 'factory' ? live.selectedEntityId : null;
-    const wantState = live.selectedEntityType === 'state' ? live.selectedEntityId : null;
-    if ((urlFactory ?? null) === wantFactory && (urlState ?? null) === wantState) return;
+    const want = (type: typeof live.selectedEntityType) =>
+      live.selectedEntityType === type ? live.selectedEntityId : null;
+    const wanted = { factory: want('factory'), area: want('area'), state: want('state') };
+    if (urlFactory === wanted.factory && urlArea === wanted.area && urlState === wanted.state) return;
     const params = new URLSearchParams(searchParams);
-    if (wantFactory) params.set('factory', wantFactory); else params.delete('factory');
-    if (wantState) params.set('state', wantState); else params.delete('state');
+    for (const [key, value] of Object.entries(wanted)) {
+      if (value) params.set(key, value);
+      else params.delete(key);
+    }
     setSearchParams(params);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEntityType, selectedEntityId]);

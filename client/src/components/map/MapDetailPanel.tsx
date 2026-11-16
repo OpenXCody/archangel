@@ -15,6 +15,7 @@ import {
   Loader2,
   ArrowLeft,
   Tag,
+  MapPinned,
 } from 'lucide-react';
 import {
   factoriesApi,
@@ -25,67 +26,58 @@ import {
   type CompanyDetail,
   type OccupationDetail,
   type SkillDetail,
+  type StateOverview,
+  type AreaOverview,
+  type RegionOverview,
   mapApi,
 } from '../../lib/api';
 import { useMapStore, type MapEntityType } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import CompanyLogo from '../CompanyLogo';
 import { PANEL_WIDTH_PX, SHEET_PEEK_VH } from './camera';
 
-// State overview shape returned by /api/map/states/:code/overview
-interface StateOverview {
-  code: string;
-  totalFactories: number;
-  totalCompanies: number;
-  totalWorkforce: number;
-  topCompanies: { id: string; name: string; count: number }[];
-  topIndustries: { label: string; count: number }[];
-}
-
-// Panel body for a selected state. Mirrors Pillar's StateDetail
-// aesthetic: big totals up top, then top companies + top industries.
-// Top companies are clickable — selectEntity navigates into the
-// company detail view inside this same sidebar.
-function StateView({ data }: { data: StateOverview }) {
-  const name = US_STATES.find(s => s.code === data.code)?.name ?? data.code;
+// Body shared by the state panel and the focus-area panel: big totals up
+// top, then top companies and top industries. Top companies are clickable —
+// selectEntity navigates into the company detail view inside this same panel.
+function RegionOverviewBody({ data }: { data: RegionOverview }) {
   const selectEntity = useMapStore((s) => s.selectEntity);
+  const totals = [
+    { label: 'Factories', value: data.totalFactories.toLocaleString() },
+    { label: 'Companies', value: data.totalCompanies.toLocaleString() },
+    { label: 'Workforce', value: data.totalWorkforce > 0 ? data.totalWorkforce.toLocaleString() : '—' },
+  ];
   return (
     <>
-      <div className="mb-5">
-        <h2 className="text-xl font-semibold text-fg-default tracking-tight">{name}</h2>
-        <p className="text-sm text-fg-soft mt-0.5">State overview</p>
-      </div>
-
       <div className="grid grid-cols-3 gap-2 mb-6">
-        <div className="rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
-          <div className="text-[10px] uppercase tracking-wider text-fg-soft">Factories</div>
-          <div className="text-lg font-semibold text-fg-default mt-0.5">{data.totalFactories.toLocaleString()}</div>
-        </div>
-        <div className="rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
-          <div className="text-[10px] uppercase tracking-wider text-fg-soft">Companies</div>
-          <div className="text-lg font-semibold text-fg-default mt-0.5">{data.totalCompanies.toLocaleString()}</div>
-        </div>
-        <div className="rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
-          <div className="text-[10px] uppercase tracking-wider text-fg-soft">Workforce</div>
-          <div className="text-lg font-semibold text-fg-default mt-0.5">
-            {data.totalWorkforce > 0 ? data.totalWorkforce.toLocaleString() : '—'}
+        {totals.map((total) => (
+          <div key={total.label} className="min-w-0 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
+            <div className="text-[10px] uppercase tracking-wider text-fg-muted">{total.label}</div>
+            <div className="text-lg font-semibold text-fg-default mt-0.5 truncate">{total.value}</div>
           </div>
-        </div>
+        ))}
       </div>
 
       {data.topCompanies.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">Top Companies</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">Top Companies</h3>
           <div className="space-y-0.5">
             {data.topCompanies.slice(0, 8).map((c) => (
               <button
                 key={c.id}
                 onClick={() => selectEntity('company', c.id)}
-                className="w-full group flex items-center justify-between text-sm py-1.5 px-2 -mx-2 rounded-md hover:bg-white/[0.04] transition-colors text-left"
+                title={`${c.count.toLocaleString()} ${c.count === 1 ? 'factory' : 'factories'} here, ${c.sites.toLocaleString()} nationwide`}
+                className="w-full group flex items-center gap-2.5 text-sm py-1.5 px-2 -mx-2 rounded-md hover:bg-white/[0.05] transition-colors text-left"
               >
-                <span className="text-fg-default truncate group-hover:text-fg-default">{formatCompanyName(c.name)}</span>
-                <span className="ml-2 flex items-center gap-1 flex-shrink-0 text-fg-soft text-xs">
-                  {c.count}
+                <CompanyLogo name={formatCompanyName(c.name)} domain={c.domain} size={28} />
+                <span className="min-w-0 flex-1 truncate text-fg-default">{formatCompanyName(c.name)}</span>
+                {c.featured && (
+                  <span className="flex-shrink-0 rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-px text-[10px] font-medium uppercase tracking-wider text-amber-400">
+                    Featured
+                  </span>
+                )}
+                <span className="flex items-center gap-1 flex-shrink-0 text-fg-muted text-xs tabular-nums">
+                  {c.count.toLocaleString()}
                   <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />
                 </span>
               </button>
@@ -96,17 +88,45 @@ function StateView({ data }: { data: StateOverview }) {
 
       {data.topIndustries.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">Top Industries</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">Top Industries</h3>
           <div className="space-y-1">
             {data.topIndustries.map((ind, i) => (
               <div key={i} className="flex items-center justify-between text-sm py-1">
                 <span className="text-fg-muted truncate">{ind.label}</span>
-                <span className="text-fg-soft text-xs ml-2 flex-shrink-0">{ind.count}</span>
+                <span className="text-fg-muted text-xs ml-2 flex-shrink-0 tabular-nums">{ind.count.toLocaleString()}</span>
               </div>
             ))}
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+// Panel body for a selected state.
+function StateView({ data }: { data: StateOverview }) {
+  const name = US_STATES.find(s => s.code === data.code)?.name ?? data.code;
+  return (
+    <>
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold text-fg-default tracking-tight">{name}</h2>
+        <p className="text-sm text-fg-muted mt-0.5">State overview</p>
+      </div>
+      <RegionOverviewBody data={data} />
+    </>
+  );
+}
+
+// Panel body for a selected focus area: the same overview, for the region
+// inside the geofence.
+function AreaView({ data }: { data: AreaOverview }) {
+  return (
+    <>
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold text-fg-default tracking-tight">{data.name}</h2>
+        <p className="text-sm text-fg-muted mt-0.5">{data.description}</p>
+      </div>
+      <RegionOverviewBody data={data} />
     </>
   );
 }
@@ -122,6 +142,7 @@ const entityConfig: Record<MapEntityType, { icon: typeof Factory; color: string;
   occupation: { icon: Briefcase, color: 'text-violet-400', bgColor: 'bg-violet-400/10', label: 'Career' },
   skill: { icon: Wrench, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10', label: 'Skill' },
   state: { icon: MapPin, color: 'text-slate-300', bgColor: 'bg-slate-500/10', label: 'State' },
+  area: { icon: MapPinned, color: 'text-sky-200', bgColor: 'bg-sky-300/10', label: 'Focus area' },
 };
 
 // Connected node link component
@@ -188,7 +209,7 @@ function ConnectedNode({
       <div className="flex items-center gap-3">
         <Icon className={`w-5 h-5 ${config.color}`} />
         <div>
-          {subtitle && <div className="text-xs text-fg-soft">{subtitle}</div>}
+          {subtitle && <div className="text-xs text-fg-muted">{subtitle}</div>}
           <div className="text-sm font-medium text-fg-default group-hover:text-white">
             {type === 'factory' ? formatFactoryName(name) : type === 'company' ? formatCompanyName(name) : name}
           </div>
@@ -199,7 +220,7 @@ function ConnectedNode({
           {count}
         </span>
       ) : id ? (
-        <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted" />
+        <ChevronRight className="w-4 h-4 text-fg-muted group-hover:text-fg-default" />
       ) : null}
     </button>
   );
@@ -241,7 +262,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
 
       {/* Connected to */}
       <div className="mb-6">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-3">
+        <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
           Connected to
         </h3>
         <div className="space-y-2">
@@ -266,7 +287,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
           ))}
 
           {factory.occupations && factory.occupations.length > 3 && (
-            <div className="text-xs text-fg-soft text-center py-2">
+            <div className="text-xs text-fg-muted text-center py-2">
               +{factory.occupations.length - 3} more careers
             </div>
           )}
@@ -276,7 +297,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
       {/* Specialization */}
       {factory.specialization && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
             Specialization
           </h3>
           <p className="text-sm text-fg-muted">{factory.specialization}</p>
@@ -286,7 +307,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
       {/* Description */}
       {factory.description && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
             Description
           </h3>
           <p className="text-sm text-fg-muted leading-relaxed">{factory.description}</p>
@@ -296,7 +317,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
       {/* Location */}
       {factory.latitude && factory.longitude && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
             Location
           </h3>
           <div className="flex items-center gap-2 text-sm text-fg-muted">
@@ -304,7 +325,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
             <span className="font-mono">
               {parseFloat(factory.latitude).toFixed(2)}°, {parseFloat(factory.longitude).toFixed(2)}°
             </span>
-            {factory.state && <span className="text-fg-soft">• {factory.state}</span>}
+            {factory.state && <span className="text-fg-muted">• {factory.state}</span>}
           </div>
         </div>
       )}
@@ -342,9 +363,12 @@ function CompanyView({ company }: { company: CompanyDetail }) {
   return (
     <>
       {/* Company Name & Industry */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-fg-default mb-1">{formatCompanyName(company.name)}</h2>
-        <p className="text-sm text-fg-muted">{company.industry || 'Manufacturing'}</p>
+      <div className="mb-6 flex items-start gap-3">
+        <CompanyLogo name={formatCompanyName(company.name)} domain={company.domain} size={44} className="rounded-lg" />
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold text-fg-default mb-1">{formatCompanyName(company.name)}</h2>
+          <p className="text-sm text-fg-muted">{company.industry || 'Manufacturing'}</p>
+        </div>
       </div>
 
       {/* Stats Grid - mobile-optimized */}
@@ -382,7 +406,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
 
       {/* Connected Factories */}
       <div className="mb-6">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-3">
+        <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
           Factories ({company.factories?.length || 0})
         </h3>
         <div className="space-y-2">
@@ -398,7 +422,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
             />
           ))}
           {company.factories && company.factories.length > 5 && (
-            <div className="text-xs text-fg-soft text-center py-2">
+            <div className="text-xs text-fg-muted text-center py-2">
               +{company.factories.length - 5} more factories
             </div>
           )}
@@ -408,7 +432,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
       {/* Industries */}
       {company.industries && company.industries.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
             Industries
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -427,7 +451,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
       {/* Description */}
       {company.description && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
             Description
           </h3>
           <p className="text-sm text-fg-muted leading-relaxed">{company.description}</p>
@@ -474,7 +498,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
       {/* Skills */}
       {occupation.skills && occupation.skills.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-3">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
             Required Skills
           </h3>
           <div className="space-y-2">
@@ -488,7 +512,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
               />
             ))}
             {occupation.skills.length > 5 && (
-              <div className="text-xs text-fg-soft text-center py-2">
+              <div className="text-xs text-fg-muted text-center py-2">
                 +{occupation.skills.length - 5} more skills
               </div>
             )}
@@ -499,7 +523,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
       {/* Factories with this occupation */}
       {occupation.factories && occupation.factories.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-3">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
             Hiring Factories
           </h3>
           <div className="space-y-2">
@@ -515,7 +539,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
               />
             ))}
             {occupation.factories.length > 3 && (
-              <div className="text-xs text-fg-soft text-center py-2">
+              <div className="text-xs text-fg-muted text-center py-2">
                 +{occupation.factories.length - 3} more factories
               </div>
             )}
@@ -526,7 +550,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
       {/* Description */}
       {occupation.description && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
             Description
           </h3>
           <p className="text-sm text-fg-muted leading-relaxed">{occupation.description}</p>
@@ -545,7 +569,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
         <h2 className="text-xl font-semibold text-fg-default mb-1">{skill.name}</h2>
         {skill.category && (
           <div className="flex items-center gap-2 mt-2">
-            <Tag className="w-4 h-4 text-fg-soft" />
+            <Tag className="w-4 h-4 text-fg-muted" />
             <span className="text-sm text-fg-muted">{skill.category}</span>
           </div>
         )}
@@ -576,7 +600,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
       {/* Occupations using this skill */}
       {skill.occupations && skill.occupations.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-3">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
             Used in Careers
           </h3>
           <div className="space-y-2">
@@ -590,7 +614,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
               />
             ))}
             {skill.occupations.length > 5 && (
-              <div className="text-xs text-fg-soft text-center py-2">
+              <div className="text-xs text-fg-muted text-center py-2">
                 +{skill.occupations.length - 5} more careers
               </div>
             )}
@@ -601,7 +625,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
       {/* Related Skills */}
       {skill.relatedSkills && skill.relatedSkills.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-3">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
             Related Skills
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -615,7 +639,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
               </button>
             ))}
             {skill.relatedSkills.length > 8 && (
-              <span className="px-2 py-1 text-xs text-fg-soft">
+              <span className="px-2 py-1 text-xs text-fg-muted">
                 +{skill.relatedSkills.length - 8} more
               </span>
             )}
@@ -626,7 +650,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
       {/* Description */}
       {skill.description && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-2">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
             Description
           </h3>
           <p className="text-sm text-fg-muted leading-relaxed">{skill.description}</p>
@@ -678,8 +702,15 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
     enabled: selectedEntityType === 'state' && !!selectedEntityId,
   });
 
-  const isLoading = factoryLoading || companyLoading || occupationLoading || skillLoading || stateLoading;
-  const hasData = factory || company || occupation || skill || stateOverview;
+  const { data: areaOverview, isLoading: areaLoading } = useQuery<AreaOverview>({
+    queryKey: ['area-overview', selectedEntityId],
+    queryFn: () => mapApi.areaOverview(selectedEntityId as string),
+    enabled: selectedEntityType === 'area' && !!selectedEntityId,
+  });
+
+  const isLoading =
+    factoryLoading || companyLoading || occupationLoading || skillLoading || stateLoading || areaLoading;
+  const hasData = factory || company || occupation || skill || stateOverview || areaOverview;
 
   // Close on ESC key
   useEffect(() => {
@@ -794,6 +825,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
             {selectedEntityType === 'occupation' && occupation && <OccupationView occupation={occupation} />}
             {selectedEntityType === 'skill' && skill && <SkillView skill={skill} />}
             {selectedEntityType === 'state' && stateOverview && <StateView data={stateOverview} />}
+            {selectedEntityType === 'area' && areaOverview && <AreaView data={areaOverview} />}
           </>
         )}
       </div>

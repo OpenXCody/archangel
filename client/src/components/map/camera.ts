@@ -15,8 +15,14 @@
  *  - fitBounds resets bearing but not pitch. Every move here ends north-up and
  *    flat, so the same request always produces the same camera.
  */
-import { LngLatBounds, type Map as MapLibreMap, type LngLatBoundsLike, type MapOptions } from 'maplibre-gl';
-import { focusBounds } from '@shared/scope';
+import {
+  LngLatBounds,
+  type GeoJSONSource,
+  type Map as MapLibreMap,
+  type LngLatBoundsLike,
+  type MapOptions,
+} from 'maplibre-gl';
+import { US_BOUNDS, focusArea, type FocusArea } from '@shared/scope';
 import { useMapStore, type CameraRequest } from '../../stores/mapStore';
 
 // ─── Layout ────────────────────────────────────────────────────────────────
@@ -29,8 +35,11 @@ export const SHEET_PEEK_VH = 32;
 /** At or below this width the detail panel is a bottom sheet. */
 export const PHONE_LAYOUT_QUERY = '(max-width: 768px)';
 
-/** The floating search bar: 16px from the top, about 46px tall, plus a little air. */
-const SEARCH_BAR_PX = 72;
+/**
+ * The floating search bar (16px from the top, about 46px tall) and the row of
+ * focus-area chips under it (8px gap, about 30px tall), plus a little air.
+ */
+const TOP_CONTROLS_PX = 104;
 /** Breathing room between fitted content and the edge of the visible area. */
 const FIT_MARGIN_DESKTOP_PX = 48;
 const FIT_MARGIN_PHONE_PX = 20;
@@ -38,8 +47,11 @@ const FIT_MARGIN_PHONE_PX = 20;
 const MIN_VISIBLE_PX = 96;
 
 const STATE_MAX_ZOOM = 7;
+const AREA_MAX_ZOOM = 11;
+const PLACE_MAX_ZOOM = 14;
 const POINT_ZOOM = 8;
 const POINTS_MAX_ZOOM = 10;
+const CLUSTER_MIN_STEP = 1.5;
 
 interface Edges {
   top: number;
@@ -61,14 +73,15 @@ export function sheetPeekPx(): number {
 
 /**
  * How much of each edge of the canvas is hidden behind UI right now.
- * Phone: the search bar spans the top, the sheet (when open) the bottom.
- * Desktop: the panel (when open) covers the right edge. The search bar only
- * occupies the top-left corner there; fitPadding() clears it instead.
+ * Phone: the search bar and area chips span the top, the sheet (when open)
+ * the bottom. Desktop: the panel (when open) covers the right edge. The
+ * search bar only occupies the top-left corner there; fitPadding() clears it
+ * instead.
  */
 function coveredEdges(): Edges {
   const panelOpen = useMapStore.getState().sidebarOpen;
   if (isPhoneLayout()) {
-    return { top: SEARCH_BAR_PX, right: 0, bottom: panelOpen ? sheetPeekPx() : 0, left: 0 };
+    return { top: TOP_CONTROLS_PX, right: 0, bottom: panelOpen ? sheetPeekPx() : 0, left: 0 };
   }
   return { top: 0, right: panelOpen ? PANEL_WIDTH_PX : 0, bottom: 0, left: 0 };
 }
@@ -78,8 +91,8 @@ function fitPadding(map: MapLibreMap): Edges {
   const covered = coveredEdges();
   const phone = isPhoneLayout();
   const side = phone ? FIT_MARGIN_PHONE_PX : FIT_MARGIN_DESKTOP_PX;
-  // Desktop clears the search bar on both sides so content stays vertically centered.
-  const vertical = phone ? FIT_MARGIN_PHONE_PX : SEARCH_BAR_PX;
+  // Desktop clears the search bar and chips on both sides so content stays vertically centered.
+  const vertical = phone ? FIT_MARGIN_PHONE_PX : TOP_CONTROLS_PX;
   const padding: Edges = {
     top: covered.top + vertical,
     right: covered.right + side,
@@ -132,9 +145,19 @@ function fit(map: MapLibreMap, bounds: LngLatBoundsLike, maxZoom: number | undef
   });
 }
 
-/** Frame the focus area: the circle around SCOPE.focus. The home view. */
-export function fitFocus(map: MapLibreMap, { animate = true }: MoveOptions = {}): void {
-  fit(map, focusBounds(), undefined, animate ? 600 : 0);
+/** Frame the continental United States. The home view. */
+export function fitUS(map: MapLibreMap, { animate = true }: MoveOptions = {}): void {
+  fit(map, US_BOUNDS, undefined, animate ? 700 : 0);
+}
+
+/** Frame a focus area by the box around its boundary. */
+export function fitArea(map: MapLibreMap, area: FocusArea, { animate = true }: MoveOptions = {}): void {
+  fit(map, area.bounds, AREA_MAX_ZOOM, animate ? 900 : 0);
+}
+
+/** Frame a box, e.g. a place found by address search. */
+export function fitPlace(map: MapLibreMap, bounds: LngLatBoundsLike, { animate = true }: MoveOptions = {}): void {
+  fit(map, bounds, PLACE_MAX_ZOOM, animate ? 900 : 0);
 }
 
 /** Frame a state (or any region), given its geometry or its bounds. */
@@ -181,43 +204,129 @@ export function flyToPoint(
   });
 }
 
-/** Carry out a camera request posted to the store (see CameraRequest in mapStore). */
-export function applyCameraRequest(map: MapLibreMap, request: CameraRequest): void {
+/** The point on screen that sits in the middle of what the panel or sheet leaves visible. */
+function visibleCenter(map: MapLibreMap): [number, number] {
+  const { clientWidth, clientHeight } = map.getContainer();
+  const [dx, dy] = visibleCenterOffset();
+  return [clientWidth / 2 + dx, clientHeight / 2 + dy];
+}
+
+/** Zoom in (+1) or out (-1) one level, holding still the middle of the visible area. */
+export function zoomBy(map: MapLibreMap, delta: number): void {
+  dropSavedPadding(map);
+  map.easeTo({
+    zoom: map.getZoom() + delta,
+    around: map.unproject(visibleCenter(map)),
+    bearing: 0,
+    pitch: 0,
+    duration: 250,
+  });
+}
+
+/**
+ * Open up a cluster: fly to it at the zoom where it breaks apart, and at
+ * least a step and a half closer than now. The break-apart zoom alone can be
+ * a fraction of a level away, where a big cluster only sheds a few points and
+ * the click seems to do nothing.
+ */
+export async function zoomIntoCluster(
+  map: MapLibreMap,
+  sourceId: string,
+  clusterId: number,
+  lngLat: [number, number]
+): Promise<void> {
+  const source = map.getSource(sourceId) as GeoJSONSource | undefined;
+  if (!source) return;
+  try {
+    const zoom = await source.getClusterExpansionZoom(clusterId);
+    flyToPoint(map, lngLat, Math.max(zoom, map.getZoom() + CLUSTER_MIN_STEP));
+  } catch {
+    // The data changed under the click and the cluster is gone: step in instead.
+    flyToPoint(map, lngLat, map.getZoom() + CLUSTER_MIN_STEP);
+  }
+}
+
+interface RequestContext extends MoveOptions {
+  /** Shape of a state, by two-letter code. The map owns the geometry. */
+  stateGeometry?: (code: string) => GeoJSON.Geometry | undefined;
+}
+
+/**
+ * Carry out a camera request posted to the store (see CameraRequest in
+ * mapStore). Returns false when it cannot be carried out yet (a state whose
+ * shape has not loaded), so the caller can keep the request and try again.
+ */
+export function applyCameraRequest(
+  map: MapLibreMap,
+  request: CameraRequest,
+  { animate = true, stateGeometry }: RequestContext = {}
+): boolean {
+  const move: MoveOptions = { animate };
   switch (request.kind) {
-    case 'focus':
-      fitFocus(map);
-      return;
+    case 'us':
+      fitUS(map, move);
+      return true;
+    case 'area': {
+      const area = focusArea(request.id);
+      if (area) fitArea(map, area, move);
+      return true;
+    }
+    case 'state': {
+      const geometry = stateGeometry?.(request.code);
+      if (!geometry) return false;
+      fitState(map, geometry, move);
+      return true;
+    }
+    case 'bounds':
+      fitPlace(map, request.bounds, move);
+      return true;
     case 'point':
-      flyToPoint(map, [request.lng, request.lat], request.zoom);
-      return;
+      flyToPoint(map, [request.lng, request.lat], request.zoom, move);
+      return true;
     case 'points':
-      fitPoints(map, request.points);
-      return;
+      fitPoints(map, request.points, move);
+      return true;
   }
 }
 
 // ─── Queries ───────────────────────────────────────────────────────────────
 
-/** Where a new map starts: on the focus area, before the first frame is drawn. */
+/** Where a new map starts: on the whole country, before the first frame is drawn. */
 export function initialCamera(): Pick<MapOptions, 'bounds' | 'fitBoundsOptions'> {
   const phone = isPhoneLayout();
   const margin = phone ? FIT_MARGIN_PHONE_PX : FIT_MARGIN_DESKTOP_PX;
-  // The container is not measured yet; fitFocus() on load applies the exact layout.
+  // The container is not measured yet; fitUS() on load applies the exact layout.
   return {
-    bounds: focusBounds(),
-    fitBoundsOptions: { padding: { top: SEARCH_BAR_PX, right: margin, bottom: margin, left: margin } },
+    bounds: US_BOUNDS,
+    fitBoundsOptions: { padding: { top: TOP_CONTROLS_PX, right: margin, bottom: margin, left: margin } },
   };
 }
 
+/** The zoom at which `bounds` exactly fills the visible area, or null if it cannot be worked out. */
+function fitZoom(map: MapLibreMap, bounds: LngLatBoundsLike): number | null {
+  const camera = map.cameraForBounds(bounds, { padding: fitPadding(map) });
+  return camera?.zoom ?? null;
+}
+
 /** True while the map still shows the home view, so "reset view" has nothing to do. */
-export function isAtFocus(map: MapLibreMap): boolean {
+export function isAtHome(map: MapLibreMap): boolean {
   if (map.getBearing() !== 0 || map.getPitch() !== 0) return false;
-  const home = map.cameraForBounds(focusBounds(), { padding: fitPadding(map) });
+  const home = map.cameraForBounds(US_BOUNDS, { padding: fitPadding(map) });
   if (!home || home.center === undefined || home.zoom === undefined) return false;
   if (Math.abs(map.getZoom() - home.zoom) > 0.05) return false;
   const want = map.project(home.center);
   const have = map.project(map.getCenter());
   return Math.abs(want.x - have.x) < 4 && Math.abs(want.y - have.y) < 4;
+}
+
+/**
+ * True while a focus area is seen as a shape: not zoomed in much past the
+ * view that frames it. Past that, a click inside the boundary is a click on
+ * the map, and must not pull the view back out to the whole area.
+ */
+export function areaReadsAsShape(map: MapLibreMap, area: FocusArea): boolean {
+  const zoom = fitZoom(map, area.bounds);
+  return zoom === null || map.getZoom() < Math.min(zoom, AREA_MAX_ZOOM) + 1;
 }
 
 // ─── Geometry helpers ──────────────────────────────────────────────────────
