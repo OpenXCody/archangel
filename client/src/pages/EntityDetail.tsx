@@ -416,70 +416,131 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
 }
 
 // Factory Detail View
+/**
+ * A factory's page: where it is, who runs it, whether it is hiring, and the
+ * company's other sites. The same story its panel on the map tells, with room
+ * for all of it.
+ */
 function FactoryDetailView({ data }: { data: FactoryDetail }) {
+  const [showAllCareers, setShowAllCareers] = useState(false);
+  const company = data.company;
+  const companyName = company ? formatCompanyName(company.name) : null;
+  const place = [data.city ? titleCase(data.city) : null, data.state ? STATE_CODE_TO_NAME[data.state as StateCode] ?? data.state : null]
+    .filter(Boolean)
+    .join(', ');
+  const industry = data.industry || data.specialization;
+  const jobs = data.jobs ?? [];
+  const nearby = data.nearby ?? [];
+  const latitude = parseFloat(data.latitude);
+  const longitude = parseFloat(data.longitude);
+  const located = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const siteCount = company?.siteCount ?? 0;
+  const stateCount = company?.stateCount ?? 0;
+
+  // This site, marked, among the company's nearest others.
+  const points = useMemo(
+    () => [
+      ...(located ? [{ id: data.id, latitude, longitude, label: formatFactoryName(data.name) }] : []),
+      ...nearby
+        .map((site) => ({ id: site.id, latitude: parseFloat(site.latitude), longitude: parseFloat(site.longitude), label: formatFactoryName(site.name) }))
+        .filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude)),
+    ],
+    [data.id, data.name, located, latitude, longitude, nearby]
+  );
+
   return (
     <>
-      {/* Parent company link */}
-      {data.company && (
-        <Link
-          to={`/companies/${data.company.id}`}
-          className="
-            inline-flex items-center gap-2 mt-4 px-4 py-2
-            bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg
-            text-fg-muted hover:bg-tint/[0.05] hover:text-fg-default transition-colors
-          "
-        >
-          <Building2 className="w-4 h-4 text-fg-muted" />
-          <span>{formatCompanyName(data.company.name)}</span>
-          <ChevronRight className="w-4 h-4" />
-        </Link>
-      )}
+      {(place || industry) && <p className="mt-4 text-sm text-fg-muted">{[place, industry].filter(Boolean).join(' · ')}</p>}
 
-      {/* Location - clicking filters Factories by state */}
-      {data.state && (
-        <div className="mt-4">
-          <FilterPill to={`/explore?tab=factories&state=${encodeURIComponent(data.state)}`}>
-            <MapPin className="w-3 h-3" />
-            {data.state}
-          </FilterPill>
-        </div>
-      )}
-
-      {/* Stats - only occupation count (real relationship) */}
-      {(data.occupations?.length || 0) > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-          <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
-            <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length || 0}</div>
-            <div className="text-sm text-fg-muted">Careers</div>
+      {/* Where it is */}
+      {located && (
+        <div className="mt-6 overflow-hidden rounded-xl border border-border-subtle bg-bg-surface">
+          <div className="px-3 pt-4 sm:px-6 sm:pt-6">
+            <FootprintMap points={points} emphasis={data.id} className="mx-auto max-w-2xl" />
+          </div>
+          <div className="flex flex-col gap-3 border-t border-border-subtle px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <p className="min-w-0 text-sm text-fg-muted">
+              {[data.address ? titleCase(data.address) : null, place].filter(Boolean).join(', ') || 'Location on record'}
+            </p>
+            <Link
+              to={`/map?factory=${data.id}`}
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-border-strong px-4 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated"
+            >
+              Open on the map
+            </Link>
           </div>
         </div>
       )}
 
-      {/* Coordinates */}
-      {data.latitude && data.longitude && (
-        <div className="mt-4 text-sm text-fg-soft">
-          <span className="font-mono">
-            {parseFloat(data.latitude).toFixed(4)}°, {parseFloat(data.longitude).toFixed(4)}°
-          </span>
-        </div>
+      {/* Open jobs: said only when there are some */}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} empty="" showCareer />}
+
+      {/* Who runs it */}
+      {company && companyName && (
+        <Section title="Company">
+          <Link
+            to={`/companies/${company.slug ?? company.id}`}
+            className="group flex items-start gap-4 rounded-xl border border-border-subtle bg-bg-surface p-4 transition-colors hover:border-border-strong"
+          >
+            <CompanyLogo name={companyName} domain={company.domain} size={44} className="rounded-lg" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-base font-medium text-fg-default">{companyName}</span>
+              <span className="block text-sm text-fg-muted">
+                {[
+                  siteCount > 0 ? `${siteCount.toLocaleString()} ${siteCount === 1 ? 'site' : 'sites'}${stateCount > 1 ? ` in ${stateCount} states` : ''}` : null,
+                  company.industry && company.industry !== 'Manufacturing' ? company.industry : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+              {company.description && <span className="mt-2 block text-sm leading-relaxed text-fg-muted">{company.description}</span>}
+            </span>
+            <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" />
+          </Link>
+        </Section>
       )}
 
-      <OpenJobsSection jobs={data.jobs ?? []} empty="No open jobs at this factory right now." showCareer />
+      {/* The company's other sites, closest first */}
+      {nearby.length > 0 && companyName && (
+        <Section title={`Other ${companyName} sites`}>
+          <ul className="overflow-hidden rounded-xl border border-border-subtle bg-bg-surface">
+            {nearby.map((site) => (
+              <li key={site.id} className="border-b border-border-subtle last:border-b-0">
+                <Link
+                  to={`/factories/${site.id}`}
+                  className="group flex min-h-[56px] items-center justify-between gap-3 px-4 py-2.5 transition-colors hover:bg-bg-elevated"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-fg-default">{formatFactoryName(site.name)}</span>
+                    <span className="block truncate text-xs text-fg-muted">
+                      {[site.city ? titleCase(site.city) : null, site.state].filter(Boolean).join(', ')}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
-      {/* Occupations at this facility */}
+      {/* Careers recorded at this site */}
       {data.occupations?.length > 0 && (
-        <Section id="occupations" title="Careers at this facility" count={data.occupations.length}>
+        <Section id="occupations" title="Careers here" count={data.occupations.length}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {data.occupations.map((occ) => (
-              <RelatedCard
-                key={occ.id}
-                to={`/occupations/${occ.id}`}
-                icon={Briefcase}
-                iconClass="text-fg-muted"
-                title={occ.title}
-              />
+            {(showAllCareers ? data.occupations : data.occupations.slice(0, CAREERS_SHOWN)).map((occ) => (
+              <RelatedCard key={occ.id} to={`/occupations/${occ.id}`} icon={Briefcase} iconClass="text-fg-muted" title={occ.title} />
             ))}
           </div>
+          {data.occupations.length > CAREERS_SHOWN && (
+            <button
+              type="button"
+              onClick={() => setShowAllCareers((value) => !value)}
+              className="mt-3 text-sm font-medium text-fg-default underline underline-offset-4 hover:no-underline"
+            >
+              {showAllCareers ? 'Show fewer' : `Show all ${data.occupations.length.toLocaleString()}`}
+            </button>
+          )}
         </Section>
       )}
     </>
@@ -1058,6 +1119,8 @@ export default function EntityDetail() {
       <div className="flex items-start gap-4">
         {isCompanyDetail(data) ? (
           <CompanyLogo name={name} domain={data.domain} size={58} className="rounded-xl" />
+        ) : isFactoryDetail(data) && data.company?.domain ? (
+          <CompanyLogo name={formatCompanyName(data.company.name)} domain={data.company.domain} size={58} className="rounded-xl" />
         ) : (
           <div className="p-3 rounded-xl bg-tint/[0.02] backdrop-blur-sm border border-tint/10">
             <Icon className={`w-8 h-8 ${config.iconClass}`} />

@@ -22,6 +22,8 @@ export interface FootprintPoint {
 
 interface FootprintMapProps {
   points: FootprintPoint[];
+  /** One point to mark as the subject (a site among its company's others). */
+  emphasis?: string;
   className?: string;
 }
 
@@ -97,7 +99,7 @@ function statesPath(collection: GeoJSON.FeatureCollection): string {
   return path;
 }
 
-export default function FootprintMap({ points, className }: FootprintMapProps) {
+export default function FootprintMap({ points, emphasis, className }: FootprintMapProps) {
   // The same file the map page loads; cached by the browser and by the query.
   const { data: states } = useQuery({
     queryKey: ['us-states-geojson'],
@@ -136,21 +138,44 @@ export default function FootprintMap({ points, className }: FootprintMapProps) {
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
       />
-      {dots.map((dot) => (
-        <circle
-          key={dot.id}
-          cx={dot.position[0]}
-          cy={dot.position[1]}
-          r={radius}
-          fill="var(--color-fg-default)"
-          fillOpacity={dots.length > 40 ? 0.6 : 0.85}
-          stroke="var(--color-bg-surface)"
-          strokeWidth={1}
-          vectorEffect="non-scaling-stroke"
-        >
-          {dot.label && <title>{dot.label}</title>}
-        </circle>
-      ))}
+      {dots.map((dot) => {
+        const subject = dot.id === emphasis;
+        // Around a marked site the others step back; the marked one is drawn last, on top.
+        if (subject) return null;
+        return (
+          <circle
+            key={dot.id}
+            cx={dot.position[0]}
+            cy={dot.position[1]}
+            r={emphasis ? radius * 0.7 : radius}
+            fill={emphasis ? 'var(--color-fg-soft)' : 'var(--color-fg-default)'}
+            fillOpacity={dots.length > 40 ? 0.6 : 0.85}
+            stroke="var(--color-bg-surface)"
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+          >
+            {dot.label && <title>{dot.label}</title>}
+          </circle>
+        );
+      })}
+      {dots
+        .filter((dot) => dot.id === emphasis)
+        .map((dot) => (
+          <g key={dot.id}>
+            <circle cx={dot.position[0]} cy={dot.position[1]} r={radius * 2.1} fill="rgb(var(--info))" fillOpacity={0.18} />
+            <circle
+              cx={dot.position[0]}
+              cy={dot.position[1]}
+              r={radius * 1.05}
+              fill="var(--color-fg-default)"
+              stroke="rgb(var(--info))"
+              strokeWidth={2}
+              vectorEffect="non-scaling-stroke"
+            >
+              {dot.label && <title>{dot.label}</title>}
+            </circle>
+          </g>
+        ))}
     </svg>
   );
 }
