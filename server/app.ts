@@ -18,6 +18,7 @@ import meRouter from './routes/me.js';
 import jobsRouter from './routes/jobs.js';
 import employerRouter from './routes/employer.js';
 import adminRouter from './routes/admin.js';
+import exploreRouter from './routes/explore.js';
 import { noStore } from './lib/auth.js';
 import { requireAdmin, requireAdminUser, requireAdminForWrites, adminAuthRequired, isAdminRequest } from './middleware/adminAuth.js';
 import { publicCache } from './middleware/cache.js';
@@ -29,13 +30,31 @@ import { publicCache } from './middleware/cache.js';
  */
 export const app = express();
 
+app.disable('x-powered-by');
 app.use(cors());
+// A repeated query parameter (?state=TX&state=CA) arrives as an array, and an
+// object-shaped one (?state[a]=b) as an object. Every route reads single text
+// values, so the last one given wins and anything else is dropped, rather
+// than each route failing in its own way.
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  for (const key of Object.keys(req.query)) {
+    const value = req.query[key];
+    if (Array.isArray(value)) {
+      const last = value[value.length - 1];
+      if (typeof last === 'string') req.query[key] = last;
+      else delete req.query[key];
+    } else if (typeof value !== 'string') {
+      delete req.query[key];
+    }
+  }
+  next();
+});
 // Import payloads (transformed rows for validate/execute) exceed the 100kb default.
 app.use(express.json({ limit: '10mb' }));
 
 // Health check
 app.get('/api/health', (_req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), hasDbUrl: Boolean(process.env.DATABASE_URL) });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Lets the admin UI know whether it needs to ask for a key (public, read-only).
@@ -76,6 +95,7 @@ app.use('/api/persons', noStore, requireAdmin, personsRouter);
 app.use('/api/stats', publicCache(60), statsRouter);
 app.use('/api/search', publicCache(60), searchRouter);
 app.use('/api/map', publicCache(60), mapRouter);
+app.use('/api/explore', publicCache(300), exploreRouter);
 
 // Admin-only pipeline + data review queue
 app.use('/api/import', requireAdmin, importRouter);

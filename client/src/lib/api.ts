@@ -744,7 +744,16 @@ export interface ExploreOverview {
   states: ExploreState[];
 }
 
+/** What the browse lists can be filtered by, from every row. */
+export interface ExploreFacets {
+  companyIndustries: string[];
+  factoryIndustries: string[];
+  skillCategories: string[];
+}
+
 export const exploreApi = {
   overview: () =>
     apiFetch<ExploreOverview>('/explore/overview'),
+  facets: () =>
+    apiFetch<ExploreFacets>('/explore/facets'),
 };

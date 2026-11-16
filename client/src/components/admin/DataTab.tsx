@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +13,7 @@ import {
   useUpdateCompany,
   type AdminCompany,
 } from '../../lib/account';
+import { occupationsApi } from '../../lib/api';
 import CompanyLogo from '../CompanyLogo';
 import {
   CardNote,
@@ -33,9 +35,9 @@ export default function DataTab() {
   return (
     <>
       <CountsSection />
+      <CompanyProfileSection />
       <ImportSection />
       <PathsSection />
-      <CompanyProfileSection />
     </>
   );
 }
@@ -93,51 +95,162 @@ function ImportSection() {
   );
 }
 
+const PATHS_SHOWN = 12;
+const STAGES: { stage: number; label: string }[] = [
+  { stage: 1, label: 'Introduction' },
+  { stage: 2, label: 'Fundamentals' },
+  { stage: 3, label: 'Advanced' },
+];
+
 function PathsSection() {
   const paths = useDraftPaths();
   const approve = useApprovePath();
+  const [filter, setFilter] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
+
+  const wanted = filter.trim().toLowerCase();
+  const matching = (paths.data ?? []).filter((path) => !wanted || path.title.toLowerCase().includes(wanted));
+  const shown = showAll || wanted ? matching : matching.slice(0, PATHS_SHOWN);
+  const total = paths.data?.length ?? 0;
 
   return (
-    <PageSection title="Career paths awaiting review" description="Drafts. Approval marks the path as reviewed; its skills stay as they are.">
+    <PageSection
+      title="Career paths awaiting review"
+      description={
+        total > 0
+          ? `${total.toLocaleString('en-US')} ${total === 1 ? 'draft' : 'drafts'}. Open one to read its skills by stage, then approve it.`
+          : 'Drafts. Approval marks the path as reviewed; its skills stay as they are.'
+      }
+    >
       {paths.isPending ? (
         <RowsSkeleton rows={3} />
       ) : paths.isError ? (
         <LoadError error={paths.error} onRetry={() => void paths.refetch()} retrying={paths.isFetching} />
-      ) : paths.data.length === 0 ? (
+      ) : total === 0 ? (
         <CardNote>None.</CardNote>
       ) : (
-        <ul className={cardClass}>
-          {paths.data.map((path) => {
-            const busy = approve.isPending && approve.variables === path.id;
-            return (
-              <li key={path.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3')} data-draft-path={path.id}>
-                <div className="min-w-0 flex-1 basis-48">
-                  <Link to={`/occupations/${path.id}`} className="break-words text-sm font-medium text-fg-default underline-offset-4 hover:underline">
-                    {path.title}
-                  </Link>
-                  <p className="text-xs tabular-nums text-fg-muted">
-                    {path.skillCount} {path.skillCount === 1 ? 'skill' : 'skills'}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={approve.isPending}
-                  onClick={() => approve.mutate(path.id)}
-                  aria-label={`Approve the path for ${path.title}`}
-                  className={cn('h-9 shrink-0', outlineButtonClass)}
-                >
-                  {busy && <Loader2 className="animate-spin" />}
-                  Approve
-                </Button>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          {total > PATHS_SHOWN && (
+            <input
+              type="search"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Filter by career"
+              aria-label="Filter draft paths by career"
+              className={cn(fieldClass, 'mb-3 sm:max-w-xs')}
+            />
+          )}
+          {matching.length === 0 ? (
+            <CardNote>No draft matches.</CardNote>
+          ) : (
+            <ul className={cardClass}>
+              {shown.map((path) => {
+                const busy = approve.isPending && approve.variables === path.id;
+                const expanded = open === path.id;
+                return (
+                  <li key={path.id} className={rowClass} data-draft-path={path.id}>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => setOpen(expanded ? null : path.id)}
+                        aria-expanded={expanded}
+                        className="flex min-w-0 flex-1 basis-48 items-center gap-2 text-left"
+                      >
+                        <ChevronRight
+                          className={cn('h-4 w-4 shrink-0 text-fg-muted transition-transform', expanded && 'rotate-90')}
+                          aria-hidden="true"
+                        />
+                        <span className="min-w-0">
+                          <span className="block break-words text-sm font-medium text-fg-default">{path.title}</span>
+                          <span className="block text-xs tabular-nums text-fg-muted">
+                            {path.skillCount} {path.skillCount === 1 ? 'skill' : 'skills'}
+                          </span>
+                        </span>
+                      </button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={approve.isPending}
+                        onClick={() => approve.mutate(path.id)}
+                        aria-label={`Approve the path for ${path.title}`}
+                        className={cn('h-9 shrink-0', outlineButtonClass)}
+                      >
+                        {busy && <Loader2 className="animate-spin" />}
+                        Approve
+                      </Button>
+                    </div>
+                    {expanded && <PathReview occupationId={path.id} />}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {!showAll && !wanted && matching.length > PATHS_SHOWN && (
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="mt-3 text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default"
+            >
+              Show all {matching.length.toLocaleString('en-US')}
+            </button>
+          )}
+        </>
       )}
       <ErrorNote error={approve.error} className="mt-2" />
     </PageSection>
+  );
+}
+
+/** A draft path's skills, stage by stage, so it can be read before it is approved. */
+function PathReview({ occupationId }: { occupationId: string }) {
+  const career = useQuery({
+    queryKey: ['admin', 'path-review', occupationId],
+    queryFn: () => occupationsApi.get(occupationId),
+    staleTime: 60_000,
+  });
+
+  if (career.isPending) return <div className="px-4 pb-4"><RowsSkeleton rows={2} /></div>;
+  if (career.isError) {
+    return (
+      <div className="px-4 pb-4">
+        <LoadError error={career.error} onRetry={() => void career.refetch()} retrying={career.isFetching} />
+      </div>
+    );
+  }
+
+  const skills = career.data.skills ?? [];
+  const groups = [
+    ...STAGES.map(({ stage, label }) => ({ label, items: skills.filter((skill) => skill.stage === stage) })),
+    { label: 'No stage', items: skills.filter((skill) => ![1, 2, 3].includes(skill.stage ?? 0)) },
+  ].filter((group) => group.items.length > 0);
+
+  return (
+    <div className="border-t border-border-subtle bg-bg-base px-4 py-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {groups.map((group) => (
+          <div key={group.label} className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wider text-fg-soft">
+              {group.label} <span className="tabular-nums">{group.items.length}</span>
+            </p>
+            <ul className="mt-2 space-y-1">
+              {group.items.map((skill) => (
+                <li key={skill.id} className="break-words text-sm text-fg-default">
+                  {skill.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <Link
+        to={`/occupations/${occupationId}`}
+        className="mt-4 inline-block text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default"
+      >
+        Career page
+      </Link>
+    </div>
   );
 }
 

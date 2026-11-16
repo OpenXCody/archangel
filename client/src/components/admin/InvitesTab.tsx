@@ -33,9 +33,18 @@ import CompanyPicker from './CompanyPicker';
 const selectTriggerClass = 'h-[42px] rounded-lg border-border-strong bg-bg-elevated px-3 text-base text-fg-default shadow-none sm:text-sm';
 const selectContentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-border-strong bg-bg-surface';
 
+// The link of the last invite created exists nowhere else (only its hash is
+// stored), so it is kept for as long as the page is open: looking at another
+// tab and coming back must not lose it.
+let lastCreated: CreatedInvite | null = null;
+
 /** Invite a person by link: create, hand over the link, see what is pending. */
 export default function InvitesTab() {
-  const [created, setCreated] = useState<CreatedInvite | null>(null);
+  const [created, setCreatedState] = useState<CreatedInvite | null>(lastCreated);
+  const setCreated = (next: CreatedInvite | null) => {
+    lastCreated = next;
+    setCreatedState(next);
+  };
   return (
     <>
       <PageSection title="New invite" description="No email is sent. The link is passed on by hand.">
@@ -43,7 +52,9 @@ export default function InvitesTab() {
         {created && <InviteLink created={created} />}
       </PageSection>
       <PendingInvites
-        onRevoked={(inviteId) => setCreated((current) => (current?.invite.id === inviteId ? null : current))}
+        onRevoked={(inviteId) => {
+          if (created?.invite.id === inviteId) setCreated(null);
+        }}
       />
     </>
   );
@@ -70,6 +81,8 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
           onCreated(result);
           setEmail('');
           setCompany(null);
+          // Back to the ordinary role, so the next invite is not an admin's by accident.
+          setRole('user');
         },
       }
     );

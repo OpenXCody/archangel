@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { ChevronDown, X, ArrowUpDown } from 'lucide-react';
-import { US_STATES, STATE_CODE_TO_NAME, type StateCode } from '../../../../shared/states';
-import type { EntityType } from '../../lib/api';
+import { useMemo } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { US_STATES, type StateCode } from '@shared/states';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+import type { BrowseTab } from './ExploreNav';
 
-// Sort options per entity type
+// Sort options per list
 export type SortOption = {
   value: string;
   label: string;
@@ -11,47 +13,27 @@ export type SortOption = {
   order: 'asc' | 'desc';
 };
 
-// Only include browsable entity types (not persons - those are read-only internal data)
-type BrowsableTabType = 'all' | Exclude<EntityType, 'persons'>;
+const BY_NAME: SortOption[] = [
+  { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
+  { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
+];
+const BY_TITLE: SortOption[] = [
+  { value: 'name-asc', label: 'Name A-Z', field: 'title', order: 'asc' },
+  { value: 'name-desc', label: 'Name Z-A', field: 'title', order: 'desc' },
+];
 
-export const SORT_OPTIONS: Record<BrowsableTabType, SortOption[]> = {
-  all: [
-    { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
-    { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
-  ],
-  companies: [
-    { value: 'factories-desc', label: 'Factory count (high to low)', field: 'factoryCount', order: 'desc' },
-    { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
-    { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
-  ],
-  factories: [
-    { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
-    { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
-    { value: 'workforce-desc', label: 'Workforce size (high to low)', field: 'workforceSize', order: 'desc' },
-  ],
-  occupations: [
-    { value: 'name-asc', label: 'Name A-Z', field: 'title', order: 'asc' },
-    { value: 'name-desc', label: 'Name Z-A', field: 'title', order: 'desc' },
-  ],
-  skills: [
-    { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
-    { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
-  ],
-  refs: [
-    { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
-    { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
-  ],
-  schools: [
-    { value: 'name-asc', label: 'Name A-Z', field: 'name', order: 'asc' },
-    { value: 'name-desc', label: 'Name Z-A', field: 'name', order: 'desc' },
-  ],
-  programs: [
-    { value: 'name-asc', label: 'Title A-Z', field: 'title', order: 'asc' },
-    { value: 'name-desc', label: 'Title Z-A', field: 'title', order: 'desc' },
-  ],
+export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
+  // Most sites first by default, so the big manufacturers come before the
+  // long tail of single-site companies.
+  companies: [{ value: 'factories-desc', label: 'Most sites', field: 'factoryCount', order: 'desc' }, ...BY_NAME],
+  factories: [...BY_NAME, { value: 'workforce-desc', label: 'Largest workforce', field: 'workforceSize', order: 'desc' }],
+  occupations: BY_TITLE,
+  skills: BY_NAME,
+  refs: BY_NAME,
+  schools: BY_NAME,
+  programs: BY_TITLE,
 };
 
-// Filter types
 export interface FilterState {
   state?: StateCode;
   industry?: string;
@@ -59,219 +41,77 @@ export interface FilterState {
 }
 
 export interface FilterBarProps {
-  activeTab: BrowsableTabType;
+  activeTab: BrowseTab;
   sortValue: string;
   onSortChange: (value: string) => void;
   filters: FilterState;
   onFilterChange: (filters: FilterState) => void;
   industries?: string[];
   categories?: string[];
+  /** Shown beside the filters while one is set: how many rows match. */
+  summary?: string | null;
+  /** The list's name, for a phone, where the navigation cannot spell it out. */
+  title?: string;
 }
 
-// Dropdown component for reuse
-function Dropdown({
+const ALL = '__all__';
+
+const TRIGGER =
+  'inline-flex h-11 min-w-0 items-center gap-1.5 text-sm transition-colors sm:h-9 ' +
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary';
+
+/** A choice shown as text: the current value and a chevron. No box. */
+function Choice({
   label,
   value,
   options,
   onChange,
-  placeholder = 'All',
+  allLabel,
+  align = 'start',
 }: {
   label: string;
   value: string | undefined;
   options: { value: string; label: string }[];
   onChange: (value: string | undefined) => void;
-  placeholder?: string;
+  /** The entry that clears the choice ("All states"). Omit when one option is always chosen. */
+  allLabel?: string;
+  align?: 'start' | 'end';
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const selectedLabel = options.find(o => o.value === value)?.label || placeholder;
-
+  const selected = options.find((o) => o.value === value)?.label;
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`
-          flex items-center gap-2 px-3 py-2
-          bg-bg-surface border border-border-subtle rounded-lg
-          text-sm text-fg-default
-          hover:bg-bg-elevated hover:border-border-strong
-          transition-colors
-          ${isOpen ? 'border-border-strong' : ''}
-        `}
-      >
-        <span className="text-fg-muted text-xs">{label}:</span>
-        <span className={value ? 'text-fg-default' : 'text-fg-soft'}>{selectedLabel}</span>
-        <ChevronDown className={`w-4 h-4 text-fg-soft transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-
-      {isOpen && (
-        <div className="
-          absolute top-full left-0 mt-1 z-50
-          min-w-[180px] max-h-[280px] overflow-y-auto
-          bg-bg-surface
-          border border-border-subtle rounded-lg
-          shadow-lg
-          py-1
-        ">
-          <button
-            onClick={() => {
-              onChange(undefined);
-              setIsOpen(false);
-            }}
-            className={`
-              w-full px-3 py-2 text-left text-sm
-              ${!value ? 'bg-tint/10 text-fg-default' : 'text-fg-muted hover:bg-tint/5 hover:text-fg-default'}
-              transition-colors
-            `}
-          >
-            {placeholder}
-          </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={`${label}: ${selected ?? allLabel ?? ''}`}
+          className={cn(TRIGGER, selected && allLabel ? 'font-medium text-fg-default' : 'text-fg-muted hover:text-fg-default')}
+        >
+          <span className="min-w-0 truncate">{selected ?? allLabel}</span>
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-fg-soft" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align={align} className="max-h-[min(22rem,var(--radix-dropdown-menu-content-available-height))] min-w-[12rem]">
+        <DropdownMenuRadioGroup value={value ?? ALL} onValueChange={(next) => onChange(next === ALL ? undefined : next)}>
+          {allLabel && (
+            <DropdownMenuRadioItem value={ALL} className="min-h-11 sm:min-h-9">
+              {allLabel}
+            </DropdownMenuRadioItem>
+          )}
           {options.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-              className={`
-                w-full px-3 py-2 text-left text-sm
-                ${value === option.value
-                  ? 'bg-tint/10 text-fg-default'
-                  : 'text-fg-muted hover:bg-tint/5 hover:text-fg-default'
-                }
-                transition-colors
-              `}
-            >
+            <DropdownMenuRadioItem key={option.value} value={option.value} className="min-h-11 sm:min-h-9">
               {option.label}
-            </button>
+            </DropdownMenuRadioItem>
           ))}
-        </div>
-      )}
-    </div>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
-// Sort dropdown with icon
-function SortDropdown({
-  value,
-  options,
-  onChange,
-}: {
-  value: string;
-  options: SortOption[];
-  onChange: (value: string) => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const selectedLabel = options.find(o => o.value === value)?.label || options[0]?.label || 'Sort';
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`
-          flex items-center gap-2 px-3 py-2
-          bg-bg-surface border border-border-subtle rounded-lg
-          text-sm text-fg-default
-          hover:bg-bg-elevated hover:border-border-strong
-          transition-colors
-          ${isOpen ? 'border-border-strong' : ''}
-        `}
-      >
-        <ArrowUpDown className="w-4 h-4 text-fg-soft" />
-        <span>{selectedLabel}</span>
-        <ChevronDown className={`w-4 h-4 text-fg-soft transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-
-      {isOpen && (
-        <div className="
-          absolute top-full right-0 mt-1 z-50
-          min-w-[200px]
-          bg-bg-surface
-          border border-border-subtle rounded-lg
-          shadow-lg
-          py-1
-        ">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-              className={`
-                w-full px-3 py-2 text-left text-sm
-                ${value === option.value
-                  ? 'bg-tint/10 text-fg-default'
-                  : 'text-fg-muted hover:bg-tint/5 hover:text-fg-default'
-                }
-                transition-colors
-              `}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Active filter badge
-function FilterBadge({
-  label,
-  value,
-  onClear,
-}: {
-  label: string;
-  value: string;
-  onClear: () => void;
-}) {
-  return (
-    <span className="
-      inline-flex items-center gap-1.5
-      px-2.5 py-1
-      bg-tint/5 border border-tint/10 rounded-full
-      text-xs text-fg-default
-    ">
-      <span className="text-fg-muted">{label}:</span>
-      <span>{value}</span>
-      <button
-        onClick={onClear}
-        className="ml-0.5 p-0.5 rounded-full hover:bg-tint/10 text-fg-muted hover:text-fg-default transition-colors"
-        aria-label={`Clear ${label} filter`}
-      >
-        <X className="w-3 h-3" />
-      </button>
-    </span>
-  );
-}
-
+/**
+ * Filters on the left, sort on the right, all as plain text. A filter that is
+ * set reads as its value; "Clear" puts the list back.
+ */
 export default function FilterBar({
   activeTab,
   sortValue,
@@ -280,125 +120,68 @@ export default function FilterBar({
   onFilterChange,
   industries = [],
   categories = [],
+  summary,
+  title,
 }: FilterBarProps) {
-  // Get sort options for current tab
-  const sortOptions = useMemo(() => {
-    return SORT_OPTIONS[activeTab] || SORT_OPTIONS.all;
-  }, [activeTab]);
+  const sortOptions = SORT_OPTIONS[activeTab];
+  const stateOptions = useMemo(() => US_STATES.map((s) => ({ value: s.code as string, label: s.name as string })), []);
+  // A value arriving by link may not be in the fetched list: keep it choosable.
+  const withCurrent = (values: string[], current: string | undefined) =>
+    (current && !values.includes(current) ? [...values, current].sort() : values).map((v) => ({ value: v, label: v }));
+  const industryOptions = useMemo(() => withCurrent(industries, filters.industry), [industries, filters.industry]);
+  const categoryOptions = useMemo(() => withCurrent(categories, filters.category), [categories, filters.category]);
 
-  // State options
-  const stateOptions = useMemo(() => {
-    return US_STATES.map(s => ({ value: s.code, label: s.name }));
-  }, []);
-
-  // Industry options
-  const industryOptions = useMemo(() => {
-    return industries.map(i => ({ value: i, label: i }));
-  }, [industries]);
-
-  // Category options
-  const categoryOptions = useMemo(() => {
-    return categories.map(c => ({ value: c, label: c }));
-  }, [categories]);
-
-  // Handler for filter changes
-  const handleFilterChange = useCallback(
-    (key: keyof FilterState, value: string | undefined) => {
-      onFilterChange({ ...filters, [key]: value });
-    },
-    [filters, onFilterChange]
-  );
-
-  // Check if any filters are active
-  const hasActiveFilters = filters.state || filters.industry || filters.category;
-
-  // Clear all filters
-  const clearAllFilters = useCallback(() => {
-    onFilterChange({});
-  }, [onFilterChange]);
-
-  // Determine which filters to show based on active tab
-  const showStateFilter = activeTab === 'factories' || activeTab === 'all';
-  const showIndustryFilter = activeTab === 'companies' || activeTab === 'factories' || activeTab === 'all';
-  const showCategoryFilter = activeTab === 'skills' || activeTab === 'all';
+  const showState = activeTab === 'factories';
+  const showIndustry = (activeTab === 'companies' || activeTab === 'factories') && industryOptions.length > 0;
+  const showCategory = activeTab === 'skills' && categoryOptions.length > 0;
+  const filtered = Boolean(filters.state || filters.industry || filters.category);
 
   return (
-    <div className="space-y-3">
-      {/* Filter and Sort row */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Left side: Filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          {showStateFilter && (
-            <Dropdown
-              label="State"
-              value={filters.state}
-              options={stateOptions}
-              onChange={(value) => handleFilterChange('state', value as StateCode | undefined)}
-              placeholder="All states"
-            />
-          )}
-
-          {showIndustryFilter && industryOptions.length > 0 && (
-            <Dropdown
-              label="Industry"
-              value={filters.industry}
-              options={industryOptions}
-              onChange={(value) => handleFilterChange('industry', value)}
-              placeholder="All industries"
-            />
-          )}
-
-          {showCategoryFilter && categoryOptions.length > 0 && (
-            <Dropdown
-              label="Category"
-              value={filters.category}
-              options={categoryOptions}
-              onChange={(value) => handleFilterChange('category', value)}
-              placeholder="All categories"
-            />
-          )}
-        </div>
-
-        {/* Right side: Sort */}
-        <SortDropdown
-          value={sortValue}
-          options={sortOptions}
-          onChange={onSortChange}
-        />
+    <div className="my-2 flex flex-wrap items-center justify-between gap-x-6 sm:my-4">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-6">
+        {title && <h2 className="text-sm font-semibold text-fg-default sm:hidden">{title}</h2>}
+        {showState && (
+          <Choice
+            label="State"
+            value={filters.state}
+            options={stateOptions}
+            onChange={(value) => onFilterChange({ ...filters, state: value as StateCode | undefined })}
+            allLabel="All states"
+          />
+        )}
+        {showIndustry && (
+          <Choice
+            label="Industry"
+            value={filters.industry}
+            options={industryOptions}
+            onChange={(value) => onFilterChange({ ...filters, industry: value })}
+            allLabel="All industries"
+          />
+        )}
+        {showCategory && (
+          <Choice
+            label="Category"
+            value={filters.category}
+            options={categoryOptions}
+            onChange={(value) => onFilterChange({ ...filters, category: value })}
+            allLabel="All categories"
+          />
+        )}
+        {filtered && (
+          <>
+            <button type="button" onClick={() => onFilterChange({})} className={cn(TRIGGER, 'text-fg-muted underline underline-offset-4 hover:text-fg-default')}>
+              Clear
+            </button>
+            {summary && (
+              <span role="status" className="text-sm tabular-nums text-fg-soft">
+                {summary}
+              </span>
+            )}
+          </>
+        )}
       </div>
 
-      {/* Active filter badges */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-2">
-          {filters.state && (
-            <FilterBadge
-              label="State"
-              value={STATE_CODE_TO_NAME[filters.state] || filters.state}
-              onClear={() => handleFilterChange('state', undefined)}
-            />
-          )}
-          {filters.industry && (
-            <FilterBadge
-              label="Industry"
-              value={filters.industry}
-              onClear={() => handleFilterChange('industry', undefined)}
-            />
-          )}
-          {filters.category && (
-            <FilterBadge
-              label="Category"
-              value={filters.category}
-              onClear={() => handleFilterChange('category', undefined)}
-            />
-          )}
-          <button
-            onClick={clearAllFilters}
-            className="text-xs text-fg-muted hover:text-fg-default transition-colors"
-          >
-            Clear all
-          </button>
-        </div>
-      )}
+      <Choice label="Sort" value={sortValue} options={sortOptions} onChange={(value) => value && onSortChange(value)} align="end" />
     </div>
   );
 }

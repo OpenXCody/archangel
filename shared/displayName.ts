@@ -18,8 +18,16 @@ const ACRONYMS = new Set([
   'ADM', 'BASF', 'BAE', 'BMW', 'BP', 'CEMEX', 'APAC', 'AECOM', 'AMD',
   'GE', 'GM', 'IBM', 'HP', 'AT&T', 'JP', 'UPS', 'FMC', 'FCA',
   'PPG', 'RPM', 'TDK', 'KLA', 'TSMC', 'ASML', 'NXP', 'ST', 'SK',
-  'ABB', 'BD', 'AZZ', 'ICU', 'GKN', 'ZF', 'TRW', 'NGK', 'JBS', 'CNH', 'AGCO', 'ITT', 'SPX', 'TE',
+  '3M', 'ABB', 'BD', 'AZZ', 'ICU', 'GKN', 'ZF', 'TRW', 'NGK', 'JBS', 'CNH', 'AGCO', 'ITT', 'SPX', 'TE',
 ]);
+
+// Legal forms that are abbreviations of words: "Inc", never "INC".
+const WORD_FORMS: Record<string, string> = { inc: 'Inc', corp: 'Corp', co: 'Co', ltd: 'Ltd' };
+
+/** "2ND" and "2Nd" are "2nd". */
+function ordinal(core: string): string | null {
+  return /^\d+(st|nd|rd|th)$/i.test(core) ? core.toLowerCase() : null;
+}
 
 // Names whose capitals sit inside the word, where no rule would find them.
 const SPELLINGS: Record<string, string> = {
@@ -50,6 +58,8 @@ function titleCaseWord(word: string, isFirst: boolean): string {
   if (ACRONYMS.has(upper)) return leading + upper + trailing;
   const lower = core.toLowerCase();
   if (SPELLINGS[lower]) return leading + SPELLINGS[lower] + trailing;
+  const nth = ordinal(core);
+  if (nth) return leading + nth + trailing;
   if (!isFirst && LOWERCASE_WORDS.has(lower)) return leading + lower + trailing;
   // Preserve hyphenated chunks ("3M-Dyneon" → "3M-Dyneon")
   if (core.includes('-')) {
@@ -75,7 +85,7 @@ function fixAcronymsInPlace(name: string): string {
       if (ACRONYMS.has(core.toUpperCase())) {
         return leading + core.toUpperCase() + trailing;
       }
-      const spelling = SPELLINGS[core.toLowerCase()];
+      const spelling = SPELLINGS[core.toLowerCase()] ?? WORD_FORMS[core.toLowerCase()] ?? ordinal(core);
       if (spelling) return leading + spelling + trailing;
       // A capital lost after a hyphen or slash: "Georgia-pacific", "Bristol-myers".
       const repaired = core.replace(

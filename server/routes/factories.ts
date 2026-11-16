@@ -45,8 +45,8 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     if (industry) {
-      // Industry maps to specialization for factories
-      conditions.push(eq(factories.specialization, industry as string));
+      // A factory's industry is its NAICS description; older rows carry it as a specialization.
+      conditions.push(or(eq(factories.primaryNaicsDescription, industry as string), eq(factories.specialization, industry as string)));
     }
 
     // Get total count
@@ -76,7 +76,10 @@ router.get('/', async (req: Request, res: Response) => {
         name: factories.name,
         companyId: factories.companyId,
         companyName: sql<string>`(SELECT name FROM companies WHERE companies.id = factories.company_id)`,
+        companyDomain: sql<string | null>`(SELECT domain FROM companies WHERE companies.id = factories.company_id)`,
         specialization: factories.specialization,
+        industry: factories.primaryNaicsDescription,
+        city: factories.city,
         description: factories.description,
         latitude: factories.latitude,
         longitude: factories.longitude,
