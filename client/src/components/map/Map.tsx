@@ -54,7 +54,7 @@ const STATE_SELECT_MAX_ZOOM = 6.5;
 
 /** A focus area's label is shown while the area is narrower than this on screen. */
 const AREA_LABEL_MAX_PX = 150;
-/** Space between a focus area's edge and its label; the label's stem spans it. */
+/** Space between a focus area's edge and its label, normally; the label's stem spans it. */
 const AREA_LABEL_GAP_PX = 9;
 
 /** How far from a pin a pointer still counts as on it: a mouse is exact, a finger is not. */
@@ -143,12 +143,12 @@ export default function Map() {
   const pinIndex = useMemo(() => {
     // Plain object lookup — the component itself is named `Map`, which
     // shadows the built-in Map constructor inside this file.
-    const index: Record<string, { lngLat: [number, number]; tier: number }> = {};
+    const index: Record<string, [number, number]> = {};
     for (const feature of factoriesGeoJSON?.features ?? []) {
       const id = feature.properties?.id as unknown;
       if (typeof id !== 'string' || feature.geometry.type !== 'Point') continue;
       const [lng, lat] = feature.geometry.coordinates;
-      index[id] = { lngLat: [lng, lat], tier: Number(feature.properties?.tier) || 0 };
+      index[id] = [lng, lat];
     }
     return index;
   }, [factoriesGeoJSON]);
@@ -525,13 +525,9 @@ export default function Map() {
   useEffect(() => {
     const features: GeoJSON.Feature[] = [];
     const add = (id: string | null, kind: 'hover' | 'selected') => {
-      const pin = id ? pinIndex[id] : undefined;
-      if (!pin) return;
-      features.push({
-        type: 'Feature',
-        properties: { kind, tier: pin.tier },
-        geometry: { type: 'Point', coordinates: pin.lngLat },
-      });
+      const lngLat = id ? pinIndex[id] : undefined;
+      if (!lngLat) return;
+      features.push({ type: 'Feature', properties: { kind }, geometry: { type: 'Point', coordinates: lngLat } });
     };
     if (hoveredFactoryId !== selectedFactoryId) add(hoveredFactoryId, 'hover');
     add(selectedFactoryId, 'selected');
@@ -544,10 +540,10 @@ export default function Map() {
   // it is off screen or the map is zoomed too far out to make it out.
   useEffect(() => {
     const m = map.current;
-    const pin = selectedFactoryId ? pinIndex[selectedFactoryId] : undefined;
-    if (!m || !mapLoaded || !pin) return;
-    if (m.getZoom() >= 7 && m.getBounds().contains(pin.lngLat)) return;
-    flyToPoint(m, pin.lngLat);
+    const lngLat = selectedFactoryId ? pinIndex[selectedFactoryId] : undefined;
+    if (!m || !mapLoaded || !lngLat) return;
+    if (m.getZoom() >= 7 && m.getBounds().contains(lngLat)) return;
+    flyToPoint(m, lngLat);
   }, [selectedFactoryId, pinIndex, mapLoaded]);
 
   // Outline the selected state and light its fill; exactly one state (or none).
@@ -612,15 +608,37 @@ export default function Map() {
         useMapStore.getState().selectArea(area.id);
       });
       const marker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([0, 0]).addTo(m);
-      return { el, marker, west, east, north, south, lng: (west + east) / 2 };
+      return { el, marker, west, east, north, south };
     });
     type Label = (typeof labels)[number];
 
-    // The tag sits above the area's north edge, or below its south edge.
-    const place = (label: Label, above: boolean) => {
-      const reach = label.el.offsetHeight / 2 + AREA_LABEL_GAP_PX;
-      label.marker.setLngLat([label.lng, above ? label.north : label.south]).setOffset([0, above ? -reach : reach]);
-      label.el.classList.toggle('is-below', !above);
+    // Where a tag can sit: beside the middle of one edge of the area's box,
+    // a stem's length away. Sides in order of preference; the longer stem is
+    // for when a cluster sits on the area itself and every near spot is taken.
+    const sides = ['above', 'below', 'left', 'right'] as const;
+    const stems = [AREA_LABEL_GAP_PX, AREA_LABEL_GAP_PX * 3];
+    type Side = (typeof sides)[number];
+    interface Spot { side: Side; stem: number }
+    const spots: Spot[] = stems.flatMap((stem) => sides.map((side) => ({ side, stem })));
+
+    const position = (label: Label, { side, stem }: Spot): { lngLat: [number, number]; offset: [number, number] } => {
+      const lng = (label.west + label.east) / 2;
+      const lat = (label.south + label.north) / 2;
+      const dx = label.el.offsetWidth / 2 + stem;
+      const dy = label.el.offsetHeight / 2 + stem;
+      switch (side) {
+        case 'above': return { lngLat: [lng, label.north], offset: [0, -dy] };
+        case 'below': return { lngLat: [lng, label.south], offset: [0, dy] };
+        case 'left': return { lngLat: [label.west, lat], offset: [-dx, 0] };
+        case 'right': return { lngLat: [label.east, lat], offset: [dx, 0] };
+      }
+    };
+    const place = (label: Label, spot: Spot) => {
+      const { lngLat, offset } = position(label, spot);
+      label.marker.setLngLat(lngLat).setOffset(offset);
+      // The stem is drawn in CSS (globals.css) from these two.
+      label.el.dataset.side = spot.side;
+      label.el.style.setProperty('--stem', `${spot.stem}px`);
     };
 
     // Hide the tag once the area is wide enough on screen to read by itself.
@@ -632,29 +650,28 @@ export default function Map() {
     };
 
     // A focus area is where factories are, so a cluster often sits right on
-    // it. When the camera settles, put the tag on whichever side does not
-    // cover a cluster's count (above, unless only below is clear).
+    // it. When the camera settles, move the tag to the first spot where it
+    // does not cover a cluster's count.
     const avoidCounts = () => {
       if (!m.getLayer(LAYER.clusterCount)) return;
       for (const label of labels) {
         if (label.el.classList.contains('is-hidden')) continue;
-        const halfWidth = label.el.offsetWidth / 2;
-        const height = label.el.offsetHeight;
-        const coversCount = (above: boolean): boolean => {
-          const edge = m.project([label.lng, above ? label.north : label.south]);
-          const near = above ? edge.y - AREA_LABEL_GAP_PX : edge.y + AREA_LABEL_GAP_PX;
-          const far = above ? near - height : near + height;
-          const box: [PointLike, PointLike] = [
-            [edge.x - halfWidth, Math.min(near, far)],
-            [edge.x + halfWidth, Math.max(near, far)],
-          ];
+        // A little larger than the tag itself: a count it only brushes still reads as covered.
+        const halfWidth = label.el.offsetWidth / 2 + AREA_LABEL_GAP_PX;
+        const halfHeight = label.el.offsetHeight / 2 + AREA_LABEL_GAP_PX;
+        const coversCount = (spot: Spot): boolean => {
+          const { lngLat, offset } = position(label, spot);
+          const edge = m.project(lngLat);
+          const x = edge.x + offset[0];
+          const y = edge.y + offset[1];
+          const box: [PointLike, PointLike] = [[x - halfWidth, y - halfHeight], [x + halfWidth, y + halfHeight]];
           return m.queryRenderedFeatures(box, { layers: [LAYER.clusterCount] }).length > 0;
         };
-        place(label, !coversCount(true) || coversCount(false));
+        place(label, spots.find((spot) => !coversCount(spot)) ?? spots[0]);
       }
     };
 
-    for (const label of labels) place(label, true);
+    for (const label of labels) place(label, spots[0]);
     syncVisibility();
     m.on('zoom', syncVisibility);
     m.on('idle', avoidCounts);
@@ -698,7 +715,7 @@ export default function Map() {
     <>
       <div
         ref={mapContainer}
-        className="archangel-map absolute inset-0 w-full h-full"
+        className="archangel-map isolate absolute inset-0 w-full h-full"
         style={{ background: 'var(--color-bg-base)', '--map-covered-bottom': `${coveredBottom}px` } as CSSProperties}
       />
 

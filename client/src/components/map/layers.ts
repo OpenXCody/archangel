@@ -49,7 +49,7 @@ export const LAYER = {
  * factory is its own pin. Six keeps a focus area (framed at about zoom 7.5 on
  * a phone, 8.4 on a desktop) on the pin side of the line.
  */
-export const CLUSTER_MAX_ZOOM = 6;
+const CLUSTER_MAX_ZOOM = 6;
 const CLUSTER_RADIUS_PX = 46;
 /** Two neighbours stay two pins; a cluster starts at three. */
 const CLUSTER_MIN_POINTS = 3;
