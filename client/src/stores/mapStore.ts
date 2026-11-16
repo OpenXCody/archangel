@@ -14,20 +14,18 @@ export interface MapFilters {
   industry: string | null;
 }
 
-interface FlyToTarget {
-  lng: number;
-  lat: number;
-  zoom?: number;
-  /** Fit the whole continental US instead of flying to a point. */
-  fit?: 'us';
-  // Padding to account for UI elements (sidebar, etc.)
-  padding?: {
-    top?: number;
-    bottom?: number;
-    left?: number;
-    right?: number;
-  };
-}
+/**
+ * A request for the map camera. The store only carries the message; the map
+ * hands it to components/map/camera.ts, which decides framing and padding.
+ * Callers say where to look, never how much room the panel needs.
+ */
+export type CameraRequest =
+  /** The home view: the focus area around SCOPE.focus. */
+  | { kind: 'focus' }
+  /** One place. Without `zoom` the camera keeps its zoom or closes in a little. */
+  | { kind: 'point'; lng: number; lat: number; zoom?: number }
+  /** Several places, framed together. Each point is [lng, lat]. */
+  | { kind: 'points'; points: Array<[number, number]> };
 
 interface MapStore {
   // Selection state
@@ -46,8 +44,8 @@ interface MapStore {
   // UI state
   sidebarOpen: boolean;
 
-  // Map navigation
-  flyToTarget: FlyToTarget | null;
+  // Pending camera request, consumed by the map
+  flyToTarget: CameraRequest | null;
 
   // Actions
   selectEntity: (type: MapEntityType, id: string) => void;
@@ -60,17 +58,10 @@ interface MapStore {
   canGoBack: () => boolean;
   setFilters: (filters: Partial<MapFilters>) => void;
   clearFilters: () => void;
-  flyTo: (target: FlyToTarget) => void;
+  flyTo: (target: CameraRequest) => void;
   resetView: () => void;
   clearFlyTo: () => void;
 }
-
-// Initial view state for reset
-const INITIAL_VIEW = {
-  lng: -98.5,
-  lat: 39.8,
-  zoom: 4,
-};
 
 export const useMapStore = create<MapStore>((set, get) => ({
   // Initial state
@@ -180,10 +171,10 @@ export const useMapStore = create<MapStore>((set, get) => ({
 
   flyTo: (target) => set({ flyToTarget: target }),
 
-  // Reset view — fly back to continental US AND clear selection + filters so
+  // Reset view — back to the focus area AND clear selection + filters so
   // a persistent selected ring / filter chip doesn't stick around.
   resetView: () => set((state) => ({
-    flyToTarget: { ...INITIAL_VIEW, fit: 'us' },
+    flyToTarget: { kind: 'focus' },
     selectedEntityType: null,
     selectedEntityId: null,
     hoveredFactoryId: null,

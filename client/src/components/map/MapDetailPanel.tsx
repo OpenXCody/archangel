@@ -30,6 +30,7 @@ import {
 import { useMapStore, type MapEntityType } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import { PANEL_WIDTH_PX, SHEET_PEEK_VH } from './camera';
 
 // State overview shape returned by /api/map/states/:code/overview
 interface StateOverview {
@@ -118,7 +119,7 @@ interface MapDetailPanelProps {
 const entityConfig: Record<MapEntityType, { icon: typeof Factory; color: string; bgColor: string; label: string }> = {
   factory: { icon: Factory, color: 'text-sky-400', bgColor: 'bg-sky-400/10', label: 'Factory' },
   company: { icon: Building2, color: 'text-amber-500', bgColor: 'bg-amber-500/10', label: 'Company' },
-  occupation: { icon: Briefcase, color: 'text-blue-800', bgColor: 'bg-blue-800/10', label: 'Occupation' },
+  occupation: { icon: Briefcase, color: 'text-blue-800', bgColor: 'bg-blue-800/10', label: 'Career' },
   skill: { icon: Wrench, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10', label: 'Skill' },
   state: { icon: MapPin, color: 'text-slate-300', bgColor: 'bg-slate-500/10', label: 'State' },
 };
@@ -150,20 +151,8 @@ function ConnectedNode({
       // For factories, use selectFactory and fly to location if available
       if (type === 'factory') {
         selectFactory(id);
-        // If we have coordinates, fly to the factory with mobile-aware padding
-        if (lat && lng) {
-          const isMobile = window.innerWidth < 768;
-          const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
-          
-          flyTo({ 
-            lat, 
-            lng, 
-            zoom: 10,
-            padding: isMobile
-              ? { top: 20, bottom: bottomSheetHeight + 20, left: 20, right: 20 }
-              : { top: 20, bottom: 20, left: 20, right: 400 },
-          });
-        }
+        // If we have coordinates, ask the camera to go there
+        if (lat && lng) flyTo({ kind: 'point', lat, lng, zoom: 10 });
       } else {
         selectEntity(type, id);
       }
@@ -278,7 +267,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
 
           {factory.occupations && factory.occupations.length > 3 && (
             <div className="text-xs text-fg-soft text-center py-2">
-              +{factory.occupations.length - 3} more occupations
+              +{factory.occupations.length - 3} more careers
             </div>
           )}
         </div>
@@ -328,74 +317,26 @@ function CompanyView({ company }: { company: CompanyDetail }) {
   const { setFilters, flyTo, resetView } = useMapStore();
   const totalWorkforce = company.factories?.reduce((sum, f) => sum + (f.workforceSize || 0), 0) || 0;
 
-  // Calculate bounds that contain all factories
   const showAllFactories = () => {
     if (!company.factories?.length) return;
 
     // Set filter to show only this company's factories. Also clear any
     // lingering state filter (a user can arrive here via
     // state → top-company → "locate all" and we'd otherwise scope to
-    // state × company instead of nationwide for the company).
+    // state × company instead of everything we cover for the company).
     setFilters({ company: company.id, companyName: formatCompanyName(company.name), states: [] });
 
-    // If there's only one factory, zoom to it
-    if (company.factories.length === 1) {
-      const f = company.factories[0];
-      if (f.latitude && f.longitude) {
-        const isMobile = window.innerWidth < 768;
-        const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
-        
-        flyTo({
-          lat: parseFloat(f.latitude),
-          lng: parseFloat(f.longitude),
-          zoom: 10,
-          padding: isMobile
-            ? { top: 20, bottom: bottomSheetHeight + 20, left: 20, right: 20 }
-            : { right: 400, top: 20, bottom: 20, left: 20 },
-        });
-      }
-      return;
-    }
+    // Frame every factory we have coordinates for. The camera works out
+    // zoom and how much room the panel or sheet needs.
+    const points = company.factories
+      .filter((f) => f.latitude && f.longitude)
+      .map((f): [number, number] => [parseFloat(f.longitude!), parseFloat(f.latitude!)]);
 
-    // Calculate center of all factories
-    const lats = company.factories
-      .filter(f => f.latitude && f.longitude)
-      .map(f => parseFloat(f.latitude!));
-    const lngs = company.factories
-      .filter(f => f.latitude && f.longitude)
-      .map(f => parseFloat(f.longitude!));
-
-    if (lats.length === 0) {
+    if (points.length === 0) {
       resetView();
       return;
     }
-
-    const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
-    const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
-
-    // Calculate appropriate zoom based on spread
-    const latSpread = Math.max(...lats) - Math.min(...lats);
-    const lngSpread = Math.max(...lngs) - Math.min(...lngs);
-    const maxSpread = Math.max(latSpread, lngSpread);
-
-    // Estimate zoom level (rough heuristic)
-    let zoom = 4;
-    if (maxSpread < 2) zoom = 7;
-    else if (maxSpread < 5) zoom = 6;
-    else if (maxSpread < 10) zoom = 5;
-
-    // Add padding to account for the sidebar (380px on right) or bottom sheet on mobile
-    const isMobile = window.innerWidth < 768;
-    const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
-    
-    flyTo({
-      lat: centerLat,
-      lng: centerLng,
-      zoom,
-      padding: isMobile
-        ? { top: 20, bottom: bottomSheetHeight + 20, left: 20, right: 20 }
-        : { right: 400, top: 20, bottom: 20, left: 20 },
-    });
+    flyTo({ kind: 'points', points });
   };
 
   return (
@@ -615,7 +556,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
         <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Briefcase className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="text-[10px] md:text-xs">Occupations</span>
+            <span className="text-[10px] md:text-xs">Careers</span>
           </div>
           <div className="text-xl md:text-2xl font-semibold text-fg-default">
             {skill.occupations?.length || 0}
@@ -636,7 +577,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
       {skill.occupations && skill.occupations.length > 0 && (
         <div className="mb-6">
           <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-3">
-            Used in Occupations
+            Used in Careers
           </h3>
           <div className="space-y-2">
             {skill.occupations.slice(0, 5).map((occ) => (
@@ -650,7 +591,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
             ))}
             {skill.occupations.length > 5 && (
               <div className="text-xs text-fg-soft text-center py-2">
-                +{skill.occupations.length - 5} more occupations
+                +{skill.occupations.length - 5} more careers
               </div>
             )}
           </div>
@@ -696,7 +637,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
 }
 
 export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps) {
-  // Phone sheet: peek (32vh) or expanded (85vh). The handle and the chevron both toggle it.
+  // Phone sheet: peek (SHEET_PEEK_VH) or expanded (85vh). The handle and the chevron both toggle it.
   const [expanded, setExpanded] = useState(false);
   const {
     selectedEntityType,
@@ -755,9 +696,14 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
   const config = selectedEntityType ? entityConfig[selectedEntityType] : null;
   const Icon = config?.icon || Factory;
 
+  // Size comes from camera.ts, which frames the map around this panel: one
+  // source for both, so the camera can never disagree with what is on screen.
   const panelClasses = isMobile
-    ? `fixed inset-x-0 bottom-0 ${expanded ? 'h-[85vh]' : 'h-[32vh]'} rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300 transition-[height]`
-    : 'absolute top-0 right-0 w-[380px] h-full z-50 animate-in slide-in-from-right duration-300';
+    ? 'fixed inset-x-0 bottom-0 rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300 transition-[height]'
+    : 'absolute top-0 right-0 h-full z-50 animate-in slide-in-from-right duration-300';
+  const panelSize = isMobile
+    ? { height: expanded ? '85vh' : `${SHEET_PEEK_VH}vh` }
+    : { width: PANEL_WIDTH_PX };
 
   return (
     <aside
@@ -768,6 +714,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
         flex flex-col
         overflow-hidden
       `}
+      style={panelSize}
       role="complementary"
       aria-label={`${config?.label || 'Entity'} details`}
     >

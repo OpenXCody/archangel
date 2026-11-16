@@ -62,7 +62,7 @@ const ENTITY_CONFIG: Record<
   },
   occupations: {
     icon: Briefcase,
-    label: 'Occupation',
+    label: 'Career',
     badgeClass: 'bg-white/5 text-fg-muted border-white/10',
     iconClass: 'text-violet-400',
     borderClass: 'border-white/10',
@@ -127,15 +127,18 @@ function BackButton({ fallback }: { fallback: string }) {
 }
 
 function Section({
+  id: anchor,
   title,
   count,
   children,
 }: {
+  /** Anchor for deep links (#occupations). Defaults to a slug of the title; set it when the wording differs from the link. */
+  id?: string;
   title: string;
   count?: number;
   children: React.ReactNode;
 }) {
-  const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const id = anchor ?? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   return (
     <div id={id} className="mt-8 scroll-mt-20">
       <h2 className="text-sm font-medium text-fg-soft uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -247,7 +250,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
           {(data.occupations?.length || 0) > 0 && (
             <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
               <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length}</div>
-              <div className="text-sm text-fg-muted">Occupations</div>
+              <div className="text-sm text-fg-muted">Careers</div>
             </div>
           )}
           {(data.totalWorkforce || 0) > 0 && (
@@ -261,7 +264,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
 
       {/* Occupations across this company's factories */}
       {(data.occupations?.length || 0) > 0 && (
-        <Section title="Occupations" count={data.occupations?.length}>
+        <Section id="occupations" title="Careers" count={data.occupations?.length}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.occupations?.map((occ) => (
               <RelatedCard
@@ -333,7 +336,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
           <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
             <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length || 0}</div>
-            <div className="text-sm text-fg-muted">Occupations</div>
+            <div className="text-sm text-fg-muted">Careers</div>
           </div>
         </div>
       )}
@@ -349,7 +352,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
 
       {/* Occupations at this facility */}
       {data.occupations?.length > 0 && (
-        <Section title="Occupations at this facility" count={data.occupations.length}>
+        <Section id="occupations" title="Careers at this facility" count={data.occupations.length}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.occupations.map((occ) => (
               <RelatedCard
@@ -439,7 +442,7 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
         <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length || 0}</div>
-          <div className="text-sm text-fg-muted">Occupations</div>
+          <div className="text-sm text-fg-muted">Careers</div>
         </div>
         <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.relatedSkills?.length || 0}</div>
@@ -449,7 +452,7 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
 
       {/* Occupations - no importance badges */}
       {data.occupations?.length > 0 && (
-        <Section title="Occupations requiring this skill" count={data.occupations.length}>
+        <Section id="occupations" title="Careers requiring this skill" count={data.occupations.length}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.occupations.map((occ) => (
               <RelatedCard

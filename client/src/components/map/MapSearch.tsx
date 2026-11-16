@@ -32,13 +32,13 @@ const searchToMapType: Record<Exclude<MapSearchableEntityType, 'states'>, MapEnt
 
 const ENTITY_CONFIG: Record<
   MapSearchableEntityType,
-  { icon: React.ElementType; label: string; iconClass: string }
+  { icon: React.ElementType; label: string; heading: string; iconClass: string }
 > = {
-  companies: { icon: Building2, label: 'Company', iconClass: 'text-amber-500' },
-  factories: { icon: Factory, label: 'Factory', iconClass: 'text-sky-400' },
-  occupations: { icon: Briefcase, label: 'Occupation', iconClass: 'text-blue-800' },
-  skills: { icon: Wrench, label: 'Skill', iconClass: 'text-emerald-500' },
-  states: { icon: MapPin, label: 'State', iconClass: 'text-indigo-500' },
+  companies: { icon: Building2, label: 'Company', heading: 'Companies', iconClass: 'text-amber-500' },
+  factories: { icon: Factory, label: 'Factory', heading: 'Factories', iconClass: 'text-sky-400' },
+  occupations: { icon: Briefcase, label: 'Career', heading: 'Careers', iconClass: 'text-blue-800' },
+  skills: { icon: Wrench, label: 'Skill', heading: 'Skills', iconClass: 'text-emerald-500' },
+  states: { icon: MapPin, label: 'State', heading: 'States', iconClass: 'text-indigo-500' },
 };
 
 export default function MapSearch() {
@@ -207,7 +207,7 @@ export default function MapSearch() {
   };
 
   return (
-    <div className="absolute top-4 left-4 right-4 z-40 sm:right-auto sm:w-[22rem] md:w-[26rem]" ref={dropdownRef}>
+    <div className="absolute top-4 left-4 right-4 z-40 sm:right-auto sm:w-[360px]" ref={dropdownRef}>
       {/* Search container */}
       <div
         className={`
@@ -217,7 +217,6 @@ export default function MapSearch() {
           ${showDropdown ? 'rounded-2xl' : 'rounded-xl'}
           ${isFocused ? 'ring-1 ring-sky-400/50' : ''}
         `}
-        style={{ width: '360px' }}
       >
         {/* Search input row */}
         <div className="flex items-center gap-3 px-4 py-3">
@@ -236,7 +235,7 @@ export default function MapSearch() {
             }}
             placeholder="Search factories, companies, skills..."
             className="
-              flex-1 bg-transparent text-fg-default
+              flex-1 min-w-0 bg-transparent text-fg-default
               placeholder:text-fg-soft
               text-sm
             "
@@ -434,7 +433,7 @@ export default function MapSearch() {
                   return (
                     <div key={type} className="px-3 py-2">
                       <h4 className="text-[10px] font-medium text-fg-soft uppercase tracking-wider mb-1.5 px-1">
-                        {type}
+                        {config.heading}
                       </h4>
                       <div className="space-y-0.5">
                         {items.map((item) => {

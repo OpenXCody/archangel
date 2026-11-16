@@ -7,7 +7,6 @@ import AdminKeyGate from './components/import/AdminKeyGate';
 
 // Lazy load pages for code splitting
 const MapView = lazy(() => import('./pages/MapView'));
-const Tree = lazy(() => import('./pages/Tree'));
 const Explore = lazy(() => import('./pages/Explore'));
 const Import = lazy(() => import('./pages/Import'));
 const BulkImport = lazy(() => import('./pages/BulkImport'));
@@ -32,7 +31,8 @@ function App() {
             <Route path="/" element={<Navigate to="/map" replace />} />
             <Route element={<Layout />}>
               <Route path="/map" element={<ErrorBoundary><MapView /></ErrorBoundary>} />
-              <Route path="/tree" element={<ErrorBoundary><Tree /></ErrorBoundary>} />
+              {/* The Tree page is gone; old links land on the map. */}
+              <Route path="/tree" element={<Navigate to="/map" replace />} />
               <Route path="/explore" element={<ErrorBoundary><Explore /></ErrorBoundary>} />
               <Route path="/import" element={<ErrorBoundary><AdminKeyGate><Import /></AdminKeyGate></ErrorBoundary>} />
               <Route path="/import/bulk" element={<ErrorBoundary><AdminKeyGate><BulkImport /></AdminKeyGate></ErrorBoundary>} />

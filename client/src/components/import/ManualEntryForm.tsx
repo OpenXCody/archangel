@@ -648,8 +648,8 @@ const ENTITY_CONFIG: Record<
   },
   occupations: {
     icon: Briefcase,
-    label: 'Occupations',
-    singularLabel: 'Occupation',
+    label: 'Careers',
+    singularLabel: 'Career',
     color: 'text-blue-600',
   },
   skills: {

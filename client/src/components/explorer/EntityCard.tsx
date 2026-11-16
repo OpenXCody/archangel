@@ -158,7 +158,7 @@ function CompanyCard({ data, onMouseEnter }: CardProps<Company>) {
       tags={
         <>
           <CountTag type="factories" count={data.factoryCount} one="factory" many="factories" to={`${base}#factories`} />
-          <CountTag type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`${base}#occupations`} />
+          <CountTag type="occupations" count={data.occupationCount} one="career" many="careers" to={`${base}#occupations`} />
           {data.totalWorkforce ? (
             <span title={`${data.totalWorkforce.toLocaleString()} workforce`} className={cn(TAG_BASE, 'cursor-default text-fg-muted')}>
               <Users className="h-3 w-3 text-fg-soft" />
@@ -182,7 +182,7 @@ function FactoryCard({ data, onMouseEnter }: CardProps<FactoryType>) {
         <>
           <AttrTag icon={MapPin} value={data.state} />
           <LinkTag type="companies" value={data.companyName ? formatCompanyName(data.companyName) : null} to={data.companyId ? `/companies/${data.companyId}` : null} />
-          <CountTag type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`${base}#occupations`} />
+          <CountTag type="occupations" count={data.occupationCount} one="career" many="careers" to={`${base}#occupations`} />
         </>
       }
     />
@@ -214,7 +214,7 @@ function SkillCard({ data, onMouseEnter }: CardProps<Skill>) {
       tags={
         <>
           <AttrTag icon={Tag} value={data.category} />
-          <CountTag type="occupations" count={data.occupationCount} one="occupation" many="occupations" to={`${base}#occupations`} />
+          <CountTag type="occupations" count={data.occupationCount} one="career" many="careers" to={`${base}#occupations`} />
           <CountTag type="programs" count={data.programCount} one="program" many="programs" to={`${base}#programs`} />
           {data.childCount ? (
             <span title={`${data.childCount} sub-skills`} className={cn(TAG_BASE, 'cursor-default text-fg-muted')}>

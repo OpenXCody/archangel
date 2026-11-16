@@ -1,13 +1,8 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { KeyRound, LockOpen, LogOut } from 'lucide-react';
-import { API_BASE, adminFetch, getAdminSecret, setAdminSecret, clearAdminSecret, type ImportStatus } from '../../lib/api';
-
-async function fetchStatus(): Promise<ImportStatus> {
-  const res = await adminFetch(`${API_BASE}/import/status`);
-  if (!res.ok) throw new Error('Could not check admin status');
-  return res.json();
-}
+import { getAdminSecret, setAdminSecret, clearAdminSecret } from '../../lib/api';
+import { ADMIN_STATUS_QUERY_KEY, fetchAdminStatus, isAdminAuthorized, useAdminStatus } from '../../lib/adminStatus';
 
 /**
  * Wraps admin-only UI. When the deployment requires an admin key and this
@@ -16,12 +11,12 @@ async function fetchStatus(): Promise<ImportStatus> {
  */
 export default function AdminKeyGate({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const { data, isLoading, isError } = useQuery({ queryKey: ['import-status'], queryFn: fetchStatus, staleTime: 60_000 });
+  const { data, isLoading, isError } = useAdminStatus();
   const [draft, setDraft] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['import-status'] });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ADMIN_STATUS_QUERY_KEY });
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -31,7 +26,7 @@ export default function AdminKeyGate({ children }: { children: ReactNode }) {
     setFeedback(null);
     setAdminSecret(key);
     try {
-      const status = await fetchStatus();
+      const status = await fetchAdminStatus();
       if (status.authorized) {
         setDraft('');
         await invalidate();
@@ -62,7 +57,7 @@ export default function AdminKeyGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (data && data.authRequired && !data.authorized) {
+  if (data && !isAdminAuthorized(data)) {
     return (
       <div className="mx-auto mt-16 max-w-md rounded-xl border border-border-subtle bg-bg-surface p-6 px-4 sm:px-6">
         <div className="mb-4 flex items-center gap-3">

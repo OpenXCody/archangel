@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Map, GitBranch, Layers, Upload, Search } from 'lucide-react';
+import { Map, Layers, Upload, Search } from 'lucide-react';
 import GlobalSearch from '../search/GlobalSearch';
+import { useAdminStatus } from '../../lib/adminStatus';
 
 const navItems = [
-  { to: '/map', icon: Map, label: 'Map' },
-  { to: '/tree', icon: GitBranch, label: 'Tree' },
-  { to: '/explore', icon: Layers, label: 'Nodes' },
-  { to: '/import', icon: Upload, label: 'Data' },
+  { to: '/map', icon: Map, label: 'Map', adminOnly: false },
+  { to: '/explore', icon: Layers, label: 'Explore', adminOnly: false },
+  // Shown only to an authorized admin. The /import routes gate themselves
+  // (AdminKeyGate), so an admin without a key yet can still open /import.
+  { to: '/import', icon: Upload, label: 'Data', adminOnly: true },
 ];
 
 export default function Layout() {
   const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { isAdmin } = useAdminStatus();
+  const visibleNavItems = navItems.filter((item) => !item.adminOnly || isAdmin);
 
   // Hide global search on map view (it has its own search)
   const isMapView = location.pathname === '/map';
@@ -47,9 +51,8 @@ export default function Layout() {
           <div className="flex items-center justify-between h-14 gap-4">
             {/* Left: Navigation */}
             <nav className="flex items-center gap-1 flex-shrink-0">
-              {navItems.map(({ to, icon: Icon, label }) => {
-                const isActive = location.pathname === to ||
-                  (to === '/explore' && location.pathname.startsWith('/explore'));
+              {visibleNavItems.map(({ to, icon: Icon, label }) => {
+                const isActive = location.pathname === to || location.pathname.startsWith(`${to}/`);
 
                 return (
                   <NavLink

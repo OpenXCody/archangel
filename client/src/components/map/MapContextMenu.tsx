@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Maximize2, Search, FilterX } from 'lucide-react';
 import { useMapStore } from '../../stores/mapStore';
+import { SCOPE } from '@shared/scope';
 
 interface MapContextMenuProps {
   x: number;
@@ -95,7 +96,7 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
       >
         <Maximize2 className="w-4 h-4 text-fg-muted" />
         <span>Reset View</span>
-        <span className="ml-auto text-xs text-fg-soft">Full US</span>
+        <span className="ml-auto text-xs text-fg-soft">{SCOPE.focus.name} area</span>
       </button>
 
       {/* Search */}
