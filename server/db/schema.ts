@@ -144,6 +144,10 @@ export const companies = pgTable(
     description: text('description'),
     headquartersLat: text('headquarters_lat'),
     headquartersLng: text('headquarters_lng'),
+    // Web domain (e.g. "ti.com"), used to show the company's logo.
+    domain: text('domain'),
+    // A curated employer: lists and the map put these first.
+    featured: boolean('featured').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },

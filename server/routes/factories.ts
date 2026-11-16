@@ -5,6 +5,9 @@ import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 
+/** A company with this many factories nationwide counts as established. */
+const ESTABLISHED_MIN_SITES = 5;
+
 const router = Router();
 router.param('id', uuidParam);
 router.use(uuidQuery('company'));
@@ -137,68 +140,78 @@ router.get('/geojson', async (req: Request, res: Response) => {
       conditions.push(eq(factories.companyId, company as string));
     }
 
-    // For industry filter, we need to join with companies
-    let result;
     if (industry) {
-      result = await db
-        .select({
-          id: factories.id,
-          name: factories.name,
-          companyId: factories.companyId,
-          companyName: companies.name,
-          companyIndustry: companies.industry,
-          specialization: factories.specialization,
-          latitude: factories.latitude,
-          longitude: factories.longitude,
-          state: factories.state,
-          workforceSize: factories.workforceSize,
-          openPositions: factories.openPositions,
-        })
-        .from(factories)
-        .leftJoin(companies, eq(factories.companyId, companies.id))
-        .where(sql`${sql.join(conditions, sql` AND `)} AND ${companies.industry} = ${industry}`);
-    } else {
-      result = await db
-        .select({
-          id: factories.id,
-          name: factories.name,
-          companyId: factories.companyId,
-          specialization: factories.specialization,
-          latitude: factories.latitude,
-          longitude: factories.longitude,
-          state: factories.state,
-          workforceSize: factories.workforceSize,
-          openPositions: factories.openPositions,
-        })
-        .from(factories)
-        .where(sql`${sql.join(conditions, sql` AND `)}`);
+      conditions.push(sql`${companies.industry} = ${industry}`);
     }
 
-    // Filter out factories without valid coordinates
-    const validFactories = result.filter(
-      (f) => f.latitude && f.longitude && !isNaN(parseFloat(f.latitude)) && !isNaN(parseFloat(f.longitude))
-    );
+    // One row per factory, carrying everything a pin and its hover card show,
+    // so hovering never has to fetch. `sites` is how many factories the
+    // company has nationwide; with `featured` it gives each pin a tier.
+    // Counted once per query, then joined: a count per row was a second per request.
+    const siteCounts = db
+      .select({ companyId: factories.companyId, sites: sql<number>`COUNT(*)::int`.as('sites') })
+      .from(factories)
+      .groupBy(factories.companyId)
+      .as('site_counts');
+    const openJobCounts = db
+      .select({ factoryId: jobs.factoryId, openJobs: sql<number>`COUNT(*)::int`.as('open_jobs') })
+      .from(jobs)
+      .where(sql`${jobs.status} = 'open' AND ${jobs.expiresAt} > now()`)
+      .groupBy(jobs.factoryId)
+      .as('open_job_counts');
 
-    const geojson: GeoJSON.FeatureCollection = {
-      type: 'FeatureCollection',
-      features: validFactories.map((factory) => ({
+    const result = await db
+      .select({
+        id: factories.id,
+        name: factories.name,
+        companyId: factories.companyId,
+        companyName: companies.name,
+        featured: companies.featured,
+        sites: siteCounts.sites,
+        specialization: factories.specialization,
+        industry: factories.primaryNaicsDescription,
+        latitude: factories.latitude,
+        longitude: factories.longitude,
+        city: factories.city,
+        state: factories.state,
+        workforceSize: factories.workforceSize,
+        openPositions: factories.openPositions,
+        openJobs: openJobCounts.openJobs,
+      })
+      .from(factories)
+      .leftJoin(companies, eq(factories.companyId, companies.id))
+      .leftJoin(siteCounts, eq(siteCounts.companyId, factories.companyId))
+      .leftJoin(openJobCounts, eq(openJobCounts.factoryId, factories.id))
+      .where(sql`${sql.join(conditions, sql` AND `)}`);
+
+    const features: GeoJSON.Feature[] = [];
+    for (const factory of result) {
+      const lng = parseFloat(factory.longitude);
+      const lat = parseFloat(factory.latitude);
+      if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue;
+      features.push({
         type: 'Feature',
         id: factory.id,
-        geometry: {
-          type: 'Point',
-          coordinates: [parseFloat(factory.longitude), parseFloat(factory.latitude)],
-        },
+        geometry: { type: 'Point', coordinates: [lng, lat] },
         properties: {
           id: factory.id,
           name: factory.name,
           companyId: factory.companyId,
+          companyName: factory.companyName,
+          // 2: a featured employer. 1: an established company (five or more
+          // factories nationwide). 0: everything else.
+          tier: factory.featured ? 2 : (factory.sites ?? 1) >= ESTABLISHED_MIN_SITES ? 1 : 0,
           specialization: factory.specialization,
+          industry: factory.industry,
+          city: factory.city,
           state: factory.state,
           workforceSize: factory.workforceSize,
           openPositions: factory.openPositions,
+          openJobs: factory.openJobs ?? 0,
         },
-      })),
-    };
+      });
+    }
+    const geojson: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features };
 
     res.json(geojson);
   } catch (error) {
