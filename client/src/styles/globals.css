@@ -41,7 +41,8 @@
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 96%;
     --border: 0 0% 24%;
-    --input: 0 0% 24%;
+    /* The edge of a field: 3:1 against the surface it sits on. */
+    --input: 0 0% 40%;
     --ring: 0 0% 75%;
     --chart-1: 0 0% 70%;
     --chart-2: 0 0% 60%;
@@ -55,10 +56,10 @@
     --color-bg-surface: #161616;
     --color-bg-elevated: #202020;
 
-    /* On --color-bg-surface: default 16:1, muted 8.5:1, soft 4.8:1. */
+    /* On --color-bg-surface: default 16:1, muted 8.5:1, soft 5.6:1 (5:1 on elevated). */
     --color-fg-default: #f2f2f2;
     --color-fg-muted: #b4b4b4;
-    --color-fg-soft: #868686;
+    --color-fg-soft: #8f8f8f;
 
     --color-border-subtle: #2b2b2b;
     --color-border-strong: #424242;
@@ -98,7 +99,7 @@
     --destructive: 0 72% 42%;
     --destructive-foreground: 0 0% 98%;
     --border: 210 10% 82%;
-    --input: 210 10% 78%;
+    --input: 213 7% 57%;
     --ring: 210 12% 30%;
     --chart-1: 210 8% 30%;
     --chart-2: 210 8% 42%;
@@ -111,10 +112,10 @@
     --color-bg-surface: #ffffff;
     --color-bg-elevated: #f1f3f5;
 
-    /* On --color-bg-surface: default 18:1, muted 8:1, soft 4.6:1. */
+    /* On --color-bg-surface: default 18:1, muted 8:1, soft 5.7:1 (4.9:1 on the shell). */
     --color-fg-default: #111418;
     --color-fg-muted: #4a515a;
-    --color-fg-soft: #6d7580;
+    --color-fg-soft: #5f6772;
 
     --color-border-subtle: #e4e7ea;
     --color-border-strong: #cbd0d6;
@@ -144,7 +145,8 @@ body {
   color: hsl(var(--foreground));
   font-family: 'Oxanium Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
-  touch-action: pan-x pan-y;
+  /* No double-tap zoom (taps stay instant); pinch zoom stays for people who need it. */
+  touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -204,11 +206,11 @@ a {
   outline-offset: 2px;
 }
 
-/* Remove focus outline from search inputs */
+/* A text field shows focus on its own edge (border or ring), not with the
+   page's outline. Its box-shadow is left alone: that is where a ring is drawn. */
 input[type="text"]:focus,
 input[type="search"]:focus {
   outline: none;
-  box-shadow: none;
 }
 
 /* Remove default input styling */
@@ -234,8 +236,8 @@ input {
  * so what it says reads the same over dark land, a lit state or a field of
  * pins. Do not hand-roll translucent glass for a map overlay; use this.
  *
- * Text on it: --color-fg-default (15:1) or --color-fg-muted (7:1). Not
- * --color-fg-soft, which is 3:1 here and fails WCAG AA for text.
+ * Text on it: --color-fg-default (15:1) or --color-fg-muted (7:1);
+ * --color-fg-soft (5:1) only for asides.
  */
 @layer components {
   .map-overlay {

@@ -175,7 +175,7 @@ const MAX_ATTEMPTS = 10;
 const WINDOW_MS = 10 * 60 * 1000;
 
 export function tooManyAttempts(req: Request, email: string): boolean {
-  const key = `${req.ip ?? 'unknown'}|${email}`;
+  const key = attemptKey(req, email);
   const now = Date.now();
   const entry = attempts.get(key);
   if (!entry || entry.resetAt < now) {
@@ -185,4 +185,13 @@ export function tooManyAttempts(req: Request, email: string): boolean {
   }
   entry.count += 1;
   return entry.count > MAX_ATTEMPTS;
+}
+
+/** A sign-in that succeeded is not a guess: forget the tries that led to it. */
+export function clearAttempts(req: Request, email: string): void {
+  attempts.delete(attemptKey(req, email));
+}
+
+function attemptKey(req: Request, email: string): string {
+  return `${req.ip ?? 'unknown'}|${email}`;
 }

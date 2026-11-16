@@ -4,7 +4,8 @@ import { db, companies, factories, companyIndustries, industries, jobs } from '.
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
-import { pageLimit } from '../lib/paging.js';
+import { pageLimit, pageOffset } from '../lib/paging.js';
+import { answerWriteError, optionalName, requiredText } from '../lib/writes.js';
 
 const router = Router();
 // A company is addressed by its id, or, for reading, by its slug
@@ -12,8 +13,9 @@ const router = Router();
 // below only ever see ids.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
-router.param('id', async (req: Request, res: Response, next: NextFunction, value: string) => {
-  if (UUID_RE.test(value)) return next();
+router.param('id', async (req: Request, res: Response, next: NextFunction, raw: string) => {
+  if (UUID_RE.test(raw)) return next();
+  const value = raw.toLowerCase();
   if (req.method !== 'GET' || !SLUG_RE.test(value)) {
     res.status(400).json({ error: 'Invalid id: expected a UUID' });
     return;
@@ -36,7 +38,7 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, industry, sort = 'name', order = 'asc' } = req.query;
     const limitNum = pageLimit(limit, 20, 100);
-    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
+    const offsetNum = pageOffset(offset);
 
     // Build where conditions. Only companies with a factory in scope are listed,
     // and every per-company figure below counts in-scope factories only.
@@ -192,17 +194,17 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/companies - Create company
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { name, aliases, industry, description, headquartersLat, headquartersLng } = req.body;
-
+    const { aliases, industry, description, headquartersLat, headquartersLng } = req.body;
+    const name = requiredText(req.body?.name);
     if (!name) {
-      res.status(400).json({ error: 'Name is required' });
+      res.status(400).json({ error: 'A company needs a name of up to 200 characters.' });
       return;
     }
 
-    // Check if company with this name already exists
+    // The same name in any letter case is the same company (compared as text, not as a pattern).
     const existing = await db.select({ id: companies.id, name: companies.name })
       .from(companies)
-      .where(ilike(companies.name, name))
+      .where(sql`lower(${companies.name}) = lower(${name})`)
       .limit(1);
 
     if (existing.length > 0) {
@@ -222,8 +224,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     res.status(201).json(result[0]);
   } catch (error) {
-    console.error('Error creating company:', error);
-    res.status(500).json({ error: 'Failed to create company' });
+    answerWriteError(res, error, 'company');
   }
 });
 
@@ -231,7 +232,12 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, industry, description, headquartersLat, headquartersLng } = req.body;
+    const { industry, description, headquartersLat, headquartersLng } = req.body;
+    const name = optionalName(req.body?.name);
+    if (name === false) {
+      res.status(400).json({ error: 'A company needs a name of up to 200 characters.' });
+      return;
+    }
 
     const result = await db.update(companies)
       .set({
@@ -252,8 +258,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     res.json(result[0]);
   } catch (error) {
-    console.error('Error updating company:', error);
-    res.status(500).json({ error: 'Failed to update company' });
+    answerWriteError(res, error, 'company');
   }
 });
 

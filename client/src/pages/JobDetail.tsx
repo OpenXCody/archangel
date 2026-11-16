@@ -290,7 +290,10 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   const [note, setNote] = useState('');
   const [applyAsManager, setApplyAsManager] = useState(false);
 
-  if (myApplication) {
+  // A withdrawn application can be taken up again while the job is open, so
+  // the form comes back; otherwise the application's state is all there is to show.
+  const canReapply = myApplication?.status === 'withdrawn' && job.isOpen && !job.applyUrl;
+  if (myApplication && !canReapply) {
     return (
       <div className={cn(cardClass, 'flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-6')}>
         <div className="min-w-0 flex-1 basis-48">
@@ -317,7 +320,7 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
     return (
       <div className={cn(cardClass, 'p-4 sm:p-6')}>
         <p className="text-sm text-fg-muted">
-          You manage this job for {job.companyName}.{' '}
+          You manage this job for {job.companyName.replace(/\.$/, '')}.{' '}
           {job.applyUrl ? 'People apply on your own site.' : 'People who apply are listed further down.'}
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-3">

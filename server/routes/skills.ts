@@ -3,7 +3,8 @@ import { eq, ilike, or, sql, and, ne, isNull } from 'drizzle-orm';
 import { db, skills, occupationSkills, occupations, skillRefs, refs, programSkills, programs } from '../db/index.js';
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { programInScope } from '../lib/scope.js';
-import { pageLimit } from '../lib/paging.js';
+import { pageLimit, pageOffset } from '../lib/paging.js';
+import { answerWriteError, optionalName, requiredText } from '../lib/writes.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -14,7 +15,7 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, category, order = 'asc', parent, rootOnly } = req.query;
     const limitNum = pageLimit(limit, 20, 100);
-    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
+    const offsetNum = pageOffset(offset);
 
     // Build where conditions
     const conditions = [];
@@ -208,10 +209,10 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/skills - Create skill
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { name, category, description } = req.body;
-
+    const { category, description } = req.body;
+    const name = requiredText(req.body?.name);
     if (!name) {
-      res.status(400).json({ error: 'Name is required' });
+      res.status(400).json({ error: 'A skill needs a name of up to 200 characters.' });
       return;
     }
 
@@ -223,8 +224,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     res.status(201).json(result[0]);
   } catch (error) {
-    console.error('Error creating skill:', error);
-    res.status(500).json({ error: 'Failed to create skill' });
+    answerWriteError(res, error, 'skill');
   }
 });
 
@@ -232,7 +232,12 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, category, description } = req.body;
+    const { category, description } = req.body;
+    const name = optionalName(req.body?.name);
+    if (name === false) {
+      res.status(400).json({ error: 'A skill needs a name of up to 200 characters.' });
+      return;
+    }
 
     const result = await db.update(skills)
       .set({
@@ -250,8 +255,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     res.json(result[0]);
   } catch (error) {
-    console.error('Error updating skill:', error);
-    res.status(500).json({ error: 'Failed to update skill' });
+    answerWriteError(res, error, 'skill');
   }
 });
 
