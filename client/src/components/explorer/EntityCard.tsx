@@ -8,6 +8,7 @@ import type { Company, Factory as FactoryType, Occupation, Skill, Ref, School, P
 import { companiesApi, factoriesApi, occupationsApi, skillsApi, refsApi, schoolsApi, programsApi } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { cn } from '@/lib/utils';
+import CompanyLogo from '../CompanyLogo';
 
 /**
  * The one card. Three fixed-height rows so every card in a grid is the same
@@ -24,14 +25,16 @@ import { cn } from '@/lib/utils';
 
 type BrowsableType = Exclude<EntityType, 'persons'>;
 
-const ENTITY: Record<BrowsableType, { icon: ElementType; text: string; bg: string }> = {
-  companies:   { icon: Building2,     text: 'text-amber-500',   bg: 'bg-amber-500/10' },
-  factories:   { icon: Factory,       text: 'text-sky-400',     bg: 'bg-sky-400/10' },
-  occupations: { icon: Briefcase,     text: 'text-violet-400',  bg: 'bg-violet-400/10' },
-  skills:      { icon: Wrench,        text: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-  refs:        { icon: Boxes,         text: 'text-teal-500',    bg: 'bg-teal-500/10' },
-  schools:     { icon: GraduationCap, text: 'text-indigo-500',  bg: 'bg-indigo-500/10' },
-  programs:    { icon: BookOpen,      text: 'text-fuchsia-500', bg: 'bg-fuchsia-500/10' },
+// One quiet treatment for every type: the icon's shape says what a card is,
+// not its colour. A company with a logo shows that instead.
+const ENTITY: Record<BrowsableType, { icon: ElementType }> = {
+  companies:   { icon: Building2 },
+  factories:   { icon: Factory },
+  occupations: { icon: Briefcase },
+  skills:      { icon: Wrench },
+  refs:        { icon: Boxes },
+  schools:     { icon: GraduationCap },
+  programs:    { icon: BookOpen },
 };
 
 /** Industry value the bulk import stamped on nearly every company; not worth a line. */
@@ -53,13 +56,13 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 const TAG_BASE =
   'relative z-10 inline-flex h-6 shrink-0 select-none items-center gap-1 rounded border border-border-subtle bg-bg-base/60 px-1.5 text-[11px] leading-none';
 
-/** Count of linked entities — icon in the target entity's colour, deep-links to that section. */
+/** Count of linked entities, deep-linking to that section. */
 function CountTag({ type, count, one, many, to }: { type: BrowsableType; count?: number; one: string; many: string; to: string }) {
   if (!count) return null;
   const Icon = ENTITY[type].icon;
   return (
     <Link to={to} title={`${count.toLocaleString()} ${plural(count, one, many)}`} className={cn(TAG_BASE, 'transition-colors hover:border-border-strong hover:bg-bg-elevated')}>
-      <Icon className={cn('h-3 w-3', ENTITY[type].text)} />
+      <Icon className="h-3 w-3 text-fg-soft" />
       <span className="font-medium tabular-nums text-fg-default">{formatCount(count)}</span>
       <span className="text-fg-soft">{plural(count, one, many)}</span>
     </Link>
@@ -77,13 +80,13 @@ function AttrTag({ icon: Icon, value, title }: { icon: ElementType; value?: stri
   );
 }
 
-/** Linked parent entity (company, school) — coloured icon, clickable. */
+/** Linked parent entity (company, school), clickable. */
 function LinkTag({ type, value, to }: { type: BrowsableType; value?: string | null; to?: string | null }) {
   if (!value || !to) return null;
   const Icon = ENTITY[type].icon;
   return (
     <Link to={to} title={value} className={cn(TAG_BASE, 'min-w-0 max-w-[11rem] transition-colors hover:border-border-strong hover:bg-bg-elevated')}>
-      <Icon className={cn('h-3 w-3 shrink-0', ENTITY[type].text)} />
+      <Icon className="h-3 w-3 shrink-0 text-fg-soft" />
       <span className="truncate text-fg-default">{value}</span>
     </Link>
   );
@@ -101,12 +104,13 @@ interface ShellProps {
   meta?: (string | null | undefined | false)[];
   /** Row 3. */
   tags?: ReactNode;
+  /** A company's website domain: its logo takes the icon's place. */
+  logoDomain?: string | null;
   onMouseEnter?: () => void;
 }
 
-function CardShell({ type, to, name, meta, tags, onMouseEnter }: ShellProps) {
-  const cfg = ENTITY[type];
-  const Icon = cfg.icon;
+function CardShell({ type, to, name, meta, tags, logoDomain, onMouseEnter }: ShellProps) {
+  const Icon = ENTITY[type].icon;
   const metaText = (meta ?? []).filter((m): m is string => typeof m === 'string' && m.trim().length > 0).join(' · ');
   return (
     <article
@@ -114,9 +118,13 @@ function CardShell({ type, to, name, meta, tags, onMouseEnter }: ShellProps) {
       className="group relative flex h-full min-w-0 flex-col rounded-lg border border-border-subtle bg-bg-surface p-3 transition-colors hover:border-border-strong hover:bg-bg-elevated"
     >
       <div className="flex h-8 min-w-0 items-center gap-2.5">
-        <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-md', cfg.bg)}>
-          <Icon className={cn('h-4 w-4', cfg.text)} />
-        </span>
+        {logoDomain ? (
+          <CompanyLogo name={name} domain={logoDomain} size={32} />
+        ) : (
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border-subtle bg-bg-elevated">
+            <Icon className="h-4 w-4 text-fg-muted" />
+          </span>
+        )}
         <h3 className="min-w-0 flex-1 truncate text-[15px] font-medium leading-6 text-fg-default">
           {/* Stretched link: the pseudo-element makes the whole card the click target. */}
           <Link
@@ -154,7 +162,7 @@ function CompanyCard({ data, onMouseEnter }: CardProps<Company>) {
   const base = `/companies/${data.id}`;
   return (
     <CardShell
-      type="companies" to={base} name={formatCompanyName(data.name)} onMouseEnter={onMouseEnter}
+      type="companies" to={base} name={formatCompanyName(data.name)} logoDomain={data.domain} onMouseEnter={onMouseEnter}
       tags={
         <>
           <CountTag type="factories" count={data.factoryCount} one="factory" many="factories" to={`${base}#factories`} />

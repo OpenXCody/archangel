@@ -90,11 +90,12 @@ router.get(
   '/',
   handle(async (req, res) => {
     const filters: SQL[] = [isOpenInScope];
-    const { occupationId, companyId, factoryId, q } = req.query;
+    const { occupationId, companyId, factoryId, q, state } = req.query;
     if (isUuid(occupationId)) filters.push(eq(jobs.occupationId, occupationId));
     if (isUuid(companyId)) filters.push(eq(jobs.companyId, companyId));
     if (isUuid(factoryId)) filters.push(eq(jobs.factoryId, factoryId));
     if (typeof q === 'string' && q.trim()) filters.push(ilike(jobs.title, `%${q.trim().slice(0, 80)}%`));
+    if (typeof state === 'string' && /^[A-Za-z]{2}$/.test(state)) filters.push(eq(factories.state, state.toUpperCase()));
     const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
 
     const rows = await db

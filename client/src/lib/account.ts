@@ -105,6 +105,22 @@ export interface SignedInAccount extends Account {
   user: AccountUser;
 }
 
+/**
+ * What this account is, in the order that matters: "Admin", "Employer (Tesla)",
+ * or "User" when it is neither. Roles are relationships, so one account can
+ * hold more than one.
+ */
+export function accountRoles(account: Account): string[] {
+  if (!account.user) return [];
+  const roles: string[] = [];
+  if (account.user.isAdmin) roles.push('Admin');
+  const active = account.memberships.filter((m) => m.status === 'active');
+  if (active.length === 1) roles.push(`Employer (${active[0].companyName})`);
+  else if (active.length > 1) roles.push(`Employer (${active.length} companies)`);
+  else if (account.memberships.length > 0) roles.push('Employer (pending approval)');
+  return roles.length > 0 ? roles : ['User'];
+}
+
 export type SkillStatus = 'learning' | 'held';
 
 export interface MySkill {
@@ -209,6 +225,8 @@ export interface JobDetailResponse {
 
 export interface JobFilters {
   q?: string;
+  /** Two-letter state code. */
+  state?: string;
   occupationId?: string;
   companyId?: string;
   factoryId?: string;
@@ -230,6 +248,8 @@ export interface NewJob {
   payPeriod?: PayPeriod;
   /** An https link, or null to take applications in the app. */
   applyUrl?: string | null;
+  /** The skills the job asks for. Left out, the job takes its career's skills. */
+  skills?: { skillId: string; required: boolean }[];
 }
 
 export interface JobPatch {

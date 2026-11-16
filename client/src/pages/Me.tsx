@@ -16,9 +16,11 @@ import {
   useSignOut,
   useUpdateApplication,
   useUpdateProfile,
+  accountRoles,
   type AccountUser,
   type MyApplication,
   type MySkill,
+  type SignedInAccount,
   type SkillStatus,
 } from '../lib/account';
 import { formatAgo, formatPlace } from '../lib/jobFormat';
@@ -42,15 +44,21 @@ import { SkillStatusControl } from '../components/account/SkillStatusButton';
 import { PageContainer, PageHeader, PageSection } from '../components/layout/Page';
 
 export default function Me() {
-  return <AccountGate>{(account) => <MyPage user={account.user} />}</AccountGate>;
+  return <AccountGate>{(account) => <MyPage account={account} />}</AccountGate>;
 }
 
-function MyPage({ user }: { user: AccountUser }) {
+/**
+ * The person's own page. What they are working toward comes first; the two
+ * account fields come last. Nothing here asks for more than a tap: careers
+ * and skills are picked from the catalogue, never typed out.
+ */
+function MyPage({ account }: { account: SignedInAccount }) {
+  const { user } = account;
   const signOut = useSignOut();
   return (
     <PageContainer size="narrow">
       <PageHeader
-        eyebrow="My page"
+        eyebrow={accountRoles(account).join(' · ')}
         title={user.name}
         description={user.email}
         actions={
@@ -69,10 +77,10 @@ function MyPage({ user }: { user: AccountUser }) {
           </div>
         }
       />
-      <ProfileSection user={user} />
       <GoalsSection />
       <SkillsSection />
       <ApplicationsSection />
+      <ProfileSection user={user} />
     </PageContainer>
   );
 }
@@ -85,28 +93,26 @@ function ProfileSection({ user }: { user: AccountUser }) {
   const update = useUpdateProfile();
   const [name, setName] = useState(user.name);
   const [homeZip, setHomeZip] = useState(user.homeZip ?? '');
-  const [about, setAbout] = useState(user.about ?? '');
 
-  const dirty = name !== user.name || homeZip !== (user.homeZip ?? '') || about !== (user.about ?? '');
+  const dirty = name !== user.name || homeZip !== (user.homeZip ?? '');
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (update.isPending) return;
     update.mutate(
-      { name, homeZip, about },
+      { name, homeZip },
       {
         // The server trims what it stores; show exactly that.
         onSuccess: ({ user: saved }) => {
           setName(saved.name);
           setHomeZip(saved.homeZip ?? '');
-          setAbout(saved.about ?? '');
         },
       }
     );
   };
 
   return (
-    <PageSection title="Profile" description="Companies see your name, email and ZIP code when you apply.">
+    <PageSection title="Account" description="Name, email and ZIP code are shown to a company on application.">
       <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4 p-4 sm:p-6')}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_160px]">
           <Field label="Name" htmlFor="profile-name">
@@ -127,28 +133,17 @@ function ProfileSection({ user }: { user: AccountUser }) {
               inputMode="numeric"
               autoComplete="postal-code"
               maxLength={10}
-              placeholder="78701"
               value={homeZip}
               onChange={(e) => setHomeZip(e.target.value)}
               className={fieldClass}
             />
           </Field>
         </div>
-        <Field label="About" htmlFor="profile-about" optional hint="A few lines on what you do and what you are looking for.">
-          <textarea
-            id="profile-about"
-            rows={4}
-            maxLength={2000}
-            value={about}
-            onChange={(e) => setAbout(e.target.value)}
-            className={cn(fieldClass, 'resize-y')}
-          />
-        </Field>
         <ErrorNote error={update.error} />
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={!dirty || update.isPending} className="h-10 rounded-lg">
             {update.isPending && <Loader2 className="animate-spin" />}
-            Save profile
+            Save
           </Button>
           {update.isSuccess && !dirty && (
             <span role="status" className="inline-flex items-center gap-1.5 text-sm text-emerald-400">
@@ -163,7 +158,7 @@ function ProfileSection({ user }: { user: AccountUser }) {
 }
 
 // ---------------------------------------------------------------------------
-// Careers I'm aiming at
+// Careers
 // ---------------------------------------------------------------------------
 
 function GoalsSection() {
@@ -172,18 +167,17 @@ function GoalsSection() {
   const CareerIcon = ENTITY.career.icon;
 
   return (
-    <PageSection title="Careers I'm aiming at" description="How many of each career's skills you already hold.">
+    <PageSection title="Careers" description="Skills held toward each selected career.">
       {goals.isPending ? (
         <RowsSkeleton rows={2} />
       ) : goals.isError ? (
         <LoadError error={goals.error} onRetry={() => void goals.refetch()} retrying={goals.isFetching} />
       ) : goals.data.length === 0 ? (
         <CardNote>
-          You are not aiming at a career yet.{' '}
+          None selected.{' '}
           <Link to="/explore?tab=occupations" className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
             Browse careers
-          </Link>{' '}
-          and pick one to see which skills it takes.
+          </Link>
         </CardNote>
       ) : (
         <ul className={cardClass}>
@@ -204,14 +198,14 @@ function GoalsSection() {
                   {goal.totalSkills > 0 ? (
                     <HeldMeter held={goal.heldSkills} total={goal.totalSkills} noun="skills held" className="mt-1" />
                   ) : (
-                    <p className="mt-1 text-sm text-fg-muted">No skills are listed for this career yet.</p>
+                    <p className="mt-1 text-sm text-fg-muted">No skills on record.</p>
                   )}
                 </div>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  aria-label={`Stop aiming at ${goal.title}`}
+                  aria-label={`Remove ${goal.title}`}
                   title="Remove"
                   disabled={removing}
                   onClick={() => removeGoal.mutate(goal.occupationId)}
@@ -248,11 +242,11 @@ function SkillsSection() {
 
   return (
     <PageSection
-      title="My skills"
+      title="Skills"
       description={
         skills.data && skills.data.length > 0
-          ? `${heldCount} held, ${skills.data.length - heldCount} learning. Skills are self-reported.`
-          : 'Skills you hold or are learning. They are self-reported.'
+          ? `${heldCount} held, ${skills.data.length - heldCount} learning.`
+          : 'Held or learning.'
       }
     >
       <SkillSearch mySkills={skills.data ?? []} onAdd={change} pendingId={pendingId} disabled={skills.isPending} />
@@ -263,7 +257,7 @@ function SkillsSection() {
         ) : skills.isError ? (
           <LoadError error={skills.error} onRetry={() => void skills.refetch()} retrying={skills.isFetching} />
         ) : skills.data.length === 0 ? (
-          <CardNote>No skills yet. Search above to add the ones you hold or are learning.</CardNote>
+          <CardNote>None added.</CardNote>
         ) : (
           <ul className={cardClass}>
             {skills.data.map((skill) => (
@@ -351,7 +345,7 @@ function SkillSearch({ mySkills, onAdd, pendingId, disabled }: SkillSearchProps)
           role="searchbox"
           enterKeyHint="search"
           aria-label="Search skills to add"
-          placeholder="Add a skill, e.g. welding"
+          placeholder="Add a skill"
           autoComplete="off"
           value={term}
           disabled={disabled}
@@ -444,16 +438,16 @@ function SkillSearch({ mySkills, onAdd, pendingId, disabled }: SkillSearchProps)
 function ApplicationsSection() {
   const applications = useMyApplications();
   return (
-    <PageSection title="My applications" description="Where each one stands with the company.">
+    <PageSection title="Applications">
       {applications.isPending ? (
         <RowsSkeleton rows={2} />
       ) : applications.isError ? (
         <LoadError error={applications.error} onRetry={() => void applications.refetch()} retrying={applications.isFetching} />
       ) : applications.data.length === 0 ? (
         <CardNote>
-          You have not applied to a job yet.{' '}
+          None.{' '}
           <Link to="/jobs" className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
-            See open jobs
+            Open jobs
           </Link>
         </CardNote>
       ) : (

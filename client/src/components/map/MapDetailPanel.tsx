@@ -132,14 +132,14 @@ interface MapDetailPanelProps {
   isMobile?: boolean;
 }
 
-// Entity icon and color configuration
+// Entity icons and labels. One quiet treatment for every type on the map's panel.
 const entityConfig: Record<MapEntityType, { icon: typeof Factory; color: string; bgColor: string; label: string }> = {
-  factory: { icon: Factory, color: 'text-sky-400', bgColor: 'bg-sky-400/10', label: 'Factory' },
-  company: { icon: Building2, color: 'text-amber-500', bgColor: 'bg-amber-500/10', label: 'Company' },
-  occupation: { icon: Briefcase, color: 'text-violet-400', bgColor: 'bg-violet-400/10', label: 'Career' },
-  skill: { icon: Wrench, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10', label: 'Skill' },
-  state: { icon: MapPin, color: 'text-slate-300', bgColor: 'bg-slate-500/10', label: 'State' },
-  area: { icon: MapPinned, color: 'text-sky-200', bgColor: 'bg-sky-300/10', label: 'Focus area' },
+  factory: { icon: Factory, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'Factory' },
+  company: { icon: Building2, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'Company' },
+  occupation: { icon: Briefcase, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'Career' },
+  skill: { icon: Wrench, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'Skill' },
+  state: { icon: MapPin, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'State' },
+  area: { icon: MapPinned, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'Focus area' },
 };
 
 // Connected node link component
@@ -379,25 +379,26 @@ function CompanyView({ company }: { company: CompanyDetail }) {
             {company.factories?.length || 0}
           </div>
         </div>
-        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
-          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
-            <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="text-[10px] md:text-xs">Total Workforce</span>
+        {totalWorkforce > 0 && (
+          <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
+            <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
+              <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="text-[10px] md:text-xs">Workforce</span>
+            </div>
+            <div className="text-xl md:text-2xl font-semibold text-fg-default">
+              {totalWorkforce.toLocaleString()}
+            </div>
           </div>
-          <div className="text-xl md:text-2xl font-semibold text-fg-default">
-            {totalWorkforce.toLocaleString()}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Show All Factories Button */}
       {company.factories && company.factories.length > 0 && (
         <button
           onClick={showAllFactories}
-          className="w-full mb-6 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-sky-400/10 border border-sky-400/20 text-sky-400 hover:bg-sky-400/20 transition-colors"
+          className="w-full mb-6 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border-strong text-sm font-medium text-fg-default hover:bg-bg-elevated transition-colors"
         >
-          <Factory className="w-4 h-4" />
-          Locate All Factories
+          Show all on map
         </button>
       )}
 
@@ -436,7 +437,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
             {company.industries.map((ind) => (
               <span
                 key={ind.id}
-                className="px-2 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                className="px-2 py-1 text-xs rounded-full border border-border-strong text-fg-muted"
               >
                 {ind.name}
               </span>
@@ -630,7 +631,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
               <button
                 key={s.id}
                 onClick={() => useMapStore.getState().selectEntity('skill', s.id)}
-                className="px-2 py-1 text-xs rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                className="px-2 py-1 text-xs rounded-full border border-border-strong text-fg-muted hover:bg-bg-elevated hover:text-fg-default transition-colors"
               >
                 {s.name}
               </button>
@@ -769,8 +770,8 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
               <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           )}
-          <div className={`p-1.5 md:p-2 rounded-lg flex-shrink-0 ${config?.bgColor || 'bg-sky-400/10'}`}>
-            <Icon className={`w-4 h-4 md:w-5 md:h-5 ${config?.color || 'text-sky-400'}`} />
+          <div className={`p-1.5 md:p-2 rounded-lg flex-shrink-0 ${config?.bgColor || 'bg-bg-elevated'}`}>
+            <Icon className={`w-4 h-4 md:w-5 md:h-5 ${config?.color || 'text-fg-muted'}`} />
           </div>
           <span className="px-2 py-0.5 text-[10px] md:text-xs font-medium rounded-full bg-white/5 border border-white/10 text-fg-muted truncate">
             {config?.label || 'Entity'}
@@ -810,7 +811,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
             <p className="text-fg-muted">Failed to load details</p>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="mt-4 text-sm text-sky-400 hover:underline"
+              className="mt-4 text-sm text-fg-default underline underline-offset-4 hover:no-underline"
             >
               Close panel
             </button>

@@ -116,7 +116,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
         aria-autocomplete="list"
         aria-activedescendant={showList && options[activeIndex] ? `${listId}-${activeIndex}` : undefined}
         autoComplete="off"
-        placeholder="Search careers, e.g. machinist"
+        placeholder="Search careers"
         disabled={disabled}
         value={term}
         onChange={(e) => {

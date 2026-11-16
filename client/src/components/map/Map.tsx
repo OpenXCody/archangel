@@ -51,10 +51,6 @@ const STATES_GEOJSON_URL = '/data/us-states.geojson';
 /** Below this zoom a state reads as a shape and can be hovered and selected. */
 const STATE_SELECT_MAX_ZOOM = 6.5;
 
-/** A focus area's label is shown while the area is narrower than this on screen. */
-const AREA_LABEL_MAX_PX = 150;
-/** Space between a focus area's edge and its label, normally; the label's stem spans it. */
-const AREA_LABEL_GAP_PX = 9;
 
 /** How far from a pin a pointer still counts as on it: a mouse is exact, a finger is not. */
 function hitTolerancePx(): number {
@@ -572,75 +568,6 @@ export default function Map() {
       setStateShadingDimmed(map.current, companyFiltered);
     } catch { /* the layers failed to add */ }
   }, [companyFiltered, mapLoaded]);
-
-  // A label on each focus area. At country zoom an area is a speck, so the
-  // label is what a visitor sees and clicks; once the area is big enough to
-  // read on its own, the label steps aside. These are plain DOM elements that
-  // MapLibre positions itself: no React work while the map moves.
-  useEffect(() => {
-    const m = map.current;
-    if (!m || !mapLoaded) return;
-    const labels = FOCUS_AREAS.map((area) => {
-      const [[west, south], [east, north]] = area.bounds;
-      const el = document.createElement('button');
-      el.type = 'button';
-      el.className = 'map-overlay map-area-label';
-      el.textContent = area.name;
-      el.setAttribute('aria-label', `Go to the ${area.name} focus area`);
-      el.addEventListener('click', (event) => {
-        event.stopPropagation(); // not also a click on the map beneath
-        useMapStore.getState().selectArea(area.id);
-      });
-      const marker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([0, 0]).addTo(m);
-      return { el, marker, west, east, north, south };
-    });
-    type Label = (typeof labels)[number];
-
-    // Where a tag can sit: beside the middle of one edge of the area's box,
-    // a stem's length away. Sides in order of preference; the longer stem is
-    // for when a cluster sits on the area itself and every near spot is taken.
-    const sides = ['above', 'below', 'left', 'right'] as const;
-    const stems = [AREA_LABEL_GAP_PX, AREA_LABEL_GAP_PX * 3];
-    type Side = (typeof sides)[number];
-    interface Spot { side: Side; stem: number }
-    const spots: Spot[] = stems.flatMap((stem) => sides.map((side) => ({ side, stem })));
-
-    const position = (label: Label, { side, stem }: Spot): { lngLat: [number, number]; offset: [number, number] } => {
-      const lng = (label.west + label.east) / 2;
-      const lat = (label.south + label.north) / 2;
-      const dx = label.el.offsetWidth / 2 + stem;
-      const dy = label.el.offsetHeight / 2 + stem;
-      switch (side) {
-        case 'above': return { lngLat: [lng, label.north], offset: [0, -dy] };
-        case 'below': return { lngLat: [lng, label.south], offset: [0, dy] };
-        case 'left': return { lngLat: [label.west, lat], offset: [-dx, 0] };
-        case 'right': return { lngLat: [label.east, lat], offset: [dx, 0] };
-      }
-    };
-    const place = (label: Label, spot: Spot) => {
-      const { lngLat, offset } = position(label, spot);
-      label.marker.setLngLat(lngLat).setOffset(offset);
-      // The stem is drawn in CSS (globals.css) from these two.
-      label.el.dataset.side = spot.side;
-      label.el.style.setProperty('--stem', `${spot.stem}px`);
-    };
-
-    // Hide the tag once the area is wide enough on screen to read by itself.
-    const syncVisibility = () => {
-      for (const label of labels) {
-        const widthPx = m.project([label.east, label.north]).x - m.project([label.west, label.north]).x;
-        label.el.classList.toggle('is-hidden', widthPx > AREA_LABEL_MAX_PX);
-      }
-    };
-
-    for (const label of labels) place(label, spots[0]);
-    syncVisibility();
-    m.on('zoom', syncVisibility);
-    return () => {
-      m.off('zoom', syncVisibility);
-      for (const { marker } of labels) marker.remove();
-    };
-  }, [mapLoaded]);
 
   // Carry out camera requests posted to the store. Waits for the map, and a
   // state waits for its shape: a request made early is applied as soon as it

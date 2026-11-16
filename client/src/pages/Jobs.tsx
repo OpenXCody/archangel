@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { STATE_CODE_TO_NAME, type StateCode } from '@shared/states';
 import { occupationsApi } from '../lib/api';
 import { useJobs, type JobSummary } from '../lib/account';
 import { employmentLabel, formatAgo, formatPay, formatPlace } from '../lib/jobFormat';
@@ -13,18 +14,22 @@ import { ENTITY, LoadError, cardClass, fieldClass, outlineButtonClass, useDeboun
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
 
 const ALL_CAREERS = 'all';
+const ANYWHERE = 'anywhere';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Open jobs, newest first. The search text and the career filter live in the
- * URL (`?q=` and `?career=`), so a filtered list can be linked to and Back
- * returns to it.
+ * Open jobs, newest first. The search text and the filters live in the URL
+ * (`?q=`, `?state=`, `?career=`), so a filtered list can be linked to and Back
+ * returns to it. The places and careers on offer come from the jobs that are
+ * open: nothing here names a place of its own.
  */
 export default function Jobs() {
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q')?.trim() ?? '';
   const careerParam = searchParams.get('career') ?? '';
   const career = UUID_RE.test(careerParam) ? careerParam : '';
+  const stateParam = (searchParams.get('state') ?? '').toUpperCase();
+  const state = /^[A-Z]{2}$/.test(stateParam) ? stateParam : '';
 
   const [term, setTerm] = useState(q);
   const debouncedTerm = useDebouncedValue(term.trim(), 300);
@@ -49,10 +54,10 @@ export default function Jobs() {
     setTerm(q);
   }, [q]);
 
-  const setCareer = (value: string) => {
+  const setFilter = (name: 'career' | 'state', value: string, none: string) => {
     const params = new URLSearchParams(searchParams);
-    if (value && value !== ALL_CAREERS) params.set('career', value);
-    else params.delete('career');
+    if (value && value !== none) params.set(name, value);
+    else params.delete(name);
     setSearchParams(params, { replace: true });
   };
 
@@ -61,7 +66,7 @@ export default function Jobs() {
     setSearchParams(new URLSearchParams(), { replace: true });
   };
 
-  const jobs = useJobs({ q: q || undefined, occupationId: career || undefined });
+  const jobs = useJobs({ q: q || undefined, state: state || undefined, occupationId: career || undefined });
   // Every open job, unfiltered: the careers on offer come from this.
   const allJobs = useJobs({});
 
@@ -75,6 +80,18 @@ export default function Jobs() {
     return [...byId.values()].sort((a, b) => a.title.localeCompare(b.title));
   }, [allJobs.data]);
 
+  // Where the open jobs are, by state.
+  const stateOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const job of allJobs.data ?? []) {
+      if (job.state) counts.set(job.state, (counts.get(job.state) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([code, count]) => ({ code, count, name: STATE_CODE_TO_NAME[code as StateCode] ?? code }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [allJobs.data]);
+  const stateListed = stateOptions.some((option) => option.code === state);
+
   // A career linked to from elsewhere may have no open jobs; still name it in the filter.
   const careerListed = careerOptions.some((option) => option.id === career);
   const linkedCareer = useQuery({
@@ -84,7 +101,7 @@ export default function Jobs() {
     staleTime: 5 * 60_000,
   });
 
-  const filtered = Boolean(q || career);
+  const filtered = Boolean(q || career || state);
   const count = jobs.data?.length ?? 0;
 
   return (
@@ -92,11 +109,11 @@ export default function Jobs() {
       <PageHeader
         icon={BriefcaseBusiness}
         title="Jobs"
-        description="Open jobs at Texas factories. Each one is tied to a career and the skills it takes."
+        description="Open positions. Each is tied to a career and its skills."
       />
 
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_260px]">
-        <div className="relative min-w-0">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_200px_260px]">
+        <div className="relative min-w-0 sm:col-span-2 lg:col-span-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
           <input
             type="text"
@@ -120,7 +137,28 @@ export default function Jobs() {
             </button>
           )}
         </div>
-        <Select value={career || ALL_CAREERS} onValueChange={setCareer}>
+        <Select value={state || ANYWHERE} onValueChange={(value) => setFilter('state', value, ANYWHERE)}>
+          <SelectTrigger
+            aria-label="Filter by location"
+            className="h-11 min-w-0 rounded-lg border-border-strong bg-bg-surface px-3 text-base text-fg-default shadow-none sm:text-sm"
+          >
+            <SelectValue placeholder="Anywhere" />
+          </SelectTrigger>
+          <SelectContent className="max-w-[calc(100vw-2rem)] rounded-lg border-border-strong bg-bg-surface">
+            <SelectItem value={ANYWHERE} className="py-2.5">Anywhere</SelectItem>
+            {state && !stateListed && (
+              <SelectItem value={state} className="py-2.5">
+                {STATE_CODE_TO_NAME[state as StateCode] ?? state}
+              </SelectItem>
+            )}
+            {stateOptions.map((option) => (
+              <SelectItem key={option.code} value={option.code} className="py-2.5">
+                {option.name} ({option.count})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={career || ALL_CAREERS} onValueChange={(value) => setFilter('career', value, ALL_CAREERS)}>
           <SelectTrigger
             aria-label="Filter by career"
             className="h-11 min-w-0 rounded-lg border-border-strong bg-bg-surface px-3 text-base text-fg-default shadow-none sm:text-sm"
@@ -152,7 +190,7 @@ export default function Jobs() {
           <EmptyState
             icon={SearchX}
             title="No jobs match"
-            description="Nothing open fits that search right now. Try a different title, or look at every career."
+            description="No open job fits these filters."
             action={
               <Button type="button" variant="outline" onClick={clearFilters} className={cn('h-10', outlineButtonClass)}>
                 Clear filters
@@ -162,8 +200,8 @@ export default function Jobs() {
         ) : (
           <EmptyState
             icon={BriefcaseBusiness}
-            title="No open jobs yet"
-            description="When a Texas factory posts a job it shows up here. Hiring for one? Post it from the employer page."
+            title="No open jobs"
+            description="Jobs posted by employers appear here."
             action={
               <div className="flex flex-wrap justify-center gap-2">
                 <Button asChild className="h-10 rounded-lg">
