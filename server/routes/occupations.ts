@@ -133,6 +133,35 @@ router.get('/:id', async (req: Request, res: Response) => {
       .where(eq(occupationSkills.occupationId, id))
       .orderBy(sql`${occupationSkills.stage} ASC NULLS LAST`, skills.name);
 
+    // Industries where this work is typically done, with how many in-scope
+    // factories each has and the states with the most of them.
+    const industriesResult = Array.from(
+      (await db.execute(sql`
+        SELECT io.industry, io.common, COUNT(f.id)::int AS factory_count
+        FROM industry_occupations io
+        LEFT JOIN factories f ON f.primary_naics_description = io.industry AND ${factoryInScope('f')}
+        WHERE io.occupation_id = ${id}
+        GROUP BY io.industry, io.common, io.rank
+        ORDER BY io.common ASC, factory_count DESC, io.industry ASC
+      `)) as Iterable<Record<string, unknown>>
+    ).map((r) => ({ name: String(r.industry), common: Boolean(r.common), factoryCount: Number(r.factory_count) || 0 }));
+    // A career found everywhere is not pinned to industries; one that is, lists them.
+    const ownIndustries = industriesResult.filter((i) => !i.common);
+    const everywhere = ownIndustries.length === 0 && industriesResult.length > 0;
+    // Listed for some industries and present in all the others too.
+    const elsewhereToo = ownIndustries.length > 0 && industriesResult.some((i) => i.common);
+    const topStates = everywhere || ownIndustries.length === 0
+      ? []
+      : Array.from(
+          (await db.execute(sql`
+            SELECT f.state AS code, COUNT(*)::int AS factory_count
+            FROM factories f
+            INNER JOIN industry_occupations io ON io.industry = f.primary_naics_description
+            WHERE io.occupation_id = ${id} AND io.common = false AND ${factoryInScope('f')} AND f.state ~ '^[A-Z]{2}$'
+            GROUP BY f.state ORDER BY factory_count DESC, f.state ASC LIMIT 6
+          `)) as Iterable<Record<string, unknown>>
+        ).map((r) => ({ code: String(r.code), factoryCount: Number(r.factory_count) || 0 }));
+
     // Get in-scope factories hiring this role with headcount (include coordinates for map fly-to)
     const factoriesResult = await db
       .select({
@@ -159,6 +188,12 @@ router.get('/:id', async (req: Request, res: Response) => {
       skills: occupationSkillsResult,
       factories: factoriesResult,
       jobs: jobsResult,
+      // Where the work is done, by industry. `everywhere` means the career is
+      // found in plants of every industry rather than a few.
+      industries: ownIndustries.map(({ name, factoryCount }) => ({ name, factoryCount })),
+      everywhere,
+      elsewhereToo,
+      topStates,
     });
   } catch (error) {
     console.error('Error fetching occupation:', error);

@@ -1156,3 +1156,25 @@ export const passwordResets = pgTable(
     userIdx: index('password_resets_user_idx').on(table.userId),
   })
 );
+
+// Careers typical of an industry (a NAICS manufacturing subsector, named as
+// factories.primary_naics_description names it). Curated in
+// data/careers/industries.json. It says what kind of work an industry has; it
+// does not say that a given plant employs it (factory_occupations says that).
+export const industryOccupations = pgTable(
+  'industry_occupations',
+  {
+    industry: text('industry').notNull(),
+    occupationId: uuid('occupation_id')
+      .notNull()
+      .references(() => occupations.id, { onDelete: 'cascade' }),
+    // Order within the industry: its own careers first, then those found everywhere.
+    rank: integer('rank').notNull(),
+    // True for careers found in plants of every industry (maintenance, controls, quality).
+    common: boolean('common').default(false).notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.industry, table.occupationId] }),
+    occupationIdx: index('industry_occupations_occupation_idx').on(table.occupationId),
+  })
+);

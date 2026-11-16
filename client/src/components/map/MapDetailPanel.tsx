@@ -34,6 +34,8 @@ import {
 } from '../../lib/api';
 import { useMapStore, type MapEntityType } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
+
+const STATE_NAMES: Record<string, string> = Object.fromEntries(US_STATES.map((s) => [s.code, s.name]));
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../CompanyLogo';
 import { formatPay } from '../../lib/jobFormat';
@@ -79,6 +81,17 @@ function RegionOverviewBody({ data }: { data: RegionOverview }) {
                   <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />
                 </span>
               </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data.careers && data.careers.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">Careers here</h3>
+          <div className="space-y-2">
+            {data.careers.slice(0, 6).map((career) => (
+              <ConnectedNode key={career.id} type="occupation" id={career.id} name={career.title} />
             ))}
           </div>
         </div>
@@ -359,6 +372,18 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
         </div>
       )}
 
+      {/* With none recorded for the site, the careers typical of its industry. */}
+      {(!factory.occupations || factory.occupations.length === 0) && factory.typicalCareers && factory.typicalCareers.length > 0 && (
+        <div className="mb-6">
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">Careers in this industry</h3>
+          <div className="space-y-2">
+            {factory.typicalCareers.slice(0, 6).map((career) => (
+              <ConnectedNode key={career.id} type="occupation" id={career.id} name={career.title} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Careers recorded at this site */}
       {factory.occupations && factory.occupations.length > 0 && (
         <div className="mb-6">
@@ -533,43 +558,67 @@ function CompanyView({ company }: { company: CompanyDetail }) {
 
 // Occupation View Component
 function OccupationView({ occupation }: { occupation: OccupationDetail }) {
+  const selectState = useMapStore((s) => s.selectState);
+  const skills = occupation.skills ?? [];
+  const stages = [1, 2, 3].map((stage) => skills.filter((skill) => skill.stage === stage).length);
+  const staged = stages.some((n) => n > 0);
+  const industries = occupation.industries ?? [];
+  const states = occupation.topStates ?? [];
   return (
     <>
-      {/* Occupation Title */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-fg-default mb-1">{occupation.title}</h2>
-        {occupation.onetCode && (
-          <p className="text-sm text-fg-muted font-mono">O*NET: {occupation.onetCode}</p>
+        {occupation.description && <p className="text-sm text-fg-muted">{occupation.description}</p>}
+        {skills.length > 0 && (
+          <p className="mt-2 text-xs tabular-nums text-fg-soft">
+            {skills.length} {skills.length === 1 ? 'skill' : 'skills'}
+            {staged && ` · Introduction ${stages[0]} · Fundamentals ${stages[1]} · Advanced ${stages[2]}`}
+          </p>
         )}
       </div>
 
-      {/* Stats Grid - mobile-optimized */}
-      <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
-          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
-            <Factory className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="text-[10px] md:text-xs">Factories</span>
-          </div>
-          <div className="text-xl md:text-2xl font-semibold text-fg-default">
-            {occupation.factories?.length || 0}
-          </div>
+      {/* Where the work is done: by industry, since few plants list their careers. */}
+      {(industries.length > 0 || occupation.everywhere) && (
+        <div className="mb-6">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">Where this work is done</h3>
+          {occupation.everywhere ? (
+            <p className="text-sm text-fg-muted">Plants of every industry.</p>
+          ) : (
+            <div className="space-y-1">
+              {industries.map((industry) => (
+                <div key={industry.name} className="flex items-baseline justify-between gap-3 py-1 text-sm">
+                  <span className="min-w-0 text-fg-default">{industry.name.replace(/ Manufacturing$/, '')}</span>
+                  <span className="shrink-0 text-xs tabular-nums text-fg-muted">
+                    {industry.factoryCount.toLocaleString()} {industry.factoryCount === 1 ? 'plant' : 'plants'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          {occupation.elsewhereToo && <p className="mt-1 text-xs text-fg-soft">And plants of every other industry.</p>}
+          {states.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {states.map((state) => (
+                <button
+                  key={state.code}
+                  type="button"
+                  onClick={() => selectState(state.code)}
+                  title={`${state.factoryCount.toLocaleString()} plants in these industries`}
+                  className="rounded-md border border-border-strong px-2 py-1 text-xs font-medium text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default"
+                >
+                  {STATE_NAMES[state.code] ?? state.code}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
-          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
-            <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="text-[10px] md:text-xs">Skills</span>
-          </div>
-          <div className="text-xl md:text-2xl font-semibold text-fg-default">
-            {occupation.skills?.length || 0}
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Skills */}
       {occupation.skills && occupation.skills.length > 0 && (
         <div className="mb-6">
           <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
-            Required Skills
+            Skills
           </h3>
           <div className="space-y-2">
             {occupation.skills.slice(0, 5).map((skill) => (
@@ -594,7 +643,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
       {occupation.factories && occupation.factories.length > 0 && (
         <div className="mb-6">
           <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
-            Hiring Factories
+            Plants with this career
           </h3>
           <div className="space-y-2">
             {occupation.factories.slice(0, 3).map((factory) => (
