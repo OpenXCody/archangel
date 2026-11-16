@@ -74,6 +74,11 @@ router.get('/', async (req: Request, res: Response) => {
         pathStatus: occupations.pathStatus,
         createdAt: occupations.createdAt,
         skillCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.occupation_id = occupations.id)`,
+        // Skills at each stage of the path; null when the career has no staged skills.
+        stageCounts: sql<[number, number, number] | null>`(
+          SELECT CASE WHEN COUNT(*) FILTER (WHERE os.stage IN (1, 2, 3)) = 0 THEN NULL ELSE json_build_array(
+            COUNT(*) FILTER (WHERE os.stage = 1), COUNT(*) FILTER (WHERE os.stage = 2), COUNT(*) FILTER (WHERE os.stage = 3)) END
+          FROM occupation_skills os WHERE os.occupation_id = occupations.id)`,
         factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factory_occupations fo INNER JOIN factories f ON f.id = fo.factory_id WHERE fo.occupation_id = occupations.id AND ${factoryInScope('f')})`,
       })
       .from(occupations)

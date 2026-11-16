@@ -37,7 +37,8 @@ function AdminTools({ me }: { me: AccountUser }) {
     const params = new URLSearchParams(searchParams);
     if (value === 'people') params.delete('tab');
     else params.set('tab', value);
-    setSearchParams(params, { replace: true });
+    // A tab is a place: Back returns to the one before.
+    setSearchParams(params);
   };
 
   return (

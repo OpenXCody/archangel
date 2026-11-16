@@ -13,7 +13,6 @@ Archangel is a workforce map of US manufacturing, filled out in depth one focus 
 - **Backend**: Express.js, TypeScript, Drizzle ORM
 - **Database**: PostgreSQL + PostGIS (Neon)
 - **Maps**: MapLibre GL JS + MapTiler (free tier)
-- **Mobile**: Capacitor (iOS/Android wrapper)
 
 ## Theme and colour
 
@@ -96,11 +95,13 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 
 **Public:** `/map` (opens on the US; `?area=austin`, `?state=TX`), `/explore`, `/jobs`, `/jobs/:id`, `/companies/:id` (id or slug: `/companies/tesla`), `/factories/:id`, `/occupations/:id` (career page with path), `/skills/:id`, `/refs/:id`, `/schools/:id`, `/programs/:id`, `/sign-in`
 
+`/explore` opens on an overview (`components/explorer/ExploreOverview.tsx`: featured employers, careers with a path, the most connected skills, places); the lists of everything are behind it at `?tab=companies|factories|occupations|skills|refs|schools|programs`, filtered and sorted from the address (`state`, `industry`, `category`, `sort`).
+
 **Signed in:** `/me` (seeker), `/employer` (company members), `/admin` (Admin Tools, admins; `?tab=people|access|invites|data`), `/import`, `/import/bulk` (admins; linked from Admin Tools, not the nav)
 
 ## API Endpoints
 
-- Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search`, `/api/map/*`, `/api/stats/counts`, `/api/jobs`, `/api/jobs/:id`
+- Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search`, `/api/map/*`, `/api/stats/counts`, `/api/explore/overview` (everything the Explore overview shows, in one response), `/api/explore/facets` (the industries and skill categories the browse lists filter by), `/api/jobs`, `/api/jobs/:id`
 - `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, claim-admin, `invite/:token` (what an invite grants; 404 when unknown, used or expired)
 - `/api/me/*` profile, skills, goals, applications
 - `/api/jobs` POST/PATCH (company members), `/:id/apply`, `/:id/applications` (ranked), `/applications/:id`
@@ -140,7 +141,10 @@ The rule of thumb: it should look like software Tesla would ship on a vehicle sc
 - Colours come from theme tokens only (see "Theme and colour")
 - New pages compose `PageContainer` / `PageHeader` / `PageSection` / `EmptyState` from `components/layout/Page.tsx`; primitives come from `components/ui/` (shadcn)
 - Grids must set a mobile base (`grid-cols-1`) before breakpoint columns, and truncated children need `min-w-0`
-- Env: MapTiler key is `VITE_MAP_TOKEN`; writes need `ADMIN_SECRET`
+- Env: MapTiler key is `VITE_MAP_TOKEN`. Data writes need a signed-in admin (or the `x-admin-secret` header when `ADMIN_SECRET` is set). `ALLOW_OPEN_WRITES=1` opens them on a non-production machine with no secret set; nothing else does
+- No service worker. The manifest is a static file (`client/public/manifest.webmanifest`); cache lifetimes are in `vercel.json`. The font (Oxanium) is bundled, not fetched from a third party
+- List routes read `limit`/`offset` through `server/lib/paging.ts`; record writes validate through `server/lib/writes.ts`
+- A new dependency is proven with a clean install (`npm ci` in a fresh copy, then `npm run build`), not with the packages already on disk: Vercel installs from the lockfile only
 - Server/api relative imports MUST end in `.js` (`from './routes/map.js'`, `from '../db/index.js'`): the function runs as Node ESM on Vercel. `npm run lint` enforces it
 
 ## Common Commands
@@ -149,7 +153,7 @@ The rule of thumb: it should look like software Tesla would ship on a vehicle sc
 npm run dev          # Start dev server
 npm run build        # Production build
 npm run db:migrate   # Run migrations
-npm run db:seed      # Seed test data
+npm run db:seed -- --yes-wipe   # Sample data. EMPTIES the tables first; refuses any database not on localhost
 npm run test:ui      # Playwright responsive suite (7 device profiles)
 npm run lint         # ESLint (no `any`)
 ```
