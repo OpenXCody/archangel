@@ -17,6 +17,7 @@ import {
 } from '../../lib/api';
 import { useMapStore, type MapEntityType } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
+import { SCOPE } from '@shared/scope';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 
 // Map-relevant entity types (refs, schools, programs are not map-related)
@@ -32,13 +33,13 @@ const searchToMapType: Record<Exclude<MapSearchableEntityType, 'states'>, MapEnt
 
 const ENTITY_CONFIG: Record<
   MapSearchableEntityType,
-  { icon: React.ElementType; label: string; iconClass: string }
+  { icon: React.ElementType; label: string; heading: string; iconClass: string }
 > = {
-  companies: { icon: Building2, label: 'Company', iconClass: 'text-amber-500' },
-  factories: { icon: Factory, label: 'Factory', iconClass: 'text-sky-400' },
-  occupations: { icon: Briefcase, label: 'Occupation', iconClass: 'text-blue-800' },
-  skills: { icon: Wrench, label: 'Skill', iconClass: 'text-emerald-500' },
-  states: { icon: MapPin, label: 'State', iconClass: 'text-indigo-500' },
+  companies: { icon: Building2, label: 'Company', heading: 'Companies', iconClass: 'text-amber-500' },
+  factories: { icon: Factory, label: 'Factory', heading: 'Factories', iconClass: 'text-sky-400' },
+  occupations: { icon: Briefcase, label: 'Career', heading: 'Careers', iconClass: 'text-violet-400' },
+  skills: { icon: Wrench, label: 'Skill', heading: 'Skills', iconClass: 'text-emerald-500' },
+  states: { icon: MapPin, label: 'State', heading: 'States', iconClass: 'text-indigo-500' },
 };
 
 export default function MapSearch() {
@@ -59,11 +60,11 @@ export default function MapSearch() {
 
   // Filter states based on search query
   const filteredStates = useMemo(() => {
-    if (!stateQuery.trim()) return US_STATES;
-    const q = stateQuery.toLowerCase();
-    return US_STATES.filter(
-      s => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)
-    );
+    // Only the covered region can be filtered on; the API returns nothing else.
+    const inScope = US_STATES.filter((s) => s.code === SCOPE.stateCode);
+    if (!stateQuery.trim()) return inScope;
+    const q = stateQuery.trim().toLowerCase();
+    return inScope.filter((s) => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q));
   }, [stateQuery]);
 
   // Debounce query
@@ -96,7 +97,7 @@ export default function MapSearch() {
       if (item.type === 'states') {
         // For states, add to the states filter
         const currentStates = filters.states;
-        if (!currentStates.includes(item.id)) {
+        if (item.id === SCOPE.stateCode && !currentStates.includes(item.id)) {
           setFilters({ states: [...currentStates, item.id] });
         }
         setQuery('');
@@ -207,7 +208,7 @@ export default function MapSearch() {
   };
 
   return (
-    <div className="absolute top-4 left-4 right-4 z-40 sm:right-auto sm:w-[22rem] md:w-[26rem]" ref={dropdownRef}>
+    <div className="absolute top-4 left-4 right-4 z-40 sm:right-auto sm:w-[360px]" ref={dropdownRef}>
       {/* Search container */}
       <div
         className={`
@@ -217,7 +218,6 @@ export default function MapSearch() {
           ${showDropdown ? 'rounded-2xl' : 'rounded-xl'}
           ${isFocused ? 'ring-1 ring-sky-400/50' : ''}
         `}
-        style={{ width: '360px' }}
       >
         {/* Search input row */}
         <div className="flex items-center gap-3 px-4 py-3">
@@ -236,7 +236,7 @@ export default function MapSearch() {
             }}
             placeholder="Search factories, companies, skills..."
             className="
-              flex-1 bg-transparent text-fg-default
+              flex-1 min-w-0 text-ellipsis bg-transparent text-fg-default
               placeholder:text-fg-soft
               text-sm
             "
@@ -434,7 +434,7 @@ export default function MapSearch() {
                   return (
                     <div key={type} className="px-3 py-2">
                       <h4 className="text-[10px] font-medium text-fg-soft uppercase tracking-wider mb-1.5 px-1">
-                        {type}
+                        {config.heading}
                       </h4>
                       <div className="space-y-0.5">
                         {items.map((item) => {

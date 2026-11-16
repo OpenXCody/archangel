@@ -41,7 +41,7 @@ const ENTITY_CONFIG: Record<
   },
   occupations: {
     icon: Briefcase,
-    label: 'Occupation',
+    label: 'Career',
     iconClass: 'text-violet-400',
     path: '/occupations',
   },
@@ -80,9 +80,12 @@ const ENTITY_CONFIG: Record<
 const QUICK_LINKS = [
   { type: 'companies' as const, label: 'Browse all companies', path: '/explore?tab=companies' },
   { type: 'factories' as const, label: 'Browse all factories', path: '/explore?tab=factories' },
-  { type: 'occupations' as const, label: 'Browse all occupations', path: '/explore?tab=occupations' },
+  { type: 'occupations' as const, label: 'Browse all careers', path: '/explore?tab=occupations' },
   { type: 'skills' as const, label: 'Browse all skills', path: '/explore?tab=skills' },
 ];
+
+/** Name shown for a result group. The data type stays "occupations"; people read "careers". */
+const groupName = (type: SearchEntityType): string => (type === 'occupations' ? 'careers' : type);
 
 const RECENT_SEARCHES_KEY = 'archangel_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
@@ -323,7 +326,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                   `}
                 >
                   <Icon className={`w-3.5 h-3.5 ${config.iconClass}`} />
-                  <span className="capitalize">{type}</span>
+                  <span className="capitalize">{groupName(type)}</span>
                 </button>
               );
             })}
@@ -413,7 +416,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                   return (
                     <div key={type} className="px-4 py-2">
                       <h4 className="text-xs font-medium text-fg-soft uppercase tracking-wider mb-2">
-                        {type}
+                        {groupName(type)}
                         <span className="ml-2 text-fg-soft/50">
                           {searchResults?.results[type]?.count || 0}
                         </span>

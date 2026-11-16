@@ -1,10 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql, and, ne, isNull } from 'drizzle-orm';
 import { db, skills, occupationSkills, occupations, skillRefs, refs, programSkills, programs } from '../db/index.js';
-import { uuidParam } from '../middleware/validateUuid.js';
+import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
+import { programInScope } from '../lib/scope.js';
 
 const router = Router();
 router.param('id', uuidParam);
+router.use(uuidQuery('parent'));
 
 // GET /api/skills - List skills with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
@@ -64,7 +66,7 @@ router.get('/', async (req: Request, res: Response) => {
         parentSkillId: skills.parentSkillId,
         createdAt: skills.createdAt,
         occupationCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.skill_id = skills.id)`,
-        programCount: sql<number>`(SELECT COUNT(*)::int FROM program_skills WHERE program_skills.skill_id = skills.id)`,
+        programCount: sql<number>`(SELECT COUNT(*)::int FROM program_skills ps INNER JOIN programs p ON p.id = ps.program_id WHERE ps.skill_id = skills.id AND ${programInScope('p')})`,
         childCount: sql<number>`(SELECT COUNT(*)::int FROM skills AS children WHERE children.parent_skill_id = skills.id)`,
       })
       .from(skills)
@@ -140,7 +142,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       .innerJoin(occupations, eq(occupationSkills.occupationId, occupations.id))
       .where(eq(occupationSkills.skillId, id));
 
-    // Get programs teaching this skill
+    // Get in-scope programs teaching this skill
     const programsResult = await db
       .select({
         id: programs.id,
@@ -150,7 +152,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       })
       .from(programSkills)
       .innerJoin(programs, eq(programSkills.programId, programs.id))
-      .where(eq(programSkills.skillId, id));
+      .where(and(eq(programSkills.skillId, id), programInScope()));
 
     // Get referenced elements (refs) grouped by type
     const refsResult = await db

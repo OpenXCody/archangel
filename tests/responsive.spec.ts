@@ -3,7 +3,7 @@ import { test, expect, type Page, type APIRequestContext } from '@playwright/tes
 const API = 'http://localhost:3000/api';
 
 /** Static routes every device profile must render cleanly. */
-const STATIC_ROUTES = ['/map', '/explore', '/import', '/import/bulk', '/tree'];
+const STATIC_ROUTES = ['/map', '/explore', '/import', '/import/bulk'];
 
 async function firstId(request: APIRequestContext, path: string): Promise<string | null> {
   for (let attempt = 0; attempt < 2; attempt++) {

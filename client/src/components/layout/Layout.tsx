@@ -1,25 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Map, GitBranch, Layers, Upload, Search } from 'lucide-react';
+import { Map, Layers, Upload, Search, BriefcaseBusiness } from 'lucide-react';
 import GlobalSearch from '../search/GlobalSearch';
+import AccountMenu, { accountPageTitle } from '../account/AccountMenu';
+import { useAdminStatus } from '../../lib/adminStatus';
 
 const navItems = [
-  { to: '/map', icon: Map, label: 'Map' },
-  { to: '/tree', icon: GitBranch, label: 'Tree' },
-  { to: '/explore', icon: Layers, label: 'Nodes' },
-  { to: '/import', icon: Upload, label: 'Data' },
+  { to: '/map', icon: Map, label: 'Map', adminOnly: false },
+  { to: '/explore', icon: Layers, label: 'Explore', adminOnly: false },
+  { to: '/jobs', icon: BriefcaseBusiness, label: 'Jobs', adminOnly: false },
+  // Shown only to an authorized admin. The /import routes gate themselves
+  // (AdminKeyGate), so an admin without a key yet can still open /import.
+  { to: '/import', icon: Upload, label: 'Data', adminOnly: true },
 ];
 
 export default function Layout() {
   const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { isAdmin } = useAdminStatus();
+  const visibleNavItems = navItems.filter((item) => !item.adminOnly || isAdmin);
 
   // Hide global search on map view (it has its own search)
   const isMapView = location.pathname === '/map';
 
   // Tab / history / bookmark titles. Detail pages override with the entity name.
   useEffect(() => {
-    const section = navItems.find((n) => location.pathname === n.to || location.pathname.startsWith(`${n.to}/`))?.label;
+    const section =
+      navItems.find((n) => location.pathname === n.to || location.pathname.startsWith(`${n.to}/`))?.label ??
+      accountPageTitle(location.pathname);
     const isDetail = /^\/(companies|factories|occupations|skills|refs|schools|programs)\/[^/]+$/.test(location.pathname);
     if (!isDetail) document.title = section ? `${section} · Archangel` : 'Archangel';
   }, [location.pathname]);
@@ -44,12 +52,11 @@ export default function Layout() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-bg-surface border-b border-border-subtle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-14 gap-4">
+          <div className="flex items-center justify-between h-14 gap-2 sm:gap-4">
             {/* Left: Navigation */}
             <nav className="flex items-center gap-1 flex-shrink-0">
-              {navItems.map(({ to, icon: Icon, label }) => {
-                const isActive = location.pathname === to ||
-                  (to === '/explore' && location.pathname.startsWith('/explore'));
+              {visibleNavItems.map(({ to, icon: Icon, label }) => {
+                const isActive = location.pathname === to || location.pathname.startsWith(`${to}/`);
 
                 return (
                   <NavLink
@@ -74,7 +81,8 @@ export default function Layout() {
 
             {/* Center: Logo - visible on tablet+ */}
             <div className="flex items-center justify-center flex-1 min-w-0">
-              <span className="text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap">
+              {/* With the admin item, search and the account control, a phone has no room left for the wordmark. */}
+              <span className={`text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap ${visibleNavItems.length > 3 && !isMapView ? 'hidden sm:inline' : ''}`}>
                 ARCHANGEL
               </span>
             </div>
@@ -98,6 +106,9 @@ export default function Layout() {
                 </kbd>
               </button>
             )}
+
+            {/* End of the nav: sign in, or the signed-in person's menu */}
+            <AccountMenu />
           </div>
         </div>
       </header>

@@ -43,7 +43,7 @@ const ENTITY_CONFIG: Record<
 > = {
   companies: { icon: Building2, label: 'Companies', color: 'text-amber-500' },
   factories: { icon: Factory, label: 'Factories', color: 'text-sky-400' },
-  occupations: { icon: Briefcase, label: 'Occupations', color: 'text-blue-800' },
+  occupations: { icon: Briefcase, label: 'Careers', color: 'text-blue-800' },
   skills: { icon: Wrench, label: 'Skills', color: 'text-emerald-500' },
 };
 
@@ -655,7 +655,7 @@ function PreviewStep({
           >
             <option value="companies">Companies</option>
             <option value="factories">Factories</option>
-            <option value="occupations">Occupations</option>
+            <option value="occupations">Careers</option>
             <option value="skills">Skills</option>
           </select>
           <Icon className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${config.color}`} />

@@ -1,11 +1,37 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import maplibregl, { Map as MapLibreMap, GeoJSONSource, MapMouseEvent, LngLatBounds, type ExpressionSpecification } from 'maplibre-gl';
+import maplibregl, {
+  Map as MapLibreMap,
+  GeoJSONSource,
+  MapMouseEvent,
+  LngLatBounds,
+  type ExpressionSpecification,
+  type StyleSpecification,
+} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useQuery } from '@tanstack/react-query';
 import { factoriesApi, mapApi } from '../../lib/api';
 import { useMapStore } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
+import { SCOPE } from '@shared/scope';
 import { Loader2, Maximize2 } from 'lucide-react';
+import {
+  applyCameraRequest,
+  fitFocus,
+  fitState,
+  flyToPoint,
+  initialCamera,
+  isAtFocus,
+  isPhoneLayout,
+  PANEL_WIDTH_PX,
+  sheetPeekPx,
+} from './camera';
+
+declare global {
+  interface Window {
+    /** The live map, exposed in dev builds only so browser tests can read the camera. */
+    __archangelMap?: MapLibreMap;
+  }
+}
 
 // MapTiler style base URL - key added at runtime for retry support
 const MAPTILER_STYLE_BASE = 'https://api.maptiler.com/maps/dataviz-dark/style.json';
@@ -18,34 +44,87 @@ const DARK_STYLE_OVERRIDES = {
   borders: '#1a1a1a',
 };
 
-const INITIAL_VIEW = {
-  center: [-98.5, 39.8] as [number, number],
-  zoom: 4,
-};
-
-// Continental US. The default view fits this box so the whole country is on
-// screen at any viewport shape — a fixed zoom felt cramped on portrait phones.
-const US_BOUNDS: [[number, number], [number, number]] = [[-125.0, 24.4], [-66.9, 49.4]];
-
-function fitUS(m: MapLibreMap, animate: boolean) {
-  const mobile = window.innerWidth < 768;
-  m.fitBounds(US_BOUNDS, {
-    padding: mobile ? { top: 96, bottom: 24, left: 12, right: 12 } : { top: 96, bottom: 40, left: 40, right: 40 },
-    duration: animate ? 600 : 0,
-  });
+/** The app's page background (--color-bg-base), so the keyless map sits flush with the shell. */
+function appBaseColor(): string {
+  return getComputedStyle(document.documentElement).getPropertyValue('--color-bg-base').trim() || '#0f0f0f';
 }
 
-// Shift a flyTo target clear of the panel or sheet without touching the map's
-// saved padding. MapLibre keeps flyTo's `padding` on the map, and fitBounds
-// adds that saved padding to its own. A state clicked after a pin was
-// therefore fitted with the panel counted twice and landed off-center.
-type EdgePadding = { top?: number; bottom?: number; left?: number; right?: number };
-function paddingToOffset(p: EdgePadding): [number, number] {
-  return [((p.left ?? 0) - (p.right ?? 0)) / 2, ((p.top ?? 0) - (p.bottom ?? 0)) / 2];
+/**
+ * Basemap used when there is no MapTiler key (local dev, CI, previews): a
+ * plain dark canvas with no external sources, so nothing can fail to load.
+ * The app's own layers (state shapes, focus ring, factory dots) draw on top.
+ * It has no `glyphs`, which is fine while the app adds no text (symbol)
+ * layers; a text layer would need a glyphs URL here first.
+ */
+function plainDarkStyle(): StyleSpecification {
+  return {
+    version: 8,
+    name: 'Archangel plain dark',
+    sources: {},
+    layers: [{ id: 'background', type: 'background', paint: { 'background-color': appBaseColor() } }],
+  };
 }
+
+/** Outline of the focus area: a ring SCOPE.focus.radiusMiles around the focus point. */
+function focusRingGeoJSON(): GeoJSON.Feature<GeoJSON.Polygon> {
+  const { latitude, longitude, radiusMiles } = SCOPE.focus;
+  // Same miles-to-degrees conversion as focusBounds() in shared/scope.ts, so
+  // the ring touches the box the camera fits.
+  const dLat = radiusMiles / 69.0;
+  const dLng = radiusMiles / (69.0 * Math.cos((latitude * Math.PI) / 180));
+  const steps = 128;
+  const ring: Array<[number, number]> = [];
+  for (let i = 0; i <= steps; i++) {
+    const a = (i / steps) * 2 * Math.PI;
+    ring.push([longitude + dLng * Math.cos(a), latitude + dLat * Math.sin(a)]);
+  }
+  return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } };
+}
+
+/**
+ * Everything outside the in-scope state, as one polygon with the state cut
+ * out of it. Drawn as a dark veil so the rest of the map sits back.
+ */
+function outsideScopeGeoJSON(scope: GeoJSON.Geometry): GeoJSON.Feature<GeoJSON.Polygon> | null {
+  const holes: GeoJSON.Position[][] =
+    scope.type === 'Polygon' ? [scope.coordinates[0]]
+    : scope.type === 'MultiPolygon' ? scope.coordinates.map((polygon) => polygon[0])
+    : [];
+  if (holes.length === 0) return null;
+  const world: GeoJSON.Position[] = [[-180, -85], [180, -85], [180, 85], [-180, 85], [-180, -85]];
+  return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [world, ...holes] } };
+}
+
+const IN_SCOPE: ExpressionSpecification = ['==', ['get', 'stateCode'], SCOPE.stateCode];
+
+/**
+ * Fill opacity of the in-scope state. Shaded by factory count with a floor,
+ * so it always reads as lit against the states around it, and fading out
+ * across zoom 5.5 → 6.3 so pins can take over without a hard cut. Hover adds
+ * a little, which keeps the hover visible when the fill itself is faint.
+ * MapLibre rejects data-interpolate wrapped inside zoom-interpolate, so the
+ * fade is hand-built with `step` on zoom.
+ */
+const HOVER_LIFT: ExpressionSpecification = ['case', ['boolean', ['feature-state', 'hover'], false], 0.07, 0];
+const STATE_FILL_OPACITY: ExpressionSpecification = [
+  'step', ['zoom'],
+  ['+', HOVER_LIFT, ['max', 0.12, ['interpolate', ['linear'], ['get', 'factoryCount'],
+    0, 0, 50, 0.12, 200, 0.18, 800, 0.28, 2500, 0.38, 6000, 0.44,
+  ]]],
+  5.5, ['+', HOVER_LIFT, ['max', 0.08, ['interpolate', ['linear'], ['get', 'factoryCount'],
+    0, 0, 50, 0.08, 200, 0.12, 800, 0.18, 2500, 0.26, 6000, 0.3,
+  ]]],
+  6, ['+', HOVER_LIFT, ['max', 0.04, ['interpolate', ['linear'], ['get', 'factoryCount'],
+    0, 0, 2500, 0.06, 6000, 0.08,
+  ]]],
+  6.3, 0,
+];
 
 // US States GeoJSON, shipped with the app (client/public/data)
 const STATES_GEOJSON_URL = '/data/us-states.geojson';
+
+/** Below this zoom the state reads as a shape and can be hovered and selected. */
+const STATE_SELECT_MAX_ZOOM = 6.5;
 
 // Debounce helper for viewport updates
 function debounce<T extends (...args: Parameters<T>) => void>(
@@ -66,10 +145,10 @@ export default function Map() {
   const previousSelectedIdRef = useRef<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [viewport, setViewport] = useState<{
+  const [, setViewport] = useState<{
     bounds: LngLatBounds | null;
     zoom: number;
-  }>({ bounds: null, zoom: INITIAL_VIEW.zoom });
+  }>({ bounds: null, zoom: 0 });
 
   const {
     selectedEntityType,
@@ -84,6 +163,7 @@ export default function Map() {
     flyToTarget,
     clearFlyTo,
     resetView,
+    sidebarOpen,
   } = useMapStore();
 
   // Stable refs for callbacks to avoid recreating map on every render
@@ -101,8 +181,8 @@ export default function Map() {
     clearSelectionRef.current = clearSelection;
   });
 
-  // Track if map is zoomed in (for showing reset button)
-  const [isZoomedIn, setIsZoomedIn] = useState(false);
+  // True once the camera has left the home view (for showing the reset button)
+  const [awayFromFocus, setAwayFromFocus] = useState(false);
 
   // Only use factory selection for map markers
   const selectedFactoryId = selectedEntityType === 'factory' ? selectedEntityId : null;
@@ -112,15 +192,9 @@ export default function Map() {
     states: filters.states.length > 0 ? filters.states : undefined,
     company: filters.company || undefined,
     industry: filters.industry || undefined,
-    // Add viewport bounds for large datasets (only at higher zoom levels)
-    bounds: viewport.bounds && viewport.zoom >= 6
-      ? [
-          viewport.bounds.getWest(),
-          viewport.bounds.getSouth(),
-          viewport.bounds.getEast(),
-          viewport.bounds.getNorth(),
-        ].join(',')
-      : undefined,
+    // The region is one state, so every pin loads once. Refetching per
+    // viewport made pins pop in after each pan.
+    bounds: undefined as string | undefined,
   };
 
   // Fetch factories GeoJSON with filters and viewport
@@ -133,11 +207,24 @@ export default function Map() {
       filterParams.bounds,
     ],
     queryFn: () => factoriesApi.geojson(filterParams),
-    staleTime: 30 * 1000, // 30 seconds - shorter for viewport changes
+    staleTime: 5 * 60 * 1000, // pins change rarely; one load covers the whole region
     placeholderData: (previousData) => previousData, // Keep previous data while loading
   });
 
-  // State-level factory counts (for the continental-zoom choropleth)
+  // A factory chosen from search, a shared link or the Back button never went
+  // through a pin click, so nothing moved the camera. Bring it into view when
+  // it is off screen or the map is zoomed too far out to make it out.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !mapLoaded || !selectedFactoryId || !factoriesGeoJSON) return;
+    const feature = factoriesGeoJSON.features.find((f) => f.id === selectedFactoryId);
+    if (!feature || feature.geometry.type !== 'Point') return;
+    const [lng, lat] = feature.geometry.coordinates as [number, number];
+    if (m.getZoom() >= 7 && m.getBounds().contains([lng, lat])) return;
+    flyToPoint(m, [lng, lat]);
+  }, [selectedFactoryId, factoriesGeoJSON, mapLoaded]);
+
+  // State-level factory counts (shade the in-scope state)
   const { data: stateCounts } = useQuery<Record<string, number>>({
     queryKey: ['state-counts'],
     queryFn: () => mapApi.stateCounts(),
@@ -158,8 +245,10 @@ export default function Map() {
   // Merge counts into states GeoJSON so the fill layer can key off
   // feature.properties.factoryCount. Name → 2-letter-code map comes from
   // shared/states.ts; the upstream GeoJSON uses full names on properties.name.
+  // The shapes do not wait for the counts: a slow or failed count request
+  // must not leave the map without its states.
   const statesWithCounts = useMemo(() => {
-    if (!statesGeoJSONRaw || !stateCounts) return null;
+    if (!statesGeoJSONRaw) return null;
     // Plain object lookup — the component itself is named `Map`, which
     // shadows the built-in Map constructor inside this file.
     const nameToCode: Record<string, string> = {};
@@ -169,7 +258,7 @@ export default function Map() {
       features: statesGeoJSONRaw.features.map((f) => {
         const name = f.properties?.name as string | undefined;
         const code = name ? nameToCode[name] : undefined;
-        const count = code ? (stateCounts[code] ?? 0) : 0;
+        const count = code ? (stateCounts?.[code] ?? 0) : 0;
         return { ...f, properties: { ...(f.properties ?? {}), stateCode: code, factoryCount: count } };
       }),
     } as GeoJSON.FeatureCollection;
@@ -209,20 +298,24 @@ export default function Map() {
 
     let retryCount = 0;
     const maxRetries = 3;
+    // Set once the basemap has failed for good: draw on the plain canvas so
+    // the data stays usable instead of showing an error screen.
+    let basemapUnavailable = false;
 
     const initMap = () => {
-      // Get key fresh each attempt
-      const styleUrl = `${MAPTILER_STYLE_BASE}?key=${import.meta.env.VITE_MAP_TOKEN || ''}`;
+      // Get key fresh each attempt. No key: draw on the plain dark canvas
+      // instead of asking MapTiler for a style it will refuse.
+      const mapKey = (import.meta.env.VITE_MAP_TOKEN as string | undefined)?.trim() || '';
+      const keyless = basemapUnavailable || mapKey === '';
 
       try {
         map.current = new maplibregl.Map({
           container: mapContainer.current!,
-          style: styleUrl,
-          center: INITIAL_VIEW.center,
-          zoom: INITIAL_VIEW.zoom,
+          style: keyless ? plainDarkStyle() : `${MAPTILER_STYLE_BASE}?key=${mapKey}`,
+          ...initialCamera(),
           minZoom: 2,
           maxZoom: 18,
-          attributionControl: false,
+          attributionControl: { compact: true },
           renderWorldCopies: false,
         });
       } catch (err) {
@@ -237,10 +330,13 @@ export default function Map() {
       }
 
       const currentMap = map.current;
+      if (import.meta.env.DEV) window.__archangelMap = currentMap;
 
       // Handle map errors with auto-retry
       currentMap.on('error', (e) => {
         console.error('Map error:', e);
+        // The plain style is inline: there is no style request to retry.
+        if (keyless) return;
         const isStyleError = e.error?.message?.includes('style') ||
                             e.error?.message?.includes('Style') ||
                             e.error?.message?.includes('401');
@@ -250,7 +346,10 @@ export default function Map() {
           map.current = null;
           setTimeout(initMap, 500);
         } else if (isStyleError) {
-          setMapError('Failed to load map. Please check your API key.');
+          basemapUnavailable = true;
+          map.current?.remove();
+          map.current = null;
+          initMap();
         }
       });
 
@@ -263,12 +362,13 @@ export default function Map() {
       // resize() alone recalculates canvas size but doesn't fix the center.
       // Without this explicit recenter, the viewport can drift (Pacific bug).
       currentMap.resize();
-      fitUS(currentMap, false);
+      fitFocus(currentMap, { animate: false });
 
       setMapLoaded(true);
 
       // Apply darker style overrides and hide all non-US details
-      const style = currentMap.getStyle();
+      // (MapTiler basemap only; the plain style is already exactly what we want)
+      const style = keyless ? null : currentMap.getStyle();
       if (style?.layers) {
         style.layers.forEach((layer) => {
           try {
@@ -292,7 +392,18 @@ export default function Map() {
             }
 
             if (layer.type === 'symbol') {
-              currentMap.setLayoutProperty(layer.id, 'visibility', 'none');
+              // Keep settlement names (city, town, village, suburb) in a quiet
+              // grey so the Austin area is readable; hide every other label.
+              const isPlaceName =
+                /city|town|village|place|suburb|capital|neighbou?r/.test(layerId) &&
+                !/country|continent|state|ocean|sea|lake|river|water|road|street|highway|poi|airport|park|peak/.test(layerId);
+              if (isPlaceName) {
+                currentMap.setPaintProperty(layer.id, 'text-color', '#8c8c8c');
+                currentMap.setPaintProperty(layer.id, 'text-halo-color', DARK_STYLE_OVERRIDES.background);
+                currentMap.setPaintProperty(layer.id, 'text-halo-width', 1.2);
+              } else {
+                currentMap.setLayoutProperty(layer.id, 'visibility', 'none');
+              }
             }
           } catch {
             // Some layers may not support these properties
@@ -300,72 +411,57 @@ export default function Map() {
         });
       }
 
-      // States source (empty at init — populated by effect below once both
-      // GeoJSON geometry and factory counts have loaded). promoteId lifts
-      // stateCode to the feature id so hover/selected feature-state calls
-      // can key off it.
+      // States source (empty at init — populated by effect below once the
+      // GeoJSON geometry has loaded). promoteId lifts stateCode to the
+      // feature id so hover/selected feature-state calls can key off it.
       try {
         currentMap.addSource('states', {
           type: 'geojson',
           data: { type: 'FeatureCollection', features: [] },
           promoteId: 'stateCode',
         });
+        currentMap.addSource('outside-scope', {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features: [] },
+        });
 
-        // Choropleth fill — shaded by factory count, fading out across
-        // zoom 5 → 6.5 so pins can take over without a hard cut.
-        // MapLibre rejects data-interpolate wrapped inside zoom-interpolate,
-        // so we hand-build a multi-step fade via `step` on zoom. Each step
-        // is its own count-driven interpolate with scaled output stops.
+        // Everything outside the in-scope state sits back behind a dark veil.
+        // Decorative only: no handlers are bound to it.
+        currentMap.addLayer({
+          id: 'outside-scope-veil',
+          type: 'fill',
+          source: 'outside-scope',
+          paint: { 'fill-color': appBaseColor(), 'fill-opacity': 0.5 },
+        });
+
+        // The in-scope state's fill. The filter makes it the ONLY state in
+        // this layer, and this is the only layer the state handlers below
+        // listen on — so other states cannot hover, click or change the cursor.
         currentMap.addLayer({
           id: 'state-fills',
           type: 'fill',
           source: 'states',
+          filter: IN_SCOPE,
           paint: {
             // One cool-neutral hue. Selection is identified by a dedicated
             // border layer below, not by a contrasting fill color — keeps
-            // the whole choropleth in one tonal family so warm base-map
-            // texture can't bleed through as "beige" or "tan".
+            // the fill in one tonal family so warm base-map texture can't
+            // bleed through as "beige" or "tan".
             'fill-color': [
               'case',
               ['boolean', ['feature-state', 'hover'], false], '#C6D1DE',
               '#A3B1C2',
             ],
-            'fill-opacity': [
-              'step', ['zoom'],
-              // Floor (0.12) means even low-count states mask most of the
-              // base texture instead of fading toward it. Top end softened
-              // (0.44 vs 0.55) so high-count states don't dominate.
-              ['interpolate', ['linear'], ['get', 'factoryCount'],
-                0, 0,
-                50, 0.12,
-                200, 0.18,
-                800, 0.28,
-                2500, 0.38,
-                6000, 0.44,
-              ],
-              5.5, ['interpolate', ['linear'], ['get', 'factoryCount'],
-                0, 0,
-                50, 0.08,
-                200, 0.12,
-                800, 0.18,
-                2500, 0.26,
-                6000, 0.3,
-              ],
-              6, ['interpolate', ['linear'], ['get', 'factoryCount'],
-                0, 0,
-                2500, 0.06,
-                6000, 0.08,
-              ],
-              6.3, 0,
-            ],
+            'fill-opacity': STATE_FILL_OPACITY,
           },
         });
 
-        // Base border layer — subtle, always visible.
+        // Borders of the other states — faint context, nothing more.
         currentMap.addLayer({
           id: 'state-borders',
           type: 'line',
           source: 'states',
+          filter: ['!', IN_SCOPE],
           paint: {
             'line-color': '#2a2a2a',
             'line-width': [
@@ -374,17 +470,32 @@ export default function Map() {
               6, 0.8,
               10, 1,
             ],
-            'line-opacity': [
+            'line-opacity': 0.6,
+          },
+        });
+
+        // Outline of the in-scope state — always visible, clearly stronger
+        // than its neighbours' borders.
+        currentMap.addLayer({
+          id: 'state-scope-outline',
+          type: 'line',
+          source: 'states',
+          filter: IN_SCOPE,
+          paint: {
+            'line-color': '#5c5c5c',
+            'line-width': [
               'interpolate', ['linear'], ['zoom'],
-              3, 0.7,
-              10, 0.5,
+              3, 0.8,
+              6, 1.2,
+              10, 1.5,
             ],
+            'line-opacity': 0.9,
           },
         });
 
         // Selected-state border — sits on top, brighter and thicker,
         // visible at all zooms. This is how the user identifies "which
-        // state am I in" after zooming past the choropleth-fade zoom.
+        // state am I in" after zooming past the fill-fade zoom.
         // Filter starts empty (matches nothing); updated via setFilter
         // whenever the selected state changes.
         currentMap.addLayer({
@@ -402,6 +513,20 @@ export default function Map() {
             ],
             'line-opacity': 0.8,
             'line-blur': 0.2,
+          },
+        });
+
+        // The focus area: a thin, quiet ring around SCOPE.focus.
+        currentMap.addSource('focus-ring', { type: 'geojson', data: focusRingGeoJSON() });
+        currentMap.addLayer({
+          id: 'focus-ring',
+          type: 'line',
+          source: 'focus-ring',
+          paint: {
+            'line-color': '#a6a6a6',
+            'line-width': 1,
+            'line-opacity': 0.4,
+            'line-dasharray': [3, 3],
           },
         });
       } catch (err) {
@@ -523,20 +648,8 @@ export default function Map() {
 
           const geometry = e.features[0].geometry;
           if (geometry.type === 'Point') {
-            // On mobile, add bottom padding so marker is centered ABOVE the bottom sheet
-            const isMobile = window.innerWidth < 768;
-            const bottomSheetHeight = isMobile ? window.innerHeight * 0.32 : 0;
-            
-            currentMap.flyTo({
-              center: geometry.coordinates as [number, number],
-              zoom: Math.max(currentMap.getZoom(), 8),
-              duration: 500,
-              offset: paddingToOffset(
-                isMobile
-                  ? { top: 20, bottom: bottomSheetHeight + 20, left: 20, right: 20 }
-                  : { top: 20, bottom: 20, left: 20, right: 400 }
-              ),
-            });
+            // Centered in what the panel or sheet leaves visible (camera.ts).
+            flyToPoint(currentMap, [geometry.coordinates[0], geometry.coordinates[1]]);
           }
         }
       });
@@ -572,7 +685,9 @@ export default function Map() {
       currentMap.on('click', handleMapClickRef.current);
 
       // ─── State fill interactions ────────────────────────────────────
-      // Click a state → select it, set filter, fly to fit its bounds.
+      // 'state-fills' holds the in-scope state only, so these never fire
+      // for any other state.
+      // Click the state → select it, set filter, fly to fit its bounds.
       // Always check for pin clicks first (pins have priority at all zoom levels).
       let hoveredStateCode: string | null = null;
       currentMap.on('click', 'state-fills', (e) => {
@@ -583,16 +698,19 @@ export default function Map() {
         // the state underneath it.
         const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
         if (pinHit.length > 0) return;
+        // Zoomed in to city level, an empty click is just an empty click.
+        // Selecting the state there would yank the view out to all of Texas.
+        if (currentMap.getZoom() >= STATE_SELECT_MAX_ZOOM) return;
         const code = e.features[0].properties?.stateCode as string | undefined;
         if (!code) return;
         selectStateRef.current(code);
-        fitStateRef.current(currentMap, code, e.features[0].geometry);
+        frameStateRef.current(currentMap, code, e.features[0].geometry);
       });
 
       // Hover a state → brighten its fill + cursor pointer. Only at
       // zooms where clusters are the primary interaction (< 8).
       currentMap.on('mousemove', 'state-fills', (e) => {
-        if (currentMap.getZoom() >= 8) return;
+        if (currentMap.getZoom() >= STATE_SELECT_MAX_ZOOM) return;
         const f = e.features?.[0];
         const code = f?.properties?.stateCode as string | undefined;
         if (!code) return;
@@ -631,9 +749,9 @@ export default function Map() {
       });
     });
 
-      // Track zoom level for reset button
-      currentMap.on('zoom', () => {
-        setIsZoomedIn(currentMap.getZoom() > 5);
+      // Offer "reset view" whenever the camera has left the home view
+      currentMap.on('moveend', () => {
+        setAwayFromFocus(!isAtFocus(currentMap));
       });
     }; // end initMap
 
@@ -643,6 +761,7 @@ export default function Map() {
     return () => {
       clearTimeout(initTimer);
       if (map.current) {
+        if (window.__archangelMap === map.current) delete window.__archangelMap;
         map.current.remove();
         map.current = null;
       }
@@ -676,9 +795,9 @@ export default function Map() {
     updateSource();
   }, [factoriesGeoJSON, mapLoaded]);
 
-  // Populate the states source once both the GeoJSON geometry and the
-  // factory counts have loaded. Re-fires on mapLoaded so fresh map
-  // instances get the data after a route-level remount.
+  // Populate the states source once the GeoJSON geometry has loaded (and
+  // again when the factory counts arrive). Re-fires on mapLoaded so fresh
+  // map instances get the data after a route-level remount.
   useEffect(() => {
     if (!map.current || !mapLoaded || !statesWithCounts) return;
     
@@ -693,6 +812,13 @@ export default function Map() {
         return;
       }
       source.setData(statesWithCounts);
+
+      const scope = statesWithCounts.features.find(
+        (f) => (f.properties as { stateCode?: string } | null)?.stateCode === SCOPE.stateCode
+      );
+      const outside = scope ? outsideScopeGeoJSON(scope.geometry) : null;
+      const veil = currentMap.getSource('outside-scope') as GeoJSONSource | undefined;
+      if (outside && veil) veil.setData(outside);
     };
     
     updateSource();
@@ -704,31 +830,16 @@ export default function Map() {
   // `null` value.
   const statesWithCountsRef = useRef<GeoJSON.FeatureCollection | null>(null);
 
-  // Fit the viewport to a state, keeping it clear of the desktop panel or the
-  // phone bottom sheet. Uses our full in-memory geometry (tile features are
+  // Frame a state. Uses our full in-memory geometry (tile features are
   // clipped at tile edges) and falls back to whatever geometry was clicked.
-  const fitStateRef = useRef((m: MapLibreMap, code: string, fallback?: GeoJSON.Geometry) => {
+  // Framing and padding are camera.ts's business.
+  const frameStateRef = useRef((m: MapLibreMap, code: string, fallback?: GeoJSON.Geometry) => {
     const full = statesWithCountsRef.current?.features?.find(
       (f) => (f.properties as { stateCode?: string } | null)?.stateCode === code
     );
     const geom = full?.geometry ?? fallback;
     if (!geom || (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon')) return;
-    const bounds = new maplibregl.LngLatBounds();
-    type Coords = number[] | Coords[];
-    const extend = (coords: Coords) => {
-      if (typeof coords[0] === 'number') bounds.extend(coords as [number, number]);
-      else for (const c of coords as Coords[]) extend(c);
-    };
-    extend(geom.coordinates as Coords);
-    if (bounds.isEmpty()) return;
-    const isMobile = window.innerWidth < 768;
-    m.fitBounds(bounds, {
-      padding: isMobile
-        ? { top: 90, bottom: Math.round(window.innerHeight * 0.32) + 24, left: 24, right: 24 }
-        : { top: 80, bottom: 80, left: 80, right: 420 },
-      maxZoom: 7,
-      duration: 800,
-    });
+    fitState(m, geom);
   });
 
   // A shared link like /map?state=TX selects the state before the map exists;
@@ -737,7 +848,7 @@ export default function Map() {
   useEffect(() => {
     if (initialStateFitDone.current || !mapLoaded || !map.current || !statesWithCounts) return;
     initialStateFitDone.current = true;
-    if (selectedEntityType === 'state' && selectedEntityId) fitStateRef.current(map.current, selectedEntityId);
+    if (selectedEntityType === 'state' && selectedEntityId) frameStateRef.current(map.current, selectedEntityId);
   }, [mapLoaded, statesWithCounts, selectedEntityType, selectedEntityId]);
   useEffect(() => {
     statesWithCountsRef.current = statesWithCounts;
@@ -764,22 +875,6 @@ export default function Map() {
     3, 0.12, 5, 0.18, 6, 0.18, 8, 0.22, 9, 0.28,
   ];
 
-  // Default state-fills opacity curve — mirrors the inline paint set up
-  // in the load callback so the company-filter toggle can restore it.
-  const defaultStateFillOpacity: ExpressionSpecification = [
-    'step', ['zoom'],
-    ['interpolate', ['linear'], ['get', 'factoryCount'],
-      0, 0, 50, 0.12, 200, 0.18, 800, 0.28, 2500, 0.38, 6000, 0.44,
-    ],
-    5.5, ['interpolate', ['linear'], ['get', 'factoryCount'],
-      0, 0, 50, 0.08, 200, 0.12, 800, 0.18, 2500, 0.26, 6000, 0.3,
-    ],
-    6, ['interpolate', ['linear'], ['get', 'factoryCount'],
-      0, 0, 2500, 0.06, 6000, 0.08,
-    ],
-    6.3, 0,
-  ];
-
   // Swap pin paint opacity when the company filter toggles. With a filter
   // active the result set is small enough that always-on doesn't bloom.
   // Also dim the state-fills so the choropleth doesn't read as "this is
@@ -799,7 +894,7 @@ export default function Map() {
       if (m.getLayer('state-fills')) {
         m.setPaintProperty('state-fills', 'fill-opacity', pinsAlwaysVisible
           ? 0.04
-          : defaultStateFillOpacity);
+          : STATE_FILL_OPACITY);
       }
     } catch { /* layers may not be ready yet — the effect re-fires with mapLoaded */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -920,53 +1015,40 @@ export default function Map() {
     }
   }, [hoveredFactoryId]);
 
-  // Respond to flyTo requests from the store
+  // Carry out camera requests posted to the store. Waits for the map: a
+  // request made before it loaded is applied as soon as it has.
   useEffect(() => {
-    if (!map.current || !flyToTarget) return;
-
-    const currentMap = map.current;
-
-    if (flyToTarget.fit === 'us') {
-      fitUS(currentMap, true);
-      clearFlyTo();
-      return;
-    }
-
-    // Build flyTo options
-    const flyToOptions: maplibregl.FlyToOptions = {
-      center: [flyToTarget.lng, flyToTarget.lat],
-      zoom: flyToTarget.zoom ?? Math.max(currentMap.getZoom(), 8),
-      duration: 500,
-    };
-
-    // Keep the target clear of the sidebar or sheet. An offset, not `padding`:
-    // padding would stay on the map and skew the next fitBounds.
-    if (flyToTarget.padding) {
-      flyToOptions.offset = paddingToOffset(flyToTarget.padding);
-    }
-
-    currentMap.flyTo(flyToOptions);
-
+    if (!map.current || !mapLoaded || !flyToTarget) return;
+    applyCameraRequest(map.current, flyToTarget);
     clearFlyTo();
-  }, [flyToTarget, clearFlyTo]);
+  }, [flyToTarget, clearFlyTo, mapLoaded]);
+
+  // Keep the reset button clear of the open panel (desktop) or sheet (phone).
+  const resetButtonOffset = !sidebarOpen
+    ? undefined
+    : isPhoneLayout()
+      ? { bottom: sheetPeekPx() + 12 }
+      : { right: PANEL_WIDTH_PX + 12 };
 
   return (
     <>
       <div
         ref={mapContainer}
         className="absolute inset-0 w-full h-full"
-        style={{ background: '#080808' }}
+        style={{ background: 'var(--color-bg-base)' }}
       />
 
       {/* Reset view button */}
-      {isZoomedIn && mapLoaded && (
+      {awayFromFocus && mapLoaded && (
         <button
           onClick={resetView}
           className="absolute bottom-24 right-3 z-30 p-2.5 rounded-lg
             bg-bg-surface/90 backdrop-blur-sm border border-white/10
             text-fg-muted hover:text-fg-default hover:bg-bg-surface
             transition-all shadow-lg"
-          title="Reset to full US view"
+          style={resetButtonOffset}
+          title={`Reset to the ${SCOPE.focus.name} area`}
+          aria-label={`Reset to the ${SCOPE.focus.name} area`}
         >
           <Maximize2 className="w-5 h-5" />
         </button>

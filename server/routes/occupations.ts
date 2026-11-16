@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { eq, ilike, or, sql } from 'drizzle-orm';
-import { db, occupations, occupationSkills, skills, factoryOccupations, factories } from '../db/index.js';
+import { and, eq, ilike, or, sql } from 'drizzle-orm';
+import { db, occupations, occupationSkills, skills, factoryOccupations, factories, jobs } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
+import { factoryInScope } from '../lib/scope.js';
+import { listOpenJobs } from '../lib/openJobs.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -39,7 +41,7 @@ router.get('/', async (req: Request, res: Response) => {
       ? sql`${occupations.title} DESC`
       : sql`${occupations.title} ASC`;
 
-    // Query with skill and factory counts
+    // Query with skill and factory counts (in-scope factories only)
     const result = await db
       .select({
         id: occupations.id,
@@ -48,7 +50,7 @@ router.get('/', async (req: Request, res: Response) => {
         onetCode: occupations.onetCode,
         createdAt: occupations.createdAt,
         skillCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.occupation_id = occupations.id)`,
-        factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factory_occupations WHERE factory_occupations.occupation_id = occupations.id)`,
+        factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factory_occupations fo INNER JOIN factories f ON f.id = fo.factory_id WHERE fo.occupation_id = occupations.id AND ${factoryInScope('f')})`,
       })
       .from(occupations)
       .where(whereClause)
@@ -93,12 +95,15 @@ router.get('/:id', async (req: Request, res: Response) => {
         name: skills.name,
         category: skills.category,
         importance: occupationSkills.importance,
+        // 1 Introduction, 2 Fundamentals, 3 Advanced; null until someone sets it.
+        stage: occupationSkills.stage,
       })
       .from(occupationSkills)
       .innerJoin(skills, eq(occupationSkills.skillId, skills.id))
-      .where(eq(occupationSkills.occupationId, id));
+      .where(eq(occupationSkills.occupationId, id))
+      .orderBy(sql`${occupationSkills.stage} ASC NULLS LAST`, skills.name);
 
-    // Get factories hiring this role with headcount (include coordinates for map fly-to)
+    // Get in-scope factories hiring this role with headcount (include coordinates for map fly-to)
     const factoriesResult = await db
       .select({
         id: factories.id,
@@ -114,12 +119,16 @@ router.get('/:id', async (req: Request, res: Response) => {
       })
       .from(factoryOccupations)
       .innerJoin(factories, eq(factoryOccupations.factoryId, factories.id))
-      .where(eq(factoryOccupations.occupationId, id));
+      .where(and(eq(factoryOccupations.occupationId, id), factoryInScope()));
+
+    // Open jobs for this career at in-scope factories.
+    const jobsResult = await listOpenJobs(eq(jobs.occupationId, id));
 
     res.json({
       ...occupation,
       skills: occupationSkillsResult,
       factories: factoriesResult,
+      jobs: jobsResult,
     });
   } catch (error) {
     console.error('Error fetching occupation:', error);
@@ -128,6 +137,54 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/occupations - Create occupation
+// PUT /api/occupations/:id/path - set which skills a career needs and the
+// stage of each (1 Introduction, 2 Fundamentals, 3 Advanced, or null).
+// Body: { skills: [{ skillId, stage }], replace?: boolean }. With `replace`,
+// skills not listed are removed from the career. Admin-only (a write).
+router.put('/:id/path', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const items: unknown = req.body?.skills;
+    if (!Array.isArray(items) || items.length > 500) {
+      res.status(400).json({ error: 'skills must be a list of { skillId, stage }.' });
+      return;
+    }
+    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const rows: { occupationId: string; skillId: string; stage: number | null }[] = [];
+    for (const item of items as { skillId?: unknown; stage?: unknown }[]) {
+      const stage = item?.stage ?? null;
+      if (typeof item?.skillId !== 'string' || !UUID.test(item.skillId) || ![null, 1, 2, 3].includes(stage as number | null)) {
+        res.status(400).json({ error: 'Each entry needs a skillId and a stage of 1, 2, 3 or null.' });
+        return;
+      }
+      rows.push({ occupationId: id, skillId: item.skillId, stage: stage as number | null });
+    }
+    const [occupation] = await db.select({ id: occupations.id }).from(occupations).where(eq(occupations.id, id));
+    if (!occupation) {
+      res.status(404).json({ error: 'Occupation not found' });
+      return;
+    }
+    await db.transaction(async (tx) => {
+      if (req.body?.replace === true) {
+        await tx.delete(occupationSkills).where(eq(occupationSkills.occupationId, id));
+      }
+      for (const row of rows) {
+        await tx
+          .insert(occupationSkills)
+          .values(row)
+          .onConflictDoUpdate({
+            target: [occupationSkills.occupationId, occupationSkills.skillId],
+            set: { stage: row.stage },
+          });
+      }
+    });
+    res.json({ occupationId: id, skills: rows.length });
+  } catch (error) {
+    console.error('Error saving career path:', error);
+    res.status(500).json({ error: 'Failed to save the career path' });
+  }
+});
+
 router.post('/', async (req: Request, res: Response) => {
   try {
     const { title, description, onetCode } = req.body;

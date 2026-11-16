@@ -6,6 +6,8 @@ import MapSearch from '../components/map/MapSearch';
 import MapContextMenu from '../components/map/MapContextMenu';
 import MapHoverCard from '../components/map/MapHoverCard';
 import { useMapStore } from '../stores/mapStore';
+import { PHONE_LAYOUT_QUERY } from '../components/map/camera';
+import { SCOPE } from '@shared/scope';
 
 // Custom hook for responsive detection
 function useMediaQuery(query: string): boolean {
@@ -27,7 +29,8 @@ function useMediaQuery(query: string): boolean {
 
 export default function MapView() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  // Same breakpoint the camera uses to decide between panel and sheet.
+  const isMobile = useMediaQuery(PHONE_LAYOUT_QUERY);
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -44,7 +47,9 @@ export default function MapView() {
   // URL ⇄ selection. Both factories and states live in the query string so a
   // selection is shareable and browser Back walks through what you looked at.
   const urlFactory = searchParams.get('factory');
-  const urlState = searchParams.get('state')?.toUpperCase() ?? null;
+  // Only the state we cover can be selected; any other ?state= is ignored.
+  const urlStateParam = searchParams.get('state')?.toUpperCase() ?? null;
+  const urlState = urlStateParam === SCOPE.stateCode ? urlStateParam : null;
 
   useEffect(() => {
     if (urlFactory) {
@@ -114,7 +119,7 @@ export default function MapView() {
 
   return (
     <div
-      className="relative w-full h-[calc(100vh-56px)] overflow-hidden"
+      className="relative w-full h-[calc(100dvh-57px)] overflow-hidden"
       onContextMenu={handleContextMenu}
     >
       {/* Map canvas */}

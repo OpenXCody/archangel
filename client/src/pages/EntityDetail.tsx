@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import GoalButton from '../components/account/GoalButton';
+import SkillStatusButton from '../components/account/SkillStatusButton';
+import { useAccount, useMySkills, type SkillStatus } from '../lib/account';
+import { formatPay } from '../lib/jobFormat';
 import {
   ArrowLeft,
   Loader2,
@@ -14,6 +18,8 @@ import {
   GraduationCap,
   BookOpen,
   Clock,
+  CheckCircle2,
+  CircleDashed,
 } from 'lucide-react';
 import {
   companiesApi,
@@ -27,6 +33,8 @@ import {
   type CompanyDetail,
   type FactoryDetail,
   type OccupationDetail,
+  type RelatedSkill,
+  type CareerJob,
   type SkillDetail,
   type RefDetail,
   type SchoolDetail,
@@ -62,7 +70,7 @@ const ENTITY_CONFIG: Record<
   },
   occupations: {
     icon: Briefcase,
-    label: 'Occupation',
+    label: 'Career',
     badgeClass: 'bg-white/5 text-fg-muted border-white/10',
     iconClass: 'text-violet-400',
     borderClass: 'border-white/10',
@@ -127,15 +135,18 @@ function BackButton({ fallback }: { fallback: string }) {
 }
 
 function Section({
+  id: anchor,
   title,
   count,
   children,
 }: {
+  /** Anchor for deep links (#occupations). Defaults to a slug of the title; set it when the wording differs from the link. */
+  id?: string;
   title: string;
   count?: number;
   children: React.ReactNode;
 }) {
-  const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const id = anchor ?? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   return (
     <div id={id} className="mt-8 scroll-mt-20">
       <h2 className="text-sm font-medium text-fg-soft uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -247,7 +258,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
           {(data.occupations?.length || 0) > 0 && (
             <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
               <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length}</div>
-              <div className="text-sm text-fg-muted">Occupations</div>
+              <div className="text-sm text-fg-muted">Careers</div>
             </div>
           )}
           {(data.totalWorkforce || 0) > 0 && (
@@ -259,9 +270,11 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
         </div>
       )}
 
+      <OpenJobsSection jobs={data.jobs ?? []} empty="No open jobs at this company right now." showCareer />
+
       {/* Occupations across this company's factories */}
       {(data.occupations?.length || 0) > 0 && (
-        <Section title="Occupations" count={data.occupations?.length}>
+        <Section id="occupations" title="Careers" count={data.occupations?.length}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.occupations?.map((occ) => (
               <RelatedCard
@@ -333,7 +346,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
           <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
             <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length || 0}</div>
-            <div className="text-sm text-fg-muted">Occupations</div>
+            <div className="text-sm text-fg-muted">Careers</div>
           </div>
         </div>
       )}
@@ -347,9 +360,11 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
         </div>
       )}
 
+      <OpenJobsSection jobs={data.jobs ?? []} empty="No open jobs at this factory right now." showCareer />
+
       {/* Occupations at this facility */}
       {data.occupations?.length > 0 && (
-        <Section title="Occupations at this facility" count={data.occupations.length}>
+        <Section id="occupations" title="Careers at this facility" count={data.occupations.length}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.occupations.map((occ) => (
               <RelatedCard
@@ -367,15 +382,112 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
   );
 }
 
-// Occupation Detail View
+/** Open jobs at a company, a factory or for a career, with a way in for employers when there are none. */
+function OpenJobsSection({ jobs, empty, showCareer = false }: { jobs: CareerJob[]; empty: string; showCareer?: boolean }) {
+  return (
+    <Section id="jobs" title="Open jobs" count={jobs.length}>
+      {jobs.length > 0 ? (
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {jobs.map((job) => (
+            <RelatedCard
+              key={job.id}
+              to={`/jobs/${job.id}`}
+              icon={Briefcase}
+              iconClass="text-violet-400"
+              title={job.title}
+              subtitle={[
+                showCareer ? job.occupationTitle : job.companyName,
+                job.city,
+                formatPay(job.payMin, job.payMax, job.payPeriod),
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-fg-soft">
+          {empty}{' '}
+          <Link to="/jobs" className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
+            See all open jobs
+          </Link>
+          {' · '}
+          <Link to="/employer" className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
+            Hiring? Post a job
+          </Link>
+        </p>
+      )}
+    </Section>
+  );
+}
+
+/** The three stages of a career's path, in the order they are learned. */
+const PATH_STAGES: { stage: 1 | 2 | 3; label: string; hint: string }[] = [
+  { stage: 1, label: 'Introduction', hint: 'Where to start' },
+  { stage: 2, label: 'Fundamentals', hint: 'The core of the work' },
+  { stage: 3, label: 'Advanced', hint: 'What sets you apart' },
+];
+
+/** One skill on a career's path, marked when the signed-in person holds or is learning it. */
+function PathSkill({ skill, status }: { skill: RelatedSkill; status: SkillStatus | undefined }) {
+  return (
+    <Link
+      to={`/skills/${skill.id}`}
+      className={`
+        group flex items-center gap-3 p-3 min-w-0 rounded-lg border transition-all duration-200
+        ${
+          status === 'held'
+            ? 'bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500/50'
+            : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.05] hover:border-white/20'
+        }
+      `}
+    >
+      {status === 'held' ? (
+        <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-500" aria-label="You have this skill" />
+      ) : status === 'learning' ? (
+        <CircleDashed className="w-5 h-5 flex-shrink-0 text-amber-500" aria-label="You are learning this skill" />
+      ) : (
+        <Wrench className="w-5 h-5 flex-shrink-0 text-emerald-500" />
+      )}
+      <span className="flex-1 min-w-0 font-medium text-fg-default truncate group-hover:text-white">{skill.name}</span>
+      <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0" />
+    </Link>
+  );
+}
+
+// Career (occupation) detail: the path of skills by stage, open jobs, and who employs it.
 function OccupationDetailView({ data }: { data: OccupationDetail }) {
+  const { data: account } = useAccount();
+  const signedIn = Boolean(account?.user);
+  const { data: mySkills } = useMySkills(signedIn);
+  const statusBySkill = new Map((mySkills ?? []).map((s) => [s.skillId, s.status]));
+
+  const skills = data.skills ?? [];
+  const jobs = data.jobs ?? [];
+  const heldCount = skills.filter((s) => statusBySkill.get(s.id) === 'held').length;
+  const staged = PATH_STAGES.map((def) => ({ ...def, skills: skills.filter((s) => s.stage === def.stage) }));
+  const unstaged = skills.filter((s) => !s.stage);
+  const hasStages = staged.some((group) => group.skills.length > 0);
+
   return (
     <>
-      {/* Stats - skill and factory counts (real relationships) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <GoalButton occupationId={data.id} />
+        {signedIn && skills.length > 0 && (
+          <span className="text-sm text-fg-muted">
+            You have <span className="text-fg-default font-medium">{heldCount}</span> of {skills.length} skills
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-6">
         <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
-          <div className="text-2xl font-semibold text-fg-default">{data.skills?.length || 0}</div>
+          <div className="text-2xl font-semibold text-fg-default">{skills.length}</div>
           <div className="text-sm text-fg-muted">Skills</div>
+        </div>
+        <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
+          <div className="text-2xl font-semibold text-fg-default">{jobs.length}</div>
+          <div className="text-sm text-fg-muted">Open jobs</div>
         </div>
         <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.factories?.length || 0}</div>
@@ -383,27 +495,51 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
         </div>
       </div>
 
-      {/* Skills - no importance badges */}
-      {data.skills?.length > 0 && (
-        <Section title="Skills" count={data.skills.length}>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {data.skills.map((skill) => (
-              <RelatedCard
-                key={skill.id}
-                to={`/skills/${skill.id}`}
-                icon={Wrench}
-                iconClass="text-emerald-500"
-                title={skill.name}
-                subtitle={skill.category}
-              />
-            ))}
-          </div>
+      {/* The path: skills in the order they are learned */}
+      {skills.length > 0 && (
+        <Section id="skills" title={hasStages ? 'Path' : 'Skills'} count={skills.length}>
+          {hasStages ? (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              {staged.map((group) => (
+                <div key={group.stage} className="min-w-0">
+                  <div className="mb-2 flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-fg-soft tabular-nums">{group.stage}</span>
+                    <h3 className="text-sm font-semibold text-fg-default">{group.label}</h3>
+                    <span className="text-xs text-fg-soft truncate">{group.hint}</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {group.skills.length > 0 ? (
+                      group.skills.map((skill) => (
+                        <PathSkill key={skill.id} skill={skill} status={statusBySkill.get(skill.id)} />
+                      ))
+                    ) : (
+                      <p className="rounded-lg border border-dashed border-white/10 p-3 text-sm text-fg-soft">
+                        Nothing at this stage yet.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {unstaged.length > 0 && (
+            <div className={hasStages ? 'mt-6' : ''}>
+              {hasStages && <h3 className="mb-2 text-sm font-semibold text-fg-default">Not yet placed on the path</h3>}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {unstaged.map((skill) => (
+                  <PathSkill key={skill.id} skill={skill} status={statusBySkill.get(skill.id)} />
+                ))}
+              </div>
+            </div>
+          )}
         </Section>
       )}
 
-      {/* Factories with this role */}
+      <OpenJobsSection jobs={jobs} empty="No open jobs for this career right now." />
+
+      {/* Factories that employ this career */}
       {data.factories?.length > 0 && (
-        <Section title="Factories with this role" count={data.factories.length}>
+        <Section id="factories" title="Factories that employ this career" count={data.factories.length}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.factories.map((factory) => (
               <RelatedCard
@@ -426,6 +562,9 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
 function SkillDetailView({ data }: { data: SkillDetail }) {
   return (
     <>
+      <div className="mt-5">
+        <SkillStatusButton skillId={data.id} />
+      </div>
       {/* Category badge - clicking filters Skills tab by category */}
       {data.category && (
         <div className="mt-4">
@@ -439,7 +578,7 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
         <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length || 0}</div>
-          <div className="text-sm text-fg-muted">Occupations</div>
+          <div className="text-sm text-fg-muted">Careers</div>
         </div>
         <div className="bg-white/[0.02] backdrop-blur-sm border border-white/10 rounded-lg p-4">
           <div className="text-2xl font-semibold text-fg-default">{data.relatedSkills?.length || 0}</div>
@@ -449,7 +588,7 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
 
       {/* Occupations - no importance badges */}
       {data.occupations?.length > 0 && (
-        <Section title="Occupations requiring this skill" count={data.occupations.length}>
+        <Section id="occupations" title="Careers requiring this skill" count={data.occupations.length}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.occupations.map((occ) => (
               <RelatedCard

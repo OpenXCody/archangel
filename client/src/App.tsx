@@ -7,11 +7,16 @@ import AdminKeyGate from './components/import/AdminKeyGate';
 
 // Lazy load pages for code splitting
 const MapView = lazy(() => import('./pages/MapView'));
-const Tree = lazy(() => import('./pages/Tree'));
 const Explore = lazy(() => import('./pages/Explore'));
 const Import = lazy(() => import('./pages/Import'));
 const BulkImport = lazy(() => import('./pages/BulkImport'));
 const EntityDetail = lazy(() => import('./pages/EntityDetail'));
+const SignIn = lazy(() => import('./pages/SignIn'));
+const Me = lazy(() => import('./pages/Me'));
+const Jobs = lazy(() => import('./pages/Jobs'));
+const JobDetail = lazy(() => import('./pages/JobDetail'));
+const Employer = lazy(() => import('./pages/Employer'));
+const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Loading fallback component
@@ -32,7 +37,8 @@ function App() {
             <Route path="/" element={<Navigate to="/map" replace />} />
             <Route element={<Layout />}>
               <Route path="/map" element={<ErrorBoundary><MapView /></ErrorBoundary>} />
-              <Route path="/tree" element={<ErrorBoundary><Tree /></ErrorBoundary>} />
+              {/* The Tree page is gone; old links land on the map. */}
+              <Route path="/tree" element={<Navigate to="/map" replace />} />
               <Route path="/explore" element={<ErrorBoundary><Explore /></ErrorBoundary>} />
               <Route path="/import" element={<ErrorBoundary><AdminKeyGate><Import /></AdminKeyGate></ErrorBoundary>} />
               <Route path="/import/bulk" element={<ErrorBoundary><AdminKeyGate><BulkImport /></AdminKeyGate></ErrorBoundary>} />
@@ -44,6 +50,12 @@ function App() {
               <Route path="/refs/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
               <Route path="/schools/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
               <Route path="/programs/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
+              <Route path="/sign-in" element={<ErrorBoundary><SignIn /></ErrorBoundary>} />
+              <Route path="/me" element={<ErrorBoundary><Me /></ErrorBoundary>} />
+              <Route path="/jobs" element={<ErrorBoundary><Jobs /></ErrorBoundary>} />
+              <Route path="/jobs/:id" element={<ErrorBoundary><JobDetail /></ErrorBoundary>} />
+              <Route path="/employer" element={<ErrorBoundary><Employer /></ErrorBoundary>} />
+              <Route path="/admin" element={<ErrorBoundary><Admin /></ErrorBoundary>} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

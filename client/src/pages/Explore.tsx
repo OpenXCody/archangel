@@ -41,7 +41,7 @@ const TABS: { id: TabType; label: string; icon: React.ElementType; color: string
   { id: 'all', label: 'All', icon: Layers, color: 'text-fg-muted' },
   { id: 'companies', label: 'Companies', icon: Building2, color: 'text-amber-500' },
   { id: 'factories', label: 'Factories', icon: Factory, color: 'text-sky-400' },
-  { id: 'occupations', label: 'Occupations', icon: Briefcase, color: 'text-violet-400' },
+  { id: 'occupations', label: 'Careers', icon: Briefcase, color: 'text-violet-400' },
   { id: 'skills', label: 'Skills', icon: Wrench, color: 'text-emerald-500' },
   { id: 'refs', label: 'Refs', icon: Boxes, color: 'text-teal-500' },
   { id: 'schools', label: 'Schools', icon: GraduationCap, color: 'text-indigo-500' },
@@ -59,7 +59,7 @@ const SECTION_CONFIG: Record<BrowsableEntityType, {
 }> = {
   companies: { label: 'Companies', icon: Building2, color: 'text-amber-500', bgColor: 'bg-amber-500/10' },
   factories: { label: 'Factories', icon: Factory, color: 'text-sky-400', bgColor: 'bg-sky-400/10' },
-  occupations: { label: 'Occupations', icon: Briefcase, color: 'text-violet-400', bgColor: 'bg-violet-400/10' },
+  occupations: { label: 'Careers', icon: Briefcase, color: 'text-violet-400', bgColor: 'bg-violet-400/10' },
   skills: { label: 'Skills', icon: Wrench, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10' },
   refs: { label: 'Elements', icon: Boxes, color: 'text-teal-500', bgColor: 'bg-teal-500/10' },
   schools: { label: 'Schools', icon: GraduationCap, color: 'text-indigo-500', bgColor: 'bg-indigo-500/10' },
@@ -760,7 +760,7 @@ export default function Explore() {
         title="Node Explorer"
         description={
           <span className="inline-flex flex-wrap items-center gap-2">
-            Browse every company, factory, occupation and skill.
+            Browse every company, factory, career and skill.
             <span className="hidden items-center gap-2 sm:inline-flex">
               Press
               <kbd className="inline-flex items-center gap-0.5 rounded border border-border-subtle bg-bg-surface px-2 py-1 text-xs text-fg-soft">
@@ -935,7 +935,7 @@ export default function Explore() {
       ) : items.length === 0 ? (
         <div className="text-center py-20">
           <Search className="w-12 h-12 text-fg-soft mx-auto mb-3" />
-          <p className="text-fg-muted mb-2">No {activeTab} found</p>
+          <p className="text-fg-muted mb-2">No {activeTab === 'occupations' ? 'careers' : activeTab} found</p>
           <p className="text-sm text-fg-soft">
             Import data to start building your knowledge graph.
           </p>

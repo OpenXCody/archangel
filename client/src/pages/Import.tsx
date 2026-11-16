@@ -29,7 +29,7 @@ const TABS: { type: TabType; icon: React.ElementType; label: string; color: stri
   { type: 'review', icon: ClipboardCheck, label: 'Review', color: 'emerald' },
   { type: 'companies', icon: Building2, label: 'Companies', color: 'amber' },
   { type: 'factories', icon: Factory, label: 'Factories', color: 'blue' },
-  { type: 'occupations', icon: Briefcase, label: 'Occupations', color: 'blue' },
+  { type: 'occupations', icon: Briefcase, label: 'Careers', color: 'blue' },
   { type: 'skills', icon: Wrench, label: 'Skills', color: 'emerald' },
 ];
 
@@ -145,7 +145,7 @@ export default function Import() {
 
       <PageHeader
         title="Data Import"
-        description="Add companies, factories, occupations, and skills to the database."
+        description="Add companies, factories, careers, and skills to the database."
       />
 
       {/* Tabs */}
@@ -328,7 +328,7 @@ function ActivityItem({
           <span className="text-sm text-fg-default">
             {isSuccess && (
               <>
-                Imported <span className="font-medium">{batch.createdCount}</span> {batch.entityType}
+                Imported <span className="font-medium">{batch.createdCount}</span> {batch.entityType === 'occupations' ? 'careers' : batch.entityType}
               </>
             )}
             {isFailed && (

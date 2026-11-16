@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, pgEnum, index, uniqueIndex, primaryKey, varchar, jsonb, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, pgEnum, index, uniqueIndex, primaryKey, varchar, jsonb, boolean, serial, smallint } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // ============================================
@@ -377,6 +377,8 @@ export const occupationSkills = pgTable(
       .notNull()
       .references(() => skills.id, { onDelete: 'cascade' }),
     importance: importanceEnum('importance').default('required'),
+    // Where the skill sits on the career's path: 1 Introduction, 2 Fundamentals, 3 Advanced.
+    stage: smallint('stage'),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.occupationId, table.skillId] }),
@@ -913,3 +915,181 @@ export const factoriesQuarantine = pgTable('factories_quarantine', {
   externalRefs: jsonb('external_refs'),
   occupationLinks: jsonb('occupation_links'),
 });
+
+// ============================================
+// ACCOUNTS (migration 0010)
+// A user is one account. Roles are relationships, not account types:
+// an employer is a user with an active company membership; an admin has isAdmin.
+// ============================================
+
+export const users = pgTable(
+  'users',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    email: text('email').notNull(), // stored lower-cased
+    name: text('name').notNull(),
+    passwordHash: text('password_hash').notNull(),
+    isAdmin: boolean('is_admin').default(false).notNull(),
+    homeZip: varchar('home_zip', { length: 10 }),
+    about: text('about'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    emailIdx: uniqueIndex('users_email_idx').on(table.email),
+  })
+);
+
+export const sessions = pgTable(
+  'sessions',
+  {
+    tokenHash: text('token_hash').primaryKey(), // sha256 of the cookie value
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+  },
+  (table) => ({
+    userIdx: index('sessions_user_idx').on(table.userId),
+  })
+);
+
+export const companyMembers = pgTable(
+  'company_members',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: text('role').default('member').notNull(), // 'owner' | 'member'
+    status: text('status').default('requested').notNull(), // 'requested' | 'active'
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.companyId, table.userId] }),
+    userIdx: index('company_members_user_idx').on(table.userId),
+  })
+);
+
+// ============================================
+// JOBS AND APPLICATIONS (migration 0010)
+// A job is one opening for one career (occupation) at one factory.
+// ============================================
+
+export const jobs = pgTable(
+  'jobs',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    serial: serial('serial').notNull(), // human-readable job number
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    factoryId: uuid('factory_id')
+      .notNull()
+      .references(() => factories.id, { onDelete: 'cascade' }),
+    occupationId: uuid('occupation_id')
+      .notNull()
+      .references(() => occupations.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description'),
+    employmentType: text('employment_type').default('full-time').notNull(),
+    shift: text('shift'),
+    payMin: integer('pay_min'), // cents
+    payMax: integer('pay_max'), // cents
+    payPeriod: text('pay_period').default('hour').notNull(), // 'hour' | 'year'
+    applyUrl: text('apply_url'), // set = apply on the company's own site
+    status: text('status').default('open').notNull(), // 'draft' | 'open' | 'closed'
+    closedReason: text('closed_reason'),
+    postedAt: timestamp('posted_at').defaultNow().notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    serialIdx: uniqueIndex('jobs_serial_idx').on(table.serial),
+    companyIdx: index('jobs_company_idx').on(table.companyId),
+    factoryIdx: index('jobs_factory_idx').on(table.factoryId),
+    occupationIdx: index('jobs_occupation_idx').on(table.occupationId),
+    statusIdx: index('jobs_status_idx').on(table.status),
+  })
+);
+
+export const jobSkills = pgTable(
+  'job_skills',
+  {
+    jobId: uuid('job_id')
+      .notNull()
+      .references(() => jobs.id, { onDelete: 'cascade' }),
+    skillId: uuid('skill_id')
+      .notNull()
+      .references(() => skills.id, { onDelete: 'cascade' }),
+    required: boolean('required').default(true).notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.jobId, table.skillId] }),
+  })
+);
+
+export const applications = pgTable(
+  'applications',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    jobId: uuid('job_id')
+      .notNull()
+      .references(() => jobs.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    // applied | reviewing | interview | offer | hired | declined | withdrawn
+    status: text('status').default('applied').notNull(),
+    note: text('note'),
+    employerNote: text('employer_note'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    statusChangedAt: timestamp('status_changed_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    jobUserIdx: uniqueIndex('applications_job_user_idx').on(table.jobId, table.userId),
+    userIdx: index('applications_user_idx').on(table.userId),
+  })
+);
+
+// ============================================
+// A PERSON'S OWN SKILLS AND GOALS (migration 0010)
+// ============================================
+
+export const userSkills = pgTable(
+  'user_skills',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    skillId: uuid('skill_id')
+      .notNull()
+      .references(() => skills.id, { onDelete: 'cascade' }),
+    status: text('status').default('held').notNull(), // 'learning' | 'held'
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.skillId] }),
+  })
+);
+
+export const userGoals = pgTable(
+  'user_goals',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    occupationId: uuid('occupation_id')
+      .notNull()
+      .references(() => occupations.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.occupationId] }),
+  })
+);

@@ -38,7 +38,7 @@ interface ImportProgressProps {
 const ENTITY_CONFIG: Record<ImportableEntityType, { icon: React.ElementType; label: string; path: string }> = {
   companies: { icon: Building2, label: 'companies', path: '/explore?tab=companies' },
   factories: { icon: Factory, label: 'factories', path: '/explore?tab=factories' },
-  occupations: { icon: Briefcase, label: 'occupations', path: '/explore?tab=occupations' },
+  occupations: { icon: Briefcase, label: 'careers', path: '/explore?tab=occupations' },
   skills: { icon: Wrench, label: 'skills', path: '/explore?tab=skills' },
 };
 

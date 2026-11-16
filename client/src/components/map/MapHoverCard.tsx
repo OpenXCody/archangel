@@ -63,7 +63,7 @@ export default function MapHoverCard() {
             {data.state && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{data.state}</span>}
             {data.specialization && <span className="truncate">{data.specialization}</span>}
             {occupationCount > 0 && (
-              <span className="inline-flex items-center gap-1"><Briefcase className="h-3 w-3 text-violet-400" />{occupationCount} {occupationCount === 1 ? 'occupation' : 'occupations'}</span>
+              <span className="inline-flex items-center gap-1"><Briefcase className="h-3 w-3 text-violet-400" />{occupationCount} {occupationCount === 1 ? 'career' : 'careers'}</span>
             )}
             {data.workforceSize ? (
               <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{data.workforceSize.toLocaleString()} workforce</span>

@@ -3,6 +3,7 @@ import { db } from '../db/index.js';
 import { companies, factories, occupations, skills, states, refs, schools, programs } from '../db/schema.js';
 import { ilike, or, and, count } from 'drizzle-orm';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
+import { companyInScope, factoryInScope, programInScope, schoolInScope } from '../lib/scope.js';
 
 const router = Router();
 
@@ -62,7 +63,9 @@ interface SearchResults {
   totalCount: number;
 }
 
-// GET /api/search - Global search across all entities
+// GET /api/search - Global search across all entities.
+// Location-bound entities (companies, factories, schools, programs) only match
+// in scope, so a hit never links to a detail page that would 404.
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { q, types, limit = '5' } = req.query;
@@ -109,6 +112,7 @@ router.get('/', async (req: Request, res: Response) => {
           .where(
             and(
               browsableCompanyFilter,
+              companyInScope(),
               or(
                 ilike(companies.name, searchPattern),
                 ilike(companies.industry, searchPattern),
@@ -123,6 +127,7 @@ router.get('/', async (req: Request, res: Response) => {
           .where(
             and(
               browsableCompanyFilter,
+              companyInScope(),
               or(
                 ilike(companies.name, searchPattern),
                 ilike(companies.industry, searchPattern),
@@ -158,11 +163,14 @@ router.get('/', async (req: Request, res: Response) => {
           })
           .from(factories)
           .where(
-            or(
-              ilike(factories.name, searchPattern),
-              ilike(factories.specialization, searchPattern),
-              ilike(factories.description, searchPattern),
-              ilike(factories.state, searchPattern)
+            and(
+              factoryInScope(),
+              or(
+                ilike(factories.name, searchPattern),
+                ilike(factories.specialization, searchPattern),
+                ilike(factories.description, searchPattern),
+                ilike(factories.state, searchPattern)
+              )
             )
           )
           .limit(maxLimit),
@@ -170,11 +178,14 @@ router.get('/', async (req: Request, res: Response) => {
           .select({ count: count() })
           .from(factories)
           .where(
-            or(
-              ilike(factories.name, searchPattern),
-              ilike(factories.specialization, searchPattern),
-              ilike(factories.description, searchPattern),
-              ilike(factories.state, searchPattern)
+            and(
+              factoryInScope(),
+              or(
+                ilike(factories.name, searchPattern),
+                ilike(factories.specialization, searchPattern),
+                ilike(factories.description, searchPattern),
+                ilike(factories.state, searchPattern)
+              )
             )
           ),
       ]);
@@ -375,9 +386,12 @@ router.get('/', async (req: Request, res: Response) => {
           })
           .from(schools)
           .where(
-            or(
-              ilike(schools.name, searchPattern),
-              ilike(schools.description, searchPattern)
+            and(
+              schoolInScope(),
+              or(
+                ilike(schools.name, searchPattern),
+                ilike(schools.description, searchPattern)
+              )
             )
           )
           .limit(maxLimit),
@@ -385,9 +399,12 @@ router.get('/', async (req: Request, res: Response) => {
           .select({ count: count() })
           .from(schools)
           .where(
-            or(
-              ilike(schools.name, searchPattern),
-              ilike(schools.description, searchPattern)
+            and(
+              schoolInScope(),
+              or(
+                ilike(schools.name, searchPattern),
+                ilike(schools.description, searchPattern)
+              )
             )
           ),
       ]);
@@ -417,9 +434,12 @@ router.get('/', async (req: Request, res: Response) => {
           })
           .from(programs)
           .where(
-            or(
-              ilike(programs.title, searchPattern),
-              ilike(programs.description, searchPattern)
+            and(
+              programInScope(),
+              or(
+                ilike(programs.title, searchPattern),
+                ilike(programs.description, searchPattern)
+              )
             )
           )
           .limit(maxLimit),
@@ -427,9 +447,12 @@ router.get('/', async (req: Request, res: Response) => {
           .select({ count: count() })
           .from(programs)
           .where(
-            or(
-              ilike(programs.title, searchPattern),
-              ilike(programs.description, searchPattern)
+            and(
+              programInScope(),
+              or(
+                ilike(programs.title, searchPattern),
+                ilike(programs.description, searchPattern)
+              )
             )
           ),
       ]);
