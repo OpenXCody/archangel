@@ -5,7 +5,8 @@ import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { packPins } from '../../shared/pins.js';
-import { pageLimit } from '../lib/paging.js';
+import { pageLimit, pageOffset } from '../lib/paging.js';
+import { answerWriteError, coordinate, count, optionalName, requiredText } from '../lib/writes.js';
 
 /** A company with this many factories nationwide counts as established. */
 const ESTABLISHED_MIN_SITES = 5;
@@ -19,7 +20,7 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, state, company, industry, sort = 'name', order = 'asc' } = req.query;
     const limitNum = pageLimit(limit, 20, 100);
-    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
+    const offsetNum = pageOffset(offset);
 
     // Build where conditions. Public reads only ever see in-scope factories.
     const conditions: (SQL | undefined)[] = [factoryInScope()];
@@ -321,27 +322,35 @@ router.post('/', async (req: Request, res: Response) => {
       openPositions,
     } = req.body;
 
-    if (!name || !latitude || !longitude) {
-      res.status(400).json({ error: 'Name, latitude, and longitude are required' });
+    const cleanName = requiredText(name, 300);
+    const lat = coordinate(latitude, 'latitude');
+    const lng = coordinate(longitude, 'longitude');
+    const workforce = count(workforceSize);
+    const openings = count(openPositions);
+    if (!cleanName || lat === null || lng === null) {
+      res.status(400).json({ error: 'A factory needs a name, a latitude from -90 to 90 and a longitude from -180 to 180.' });
+      return;
+    }
+    if (workforce === false || openings === false) {
+      res.status(400).json({ error: 'Workforce and open positions are whole numbers from 0 up.' });
       return;
     }
 
     const result = await db.insert(factories).values({
       companyId,
-      name,
+      name: cleanName,
       specialization,
       description,
-      latitude,
-      longitude,
+      latitude: lat,
+      longitude: lng,
       state,
-      workforceSize,
-      openPositions,
+      workforceSize: workforce,
+      openPositions: openings,
     }).returning();
 
     res.status(201).json(result[0]);
   } catch (error) {
-    console.error('Error creating factory:', error);
-    res.status(500).json({ error: 'Failed to create factory' });
+    answerWriteError(res, error, 'factory');
   }
 });
 
@@ -361,17 +370,32 @@ router.put('/:id', async (req: Request, res: Response) => {
       openPositions,
     } = req.body;
 
+    // A value that is left out stays as it is; one that is given must be usable.
+    const cleanName = optionalName(name, 300);
+    const lat = latitude === undefined ? undefined : coordinate(latitude, 'latitude');
+    const lng = longitude === undefined ? undefined : coordinate(longitude, 'longitude');
+    const workforce = workforceSize === undefined ? undefined : count(workforceSize);
+    const openings = openPositions === undefined ? undefined : count(openPositions);
+    if (cleanName === false || lat === null || lng === null) {
+      res.status(400).json({ error: 'A factory needs a name, a latitude from -90 to 90 and a longitude from -180 to 180.' });
+      return;
+    }
+    if (workforce === false || openings === false) {
+      res.status(400).json({ error: 'Workforce and open positions are whole numbers from 0 up.' });
+      return;
+    }
+
     const result = await db.update(factories)
       .set({
         companyId,
-        name,
+        name: cleanName,
         specialization,
         description,
-        latitude,
-        longitude,
+        latitude: lat,
+        longitude: lng,
         state,
-        workforceSize,
-        openPositions,
+        workforceSize: workforce,
+        openPositions: openings,
         updatedAt: new Date(),
       })
       .where(eq(factories.id, id))
@@ -384,8 +408,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     res.json(result[0]);
   } catch (error) {
-    console.error('Error updating factory:', error);
-    res.status(500).json({ error: 'Failed to update factory' });
+    answerWriteError(res, error, 'factory');
   }
 });
 

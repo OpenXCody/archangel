@@ -182,11 +182,11 @@ export default function BulkImport() {
         requestBody.transformConfig = transformConfig;
         requestBody.skipRows = transformResult.rows
           .filter((r) => r.willSkip)
-          .map((r) => r.originalIndex);
+          .map((r) => r.originalIndex + 1);
         requestBody.transformedData = transformResult.rows
           .filter((r) => !r.willSkip)
           .map((r) => ({
-            originalIndex: r.originalIndex,
+            originalIndex: r.originalIndex + 1, // the server numbers rows from 1
             companyName: r.companyName,
             companyId: r.companyId, // Existing company ID if linked
             factoryName: r.factoryName,
@@ -215,7 +215,7 @@ export default function BulkImport() {
       if (!fileId) throw new Error('No file uploaded');
       const skipRows = [
         // Rows skipped from transform
-        ...(transformResult?.rows.filter((r) => r.willSkip).map((r) => r.originalIndex) || []),
+        ...(transformResult?.rows.filter((r) => r.willSkip).map((r) => r.originalIndex + 1) || []),
         // Rows skipped from validation resolutions
         ...resolutions.filter((r) => r.action === 'skip').map((r) => r.row),
       ];
@@ -233,7 +233,7 @@ export default function BulkImport() {
           transformedData: transformResult?.rows
             .filter((r) => !r.willSkip)
             .map((r) => ({
-              originalIndex: r.originalIndex,
+              originalIndex: r.originalIndex + 1, // the server numbers rows from 1
               companyName: r.companyName,
               companyId: r.companyId, // Existing company ID if linked
               factoryName: r.factoryName,

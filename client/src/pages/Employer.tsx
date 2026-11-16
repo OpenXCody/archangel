@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Loader2, Search, X } from 'lucide-react';
@@ -352,6 +352,12 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
   const [applyIn, setApplyIn] = useState<'app' | 'link'>('app');
   const [applyUrl, setApplyUrl] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
+  // Set the moment a post is sent, so a double click cannot send it twice
+  // (the mutation's own pending flag only changes on the next render).
+  const sending = useRef(false);
+  // Tags as the person left them, by career: going back to a career brings
+  // the edits back, not the defaults.
+  const editedTags = useRef(new Map<string, JobSkillTag[]>());
 
   // Careers already recorded at the chosen factory are the likeliest picks.
   const factoryCareers = useQuery({
@@ -375,13 +381,18 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
     // Set while rendering, so tags the client already has never flash a loader.
     const defaults = careerSkills.data.skills.map((skill) => ({ id: skill.id, name: skill.name, required: skill.stage !== 3 }));
     setSeededFor(careerId);
-    // Anything added while the defaults were unavailable stays.
-    setSkills([...defaults, ...skills.filter((tag) => !defaults.some((skill) => skill.id === tag.id))]);
+    // Tags edited for this career earlier in the form come back as they were;
+    // otherwise the defaults, plus anything added while they were unavailable.
+    setSkills(
+      editedTags.current.get(careerId) ??
+        [...defaults, ...skills.filter((tag) => !defaults.some((skill) => skill.id === tag.id))]
+    );
   }
 
   const pickCareer = (next: CareerOption | null) => {
     setCareer(next);
     if (next?.id !== career?.id) {
+      if (career && seeded) editedTags.current.set(career.id, skills);
       setSkills([]);
       setSeededFor(null);
     }
@@ -394,7 +405,7 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (createJob.isPending) return;
+    if (createJob.isPending || sending.current) return;
     createJob.reset();
 
     if (!factoryId || !career) return setProblem('Choose a factory and a career.');
@@ -409,6 +420,7 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
     }
     setProblem(null);
 
+    sending.current = true;
     createJob.mutate(
       {
         companyId: company.companyId,
@@ -425,7 +437,12 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
         // Without the career's defaults and with nothing added, the server applies the defaults.
         skills: seeded || skills.length > 0 ? skills.map((skill) => ({ skillId: skill.id, required: skill.required })) : undefined,
       },
-      { onSuccess: (created) => navigate(`/jobs/${created.id}`) }
+      {
+        onSuccess: (created) => navigate(`/jobs/${created.id}`),
+        onSettled: () => {
+          sending.current = false;
+        },
+      }
     );
   };
 

@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { and, eq, ilike, or, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, or, sql } from 'drizzle-orm';
 import { db, occupations, occupationSkills, skills, factoryOccupations, factories, jobs } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
-import { pageLimit } from '../lib/paging.js';
+import { pageLimit, pageOffset } from '../lib/paging.js';
+import { answerWriteError, optionalName, requiredText } from '../lib/writes.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -14,20 +15,35 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, order = 'asc' } = req.query;
     const limitNum = pageLimit(limit, 20, 100);
-    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
+    const offsetNum = pageOffset(offset);
 
     // Build where conditions
     const conditions = [];
 
-    if (search) {
-      const searchTerm = `%${search}%`;
+    // Search reads titles, with "&" and "and" as the same word. Descriptions
+    // are searched only for a term of four letters or more (a short one is
+    // found inside unrelated words) and rank below every title match.
+    const term = String(search ?? '').trim().slice(0, 80).toLowerCase().replace(/&/g, ' and ').replace(/\s+/g, ' ');
+    const literal = term.replace(/[\\%_]/g, '\\$&');
+    const titleText = sql`regexp_replace(replace(lower(${occupations.title}), '&', ' and '), ' +', ' ', 'g')`;
+    if (term) {
       conditions.push(
-        or(
-          ilike(occupations.title, searchTerm),
-          ilike(occupations.description, searchTerm)
-        )
+        term.length >= 4
+          ? or(sql`${titleText} LIKE ${`%${literal}%`}`, ilike(occupations.description, `%${literal}%`))
+          : term.length === 3
+            ? sql`${titleText} LIKE ${`%${literal}%`}`
+            : // One or two letters only ever mean the start of a word.
+              sql`(${titleText} LIKE ${`${literal}%`} OR ${titleText} LIKE ${`% ${literal}%`})`
       );
     }
+    // 0 the title itself, 1 starts with it, 2 a word in it starts with it,
+    // 3 contains it, 4 only the description mentions it.
+    const relevance = sql`CASE
+      WHEN ${titleText} = ${term} THEN 0
+      WHEN ${titleText} LIKE ${`${literal}%`} THEN 1
+      WHEN ${titleText} LIKE ${`% ${literal}%`} THEN 2
+      WHEN ${titleText} LIKE ${`%${literal}%`} THEN 3
+      ELSE 4 END`;
 
     // Get total count
     const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
@@ -41,9 +57,12 @@ router.get('/', async (req: Request, res: Response) => {
     // Careers that have a path come first, so the list opens on the ones with
     // something to follow; within each group, by title.
     const hasPathFirst = sql`(${occupations.pathStatus} IS NULL) ASC`;
-    const orderByClause = order === 'desc'
-      ? sql`${hasPathFirst}, ${occupations.title} DESC`
-      : sql`${hasPathFirst}, ${occupations.title} ASC`;
+    const byTitle = order === 'desc' ? sql`${occupations.title} DESC` : sql`${occupations.title} ASC`;
+    // With a search, the closest title first; among equals, careers with a
+    // path, then the shorter title ("Machinist" before "Casting CNC Machinist").
+    const orderByClause = term
+      ? sql`${relevance}, ${hasPathFirst}, length(${occupations.title}), ${byTitle}`
+      : sql`${hasPathFirst}, ${byTitle}`;
 
     // Query with skill and factory counts (in-scope factories only)
     const result = await db
@@ -170,6 +189,14 @@ router.put('/:id/path', async (req: Request, res: Response) => {
       res.status(404).json({ error: 'Occupation not found' });
       return;
     }
+    const wanted = [...new Set(rows.map((row) => row.skillId))];
+    if (wanted.length > 0) {
+      const known = await db.select({ id: skills.id }).from(skills).where(inArray(skills.id, wanted));
+      if (known.length !== wanted.length) {
+        res.status(400).json({ error: 'One of the skills does not exist.' });
+        return;
+      }
+    }
     const status: unknown = req.body?.status;
     if (status !== undefined && status !== 'draft' && status !== 'approved') {
       res.status(400).json({ error: "status must be 'draft' or 'approved'." });
@@ -201,10 +228,10 @@ router.put('/:id/path', async (req: Request, res: Response) => {
 
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { title, description, onetCode } = req.body;
-
+    const { description, onetCode } = req.body;
+    const title = requiredText(req.body?.title);
     if (!title) {
-      res.status(400).json({ error: 'Title is required' });
+      res.status(400).json({ error: 'A career needs a title of up to 200 characters.' });
       return;
     }
 
@@ -216,8 +243,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     res.status(201).json(result[0]);
   } catch (error) {
-    console.error('Error creating occupation:', error);
-    res.status(500).json({ error: 'Failed to create occupation' });
+    answerWriteError(res, error, 'career');
   }
 });
 
@@ -225,7 +251,16 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, onetCode } = req.body;
+    const { description, onetCode } = req.body;
+    const title = optionalName(req.body?.title);
+    if (title === false) {
+      res.status(400).json({ error: 'A career needs a title of up to 200 characters.' });
+      return;
+    }
+    if (title === undefined && description === undefined && onetCode === undefined) {
+      res.status(400).json({ error: 'Nothing to change.' });
+      return;
+    }
 
     const result = await db.update(occupations)
       .set({
@@ -243,8 +278,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     res.json(result[0]);
   } catch (error) {
-    console.error('Error updating occupation:', error);
-    res.status(500).json({ error: 'Failed to update occupation' });
+    answerWriteError(res, error, 'career');
   }
 });
 

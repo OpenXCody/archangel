@@ -7,16 +7,33 @@
 // preserved so search, dedup, and exports stay stable.
 
 const ACRONYMS = new Set([
-  'LLC', 'INC', 'CO', 'CORP', 'LP', 'LLP', 'PLLC', 'LTD', 'PC',
+  // Legal forms that are initials. "Inc", "Corp", "Co" and "Ltd" are
+  // abbreviations of words and read as words ("Dow Inc.", not "Dow INC.").
+  'LLC', 'LP', 'LLP', 'PLLC', 'PC',
   'USA', 'US', 'UK', 'EU', 'LA', 'SF', 'NYC', 'DC', 'NY',
   'HVAC', 'PCB', 'CNC', 'IT', 'IP', 'AI', 'ML', 'RV',
   'II', 'III', 'IV', 'VI', 'VII', 'VIII', 'IX',
-  'TX', 'CA', 'FL', 'IL', 'MI', 'WA', 'OR', 'AZ', 'NV', 'CO', 'GA',
+  'TX', 'CA', 'FL', 'IL', 'MI', 'WA', 'AZ', 'NV', 'GA',
   // Common corporate acronyms observed in the dataset
   'ADM', 'BASF', 'BAE', 'BMW', 'BP', 'CEMEX', 'APAC', 'AECOM', 'AMD',
   'GE', 'GM', 'IBM', 'HP', 'AT&T', 'JP', 'UPS', 'FMC', 'FCA',
   'PPG', 'RPM', 'TDK', 'KLA', 'TSMC', 'ASML', 'NXP', 'ST', 'SK',
+  'ABB', 'BD', 'AZZ', 'ICU', 'GKN', 'ZF', 'TRW', 'NGK', 'JBS', 'CNH', 'AGCO', 'ITT', 'SPX', 'TE',
 ]);
+
+// Names whose capitals sit inside the word, where no rule would find them.
+const SPELLINGS: Record<string, string> = {
+  lyondellbasell: 'LyondellBasell',
+  calportland: 'CalPortland',
+  globalfoundries: 'GlobalFoundries',
+  spacex: 'SpaceX',
+  dupont: 'DuPont',
+  exxonmobil: 'ExxonMobil',
+  conocophillips: 'ConocoPhillips',
+  glaxosmithkline: 'GlaxoSmithKline',
+  borgwarner: 'BorgWarner',
+  onsemi: 'onsemi',
+};
 
 const LOWERCASE_WORDS = new Set([
   'a', 'an', 'and', 'as', 'at', 'by', 'for', 'in', 'of', 'on',
@@ -32,6 +49,7 @@ function titleCaseWord(word: string, isFirst: boolean): string {
   const upper = core.toUpperCase();
   if (ACRONYMS.has(upper)) return leading + upper + trailing;
   const lower = core.toLowerCase();
+  if (SPELLINGS[lower]) return leading + SPELLINGS[lower] + trailing;
   if (!isFirst && LOWERCASE_WORDS.has(lower)) return leading + lower + trailing;
   // Preserve hyphenated chunks ("3M-Dyneon" → "3M-Dyneon")
   if (core.includes('-')) {
@@ -57,7 +75,14 @@ function fixAcronymsInPlace(name: string): string {
       if (ACRONYMS.has(core.toUpperCase())) {
         return leading + core.toUpperCase() + trailing;
       }
-      return chunk;
+      const spelling = SPELLINGS[core.toLowerCase()];
+      if (spelling) return leading + spelling + trailing;
+      // A capital lost after a hyphen or slash: "Georgia-pacific", "Bristol-myers".
+      const repaired = core.replace(
+        /([A-Z][a-z]+[-/])([a-z]{3,})/g,
+        (_, head: string, tail: string) => head + tail.charAt(0).toUpperCase() + tail.slice(1)
+      );
+      return leading + repaired + trailing;
     })
     .join('');
 }

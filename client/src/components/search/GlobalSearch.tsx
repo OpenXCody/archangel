@@ -1,3 +1,4 @@
+import { formatCompanyName, formatFactoryName } from '@shared/displayName';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -146,8 +147,8 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   // Flatten results for keyboard navigation
   const flatResults = useCallback((): SearchResultItem[] => {
     if (!searchResults) return [];
-    const order: SearchEntityType[] = ['companies', 'factories', 'occupations', 'skills', 'states'];
-    return order.flatMap((type) => searchResults.results[type]?.items || []);
+    // The order the groups are drawn in, so the arrow keys reach every row.
+    return (Object.keys(ENTITY_CONFIG) as SearchEntityType[]).flatMap((type) => searchResults.results[type]?.items || []);
   }, [searchResults]);
 
   // Save recent search
@@ -182,7 +183,9 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
       saveRecentSearch(query);
       const config = ENTITY_CONFIG[item.type];
       onClose();
-      navigate(`${config.path}/${item.id}`);
+      // A state has no page of its own: it opens on the map.
+      if (item.type === 'states') navigate(`/map?state=${encodeURIComponent(item.subtitle ?? '')}`);
+      else navigate(`${config.path}/${item.id}`);
     },
     [navigate, onClose, query, saveRecentSearch]
   );
@@ -432,6 +435,8 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                           return (
                             <div
                               key={`${item.type}-${item.id}`}
+                              role="option"
+                              aria-selected={isSelected}
                               className={`
                                 flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer
                                 ${isSelected ? 'bg-tint/10' : 'hover:bg-tint/5'}
@@ -445,7 +450,13 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                                 <Icon className={`w-4 h-4 flex-shrink-0 ${config.iconClass}`} />
                               )}
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm text-fg-default truncate">{item.name}</p>
+                                <p className="text-sm text-fg-default truncate">
+                                  {item.type === 'companies'
+                                    ? formatCompanyName(item.name)
+                                    : item.type === 'factories'
+                                      ? formatFactoryName(item.name)
+                                      : item.name}
+                                </p>
                                 {item.subtitle && (
                                   <p className="text-xs text-fg-soft truncate">{item.subtitle}</p>
                                 )}
@@ -455,14 +466,6 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                                   {item.meta}
                                 </span>
                               )}
-                              <span
-                                className={`
-                                  text-xs px-2 py-0.5 rounded-full
-                                  bg-tint/5 text-fg-soft border border-tint/10
-                                `}
-                              >
-                                {config.label}
-                              </span>
                             </div>
                           );
                         })}

@@ -1,5 +1,5 @@
 import { Router, type Request } from 'express';
-import { and, eq, gt, ilike, sql, type SQL } from 'drizzle-orm';
+import { and, eq, gt, ilike, inArray, sql, type SQL } from 'drizzle-orm';
 import {
   db,
   jobs,
@@ -34,6 +34,7 @@ const PAY_PERIODS = new Set(['hour', 'year']);
 const PIPELINE = ['applied', 'reviewing', 'interview', 'offer', 'hired'];
 const EMPLOYER_STATUSES = new Set([...PIPELINE, 'declined']);
 const TERMINAL = new Set(['hired', 'declined', 'withdrawn']);
+const MAX_JOB_SKILLS = 60;
 
 /** Open, unexpired, and at a factory inside the app's region. */
 const isOpenInScope: SQL = and(
@@ -269,6 +270,16 @@ router.post(
         seen.add(item.skillId);
         skillRows.push({ skillId: item.skillId, required: item.required !== false });
       }
+      if (skillRows.length > MAX_JOB_SKILLS) {
+        return res.status(400).json({ error: `Tag at most ${MAX_JOB_SKILLS} skills on a job.` });
+      }
+      if (skillRows.length > 0) {
+        const known = await db
+          .select({ id: skills.id })
+          .from(skills)
+          .where(inArray(skills.id, skillRows.map((row) => row.skillId)));
+        if (known.length !== skillRows.length) return res.status(400).json({ error: 'One of the tagged skills does not exist.' });
+      }
     } else {
       const defaults = await db
         .select({ skillId: occupationSkills.skillId, stage: occupationSkills.stage })
@@ -276,6 +287,23 @@ router.post(
         .where(eq(occupationSkills.occupationId, occupationId));
       skillRows = defaults.map((row) => ({ skillId: row.skillId, required: row.stage !== 3 }));
     }
+
+    // The same post sent twice in a moment (a double click, a retry) is one job.
+    const title = parsed.values.title ?? occupation.title;
+    const [twin] = await db
+      .select({ id: jobs.id, serial: jobs.serial })
+      .from(jobs)
+      .where(
+        and(
+          eq(jobs.createdBy, user.id),
+          eq(jobs.factoryId, factoryId),
+          eq(jobs.occupationId, occupationId),
+          eq(jobs.title, title),
+          gt(jobs.createdAt, new Date(Date.now() - 15_000))
+        )
+      )
+      .limit(1);
+    if (twin) return res.status(200).json({ id: twin.id, serial: twin.serial });
 
     const created = await db.transaction(async (tx) => {
       const [job] = await tx
@@ -359,8 +387,18 @@ router.post(
       .values({ jobId: job.id, userId: req.user!.id, note: note || null })
       .onConflictDoNothing()
       .returning({ id: applications.id });
-    if (!created) return res.status(409).json({ error: 'You have already applied to this job.' });
-    res.status(201).json({ id: created.id, status: 'applied' });
+    if (created) return res.status(201).json({ id: created.id, status: 'applied' });
+
+    // One application per person per job. A withdrawn one is taken up again
+    // (the same row, back at the start); anything else stands.
+    const now = new Date();
+    const [reopened] = await db
+      .update(applications)
+      .set({ status: 'applied', note: note || null, createdAt: now, statusChangedAt: now })
+      .where(and(eq(applications.jobId, job.id), eq(applications.userId, req.user!.id), eq(applications.status, 'withdrawn')))
+      .returning({ id: applications.id });
+    if (!reopened) return res.status(409).json({ error: 'You have already applied to this job.' });
+    res.status(201).json({ id: reopened.id, status: 'applied' });
   })
 );
 
@@ -468,7 +506,14 @@ router.patch(
       patch.employerNote = employerNote || null;
     }
     if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'Nothing to change.' });
-    await db.update(applications).set(patch).where(eq(applications.id, row.id));
+    // Only if the application is still as it was read: a withdrawal and a
+    // company's change sent at the same moment must not both succeed.
+    const [changed] = await db
+      .update(applications)
+      .set(patch)
+      .where(and(eq(applications.id, row.id), eq(applications.status, row.status)))
+      .returning({ id: applications.id });
+    if (!changed) return res.status(409).json({ error: 'This application changed a moment ago. Reload and try again.' });
     res.json({ id: row.id, status: patch.status ?? row.status });
   })
 );

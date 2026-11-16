@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql } from 'drizzle-orm';
 import { db, refs, refAliases, skillRefs, skills } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
-import { pageLimit } from '../lib/paging.js';
+import { pageLimit, pageOffset } from '../lib/paging.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -12,7 +12,7 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, type, order = 'asc' } = req.query;
     const limitNum = pageLimit(limit, 20, 100);
-    const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
+    const offsetNum = pageOffset(offset);
 
     // Build where conditions
     const conditions = [];

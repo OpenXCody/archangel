@@ -190,7 +190,7 @@ router.get('/states/:code/overview', async (req: Request, res: Response) => {
     res.status(400).json({ error: 'Invalid state code' });
     return;
   }
-  if (!isStateInScope(code)) {
+  if (!(code in STATE_CODE_TO_NAME) || !isStateInScope(code)) {
     res.status(404).json({ error: 'State not found' });
     return;
   }

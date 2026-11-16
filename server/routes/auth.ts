@@ -11,6 +11,7 @@ import {
   requireUser,
   startSession,
   tooManyAttempts,
+  clearAttempts,
   verifyPassword,
   type SessionUser,
 } from '../lib/auth.js';
@@ -148,6 +149,7 @@ router.post(
     const [row] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     if (!row || !(await verifyPassword(password, row.passwordHash))) return invalid();
 
+    clearAttempts(req, email);
     await startSession(res, row.id);
     res.json(
       await accountPayload({

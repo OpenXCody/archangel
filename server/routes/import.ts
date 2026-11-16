@@ -182,8 +182,9 @@ router.post('/validate', async (req: Request, res: Response) => {
     }
 
     // Map source data to target fields, excluding skipped rows and applying transformations
-    const rowsToMap = parsed.allRows.filter((_, index) => !skipRowsSet.has(index));
-    const mappedRows = mapRowsToFields(rowsToMap, mappings);
+    // Rows are numbered from 1 in file order, before any are skipped, so a
+    // row keeps its number (and the transform that belongs to it) throughout.
+    const mappedRows = mapRowsToFields(parsed.allRows, mappings).filter((row) => !skipRowsSet.has(row.rowNumber));
 
     // Apply transformations to mapped rows if entity is factories
     if (entityType === 'factories' && transformLookup.size > 0) {
