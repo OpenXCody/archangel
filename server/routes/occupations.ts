@@ -37,9 +37,12 @@ router.get('/', async (req: Request, res: Response) => {
     const total = countResult[0]?.count ?? 0;
 
     // Build order by clause
+    // Careers that have a path come first, so the list opens on the ones with
+    // something to follow; within each group, by title.
+    const hasPathFirst = sql`(${occupations.pathStatus} IS NULL) ASC`;
     const orderByClause = order === 'desc'
-      ? sql`${occupations.title} DESC`
-      : sql`${occupations.title} ASC`;
+      ? sql`${hasPathFirst}, ${occupations.title} DESC`
+      : sql`${hasPathFirst}, ${occupations.title} ASC`;
 
     // Query with skill and factory counts (in-scope factories only)
     const result = await db
@@ -48,6 +51,7 @@ router.get('/', async (req: Request, res: Response) => {
         title: occupations.title,
         description: occupations.description,
         onetCode: occupations.onetCode,
+        pathStatus: occupations.pathStatus,
         createdAt: occupations.createdAt,
         skillCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.occupation_id = occupations.id)`,
         factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factory_occupations fo INNER JOIN factories f ON f.id = fo.factory_id WHERE fo.occupation_id = occupations.id AND ${factoryInScope('f')})`,
@@ -139,8 +143,9 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/occupations - Create occupation
 // PUT /api/occupations/:id/path - set which skills a career needs and the
 // stage of each (1 Introduction, 2 Fundamentals, 3 Advanced, or null).
-// Body: { skills: [{ skillId, stage }], replace?: boolean }. With `replace`,
-// skills not listed are removed from the career. Admin-only (a write).
+// Body: { skills: [{ skillId, stage }], replace?: boolean, status?: 'draft' | 'approved' }.
+// With `replace`, skills not listed are removed from the career. `status` records
+// whether a person has reviewed the path. Admin-only (a write).
 router.put('/:id/path', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -164,7 +169,15 @@ router.put('/:id/path', async (req: Request, res: Response) => {
       res.status(404).json({ error: 'Occupation not found' });
       return;
     }
+    const status: unknown = req.body?.status;
+    if (status !== undefined && status !== 'draft' && status !== 'approved') {
+      res.status(400).json({ error: "status must be 'draft' or 'approved'." });
+      return;
+    }
     await db.transaction(async (tx) => {
+      if (status !== undefined) {
+        await tx.update(occupations).set({ pathStatus: status }).where(eq(occupations.id, id));
+      }
       if (req.body?.replace === true) {
         await tx.delete(occupationSkills).where(eq(occupationSkills.occupationId, id));
       }

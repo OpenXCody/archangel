@@ -204,6 +204,8 @@ export interface Occupation {
   title: string;
   description: string | null;
   onetCode: string | null;
+  /** null: no path yet. 'draft': written, not reviewed. 'approved': reviewed by a person. */
+  pathStatus?: 'draft' | 'approved' | null;
   createdAt: string;
   skillCount?: number;
   factoryCount?: number;
