@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, factories, companies, factoryOccupations, occupations } from '../db/index.js';
-import { uuidParam } from '../middleware/validateUuid.js';
+import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 
 const router = Router();
 router.param('id', uuidParam);
+router.use(uuidQuery('company'));
 
 // GET /api/factories - List factories with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {

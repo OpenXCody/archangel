@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, programs, programSkills, skills, schools, programAliases } from '../db/index.js';
-import { uuidParam } from '../middleware/validateUuid.js';
+import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { programInScope } from '../lib/scope.js';
 
 const router = Router();
 router.param('id', uuidParam);
+router.use(uuidQuery('school'));
 
 // GET /api/programs - List programs with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {

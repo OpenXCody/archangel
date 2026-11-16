@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql, and, ne, isNull } from 'drizzle-orm';
 import { db, skills, occupationSkills, occupations, skillRefs, refs, programSkills, programs } from '../db/index.js';
-import { uuidParam } from '../middleware/validateUuid.js';
+import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { programInScope } from '../lib/scope.js';
 
 const router = Router();
 router.param('id', uuidParam);
+router.use(uuidQuery('parent'));
 
 // GET /api/skills - List skills with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
