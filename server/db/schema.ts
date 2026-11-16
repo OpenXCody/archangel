@@ -263,6 +263,9 @@ export const occupations = pgTable(
     title: text('title').notNull(),
     description: text('description'),
     onetCode: text('onet_code'),
+    // Whether the career's path of staged skills has been reviewed by a person:
+    // null (no path yet), 'draft' (written, not reviewed) or 'approved'.
+    pathStatus: text('path_status'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => ({

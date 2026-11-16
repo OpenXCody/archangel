@@ -1,0 +1,133 @@
+{
+  "_about": "Draft career paths for the core manufacturing careers of the Austin area. Each career lists its skills by stage: 1 Introduction, 2 Fundamentals, 3 Advanced. Career titles and most skill names match rows already in the database; new skill names are created on load. Drafted by an LLM and not yet reviewed by a person: every career here is loaded with path_status 'draft'. Regenerate the SQL with: node scripts/build-paths-sql.mjs",
+  "careers": [
+    {
+      "title": "CNC Machine Operator",
+      "stages": {
+        "1": ["Shop Safety Practices", "Shop Math", "Blueprint Reading", "Caliper Measurement", "Micrometer Reading"],
+        "2": ["Workholding and Fixturing", "CNC Parameter Setup", "Tool and Work Offsets", "In-Process Inspection", "GD&T Interpretation"],
+        "3": ["G-Code Programming", "CNC Programming", "First Article Inspection"]
+      }
+    },
+    {
+      "title": "Machinist",
+      "stages": {
+        "1": ["Shop Safety Practices", "Shop Math", "Blueprint Reading", "Caliper Measurement", "Micrometer Reading"],
+        "2": ["Manual Mill Operation", "Manual Lathe Operation", "Workholding and Fixturing", "Speeds and Feeds Calculation", "GD&T Interpretation"],
+        "3": ["Precision Grinding", "CNC Parameter Setup", "G-Code Programming", "First Article Inspection"]
+      }
+    },
+    {
+      "title": "CNC Programmer",
+      "stages": {
+        "1": ["Shop Math", "Blueprint Reading", "GD&T Interpretation", "CNC Parameter Setup"],
+        "2": ["G-Code Programming", "CNC Programming", "Mastercam", "Speeds and Feeds Calculation", "Workholding and Fixturing"],
+        "3": ["Vericut Simulation", "Multi-Axis Machining", "5-Axis Machining"]
+      }
+    },
+    {
+      "title": "Tool and Die Maker",
+      "stages": {
+        "1": ["Shop Safety Practices", "Shop Math", "Blueprint Reading", "Micrometer Reading", "Manual Mill Operation"],
+        "2": ["Precision Grinding", "GD&T Interpretation", "Speeds and Feeds Calculation", "Die Component Fitting"],
+        "3": ["EDM Operation", "Jig Grinding", "Die Tryout"]
+      }
+    },
+    {
+      "title": "Welder",
+      "stages": {
+        "1": ["Shop Safety Practices", "Blueprint Reading", "Weld Symbol Interpretation", "Oxy-Fuel Cutting", "MIG Welding"],
+        "2": ["Stick Welding", "Flux Core Welding", "Weld Joint Fit-Up", "Weld Inspection Visual"],
+        "3": ["TIG Welding", "Pipe Welding", "Welder Certification"]
+      }
+    },
+    {
+      "title": "Maintenance Technician",
+      "stages": {
+        "1": ["Shop Safety Practices", "Lockout Tagout LOTO", "Electrical Safety", "Preventive Maintenance", "Electrical Schematic Reading"],
+        "2": ["Multimeter Testing", "Bearing Installation", "Pump Maintenance", "Pneumatic System Repair", "Hydraulic System Repair", "Motor Control Troubleshooting"],
+        "3": ["Shaft Alignment", "Vibration Analysis", "Allen-Bradley PLC", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Quality Control Inspector",
+      "stages": {
+        "1": ["Shop Math", "Blueprint Reading", "Caliper Measurement", "Micrometer Reading", "Inspection Record Keeping"],
+        "2": ["GD&T Interpretation", "Height Gauge Usage", "Surface Roughness Testing", "First Article Inspection", "Nonconformance Reporting"],
+        "3": ["CMM Operation", "Statistical Process Control", "Gauge R&R Studies", "ISO 9001 Compliance"]
+      }
+    },
+    {
+      "title": "Semiconductor Process Technician",
+      "stages": {
+        "1": ["Cleanroom Gowning", "Cleanroom Protocols", "Chemical Safety", "ESD Control", "Wafer Handling"],
+        "2": ["Process Recipe Execution", "Vacuum System Fundamentals", "Photolithography", "Plasma Etching", "Chemical Vapor Deposition"],
+        "3": ["Wafer Defect Inspection", "Statistical Process Control", "Process Tool Troubleshooting"]
+      }
+    },
+    {
+      "title": "Wafer Fab Operator",
+      "stages": {
+        "1": ["Cleanroom Gowning", "Cleanroom Protocols", "Chemical Safety", "ESD Control", "Wafer Handling"],
+        "2": ["Process Recipe Execution", "Lot Tracking", "Wafer Defect Inspection"],
+        "3": ["Statistical Process Control", "Photolithography"]
+      }
+    },
+    {
+      "title": "Electronics Assembler",
+      "stages": {
+        "1": ["ESD Control", "Work Instruction Reading", "Assembly Hand Tool Use", "Through-Hole Soldering"],
+        "2": ["SMT Soldering", "Crimping and Termination", "Wire Harness Assembly", "IPC-A-610 Soldering", "Assembly Visual Inspection"],
+        "3": ["Assembly Rework and Repair", "Multimeter Testing", "IPC J-STD-001 Certification"]
+      }
+    },
+    {
+      "title": "Electronics Technician",
+      "stages": {
+        "1": ["Electrical Safety", "ESD Control", "Electrical Schematic Reading", "Multimeter Testing"],
+        "2": ["Oscilloscope Usage", "Through-Hole Soldering", "SMT Soldering", "Component-Level Troubleshooting"],
+        "3": ["Assembly Rework and Repair", "Test Fixture Setup"]
+      }
+    },
+    {
+      "title": "Production Assembler",
+      "stages": {
+        "1": ["Shop Safety Practices", "Work Instruction Reading", "Assembly Hand Tool Use", "Caliper Measurement"],
+        "2": ["Torque Wrench Usage", "Blueprint Reading", "Crimping and Termination", "Assembly Visual Inspection", "5S Workplace Organization"],
+        "3": ["Through-Hole Soldering", "SMED Setup Reduction", "Lean Manufacturing"]
+      }
+    },
+    {
+      "title": "PLC Technician",
+      "stages": {
+        "1": ["Electrical Safety", "Lockout Tagout LOTO", "Electrical Schematic Reading", "Multimeter Testing", "PLC Ladder Logic"],
+        "2": ["Allen-Bradley PLC", "Siemens PLC", "Sensor and I/O Wiring", "Motor Control Troubleshooting", "VFD Programming"],
+        "3": ["HMI Development", "Servo Drive Configuration", "Industrial Network Troubleshooting"]
+      }
+    },
+    {
+      "title": "Robotics Technician",
+      "stages": {
+        "1": ["Electrical Safety", "Lockout Tagout LOTO", "Robot Cell Safety", "Electrical Schematic Reading", "Robot Teach Pendant Operation"],
+        "2": ["FANUC Robot Programming", "Sensor and I/O Wiring", "End-of-Arm Tooling Setup", "Allen-Bradley PLC", "Preventive Maintenance"],
+        "3": ["ABB Robot Programming", "KUKA Robot Programming", "HMI Development", "Machine Vision Setup"]
+      }
+    },
+    {
+      "title": "Production Supervisor",
+      "stages": {
+        "1": ["Shop Safety Practices", "Blueprint Reading", "Production Scheduling", "Shift Handover Reporting"],
+        "2": ["5S Workplace Organization", "Lean Manufacturing", "Statistical Process Control", "Root Cause Analysis", "Crew Training and Coaching"],
+        "3": ["OEE Analysis", "Kaizen Events", "ISO 9001 Compliance", "GD&T Interpretation"]
+      }
+    },
+    {
+      "title": "Forklift Operator",
+      "stages": {
+        "1": ["Shop Safety Practices", "Pallet Jack Operation", "Forklift Operation"],
+        "2": ["Reach Truck Operation", "Load Securing and Stacking", "Inventory Scanning"],
+        "3": ["Overhead Crane Operation", "Rigging and Slinging"]
+      }
+    }
+  ]
+}

@@ -449,7 +449,7 @@ function PathSkill({ skill, status }: { skill: RelatedSkill; status: SkillStatus
       ) : (
         <Wrench className="w-5 h-5 flex-shrink-0 text-emerald-500" />
       )}
-      <span className="flex-1 min-w-0 font-medium text-fg-default truncate group-hover:text-white">{skill.name}</span>
+      <span className="flex-1 min-w-0 font-medium leading-snug text-fg-default break-words group-hover:text-white">{skill.name}</span>
       <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0" />
     </Link>
   );
@@ -498,6 +498,12 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
       {/* The path: skills in the order they are learned */}
       {skills.length > 0 && (
         <Section id="skills" title={hasStages ? 'Path' : 'Skills'} count={skills.length}>
+          {hasStages && data.pathStatus === 'draft' && (
+            <p className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-fg-muted">
+              <span className="font-medium text-amber-500">Draft path.</span> A starting point that has not been
+              reviewed by a person yet.
+            </p>
+          )}
           {hasStages ? (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {staged.map((group) => (
