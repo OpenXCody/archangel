@@ -235,7 +235,7 @@ export default function MapSearch() {
             }}
             placeholder="Search factories, companies, skills..."
             className="
-              flex-1 min-w-0 bg-transparent text-fg-default
+              flex-1 min-w-0 text-ellipsis bg-transparent text-fg-default
               placeholder:text-fg-soft
               text-sm
             "
