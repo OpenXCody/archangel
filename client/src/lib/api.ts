@@ -126,6 +126,8 @@ export interface CareerJob {
   companyName: string;
   factoryName: string;
   city: string | null;
+  occupationId?: string;
+  occupationTitle?: string;
 }
 
 export interface RelatedFactoryWithHeadcount {
@@ -166,6 +168,8 @@ export interface CompanyOccupation {
 }
 
 export interface CompanyDetail extends Company {
+  /** Open jobs here, newest first. */
+  jobs?: CareerJob[];
   factories: RelatedFactory[];
   industries: RelatedIndustry[];
   occupations?: CompanyOccupation[];
@@ -189,6 +193,8 @@ export interface Factory {
 
 // Factory with relations
 export interface FactoryDetail extends Factory {
+  /** Open jobs here, newest first. */
+  jobs?: CareerJob[];
   company: RelatedCompany | null;
   occupations: RelatedOccupation[];
 }

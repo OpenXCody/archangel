@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
-import { db, companies, factories, companyIndustries, industries } from '../db/index.js';
+import { db, companies, factories, companyIndustries, industries, jobs } from '../db/index.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
+import { listOpenJobs } from '../lib/openJobs.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -147,6 +148,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       ...company,
       factories: companyFactories,
       industries: companyIndustriesResult,
+      jobs: await listOpenJobs(eq(jobs.companyId, id)),
       occupations: Array.from(companyOccupations as Iterable<Record<string, unknown>>),
       factoryCount: companyFactories.length,
       occupationCount: (companyOccupations as unknown as { length?: number }).length ?? Array.from(companyOccupations as Iterable<unknown>).length,

@@ -3,6 +3,7 @@ import { and, eq, ilike, or, sql } from 'drizzle-orm';
 import { db, occupations, occupationSkills, skills, factoryOccupations, factories, jobs } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
+import { listOpenJobs } from '../lib/openJobs.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -121,25 +122,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       .where(and(eq(factoryOccupations.occupationId, id), factoryInScope()));
 
     // Open jobs for this career at in-scope factories.
-    const jobsResult = await db
-      .select({
-        id: jobs.id,
-        serial: jobs.serial,
-        title: jobs.title,
-        payMin: jobs.payMin,
-        payMax: jobs.payMax,
-        payPeriod: jobs.payPeriod,
-        companyName: sql<string>`(SELECT name FROM companies WHERE companies.id = ${jobs.companyId})`,
-        factoryName: factories.name,
-        city: factories.city,
-      })
-      .from(jobs)
-      .innerJoin(factories, eq(jobs.factoryId, factories.id))
-      .where(
-        and(eq(jobs.occupationId, id), eq(jobs.status, 'open'), sql`${jobs.expiresAt} > now()`, factoryInScope())
-      )
-      .orderBy(sql`${jobs.postedAt} DESC`)
-      .limit(50);
+    const jobsResult = await listOpenJobs(eq(jobs.occupationId, id));
 
     res.json({
       ...occupation,

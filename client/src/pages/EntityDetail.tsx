@@ -34,6 +34,7 @@ import {
   type FactoryDetail,
   type OccupationDetail,
   type RelatedSkill,
+  type CareerJob,
   type SkillDetail,
   type RefDetail,
   type SchoolDetail,
@@ -269,6 +270,8 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
         </div>
       )}
 
+      <OpenJobsSection jobs={data.jobs ?? []} empty="No open jobs at this company right now." showCareer />
+
       {/* Occupations across this company's factories */}
       {(data.occupations?.length || 0) > 0 && (
         <Section id="occupations" title="Careers" count={data.occupations?.length}>
@@ -357,6 +360,8 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
         </div>
       )}
 
+      <OpenJobsSection jobs={data.jobs ?? []} empty="No open jobs at this factory right now." showCareer />
+
       {/* Occupations at this facility */}
       {data.occupations?.length > 0 && (
         <Section id="occupations" title="Careers at this facility" count={data.occupations.length}>
@@ -377,7 +382,45 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
   );
 }
 
-// Occupation Detail View
+/** Open jobs at a company, a factory or for a career, with a way in for employers when there are none. */
+function OpenJobsSection({ jobs, empty, showCareer = false }: { jobs: CareerJob[]; empty: string; showCareer?: boolean }) {
+  return (
+    <Section id="jobs" title="Open jobs" count={jobs.length}>
+      {jobs.length > 0 ? (
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {jobs.map((job) => (
+            <RelatedCard
+              key={job.id}
+              to={`/jobs/${job.id}`}
+              icon={Briefcase}
+              iconClass="text-violet-400"
+              title={job.title}
+              subtitle={[
+                showCareer ? job.occupationTitle : job.companyName,
+                job.city,
+                formatPay(job.payMin, job.payMax, job.payPeriod),
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-fg-soft">
+          {empty}{' '}
+          <Link to="/jobs" className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
+            See all open jobs
+          </Link>
+          {' · '}
+          <Link to="/employer" className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
+            Hiring? Post a job
+          </Link>
+        </p>
+      )}
+    </Section>
+  );
+}
+
 /** The three stages of a career's path, in the order they are learned. */
 const PATH_STAGES: { stage: 1 | 2 | 3; label: string; hint: string }[] = [
   { stage: 1, label: 'Introduction', hint: 'Where to start' },
@@ -492,32 +535,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
         </Section>
       )}
 
-      {/* Open jobs for this career */}
-      <Section id="jobs" title="Open jobs" count={jobs.length}>
-        {jobs.length > 0 ? (
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {jobs.map((job) => (
-              <RelatedCard
-                key={job.id}
-                to={`/jobs/${job.id}`}
-                icon={Briefcase}
-                iconClass="text-violet-400"
-                title={job.title}
-                subtitle={[job.companyName, job.city, formatPay(job.payMin, job.payMax, job.payPeriod)]
-                  .filter(Boolean)
-                  .join(' · ')}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-fg-soft">
-            No open jobs for this career right now.{' '}
-            <Link to="/jobs" className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
-              See all open jobs
-            </Link>
-          </p>
-        )}
-      </Section>
+      <OpenJobsSection jobs={jobs} empty="No open jobs for this career right now." />
 
       {/* Factories that employ this career */}
       {data.factories?.length > 0 && (
