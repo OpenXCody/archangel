@@ -57,7 +57,8 @@ router.get('/', async (req: Request, res: Response) => {
     // Careers that have a path come first, so the list opens on the ones with
     // something to follow; within each group, by title.
     const hasPathFirst = sql`(${occupations.pathStatus} IS NULL) ASC`;
-    const byTitle = order === 'desc' ? sql`${occupations.title} DESC` : sql`${occupations.title} ASC`;
+    // By the letters, whatever their case ("ALD …" is not ahead of "Additive …").
+    const byTitle = order === 'desc' ? sql`lower(${occupations.title}) DESC` : sql`lower(${occupations.title}) ASC`;
     // With a search, the closest title first; among equals, careers with a
     // path, then the shorter title ("Machinist" before "Casting CNC Machinist").
     const orderByClause = term

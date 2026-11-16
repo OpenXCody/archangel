@@ -404,6 +404,21 @@ export interface InviteGrant {
   companyName: string | null;
 }
 
+/** How long a password reset link works. The server sets the real expiry; this is for the copy beside the link. */
+export const RESET_HOURS = 24;
+
+/** A new password reset link. The token exists in this response only. */
+export interface CreatedResetLink {
+  /** The path of the link: `/sign-in?reset=<token>`. */
+  link: string;
+  expiresAt: string;
+}
+
+/** Whose password a reset link sets. */
+export interface ResetGrant {
+  email: string;
+}
+
 /** A career whose path is waiting for review. */
 export interface DraftPath {
   id: string;
@@ -455,6 +470,14 @@ export const authApi = {
   signOut: () => request<{ ok: true }>('/auth/sign-out', { method: 'POST' }),
   /** What an invite link grants. Fails with 404 when the link is unknown, used or expired. */
   invite: (token: string) => request<InviteGrant>(`/auth/invite/${encodeURIComponent(token)}`),
+  /** Ends the person's other sessions; this one carries on. */
+  changePassword: (input: { current: string; next: string }) =>
+    request<{ ok: true }>('/auth/password', { method: 'POST', body: input }),
+  /** Whose password a reset link sets. Fails with 404 when the link is unknown, used or expired. */
+  reset: (token: string) => request<ResetGrant>(`/auth/reset/${encodeURIComponent(token)}`),
+  /** Sets the password through a reset link and signs the person in. */
+  resetPassword: (input: { token: string; password: string }) =>
+    request<Account>('/auth/reset', { method: 'POST', body: input }),
 };
 
 export const meApi = {
@@ -511,6 +534,9 @@ export const adminApi = {
   setAdmin: (userId: string, isAdmin: boolean) =>
     request<{ id: string; isAdmin: boolean }>(`/admin/users/${userId}`, { method: 'PATCH', body: { isAdmin } }),
   deleteUser: (userId: string) => request<{ ok: true }>(`/admin/users/${userId}`, { method: 'DELETE' }),
+  /** A new link replaces the person's unused one. */
+  createResetLink: (userId: string) =>
+    request<CreatedResetLink>(`/admin/users/${userId}/reset-link`, { method: 'POST' }),
   invites: () => request<{ invites: Invite[]; accepted: number }>('/admin/invites'),
   createInvite: (input: { email: string; role: InviteRole; companyId?: string }) =>
     request<CreatedInvite>('/admin/invites', { method: 'POST', body: input }),
@@ -553,6 +579,7 @@ export const accountKeys = {
   adminPaths: ['admin', 'paths'] as const,
   adminCompanies: (q: string) => ['admin', 'companies', q] as const,
   invite: (token: string) => ['invite', token] as const,
+  passwordReset: (token: string) => ['password-reset', token] as const,
   /** Owned by AdminKeyGate; a signed-in admin counts as authorized there. */
   importStatus: ['import-status'] as const,
 };
@@ -659,6 +686,37 @@ export function useInvite(token: string | null) {
     refetchOnReconnect: false,
     retry: retryUnlessClientError,
   });
+}
+
+/**
+ * Whose password a reset link sets, asked once. Like an invite, the link
+ * stops answering the moment it is used, so the answer is never refreshed.
+ */
+export function usePasswordReset(token: string | null) {
+  return useQuery({
+    queryKey: accountKeys.passwordReset(token ?? ''),
+    queryFn: () => authApi.reset(token as string),
+    enabled: Boolean(token),
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: retryUnlessClientError,
+  });
+}
+
+/** Choose a new password through a reset link. The person is signed in by it. */
+export function useResetPassword() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.resetPassword,
+    onSuccess: (account) => identityChanged(queryClient, account),
+  });
+}
+
+/** Change the signed-in person's own password. */
+export function useChangePassword() {
+  return useMutation({ mutationFn: authApi.changePassword });
 }
 
 export function useUpdateProfile() {
@@ -915,6 +973,11 @@ export function useDeleteUser() {
     mutationFn: (userId: string) => adminApi.deleteUser(userId),
     onSettled: () => personChanged(queryClient),
   });
+}
+
+/** A password reset link for a person. Nothing shown elsewhere changes, so nothing is refreshed. */
+export function useCreateResetLink() {
+  return useMutation({ mutationFn: (userId: string) => adminApi.createResetLink(userId) });
 }
 
 /** Add a person to a company, active at once. */

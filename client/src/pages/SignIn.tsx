@@ -3,7 +3,17 @@ import { Navigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ApiError, inviteRoleLabel, safeNextPath, useAccount, useInvite, useSignIn, useSignUp } from '../lib/account';
+import {
+  ApiError,
+  inviteRoleLabel,
+  safeNextPath,
+  useAccount,
+  useInvite,
+  usePasswordReset,
+  useResetPassword,
+  useSignIn,
+  useSignUp,
+} from '../lib/account';
 import { ErrorNote, Field, LoadError, PageLoading, cardClass, fieldClass } from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 
@@ -34,12 +44,24 @@ const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
  * account is. An invited employer lands on the employer page, an invited
  * admin on Admin Tools. A link that is unknown, used or expired says so and
  * leaves the normal form.
+ *
+ * A password reset link (`?reset=<token>`) opens on one field, the new
+ * password, for the person the link was made for. Saving it signs them in and
+ * they land where a sign-in would. An unusable link says so and leaves the
+ * normal form. There is no "forgot password" flow to start here, because no
+ * email is sent: an admin makes the link.
  */
 export default function SignIn() {
   const [searchParams, setSearchParams] = useSearchParams();
   const inviteToken = searchParams.get('invite') || null;
   const inviteQuery = useInvite(inviteToken);
   const invite = inviteQuery.data ?? null;
+  const resetToken = searchParams.get('reset') || null;
+  const resetQuery = usePasswordReset(resetToken);
+  const resetPassword = useResetPassword();
+  const resetPending = Boolean(resetToken) && resetQuery.isPending;
+  // Until the new password is saved. Afterwards the person is signed in and is sent on like anyone else.
+  const resetting = resetQuery.data && !resetPassword.isSuccess ? resetQuery.data : null;
   const requestedMode = searchParams.get('mode');
   // An invite is for a new account, so its link opens on Create account.
   const mode: Mode = requestedMode === 'create' || (invite && requestedMode !== 'sign-in') ? 'create' : 'sign-in';
@@ -62,7 +84,9 @@ export default function SignIn() {
   const busy = signIn.isPending || signUp.isPending;
 
   // Signed in (already, or a moment ago through this form): carry on to where they were headed.
-  if (account.data?.user) {
+  // A usable reset link comes first, whoever is signed in here: its owner may still have a
+  // session on this device and cannot change a password they have forgotten.
+  if (account.data?.user && !resetPending && !resetting) {
     // The account decides, not the link: an invite link opened by someone else's session grants nothing.
     if (invited?.role === 'admin' && account.data.user.isAdmin) return <Navigate to="/admin" replace />;
     const hiring =
@@ -70,7 +94,7 @@ export default function SignIn() {
       (!next && account.data.isEmployer);
     return <Navigate to={hiring ? '/employer' : (next ?? '/map')} replace />;
   }
-  if (!account.data || (inviteToken && inviteQuery.isPending)) {
+  if (!account.data || (inviteToken && inviteQuery.isPending) || resetPending) {
     if (account.error) {
       return (
         <PageContainer size="narrow">
@@ -79,6 +103,17 @@ export default function SignIn() {
       );
     }
     return <PageLoading label="Checking who is signed in" />;
+  }
+
+  if (resetting && resetToken) {
+    return (
+      <ChoosePassword
+        email={resetting.email}
+        busy={resetPassword.isPending}
+        error={resetPassword.error}
+        onSubmit={(newPassword) => resetPassword.mutate({ token: resetToken, password: newPassword })}
+      />
+    );
   }
 
   const switchMode = (nextMode: Mode) => {
@@ -134,6 +169,13 @@ export default function SignIn() {
           </div>
 
           <form onSubmit={submit} noValidate className="space-y-4">
+            {resetToken && resetQuery.isError && (
+              <p role="status" className="text-sm text-fg-muted" data-reset-problem>
+                {resetQuery.error instanceof ApiError && resetQuery.error.status === 404
+                  ? 'Reset link not valid or expired.'
+                  : 'Reset link could not be checked.'}
+              </p>
+            )}
             {inviteToken && inviteQuery.isError && (
               <p role="status" className="text-sm text-fg-muted" data-invite-problem>
                 {inviteQuery.error instanceof ApiError && inviteQuery.error.status === 404
@@ -222,6 +264,59 @@ export default function SignIn() {
           </form>
         </div>
 
+        {mode === 'sign-in' && (
+          <p className="mt-4 text-center text-sm text-fg-muted" data-forgot-password>
+            {/* Two lines on a phone, so the break falls between the sentences. */}
+            <span className="block sm:inline">Forgot your password?</span> An admin can give you a reset link.
+          </p>
+        )}
+      </div>
+    </PageContainer>
+  );
+}
+
+interface ChoosePasswordProps {
+  email: string;
+  busy: boolean;
+  error: unknown;
+  onSubmit: (password: string) => void;
+}
+
+/** What a password reset link opens: whose password it is, and one field. */
+function ChoosePassword({ email, busy, error, onSubmit }: ChoosePasswordProps) {
+  const [password, setPassword] = useState('');
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    if (!busy) onSubmit(password);
+  };
+
+  return (
+    <PageContainer size="narrow">
+      <div className="mx-auto w-full max-w-md">
+        <PageHeader title="Choose a new password" description={email} />
+        <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-reset-form>
+          {/* Not shown: it tells a password manager which account the new password belongs to. */}
+          <input type="email" name="email" autoComplete="username" value={email} readOnly hidden />
+          <Field label="New password" htmlFor="reset-password" hint="At least 8 characters.">
+            <input
+              id="reset-password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              autoFocus
+              maxLength={200}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={fieldClass}
+            />
+          </Field>
+          <ErrorNote error={error} />
+          <Button type="submit" disabled={busy} className="h-11 w-full rounded-lg text-sm">
+            {busy && <Loader2 className="animate-spin" />}
+            Save password
+          </Button>
+        </form>
       </div>
     </PageContainer>
   );

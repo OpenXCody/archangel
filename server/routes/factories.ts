@@ -64,9 +64,10 @@ router.get('/', async (req: Request, res: Response) => {
         ? sql`${factories.workforceSize} DESC NULLS LAST, ${factories.name} ASC`
         : sql`${factories.workforceSize} ASC NULLS LAST, ${factories.name} ASC`;
     } else {
-      orderByClause = order === 'desc'
-        ? sql`${factories.name} DESC`
-        : sql`${factories.name} ASC`;
+      // The name as it is shown: without the registry number some rows carry
+      // in front ("105123 - Caterpillar"), and whatever its case.
+      const shownName = sql`lower(regexp_replace(${factories.name}, '^#?[0-9]+ +[-–] *', ''))`;
+      orderByClause = order === 'desc' ? sql`${shownName} DESC, ${factories.id}` : sql`${shownName} ASC, ${factories.id}`;
     }
 
     // Query with company name and occupation count

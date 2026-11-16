@@ -1130,3 +1130,29 @@ export const invites = pgTable(
       .where(sql`${table.acceptedAt} IS NULL`),
   })
 );
+
+// ============================================
+// PASSWORD RESETS (migration 0020)
+// ============================================
+
+// A one-time link an admin creates for a person who cannot sign in. Using it
+// sets a new password and ends all of that person's sessions. Only the
+// token's sha256 is stored. Usable means not used and not expired; a new link
+// replaces the person's unused one.
+export const passwordResets = pgTable(
+  'password_resets',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+  },
+  (table) => ({
+    userIdx: index('password_resets_user_idx').on(table.userId),
+  })
+);

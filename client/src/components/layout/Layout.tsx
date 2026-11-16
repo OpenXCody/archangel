@@ -4,6 +4,7 @@ import { Map, Layers, Search, BriefcaseBusiness } from 'lucide-react';
 import GlobalSearch from '../search/GlobalSearch';
 import AccountMenu, { accountPageTitle } from '../account/AccountMenu';
 import { useAccount } from '../../lib/account';
+import { SEARCH_SHORTCUT } from '../../lib/shortcut';
 
 // The same for everyone. Admin pages are reached from "Admin Tools" in the account menu.
 const navItems = [
@@ -92,7 +93,7 @@ export default function Layout() {
               <button
                 onClick={() => setIsSearchOpen(true)}
                 aria-label="Search"
-                title="Search (⌘K)"
+                title={`Search (${SEARCH_SHORTCUT})`}
                 className="flex h-10 items-center gap-2 px-3 rounded-full
                   bg-bg-elevated border border-border-subtle
                   text-sm text-fg-muted hover:text-fg-default
@@ -102,7 +103,7 @@ export default function Layout() {
                 <span className="hidden sm:inline">Search</span>
                 <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5
                   bg-bg-surface rounded text-xs text-fg-soft">
-                  <span className="text-[10px]">&#8984;</span>K
+                  {SEARCH_SHORTCUT}
                 </kbd>
               </button>
             )}

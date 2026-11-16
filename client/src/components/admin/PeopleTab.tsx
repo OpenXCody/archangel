@@ -3,9 +3,11 @@ import { Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
+  RESET_HOURS,
   personRoles,
   useAddMembership,
   useAdminUsers,
+  useCreateResetLink,
   useDecideMembership,
   useDeleteUser,
   useSetAdmin,
@@ -18,8 +20,9 @@ import { CardNote, ErrorNote, LoadError, RowsSkeleton, cardClass, fieldClass, ou
 import { PageSection } from '../layout/Page';
 import CompanyPicker from './CompanyPicker';
 import ConfirmDialog from './ConfirmDialog';
+import CopyLinkField from './CopyLinkField';
 
-/** Everyone with an account: search, roles, company access, deletion. */
+/** Everyone with an account: search, roles, company access, password reset, deletion. */
 export default function PeopleTab({ me }: { me: AccountUser }) {
   const [term, setTerm] = useState('');
   const q = useDebouncedValue(term.trim());
@@ -134,7 +137,9 @@ const panelLabelClass = 'text-[11px] font-semibold uppercase tracking-[0.08em] t
 
 function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; isSelf: boolean }) {
   const pickerId = useId();
+  const resetLinkId = useId();
   const setAdmin = useSetAdmin();
+  const resetLink = useCreateResetLink();
   const addMembership = useAddMembership();
   const removeMembership = useDecideMembership();
   const deleteUser = useDeleteUser();
@@ -207,6 +212,36 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
           </Button>
         </div>
         <ErrorNote error={addMembership.error ?? removeMembership.error} className="mt-2" />
+      </div>
+
+      <div data-password-reset>
+        <p className={panelLabelClass}>Password</p>
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={resetLink.isPending}
+            onClick={() => resetLink.mutate(person.id)}
+            className={cn('h-9', outlineButtonClass)}
+          >
+            {resetLink.isPending && <Loader2 className="animate-spin" />}
+            Password reset link
+          </Button>
+          <p className="text-xs text-fg-muted">No email is sent. The link is passed on by hand.</p>
+        </div>
+        {/* Shown once: only its hash is kept, so closing this panel loses it. A new one replaces it. */}
+        {resetLink.data && (
+          <div className="mt-3 max-w-xl">
+            <CopyLinkField
+              id={resetLinkId}
+              label={`Reset link for ${person.email}`}
+              hint={`Shown once. Expires in ${RESET_HOURS} hours. Replaces any earlier link.`}
+              path={resetLink.data.link}
+            />
+          </div>
+        )}
+        <ErrorNote error={resetLink.error} className="mt-2" />
       </div>
 
       {!isSelf && (

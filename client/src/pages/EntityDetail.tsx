@@ -45,7 +45,7 @@ import CompanyLogo from '../components/CompanyLogo';
 import FootprintMap from '../components/FootprintMap';
 import { useMapStore } from '../stores/mapStore';
 import { STATE_CODE_TO_NAME, type StateCode } from '@shared/states';
-import { PageContainer } from '../components/layout/Page';
+import { PageContainer, EmptyState } from '../components/layout/Page';
 
 // Entity type configs - monochrome with entity accent colors only on icons
 const ENTITY_CONFIG: Record<
@@ -997,6 +997,16 @@ function ProgramDetailView({ data }: { data: ProgramDetail }) {
 }
 
 // Helper to get API fetch function
+// What a missing record is called, and the list to go to instead.
+const NOT_LISTED: Partial<Record<EntityType, string>> = {
+  companies: 'company', factories: 'factory', occupations: 'career', skills: 'skill',
+  refs: 'element', schools: 'school', programs: 'program',
+};
+const BROWSE_WORD: Partial<Record<EntityType, string>> = {
+  companies: 'companies', factories: 'factories', occupations: 'careers', skills: 'skills',
+  refs: 'elements', schools: 'schools', programs: 'programs',
+};
+
 function getEntityFetcher(entityType: Exclude<EntityType, 'persons'>, id: string) {
   switch (entityType) {
     case 'companies':
@@ -1095,9 +1105,18 @@ export default function EntityDetail() {
     return (
       <PageContainer size="narrow">
         <BackButton fallback={`/explore?tab=${entityType}`} />
-        <div className="text-center py-20">
-          <p className="text-fg-muted">Entity not found</p>
-        </div>
+        <EmptyState
+          title={`This ${NOT_LISTED[entityType] ?? 'page'} is not listed`}
+          description="The link may be old, or the record was removed."
+          action={
+            <Link
+              to={`/explore?tab=${entityType}`}
+              className="rounded-lg border border-border-strong px-4 py-2 text-sm font-medium text-fg-default hover:bg-bg-elevated"
+            >
+              Browse {BROWSE_WORD[entityType] ?? 'everything'}
+            </Link>
+          }
+        />
       </PageContainer>
     );
   }
