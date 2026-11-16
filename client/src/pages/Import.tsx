@@ -17,6 +17,7 @@ import FileDropZone from '../components/import/FileDropZone';
 import ManualEntryForm from '../components/import/ManualEntryForm';
 import { API_BASE, adminFetch } from '../lib/api';
 import { PageContainer, PageHeader } from '../components/layout/Page';
+import { useAccount } from '../lib/account';
 import ReviewQueue from '../components/import/ReviewQueue';
 import { ClipboardCheck } from 'lucide-react';
 
@@ -48,6 +49,8 @@ interface ImportBatch {
 
 export default function Import() {
   const navigate = useNavigate();
+  // Admins arrive here from Admin Tools, so they get the way back.
+  const { data: account } = useAccount();
   const [activeTab, setActiveTab] = useState<TabType>('bulk');
   const [, setIsDragActive] = useState(false);
 
@@ -144,6 +147,7 @@ export default function Import() {
       <FileDropZone onFileAccepted={handleFileDrop} isFullPage />
 
       <PageHeader
+        backTo={account?.user?.isAdmin ? { to: '/admin?tab=data', label: 'Admin Tools' } : undefined}
         title="Data Import"
         description="Add companies, factories, careers, and skills to the database."
       />

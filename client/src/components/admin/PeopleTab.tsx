@@ -30,7 +30,7 @@ export default function PeopleTab({ me }: { me: AccountUser }) {
   const total = people.data?.pages[0]?.total ?? 0;
 
   return (
-    <PageSection title="People">
+    <PageSection>
       <div className="relative mb-3">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
         <input

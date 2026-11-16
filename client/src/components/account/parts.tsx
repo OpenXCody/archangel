@@ -13,10 +13,10 @@ import { PageContainer } from '../layout/Page';
 
 /** Entity colours (CLAUDE.md). A career is the occupation entity. */
 export const ENTITY: Record<'company' | 'factory' | 'career' | 'skill', { icon: ElementType; text: string; badge: string }> = {
-  company: { icon: Building2, text: 'text-amber-500', badge: 'bg-amber-500/10 text-amber-500' },
-  factory: { icon: Factory, text: 'text-blue-400', badge: 'bg-blue-400/10 text-blue-400' },
-  career: { icon: Briefcase, text: 'text-blue-500', badge: 'bg-blue-800/20 text-blue-400' },
-  skill: { icon: Wrench, text: 'text-emerald-500', badge: 'bg-emerald-500/10 text-emerald-500' },
+  company: { icon: Building2, text: 'text-warning', badge: 'bg-warning/10 text-warning' },
+  factory: { icon: Factory, text: 'text-info', badge: 'bg-info/10 text-info' },
+  career: { icon: Briefcase, text: 'text-info', badge: 'bg-info/20 text-info' },
+  skill: { icon: Wrench, text: 'text-success', badge: 'bg-success/10 text-success' },
 };
 
 /**
@@ -70,7 +70,7 @@ export function Field({ label, htmlFor, hint, optional, className, children }: F
 export function ErrorNote({ error, className }: { error: unknown; className?: string }) {
   if (!error) return null;
   return (
-    <p role="alert" className={cn('flex items-start gap-2 text-sm text-red-400', className)}>
+    <p role="alert" className={cn('flex items-start gap-2 text-sm text-danger', className)}>
       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
       <span className="min-w-0 break-words">{typeof error === 'string' ? error : errorMessage(error)}</span>
     </p>
@@ -82,7 +82,7 @@ export function LoadError({ error, onRetry, retrying, className }: { error: unkn
   return (
     <div role="alert" className={cn(cardClass, 'flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:justify-between', className)}>
       <p className="flex min-w-0 items-start gap-2 text-sm text-fg-muted">
-        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
         <span className="min-w-0 break-words">{errorMessage(error)}</span>
       </p>
       {onRetry && (
@@ -127,11 +127,11 @@ export function CardNote({ children, className }: { children: ReactNode; classNa
 
 const STATUS_STYLE: Record<string, string> = {
   applied: 'border-border-strong text-fg-default',
-  reviewing: 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300',
-  interview: 'border-amber-500/30 bg-amber-500/10 text-amber-400',
-  offer: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
-  hired: 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300',
-  declined: 'border-red-500/30 bg-red-500/10 text-red-300',
+  reviewing: 'border-border-strong bg-bg-elevated text-fg-muted',
+  interview: 'border-warning/30 bg-warning/10 text-warning',
+  offer: 'border-success/30 bg-success/10 text-success',
+  hired: 'border-success/40 bg-success/20 text-success',
+  declined: 'border-danger/30 bg-danger/10 text-danger',
   withdrawn: 'border-border-subtle text-fg-muted',
 };
 
@@ -163,7 +163,7 @@ export function HeldMeter({ held, total, noun, className }: { held: number; tota
       </p>
       {total > 0 && (
         <div className="mt-1.5 h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-bg-elevated" aria-hidden="true">
-          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${percent}%` }} />
+          <div className="h-full rounded-full bg-success" style={{ width: `${percent}%` }} />
         </div>
       )}
     </div>

@@ -19,7 +19,8 @@ export default function AccessTab() {
     decide.variables?.decision === decision;
 
   return (
-    <PageSection title="Access requests" description="Approval lets the person post jobs for the company and read its applicants.">
+    <PageSection>
+      <p className="mb-3 text-sm text-fg-muted">Requests to join a company. Approval lets the person post its jobs and read its applicants.</p>
       {requests.isPending ? (
         <RowsSkeleton rows={2} />
       ) : requests.isError ? (

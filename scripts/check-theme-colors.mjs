@@ -24,8 +24,8 @@ const PALETTE = new RegExp(`(?<![\\w-])(?:${PROPS})-(?:(?:${HUES})-\\d{2,3}|whit
 const ALLOWED = [
   // A logo is drawn for a white page: its tile is white in both themes.
   { file: 'components/CompanyLogo.tsx', pattern: /^bg-white$/ },
-  // A scrim behind a dialog or sheet dims the page in both themes.
-  { file: 'components/ui/', pattern: /^bg-black\/\d+$/ },
+  // A scrim behind a dialog, sheet or the search panel dims the page in both themes.
+  { file: '', pattern: /^bg-black\/\d+$/ },
 ];
 
 async function* walk(dir) {

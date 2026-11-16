@@ -15,15 +15,19 @@ Archangel is a workforce map of US manufacturing, filled out in depth one focus 
 - **Maps**: MapLibre GL JS + MapTiler (free tier)
 - **Mobile**: Capacitor (iOS/Android wrapper)
 
-## Entity Colors
+## Theme and colour
 
-| Entity | Hex | Tailwind |
-|--------|-----|----------|
-| Company | #F59E0B | amber-500 |
-| Factory | #60A5FA | blue-400 |
-| Occupation | #1E40AF | blue-800 |
-| Skill | #10B981 | emerald-500 |
-| State | #6366F1 | indigo-500 |
+Two themes, dark (default) and light, switched from the profile menu and kept per browser (`client/src/lib/theme.ts` sets `data-theme` on `<html>`; `client/index.html` applies it before first paint). Every colour comes from the tokens in `client/src/styles/globals.css`, exposed as Tailwind classes in `tailwind.config.ts`:
+
+| Use | Classes |
+|-----|---------|
+| Surfaces | `bg-bg-base`, `bg-bg-surface`, `bg-bg-elevated` |
+| Text | `text-fg-default`, `text-fg-muted`, `text-fg-soft` |
+| Lines | `border-border-subtle`, `border-border-strong` |
+| Meaning | `success`, `danger`, `warning`, `info` (`text-success`, `bg-danger/10`) |
+| Wash | `tint`: white on dark, black on light (`bg-tint/5`, `border-tint/10`) |
+
+Never name a palette colour in a component (`text-emerald-400`, `bg-white/10`): it is right in one theme and wrong in the other. `npm run lint` fails on it (`scripts/check-theme-colors.mjs`). The app is monochrome: kinds of thing (company, factory, career, skill) are told apart by icon shape and by logo, not by hue. The map has a palette per theme in `layers.ts` and is recreated when the theme changes.
 
 ## Project Structure
 
@@ -80,7 +84,11 @@ On screen an occupation is a **Career**, and a job is one opening for a career a
 Roles are relationships, not account types (`server/lib/auth.ts`):
 - **Seeker**: any signed-in person. Owns their skills (learning/held), career goals and applications.
 - **Employer**: a person with an active membership in a company (`company_members`). A join request is approved by an admin.
-- **Admin**: `users.is_admin`. Claimed once by a signed-in person who presents `ADMIN_SECRET` (`POST /api/auth/claim-admin`). The `x-admin-secret` header still works for writes.
+- **Admin**: `users.is_admin`. The first is claimed by a signed-in person who presents `ADMIN_SECRET` (`POST /api/auth/claim-admin`; an endpoint only, there is no UI for it). After that, admins make admins from Admin Tools. Nobody removes their own admin role, and the last admin cannot be removed. The `x-admin-secret` header still works for data writes, but not for `/api/admin/*`, which takes a signed-in admin only.
+
+**Invites** (`invites` table, `server/lib/invites.ts`): an admin creates a one-time link for an email address (`/sign-in?invite=<token>`), as a user, an employer of one company, or an admin. The link is shown once (only the token's hash is stored), lasts 14 days, and there is one pending invite per address. There is no email service: the admin passes the link on. Signing up through it creates the account, applies the role and marks the invite accepted in one transaction. An address that already has an account is not invited; its roles are changed under People.
+
+**Admin Tools** (`/admin`, `client/src/pages/Admin.tsx`, tabs in `client/src/components/admin/`) is reached from "Admin Tools" in the account menu, shown to admins only. Tabs (`?tab=`): `people` (search, roles, company access, delete), `access` (requests to join a company), `invites`, `data` (counts, import tools, career paths awaiting review, a company's domain and featured flag). To anyone who is not an admin the page is the not-found page.
 
 Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in responses are `no-store`.
 
@@ -88,21 +96,22 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 
 **Public:** `/map` (opens on the US; `?area=austin`, `?state=TX`), `/explore`, `/jobs`, `/jobs/:id`, `/companies/:id` (id or slug: `/companies/tesla`), `/factories/:id`, `/occupations/:id` (career page with path), `/skills/:id`, `/refs/:id`, `/schools/:id`, `/programs/:id`, `/sign-in`
 
-**Signed in:** `/me` (seeker), `/employer` (company members), `/admin` (admins), `/import`, `/import/bulk` (admins)
+**Signed in:** `/me` (seeker), `/employer` (company members), `/admin` (Admin Tools, admins; `?tab=people|access|invites|data`), `/import`, `/import/bulk` (admins; linked from Admin Tools, not the nav)
 
 ## API Endpoints
 
 - Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search`, `/api/map/*`, `/api/stats/counts`, `/api/jobs`, `/api/jobs/:id`
-- `/api/auth/*` sign-up, sign-in, sign-out, me, claim-admin
+- `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, claim-admin, `invite/:token` (what an invite grants; 404 when unknown, used or expired)
 - `/api/me/*` profile, skills, goals, applications
 - `/api/jobs` POST/PATCH (company members), `/:id/apply`, `/:id/applications` (ranked), `/applications/:id`
 - `/api/employer/*` memberships and the employer dashboard
-- `/api/admin/*` join requests, users, overview; `/api/import/*`, `/api/review/*` (admin)
+- `/api/admin/*` (signed-in admin only: 401 signed out, 403 otherwise): `overview`; `users` (`?q=`, paged), `users/:id` PATCH `{ isAdmin }` and DELETE; `memberships` GET, POST (add a person to a company), PATCH (approve or remove); `invites` GET, POST, `invites/:id` DELETE; `paths?status=draft`; `companies?q=`, `companies/:id` PATCH `{ domain, featured }`
+- `/api/import/*`, `/api/review/*` (admin)
 - `PUT /api/occupations/:id/path` sets a career's skills and stages in bulk (admin)
 
 ## Migrations
 
-`scripts/migrate.mjs` applies the SQL files it lists (0010 onward) once each, before every build (`npm run build`), and skips when `DATABASE_URL` is unset. New tables go in a new idempotent SQL file in `migrations/`, added to the list in that script, and mirrored in `server/db/schema.ts`. Migrations 0000-0009 predate the runner.
+`scripts/migrate.mjs` applies the SQL files it lists (0010 onward) once each, before every build (`npm run build`), and skips when `DATABASE_URL` is unset. New tables go in a new idempotent SQL file in `migrations/`, added to the list in that script, and mirrored in `server/db/schema.ts`. Migrations 0000-0009 predate the runner. `0015_invites.sql` adds the `invites` table.
 
 ## Map
 
@@ -110,14 +119,14 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 - Sources, layers and paint values live in `client/src/components/map/layers.ts`. Far out, factories are faint points under a density glow (no clusters, no numbers); from about zoom 5.5 they become pickable pins. Pins sit beneath the basemap's place names.
 - Everything floating over the map uses the one `.map-overlay` surface in `globals.css`. Do not hand-roll translucent glass; its legibility depends on what is behind it.
 - Hover cards render from the pin's own properties. No request on hover.
-- With no `VITE_MAP_TOKEN`, or if the basemap fails, the map draws on a plain dark style.
+- With no `VITE_MAP_TOKEN`, or if the basemap fails, the map draws on a plain canvas in the page colour.
 - The attribution control stays (the basemap's and OpenStreetMap's terms require it), collapsed to its "i" button.
 
 ## Look and feel
 
 The rule of thumb: it should look like software Tesla would ship on a vehicle screen, not like a consumer phone app.
 
-- Monochrome and quiet. One accent (the geofence's ice blue). Entity colours are for small icons on detail pages, not for the map or its overlays.
+- Monochrome and quiet, in both themes. One accent (the geofence's blue). No entity colours anywhere.
 - No stars, badges, emoji, counters or "click here" hints. Emphasis comes from order, size and brightness.
 - Nothing on the map that the person did not ask for: no numbered bubbles, no labels on pins. Counts and detail live in the panel they open.
 - Density reads naturally (a glow far out, distinct points close in), not as a chart.
@@ -128,12 +137,11 @@ The rule of thumb: it should look like software Tesla would ship on a vehicle sc
 - TypeScript strict mode, no `any`
 - Functional components with hooks
 - Tailwind for styling (see design system)
-- Use semantic color tokens: `bg-bg-surface`, `text-fg-muted`
+- Colours come from theme tokens only (see "Theme and colour")
 - New pages compose `PageContainer` / `PageHeader` / `PageSection` / `EmptyState` from `components/layout/Page.tsx`; primitives come from `components/ui/` (shadcn)
 - Grids must set a mobile base (`grid-cols-1`) before breakpoint columns, and truncated children need `min-w-0`
 - Env: MapTiler key is `VITE_MAP_TOKEN`; writes need `ADMIN_SECRET`
 - Server/api relative imports MUST end in `.js` (`from './routes/map.js'`, `from '../db/index.js'`): the function runs as Node ESM on Vercel. `npm run lint` enforces it
-- Entity badges use: `bg-{color}-500/10 text-{color}-500`
 
 ## Common Commands
 

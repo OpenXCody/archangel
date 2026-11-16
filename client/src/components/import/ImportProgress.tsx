@@ -149,7 +149,7 @@ export default function ImportProgress({
                     key={i}
                     className="absolute w-2 h-2 rounded-full animate-ping"
                     style={{
-                      backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'][i % 4],
+                      backgroundColor: ['rgb(var(--success))', 'rgb(var(--info))', 'rgb(var(--warning))', 'rgb(var(--danger))'][i % 4],
                       transform: `rotate(${i * 45}deg) translateY(-30px)`,
                       animationDelay: `${i * 100}ms`,
                       animationDuration: '1s',

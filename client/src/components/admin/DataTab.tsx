@@ -75,7 +75,7 @@ const IMPORT_TOOLS: { to: string; label: string; detail: string }[] = [
 
 function ImportSection() {
   return (
-    <PageSection title="Import">
+    <PageSection title="Import tools">
       <ul className={cardClass}>
         {IMPORT_TOOLS.map((tool) => (
           <li key={tool.to} className={rowClass}>
@@ -194,7 +194,7 @@ function CompanyProfileForm({ company, onSaved }: { company: AdminCompany; onSav
       <div className="flex items-center gap-3">
         <CompanyLogo name={company.name} domain={previewDomain} size={48} />
         <div className="min-w-0">
-          <p className="break-words text-sm font-medium text-fg-default">{company.name}</p>
+          <p className="text-sm text-fg-muted">{previewDomain ? `Logo from ${previewDomain}` : 'No domain: monogram'}</p>
           <Link to={`/companies/${company.slug ?? company.id}`} className="text-xs text-fg-muted underline underline-offset-4 hover:text-fg-default">
             Company page
           </Link>

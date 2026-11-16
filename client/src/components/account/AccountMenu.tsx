@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Building2, ChevronDown, Loader2, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
+import { Building2, ChevronDown, Loader2, LogIn, LogOut, Moon, ShieldCheck, Sun, UserRound } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { accountRoles, errorMessage, signInPath, useAccount, useSessionExpiryWatch, useSignOut } from '../../lib/account';
+import { setTheme, useTheme } from '../../lib/theme';
 
 /**
  * Titles for the account pages, for the browser tab. Null for any other path.
@@ -39,6 +40,7 @@ export default function AccountMenu() {
   const { data, isPending } = useAccount();
   const signOut = useSignOut();
   const [open, setOpen] = useState(false);
+  const theme = useTheme();
   useSessionExpiryWatch();
 
   if (isPending && !data) {
@@ -132,6 +134,17 @@ export default function AccountMenu() {
         )}
         <DropdownMenuItem
           className={itemClass}
+          onSelect={(event) => {
+            // Stay open: the change is visible behind the menu, and easy to undo.
+            event.preventDefault();
+            setTheme(theme === 'light' ? 'dark' : 'light');
+          }}
+        >
+          {theme === 'light' ? <Moon className="text-fg-muted" /> : <Sun className="text-fg-muted" />}
+          {theme === 'light' ? 'Dark mode' : 'Light mode'}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className={itemClass}
           disabled={signOut.isPending}
           onSelect={(event) => {
             // Keep the menu open until the session has really ended, so a failure can be shown here.
@@ -143,7 +156,7 @@ export default function AccountMenu() {
           Sign out
         </DropdownMenuItem>
         {signOut.isError && (
-          <p role="alert" className="px-2.5 pb-1.5 pt-1 text-xs text-red-400">
+          <p role="alert" className="px-2.5 pb-1.5 pt-1 text-xs text-danger">
             {errorMessage(signOut.error)}
           </p>
         )}

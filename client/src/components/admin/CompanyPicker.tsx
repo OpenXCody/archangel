@@ -117,7 +117,7 @@ export default function CompanyPicker({ id, value, onChange, disabled }: Company
           {waiting ? (
             <p className="px-2.5 py-2.5 text-sm text-fg-muted">Searching</p>
           ) : results.isError ? (
-            <p role="alert" className="px-2.5 py-2.5 text-sm text-red-400">
+            <p role="alert" className="px-2.5 py-2.5 text-sm text-danger">
               {errorMessage(results.error)}
             </p>
           ) : options.length === 0 ? (

@@ -3,7 +3,7 @@ import { Navigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { safeNextPath, useAccount, useSignIn, useSignUp } from '../lib/account';
+import { ApiError, inviteRoleLabel, safeNextPath, useAccount, useInvite, useSignIn, useSignUp } from '../lib/account';
 import { ErrorNote, Field, LoadError, PageLoading, cardClass, fieldClass } from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 
@@ -28,10 +28,22 @@ const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
  * Where the person lands: an employer goes to the employer page; otherwise
  * `?next=` when it is a path on this site; otherwise the map, to start
  * exploring.
+ *
+ * An invite link (`?invite=<token>`) opens on Create account with the invited
+ * email fixed and no purpose question: the invite already says what the
+ * account is. An invited employer lands on the employer page, an invited
+ * admin on Admin Tools. A link that is unknown, used or expired says so and
+ * leaves the normal form.
  */
 export default function SignIn() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const mode: Mode = searchParams.get('mode') === 'create' ? 'create' : 'sign-in';
+  const inviteToken = searchParams.get('invite') || null;
+  const inviteQuery = useInvite(inviteToken);
+  const invite = inviteQuery.data ?? null;
+  const requestedMode = searchParams.get('mode');
+  // An invite is for a new account, so its link opens on Create account.
+  const mode: Mode = requestedMode === 'create' || (invite && requestedMode !== 'sign-in') ? 'create' : 'sign-in';
+  const invited = mode === 'create' ? invite : null;
   const next = safeNextPath(searchParams.get('next'));
   // Arriving from the employer page says what the account is for.
   const purpose: Purpose =
@@ -51,10 +63,14 @@ export default function SignIn() {
 
   // Signed in (already, or a moment ago through this form): carry on to where they were headed.
   if (account.data?.user) {
-    const hiring = (mode === 'create' && purpose === 'employer') || (!next && account.data.isEmployer);
+    // The account decides, not the link: an invite link opened by someone else's session grants nothing.
+    if (invited?.role === 'admin' && account.data.user.isAdmin) return <Navigate to="/admin" replace />;
+    const hiring =
+      (invited ? invited.role === 'employer' && account.data.isEmployer : mode === 'create' && purpose === 'employer') ||
+      (!next && account.data.isEmployer);
     return <Navigate to={hiring ? '/employer' : (next ?? '/map')} replace />;
   }
-  if (!account.data) {
+  if (!account.data || (inviteToken && inviteQuery.isPending)) {
     if (account.error) {
       return (
         <PageContainer size="narrow">
@@ -71,6 +87,8 @@ export default function SignIn() {
     signUp.reset();
     const params = new URLSearchParams(searchParams);
     if (nextMode === 'create') params.set('mode', 'create');
+    // With an invite the page opens on Create account, so signing in has to be asked for.
+    else if (invite) params.set('mode', 'sign-in');
     else params.delete('mode');
     setSearchParams(params, { replace: true });
   };
@@ -84,7 +102,8 @@ export default function SignIn() {
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (busy) return;
-    if (mode === 'create') signUp.mutate({ name, email, password });
+    if (invited && inviteToken) signUp.mutate({ name, email: invited.email, password, invite: inviteToken });
+    else if (mode === 'create') signUp.mutate({ name, email, password });
     else signIn.mutate({ email, password });
   };
 
@@ -115,7 +134,19 @@ export default function SignIn() {
           </div>
 
           <form onSubmit={submit} noValidate className="space-y-4">
-            {mode === 'create' && (
+            {inviteToken && inviteQuery.isError && (
+              <p role="status" className="text-sm text-fg-muted" data-invite-problem>
+                {inviteQuery.error instanceof ApiError && inviteQuery.error.status === 404
+                  ? 'Invite link not valid or expired.'
+                  : 'Invite could not be checked.'}
+              </p>
+            )}
+            {invited && (
+              <p className="text-sm text-fg-muted" data-invite-grant>
+                Invited as {inviteRoleLabel(invited.role, invited.companyName)}
+              </p>
+            )}
+            {mode === 'create' && !invited && (
               <div role="radiogroup" aria-label="Account purpose" className="grid grid-cols-2 gap-2">
                 {PURPOSES.map(({ value, label, detail }) => (
                   <button
@@ -162,9 +193,11 @@ export default function SignIn() {
                 autoComplete="email"
                 autoCapitalize="none"
                 spellCheck={false}
-                value={email}
+                readOnly={Boolean(invited)}
+                aria-readonly={invited ? true : undefined}
+                value={invited ? invited.email : email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={fieldClass}
+                className={cn(fieldClass, invited && 'cursor-default text-fg-muted')}
               />
             </Field>
             <Field label="Password" htmlFor="sign-password" hint={mode === 'create' ? 'At least 8 characters.' : undefined}>

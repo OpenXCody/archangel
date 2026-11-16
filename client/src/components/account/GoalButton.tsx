@@ -66,7 +66,7 @@ export default function GoalButton({ occupationId, className }: GoalButtonProps)
         title={isGoal ? 'Remove from the careers you are aiming at' : undefined}
         className={cn('h-10', isGoal && outlineButtonClass)}
       >
-        {busy || goals.isPending ? <Loader2 className="animate-spin" /> : isGoal ? <Check className="text-emerald-500" /> : <Target />}
+        {busy || goals.isPending ? <Loader2 className="animate-spin" /> : isGoal ? <Check className="text-success" /> : <Target />}
         {isGoal ? 'Aiming at this career' : 'Aim for this career'}
       </Button>
       <ErrorNote error={error} />
