@@ -192,7 +192,11 @@ export interface Factory {
   description: string | null;
   latitude: string;
   longitude: string;
+  address?: string | null;
+  city?: string | null;
   state: string | null;
+  /** What the site makes, from its industry classification. */
+  industry?: string | null;
   workforceSize: number | null;
   openPositions: number | null;
   createdAt: string;
@@ -200,10 +204,33 @@ export interface Factory {
 }
 
 // Factory with relations
+/** The company behind a factory, with enough of its profile to introduce it. */
+export interface FactoryCompany extends RelatedCompany {
+  slug?: string | null;
+  domain?: string | null;
+  featured?: boolean;
+  description?: string | null;
+  /** How many sites the company has, and across how many states. */
+  siteCount?: number;
+  stateCount?: number;
+}
+
+/** Another site of the same company. */
+export interface SisterSite {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  latitude: string;
+  longitude: string;
+}
+
 export interface FactoryDetail extends Factory {
   /** Open jobs here, newest first. */
   jobs?: CareerJob[];
-  company: RelatedCompany | null;
+  company: FactoryCompany | null;
+  /** The company's other sites, closest first (up to five). */
+  nearby?: SisterSite[];
   occupations: RelatedOccupation[];
 }
 

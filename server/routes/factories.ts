@@ -201,7 +201,10 @@ router.get('/:id', async (req: Request, res: Response) => {
         description: factories.description,
         latitude: factories.latitude,
         longitude: factories.longitude,
+        address: factories.address,
+        city: factories.city,
         state: factories.state,
+        industry: factories.primaryNaicsDescription,
         workforceSize: factories.workforceSize,
         openPositions: factories.openPositions,
         createdAt: factories.createdAt,
@@ -216,18 +219,63 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     const factory = factoryResult[0];
 
-    // Get parent company
+    // The company behind this site, with enough of its profile that the
+    // factory's panel can introduce it: logo, description, how big it is.
+    // `nearby` is its other sites, closest first.
     let company = null;
+    let nearby: { id: string; name: string; city: string | null; state: string | null; latitude: string; longitude: string }[] = [];
     if (factory.companyId) {
-      const companyResult = await db
+      const [companyRow] = await db
         .select({
           id: companies.id,
           name: companies.name,
+          slug: companies.slug,
+          domain: companies.domain,
+          featured: companies.featured,
           industry: companies.industry,
+          description: companies.description,
         })
         .from(companies)
         .where(eq(companies.id, factory.companyId));
-      company = companyResult[0] || null;
+      if (companyRow) {
+        const [footprint] = await db
+          .select({
+            siteCount: sql<number>`COUNT(*)::int`,
+            stateCount: sql<number>`COUNT(DISTINCT ${factories.state})::int`,
+          })
+          .from(factories)
+          .where(and(eq(factories.companyId, companyRow.id), factoryInScope()));
+        company = { ...companyRow, siteCount: footprint?.siteCount ?? 1, stateCount: footprint?.stateCount ?? 1 };
+
+        const lat = parseFloat(factory.latitude);
+        const lng = parseFloat(factory.longitude);
+        if (Number.isFinite(lat) && Number.isFinite(lng) && company.siteCount > 1) {
+          // Coordinates are stored as text; only well-formed ones are cast.
+          const numeric = sql`'^-?[0-9]+(\\.[0-9]+)?$'`;
+          nearby = await db
+            .select({
+              id: factories.id,
+              name: factories.name,
+              city: factories.city,
+              state: factories.state,
+              latitude: factories.latitude,
+              longitude: factories.longitude,
+            })
+            .from(factories)
+            .where(
+              and(
+                eq(factories.companyId, companyRow.id),
+                sql`${factories.id} <> ${id}`,
+                sql`${factories.latitude} ~ ${numeric} AND ${factories.longitude} ~ ${numeric}`,
+                factoryInScope()
+              )
+            )
+            .orderBy(
+              sql`POWER(${factories.latitude}::float8 - ${lat}, 2) + POWER((${factories.longitude}::float8 - ${lng}) * COS(RADIANS(${lat})), 2)`
+            )
+            .limit(5);
+        }
+      }
     }
 
     // Get occupations at this factory with headcount
@@ -247,6 +295,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     res.json({
       ...factory,
       company,
+      nearby,
       occupations: factoryOccupationsResult,
       jobs: await listOpenJobs(eq(jobs.factoryId, id)),
     });

@@ -84,7 +84,7 @@
   :root[data-theme='light'] {
     color-scheme: light;
 
-    --background: 210 14% 96%;
+    --background: 210 14% 97%;
     --foreground: 210 12% 8%;
     --card: 0 0% 100%;
     --card-foreground: 210 12% 8%;
@@ -109,21 +109,21 @@
     --chart-4: 210 8% 66%;
     --chart-5: 210 8% 78%;
 
-    --color-bg-shell: #e9ebee;
-    --color-bg-base: #f3f4f6;
+    --color-bg-shell: #eceef0;
+    --color-bg-base: #f6f7f8;
     --color-bg-surface: #ffffff;
-    --color-bg-elevated: #eceef1;
+    --color-bg-elevated: #f1f3f5;
 
     /* On --color-bg-surface: default 18:1, muted 8:1, soft 4.6:1. */
     --color-fg-default: #111418;
     --color-fg-muted: #4a515a;
     --color-fg-soft: #6d7580;
 
-    --color-border-subtle: #dfe2e6;
-    --color-border-strong: #c3c8cf;
+    --color-border-subtle: #e4e7ea;
+    --color-border-strong: #cbd0d6;
 
     --color-accent-primary: #111418;
-    --color-accent-soft: #eceef1;
+    --color-accent-soft: #f1f3f5;
 
     --success: 4 120 87;
     --danger: 185 28 28;
