@@ -17,6 +17,7 @@ import {
 } from '../../lib/api';
 import { useMapStore, type MapEntityType } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
+import { SCOPE } from '@shared/scope';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 
 // Map-relevant entity types (refs, schools, programs are not map-related)
@@ -59,11 +60,11 @@ export default function MapSearch() {
 
   // Filter states based on search query
   const filteredStates = useMemo(() => {
-    if (!stateQuery.trim()) return US_STATES;
-    const q = stateQuery.toLowerCase();
-    return US_STATES.filter(
-      s => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)
-    );
+    // Only the covered region can be filtered on; the API returns nothing else.
+    const inScope = US_STATES.filter((s) => s.code === SCOPE.stateCode);
+    if (!stateQuery.trim()) return inScope;
+    const q = stateQuery.trim().toLowerCase();
+    return inScope.filter((s) => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q));
   }, [stateQuery]);
 
   // Debounce query
@@ -96,7 +97,7 @@ export default function MapSearch() {
       if (item.type === 'states') {
         // For states, add to the states filter
         const currentStates = filters.states;
-        if (!currentStates.includes(item.id)) {
+        if (item.id === SCOPE.stateCode && !currentStates.includes(item.id)) {
           setFilters({ states: [...currentStates, item.id] });
         }
         setQuery('');
