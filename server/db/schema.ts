@@ -148,6 +148,8 @@ export const companies = pgTable(
     domain: text('domain'),
     // A curated employer: lists and the map put these first.
     featured: boolean('featured').default(false).notNull(),
+    // Short name for the company's page (/companies/tesla); unique when set.
+    slug: text('slug'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },

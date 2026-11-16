@@ -901,6 +901,13 @@ export default function EntityDetail() {
     if (name) document.title = `${name} · Archangel`;
   }, [data]);
 
+  // A company with a short name is shown under it: /companies/tesla.
+  const navigate = useNavigate();
+  const slug = data && entityType === 'companies' && 'slug' in data ? data.slug : null;
+  useEffect(() => {
+    if (slug && id !== slug) navigate(`/companies/${slug}${window.location.hash}`, { replace: true });
+  }, [slug, id, navigate]);
+
   // Cards deep-link to sections (#factories, #occupations, …); scroll once the data is on the page.
   const { hash } = useLocation();
   useEffect(() => {

@@ -155,6 +155,8 @@ export interface Company {
   headquartersLng: string | null;
   /** Website domain (e.g. "micron.com"); the logo is looked up from it. */
   domain?: string | null;
+  /** Short name for the company's page (/companies/tesla), when it has one. */
+  slug?: string | null;
   /** A featured employer: shown first and marked on the map. */
   featured?: boolean;
   createdAt: string;
