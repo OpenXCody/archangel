@@ -49,9 +49,11 @@ router.get('/', async (req: Request, res: Response) => {
         ? sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()}) DESC, ${companies.name} ASC`
         : sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()}) ASC, ${companies.name} ASC`;
     } else {
+      // By name, with featured employers first: the list opens on companies
+      // people recognise instead of on whatever sorts first alphabetically.
       orderByClause = order === 'desc'
-        ? sql`${companies.name} DESC`
-        : sql`${companies.name} ASC`;
+        ? sql`${companies.featured} DESC, ${companies.name} DESC`
+        : sql`${companies.featured} DESC, ${companies.name} ASC`;
     }
 
     // Query with factory count
@@ -61,6 +63,8 @@ router.get('/', async (req: Request, res: Response) => {
         name: companies.name,
         industry: companies.industry,
         description: companies.description,
+        domain: companies.domain,
+        featured: companies.featured,
         headquartersLat: companies.headquartersLat,
         headquartersLng: companies.headquartersLng,
         createdAt: companies.createdAt,
