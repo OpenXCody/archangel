@@ -111,6 +111,21 @@ export interface RelatedSkill {
   name: string;
   category: string | null;
   importance?: 'required' | 'preferred' | 'nice_to_have';
+  /** Where the skill sits on a career's path: 1 Introduction, 2 Fundamentals, 3 Advanced. */
+  stage?: 1 | 2 | 3 | null;
+}
+
+/** An open job listed on its career's page. Pay is in cents. */
+export interface CareerJob {
+  id: string;
+  serial: number;
+  title: string;
+  payMin: number | null;
+  payMax: number | null;
+  payPeriod: 'hour' | 'year';
+  companyName: string;
+  factoryName: string;
+  city: string | null;
 }
 
 export interface RelatedFactoryWithHeadcount {
@@ -192,6 +207,7 @@ export interface Occupation {
 export interface OccupationDetail extends Occupation {
   skills: RelatedSkill[];
   factories: RelatedFactoryWithHeadcount[];
+  jobs?: CareerJob[];
 }
 
 export interface Skill {
