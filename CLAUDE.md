@@ -92,7 +92,7 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 
 ## API Endpoints
 
-- Public reads: `/api/companies`, `/api/factories` (+ `/geojson`), `/api/occupations`, `/api/skills`, `/api/search`, `/api/map/*`, `/api/stats/counts`, `/api/jobs`, `/api/jobs/:id`
+- Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search`, `/api/map/*`, `/api/stats/counts`, `/api/jobs`, `/api/jobs/:id`
 - `/api/auth/*` sign-up, sign-in, sign-out, me, claim-admin
 - `/api/me/*` profile, skills, goals, applications
 - `/api/jobs` POST/PATCH (company members), `/:id/apply`, `/:id/applications` (ranked), `/applications/:id`

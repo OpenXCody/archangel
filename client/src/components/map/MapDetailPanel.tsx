@@ -17,6 +17,7 @@ import {
   Tag,
   MapPinned,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import {
   factoriesApi,
   companiesApi,
@@ -45,11 +46,12 @@ function RegionOverviewBody({ data }: { data: RegionOverview }) {
   const totals = [
     { label: 'Factories', value: data.totalFactories.toLocaleString() },
     { label: 'Companies', value: data.totalCompanies.toLocaleString() },
-    { label: 'Workforce', value: data.totalWorkforce > 0 ? data.totalWorkforce.toLocaleString() : '—' },
+    // Shown only when there is a number: an empty tile says nothing.
+    ...(data.totalWorkforce > 0 ? [{ label: 'Workforce', value: data.totalWorkforce.toLocaleString() }] : []),
   ];
   return (
     <>
-      <div className="grid grid-cols-3 gap-2 mb-6">
+      <div className={cn('grid gap-2 mb-6', totals.length === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
         {totals.map((total) => (
           <div key={total.label} className="min-w-0 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
             <div className="text-[10px] uppercase tracking-wider text-fg-muted">{total.label}</div>
