@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   X,
@@ -35,6 +36,7 @@ import { useMapStore, type MapEntityType } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../CompanyLogo';
+import { formatPay } from '../../lib/jobFormat';
 import { PANEL_WIDTH_PX, SHEET_PEEK_VH } from './camera';
 
 // Body shared by the state panel and the focus-area panel: big totals up
@@ -223,45 +225,146 @@ function ConnectedNode({
 }
 
 // Factory View Component
+//
+// What a click on a pin opens. It answers, without another click: what is
+// this place, who runs it, how big are they, are they hiring here, and where
+// are their other sites. The company's own panel is one step further for
+// someone who wants all of it.
 function FactoryView({ factory }: { factory: FactoryDetail }) {
+  const { selectEntity, selectFactory, flyTo, setHoveredFactory } = useMapStore();
+  const company = factory.company;
+  const factoryName = formatFactoryName(factory.name);
+  const companyName = company ? formatCompanyName(company.name) : null;
+  const place = [factory.city ? titleCase(factory.city) : null, factory.state].filter(Boolean).join(', ');
+  const industry = factory.industry || factory.specialization || (company && company.industry !== 'Manufacturing' ? company.industry : null);
+  const jobs = factory.jobs ?? [];
+  const nearby = factory.nearby ?? [];
+  const siteCount = company?.siteCount ?? 0;
+  const stateCount = company?.stateCount ?? 0;
+
   return (
     <>
-      {/* Factory Name & Industry */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-fg-default mb-1">{formatFactoryName(factory.name)}</h2>
-        <p className="text-sm text-fg-muted">
-          {factory.specialization || factory.company?.industry || 'Manufacturing'}
-        </p>
+      {/* Who and what */}
+      <div className="mb-5 flex items-start gap-3">
+        {company && <CompanyLogo name={companyName ?? factoryName} domain={company.domain} size={44} className="rounded-lg" />}
+        <div className="min-w-0 flex-1">
+          <h2 className="break-words text-xl font-semibold leading-snug text-fg-default">{factoryName}</h2>
+          {(place || industry) && (
+            <p className="mt-1 text-sm text-fg-muted">{[place, industry].filter(Boolean).join(' · ')}</p>
+          )}
+        </div>
       </div>
 
       {/* Numbers, only where there is one: an empty tile says nothing. */}
-      {(factory.workforceSize || factory.openPositions) ? (
-        <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-          {factory.workforceSize ? (
-            <div className="bg-bg-elevated border border-border-subtle rounded-lg p-3 md:p-4">
-              <div className="text-[10px] md:text-xs text-fg-muted mb-1">Workforce</div>
-              <div className="text-xl md:text-2xl font-semibold text-fg-default">{factory.workforceSize.toLocaleString()}</div>
+      {(jobs.length > 0 || factory.workforceSize) ? (
+        <div className={cn('mb-6 grid gap-2.5', jobs.length > 0 && factory.workforceSize ? 'grid-cols-2' : 'grid-cols-1')}>
+          {jobs.length > 0 && (
+            <div className="rounded-lg border border-border-subtle bg-bg-elevated p-3">
+              <div className="text-[11px] text-fg-muted">Open jobs</div>
+              <div className="text-xl font-semibold text-fg-default">{jobs.length.toLocaleString()}</div>
             </div>
-          ) : null}
-          {factory.openPositions ? (
-            <div className="bg-bg-elevated border border-border-subtle rounded-lg p-3 md:p-4">
-              <div className="text-[10px] md:text-xs text-fg-muted mb-1">Open positions</div>
-              <div className="text-xl md:text-2xl font-semibold text-fg-default">{factory.openPositions.toLocaleString()}</div>
+          )}
+          {factory.workforceSize ? (
+            <div className="rounded-lg border border-border-subtle bg-bg-elevated p-3">
+              <div className="text-[11px] text-fg-muted">Workforce</div>
+              <div className="text-xl font-semibold text-fg-default">{factory.workforceSize.toLocaleString()}</div>
             </div>
           ) : null}
         </div>
       ) : null}
 
-      {/* Company and careers */}
-      {(factory.company || (factory.occupations?.length ?? 0) > 0) && (
+      {/* Open jobs here */}
+      {jobs.length > 0 && (
         <div className="mb-6">
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">Open jobs</h3>
           <div className="space-y-2">
-            {factory.company && (
-              <ConnectedNode type="company" id={factory.company.id} name={factory.company.name} subtitle="Company" />
+            {jobs.slice(0, 4).map((job) => (
+              <Link
+                key={job.id}
+                to={`/jobs/${job.id}`}
+                className="group flex items-center justify-between gap-3 rounded-lg border border-border-subtle bg-bg-elevated p-3 transition-colors hover:border-border-strong"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-fg-default">{job.title}</span>
+                  <span className="block text-xs text-fg-muted">{formatPay(job.payMin, job.payMax, job.payPeriod)}</span>
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted group-hover:text-fg-default" />
+              </Link>
+            ))}
+            {jobs.length > 4 && (
+              <Link to={`/factories/${factory.id}`} className="block py-1 text-center text-xs text-fg-muted underline-offset-4 hover:underline">
+                All {jobs.length} open jobs
+              </Link>
             )}
+          </div>
+        </div>
+      )}
 
-            {/* Show first 3 occupations */}
-            {factory.occupations?.slice(0, 3).map((occ) => (
+      {/* The company */}
+      {company && companyName && (
+        <div className="mb-6">
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">Company</h3>
+          <button
+            type="button"
+            onClick={() => selectEntity('company', company.id)}
+            className="group w-full rounded-lg border border-border-subtle bg-bg-elevated p-3 text-left transition-colors hover:border-border-strong"
+          >
+            <span className="flex items-center justify-between gap-3">
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium text-fg-default">{companyName}</span>
+                {siteCount > 0 && (
+                  <span className="block text-xs text-fg-muted">
+                    {siteCount.toLocaleString()} {siteCount === 1 ? 'site' : 'sites'}
+                    {stateCount > 1 ? ` in ${stateCount} states` : ''}
+                    {company.industry && company.industry !== 'Manufacturing' ? ` · ${company.industry}` : ''}
+                  </span>
+                )}
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted group-hover:text-fg-default" />
+            </span>
+            {company.description && (
+              <span className="mt-2 line-clamp-3 block text-sm leading-relaxed text-fg-muted">{company.description}</span>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* The company's other sites, closest first */}
+      {nearby.length > 0 && companyName && (
+        <div className="mb-6">
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">Other {companyName} sites</h3>
+          <div className="overflow-hidden rounded-lg border border-border-subtle">
+            {nearby.map((site) => (
+              <button
+                key={site.id}
+                type="button"
+                onClick={() => {
+                  selectFactory(site.id);
+                  flyTo({ kind: 'point', lat: parseFloat(site.latitude), lng: parseFloat(site.longitude), zoom: 10 });
+                }}
+                onMouseEnter={() => setHoveredFactory(site.id)}
+                onMouseLeave={() => setHoveredFactory(null)}
+                className="group flex w-full items-center justify-between gap-3 border-b border-border-subtle bg-bg-elevated px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-tint/5"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm text-fg-default">{formatFactoryName(site.name)}</span>
+                  <span className="block text-xs text-fg-muted">
+                    {[site.city ? titleCase(site.city) : null, site.state].filter(Boolean).join(', ')}
+                  </span>
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted group-hover:text-fg-default" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Careers recorded at this site */}
+      {factory.occupations && factory.occupations.length > 0 && (
+        <div className="mb-6">
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">Careers here</h3>
+          <div className="space-y-2">
+            {factory.occupations.slice(0, 4).map((occ) => (
               <ConnectedNode
                 key={occ.id}
                 type="occupation"
@@ -270,38 +373,33 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
                 subtitle={occ.headcount ? `${occ.headcount.toLocaleString()} workers` : undefined}
               />
             ))}
-
-            {factory.occupations && factory.occupations.length > 3 && (
-              <div className="text-xs text-fg-muted text-center py-2">
-                +{factory.occupations.length - 3} more careers
-              </div>
+            {factory.occupations.length > 4 && (
+              <div className="py-1 text-center text-xs text-fg-muted">+{factory.occupations.length - 4} more careers</div>
             )}
           </div>
         </div>
       )}
 
-      {/* Specialization */}
-      {factory.specialization && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
-            Specialization
-          </h3>
-          <p className="text-sm text-fg-muted">{factory.specialization}</p>
-        </div>
-      )}
-
-      {/* Description */}
       {factory.description && (
         <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
-            Description
-          </h3>
-          <p className="text-sm text-fg-muted leading-relaxed">{factory.description}</p>
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">About this site</h3>
+          <p className="text-sm leading-relaxed text-fg-muted">{factory.description}</p>
         </div>
       )}
 
+      <Link
+        to={`/factories/${factory.id}`}
+        className="mb-2 flex w-full items-center justify-center rounded-lg border border-border-strong px-4 py-2.5 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated"
+      >
+        Factory page
+      </Link>
     </>
   );
+}
+
+/** "ROUND ROCK" as "Round Rock": the source data shouts its city names. */
+function titleCase(text: string): string {
+  return text.toLowerCase().replace(/(^|[\s-])([a-z])/g, (_, lead: string, letter: string) => lead + letter.toUpperCase());
 }
 
 // Company View Component

@@ -10,7 +10,7 @@ export type Theme = 'dark' | 'light';
 
 const STORAGE_KEY = 'archangel.theme';
 /** The browser chrome colour for each theme: --color-bg-base. */
-const CHROME_COLOR: Record<Theme, string> = { dark: '#0f0f0f', light: '#f3f4f6' };
+const CHROME_COLOR: Record<Theme, string> = { dark: '#0f0f0f', light: '#f6f7f8' };
 
 const listeners = new Set<() => void>();
 
