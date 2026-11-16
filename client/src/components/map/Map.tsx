@@ -123,6 +123,9 @@ const STATE_FILL_OPACITY: ExpressionSpecification = [
 // US States GeoJSON, shipped with the app (client/public/data)
 const STATES_GEOJSON_URL = '/data/us-states.geojson';
 
+/** Below this zoom the state reads as a shape and can be hovered and selected. */
+const STATE_SELECT_MAX_ZOOM = 6.5;
+
 // Debounce helper for viewport updates
 function debounce<T extends (...args: Parameters<T>) => void>(
   fn: T,
@@ -142,7 +145,7 @@ export default function Map() {
   const previousSelectedIdRef = useRef<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [viewport, setViewport] = useState<{
+  const [, setViewport] = useState<{
     bounds: LngLatBounds | null;
     zoom: number;
   }>({ bounds: null, zoom: 0 });
@@ -189,15 +192,9 @@ export default function Map() {
     states: filters.states.length > 0 ? filters.states : undefined,
     company: filters.company || undefined,
     industry: filters.industry || undefined,
-    // Add viewport bounds for large datasets (only at higher zoom levels)
-    bounds: viewport.bounds && viewport.zoom >= 6
-      ? [
-          viewport.bounds.getWest(),
-          viewport.bounds.getSouth(),
-          viewport.bounds.getEast(),
-          viewport.bounds.getNorth(),
-        ].join(',')
-      : undefined,
+    // The region is one state, so every pin loads once. Refetching per
+    // viewport made pins pop in after each pan.
+    bounds: undefined as string | undefined,
   };
 
   // Fetch factories GeoJSON with filters and viewport
@@ -210,9 +207,22 @@ export default function Map() {
       filterParams.bounds,
     ],
     queryFn: () => factoriesApi.geojson(filterParams),
-    staleTime: 30 * 1000, // 30 seconds - shorter for viewport changes
+    staleTime: 5 * 60 * 1000, // pins change rarely; one load covers the whole region
     placeholderData: (previousData) => previousData, // Keep previous data while loading
   });
+
+  // A factory chosen from search, a shared link or the Back button never went
+  // through a pin click, so nothing moved the camera. Bring it into view when
+  // it is off screen or the map is zoomed too far out to make it out.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !mapLoaded || !selectedFactoryId || !factoriesGeoJSON) return;
+    const feature = factoriesGeoJSON.features.find((f) => f.id === selectedFactoryId);
+    if (!feature || feature.geometry.type !== 'Point') return;
+    const [lng, lat] = feature.geometry.coordinates as [number, number];
+    if (m.getZoom() >= 7 && m.getBounds().contains([lng, lat])) return;
+    flyToPoint(m, [lng, lat]);
+  }, [selectedFactoryId, factoriesGeoJSON, mapLoaded]);
 
   // State-level factory counts (shade the in-scope state)
   const { data: stateCounts } = useQuery<Record<string, number>>({
@@ -288,12 +298,15 @@ export default function Map() {
 
     let retryCount = 0;
     const maxRetries = 3;
+    // Set once the basemap has failed for good: draw on the plain canvas so
+    // the data stays usable instead of showing an error screen.
+    let basemapUnavailable = false;
 
     const initMap = () => {
       // Get key fresh each attempt. No key: draw on the plain dark canvas
       // instead of asking MapTiler for a style it will refuse.
       const mapKey = (import.meta.env.VITE_MAP_TOKEN as string | undefined)?.trim() || '';
-      const keyless = mapKey === '';
+      const keyless = basemapUnavailable || mapKey === '';
 
       try {
         map.current = new maplibregl.Map({
@@ -302,7 +315,7 @@ export default function Map() {
           ...initialCamera(),
           minZoom: 2,
           maxZoom: 18,
-          attributionControl: false,
+          attributionControl: { compact: true },
           renderWorldCopies: false,
         });
       } catch (err) {
@@ -333,7 +346,10 @@ export default function Map() {
           map.current = null;
           setTimeout(initMap, 500);
         } else if (isStyleError) {
-          setMapError('Failed to load map. Please check your API key.');
+          basemapUnavailable = true;
+          map.current?.remove();
+          map.current = null;
+          initMap();
         }
       });
 
@@ -376,7 +392,18 @@ export default function Map() {
             }
 
             if (layer.type === 'symbol') {
-              currentMap.setLayoutProperty(layer.id, 'visibility', 'none');
+              // Keep settlement names (city, town, village, suburb) in a quiet
+              // grey so the Austin area is readable; hide every other label.
+              const isPlaceName =
+                /city|town|village|place|suburb|capital|neighbou?r/.test(layerId) &&
+                !/country|continent|state|ocean|sea|lake|river|water|road|street|highway|poi|airport|park|peak/.test(layerId);
+              if (isPlaceName) {
+                currentMap.setPaintProperty(layer.id, 'text-color', '#8c8c8c');
+                currentMap.setPaintProperty(layer.id, 'text-halo-color', DARK_STYLE_OVERRIDES.background);
+                currentMap.setPaintProperty(layer.id, 'text-halo-width', 1.2);
+              } else {
+                currentMap.setLayoutProperty(layer.id, 'visibility', 'none');
+              }
             }
           } catch {
             // Some layers may not support these properties
@@ -671,6 +698,9 @@ export default function Map() {
         // the state underneath it.
         const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
         if (pinHit.length > 0) return;
+        // Zoomed in to city level, an empty click is just an empty click.
+        // Selecting the state there would yank the view out to all of Texas.
+        if (currentMap.getZoom() >= STATE_SELECT_MAX_ZOOM) return;
         const code = e.features[0].properties?.stateCode as string | undefined;
         if (!code) return;
         selectStateRef.current(code);
@@ -680,7 +710,7 @@ export default function Map() {
       // Hover a state → brighten its fill + cursor pointer. Only at
       // zooms where clusters are the primary interaction (< 8).
       currentMap.on('mousemove', 'state-fills', (e) => {
-        if (currentMap.getZoom() >= 8) return;
+        if (currentMap.getZoom() >= STATE_SELECT_MAX_ZOOM) return;
         const f = e.features?.[0];
         const code = f?.properties?.stateCode as string | undefined;
         if (!code) return;

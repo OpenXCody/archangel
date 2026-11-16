@@ -119,7 +119,7 @@ export default function MapView() {
 
   return (
     <div
-      className="relative w-full h-[calc(100vh-56px)] overflow-hidden"
+      className="relative w-full h-[calc(100dvh-57px)] overflow-hidden"
       onContextMenu={handleContextMenu}
     >
       {/* Map canvas */}

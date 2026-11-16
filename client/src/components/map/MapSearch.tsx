@@ -36,7 +36,7 @@ const ENTITY_CONFIG: Record<
 > = {
   companies: { icon: Building2, label: 'Company', heading: 'Companies', iconClass: 'text-amber-500' },
   factories: { icon: Factory, label: 'Factory', heading: 'Factories', iconClass: 'text-sky-400' },
-  occupations: { icon: Briefcase, label: 'Career', heading: 'Careers', iconClass: 'text-blue-800' },
+  occupations: { icon: Briefcase, label: 'Career', heading: 'Careers', iconClass: 'text-violet-400' },
   skills: { icon: Wrench, label: 'Skill', heading: 'Skills', iconClass: 'text-emerald-500' },
   states: { icon: MapPin, label: 'State', heading: 'States', iconClass: 'text-indigo-500' },
 };

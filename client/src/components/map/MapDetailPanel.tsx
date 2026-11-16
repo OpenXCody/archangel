@@ -119,7 +119,7 @@ interface MapDetailPanelProps {
 const entityConfig: Record<MapEntityType, { icon: typeof Factory; color: string; bgColor: string; label: string }> = {
   factory: { icon: Factory, color: 'text-sky-400', bgColor: 'bg-sky-400/10', label: 'Factory' },
   company: { icon: Building2, color: 'text-amber-500', bgColor: 'bg-amber-500/10', label: 'Company' },
-  occupation: { icon: Briefcase, color: 'text-blue-800', bgColor: 'bg-blue-800/10', label: 'Career' },
+  occupation: { icon: Briefcase, color: 'text-violet-400', bgColor: 'bg-violet-400/10', label: 'Career' },
   skill: { icon: Wrench, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10', label: 'Skill' },
   state: { icon: MapPin, color: 'text-slate-300', bgColor: 'bg-slate-500/10', label: 'State' },
 };
@@ -239,10 +239,10 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
         </div>
       </div>
 
-      {/* Connected Nodes */}
+      {/* Connected to */}
       <div className="mb-6">
         <h3 className="text-xs font-medium uppercase tracking-wider text-fg-soft mb-3">
-          Connected Nodes
+          Connected to
         </h3>
         <div className="space-y-2">
           {factory.company && (
