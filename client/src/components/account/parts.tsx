@@ -19,9 +19,12 @@ export const ENTITY: Record<'company' | 'factory' | 'career' | 'skill', { icon: 
   skill: { icon: Wrench, text: 'text-emerald-500', badge: 'bg-emerald-500/10 text-emerald-500' },
 };
 
-/** Text inputs, textareas and native selects share one look. 16px on phones stops iOS zooming on focus. */
+/**
+ * Text inputs and textareas share one look. 16px on phones stops iOS zooming
+ * on focus; `border-solid` undoes the global `input { border: none }`.
+ */
 export const fieldClass =
-  'block w-full rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-base text-fg-default ' +
+  'block min-h-[42px] w-full rounded-lg border border-solid border-border-strong bg-bg-elevated px-3 py-2 text-base text-fg-default ' +
   'placeholder:text-fg-soft transition-colors focus:border-[color:var(--color-fg-muted)] focus:outline-none ' +
   'disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm';
 

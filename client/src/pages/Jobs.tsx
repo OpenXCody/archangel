@@ -69,7 +69,7 @@ export default function Jobs() {
   // A career linked to from elsewhere may have no open jobs; still name it in the filter.
   const careerListed = careerOptions.some((option) => option.id === career);
   const linkedCareer = useQuery({
-    queryKey: ['occupations', career],
+    queryKey: ['picker', 'occupation', career],
     queryFn: () => occupationsApi.get(career),
     enabled: Boolean(career) && allJobs.isSuccess && !careerListed,
     staleTime: 5 * 60_000,
@@ -114,7 +114,7 @@ export default function Jobs() {
         <Select value={career || ALL_CAREERS} onValueChange={setCareer}>
           <SelectTrigger
             aria-label="Filter by career"
-            className="h-11 min-w-0 rounded-lg border-border-subtle bg-bg-surface px-3 text-base text-fg-default shadow-none sm:text-sm"
+            className="h-11 min-w-0 rounded-lg border-border-strong bg-bg-surface px-3 text-base text-fg-default shadow-none sm:text-sm"
           >
             <SelectValue placeholder="All careers" />
           </SelectTrigger>
@@ -193,7 +193,8 @@ export default function Jobs() {
 
 function JobCard({ job }: { job: JobSummary }) {
   const CompanyIcon = ENTITY.company.icon;
-  const place = formatPlace(job.city, job.state);
+  // Not every factory has a city on record; its name places it well enough.
+  const place = job.city ? formatPlace(job.city, job.state) : [job.factoryName, job.state].filter(Boolean).join(', ');
   return (
     <Link
       to={`/jobs/${job.id}`}
@@ -209,9 +210,9 @@ function JobCard({ job }: { job: JobSummary }) {
           <span className="min-w-0 truncate">{job.companyName}</span>
         </span>
         {place && (
-          <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+          <span className="inline-flex min-w-0 items-center gap-1.5">
             <MapPin className="h-4 w-4 shrink-0" />
-            {place}
+            <span className="min-w-0 truncate">{place}</span>
           </span>
         )}
       </div>

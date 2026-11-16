@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Map, Layers, Upload, Search } from 'lucide-react';
+import { Map, Layers, Upload, Search, BriefcaseBusiness } from 'lucide-react';
 import GlobalSearch from '../search/GlobalSearch';
+import AccountMenu, { accountPageTitle } from '../account/AccountMenu';
 import { useAdminStatus } from '../../lib/adminStatus';
 
 const navItems = [
   { to: '/map', icon: Map, label: 'Map', adminOnly: false },
   { to: '/explore', icon: Layers, label: 'Explore', adminOnly: false },
+  { to: '/jobs', icon: BriefcaseBusiness, label: 'Jobs', adminOnly: false },
   // Shown only to an authorized admin. The /import routes gate themselves
   // (AdminKeyGate), so an admin without a key yet can still open /import.
   { to: '/import', icon: Upload, label: 'Data', adminOnly: true },
@@ -23,7 +25,9 @@ export default function Layout() {
 
   // Tab / history / bookmark titles. Detail pages override with the entity name.
   useEffect(() => {
-    const section = navItems.find((n) => location.pathname === n.to || location.pathname.startsWith(`${n.to}/`))?.label;
+    const section =
+      navItems.find((n) => location.pathname === n.to || location.pathname.startsWith(`${n.to}/`))?.label ??
+      accountPageTitle(location.pathname);
     const isDetail = /^\/(companies|factories|occupations|skills|refs|schools|programs)\/[^/]+$/.test(location.pathname);
     if (!isDetail) document.title = section ? `${section} · Archangel` : 'Archangel';
   }, [location.pathname]);
@@ -101,6 +105,9 @@ export default function Layout() {
                 </kbd>
               </button>
             )}
+
+            {/* End of the nav: sign in, or the signed-in person's menu */}
+            <AccountMenu />
           </div>
         </div>
       </header>
