@@ -269,6 +269,34 @@ function pinRadius(extra = 0): ExpressionSpecification {
   ];
 }
 
+/** Pins fade in with zoom, the better-known employers first. */
+const PIN_OPACITY: ExpressionSpecification = [
+  'interpolate', ['linear'], ['zoom'],
+  2, byTier(0.5, 0.22, 0.1),
+  3.5, byTier(0.6, 0.3, 0.14),
+  5, byTier(0.8, 0.5, 0.28),
+  6, byTier(0.95, 0.75, 0.5),
+  7.5, byTier(1, 1, 0.9),
+];
+const PIN_STROKE_WIDTH: ExpressionSpecification = ['interpolate', ['linear'], ['zoom'], 5, 0, 7, 0.6, 9, 0.9, 13, 1.2];
+
+/**
+ * While one company is the subject its few sites are the whole picture: draw
+ * them as full dots at any zoom and drop the density glow, which says nothing
+ * about a handful of points.
+ */
+export function setPinsEmphasised(map: MapLibreMap, emphasised: boolean): void {
+  if (!map.getLayer(LAYER.pins)) return;
+  map.setPaintProperty(
+    LAYER.pins,
+    'circle-radius',
+    emphasised ? ['interpolate', ['linear'], ['zoom'], 2, 4, 6, 5.5, 9, 7, 12, 9.5, 15, 12] : pinRadius()
+  );
+  map.setPaintProperty(LAYER.pins, 'circle-opacity', emphasised ? 1 : PIN_OPACITY);
+  map.setPaintProperty(LAYER.pins, 'circle-stroke-width', emphasised ? 1 : PIN_STROKE_WIDTH);
+  if (map.getLayer(LAYER.density)) map.setLayoutProperty(LAYER.density, 'visibility', emphasised ? 'none' : 'visible');
+}
+
 // ─── Sources and layers ────────────────────────────────────────────────────
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
@@ -426,16 +454,9 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
     paint: {
       'circle-color': byTier(COLOR.pinFeatured, COLOR.pinEstablished, COLOR.pinOther),
       'circle-radius': pinRadius(),
-      'circle-opacity': [
-        'interpolate', ['linear'], ['zoom'],
-        2, byTier(0.5, 0.22, 0.1),
-        3.5, byTier(0.6, 0.3, 0.14),
-        5, byTier(0.8, 0.5, 0.28),
-        6, byTier(0.95, 0.75, 0.5),
-        7.5, byTier(1, 1, 0.9),
-      ],
+      'circle-opacity': PIN_OPACITY,
       'circle-stroke-color': COLOR.pinStroke,
-      'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 5, 0, 7, 0.6, 9, 0.9, 13, 1.2],
+      'circle-stroke-width': PIN_STROKE_WIDTH,
     },
   }, beforeId);
 

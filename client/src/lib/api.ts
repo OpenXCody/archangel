@@ -74,6 +74,9 @@ export interface RelatedFactory {
   id: string;
   name: string;
   specialization: string | null;
+  /** What the site makes, from its industry classification. */
+  industry?: string | null;
+  city?: string | null;
   state: string | null;
   workforceSize: number | null;
   openPositions: number | null;
@@ -201,6 +204,8 @@ export interface Factory {
   openPositions: number | null;
   createdAt: string;
   occupationCount?: number;
+  /** The company's website domain, for its logo, where a response carries it. */
+  companyDomain?: string | null;
 }
 
 // Factory with relations
@@ -244,6 +249,8 @@ export interface Occupation {
   createdAt: string;
   skillCount?: number;
   factoryCount?: number;
+  /** Skills at each stage of the path (Introduction, Fundamentals, Advanced), where a response carries it. */
+  stageCounts?: [number, number, number] | null;
 }
 
 // Occupation with relations
@@ -680,4 +687,64 @@ export const mapApi = {
   /** Panel data for a selected focus area. */
   areaOverview: (id: string) =>
     apiFetch<AreaOverview>(`/map/areas/${encodeURIComponent(id)}/overview`),
+};
+
+// Explore overview: what /explore opens on, in one response.
+
+/** A featured employer on the overview. */
+export interface ExploreEmployer {
+  id: string;
+  name: string;
+  slug: string | null;
+  domain: string | null;
+  industry: string | null;
+  siteCount: number;
+  stateCount: number;
+}
+
+/** One stage of a career's path: how many skills it holds and the first few by name. */
+export interface ExploreCareerStage {
+  stage: 1 | 2 | 3;
+  count: number;
+  skills: string[];
+}
+
+/** A career that has a path, with the path's shape. */
+export interface ExploreCareer {
+  id: string;
+  title: string;
+  description: string | null;
+  stages: ExploreCareerStage[];
+}
+
+/** The most connected skills of one category. */
+export interface ExploreSkillGroup {
+  category: string;
+  skills: { id: string; name: string; careerCount: number }[];
+}
+
+export interface ExploreArea {
+  id: string;
+  name: string;
+  description: string;
+  factoryCount: number;
+}
+
+export interface ExploreState {
+  code: string;
+  name: string;
+  factoryCount: number;
+}
+
+export interface ExploreOverview {
+  employers: ExploreEmployer[];
+  careers: ExploreCareer[];
+  skillGroups: ExploreSkillGroup[];
+  areas: ExploreArea[];
+  states: ExploreState[];
+}
+
+export const exploreApi = {
+  overview: () =>
+    apiFetch<ExploreOverview>('/explore/overview'),
 };

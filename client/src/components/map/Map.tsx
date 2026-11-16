@@ -33,6 +33,7 @@ import {
   plainStyle,
   setMapPalette,
   quietBasemap,
+  setPinsEmphasised,
   setStateShadingDimmed,
   SOURCE,
 } from './layers';
@@ -342,7 +343,9 @@ export default function Map() {
         const r = hitTolerancePx();
         const box: [PointLike, PointLike] = [[point.x - r, point.y - r], [point.x + r, point.y + r]];
         // Far out, pins are points of light: the state or area under them takes the pointer.
-        const pinsPickable = currentMap.getZoom() >= PIN_INTERACTIVE_MIN_ZOOM;
+        // Far out, pins are a texture; with one company's sites on the map they are the subject.
+        const pinsPickable =
+          currentMap.getZoom() >= PIN_INTERACTIVE_MIN_ZOOM || Boolean(useMapStore.getState().filters.company);
         const layers = hitLayers.filter((id) => currentMap.getLayer(id) && (pinsPickable || id !== LAYER.pins));
         if (layers.length === 0) return {};
         const hit: Hit = {};
@@ -586,6 +589,7 @@ export default function Map() {
     if (!map.current || !mapLoaded) return;
     try {
       setStateShadingDimmed(map.current, companyFiltered);
+      setPinsEmphasised(map.current, companyFiltered);
     } catch { /* the layers failed to add */ }
   }, [companyFiltered, mapLoaded]);
 

@@ -136,6 +136,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         id: factories.id,
         name: factories.name,
         specialization: factories.specialization,
+        industry: factories.primaryNaicsDescription,
+        city: factories.city,
         state: factories.state,
         workforceSize: factories.workforceSize,
         openPositions: factories.openPositions,
