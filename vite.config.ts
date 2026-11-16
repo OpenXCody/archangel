@@ -88,11 +88,12 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    // WEB_PORT / PORT let a second copy of the app run beside the first.
+    port: Number(process.env.WEB_PORT) || 5173,
     host: true, // reachable from phones/tablets on the same network for device testing
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: `http://localhost:${process.env.PORT || 3000}`,
         changeOrigin: true,
       },
     },
