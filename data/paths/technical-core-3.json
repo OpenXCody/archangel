@@ -1,0 +1,655 @@
+{
+  "_about": "Draft career paths for 80 highly technical, manufacturing-specific careers: roles defined by a process, a machine class, a measurement discipline or an engineering specialty (semiconductor process and equipment, chip packaging, battery and EV powertrain, CNC programming and tool and die, additive, heat treat, welding, NDT and metrology, composites and aerospace structures and propulsion, robotics and controls, test and quality engineering). Same shape as austin-core.json and production-core-2.json: each career lists its skills by stage: 1 Introduction, 2 Fundamentals, 3 Advanced. Career titles match rows in the database exactly. Every skill a career was already linked to is kept and given a stage; other skill names reuse existing rows, and the few that did not exist are listed under newSkills with a category already in use and a one-line description. Drafted by an LLM and not yet reviewed by a person: every career here is loaded with path_status 'draft'. Regenerate the SQL with: node scripts/build-paths-sql.mjs data/paths/technical-core-3.json migrations/0018_career_paths_3.sql",
+  "newSkills": [
+    { "name": "Bond Pull and Shear Testing", "category": "Quality & Measurement", "description": "Checking wire bond and die attach strength with pull and shear tests" },
+    { "name": "Destructive Weld Testing", "category": "Quality & Measurement", "description": "Proving weld strength by peel, chisel, bend or pull tests and cut sections" },
+    { "name": "Electrical Fault Isolation", "category": "Quality & Measurement", "description": "Localizing a failure site in a device from its electrical behavior before physical analysis" },
+    { "name": "Endpoint Detection", "category": "Quality & Measurement", "description": "Setting up and reading the signals that tell an etch or polish step when to stop" },
+    { "name": "Fault Detection and Classification", "category": "Quality & Measurement", "description": "Monitoring tool sensor traces to catch and classify process excursions" },
+    { "name": "Laser Safety", "category": "Quality & Measurement", "description": "Working safely around industrial lasers: enclosures, interlocks and eyewear" },
+    { "name": "Residual Gas Analysis", "category": "Quality & Measurement", "description": "Reading a residual gas analyzer to find leaks and contamination in a vacuum chamber" },
+    { "name": "Wafer Map Analysis", "category": "Quality & Measurement", "description": "Reading wafer maps and bin patterns to trace yield loss to its source" }
+  ],
+  "careers": [
+    {
+      "title": "ALD Process Technician",
+      "stages": {
+        "1": ["Cleanroom Gowning", "Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["ALD Process", "Process Recipe Execution", "Vacuum System Fundamentals", "Specialty Gas Handling", "Lot Tracking"],
+        "3": ["Ellipsometry Measurement", "Helium Leak Detection", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Epitaxy Technician",
+      "stages": {
+        "1": ["Cleanroom Gowning", "Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["Epitaxial Growth", "Process Recipe Execution", "Specialty Gas Handling", "Vacuum System Fundamentals", "Lot Tracking"],
+        "3": ["Four Point Probe", "Wafer Defect Inspection", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Diffusion Furnace Operator",
+      "stages": {
+        "1": ["Cleanroom Gowning", "Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["Thermal Oxidation", "Furnace Annealing", "LPCVD Process", "Process Recipe Execution", "Lot Tracking", "Particle Count Testing"],
+        "3": ["Ellipsometry Measurement", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Ion Implant Operator",
+      "stages": {
+        "1": ["Cleanroom Gowning", "Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["Ion Implantation", "Process Recipe Execution", "Vacuum System Fundamentals", "Specialty Gas Handling", "Lot Tracking"],
+        "3": ["Four Point Probe", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "EUV Scanner Operator",
+      "stages": {
+        "1": ["Cleanroom Gowning", "Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["Photolithography", "Photoresist Application", "Photoresist Develop", "Process Recipe Execution", "Lot Tracking"],
+        "3": ["EUV Lithography", "Overlay Measurement", "CD Measurement", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "CD Metrology Technician",
+      "stages": {
+        "1": ["Cleanroom Gowning", "Cleanroom Protocols", "Wafer Handling", "Lot Tracking"],
+        "2": ["CD Measurement", "CD-SEM Operation", "Process Recipe Execution", "Wafer Defect Inspection", "Statistical Process Control"],
+        "3": ["Focus Exposure Matrix", "Gauge R&R Studies", "Process Tool Troubleshooting"]
+      }
+    },
+    {
+      "title": "Overlay Metrology Tech",
+      "stages": {
+        "1": ["Cleanroom Gowning", "Cleanroom Protocols", "Wafer Handling", "Lot Tracking"],
+        "2": ["Overlay Measurement", "CD Measurement", "Process Recipe Execution", "Wafer Defect Inspection", "Statistical Process Control"],
+        "3": ["Gauge R&R Studies", "Process Tool Troubleshooting", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Defect Review Technician",
+      "stages": {
+        "1": ["Cleanroom Gowning", "Cleanroom Protocols", "Wafer Handling", "Lot Tracking"],
+        "2": ["Wafer Defect Inspection", "Defect SEM Review", "Defect Classification", "Particle Count Testing", "Process Recipe Execution"],
+        "3": ["Wafer Map Analysis", "Statistical Process Control", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Wafer Probe Technician",
+      "stages": {
+        "1": ["Cleanroom Protocols", "ESD Control", "Wafer Handling", "Lot Tracking"],
+        "2": ["Wafer Probe Testing", "Test Fixture Setup", "Process Recipe Execution", "Multimeter Testing", "Oscilloscope Usage"],
+        "3": ["Wafer Map Analysis", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Litho Process Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["Photolithography", "Photoresist Application", "CD Measurement", "Overlay Measurement", "Immersion Lithography", "Statistical Process Control"],
+        "3": ["Focus Exposure Matrix", "EUV Lithography", "OPC Application", "Design of Experiments"]
+      }
+    },
+    {
+      "title": "Litho Equipment Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Lockout Tagout LOTO", "Laser Safety", "Electrical Schematic Reading"],
+        "2": ["Photolithography", "Preventive Maintenance", "Multimeter Testing", "Pneumatic System Repair", "Overlay Measurement", "Process Tool Troubleshooting"],
+        "3": ["Fault Detection and Classification", "Root Cause Analysis", "MTBF Calculation", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Etch Process Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["Plasma Etch", "RIE Process", "Vacuum System Fundamentals", "Specialty Gas Handling", "CD Measurement", "Statistical Process Control"],
+        "3": ["ICP Etch", "Endpoint Detection", "Design of Experiments", "Process Capability Cp Cpk"]
+      }
+    },
+    {
+      "title": "Etch Equipment Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Lockout Tagout LOTO", "Chemical Safety", "Electrical Schematic Reading"],
+        "2": ["Plasma Etch", "Vacuum System Fundamentals", "Specialty Gas Handling", "Preventive Maintenance", "Helium Leak Detection", "Process Tool Troubleshooting"],
+        "3": ["Endpoint Detection", "Residual Gas Analysis", "Fault Detection and Classification", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "CVD Process Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["Chemical Vapor Deposition", "PECVD Process", "LPCVD Process", "Specialty Gas Handling", "Ellipsometry Measurement", "Statistical Process Control"],
+        "3": ["ALD Process", "Stress Measurement", "Design of Experiments", "Process Capability Cp Cpk"]
+      }
+    },
+    {
+      "title": "CVD Equipment Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Lockout Tagout LOTO", "Chemical Safety", "Electrical Schematic Reading"],
+        "2": ["Chemical Vapor Deposition", "Vacuum System Fundamentals", "Specialty Gas Handling", "Preventive Maintenance", "Helium Leak Detection", "Process Tool Troubleshooting"],
+        "3": ["Residual Gas Analysis", "Fault Detection and Classification", "MTBF Calculation", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "PVD Process Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["PVD Sputtering", "Barrier Metal Deposition", "Seed Layer Deposition", "Vacuum System Fundamentals", "Four Point Probe", "Statistical Process Control"],
+        "3": ["Stress Measurement", "Residual Gas Analysis", "Design of Experiments", "Process Capability Cp Cpk"]
+      }
+    },
+    {
+      "title": "CMP Process Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["CMP Polish", "Ellipsometry Measurement", "Wafer Defect Inspection", "Particle Count Testing", "Statistical Process Control"],
+        "3": ["Endpoint Detection", "Defect Classification", "Design of Experiments", "Process Capability Cp Cpk"]
+      }
+    },
+    {
+      "title": "Implant Process Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["Ion Implantation", "Vacuum System Fundamentals", "Specialty Gas Handling", "Four Point Probe", "RTP Annealing", "Statistical Process Control"],
+        "3": ["SIMS Analysis", "Design of Experiments", "Process Capability Cp Cpk", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Diffusion Process Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Chemical Safety", "Wafer Handling"],
+        "2": ["Thermal Oxidation", "Furnace Annealing", "LPCVD Process", "Ellipsometry Measurement", "Four Point Probe", "Statistical Process Control"],
+        "3": ["RTP Annealing", "Design of Experiments", "Process Capability Cp Cpk", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Wet Process Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Chemical Safety", "MSDS Interpretation", "Wafer Handling"],
+        "2": ["Wet Bench Processing", "Wet Chemical Etch", "Photoresist Strip", "Particle Count Testing", "Wafer Defect Inspection", "Statistical Process Control"],
+        "3": ["Design of Experiments", "Process Capability Cp Cpk", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Yield Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "Wafer Handling", "Lot Tracking"],
+        "2": ["Wafer Defect Inspection", "Defect Classification", "Defect SEM Review", "Wafer Probe Testing", "Statistical Process Control"],
+        "3": ["Wafer Map Analysis", "Design of Experiments", "Process Capability Cp Cpk", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Failure Analysis Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "ESD Control", "Chemical Safety", "Multimeter Testing"],
+        "2": ["Oscilloscope Usage", "Electrical Fault Isolation", "Defect SEM Review", "FIB Cross Section", "Metallographic Examination"],
+        "3": ["TEM Sample Prep", "SIMS Analysis", "Root Cause Analysis", "8D Problem Solving"]
+      }
+    },
+    {
+      "title": "Test Engineer Semiconductor",
+      "stages": {
+        "1": ["ESD Control", "Electrical Schematic Reading", "Multimeter Testing", "Oscilloscope Usage"],
+        "2": ["Wafer Probe Testing", "Final Test ATE", "Test Fixture Setup", "Burn-In Testing", "Statistical Process Control"],
+        "3": ["Wafer Map Analysis", "Gauge R&R Studies", "Process Capability Cp Cpk", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Reliability Engineer Semi",
+      "stages": {
+        "1": ["Cleanroom Protocols", "ESD Control", "Electrical Schematic Reading"],
+        "2": ["Reliability Testing", "Burn-In Testing", "Accelerated Life Testing", "Wafer Probe Testing", "Statistical Process Control"],
+        "3": ["Electrical Fault Isolation", "MTBF Calculation", "Design of Experiments", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Vacuum Systems Engineer",
+      "stages": {
+        "1": ["Lockout Tagout LOTO", "Chemical Safety", "P&ID Reading", "Electrical Schematic Reading"],
+        "2": ["Vacuum System Fundamentals", "Helium Leak Detection", "Pump Maintenance", "Preventive Maintenance", "Specialty Gas Handling", "Pressure Gauge Calibration"],
+        "3": ["Residual Gas Analysis", "Process Tool Troubleshooting", "Predictive Maintenance", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Wire Bond Operator",
+      "stages": {
+        "1": ["Cleanroom Protocols", "ESD Control", "Work Instruction Reading", "Lot Tracking"],
+        "2": ["Wire Bonding", "Process Recipe Execution", "Assembly Visual Inspection", "In-Process Inspection"],
+        "3": ["Wire Bonding Copper", "Bond Pull and Shear Testing", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Die Attach Operator",
+      "stages": {
+        "1": ["Cleanroom Protocols", "ESD Control", "Work Instruction Reading", "Lot Tracking"],
+        "2": ["Die Attach Bonding", "Process Recipe Execution", "Assembly Visual Inspection", "In-Process Inspection"],
+        "3": ["Bond Pull and Shear Testing", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Flip Chip Bonder",
+      "stages": {
+        "1": ["Cleanroom Protocols", "ESD Control", "Work Instruction Reading", "Lot Tracking"],
+        "2": ["Flip Chip Bonding", "Underfill Dispensing", "Process Recipe Execution", "Assembly Visual Inspection", "In-Process Inspection"],
+        "3": ["Reflow Profile Setup", "Bond Pull and Shear Testing", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Package Engineer",
+      "stages": {
+        "1": ["Cleanroom Protocols", "ESD Control", "Blueprint Reading"],
+        "2": ["Die Attach Bonding", "Wire Bonding Gold", "Flip Chip Bonding", "Transfer Molding", "Bond Pull and Shear Testing", "Statistical Process Control"],
+        "3": ["Reliability Testing", "Design of Experiments", "Process FMEA", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Cell Formation Technician",
+      "stages": {
+        "1": ["Electrical Safety", "Chemical Safety", "Work Instruction Reading", "Lot Tracking"],
+        "2": ["Cell Formation", "Cell Degassing", "Cell Aging", "Cell Grading", "Cell Voltage Sensing", "Multimeter Testing"],
+        "3": ["Process Tool Troubleshooting", "Statistical Process Control", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Electrolyte Fill Technician",
+      "stages": {
+        "1": ["Chemical Safety", "MSDS Interpretation", "PPE Selection", "Cleanroom Protocols"],
+        "2": ["Dry Room Operations", "Electrolyte Filling", "Cell Sealing", "Process Recipe Execution", "Lot Tracking", "In-Process Inspection"],
+        "3": ["Process Tool Troubleshooting", "Statistical Process Control", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Battery Cell Engineer",
+      "stages": {
+        "1": ["Chemical Safety", "Electrical Safety", "Dry Room Operations"],
+        "2": ["Electrode Slurry Mixing", "Electrode Coating", "Electrode Calendering", "Cell Winding", "Electrolyte Filling", "Cell Formation"],
+        "3": ["Design of Experiments", "Statistical Process Control", "Process FMEA", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Hairpin Stator Technician",
+      "stages": {
+        "1": ["Shop Safety Practices", "Laser Safety", "Blueprint Reading", "Work Instruction Reading"],
+        "2": ["Stator Winding", "Hairpin Insertion", "Hairpin Welding", "Stator Potting", "In-Process Inspection"],
+        "3": ["Hi-Pot Testing", "Process Tool Troubleshooting", "Statistical Process Control", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Busbar Welding Technician",
+      "stages": {
+        "1": ["High Voltage Safety", "Laser Safety", "Blueprint Reading", "Work Instruction Reading"],
+        "2": ["Busbar Installation", "Cell Interconnect Welding", "Torque Wrench Usage", "Weld Inspection Visual", "In-Process Inspection"],
+        "3": ["Destructive Weld Testing", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Power Module Technician",
+      "stages": {
+        "1": ["Cleanroom Protocols", "ESD Control", "Work Instruction Reading", "Lot Tracking"],
+        "2": ["SiC MOSFET Assembly", "Die Attach Bonding", "Wire Bonding", "Potting and Encapsulation", "In-Process Inspection"],
+        "3": ["Power Module Sintering", "Bond Pull and Shear Testing", "Hi-Pot Testing", "Process Tool Troubleshooting"]
+      }
+    },
+    {
+      "title": "Giga Press Operator",
+      "stages": {
+        "1": ["Shop Safety Practices", "PPE Selection", "Lockout Tagout LOTO", "Work Instruction Reading"],
+        "2": ["Giga Press Operation", "Shot Sleeve Operation", "Die Spray Systems", "Casting Trim Operations", "In-Process Inspection"],
+        "3": ["Vacuum Die Casting", "Casting X-Ray Inspection", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Die Cast Setup Technician",
+      "stages": {
+        "1": ["Shop Safety Practices", "Lockout Tagout LOTO", "Blueprint Reading"],
+        "2": ["Mega Casting Tooling", "Die Spray Systems", "Rigging and Slinging", "Overhead Crane Operation", "Hydraulic System Repair", "Preventive Maintenance"],
+        "3": ["Vacuum Die Casting", "SMED Setup Reduction", "Process Tool Troubleshooting", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Casting Process Engineer",
+      "stages": {
+        "1": ["Shop Safety Practices", "Blueprint Reading", "GD&T Interpretation"],
+        "2": ["Alloy Preparation", "Vacuum Die Casting", "Die Spray Systems", "Casting Heat Treatment", "Casting X-Ray Inspection", "Statistical Process Control"],
+        "3": ["Process FMEA", "Design of Experiments", "Process Capability Cp Cpk", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "CAM Programmer",
+      "stages": {
+        "1": ["Shop Math", "Blueprint Reading", "GD&T Interpretation", "CNC Parameter Setup"],
+        "2": ["Mastercam", "GibbsCAM", "CNC Programming", "G-Code Programming", "Speeds and Feeds Calculation", "Workholding and Fixturing"],
+        "3": ["PowerMill", "Vericut Simulation", "5-Axis Machining", "Multi-Axis Turning"]
+      }
+    },
+    {
+      "title": "NC Programmer",
+      "stages": {
+        "1": ["Shop Math", "Blueprint Reading", "GD&T Interpretation", "Micrometer Reading"],
+        "2": ["G-Code Programming", "CNC Programming", "CNC Parameter Setup", "Tool and Work Offsets", "Speeds and Feeds Calculation", "Workholding and Fixturing"],
+        "3": ["Vericut Simulation", "Multi-Axis Machining", "First Article Inspection"]
+      }
+    },
+    {
+      "title": "Swiss-Type Lathe Operator",
+      "stages": {
+        "1": ["Shop Safety Practices", "Shop Math", "Blueprint Reading", "Micrometer Reading"],
+        "2": ["Swiss-Type Machining", "CNC Parameter Setup", "Tool and Work Offsets", "In-Process Inspection", "GD&T Interpretation", "Optical Comparator"],
+        "3": ["CNC Programming", "G-Code Programming", "Multi-Axis Turning", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Casting CNC Machinist",
+      "stages": {
+        "1": ["Shop Safety Practices", "Shop Math", "Blueprint Reading", "Micrometer Reading"],
+        "2": ["Structural Casting Machining", "Workholding and Fixturing", "Tool and Work Offsets", "CNC Parameter Setup", "GD&T Interpretation", "In-Process Inspection"],
+        "3": ["5-Axis Machining", "CNC Programming", "CMM Operation", "First Article Inspection"]
+      }
+    },
+    {
+      "title": "Die Maintenance Technician",
+      "stages": {
+        "1": ["Shop Safety Practices", "Lockout Tagout LOTO", "Blueprint Reading", "Micrometer Reading"],
+        "2": ["Preventive Maintenance", "Mega Casting Tooling", "Precision Grinding", "Die Component Fitting", "Overhead Crane Operation", "TIG Welding"],
+        "3": ["Die Spotting", "EDM Operation", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Die Try-Out Specialist",
+      "stages": {
+        "1": ["Shop Safety Practices", "Lockout Tagout LOTO", "Blueprint Reading", "Micrometer Reading"],
+        "2": ["Die Setting Automotive", "Draw Die Operation", "Die Component Fitting", "Precision Grinding", "Panel Quality Check", "Overhead Crane Operation"],
+        "3": ["Die Spotting", "Die Tryout", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Jig and Fixture Builder",
+      "stages": {
+        "1": ["Shop Safety Practices", "Shop Math", "Blueprint Reading", "Micrometer Reading"],
+        "2": ["Manual Mill Operation", "Manual Lathe Operation", "Precision Grinding", "Workholding and Fixturing", "GD&T Interpretation", "Height Gauge Usage"],
+        "3": ["Jig Grinding", "Stack-up Tolerance", "CMM Operation"]
+      }
+    },
+    {
+      "title": "Gage Maker",
+      "stages": {
+        "1": ["Shop Safety Practices", "Shop Math", "Blueprint Reading", "Micrometer Reading"],
+        "2": ["Manual Lathe Operation", "Precision Grinding", "Gage Block Usage", "GD&T Interpretation", "Thread Measurement", "Honing and Lapping"],
+        "3": ["Jig Grinding", "Gauge R&R Studies", "Measurement Uncertainty Analysis"]
+      }
+    },
+    {
+      "title": "Tooling Engineer",
+      "stages": {
+        "1": ["Blueprint Reading", "GD&T Interpretation", "SolidWorks"],
+        "2": ["Workholding and Fixturing", "Stack-up Tolerance", "Design for Manufacturability", "Precision Grinding", "EDM Operation", "Mastercam"],
+        "3": ["FEA Simulation", "Process FMEA", "SMED Setup Reduction", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Additive Manufacturing Engineer",
+      "stages": {
+        "1": ["Blueprint Reading", "GD&T Interpretation", "SolidWorks", "Powder Handling"],
+        "2": ["Metal 3D Printing", "Build Preparation Software", "DfAM - Design for AM", "Post-Processing AM Parts", "CATIA", "Statistical Process Control"],
+        "3": ["Design of Experiments", "Hot Isostatic Pressing", "Industrial CT Scanning", "Metallographic Examination"]
+      }
+    },
+    {
+      "title": "Additive Manufacturing Technician",
+      "stages": {
+        "1": ["Powder Handling", "Laser Safety", "Blueprint Reading", "Caliper Measurement"],
+        "2": ["Metal 3D Printing", "Polymer 3D Printing", "Build Preparation Software", "Post-Processing AM Parts", "Micrometer Reading", "GD&T Interpretation"],
+        "3": ["SolidWorks", "Wire EDM", "Surface Roughness Testing", "Process Tool Troubleshooting"]
+      }
+    },
+    {
+      "title": "Heat Treat Operator",
+      "stages": {
+        "1": ["Shop Safety Practices", "PPE Selection", "Blueprint Reading", "Micrometer Reading"],
+        "2": ["Quench and Temper Steel", "Solution Heat Treatment", "Stress Relief Heat Treat", "Carburizing", "Hardness Testing Rockwell", "Lot Tracking"],
+        "3": ["Vacuum Heat Treatment", "AMS 2750 Pyrometry", "Temperature Uniformity Survey", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Certified Welder",
+      "stages": {
+        "1": ["Shop Safety Practices", "Blueprint Reading", "Weld Symbol Interpretation", "Oxy-Fuel Cutting"],
+        "2": ["MIG Welding", "TIG Welding", "Weld Joint Fit-Up", "Stainless Steel Welding", "Aluminum Welding", "Weld Inspection Visual"],
+        "3": ["Welder Certification", "Orbital Welding", "NDT - Dye Penetrant", "Destructive Weld Testing"]
+      }
+    },
+    {
+      "title": "Laser Welding Technician",
+      "stages": {
+        "1": ["Shop Safety Practices", "Laser Safety", "Robot Cell Safety", "Blueprint Reading"],
+        "2": ["Laser Beam Welding", "Laser Brazing", "Weld Joint Fit-Up", "Robot Teach Pendant Operation", "Weld Inspection Visual"],
+        "3": ["Destructive Weld Testing", "Metallographic Examination", "Process Tool Troubleshooting", "Statistical Process Control"]
+      }
+    },
+    {
+      "title": "Spot Weld Technician",
+      "stages": {
+        "1": ["Shop Safety Practices", "Robot Cell Safety", "Blueprint Reading", "Weld Symbol Interpretation"],
+        "2": ["Resistance Spot Weld", "Robotic Spot Welding", "Weld Tip Dress", "Robot Teach Pendant Operation", "Weld Inspection Visual"],
+        "3": ["Destructive Weld Testing", "FANUC Robot Programming", "Process Tool Troubleshooting", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "UT Level II Inspector",
+      "stages": {
+        "1": ["Blueprint Reading", "NDT - Ultrasonic Testing", "UT Couplant Selection", "Inspection Record Keeping"],
+        "2": ["UT Calibration Blocks", "Conventional UT - Contact Method", "Straight Beam UT - Longitudinal", "Angle Beam UT - Shear Wave", "A-Scan Interpretation", "UT Thickness Measurement"],
+        "3": ["Conventional UT - Immersion Method", "UT Flaw Sizing - DAC Method", "UT of Welds - Butt Joints", "NAS 410 NDT Personnel"]
+      }
+    },
+    {
+      "title": "UT Level III Inspector",
+      "stages": {
+        "1": ["NDT - Ultrasonic Testing", "UT Calibration Blocks", "A-Scan Interpretation"],
+        "2": ["Conventional UT - Contact Method", "Conventional UT - Immersion Method", "Angle Beam UT - Shear Wave", "UT Flaw Sizing - DAC Method", "Phased Array UT - Sectorial Scan", "UT Probe Selection"],
+        "3": ["UT Procedure Development", "UT Reference Block Fabrication", "NAS 410 NDT Personnel", "Crew Training and Coaching"]
+      }
+    },
+    {
+      "title": "RT Level II Inspector",
+      "stages": {
+        "1": ["Radiation Safety - ALARA", "Blueprint Reading", "NDT - X-Ray Inspection", "Inspection Record Keeping"],
+        "2": ["Film Radiography - X-Ray", "RT Exposure Calculation", "IQI Selection and Placement", "RT Scattered Radiation Control", "RT Darkroom Procedures", "Computed Radiography CR"],
+        "3": ["Radiographic Film Interpretation", "RT of Welds", "RT of Castings", "NAS 410 NDT Personnel"]
+      }
+    },
+    {
+      "title": "MT Level II Inspector",
+      "stages": {
+        "1": ["Blueprint Reading", "NDT - Magnetic Particle", "PT/MT UV Light Intensity", "Inspection Record Keeping"],
+        "2": ["MT Yoke Technique", "MT Head Shot Technique", "MT Coil Technique", "Dry Powder MT", "Wet Fluorescent MT", "MT Demagnetization"],
+        "3": ["MT AC vs DC Selection", "MT Field Strength Measurement", "Nonconformance Reporting", "NAS 410 NDT Personnel"]
+      }
+    },
+    {
+      "title": "PT Level II Inspector",
+      "stages": {
+        "1": ["Chemical Safety", "Blueprint Reading", "NDT - Dye Penetrant", "Inspection Record Keeping"],
+        "2": ["Fluorescent Penetrant Type I", "Water Washable Penetrant Method A", "Post-Emulsifiable Penetrant Method B", "Solvent Removable Penetrant Method C", "PT Developer Application", "PT/MT UV Light Intensity"],
+        "3": ["PT System Performance Check", "PT Sensitivity Levels", "Nonconformance Reporting", "NAS 410 NDT Personnel"]
+      }
+    },
+    {
+      "title": "ET Level II Inspector",
+      "stages": {
+        "1": ["Blueprint Reading", "Inspection Record Keeping", "ET Conductivity Measurement", "ET Coating Thickness"],
+        "2": ["Surface ET Inspection", "ET Probe Selection", "ET Lift-Off Compensation", "ET Impedance Plane Analysis", "Bolt Hole ET Inspection"],
+        "3": ["ET Array Inspection", "ET of Aerospace Structures", "Nonconformance Reporting", "NAS 410 NDT Personnel"]
+      }
+    },
+    {
+      "title": "Phased Array UT Technician",
+      "stages": {
+        "1": ["Blueprint Reading", "NDT - Ultrasonic Testing", "UT Calibration Blocks", "A-Scan Interpretation"],
+        "2": ["Conventional UT - Contact Method", "Angle Beam UT - Shear Wave", "Phased Array UT - Linear Scan", "Phased Array UT - Sectorial Scan", "UT Probe Selection", "UT Data Recording"],
+        "3": ["NDT Ultrasonic Software", "TOFD Inspection", "UT of Welds - Butt Joints", "Full Matrix Capture UT"]
+      }
+    },
+    {
+      "title": "Industrial CT Scanner Operator",
+      "stages": {
+        "1": ["Radiation Safety - ALARA", "Blueprint Reading", "NDT - X-Ray Inspection", "Inspection Record Keeping"],
+        "2": ["Industrial CT Scanning", "Digital Detector Array DR", "IQI Selection and Placement", "GD&T Interpretation"],
+        "3": ["Point Cloud Processing", "Coordinate Metrology", "Nonconformance Reporting"]
+      }
+    },
+    {
+      "title": "NDI Composite Inspector",
+      "stages": {
+        "1": ["Blueprint Reading", "Inspection Record Keeping", "Tap Testing", "NDT - Ultrasonic Testing"],
+        "2": ["Pulse Echo UT", "Through Transmission UT", "UT of Composites", "UT C-Scan Interpretation", "Disbond Detection", "Porosity Assessment"],
+        "3": ["Delamination Sizing", "Laser Shearography", "Phased Array UT - Linear Scan", "NAS 410 NDT Personnel"]
+      }
+    },
+    {
+      "title": "Metrology Engineer",
+      "stages": {
+        "1": ["Blueprint Reading", "GD&T Interpretation", "Cleanroom Protocols", "Gage Block Usage"],
+        "2": ["CMM Operation", "CMM Programming", "Surface Roughness Testing", "Optical Comparator", "Statistical Process Control", "Gauge R&R Studies"],
+        "3": ["Coordinate Metrology", "Measurement Uncertainty Analysis", "Laser Tracker Metrology", "Process Capability Cp Cpk"]
+      }
+    },
+    {
+      "title": "Body Dimensional Inspector",
+      "stages": {
+        "1": ["Shop Safety Practices", "Blueprint Reading", "Caliper Measurement", "Inspection Record Keeping"],
+        "2": ["GD&T Interpretation", "Body Dimensional Measurement", "CMM Operation", "Panel Quality Check", "Nonconformance Reporting"],
+        "3": ["White Light Scanning", "CMM Programming", "Statistical Process Control", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Prepreg Layup Technician",
+      "stages": {
+        "1": ["Composite Material Safety", "FOD Prevention", "Blueprint Reading", "Ply Cutting - Manual"],
+        "2": ["Tooling Surface Prep", "Release Agent Application", "Carbon Fiber Prepreg Layup", "Ply Compaction", "Core Material Installation", "Vacuum Bag Fabrication"],
+        "3": ["Unidirectional Tape Layup", "Thermocouple Placement", "Cure Cycle Monitoring", "Ply Drop Inspection"]
+      }
+    },
+    {
+      "title": "Autoclave Operator",
+      "stages": {
+        "1": ["Shop Safety Practices", "Composite Material Safety", "FOD Prevention", "Work Instruction Reading"],
+        "2": ["Vacuum Bag Fabrication", "Thermocouple Placement", "Autoclave Operation", "Cure Cycle Monitoring", "Traceability Documentation"],
+        "3": ["Autoclave Cure Cycle", "Exotherm Control", "Temperature Uniformity Survey", "Process Tool Troubleshooting"]
+      }
+    },
+    {
+      "title": "Composite Bonding Technician",
+      "stages": {
+        "1": ["Composite Material Safety", "Chemical Safety", "FOD Prevention", "Blueprint Reading"],
+        "2": ["Adhesive Surface Preparation", "Film Adhesive Application", "Paste Adhesive Application", "Composite Bonding - Secondary", "Vacuum Bag Fabrication", "Cure Cycle Monitoring"],
+        "3": ["Composite Bonding - Co-Bond", "Composite Bonding - Co-Cure", "Tap Testing", "Nonconformance Reporting"]
+      }
+    },
+    {
+      "title": "Composite Repair Technician",
+      "stages": {
+        "1": ["Composite Material Safety", "Blueprint Reading", "SRM Interpretation", "Tap Testing"],
+        "2": ["Composite Layup", "Vacuum Bag Fabrication", "Composite Moisture Removal", "Cure Cycle Monitoring", "Bolted Composite Repair", "Composite Trimming"],
+        "3": ["Scarf Repair", "Stepped Lap Repair", "Damage Assessment"]
+      }
+    },
+    {
+      "title": "Aerostructures Mechanic",
+      "stages": {
+        "1": ["FOD Prevention", "Tool Control", "Blueprint Reading", "Fastener Identification"],
+        "2": ["Rivet Hole Preparation", "Countersinking Operations", "Aerospace Riveting", "Hi-Lok Installation", "Sealant Application", "Torque Wrench Usage"],
+        "3": ["Cold Expansion", "Shim Selection", "Composite Layup", "Nonconformance Reporting"]
+      }
+    },
+    {
+      "title": "Rocket Engine Technician",
+      "stages": {
+        "1": ["FOD Prevention", "Tool Control", "Blueprint Reading", "Work Instruction Reading"],
+        "2": ["Torque Wrench Usage", "Safety Wire Installation", "Tube Bending", "Propellant Valve Assembly", "Turbopump Assembly", "Borescope Inspection"],
+        "3": ["Helium Leak Detection", "Hot Fire Test Operations", "Nonconformance Reporting"]
+      }
+    },
+    {
+      "title": "Robot Programmer",
+      "stages": {
+        "1": ["Robot Cell Safety", "Electrical Schematic Reading", "Robot Teach Pendant Operation"],
+        "2": ["FANUC Robot Programming", "ABB Robot Programming", "End-of-Arm Tooling Setup", "Sensor and I/O Wiring", "PLC Ladder Logic", "Allen-Bradley PLC"],
+        "3": ["KUKA Robot Programming", "Siemens PLC", "Path Planning and Simulation", "Machine Vision Setup"]
+      }
+    },
+    {
+      "title": "Automation Engineer",
+      "stages": {
+        "1": ["Electrical Safety", "Robot Cell Safety", "Electrical Schematic Reading", "PLC Ladder Logic"],
+        "2": ["Allen-Bradley PLC", "Rockwell Studio 5000", "HMI Development", "VFD Programming", "Sensor and I/O Wiring", "FANUC Robot Programming"],
+        "3": ["ABB Robot Programming", "Robot Cell Design", "Servo Drive Configuration", "Industrial Network Troubleshooting"]
+      }
+    },
+    {
+      "title": "Mechatronics Engineer",
+      "stages": {
+        "1": ["Electrical Safety", "Electrical Schematic Reading", "Blueprint Reading", "SolidWorks"],
+        "2": ["PLC Ladder Logic", "Sensor and I/O Wiring", "Motor Control Troubleshooting", "Pneumatic System Repair", "Servo Drive Configuration", "Structured Text Programming"],
+        "3": ["Servo Tuning", "Machine Vision Setup", "End Effector Design", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Motion Control Engineer",
+      "stages": {
+        "1": ["Electrical Safety", "Electrical Schematic Reading", "PLC Ladder Logic", "Oscilloscope Usage"],
+        "2": ["Servo Drive Configuration", "VFD Programming", "Allen-Bradley PLC", "Siemens PLC", "Structured Text Programming", "Sensor and I/O Wiring"],
+        "3": ["Servo Tuning", "Industrial Network Troubleshooting", "Vibration Analysis", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Vision Systems Engineer",
+      "stages": {
+        "1": ["Electrical Safety", "Electrical Schematic Reading", "Sensor and I/O Wiring", "Oscilloscope Usage"],
+        "2": ["Machine Vision Setup", "Machine Vision Programming", "Allen-Bradley PLC", "HMI Development", "Statistical Process Control"],
+        "3": ["Gauge R&R Studies", "Industrial Network Troubleshooting", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "Cobot Technician",
+      "stages": {
+        "1": ["Robot Cell Safety", "Lockout Tagout LOTO", "Blueprint Reading", "Electrical Schematic Reading"],
+        "2": ["Robot Teach Pendant Operation", "Universal Robots Programming", "End-of-Arm Tooling Setup", "Sensor and I/O Wiring", "Torque Wrench Usage", "Pneumatic System Repair"],
+        "3": ["Cobot Safety Integration", "FANUC Robot Programming", "Allen-Bradley PLC", "Machine Vision Setup"]
+      }
+    },
+    {
+      "title": "Hydraulics Technician",
+      "stages": {
+        "1": ["Lockout Tagout LOTO", "Hydraulic Safety", "Blueprint Reading", "Hydraulic Schematic Reading"],
+        "2": ["Hydraulic System Repair", "Pump Maintenance", "Pneumatic System Repair", "Hydraulic Filter Service", "Hydraulic Accumulator Service", "Micrometer Reading"],
+        "3": ["Hydraulic System Troubleshooting", "Hydraulic Servo Valve Repair", "Hydraulic Pressure Testing", "Hydraulic Fluid Analysis"]
+      }
+    },
+    {
+      "title": "Supplier Quality Engineer",
+      "stages": {
+        "1": ["Blueprint Reading", "GD&T Interpretation", "ISO 9001 Compliance"],
+        "2": ["First Article Inspection", "PPAP Documentation", "Sampling Plans", "Nonconformance Reporting", "Process FMEA", "Control Plan Development"],
+        "3": ["Root Cause Analysis", "8D Problem Solving", "CAPA Management", "Process Capability Cp Cpk"]
+      }
+    },
+    {
+      "title": "Manufacturing Test Engineer",
+      "stages": {
+        "1": ["Electrical Safety", "ESD Control", "Electrical Schematic Reading", "Multimeter Testing"],
+        "2": ["Oscilloscope Usage", "Functional Test Procedure", "Test Fixture Setup", "Boundary Scan Test", "Hi-Pot Testing", "Statistical Process Control"],
+        "3": ["LabVIEW Programming", "ICT Fixture Design", "Gauge R&R Studies", "Root Cause Analysis"]
+      }
+    },
+    {
+      "title": "BGA Rework Technician",
+      "stages": {
+        "1": ["ESD Control", "Work Instruction Reading", "Through-Hole Soldering"],
+        "2": ["SMT Soldering", "IPC-A-610 Soldering", "BGA Rework", "Solder Paste Printing", "Reflow Profile Setup", "Assembly Rework and Repair"],
+        "3": ["BGA Reballing", "X-Ray BGA Inspection", "IPC J-STD-001 Certification", "Component-Level Troubleshooting"]
+      }
+    }
+  ]
+}
