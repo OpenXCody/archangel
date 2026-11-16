@@ -41,10 +41,10 @@ const ENTITY_CONFIG: Record<
   ImportableEntityType,
   { icon: React.ElementType; label: string; color: string }
 > = {
-  companies: { icon: Building2, label: 'Companies', color: 'text-amber-500' },
-  factories: { icon: Factory, label: 'Factories', color: 'text-sky-400' },
-  occupations: { icon: Briefcase, label: 'Careers', color: 'text-blue-800' },
-  skills: { icon: Wrench, label: 'Skills', color: 'text-emerald-500' },
+  companies: { icon: Building2, label: 'Companies', color: 'text-warning' },
+  factories: { icon: Factory, label: 'Factories', color: 'text-info' },
+  occupations: { icon: Briefcase, label: 'Careers', color: 'text-info' },
+  skills: { icon: Wrench, label: 'Skills', color: 'text-success' },
 };
 
 type Step = 'preview' | 'map' | 'transform' | 'validate' | 'import';
@@ -369,7 +369,7 @@ export default function BulkImport() {
           <p className="text-fg-muted">No file selected</p>
           <button
             onClick={handleChangeFile}
-            className="mt-4 px-4 py-2 rounded-lg bg-fg-default text-bg-base hover:bg-fg-muted"
+            className="mt-4 px-4 py-2 rounded-lg bg-fg-default text-background hover:bg-fg-muted"
           >
             Select file
           </button>
@@ -514,9 +514,9 @@ function StepIndicator({
         className={`
           w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium
           ${isComplete
-            ? 'bg-emerald-500 text-white'
+            ? 'bg-success text-background'
             : isActive
-              ? 'bg-amber-500 text-white'
+              ? 'bg-warning text-background'
               : 'bg-bg-elevated text-fg-soft border border-border-subtle'
           }
         `}
@@ -582,10 +582,10 @@ function PreviewStep({
 
       {/* Parse error */}
       {parseError && (
-        <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+        <div className="mb-6 p-4 rounded-lg bg-danger/10 border border-danger/20 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm text-red-400">{parseError}</p>
+            <p className="text-sm text-danger">{parseError}</p>
           </div>
         </div>
       )}
@@ -649,7 +649,7 @@ function PreviewStep({
               appearance-none pl-10 pr-8 py-2 rounded-lg
               bg-bg-elevated border border-border-subtle
               text-fg-default font-medium
-              focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500
+              focus:outline-none focus:ring-2 focus:ring-warning/50 focus:border-warning
               cursor-pointer
             "
           >
@@ -680,7 +680,7 @@ function PreviewStep({
           disabled={!parsedData || isLoading}
           className="
             flex items-center gap-2 px-4 py-2 rounded-lg
-            bg-fg-default text-bg-base hover:bg-fg-muted
+            bg-fg-default text-background hover:bg-fg-muted
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-colors font-medium
           "
@@ -728,11 +728,11 @@ function MapStep({
 
       {/* Transform hint */}
       {showTransformHint && (
-        <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
-          <Wand2 className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-amber-300">
+        <div className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/20 flex items-start gap-3">
+          <Wand2 className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-warning">
             <p className="font-medium">Large dataset detected</p>
-            <p className="text-amber-400 mt-1">
+            <p className="text-warning mt-1">
               Next step will let you normalize company names and generate factory names automatically.
             </p>
           </div>
@@ -753,7 +753,7 @@ function MapStep({
           disabled={!canContinue || isLoading}
           className="
             flex items-center gap-2 px-4 py-2 rounded-lg
-            bg-fg-default text-bg-base hover:bg-fg-muted
+            bg-fg-default text-background hover:bg-fg-muted
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-colors font-medium
           "
@@ -814,7 +814,7 @@ function TransformStep({
           disabled={isLoading}
           className="
             flex items-center gap-2 px-4 py-2 rounded-lg
-            bg-fg-default text-bg-base hover:bg-fg-muted
+            bg-fg-default text-background hover:bg-fg-muted
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-colors font-medium
           "
@@ -885,7 +885,7 @@ function ValidateStep({
             disabled={(!canImportAll && validationResult.validCount === 0) || isLoading}
             className="
               flex items-center gap-2 px-4 py-2 rounded-lg
-              bg-fg-default text-bg-base hover:bg-fg-muted
+              bg-fg-default text-background hover:bg-fg-muted
               disabled:opacity-50 disabled:cursor-not-allowed
               transition-colors font-medium
             "

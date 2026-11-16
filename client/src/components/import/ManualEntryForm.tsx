@@ -76,7 +76,7 @@ function TextInput({
     <div>
       <label className="block text-sm font-medium text-fg-muted mb-1.5">
         {label}
-        {required && <span className="text-red-400 ml-1">*</span>}
+        {required && <span className="text-danger ml-1">*</span>}
       </label>
       <input
         ref={inputRef}
@@ -89,7 +89,7 @@ function TextInput({
           w-full px-3 py-2 rounded-lg
           bg-bg-elevated border border-border-subtle
           text-fg-default placeholder:text-fg-soft
-          focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500
+          focus:outline-none focus:ring-2 focus:ring-info/50 focus:border-info
           transition-colors
         "
       />
@@ -122,7 +122,7 @@ function TextArea({
           w-full px-3 py-2 rounded-lg resize-none
           bg-bg-elevated border border-border-subtle
           text-fg-default placeholder:text-fg-soft
-          focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500
+          focus:outline-none focus:ring-2 focus:ring-info/50 focus:border-info
           transition-colors
         "
       />
@@ -149,7 +149,7 @@ function Select({
     <div>
       <label className="block text-sm font-medium text-fg-muted mb-1.5">
         {label}
-        {required && <span className="text-red-400 ml-1">*</span>}
+        {required && <span className="text-danger ml-1">*</span>}
       </label>
       <div className="relative">
         <select
@@ -159,7 +159,7 @@ function Select({
             w-full px-3 py-2 rounded-lg appearance-none
             bg-bg-elevated border border-border-subtle
             text-fg-default
-            focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500
+            focus:outline-none focus:ring-2 focus:ring-info/50 focus:border-info
             transition-colors cursor-pointer
           "
         >
@@ -221,7 +221,7 @@ function CompanySelect({
     <div ref={containerRef} className="relative">
       <label className="block text-sm font-medium text-fg-muted mb-1.5">
         Company
-        {required && <span className="text-red-400 ml-1">*</span>}
+        {required && <span className="text-danger ml-1">*</span>}
       </label>
       <button
         type="button"
@@ -230,7 +230,7 @@ function CompanySelect({
           w-full px-3 py-2 rounded-lg text-left
           bg-bg-elevated border border-border-subtle
           text-fg-default flex items-center justify-between
-          focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500
+          focus:outline-none focus:ring-2 focus:ring-info/50 focus:border-info
           transition-colors
         "
       >
@@ -255,7 +255,7 @@ function CompanySelect({
                   w-full pl-8 pr-3 py-1.5 rounded-md text-sm
                   bg-bg-surface border border-border-subtle
                   text-fg-default placeholder:text-fg-soft
-                  focus:outline-none focus:border-blue-500
+                  focus:outline-none focus:border-info
                 "
               />
             </div>
@@ -279,7 +279,7 @@ function CompanySelect({
                     flex items-center gap-2
                   "
                 >
-                  <Building2 className="w-4 h-4 text-amber-500" />
+                  <Building2 className="w-4 h-4 text-warning" />
                   <span className="text-fg-default">{company.name}</span>
                   {company.industry && (
                     <span className="text-xs text-fg-soft ml-auto">{company.industry}</span>
@@ -350,14 +350,14 @@ function SkillsMultiSelect({
               key={skill.id}
               className="
                 inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs
-                bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+                bg-success/10 text-success border border-success/20
               "
             >
               {skill.name}
               <button
                 type="button"
                 onClick={() => toggleSkill(skill.id)}
-                className="hover:text-emerald-200"
+                className="hover:text-success"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -373,7 +373,7 @@ function SkillsMultiSelect({
           w-full px-3 py-2 rounded-lg text-left
           bg-bg-elevated border border-border-subtle
           text-fg-soft flex items-center justify-between
-          focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500
+          focus:outline-none focus:ring-2 focus:ring-info/50 focus:border-info
           transition-colors
         "
       >
@@ -399,7 +399,7 @@ function SkillsMultiSelect({
                   w-full pl-8 pr-3 py-1.5 rounded-md text-sm
                   bg-bg-surface border border-border-subtle
                   text-fg-default placeholder:text-fg-soft
-                  focus:outline-none focus:border-blue-500
+                  focus:outline-none focus:border-info
                 "
               />
             </div>
@@ -423,16 +423,16 @@ function SkillsMultiSelect({
                     className={`
                       w-4 h-4 rounded border flex items-center justify-center
                       ${selectedIds.includes(skill.id)
-                        ? 'bg-emerald-500 border-emerald-500'
+                        ? 'bg-success border-success'
                         : 'border-border-strong'
                       }
                     `}
                   >
                     {selectedIds.includes(skill.id) && (
-                      <Check className="w-3 h-3 text-white" />
+                      <Check className="w-3 h-3 text-primary-foreground" />
                     )}
                   </div>
-                  <Wrench className="w-4 h-4 text-emerald-500" />
+                  <Wrench className="w-4 h-4 text-success" />
                   <span className="text-fg-default">{skill.name}</span>
                   {skill.category && (
                     <span className="text-xs text-fg-soft ml-auto">{skill.category}</span>
@@ -638,25 +638,25 @@ const ENTITY_CONFIG: Record<
     icon: Building2,
     label: 'Companies',
     singularLabel: 'Company',
-    color: 'text-amber-500',
+    color: 'text-warning',
   },
   factories: {
     icon: Factory,
     label: 'Factories',
     singularLabel: 'Factory',
-    color: 'text-blue-400',
+    color: 'text-info',
   },
   occupations: {
     icon: Briefcase,
     label: 'Careers',
     singularLabel: 'Career',
-    color: 'text-blue-600',
+    color: 'text-info',
   },
   skills: {
     icon: Wrench,
     label: 'Skills',
     singularLabel: 'Skill',
-    color: 'text-emerald-500',
+    color: 'text-success',
   },
 };
 
@@ -792,14 +792,14 @@ export default function ManualEntryForm({
 
         {/* Error */}
         {createMutation.isError && (
-          <div className="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+          <div className="mt-4 p-3 rounded-lg bg-danger/10 border border-danger/20 text-sm text-danger">
             {createMutation.error.message}
           </div>
         )}
 
         {/* Success toast */}
         {showSuccess && (
-          <div className="mt-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-400 flex items-center gap-2">
+          <div className="mt-4 p-3 rounded-lg bg-success/10 border border-success/20 text-sm text-success flex items-center gap-2">
             <Check className="w-4 h-4" />
             {config.singularLabel} created successfully!
           </div>

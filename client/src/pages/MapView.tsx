@@ -7,6 +7,7 @@ import MapContextMenu from '../components/map/MapContextMenu';
 import MapHoverCard from '../components/map/MapHoverCard';
 import { useMapStore } from '../stores/mapStore';
 import { PHONE_LAYOUT_QUERY } from '../components/map/camera';
+import { useTheme } from '../lib/theme';
 import { focusArea } from '@shared/scope';
 import { US_STATES } from '@shared/states';
 
@@ -32,6 +33,7 @@ export default function MapView() {
   const [searchParams, setSearchParams] = useSearchParams();
   // Same breakpoint the camera uses to decide between panel and sheet.
   const isMobile = useMediaQuery(PHONE_LAYOUT_QUERY);
+  const theme = useTheme();
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -136,7 +138,8 @@ export default function MapView() {
       onContextMenu={handleContextMenu}
     >
       {/* Map canvas */}
-      <Map />
+      {/* Keyed on the theme: the basemap and the palette are chosen when the map is created. */}
+      <Map key={theme} />
 
       {/* Map search with filters */}
       <MapSearch />

@@ -253,7 +253,7 @@ function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderProps) {
           {waiting ? (
             <p className="px-2.5 py-2.5 text-sm text-fg-muted">Searching skills</p>
           ) : results.isError ? (
-            <p role="alert" className="px-2.5 py-2.5 text-sm text-red-400">
+            <p role="alert" className="px-2.5 py-2.5 text-sm text-danger">
               {errorMessage(results.error)}
             </p>
           ) : options.length === 0 ? (

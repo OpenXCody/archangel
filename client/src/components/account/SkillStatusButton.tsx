@@ -50,7 +50,7 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
               'h-8 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors disabled:cursor-not-allowed',
               selected
                 ? choice.value === 'held'
-                  ? 'bg-emerald-500/15 text-emerald-400'
+                  ? 'bg-success/15 text-success'
                   : 'bg-bg-surface text-fg-default'
                 : 'text-fg-muted hover:text-fg-default'
             )}

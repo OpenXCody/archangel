@@ -19,7 +19,7 @@ import jobsRouter from './routes/jobs.js';
 import employerRouter from './routes/employer.js';
 import adminRouter from './routes/admin.js';
 import { noStore } from './lib/auth.js';
-import { requireAdmin, requireAdminForWrites, adminAuthRequired, isAdminRequest } from './middleware/adminAuth.js';
+import { requireAdmin, requireAdminUser, requireAdminForWrites, adminAuthRequired, isAdminRequest } from './middleware/adminAuth.js';
 import { publicCache } from './middleware/cache.js';
 
 /**
@@ -53,7 +53,8 @@ app.use('/api/auth', noStore, authRouter);
 app.use('/api/me', noStore, meRouter);
 app.use('/api/jobs', noStore, jobsRouter);
 app.use('/api/employer', noStore, employerRouter);
-app.use('/api/admin', noStore, requireAdmin, adminRouter);
+// Admin Tools: a signed-in admin account only (not the admin key, not open in local dev).
+app.use('/api/admin', noStore, requireAdminUser, adminRouter);
 
 // Edge caching. The two heaviest map payloads get 5 minutes; everything else
 // public gets 1 minute. Admin writes are never cached (GET-only middleware).

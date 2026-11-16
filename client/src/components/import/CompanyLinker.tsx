@@ -195,8 +195,8 @@ export default function CompanyLinker({
         <span className="text-fg-muted">
           {groupedCompanies.size} companies
         </span>
-        <span className="text-emerald-400">{linkedCount} linked</span>
-        <span className="text-amber-400">{groupedCompanies.size - linkedCount} pending</span>
+        <span className="text-success">{linkedCount} linked</span>
+        <span className="text-warning">{groupedCompanies.size - linkedCount} pending</span>
       </div>
 
       {/* Quick actions */}
@@ -238,7 +238,7 @@ export default function CompanyLinker({
             w-full pl-10 pr-4 py-2 rounded-lg
             bg-bg-surface border border-border-subtle
             text-fg-default placeholder:text-fg-soft
-            focus:outline-none focus:ring-2 focus:ring-amber-500/30
+            focus:outline-none focus:ring-2 focus:ring-warning/30
           "
         />
       </div>
@@ -338,10 +338,10 @@ function CompanyRow({
   };
 
   const getStatusColor = () => {
-    if (createMutation.isPending) return 'text-sky-400 border-sky-500/30';
-    if (linkedCompany) return 'text-emerald-400 border-emerald-500/30';
-    if (currentMapping === 'create') return 'text-amber-400 border-amber-500/30';
-    if (bestSuggestion) return 'text-violet-400 border-violet-500/30';
+    if (createMutation.isPending) return 'text-info border-info/30';
+    if (linkedCompany) return 'text-success border-success/30';
+    if (currentMapping === 'create') return 'text-warning border-warning/30';
+    if (bestSuggestion) return 'text-fg-muted border-border-strong';
     return 'text-fg-muted border-border-subtle';
   };
 
@@ -350,7 +350,7 @@ function CompanyRow({
       {/* Company name */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-amber-500 flex-shrink-0" />
+          <Building2 className="w-4 h-4 text-warning flex-shrink-0" />
           <span className="font-medium text-fg-default truncate">{companyName}</span>
           {variationCount > 1 && (
             <span className="text-xs text-fg-soft">({variationCount})</span>
@@ -388,7 +388,7 @@ function CompanyRow({
                     w-full px-3 py-1.5 rounded-md text-sm
                     bg-bg-surface border border-border-subtle
                     text-fg-default placeholder:text-fg-soft
-                    focus:outline-none focus:border-amber-500/50
+                    focus:outline-none focus:border-warning/50
                   "
                 />
               </div>
@@ -405,7 +405,7 @@ function CompanyRow({
                   className={`
                     w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-left
                     hover:bg-bg-surface transition-colors disabled:opacity-50
-                    ${currentMapping === 'create' ? 'bg-amber-500/10 text-amber-400' : 'text-fg-default'}
+                    ${currentMapping === 'create' ? 'bg-warning/10 text-warning' : 'text-fg-default'}
                   `}
                 >
                   {createMutation.isPending ? (
@@ -434,10 +434,10 @@ function CompanyRow({
                       className={`
                         w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-left
                         hover:bg-bg-surface transition-colors
-                        ${currentMapping === company.id ? 'bg-emerald-500/10 text-emerald-400' : 'text-fg-default'}
+                        ${currentMapping === company.id ? 'bg-success/10 text-success' : 'text-fg-default'}
                       `}
                     >
-                      <Building2 className="w-4 h-4 text-amber-500" />
+                      <Building2 className="w-4 h-4 text-warning" />
                       <span className="flex-1 truncate">{company.name}</span>
                       {currentMapping === company.id && <Check className="w-4 h-4" />}
                     </button>

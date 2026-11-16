@@ -1,5 +1,5 @@
 import { pgTable, uuid, text, integer, timestamp, pgEnum, index, uniqueIndex, primaryKey, varchar, jsonb, boolean, serial, smallint } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 // ============================================
 // ENUMS
@@ -1100,5 +1100,33 @@ export const userGoals = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.userId, table.occupationId] }),
+  })
+);
+
+// ============================================
+// INVITES (migration 0015)
+// ============================================
+
+// A one-time sign-up link for an email address. `role` is 'user' | 'employer'
+// | 'admin'; an employer invite names its company. Only the token's sha256 is
+// stored. Pending means not accepted and not expired; one pending per email.
+export const invites = pgTable(
+  'invites',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    email: text('email').notNull(), // stored lower-cased
+    role: text('role').notNull(), // 'user' | 'employer' | 'admin' (checked in SQL)
+    companyId: uuid('company_id').references(() => companies.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    acceptedAt: timestamp('accepted_at'),
+    acceptedBy: uuid('accepted_by').references(() => users.id, { onDelete: 'set null' }),
+  },
+  (table) => ({
+    pendingEmailIdx: uniqueIndex('invites_pending_email_idx')
+      .on(table.email)
+      .where(sql`${table.acceptedAt} IS NULL`),
   })
 );

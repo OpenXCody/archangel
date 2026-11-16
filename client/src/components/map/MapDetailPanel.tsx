@@ -10,7 +10,6 @@ import {
   Wrench,
   MapPin,
   Users,
-  TrendingUp,
   ChevronRight,
   Loader2,
   ArrowLeft,
@@ -69,7 +68,7 @@ function RegionOverviewBody({ data }: { data: RegionOverview }) {
                 key={c.id}
                 onClick={() => selectEntity('company', c.id)}
                 title={`${c.count.toLocaleString()} ${c.count === 1 ? 'factory' : 'factories'} here, ${c.sites.toLocaleString()} nationwide`}
-                className="w-full group flex items-center gap-2.5 text-sm py-1.5 px-2 -mx-2 rounded-md hover:bg-white/[0.05] transition-colors text-left"
+                className="w-full group flex items-center gap-2.5 text-sm py-1.5 px-2 -mx-2 rounded-md hover:bg-tint/[0.05] transition-colors text-left"
               >
                 <CompanyLogo name={formatCompanyName(c.name)} domain={c.domain} size={28} />
                 <span className="min-w-0 flex-1 truncate text-fg-default">{formatCompanyName(c.name)}</span>
@@ -198,8 +197,8 @@ function ConnectedNode({
       disabled={!id}
       className={`
         flex items-center justify-between p-3 w-full text-left
-        bg-bg-elevated border border-white/10 rounded-lg
-        ${id ? 'hover:bg-white/[0.05] hover:border-white/20 cursor-pointer' : 'opacity-60 cursor-default'}
+        bg-bg-elevated border border-tint/10 rounded-lg
+        ${id ? 'hover:bg-tint/[0.05] hover:border-tint/20 cursor-pointer' : 'opacity-60 cursor-default'}
         transition-all group
       `}
     >
@@ -207,13 +206,13 @@ function ConnectedNode({
         <Icon className={`w-5 h-5 ${config.color}`} />
         <div>
           {subtitle && <div className="text-xs text-fg-muted">{subtitle}</div>}
-          <div className="text-sm font-medium text-fg-default group-hover:text-white">
+          <div className="text-sm font-medium text-fg-default ">
             {type === 'factory' ? formatFactoryName(name) : type === 'company' ? formatCompanyName(name) : name}
           </div>
         </div>
       </div>
       {count !== undefined ? (
-        <span className="px-2 py-0.5 text-xs rounded-full bg-white/5 border border-white/10 text-fg-muted">
+        <span className="px-2 py-0.5 text-xs rounded-full bg-tint/5 border border-tint/10 text-fg-muted">
           {count}
         </span>
       ) : id ? (
@@ -235,61 +234,51 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
         </p>
       </div>
 
-      {/* Stats Grid - mobile-optimized with better spacing */}
-      <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
-          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
-            <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="text-[10px] md:text-xs">Workforce</span>
-          </div>
-          <div className="text-xl md:text-2xl font-semibold text-fg-default">
-            {factory.workforceSize?.toLocaleString() || '—'}
-          </div>
-        </div>
-        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
-          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
-            <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="text-[10px] md:text-xs">Open Positions</span>
-          </div>
-          <div className="text-xl md:text-2xl font-semibold text-fg-default">
-            {factory.openPositions?.toLocaleString() || '—'}
-          </div>
-        </div>
-      </div>
-
-      {/* Connected to */}
-      <div className="mb-6">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
-          Connected to
-        </h3>
-        <div className="space-y-2">
-          {factory.company && (
-            <ConnectedNode
-              type="company"
-              id={factory.company.id}
-              name={factory.company.name}
-              subtitle="Parent Company"
-            />
-          )}
-
-          {/* Show first 3 occupations */}
-          {factory.occupations?.slice(0, 3).map((occ) => (
-            <ConnectedNode
-              key={occ.id}
-              type="occupation"
-              id={occ.id}
-              name={occ.title}
-              subtitle={occ.headcount ? `${occ.headcount.toLocaleString()} workers` : undefined}
-            />
-          ))}
-
-          {factory.occupations && factory.occupations.length > 3 && (
-            <div className="text-xs text-fg-muted text-center py-2">
-              +{factory.occupations.length - 3} more careers
+      {/* Numbers, only where there is one: an empty tile says nothing. */}
+      {(factory.workforceSize || factory.openPositions) ? (
+        <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
+          {factory.workforceSize ? (
+            <div className="bg-bg-elevated border border-border-subtle rounded-lg p-3 md:p-4">
+              <div className="text-[10px] md:text-xs text-fg-muted mb-1">Workforce</div>
+              <div className="text-xl md:text-2xl font-semibold text-fg-default">{factory.workforceSize.toLocaleString()}</div>
             </div>
-          )}
+          ) : null}
+          {factory.openPositions ? (
+            <div className="bg-bg-elevated border border-border-subtle rounded-lg p-3 md:p-4">
+              <div className="text-[10px] md:text-xs text-fg-muted mb-1">Open positions</div>
+              <div className="text-xl md:text-2xl font-semibold text-fg-default">{factory.openPositions.toLocaleString()}</div>
+            </div>
+          ) : null}
         </div>
-      </div>
+      ) : null}
+
+      {/* Company and careers */}
+      {(factory.company || (factory.occupations?.length ?? 0) > 0) && (
+        <div className="mb-6">
+          <div className="space-y-2">
+            {factory.company && (
+              <ConnectedNode type="company" id={factory.company.id} name={factory.company.name} subtitle="Company" />
+            )}
+
+            {/* Show first 3 occupations */}
+            {factory.occupations?.slice(0, 3).map((occ) => (
+              <ConnectedNode
+                key={occ.id}
+                type="occupation"
+                id={occ.id}
+                name={occ.title}
+                subtitle={occ.headcount ? `${occ.headcount.toLocaleString()} workers` : undefined}
+              />
+            ))}
+
+            {factory.occupations && factory.occupations.length > 3 && (
+              <div className="text-xs text-fg-muted text-center py-2">
+                +{factory.occupations.length - 3} more careers
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Specialization */}
       {factory.specialization && (
@@ -311,21 +300,6 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
         </div>
       )}
 
-      {/* Location */}
-      {factory.latitude && factory.longitude && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
-            Location
-          </h3>
-          <div className="flex items-center gap-2 text-sm text-fg-muted">
-            <MapPin className="w-4 h-4" />
-            <span className="font-mono">
-              {parseFloat(factory.latitude).toFixed(2)}°, {parseFloat(factory.longitude).toFixed(2)}°
-            </span>
-            {factory.state && <span className="text-fg-muted">• {factory.state}</span>}
-          </div>
-        </div>
-      )}
     </>
   );
 }
@@ -370,7 +344,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
 
       {/* Stats Grid - mobile-optimized */}
       <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Factory className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Factories</span>
@@ -380,7 +354,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
           </div>
         </div>
         {totalWorkforce > 0 && (
-          <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
+          <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
             <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
               <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
               <span className="text-[10px] md:text-xs">Workforce</span>
@@ -473,7 +447,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
 
       {/* Stats Grid - mobile-optimized */}
       <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Factory className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Factories</span>
@@ -482,7 +456,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
             {occupation.factories?.length || 0}
           </div>
         </div>
-        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Skills</span>
@@ -575,7 +549,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
 
       {/* Stats - mobile-optimized */}
       <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Briefcase className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Careers</span>
@@ -584,7 +558,7 @@ function SkillView({ skill }: { skill: SkillDetail }) {
             {skill.occupations?.length || 0}
           </div>
         </div>
-        <div className="bg-bg-elevated border border-white/10 rounded-lg p-3 md:p-4">
+        <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
             <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs">Related Skills</span>
@@ -754,7 +728,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
           aria-label={expanded ? 'Collapse details' : 'Expand details'}
           className="absolute left-1/2 top-1.5 z-10 -translate-x-1/2 rounded-full px-6 py-2"
         >
-          <span className="block h-1.5 w-12 rounded-full bg-white/30" />
+          <span className="block h-1.5 w-12 rounded-full bg-tint/30" />
         </button>
       )}
       {/* Header */}
@@ -763,7 +737,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
           {canGoBack() && (
             <button
               onClick={goBack}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors flex-shrink-0"
+              className="p-1.5 rounded-lg hover:bg-tint/10 text-fg-muted hover:text-fg-default transition-colors flex-shrink-0"
               aria-label="Go back"
               title="Go back"
             >
@@ -773,7 +747,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
           <div className={`p-1.5 md:p-2 rounded-lg flex-shrink-0 ${config?.bgColor || 'bg-bg-elevated'}`}>
             <Icon className={`w-4 h-4 md:w-5 md:h-5 ${config?.color || 'text-fg-muted'}`} />
           </div>
-          <span className="px-2 py-0.5 text-[10px] md:text-xs font-medium rounded-full bg-white/5 border border-white/10 text-fg-muted truncate">
+          <span className="px-2 py-0.5 text-[10px] md:text-xs font-medium rounded-full bg-tint/5 border border-tint/10 text-fg-muted truncate">
             {config?.label || 'Entity'}
           </span>
         </div>
@@ -782,7 +756,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
+              className="p-1.5 rounded-lg hover:bg-tint/10 text-fg-muted hover:text-fg-default transition-colors"
               aria-label={expanded ? 'Collapse details' : 'Expand details'}
               title={expanded ? 'Collapse' : 'Expand'}
             >
@@ -791,7 +765,7 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
           )}
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
+            className="p-1.5 rounded-lg hover:bg-tint/10 text-fg-muted hover:text-fg-default transition-colors"
             aria-label="Close details"
             title="Close"
           >

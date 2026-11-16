@@ -82,13 +82,13 @@ export default function AdminKeyGate({ children }: { children: ReactNode }) {
           <button
             type="submit"
             disabled={submitting || !draft.trim()}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent-primary px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
           >
             <LockOpen className="h-4 w-4" />
             Unlock
           </button>
         </form>
-        {feedback && <p className="mt-3 text-sm text-red-400">{feedback}</p>}
+        {feedback && <p className="mt-3 text-sm text-danger">{feedback}</p>}
       </div>
     );
   }

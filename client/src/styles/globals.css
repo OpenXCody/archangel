@@ -5,52 +5,135 @@
 @tailwind components;
 @tailwind utilities;
 
-/* UNIFIED GRAYSCALE THEME - NO BLUES/SLATES */
+/*
+ * Theme tokens.
+ *
+ * Two themes, dark (the default) and light, chosen by `data-theme` on <html>
+ * (client/src/lib/theme.ts). Every colour in the app comes from here:
+ *
+ *   surfaces   --color-bg-shell / base / surface / elevated
+ *   text       --color-fg-default / muted / soft
+ *   lines      --color-border-subtle / strong
+ *   meaning    --success / --danger / --warning / --info   (text-success, bg-danger/10, ...)
+ *   wash       --tint: white on dark, black on light        (bg-tint/5, border-tint/10)
+ *
+ * Components must not name a palette colour (text-emerald-400, bg-white/10):
+ * it would be right in one theme and wrong in the other. `npm run lint`
+ * checks for it.
+ *
+ * The first block is the set shadcn/ui's primitives read (HSL channels).
+ */
 @layer base {
   :root {
-    /* Pure grayscale theme - no blues/slates/colors except red for errors */
-    --background: 0 0% 6%;           /* #0f0f0f - very dark gray */
-    --foreground: 0 0% 95%;          /* #f2f2f2 - light gray */
-    --card: 0 0% 8%;                 /* #141414 - dark gray */
-    --card-foreground: 0 0% 92%;     /* #ebebeb - light gray */
-    --popover: 0 0% 8%;              /* #141414 - dark gray */
-    --popover-foreground: 0 0% 92%;  /* #ebebeb - light gray */
-    --primary: 0 0% 85%;             /* #d9d9d9 - light gray */
-    --primary-foreground: 0 0% 10%;  /* #1a1a1a - very dark gray */
-    --secondary: 0 0% 15%;           /* #262626 - medium dark gray */
-    --secondary-foreground: 0 0% 85%; /* #d9d9d9 - light gray */
-    --muted: 0 0% 15%;               /* #262626 - medium dark gray */
-    --muted-foreground: 0 0% 65%;    /* #a6a6a6 - medium gray */
-    --accent: 0 0% 20%;              /* #333333 - medium gray */
-    --accent-foreground: 0 0% 90%;   /* #e6e6e6 - light gray */
-    --destructive: 0 70% 50%;        /* #e53e3e - red (only color allowed) */
-    --destructive-foreground: 0 0% 95%; /* #f2f2f2 - light gray */
-    --border: 0 0% 20%;              /* #333333 - medium gray */
-    --input: 0 0% 12%;               /* #1f1f1f - very dark gray */
-    --ring: 0 0% 75%;                /* #bfbfbf - medium light gray */
-    --chart-1: 0 0% 70%;             /* #b3b3b3 - chart colors in grayscale */
-    --chart-2: 0 0% 60%;             /* #999999 */
-    --chart-3: 0 0% 50%;             /* #808080 */
-    --chart-4: 0 0% 40%;             /* #666666 */
-    --chart-5: 0 0% 30%;             /* #4d4d4d */
+    color-scheme: dark;
+
+    --background: 0 0% 6%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 93%;
+    --primary: 0 0% 88%;
+    --primary-foreground: 0 0% 8%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 88%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 93%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 96%;
+    --border: 0 0% 24%;
+    --input: 0 0% 24%;
+    --ring: 0 0% 75%;
+    --chart-1: 0 0% 70%;
+    --chart-2: 0 0% 60%;
+    --chart-3: 0 0% 50%;
+    --chart-4: 0 0% 40%;
+    --chart-5: 0 0% 30%;
     --radius: 0.5rem;
 
-    /* Semantic color tokens - grayscale only */
     --color-bg-shell: #0a0a0a;
     --color-bg-base: #0f0f0f;
-    --color-bg-surface: #141414;
-    --color-bg-elevated: #1a1a1a;
+    --color-bg-surface: #161616;
+    --color-bg-elevated: #202020;
 
+    /* On --color-bg-surface: default 16:1, muted 8.5:1, soft 4.8:1. */
     --color-fg-default: #f2f2f2;
-    --color-fg-muted: #a6a6a6;
-    --color-fg-soft: #666666;
+    --color-fg-muted: #b4b4b4;
+    --color-fg-soft: #868686;
 
-    --color-border-subtle: #262626;
-    --color-border-strong: #333333;
+    --color-border-subtle: #2b2b2b;
+    --color-border-strong: #424242;
 
-    --color-accent-primary: #d9d9d9;
-    --color-accent-soft: #1a1a1a;
-    --color-accent-warning: #ff9f1c;
+    --color-accent-primary: #e0e0e0;
+    --color-accent-soft: #202020;
+
+    /* RGB channels, so Tailwind can apply opacity: text-success, bg-danger/10. */
+    --success: 52 211 153;
+    --danger: 248 113 113;
+    --warning: 251 191 36;
+    --info: 125 211 252;
+    --tint: 255 255 255;
+
+    --shadow-overlay: 0 10px 28px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.5);
+    --shadow-control: 0 2px 6px rgba(0, 0, 0, 0.5);
+    --scrollbar-thumb: #3a3a3a;
+  }
+
+  :root[data-theme='light'] {
+    color-scheme: light;
+
+    --background: 210 14% 96%;
+    --foreground: 210 12% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 12% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 12% 8%;
+    --primary: 210 12% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 12% 93%;
+    --secondary-foreground: 210 12% 14%;
+    --muted: 210 12% 93%;
+    --muted-foreground: 210 7% 36%;
+    --accent: 210 12% 92%;
+    --accent-foreground: 210 12% 10%;
+    --destructive: 0 72% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 10% 82%;
+    --input: 210 10% 78%;
+    --ring: 210 12% 30%;
+    --chart-1: 210 8% 30%;
+    --chart-2: 210 8% 42%;
+    --chart-3: 210 8% 54%;
+    --chart-4: 210 8% 66%;
+    --chart-5: 210 8% 78%;
+
+    --color-bg-shell: #e9ebee;
+    --color-bg-base: #f3f4f6;
+    --color-bg-surface: #ffffff;
+    --color-bg-elevated: #eceef1;
+
+    /* On --color-bg-surface: default 18:1, muted 8:1, soft 4.6:1. */
+    --color-fg-default: #111418;
+    --color-fg-muted: #4a515a;
+    --color-fg-soft: #6d7580;
+
+    --color-border-subtle: #dfe2e6;
+    --color-border-strong: #c3c8cf;
+
+    --color-accent-primary: #111418;
+    --color-accent-soft: #eceef1;
+
+    --success: 4 120 87;
+    --danger: 185 28 28;
+    --warning: 161 82 6;
+    --info: 3 105 161;
+    --tint: 0 0 0;
+
+    --shadow-overlay: 0 10px 28px rgba(17, 20, 24, 0.14), 0 2px 6px rgba(17, 20, 24, 0.1);
+    --shadow-control: 0 1px 4px rgba(17, 20, 24, 0.14);
+    --scrollbar-thumb: #c3c8cf;
   }
 }
 
@@ -145,25 +228,6 @@ input {
   --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
-/* Custom semantic color utilities */
-@layer utilities {
-  .bg-bg-shell { background-color: var(--color-bg-shell); }
-  .bg-bg-base { background-color: var(--color-bg-base); }
-  .bg-bg-surface { background-color: var(--color-bg-surface); }
-  .bg-bg-elevated { background-color: var(--color-bg-elevated); }
-
-  .text-fg-default { color: var(--color-fg-default); }
-  .text-fg-muted { color: var(--color-fg-muted); }
-  .text-fg-soft { color: var(--color-fg-soft); }
-
-  .border-border-subtle { border-color: var(--color-border-subtle); }
-  .border-border-strong { border-color: var(--color-border-strong); }
-
-  .bg-accent-primary { background-color: var(--color-accent-primary); }
-  .bg-accent-soft { background-color: var(--color-accent-soft); }
-  .text-accent-primary { color: var(--color-accent-primary); }
-}
-
 /*
  * Map overlay surface.
  *
@@ -182,7 +246,7 @@ input {
     background-color: color-mix(in srgb, var(--color-bg-elevated) 97%, transparent);
     border: 1px solid var(--color-border-strong);
     color: var(--color-fg-default);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-overlay);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
   }
@@ -196,7 +260,7 @@ input {
   .map-overlay-button[aria-pressed='true'] {
     color: var(--color-fg-default);
     /* A wash laid over the surface colour, so the surface stays opaque. */
-    background-image: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08));
+    background-image: linear-gradient(rgb(var(--tint) / 0.08), rgb(var(--tint) / 0.08));
   }
   .map-overlay-button:disabled {
     color: var(--color-fg-soft);
@@ -221,7 +285,7 @@ input {
   color: var(--color-fg-muted);
   font-size: 11px;
   line-height: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-control);
 }
 .archangel-map .maplibregl-ctrl-attrib a {
   color: var(--color-fg-muted);
@@ -230,13 +294,15 @@ input {
   color: var(--color-fg-default);
 }
 .archangel-map .maplibregl-ctrl-attrib-button {
-  background-color: transparent;
-  /* The same "i" MapLibre ships, in --color-fg-muted instead of black. */
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='%23a6a6a6' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E");
+  /* The same "i" MapLibre ships, as a mask so it takes --color-fg-muted in either theme. */
+  background-image: none;
+  background-color: var(--color-fg-muted);
+  -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
 }
 .archangel-map .maplibregl-ctrl-attrib-button:hover,
 .archangel-map .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: var(--color-fg-default);
 }
 /* MapLibre rings the button on any focus, so it stays lit after a click. */
 .archangel-map .maplibregl-ctrl-attrib-button:focus {
@@ -257,10 +323,10 @@ input {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444444;
+  background: var(--color-fg-soft);
 }

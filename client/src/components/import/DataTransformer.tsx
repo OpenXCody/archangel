@@ -310,8 +310,8 @@ export default function DataTransformer({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-amber-500/10">
-          <Wand2 className="w-5 h-5 text-amber-400" />
+        <div className="p-2 rounded-lg bg-warning/10">
+          <Wand2 className="w-5 h-5 text-warning" />
         </div>
         <div>
           <h3 className="font-medium text-fg-default">Configure Transform</h3>
@@ -333,19 +333,19 @@ export default function DataTransformer({
           label="Valid Location"
           value={transformResult.stats.valid}
           icon={Check}
-          color="text-emerald-500"
+          color="text-success"
         />
         <StatCard
           label="Address Only"
           value={transformResult.stats.addressOnly}
           icon={MapPin}
-          color="text-amber-500"
+          color="text-warning"
         />
         <StatCard
           label="Will Skip"
           value={transformResult.stats.skipped}
           icon={X}
-          color="text-red-400"
+          color="text-danger"
         />
       </div>
 
@@ -353,7 +353,7 @@ export default function DataTransformer({
       {transformResult.stats.companiesFound.size > 0 && (
         <div className="space-y-4 p-4 rounded-lg bg-bg-elevated border border-border-subtle">
           <div className="flex items-center gap-2">
-            <Link2 className="w-4 h-4 text-amber-400" />
+            <Link2 className="w-4 h-4 text-warning" />
             <h4 className="text-sm font-medium text-fg-default">
               Link to Companies ({transformResult.stats.companiesFound.size} found)
             </h4>
@@ -384,7 +384,7 @@ export default function DataTransformer({
                 type="checkbox"
                 checked={config.extractCompanyFromName}
                 onChange={(e) => updateConfig('extractCompanyFromName', e.target.checked)}
-                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-amber-500 focus:ring-amber-500/50"
+                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-warning focus:ring-warning/50"
               />
               <span className="text-sm text-fg-muted">
                 Extract parent company from facility name
@@ -396,7 +396,7 @@ export default function DataTransformer({
                 type="checkbox"
                 checked={config.normalizeCompanyNames}
                 onChange={(e) => updateConfig('normalizeCompanyNames', e.target.checked)}
-                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-amber-500 focus:ring-amber-500/50"
+                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-warning focus:ring-warning/50"
               />
               <span className="text-sm text-fg-muted">
                 Normalize company names (e.g., "BOEING CO" → "Boeing")
@@ -408,7 +408,7 @@ export default function DataTransformer({
                 type="checkbox"
                 checked={config.generateFactoryNames}
                 onChange={(e) => updateConfig('generateFactoryNames', e.target.checked)}
-                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-amber-500 focus:ring-amber-500/50"
+                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-warning focus:ring-warning/50"
               />
               <span className="text-sm text-fg-muted">
                 Generate factory names from company + location
@@ -425,7 +425,7 @@ export default function DataTransformer({
                   className="
                     px-3 py-1.5 rounded-lg text-sm
                     bg-bg-surface border border-border-subtle
-                    text-fg-default focus:outline-none focus:ring-2 focus:ring-amber-500/50
+                    text-fg-default focus:outline-none focus:ring-2 focus:ring-warning/50
                   "
                 >
                   <option value="company_city">Company + City (e.g., "Boeing Seattle Plant")</option>
@@ -443,7 +443,7 @@ export default function DataTransformer({
                 type="checkbox"
                 checked={config.skipInvalidLocations}
                 onChange={(e) => updateConfig('skipInvalidLocations', e.target.checked)}
-                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-amber-500 focus:ring-amber-500/50"
+                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-warning focus:ring-warning/50"
               />
               <span className="text-sm text-fg-muted">
                 Skip rows missing both coordinates AND address
@@ -455,7 +455,7 @@ export default function DataTransformer({
                 type="checkbox"
                 checked={config.allowAddressOnlyLocations}
                 onChange={(e) => updateConfig('allowAddressOnlyLocations', e.target.checked)}
-                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-amber-500 focus:ring-amber-500/50"
+                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-warning focus:ring-warning/50"
               />
               <span className="text-sm text-fg-muted">
                 Allow rows with address but no coordinates (coords will be null)
@@ -492,12 +492,12 @@ export default function DataTransformer({
                   ) : (
                     <ChevronRight className="w-4 h-4 text-fg-soft" />
                   )}
-                  <Building2 className="w-4 h-4 text-amber-500" />
+                  <Building2 className="w-4 h-4 text-warning" />
                   <span className="font-medium text-fg-default flex-1">{company}</span>
                   <span className="text-xs text-fg-soft">
                     {validRows.length} valid
                     {skippedRows.length > 0 && (
-                      <span className="text-red-400 ml-2">{skippedRows.length} skipped</span>
+                      <span className="text-danger ml-2">{skippedRows.length} skipped</span>
                     )}
                   </span>
                 </button>
@@ -509,9 +509,9 @@ export default function DataTransformer({
                         key={row.originalIndex}
                         className={`text-xs py-1 px-2 rounded ${
                           row.willSkip
-                            ? 'bg-red-500/10 text-red-400'
+                            ? 'bg-danger/10 text-danger'
                             : row.locationStatus === 'address_only'
-                              ? 'bg-amber-500/10 text-amber-400'
+                              ? 'bg-warning/10 text-warning'
                               : 'text-fg-muted'
                         }`}
                       >
@@ -542,12 +542,12 @@ export default function DataTransformer({
       {/* Summary footer */}
       <div className="flex items-center justify-between pt-4 border-t border-border-subtle">
         <div className="text-sm text-fg-muted">
-          <span className="text-emerald-400 font-medium">
+          <span className="text-success font-medium">
             {transformResult.stats.total - transformResult.stats.skipped}
           </span>
           {' '}rows ready to import
           {transformResult.stats.skipped > 0 && (
-            <span className="text-red-400 ml-1">
+            <span className="text-danger ml-1">
               ({transformResult.stats.skipped} will be skipped)
             </span>
           )}

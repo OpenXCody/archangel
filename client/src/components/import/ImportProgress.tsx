@@ -71,7 +71,7 @@ export default function ImportProgress({
     return (
       <div className="text-center py-12">
         <div className="relative inline-block mb-6">
-          <Loader2 className="w-16 h-16 text-blue-400 animate-spin" />
+          <Loader2 className="w-16 h-16 text-info animate-spin" />
         </div>
         <h3 className="text-xl font-semibold text-fg-default mb-2">Importing...</h3>
 
@@ -80,7 +80,7 @@ export default function ImportProgress({
             <div className="max-w-md mx-auto mb-3">
               <div className="h-2 bg-bg-elevated rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                  className="h-full bg-info rounded-full transition-all duration-300"
                   style={{ width: `${percentage}%` }}
                 />
               </div>
@@ -98,8 +98,8 @@ export default function ImportProgress({
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
-          <AlertTriangle className="w-8 h-8 text-red-500" />
+        <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center mx-auto mb-6">
+          <AlertTriangle className="w-8 h-8 text-danger" />
         </div>
         <h3 className="text-xl font-semibold text-fg-default mb-2">Import Failed</h3>
         <p className="text-fg-muted mb-6 max-w-md mx-auto">{error}</p>
@@ -139,8 +139,8 @@ export default function ImportProgress({
               ${showConfetti ? 'animate-bounce' : ''}
             `}
           >
-            <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center">
-              <Check className="w-10 h-10 text-emerald-500" />
+            <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center">
+              <Check className="w-10 h-10 text-success" />
             </div>
             {showConfetti && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -149,7 +149,7 @@ export default function ImportProgress({
                     key={i}
                     className="absolute w-2 h-2 rounded-full animate-ping"
                     style={{
-                      backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'][i % 4],
+                      backgroundColor: ['rgb(var(--success))', 'rgb(var(--info))', 'rgb(var(--warning))', 'rgb(var(--danger))'][i % 4],
                       transform: `rotate(${i * 45}deg) translateY(-30px)`,
                       animationDelay: `${i * 100}ms`,
                       animationDuration: '1s',
@@ -195,13 +195,13 @@ export default function ImportProgress({
 
         {/* Warning if there are errors */}
         {hasErrors && (
-          <div className="mb-6 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="mb-6 p-4 rounded-lg bg-warning/10 border border-warning/20 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm text-amber-400 font-medium">
+              <p className="text-sm text-warning font-medium">
                 {result.errorsQueued} {result.errorsQueued === 1 ? 'row' : 'rows'} couldn't be imported
               </p>
-              <p className="text-sm text-amber-400/70 mt-1">
+              <p className="text-sm text-warning/70 mt-1">
                 These have been queued for review. You can fix them later in the error queue.
               </p>
             </div>
@@ -280,10 +280,10 @@ function StatCard({
 }) {
   const variantStyles = {
     default: 'bg-bg-surface border-border-subtle text-fg-muted',
-    success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-    info: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-    warning: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
-    error: 'bg-red-500/10 border-red-500/20 text-red-400',
+    success: 'bg-success/10 border-success/20 text-success',
+    info: 'bg-info/10 border-info/20 text-info',
+    warning: 'bg-warning/10 border-warning/20 text-warning',
+    error: 'bg-danger/10 border-danger/20 text-danger',
   };
 
   return (

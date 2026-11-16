@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { ADMIN_HEADER, API_BASE } from './api';
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { API_BASE } from './api';
 
 /**
  * Accounts, jobs, applications, the employer area and the admin area.
@@ -325,17 +325,105 @@ export interface AdminMembership {
   createdAt: string;
 }
 
+export interface AdminUserMembership {
+  companyId: string;
+  companyName: string;
+  status: MembershipStatus;
+}
+
 export interface AdminUser {
   id: string;
   email: string;
   name: string;
   isAdmin: boolean;
   createdAt: string;
-  companies: number;
-  applications: number;
+  memberships: AdminUserMembership[];
+}
+
+/** One page of people, newest first. */
+export interface AdminUsersPage {
+  users: AdminUser[];
+  /** Everyone matching the search, not only this page. */
+  total: number;
+  hasMore: boolean;
+}
+
+/** How many people one page of the People list holds. */
+export const ADMIN_USERS_PAGE = 100;
+
+/** A person's roles as the People list shows them: "Admin", "Employer (Tesla, Samsung)", or "User". */
+export function personRoles(person: AdminUser): string[] {
+  const roles: string[] = [];
+  if (person.isAdmin) roles.push('Admin');
+  const active = person.memberships.filter((m) => m.status === 'active');
+  if (active.length > 0) roles.push(`Employer (${active.map((m) => m.companyName).join(', ')})`);
+  return roles.length > 0 ? roles : ['User'];
 }
 
 export type MembershipDecision = 'approve' | 'remove';
+
+export type InviteRole = 'user' | 'employer' | 'admin';
+
+export const INVITE_ROLES: InviteRole[] = ['user', 'employer', 'admin'];
+
+/** How long an invite link works. The server sets the real expiry; this is for the copy beside the link. */
+export const INVITE_DAYS = 14;
+
+/** What an invite grants, in the words used for roles everywhere: "Employer (Tesla)". */
+export function inviteRoleLabel(role: InviteRole, companyName?: string | null): string {
+  if (role === 'admin') return 'Admin';
+  if (role === 'employer') return companyName ? `Employer (${companyName})` : 'Employer';
+  return 'User';
+}
+
+/** An invite that can still be used. */
+export interface Invite {
+  id: string;
+  email: string;
+  role: InviteRole;
+  companyId: string | null;
+  companyName: string | null;
+  createdAt: string;
+  expiresAt: string;
+}
+
+/** A new invite with its link. The token exists in this response only. */
+export interface CreatedInvite {
+  invite: Invite;
+  token: string;
+  /** The path of the sign-up link: `/sign-in?invite=<token>`. */
+  path: string;
+}
+
+/** What an invite link says before it is accepted. */
+export interface InviteGrant {
+  email: string;
+  role: InviteRole;
+  companyName: string | null;
+}
+
+/** A career whose path is waiting for review. */
+export interface DraftPath {
+  id: string;
+  title: string;
+  pathStatus: 'draft' | 'approved';
+  skillCount: number;
+}
+
+/** A company as Admin Tools reads and edits it. */
+export interface AdminCompany {
+  id: string;
+  name: string;
+  slug: string | null;
+  /** Website domain; the logo is looked up from it. */
+  domain: string | null;
+  featured: boolean;
+}
+
+export interface AdminCompanyPatch {
+  domain?: string | null;
+  featured?: boolean;
+}
 
 // ---------------------------------------------------------------------------
 // API functions
@@ -352,14 +440,14 @@ function queryString(params: Record<string, string | number | undefined>): strin
 
 export const authApi = {
   me: () => request<Account>('/auth/me'),
-  signUp: (input: { email: string; password: string; name: string }) =>
+  /** `invite` is the token from an invite link; the email must be the invited one. */
+  signUp: (input: { email: string; password: string; name: string; invite?: string }) =>
     request<Account>('/auth/sign-up', { method: 'POST', body: input }),
   signIn: (input: { email: string; password: string }) =>
     request<Account>('/auth/sign-in', { method: 'POST', body: input }),
   signOut: () => request<{ ok: true }>('/auth/sign-out', { method: 'POST' }),
-  /** The admin key travels in the same header the import pipeline uses. */
-  claimAdmin: (adminKey: string) =>
-    request<Account>('/auth/claim-admin', { method: 'POST', headers: { [ADMIN_HEADER]: adminKey } }),
+  /** What an invite link grants. Fails with 404 when the link is unknown, used or expired. */
+  invite: (token: string) => request<InviteGrant>(`/auth/invite/${encodeURIComponent(token)}`),
 };
 
 export const meApi = {
@@ -409,7 +497,28 @@ export const adminApi = {
     request<{ memberships: AdminMembership[] }>(`/admin/memberships?status=${status}`).then((r) => r.memberships),
   decideMembership: (input: { companyId: string; userId: string; decision: MembershipDecision }) =>
     request<{ status: string }>('/admin/memberships', { method: 'PATCH', body: input }),
-  users: () => request<{ users: AdminUser[] }>('/admin/users').then((r) => r.users),
+  addMembership: (input: { companyId: string; userId: string }) =>
+    request<{ status: MembershipStatus }>('/admin/memberships', { method: 'POST', body: input }),
+  users: (params: { q?: string; offset?: number; limit?: number }) =>
+    request<AdminUsersPage>(`/admin/users${queryString(params)}`),
+  setAdmin: (userId: string, isAdmin: boolean) =>
+    request<{ id: string; isAdmin: boolean }>(`/admin/users/${userId}`, { method: 'PATCH', body: { isAdmin } }),
+  deleteUser: (userId: string) => request<{ ok: true }>(`/admin/users/${userId}`, { method: 'DELETE' }),
+  invites: () => request<{ invites: Invite[]; accepted: number }>('/admin/invites'),
+  createInvite: (input: { email: string; role: InviteRole; companyId?: string }) =>
+    request<CreatedInvite>('/admin/invites', { method: 'POST', body: input }),
+  revokeInvite: (inviteId: string) => request<{ ok: true }>(`/admin/invites/${inviteId}`, { method: 'DELETE' }),
+  draftPaths: () => request<{ paths: DraftPath[] }>('/admin/paths?status=draft').then((r) => r.paths),
+  /** Marks the path reviewed; an empty skills list leaves its skills as they are. */
+  approvePath: (occupationId: string) =>
+    request<{ occupationId: string }>(`/occupations/${occupationId}/path`, {
+      method: 'PUT',
+      body: { skills: [], status: 'approved' },
+    }),
+  companies: (q: string) =>
+    request<{ companies: AdminCompany[] }>(`/admin/companies${queryString({ q })}`).then((r) => r.companies),
+  updateCompany: (companyId: string, patch: AdminCompanyPatch) =>
+    request<AdminCompany>(`/admin/companies/${companyId}`, { method: 'PATCH', body: patch }),
 };
 
 // ---------------------------------------------------------------------------
@@ -432,7 +541,11 @@ export const accountKeys = {
   admin: ['admin'] as const,
   adminOverview: ['admin', 'overview'] as const,
   adminMemberships: (status: MembershipStatus) => ['admin', 'memberships', status] as const,
-  adminUsers: ['admin', 'users'] as const,
+  adminUsers: (q: string) => ['admin', 'users', q] as const,
+  adminInvites: ['admin', 'invites'] as const,
+  adminPaths: ['admin', 'paths'] as const,
+  adminCompanies: (q: string) => ['admin', 'companies', q] as const,
+  invite: (token: string) => ['invite', token] as const,
   /** Owned by AdminKeyGate; a signed-in admin counts as authorized there. */
   importStatus: ['import-status'] as const,
 };
@@ -523,15 +636,21 @@ export function useSignOut() {
   });
 }
 
-/** Become an admin by presenting the deployment's admin key. */
-export function useClaimAdmin() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: authApi.claimAdmin,
-    onSuccess: (account) => {
-      queryClient.setQueryData(accountKeys.account, account);
-      return invalidate(queryClient, accountKeys.admin, accountKeys.jobs, accountKeys.employer, accountKeys.importStatus);
-    },
+/**
+ * What an invite link grants, asked once. An invite stops answering the
+ * moment it is accepted, so the answer is never refreshed: the page that
+ * accepted it still needs to know where to send the person.
+ */
+export function useInvite(token: string | null) {
+  return useQuery({
+    queryKey: accountKeys.invite(token ?? ''),
+    queryFn: () => authApi.invite(token as string),
+    enabled: Boolean(token),
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: retryUnlessClientError,
   });
 }
 
@@ -754,13 +873,116 @@ export function useDecideMembership() {
   });
 }
 
-export function useAdminUsers(enabled = true) {
+/** People matching `q` (name or email), newest first, a page at a time. */
+export function useAdminUsers(q: string) {
+  return useInfiniteQuery({
+    queryKey: accountKeys.adminUsers(q),
+    queryFn: ({ pageParam }) => adminApi.users({ q, offset: pageParam, limit: ADMIN_USERS_PAGE }),
+    initialPageParam: 0,
+    getNextPageParam: (last, pages) =>
+      last.hasMore ? pages.reduce((count, page) => count + page.users.length, 0) : undefined,
+    staleTime: 0,
+    // Keep the list on screen while the next search loads.
+    placeholderData: keepPreviousData,
+    retry: retryUnlessClientError,
+  });
+}
+
+/** A change to a person: their row, and whatever they see of themselves if it is this account. */
+function personChanged(queryClient: QueryClient): Promise<void> {
+  return invalidate(queryClient, accountKeys.admin, accountKeys.account, accountKeys.employer, accountKeys.jobs);
+}
+
+/** Give or take the admin role. */
+export function useSetAdmin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, isAdmin }: { userId: string; isAdmin: boolean }) => adminApi.setAdmin(userId, isAdmin),
+    onSettled: () => personChanged(queryClient),
+  });
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => adminApi.deleteUser(userId),
+    onSettled: () => personChanged(queryClient),
+  });
+}
+
+/** Add a person to a company, active at once. */
+export function useAddMembership() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminApi.addMembership,
+    onSettled: () => personChanged(queryClient),
+  });
+}
+
+export function useAdminInvites() {
   return useQuery({
-    queryKey: accountKeys.adminUsers,
-    queryFn: adminApi.users,
-    enabled,
+    queryKey: accountKeys.adminInvites,
+    queryFn: adminApi.invites,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    retry: retryUnlessClientError,
+  });
+}
+
+export function useCreateInvite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminApi.createInvite,
+    onSettled: () => invalidate(queryClient, accountKeys.adminInvites),
+  });
+}
+
+export function useRevokeInvite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (inviteId: string) => adminApi.revokeInvite(inviteId),
+    onSettled: () => invalidate(queryClient, accountKeys.adminInvites),
+  });
+}
+
+/** Careers whose path is a draft. */
+export function useDraftPaths() {
+  return useQuery({
+    queryKey: accountKeys.adminPaths,
+    queryFn: adminApi.draftPaths,
     staleTime: 0,
     retry: retryUnlessClientError,
+  });
+}
+
+export function useApprovePath() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (occupationId: string) => adminApi.approvePath(occupationId),
+    // The career page and the career list show the path's state too.
+    onSettled: () => invalidate(queryClient, accountKeys.adminPaths, ['occupations'], ['explore-occupations']),
+  });
+}
+
+/** Company type-ahead for Admin Tools: fresh profile fields, from two letters. */
+export function useAdminCompanies(q: string) {
+  return useQuery({
+    queryKey: accountKeys.adminCompanies(q),
+    queryFn: () => adminApi.companies(q),
+    enabled: q.length >= 2,
+    staleTime: 0,
+    retry: retryUnlessClientError,
+  });
+}
+
+/** Set a company's domain or featured flag. */
+export function useUpdateCompany() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ companyId, patch }: { companyId: string; patch: AdminCompanyPatch }) =>
+      adminApi.updateCompany(companyId, patch),
+    onSuccess: () =>
+      invalidate(queryClient, ['admin', 'companies'], ['companies'], ['explore-companies'], ['picker', 'companies']),
   });
 }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -24,6 +24,18 @@
       })();
     </script>
     
+    <!-- Theme: applied before first paint so the page never flashes the other
+         theme. Mirrors client/src/lib/theme.ts (key and values must match). -->
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem('archangel.theme') === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+          }
+        } catch (_) { /* storage unavailable: stay on the default theme */ }
+      })();
+    </script>
+
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0f0f0f" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

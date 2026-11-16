@@ -146,7 +146,7 @@ function ProfileSection({ user }: { user: AccountUser }) {
             Save
           </Button>
           {update.isSuccess && !dirty && (
-            <span role="status" className="inline-flex items-center gap-1.5 text-sm text-emerald-400">
+            <span role="status" className="inline-flex items-center gap-1.5 text-sm text-success">
               <Check className="h-4 w-4" />
               Saved
             </span>
@@ -390,7 +390,7 @@ function SkillSearch({ mySkills, onAdd, pendingId, disabled }: SkillSearchProps)
                       {skill.category && <p className="truncate text-xs text-fg-muted">{skill.category}</p>}
                     </div>
                     {status ? (
-                      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-emerald-400">
+                      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-success">
                         <Check className="h-3.5 w-3.5" />
                         On your list ({status})
                       </span>

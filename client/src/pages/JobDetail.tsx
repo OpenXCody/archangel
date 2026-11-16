@@ -174,8 +174,8 @@ export default function JobDetail() {
 function ClosedNotice({ job }: { job: JobDetailData }) {
   const closed = job.status === 'closed';
   return (
-    <div className={cn(cardClass, 'mb-6 flex items-start gap-3 border-amber-500/30 p-4')} role="status">
-      <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+    <div className={cn(cardClass, 'mb-6 flex items-start gap-3 border-warning/30 p-4')} role="status">
+      <Lock className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
       <p className="min-w-0 break-words text-sm text-fg-default">
         {closed ? 'This job is closed and no longer takes applications.' : 'This job has expired and no longer takes applications.'}
         {closed && job.closedReason && <span className="text-fg-muted"> Reason: {job.closedReason}</span>}
@@ -244,12 +244,12 @@ function SkillList({ skills, signedIn }: { skills: JobSkill[]; signedIn: boolean
         <li key={skill.id} className={cn(rowClass, 'flex items-center gap-3 px-4 py-2.5')} data-held={signedIn ? String(skill.held) : undefined}>
           {signedIn ? (
             skill.held ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden="true" />
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
             ) : (
               <Circle className="h-4 w-4 shrink-0 text-fg-soft" aria-hidden="true" />
             )
           ) : (
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-success" aria-hidden="true" />
           )}
           <Link
             to={`/skills/${skill.id}`}
@@ -258,7 +258,7 @@ function SkillList({ skills, signedIn }: { skills: JobSkill[]; signedIn: boolean
             {skill.name}
           </Link>
           {signedIn && (
-            <span className={cn('shrink-0 text-xs font-medium', skill.held ? 'text-emerald-400' : 'text-fg-muted')}>
+            <span className={cn('shrink-0 text-xs font-medium', skill.held ? 'text-success' : 'text-fg-muted')}>
               {skill.held ? 'You hold this' : 'Not yet'}
             </span>
           )}
@@ -709,7 +709,7 @@ function ApplicantCard({ applicant, rank }: { applicant: Applicant; rank: number
             Save note
           </Button>
           {saveNote.isSuccess && !noteDirty && (
-            <span role="status" className="inline-flex items-center gap-1.5 text-xs text-emerald-400">
+            <span role="status" className="inline-flex items-center gap-1.5 text-xs text-success">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Saved
             </span>

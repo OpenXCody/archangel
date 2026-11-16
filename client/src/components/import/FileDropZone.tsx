@@ -71,12 +71,12 @@ export default function FileDropZone({
             w-[400px] h-[300px] rounded-2xl
             border-2 border-dashed transition-colors
             ${isDragReject
-              ? 'border-red-500 bg-red-500/10'
-              : 'border-blue-400 bg-blue-400/10'
+              ? 'border-danger bg-danger/10'
+              : 'border-info bg-info/10'
             }
           `}
         >
-          <Upload className={`w-16 h-16 mb-4 ${isDragReject ? 'text-red-500' : 'text-blue-400'}`} />
+          <Upload className={`w-16 h-16 mb-4 ${isDragReject ? 'text-danger' : 'text-info'}`} />
           <p className="text-lg font-medium text-fg-default">
             {isDragReject ? 'Invalid file type' : 'Drop file to import'}
           </p>
@@ -97,8 +97,8 @@ export default function FileDropZone({
           border-2 border-dashed transition-all duration-200
           ${isDragActive
             ? isDragReject
-              ? 'border-red-500 bg-red-500/10'
-              : 'border-blue-400 bg-blue-400/10 scale-[1.02]'
+              ? 'border-danger bg-danger/10'
+              : 'border-info bg-info/10 scale-[1.02]'
             : 'border-border-subtle bg-bg-surface hover:border-border-strong hover:bg-bg-elevated'
           }
         `}
@@ -108,7 +108,7 @@ export default function FileDropZone({
         {isDragActive ? (
           <>
             <Upload
-              className={`w-12 h-12 mb-4 ${isDragReject ? 'text-red-500' : 'text-blue-400'}`}
+              className={`w-12 h-12 mb-4 ${isDragReject ? 'text-danger' : 'text-info'}`}
             />
             <p className="text-fg-default font-medium">
               {isDragReject ? 'Invalid file type' : 'Drop to upload'}
@@ -129,14 +129,14 @@ export default function FileDropZone({
 
       {/* Error display */}
       {error && (
-        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-danger/10 border border-danger/20">
+          <AlertCircle className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-sm text-red-400">{error}</p>
+            <p className="text-sm text-danger">{error}</p>
           </div>
           <button
             onClick={() => setError(null)}
-            className="text-red-400 hover:text-red-300 p-1"
+            className="text-danger hover:text-danger p-1"
           >
             <X className="w-4 h-4" />
           </button>

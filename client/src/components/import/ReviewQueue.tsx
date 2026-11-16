@@ -132,15 +132,15 @@ function ReviewRow({ item, busy, onResolve }: { item: ReviewItem; busy: boolean;
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-sky-400/10"><Factory className="h-3.5 w-3.5 text-sky-400" /></span>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-info/10"><Factory className="h-3.5 w-3.5 text-info" /></span>
             <Link to={`/factories/${item.factoryId}`} className="truncate font-medium text-fg-default hover:underline">{formatFactoryName(item.name)}</Link>
-            <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider', item.reason === 'non_manufacturing' ? 'bg-amber-500/10 text-amber-500' : 'bg-bg-elevated text-fg-muted')}>
+            <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider', item.reason === 'non_manufacturing' ? 'bg-warning/10 text-warning' : 'bg-bg-elevated text-fg-muted')}>
               {REASON_LABEL[item.reason]}
             </span>
           </div>
           <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 pl-9 text-xs text-fg-muted">
             {item.companyName && item.companyId && (
-              <Link to={`/companies/${item.companyId}`} className="inline-flex items-center gap-1 text-amber-500/90 hover:underline"><Building2 className="h-3 w-3" />{formatCompanyName(item.companyName)}</Link>
+              <Link to={`/companies/${item.companyId}`} className="inline-flex items-center gap-1 text-warning/90 hover:underline"><Building2 className="h-3 w-3" />{formatCompanyName(item.companyName)}</Link>
             )}
             {(item.city || item.state) && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{[item.city, item.state].filter(Boolean).join(', ')}</span>}
             {item.naics && <span>NAICS <span className="font-mono text-fg-default">{item.naics}</span>{item.naicsDescription ? ` · ${item.naicsDescription}` : ''}</span>}
@@ -159,9 +159,9 @@ function ReviewRow({ item, busy, onResolve }: { item: ReviewItem; busy: boolean;
           ) : (
             <>
               <button type="button" disabled={busy} onClick={() => onResolve('keep')} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border-subtle px-3 text-xs text-fg-default hover:bg-bg-elevated disabled:opacity-50">
-                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 text-emerald-500" />} Keep
+                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 text-success" />} Keep
               </button>
-              <button type="button" disabled={busy} onClick={() => onResolve('quarantine')} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border-subtle px-3 text-xs text-fg-muted hover:border-red-500/40 hover:text-red-400 disabled:opacity-50">
+              <button type="button" disabled={busy} onClick={() => onResolve('quarantine')} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border-subtle px-3 text-xs text-fg-muted hover:border-danger/40 hover:text-danger disabled:opacity-50">
                 <Trash2 className="h-3.5 w-3.5" /> Remove
               </button>
             </>

@@ -88,7 +88,7 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
         className="
           w-full flex items-center gap-3 px-4 py-2.5
           text-sm text-fg-default
-          hover:bg-white/5 transition-colors
+          hover:bg-tint/5 transition-colors
           text-left
         "
       >
@@ -102,7 +102,7 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
         className="
           w-full flex items-center gap-3 px-4 py-2.5
           text-sm text-fg-default
-          hover:bg-white/5 transition-colors
+          hover:bg-tint/5 transition-colors
           text-left
         "
       >
@@ -122,13 +122,13 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
             className="
               w-full flex items-center gap-3 px-4 py-2.5
               text-sm text-fg-default
-              hover:bg-white/5 transition-colors
+              hover:bg-tint/5 transition-colors
               text-left
             "
           >
-            <FilterX className="w-4 h-4 text-amber-400" />
+            <FilterX className="w-4 h-4 text-fg-muted" />
             <span>Clear Filters</span>
-            <span className="ml-auto px-1.5 py-0.5 rounded-full bg-amber-500/10 text-[10px] text-amber-400">
+            <span className="ml-auto px-1.5 py-0.5 rounded-full bg-bg-elevated text-[10px] text-fg-muted">
               {filters.states.length + (filters.company ? 1 : 0) + (filters.industry ? 1 : 0)}
             </span>
           </button>

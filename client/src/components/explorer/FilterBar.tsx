@@ -121,7 +121,7 @@ function Dropdown({
         <div className="
           absolute top-full left-0 mt-1 z-50
           min-w-[180px] max-h-[280px] overflow-y-auto
-          bg-bg-surface/95 backdrop-blur-xl
+          bg-bg-surface
           border border-border-subtle rounded-lg
           shadow-lg
           py-1
@@ -133,7 +133,7 @@ function Dropdown({
             }}
             className={`
               w-full px-3 py-2 text-left text-sm
-              ${!value ? 'bg-white/10 text-fg-default' : 'text-fg-muted hover:bg-white/5 hover:text-fg-default'}
+              ${!value ? 'bg-tint/10 text-fg-default' : 'text-fg-muted hover:bg-tint/5 hover:text-fg-default'}
               transition-colors
             `}
           >
@@ -149,8 +149,8 @@ function Dropdown({
               className={`
                 w-full px-3 py-2 text-left text-sm
                 ${value === option.value
-                  ? 'bg-white/10 text-fg-default'
-                  : 'text-fg-muted hover:bg-white/5 hover:text-fg-default'
+                  ? 'bg-tint/10 text-fg-default'
+                  : 'text-fg-muted hover:bg-tint/5 hover:text-fg-default'
                 }
                 transition-colors
               `}
@@ -212,7 +212,7 @@ function SortDropdown({
         <div className="
           absolute top-full right-0 mt-1 z-50
           min-w-[200px]
-          bg-bg-surface/95 backdrop-blur-xl
+          bg-bg-surface
           border border-border-subtle rounded-lg
           shadow-lg
           py-1
@@ -227,8 +227,8 @@ function SortDropdown({
               className={`
                 w-full px-3 py-2 text-left text-sm
                 ${value === option.value
-                  ? 'bg-white/10 text-fg-default'
-                  : 'text-fg-muted hover:bg-white/5 hover:text-fg-default'
+                  ? 'bg-tint/10 text-fg-default'
+                  : 'text-fg-muted hover:bg-tint/5 hover:text-fg-default'
                 }
                 transition-colors
               `}
@@ -256,14 +256,14 @@ function FilterBadge({
     <span className="
       inline-flex items-center gap-1.5
       px-2.5 py-1
-      bg-white/5 border border-white/10 rounded-full
+      bg-tint/5 border border-tint/10 rounded-full
       text-xs text-fg-default
     ">
       <span className="text-fg-muted">{label}:</span>
       <span>{value}</span>
       <button
         onClick={onClear}
-        className="ml-0.5 p-0.5 rounded-full hover:bg-white/10 text-fg-muted hover:text-fg-default transition-colors"
+        className="ml-0.5 p-0.5 rounded-full hover:bg-tint/10 text-fg-muted hover:text-fg-default transition-colors"
         aria-label={`Clear ${label} filter`}
       >
         <X className="w-3 h-3" />

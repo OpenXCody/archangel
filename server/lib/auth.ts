@@ -52,8 +52,14 @@ export async function verifyPassword(password: string, stored: string): Promise<
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
-function hashToken(token: string): string {
+/** What is stored for a secret token (a session, an invite): its SHA-256, never the token. */
+export function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
+}
+
+/** A new secret token: 32 random bytes, base64url. */
+export function newToken(): string {
+  return randomBytes(32).toString('base64url');
 }
 
 function isSecureDeployment(): boolean {
@@ -77,7 +83,7 @@ function readSessionToken(req: Request): string | null {
 
 /** Start a session for a user and set its cookie on the response. */
 export async function startSession(res: Response, userId: string): Promise<void> {
-  const token = randomBytes(32).toString('base64url');
+  const token = newToken();
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
   await db.insert(sessions).values({ tokenHash: hashToken(token), userId, expiresAt });
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=${token}; ${cookieAttributes(SESSION_DAYS * 24 * 60 * 60)}`);
