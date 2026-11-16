@@ -151,6 +151,10 @@ export interface Company {
   description: string | null;
   headquartersLat: string | null;
   headquartersLng: string | null;
+  /** Website domain (e.g. "micron.com"); the logo is looked up from it. */
+  domain?: string | null;
+  /** A featured employer: shown first and marked on the map. */
+  featured?: boolean;
   createdAt: string;
   factoryCount?: number;
   totalWorkforce?: number;
@@ -599,13 +603,37 @@ export interface StatesSummaryResponse {
   states: StateSummary[];
 }
 
-export interface StateOverview {
-  code: string;
+/** A company in an overview's Top Companies list. */
+export interface TopCompany {
+  id: string;
+  name: string;
+  /** Website domain for the logo, when known. */
+  domain: string | null;
+  featured: boolean;
+  /** Factories inside the state or area. */
+  count: number;
+  /** Factories nationwide. */
+  sites: number;
+}
+
+/** The totals and rankings the panel shows for a region. */
+export interface RegionOverview {
   totalFactories: number;
   totalCompanies: number;
   totalWorkforce: number;
-  topCompanies: { id: string; name: string; count: number }[];
+  topCompanies: TopCompany[];
   topIndustries: { label: string; count: number }[];
+}
+
+export interface StateOverview extends RegionOverview {
+  code: string;
+}
+
+export interface AreaOverview extends RegionOverview {
+  id: string;
+  name: string;
+  description: string;
+  bounds: [[number, number], [number, number]];
 }
 
 // Map API
@@ -618,4 +646,7 @@ export const mapApi = {
   /** Panel data for a selected state. */
   stateOverview: (code: string) =>
     apiFetch<StateOverview>(`/map/states/${encodeURIComponent(code)}/overview`),
+  /** Panel data for a selected focus area. */
+  areaOverview: (id: string) =>
+    apiFetch<AreaOverview>(`/map/areas/${encodeURIComponent(id)}/overview`),
 };

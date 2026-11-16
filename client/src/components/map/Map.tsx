@@ -1,30 +1,39 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import maplibregl, {
-  Map as MapLibreMap,
-  GeoJSONSource,
-  MapMouseEvent,
-  LngLatBounds,
-  type ExpressionSpecification,
-  type StyleSpecification,
+  type GeoJSONSource,
+  type Map as MapLibreMap,
+  type MapGeoJSONFeature,
+  type MapMouseEvent,
+  type PointLike,
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useQuery } from '@tanstack/react-query';
+import { Loader2, Maximize2, Minus, Plus } from 'lucide-react';
 import { factoriesApi, mapApi } from '../../lib/api';
-import { useMapStore } from '../../stores/mapStore';
+import { useMapStore, type PinInfo } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
-import { SCOPE } from '@shared/scope';
-import { Loader2, Maximize2 } from 'lucide-react';
+import { FOCUS_AREAS, focusArea } from '@shared/scope';
 import {
   applyCameraRequest,
-  fitFocus,
-  fitState,
+  areaReadsAsShape,
+  fitUS,
   flyToPoint,
   initialCamera,
-  isAtFocus,
+  isAtHome,
   isPhoneLayout,
   PANEL_WIDTH_PX,
   sheetPeekPx,
+  zoomBy,
 } from './camera';
+import {
+  addAppLayers,
+  LAYER,
+  PIN_INTERACTIVE_MIN_ZOOM,
+  plainDarkStyle,
+  quietBasemap,
+  setStateShadingDimmed,
+  SOURCE,
+} from './layers';
 
 declare global {
   interface Window {
@@ -36,195 +45,114 @@ declare global {
 // MapTiler style base URL - key added at runtime for retry support
 const MAPTILER_STYLE_BASE = 'https://api.maptiler.com/maps/dataviz-dark/style.json';
 
-// Custom darker style overrides applied after map loads
-const DARK_STYLE_OVERRIDES = {
-  background: '#080808',
-  land: '#0a0a0a',
-  water: '#050505',
-  borders: '#1a1a1a',
-};
-
-/** The app's page background (--color-bg-base), so the keyless map sits flush with the shell. */
-function appBaseColor(): string {
-  return getComputedStyle(document.documentElement).getPropertyValue('--color-bg-base').trim() || '#0f0f0f';
-}
-
-/**
- * Basemap used when there is no MapTiler key (local dev, CI, previews): a
- * plain dark canvas with no external sources, so nothing can fail to load.
- * The app's own layers (state shapes, focus ring, factory dots) draw on top.
- * It has no `glyphs`, which is fine while the app adds no text (symbol)
- * layers; a text layer would need a glyphs URL here first.
- */
-function plainDarkStyle(): StyleSpecification {
-  return {
-    version: 8,
-    name: 'Archangel plain dark',
-    sources: {},
-    layers: [{ id: 'background', type: 'background', paint: { 'background-color': appBaseColor() } }],
-  };
-}
-
-/** Outline of the focus area: a ring SCOPE.focus.radiusMiles around the focus point. */
-function focusRingGeoJSON(): GeoJSON.Feature<GeoJSON.Polygon> {
-  const { latitude, longitude, radiusMiles } = SCOPE.focus;
-  // Same miles-to-degrees conversion as focusBounds() in shared/scope.ts, so
-  // the ring touches the box the camera fits.
-  const dLat = radiusMiles / 69.0;
-  const dLng = radiusMiles / (69.0 * Math.cos((latitude * Math.PI) / 180));
-  const steps = 128;
-  const ring: Array<[number, number]> = [];
-  for (let i = 0; i <= steps; i++) {
-    const a = (i / steps) * 2 * Math.PI;
-    ring.push([longitude + dLng * Math.cos(a), latitude + dLat * Math.sin(a)]);
-  }
-  return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } };
-}
-
-/**
- * Everything outside the in-scope state, as one polygon with the state cut
- * out of it. Drawn as a dark veil so the rest of the map sits back.
- */
-function outsideScopeGeoJSON(scope: GeoJSON.Geometry): GeoJSON.Feature<GeoJSON.Polygon> | null {
-  const holes: GeoJSON.Position[][] =
-    scope.type === 'Polygon' ? [scope.coordinates[0]]
-    : scope.type === 'MultiPolygon' ? scope.coordinates.map((polygon) => polygon[0])
-    : [];
-  if (holes.length === 0) return null;
-  const world: GeoJSON.Position[] = [[-180, -85], [180, -85], [180, 85], [-180, 85], [-180, -85]];
-  return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [world, ...holes] } };
-}
-
-const IN_SCOPE: ExpressionSpecification = ['==', ['get', 'stateCode'], SCOPE.stateCode];
-
-/**
- * Fill opacity of the in-scope state. Shaded by factory count with a floor,
- * so it always reads as lit against the states around it, and fading out
- * across zoom 5.5 → 6.3 so pins can take over without a hard cut. Hover adds
- * a little, which keeps the hover visible when the fill itself is faint.
- * MapLibre rejects data-interpolate wrapped inside zoom-interpolate, so the
- * fade is hand-built with `step` on zoom.
- */
-const HOVER_LIFT: ExpressionSpecification = ['case', ['boolean', ['feature-state', 'hover'], false], 0.07, 0];
-const STATE_FILL_OPACITY: ExpressionSpecification = [
-  'step', ['zoom'],
-  ['+', HOVER_LIFT, ['max', 0.12, ['interpolate', ['linear'], ['get', 'factoryCount'],
-    0, 0, 50, 0.12, 200, 0.18, 800, 0.28, 2500, 0.38, 6000, 0.44,
-  ]]],
-  5.5, ['+', HOVER_LIFT, ['max', 0.08, ['interpolate', ['linear'], ['get', 'factoryCount'],
-    0, 0, 50, 0.08, 200, 0.12, 800, 0.18, 2500, 0.26, 6000, 0.3,
-  ]]],
-  6, ['+', HOVER_LIFT, ['max', 0.04, ['interpolate', ['linear'], ['get', 'factoryCount'],
-    0, 0, 2500, 0.06, 6000, 0.08,
-  ]]],
-  6.3, 0,
-];
-
 // US States GeoJSON, shipped with the app (client/public/data)
 const STATES_GEOJSON_URL = '/data/us-states.geojson';
 
-/** Below this zoom the state reads as a shape and can be hovered and selected. */
+/** Below this zoom a state reads as a shape and can be hovered and selected. */
 const STATE_SELECT_MAX_ZOOM = 6.5;
 
-// Debounce helper for viewport updates
-function debounce<T extends (...args: Parameters<T>) => void>(
-  fn: T,
-  ms: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), ms);
+/** A focus area's label is shown while the area is narrower than this on screen. */
+const AREA_LABEL_MAX_PX = 150;
+/** Space between a focus area's edge and its label, normally; the label's stem spans it. */
+const AREA_LABEL_GAP_PX = 9;
+
+/** How far from a pin a pointer still counts as on it: a mouse is exact, a finger is not. */
+function hitTolerancePx(): number {
+  return window.matchMedia('(pointer: coarse)').matches ? 10 : 4;
+}
+
+/** A pin's GeoJSON properties, as the hover card wants them. */
+function pinInfo(properties: Record<string, unknown> | null): PinInfo | null {
+  const id = properties?.id;
+  if (!properties || typeof id !== 'string') return null;
+  // Tiles carry a missing value as nothing or as the text "null", never as null.
+  const text = (value: unknown): string | null =>
+    typeof value === 'string' && value.trim() !== '' && value !== 'null' ? value : null;
+  return {
+    id,
+    name: text(properties.name) ?? 'Factory',
+    companyName: text(properties.companyName),
+    tier: Number(properties.tier) || 0,
+    city: text(properties.city),
+    state: text(properties.state),
+    industry: text(properties.industry) ?? text(properties.specialization),
+    openJobs: Number(properties.openJobs) || 0,
   };
+}
+
+/**
+ * MapLibre shows its attribution opened out the first time it has something
+ * to credit. Fold it to the small "i" button that once; after that only the
+ * visitor opens or closes it.
+ */
+function collapseAttribution(map: MapLibreMap): void {
+  const el = map.getContainer().querySelector('.maplibregl-ctrl-attrib');
+  if (!el) return;
+  const collapse = (): boolean => {
+    if (!el.classList.contains('maplibregl-compact-show')) return false;
+    el.classList.remove('maplibregl-compact-show');
+    return true;
+  };
+  if (collapse()) return;
+  const observer = new MutationObserver(() => {
+    if (collapse()) observer.disconnect();
+  });
+  observer.observe(el, { attributes: true, attributeFilter: ['class'] });
 }
 
 export default function Map() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
-  const hoveredFactoryIdRef = useRef<string | null>(null);
-  const previousSelectedIdRef = useRef<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [, setViewport] = useState<{
-    bounds: LngLatBounds | null;
-    zoom: number;
-  }>({ bounds: null, zoom: 0 });
+  // True once the camera has left the home view (enables "reset view")
+  const [awayFromHome, setAwayFromHome] = useState(false);
+  // True until the first camera request after a map is created has been handled.
+  const firstRequestRef = useRef(true);
 
-  const {
-    selectedEntityType,
-    selectedEntityId,
-    selectFactory,
-    selectState,
-    setHoveredFactory,
-    hoveredFactoryId,
-    setSidebarOpen,
-    clearSelection,
-    filters,
-    flyToTarget,
-    clearFlyTo,
-    resetView,
-    sidebarOpen,
-  } = useMapStore();
+  const selectedEntityType = useMapStore((s) => s.selectedEntityType);
+  const selectedEntityId = useMapStore((s) => s.selectedEntityId);
+  const hoveredFactoryId = useMapStore((s) => s.hoveredFactoryId);
+  const filters = useMapStore((s) => s.filters);
+  const flyToTarget = useMapStore((s) => s.flyToTarget);
+  const clearFlyTo = useMapStore((s) => s.clearFlyTo);
+  const resetView = useMapStore((s) => s.resetView);
+  const sidebarOpen = useMapStore((s) => s.sidebarOpen);
 
-  // Stable refs for callbacks to avoid recreating map on every render
-  const selectFactoryRef = useRef(selectFactory);
-  const selectStateRef = useRef(selectState);
-  const setHoveredFactoryRef = useRef(setHoveredFactory);
-  const setSidebarOpenRef = useRef(setSidebarOpen);
-  const clearSelectionRef = useRef(clearSelection);
-  
-  useEffect(() => {
-    selectFactoryRef.current = selectFactory;
-    selectStateRef.current = selectState;
-    setHoveredFactoryRef.current = setHoveredFactory;
-    setSidebarOpenRef.current = setSidebarOpen;
-    clearSelectionRef.current = clearSelection;
-  });
-
-  // True once the camera has left the home view (for showing the reset button)
-  const [awayFromFocus, setAwayFromFocus] = useState(false);
-
-  // Only use factory selection for map markers
   const selectedFactoryId = selectedEntityType === 'factory' ? selectedEntityId : null;
+  const selectedStateCode = selectedEntityType === 'state' ? selectedEntityId : null;
+  const selectedAreaId = selectedEntityType === 'area' ? selectedEntityId : null;
 
-  // Build filter params for GeoJSON query including viewport bounds
-  const filterParams = {
-    states: filters.states.length > 0 ? filters.states : undefined,
-    company: filters.company || undefined,
-    industry: filters.industry || undefined,
-    // The region is one state, so every pin loads once. Refetching per
-    // viewport made pins pop in after each pan.
-    bounds: undefined as string | undefined,
-  };
-
-  // Fetch factories GeoJSON with filters and viewport
+  // Every factory the filters allow, in one response. The whole country loads
+  // once; panning and zooming never refetch.
   const { data: factoriesGeoJSON } = useQuery({
-    queryKey: [
-      'factories-geojson',
-      filters.states,
-      filters.company,
-      filters.industry,
-      filterParams.bounds,
-    ],
-    queryFn: () => factoriesApi.geojson(filterParams),
-    staleTime: 5 * 60 * 1000, // pins change rarely; one load covers the whole region
-    placeholderData: (previousData) => previousData, // Keep previous data while loading
+    queryKey: ['factories-geojson', filters.states, filters.company, filters.industry],
+    queryFn: () =>
+      factoriesApi.geojson({
+        states: filters.states.length > 0 ? filters.states : undefined,
+        company: filters.company || undefined,
+        industry: filters.industry || undefined,
+      }),
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData, // keep the pins up while a filter loads
   });
 
-  // A factory chosen from search, a shared link or the Back button never went
-  // through a pin click, so nothing moved the camera. Bring it into view when
-  // it is off screen or the map is zoomed too far out to make it out.
-  useEffect(() => {
-    const m = map.current;
-    if (!m || !mapLoaded || !selectedFactoryId || !factoriesGeoJSON) return;
-    const feature = factoriesGeoJSON.features.find((f) => f.id === selectedFactoryId);
-    if (!feature || feature.geometry.type !== 'Point') return;
-    const [lng, lat] = feature.geometry.coordinates as [number, number];
-    if (m.getZoom() >= 7 && m.getBounds().contains([lng, lat])) return;
-    flyToPoint(m, [lng, lat]);
-  }, [selectedFactoryId, factoriesGeoJSON, mapLoaded]);
+  // Where each factory is, by id: the hovered and selected pins are redrawn
+  // from this, and a factory picked from search or a link is found with it.
+  const pinIndex = useMemo(() => {
+    // Plain object lookup — the component itself is named `Map`, which
+    // shadows the built-in Map constructor inside this file.
+    const index: Record<string, [number, number]> = {};
+    for (const feature of factoriesGeoJSON?.features ?? []) {
+      const id = feature.properties?.id as unknown;
+      if (typeof id !== 'string' || feature.geometry.type !== 'Point') continue;
+      const [lng, lat] = feature.geometry.coordinates;
+      index[id] = [lng, lat];
+    }
+    return index;
+  }, [factoriesGeoJSON]);
 
-  // State-level factory counts (shade the in-scope state)
+  // State-level factory counts (shade the states)
   const { data: stateCounts } = useQuery<Record<string, number>>({
     queryKey: ['state-counts'],
     queryFn: () => mapApi.stateCounts(),
@@ -249,8 +177,6 @@ export default function Map() {
   // must not leave the map without its states.
   const statesWithCounts = useMemo(() => {
     if (!statesGeoJSONRaw) return null;
-    // Plain object lookup — the component itself is named `Map`, which
-    // shadows the built-in Map constructor inside this file.
     const nameToCode: Record<string, string> = {};
     for (const s of US_STATES) nameToCode[s.name] = s.code;
     return {
@@ -264,33 +190,28 @@ export default function Map() {
     } as GeoJSON.FeatureCollection;
   }, [statesGeoJSONRaw, stateCounts]);
 
-  // Handle click outside markers to close panel
-  // Moved inside init to use stable ref, avoiding useCallback dependency issues
-  const handleMapClickRef = useRef((e: MapMouseEvent) => {
-    if (!map.current) return;
-
-    // Check all marker layers including glow
-    const features = map.current.queryRenderedFeatures(e.point, {
-      layers: [
-        'factory-points',
-        'factory-points-glow',
-      ],
-    });
-
-    if (features.length === 0) {
-      setSidebarOpenRef.current(false);
-    }
+  // Boundaries of the focus areas, each feature tagged with its area's id.
+  // An area whose boundary fails to load is simply not outlined; its label
+  // and chip still work, because they frame the area by its bounds.
+  const { data: areaBoundaries } = useQuery<GeoJSON.FeatureCollection>({
+    queryKey: ['focus-area-boundaries'],
+    queryFn: async () => {
+      const loaded = await Promise.all(
+        FOCUS_AREAS.map(async (area): Promise<GeoJSON.Feature[]> => {
+          try {
+            const res = await fetch(area.boundaryUrl);
+            if (!res.ok) return [];
+            const collection = (await res.json()) as GeoJSON.FeatureCollection;
+            return collection.features.map((f) => ({ ...f, properties: { id: area.id, name: area.name } }));
+          } catch {
+            return [];
+          }
+        })
+      );
+      return { type: 'FeatureCollection', features: loaded.flat() };
+    },
+    staleTime: Infinity,
   });
-
-  // Debounced viewport update - created once and stored in ref
-  const updateViewportRef = useRef(
-    debounce((currentMap: MapLibreMap) => {
-      setViewport({
-        bounds: currentMap.getBounds(),
-        zoom: currentMap.getZoom(),
-      });
-    }, 300)
-  );
 
   // Initialize map with retry logic
   useEffect(() => {
@@ -315,7 +236,8 @@ export default function Map() {
           ...initialCamera(),
           minZoom: 2,
           maxZoom: 18,
-          attributionControl: { compact: true },
+          // Added below, bottom-left, so the panel and the zoom buttons never cover it.
+          attributionControl: false,
           renderWorldCopies: false,
         });
       } catch (err) {
@@ -331,6 +253,11 @@ export default function Map() {
 
       const currentMap = map.current;
       if (import.meta.env.DEV) window.__archangelMap = currentMap;
+
+      // The basemap provider's and OpenStreetMap's terms require the credit.
+      // It stays, folded to its "i" button until someone asks for it.
+      currentMap.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
+      collapseAttribution(currentMap);
 
       // Handle map errors with auto-retry
       currentMap.on('error', (e) => {
@@ -353,407 +280,187 @@ export default function Map() {
         }
       });
 
-      // Note: Zoom controls removed for cleaner UI - use scroll/pinch to zoom
-
       currentMap.on('load', () => {
-      // Force a resize once the style loads in case container dimensions
-      // weren't final when the map was created (lazy-loaded route, fonts
-      // settling, etc.). Critically, we must also recenter after resize -
-      // resize() alone recalculates canvas size but doesn't fix the center.
-      // Without this explicit recenter, the viewport can drift (Pacific bug).
-      currentMap.resize();
-      fitFocus(currentMap, { animate: false });
+        // Force a resize once the style loads in case container dimensions
+        // weren't final when the map was created (lazy-loaded route, fonts
+        // settling, etc.). Critically, we must also re-fit after resize -
+        // resize() alone recalculates canvas size but doesn't fix the center.
+        currentMap.resize();
+        fitUS(currentMap, { animate: false });
 
-      setMapLoaded(true);
-
-      // Apply darker style overrides and hide all non-US details
-      // (MapTiler basemap only; the plain style is already exactly what we want)
-      const style = keyless ? null : currentMap.getStyle();
-      if (style?.layers) {
-        style.layers.forEach((layer) => {
-          try {
-            const layerId = layer.id.toLowerCase();
-
-            if (layer.type === 'background') {
-              currentMap.setPaintProperty(layer.id, 'background-color', DARK_STYLE_OVERRIDES.background);
-            }
-
-            if (layer.type === 'fill' && layerId.includes('water')) {
-              currentMap.setPaintProperty(layer.id, 'fill-color', DARK_STYLE_OVERRIDES.water);
-            }
-
-            if (layer.type === 'line' && (
-              layerId.includes('admin') ||
-              layerId.includes('boundary') ||
-              layerId.includes('border') ||
-              layerId.includes('country')
-            )) {
-              currentMap.setLayoutProperty(layer.id, 'visibility', 'none');
-            }
-
-            if (layer.type === 'symbol') {
-              // Keep settlement names (city, town, village, suburb) in a quiet
-              // grey so the Austin area is readable; hide every other label.
-              const isPlaceName =
-                /city|town|village|place|suburb|capital|neighbou?r/.test(layerId) &&
-                !/country|continent|state|ocean|sea|lake|river|water|road|street|highway|poi|airport|park|peak/.test(layerId);
-              if (isPlaceName) {
-                currentMap.setPaintProperty(layer.id, 'text-color', '#8c8c8c');
-                currentMap.setPaintProperty(layer.id, 'text-halo-color', DARK_STYLE_OVERRIDES.background);
-                currentMap.setPaintProperty(layer.id, 'text-halo-width', 1.2);
-              } else {
-                currentMap.setLayoutProperty(layer.id, 'visibility', 'none');
-              }
-            }
-          } catch {
-            // Some layers may not support these properties
-          }
-        });
-      }
-
-      // States source (empty at init — populated by effect below once the
-      // GeoJSON geometry has loaded). promoteId lifts stateCode to the
-      // feature id so hover/selected feature-state calls can key off it.
-      try {
-        currentMap.addSource('states', {
-          type: 'geojson',
-          data: { type: 'FeatureCollection', features: [] },
-          promoteId: 'stateCode',
-        });
-        currentMap.addSource('outside-scope', {
-          type: 'geojson',
-          data: { type: 'FeatureCollection', features: [] },
-        });
-
-        // Everything outside the in-scope state sits back behind a dark veil.
-        // Decorative only: no handlers are bound to it.
-        currentMap.addLayer({
-          id: 'outside-scope-veil',
-          type: 'fill',
-          source: 'outside-scope',
-          paint: { 'fill-color': appBaseColor(), 'fill-opacity': 0.5 },
-        });
-
-        // The in-scope state's fill. The filter makes it the ONLY state in
-        // this layer, and this is the only layer the state handlers below
-        // listen on — so other states cannot hover, click or change the cursor.
-        currentMap.addLayer({
-          id: 'state-fills',
-          type: 'fill',
-          source: 'states',
-          filter: IN_SCOPE,
-          paint: {
-            // One cool-neutral hue. Selection is identified by a dedicated
-            // border layer below, not by a contrasting fill color — keeps
-            // the fill in one tonal family so warm base-map texture can't
-            // bleed through as "beige" or "tan".
-            'fill-color': [
-              'case',
-              ['boolean', ['feature-state', 'hover'], false], '#C6D1DE',
-              '#A3B1C2',
-            ],
-            'fill-opacity': STATE_FILL_OPACITY,
-          },
-        });
-
-        // Borders of the other states — faint context, nothing more.
-        currentMap.addLayer({
-          id: 'state-borders',
-          type: 'line',
-          source: 'states',
-          filter: ['!', IN_SCOPE],
-          paint: {
-            'line-color': '#2a2a2a',
-            'line-width': [
-              'interpolate', ['linear'], ['zoom'],
-              3, 0.5,
-              6, 0.8,
-              10, 1,
-            ],
-            'line-opacity': 0.6,
-          },
-        });
-
-        // Outline of the in-scope state — always visible, clearly stronger
-        // than its neighbours' borders.
-        currentMap.addLayer({
-          id: 'state-scope-outline',
-          type: 'line',
-          source: 'states',
-          filter: IN_SCOPE,
-          paint: {
-            'line-color': '#5c5c5c',
-            'line-width': [
-              'interpolate', ['linear'], ['zoom'],
-              3, 0.8,
-              6, 1.2,
-              10, 1.5,
-            ],
-            'line-opacity': 0.9,
-          },
-        });
-
-        // Selected-state border — sits on top, brighter and thicker,
-        // visible at all zooms. This is how the user identifies "which
-        // state am I in" after zooming past the fill-fade zoom.
-        // Filter starts empty (matches nothing); updated via setFilter
-        // whenever the selected state changes.
-        currentMap.addLayer({
-          id: 'state-selected-border',
-          type: 'line',
-          source: 'states',
-          filter: ['==', ['get', 'stateCode'], ''],
-          paint: {
-            'line-color': '#93C5FD', // sky-300 — matches pin highlight family
-            'line-width': [
-              'interpolate', ['linear'], ['zoom'],
-              3, 1.5,
-              6, 2,
-              10, 2.5,
-            ],
-            'line-opacity': 0.8,
-            'line-blur': 0.2,
-          },
-        });
-
-        // The focus area: a thin, quiet ring around SCOPE.focus.
-        currentMap.addSource('focus-ring', { type: 'geojson', data: focusRingGeoJSON() });
-        currentMap.addLayer({
-          id: 'focus-ring',
-          type: 'line',
-          source: 'focus-ring',
-          paint: {
-            'line-color': '#a6a6a6',
-            'line-width': 1,
-            'line-opacity': 0.4,
-            'line-dasharray': [3, 3],
-          },
-        });
-      } catch (err) {
-        console.error('Failed to add US states layers:', err);
-      }
-
-      // Factories source — clustering OFF per design spec (white dots at all zooms).
-      // Visual density from overlapping white dots with controlled opacity/glow,
-      // NOT from blue count-badge clusters.
-      // `promoteId: 'id'` lifts properties.id to the feature id MapLibre
-      // uses for feature-state (hover/selected). Our ids are UUID strings;
-      // MapLibre doesn't treat string top-level ids as ids, so promoteId
-      // is the clean way to use them.
-      currentMap.addSource('factories', {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-        promoteId: 'id',
-      });
-
-      // Pin glow — white halo with controlled blur/opacity per design spec.
-      // Overlapping halos in dense regions softly bloom without hard edges.
-      // Design spec: z3-5 blur 4-6 opacity 0.12-0.18, z6-8 blur 6-8 opacity 0.18-0.22, z≥9 blur 8-10 opacity 0.22-0.28
-      // Selected/hover: +0.08 opacity
-      currentMap.addLayer({
-        id: 'factory-points-glow',
-        type: 'circle',
-        source: 'factories',
-        paint: {
-          'circle-color': '#ffffff',
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 4],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
-            6, ['case', ['boolean', ['feature-state', 'selected'], false], 9, ['boolean', ['feature-state', 'hover'], false], 8, 7],
-            8, ['case', ['boolean', ['feature-state', 'selected'], false], 10, ['boolean', ['feature-state', 'hover'], false], 9, 8],
-            9, ['case', ['boolean', ['feature-state', 'selected'], false], 12, ['boolean', ['feature-state', 'hover'], false], 11, 10],
-          ],
-          'circle-opacity': [
-            'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 0.2, ['boolean', ['feature-state', 'hover'], false], 0.18, 0.12],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 0.26, ['boolean', ['feature-state', 'hover'], false], 0.24, 0.18],
-            6, ['case', ['boolean', ['feature-state', 'selected'], false], 0.26, ['boolean', ['feature-state', 'hover'], false], 0.24, 0.18],
-            8, ['case', ['boolean', ['feature-state', 'selected'], false], 0.3, ['boolean', ['feature-state', 'hover'], false], 0.28, 0.22],
-            9, ['case', ['boolean', ['feature-state', 'selected'], false], 0.36, ['boolean', ['feature-state', 'hover'], false], 0.34, 0.28],
-          ],
-          'circle-blur': [
-            'interpolate', ['linear'], ['zoom'],
-            3, 0.5,
-            5, 0.55,
-            6, 0.55,
-            8, 0.6,
-            9, 0.65,
-          ],
-        },
-      });
-
-      // Pin cores — white dots visible at all zoom levels per design spec.
-      // Design spec: z3-5 diameter 3-4px opacity 0.55-0.65, z6-8 diameter 5-6px opacity 0.75-0.85, z≥9 diameter 7-8px max opacity 0.90-0.95
-      // Selected/hover: +1-2px core, opacity 1.0
-      currentMap.addLayer({
-        id: 'factory-points',
-        type: 'circle',
-        source: 'factories',
-        paint: {
-          'circle-color': '#ffffff',
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 5, ['boolean', ['feature-state', 'hover'], false], 4, 3],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 6, ['boolean', ['feature-state', 'hover'], false], 5, 4],
-            6, ['case', ['boolean', ['feature-state', 'selected'], false], 7, ['boolean', ['feature-state', 'hover'], false], 6, 5],
-            8, ['case', ['boolean', ['feature-state', 'selected'], false], 8, ['boolean', ['feature-state', 'hover'], false], 7, 6],
-            9, ['case', ['boolean', ['feature-state', 'selected'], false], 9, ['boolean', ['feature-state', 'hover'], false], 8, 7],
-            12, ['case', ['boolean', ['feature-state', 'selected'], false], 10, ['boolean', ['feature-state', 'hover'], false], 9, 8],
-          ],
-          'circle-opacity': [
-            'interpolate', ['linear'], ['zoom'],
-            3, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.55],
-            5, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.65],
-            6, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.75],
-            8, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.85],
-            9, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.90],
-            12, ['case', ['boolean', ['feature-state', 'selected'], false], 1.0, ['boolean', ['feature-state', 'hover'], false], 1.0, 0.95],
-          ],
-        },
-      });
-
-      // Selected marker ring — soft white ring per design spec (1.5px #FFF@0.35)
-      // Scaled proportionally with zoom
-      currentMap.addLayer({
-        id: 'factory-selected',
-        type: 'circle',
-        source: 'factories',
-        filter: ['==', ['get', 'id'], ''],
-        paint: {
-          'circle-color': 'transparent',
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            3, 6,
-            5, 7,
-            6, 8,
-            8, 10,
-            9, 11,
-            12, 14,
-          ],
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 1.5,
-          'circle-stroke-opacity': 0.35,
-        },
-      });
-
-      // === EVENT HANDLERS ===
-
-      // Factory marker click — dots are now visible and clickable at all zoom levels
-      currentMap.on('click', 'factory-points', (e) => {
-        if (!e.features?.[0]) return;
-        const factoryId = e.features[0].id;
-        if (typeof factoryId === 'string') {
-          selectFactoryRef.current(factoryId);
-
-          const geometry = e.features[0].geometry;
-          if (geometry.type === 'Point') {
-            // Centered in what the panel or sheet leaves visible (camera.ts).
-            flyToPoint(currentMap, [geometry.coordinates[0], geometry.coordinates[1]]);
-          }
+        try {
+          // MapTiler basemap only; the plain style is already exactly what we want.
+          const beneathLabels = keyless ? undefined : quietBasemap(currentMap);
+          addAppLayers(currentMap, beneathLabels);
+        } catch (err) {
+          console.error('Failed to add map layers:', err);
         }
+
+        bindInteractions(currentMap);
+        setMapLoaded(true);
       });
 
-      // Hover on factory markers — dots are now interactive at all zoom levels
-      currentMap.on('mouseenter', 'factory-points', (e) => {
-        currentMap.getCanvas().style.cursor = 'pointer';
-        const id = e.features?.[0]?.id;
-        if (typeof id === 'string') {
-          hoveredFactoryIdRef.current = id;
-          setHoveredFactoryRef.current(id, { x: e.point.x, y: e.point.y });
-
-          currentMap.setFeatureState(
-            { source: 'factories', id },
-            { hover: true }
-          );
-        }
-      });
-
-      currentMap.on('mouseleave', 'factory-points', () => {
-        currentMap.getCanvas().style.cursor = '';
-        if (hoveredFactoryIdRef.current) {
-          currentMap.setFeatureState(
-            { source: 'factories', id: hoveredFactoryIdRef.current },
-            { hover: false }
-          );
-          hoveredFactoryIdRef.current = null;
-          setHoveredFactoryRef.current(null);
-        }
-      });
-
-      // Map click (for closing panel)
-      currentMap.on('click', handleMapClickRef.current);
-
-      // ─── State fill interactions ────────────────────────────────────
-      // 'state-fills' holds the in-scope state only, so these never fire
-      // for any other state.
-      // Click the state → select it, set filter, fly to fit its bounds.
-      // Always check for pin clicks first (pins have priority at all zoom levels).
-      let hoveredStateCode: string | null = null;
-      currentMap.on('click', 'state-fills', (e) => {
-        if (!e.features?.[0]) return;
-        // If the user clicked a visible pin, the pin wins — at any zoom. Pins are
-        // drawn from zoom 3 up, so gating this on zoom >= 8 meant a click on a
-        // dot at zoom 6 selected the factory and then immediately re-selected
-        // the state underneath it.
-        const pinHit = currentMap.queryRenderedFeatures(e.point, { layers: ['factory-points', 'factory-points-glow'] });
-        if (pinHit.length > 0) return;
-        // Zoomed in to city level, an empty click is just an empty click.
-        // Selecting the state there would yank the view out to all of Texas.
-        if (currentMap.getZoom() >= STATE_SELECT_MAX_ZOOM) return;
-        const code = e.features[0].properties?.stateCode as string | undefined;
-        if (!code) return;
-        selectStateRef.current(code);
-        frameStateRef.current(currentMap, code, e.features[0].geometry);
-      });
-
-      // Hover a state → brighten its fill + cursor pointer. Only at
-      // zooms where clusters are the primary interaction (< 8).
-      currentMap.on('mousemove', 'state-fills', (e) => {
-        if (currentMap.getZoom() >= STATE_SELECT_MAX_ZOOM) return;
-        const f = e.features?.[0];
-        const code = f?.properties?.stateCode as string | undefined;
-        if (!code) return;
-        currentMap.getCanvas().style.cursor = 'pointer';
-        if (hoveredStateCode && hoveredStateCode !== code) {
-          currentMap.setFeatureState({ source: 'states', id: hoveredStateCode }, { hover: false });
-        }
-        hoveredStateCode = code;
-        currentMap.setFeatureState({ source: 'states', id: code }, { hover: true });
-      });
-      currentMap.on('mouseleave', 'state-fills', () => {
-        currentMap.getCanvas().style.cursor = '';
-        if (hoveredStateCode) {
-          currentMap.setFeatureState({ source: 'states', id: hoveredStateCode }, { hover: false });
-          hoveredStateCode = null;
-        }
-      });
-
-      // Right-click anywhere → clear any lingering selection (factory or
-      // state). Addresses the "persistent blue ring after closing sidebar"
-      // bug: reset-view and empty-click don't always drop the selection.
-      currentMap.on('contextmenu', (e) => {
-        e.preventDefault();
-        clearSelectionRef.current();
-      });
-
-      // Track viewport for data loading
+      // Offer "reset view" whenever the camera has left the home view. The
+      // value only changes when the map crosses that line, so React re-renders
+      // then and not on every move.
       currentMap.on('moveend', () => {
-        updateViewportRef.current(currentMap);
-      });
-
-      // Set initial viewport
-      setViewport({
-        bounds: currentMap.getBounds(),
-        zoom: currentMap.getZoom(),
-      });
-    });
-
-      // Offer "reset view" whenever the camera has left the home view
-      currentMap.on('moveend', () => {
-        setAwayFromFocus(!isAtFocus(currentMap));
+        setAwayFromHome(!isAtHome(currentMap));
       });
     }; // end initMap
+
+    /**
+     * Pointer handling. One click handler and one hover handler for the whole
+     * map, so what is under the pointer is decided in one place and in one
+     * order: a pin (once zoomed in far enough to pick one), then a focus
+     * area, then a state.
+     */
+    const bindInteractions = (currentMap: MapLibreMap) => {
+      const store = useMapStore.getState;
+      const hitLayers = [LAYER.pins, LAYER.areaFill, LAYER.stateFill];
+
+      interface Hit {
+        pin?: MapGeoJSONFeature;
+        area?: MapGeoJSONFeature;
+        state?: MapGeoJSONFeature;
+      }
+
+      const hitTest = (point: maplibregl.Point): Hit => {
+        const r = hitTolerancePx();
+        const box: [PointLike, PointLike] = [[point.x - r, point.y - r], [point.x + r, point.y + r]];
+        // Far out, pins are points of light: the state or area under them takes the pointer.
+        const pinsPickable = currentMap.getZoom() >= PIN_INTERACTIVE_MIN_ZOOM;
+        const layers = hitLayers.filter((id) => currentMap.getLayer(id) && (pinsPickable || id !== LAYER.pins));
+        if (layers.length === 0) return {};
+        const hit: Hit = {};
+        let pinDistance = Infinity;
+        for (const feature of currentMap.queryRenderedFeatures(box, { layers })) {
+          switch (feature.layer.id) {
+            case LAYER.pins: {
+              // Of the pins within reach, the one nearest the pointer.
+              if (feature.geometry.type !== 'Point') break;
+              const at = currentMap.project(feature.geometry.coordinates as [number, number]);
+              const distance = (at.x - point.x) ** 2 + (at.y - point.y) ** 2;
+              if (distance < pinDistance) {
+                pinDistance = distance;
+                hit.pin = feature;
+              }
+              break;
+            }
+            case LAYER.areaFill:
+              hit.area ??= feature;
+              break;
+            case LAYER.stateFill:
+              hit.state ??= feature;
+              break;
+          }
+        }
+        return hit;
+      };
+
+      /** The focus area under the pointer, while it is still seen as a shape. */
+      const areaAt = (hit: Hit) => {
+        const area = focusArea(String(hit.area?.properties?.id ?? ''));
+        return area && areaReadsAsShape(currentMap, area) ? area : undefined;
+      };
+
+      /** The state under the pointer, while states are still seen as shapes. */
+      const stateAt = (hit: Hit): string | undefined => {
+        if (currentMap.getZoom() >= STATE_SELECT_MAX_ZOOM) return undefined;
+        const code = hit.state?.properties?.stateCode as unknown;
+        return typeof code === 'string' && code !== '' ? code : undefined;
+      };
+
+      currentMap.on('click', (e: MapMouseEvent) => {
+        const hit = hitTest(e.point);
+
+        // A pin under the pointer wins, at any zoom.
+        if (hit.pin && hit.pin.geometry.type === 'Point') {
+          const id = hit.pin.properties?.id as unknown;
+          if (typeof id !== 'string') return;
+          store().selectFactory(id);
+          // Centered in what the panel or sheet leaves visible (camera.ts).
+          flyToPoint(currentMap, hit.pin.geometry.coordinates as [number, number]);
+          return;
+        }
+
+        const area = areaAt(hit);
+        if (area) {
+          store().selectArea(area.id);
+          return;
+        }
+
+        // Zoomed in to city level, an empty click is just an empty click.
+        // Selecting the state there would yank the view out to the whole state.
+        const code = stateAt(hit);
+        if (code) {
+          store().selectState(code);
+          return;
+        }
+
+        store().setSidebarOpen(false);
+      });
+
+      // Hover. Mouse moves arrive faster than frames; look once per frame.
+      let hoveredState: string | null = null;
+      let hoveredPin: string | null = null;
+      let pending: maplibregl.Point | null = null;
+      let frame = 0;
+
+      const setHoveredState = (code: string | null) => {
+        if (code === hoveredState) return;
+        if (hoveredState) currentMap.setFeatureState({ source: SOURCE.states, id: hoveredState }, { hover: false });
+        if (code) currentMap.setFeatureState({ source: SOURCE.states, id: code }, { hover: true });
+        hoveredState = code;
+      };
+
+      const setHoveredPin = (feature: MapGeoJSONFeature | null) => {
+        const info = feature ? pinInfo(feature.properties) : null;
+        const id = info?.id ?? null;
+        if (id === hoveredPin) return;
+        hoveredPin = id;
+        if (!feature || !info || feature.geometry.type !== 'Point') {
+          store().setHoveredFactory(null);
+          return;
+        }
+        // The card hangs off the pin, not the pointer, so it holds still.
+        const at = currentMap.project(feature.geometry.coordinates as [number, number]);
+        store().setHoveredFactory(info.id, { x: at.x, y: at.y }, info);
+      };
+
+      const clearHover = () => {
+        pending = null;
+        setHoveredPin(null);
+        setHoveredState(null);
+        currentMap.getCanvas().style.cursor = '';
+      };
+
+      const updateHover = () => {
+        frame = 0;
+        if (!pending || currentMap.isMoving()) return;
+        const hit = hitTest(pending);
+        setHoveredPin(hit.pin ?? null);
+        const overPoint = Boolean(hit.pin);
+        const area = overPoint ? undefined : areaAt(hit);
+        const code = overPoint || area ? undefined : stateAt(hit);
+        setHoveredState(code ?? null);
+        currentMap.getCanvas().style.cursor = overPoint || area || code ? 'pointer' : '';
+      };
+
+      currentMap.on('mousemove', (e: MapMouseEvent) => {
+        pending = e.point;
+        if (!frame) frame = requestAnimationFrame(updateHover);
+      });
+      currentMap.on('mouseout', clearHover);
+      // The card is placed in screen space: once the map moves it would be wrong.
+      currentMap.on('movestart', () => setHoveredPin(null));
+
+      // Right-click anywhere → clear any lingering selection (factory, area
+      // or state). The page shows its context menu on the same event.
+      currentMap.on('contextmenu', (e) => {
+        e.preventDefault();
+        store().clearSelection();
+      });
+    };
 
     // Small delay on initial load to ensure env is ready
     const initTimer = setTimeout(initMap, 100);
@@ -765,293 +472,251 @@ export default function Map() {
         map.current.remove();
         map.current = null;
       }
-      // Reset mapLoaded so data effects will fire on remount
+      // Reset so data effects fire again on remount, and so the next map's
+      // first camera request (a shared link) is applied without a flight.
       setMapLoaded(false);
+      firstRequestRef.current = true;
     };
-  }, []); // Empty deps - map is created once, callbacks use stable refs
+  }, []); // Empty deps - map is created once, handlers read the live store
 
-  // Update factories data when loaded.
-  // Depends on mapLoaded too — so that after a route-level remount
-  // (Map → Nodes → Map), the freshly-created map source gets populated
-  // even though the cached GeoJSON reference hasn't changed.
+  // Push data into a source. Depends on mapLoaded too — so that after a
+  // route-level remount (Map → Explore → Map), the freshly-created source is
+  // populated even though the cached data reference hasn't changed.
+  const setSourceData = (sourceId: string, data: GeoJSON.FeatureCollection | null | undefined) => {
+    if (!map.current || !mapLoaded || !data) return;
+    const source = map.current.getSource(sourceId) as GeoJSONSource | undefined;
+    source?.setData(data);
+  };
+
   useEffect(() => {
-    if (!map.current || !mapLoaded || !factoriesGeoJSON) return;
-
-    const currentMap = map.current;
-    
-    // Retry logic: source might not be ready immediately after style loads
-    const updateSource = () => {
-      const source = currentMap.getSource('factories') as GeoJSONSource | undefined;
-      if (!source) {
-        console.warn('Factories source not ready, retrying...');
-        setTimeout(updateSource, 100);
-        return;
-      }
-      // Server provides top-level `id` on each feature already — no client-side
-      // id synthesis needed.
-      source.setData(factoriesGeoJSON);
-    };
-    
-    updateSource();
+    setSourceData(SOURCE.factories, factoriesGeoJSON);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [factoriesGeoJSON, mapLoaded]);
 
-  // Populate the states source once the GeoJSON geometry has loaded (and
-  // again when the factory counts arrive). Re-fires on mapLoaded so fresh
-  // map instances get the data after a route-level remount.
   useEffect(() => {
-    if (!map.current || !mapLoaded || !statesWithCounts) return;
-    
-    const currentMap = map.current;
-    
-    // Retry logic: source might not be ready immediately after style loads
-    const updateSource = () => {
-      const source = currentMap.getSource('states') as GeoJSONSource | undefined;
-      if (!source) {
-        console.warn('States source not ready, retrying...');
-        setTimeout(updateSource, 100);
-        return;
-      }
-      source.setData(statesWithCounts);
-
-      const scope = statesWithCounts.features.find(
-        (f) => (f.properties as { stateCode?: string } | null)?.stateCode === SCOPE.stateCode
-      );
-      const outside = scope ? outsideScopeGeoJSON(scope.geometry) : null;
-      const veil = currentMap.getSource('outside-scope') as GeoJSONSource | undefined;
-      if (outside && veil) veil.setData(outside);
-    };
-    
-    updateSource();
+    setSourceData(SOURCE.states, statesWithCounts);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statesWithCounts, mapLoaded]);
 
-  // Ref mirror of statesWithCounts so the state-click handler (captured
-  // inside the load callback) can access the latest full GeoJSON for
-  // bbox computation. Without this, it would close over the initial
-  // `null` value.
-  const statesWithCountsRef = useRef<GeoJSON.FeatureCollection | null>(null);
-
-  // Frame a state. Uses our full in-memory geometry (tile features are
-  // clipped at tile edges) and falls back to whatever geometry was clicked.
-  // Framing and padding are camera.ts's business.
-  const frameStateRef = useRef((m: MapLibreMap, code: string, fallback?: GeoJSON.Geometry) => {
-    const full = statesWithCountsRef.current?.features?.find(
-      (f) => (f.properties as { stateCode?: string } | null)?.stateCode === code
-    );
-    const geom = full?.geometry ?? fallback;
-    if (!geom || (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon')) return;
-    fitState(m, geom);
-  });
-
-  // A shared link like /map?state=TX selects the state before the map exists;
-  // once tiles and geometry are ready, frame it exactly as a click would.
-  const initialStateFitDone = useRef(false);
   useEffect(() => {
-    if (initialStateFitDone.current || !mapLoaded || !map.current || !statesWithCounts) return;
-    initialStateFitDone.current = true;
-    if (selectedEntityType === 'state' && selectedEntityId) frameStateRef.current(map.current, selectedEntityId);
-  }, [mapLoaded, statesWithCounts, selectedEntityType, selectedEntityId]);
-  useEffect(() => {
-    statesWithCountsRef.current = statesWithCounts;
-  }, [statesWithCounts]);
+    setSourceData(SOURCE.areas, areaBoundaries);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [areaBoundaries, mapLoaded]);
 
-  // When a company filter is active we force pins to full visibility at every
-  // zoom — otherwise "Locate All Factories" on a national company flies
-  // to continental view and the pins remain at their default low opacity.
-  // Ref mirror lets the click/hover handlers (captured in the load callback) check this too.
-  const pinsAlwaysVisible = !!filters.company;
-  const pinsAlwaysVisibleRef = useRef(pinsAlwaysVisible);
+  // The hovered and the selected pin, redrawn above their neighbours. Hover
+  // comes from the map or from a factory row in the panel; either way it is
+  // one tiny source update, never a restyle of the 48,000-point layer.
   useEffect(() => {
-    pinsAlwaysVisibleRef.current = pinsAlwaysVisible;
-  }, [pinsAlwaysVisible]);
+    const features: GeoJSON.Feature[] = [];
+    const add = (id: string | null, kind: 'hover' | 'selected') => {
+      const lngLat = id ? pinIndex[id] : undefined;
+      if (!lngLat) return;
+      features.push({ type: 'Feature', properties: { kind }, geometry: { type: 'Point', coordinates: lngLat } });
+    };
+    if (hoveredFactoryId !== selectedFactoryId) add(hoveredFactoryId, 'hover');
+    add(selectedFactoryId, 'selected');
+    setSourceData(SOURCE.activePins, { type: 'FeatureCollection', features });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hoveredFactoryId, selectedFactoryId, pinIndex, mapLoaded]);
 
-  // Default zoom-based opacity curves per design spec, used when no company
-  // filter forces pins on. White dots visible at all zoom levels with controlled opacity.
-  const defaultPointOpacity: ExpressionSpecification = [
-    'interpolate', ['linear'], ['zoom'],
-    3, 0.55, 5, 0.65, 6, 0.75, 8, 0.85, 9, 0.90, 12, 0.95,
-  ];
-  const defaultGlowOpacity: ExpressionSpecification = [
-    'interpolate', ['linear'], ['zoom'],
-    3, 0.12, 5, 0.18, 6, 0.18, 8, 0.22, 9, 0.28,
-  ];
-
-  // Swap pin paint opacity when the company filter toggles. With a filter
-  // active the result set is small enough that always-on doesn't bloom.
-  // Also dim the state-fills so the choropleth doesn't read as "this is
-  // the filtered company's density" — the choropleth is an all-factories
-  // reference and should step back when the focus is one company.
+  // A factory chosen from search, a shared link or the Back button never went
+  // through a pin click, so nothing moved the camera. Bring it into view when
+  // it is off screen or the map is zoomed too far out to make it out.
   useEffect(() => {
-    if (!map.current || !mapLoaded) return;
     const m = map.current;
-    if (!m.getLayer('factory-points') || !m.getLayer('factory-points-glow')) return;
-    try {
-      m.setPaintProperty('factory-points', 'circle-opacity',
-        pinsAlwaysVisible ? 0.85 : defaultPointOpacity);
-      m.setPaintProperty('factory-points-glow', 'circle-opacity',
-        pinsAlwaysVisible ? 0.22 : defaultGlowOpacity);
-      // Dim state fills while a company filter is on — keeps them as a
-      // subtle territory guide without competing with the pin story.
-      if (m.getLayer('state-fills')) {
-        m.setPaintProperty('state-fills', 'fill-opacity', pinsAlwaysVisible
-          ? 0.04
-          : STATE_FILL_OPACITY);
-      }
-    } catch { /* layers may not be ready yet — the effect re-fires with mapLoaded */ }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pinsAlwaysVisible, mapLoaded]);
+    const lngLat = selectedFactoryId ? pinIndex[selectedFactoryId] : undefined;
+    if (!m || !mapLoaded || !lngLat) return;
+    if (m.getZoom() >= 7 && m.getBounds().contains(lngLat)) return;
+    flyToPoint(m, lngLat);
+  }, [selectedFactoryId, pinIndex, mapLoaded]);
 
-  // Track the previously-selected state so we can clear its feature-state
-  // when a different state (or nothing) is selected. Also drives the
-  // state-selected-border layer's filter so exactly one state is outlined.
-  const previousSelectedStateRef = useRef<string | null>(null);
+  // Outline the selected state and light its fill; exactly one state (or none).
+  const previousStateRef = useRef<string | null>(null);
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !mapLoaded) return;
+    const previous = previousStateRef.current;
+    try {
+      if (previous && previous !== selectedStateCode) {
+        m.setFeatureState({ source: SOURCE.states, id: previous }, { selected: false });
+      }
+      if (selectedStateCode) {
+        m.setFeatureState({ source: SOURCE.states, id: selectedStateCode }, { selected: true });
+      }
+      m.setFilter(LAYER.stateSelected, ['==', ['get', 'stateCode'], selectedStateCode ?? '']);
+    } catch { /* the layers failed to add; nothing to highlight */ }
+    previousStateRef.current = selectedStateCode;
+  }, [selectedStateCode, mapLoaded]);
+
+  // Light the selected focus area a little more.
+  const previousAreaRef = useRef<string | null>(null);
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !mapLoaded) return;
+    const previous = previousAreaRef.current;
+    try {
+      if (previous && previous !== selectedAreaId) {
+        m.setFeatureState({ source: SOURCE.areas, id: previous }, { selected: false });
+      }
+      if (selectedAreaId) m.setFeatureState({ source: SOURCE.areas, id: selectedAreaId }, { selected: true });
+    } catch { /* the layers failed to add; nothing to highlight */ }
+    previousAreaRef.current = selectedAreaId;
+  }, [selectedAreaId, mapLoaded]);
+
+  // The state shading is an all-factories reference; while one company is the
+  // subject it steps back so it is not read as that company's footprint.
+  const companyFiltered = Boolean(filters.company);
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
-    const currentMap = map.current;
-    const prev = previousSelectedStateRef.current;
-    const next = selectedEntityType === 'state' ? selectedEntityId : null;
-    if (prev && prev !== next) {
-      try {
-        currentMap.setFeatureState({ source: 'states', id: prev }, { selected: false });
-      } catch { /* source may not be ready */ }
-    }
-    if (next) {
-      try {
-        currentMap.setFeatureState({ source: 'states', id: next }, { selected: true });
-      } catch { /* source may not be ready */ }
-    }
-    // Update the selected-border filter to show exactly the one state (or none)
     try {
-      currentMap.setFilter('state-selected-border', ['==', ['get', 'stateCode'], next ?? '']);
-    } catch { /* layer may not be ready */ }
-    previousSelectedStateRef.current = next;
-  }, [selectedEntityType, selectedEntityId, mapLoaded]);
+      setStateShadingDimmed(map.current, companyFiltered);
+    } catch { /* the layers failed to add */ }
+  }, [companyFiltered, mapLoaded]);
 
-  // Optimized selection update - only update changed features
+  // A label on each focus area. At country zoom an area is a speck, so the
+  // label is what a visitor sees and clicks; once the area is big enough to
+  // read on its own, the label steps aside. These are plain DOM elements that
+  // MapLibre positions itself: no React work while the map moves.
   useEffect(() => {
-    if (!map.current) return;
+    const m = map.current;
+    if (!m || !mapLoaded) return;
+    const labels = FOCUS_AREAS.map((area) => {
+      const [[west, south], [east, north]] = area.bounds;
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'map-overlay map-area-label';
+      el.textContent = area.name;
+      el.setAttribute('aria-label', `Go to the ${area.name} focus area`);
+      el.addEventListener('click', (event) => {
+        event.stopPropagation(); // not also a click on the map beneath
+        useMapStore.getState().selectArea(area.id);
+      });
+      const marker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([0, 0]).addTo(m);
+      return { el, marker, west, east, north, south };
+    });
+    type Label = (typeof labels)[number];
 
-    const currentMap = map.current;
+    // Where a tag can sit: beside the middle of one edge of the area's box,
+    // a stem's length away. Sides in order of preference; the longer stem is
+    // for when a cluster sits on the area itself and every near spot is taken.
+    const sides = ['above', 'below', 'left', 'right'] as const;
+    const stems = [AREA_LABEL_GAP_PX, AREA_LABEL_GAP_PX * 3];
+    type Side = (typeof sides)[number];
+    interface Spot { side: Side; stem: number }
+    const spots: Spot[] = stems.flatMap((stem) => sides.map((side) => ({ side, stem })));
 
-    const updateSelection = () => {
-      // Update filter for selected ring layer
-      currentMap.setFilter('factory-selected', [
-        '==',
-        ['get', 'id'],
-        selectedFactoryId || '',
-      ]);
-
-      // Only update feature state for changed features (optimization)
-      const prevId = previousSelectedIdRef.current;
-
-      if (prevId && prevId !== selectedFactoryId) {
-        try {
-          currentMap.setFeatureState(
-            { source: 'factories', id: prevId },
-            { selected: false }
-          );
-        } catch {
-          // Feature may not exist anymore
-        }
+    const position = (label: Label, { side, stem }: Spot): { lngLat: [number, number]; offset: [number, number] } => {
+      const lng = (label.west + label.east) / 2;
+      const lat = (label.south + label.north) / 2;
+      const dx = label.el.offsetWidth / 2 + stem;
+      const dy = label.el.offsetHeight / 2 + stem;
+      switch (side) {
+        case 'above': return { lngLat: [lng, label.north], offset: [0, -dy] };
+        case 'below': return { lngLat: [lng, label.south], offset: [0, dy] };
+        case 'left': return { lngLat: [label.west, lat], offset: [-dx, 0] };
+        case 'right': return { lngLat: [label.east, lat], offset: [dx, 0] };
       }
-
-      if (selectedFactoryId) {
-        try {
-          currentMap.setFeatureState(
-            { source: 'factories', id: selectedFactoryId },
-            { selected: true }
-          );
-        } catch {
-          // Feature may not be loaded yet
-        }
-      }
-
-      previousSelectedIdRef.current = selectedFactoryId;
+    };
+    const place = (label: Label, spot: Spot) => {
+      const { lngLat, offset } = position(label, spot);
+      label.marker.setLngLat(lngLat).setOffset(offset);
+      // The stem is drawn in CSS (globals.css) from these two.
+      label.el.dataset.side = spot.side;
+      label.el.style.setProperty('--stem', `${spot.stem}px`);
     };
 
-    if (currentMap.isStyleLoaded()) {
-      updateSelection();
-    } else {
-      currentMap.once('load', updateSelection);
-    }
-  }, [selectedFactoryId]);
-
-  // Respond to hover changes from sidebar (not just direct map hover)
-  useEffect(() => {
-    if (!map.current) return;
-
-    const currentMap = map.current;
-
-    const updateHover = () => {
-      // Clear previous hover if different
-      const prevHovered = hoveredFactoryIdRef.current;
-      if (prevHovered && prevHovered !== hoveredFactoryId) {
-        try {
-          currentMap.setFeatureState(
-            { source: 'factories', id: prevHovered },
-            { hover: false }
-          );
-        } catch {
-          // Feature may not exist
-        }
+    // Hide the tag once the area is wide enough on screen to read by itself.
+    const syncVisibility = () => {
+      for (const label of labels) {
+        const widthPx = m.project([label.east, label.north]).x - m.project([label.west, label.north]).x;
+        label.el.classList.toggle('is-hidden', widthPx > AREA_LABEL_MAX_PX);
       }
-
-      // Set new hover
-      if (hoveredFactoryId) {
-        try {
-          currentMap.setFeatureState(
-            { source: 'factories', id: hoveredFactoryId },
-            { hover: true }
-          );
-        } catch {
-          // Feature may not be loaded yet
-        }
-      }
-
-      hoveredFactoryIdRef.current = hoveredFactoryId;
     };
 
-    if (currentMap.isStyleLoaded()) {
-      updateHover();
-    }
-  }, [hoveredFactoryId]);
+    for (const label of labels) place(label, spots[0]);
+    syncVisibility();
+    m.on('zoom', syncVisibility);
+    return () => {
+      m.off('zoom', syncVisibility);
+      for (const { marker } of labels) marker.remove();
+    };
+  }, [mapLoaded]);
 
-  // Carry out camera requests posted to the store. Waits for the map: a
-  // request made before it loaded is applied as soon as it has.
+  // Carry out camera requests posted to the store. Waits for the map, and a
+  // state waits for its shape: a request made early is applied as soon as it
+  // can be. The request a page load arrives with (a shared link) is applied
+  // without a flight, so the link opens on its view.
   useEffect(() => {
-    if (!map.current || !mapLoaded || !flyToTarget) return;
-    applyCameraRequest(map.current, flyToTarget);
+    const m = map.current;
+    if (!m || !mapLoaded) return;
+    if (!flyToTarget) {
+      firstRequestRef.current = false;
+      return;
+    }
+    const done = applyCameraRequest(m, flyToTarget, {
+      animate: !firstRequestRef.current,
+      stateGeometry: (code) =>
+        statesWithCounts?.features.find(
+          (f) => (f.properties as { stateCode?: string } | null)?.stateCode === code
+        )?.geometry,
+    });
+    if (!done) return;
+    firstRequestRef.current = false;
     clearFlyTo();
-  }, [flyToTarget, clearFlyTo, mapLoaded]);
+  }, [flyToTarget, clearFlyTo, mapLoaded, statesWithCounts]);
 
-  // Keep the reset button clear of the open panel (desktop) or sheet (phone).
-  const resetButtonOffset = !sidebarOpen
-    ? undefined
-    : isPhoneLayout()
-      ? { bottom: sheetPeekPx() + 12 }
-      : { right: PANEL_WIDTH_PX + 12 };
+  // Keep the controls and the attribution clear of the open panel (desktop)
+  // or sheet (phone).
+  const phone = isPhoneLayout();
+  const coveredRight = sidebarOpen && !phone ? PANEL_WIDTH_PX : 0;
+  const coveredBottom = sidebarOpen && phone ? sheetPeekPx() : 0;
 
   return (
     <>
       <div
         ref={mapContainer}
-        className="absolute inset-0 w-full h-full"
-        style={{ background: 'var(--color-bg-base)' }}
+        className="archangel-map isolate absolute inset-0 w-full h-full"
+        style={{ background: 'var(--color-bg-base)', '--map-covered-bottom': `${coveredBottom}px` } as CSSProperties}
       />
 
-      {/* Reset view button */}
-      {awayFromFocus && mapLoaded && (
-        <button
-          onClick={resetView}
-          className="absolute bottom-24 right-3 z-30 p-2.5 rounded-lg
-            bg-bg-surface/90 backdrop-blur-sm border border-white/10
-            text-fg-muted hover:text-fg-default hover:bg-bg-surface
-            transition-all shadow-lg"
-          style={resetButtonOffset}
-          title={`Reset to the ${SCOPE.focus.name} area`}
-          aria-label={`Reset to the ${SCOPE.focus.name} area`}
+      {/* Reset view and zoom */}
+      {mapLoaded && (
+        <div
+          className="absolute z-30 flex flex-col gap-2"
+          style={{ right: coveredRight + 12, bottom: coveredBottom + 16 }}
         >
-          <Maximize2 className="w-5 h-5" />
-        </button>
+          <button
+            type="button"
+            onClick={resetView}
+            disabled={!awayFromHome && !sidebarOpen}
+            className="map-overlay map-overlay-button flex h-10 w-10 items-center justify-center rounded-lg"
+            title="Reset view"
+            aria-label="Reset view"
+          >
+            <Maximize2 className="h-[18px] w-[18px]" />
+          </button>
+          <div className="map-overlay flex flex-col overflow-hidden rounded-lg">
+            <button
+              type="button"
+              onClick={() => map.current && zoomBy(map.current, 1)}
+              className="map-overlay-button flex h-10 w-10 items-center justify-center"
+              title="Zoom in"
+              aria-label="Zoom in"
+            >
+              <Plus className="h-[18px] w-[18px]" />
+            </button>
+            <span className="h-px bg-border-strong" aria-hidden="true" />
+            <button
+              type="button"
+              onClick={() => map.current && zoomBy(map.current, -1)}
+              className="map-overlay-button flex h-10 w-10 items-center justify-center"
+              title="Zoom out"
+              aria-label="Zoom out"
+            >
+              <Minus className="h-[18px] w-[18px]" />
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Loading state */}
@@ -1069,7 +734,7 @@ export default function Map() {
         <div className="absolute inset-0 flex items-center justify-center bg-bg-base">
           <div className="flex flex-col items-center gap-3 text-center px-4">
             <span className="text-fg-muted">Failed to load map</span>
-            <span className="text-sm text-fg-soft">{mapError}</span>
+            <span className="text-sm text-fg-muted">{mapError}</span>
             <button
               onClick={() => window.location.reload()}
               className="mt-2 px-4 py-2 text-sm bg-white/10 rounded-lg hover:bg-white/20 transition-colors"

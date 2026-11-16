@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { sql } from 'drizzle-orm';
+import { sql, type SQL } from 'drizzle-orm';
 import { db, factories } from '../db/index.js';
-import { factoryInScope, isStateInScope } from '../lib/scope.js';
+import { factoryInBox, factoryInScope, isStateInScope } from '../lib/scope.js';
+import { FOCUS_AREAS, focusArea } from '../../shared/scope.js';
 
 const router = Router();
 
@@ -116,6 +117,71 @@ router.get('/states/summary', async (_req: Request, res: Response) => {
   }
 });
 
+/**
+ * Panel data for a set of factories: totals, the companies with the most
+ * factories in the set, and its largest industries. `inSet` is given the name
+ * the factories table goes by in each query.
+ *
+ * Top companies put featured employers first, then established companies
+ * (those with several factories nationwide), then by factories in the set, so
+ * the list opens on names people recognise rather than on whoever has the
+ * most registry entries.
+ */
+async function buildOverview(inSet: (factoryTable: string) => SQL) {
+  const [totalsRow] = await db
+    .select({
+      totalFactories: sql<number>`COUNT(*)::int`,
+      totalWorkforce: sql<number>`COALESCE(SUM(${factories.workforceSize}), 0)::int`,
+      totalCompanies: sql<number>`COUNT(DISTINCT ${factories.companyId})::int`,
+    })
+    .from(factories)
+    .where(sql`${inSet('factories')} AND ${factoryInScope()}`);
+
+  const topCompanies = await db.execute(sql`
+    SELECT c.id, c.name, c.domain, c.featured, COUNT(*)::int AS count,
+           (SELECT COUNT(*)::int FROM factories site WHERE site.company_id = c.id) AS sites
+    FROM factories f
+    INNER JOIN companies c ON c.id = f.company_id
+    WHERE ${inSet('f')} AND ${factoryInScope('f')}
+      AND c.name ~ '[A-Za-z]{2,}'
+      AND c.name !~ '^[#(]'
+      AND c.name !~ '^\\d+\\s'
+      AND c.name !~ '^\\d+/\\d'
+    GROUP BY c.id, c.name, c.domain, c.featured
+    ORDER BY c.featured DESC, count DESC, sites DESC, c.name ASC
+    LIMIT 12
+  `);
+
+  const topIndustries = await db.execute(sql`
+    SELECT
+      COALESCE(f.primary_naics_description, f.primary_naics, 'Unclassified') AS label,
+      COUNT(*)::int AS count
+    FROM factories f
+    WHERE ${inSet('f')} AND ${factoryInScope('f')} AND f.primary_naics IS NOT NULL
+    GROUP BY label
+    ORDER BY count DESC
+    LIMIT 8
+  `);
+
+  return {
+    totalFactories: totalsRow?.totalFactories ?? 0,
+    totalCompanies: totalsRow?.totalCompanies ?? 0,
+    totalWorkforce: totalsRow?.totalWorkforce ?? 0,
+    topCompanies: Array.from(topCompanies as Iterable<Record<string, unknown>>).map((r) => ({
+      id: r.id,
+      name: r.name,
+      domain: r.domain ?? null,
+      featured: Boolean(r.featured),
+      count: r.count,
+      sites: r.sites,
+    })),
+    topIndustries: Array.from(topIndustries as Iterable<Record<string, unknown>>).map((r) => ({
+      label: r.label,
+      count: r.count,
+    })),
+  };
+}
+
 // GET /api/map/states/:code/overview - Panel data for a selected state.
 // A state outside the scope is a 404, the same as one that does not exist.
 router.get('/states/:code/overview', async (req: Request, res: Response) => {
@@ -128,60 +194,34 @@ router.get('/states/:code/overview', async (req: Request, res: Response) => {
     res.status(404).json({ error: 'State not found' });
     return;
   }
-
   try {
-    const [totalsRow] = await db
-      .select({
-        totalFactories: sql<number>`COUNT(*)::int`,
-        totalWorkforce: sql<number>`COALESCE(SUM(${factories.workforceSize}), 0)::int`,
-        totalCompanies: sql<number>`COUNT(DISTINCT ${factories.companyId})::int`,
-      })
-      .from(factories)
-      .where(sql`${factories.state} = ${code} AND ${factoryInScope()}`);
-
-    const topCompanies = await db.execute(sql`
-      SELECT c.id, c.name, COUNT(*)::int AS count
-      FROM factories f
-      INNER JOIN companies c ON c.id = f.company_id
-      WHERE f.state = ${code} AND ${factoryInScope('f')}
-        AND c.name ~ '[A-Za-z]{2,}'
-        AND c.name !~ '^[#(]'
-        AND c.name !~ '^\\d+\\s'
-        AND c.name !~ '^\\d+/\\d'
-      GROUP BY c.id, c.name
-      ORDER BY count DESC, c.name ASC
-      LIMIT 10
-    `);
-
-    const topIndustries = await db.execute(sql`
-      SELECT
-        COALESCE(primary_naics_description, primary_naics, 'Unclassified') AS label,
-        COUNT(*)::int AS count
-      FROM factories
-      WHERE state = ${code} AND ${factoryInScope()} AND primary_naics IS NOT NULL
-      GROUP BY label
-      ORDER BY count DESC
-      LIMIT 8
-    `);
-
-    res.json({
-      code,
-      totalFactories: totalsRow?.totalFactories ?? 0,
-      totalCompanies: totalsRow?.totalCompanies ?? 0,
-      totalWorkforce: totalsRow?.totalWorkforce ?? 0,
-      topCompanies: Array.from(topCompanies as Iterable<Record<string, unknown>>).map((r) => ({
-        id: r.id,
-        name: r.name,
-        count: r.count,
-      })),
-      topIndustries: Array.from(topIndustries as Iterable<Record<string, unknown>>).map((r) => ({
-        label: r.label,
-        count: r.count,
-      })),
-    });
+    const overview = await buildOverview((t) => sql`${sql.identifier(t)}.state = ${code}`);
+    res.json({ code, ...overview });
   } catch (error) {
     console.error('Error fetching state overview:', error);
     res.status(500).json({ error: 'Failed to fetch state overview' });
+  }
+});
+
+// GET /api/map/areas - The focus areas: regions being filled out in depth.
+router.get('/areas', (_req: Request, res: Response) => {
+  res.json({ areas: FOCUS_AREAS });
+});
+
+// GET /api/map/areas/:id/overview - Panel data for a focus area, the same
+// shape as a state's. Factories are taken from the area's bounding box.
+router.get('/areas/:id/overview', async (req: Request, res: Response) => {
+  const area = focusArea(String(req.params.id));
+  if (!area) {
+    res.status(404).json({ error: 'Area not found' });
+    return;
+  }
+  try {
+    const overview = await buildOverview((t) => factoryInBox(area.bounds, t));
+    res.json({ id: area.id, name: area.name, description: area.description, bounds: area.bounds, ...overview });
+  } catch (error) {
+    console.error('Error fetching area overview:', error);
+    res.status(500).json({ error: 'Failed to fetch area overview' });
   }
 });
 

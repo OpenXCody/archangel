@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Maximize2, Search, FilterX } from 'lucide-react';
 import { useMapStore } from '../../stores/mapStore';
-import { SCOPE } from '@shared/scope';
 
 interface MapContextMenuProps {
   x: number;
@@ -72,10 +71,9 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
     <div
       ref={menuRef}
       className="
+        map-overlay
         fixed z-50
-        bg-bg-surface/95 backdrop-blur-md
-        border border-white/10 rounded-xl
-        shadow-xl shadow-black/20
+        rounded-xl
         py-1.5 min-w-[180px]
         animate-in fade-in zoom-in-95 duration-100
       "
@@ -95,8 +93,7 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
         "
       >
         <Maximize2 className="w-4 h-4 text-fg-muted" />
-        <span>Reset View</span>
-        <span className="ml-auto text-xs text-fg-soft">{SCOPE.focus.name} area</span>
+        <span>Reset view</span>
       </button>
 
       {/* Search */}
@@ -111,7 +108,7 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
       >
         <Search className="w-4 h-4 text-fg-muted" />
         <span>Search</span>
-        <kbd className="ml-auto px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] text-fg-soft">
+        <kbd className="ml-auto px-1.5 py-0.5 rounded bg-bg-base border border-border-strong text-[10px] text-fg-muted">
           /
         </kbd>
       </button>
@@ -119,7 +116,7 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
       {/* Clear Filters - only show if filters are active */}
       {hasActiveFilters && (
         <>
-          <div className="my-1.5 border-t border-white/5" />
+          <div className="my-1.5 border-t border-border-strong" />
           <button
             onClick={handleClearFilters}
             className="

@@ -1,0 +1,650 @@
+{
+ "_about": "Company identities for logos and the featured tier. `name` must match companies.name exactly. `domain` is used to show the company's logo; `featured` marks a recognised employer that lists and the map put first. The domains were written from general knowledge by an LLM and have not been checked one by one: a wrong domain shows the wrong logo and nothing else. Regenerate the SQL with: node scripts/build-company-profiles-sql.mjs data/companies/profiles.json migrations/0013_company_profiles.sql",
+ "companies": [
+  {
+   "name": "Boeing",
+   "domain": "boeing.com",
+   "featured": true
+  },
+  {
+   "name": "ADM",
+   "domain": "adm.com",
+   "featured": true
+  },
+  {
+   "name": "Air Products",
+   "domain": "airproducts.com",
+   "featured": true
+  },
+  {
+   "name": "BASF",
+   "domain": "basf.com",
+   "featured": true
+  },
+  {
+   "name": "3M Company",
+   "domain": "3m.com",
+   "featured": true
+  },
+  {
+   "name": "Lockheed Martin",
+   "domain": "lockheedmartin.com",
+   "featured": true
+  },
+  {
+   "name": "Northrop Grumman",
+   "domain": "northropgrumman.com",
+   "featured": true
+  },
+  {
+   "name": "Textron",
+   "domain": "textron.com",
+   "featured": true
+  },
+  {
+   "name": "Ball",
+   "domain": "ball.com",
+   "featured": true
+  },
+  {
+   "name": "Coca-Cola",
+   "domain": "coca-cola.com",
+   "featured": true
+  },
+  {
+   "name": "Raytheon",
+   "domain": "rtx.com",
+   "featured": true
+  },
+  {
+   "name": "BAE Systems",
+   "domain": "baesystems.com",
+   "featured": true
+  },
+  {
+   "name": "Cemex",
+   "domain": "cemex.com",
+   "featured": true
+  },
+  {
+   "name": "General Motors",
+   "domain": "gm.com",
+   "featured": true
+  },
+  {
+   "name": "Alcoa Corporation",
+   "domain": "alcoa.com",
+   "featured": true
+  },
+  {
+   "name": "Parker Hannifin",
+   "domain": "parker.com",
+   "featured": true
+  },
+  {
+   "name": "Caterpillar",
+   "domain": "caterpillar.com",
+   "featured": true
+  },
+  {
+   "name": "Commercial Metals",
+   "domain": "cmc.com",
+   "featured": true
+  },
+  {
+   "name": "Abbott",
+   "domain": "abbott.com",
+   "featured": true
+  },
+  {
+   "name": "Pepsi",
+   "domain": "pepsico.com",
+   "featured": true
+  },
+  {
+   "name": "Cargill",
+   "domain": "cargill.com",
+   "featured": true
+  },
+  {
+   "name": "Abb",
+   "domain": "abb.com",
+   "featured": true
+  },
+  {
+   "name": "Avery Dennison",
+   "domain": "averydennison.com",
+   "featured": true
+  },
+  {
+   "name": "Baxter",
+   "domain": "baxter.com",
+   "featured": true
+  },
+  {
+   "name": "Eaton",
+   "domain": "eaton.com",
+   "featured": true
+  },
+  {
+   "name": "Airgas",
+   "domain": "airgas.com",
+   "featured": true
+  },
+  {
+   "name": "Ametek",
+   "domain": "ametek.com",
+   "featured": true
+  },
+  {
+   "name": "Packaging Corp of America",
+   "domain": "packagingcorp.com",
+   "featured": true
+  },
+  {
+   "name": "Air Liquide",
+   "domain": "airliquide.com",
+   "featured": true
+  },
+  {
+   "name": "Bd",
+   "domain": "bd.com",
+   "featured": true
+  },
+  {
+   "name": "Illinois Tool Works",
+   "domain": "itw.com",
+   "featured": true
+  },
+  {
+   "name": "International Paper",
+   "domain": "internationalpaper.com",
+   "featured": true
+  },
+  {
+   "name": "Ford",
+   "domain": "ford.com",
+   "featured": true
+  },
+  {
+   "name": "Tyson Foods",
+   "domain": "tysonfoods.com",
+   "featured": true
+  },
+  {
+   "name": "Apple",
+   "domain": "apple.com",
+   "featured": true
+  },
+  {
+   "name": "Emerson",
+   "domain": "emerson.com",
+   "featured": true
+  },
+  {
+   "name": "Bimbo Bakeries USA",
+   "domain": "bimbobakeriesusa.com",
+   "featured": true
+  },
+  {
+   "name": "Berry Global",
+   "domain": "berryglobal.com",
+   "featured": true
+  },
+  {
+   "name": "Honeywell",
+   "domain": "honeywell.com",
+   "featured": true
+  },
+  {
+   "name": "Leggett & Platt",
+   "domain": "leggett.com",
+   "featured": true
+  },
+  {
+   "name": "Bristol-myers Squibb",
+   "domain": "bms.com",
+   "featured": true
+  },
+  {
+   "name": "Corning",
+   "domain": "corning.com",
+   "featured": true
+  },
+  {
+   "name": "Siemens",
+   "domain": "siemens.com",
+   "featured": true
+  },
+  {
+   "name": "Baker Hughes",
+   "domain": "bakerhughes.com",
+   "featured": true
+  },
+  {
+   "name": "Applied Materials",
+   "domain": "appliedmaterials.com",
+   "featured": true
+  },
+  {
+   "name": "Conagra Foods",
+   "domain": "conagrabrands.com",
+   "featured": true
+  },
+  {
+   "name": "Trinity Industries",
+   "domain": "trin.net",
+   "featured": true
+  },
+  {
+   "name": "Dow Inc.",
+   "domain": "dow.com",
+   "featured": true
+  },
+  {
+   "name": "Nucor",
+   "domain": "nucor.com",
+   "featured": true
+  },
+  {
+   "name": "Anheuser-busch",
+   "domain": "anheuser-busch.com",
+   "featured": true
+  },
+  {
+   "name": "Campbell Soup",
+   "domain": "campbells.com",
+   "featured": true
+  },
+  {
+   "name": "Ardent Mills",
+   "domain": "ardentmills.com",
+   "featured": true
+  },
+  {
+   "name": "Ashland",
+   "domain": "ashland.com",
+   "featured": true
+  },
+  {
+   "name": "Rockwell Automation",
+   "domain": "rockwellautomation.com",
+   "featured": true
+  },
+  {
+   "name": "Stellantis",
+   "domain": "stellantis.com",
+   "featured": true
+  },
+  {
+   "name": "Amphenol",
+   "domain": "amphenol.com",
+   "featured": true
+  },
+  {
+   "name": "Boise Cascade",
+   "domain": "bc.com",
+   "featured": true
+  },
+  {
+   "name": "ExxonMobil",
+   "domain": "exxonmobil.com",
+   "featured": true
+  },
+  {
+   "name": "Boston Scientific",
+   "domain": "bostonscientific.com",
+   "featured": true
+  },
+  {
+   "name": "General Electric",
+   "domain": "ge.com",
+   "featured": true
+  },
+  {
+   "name": "GE",
+   "domain": "ge.com",
+   "featured": true
+  },
+  {
+   "name": "Halliburton",
+   "domain": "halliburton.com",
+   "featured": true
+  },
+  {
+   "name": "PPG Industries",
+   "domain": "ppg.com",
+   "featured": true
+  },
+  {
+   "name": "Chevron",
+   "domain": "chevron.com",
+   "featured": true
+  },
+  {
+   "name": "Dover Corporation",
+   "domain": "dovercorporation.com",
+   "featured": true
+  },
+  {
+   "name": "DuPont",
+   "domain": "dupont.com",
+   "featured": true
+  },
+  {
+   "name": "Georgia-pacific",
+   "domain": "gp.com",
+   "featured": true
+  },
+  {
+   "name": "Sherwin-williams",
+   "domain": "sherwin-williams.com",
+   "featured": true
+  },
+  {
+   "name": "Agilent Technologies",
+   "domain": "agilent.com",
+   "featured": true
+  },
+  {
+   "name": "Dana Incorporated",
+   "domain": "dana.com",
+   "featured": true
+  },
+  {
+   "name": "Analog Devices",
+   "domain": "analog.com",
+   "featured": true
+  },
+  {
+   "name": "Brunswick",
+   "domain": "brunswick.com",
+   "featured": true
+  },
+  {
+   "name": "Johnson & Johnson",
+   "domain": "jnj.com",
+   "featured": true
+  },
+  {
+   "name": "Texas Instruments",
+   "domain": "ti.com",
+   "featured": true
+  },
+  {
+   "name": "Freeport-McMoRan",
+   "domain": "fcx.com",
+   "featured": true
+  },
+  {
+   "name": "General Dynamics",
+   "domain": "gd.com",
+   "featured": true
+  },
+  {
+   "name": "Quikrete",
+   "domain": "quikrete.com",
+   "featured": true
+  },
+  {
+   "name": "Bayer",
+   "domain": "bayer.com",
+   "featured": true
+  },
+  {
+   "name": "Dairy Farmers of America",
+   "domain": "dfamilk.com",
+   "featured": true
+  },
+  {
+   "name": "Mondelez",
+   "domain": "mondelezinternational.com",
+   "featured": true
+  },
+  {
+   "name": "Cabot",
+   "domain": "cabotcorp.com",
+   "featured": true
+  },
+  {
+   "name": "Land O'lakes",
+   "domain": "landolakes.com",
+   "featured": true
+  },
+  {
+   "name": "SpaceX",
+   "domain": "spacex.com",
+   "featured": true
+  },
+  {
+   "name": "A O Smith",
+   "domain": "aosmith.com",
+   "featured": true
+  },
+  {
+   "name": "Arkema",
+   "domain": "arkema.com",
+   "featured": true
+  },
+  {
+   "name": "Linde",
+   "domain": "linde.com",
+   "featured": true
+  },
+  {
+   "name": "Lyondellbasell",
+   "domain": "lyondellbasell.com",
+   "featured": true
+  },
+  {
+   "name": "Occidental Petroleum",
+   "domain": "oxy.com",
+   "featured": true
+  },
+  {
+   "name": "Saint-gobain",
+   "domain": "saint-gobain.com",
+   "featured": true
+  },
+  {
+   "name": "At&t",
+   "domain": "att.com",
+   "featured": true
+  },
+  {
+   "name": "Hubbell",
+   "domain": "hubbell.com",
+   "featured": true
+  },
+  {
+   "name": "Benchmark Electronics",
+   "domain": "bench.com",
+   "featured": true
+  },
+  {
+   "name": "Eastman Chemical",
+   "domain": "eastman.com",
+   "featured": true
+  },
+  {
+   "name": "Huntsman",
+   "domain": "huntsman.com",
+   "featured": true
+  },
+  {
+   "name": "National Oilwell Var",
+   "domain": "nov.com",
+   "featured": true
+  },
+  {
+   "name": "Phillips 66",
+   "domain": "phillips66.com",
+   "featured": true
+  },
+  {
+   "name": "Sun Chemical",
+   "domain": "sunchemical.com",
+   "featured": true
+  },
+  {
+   "name": "Altec Industries",
+   "domain": "altec.com",
+   "featured": true
+  },
+  {
+   "name": "Knife River",
+   "domain": "kniferiver.com",
+   "featured": true
+  },
+  {
+   "name": "Atlas Roofing",
+   "domain": "atlasroofing.com",
+   "featured": true
+  },
+  {
+   "name": "Akzo Nobel",
+   "domain": "akzonobel.com",
+   "featured": true
+  },
+  {
+   "name": "Austin Powder",
+   "domain": "austinpowder.com",
+   "featured": true
+  },
+  {
+   "name": "American Woodmark",
+   "domain": "americanwoodmark.com",
+   "featured": true
+  },
+  {
+   "name": "Calportland",
+   "domain": "calportland.com",
+   "featured": true
+  },
+  {
+   "name": "Amsted Industries",
+   "domain": "amsted.com",
+   "featured": true
+  },
+  {
+   "name": "Ash Grove Cement",
+   "domain": "ashgrove.com",
+   "featured": true
+  },
+  {
+   "name": "Azz",
+   "domain": "azz.com",
+   "featured": true
+  },
+  {
+   "name": "Oldcastle (crh)",
+   "domain": "crh.com",
+   "featured": true
+  },
+  {
+   "name": "Samsung Austin Semiconductor",
+   "domain": "samsung.com",
+   "featured": true
+  },
+  {
+   "name": "Tesla",
+   "domain": "tesla.com",
+   "featured": true
+  },
+  {
+   "name": "Nxp Semiconductors",
+   "domain": "nxp.com",
+   "featured": true
+  },
+  {
+   "name": "Nxp USA",
+   "domain": "nxp.com",
+   "featured": true
+  },
+  {
+   "name": "Advanced Micro Devices",
+   "domain": "amd.com",
+   "featured": true
+  },
+  {
+   "name": "IBM",
+   "domain": "ibm.com",
+   "featured": true
+  },
+  {
+   "name": "National Instruments",
+   "domain": "ni.com",
+   "featured": true
+  },
+  {
+   "name": "Flex",
+   "domain": "flex.com",
+   "featured": true
+  },
+  {
+   "name": "Flextronics America",
+   "domain": "flex.com",
+   "featured": true
+  },
+  {
+   "name": "Icu Medical",
+   "domain": "icumed.com",
+   "featured": true
+  },
+  {
+   "name": "Thermo Fisher Scientific",
+   "domain": "thermofisher.com",
+   "featured": true
+  },
+  {
+   "name": "Celestica",
+   "domain": "celestica.com",
+   "featured": true
+  },
+  {
+   "name": "Sanmina",
+   "domain": "sanmina.com",
+   "featured": true
+  },
+  {
+   "name": "Sanmina-sci",
+   "domain": "sanmina.com",
+   "featured": true
+  },
+  {
+   "name": "Collins Aerospace",
+   "domain": "collinsaerospace.com",
+   "featured": true
+  },
+  {
+   "name": "Airborn",
+   "domain": "airborn.com",
+   "featured": true
+  },
+  {
+   "name": "Thermon Manufacturing",
+   "domain": "thermon.com",
+   "featured": true
+  },
+  {
+   "name": "Acme Brick",
+   "domain": "brick.com",
+   "featured": true
+  },
+  {
+   "name": "Texas Lehigh Cement",
+   "domain": "texaslehigh.com",
+   "featured": true
+  },
+  {
+   "name": "Athena Manufacturing",
+   "domain": "athenamfg.com",
+   "featured": true
+  },
+  {
+   "name": "Micron Technology",
+   "domain": "micron.com",
+   "featured": true
+  }
+ ]
+}
