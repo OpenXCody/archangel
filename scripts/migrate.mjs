@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import postgres from 'postgres';
 
-const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.sql', '0012_company_profile.sql', '0013_company_profiles.sql', '0014_company_slugs.sql', '0015_invites.sql', '0016_career_paths_2.sql', '0017_remove_safety_careers.sql'];
+const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.sql', '0012_company_profile.sql', '0013_company_profiles.sql', '0014_company_slugs.sql', '0015_invites.sql', '0016_career_paths_2.sql', '0017_remove_safety_careers.sql', '0018_career_paths_3.sql'];
 
 const url = process.env.DATABASE_URL;
 if (!url) {
