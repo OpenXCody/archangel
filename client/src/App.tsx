@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import Layout from './components/layout/Layout';
-import ErrorBoundary from './components/ErrorBoundary';
+import ErrorBoundary, { PageBoundary } from './components/ErrorBoundary';
 import AdminKeyGate from './components/import/AdminKeyGate';
 
 // Lazy load pages for code splitting
@@ -36,26 +36,26 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/map" replace />} />
             <Route element={<Layout />}>
-              <Route path="/map" element={<ErrorBoundary><MapView /></ErrorBoundary>} />
+              <Route path="/map" element={<PageBoundary><MapView /></PageBoundary>} />
               {/* The Tree page is gone; old links land on the map. */}
               <Route path="/tree" element={<Navigate to="/map" replace />} />
-              <Route path="/explore" element={<ErrorBoundary><Explore /></ErrorBoundary>} />
-              <Route path="/import" element={<ErrorBoundary><AdminKeyGate><Import /></AdminKeyGate></ErrorBoundary>} />
-              <Route path="/import/bulk" element={<ErrorBoundary><AdminKeyGate><BulkImport /></AdminKeyGate></ErrorBoundary>} />
-              <Route path="/entities/:type/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
-              <Route path="/companies/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
-              <Route path="/factories/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
-              <Route path="/occupations/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
-              <Route path="/skills/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
-              <Route path="/refs/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
-              <Route path="/schools/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
-              <Route path="/programs/:id" element={<ErrorBoundary><EntityDetail /></ErrorBoundary>} />
-              <Route path="/sign-in" element={<ErrorBoundary><SignIn /></ErrorBoundary>} />
-              <Route path="/me" element={<ErrorBoundary><Me /></ErrorBoundary>} />
-              <Route path="/jobs" element={<ErrorBoundary><Jobs /></ErrorBoundary>} />
-              <Route path="/jobs/:id" element={<ErrorBoundary><JobDetail /></ErrorBoundary>} />
-              <Route path="/employer" element={<ErrorBoundary><Employer /></ErrorBoundary>} />
-              <Route path="/admin" element={<ErrorBoundary><Admin /></ErrorBoundary>} />
+              <Route path="/explore" element={<PageBoundary><Explore /></PageBoundary>} />
+              <Route path="/import" element={<PageBoundary><AdminKeyGate><Import /></AdminKeyGate></PageBoundary>} />
+              <Route path="/import/bulk" element={<PageBoundary><AdminKeyGate><BulkImport /></AdminKeyGate></PageBoundary>} />
+              <Route path="/entities/:type/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
+              <Route path="/companies/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
+              <Route path="/factories/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
+              <Route path="/occupations/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
+              <Route path="/skills/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
+              <Route path="/refs/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
+              <Route path="/schools/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
+              <Route path="/programs/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
+              <Route path="/sign-in" element={<PageBoundary><SignIn /></PageBoundary>} />
+              <Route path="/me" element={<PageBoundary><Me /></PageBoundary>} />
+              <Route path="/jobs" element={<PageBoundary><Jobs /></PageBoundary>} />
+              <Route path="/jobs/:id" element={<PageBoundary><JobDetail /></PageBoundary>} />
+              <Route path="/employer" element={<PageBoundary><Employer /></PageBoundary>} />
+              <Route path="/admin" element={<PageBoundary><Admin /></PageBoundary>} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

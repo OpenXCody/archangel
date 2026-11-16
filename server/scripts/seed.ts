@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { assertSafeToWipe } from '../lib/wipeGuard.js';
 import { db } from '../db/index.js';
 import {
   states,
@@ -4335,6 +4336,7 @@ const OCCUPATION_SKILL_MAPPINGS: Record<string, string[]> = {
 // ============================================
 
 async function seed() {
+  assertSafeToWipe('db:seed');
   console.log('Starting database seed...\n');
 
   try {

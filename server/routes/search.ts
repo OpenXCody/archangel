@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import { companies, factories, occupations, skills, states, refs, schools, programs } from '../db/schema.js';
-import { ilike, or, and, count } from 'drizzle-orm';
+import { ilike, or, and, count, sql, type AnyColumn } from 'drizzle-orm';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope, programInScope, schoolInScope } from '../lib/scope.js';
+import { pageLimit } from '../lib/paging.js';
 
 const router = Router();
 
@@ -76,9 +77,30 @@ router.get('/', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Query parameter "q" is required' });
     }
 
-    const query = q.trim();
-    const searchPattern = `%${query}%`;
-    const maxLimit = Math.min(parseInt(limit as string) || 5, 20);
+    // Capped, with the term's own LIKE wildcards made literal ("100%" is not "everything").
+    const query = q.trim().slice(0, 80);
+    const literal = query.replace(/[\\%_]/g, '\\$&');
+    const searchPattern = `%${literal}%`;
+    // The best matches must be chosen by the database, before the limit: with
+    // 120 companies matching "texas", five arbitrary ones are not an answer.
+    // Exact name, then a name that starts with the term, then a word that
+    // starts with it, then anything that contains it; shorter names first.
+    const byRelevanceRank = (column: AnyColumn) =>
+      sql`CASE
+            WHEN lower(${column}) = ${query.toLowerCase()} THEN 0
+            WHEN ${column} ILIKE ${`${literal}%`} THEN 1
+            WHEN ${column} ILIKE ${`% ${literal}%`} THEN 2
+            ELSE 3
+          END`;
+    const byRelevance = (column: AnyColumn) =>
+      sql`CASE
+            WHEN lower(${column}) = ${query.toLowerCase()} THEN 0
+            WHEN ${column} ILIKE ${`${literal}%`} THEN 1
+            WHEN ${column} ILIKE ${`% ${literal}%`} THEN 2
+            WHEN ${column} ILIKE ${searchPattern} THEN 3
+            ELSE 4
+          END, length(${column}), ${column}`;
+    const maxLimit = pageLimit(limit, 5, 20);
 
     // Parse types filter (persons excluded from search for privacy)
     const typeFilter = types
@@ -117,12 +139,11 @@ router.get('/', async (req: Request, res: Response) => {
               browsableCompanyFilter,
               companyInScope(),
               or(
-                ilike(companies.name, searchPattern),
-                ilike(companies.industry, searchPattern),
-                ilike(companies.description, searchPattern)
+                ilike(companies.name, searchPattern)
               )
             )
           )
+          .orderBy(byRelevanceRank(companies.name), sql`${companies.featured} DESC`, sql`length(${companies.name})`, companies.name)
           .limit(maxLimit),
         db
           .select({ count: count() })
@@ -132,9 +153,7 @@ router.get('/', async (req: Request, res: Response) => {
               browsableCompanyFilter,
               companyInScope(),
               or(
-                ilike(companies.name, searchPattern),
-                ilike(companies.industry, searchPattern),
-                ilike(companies.description, searchPattern)
+                ilike(companies.name, searchPattern)
               )
             )
           ),
@@ -150,7 +169,7 @@ router.get('/', async (req: Request, res: Response) => {
 
       results.results.companies = {
         count: companyCount[0]?.count ?? 0,
-        items: sortByRelevance(companyItems, query),
+        items: companyItems, // already ranked by the database, featured first within a rank
       };
     }
 
@@ -171,12 +190,11 @@ router.get('/', async (req: Request, res: Response) => {
               factoryInScope(),
               or(
                 ilike(factories.name, searchPattern),
-                ilike(factories.specialization, searchPattern),
-                ilike(factories.description, searchPattern),
-                ilike(factories.state, searchPattern)
+                ilike(factories.city, searchPattern)
               )
             )
           )
+          .orderBy(byRelevance(factories.name))
           .limit(maxLimit),
         db
           .select({ count: count() })
@@ -186,9 +204,7 @@ router.get('/', async (req: Request, res: Response) => {
               factoryInScope(),
               or(
                 ilike(factories.name, searchPattern),
-                ilike(factories.specialization, searchPattern),
-                ilike(factories.description, searchPattern),
-                ilike(factories.state, searchPattern)
+                ilike(factories.city, searchPattern)
               )
             )
           ),
@@ -224,6 +240,7 @@ router.get('/', async (req: Request, res: Response) => {
               ilike(occupations.description, searchPattern)
             )
           )
+          .orderBy(byRelevance(occupations.title))
           .limit(maxLimit),
         db
           .select({ count: count() })
@@ -266,6 +283,7 @@ router.get('/', async (req: Request, res: Response) => {
               ilike(skills.description, searchPattern)
             )
           )
+          .orderBy(byRelevance(skills.name))
           .limit(maxLimit),
         db
           .select({ count: count() })
@@ -308,6 +326,7 @@ router.get('/', async (req: Request, res: Response) => {
               ilike(states.code, searchPattern)
             )
           )
+          .orderBy(byRelevance(states.name))
           .limit(maxLimit),
         db
           .select({ count: count() })
@@ -351,6 +370,7 @@ router.get('/', async (req: Request, res: Response) => {
               ilike(refs.manufacturer, searchPattern)
             )
           )
+          .orderBy(byRelevance(refs.name))
           .limit(maxLimit),
         db
           .select({ count: count() })
@@ -398,6 +418,7 @@ router.get('/', async (req: Request, res: Response) => {
               )
             )
           )
+          .orderBy(byRelevance(schools.name))
           .limit(maxLimit),
         db
           .select({ count: count() })
@@ -446,6 +467,7 @@ router.get('/', async (req: Request, res: Response) => {
               )
             )
           )
+          .orderBy(byRelevance(programs.title))
           .limit(maxLimit),
         db
           .select({ count: count() })

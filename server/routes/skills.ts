@@ -3,6 +3,7 @@ import { eq, ilike, or, sql, and, ne, isNull } from 'drizzle-orm';
 import { db, skills, occupationSkills, occupations, skillRefs, refs, programSkills, programs } from '../db/index.js';
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { programInScope } from '../lib/scope.js';
+import { pageLimit } from '../lib/paging.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -12,7 +13,7 @@ router.use(uuidQuery('parent'));
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, category, order = 'asc', parent, rootOnly } = req.query;
-    const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const limitNum = pageLimit(limit, 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     // Build where conditions

@@ -3,6 +3,7 @@ import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, programs, programSkills, skills, schools, programAliases } from '../db/index.js';
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { programInScope } from '../lib/scope.js';
+import { pageLimit } from '../lib/paging.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -12,7 +13,7 @@ router.use(uuidQuery('school'));
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, school, cipCode, credentialType, isOpenSource, order = 'asc' } = req.query;
-    const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const limitNum = pageLimit(limit, 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     // Build where conditions. A program is in scope when its school is.

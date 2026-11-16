@@ -4,6 +4,7 @@ import { db, companies, factories, companyIndustries, industries, jobs } from '.
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
+import { pageLimit } from '../lib/paging.js';
 
 const router = Router();
 // A company is addressed by its id, or, for reading, by its slug
@@ -34,7 +35,7 @@ router.param('id', async (req: Request, res: Response, next: NextFunction, value
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, industry, sort = 'name', order = 'asc' } = req.query;
-    const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
+    const limitNum = pageLimit(limit, 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
     // Build where conditions. Only companies with a factory in scope are listed,

@@ -4,6 +4,7 @@
  */
 
 import { db, companies, factories } from '../server/db';
+import { assertSafeToWipe } from '../server/lib/wipeGuard.js';
 import { sql } from 'drizzle-orm';
 
 interface CompanyData {
@@ -592,6 +593,7 @@ const majorManufacturers: CompanyData[] = [
 ];
 
 async function seedMajorManufacturers() {
+  assertSafeToWipe('seed-major-manufacturers');
   console.log('Starting seed of 50 major US manufacturers...\n');
 
   // First, clear existing data to avoid duplicates

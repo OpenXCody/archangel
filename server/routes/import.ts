@@ -13,6 +13,7 @@ import {
 } from '../lib/validators.js';
 import { db, companies, factories, occupations, skills, importBatches, errorQueue, states, externalReferences, importUploads } from '../db/index.js';
 import { eq, desc, ilike, and, lt } from 'drizzle-orm';
+import { pageLimit } from '../lib/paging.js';
 
 const router = Router();
 
@@ -488,7 +489,7 @@ router.post('/execute', async (req: Request, res: Response) => {
 router.get('/batches', async (req: Request, res: Response) => {
   try {
     const { limit = '10' } = req.query;
-    const limitNum = Math.min(parseInt(limit as string, 10) || 10, 50);
+    const limitNum = pageLimit(limit, 10, 50);
 
     const batches = await db
       .select()
