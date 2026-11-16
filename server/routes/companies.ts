@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { eq, ilike, or, sql, type SQL } from 'drizzle-orm';
+import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, companies, factories, companyIndustries, industries } from '../db/index.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { uuidParam } from '../middleware/validateUuid.js';
+import { companyInScope, factoryInScope } from '../lib/scope.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -14,8 +15,9 @@ router.get('/', async (req: Request, res: Response) => {
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
-    // Build where conditions
-    const conditions: SQL[] = [browsableCompanyFilter];
+    // Build where conditions. Only companies with a factory in scope are listed,
+    // and every per-company figure below counts in-scope factories only.
+    const conditions: SQL[] = [browsableCompanyFilter, companyInScope()];
 
     if (search) {
       const searchTerm = `%${search}%`;
@@ -43,8 +45,8 @@ router.get('/', async (req: Request, res: Response) => {
     let orderByClause;
     if (sort === 'factoryCount') {
       orderByClause = order === 'desc'
-        ? sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id) DESC, ${companies.name} ASC`
-        : sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id) ASC, ${companies.name} ASC`;
+        ? sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()}) DESC, ${companies.name} ASC`
+        : sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()}) ASC, ${companies.name} ASC`;
     } else {
       orderByClause = order === 'desc'
         ? sql`${companies.name} DESC`
@@ -61,9 +63,9 @@ router.get('/', async (req: Request, res: Response) => {
         headquartersLat: companies.headquartersLat,
         headquartersLng: companies.headquartersLng,
         createdAt: companies.createdAt,
-        factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factories WHERE factories.company_id = companies.id)`,
-        totalWorkforce: sql<number>`(SELECT COALESCE(SUM(workforce_size), 0)::int FROM factories WHERE factories.company_id = companies.id)`,
-        occupationCount: sql<number>`(SELECT COUNT(DISTINCT fo.occupation_id)::int FROM factory_occupations fo INNER JOIN factories f ON f.id = fo.factory_id WHERE f.company_id = companies.id)`,
+        factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()})`,
+        totalWorkforce: sql<number>`(SELECT COALESCE(SUM(workforce_size), 0)::int FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()})`,
+        occupationCount: sql<number>`(SELECT COUNT(DISTINCT fo.occupation_id)::int FROM factory_occupations fo INNER JOIN factories f ON f.id = fo.factory_id WHERE f.company_id = companies.id AND ${factoryInScope('f')})`,
       })
       .from(companies)
       .where(whereClause)
@@ -91,8 +93,8 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Get company
-    const companyResult = await db.select().from(companies).where(eq(companies.id, id));
+    // Get company (hidden unless it has a factory in scope)
+    const companyResult = await db.select().from(companies).where(and(eq(companies.id, id), companyInScope()));
 
     if (companyResult.length === 0) {
       res.status(404).json({ error: 'Company not found' });
@@ -114,7 +116,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         longitude: factories.longitude,
       })
       .from(factories)
-      .where(eq(factories.companyId, id));
+      .where(and(eq(factories.companyId, id), factoryInScope()));
 
     // Get industries for this company (via junction table)
     const companyIndustriesResult = await db
@@ -126,7 +128,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       .innerJoin(industries, eq(companyIndustries.industryId, industries.id))
       .where(eq(companyIndustries.companyId, id));
 
-    // Occupations across all of this company's factories, with how many of
+    // Occupations across all of this company's in-scope factories, with how many of
     // its factories employ each — what the explorer's "N occupations" tag
     // links to.
     const companyOccupations = await db.execute(sql`
@@ -136,7 +138,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       FROM factory_occupations fo
       INNER JOIN factories f ON f.id = fo.factory_id
       INNER JOIN occupations o ON o.id = fo.occupation_id
-      WHERE f.company_id = ${id}
+      WHERE f.company_id = ${id} AND ${factoryInScope('f')}
       GROUP BY o.id, o.title, o.onet_code
       ORDER BY "factoryCount" DESC, o.title ASC
     `);

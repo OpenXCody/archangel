@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { eq, ilike, or, sql } from 'drizzle-orm';
+import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, schools, programs } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
+import { schoolInScope } from '../lib/scope.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -13,8 +14,8 @@ router.get('/', async (req: Request, res: Response) => {
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
-    // Build where conditions
-    const conditions = [];
+    // Build where conditions. Public reads only ever see in-scope schools.
+    const conditions: (SQL | undefined)[] = [schoolInScope()];
 
     if (search) {
       const searchTerm = `%${search}%`;
@@ -35,7 +36,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     // Get total count
-    const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+    const whereClause = sql`${sql.join(conditions, sql` AND `)}`;
     const countResult = await db
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(schools)
@@ -86,8 +87,8 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Get school
-    const schoolResult = await db.select().from(schools).where(eq(schools.id, id));
+    // Get school (hidden unless it is in scope)
+    const schoolResult = await db.select().from(schools).where(and(eq(schools.id, id), schoolInScope()));
 
     if (schoolResult.length === 0) {
       res.status(404).json({ error: 'School not found' });

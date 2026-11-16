@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { eq, ilike, or, sql } from 'drizzle-orm';
+import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, programs, programSkills, skills, schools, programAliases } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
+import { programInScope } from '../lib/scope.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -13,8 +14,8 @@ router.get('/', async (req: Request, res: Response) => {
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
-    // Build where conditions
-    const conditions = [];
+    // Build where conditions. A program is in scope when its school is.
+    const conditions: (SQL | undefined)[] = [programInScope()];
 
     if (search) {
       const searchTerm = `%${search}%`;
@@ -43,7 +44,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     // Get total count
-    const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+    const whereClause = sql`${sql.join(conditions, sql` AND `)}`;
     const countResult = await db
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(programs)
@@ -96,8 +97,8 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Get program
-    const programResult = await db.select().from(programs).where(eq(programs.id, id));
+    // Get program (hidden when its school is out of scope)
+    const programResult = await db.select().from(programs).where(and(eq(programs.id, id), programInScope()));
 
     if (programResult.length === 0) {
       res.status(404).json({ error: 'Program not found' });

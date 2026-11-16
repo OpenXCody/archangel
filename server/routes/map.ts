@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
 import { db, factories } from '../db/index.js';
+import { factoryInScope, isStateInScope } from '../lib/scope.js';
 
 const router = Router();
 
@@ -61,8 +62,7 @@ const STATE_CODE_TO_NAME: Record<string, string> = {
 };
 
 // GET /api/map/state-counts - Factory counts keyed by state code.
-// Mirrors the production handler in api/index.ts so the local dev server
-// serves the same shape the map choropleth expects.
+// Only states in scope appear, so the choropleth shades nothing else.
 router.get('/state-counts', async (_req: Request, res: Response) => {
   try {
     const rows = await db
@@ -71,7 +71,7 @@ router.get('/state-counts', async (_req: Request, res: Response) => {
         count: sql<number>`COUNT(*)::int`,
       })
       .from(factories)
-      .where(sql`${factories.state} IS NOT NULL`)
+      .where(factoryInScope())
       .groupBy(factories.state);
 
     const out: Record<string, number> = {};
@@ -86,7 +86,7 @@ router.get('/state-counts', async (_req: Request, res: Response) => {
   }
 });
 
-// GET /api/map/states/summary - Get aggregated statistics for all states
+// GET /api/map/states/summary - Get aggregated statistics for the states in scope
 router.get('/states/summary', async (_req: Request, res: Response) => {
   try {
     const result = await db
@@ -97,7 +97,7 @@ router.get('/states/summary', async (_req: Request, res: Response) => {
         totalOpenPositions: sql<number>`COALESCE(SUM(${factories.openPositions}), 0)::int`,
       })
       .from(factories)
-      .where(sql`${factories.state} IS NOT NULL`)
+      .where(factoryInScope())
       .groupBy(factories.state)
       .orderBy(sql`COUNT(*) DESC`);
 
@@ -117,11 +117,15 @@ router.get('/states/summary', async (_req: Request, res: Response) => {
 });
 
 // GET /api/map/states/:code/overview - Panel data for a selected state.
-// Mirrors the production handler in api/index.ts.
+// A state outside the scope is a 404, the same as one that does not exist.
 router.get('/states/:code/overview', async (req: Request, res: Response) => {
   const code = String(req.params.code).toUpperCase();
   if (!/^[A-Z]{2}$/.test(code)) {
     res.status(400).json({ error: 'Invalid state code' });
+    return;
+  }
+  if (!isStateInScope(code)) {
+    res.status(404).json({ error: 'State not found' });
     return;
   }
 
@@ -133,13 +137,13 @@ router.get('/states/:code/overview', async (req: Request, res: Response) => {
         totalCompanies: sql<number>`COUNT(DISTINCT ${factories.companyId})::int`,
       })
       .from(factories)
-      .where(sql`${factories.state} = ${code}`);
+      .where(sql`${factories.state} = ${code} AND ${factoryInScope()}`);
 
     const topCompanies = await db.execute(sql`
       SELECT c.id, c.name, COUNT(*)::int AS count
       FROM factories f
       INNER JOIN companies c ON c.id = f.company_id
-      WHERE f.state = ${code}
+      WHERE f.state = ${code} AND ${factoryInScope('f')}
         AND c.name ~ '[A-Za-z]{2,}'
         AND c.name !~ '^[#(]'
         AND c.name !~ '^\\d+\\s'
@@ -154,7 +158,7 @@ router.get('/states/:code/overview', async (req: Request, res: Response) => {
         COALESCE(primary_naics_description, primary_naics, 'Unclassified') AS label,
         COUNT(*)::int AS count
       FROM factories
-      WHERE state = ${code} AND primary_naics IS NOT NULL
+      WHERE state = ${code} AND ${factoryInScope()} AND primary_naics IS NOT NULL
       GROUP BY label
       ORDER BY count DESC
       LIMIT 8
@@ -187,6 +191,11 @@ router.get('/states/:code', async (req: Request, res: Response) => {
     const { code } = req.params;
     const upperCode = code.toUpperCase();
 
+    if (!isStateInScope(upperCode)) {
+      res.status(404).json({ error: 'State not found or has no factories' });
+      return;
+    }
+
     // Get aggregates
     const aggregateResult = await db
       .select({
@@ -195,7 +204,7 @@ router.get('/states/:code', async (req: Request, res: Response) => {
         totalOpenPositions: sql<number>`COALESCE(SUM(${factories.openPositions}), 0)::int`,
       })
       .from(factories)
-      .where(sql`UPPER(${factories.state}) = ${upperCode}`);
+      .where(sql`UPPER(${factories.state}) = ${upperCode} AND ${factoryInScope()}`);
 
     if (aggregateResult[0].factoryCount === 0) {
       res.status(404).json({ error: 'State not found or has no factories' });
@@ -212,7 +221,7 @@ router.get('/states/:code', async (req: Request, res: Response) => {
         specialization: factories.specialization,
       })
       .from(factories)
-      .where(sql`UPPER(${factories.state}) = ${upperCode}`)
+      .where(sql`UPPER(${factories.state}) = ${upperCode} AND ${factoryInScope()}`)
       .orderBy(sql`${factories.workforceSize} DESC NULLS LAST`)
       .limit(5);
 

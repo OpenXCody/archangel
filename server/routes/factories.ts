@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { eq, ilike, or, sql } from 'drizzle-orm';
+import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, factories, companies, factoryOccupations, occupations } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
+import { factoryInScope } from '../lib/scope.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -13,8 +14,8 @@ router.get('/', async (req: Request, res: Response) => {
     const limitNum = Math.min(parseInt(limit as string, 10) || 20, 100);
     const offsetNum = Math.max(parseInt(offset as string, 10) || 0, 0);
 
-    // Build where conditions
-    const conditions = [];
+    // Build where conditions. Public reads only ever see in-scope factories.
+    const conditions: (SQL | undefined)[] = [factoryInScope()];
 
     if (search) {
       const searchTerm = `%${search}%`;
@@ -41,7 +42,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     // Get total count
-    const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+    const whereClause = sql`${sql.join(conditions, sql` AND `)}`;
     const countResult = await db
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(factories)
@@ -104,8 +105,8 @@ router.get('/geojson', async (req: Request, res: Response) => {
   try {
     const { states, company, industry, bounds } = req.query;
 
-    // Build where conditions
-    const conditions = [];
+    // Build where conditions. Public reads only ever see in-scope factories.
+    const conditions: (SQL | undefined)[] = [factoryInScope()];
 
     // Viewport bounds filtering: bounds=minLng,minLat,maxLng,maxLat
     if (bounds) {
@@ -153,11 +154,7 @@ router.get('/geojson', async (req: Request, res: Response) => {
         })
         .from(factories)
         .leftJoin(companies, eq(factories.companyId, companies.id))
-        .where(
-          conditions.length > 0
-            ? sql`${sql.join(conditions, sql` AND `)} AND ${companies.industry} = ${industry}`
-            : eq(companies.industry, industry as string)
-        );
+        .where(sql`${sql.join(conditions, sql` AND `)} AND ${companies.industry} = ${industry}`);
     } else {
       result = await db
         .select({
@@ -172,7 +169,7 @@ router.get('/geojson', async (req: Request, res: Response) => {
           openPositions: factories.openPositions,
         })
         .from(factories)
-        .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined);
+        .where(sql`${sql.join(conditions, sql` AND `)}`);
     }
 
     // Filter out factories without valid coordinates
@@ -229,7 +226,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         createdAt: factories.createdAt,
       })
       .from(factories)
-      .where(eq(factories.id, id));
+      .where(and(eq(factories.id, id), factoryInScope()));
 
     if (factoryResult.length === 0) {
       res.status(404).json({ error: 'Factory not found' });
