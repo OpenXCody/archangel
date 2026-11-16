@@ -202,65 +202,6 @@ input {
     color: var(--color-fg-soft);
     cursor: default;
   }
-
-  /* Name tag anchored to a focus area's boundary (a MapLibre marker). */
-  .map-area-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px 4px 8px;
-    border-radius: 9999px;
-    border-color: rgba(186, 230, 253, 0.6);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 16px;
-    white-space: nowrap;
-    cursor: pointer;
-  }
-  .map-area-label::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 9999px;
-    background: #bae6fd;
-    box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.3);
-  }
-  /* The stem from the tag to the boundary, on the side that faces the area.
-     Map.tsx sets data-side and --stem when it places the tag. */
-  .map-area-label::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 100%;
-    width: 1px;
-    height: var(--stem, 9px);
-    background: rgba(224, 242, 254, 0.85);
-  }
-  .map-area-label[data-side='below']::after {
-    top: auto;
-    bottom: 100%;
-  }
-  .map-area-label[data-side='left']::after,
-  .map-area-label[data-side='right']::after {
-    top: 50%;
-    width: var(--stem, 9px);
-    height: 1px;
-  }
-  .map-area-label[data-side='left']::after {
-    left: 100%;
-  }
-  .map-area-label[data-side='right']::after {
-    left: auto;
-    right: 100%;
-  }
-  .map-area-label:hover {
-    background-image: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08));
-  }
-  /* MapLibre writes the marker's opacity inline, so hide with visibility. */
-  .map-area-label.is-hidden {
-    visibility: hidden;
-    pointer-events: none;
-  }
 }
 
 /*

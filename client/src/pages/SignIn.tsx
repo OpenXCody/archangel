@@ -8,20 +8,36 @@ import { ErrorNote, Field, LoadError, PageLoading, cardClass, fieldClass } from 
 import { PageContainer, PageHeader } from '../components/layout/Page';
 
 type Mode = 'sign-in' | 'create';
+/** What a new account is for. It only decides where the person lands. */
+type Purpose = 'careers' | 'employer';
 
 const MODES: { value: Mode; label: string }[] = [
   { value: 'sign-in', label: 'Sign in' },
   { value: 'create', label: 'Create account' },
 ];
 
+const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
+  { value: 'careers', label: 'Find a career', detail: 'Explore careers, track skills, apply.' },
+  { value: 'employer', label: 'Hire', detail: 'Post jobs, review applicants.' },
+];
+
 /**
- * One page for both signing in and creating an account. On success the person
- * goes to `?next=` when it is a path on this site, otherwise to their page.
+ * One page for both signing in and creating an account. A new account says
+ * what it is for (`?as=employer`), which is the only extra question asked.
+ *
+ * Where the person lands: an employer goes to the employer page; otherwise
+ * `?next=` when it is a path on this site; otherwise the map, to start
+ * exploring.
  */
 export default function SignIn() {
   const [searchParams, setSearchParams] = useSearchParams();
   const mode: Mode = searchParams.get('mode') === 'create' ? 'create' : 'sign-in';
-  const next = safeNextPath(searchParams.get('next')) ?? '/me';
+  const next = safeNextPath(searchParams.get('next'));
+  // Arriving from the employer page says what the account is for.
+  const purpose: Purpose =
+    searchParams.get('as') === 'employer' || (searchParams.get('as') === null && next?.startsWith('/employer'))
+      ? 'employer'
+      : 'careers';
 
   const account = useAccount();
   const signIn = useSignIn();
@@ -34,7 +50,10 @@ export default function SignIn() {
   const busy = signIn.isPending || signUp.isPending;
 
   // Signed in (already, or a moment ago through this form): carry on to where they were headed.
-  if (account.data?.user) return <Navigate to={next} replace />;
+  if (account.data?.user) {
+    const hiring = (mode === 'create' && purpose === 'employer') || (!next && account.data.isEmployer);
+    return <Navigate to={hiring ? '/employer' : (next ?? '/map')} replace />;
+  }
   if (!account.data) {
     if (account.error) {
       return (
@@ -56,6 +75,12 @@ export default function SignIn() {
     setSearchParams(params, { replace: true });
   };
 
+  const setPurpose = (value: Purpose) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('as', value);
+    setSearchParams(params, { replace: true });
+  };
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (busy) return;
@@ -67,12 +92,7 @@ export default function SignIn() {
     <PageContainer size="narrow">
       <div className="mx-auto w-full max-w-md">
         <PageHeader
-          title={mode === 'create' ? 'Create your account' : 'Sign in'}
-          description={
-            mode === 'create'
-              ? 'Keep track of your skills, aim for a career and apply to jobs.'
-              : 'Pick up where you left off: your skills, careers and applications.'
-          }
+          title={mode === 'create' ? 'Create account' : 'Sign in'}
         />
 
         <div className={cn(cardClass, 'p-4 sm:p-6')}>
@@ -96,7 +116,31 @@ export default function SignIn() {
 
           <form onSubmit={submit} noValidate className="space-y-4">
             {mode === 'create' && (
-              <Field label="Your name" htmlFor="sign-name">
+              <div role="radiogroup" aria-label="Account purpose" className="grid grid-cols-2 gap-2">
+                {PURPOSES.map(({ value, label, detail }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={purpose === value}
+                    onClick={() => setPurpose(value)}
+                    className={cn(
+                      'min-w-0 rounded-lg border px-3 py-2.5 text-left transition-colors',
+                      purpose === value
+                        ? 'border-fg-default bg-bg-elevated'
+                        : 'border-border-subtle hover:border-border-strong'
+                    )}
+                  >
+                    <span className={cn('block text-sm font-medium', purpose === value ? 'text-fg-default' : 'text-fg-muted')}>
+                      {label}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-fg-muted">{detail}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {mode === 'create' && (
+              <Field label="Name" htmlFor="sign-name">
                 <input
                   id="sign-name"
                   name="name"
@@ -145,16 +189,6 @@ export default function SignIn() {
           </form>
         </div>
 
-        <p className="mt-4 text-center text-sm text-fg-muted">
-          {mode === 'create' ? 'Already have an account?' : 'New here?'}{' '}
-          <button
-            type="button"
-            onClick={() => switchMode(mode === 'create' ? 'sign-in' : 'create')}
-            className="font-medium text-fg-default underline underline-offset-4 hover:no-underline"
-          >
-            {mode === 'create' ? 'Sign in' : 'Create an account'}
-          </button>
-        </p>
       </div>
     </PageContainer>
   );

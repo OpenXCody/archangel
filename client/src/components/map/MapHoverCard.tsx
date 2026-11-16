@@ -1,4 +1,4 @@
-import { Briefcase, Building2, Factory, MapPin } from 'lucide-react';
+import { Briefcase, Building2, Factory } from 'lucide-react';
 import { useMapStore } from '../../stores/mapStore';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { PANEL_WIDTH_PX } from './camera';
@@ -8,7 +8,8 @@ const EDGE_GAP_PX = 8;
 
 /**
  * Preview card for the pin under the cursor — enough to decide whether to
- * click, without clicking. Pointer devices only (no hover on touch).
+ * click, without clicking. Pointer devices only (no hover on touch). It says
+ * what the map does not already show: who and what, not where.
  *
  * Everything on it comes from the pin's own properties, which the map already
  * holds, so it is complete the moment it appears: no request, nothing to wait
@@ -30,7 +31,10 @@ export default function MapHoverCard() {
   const centerX = Math.min(Math.max(point.x, half + EDGE_GAP_PX), Math.max(half + EDGE_GAP_PX, visibleWidth - half - EDGE_GAP_PX));
   const arrowX = Math.min(Math.max(point.x - (centerX - half), 14), CARD_WIDTH_PX - 14);
 
-  const place = [info.city, info.state].filter(Boolean).join(', ');
+  // A site named after its company would say the same thing twice.
+  const factoryName = formatFactoryName(info.name);
+  const companyName = info.companyName ? formatCompanyName(info.companyName) : null;
+  const showCompany = companyName !== null && !factoryName.toLowerCase().startsWith(companyName.toLowerCase());
   const arrow = 'absolute h-2.5 w-2.5 -translate-x-1/2 rotate-45 border-border-strong bg-bg-elevated';
 
   return (
@@ -45,23 +49,17 @@ export default function MapHoverCard() {
             <Factory className="h-3.5 w-3.5 text-fg-muted" />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold text-fg-default">{formatFactoryName(info.name)}</div>
-            {info.companyName && (
+            <div className="truncate text-sm font-semibold text-fg-default">{factoryName}</div>
+            {showCompany && (
               <div className="mt-0.5 flex items-center gap-1 text-xs text-fg-muted">
                 <Building2 className="h-3 w-3 shrink-0" />
-                <span className="truncate">{formatCompanyName(info.companyName)}</span>
+                <span className="truncate">{companyName}</span>
               </div>
             )}
           </div>
         </div>
-        {(place || info.industry || info.openJobs > 0) && (
+        {(info.industry || info.openJobs > 0) && (
           <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
-            {place && (
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="h-3 w-3 shrink-0" />
-                {place}
-              </span>
-            )}
             {info.industry && <span className="min-w-0 truncate">{info.industry}</span>}
             {info.openJobs > 0 && (
               <span className="inline-flex items-center gap-1 font-medium text-sky-300">

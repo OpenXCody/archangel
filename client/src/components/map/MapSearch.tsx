@@ -55,10 +55,10 @@ function stateCodeOf(item: SearchResultItem): string | undefined {
 }
 
 /**
- * Focus areas: the regions being filled out in depth. One chip each, right
- * under the search box; choosing one does what clicking its label on the map
- * does. The row scrolls sideways rather than wrapping, so it stays one line
- * on a phone however many areas there are.
+ * Focus areas: the regions being filled out in depth. One quiet chip each,
+ * right under the search box; choosing one does what clicking its boundary
+ * on the map does. The row scrolls sideways rather than wrapping, so it
+ * stays one line on a phone however many areas there are.
  */
 function AreaChips() {
   const selectArea = useMapStore((s) => s.selectArea);
@@ -75,12 +75,10 @@ function AreaChips() {
             onClick={() => selectArea(area.id)}
             aria-pressed={active}
             title={`Go to the ${area.name} focus area`}
-            className={`map-overlay map-overlay-button inline-flex shrink-0 items-center gap-2 rounded-full py-1.5 pl-2.5 pr-3 text-xs font-medium ${
-              active ? 'border-sky-200/70' : ''
+            className={`map-overlay map-overlay-button inline-flex shrink-0 items-center rounded-full px-3 py-1.5 text-xs font-medium ${
+              active ? 'border-sky-200/70 text-fg-default' : 'text-fg-muted'
             }`}
           >
-            {/* The same lit dot as the area's label on the map. */}
-            <span className="h-[7px] w-[7px] rounded-full bg-sky-200 ring-[3px] ring-sky-300/30" aria-hidden="true" />
             {area.name}
           </button>
         );

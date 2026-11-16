@@ -10,12 +10,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { errorMessage, signInPath, useAccount, useSessionExpiryWatch, useSignOut } from '../../lib/account';
+import { accountRoles, errorMessage, signInPath, useAccount, useSessionExpiryWatch, useSignOut } from '../../lib/account';
 
 /** Titles for the account pages, for the browser tab. Null for any other path. */
 export function accountPageTitle(pathname: string): string | null {
   if (pathname === '/sign-in') return 'Sign in';
-  if (pathname === '/me') return 'My page';
+  if (pathname === '/me') return 'Profile';
   if (pathname === '/employer') return 'Employer';
   if (pathname === '/admin') return 'Admin';
   return null;
@@ -61,6 +61,9 @@ export default function AccountMenu() {
   }
 
   const initial = user.name.trim().charAt(0).toUpperCase() || '?';
+  const roles = data ? accountRoles(data) : [];
+  // Anyone with a company, approved or waiting, has an employer page.
+  const hasCompany = (data?.memberships.length ?? 0) > 0;
 
   return (
     <DropdownMenu
@@ -85,20 +88,25 @@ export default function AccountMenu() {
         <DropdownMenuLabel className="px-2.5 py-2 font-normal">
           <span className="block truncate text-sm font-semibold text-fg-default">{user.name}</span>
           <span className="block truncate text-xs text-fg-muted">{user.email}</span>
+          <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
+            {roles.join(' · ')}
+          </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-[color:var(--color-border-subtle)]" />
         <DropdownMenuItem asChild className={itemClass}>
           <Link to="/me">
             <UserRound className="text-fg-muted" />
-            My page
+            Profile
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className={itemClass}>
-          <Link to="/employer">
-            <Building2 className="text-fg-muted" />
-            Employer
-          </Link>
-        </DropdownMenuItem>
+        {hasCompany && (
+          <DropdownMenuItem asChild className={itemClass}>
+            <Link to="/employer">
+              <Building2 className="text-fg-muted" />
+              Employer
+            </Link>
+          </DropdownMenuItem>
+        )}
         {user.isAdmin && (
           <DropdownMenuItem asChild className={itemClass}>
             <Link to="/admin">
@@ -108,6 +116,14 @@ export default function AccountMenu() {
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator className="bg-[color:var(--color-border-subtle)]" />
+        {!hasCompany && (
+          <DropdownMenuItem asChild className={cn(itemClass, 'text-fg-muted')}>
+            <Link to="/employer">
+              <Building2 className="text-fg-muted" />
+              Hire for a company
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           className={itemClass}
           disabled={signOut.isPending}

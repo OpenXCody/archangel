@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Check, ChevronRight, Hourglass, Loader2, Search, X } from 'lucide-react';
+import { ChevronRight, Loader2, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { companiesApi, factoriesApi } from '../lib/api';
+import { companiesApi, factoriesApi, occupationsApi } from '../lib/api';
 import {
   EMPLOYMENT_TYPES,
   useCancelMembership,
@@ -20,6 +20,7 @@ import {
 } from '../lib/account';
 import { employmentLabel, formatAgo, formatPlace, isExpired, parseDollars } from '../lib/jobFormat';
 import CareerPicker, { type CareerOption } from '../components/account/CareerPicker';
+import JobSkillTags, { type JobSkillTag } from '../components/account/JobSkillTags';
 import {
   AccountGate,
   CardNote,
@@ -50,12 +51,12 @@ function EmployerPage({ user }: { user: AccountUser }) {
   return (
     <PageContainer size="narrow">
       <PageHeader
-        eyebrow="Employer"
-        title={active.length > 0 ? active.map((company) => company.companyName).join(', ') : 'Post jobs for your company'}
+        eyebrow={active.length > 0 ? 'Employer' : undefined}
+        title={active.length > 0 ? active.map((company) => company.companyName).join(', ') : 'Employer'}
         description={
           active.length > 0
-            ? 'Post jobs at your factories and see who applies.'
-            : 'Join your company to post jobs at its factories and see who applies.'
+            ? 'Post jobs and review applicants.'
+            : "Post jobs at a company's factories and review applicants."
         }
       />
 
@@ -75,22 +76,18 @@ function EmployerPage({ user }: { user: AccountUser }) {
 
           {active.length === 0 ? (
             <PageSection
-              title="Find your company"
-              description={
-                user.isAdmin
-                  ? 'As an admin you join a company at once.'
-                  : 'Ask to join it. An admin checks each request before you can post jobs.'
-              }
+              title="Company"
+              description={user.isAdmin ? 'Admins join at once.' : 'Request access. An admin approves each request.'}
             >
               <CompanySearch memberships={companies} instant={user.isAdmin} />
             </PageSection>
           ) : (
-            <PageSection title="Work with another company?">
+            <PageSection title="Other companies">
               {joiningAnother ? (
                 <CompanySearch memberships={companies} instant={user.isAdmin} />
               ) : (
                 <Button type="button" variant="outline" onClick={() => setJoiningAnother(true)} className={cn('h-10 rounded-lg', outlineButtonClass)}>
-                  Join another company
+                  Add a company
                 </Button>
               )}
             </PageSection>
@@ -108,22 +105,15 @@ function EmployerPage({ user }: { user: AccountUser }) {
 function PendingRequests({ companies }: { companies: EmployerCompany[] }) {
   const cancel = useCancelMembership();
   return (
-    <PageSection title="Waiting for approval">
-      <ul className={cn(cardClass, 'border-amber-500/30')}>
+    <PageSection title="Pending approval">
+      <ul className={cardClass}>
         {companies.map((company) => {
           const cancelling = cancel.isPending && cancel.variables === company.companyId;
           return (
             <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-pending-company={company.companyId}>
-              <div className="flex min-w-0 flex-1 basis-56 items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-500/10">
-                  <Hourglass className="h-4 w-4 text-amber-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="break-words text-sm font-medium text-fg-default">{company.companyName}</p>
-                  <p className="mt-0.5 text-sm text-fg-muted">
-                    Your request is waiting for an admin to approve it. You can post jobs as soon as it is.
-                  </p>
-                </div>
+              <div className="min-w-0 flex-1 basis-56">
+                <p className="break-words text-sm font-medium text-fg-default">{company.companyName}</p>
+                <p className="mt-0.5 text-sm text-fg-muted">Awaiting admin approval. Posting opens once approved.</p>
               </div>
               <Button
                 type="button"
@@ -171,7 +161,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
           role="searchbox"
           enterKeyHint="search"
           aria-label="Search companies"
-          placeholder="Search companies by name"
+          placeholder="Company name"
           autoComplete="off"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
@@ -190,7 +180,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
       </div>
 
       {!showResults ? (
-        <p className="mt-2 text-sm text-fg-muted">Type at least two letters of the company's name.</p>
+        <p className="mt-2 text-sm text-fg-muted">Enter at least two letters.</p>
       ) : (
         <div className={cn(cardClass, 'mt-2')} aria-live="polite">
           {results.isPending ? (
@@ -201,9 +191,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
           ) : results.isError ? (
             <ErrorNote error={results.error} className="p-4" />
           ) : results.data.data.length === 0 ? (
-            <p className="p-4 text-sm text-fg-muted">
-              No company with a Texas factory matches “{query}”. Check the spelling, or try part of the name.
-            </p>
+            <p className="p-4 text-sm text-fg-muted">No company matches “{query}”.</p>
           ) : (
             <ul>
               {results.data.data.map((company) => {
@@ -217,25 +205,15 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                       <div className="min-w-0">
                         <p className="break-words text-sm font-medium text-fg-default">{company.name}</p>
                         <p className="mt-0.5 text-xs text-fg-muted">
-                          {[company.industry, `${factoryCount} ${factoryCount === 1 ? 'factory' : 'factories'} in Texas`]
+                          {[company.industry, `${factoryCount} ${factoryCount === 1 ? 'factory' : 'factories'}`]
                             .filter(Boolean)
                             .join(' · ')}
                         </p>
                       </div>
                     </div>
                     {membership ? (
-                      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-fg-muted">
-                        {membership.status === 'active' ? (
-                          <>
-                            <Check className="h-3.5 w-3.5 text-emerald-400" />
-                            You belong to this company
-                          </>
-                        ) : (
-                          <>
-                            <Hourglass className="h-3.5 w-3.5 text-amber-400" />
-                            Waiting for approval
-                          </>
-                        )}
+                      <span className="shrink-0 text-xs text-fg-muted">
+                        {membership.status === 'active' ? 'Member' : 'Pending approval'}
                       </span>
                     ) : (
                       <Button
@@ -243,11 +221,11 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                         size="sm"
                         disabled={request.isPending}
                         onClick={() => request.mutate(company.id)}
-                        aria-label={`${instant ? 'Join' : 'Request to join'} ${company.name}`}
+                        aria-label={`${instant ? 'Join' : 'Request access to'} ${company.name}`}
                         className="h-9"
                       >
                         {busy && <Loader2 className="animate-spin" />}
-                        {instant ? 'Join' : 'Request to join'}
+                        {instant ? 'Join' : 'Request access'}
                       </Button>
                     )}
                   </li>
@@ -266,21 +244,20 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
 // A company's jobs
 // ---------------------------------------------------------------------------
 
-function jobState(job: EmployerJob): { label: string; className: string } {
-  if (job.status === 'closed') return { label: 'Closed', className: 'border-border-subtle text-fg-muted' };
-  if (job.status === 'open' && isExpired(job.expiresAt)) return { label: 'Expired', className: 'border-amber-500/30 bg-amber-500/10 text-amber-400' };
-  if (job.status === 'open') return { label: 'Open', className: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' };
-  return { label: 'Draft', className: 'border-border-subtle text-fg-muted' };
+function jobState(job: EmployerJob): 'Open' | 'Expired' | 'Closed' | 'Draft' {
+  if (job.status === 'closed') return 'Closed';
+  if (job.status === 'open') return isExpired(job.expiresAt) ? 'Expired' : 'Open';
+  return 'Draft';
 }
 
 function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; showCompanyName: boolean }) {
   return (
     <PageSection
-      title={showCompanyName ? `Jobs at ${company.companyName}` : 'Your jobs'}
-      description={company.jobs.length > 0 ? 'Open a job to see its applicants, or to close it.' : undefined}
+      title={showCompanyName ? `Jobs at ${company.companyName}` : 'Jobs'}
+      description={company.jobs.length > 0 ? 'Select a job to review applicants or close it.' : undefined}
     >
       {company.jobs.length === 0 ? (
-        <CardNote>No jobs posted yet. Use the form below to post the first one.</CardNote>
+        <CardNote>No jobs posted.</CardNote>
       ) : (
         <ul className={cardClass}>
           {company.jobs.map((job) => {
@@ -289,16 +266,16 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
               <li key={job.id} className={rowClass}>
                 <Link to={`/jobs/${job.id}`} className="flex items-center gap-3 p-4 transition-colors hover:bg-bg-elevated">
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="min-w-0 break-words text-sm font-medium text-fg-default">{job.title}</span>
-                      <span className={cn('shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium', state.className)}>{state.label}</span>
-                    </div>
+                    <p className="break-words text-sm font-medium text-fg-default">{job.title}</p>
                     <p className="mt-0.5 break-words text-sm text-fg-muted">
-                      Job #{job.serial} · {[job.factoryName, job.city].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
+                      <span className={cn(state === 'Open' && 'text-fg-default')} data-job-state={state.toLowerCase()}>
+                        {state}
+                      </span>
+                      {' · '}Job #{job.serial} · {[job.factoryName, job.city].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
                     </p>
-                    <p className="mt-1 text-sm text-fg-default">
+                    <p className={cn('mt-1 text-sm', job.newApplicants > 0 ? 'text-fg-default' : 'text-fg-muted')}>
                       {job.applicants} {job.applicants === 1 ? 'applicant' : 'applicants'}
-                      {job.newApplicants > 0 && <span className="ml-2 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400">{job.newApplicants} new</span>}
+                      {job.newApplicants > 0 && `, ${job.newApplicants} new`}
                     </p>
                   </div>
                   <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" />
@@ -324,7 +301,7 @@ function PostJobSection({ companies }: { companies: EmployerCompany[] }) {
   const company = companies.find((c) => c.companyId === companyId) ?? companies[0];
 
   return (
-    <PageSection title="Post a job" description="It goes on the jobs list at once and stays open for 60 days.">
+    <PageSection title="Post a job" description="Listed at once. Open for 60 days.">
       <div className={cn(cardClass, 'p-4 sm:p-6')}>
         {companies.length > 1 && (
           <Field label="Company" htmlFor="job-company" className="mb-4">
@@ -344,7 +321,7 @@ function PostJobSection({ companies }: { companies: EmployerCompany[] }) {
         )}
         {company.factories.length === 0 ? (
           <p className="text-sm text-fg-muted">
-            {company.companyName} has no factory in Texas on record, so a job cannot be posted for it yet.
+            {company.companyName} has no factory on record, so a job cannot be posted for it yet.
           </p>
         ) : (
           // A fresh form per company: its factories differ.
@@ -361,6 +338,9 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
 
   const [factoryId, setFactoryId] = useState(company.factories.length === 1 ? company.factories[0].id : '');
   const [career, setCareer] = useState<CareerOption | null>(null);
+  const [skills, setSkills] = useState<JobSkillTag[]>([]);
+  // The career whose skills the tags started from. Null until those have loaded.
+  const [seededFor, setSeededFor] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [titleEdited, setTitleEdited] = useState(false);
   const [payMin, setPayMin] = useState('');
@@ -382,8 +362,29 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
   });
   const suggestions: CareerOption[] = (factoryCareers.data?.occupations ?? []).map((o) => ({ id: o.id, title: o.title }));
 
+  // The career's own skills are the default tags: stage 3 optional, the rest required.
+  const careerId = career?.id ?? '';
+  const careerSkills = useQuery({
+    queryKey: ['picker', 'career-skills', careerId],
+    queryFn: () => occupationsApi.get(careerId),
+    enabled: Boolean(careerId),
+    staleTime: 5 * 60_000,
+  });
+  const seeded = Boolean(careerId) && seededFor === careerId;
+  if (careerId && careerSkills.data && !seeded) {
+    // Set while rendering, so tags the client already has never flash a loader.
+    const defaults = careerSkills.data.skills.map((skill) => ({ id: skill.id, name: skill.name, required: skill.stage !== 3 }));
+    setSeededFor(careerId);
+    // Anything added while the defaults were unavailable stays.
+    setSkills([...defaults, ...skills.filter((tag) => !defaults.some((skill) => skill.id === tag.id))]);
+  }
+
   const pickCareer = (next: CareerOption | null) => {
     setCareer(next);
+    if (next?.id !== career?.id) {
+      setSkills([]);
+      setSeededFor(null);
+    }
     // The title follows the career until the person writes their own.
     if (!titleEdited || !title.trim()) {
       setTitle(next?.title ?? '');
@@ -400,11 +401,11 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
     const min = parseDollars(payMin);
     const max = parseDollars(payMax);
     if (min === null || max === null || max < min) {
-      return setProblem('Enter a pay range in dollars: a lowest and a highest amount, lowest first.');
+      return setProblem('Enter a pay range in dollars, lowest first.');
     }
     const link = applyUrl.trim();
     if (applyIn === 'link' && !/^https:\/\/\S+$/i.test(link)) {
-      return setProblem('Enter the link where people apply. It must start with https://');
+      return setProblem('The application link must start with https://');
     }
     setProblem(null);
 
@@ -421,6 +422,8 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
         payMax: max,
         payPeriod,
         applyUrl: applyIn === 'link' ? link : null,
+        // Without the career's defaults and with nothing added, the server applies the defaults.
+        skills: seeded || skills.length > 0 ? skills.map((skill) => ({ skillId: skill.id, required: skill.required })) : undefined,
       },
       { onSuccess: (created) => navigate(`/jobs/${created.id}`) }
     );
@@ -445,7 +448,7 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Career" htmlFor="job-career" hint="Sets the skills the job asks for.">
+        <Field label="Career" htmlFor="job-career" hint="Sets the default skills.">
           <CareerPicker
             id="job-career"
             value={career}
@@ -456,7 +459,38 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
         </Field>
       </div>
 
-      <Field label="Job title" htmlFor="job-title" hint="Starts as the career's name. Change it if you call the job something else.">
+      {career && (
+        <fieldset className="min-w-0" data-job-skills>
+          <legend className="mb-1.5 text-sm font-medium text-fg-muted">Skills</legend>
+          {!seeded && careerSkills.isPending ? (
+            <p className="flex min-h-[42px] items-center gap-2 text-sm text-fg-muted">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading skills
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {!seeded && careerSkills.isError && (
+                <LoadError error={careerSkills.error} onRetry={() => void careerSkills.refetch()} retrying={careerSkills.isFetching} />
+              )}
+              <JobSkillTags
+                id="job-skill-add"
+                value={skills}
+                onChange={setSkills}
+                emptyNote={
+                  !seeded
+                    ? "Unless skills are added, the job uses the career's defaults."
+                    : careerSkills.data?.skills.length === 0
+                      ? 'No skills on record for this career.'
+                      : 'No skills tagged.'
+                }
+              />
+              {skills.length > 0 && <p className="text-xs text-fg-muted">Applicants are ranked by required skills held.</p>}
+            </div>
+          )}
+        </fieldset>
+      )}
+
+      <Field label="Job title" htmlFor="job-title" hint="Defaults to the career name.">
         <input
           id="job-title"
           type="text"
@@ -523,7 +557,7 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
         </Field>
       </div>
 
-      <Field label="Description" htmlFor="job-description" optional hint="What the work is, what a day looks like, anything a person should know before applying.">
+      <Field label="Description" htmlFor="job-description" optional hint="The work, the schedule, and anything an applicant should know.">
         <textarea
           id="job-description"
           rows={5}
@@ -535,19 +569,19 @@ function PostJobForm({ company }: { company: EmployerCompany }) {
       </Field>
 
       <fieldset className="min-w-0">
-        <legend className="mb-1.5 text-sm font-medium text-fg-muted">How people apply</legend>
-        <div role="radiogroup" aria-label="How people apply" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <legend className="mb-1.5 text-sm font-medium text-fg-muted">Applications</legend>
+        <div role="radiogroup" aria-label="Applications" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <ApplyChoice
             selected={applyIn === 'app'}
             onSelect={() => setApplyIn('app')}
             title="In the app"
-            detail="Applicants appear on the job page, ranked by the skills they hold."
+            detail="Applicants are listed on the job page, ranked by skills held."
           />
           <ApplyChoice
             selected={applyIn === 'link'}
             onSelect={() => setApplyIn('link')}
-            title="On our own site"
-            detail="The job links out to your application page."
+            title="Company site"
+            detail="The job links to an external application page."
           />
         </div>
         {applyIn === 'link' && (
