@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
+import { getSessionUser } from '../lib/auth.js';
 
 export const ADMIN_HEADER = 'x-admin-secret';
 
@@ -29,25 +30,42 @@ export function isAuthorizedAdmin(req: Request): boolean {
   return typeof provided === 'string' && secretsMatch(provided, expected);
 }
 
+/** True when the request carries the deployment's admin key. Never true without one configured. */
+export function hasValidAdminSecret(req: Request): boolean {
+  const expected = process.env.ADMIN_SECRET;
+  const provided = req.header(ADMIN_HEADER);
+  return Boolean(expected) && typeof provided === 'string' && secretsMatch(provided, expected as string);
+}
+
+/** True for the admin key (or open local dev) or a signed-in admin account. */
+export async function isAdminRequest(req: Request): Promise<boolean> {
+  if (isAuthorizedAdmin(req)) return true;
+  const user = await getSessionUser(req).catch(() => null);
+  return Boolean(user?.isAdmin);
+}
+
 /**
- * Gate a whole router behind the admin secret.
- * - ADMIN_SECRET set: header must match.
+ * Gate a whole router behind admin access.
+ * - A signed-in admin account passes.
+ * - ADMIN_SECRET set: a matching x-admin-secret header passes.
  * - ADMIN_SECRET unset, local dev: allowed (so `npm run dev` just works).
- * - ADMIN_SECRET unset, production: refused with a clear setup hint.
+ * - ADMIN_SECRET unset, production, no admin account: refused with a setup hint.
  */
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
-  if (!process.env.ADMIN_SECRET && isProductionLike()) {
-    res.status(503).json({
-      error: 'Admin access is not configured',
-      hint: 'Set ADMIN_SECRET in the deployment environment to enable data changes.',
-    });
-    return;
-  }
-  if (isAuthorizedAdmin(req)) {
-    next();
-    return;
-  }
-  res.status(401).json({ error: 'Admin secret required', header: ADMIN_HEADER });
+  isAdminRequest(req).then((ok) => {
+    if (ok) {
+      next();
+      return;
+    }
+    if (!process.env.ADMIN_SECRET && isProductionLike()) {
+      res.status(503).json({
+        error: 'Admin access is not configured',
+        hint: 'Set ADMIN_SECRET in the deployment environment to enable data changes.',
+      });
+      return;
+    }
+    res.status(401).json({ error: 'Admin access required', header: ADMIN_HEADER });
+  }, next);
 }
 
 /** Same gate, applied only to mutating methods so public reads stay open. */

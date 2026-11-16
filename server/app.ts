@@ -13,7 +13,13 @@ import schoolsRouter from './routes/schools.js';
 import programsRouter from './routes/programs.js';
 import personsRouter from './routes/persons.js';
 import reviewRouter from './routes/review.js';
-import { requireAdmin, requireAdminForWrites, adminAuthRequired, isAuthorizedAdmin } from './middleware/adminAuth.js';
+import authRouter from './routes/auth.js';
+import meRouter from './routes/me.js';
+import jobsRouter from './routes/jobs.js';
+import employerRouter from './routes/employer.js';
+import adminRouter from './routes/admin.js';
+import { noStore } from './lib/auth.js';
+import { requireAdmin, requireAdminForWrites, adminAuthRequired, isAdminRequest } from './middleware/adminAuth.js';
 import { publicCache } from './middleware/cache.js';
 
 /**
@@ -33,9 +39,21 @@ app.get('/api/health', (_req: Request, res: Response) => {
 });
 
 // Lets the admin UI know whether it needs to ask for a key (public, read-only).
-app.get('/api/import/status', (req: Request, res: Response) => {
-  res.json({ authRequired: adminAuthRequired(), authorized: isAuthorizedAdmin(req) });
+// A signed-in admin account counts as authorized, so it is never asked.
+app.get('/api/import/status', noStore, (req: Request, res: Response, next: NextFunction) => {
+  isAdminRequest(req).then(
+    (authorized) => res.json({ authRequired: adminAuthRequired(), authorized }),
+    next
+  );
 });
+
+// Accounts and everything tied to a signed-in person. Never cached: these
+// responses differ per person.
+app.use('/api/auth', noStore, authRouter);
+app.use('/api/me', noStore, meRouter);
+app.use('/api/jobs', noStore, jobsRouter);
+app.use('/api/employer', noStore, employerRouter);
+app.use('/api/admin', noStore, requireAdmin, adminRouter);
 
 // Edge caching. The two heaviest map payloads get 5 minutes; everything else
 // public gets 1 minute. Admin writes are never cached (GET-only middleware).
@@ -50,7 +68,8 @@ app.use('/api/skills', publicCache(60), requireAdminForWrites, skillsRouter);
 app.use('/api/refs', publicCache(60), requireAdminForWrites, refsRouter);
 app.use('/api/schools', publicCache(60), requireAdminForWrites, schoolsRouter);
 app.use('/api/programs', publicCache(60), requireAdminForWrites, programsRouter);
-app.use('/api/persons', publicCache(60), requireAdminForWrites, personsRouter);
+// People records can hold email addresses and profile links, so they are admin-only.
+app.use('/api/persons', noStore, requireAdmin, personsRouter);
 
 // Read-only
 app.use('/api/stats', publicCache(60), statsRouter);
