@@ -46,6 +46,8 @@ interface SearchResultItem {
   type: 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'refs' | 'schools' | 'programs';
   subtitle?: string;
   meta?: string;
+  /** Companies only: the web domain their logo is looked up from. */
+  domain?: string | null;
 }
 
 interface SearchResults {
@@ -107,6 +109,7 @@ router.get('/', async (req: Request, res: Response) => {
             name: companies.name,
             industry: companies.industry,
             description: companies.description,
+            domain: companies.domain,
           })
           .from(companies)
           .where(
@@ -142,6 +145,7 @@ router.get('/', async (req: Request, res: Response) => {
         name: c.name,
         type: 'companies' as const,
         subtitle: c.industry || undefined,
+        domain: c.domain,
       }));
 
       results.results.companies = {

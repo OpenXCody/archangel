@@ -189,6 +189,8 @@ export interface JobSummary {
   expiresAt: string;
   companyId: string;
   companyName: string;
+  /** The company's web domain, for its logo. */
+  companyDomain?: string | null;
   factoryId: string;
   factoryName: string;
   city: string | null;

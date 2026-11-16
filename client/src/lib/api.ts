@@ -562,6 +562,8 @@ export interface SearchResultItem {
   type: SearchEntityType;
   subtitle?: string;
   meta?: string;
+  /** Companies only: the web domain their logo is looked up from. */
+  domain?: string | null;
 }
 
 export interface SearchResults {
