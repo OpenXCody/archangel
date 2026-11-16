@@ -35,6 +35,15 @@ function fitUS(m: MapLibreMap, animate: boolean) {
   });
 }
 
+// Shift a flyTo target clear of the panel or sheet without touching the map's
+// saved padding. MapLibre keeps flyTo's `padding` on the map, and fitBounds
+// adds that saved padding to its own. A state clicked after a pin was
+// therefore fitted with the panel counted twice and landed off-center.
+type EdgePadding = { top?: number; bottom?: number; left?: number; right?: number };
+function paddingToOffset(p: EdgePadding): [number, number] {
+  return [((p.left ?? 0) - (p.right ?? 0)) / 2, ((p.top ?? 0) - (p.bottom ?? 0)) / 2];
+}
+
 // US States GeoJSON, shipped with the app (client/public/data)
 const STATES_GEOJSON_URL = '/data/us-states.geojson';
 
@@ -522,9 +531,11 @@ export default function Map() {
               center: geometry.coordinates as [number, number],
               zoom: Math.max(currentMap.getZoom(), 8),
               duration: 500,
-              padding: isMobile 
-                ? { top: 20, bottom: bottomSheetHeight + 20, left: 20, right: 20 }
-                : { top: 20, bottom: 20, left: 20, right: 400 },
+              offset: paddingToOffset(
+                isMobile
+                  ? { top: 20, bottom: bottomSheetHeight + 20, left: 20, right: 20 }
+                  : { top: 20, bottom: 20, left: 20, right: 400 }
+              ),
             });
           }
         }
@@ -928,14 +939,10 @@ export default function Map() {
       duration: 500,
     };
 
-    // Apply padding to offset for UI elements like sidebar
+    // Keep the target clear of the sidebar or sheet. An offset, not `padding`:
+    // padding would stay on the map and skew the next fitBounds.
     if (flyToTarget.padding) {
-      flyToOptions.padding = {
-        top: flyToTarget.padding.top ?? 0,
-        bottom: flyToTarget.padding.bottom ?? 0,
-        left: flyToTarget.padding.left ?? 0,
-        right: flyToTarget.padding.right ?? 0,
-      };
+      flyToOptions.offset = paddingToOffset(flyToTarget.padding);
     }
 
     currentMap.flyTo(flyToOptions);
