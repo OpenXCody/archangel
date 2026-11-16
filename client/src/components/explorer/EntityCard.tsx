@@ -159,7 +159,7 @@ type CardProps<T> = { data: T; onMouseEnter?: () => void };
 
 function CompanyCard({ data, onMouseEnter }: CardProps<Company>) {
   const industry = data.industry && data.industry.trim().toLowerCase() !== GENERIC_INDUSTRY ? data.industry : null;
-  const base = `/companies/${data.id}`;
+  const base = `/companies/${data.slug ?? data.id}`;
   return (
     <CardShell
       type="companies" to={base} name={formatCompanyName(data.name)} logoDomain={data.domain} onMouseEnter={onMouseEnter}

@@ -1,13 +1,34 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, companies, factories, companyIndustries, industries, jobs } from '../db/index.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
-import { uuidParam } from '../middleware/validateUuid.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 
 const router = Router();
-router.param('id', uuidParam);
+// A company is addressed by its id, or, for reading, by its slug
+// (/api/companies/tesla). A slug is swapped for the id here, so the handlers
+// below only ever see ids.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
+router.param('id', async (req: Request, res: Response, next: NextFunction, value: string) => {
+  if (UUID_RE.test(value)) return next();
+  if (req.method !== 'GET' || !SLUG_RE.test(value)) {
+    res.status(400).json({ error: 'Invalid id: expected a UUID' });
+    return;
+  }
+  try {
+    const [found] = await db.select({ id: companies.id }).from(companies).where(eq(companies.slug, value)).limit(1);
+    if (!found) {
+      res.status(404).json({ error: 'Company not found' });
+      return;
+    }
+    req.params.id = found.id;
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 // GET /api/companies - List companies with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
@@ -65,6 +86,7 @@ router.get('/', async (req: Request, res: Response) => {
         description: companies.description,
         domain: companies.domain,
         featured: companies.featured,
+        slug: companies.slug,
         headquartersLat: companies.headquartersLat,
         headquartersLng: companies.headquartersLng,
         createdAt: companies.createdAt,

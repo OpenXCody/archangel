@@ -86,7 +86,7 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 
 ## Routes
 
-**Public:** `/map` (opens on the US; `?area=austin`, `?state=TX`), `/explore`, `/jobs`, `/jobs/:id`, `/companies/:id`, `/factories/:id`, `/occupations/:id` (career page with path), `/skills/:id`, `/refs/:id`, `/schools/:id`, `/programs/:id`, `/sign-in`
+**Public:** `/map` (opens on the US; `?area=austin`, `?state=TX`), `/explore`, `/jobs`, `/jobs/:id`, `/companies/:id` (id or slug: `/companies/tesla`), `/factories/:id`, `/occupations/:id` (career page with path), `/skills/:id`, `/refs/:id`, `/schools/:id`, `/programs/:id`, `/sign-in`
 
 **Signed in:** `/me` (seeker), `/employer` (company members), `/admin` (admins), `/import`, `/import/bulk` (admins)
 
