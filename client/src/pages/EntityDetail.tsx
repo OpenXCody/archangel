@@ -1031,7 +1031,9 @@ type AnyEntityDetail = CompanyDetail | FactoryDetail | OccupationDetail | SkillD
 
 // Type guard helpers
 function isCompanyDetail(data: AnyEntityDetail): data is CompanyDetail {
-  return 'factories' in data && 'industries' in data;
+  // A career's response also carries `industries` (where the work is done),
+  // so that field alone does not make a company: a company has no skills.
+  return 'factories' in data && 'industries' in data && !('skills' in data);
 }
 
 function isFactoryDetail(data: AnyEntityDetail): data is FactoryDetail {
@@ -1039,7 +1041,7 @@ function isFactoryDetail(data: AnyEntityDetail): data is FactoryDetail {
 }
 
 function isOccupationDetail(data: AnyEntityDetail): data is OccupationDetail {
-  return 'skills' in data && 'factories' in data && !('industries' in data) && !('school' in data);
+  return 'skills' in data && 'factories' in data && !('school' in data);
 }
 
 function isSkillDetail(data: AnyEntityDetail): data is SkillDetail {
