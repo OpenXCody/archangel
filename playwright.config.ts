@@ -14,13 +14,14 @@ export default defineConfig({
   workers: 3,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:5173',
+    // BASE_URL lets the suite run against a second copy of the app.
+    baseURL: process.env.BASE_URL || 'http://localhost:5173',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',
+    url: process.env.BASE_URL || 'http://localhost:5173',
     reuseExistingServer: true,
     timeout: 60_000,
   },

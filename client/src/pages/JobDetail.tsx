@@ -38,6 +38,7 @@ import {
   rowClass,
 } from '../components/account/parts';
 import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
+import CompanyLogo from '../components/CompanyLogo';
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
@@ -90,7 +91,10 @@ export default function JobDetail() {
         title={data.job.title}
         description={
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span>{data.job.companyName}</span>
+            <span className="inline-flex items-center gap-2">
+              <CompanyLogo name={data.job.companyName} domain={data.job.companyDomain} size={22} className="rounded" />
+              {data.job.companyName}
+            </span>
             {place && (
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="h-4 w-4 shrink-0" />

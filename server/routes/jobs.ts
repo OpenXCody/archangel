@@ -56,6 +56,8 @@ const jobSummary = {
   expiresAt: jobs.expiresAt,
   companyId: companies.id,
   companyName: companies.name,
+  // For the company's logo.
+  companyDomain: companies.domain,
   factoryId: factories.id,
   factoryName: factories.name,
   city: factories.city,

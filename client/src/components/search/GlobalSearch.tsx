@@ -17,6 +17,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { searchApi, type SearchEntityType, type SearchResultItem } from '../../lib/api';
+import CompanyLogo from '../CompanyLogo';
 
 interface GlobalSearchProps {
   isOpen: boolean;
@@ -438,7 +439,11 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                               onClick={() => navigateToResult(item)}
                               onMouseEnter={() => setSelectedIndex(globalIndex)}
                             >
-                              <Icon className={`w-4 h-4 flex-shrink-0 ${config.iconClass}`} />
+                              {item.type === 'companies' && item.domain ? (
+                                <CompanyLogo name={item.name} domain={item.domain} size={20} className="rounded" />
+                              ) : (
+                                <Icon className={`w-4 h-4 flex-shrink-0 ${config.iconClass}`} />
+                              )}
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm text-fg-default truncate">{item.name}</p>
                                 {item.subtitle && (

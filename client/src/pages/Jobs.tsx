@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { STATE_CODE_TO_NAME, type StateCode } from '@shared/states';
+import CompanyLogo from '../components/CompanyLogo';
 import { occupationsApi } from '../lib/api';
 import { useJobs, type JobSummary } from '../lib/account';
 import { employmentLabel, formatAgo, formatPay, formatPlace } from '../lib/jobFormat';
@@ -239,7 +240,6 @@ export default function Jobs() {
 }
 
 function JobCard({ job }: { job: JobSummary }) {
-  const CompanyIcon = ENTITY.company.icon;
   // Not every factory has a city on record; its name places it well enough.
   const place = job.city ? formatPlace(job.city, job.state) : [job.factoryName, job.state].filter(Boolean).join(', ');
   return (
@@ -253,7 +253,7 @@ function JobCard({ job }: { job: JobSummary }) {
       </div>
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-muted">
         <span className="inline-flex min-w-0 items-center gap-1.5">
-          <CompanyIcon className={cn('h-4 w-4 shrink-0', ENTITY.company.text)} />
+          <CompanyLogo name={job.companyName} domain={job.companyDomain} size={20} className="rounded" />
           <span className="min-w-0 truncate">{job.companyName}</span>
         </span>
         {place && (

@@ -1,650 +1,908 @@
 {
- "_about": "Company identities for logos and the featured tier. `name` must match companies.name exactly. `domain` is used to show the company's logo; `featured` marks a recognised employer that lists and the map put first. The domains were written from general knowledge by an LLM and have not been checked one by one: a wrong domain shows the wrong logo and nothing else. Regenerate the SQL with: node scripts/build-company-profiles-sql.mjs data/companies/profiles.json migrations/0013_company_profiles.sql",
+ "_about": "Company identities and profiles. `name` must match companies.name exactly. `domain` is used to show the company's logo; `featured` marks a recognised employer that lists and the map put first; `industry` and `description` say in one line what the company makes. All of it was written from general knowledge by an LLM and has not been checked one by one: a wrong domain shows the wrong logo, and a description may be out of date. Regenerate the SQL with: node scripts/build-company-profiles-sql.mjs data/companies/profiles.json migrations/0013_company_profiles.sql and node scripts/build-company-descriptions-sql.mjs data/companies/profiles.json migrations/0019_company_descriptions.sql",
  "companies": [
   {
    "name": "Boeing",
    "domain": "boeing.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace & Defense",
+   "description": "Commercial airliners, military aircraft, satellites and space systems."
   },
   {
    "name": "ADM",
    "domain": "adm.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food & Agriculture",
+   "description": "Processes oilseeds, corn and wheat into food ingredients, animal feed and biofuels."
   },
   {
    "name": "Air Products",
    "domain": "airproducts.com",
-   "featured": true
+   "featured": true,
+   "industry": "Industrial Gases",
+   "description": "Industrial and specialty gases, including hydrogen, nitrogen and oxygen, and the plants that produce them."
   },
   {
    "name": "BASF",
    "domain": "basf.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Chemicals, plastics, coatings and crop protection products."
   },
   {
    "name": "3M Company",
    "domain": "3m.com",
-   "featured": true
+   "featured": true,
+   "industry": "Diversified Manufacturing",
+   "description": "Adhesives, abrasives, films, filtration and safety products for industry and consumers."
   },
   {
    "name": "Lockheed Martin",
    "domain": "lockheedmartin.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace & Defense",
+   "description": "Military aircraft, missiles, space systems and defense electronics."
   },
   {
    "name": "Northrop Grumman",
    "domain": "northropgrumman.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace & Defense",
+   "description": "Military aircraft, space systems, missiles and defense electronics."
   },
   {
    "name": "Textron",
    "domain": "textron.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace & Defense",
+   "description": "Business jets, helicopters, defense systems and specialized vehicles."
   },
   {
    "name": "Ball",
    "domain": "ball.com",
-   "featured": true
+   "featured": true,
+   "industry": "Packaging",
+   "description": "Aluminum beverage cans and packaging."
   },
   {
    "name": "Coca-Cola",
    "domain": "coca-cola.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food & Beverage",
+   "description": "Soft drinks and other beverages, produced and bottled at plants across the country."
   },
   {
    "name": "Raytheon",
    "domain": "rtx.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace & Defense",
+   "description": "Missiles, radar, sensors and defense electronics."
   },
   {
    "name": "BAE Systems",
    "domain": "baesystems.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace & Defense",
+   "description": "Combat vehicles, naval systems, munitions and defense electronics."
   },
   {
    "name": "Cemex",
    "domain": "cemex.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Materials",
+   "description": "Cement, ready-mix concrete and aggregates."
   },
   {
    "name": "General Motors",
    "domain": "gm.com",
-   "featured": true
+   "featured": true,
+   "industry": "Automotive",
+   "description": "Cars, trucks and SUVs, with engine, transmission, stamping and battery plants."
   },
   {
    "name": "Alcoa Corporation",
    "domain": "alcoa.com",
-   "featured": true
+   "featured": true,
+   "industry": "Metals",
+   "description": "Bauxite, alumina and primary aluminum."
   },
   {
    "name": "Parker Hannifin",
    "domain": "parker.com",
-   "featured": true
+   "featured": true,
+   "industry": "Industrial Machinery",
+   "description": "Motion and control components: hydraulics, pneumatics, filtration, seals and aerospace systems."
   },
   {
    "name": "Caterpillar",
    "domain": "caterpillar.com",
-   "featured": true
+   "featured": true,
+   "industry": "Heavy Equipment",
+   "description": "Construction and mining machinery, diesel and natural gas engines, and industrial turbines."
   },
   {
    "name": "Commercial Metals",
    "domain": "cmc.com",
-   "featured": true
+   "featured": true,
+   "industry": "Metals",
+   "description": "Recycles scrap metal into steel rebar and other long products at mini mills."
   },
   {
    "name": "Abbott",
    "domain": "abbott.com",
-   "featured": true
+   "featured": true,
+   "industry": "Medical Devices",
+   "description": "Medical devices, diagnostics and nutrition products."
   },
   {
    "name": "Pepsi",
    "domain": "pepsico.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food & Beverage",
+   "description": "Soft drinks and other beverages, produced and bottled at plants across the country."
   },
   {
    "name": "Cargill",
    "domain": "cargill.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food & Agriculture",
+   "description": "Processes grain, oilseeds and meat into food, feed and industrial ingredients."
   },
   {
    "name": "Abb",
    "domain": "abb.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electrical Equipment",
+   "description": "Electrification equipment, industrial drives, motors and robots."
   },
   {
    "name": "Avery Dennison",
    "domain": "averydennison.com",
-   "featured": true
+   "featured": true,
+   "industry": "Materials",
+   "description": "Pressure-sensitive label materials, adhesives and RFID tags."
   },
   {
    "name": "Baxter",
    "domain": "baxter.com",
-   "featured": true
+   "featured": true,
+   "industry": "Medical Devices",
+   "description": "IV solutions, infusion systems and other hospital products."
   },
   {
    "name": "Eaton",
    "domain": "eaton.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electrical Equipment",
+   "description": "Electrical power distribution equipment and hydraulic, aerospace and vehicle components."
   },
   {
    "name": "Airgas",
    "domain": "airgas.com",
-   "featured": true
+   "featured": true,
+   "industry": "Industrial Gases",
+   "description": "Industrial, medical and specialty gases, welding supplies and related equipment."
   },
   {
    "name": "Ametek",
    "domain": "ametek.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronic Instruments",
+   "description": "Electronic instruments and electromechanical devices."
   },
   {
    "name": "Packaging Corp of America",
    "domain": "packagingcorp.com",
-   "featured": true
+   "featured": true,
+   "industry": "Paper & Packaging",
+   "description": "Containerboard and corrugated packaging."
   },
   {
    "name": "Air Liquide",
    "domain": "airliquide.com",
-   "featured": true
+   "featured": true,
+   "industry": "Industrial Gases",
+   "description": "Industrial and medical gases and the plants that produce them."
   },
   {
    "name": "Bd",
    "domain": "bd.com",
-   "featured": true
+   "featured": true,
+   "industry": "Medical Devices",
+   "description": "Syringes, needles, catheters and diagnostic instruments."
   },
   {
    "name": "Illinois Tool Works",
    "domain": "itw.com",
-   "featured": true
+   "featured": true,
+   "industry": "Diversified Manufacturing",
+   "description": "Welding equipment, fasteners, food equipment, test instruments and automotive components."
   },
   {
    "name": "International Paper",
    "domain": "internationalpaper.com",
-   "featured": true
+   "featured": true,
+   "industry": "Paper & Packaging",
+   "description": "Containerboard, corrugated packaging and pulp."
   },
   {
    "name": "Ford",
    "domain": "ford.com",
-   "featured": true
+   "featured": true,
+   "industry": "Automotive",
+   "description": "Cars, trucks and SUVs, with engine, transmission, stamping and battery plants."
   },
   {
    "name": "Tyson Foods",
    "domain": "tysonfoods.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food Processing",
+   "description": "Chicken, beef, pork and prepared foods."
   },
   {
    "name": "Apple",
    "domain": "apple.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronics",
+   "description": "Consumer electronics and computers."
   },
   {
    "name": "Emerson",
    "domain": "emerson.com",
-   "featured": true
+   "featured": true,
+   "industry": "Industrial Automation",
+   "description": "Process automation systems, valves, instruments and control software."
   },
   {
    "name": "Bimbo Bakeries USA",
    "domain": "bimbobakeriesusa.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food Processing",
+   "description": "Packaged bread, buns and baked goods."
   },
   {
    "name": "Berry Global",
    "domain": "berryglobal.com",
-   "featured": true
+   "featured": true,
+   "industry": "Packaging",
+   "description": "Plastic packaging, containers, closures and films."
   },
   {
    "name": "Honeywell",
    "domain": "honeywell.com",
-   "featured": true
+   "featured": true,
+   "industry": "Diversified Manufacturing",
+   "description": "Aerospace systems, building and industrial controls, and performance materials."
   },
   {
    "name": "Leggett & Platt",
    "domain": "leggett.com",
-   "featured": true
+   "featured": true,
+   "industry": "Diversified Manufacturing",
+   "description": "Bedding components, steel wire, automotive seating systems and furniture hardware."
   },
   {
    "name": "Bristol-myers Squibb",
    "domain": "bms.com",
-   "featured": true
+   "featured": true,
+   "industry": "Pharmaceuticals",
+   "description": "Prescription medicines and biologics."
   },
   {
    "name": "Corning",
    "domain": "corning.com",
-   "featured": true
+   "featured": true,
+   "industry": "Materials",
+   "description": "Specialty glass, ceramics and optical fiber."
   },
   {
    "name": "Siemens",
    "domain": "siemens.com",
-   "featured": true
+   "featured": true,
+   "industry": "Industrial Automation",
+   "description": "Automation and drive systems, electrical equipment and rail vehicles."
   },
   {
    "name": "Baker Hughes",
    "domain": "bakerhughes.com",
-   "featured": true
+   "featured": true,
+   "industry": "Energy Equipment",
+   "description": "Oilfield equipment, turbomachinery and industrial inspection technology."
   },
   {
    "name": "Applied Materials",
    "domain": "appliedmaterials.com",
-   "featured": true
+   "featured": true,
+   "industry": "Semiconductor Equipment",
+   "description": "Machines that deposit, etch and inspect the layers of semiconductor chips and displays."
   },
   {
    "name": "Conagra Foods",
    "domain": "conagrabrands.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food Processing",
+   "description": "Packaged and frozen foods."
   },
   {
    "name": "Trinity Industries",
    "domain": "trin.net",
-   "featured": true
+   "featured": true,
+   "industry": "Rail Equipment",
+   "description": "Railcars and railcar parts, leasing and maintenance."
   },
   {
    "name": "Dow Inc.",
    "domain": "dow.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Plastics, industrial intermediates, coatings and silicones."
   },
   {
    "name": "Nucor",
    "domain": "nucor.com",
-   "featured": true
+   "featured": true,
+   "industry": "Metals",
+   "description": "Steel and steel products made from recycled scrap in electric arc furnaces."
   },
   {
    "name": "Anheuser-busch",
    "domain": "anheuser-busch.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food & Beverage",
+   "description": "Beer and other beverages, brewed and packaged at large breweries."
   },
   {
    "name": "Campbell Soup",
    "domain": "campbells.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food Processing",
+   "description": "Soups, sauces and snacks."
   },
   {
    "name": "Ardent Mills",
    "domain": "ardentmills.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food Processing",
+   "description": "Flour milling and grain ingredients."
   },
   {
    "name": "Ashland",
    "domain": "ashland.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Specialty additives and ingredients for pharmaceuticals, personal care and coatings."
   },
   {
    "name": "Rockwell Automation",
    "domain": "rockwellautomation.com",
-   "featured": true
+   "featured": true,
+   "industry": "Industrial Automation",
+   "description": "Programmable controllers, drives, sensors and automation software."
   },
   {
    "name": "Stellantis",
    "domain": "stellantis.com",
-   "featured": true
+   "featured": true,
+   "industry": "Automotive",
+   "description": "Cars, trucks and SUVs under the Jeep, Ram, Dodge and Chrysler brands."
   },
   {
    "name": "Amphenol",
    "domain": "amphenol.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronics",
+   "description": "Electrical, electronic and fiber-optic connectors, cables and sensors."
   },
   {
    "name": "Boise Cascade",
    "domain": "bc.com",
-   "featured": true
+   "featured": true,
+   "industry": "Wood Products",
+   "description": "Plywood, engineered wood products and building materials."
   },
   {
    "name": "ExxonMobil",
    "domain": "exxonmobil.com",
-   "featured": true
+   "featured": true,
+   "industry": "Energy & Chemicals",
+   "description": "Refined fuels, lubricants and petrochemicals."
   },
   {
    "name": "Boston Scientific",
    "domain": "bostonscientific.com",
-   "featured": true
+   "featured": true,
+   "industry": "Medical Devices",
+   "description": "Minimally invasive medical devices such as stents, catheters and implantable devices."
   },
   {
    "name": "General Electric",
    "domain": "ge.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace & Energy",
+   "description": "Jet engines, power generation equipment and related services."
   },
   {
    "name": "GE",
    "domain": "ge.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace & Energy",
+   "description": "Jet engines, power generation equipment and related services."
   },
   {
    "name": "Halliburton",
    "domain": "halliburton.com",
-   "featured": true
+   "featured": true,
+   "industry": "Energy Equipment",
+   "description": "Oilfield equipment and services."
   },
   {
    "name": "PPG Industries",
    "domain": "ppg.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Paints, coatings and specialty materials."
   },
   {
    "name": "Chevron",
    "domain": "chevron.com",
-   "featured": true
+   "featured": true,
+   "industry": "Energy & Chemicals",
+   "description": "Refined fuels, lubricants and petrochemicals."
   },
   {
    "name": "Dover Corporation",
    "domain": "dovercorporation.com",
-   "featured": true
+   "featured": true,
+   "industry": "Diversified Manufacturing",
+   "description": "Industrial equipment and components, including pumps, refrigeration and marking systems."
   },
   {
    "name": "DuPont",
    "domain": "dupont.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Specialty materials for electronics, water treatment, protection and industrial uses."
   },
   {
    "name": "Georgia-pacific",
    "domain": "gp.com",
-   "featured": true
+   "featured": true,
+   "industry": "Paper & Packaging",
+   "description": "Tissue, packaging, pulp and building products."
   },
   {
    "name": "Sherwin-williams",
    "domain": "sherwin-williams.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Paints and coatings."
   },
   {
    "name": "Agilent Technologies",
    "domain": "agilent.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronic Instruments",
+   "description": "Laboratory instruments, consumables and diagnostics."
   },
   {
    "name": "Dana Incorporated",
    "domain": "dana.com",
-   "featured": true
+   "featured": true,
+   "industry": "Automotive",
+   "description": "Axles, driveshafts, transmissions and electric drive systems for vehicles."
   },
   {
    "name": "Analog Devices",
    "domain": "analog.com",
-   "featured": true
+   "featured": true,
+   "industry": "Semiconductors",
+   "description": "Analog, mixed-signal and power management chips."
   },
   {
    "name": "Brunswick",
    "domain": "brunswick.com",
-   "featured": true
+   "featured": true,
+   "industry": "Marine",
+   "description": "Recreational boats and marine engines."
   },
   {
    "name": "Johnson & Johnson",
    "domain": "jnj.com",
-   "featured": true
+   "featured": true,
+   "industry": "Medical Devices & Pharmaceuticals",
+   "description": "Medical devices and pharmaceuticals."
   },
   {
    "name": "Texas Instruments",
    "domain": "ti.com",
-   "featured": true
+   "featured": true,
+   "industry": "Semiconductors",
+   "description": "Analog and embedded processing chips, made in its own wafer fabs."
   },
   {
    "name": "Freeport-McMoRan",
    "domain": "fcx.com",
-   "featured": true
+   "featured": true,
+   "industry": "Metals & Mining",
+   "description": "Copper, gold and molybdenum mining, smelting and refining."
   },
   {
    "name": "General Dynamics",
    "domain": "gd.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace & Defense",
+   "description": "Business jets, combat vehicles, submarines and ships."
   },
   {
    "name": "Quikrete",
    "domain": "quikrete.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Materials",
+   "description": "Packaged concrete, mortar and cement mixes."
   },
   {
    "name": "Bayer",
    "domain": "bayer.com",
-   "featured": true
+   "featured": true,
+   "industry": "Pharmaceuticals & Crop Science",
+   "description": "Pharmaceuticals, consumer health products and crop science."
   },
   {
    "name": "Dairy Farmers of America",
    "domain": "dfamilk.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food Processing",
+   "description": "Milk, cheese, butter and dairy ingredients."
   },
   {
    "name": "Mondelez",
    "domain": "mondelezinternational.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food Processing",
+   "description": "Cookies, crackers, chocolate and other snacks."
   },
   {
    "name": "Cabot",
    "domain": "cabotcorp.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Carbon black, fumed silica and other specialty chemicals and performance materials."
   },
   {
    "name": "Land O'lakes",
    "domain": "landolakes.com",
-   "featured": true
+   "featured": true,
+   "industry": "Food & Agriculture",
+   "description": "Butter, cheese and dairy foods, animal feed and crop inputs."
   },
   {
    "name": "SpaceX",
    "domain": "spacex.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace",
+   "description": "Rockets, spacecraft and satellites, including the engines and structures that go into them."
   },
   {
    "name": "A O Smith",
    "domain": "aosmith.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Equipment",
+   "description": "Water heaters, boilers and water treatment products."
   },
   {
    "name": "Arkema",
    "domain": "arkema.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Specialty materials: adhesives, advanced polymers and coating solutions."
   },
   {
    "name": "Linde",
    "domain": "linde.com",
-   "featured": true
+   "featured": true,
+   "industry": "Industrial Gases",
+   "description": "Industrial gases and the plants that produce them."
   },
   {
    "name": "Lyondellbasell",
    "domain": "lyondellbasell.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Plastics, chemicals and refined products."
   },
   {
    "name": "Occidental Petroleum",
    "domain": "oxy.com",
-   "featured": true
+   "featured": true,
+   "industry": "Energy & Chemicals",
+   "description": "Oil and gas production and basic chemicals such as chlorine and caustic soda."
   },
   {
    "name": "Saint-gobain",
    "domain": "saint-gobain.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Materials",
+   "description": "Glass, gypsum, insulation, abrasives and other building and high-performance materials."
   },
   {
    "name": "At&t",
    "domain": "att.com",
-   "featured": true
+   "featured": true,
+   "industry": "Telecommunications",
+   "description": "Telecommunications network operator."
   },
   {
    "name": "Hubbell",
    "domain": "hubbell.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electrical Equipment",
+   "description": "Electrical and utility products such as connectors, wiring devices and lighting."
   },
   {
    "name": "Benchmark Electronics",
    "domain": "bench.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronics Manufacturing",
+   "description": "Contract design and manufacturing of electronics and precision machined parts."
   },
   {
    "name": "Eastman Chemical",
    "domain": "eastman.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Specialty plastics, additives, fibers and chemicals."
   },
   {
    "name": "Huntsman",
    "domain": "huntsman.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Polyurethanes, performance products and advanced materials."
   },
   {
    "name": "National Oilwell Var",
    "domain": "nov.com",
-   "featured": true
+   "featured": true,
+   "industry": "Energy Equipment",
+   "description": "Drilling rigs, oilfield equipment and components."
   },
   {
    "name": "Phillips 66",
    "domain": "phillips66.com",
-   "featured": true
+   "featured": true,
+   "industry": "Energy & Chemicals",
+   "description": "Refined fuels, lubricants and petrochemicals."
   },
   {
    "name": "Sun Chemical",
    "domain": "sunchemical.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Printing inks, coatings and pigments."
   },
   {
    "name": "Altec Industries",
    "domain": "altec.com",
-   "featured": true
+   "featured": true,
+   "industry": "Heavy Equipment",
+   "description": "Aerial lifts, digger derricks and truck bodies for utilities and tree care."
   },
   {
    "name": "Knife River",
    "domain": "kniferiver.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Materials",
+   "description": "Aggregates, asphalt and ready-mix concrete."
   },
   {
    "name": "Atlas Roofing",
    "domain": "atlasroofing.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Materials",
+   "description": "Roofing shingles and insulation."
   },
   {
    "name": "Akzo Nobel",
    "domain": "akzonobel.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Paints and coatings."
   },
   {
    "name": "Austin Powder",
    "domain": "austinpowder.com",
-   "featured": true
+   "featured": true,
+   "industry": "Chemicals",
+   "description": "Industrial explosives and blasting services for mining and construction."
   },
   {
    "name": "American Woodmark",
    "domain": "americanwoodmark.com",
-   "featured": true
+   "featured": true,
+   "industry": "Wood Products",
+   "description": "Kitchen and bath cabinets."
   },
   {
    "name": "Calportland",
    "domain": "calportland.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Materials",
+   "description": "Cement, concrete and aggregates."
   },
   {
    "name": "Amsted Industries",
    "domain": "amsted.com",
-   "featured": true
+   "featured": true,
+   "industry": "Industrial Components",
+   "description": "Components for railcars, heavy trucks and construction."
   },
   {
    "name": "Ash Grove Cement",
    "domain": "ashgrove.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Materials",
+   "description": "Cement."
   },
   {
    "name": "Azz",
    "domain": "azz.com",
-   "featured": true
+   "featured": true,
+   "industry": "Metals",
+   "description": "Hot-dip galvanizing and metal coating."
   },
   {
    "name": "Oldcastle (crh)",
    "domain": "crh.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Materials",
+   "description": "Concrete, masonry and building products."
   },
   {
    "name": "Samsung Austin Semiconductor",
    "domain": "samsung.com",
-   "featured": true
+   "featured": true,
+   "industry": "Semiconductors",
+   "description": "Contract chip manufacturing at large wafer fabs in central Texas."
   },
   {
    "name": "Tesla",
    "domain": "tesla.com",
-   "featured": true
+   "featured": true,
+   "industry": "Automotive & Energy",
+   "description": "Electric vehicles, batteries and energy storage systems."
   },
   {
    "name": "Nxp Semiconductors",
    "domain": "nxp.com",
-   "featured": true
+   "featured": true,
+   "industry": "Semiconductors",
+   "description": "Chips for automotive, industrial and communications uses, with wafer fabs in Austin."
   },
   {
    "name": "Nxp USA",
    "domain": "nxp.com",
-   "featured": true
+   "featured": true,
+   "industry": "Semiconductors",
+   "description": "Chips for automotive, industrial and communications uses, with wafer fabs in Austin."
   },
   {
    "name": "Advanced Micro Devices",
    "domain": "amd.com",
-   "featured": true
+   "featured": true,
+   "industry": "Semiconductors",
+   "description": "Designs processors and graphics chips."
   },
   {
    "name": "IBM",
    "domain": "ibm.com",
-   "featured": true
+   "featured": true,
+   "industry": "Computing",
+   "description": "Computer systems, semiconductors research and enterprise technology."
   },
   {
    "name": "National Instruments",
    "domain": "ni.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronic Instruments",
+   "description": "Automated test and measurement systems."
   },
   {
    "name": "Flex",
    "domain": "flex.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronics Manufacturing",
+   "description": "Contract design and manufacturing of electronics."
   },
   {
    "name": "Flextronics America",
    "domain": "flex.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronics Manufacturing",
+   "description": "Contract design and manufacturing of electronics."
   },
   {
    "name": "Icu Medical",
    "domain": "icumed.com",
-   "featured": true
+   "featured": true,
+   "industry": "Medical Devices",
+   "description": "Infusion systems, IV consumables and solutions."
   },
   {
    "name": "Thermo Fisher Scientific",
    "domain": "thermofisher.com",
-   "featured": true
+   "featured": true,
+   "industry": "Scientific Instruments",
+   "description": "Laboratory instruments, reagents and pharmaceutical manufacturing services."
   },
   {
    "name": "Celestica",
    "domain": "celestica.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronics Manufacturing",
+   "description": "Contract design and manufacturing of electronics and hardware."
   },
   {
    "name": "Sanmina",
    "domain": "sanmina.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronics Manufacturing",
+   "description": "Contract manufacturing of electronics, circuit boards and assemblies."
   },
   {
    "name": "Sanmina-sci",
    "domain": "sanmina.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronics Manufacturing",
+   "description": "Contract manufacturing of electronics, circuit boards and assemblies."
   },
   {
    "name": "Collins Aerospace",
    "domain": "collinsaerospace.com",
-   "featured": true
+   "featured": true,
+   "industry": "Aerospace & Defense",
+   "description": "Aircraft systems: avionics, interiors, actuation and landing systems."
   },
   {
    "name": "Airborn",
    "domain": "airborn.com",
-   "featured": true
+   "featured": true,
+   "industry": "Electronics",
+   "description": "High-reliability connectors and electronic assemblies."
   },
   {
    "name": "Thermon Manufacturing",
    "domain": "thermon.com",
-   "featured": true
+   "featured": true,
+   "industry": "Industrial Equipment",
+   "description": "Industrial heat tracing and process heating systems."
   },
   {
    "name": "Acme Brick",
    "domain": "brick.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Materials",
+   "description": "Clay brick and masonry products."
   },
   {
    "name": "Texas Lehigh Cement",
    "domain": "texaslehigh.com",
-   "featured": true
+   "featured": true,
+   "industry": "Building Materials",
+   "description": "Cement."
   },
   {
    "name": "Athena Manufacturing",
    "domain": "athenamfg.com",
-   "featured": true
+   "featured": true,
+   "industry": "Contract Manufacturing",
+   "description": "Precision machining and fabrication."
   },
   {
    "name": "Micron Technology",
    "domain": "micron.com",
-   "featured": true
+   "featured": true,
+   "industry": "Semiconductors",
+   "description": "Memory and storage chips: DRAM and NAND flash."
   }
  ]
 }

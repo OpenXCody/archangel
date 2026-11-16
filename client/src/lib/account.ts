@@ -189,6 +189,8 @@ export interface JobSummary {
   expiresAt: string;
   companyId: string;
   companyName: string;
+  /** The company's web domain, for its logo. */
+  companyDomain?: string | null;
   factoryId: string;
   factoryName: string;
   city: string | null;
@@ -418,11 +420,16 @@ export interface AdminCompany {
   /** Website domain; the logo is looked up from it. */
   domain: string | null;
   featured: boolean;
+  industry: string | null;
+  /** One line on what the company makes. */
+  description: string | null;
 }
 
 export interface AdminCompanyPatch {
   domain?: string | null;
   featured?: boolean;
+  industry?: string | null;
+  description?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -982,7 +989,7 @@ export function useUpdateCompany() {
     mutationFn: ({ companyId, patch }: { companyId: string; patch: AdminCompanyPatch }) =>
       adminApi.updateCompany(companyId, patch),
     onSuccess: () =>
-      invalidate(queryClient, ['admin', 'companies'], ['companies'], ['explore-companies'], ['picker', 'companies']),
+      invalidate(queryClient, ['admin', 'companies'], ['companies'], ['factories'], ['explore-companies'], ['picker', 'companies']),
   });
 }
 

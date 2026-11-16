@@ -144,7 +144,7 @@ function PathsSection() {
 function CompanyProfileSection() {
   const [company, setCompany] = useState<AdminCompany | null>(null);
   return (
-    <PageSection title="Company profile" description="Domain (the logo is looked up from it) and featured.">
+    <PageSection title="Company profile" description="Logo domain, featured, industry and description.">
       <div className={cn(cardClass, 'p-4 sm:p-5')}>
         <Field label="Company" htmlFor="profile-company">
           <CompanyPicker id="profile-company" value={company} onChange={setCompany} />
@@ -163,11 +163,17 @@ function CompanyProfileForm({ company, onSaved }: { company: AdminCompany; onSav
   const update = useUpdateCompany();
   const [domain, setDomain] = useState(company.domain ?? '');
   const [featured, setFeatured] = useState(company.featured);
+  const [industry, setIndustry] = useState(company.industry ?? '');
+  const [description, setDescription] = useState(company.description ?? '');
   const [problem, setProblem] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
   const cleaned = domain.trim().toLowerCase();
-  const changed = cleaned !== (company.domain ?? '') || featured !== company.featured;
+  const changed =
+    cleaned !== (company.domain ?? '') ||
+    featured !== company.featured ||
+    industry.trim() !== (company.industry ?? '') ||
+    description.trim() !== (company.description ?? '');
   // The preview follows the draft once it reads as a domain, a beat after typing stops.
   const previewDomain = useDebouncedValue(HOSTNAME.test(cleaned) ? cleaned : null, 400);
 
@@ -178,10 +184,15 @@ function CompanyProfileForm({ company, onSaved }: { company: AdminCompany; onSav
     if (cleaned && !HOSTNAME.test(cleaned)) return setProblem('Bare domain only, such as tesla.com. No scheme or path.');
     setProblem(null);
     update.mutate(
-      { companyId: company.id, patch: { domain: cleaned || null, featured } },
+      {
+        companyId: company.id,
+        patch: { domain: cleaned || null, featured, industry: industry.trim() || null, description: description.trim() || null },
+      },
       {
         onSuccess: (result) => {
           setDomain(result.domain ?? '');
+          setIndustry(result.industry ?? '');
+          setDescription(result.description ?? '');
           setSaved(true);
           onSaved(result);
         },
@@ -234,6 +245,36 @@ function CompanyProfileForm({ company, onSaved }: { company: AdminCompany; onSav
             />
           </div>
         </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4">
+        <Field label="Industry" htmlFor="profile-industry" optional>
+          <input
+            id="profile-industry"
+            type="text"
+            autoComplete="off"
+            maxLength={80}
+            value={industry}
+            onChange={(e) => {
+              setIndustry(e.target.value);
+              setSaved(false);
+            }}
+            className={fieldClass}
+          />
+        </Field>
+        <Field label="Description" htmlFor="profile-description" optional hint="One line on what the company makes.">
+          <textarea
+            id="profile-description"
+            rows={2}
+            maxLength={600}
+            value={description}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              setSaved(false);
+            }}
+            className={cn(fieldClass, 'resize-y')}
+          />
+        </Field>
       </div>
 
       <ErrorNote error={problem ?? update.error} className="mt-4" />
