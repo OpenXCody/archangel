@@ -5,16 +5,17 @@
  *
  * Draw order, bottom to top:
  *   basemap fills and roads → state fills and borders → focus-area geofence →
- *   clusters → pins → hovered / selected pin → basemap place names →
- *   cluster counts.
+ *   density glow → pins → hovered / selected pin → basemap place names.
  * Place names stay above the pins so a city can still be read through a
- * field of them. Cluster counts go on the very top because MapLibre places
- * symbols top layer first: a count always gets its spot, and a city name that
- * would land on it slides to one side of its point instead (see quietBasemap).
+ * field of them.
  *
- * No layer here uses text, so the map needs no glyph server: cluster counts
- * are drawn to small images on demand (see addClusterCountImage). That keeps
- * the keyless plain style free of anything that could fail to load.
+ * Density is shown the way city lights show it from above: far out, every
+ * factory is a faint point and places with many of them glow. There are no
+ * counted bubbles and no numbers on the map; a count belongs in the panel a
+ * person opens, not on the surface they are trying to read.
+ *
+ * No layer here uses text, so the map needs no glyph server, which keeps the
+ * keyless plain style free of anything that could fail to load.
  */
 import type {
   ExpressionSpecification,
@@ -37,22 +38,18 @@ export const LAYER = {
   areaFill: 'area-fill',
   areaGlow: 'area-glow',
   areaOutline: 'area-outline',
-  clusters: 'factory-clusters',
-  clusterCount: 'factory-cluster-count',
+  density: 'factory-density',
   hiring: 'factory-points-hiring',
   pins: 'factory-points',
   activePins: 'factory-active',
 } as const;
 
 /**
- * Clusters stand in for pins up to and including this zoom; above it every
- * factory is its own pin. Six keeps a focus area (framed at about zoom 7.5 on
- * a phone, 8.4 on a desktop) on the pin side of the line.
+ * Below this zoom a pin is a point of light, not something to aim at: pins do
+ * not take hover or clicks, so a click lands on the state or focus area under
+ * them. From here in, each pin is big enough to pick.
  */
-const CLUSTER_MAX_ZOOM = 6;
-const CLUSTER_RADIUS_PX = 46;
-/** Two neighbours stay two pins; a cluster starts at three. */
-const CLUSTER_MIN_POINTS = 3;
+export const PIN_INTERACTIVE_MIN_ZOOM = 5.5;
 
 const COLOR = {
   canvas: '#080808',
@@ -65,13 +62,11 @@ const COLOR = {
   areaFill: '#BAE6FD',
   areaGlow: '#7DD3FC',
   areaOutline: '#E0F2FE',
-  cluster: '#ffffff',
   pinFeatured: '#ffffff',
   pinEstablished: '#ececec',
   pinOther: '#aab1ba',
   pinStroke: '#0a0a0a',
-  featuredRing: '#F59E0B', // amber-500: Company
-  hiringRing: '#A78BFA', // violet-400: Career
+  hiringRing: '#7DD3FC', // the one accent, shared with the geofence: this factory is hiring
   selectedRing: '#38BDF8', // sky-400: Factory
 } as const;
 
@@ -154,8 +149,8 @@ function stateShade(floor: number, stops: number[]): ExpressionSpecification {
 /**
  * Fill opacity of a state: shaded by factory count with a floor, so every
  * state reads as a shape that can be clicked, and fading out across zoom
- * 5.5 → 6.3 where pins take over. Quiet on purpose: clusters carry density
- * now, the fill only says "this is a state". MapLibre rejects a data
+ * 5.5 → 6.3 where pins take over. Quiet on purpose: the glow carries density,
+ * the fill only says "this is a state". MapLibre rejects a data
  * interpolate wrapped inside a zoom interpolate, so the fade is a `step`.
  */
 const STATE_FILL_OPACITY: ExpressionSpecification = [
@@ -174,8 +169,6 @@ export function setStateShadingDimmed(map: MapLibreMap, dimmed: boolean): void {
 
 // ─── Pins ──────────────────────────────────────────────────────────────────
 
-const IS_CLUSTER: ExpressionSpecification = ['has', 'point_count'];
-const IS_PIN: ExpressionSpecification = ['!', IS_CLUSTER];
 const TIER: ExpressionSpecification = ['coalesce', ['get', 'tier'], 0];
 const IS_HIRING: ExpressionSpecification = ['>', ['coalesce', ['get', 'openJobs'], 0], 0];
 
@@ -185,54 +178,22 @@ function byTier<T extends number | string>(featured: T, established: T, other: T
 }
 
 /**
- * Pin radius: small when far, larger when close, and larger again for the
- * employers a visitor is likelier to know. `extra` grows every stop by the
- * same amount, for rings that sit around a pin.
+ * Pin radius: a point of light when far, a pickable dot when close, and a
+ * little larger for the employers a visitor is likelier to know. `extra`
+ * grows every stop by the same amount, for rings that sit around a pin.
  */
 function pinRadius(extra = 0): ExpressionSpecification {
   const stop = (featured: number, established: number, other: number): ExpressionSpecification =>
     byTier(featured + extra, established + extra, other + extra);
   return [
     'interpolate', ['linear'], ['zoom'],
-    3, stop(3.8, 2.8, 2),
-    7, stop(5.2, 3.4, 2.4),
-    9, stop(6.6, 4.6, 3.4),
+    3, stop(1.5, 1.1, 0.8),
+    5, stop(2.2, 1.6, 1.2),
+    7, stop(4.2, 3, 2.2),
+    9, stop(6.2, 4.4, 3.2),
     12, stop(9, 6.6, 5.2),
     15, stop(12, 9, 7.5),
   ];
-}
-
-const CLUSTER_COUNT_IMAGE = 'cluster-count-';
-
-/**
- * Draw a cluster's count to an image the first time the map asks for it.
- * Bound to the map's `styleimagemissing` event. Canvas text uses the app's
- * own font and needs no glyph server, with or without a basemap key.
- */
-export function addClusterCountImage(map: MapLibreMap, id: string): void {
-  if (!id.startsWith(CLUSTER_COUNT_IMAGE) || map.hasImage(id)) return;
-  const text = id.slice(CLUSTER_COUNT_IMAGE.length);
-  const ratio = Math.min(3, Math.max(1, Math.ceil(window.devicePixelRatio || 1)));
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-  const font = `600 ${12 * ratio}px Oxanium, ui-sans-serif, system-ui, sans-serif`;
-  ctx.font = font;
-  const width = Math.ceil(ctx.measureText(text).width) + 6 * ratio;
-  const height = 18 * ratio;
-  canvas.width = width;
-  canvas.height = height;
-  // Resizing a canvas resets its state.
-  ctx.font = font;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.lineJoin = 'round';
-  ctx.lineWidth = 3 * ratio;
-  ctx.strokeStyle = 'rgba(8, 8, 8, 0.75)';
-  ctx.strokeText(text, width / 2, height / 2 + ratio);
-  ctx.fillStyle = '#f2f2f2';
-  ctx.fillText(text, width / 2, height / 2 + ratio);
-  map.addImage(id, ctx.getImageData(0, 0, width, height), { pixelRatio: ratio });
 }
 
 // ─── Sources and layers ────────────────────────────────────────────────────
@@ -249,16 +210,9 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
   // (hover, selected) is keyed on.
   map.addSource(SOURCE.states, { type: 'geojson', data: EMPTY, promoteId: 'stateCode' });
   map.addSource(SOURCE.areas, { type: 'geojson', data: EMPTY, promoteId: 'id' });
-  // One source for every factory in the country. The worker clusters it, so
-  // the main thread never touches the points while the camera moves.
-  map.addSource(SOURCE.factories, {
-    type: 'geojson',
-    data: EMPTY,
-    cluster: true,
-    clusterMaxZoom: CLUSTER_MAX_ZOOM,
-    clusterRadius: CLUSTER_RADIUS_PX,
-    clusterMinPoints: CLUSTER_MIN_POINTS,
-  });
+  // One source for every factory in the country, unclustered: the density
+  // layer and the pins both draw from it.
+  map.addSource(SOURCE.factories, { type: 'geojson', data: EMPTY });
   map.addSource(SOURCE.activePins, { type: 'geojson', data: EMPTY });
 
   // Every state is a shape that can be hovered and clicked while zoomed out.
@@ -343,31 +297,39 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
     },
   }, beforeId);
 
-  // Clusters: translucent discs sized by how many factories they hold.
+  // Density, far out: a soft glow where factories gather, fading away as
+  // the pins grow large enough to carry the picture themselves.
   map.addLayer({
-    id: LAYER.clusters,
-    type: 'circle',
+    id: LAYER.density,
+    type: 'heatmap',
     source: SOURCE.factories,
-    filter: IS_CLUSTER,
+    maxzoom: 7.5,
     paint: {
-      'circle-color': COLOR.cluster,
-      'circle-opacity': 0.17,
-      'circle-radius': [
-        'interpolate', ['linear'], ['get', 'point_count'],
-        3, 11, 30, 15, 150, 19, 600, 24, 2500, 30, 10000, 37,
+      'heatmap-weight': byTier(1.4, 1.1, 1),
+      // Low and smooth on purpose: a haze that says "more here", never a blob
+      // with an edge. The points of light on top carry the detail.
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 2, 0.05, 4, 0.12, 6, 0.3, 7.5, 0.5],
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 2, 4, 4, 9, 6, 20, 7.5, 34],
+      'heatmap-color': [
+        'interpolate', ['linear'], ['heatmap-density'],
+        0, 'rgba(160, 190, 220, 0)',
+        0.25, 'rgba(160, 190, 220, 0.06)',
+        0.5, 'rgba(185, 208, 230, 0.13)',
+        0.75, 'rgba(210, 226, 240, 0.21)',
+        1, 'rgba(235, 243, 250, 0.3)',
       ],
-      'circle-stroke-color': COLOR.cluster,
-      'circle-stroke-width': 1.25,
-      'circle-stroke-opacity': 0.7,
+      'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 2, 1, 5.5, 0.9, 6.5, 0.5, 7.5, 0],
     },
   }, beforeId);
-  // Open jobs: a violet ring. It sits under the pins, so each pin's own dark
-  // edge separates the ring from the dot.
+
+  // Hiring: a ring in the accent colour. It sits under the pins, so each
+  // pin's own dark edge separates the ring from the dot.
   map.addLayer({
     id: LAYER.hiring,
     type: 'circle',
     source: SOURCE.factories,
-    filter: ['all', IS_PIN, IS_HIRING],
+    filter: IS_HIRING,
+    minzoom: PIN_INTERACTIVE_MIN_ZOOM,
     paint: {
       'circle-color': COLOR.hiringRing,
       'circle-radius': pinRadius(2.5),
@@ -376,29 +338,29 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
     },
   }, beforeId);
 
-  // Pins. Tier sets the emphasis: featured employers are the largest and
-  // brightest and carry an amber edge, established companies are plain white,
-  // everyone else is smaller and dimmer. A thin dark edge keeps neighbours
-  // apart, and the sort key draws the higher tiers on top.
+  // Pins. Tier sets the emphasis through size and brightness alone: featured
+  // employers are the largest and brightest, established companies plain
+  // white, everyone else smaller and dimmer. Far out they are faint points;
+  // closer in, a thin dark edge keeps neighbours apart. The sort key draws
+  // the higher tiers on top.
   map.addLayer({
     id: LAYER.pins,
     type: 'circle',
     source: SOURCE.factories,
-    filter: IS_PIN,
     layout: {
       'circle-sort-key': ['+', ['*', TIER, 2], ['case', IS_HIRING, 1, 0]],
     },
     paint: {
       'circle-color': byTier(COLOR.pinFeatured, COLOR.pinEstablished, COLOR.pinOther),
       'circle-radius': pinRadius(),
-      'circle-opacity': byTier(1, 1, 0.9),
-      'circle-stroke-color': byTier(COLOR.featuredRing, COLOR.pinStroke, COLOR.pinStroke),
-      'circle-stroke-width': [
+      'circle-opacity': [
         'interpolate', ['linear'], ['zoom'],
-        3, byTier(1.2, 0.6, 0.5),
-        9, byTier(1.8, 0.9, 0.7),
-        13, byTier(2.4, 1.2, 1),
+        3, byTier(0.85, 0.6, 0.4),
+        5.5, byTier(0.95, 0.8, 0.6),
+        7, byTier(1, 1, 0.9),
       ],
+      'circle-stroke-color': COLOR.pinStroke,
+      'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 5, 0, 7, 0.6, 9, 0.9, 13, 1.2],
     },
   }, beforeId);
 
@@ -418,18 +380,4 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
       'circle-stroke-opacity': ['case', isSelected, 0.95, 0.35],
     },
   }, beforeId);
-
-  // Cluster counts, above everything (no beforeId). The padding keeps a
-  // displaced city name a few pixels clear of the number.
-  map.addLayer({
-    id: LAYER.clusterCount,
-    type: 'symbol',
-    source: SOURCE.factories,
-    filter: IS_CLUSTER,
-    layout: {
-      'icon-image': ['concat', CLUSTER_COUNT_IMAGE, ['to-string', ['get', 'point_count_abbreviated']]],
-      'icon-allow-overlap': true,
-      'icon-padding': 5,
-    },
-  });
 }

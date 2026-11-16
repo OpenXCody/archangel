@@ -16,7 +16,6 @@ import {
   ArrowLeft,
   Tag,
   MapPinned,
-  Star,
 } from 'lucide-react';
 import {
   factoriesApi,
@@ -72,13 +71,6 @@ function RegionOverviewBody({ data }: { data: RegionOverview }) {
               >
                 <CompanyLogo name={formatCompanyName(c.name)} domain={c.domain} size={28} />
                 <span className="min-w-0 flex-1 truncate text-fg-default">{formatCompanyName(c.name)}</span>
-                {c.featured && (
-                  // The same mark a featured employer's pin carries on its hover card.
-                  <span className="flex-shrink-0 text-amber-400" title="Featured employer">
-                    <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
-                    <span className="sr-only">Featured</span>
-                  </span>
-                )}
                 <span className="flex items-center gap-1 flex-shrink-0 text-fg-muted text-xs tabular-nums">
                   {c.count.toLocaleString()}
                   <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />

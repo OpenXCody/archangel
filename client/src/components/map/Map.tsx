@@ -24,12 +24,11 @@ import {
   PANEL_WIDTH_PX,
   sheetPeekPx,
   zoomBy,
-  zoomIntoCluster,
 } from './camera';
 import {
   addAppLayers,
-  addClusterCountImage,
   LAYER,
+  PIN_INTERACTIVE_MIN_ZOOM,
   plainDarkStyle,
   quietBasemap,
   setStateShadingDimmed,
@@ -260,9 +259,6 @@ export default function Map() {
       currentMap.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
       collapseAttribution(currentMap);
 
-      // Cluster counts are small images drawn on demand (no glyph server).
-      currentMap.on('styleimagemissing', (e) => addClusterCountImage(currentMap, e.id));
-
       // Handle map errors with auto-retry
       currentMap.on('error', (e) => {
         console.error('Map error:', e);
@@ -315,15 +311,15 @@ export default function Map() {
     /**
      * Pointer handling. One click handler and one hover handler for the whole
      * map, so what is under the pointer is decided in one place and in one
-     * order: a pin, then a cluster, then a focus area, then a state.
+     * order: a pin (once zoomed in far enough to pick one), then a focus
+     * area, then a state.
      */
     const bindInteractions = (currentMap: MapLibreMap) => {
       const store = useMapStore.getState;
-      const hitLayers = [LAYER.pins, LAYER.clusters, LAYER.areaFill, LAYER.stateFill];
+      const hitLayers = [LAYER.pins, LAYER.areaFill, LAYER.stateFill];
 
       interface Hit {
         pin?: MapGeoJSONFeature;
-        cluster?: MapGeoJSONFeature;
         area?: MapGeoJSONFeature;
         state?: MapGeoJSONFeature;
       }
@@ -331,7 +327,9 @@ export default function Map() {
       const hitTest = (point: maplibregl.Point): Hit => {
         const r = hitTolerancePx();
         const box: [PointLike, PointLike] = [[point.x - r, point.y - r], [point.x + r, point.y + r]];
-        const layers = hitLayers.filter((id) => currentMap.getLayer(id));
+        // Far out, pins are points of light: the state or area under them takes the pointer.
+        const pinsPickable = currentMap.getZoom() >= PIN_INTERACTIVE_MIN_ZOOM;
+        const layers = hitLayers.filter((id) => currentMap.getLayer(id) && (pinsPickable || id !== LAYER.pins));
         if (layers.length === 0) return {};
         const hit: Hit = {};
         let pinDistance = Infinity;
@@ -348,9 +346,6 @@ export default function Map() {
               }
               break;
             }
-            case LAYER.clusters:
-              hit.cluster ??= feature;
-              break;
             case LAYER.areaFill:
               hit.area ??= feature;
               break;
@@ -385,17 +380,6 @@ export default function Map() {
           store().selectFactory(id);
           // Centered in what the panel or sheet leaves visible (camera.ts).
           flyToPoint(currentMap, hit.pin.geometry.coordinates as [number, number]);
-          return;
-        }
-
-        if (hit.cluster && hit.cluster.geometry.type === 'Point') {
-          const clusterId = Number(hit.cluster.properties?.cluster_id);
-          void zoomIntoCluster(
-            currentMap,
-            SOURCE.factories,
-            clusterId,
-            hit.cluster.geometry.coordinates as [number, number]
-          );
           return;
         }
 
@@ -455,7 +439,7 @@ export default function Map() {
         if (!pending || currentMap.isMoving()) return;
         const hit = hitTest(pending);
         setHoveredPin(hit.pin ?? null);
-        const overPoint = Boolean(hit.pin || hit.cluster);
+        const overPoint = Boolean(hit.pin);
         const area = overPoint ? undefined : areaAt(hit);
         const code = overPoint || area ? undefined : stateAt(hit);
         setHoveredState(code ?? null);
@@ -649,35 +633,11 @@ export default function Map() {
       }
     };
 
-    // A focus area is where factories are, so a cluster often sits right on
-    // it. When the camera settles, move the tag to the first spot where it
-    // does not cover a cluster's count.
-    const avoidCounts = () => {
-      if (!m.getLayer(LAYER.clusterCount)) return;
-      for (const label of labels) {
-        if (label.el.classList.contains('is-hidden')) continue;
-        // A little larger than the tag itself: a count it only brushes still reads as covered.
-        const halfWidth = label.el.offsetWidth / 2 + AREA_LABEL_GAP_PX;
-        const halfHeight = label.el.offsetHeight / 2 + AREA_LABEL_GAP_PX;
-        const coversCount = (spot: Spot): boolean => {
-          const { lngLat, offset } = position(label, spot);
-          const edge = m.project(lngLat);
-          const x = edge.x + offset[0];
-          const y = edge.y + offset[1];
-          const box: [PointLike, PointLike] = [[x - halfWidth, y - halfHeight], [x + halfWidth, y + halfHeight]];
-          return m.queryRenderedFeatures(box, { layers: [LAYER.clusterCount] }).length > 0;
-        };
-        place(label, spots.find((spot) => !coversCount(spot)) ?? spots[0]);
-      }
-    };
-
     for (const label of labels) place(label, spots[0]);
     syncVisibility();
     m.on('zoom', syncVisibility);
-    m.on('idle', avoidCounts);
     return () => {
       m.off('zoom', syncVisibility);
-      m.off('idle', avoidCounts);
       for (const { marker } of labels) marker.remove();
     };
   }, [mapLoaded]);

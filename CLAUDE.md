@@ -4,7 +4,7 @@ US Manufacturing Workforce Intelligence Platform at o-10.com
 
 ## Quick Context
 
-Archangel is a workforce map of Texas manufacturing, starting with the Austin area. People explore **Companies → Factories → Jobs → Careers → Skills** on a map and through entity pages; seekers track skills and apply to jobs, employers post jobs and read applicants, admins load and correct data.
+Archangel is a workforce map of US manufacturing, filled out in depth one focus area at a time, starting with Austin, TX. People explore **Companies → Factories → Jobs → Careers → Skills** on a map and through entity pages; seekers track skills and apply to jobs, employers post jobs and read applicants, admins load and correct data.
 
 ## Tech Stack
 
@@ -61,9 +61,15 @@ archangel/
 | Deployment | `specs/06_APP_DEPLOYMENT.md` |
 | UI components | `specs/07_DESIGN_SYSTEM.md` |
 
-## Region scope
+## Coverage and focus areas
 
-The app covers **Texas only**, opening on the 50 miles around Austin. `shared/scope.ts` names the region; `server/lib/scope.ts` turns it into query conditions. Every public GET must build its conditions from those helpers, never from a hard-coded state. Rows for other states stay in the database, hidden. Admin routes and all writes are unscoped. Widening is a change to `shared/scope.ts`.
+Two separate ideas (`shared/scope.ts`):
+- **Coverage** is which rows the public API returns: the whole country (`SCOPE.stateCode` is `null`, so the helpers in `server/lib/scope.ts` are no-ops). Every public GET still builds its conditions from those helpers, so narrowing later is one setting.
+- **Focus areas** (`FOCUS_AREAS`) are regions being filled out in depth. The first is Austin, TX, bounded by its five metro counties (`client/public/data/areas/austin.geojson`). The map draws each as a geofence; `/api/map/areas/:id/overview` gives it the same panel data a state has.
+
+The map opens on the continental US. A focus area is somewhere to go, not a limit on what exists.
+
+Pins carry a tier: 2 featured employer (`companies.featured`), 1 established company (five or more factories nationwide), 0 other. `companies.domain` is used for logos. Curated lists live in `data/` and load through generated migrations (`scripts/build-*-sql.mjs`).
 
 ## Words
 
@@ -80,7 +86,7 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 
 ## Routes
 
-**Public:** `/map` (opens on Austin), `/explore`, `/jobs`, `/jobs/:id`, `/companies/:id`, `/factories/:id`, `/occupations/:id` (career page with path), `/skills/:id`, `/refs/:id`, `/schools/:id`, `/programs/:id`, `/sign-in`
+**Public:** `/map` (opens on the US; `?area=austin`, `?state=TX`), `/explore`, `/jobs`, `/jobs/:id`, `/companies/:id`, `/factories/:id`, `/occupations/:id` (career page with path), `/skills/:id`, `/refs/:id`, `/schools/:id`, `/programs/:id`, `/sign-in`
 
 **Signed in:** `/me` (seeker), `/employer` (company members), `/admin` (admins), `/import`, `/import/bulk` (admins)
 
@@ -100,7 +106,22 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 
 ## Map
 
-All camera movement goes through `client/src/components/map/camera.ts`. Never call `flyTo`/`fitBounds` elsewhere, and never pass `padding` to `flyTo` (MapLibre saves it and `fitBounds` adds it again). With no `VITE_MAP_TOKEN` the map draws on a plain dark style.
+- All camera movement goes through `client/src/components/map/camera.ts`. Never call `flyTo`/`fitBounds` elsewhere, and never pass `padding` to `flyTo` (MapLibre saves it and `fitBounds` adds it again).
+- Sources, layers and paint values live in `client/src/components/map/layers.ts`. Far out, factories are faint points under a density glow (no clusters, no numbers); from about zoom 5.5 they become pickable pins. Pins sit beneath the basemap's place names.
+- Everything floating over the map uses the one `.map-overlay` surface in `globals.css`. Do not hand-roll translucent glass; its legibility depends on what is behind it.
+- Hover cards render from the pin's own properties. No request on hover.
+- With no `VITE_MAP_TOKEN`, or if the basemap fails, the map draws on a plain dark style.
+- The attribution control stays (the basemap's and OpenStreetMap's terms require it), collapsed to its "i" button.
+
+## Look and feel
+
+The rule of thumb: it should look like software Tesla would ship on a vehicle screen, not like a consumer phone app.
+
+- Monochrome and quiet. One accent (the geofence's ice blue). Entity colours are for small icons on detail pages, not for the map or its overlays.
+- No stars, badges, emoji, counters or "click here" hints. Emphasis comes from order, size and brightness.
+- Nothing on the map that the person did not ask for: no numbered bubbles, no labels on pins. Counts and detail live in the panel they open.
+- Density reads naturally (a glow far out, distinct points close in), not as a chart.
+- Motion is short and purposeful. Nothing flashes a loading state for content the client already has.
 
 ## Code Style
 

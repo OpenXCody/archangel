@@ -17,7 +17,6 @@
  */
 import {
   LngLatBounds,
-  type GeoJSONSource,
   type Map as MapLibreMap,
   type LngLatBoundsLike,
   type MapOptions,
@@ -51,7 +50,6 @@ const AREA_MAX_ZOOM = 11;
 const PLACE_MAX_ZOOM = 14;
 const POINT_ZOOM = 8;
 const POINTS_MAX_ZOOM = 10;
-const CLUSTER_MIN_STEP = 1.5;
 
 interface Edges {
   top: number;
@@ -223,28 +221,6 @@ export function zoomBy(map: MapLibreMap, delta: number): void {
   });
 }
 
-/**
- * Open up a cluster: fly to it at the zoom where it breaks apart, and at
- * least a step and a half closer than now. The break-apart zoom alone can be
- * a fraction of a level away, where a big cluster only sheds a few points and
- * the click seems to do nothing.
- */
-export async function zoomIntoCluster(
-  map: MapLibreMap,
-  sourceId: string,
-  clusterId: number,
-  lngLat: [number, number]
-): Promise<void> {
-  const source = map.getSource(sourceId) as GeoJSONSource | undefined;
-  if (!source) return;
-  try {
-    const zoom = await source.getClusterExpansionZoom(clusterId);
-    flyToPoint(map, lngLat, Math.max(zoom, map.getZoom() + CLUSTER_MIN_STEP));
-  } catch {
-    // The data changed under the click and the cluster is gone: step in instead.
-    flyToPoint(map, lngLat, map.getZoom() + CLUSTER_MIN_STEP);
-  }
-}
 
 interface RequestContext extends MoveOptions {
   /** Shape of a state, by two-letter code. The map owns the geometry. */

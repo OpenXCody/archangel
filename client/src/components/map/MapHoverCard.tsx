@@ -1,4 +1,4 @@
-import { Briefcase, Building2, Factory, MapPin, Star } from 'lucide-react';
+import { Briefcase, Building2, Factory, MapPin } from 'lucide-react';
 import { useMapStore } from '../../stores/mapStore';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { PANEL_WIDTH_PX } from './camera';
@@ -41,18 +41,15 @@ export default function MapHoverCard() {
     >
       <div className="map-overlay rounded-lg p-3">
         <div className="flex items-start gap-2.5">
-          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-sky-400/15">
-            <Factory className="h-3.5 w-3.5 text-sky-400" />
+          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white/[0.06]">
+            <Factory className="h-3.5 w-3.5 text-fg-muted" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-semibold text-fg-default">{formatFactoryName(info.name)}</div>
             {info.companyName && (
-              <div className="mt-0.5 flex items-center gap-1 text-xs text-amber-400">
+              <div className="mt-0.5 flex items-center gap-1 text-xs text-fg-muted">
                 <Building2 className="h-3 w-3 shrink-0" />
                 <span className="truncate">{formatCompanyName(info.companyName)}</span>
-                {info.tier === 2 && (
-                  <Star className="h-3 w-3 shrink-0 fill-current" aria-label="Featured employer" />
-                )}
               </div>
             )}
           </div>
@@ -67,14 +64,13 @@ export default function MapHoverCard() {
             )}
             {info.industry && <span className="min-w-0 truncate">{info.industry}</span>}
             {info.openJobs > 0 && (
-              <span className="inline-flex items-center gap-1 font-medium text-violet-300">
+              <span className="inline-flex items-center gap-1 font-medium text-sky-300">
                 <Briefcase className="h-3 w-3 shrink-0" />
                 {info.openJobs.toLocaleString()} open {info.openJobs === 1 ? 'job' : 'jobs'}
               </span>
             )}
           </div>
         )}
-        <div className="mt-2.5 text-[10px] font-medium uppercase tracking-wider text-fg-muted">Click for details</div>
       </div>
       {/* Pointer to the pin: a rotated square tucked half under the card's edge. */}
       <span
