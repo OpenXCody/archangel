@@ -57,7 +57,7 @@ app.use('/api/admin', noStore, requireAdmin, adminRouter);
 
 // Edge caching. The two heaviest map payloads get 5 minutes; everything else
 // public gets 1 minute. Admin writes are never cached (GET-only middleware).
-app.get('/api/factories/geojson', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
+app.get('/api/factories/pins', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
 app.get('/api/map/state-counts', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
 
 // Public reads, admin-gated writes

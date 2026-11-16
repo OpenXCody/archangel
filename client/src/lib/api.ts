@@ -1,3 +1,5 @@
+import { unpackPins, type PinsPayload } from '@shared/pins';
+
 // Relative by default: production serves /api on the same origin, and in dev
 // Vite proxies /api to the Express server — which also makes the dev build
 // reachable from a phone on the same network. Override with VITE_API_URL for
@@ -425,13 +427,11 @@ export const companiesApi = {
     apiFetch<CompanyDetail>(`/companies/${id}`),
 };
 
-// Factory filter options for geojson
-export interface FactoryGeoJSONFilters {
+// Which factories the map's pins cover
+export interface PinFilters {
   states?: string[];
   company?: string;
   industry?: string;
-  // Viewport bounds: "minLng,minLat,maxLng,maxLat"
-  bounds?: string;
 }
 
 // Factories API
@@ -442,13 +442,13 @@ export const factoriesApi = {
   get: (id: string) =>
     apiFetch<FactoryDetail>(`/factories/${id}`),
 
-  geojson: (filters?: FactoryGeoJSONFilters) => {
+  /** Every factory the filters allow, as the GeoJSON the map's source takes. */
+  pins: async (filters?: PinFilters) => {
     const params: FetchOptions = {};
     if (filters?.states?.length) params.states = filters.states.join(',');
     if (filters?.company) params.company = filters.company;
     if (filters?.industry) params.industry = filters.industry;
-    if (filters?.bounds) params.bounds = filters.bounds;
-    return apiFetch<GeoJSON.FeatureCollection>(`/factories/geojson${buildQueryString(params)}`);
+    return unpackPins(await apiFetch<PinsPayload>(`/factories/pins${buildQueryString(params)}`));
   },
 };
 

@@ -75,7 +75,7 @@ function pinInfo(properties: Record<string, unknown> | null): PinInfo | null {
     tier: Number(properties.tier) || 0,
     city: text(properties.city),
     state: text(properties.state),
-    industry: text(properties.industry) ?? text(properties.specialization),
+    industry: text(properties.industry),
     openJobs: Number(properties.openJobs) || 0,
   };
 }
@@ -126,9 +126,9 @@ export default function Map() {
   // Every factory the filters allow, in one response. The whole country loads
   // once; panning and zooming never refetch.
   const { data: factoriesGeoJSON } = useQuery({
-    queryKey: ['factories-geojson', filters.states, filters.company, filters.industry],
+    queryKey: ['factory-pins', filters.states, filters.company, filters.industry],
     queryFn: () =>
-      factoriesApi.geojson({
+      factoriesApi.pins({
         states: filters.states.length > 0 ? filters.states : undefined,
         company: filters.company || undefined,
         industry: filters.industry || undefined,

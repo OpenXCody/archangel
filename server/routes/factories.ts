@@ -4,6 +4,7 @@ import { db, factories, companies, factoryOccupations, occupations, jobs } from 
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
+import { packPins } from '../../shared/pins.js';
 
 /** A company with this many factories nationwide counts as established. */
 const ESTABLISHED_MIN_SITES = 5;
@@ -104,27 +105,14 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/factories/geojson - Get factories as GeoJSON with optional filters
-// Supports viewport-based filtering for performance at scale
-router.get('/geojson', async (req: Request, res: Response) => {
+// GET /api/factories/pins - every factory the filters allow, packed for the
+// map (shared/pins.ts). The whole country is one response.
+router.get('/pins', async (req: Request, res: Response) => {
   try {
-    const { states, company, industry, bounds } = req.query;
+    const { states, company, industry } = req.query;
 
     // Build where conditions. Public reads only ever see in-scope factories.
     const conditions: (SQL | undefined)[] = [factoryInScope()];
-
-    // Viewport bounds filtering: bounds=minLng,minLat,maxLng,maxLat
-    if (bounds) {
-      const [minLng, minLat, maxLng, maxLat] = (bounds as string).split(',').map(parseFloat);
-      if (!isNaN(minLng) && !isNaN(minLat) && !isNaN(maxLng) && !isNaN(maxLat)) {
-        conditions.push(
-          sql`CAST(${factories.longitude} AS DECIMAL) >= ${minLng} AND
-              CAST(${factories.longitude} AS DECIMAL) <= ${maxLng} AND
-              CAST(${factories.latitude} AS DECIMAL) >= ${minLat} AND
-              CAST(${factories.latitude} AS DECIMAL) <= ${maxLat}`
-        );
-      }
-    }
 
     // Support multiple states as comma-separated string
     if (states) {
@@ -168,55 +156,33 @@ router.get('/geojson', async (req: Request, res: Response) => {
         companyName: companies.name,
         featured: companies.featured,
         sites: siteCounts.sites,
-        specialization: factories.specialization,
-        industry: factories.primaryNaicsDescription,
+        industry: sql<string | null>`COALESCE(${factories.primaryNaicsDescription}, ${factories.specialization})`,
         latitude: factories.latitude,
         longitude: factories.longitude,
         city: factories.city,
         state: factories.state,
-        workforceSize: factories.workforceSize,
-        openPositions: factories.openPositions,
         openJobs: openJobCounts.openJobs,
       })
       .from(factories)
       .leftJoin(companies, eq(factories.companyId, companies.id))
       .leftJoin(siteCounts, eq(siteCounts.companyId, factories.companyId))
       .leftJoin(openJobCounts, eq(openJobCounts.factoryId, factories.id))
-      .where(sql`${sql.join(conditions, sql` AND `)}`);
+      .where(and(...conditions));
 
-    const features: GeoJSON.Feature[] = [];
-    for (const factory of result) {
-      const lng = parseFloat(factory.longitude);
-      const lat = parseFloat(factory.latitude);
-      if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue;
-      features.push({
-        type: 'Feature',
-        id: factory.id,
-        geometry: { type: 'Point', coordinates: [lng, lat] },
-        properties: {
-          id: factory.id,
-          name: factory.name,
-          companyId: factory.companyId,
-          companyName: factory.companyName,
+    res.json(
+      packPins(
+        result.map((factory) => ({
+          ...factory,
           // 2: a featured employer. 1: an established company (five or more
           // factories nationwide). 0: everything else.
           tier: factory.featured ? 2 : (factory.sites ?? 1) >= ESTABLISHED_MIN_SITES ? 1 : 0,
-          specialization: factory.specialization,
-          industry: factory.industry,
-          city: factory.city,
-          state: factory.state,
-          workforceSize: factory.workforceSize,
-          openPositions: factory.openPositions,
           openJobs: factory.openJobs ?? 0,
-        },
-      });
-    }
-    const geojson: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features };
-
-    res.json(geojson);
+        })),
+      ),
+    );
   } catch (error) {
-    console.error('Error fetching factories geojson:', error);
-    res.status(500).json({ error: 'Failed to fetch factories geojson' });
+    console.error('Error fetching factory pins:', error);
+    res.status(500).json({ error: 'Failed to fetch factory pins' });
   }
 });
 

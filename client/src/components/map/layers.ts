@@ -187,10 +187,11 @@ function pinRadius(extra = 0): ExpressionSpecification {
     byTier(featured + extra, established + extra, other + extra);
   return [
     'interpolate', ['linear'], ['zoom'],
-    3, stop(1.5, 1.1, 0.8),
-    5, stop(2.2, 1.6, 1.2),
-    7, stop(4.2, 3, 2.2),
-    9, stop(6.2, 4.4, 3.2),
+    2, stop(0.9, 0.6, 0.45),
+    3.5, stop(1.2, 0.85, 0.6),
+    5, stop(2, 1.4, 1),
+    7, stop(3.6, 2.6, 1.9),
+    9, stop(5.6, 4, 3),
     12, stop(9, 6.6, 5.2),
     15, stop(12, 9, 7.5),
   ];
@@ -308,15 +309,15 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
       'heatmap-weight': byTier(1.4, 1.1, 1),
       // Low and smooth on purpose: a haze that says "more here", never a blob
       // with an edge. The points of light on top carry the detail.
-      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 2, 0.05, 4, 0.12, 6, 0.3, 7.5, 0.5],
-      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 2, 4, 4, 9, 6, 20, 7.5, 34],
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 2, 0.012, 4, 0.03, 6, 0.12, 7.5, 0.3],
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 2, 5, 4, 11, 6, 24, 7.5, 38],
       'heatmap-color': [
         'interpolate', ['linear'], ['heatmap-density'],
         0, 'rgba(160, 190, 220, 0)',
-        0.25, 'rgba(160, 190, 220, 0.06)',
-        0.5, 'rgba(185, 208, 230, 0.13)',
-        0.75, 'rgba(210, 226, 240, 0.21)',
-        1, 'rgba(235, 243, 250, 0.3)',
+        0.2, 'rgba(160, 190, 220, 0.02)',
+        0.45, 'rgba(175, 200, 226, 0.07)',
+        0.75, 'rgba(200, 220, 238, 0.15)',
+        1, 'rgba(230, 240, 250, 0.24)',
       ],
       'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 2, 1, 5.5, 0.9, 6.5, 0.5, 7.5, 0],
     },
@@ -355,9 +356,11 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
       'circle-radius': pinRadius(),
       'circle-opacity': [
         'interpolate', ['linear'], ['zoom'],
-        3, byTier(0.85, 0.6, 0.4),
-        5.5, byTier(0.95, 0.8, 0.6),
-        7, byTier(1, 1, 0.9),
+        2, byTier(0.5, 0.22, 0.1),
+        3.5, byTier(0.6, 0.3, 0.14),
+        5, byTier(0.8, 0.5, 0.28),
+        6, byTier(0.95, 0.75, 0.5),
+        7.5, byTier(1, 1, 0.9),
       ],
       'circle-stroke-color': COLOR.pinStroke,
       'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 5, 0, 7, 0.6, 9, 0.9, 13, 1.2],
