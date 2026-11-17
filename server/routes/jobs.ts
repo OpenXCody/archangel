@@ -16,6 +16,7 @@ import { cleanText, getSessionUser, handle, requireUser, type SessionUser } from
 import { uuidParam } from '../middleware/validateUuid.js';
 import { SCOPE } from '../../shared/scope.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
+import { applicationReceived, applicationStatusChanged } from '../lib/notices.js';
 
 /**
  * Jobs and applications.
@@ -476,7 +477,11 @@ router.post(
       .values({ jobId: job.id, userId: req.user!.id, note: note || null })
       .onConflictDoNothing()
       .returning({ id: applications.id });
-    if (created) return res.status(201).json({ id: created.id, status: 'applied' });
+    if (created) {
+      // The application's history starts, and the company is told.
+      await applicationReceived({ applicationId: created.id, jobId: job.id, applicantId: req.user!.id });
+      return res.status(201).json({ id: created.id, status: 'applied' });
+    }
 
     // One application per person per job. A withdrawn one is taken up again
     // (the same row, back at the start); anything else stands.
@@ -487,6 +492,7 @@ router.post(
       .where(and(eq(applications.jobId, job.id), eq(applications.userId, req.user!.id), eq(applications.status, 'withdrawn')))
       .returning({ id: applications.id });
     if (!reopened) return res.status(409).json({ error: 'You have already applied to this job.' });
+    await applicationReceived({ applicationId: reopened.id, jobId: job.id, applicantId: req.user!.id });
     res.status(201).json({ id: reopened.id, status: 'applied' });
   })
 );
@@ -642,6 +648,8 @@ router.patch(
       .where(and(eq(applications.id, row.id), eq(applications.status, row.status)))
       .returning({ id: applications.id });
     if (!changed) return res.status(409).json({ error: 'This application changed a moment ago. Reload and try again.' });
+    // A new stage (or a withdrawal) goes into the history; the applicant is told of the company's.
+    if (patch.status) await applicationStatusChanged({ applicationId: row.id, status: patch.status, byUserId: user.id });
     res.json({ id: row.id, status: patch.status ?? row.status });
   })
 );

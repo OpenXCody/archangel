@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { and, desc, eq, gt, ilike, isNotNull, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, ilike, inArray, isNotNull, isNull, or, sql } from 'drizzle-orm';
 import { db, users, companies, companyMembers, invites, occupations, passwordResets } from '../db/index.js';
 import { cleanText, handle, newToken, hashToken, normalizeEmail } from '../lib/auth.js';
 import { INVITE_DAYS, invitePath, isInviteRole } from '../lib/invites.js';
 import { RESET_HOURS, resetPath } from '../lib/passwordResets.js';
+import { accessDecided, emailAtDomain, sendAdminResetLink, sendInvite } from '../lib/notices.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 
 /**
@@ -43,6 +44,8 @@ router.get(
         pendingMemberships: sql<number>`(SELECT COUNT(*)::int FROM company_members WHERE status = 'requested')`,
         openJobs: sql<number>`(SELECT COUNT(*)::int FROM jobs WHERE status = 'open' AND expires_at > now())`,
         applications: sql<number>`(SELECT COUNT(*)::int FROM applications)`,
+        // With pendingMemberships, what Admin Tools lists as waiting.
+        draftPaths: sql<number>`(SELECT COUNT(*)::int FROM occupations WHERE path_status = 'draft')`,
       })
       .from(sql`(SELECT 1) AS one`);
     res.json(row);
@@ -53,28 +56,51 @@ router.get(
 // Company access
 // ---------------------------------------------------------------------------
 
-// GET /api/admin/memberships?status=requested|active
+/** How far back the list of declined requests goes. */
+const DECLINED_LIST_DAYS = 30;
+
+// GET /api/admin/memberships?status=requested|active|declined
+// Requests oldest first; declined ones from the last 30 days, newest first.
+// Each row carries what helps decide it: the company's domain, whether the
+// person's address is at it, and how many active members the company has.
 router.get(
   '/memberships',
   handle(async (req, res) => {
-    const status = req.query.status === 'active' ? 'active' : 'requested';
+    const status = req.query.status === 'active' ? 'active' : req.query.status === 'declined' ? 'declined' : 'requested';
     const rows = await db
       .select({
         companyId: companies.id,
         companyName: companies.name,
+        companyDomain: companies.domain,
         userId: users.id,
         userName: users.name,
         userEmail: users.email,
         role: companyMembers.role,
         status: companyMembers.status,
         createdAt: companyMembers.createdAt,
+        decidedAt: companyMembers.decidedAt,
+        activeMembers: sql<number>`(
+          SELECT COUNT(*)::int FROM company_members other
+          WHERE other.company_id = ${companies.id} AND other.status = 'active'
+        )`,
       })
       .from(companyMembers)
       .innerJoin(companies, eq(companies.id, companyMembers.companyId))
       .innerJoin(users, eq(users.id, companyMembers.userId))
-      .where(eq(companyMembers.status, status))
-      .orderBy(companyMembers.createdAt);
-    res.json({ memberships: rows });
+      .where(
+        status === 'declined'
+          ? and(eq(companyMembers.status, status), gt(companyMembers.decidedAt, new Date(Date.now() - DECLINED_LIST_DAYS * 24 * 60 * 60 * 1000)))
+          : eq(companyMembers.status, status)
+      )
+      .orderBy(status === 'declined' ? desc(companyMembers.decidedAt) : companyMembers.createdAt);
+    res.json({
+      memberships: rows.map((row) => ({
+        ...row,
+        emailDomain: row.userEmail.slice(row.userEmail.lastIndexOf('@') + 1),
+        // Null when the company has no domain on record.
+        domainMatches: emailAtDomain(row.userEmail, row.companyDomain),
+      })),
+    });
   })
 );
 
@@ -93,15 +119,31 @@ router.post(
       .where(eq(companies.id, companyId))
       .limit(1);
     if (!company) return res.status(404).json({ error: 'Company not found' });
+    const match = and(eq(companyMembers.companyId, companyId), eq(companyMembers.userId, userId));
+    const [before] = await db.select({ status: companyMembers.status }).from(companyMembers).where(match).limit(1);
+    const decidedAt = new Date();
     await db
       .insert(companyMembers)
-      .values({ companyId, userId, role: 'member', status: 'active' })
-      .onConflictDoUpdate({ target: [companyMembers.companyId, companyMembers.userId], set: { status: 'active' } });
+      .values({ companyId, userId, role: 'member', status: 'active', decidedAt, decidedBy: req.user!.id })
+      .onConflictDoUpdate({
+        target: [companyMembers.companyId, companyMembers.userId],
+        set: { status: 'active', decidedAt, decidedBy: req.user!.id },
+      });
+    // The person is told, unless they already had the access.
+    if (before?.status !== 'active') {
+      await accessDecided({ userId, companyId, decision: 'approved', requested: before?.status === 'requested', decidedAt, byUserId: req.user!.id });
+    }
     res.status(201).json({ companyId, companyName: company.name, userId, status: 'active' });
   })
 );
 
-// PATCH /api/admin/memberships { companyId, userId, decision: 'approve' | 'remove' }
+// PATCH /api/admin/memberships { companyId, userId, decision: 'approve' | 'decline' | 'remove' }
+// - approve: a request, or one declined earlier, becomes an active membership.
+// - decline: a request is refused. The row stays as 'declined', with when and
+//   by whom, so the person is told and cannot ask again for a week.
+// - remove: the row is deleted, whatever its state (take a member's access
+//   away, or clear a declined request so the person can ask again).
+// The person is emailed about an approval or a decline.
 router.patch(
   '/memberships',
   handle(async (req, res) => {
@@ -110,16 +152,36 @@ router.patch(
       return res.status(400).json({ error: 'companyId and userId are required.' });
     }
     const match = and(eq(companyMembers.companyId, companyId), eq(companyMembers.userId, userId));
+    const decidedAt = new Date();
     if (decision === 'approve') {
-      const updated = await db.update(companyMembers).set({ status: 'active' }).where(match).returning();
-      if (updated.length === 0) return res.status(404).json({ error: 'Request not found' });
+      const [before] = await db.select({ status: companyMembers.status }).from(companyMembers).where(match).limit(1);
+      if (!before) return res.status(404).json({ error: 'Request not found' });
+      // Only a row that is not yet active changes, so two approvals send one email.
+      const updated = await db
+        .update(companyMembers)
+        .set({ status: 'active', decidedAt, decidedBy: req.user!.id })
+        .where(and(match, inArray(companyMembers.status, ['requested', 'declined'])))
+        .returning({ userId: companyMembers.userId });
+      if (updated.length > 0) {
+        await accessDecided({ userId, companyId, decision: 'approved', requested: true, decidedAt, byUserId: req.user!.id });
+      }
       return res.json({ status: 'active' });
+    }
+    if (decision === 'decline') {
+      const updated = await db
+        .update(companyMembers)
+        .set({ status: 'declined', decidedAt, decidedBy: req.user!.id })
+        .where(and(match, eq(companyMembers.status, 'requested')))
+        .returning({ userId: companyMembers.userId });
+      if (updated.length === 0) return res.status(404).json({ error: 'Request not found' });
+      await accessDecided({ userId, companyId, decision: 'declined', requested: true, decidedAt, byUserId: req.user!.id });
+      return res.json({ status: 'declined' });
     }
     if (decision === 'remove') {
       await db.delete(companyMembers).where(match);
       return res.json({ status: 'removed' });
     }
-    res.status(400).json({ error: "decision must be 'approve' or 'remove'." });
+    res.status(400).json({ error: "decision must be 'approve', 'decline' or 'remove'." });
   })
 );
 
@@ -232,14 +294,16 @@ router.post(
     const expiresAt = new Date(Date.now() + RESET_HOURS * 60 * 60 * 1000);
     const created = await db.transaction(async (tx) => {
       // Locked, so the person cannot be deleted, nor a second link made, in between.
-      const [person] = await tx.select({ id: users.id }).from(users).where(eq(users.id, id)).limit(1).for('update');
-      if (!person) return false;
+      const [person] = await tx.select({ id: users.id, email: users.email }).from(users).where(eq(users.id, id)).limit(1).for('update');
+      if (!person) return null;
       await tx.delete(passwordResets).where(and(eq(passwordResets.userId, id), isNull(passwordResets.usedAt)));
       await tx.insert(passwordResets).values({ userId: id, tokenHash: hashToken(token), createdBy: req.user!.id, expiresAt });
-      return true;
+      return person;
     });
     if (!created) return res.status(404).json({ error: 'Person not found' });
-    res.status(201).json({ link: resetPath(token), expiresAt });
+    // When mail is on the link also goes to the person; `emailed` says whether it did.
+    const emailed = await sendAdminResetLink({ email: created.email, token });
+    res.status(201).json({ link: resetPath(token), expiresAt, emailed });
   })
 );
 
@@ -311,6 +375,7 @@ router.post(
         .returning({ id: invites.id, createdAt: invites.createdAt });
       return row;
     });
+    const emailed = await sendInvite({ email, role, companyName: company?.name ?? null, token });
 
     res.status(201).json({
       invite: {
@@ -324,6 +389,8 @@ router.post(
       },
       token,
       path: invitePath(token),
+      // When mail is on the link also goes to the invited address; this says whether it did.
+      emailed,
     });
   })
 );
