@@ -12,7 +12,7 @@ import {
   companies,
   factories,
 } from '../db/index.js';
-import { cleanText, handle, requireUser } from '../lib/auth.js';
+import { cleanText, clearAttempts, endSession, handle, requireUser, tooManyAttempts, verifyPassword } from '../lib/auth.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { newsFor } from '../lib/notices.js';
 
@@ -98,6 +98,39 @@ router.patch(
   })
 );
 
+// DELETE /api/me { password } - a person deletes their own account, confirmed
+// by their password. Their skills, goals, applications and company
+// memberships go with it; jobs they posted stay with the company. The last
+// admin cannot: someone must be left who can make admins.
+router.delete(
+  '/',
+  handle(async (req, res) => {
+    const user = req.user!;
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+    if (!password) return res.status(400).json({ error: 'Enter your password.' });
+    // A guess at the password counts like a guess at sign-in.
+    if (tooManyAttempts(req, user.email)) return res.status(429).json({ error: 'Too many attempts. Try again in a few minutes.' });
+    const [row] = await db.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, user.id)).limit(1);
+    if (!row || !(await verifyPassword(password, row.passwordHash))) {
+      return res.status(400).json({ error: 'That is not your password.' });
+    }
+    const outcome = await db.transaction(async (tx) => {
+      // Locked, so two admins deleting themselves at once cannot leave none.
+      const admins = await tx.select({ id: users.id }).from(users).where(eq(users.isAdmin, true)).for('update');
+      if (admins.length === 1 && admins[0].id === user.id) return 'last-admin' as const;
+      await tx.delete(users).where(eq(users.id, user.id));
+      return 'ok' as const;
+    });
+    if (outcome === 'last-admin') {
+      return res.status(409).json({ error: 'You are the only admin. Make someone else an admin first.' });
+    }
+    clearAttempts(req, user.email);
+    // The session went with the account; this clears its cookie.
+    await endSession(req, res);
+    res.json({ ok: true });
+  })
+);
+
 // GET /api/me/news - whether there is something the person has not seen:
 // { applications, applicants, access }. Booleans only; the header shows one dot.
 router.get(
@@ -134,6 +167,85 @@ router.get(
       .where(eq(userSkills.userId, req.user!.id))
       .orderBy(skills.name);
     res.json({ skills: rows });
+  })
+);
+
+/** How many suggested skills are sent unless asked otherwise, and at most. */
+const SUGGESTED_SKILLS = 12;
+const SUGGESTED_SKILLS_MAX = 30;
+
+// GET /api/me/skills/suggested?limit= - skills the person is likely to have
+// or want, none of them on their list yet: first the skills of the careers
+// they chose as goals (earliest stage first), then those of the careers within
+// reach (the ones most of those careers share first). Each names one career it
+// is for (`career`) and how many (`careers`). Empty for a person with no goal
+// and no held skill: there is nothing to go on.
+router.get(
+  '/skills/suggested',
+  handle(async (req, res) => {
+    const userId = req.user!.id;
+    const limit = Math.min(Math.max(Number(req.query.limit) || SUGGESTED_SKILLS, 1), SUGGESTED_SKILLS_MAX);
+    const rows = await db.execute(sql`
+      WITH mine AS (
+        SELECT skill_id, status FROM user_skills WHERE user_id = ${userId}
+      ),
+      goal AS (
+        SELECT os.skill_id, MIN(os.stage) AS stage, COUNT(*)::int AS careers, MIN(o.title) AS career
+        FROM user_goals g
+        JOIN occupation_skills os ON os.occupation_id = g.occupation_id
+        JOIN occupations o ON o.id = g.occupation_id
+        WHERE g.user_id = ${userId}
+          AND NOT EXISTS (SELECT 1 FROM mine m WHERE m.skill_id = os.skill_id)
+        GROUP BY os.skill_id
+      ),
+      reach_careers AS (
+        SELECT os.occupation_id, o.title,
+               (COUNT(*) FILTER (WHERE m.status = 'held') + 0.5 * COUNT(*) FILTER (WHERE m.status = 'learning'))::float8 / COUNT(*) AS share
+        FROM occupation_skills os
+        JOIN occupations o ON o.id = os.occupation_id
+        LEFT JOIN mine m ON m.skill_id = os.skill_id
+        WHERE os.occupation_id IN (
+                SELECT os2.occupation_id FROM occupation_skills os2
+                JOIN mine m2 ON m2.skill_id = os2.skill_id AND m2.status = 'held'
+              )
+          AND NOT EXISTS (
+                SELECT 1 FROM user_goals g WHERE g.user_id = ${userId} AND g.occupation_id = os.occupation_id
+              )
+        GROUP BY os.occupation_id, o.title
+        HAVING COUNT(*) >= ${REACH_MIN_PATH} AND COUNT(os.stage) > 0
+        ORDER BY share DESC, o.title ASC
+        LIMIT ${REACH_LIMIT}
+      ),
+      reach AS (
+        SELECT os.skill_id, MIN(os.stage) AS stage, COUNT(*)::int AS careers,
+               (array_agg(rc.title ORDER BY rc.share DESC, rc.title ASC))[1] AS career
+        FROM reach_careers rc
+        JOIN occupation_skills os ON os.occupation_id = rc.occupation_id
+        WHERE NOT EXISTS (SELECT 1 FROM mine m WHERE m.skill_id = os.skill_id)
+          AND NOT EXISTS (SELECT 1 FROM goal g WHERE g.skill_id = os.skill_id)
+        GROUP BY os.skill_id
+      )
+      SELECT s.id, s.name, x.stage, x.career, x.careers
+      FROM (
+        SELECT skill_id, stage, career, careers, 0 AS src FROM goal
+        UNION ALL
+        SELECT skill_id, stage, career, careers, 1 AS src FROM reach
+      ) x
+      JOIN skills s ON s.id = x.skill_id
+      ORDER BY x.src,
+               CASE WHEN x.src = 0 THEN COALESCE(x.stage, 9) ELSE -x.careers END,
+               CASE WHEN x.src = 0 THEN -x.careers ELSE COALESCE(x.stage, 9) END,
+               s.name ASC
+      LIMIT ${limit}
+    `);
+    const suggested = Array.from(rows as Iterable<Record<string, unknown>>).map((row) => ({
+      id: String(row.id),
+      name: String(row.name),
+      stage: row.stage === null ? null : Number(row.stage),
+      career: String(row.career),
+      careers: Number(row.careers),
+    }));
+    res.json({ skills: suggested });
   })
 );
 

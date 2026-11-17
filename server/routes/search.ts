@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
-import { companies, factories, occupations, skills } from '../db/schema.js';
-import { ilike, or, and, count, sql, type AnyColumn } from 'drizzle-orm';
+import { companies, factories, jobs, occupations, skills } from '../db/schema.js';
+import { ilike, or, and, count, eq, sql, type AnyColumn } from 'drizzle-orm';
+import { jobTextFilter } from '../lib/jobSearch.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { US_STATES } from '../../shared/states.js';
@@ -45,7 +46,7 @@ function sortByRelevance<T extends { name: string }>(items: T[], query: string):
 interface SearchResultItem {
   id: string;
   name: string;
-  type: 'companies' | 'factories' | 'occupations' | 'skills' | 'states';
+  type: 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'jobs';
   subtitle?: string;
   meta?: string;
   /** Companies only: the web domain their logo is looked up from. */
@@ -60,6 +61,7 @@ interface SearchResults {
     occupations: { count: number; items: SearchResultItem[] };
     skills: { count: number; items: SearchResultItem[] };
     states: { count: number; items: SearchResultItem[] };
+    jobs: { count: number; items: SearchResultItem[] };
   };
   totalCount: number;
 }
@@ -102,7 +104,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     const typeFilter = types
       ? (types as string).split(',').map(t => t.trim())
-      : ['companies', 'factories', 'occupations', 'skills', 'states'];
+      : ['companies', 'factories', 'occupations', 'skills', 'states', 'jobs'];
 
     const results: SearchResults = {
       query,
@@ -112,6 +114,7 @@ router.get('/', async (req: Request, res: Response) => {
         occupations: { count: 0, items: [] },
         skills: { count: 0, items: [] },
         states: { count: 0, items: [] },
+        jobs: { count: 0, items: [] },
       },
       totalCount: 0,
     };
@@ -319,13 +322,48 @@ router.get('/', async (req: Request, res: Response) => {
       };
     }
 
+    // Open jobs, matched as the jobs list matches them: every word typed is in
+    // the job's title, company, career, shift or place. Newest first.
+    const jobFilter = typeFilter.includes('jobs') ? jobTextFilter(query) : null;
+    if (jobFilter) {
+      const open = and(eq(jobs.status, 'open'), sql`${jobs.expiresAt} > now()`, factoryInScope(), jobFilter);
+      const [jobRows, jobCount] = await Promise.all([
+        db
+          .select({ id: jobs.id, title: jobs.title, companyName: companies.name, city: factories.city, state: factories.state })
+          .from(jobs)
+          .innerJoin(companies, eq(companies.id, jobs.companyId))
+          .innerJoin(factories, eq(factories.id, jobs.factoryId))
+          .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
+          .where(open)
+          .orderBy(sql`${jobs.postedAt} DESC`)
+          .limit(maxLimit),
+        db
+          .select({ count: count() })
+          .from(jobs)
+          .innerJoin(companies, eq(companies.id, jobs.companyId))
+          .innerJoin(factories, eq(factories.id, jobs.factoryId))
+          .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
+          .where(open),
+      ]);
+      results.results.jobs = {
+        count: jobCount[0]?.count ?? 0,
+        items: jobRows.map((job) => ({
+          id: job.id,
+          name: job.title,
+          type: 'jobs' as const,
+          subtitle: [job.companyName, [job.city, job.state].filter(Boolean).join(', ')].filter(Boolean).join(' · '),
+        })),
+      };
+    }
+
     // Calculate total count
     results.totalCount =
       results.results.companies.count +
       results.results.factories.count +
       results.results.occupations.count +
       results.results.skills.count +
-      results.results.states.count;
+      results.results.states.count +
+      results.results.jobs.count;
 
     res.json(results);
   } catch (error) {

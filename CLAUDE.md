@@ -79,6 +79,10 @@ A skill is marked where it is listed: on a career's path each row starts with a 
 
 Careers within reach (`GET /api/me/careers/reach`, shown on `/me` under Careers): careers with a staged path of at least five skills of which the person holds at least one, ranked by the share held, each with the next skills to pick up. Held skills count fully; a skill being learned counts as half for the order only, never in the figure. Careers already chosen as goals are left out; goals carry their own `next` skills (`GET /api/me/goals`).
 
+A new account with nowhere to return to lands on `/me`. With no goal, skill or application the page is one question, "Start with a career" (search, or one tap on a career that has a path); choosing one fills the page. Suggested skills (`GET /api/me/skills/suggested`, under Skills on `/me`) are the skills of the person's goals, then of careers within reach, none already on their list; one tap on the mark adds one, another takes it off, and the list holds still while it is marked (`useSuggestedSkills` in `lib/seeker.ts` is not under the skills key). Removing a goal or skill leaves "Removed X. Undo" in its place until the page is left.
+
+`/jobs` narrows by place: `?state=`, or `?near=<lat>,<lng>&place=<name>&within=<miles>` (50 by default), chosen in the Where field (`components/account/JobPlaceFilter.tsx`: a ZIP code or town through `lib/geocode.ts`, or a state; a state select only when there is no map key). The browser is never asked for the person's location. `?q=` matches every typed word in the title, company, career, shift, city or state (`server/lib/jobSearch.ts`).
+
 ## Careers and plants
 
 Two different links, kept apart:
@@ -89,7 +93,7 @@ From it: a career lists its industries with plant counts and leading states (`GE
 
 ## Words
 
-On screen an occupation is a **Career**, and a job is one opening for a career at one factory. Code, routes and tables still say `occupation`. A career's skills carry a stage: 1 Introduction, 2 Fundamentals, 3 Advanced.
+On screen an occupation is a **Career**, and a job is one opening for a career at one factory. On the map a factory is a **plant** and headcount is **people**. A career someone aims for is a **goal** ("Set as goal", "Goal", "Goals"). A plain account has no role label. Code, routes and tables still say `occupation`. A career's skills carry a stage: 1 Introduction, 2 Fundamentals, 3 Advanced.
 
 ## Users
 
@@ -137,9 +141,9 @@ Old addresses: `/import` and `/import/bulk` redirect to `/admin?tab=data`; `/tre
 
 ## API Endpoints
 
-- Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search` (companies, factories, careers, skills, and states from `shared/states.ts`), `/api/map/*`, `/api/stats/counts` (companies, factories, occupations, skills, total), `/api/explore/overview` (everything the Explore overview shows, in one response), `/api/explore/facets` (the industries and skill categories the browse lists filter by), `/api/jobs`, `/api/jobs/:id`
-- `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, `invite/:token` (what an invite grants; 404 when unknown, used or expired), `password` (change your own), `reset/:token` (whose password a reset link sets; 404 when unknown, used or expired), `reset` POST `{ token, password }`
-- `/api/me/*` profile, skills, goals (each with `next` skills), applications, `careers/reach`
+- Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search` (companies, factories, careers, skills, and states from `shared/states.ts`), `/api/map/*`, `/api/stats/counts` (companies, factories, occupations, skills, total), `/api/explore/overview` (everything the Explore overview shows, in one response), `/api/explore/facets` (the industries and skill categories the browse lists filter by), `/api/jobs`, `/api/jobs/:id`. `/api/jobs` GET takes `q`, `state`, `near`, `within` (with `near` each job carries `miles`, nearest first); `/api/search` also returns `results.jobs` (open jobs); the map overviews (`states/:code/overview`, `areas/:id/overview`, `bounds/overview`) carry `openJobs` and `jobs`, listed in the panel only when there are some
+- `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, `invite/:token` (what an invite grants; 404 when unknown, used or expired), `password` (change your own), `reset/:token` (whose password a reset link sets; 404 when unknown, used or expired), `reset` POST `{ token, password }`; `email` POST `{ email, password }` changes the sign-in address (ends other sessions, tells the old address by mail)
+- `/api/me/*` profile, skills, `skills/suggested`, goals (each with `next` skills), applications, `careers/reach`; `DELETE /api/me { password }` deletes your own account with its skills, goals, applications and memberships (posted jobs stay; not the last admin)
 - `/api/jobs` POST; `/:id` PATCH (fields, `skills` as the whole list, close, reopen; company members and admins) and DELETE (only a job with no applications, else 409); `/:id/apply`; `/:id/applications` (ranked; the job's `skills` once, and per applicant `heldSkillIds` and `learningSkillIds`); `/applications/:id` (stage and private note). An application link is stored as https; one typed without a scheme gets it
 - `/api/employer/*` memberships and the employer dashboard
 - `/api/admin/*` (signed-in admin only: 401 signed out, 403 otherwise): `overview`; `users` (`?q=`, paged), `users/:id` PATCH `{ isAdmin }` and DELETE; `users/:id/reset-link` POST; `memberships` GET, POST (add a person to a company), PATCH (approve or remove); `invites` GET, POST, `invites/:id` DELETE; `paths?status=draft`; `companies?q=`, `companies/:id` PATCH `{ domain, featured }`
@@ -148,7 +152,7 @@ Old addresses: `/import` and `/import/bulk` redirect to `/admin?tab=data`; `/tre
 
 ## Migrations
 
-`scripts/migrate.mjs` applies the SQL files it lists (0010 onward) once each, before every build (`npm run build`), and skips when `DATABASE_URL` is unset. New tables go in a new idempotent SQL file in `migrations/`, added to the list in that script, and mirrored in `server/db/schema.ts`. Migrations 0000-0009 predate the runner: a new database gets them by hand, once (`README.md`). `0015_invites.sql` adds the `invites` table. `0020_password_resets.sql` adds the `password_resets` table. `0021_industry_careers.sql` adds and fills `industry_occupations`. `0023_remove_legacy.sql` drops what the product no longer has: Elements (`refs`), Schools, Programs and People with their junction and alias tables, the `states`, `industries` and `skill_categories` lookups, `skill_relations`, `entity_links`, the spreadsheet import's tables, and the columns `factories.state_id` and `skills.category_id`. `occupation_aliases` and `skill_aliases` are kept, empty, for search aliases and merges. A state is its two-letter code (`factories.state`, `shared/states.ts`); a company's industry and a skill's category are text on their own rows.
+`scripts/migrate.mjs` applies the SQL files it lists (0010 onward) once each, before every build (`npm run build`), and skips when `DATABASE_URL` is unset. New tables go in a new idempotent SQL file in `migrations/`, added to the list in that script, and mirrored in `server/db/schema.ts`. Migrations 0000-0009 predate the runner: a new database gets them by hand, once (`README.md`). `0015_invites.sql` adds the `invites` table. `0020_password_resets.sql` adds the `password_resets` table. `0021_industry_careers.sql` adds and fills `industry_occupations`. `0022_data_cleanup.sql` is generated by `scripts/build-cleanup-sql.mjs` from `data/cleanup/2026-11-cleanup.json` (careers, skills and companies deleted, merged and renamed; plants moved or removed; a merged name is kept as an alias): a later cleanup is a new JSON file and a new generated migration, never an edit to an applied one. `0023_remove_legacy.sql` drops what the product no longer has: Elements (`refs`), Schools, Programs and People with their junction and alias tables, the `states`, `industries` and `skill_categories` lookups, `skill_relations`, `entity_links`, the spreadsheet import's tables, and the columns `factories.state_id` and `skills.category_id`. `occupation_aliases` and `skill_aliases` are kept: they hold the names of merged careers and skills, for search and for later merges. A state is its two-letter code (`factories.state`, `shared/states.ts`); a company's industry and a skill's category are text on their own rows.
 
 ## Map
 
@@ -158,13 +162,21 @@ Old addresses: `/import` and `/import/bulk` redirect to `/admin?tab=data`; `/tre
 - Hover cards render from the pin's own properties. No request on hover.
 - With no `VITE_MAP_TOKEN`, or if the basemap fails, the map draws on a plain canvas in the page colour.
 - The attribution control stays (the basemap's and OpenStreetMap's terms require it), collapsed to its "i" button.
+- Pins load once (`['factory-pins']`); state, industry, company and career are filter and paint expressions set by `setPinView` in `layers.ts`. Never refetch or `setData` for a filter.
+- The map has at most one subject, a company (`?company=`, id or slug) or a career (`?career=`): `filters.company` / `filters.career` in `mapStore`. A company's plants are drawn alone and framed; a career's industries keep their strength and the rest step back. The chip under the search turns it off.
+- The map's address: `?factory= ?state= ?area= ?skill= ?place=&in=&box=` (what the panel shows), `?company= ?career=` (subject), `?industry=`; the camera is the fragment `#zoom/lat/lng`, written with replace by `MapView`. Something a link names that does not exist calls `notFound()`: one line beside the search, the country, the address cleaned.
+- A click or tap selects after 250 ms unless a second one or a camera move cancels it (a double tap zooms). Touch reach is about 22 px close in and 10 px far out; states are hit at the exact point. Dragging is limited to `REACH` in `camera.ts`; flights made by `camera.ts` are exempt. Rotation and pitch are off.
+- Map controls take their size from the pointer (`.map-control`, `.map-search-button`, `.map-row`, `.map-chip`, `.map-field` in `globals.css`): 44 px and 16 px type on `pointer: coarse`.
+- The phone sheet rests at bar / peek / full (`sheetDetent`); the home view on a phone frames the country above the resting sheet.
+- Map search ranks the product's own records first, then places (towns, counties, ZIP codes; streets only when the query has a digit) from `client/src/lib/geocode.ts`. A town opens a panel for its bounds: `GET /api/map/bounds/overview?west=&south=&east=&north=` (the region overview for any box, plus up to 24 plants).
+- A first visit is given one sentence under the search field, once per browser (`archangel.map.seen`).
 
 ## Look and feel
 
 The rule of thumb: it should look like software Tesla would ship on a vehicle screen, not like a consumer phone app.
 
 - Monochrome and quiet, in both themes. One accent (the geofence's blue). No entity colours anywhere.
-- No stars, badges, emoji, counters or "click here" hints. Emphasis comes from order, size and brightness.
+- No stars, badges, emoji, counters or "click here" hints. Emphasis comes from order, size and brightness. Application stages read by brightness, not hue. Section headings on entity pages carry no counts.
 - Nothing on the map that the person did not ask for: no numbered bubbles, no labels on pins. Counts and detail live in the panel they open.
 - Density reads naturally (a glow far out, distinct points close in), not as a chart.
 - Motion is short and purposeful. Nothing flashes a loading state for content the client already has.
@@ -182,7 +194,7 @@ The rule of thumb: it should look like software Tesla would ship on a vehicle sc
 - No service worker. The manifest is a static file (`client/public/manifest.webmanifest`); cache lifetimes are in `vercel.json`. The font (Oxanium) is bundled, not fetched from a third party
 - List routes read `limit`/`offset` through `server/lib/paging.ts`; record writes validate through `server/lib/writes.ts`
 - A new dependency is proven with a clean install (`npm ci` in a fresh copy, then `npm run build`), not with the packages already on disk: Vercel installs from the lockfile only
-- A control that is saving is marked `aria-busy` / `aria-disabled` (`busyButtonClass`), never `disabled`: a disabled control drops keyboard focus. A form names each problem beside its field and focuses the first
+- A control that is saving is marked `aria-busy` / `aria-disabled` (`busyButtonClass`), never `disabled`: a disabled control drops keyboard focus. A form names each problem beside its field and focuses the first Mutations run with `networkMode: 'always'`: a change made offline fails there and then. Button groups acting as tabs or radios use `onGroupArrowKeys` (`lib/roving.ts`) with a roving tabindex. After a deliberate sign-out a gated page sends the person to the map (`justLeft` in `lib/account.ts`)
 - An entity page picks its view from the address (`entityType`), never from the shape of the response; the shape checks in `EntityDetail.tsx` only narrow types. Adding a field to a response must not be able to change which page is drawn
 - Server/api relative imports MUST end in `.js` (`from './routes/map.js'`, `from '../db/index.js'`): the function runs as Node ESM on Vercel. `npm run lint` enforces it
 

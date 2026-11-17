@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { and, eq, isNull, ne } from 'drizzle-orm';
+import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import { db, users, sessions, companies, companyMembers, invites, passwordResets } from '../db/index.js';
 import {
   cleanText,
@@ -20,7 +20,7 @@ import {
 import { MAX_INVITE_TOKEN_LENGTH, usableInvite } from '../lib/invites.js';
 import { MAX_RESET_TOKEN_LENGTH, usableReset } from '../lib/passwordResets.js';
 import { emailEnabled, finishLater } from '../lib/email.js';
-import { sendForgotLink } from '../lib/notices.js';
+import { sendEmailChanged, sendForgotLink } from '../lib/notices.js';
 
 const router = Router();
 
@@ -225,6 +225,54 @@ router.post(
     });
     clearAttempts(req, user.email);
     res.json({ ok: true });
+  })
+);
+
+// POST /api/auth/email { email, password } - a signed-in person changes the
+// address they sign in with, confirmed by their current password. Their other
+// sessions end, an unused reset link (sent to the old address) stops working,
+// and the old address is told.
+router.post(
+  '/email',
+  requireUser,
+  handle(async (req, res) => {
+    const user = req.user!;
+    const email = normalizeEmail(req.body?.email);
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+    if (!email) return res.status(400).json({ error: 'Enter a valid email address.', field: 'email' });
+    if (email === user.email) return res.status(400).json({ error: 'That is already your email address.', field: 'email' });
+    if (!password) return res.status(400).json({ error: 'Enter your current password.', field: 'password' });
+    // A guess at the current password counts like a guess at sign-in.
+    if (tooManyAttempts(req, user.email)) return res.status(429).json({ error: TOO_MANY });
+
+    const [row] = await db.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, user.id)).limit(1);
+    if (!row || !(await verifyPassword(password, row.passwordHash))) {
+      return res.status(400).json({ error: 'That is not your current password.', field: 'password' });
+    }
+
+    const keep = currentSessionHash(req);
+    const taken = await db.transaction(async (tx) => {
+      // The unique index decides: two changes to one address at once cannot both land.
+      const changed = await tx
+        .update(users)
+        .set({ email, updatedAt: new Date() })
+        .where(and(eq(users.id, user.id), sql`NOT EXISTS (SELECT 1 FROM users other WHERE other.email = ${email})`))
+        .returning({ id: users.id })
+        .catch((err: unknown) => {
+          if ((err as { code?: string } | null)?.code === '23505') return [];
+          throw err;
+        });
+      if (changed.length === 0) return true;
+      await tx.delete(sessions).where(keep ? and(eq(sessions.userId, user.id), ne(sessions.tokenHash, keep)) : eq(sessions.userId, user.id));
+      await tx.delete(passwordResets).where(and(eq(passwordResets.userId, user.id), isNull(passwordResets.usedAt)));
+      return false;
+    });
+    if (taken) return res.status(409).json({ error: 'An account with that email already exists.', field: 'email' });
+
+    clearAttempts(req, user.email);
+    const told = sendEmailChanged({ oldEmail: user.email, newEmail: email });
+    if (!finishLater(told)) await told;
+    res.json(await accountPayload({ ...user, email }));
   })
 );
 

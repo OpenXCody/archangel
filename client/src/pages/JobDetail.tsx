@@ -70,8 +70,10 @@ export default function JobDetail() {
 
   if (job.isPending) return <PageLoading label="Loading job" />;
 
-  if (job.isError) {
-    const gone = job.error instanceof ApiError && (job.error.status === 404 || job.error.status === 400);
+  const gone = job.error instanceof ApiError && (job.error.status === 404 || job.error.status === 400);
+  // Only a job that never loaded is "not available". One that was on screen
+  // and has since closed stays on screen and says so.
+  if (job.isError && !job.data) {
     return (
       <PageContainer size="narrow">
         {gone ? (
@@ -92,8 +94,12 @@ export default function JobDetail() {
     );
   }
 
-  const data = job.data;
+  const justClosed = job.isError && gone;
+  const data = justClosed ? { ...job.data, job: { ...job.data.job, isOpen: false } } : job.data;
   const manages = data.canManage;
+  // Back to the list as it was filtered, when the job was opened from it.
+  const cameFrom = (location.state as { from?: unknown } | null)?.from;
+  const jobsList = typeof cameFrom === 'string' && cameFrom.startsWith('/jobs?') ? cameFrom : null;
   const applying = !manages || applyAsManager || Boolean(data.myApplication);
   // Skills are marked against the reader's own only when they are here to apply.
   const marksHeld = signedIn && applying;
@@ -118,7 +124,9 @@ export default function JobDetail() {
   return (
     <PageContainer size="narrow">
       <PageHeader
-        backTo={manages ? { to: '/employer', label: 'Your jobs' } : { to: '/jobs', label: 'All jobs' }}
+        backTo={
+          manages ? { to: '/employer', label: 'Your jobs' } : jobsList ? { to: jobsList, label: 'Back to results' } : { to: '/jobs', label: 'All jobs' }
+        }
         eyebrow={`Job #${data.job.serial}`}
         title={data.job.title}
         description={
@@ -147,7 +155,7 @@ export default function JobDetail() {
         </>
       ) : (
         <>
-          {!data.job.isOpen && <ClosedNotice job={data.job} />}
+          {!data.job.isOpen && <ClosedNotice job={data.job} justClosed={justClosed} />}
           <PageSection>{terms}</PageSection>
           {!applyAfterSkills && apply}
         </>
@@ -221,13 +229,17 @@ export default function JobDetail() {
 // Terms
 // ---------------------------------------------------------------------------
 
-function ClosedNotice({ job }: { job: JobDetailData }) {
+function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClosed?: boolean }) {
   const closed = job.status === 'closed';
   return (
-    <div className={cn(cardClass, 'mb-6 flex items-start gap-3 border-warning/30 p-4')} role="status">
+    <div className={cn(cardClass, 'mb-6 flex items-start gap-3 border-warning/30 p-4')} role="status" data-job-closed>
       <Lock className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
       <p className="min-w-0 break-words text-sm text-fg-default">
-        {closed ? 'This job is closed and no longer takes applications.' : 'This job has expired and no longer takes applications.'}
+        {justClosed
+          ? 'This job has just closed and no longer takes applications.'
+          : closed
+            ? 'This job is closed and no longer takes applications.'
+            : 'This job has expired and no longer takes applications.'}
         {closed && job.closedReason && <span className="text-fg-muted"> Reason: {job.closedReason}</span>}
       </p>
     </div>
@@ -369,7 +381,9 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
     return (
       <div className={cn(cardClass, 'flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-6')}>
         <div className="min-w-0 flex-1 basis-48">
-          <p className="text-sm font-medium text-fg-default">You applied {formatAgo(myApplication.createdAt)}.</p>
+          <p className="text-sm font-medium text-fg-default">
+            {myApplication.status === 'withdrawn' ? 'You withdrew this application.' : `You applied ${formatAgo(myApplication.createdAt)}.`}
+          </p>
           <p className="mt-0.5 text-sm text-fg-muted">
             Follow it on{' '}
             <Link to="/me" className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">

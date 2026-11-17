@@ -8,6 +8,8 @@ const router = Router();
 
 /** How many plants a place's panel is sent: enough to list a town's, not a city's. */
 const PLACE_PLANT_LIMIT = 24;
+/** How many open jobs a state's, focus area's or place's panel is sent. */
+const REGION_JOB_LIMIT = 6;
 
 // US state codes to full names mapping
 const STATE_CODE_TO_NAME: Record<string, string> = {
@@ -183,7 +185,34 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
     LIMIT 8
   `);
 
+  // Who is hiring here: the newest open jobs at these factories, and how many
+  // there are in all. Empty where nobody is, and the panel then says nothing.
+  const openJobs = await db.execute(sql`
+    SELECT j.id, j.serial, j.title, j.pay_min, j.pay_max, j.pay_period,
+           c.name AS company_name, f.name AS factory_name, f.city,
+           COUNT(*) OVER ()::int AS total
+    FROM jobs j
+    INNER JOIN factories f ON f.id = j.factory_id
+    INNER JOIN companies c ON c.id = j.company_id
+    WHERE j.status = 'open' AND j.expires_at > now() AND ${inSet('f')} AND ${factoryInScope('f')}
+    ORDER BY j.posted_at DESC
+    LIMIT ${REGION_JOB_LIMIT}
+  `);
+  const jobRows = Array.from(openJobs as Iterable<Record<string, unknown>>);
+
   return {
+    openJobs: jobRows.length > 0 ? Number(jobRows[0].total) : 0,
+    jobs: jobRows.map((r) => ({
+      id: r.id,
+      serial: r.serial,
+      title: r.title,
+      payMin: r.pay_min,
+      payMax: r.pay_max,
+      payPeriod: r.pay_period,
+      companyName: r.company_name,
+      factoryName: r.factory_name,
+      city: r.city ?? null,
+    })),
     careers: Array.from(careers as Iterable<Record<string, unknown>>).map((r) => ({ id: r.id, title: r.title, count: r.count })),
     totalFactories: totalsRow?.totalFactories ?? 0,
     totalCompanies: totalsRow?.totalCompanies ?? 0,
