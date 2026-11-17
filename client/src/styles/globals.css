@@ -428,6 +428,14 @@ input {
 .archangel-map .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
   background-color: var(--color-fg-default);
 }
+/* The "i" keeps its size; on a touch screen what takes the tap around it is thumb-sized. */
+@media (pointer: coarse) {
+  .archangel-map .maplibregl-ctrl-attrib-button::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+  }
+}
 /* MapLibre rings the button on any focus, so it stays lit after a click. */
 .archangel-map .maplibregl-ctrl-attrib-button:focus {
   box-shadow: none;

@@ -258,7 +258,7 @@ function Filters({ id }: { id: string }) {
         <h4 id={`${id}-industry`} className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
           Industry
         </h4>
-        <div className="max-h-[min(264px,32vh)] overflow-y-auto">
+        <div className="max-h-[min(304px,36vh)] overflow-y-auto">
           {industries.map((industry) => {
             const chosen = filters.industry === industry;
             return (
@@ -673,7 +673,7 @@ export default function MapSearch() {
 
         {/* One line, when there is one to say: what this is (a first visit), or what a link asked for that is not here. */}
         {caption && !expanded && (
-          <p role="status" className="-mt-1 px-4 pb-3 text-[13px] leading-snug text-fg-muted">
+          <p role="status" className="-mt-1 px-4 pb-3 text-[13px] leading-snug text-fg-muted [text-wrap:balance]">
             {caption}
           </p>
         )}

@@ -13,10 +13,11 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
   const menuRef = useRef<HTMLDivElement>(null);
   const { resetView, clearFilters, filters } = useMapStore();
 
-  // Check if any filters are active
+  // Anything narrowing what the map shows: a filter, or a company or career as its subject.
   const hasActiveFilters =
     filters.states.length > 0 ||
     filters.company !== null ||
+    filters.career !== null ||
     filters.industry !== null;
 
   // Close on click outside
@@ -127,10 +128,7 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
             "
           >
             <FilterX className="w-4 h-4 text-fg-muted" />
-            <span>Clear Filters</span>
-            <span className="ml-auto px-1.5 py-0.5 rounded-full bg-bg-elevated text-[10px] text-fg-muted">
-              {filters.states.length + (filters.company ? 1 : 0) + (filters.industry ? 1 : 0)}
-            </span>
+            <span>Show every plant</span>
           </button>
         </>
       )}

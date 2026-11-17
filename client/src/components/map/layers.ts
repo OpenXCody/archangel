@@ -283,15 +283,15 @@ const RECEDED_OPACITY_STOPS: Array<[zoom: number, opacity: number]> = [
  * little larger for the employers a visitor is likelier to know. `extra`
  * grows every stop by the same amount, for rings that sit around a pin.
  *
- * With `focus` (a test on the feature), pins that pass are all drawn at the
- * featured tier's size and the rest at the smallest: the map's subject at
+ * With `focus` (a test on the feature), pins that pass are drawn exactly as
+ * they always are and the rest at the smallest size: the map's subject at
  * full strength, everything else stepped back.
  */
 function pinRadius(extra = 0, focus?: ExpressionSpecification): ExpressionSpecification {
   const stops: Array<number | ExpressionSpecification> = [];
   for (const [zoom, featured, established, other] of RADIUS_STOPS) {
     const byTheirTier = byTier(featured + extra, established + extra, other + extra);
-    stops.push(zoom, focus ? ['case', focus, featured + extra, other + extra] : byTheirTier);
+    stops.push(zoom, focus ? ['case', focus, byTheirTier, other + extra] : byTheirTier);
   }
   return ['interpolate', ['linear'], ['zoom'], ...stops] as ExpressionSpecification;
 }
@@ -299,8 +299,8 @@ function pinRadius(extra = 0, focus?: ExpressionSpecification): ExpressionSpecif
 function pinOpacity(focus?: ExpressionSpecification): ExpressionSpecification {
   const stops: Array<number | ExpressionSpecification> = [];
   OPACITY_STOPS.forEach(([zoom, featured, established, other]) => {
-    const receded = recededOpacityAt(zoom);
-    stops.push(zoom, focus ? ['case', focus, featured, receded] : byTier(featured, established, other));
+    const byTheirTier = byTier(featured, established, other);
+    stops.push(zoom, focus ? ['case', focus, byTheirTier, recededOpacityAt(zoom)] : byTheirTier);
   });
   if (focus) {
     const last = RECEDED_OPACITY_STOPS[RECEDED_OPACITY_STOPS.length - 1];
@@ -385,8 +385,9 @@ export function setPinView(map: MapLibreMap, view: PinView): void {
 
   // While one company is the subject its few plants are the whole picture:
   // full dots at any zoom, and no density glow, which says nothing about a
-  // handful of points. A career's plants are thousands: they keep the glow,
-  // weighted to them alone, and are drawn as the featured tier is.
+  // handful of points. A career's plants are thousands: they are drawn as
+  // they always are and keep the glow, now weighted to them alone, while
+  // every other pin steps back.
   map.setPaintProperty(
     LAYER.pins,
     'circle-radius',

@@ -12,7 +12,9 @@ import { Loader2, Maximize2, Minus, Plus } from 'lucide-react';
 import { companiesApi, factoriesApi, mapApi, occupationsApi } from '../../lib/api';
 import { useMapStore, type PinInfo } from '../../stores/mapStore';
 import { currentTheme, type Theme } from '../../lib/theme';
+import { isNotFound } from './selection';
 import { US_STATES } from '@shared/states';
+import { formatCompanyName } from '@shared/displayName';
 import { FOCUS_AREAS, focusArea } from '@shared/scope';
 import {
   applyCameraRequest,
@@ -111,7 +113,7 @@ function pinInfo(properties: Record<string, unknown> | null): PinInfo | null {
     typeof value === 'string' && value.trim() !== '' && value !== 'null' ? value : null;
   return {
     id,
-    name: text(properties.name) ?? 'Factory',
+    name: text(properties.name) ?? 'Plant',
     companyName: text(properties.companyName),
     tier: Number(properties.tier) || 0,
     city: text(properties.city),
@@ -188,18 +190,36 @@ export default function Map({ onViewChange }: MapProps) {
   // The map's subject, if it has one: a company (its plants alone) or a
   // career (the industries where its work is done). The panel reads the same
   // records under the same keys, so each is fetched once.
-  const { data: subjectCompany } = useQuery({
+  const { data: subjectCompany, error: subjectCompanyError } = useQuery({
     queryKey: ['company', filters.company],
     queryFn: () => companiesApi.get(filters.company as string),
     enabled: Boolean(filters.company),
     retry: false,
   });
-  const { data: subjectCareer } = useQuery({
+  const { data: subjectCareer, error: subjectCareerError } = useQuery({
     queryKey: ['occupation', filters.career],
     queryFn: () => occupationsApi.get(filters.career as string),
     enabled: Boolean(filters.career),
     retry: false,
   });
+
+  // The subject's chip is named once its record is in, and a subject a link
+  // named that does not exist is said so.
+  const nameSubject = useMapStore((s) => s.nameSubject);
+  const notFound = useMapStore((s) => s.notFound);
+  const subjectName = subjectCompany ? formatCompanyName(subjectCompany.name) : (subjectCareer?.title ?? null);
+  useEffect(() => {
+    if (subjectName) nameSubject(subjectName);
+  }, [subjectName, nameSubject]);
+  const subjectMissing = filters.company
+    ? isNotFound(subjectCompanyError)
+    : filters.career
+      ? isNotFound(subjectCareerError)
+      : false;
+  useEffect(() => {
+    if (!subjectMissing) return;
+    notFound(useMapStore.getState().filters.company ? 'That company is not listed.' : 'That career is not listed.');
+  }, [subjectMissing, notFound]);
 
   const pinView = useMemo<PinView>(() => {
     const industries = subjectCareer && !subjectCareer.everywhere ? (subjectCareer.industries ?? []) : [];
@@ -746,6 +766,16 @@ export default function Map({ onViewChange }: MapProps) {
       .filter(([lng, lat]) => Number.isFinite(lng) && Number.isFinite(lat));
     if (points.length > 0) flyTo({ kind: 'points', points });
   }, [filters.company, subjectCompany, mapLoaded, flyTo]);
+
+  // A career's plants are everywhere, so choosing one does not move the
+  // camera. The one case: the home view on a desktop, where the panel that
+  // has just opened covers the east coast. The country is framed again in
+  // the room that is left.
+  useEffect(() => {
+    if (!filters.career || !mapLoaded || awayFromHome || isPhoneLayout()) return;
+    flyTo({ kind: 'us' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.career, mapLoaded]);
 
   // The camera a link carries stays put until the person does something.
   useEffect(() => {
