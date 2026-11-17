@@ -45,6 +45,9 @@ export const companies = pgTable(
   },
   (table) => ({
     nameIdx: uniqueIndex('companies_name_idx').on(table.name),
+    // Partial indexes, as migrations 0012 and 0014 made them.
+    featuredIdx: index('companies_featured_idx').on(table.featured).where(sql`${table.featured}`),
+    slugKey: uniqueIndex('companies_slug_key').on(table.slug).where(sql`${table.slug} IS NOT NULL`),
     industryIdx: index('companies_industry_idx').on(table.industry),
     nameTrgmIdx: index('companies_name_trgm_idx').using('gin', table.name.op('gin_trgm_ops')),
     industryTrgmIdx: index('companies_industry_trgm_idx').using('gin', table.industry.op('gin_trgm_ops')),
