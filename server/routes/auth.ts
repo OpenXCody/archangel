@@ -17,6 +17,7 @@ import {
   verifyPassword,
   type SessionUser,
 } from '../lib/auth.js';
+import { NO_ACCOUNT_HASH } from '../lib/auth.js';
 import { MAX_INVITE_TOKEN_LENGTH, usableInvite } from '../lib/invites.js';
 import { MAX_RESET_TOKEN_LENGTH, usableReset } from '../lib/passwordResets.js';
 import { emailEnabled, finishLater } from '../lib/email.js';
@@ -169,7 +170,9 @@ router.post(
     if (tooManyAttempts(req, email)) return res.status(429).json({ error: TOO_MANY });
 
     const [row] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    if (!row || !(await verifyPassword(password, row.passwordHash))) return invalid();
+    // An unknown email is checked against a hash nothing matches, so it takes as long to refuse.
+    const matches = await verifyPassword(password, row?.passwordHash ?? NO_ACCOUNT_HASH);
+    if (!row || !matches) return invalid();
 
     clearAttempts(req, email);
     await startSession(res, row.id);

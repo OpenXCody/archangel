@@ -100,6 +100,11 @@ check "post with wrong factory"       400 "$(req e POST /jobs "{\"companyId\":\"
 OUT=$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\",\"payMin\":2400,\"payMax\":2900,\"shift\":\"2nd\"}")
 check "post job"                      201 "$OUT" '"serial":'
 JOB=$(printf '%s' "$OUT" | j id)
+# A record with jobs is not deleted: the delete would take the jobs and their applications with it.
+check "delete a company with a job"   409 "$(req a DELETE /companies/$TXC)" '"jobs":'
+check "delete a factory with a job"   409 "$(req a DELETE /factories/$TXF)" '"jobs":'
+check "delete a career with a job"    409 "$(req a DELETE /occupations/$OCC)" '"jobs":'
+expect "and the job is still there"   1 "$(sql "SELECT COUNT(*) FROM jobs WHERE id='$JOB'")"
 check "employer dashboard lists job"  200 "$(req e GET /employer)" "\"id\":\"$JOB\""
 check "public job list"               200 "$(req anon GET /jobs)" "\"id\":\"$JOB\""
 check "public job detail, skills"     200 "$(req anon GET /jobs/$JOB)" '"required":true'

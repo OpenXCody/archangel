@@ -1,4 +1,6 @@
 import type { Response } from 'express';
+import { eq, sql } from 'drizzle-orm';
+import { db, jobs } from '../db/index.js';
 import { US_STATES } from '../../shared/states.js';
 
 /**
@@ -102,4 +104,21 @@ export function answerWriteError(res: Response, error: unknown, what: string): v
     console.error(`Error writing ${what}:`, error);
     res.status(500).json({ error: `Failed to save the ${what}` });
   }
+}
+
+/**
+ * Deleting a company, a factory or a career would take its jobs with it, and
+ * every application to them (the foreign keys cascade). So a record with jobs
+ * is not deleted: the jobs are dealt with first, on purpose. Answers 409 and
+ * returns true when there are any.
+ */
+export async function refuseDeleteWithJobs(res: Response, what: 'company' | 'factory' | 'career', id: string): Promise<boolean> {
+  const column = what === 'company' ? jobs.companyId : what === 'factory' ? jobs.factoryId : jobs.occupationId;
+  const [{ count: held }] = await db.select({ count: sql<number>`COUNT(*)::int` }).from(jobs).where(eq(column, id));
+  if (held === 0) return false;
+  res.status(409).json({
+    error: `This ${what} has ${held === 1 ? 'a job' : `${held} jobs`}. Deleting it would delete ${held === 1 ? 'that job and its' : 'those jobs and their'} applications. Delete ${held === 1 ? 'the job' : 'the jobs'} first.`,
+    jobs: held,
+  });
+  return true;
 }

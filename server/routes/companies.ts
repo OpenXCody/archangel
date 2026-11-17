@@ -5,16 +5,16 @@ import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerDuplicate, answerWriteError, optionalName, optionalText, requiredText } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, isUuid, optionalName, optionalText, refuseDeleteWithJobs, requiredText } from '../lib/writes.js';
 
 const router = Router();
 // A company is addressed by its id, or, for reading, by its slug
 // (/api/companies/tesla). A slug is swapped for the id here, so the handlers
 // below only ever see ids.
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
 router.param('id', async (req: Request, res: Response, next: NextFunction, raw: string) => {
-  if (UUID_RE.test(raw)) return next();
+  const isId: boolean = isUuid(raw);
+  if (isId) return next();
   const value = raw.toLowerCase();
   if (req.method !== 'GET' || !SLUG_RE.test(value)) {
     res.status(400).json({ error: 'Invalid id: expected a UUID' });
@@ -259,6 +259,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (await refuseDeleteWithJobs(res, 'company', id)) return;
     const result = await db.delete(companies).where(eq(companies.id, id)).returning();
 
     if (result.length === 0) {

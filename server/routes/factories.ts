@@ -7,6 +7,7 @@ import { listOpenJobs } from '../lib/openJobs.js';
 import { packPins } from '../../shared/pins.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalName, optionalText, requiredText, stateCode } from '../lib/writes.js';
+import { refuseDeleteWithJobs } from '../lib/writes.js';
 
 /** A company with this many factories nationwide counts as established. */
 const ESTABLISHED_MIN_SITES = 5;
@@ -450,6 +451,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (await refuseDeleteWithJobs(res, 'factory', id)) return;
     const result = await db.delete(factories).where(eq(factories.id, id)).returning();
 
     if (result.length === 0) {

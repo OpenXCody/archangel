@@ -404,6 +404,7 @@ export const jobSkills = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.jobId, table.skillId] }),
+    skillIdx: index('job_skills_skill_idx').on(table.skillId),
   })
 );
 
@@ -448,6 +449,7 @@ export const userSkills = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.userId, table.skillId] }),
+    skillIdx: index('user_skills_skill_idx').on(table.skillId),
   })
 );
 
@@ -464,6 +466,7 @@ export const userGoals = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.userId, table.occupationId] }),
+    occupationIdx: index('user_goals_occupation_idx').on(table.occupationId),
   })
 );
 

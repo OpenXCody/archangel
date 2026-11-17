@@ -22,7 +22,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 import postgres from 'postgres';
 
-export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.sql', '0012_company_profile.sql', '0013_company_profiles.sql', '0014_company_slugs.sql', '0015_invites.sql', '0016_career_paths_2.sql', '0017_remove_safety_careers.sql', '0018_career_paths_3.sql', '0019_company_descriptions.sql', '0020_password_resets.sql', '0021_industry_careers.sql', '0022_data_cleanup.sql', '0023_remove_legacy.sql', '0024_email_notices.sql'];
+export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.sql', '0012_company_profile.sql', '0013_company_profiles.sql', '0014_company_slugs.sql', '0015_invites.sql', '0016_career_paths_2.sql', '0017_remove_safety_careers.sql', '0018_career_paths_3.sql', '0019_company_descriptions.sql', '0020_password_resets.sql', '0021_industry_careers.sql', '0022_data_cleanup.sql', '0023_remove_legacy.sql', '0024_email_notices.sql', '0028_indexes_and_checks.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 

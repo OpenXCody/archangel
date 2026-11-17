@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { sql, type SQL } from 'drizzle-orm';
 import { db, factories } from '../db/index.js';
 import { factoryInArea, factoryInBox, factoryInScope, isStateInScope } from '../lib/scope.js';
-import { FOCUS_AREAS, focusArea } from '../../shared/scope.js';
+import { focusArea } from '../../shared/scope.js';
 
 const router = Router();
 
@@ -87,36 +87,6 @@ router.get('/state-counts', async (_req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching state counts:', error);
     res.status(500).json({ error: 'Failed to fetch state counts' });
-  }
-});
-
-// GET /api/map/states/summary - Get aggregated statistics for the states in scope
-router.get('/states/summary', async (_req: Request, res: Response) => {
-  try {
-    const result = await db
-      .select({
-        code: factories.state,
-        factoryCount: sql<number>`COUNT(*)::int`,
-        totalWorkforce: sql<number>`COALESCE(SUM(${factories.workforceSize}), 0)::int`,
-        totalOpenPositions: sql<number>`COALESCE(SUM(${factories.openPositions}), 0)::int`,
-      })
-      .from(factories)
-      .where(factoryInScope())
-      .groupBy(factories.state)
-      .orderBy(sql`COUNT(*) DESC`);
-
-    const states = result.map((row) => ({
-      code: row.code,
-      name: STATE_CODE_TO_NAME[row.code as string] || row.code,
-      factoryCount: row.factoryCount,
-      totalWorkforce: row.totalWorkforce,
-      totalOpenPositions: row.totalOpenPositions,
-    }));
-
-    res.json({ states });
-  } catch (error) {
-    console.error('Error fetching states summary:', error);
-    res.status(500).json({ error: 'Failed to fetch states summary' });
   }
 });
 
@@ -224,11 +194,6 @@ router.get('/states/:code/overview', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/map/areas - The focus areas: regions being filled out in depth.
-router.get('/areas', (_req: Request, res: Response) => {
-  res.json({ areas: FOCUS_AREAS });
-});
-
 // GET /api/map/areas/:id/overview - Panel data for a focus area, the same
 // shape as a state's. Factories are those inside the area's drawn boundary.
 router.get('/areas/:id/overview', async (req: Request, res: Response) => {
@@ -299,60 +264,6 @@ router.get('/bounds/overview', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching bounds overview:', error);
     res.status(500).json({ error: 'Failed to fetch overview' });
-  }
-});
-
-// GET /api/map/states/:code - Get detailed summary for a single state
-router.get('/states/:code', async (req: Request, res: Response) => {
-  try {
-    const { code } = req.params;
-    const upperCode = code.toUpperCase();
-
-    if (!isStateInScope(upperCode)) {
-      res.status(404).json({ error: 'State not found or has no factories' });
-      return;
-    }
-
-    // Get aggregates
-    const aggregateResult = await db
-      .select({
-        factoryCount: sql<number>`COUNT(*)::int`,
-        totalWorkforce: sql<number>`COALESCE(SUM(${factories.workforceSize}), 0)::int`,
-        totalOpenPositions: sql<number>`COALESCE(SUM(${factories.openPositions}), 0)::int`,
-      })
-      .from(factories)
-      .where(sql`UPPER(${factories.state}) = ${upperCode} AND ${factoryInScope()}`);
-
-    if (aggregateResult[0].factoryCount === 0) {
-      res.status(404).json({ error: 'State not found or has no factories' });
-      return;
-    }
-
-    // Get top factories by workforce
-    const topFactories = await db
-      .select({
-        id: factories.id,
-        name: factories.name,
-        companyName: sql<string>`(SELECT name FROM companies WHERE companies.id = factories.company_id)`,
-        workforceSize: factories.workforceSize,
-        specialization: factories.specialization,
-      })
-      .from(factories)
-      .where(sql`UPPER(${factories.state}) = ${upperCode} AND ${factoryInScope()}`)
-      .orderBy(sql`${factories.workforceSize} DESC NULLS LAST`)
-      .limit(5);
-
-    res.json({
-      code: upperCode,
-      name: STATE_CODE_TO_NAME[upperCode] || upperCode,
-      factoryCount: aggregateResult[0].factoryCount,
-      totalWorkforce: aggregateResult[0].totalWorkforce,
-      totalOpenPositions: aggregateResult[0].totalOpenPositions,
-      topFactories,
-    });
-  } catch (error) {
-    console.error('Error fetching state detail:', error);
-    res.status(500).json({ error: 'Failed to fetch state detail' });
   }
 });
 

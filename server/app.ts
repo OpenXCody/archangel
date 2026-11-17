@@ -93,7 +93,7 @@ app.use((_req: Request, res: Response) => {
 });
 
 // Errors: log the real thing, return a generic message.
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   // A body the JSON parser refused is the sender's to fix, not a server fault.
   const status = (err as { status?: unknown }).status;
   if (status === 413) {
@@ -104,7 +104,8 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     res.status(400).json({ error: 'That request could not be read as JSON.' });
     return;
   }
-  console.error('Error:', err.message);
+  // The route and the stack, so a 500 in production's logs can be traced.
+  console.error(`Error on ${req.method} ${req.originalUrl.split('?')[0]}:`, err.stack ?? err.message);
   res.status(500).json({
     error: 'Internal Server Error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',

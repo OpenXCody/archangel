@@ -6,6 +6,7 @@ import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, optionalName, optionalText, requiredText } from '../lib/writes.js';
+import { refuseDeleteWithJobs } from '../lib/writes.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -342,6 +343,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (await refuseDeleteWithJobs(res, 'career', id)) return;
     const result = await db.delete(occupations).where(eq(occupations.id, id)).returning();
 
     if (result.length === 0) {
