@@ -83,9 +83,12 @@ export interface AccountUser {
   isAdmin: boolean;
   homeZip: string | null;
   about: string | null;
+  /** Whether the person takes emails about applications and company access. */
+  emailNotices: boolean;
 }
 
-export type MembershipStatus = 'requested' | 'active';
+/** `declined`: an admin refused the request. The record stays, and the person can ask again after a week. */
+export type MembershipStatus = 'requested' | 'active' | 'declined';
 
 export interface Membership {
   companyId: string;
@@ -117,7 +120,7 @@ export function accountRoles(account: Account): string[] {
   const active = account.memberships.filter((m) => m.status === 'active');
   if (active.length === 1) roles.push(`Employer (${active[0].companyName})`);
   else if (active.length > 1) roles.push(`Employer (${active.length} companies)`);
-  else if (account.memberships.length > 0) roles.push('Employer (pending approval)');
+  else if (account.memberships.some((m) => m.status === 'requested')) roles.push('Employer (pending approval)');
   return roles.length > 0 ? roles : ['User'];
 }
 
@@ -151,12 +154,22 @@ export function isFinished(status: string): boolean {
   return FINISHED_STATUSES.has(status);
 }
 
+/** One step in an application's history: the stage it reached, and when. */
+export interface ApplicationEvent {
+  status: ApplicationStatus;
+  at: string;
+}
+
 export interface MyApplication {
   id: string;
   status: ApplicationStatus;
   note: string | null;
   createdAt: string;
   statusChangedAt: string;
+  /** The company moved it since the person last opened their page. */
+  changed: boolean;
+  /** Its history, oldest first. */
+  events: ApplicationEvent[];
   jobId: string;
   jobSerial: number;
   jobTitle: string;
@@ -305,6 +318,10 @@ export interface EmployerJob {
 }
 
 export interface EmployerCompany extends Membership {
+  /** When an admin approved or declined the request. */
+  decidedAt: string | null;
+  /** For a declined request: when the person can ask again. */
+  askAgainAt: string | null;
   factories: EmployerFactory[];
   jobs: EmployerJob[];
 }
@@ -314,6 +331,8 @@ export interface AdminOverview {
   pendingMemberships: number;
   openJobs: number;
   applications: number;
+  /** Career paths not yet reviewed. */
+  draftPaths: number;
 }
 
 export interface AdminMembership {
@@ -325,6 +344,16 @@ export interface AdminMembership {
   role: string;
   status: MembershipStatus;
   createdAt: string;
+  /** When it was approved or declined. */
+  decidedAt: string | null;
+  /** The company's web domain, when it has one on record. */
+  companyDomain: string | null;
+  /** The part of the person's address after the @. */
+  emailDomain: string;
+  /** Whether the person's address is at the company's domain. Null when the company has none on record. */
+  domainMatches: boolean | null;
+  /** How many people already have access to the company. */
+  activeMembers: number;
 }
 
 export interface AdminUserMembership {
@@ -362,7 +391,8 @@ export function personRoles(person: AdminUser): string[] {
   return roles.length > 0 ? roles : ['User'];
 }
 
-export type MembershipDecision = 'approve' | 'remove';
+/** `decline` refuses a request and keeps the record; `remove` deletes the row, whatever its state. */
+export type MembershipDecision = 'approve' | 'decline' | 'remove';
 
 export type InviteRole = 'user' | 'employer' | 'admin';
 
@@ -395,6 +425,8 @@ export interface CreatedInvite {
   token: string;
   /** The path of the sign-up link: `/sign-in?invite=<token>`. */
   path: string;
+  /** The link was also emailed to the invited address. */
+  emailed: boolean;
 }
 
 /** What an invite link says before it is accepted. */
@@ -412,6 +444,23 @@ export interface CreatedResetLink {
   /** The path of the link: `/sign-in?reset=<token>`. */
   link: string;
   expiresAt: string;
+  /** The link was also emailed to the person. */
+  emailed: boolean;
+}
+
+/** What the sign-in pages can offer. `email`: the app can send mail. */
+export interface AuthOptions {
+  email: boolean;
+}
+
+/** Whether there is something the person has not seen. Never a count. */
+export interface News {
+  /** The company moved one of their applications. */
+  applications: boolean;
+  /** Someone applied to a job they manage. */
+  applicants: boolean;
+  /** For an admin: a request to join a company is waiting. */
+  access: boolean;
 }
 
 /** Whose password a reset link sets. */
@@ -478,11 +527,17 @@ export const authApi = {
   /** Sets the password through a reset link and signs the person in. */
   resetPassword: (input: { token: string; password: string }) =>
     request<Account>('/auth/reset', { method: 'POST', body: input }),
+  options: () => request<AuthOptions>('/auth/options'),
+  /** Emails a reset link to the address if it has an account. The answer is the same either way. */
+  forgotPassword: (email: string) => request<{ ok: true }>('/auth/forgot', { method: 'POST', body: { email } }),
 };
 
 export const meApi = {
-  updateProfile: (patch: { name?: string; homeZip?: string; about?: string }) =>
+  updateProfile: (patch: { name?: string; homeZip?: string; about?: string; emailNotices?: boolean }) =>
     request<{ user: AccountUser }>('/me', { method: 'PATCH', body: patch }),
+  news: () => request<News>('/me/news'),
+  /** The person has opened the page that shows this news. Answers with what is left. */
+  seen: (what: Partial<Record<keyof News, true>>) => request<News>('/me/seen', { method: 'POST', body: what }),
   skills: () => request<{ skills: MySkill[] }>('/me/skills').then((r) => r.skills),
   setSkill: (skillId: string, status: SkillStatus) =>
     request<{ skillId: string; status: SkillStatus }>(`/me/skills/${skillId}`, { method: 'PUT', body: { status } }),
@@ -564,6 +619,8 @@ export const accountKeys = {
   skills: ['me', 'skills'] as const,
   goals: ['me', 'goals'] as const,
   applications: ['me', 'applications'] as const,
+  news: ['me', 'news'] as const,
+  authOptions: ['auth-options'] as const,
   jobs: ['jobs'] as const,
   jobList: (filters: JobFilters) => ['jobs', 'list', filters] as const,
   jobDetails: ['jobs', 'detail'] as const,
@@ -717,6 +774,52 @@ export function useResetPassword() {
 /** Change the signed-in person's own password. */
 export function useChangePassword() {
   return useMutation({ mutationFn: authApi.changePassword });
+}
+
+/** Whether the app can send mail. It changes only with the deployment, so it is asked rarely. */
+export function useAuthOptions() {
+  return useQuery({
+    queryKey: accountKeys.authOptions,
+    queryFn: authApi.options,
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+    retry: retryUnlessClientError,
+  });
+}
+
+/** True only once the server has said mail is on: until then, and on failure, the app behaves as it did without email. */
+export function useEmailOn(): boolean {
+  return useAuthOptions().data?.email === true;
+}
+
+/** Ask for a reset link by email. */
+export function useForgotPassword() {
+  return useMutation({ mutationFn: (email: string) => authApi.forgotPassword(email) });
+}
+
+/**
+ * Whether there is something the signed-in person has not seen. Fetched with
+ * the account: when the app opens, and when its tab comes back into view.
+ */
+export function useNews() {
+  const account = useAccount();
+  return useQuery({
+    queryKey: accountKeys.news,
+    queryFn: meApi.news,
+    enabled: Boolean(account.data?.user),
+    staleTime: 60_000,
+    refetchOnWindowFocus: true,
+    retry: retryUnlessClientError,
+  });
+}
+
+/** The person has opened the page that shows some news: it is no longer news. */
+export function useMarkSeen() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: meApi.seen,
+    onSuccess: (news) => queryClient.setQueryData(accountKeys.news, news),
+  });
 }
 
 export function useUpdateProfile() {
@@ -892,7 +995,9 @@ export function useRequestMembership() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (companyId: string) => employerApi.requestMembership(companyId),
-    onSuccess: () => invalidate(queryClient, accountKeys.employer, accountKeys.account, accountKeys.admin, accountKeys.jobs),
+    // Also when refused: a request declined a moment ago is only known once the list is read again.
+    onSettled: () =>
+      invalidate(queryClient, accountKeys.employer, accountKeys.account, accountKeys.admin, accountKeys.jobs, accountKeys.news),
   });
 }
 
@@ -901,7 +1006,8 @@ export function useCancelMembership() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (companyId: string) => employerApi.cancelMembership(companyId),
-    onSuccess: () => invalidate(queryClient, accountKeys.employer, accountKeys.account, accountKeys.admin, accountKeys.jobs),
+    onSuccess: () =>
+      invalidate(queryClient, accountKeys.employer, accountKeys.account, accountKeys.admin, accountKeys.jobs, accountKeys.news),
   });
 }
 
@@ -915,17 +1021,25 @@ export function useAdminOverview(enabled = true) {
     queryFn: adminApi.overview,
     enabled,
     staleTime: 0,
+    // What is waiting changes while the page is open in another tab.
+    refetchOnWindowFocus: true,
     retry: retryUnlessClientError,
   });
 }
 
-export function useAdminMemberships(status: MembershipStatus, enabled = true) {
+/**
+ * Company memberships in one state. Read again whenever the tab comes back
+ * into view; `everyMs` also reads it on a timer while the list is on screen,
+ * so a request that arrives while the page is open shows up.
+ */
+export function useAdminMemberships(status: MembershipStatus, { enabled = true, everyMs }: { enabled?: boolean; everyMs?: number } = {}) {
   return useQuery({
     queryKey: accountKeys.adminMemberships(status),
     queryFn: () => adminApi.memberships(status),
     enabled,
     staleTime: 0,
     refetchOnWindowFocus: true,
+    refetchInterval: everyMs,
     retry: retryUnlessClientError,
   });
 }
@@ -934,7 +1048,8 @@ export function useDecideMembership() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: adminApi.decideMembership,
-    onSettled: () => invalidate(queryClient, accountKeys.admin, accountKeys.account, accountKeys.employer, accountKeys.jobs),
+    onSettled: () =>
+      invalidate(queryClient, accountKeys.admin, accountKeys.account, accountKeys.employer, accountKeys.jobs, accountKeys.news),
   });
 }
 

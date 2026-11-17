@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { Fragment, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Check, Loader2, LogOut, Search, X } from 'lucide-react';
@@ -14,6 +14,8 @@ import {
   useRemoveSkill,
   useSetSkillStatus,
   useChangePassword,
+  useEmailOn,
+  useMarkSeen,
   useSignOut,
   useUpdateApplication,
   useUpdateProfile,
@@ -24,7 +26,7 @@ import {
   type SignedInAccount,
   type SkillStatus,
 } from '../lib/account';
-import { formatAgo, formatPlace } from '../lib/jobFormat';
+import { applicationStatusLabel, formatPlace } from '../lib/jobFormat';
 import { goalNextSkills, nextSkillNames, useCareersInReach, type NextSkill } from '../lib/seeker';
 import {
   AccountGate,
@@ -82,7 +84,7 @@ function MyPage({ account }: { account: SignedInAccount }) {
       />
       <GoalsSection />
       <SkillsSection />
-      <ApplicationsSection />
+      <ApplicationsSection email={user.email} />
       <ProfileSection user={user} />
     </PageContainer>
   );
@@ -156,8 +158,56 @@ function ProfileSection({ user }: { user: AccountUser }) {
           )}
         </div>
       </form>
+      <NoticeSwitch user={user} />
       <PasswordChange email={user.email} />
     </PageSection>
+  );
+}
+
+/**
+ * Emails about applications and company access, on or off. Only there when
+ * the app can send mail. Sign-in emails (a reset link) are not affected.
+ */
+function NoticeSwitch({ user }: { user: AccountUser }) {
+  const emailOn = useEmailOn();
+  const update = useUpdateProfile();
+  if (!emailOn) return null;
+  // While saving, show what was chosen; if it fails, fall back to what is stored.
+  const checked = update.isPending ? update.variables?.emailNotices === true : user.emailNotices;
+
+  return (
+    <div className={cn(cardClass, 'mt-3 px-4 py-3 sm:px-6')} data-email-notices>
+      <div className="flex items-center gap-4">
+        <label htmlFor="email-notices" className="min-w-0 flex-1 cursor-pointer">
+          <span className="block text-sm font-medium text-fg-default">Email me about applications and access</span>
+          <span className="mt-0.5 block break-all text-xs text-fg-muted">{user.email}</span>
+        </label>
+        {/* A button, so the label, Space and Enter all work; marked busy while saving, never disabled. */}
+        <button
+          type="button"
+          role="switch"
+          id="email-notices"
+          aria-checked={checked}
+          aria-busy={update.isPending}
+          onClick={() => {
+            if (!update.isPending) update.mutate({ emailNotices: !checked });
+          }}
+          className={cn(
+            'relative h-6 w-11 shrink-0 rounded-full transition-colors',
+            checked ? 'bg-fg-default' : 'bg-border-strong'
+          )}
+        >
+          <span
+            aria-hidden="true"
+            className={cn(
+              'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-bg-surface shadow-sm transition-transform',
+              checked && 'translate-x-5'
+            )}
+          />
+        </button>
+      </div>
+      <ErrorNote error={update.error} className="mt-2" />
+    </div>
   );
 }
 
@@ -598,8 +648,31 @@ function SkillSearch({ mySkills, onAdd, pendingId, disabled }: SkillSearchProps)
 // My applications
 // ---------------------------------------------------------------------------
 
-function ApplicationsSection() {
+/** "Nov 3", with the year once it is not this one. */
+function formatStageDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' });
+}
+
+function ApplicationsSection({ email }: { email: string }) {
   const applications = useMyApplications();
+  const { mutate: markSeen } = useMarkSeen();
+  // Applications the company moved since the last visit are listed first, and
+  // stay first for as long as this page is open: opening it is what marks them
+  // seen, and the list must not reshuffle under the person a moment later.
+  const movedRef = useRef(new Set<string>());
+  const moved = (applications.data ?? []).filter((application) => application.changed).map((application) => application.id);
+  for (const id of moved) movedRef.current.add(id);
+  const movedKey = moved.join(',');
+  useEffect(() => {
+    if (movedKey) markSeen({ applications: true });
+  }, [movedKey, markSeen]);
+  const rank = (application: MyApplication) => (movedRef.current.has(application.id) ? 0 : 1);
+  // A stable sort: within each group the server's order (newest first) stands.
+  const listed = [...(applications.data ?? [])].sort((a, b) => rank(a) - rank(b));
+
   return (
     <PageSection title="Applications">
       {applications.isPending ? (
@@ -615,8 +688,8 @@ function ApplicationsSection() {
         </CardNote>
       ) : (
         <ul className={cardClass}>
-          {applications.data.map((application) => (
-            <ApplicationRow key={application.id} application={application} />
+          {listed.map((application) => (
+            <ApplicationRow key={application.id} application={application} email={email} />
           ))}
         </ul>
       )}
@@ -624,7 +697,10 @@ function ApplicationsSection() {
   );
 }
 
-function ApplicationRow({ application }: { application: MyApplication }) {
+/** Stages at which the next move is the company's, and the person should know how it will come. */
+const CONTACT_STAGES: ReadonlySet<string> = new Set(['interview', 'offer']);
+
+function ApplicationRow({ application, email }: { application: MyApplication; email: string }) {
   const update = useUpdateApplication();
   const [confirming, setConfirming] = useState(false);
   const finished = isFinished(application.status);
@@ -656,10 +732,24 @@ function ApplicationRow({ application }: { application: MyApplication }) {
             {application.companyName}
             {place && ` · ${place}`}
           </p>
-          <p className="mt-0.5 text-xs text-fg-muted">
-            Applied {formatAgo(application.createdAt)}
-            {application.jobStatus === 'closed' && ' · This job has closed'}
+          {/* Its history in one line; the stage it is at now is the bright one. */}
+          <p className="mt-1.5 break-words text-xs text-fg-muted" data-application-history>
+            {application.events.map((event, index) => (
+              <Fragment key={`${event.at}:${event.status}`}>
+                {index > 0 && ' · '}
+                {/* A stage and its date stay on one line together. */}
+                <span className={cn('whitespace-nowrap', index === application.events.length - 1 && 'text-fg-default')}>
+                  {applicationStatusLabel(event.status)} {formatStageDate(event.at)}
+                </span>
+              </Fragment>
+            ))}
+            {application.jobStatus === 'closed' && <span>{application.events.length > 0 && ' · '}This job has closed</span>}
           </p>
+          {CONTACT_STAGES.has(application.status) && (
+            <p className="mt-1.5 break-words text-sm text-fg-default" data-application-next>
+              {application.companyName} will contact you at {email}.
+            </p>
+          )}
         </div>
         <ApplicationStatusBadge status={application.status} className="mt-0.5" />
       </div>

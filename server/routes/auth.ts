@@ -19,6 +19,8 @@ import {
 } from '../lib/auth.js';
 import { MAX_INVITE_TOKEN_LENGTH, usableInvite } from '../lib/invites.js';
 import { MAX_RESET_TOKEN_LENGTH, usableReset } from '../lib/passwordResets.js';
+import { emailEnabled, finishLater } from '../lib/email.js';
+import { sendForgotLink } from '../lib/notices.js';
 import { hasValidAdminSecret } from '../middleware/adminAuth.js';
 
 const router = Router();
@@ -35,8 +37,10 @@ async function accountPayload(user: SessionUser) {
     .from(companyMembers)
     .innerJoin(companies, eq(companies.id, companyMembers.companyId))
     .where(eq(companyMembers.userId, user.id));
+  // Whether the person takes notice emails, for the switch on their page.
+  const [prefs] = await db.select({ emailNotices: users.emailNotices }).from(users).where(eq(users.id, user.id)).limit(1);
   return {
-    user,
+    user: { ...user, emailNotices: prefs?.emailNotices ?? true },
     memberships,
     isEmployer: memberships.some((m) => m.status === 'active'),
   };
@@ -50,6 +54,12 @@ router.get(
     res.json(user ? await accountPayload(user) : { user: null, memberships: [], isEmployer: false });
   })
 );
+
+// GET /api/auth/options - what the sign-in pages can offer. `email` is true
+// when the app can send mail (a reset link by email, an emailed invite).
+router.get('/options', (_req, res) => {
+  res.json({ email: emailEnabled() });
+});
 
 const INVALID_INVITE = 'That invite link is not valid. Ask an admin for a new one.';
 const INVALID_RESET = 'That reset link is not valid. Ask an admin for a new one.';
@@ -215,6 +225,52 @@ router.post(
       await tx.delete(passwordResets).where(and(eq(passwordResets.userId, user.id), isNull(passwordResets.usedAt)));
     });
     clearAttempts(req, user.email);
+    res.json({ ok: true });
+  })
+);
+
+// How many reset emails one visitor can ask for, whoever they are for: sixty
+// in ten minutes. Per server instance, like the sign-in throttle.
+const forgotByVisitor = new Map<string, { count: number; resetAt: number }>();
+const FORGOT_MAX = 60;
+const FORGOT_WINDOW_MS = 10 * 60 * 1000;
+
+function tooManyForgots(visitor: string): boolean {
+  const now = Date.now();
+  const entry = forgotByVisitor.get(visitor);
+  if (!entry || entry.resetAt < now) {
+    forgotByVisitor.set(visitor, { count: 1, resetAt: now + FORGOT_WINDOW_MS });
+    if (forgotByVisitor.size > 5000) for (const [key, value] of forgotByVisitor) if (value.resetAt < now) forgotByVisitor.delete(key);
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > FORGOT_MAX;
+}
+
+/**
+ * Where the work cannot be left to finish after the answer, the answer waits
+ * for it, and for at least this long, so that an address with an account and
+ * one without take about the same time.
+ */
+const FORGOT_FLOOR_MS = 700;
+
+// POST /api/auth/forgot { email } - email a reset link to the address, if it
+// has an account. The answer is the same either way, and is given before any
+// account is looked up, so neither its words nor its timing say which.
+router.post(
+  '/forgot',
+  handle(async (req, res) => {
+    const email = normalizeEmail(req.body?.email);
+    if (!email) return res.status(400).json({ error: 'Enter a valid email address.' });
+    if (!emailEnabled()) return res.status(404).json({ error: 'Reset links are not sent by email here. Ask an admin for one.' });
+    // Throttled like sign-in, ten tries per visitor and address, but counted
+    // apart from it: ten wrong passwords must not stop a person from asking
+    // for the way out.
+    if (tooManyForgots(req.ip ?? 'unknown') || tooManyAttempts(req, `forgot:${email}`)) {
+      return res.status(429).json({ error: TOO_MANY });
+    }
+    const work = sendForgotLink(email);
+    if (!finishLater(work)) await Promise.all([work, new Promise((resolve) => setTimeout(resolve, FORGOT_FLOOR_MS))]);
     res.json({ ok: true });
   })
 );
