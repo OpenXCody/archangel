@@ -1,4 +1,4 @@
-import { useEffect, useState, type ElementType, type ReactNode } from 'react';
+import { useEffect, useState, type ElementType, type KeyboardEvent, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { AlertCircle, Briefcase, Building2, Factory, Loader2, RotateCw, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -211,4 +211,24 @@ export function useDebouncedValue<T>(value: T, delayMs = 250): T {
     return () => window.clearTimeout(timer);
   }, [value, delayMs]);
   return debounced;
+}
+
+/**
+ * Arrow keys for a group of buttons that act as radios or tabs: the next or
+ * previous one is chosen and takes focus. Goes on the group; each button in
+ * it takes `tabIndex={selected ? 0 : -1}`, so the group is one tab stop.
+ */
+export function arrowKeyChoice<T extends string>(values: readonly T[], current: T, onChange: (value: T) => void) {
+  return (event: KeyboardEvent<HTMLElement>) => {
+    const step =
+      event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0;
+    if (step === 0) return;
+    event.preventDefault();
+    onChange(values[(values.indexOf(current) + step + values.length) % values.length]);
+    const group = event.currentTarget;
+    window.setTimeout(
+      () => group.querySelector<HTMLElement>('[role="radio"][aria-checked="true"], [role="tab"][aria-selected="true"]')?.focus(),
+      0
+    );
+  };
 }

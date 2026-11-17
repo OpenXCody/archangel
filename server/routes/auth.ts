@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { and, eq, isNull, ne } from 'drizzle-orm';
-import { db, users, sessions, companies, companyMembers, invites, passwordResets } from '../db/index.js';
+import { db, users, sessions, companies, companyMembers, companyRequests, invites, passwordResets } from '../db/index.js';
 import {
   cleanText,
   currentSessionHash,
@@ -38,10 +38,17 @@ async function accountPayload(user: SessionUser) {
     .where(eq(companyMembers.userId, user.id));
   // Whether the person takes notice emails, for the switch on their page.
   const [prefs] = await db.select({ emailNotices: users.emailNotices }).from(users).where(eq(users.id, user.id)).limit(1);
+  // A request to have a company or a plant added that an admin has not answered yet.
+  const [asked] = await db
+    .select({ id: companyRequests.id })
+    .from(companyRequests)
+    .where(and(eq(companyRequests.userId, user.id), eq(companyRequests.status, 'requested')))
+    .limit(1);
   return {
     user: { ...user, emailNotices: prefs?.emailNotices ?? true },
     memberships,
     isEmployer: memberships.some((m) => m.status === 'active'),
+    hasCompanyRequest: Boolean(asked),
   };
 }
 

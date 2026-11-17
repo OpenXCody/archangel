@@ -22,6 +22,9 @@ interface CareerPickerProps {
   disabled?: boolean;
 }
 
+/** How many careers the list offers at once. */
+const SHOWN = 8;
+
 /**
  * Pick one career by searching the catalogue. A combobox: type to search,
  * arrow keys to move, Enter to choose, Escape to close.
@@ -41,10 +44,14 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
 
   const results = useQuery({
     queryKey: ['picker', 'occupations', query],
-    queryFn: () => occupationsApi.list({ search: query, limit: 8 }),
+    queryFn: () => occupationsApi.list({ search: query, limit: SHOWN }),
     enabled: searching && query.length >= 2,
     staleTime: 60_000,
+    // Asked even when the browser says it is offline, so the list says so rather than "Searching" for ever.
+    networkMode: 'always',
+    retry: false,
   });
+  const total = results.data?.total ?? 0;
 
   const waiting = searching && (query !== term.trim() || results.isPending);
   const options: CareerOption[] = searching
@@ -156,7 +163,10 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
               {errorMessage(results.error)}
             </p>
           ) : searching && options.length === 0 ? (
-            <p className="px-2.5 py-2.5 text-sm text-fg-muted">No careers match “{query}”.</p>
+            // The career is the kind of work; the title is the employer's own words.
+            <p className="px-2.5 py-2.5 text-sm text-fg-muted" data-career-none>
+              No career matches “{query}”. Search for the closest kind of work: the job title can say anything.
+            </p>
           ) : null}
           <ul id={listId} role="listbox" aria-label="Careers">
             {!(searching && waiting) &&
@@ -180,6 +190,11 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
                 </li>
               ))}
           </ul>
+          {searching && !waiting && total > options.length && options.length > 0 && (
+            <p className="px-2.5 pb-1.5 pt-2 text-xs text-fg-muted" data-career-more>
+              {options.length} of {total.toLocaleString('en-US')}. Type more to narrow the list.
+            </p>
+          )}
         </div>
       )}
     </div>

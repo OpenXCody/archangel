@@ -16,7 +16,17 @@ import {
   useSignIn,
   useSignUp,
 } from '../lib/account';
-import { ErrorNote, Field, LoadError, PageLoading, busyButtonClass, cardClass, fieldClass, textButtonClass } from '../components/account/parts';
+import {
+  ErrorNote,
+  Field,
+  LoadError,
+  PageLoading,
+  arrowKeyChoice,
+  busyButtonClass,
+  cardClass,
+  fieldClass,
+  textButtonClass,
+} from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 
 type Mode = 'sign-in' | 'create';
@@ -37,9 +47,11 @@ const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
  * One page for both signing in and creating an account. A new account says
  * what it is for (`?as=employer`), which is the only extra question asked.
  *
- * Where the person lands: an employer goes to the employer page; otherwise
- * `?next=` when it is a path on this site; otherwise the map, to start
- * exploring.
+ * Where the person lands: `?next=` when it is a path on this site; otherwise
+ * the employer page for an employer, for someone who chose "Hire", and for
+ * someone whose request (to join a company, or to have one added) is waiting
+ * for an admin, since that is where its answer shows; otherwise the map, to
+ * start exploring.
  *
  * An invite link (`?invite=<token>`) opens on Create account with the invited
  * email fixed and no purpose question: the invite already says what the
@@ -97,9 +109,13 @@ export default function SignIn() {
   if (account.data?.user && !resetPending && !resetting) {
     // The account decides, not the link: an invite link opened by someone else's session grants nothing.
     if (invited?.role === 'admin' && account.data.user.isAdmin) return <Navigate to="/admin" replace />;
+    // Someone waiting on an admin has one thing to come back for: the answer.
+    const waiting = account.data.memberships.some((m) => m.status === 'requested') || account.data.hasCompanyRequest === true;
     const hiring =
-      (invited ? invited.role === 'employer' && account.data.isEmployer : mode === 'create' && purpose === 'employer') ||
-      (!next && account.data.isEmployer);
+      (invited
+        ? invited.role === 'employer' && account.data.isEmployer
+        : (mode === 'create' && purpose === 'employer') || searchParams.get('as') === 'employer') ||
+      (!next && (account.data.isEmployer || waiting));
     return <Navigate to={hiring ? '/employer' : (next ?? '/map')} replace />;
   }
   if (!account.data || (inviteToken && inviteQuery.isPending) || resetPending) {
@@ -160,13 +176,19 @@ export default function SignIn() {
         />
 
         <div className={cn(cardClass, 'p-4 sm:p-6')}>
-          <div role="tablist" aria-label="Sign in or create an account" className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-bg-elevated p-1">
+          <div
+            role="tablist"
+            aria-label="Sign in or create an account"
+            onKeyDown={arrowKeyChoice(['sign-in', 'create'] as const, mode, switchMode)}
+            className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-bg-elevated p-1"
+          >
             {MODES.map(({ value, label }) => (
               <button
                 key={value}
                 type="button"
                 role="tab"
                 aria-selected={mode === value}
+                tabIndex={mode === value ? 0 : -1}
                 onClick={() => switchMode(value)}
                 className={cn(
                   'h-9 rounded-md text-sm font-medium transition-colors',
@@ -189,7 +211,7 @@ export default function SignIn() {
             {inviteToken && inviteQuery.isError && (
               <p role="status" className="text-sm text-fg-muted" data-invite-problem>
                 {inviteQuery.error instanceof ApiError && inviteQuery.error.status === 404
-                  ? 'Invite link not valid or expired.'
+                  ? 'This invite link has been used or has expired. If it was yours, sign in with the account it made.'
                   : 'Invite could not be checked.'}
               </p>
             )}
@@ -199,13 +221,19 @@ export default function SignIn() {
               </p>
             )}
             {mode === 'create' && !invited && (
-              <div role="radiogroup" aria-label="Account purpose" className="grid grid-cols-2 gap-2">
+              <div
+                role="radiogroup"
+                aria-label="Account purpose"
+                onKeyDown={arrowKeyChoice(['careers', 'employer'] as const, purpose, setPurpose)}
+                className="grid grid-cols-2 gap-2"
+              >
                 {PURPOSES.map(({ value, label, detail }) => (
                   <button
                     key={value}
                     type="button"
                     role="radio"
                     aria-checked={purpose === value}
+                    tabIndex={purpose === value ? 0 : -1}
                     onClick={() => setPurpose(value)}
                     className={cn(
                       'min-w-0 rounded-lg border px-3 py-2.5 text-left transition-colors',
@@ -267,7 +295,8 @@ export default function SignIn() {
 
             <ErrorNote error={active.error} />
 
-            <Button type="submit" disabled={busy} className="h-11 w-full rounded-lg text-sm">
+            {/* Marked, not disabled, while it sends: the button keeps focus, and a refusal is read from where the person is. */}
+            <Button type="submit" aria-disabled={busy} aria-busy={busy} className={cn('h-11 w-full rounded-lg text-sm', busyButtonClass)}>
               {busy && <Loader2 className="animate-spin" />}
               {mode === 'create' ? 'Create account' : 'Sign in'}
             </Button>

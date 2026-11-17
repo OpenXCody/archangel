@@ -577,3 +577,35 @@ export const noticeLog = pgTable('notice_log', {
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
   jobId: uuid('job_id').references(() => jobs.id, { onDelete: 'cascade' }),
 });
+
+// ============================================
+// COMPANY REQUESTS (migration 0026)
+// ============================================
+
+// A person asks for a company that is not in the data to be added, or a member
+// asks for a missing plant of their company (`companyId` is then set). An
+// admin answers it (see server/routes/companyRequests.ts).
+export const companyRequests = pgTable(
+  'company_requests',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    // Set when the request is for a plant of a company already in the data.
+    companyId: uuid('company_id').references(() => companies.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    website: text('website'),
+    place: text('place').notNull(),
+    status: text('status').default('requested').notNull(), // 'requested' | 'added' | 'declined'
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    decidedBy: uuid('decided_by').references(() => users.id, { onDelete: 'set null' }),
+    // The company the person was given access to when the request was met.
+    addedCompanyId: uuid('added_company_id').references(() => companies.id, { onDelete: 'set null' }),
+  },
+  (table) => ({
+    userIdx: index('company_requests_user_idx').on(table.userId),
+    statusIdx: index('company_requests_status_idx').on(table.status),
+  })
+);

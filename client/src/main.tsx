@@ -19,6 +19,9 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: false,
     },
+    // A save is tried even when the browser says it is offline: it fails at
+    // once and says so, instead of waiting unseen for the connection to return.
+    mutations: { networkMode: 'always' },
   },
 });
 

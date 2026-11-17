@@ -492,7 +492,7 @@ function ManageSection({ job }: { job: JobDetailData }) {
         ) : applicants.data.applications.length === 0 ? (
           <CardNote>{offsite ? 'People apply on your own site, so none are listed here.' : 'Nobody has applied yet.'}</CardNote>
         ) : (
-          <ApplicantList data={applicants.data} />
+          <ApplicantList data={applicants.data} job={job} />
         )}
       </PageSection>
     </div>

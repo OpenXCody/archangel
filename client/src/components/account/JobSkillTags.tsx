@@ -38,6 +38,8 @@ export default function JobSkillTags({ id, value, onChange, emptyNote, disabled 
   const inputRef = useRef<HTMLInputElement>(null);
   const focusNext = useRef<FocusTarget | null>(null);
   const [announcement, setAnnouncement] = useState('');
+  // The tag removed last and where it sat, so one slip is put right in one press.
+  const [removed, setRemoved] = useState<{ skill: JobSkillTag; index: number } | null>(null);
 
   const required = value.filter((skill) => skill.required);
   const optional = value.filter((skill) => !skill.required);
@@ -68,7 +70,18 @@ export default function JobSkillTags({ id, value, onChange, emptyNote, disabled 
     const neighbour = group[index + 1] ?? group[index - 1];
     focusNext.current = neighbour ? { id: neighbour.id, control: 'remove' } : 'input';
     setAnnouncement(`${skill.name} removed.`);
+    setRemoved({ skill, index: value.findIndex((s) => s.id === skill.id) });
     onChange(value.filter((s) => s.id !== skill.id));
+  };
+
+  const undoRemove = () => {
+    if (!removed) return;
+    const { skill, index } = removed;
+    setRemoved(null);
+    if (value.some((s) => s.id === skill.id)) return;
+    focusNext.current = { id: skill.id, control: 'remove' };
+    setAnnouncement(`${skill.name} put back.`);
+    onChange([...value.slice(0, index), skill, ...value.slice(index)]);
   };
 
   const add = (skill: { id: string; name: string }) => {
@@ -86,6 +99,18 @@ export default function JobSkillTags({ id, value, onChange, emptyNote, disabled 
           <TagGroup label="Required" skills={required} onMove={move} onRemove={remove} disabled={disabled} />
           <TagGroup label="Optional" skills={optional} onMove={move} onRemove={remove} disabled={disabled} />
         </>
+      )}
+      {removed && !value.some((skill) => skill.id === removed.skill.id) && (
+        <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-fg-muted" data-skill-removed>
+          Removed {removed.skill.name}.
+          <button
+            type="button"
+            onClick={undoRemove}
+            className="text-sm font-medium text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default"
+          >
+            Undo
+          </button>
+        </p>
       )}
       <SkillAdder id={id} inputRef={inputRef} taken={value} onAdd={add} disabled={disabled} />
       <p className="sr-only" role="status" aria-live="polite">
@@ -183,6 +208,9 @@ function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderProps) {
     queryFn: () => skillsApi.list({ search: query, limit: SHOWN + 16 }),
     enabled: searching && query.length >= 2,
     staleTime: 60_000,
+    // Asked even when the browser says it is offline, so the list says so rather than "Searching" for ever.
+    networkMode: 'always',
+    retry: false,
   });
 
   const waiting = searching && (query !== term.trim() || results.isPending);
@@ -210,7 +238,9 @@ function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderProps) {
       const option = showList ? options[Math.min(activeIndex, options.length - 1)] : undefined;
       if (option) choose(option);
     } else if (event.key === 'Escape') {
+      // The first press closes the list; the next clears what was typed.
       if (open) event.stopPropagation();
+      else if (term) setTerm('');
       setOpen(false);
     }
   };

@@ -1,10 +1,10 @@
 import { useId, useRef, useState, type ElementType } from 'react';
-import { Check, ChevronDown, CircleDashed, Loader2, Minus } from 'lucide-react';
+import { Check, ChevronDown, CircleDashed, Loader2, Minus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { EMPLOYER_STATUSES, useUpdateApplication, type ApplicationStatus } from '../../lib/account';
-import type { ApplicantSkill, JobApplicants, RankedApplicant } from '../../lib/employerJobs';
+import { applicantsCsv, saveTextFile, type ApplicantSkill, type JobApplicants, type RankedApplicant } from '../../lib/employerJobs';
 import { applicationStatusLabel, formatAgo, formatDate } from '../../lib/jobFormat';
 import { busyButtonClass } from './JobForm';
 import { ErrorNote, Field, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass } from './parts';
@@ -29,40 +29,94 @@ function appliedWhen(iso: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** The job the applicants are for: named in the email to an applicant and in the exported file. */
+export interface ApplicantsJob {
+  title: string;
+  serial: number;
+  companyName: string;
+}
+
+/** Above this many applicants a search by name is offered. */
+const SEARCH_FROM = 8;
+
 /**
  * A job's applicants as a compact list, in the server's ranking: one row
- * each, filtered by stage. A row opens to the applicant's skills against the
- * job's, their note and contact, the company's private note and the stage.
+ * each, filtered by stage and, once the list is long, searched by name. A row
+ * opens to the applicant's skills against the job's, their note and contact,
+ * the company's private note and the stage. The list as shown can be saved as
+ * a CSV file.
  */
-export default function ApplicantList({ data }: { data: JobApplicants }) {
+export default function ApplicantList({ data, job }: { data: JobApplicants; job?: ApplicantsJob }) {
   const [filter, setFilter] = useState<StageFilter>('all');
   const [openId, setOpenId] = useState<string | null>(null);
+  const [term, setTerm] = useState('');
 
   const counts = new Map<ApplicationStatus, number>();
   for (const application of data.applications) counts.set(application.status, (counts.get(application.status) ?? 0) + 1);
   const stages = STAGE_ORDER.filter((status) => counts.has(status));
   // A stage that has emptied since it was chosen shows everyone again.
   const active: StageFilter = filter !== 'all' && counts.has(filter) ? filter : 'all';
+  const searchable = data.applications.length > SEARCH_FROM;
+  const words = searchable ? term.toLowerCase().split(/\s+/).filter(Boolean) : [];
+  const named = (a: RankedApplicant) => {
+    const text = `${a.applicant.name} ${a.applicant.email}`.toLowerCase();
+    return words.every((word) => text.includes(word));
+  };
+  const matching = data.applications.filter((a) => (active === 'all' || a.status === active) && named(a));
   // The open row stays while its stage is changed, whatever the filter.
-  const visible = data.applications.filter((a) => active === 'all' || a.status === active || a.id === openId);
+  const visible = data.applications.filter((a) => matching.includes(a) || a.id === openId);
   const hasRequired = data.skills.some((skill) => skill.required);
+
+  const exportCsv = () => {
+    const day = new Date().toISOString().slice(0, 10);
+    saveTextFile(`applicants-${job ? `job-${job.serial}-` : ''}${day}.csv`, applicantsCsv(data, matching));
+  };
 
   return (
     <div data-applicant-list>
-      {stages.length > 1 && (
-        <div role="group" aria-label="Show applicants by stage" className="mb-3 flex flex-wrap gap-1">
-          <StageTab label="All" count={data.applications.length} selected={active === 'all'} onSelect={() => setFilter('all')} />
-          {stages.map((status) => (
-            <StageTab
-              key={status}
-              label={applicationStatusLabel(status)}
-              count={counts.get(status) ?? 0}
-              selected={active === status}
-              onSelect={() => setFilter(status)}
-            />
-          ))}
+      <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+        {stages.length > 1 && (
+          <div role="group" aria-label="Show applicants by stage" className="flex min-w-0 flex-1 basis-64 flex-wrap gap-1">
+            <StageTab label="All" count={data.applications.length} selected={active === 'all'} onSelect={() => setFilter('all')} />
+            {stages.map((status) => (
+              <StageTab
+                key={status}
+                label={applicationStatusLabel(status)}
+                count={counts.get(status) ?? 0}
+                selected={active === status}
+                onSelect={() => setFilter(status)}
+              />
+            ))}
+          </div>
+        )}
+        <div className={cn('flex flex-wrap items-center gap-x-4 gap-y-2', stages.length <= 1 && 'flex-1 justify-between')}>
+          {searchable && (
+            <div className="relative w-full xs:w-56">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" aria-hidden="true" />
+              <input
+                type="text"
+                role="searchbox"
+                enterKeyHint="search"
+                aria-label="Search applicants by name"
+                placeholder="Name"
+                autoComplete="off"
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape' && term) {
+                    e.stopPropagation();
+                    setTerm('');
+                  }
+                }}
+                className={cn(fieldClass, 'min-h-[36px] bg-bg-surface py-1.5 pl-9')}
+              />
+            </div>
+          )}
+          <button type="button" onClick={exportCsv} className={cn(textButtonClass, 'ml-auto whitespace-nowrap')} data-export-applicants>
+            Export CSV
+          </button>
         </div>
-      )}
+      </div>
 
       <div className={cardClass}>
         <div
@@ -75,18 +129,25 @@ export default function ApplicantList({ data }: { data: JobApplicants }) {
           <span>Applied</span>
           <span />
         </div>
-        <ol>
-          {visible.map((applicant) => (
-            <ApplicantRow
-              key={applicant.id}
-              applicant={applicant}
-              skills={data.skills}
-              hasRequired={hasRequired}
-              open={openId === applicant.id}
-              onToggle={() => setOpenId((current) => (current === applicant.id ? null : applicant.id))}
-            />
-          ))}
-        </ol>
+        {visible.length === 0 ? (
+          <p className="px-4 py-6 text-center text-sm text-fg-muted" role="status" data-applicants-none>
+            No applicant{active === 'all' ? '' : ` at ${applicationStatusLabel(active).toLowerCase()}`} matches “{term.trim()}”.
+          </p>
+        ) : (
+          <ol>
+            {visible.map((applicant) => (
+              <ApplicantRow
+                key={applicant.id}
+                applicant={applicant}
+                skills={data.skills}
+                hasRequired={hasRequired}
+                job={job}
+                open={openId === applicant.id}
+                onToggle={() => setOpenId((current) => (current === applicant.id ? null : applicant.id))}
+              />
+            ))}
+          </ol>
+        )}
       </div>
     </div>
   );
@@ -113,11 +174,12 @@ interface ApplicantRowProps {
   applicant: RankedApplicant;
   skills: ApplicantSkill[];
   hasRequired: boolean;
+  job?: ApplicantsJob;
   open: boolean;
   onToggle: () => void;
 }
 
-function ApplicantRow({ applicant, skills, hasRequired, open, onToggle }: ApplicantRowProps) {
+function ApplicantRow({ applicant, skills, hasRequired, job, open, onToggle }: ApplicantRowProps) {
   const panelId = useId();
   const { status } = applicant;
   const quiet = status === 'declined' || status === 'withdrawn';
@@ -167,12 +229,19 @@ function ApplicantRow({ applicant, skills, hasRequired, open, onToggle }: Applic
           {appliedWhen(applicant.createdAt)}
         </span>
       </button>
-      {open && <ApplicantPanel id={panelId} applicant={applicant} skills={skills} />}
+      {open && <ApplicantPanel id={panelId} applicant={applicant} skills={skills} job={job} />}
     </li>
   );
 }
 
-function ApplicantPanel({ id, applicant, skills }: { id: string; applicant: RankedApplicant; skills: ApplicantSkill[] }) {
+interface ApplicantPanelProps {
+  id: string;
+  applicant: RankedApplicant;
+  skills: ApplicantSkill[];
+  job?: ApplicantsJob;
+}
+
+function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
   const move = useUpdateApplication();
   const saveNote = useUpdateApplication();
   const stageRef = useRef<HTMLButtonElement>(null);
@@ -230,8 +299,9 @@ function ApplicantPanel({ id, applicant, skills }: { id: string; applicant: Rank
     <div id={id} className="space-y-4 border-t border-border-subtle px-4 pb-4 pt-3.5" data-applicant-panel>
       <div className="flex flex-wrap items-start gap-x-4 gap-y-3">
         <div className="min-w-0 flex-1 basis-56">
+          {/* The email opens with the job as its subject, so the applicant knows what it is about. */}
           <a
-            href={`mailto:${person.email}`}
+            href={`mailto:${person.email}${job ? `?subject=${encodeURIComponent(`${job.title} at ${job.companyName}`)}` : ''}`}
             className="break-all text-sm text-fg-default underline underline-offset-4 hover:no-underline"
           >
             {person.email}

@@ -6,6 +6,7 @@ import { useAdminMemberships, useDecideMembership, type AdminMembership, type Me
 import { formatAgo, formatDate } from '../../lib/jobFormat';
 import { CardNote, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, rowClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
+import CompanyRequests from './CompanyRequests';
 
 /** The waiting list is read again this often while it is on screen, and whenever the tab comes back into view. */
 const REFRESH_MS = 60_000;
@@ -129,6 +130,9 @@ export default function AccessTab() {
         )}
         <ErrorNote error={decide.error} className="mt-2" />
       </PageSection>
+
+      {/* Companies and plants people asked to have added (its own component and API). */}
+      <CompanyRequests />
 
       {/* Only when there is one: an empty "Declined" heading says nothing. */}
       {declined.data && declined.data.length > 0 && (

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { API_BASE } from './api';
+import { API_BASE, UNREACHABLE, fetchWithTimeout } from './api';
 
 /**
  * Accounts, jobs, applications, the employer area and the admin area.
@@ -46,14 +46,15 @@ function messageFor(payload: unknown, status: number): string {
 export async function request<T>(path: string, { method = 'GET', body, headers }: RequestOptions = {}): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${API_BASE}${path}`, {
+    // Gives up after a while: a save on a dead connection says so instead of spinning.
+    response = await fetchWithTimeout(`${API_BASE}${path}`, {
       method,
       credentials: 'same-origin',
       headers: { ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...headers },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-  } catch {
-    throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
+  } catch (error) {
+    throw new ApiError(error instanceof Error && error.message ? error.message : UNREACHABLE, 0);
   }
   const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) throw new ApiError(messageFor(payload, response.status), response.status, payload);
@@ -105,6 +106,8 @@ export interface Account {
   user: AccountUser | null;
   memberships: Membership[];
   isEmployer: boolean;
+  /** The person asked for a company or a plant to be added and an admin has not answered yet. */
+  hasCompanyRequest?: boolean;
 }
 
 export interface SignedInAccount extends Account {
@@ -302,6 +305,8 @@ export interface EmployerFactory {
   id: string;
   companyId: string;
   name: string;
+  /** The street address, when on record. */
+  address?: string | null;
   city: string | null;
   state: string | null;
 }
