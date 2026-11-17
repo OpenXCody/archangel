@@ -35,7 +35,7 @@ import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../CompanyLogo';
 import { formatPay } from '../../lib/jobFormat';
 import { PANEL_WIDTH_PX, SHEET_BAR_PX, SHEET_FULL_VH, sheetPeekPx } from './camera';
-import { industryLabel } from './industry';
+import { industryLabel } from '@shared/industry';
 import { isNotFound, useSelection } from './selection';
 
 /*

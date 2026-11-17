@@ -27,9 +27,6 @@ coverage/
 # Vercel
 .vercel/
 
-# Drizzle
-drizzle/meta/
-
 # Temp files
 *.tmp
 *.temp
@@ -46,6 +43,9 @@ drizzle/meta/
 # Playwright
 test-results/
 playwright-report/
+
+# scripts/ci-local.sh logs
+ci-results/
 
 # scripts/enrich-naics.mjs output
 enrich-naics.checkpoint.json

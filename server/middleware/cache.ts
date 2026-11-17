@@ -21,3 +21,25 @@ export function publicCache(seconds: number) {
     next();
   };
 }
+
+/**
+ * Refuses a request that carries a query parameter the route does not take.
+ *
+ * The edge keys its cache on the whole address, so `?_=1`, `?_=2`, ... each
+ * miss it and run the query again. On the two heaviest reads (every pin in
+ * the country, every state's count) that is the cheapest way to make the
+ * server work: there, an address the app would never ask for is answered 400
+ * before the database is touched.
+ */
+export function onlyQuery(...names: string[]) {
+  const known = new Set(names);
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const unknown = Object.keys(req.query).find((name) => !known.has(name));
+    if (unknown !== undefined) {
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(400).json({ error: `Unknown query parameter: ${unknown.slice(0, 40)}` });
+      return;
+    }
+    next();
+  };
+}

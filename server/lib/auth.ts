@@ -1,6 +1,6 @@
 import { scrypt, randomBytes, timingSafeEqual, createHash } from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
-import { and, eq, gt } from 'drizzle-orm';
+import { and, eq, gt, lt } from 'drizzle-orm';
 import { db, users, sessions } from '../db/index.js';
 
 /**
@@ -43,6 +43,12 @@ export async function hashPassword(password: string): Promise<string> {
   const key = await scryptAsync(password, salt);
   return `scrypt$${salt.toString('base64')}$${key.toString('base64')}`;
 }
+
+/**
+ * A hash no password matches. Sign-in checks against it when the email has no
+ * account, so "no such account" takes as long to answer as "wrong password".
+ */
+export const NO_ACCOUNT_HASH = ['scrypt', Buffer.alloc(16).toString('base64'), Buffer.alloc(SCRYPT_KEYLEN).toString('base64')].join('$');
 
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const [scheme, saltB64, keyB64] = stored.split('$');
@@ -125,6 +131,8 @@ export async function startSession(res: Response, userId: string): Promise<void>
   const token = newToken();
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
   await db.insert(sessions).values({ tokenHash: hashToken(token), userId, expiresAt });
+  // Sessions that have run out are of no use to anyone: clear them as new ones start.
+  await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=${token}; ${cookieAttributes(SESSION_DAYS * 24 * 60 * 60)}`);
 }
 

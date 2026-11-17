@@ -31,6 +31,7 @@ import {
   type SkillDetail,
 } from '../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import { industryLabel } from '@shared/industry';
 import CompanyLogo from '../components/CompanyLogo';
 import FootprintMap from '../components/FootprintMap';
 import { useMapStore } from '../stores/mapStore';
@@ -327,7 +328,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
           <ul className="overflow-hidden rounded-xl border border-border-subtle bg-bg-surface">
             {shownSites.map((site) => {
               const place = [site.city ? titleCase(site.city) : null, site.state].filter(Boolean).join(', ');
-              const detail = [place, site.industry || site.specialization].filter(Boolean).join(' · ');
+              const detail = [place, site.industry ? industryLabel(site.industry) : site.specialization].filter(Boolean).join(' · ');
               return (
                 <li key={site.id} className="border-b border-border-subtle last:border-b-0">
                   <Link
@@ -399,7 +400,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
   const place = [data.city ? titleCase(data.city) : null, data.state ? STATE_CODE_TO_NAME[data.state as StateCode] ?? data.state : null]
     .filter(Boolean)
     .join(', ');
-  const industry = data.industry || data.specialization;
+  const industry = data.industry ? industryLabel(data.industry) : data.specialization;
   const jobs = data.jobs ?? [];
   const nearby = useMemo(() => data.nearby ?? [], [data.nearby]);
   const latitude = parseFloat(data.latitude);
@@ -784,7 +785,7 @@ function WhereWorkIsDone({ data }: { data: OccupationDetail }) {
                     to={`/explore?tab=factories&industry=${encodeURIComponent(industry.name)}`}
                     className="flex items-baseline justify-between gap-4 py-2.5 text-sm transition-colors hover:text-fg-default"
                   >
-                    <span className="min-w-0 text-fg-default">{industry.name.replace(/ Manufacturing$/, '')}</span>
+                    <span className="min-w-0 text-fg-default">{industryLabel(industry.name)}</span>
                     <span className="shrink-0 tabular-nums text-fg-muted">
                       {industry.factoryCount.toLocaleString()} {industry.factoryCount === 1 ? 'plant' : 'plants'}
                     </span>

@@ -3,6 +3,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm';
 import { db, companies, companyMembers, factories, jobs } from '../db/index.js';
 import { handle, requireUser } from '../lib/auth.js';
 import { uuidParam } from '../middleware/validateUuid.js';
+import { isUuid } from '../lib/writes.js';
 import { factoryInScope } from '../lib/scope.js';
 import { DECLINED_WAIT_DAYS, accessRequested, askAgainAt } from '../lib/notices.js';
 import { readCompanyTerm, searchCompanies } from '../lib/companySearch.js';
@@ -110,7 +111,7 @@ router.post(
   handle(async (req, res) => {
     const user = req.user!;
     const companyId: unknown = req.body?.companyId;
-    if (typeof companyId !== 'string' || !/^[0-9a-f-]{36}$/i.test(companyId)) {
+    if (!isUuid(companyId)) {
       return res.status(400).json({ error: 'Choose a company.' });
     }
     const [company] = await db.select({ id: companies.id, name: companies.name }).from(companies).where(eq(companies.id, companyId)).limit(1);
