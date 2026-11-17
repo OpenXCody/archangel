@@ -51,6 +51,19 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-bg-base flex flex-col">
+      {/* First stop for the Tab key: past the header, into the page. Seen only when it has focus. */}
+      <a
+        href="#main"
+        onClick={(event) => {
+          // Focus is moved by hand: the address fragment belongs to the page (the map keeps its camera there).
+          event.preventDefault();
+          document.getElementById('main')?.focus();
+        }}
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-2 focus:z-[60] focus:rounded-lg focus:border focus:border-border-strong
+          focus:bg-bg-surface focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-fg-default"
+      >
+        Skip to content
+      </a>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-bg-surface border-b border-border-subtle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -122,7 +135,7 @@ export default function Layout() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1">
+      <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
         <Outlet />
       </main>
 

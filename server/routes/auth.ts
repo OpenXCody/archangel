@@ -8,6 +8,7 @@ import {
   getSessionUser,
   handle,
   hashPassword,
+  hashToken,
   normalizeEmail,
   passwordProblem,
   requireUser,
@@ -74,8 +75,9 @@ const TOO_MANY = 'Too many attempts. Try again in a few minutes.';
 const RESET_ATTEMPTS = 'password-reset';
 
 // GET /api/auth/invite/:token - what an invite link grants, for the sign-up
-// form. 404 for a link that is unknown, expired or already used, without
-// saying which.
+// form: the address, the role, and who invited. 404 for a link that cannot be
+// used, with `reason`: 'used' (an account was made through it), 'expired', or
+// 'unknown' (revoked, replaced by a newer invite, or never one of ours).
 router.get(
   '/invite/:token',
   handle(async (req, res) => {
@@ -83,14 +85,24 @@ router.get(
     const [invite] =
       token.length <= MAX_INVITE_TOKEN_LENGTH
         ? await db
-            .select({ email: invites.email, role: invites.role, companyName: companies.name })
+            .select({
+              email: invites.email,
+              role: invites.role,
+              companyName: companies.name,
+              invitedBy: users.name,
+              acceptedAt: invites.acceptedAt,
+              expiresAt: invites.expiresAt,
+            })
             .from(invites)
             .leftJoin(companies, eq(companies.id, invites.companyId))
-            .where(usableInvite(token))
+            .leftJoin(users, eq(users.id, invites.createdBy))
+            .where(eq(invites.tokenHash, hashToken(token)))
             .limit(1)
         : [];
-    if (!invite) return res.status(404).json({ error: INVALID_INVITE });
-    res.json(invite);
+    if (!invite) return res.status(404).json({ error: INVALID_INVITE, reason: 'unknown' });
+    if (invite.acceptedAt) return res.status(404).json({ error: 'That invite link has been used. Sign in with the account it made.', reason: 'used' });
+    if (invite.expiresAt <= new Date()) return res.status(404).json({ error: 'That invite link has expired. Ask an admin for a new one.', reason: 'expired' });
+    res.json({ email: invite.email, role: invite.role, companyName: invite.companyName, invitedBy: invite.invitedBy });
   })
 );
 
@@ -105,7 +117,10 @@ router.post(
     const password = typeof req.body?.password === 'string' ? req.body.password : '';
     const inviteToken: unknown = req.body?.invite ?? null;
     if (!email) return res.status(400).json({ error: 'Enter a valid email address.' });
-    if (!name) return res.status(400).json({ error: 'Enter your name.' });
+    if (!name) {
+      const given = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
+      return res.status(400).json({ error: given.length > 80 ? 'A name is up to 80 characters.' : 'Enter your name.' });
+    }
     const weak = passwordProblem(password);
     if (weak) return res.status(400).json({ error: weak });
     if (inviteToken !== null && (typeof inviteToken !== 'string' || !inviteToken || inviteToken.length > MAX_INVITE_TOKEN_LENGTH)) {
@@ -138,7 +153,7 @@ router.post(
       // the check above; the second must lose quietly, not fail.
       const [created] = await tx
         .insert(users)
-        .values({ email, name, passwordHash, isAdmin })
+        .values({ email, name, passwordHash, isAdmin, adminSince: isAdmin ? new Date() : null })
         .onConflictDoNothing()
         .returning({ id: users.id });
       if (!created) return { problem: 'exists' as const };

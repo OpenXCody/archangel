@@ -5,7 +5,8 @@ import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerDuplicate, answerWriteError, optionalName, optionalText, requiredText } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
+import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 
 const router = Router();
 // A company is addressed by its id, or, for reading, by its slug
@@ -215,58 +216,33 @@ router.post('/', async (req: Request, res: Response) => {
       headquartersLng,
     }).returning();
 
+    await recordAdded('company', result[0], req.user!);
     res.status(201).json(result[0]);
   } catch (error) {
     answerWriteError(res, error, 'company');
   }
 });
 
-// PUT /api/companies/:id - Update company
+// PUT /api/companies/:id - Change a company. Only the fields given change:
+// name, industry, description, domain, featured, aliases, headquartersLat/Lng.
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const { industry, description, headquartersLat, headquartersLng } = req.body;
-    const name = optionalName(req.body?.name);
-    if (name === false) {
-      res.status(400).json({ error: 'A company needs a name of up to 200 characters.' });
-      return;
-    }
-
-    const result = await db.update(companies)
-      .set({
-        name,
-        industry,
-        description,
-        headquartersLat,
-        headquartersLng,
-        updatedAt: new Date(),
-      })
-      .where(eq(companies.id, id))
-      .returning();
-
-    if (result.length === 0) {
-      res.status(404).json({ error: 'Company not found' });
-      return;
-    }
-
-    res.json(result[0]);
+    res.json(await changeRecord('company', req.params.id, req.body, req.user!));
   } catch (error) {
-    answerWriteError(res, error, 'company');
+    answerRefusal(res, error, 'company');
   }
 });
 
-// DELETE /api/companies/:id - Delete company
+// DELETE /api/companies/:id - Delete a company. Its factories, jobs,
+// applications, memberships and invites go with it; `removed` counts them.
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const result = await db.delete(companies).where(eq(companies.id, id)).returning();
-
-    if (result.length === 0) {
+    const gone = await removeRecord('company', req.params.id, req.user!);
+    if (!gone) {
       res.status(404).json({ error: 'Company not found' });
       return;
     }
-
-    res.json({ message: 'Company deleted', id });
+    res.json({ message: 'Company deleted', id: gone.id, removed: gone.removed });
   } catch (error) {
     console.error('Error deleting company:', error);
     res.status(500).json({ error: 'Failed to delete company' });

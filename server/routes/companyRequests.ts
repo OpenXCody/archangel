@@ -3,6 +3,7 @@ import { and, desc, eq, gt, or, sql } from 'drizzle-orm';
 import { db, users, companies, companyMembers, companyRequests } from '../db/index.js';
 import { cleanText, handle, type SessionUser } from '../lib/auth.js';
 import { accessDecided, companyAddRequested, companyRequestAnswered } from '../lib/notices.js';
+import { recordAudit } from '../lib/audit.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 
 /**
@@ -227,6 +228,14 @@ adminCompanyRequestsRouter.patch(
         .where(waiting)
         .returning({ id: companyRequests.id });
       if (changed.length === 0) return res.status(404).json({ error: 'Request not found' });
+      await recordAudit(db, {
+        actor: admin,
+        kind: 'access',
+        recordId: request.companyId,
+        recordName: request.name,
+        action: plant ? 'plant request declined' : 'company request declined',
+        detail: { place: request.place, askedBy: request.userId },
+      });
       await companyRequestAnswered({ userId: request.userId, name: request.name, place: request.place, plant, outcome: 'declined', byUserId: admin.id });
       return res.json({ status: 'declined' });
     }
@@ -238,6 +247,14 @@ adminCompanyRequestsRouter.patch(
         .where(waiting)
         .returning({ id: companyRequests.id });
       if (changed.length === 0) return res.status(404).json({ error: 'Request not found' });
+      await recordAudit(db, {
+        actor: admin,
+        kind: 'access',
+        recordId: request.companyId,
+        recordName: request.name,
+        action: 'plant request marked added',
+        detail: { place: request.place, askedBy: request.userId },
+      });
       await companyRequestAnswered({ userId: request.userId, name: request.name, place: request.place, plant, outcome: 'added', byUserId: admin.id });
       return res.json({ status: 'added' });
     }
@@ -262,6 +279,14 @@ adminCompanyRequestsRouter.patch(
           target: [companyMembers.companyId, companyMembers.userId],
           set: { status: 'active', decidedAt, decidedBy: admin.id },
         });
+      await recordAudit(tx, {
+        actor: admin,
+        kind: 'access',
+        recordId: company.id,
+        recordName: company.name,
+        action: 'company request answered, access given',
+        detail: { askedFor: request.name, place: request.place, person: request.userId },
+      });
       return { wasActive: before?.status === 'active' };
     });
     if (!outcome) return res.status(404).json({ error: 'Request not found' });

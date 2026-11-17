@@ -89,10 +89,10 @@ async function claimNotice(
 // ---------------------------------------------------------------------------
 
 /** Email an invite link to the invited address. True when it went. */
-export async function sendInvite(input: { email: string; role: InviteRole; companyName: string | null; token: string }): Promise<boolean> {
+export async function sendInvite(input: { email: string; role: InviteRole; companyName: string | null; token: string; days?: number }): Promise<boolean> {
   if (!emailEnabled()) return false;
   const result = await sendEmail(
-    inviteEmail({ to: input.email, role: input.role, companyName: input.companyName, path: invitePath(input.token), days: INVITE_DAYS })
+    inviteEmail({ to: input.email, role: input.role, companyName: input.companyName, path: invitePath(input.token), days: input.days ?? INVITE_DAYS })
   );
   return result.sent;
 }

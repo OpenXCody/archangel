@@ -3,7 +3,8 @@ import { eq, ilike, or, sql, and, ne, isNull } from 'drizzle-orm';
 import { db, skills, occupationSkills, occupations } from '../db/index.js';
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerDuplicate, answerWriteError, optionalName, optionalText, requiredText } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
+import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -200,55 +201,32 @@ router.post('/', async (req: Request, res: Response) => {
       description,
     }).returning();
 
+    await recordAdded('skill', result[0], req.user!);
     res.status(201).json(result[0]);
   } catch (error) {
     answerWriteError(res, error, 'skill');
   }
 });
 
-// PUT /api/skills/:id - Update skill
+// PUT /api/skills/:id - Change a skill: name, category, description, aliases.
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const { category, description } = req.body;
-    const name = optionalName(req.body?.name);
-    if (name === false) {
-      res.status(400).json({ error: 'A skill needs a name of up to 200 characters.' });
-      return;
-    }
-
-    const result = await db.update(skills)
-      .set({
-        name,
-        category,
-        description,
-      })
-      .where(eq(skills.id, id))
-      .returning();
-
-    if (result.length === 0) {
-      res.status(404).json({ error: 'Skill not found' });
-      return;
-    }
-
-    res.json(result[0]);
+    res.json(await changeRecord('skill', req.params.id, req.body, req.user!));
   } catch (error) {
-    answerWriteError(res, error, 'skill');
+    answerRefusal(res, error, 'skill');
   }
 });
 
-// DELETE /api/skills/:id - Delete skill
+// DELETE /api/skills/:id - Delete a skill. It leaves every career path, job
+// and person that listed it; `removed` counts them.
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const result = await db.delete(skills).where(eq(skills.id, id)).returning();
-
-    if (result.length === 0) {
+    const gone = await removeRecord('skill', req.params.id, req.user!);
+    if (!gone) {
       res.status(404).json({ error: 'Skill not found' });
       return;
     }
-
-    res.json({ message: 'Skill deleted', id });
+    res.json({ message: 'Skill deleted', id: gone.id, removed: gone.removed });
   } catch (error) {
     console.error('Error deleting skill:', error);
     res.status(500).json({ error: 'Failed to delete skill' });

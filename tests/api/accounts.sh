@@ -43,6 +43,8 @@ psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHE
 # Whatever this run borrows from the local database goes back on exit.
 OTHER_ADMINS=''; PROFILE_ID=''; PROFILE_DOMAIN=''; PROFILE_FEATURED=''
 restore_local() {
+  # The audit lines this run's admins caused: by account while it exists, by what they name once it is gone.
+  psql "$DB" -qtAc "DELETE FROM audit_log WHERE actor_id IN (SELECT id FROM users WHERE email LIKE '%@e2e.test') OR record_name LIKE 'E2E Records %' OR record_name LIKE '%@e2e.test%'" >/dev/null
   [ -n "$OTHER_ADMINS" ] && psql "$DB" -qtAc "UPDATE users SET is_admin=true WHERE id IN ($OTHER_ADMINS)" >/dev/null
   [ -n "$PROFILE_ID" ] && psql "$DB" -qtAc "UPDATE companies SET domain=NULLIF('$PROFILE_DOMAIN',''), featured='$PROFILE_FEATURED' WHERE id='$PROFILE_ID'" >/dev/null
   return 0
@@ -298,8 +300,8 @@ PROFILE_DOMAIN=$(sql "SELECT COALESCE(domain,'') FROM companies WHERE id='$TXC'"
 PROFILE_FEATURED=$(sql "SELECT featured FROM companies WHERE id='$TXC'")
 TERM=$(node -e 'console.log(encodeURIComponent(process.argv[1].slice(0, 4)))' "$(sql "SELECT name FROM companies WHERE id='$TXC'")")
 check "company search"                200 "$(req a GET "/admin/companies?q=$TERM")" '"featured":'
-check "domain with a scheme"          400 "$(req a PATCH /admin/companies/$TXC '{"domain":"https://example.com/about"}')"
-check "domain with a path"            400 "$(req a PATCH /admin/companies/$TXC '{"domain":"example.com/about"}')"
+check "a pasted address is cut to its domain" 200 "$(req a PATCH /admin/companies/$TXC '{"domain":"https://www.Example.com/about"}')" '"domain":"example.com"'
+check "what is not a domain"          400 "$(req a PATCH /admin/companies/$TXC '{"domain":"not a domain"}')"
 check "empty company change"          400 "$(req a PATCH /admin/companies/$TXC '{}')"
 check "set domain and featured"       200 "$(req a PATCH /admin/companies/$TXC '{"domain":" Example-E2E.com ","featured":true}')" '"domain":"example-e2e.com","featured":true'
 check "clear domain"                  200 "$(req a PATCH /admin/companies/$TXC '{"domain":null,"featured":false}')" '"domain":null,"featured":false'
