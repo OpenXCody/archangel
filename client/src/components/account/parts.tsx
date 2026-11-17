@@ -1,4 +1,4 @@
-import { useEffect, useState, type ElementType, type ReactNode } from 'react';
+import { useEffect, useState, type ElementType, type KeyboardEvent, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { AlertCircle, Briefcase, Building2, Factory, Loader2, RotateCw, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { errorMessage, justLeft, signInPath, useAccount, type SignedInAccount } from '../../lib/account';
 import { applicationStatusLabel } from '../../lib/jobFormat';
 import { PageContainer } from '../layout/Page';
+import { onGroupArrowKeys } from '../../lib/roving';
 
 /** Small shared pieces for the account, jobs, employer and admin pages. */
 
@@ -216,4 +217,13 @@ export function useDebouncedValue<T>(value: T, delayMs = 250): T {
     return () => window.clearTimeout(timer);
   }, [value, delayMs]);
   return debounced;
+}
+
+/**
+ * Arrow keys for a group of buttons that act as radios or tabs: the next or
+ * previous one is chosen and takes focus. Goes on the group; each button in
+ * it takes `tabIndex={selected ? 0 : -1}`, so the group is one tab stop.
+ */
+export function arrowKeyChoice<T extends string>(values: readonly T[], current: T, onChange: (value: T) => void) {
+  return (event: KeyboardEvent<HTMLElement>) => onGroupArrowKeys(event, values, current, onChange);
 }

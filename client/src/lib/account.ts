@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { API_BASE } from './api';
+import { API_BASE, UNREACHABLE, fetchWithTimeout } from './api';
 
 /**
  * Accounts, jobs, applications, the employer area and the admin area.
@@ -48,14 +48,15 @@ function messageFor(payload: unknown, status: number): string {
 export async function request<T>(path: string, { method = 'GET', body, headers }: RequestOptions = {}): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${API_BASE}${path}`, {
+    // Gives up after a while: a save on a dead connection says so instead of spinning.
+    response = await fetchWithTimeout(`${API_BASE}${path}`, {
       method,
       credentials: 'same-origin',
       headers: { ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...headers },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-  } catch {
-    throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
+  } catch (error) {
+    throw new ApiError(error instanceof Error && error.message ? error.message : UNREACHABLE, 0);
   }
   const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) throw new ApiError(messageFor(payload, response.status), response.status, payload);
@@ -109,6 +110,8 @@ export interface Account {
   isEmployer: boolean;
   /** Set in this browser only: when the person signed out, or deleted their account, here (ms since the epoch). */
   leftAt?: number;
+  /** The person asked for a company or a plant to be added and an admin has not answered yet. */
+  hasCompanyRequest?: boolean;
 }
 
 export interface SignedInAccount extends Account {
@@ -312,6 +315,8 @@ export interface EmployerFactory {
   id: string;
   companyId: string;
   name: string;
+  /** The street address, when on record. */
+  address?: string | null;
   city: string | null;
   state: string | null;
 }
@@ -659,6 +664,9 @@ export const accountKeys = {
 
 const SIGNED_OUT: Account = { user: null, memberships: [], isEmployer: false };
 
+/** Written when someone signs in or out, so the browser's other tabs check who is signed in. */
+const IDENTITY_SIGNAL = 'archangel.identity';
+
 /**
  * True for a moment after the person signs out (or deletes their account) in
  * this browser. A page that needs an account then sends them on to the map
@@ -674,6 +682,12 @@ export function justLeft(account: Account): boolean {
  */
 function identityChanged(queryClient: QueryClient, account: Account): void {
   queryClient.setQueryData(accountKeys.account, account);
+  // Tell this browser's other tabs (see useSessionExpiryWatch). The value only has to change.
+  try {
+    window.localStorage.setItem(IDENTITY_SIGNAL, String(Date.now()));
+  } catch {
+    // Storage is unavailable: the other tabs find out when they next ask.
+  }
   queryClient.removeQueries({ queryKey: accountKeys.me });
   queryClient.removeQueries({ queryKey: accountKeys.employer });
   queryClient.removeQueries({ queryKey: accountKeys.admin });
@@ -720,9 +734,18 @@ export function useSessionExpiryWatch(): void {
     const offMutations = queryClient.getMutationCache().subscribe((event) => {
       if (event.type === 'updated' && event.action.type === 'error') recheck(event.action.error, false);
     });
+    // Signed in or out in another tab of this browser: this tab asks who is signed in now.
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== IDENTITY_SIGNAL) return;
+      void queryClient.invalidateQueries({ queryKey: accountKeys.account });
+      // A job page says whether its reader manages it: that may no longer hold.
+      void queryClient.invalidateQueries({ queryKey: accountKeys.jobDetails });
+    };
+    window.addEventListener('storage', onStorage);
     return () => {
       offQueries();
       offMutations();
+      window.removeEventListener('storage', onStorage);
     };
   }, [queryClient]);
 }

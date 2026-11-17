@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { API_BASE } from './api';
+import { API_BASE, UNREACHABLE, fetchWithTimeout } from './api';
 import { ApiError, accountKeys, type Applicant, type EmploymentType, type PayPeriod } from './account';
 import { parseDollars } from './jobFormat';
 
@@ -19,14 +19,14 @@ import { parseDollars } from './jobFormat';
 async function send<T>(path: string, method: 'GET' | 'PATCH' | 'DELETE', body?: unknown): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${API_BASE}${path}`, {
+    response = await fetchWithTimeout(`${API_BASE}${path}`, {
       method,
       credentials: 'same-origin',
       headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-  } catch {
-    throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
+  } catch (error) {
+    throw new ApiError(error instanceof Error && error.message ? error.message : UNREACHABLE, 0);
   }
   const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) {
@@ -215,4 +215,77 @@ export function normalizeLink(text: string): string | null {
   } catch {
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Applicants as a file
+// ---------------------------------------------------------------------------
+
+/** One cell of a CSV file. Text a spreadsheet would run as a formula is kept as text. */
+function csvCell(value: string | number | null): string {
+  let text = value === null ? '' : String(value);
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+/**
+ * Applicants as CSV text, one row each in the order given, for a spreadsheet.
+ * `rank` is each one's place in the job's own ranking, whatever the order or
+ * the filter of the rows.
+ */
+export function applicantsCsv(data: JobApplicants, rows: RankedApplicant[]): string {
+  const names = (ids: string[], required?: boolean) =>
+    data.skills
+      .filter((skill) => ids.includes(skill.id) && (required === undefined || skill.required === required))
+      .map((skill) => skill.name)
+      .join('; ');
+  const header = [
+    'Rank', 'Name', 'Email', 'ZIP', 'Stage', 'Applied',
+    'Required skills held', 'Required skills asked', 'Optional skills held',
+    'Skills held', 'Skills being learned', 'Required skills missing',
+    'Note from applicant', 'Private note',
+  ];
+  const lines = rows.map((row) => {
+    const missing = data.skills.filter((skill) => skill.required && !row.heldSkillIds.includes(skill.id)).map((skill) => skill.name);
+    return [
+      data.applications.findIndex((a) => a.id === row.id) + 1,
+      row.applicant.name,
+      row.applicant.email,
+      row.applicant.homeZip,
+      row.status.charAt(0).toUpperCase() + row.status.slice(1),
+      row.createdAt.slice(0, 10),
+      row.heldRequired,
+      row.totalRequired,
+      row.heldOptional,
+      names(row.heldSkillIds),
+      names(row.learningSkillIds),
+      missing.join('; '),
+      row.note,
+      row.employerNote,
+    ]
+      .map(csvCell)
+      .join(',');
+  });
+  return [header.map(csvCell).join(','), ...lines].join('\r\n') + '\r\n';
+}
+
+/** Hand the person a text file to save. The leading mark tells a spreadsheet the text is UTF-8. */
+export function saveTextFile(name: string, text: string, type = 'text/csv'): void {
+  const url = URL.createObjectURL(new Blob(['﻿', text], { type: `${type};charset=utf-8` }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Renew an open job's 60 days from today. */
+export function useExtendJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (jobId: string) => send<{ ok: true }>(`/jobs/${jobId}`, 'PATCH', { status: 'open' }),
+    onSuccess: () => Promise.all([accountKeys.jobs, accountKeys.employer].map((queryKey) => queryClient.invalidateQueries({ queryKey }))),
+  });
 }

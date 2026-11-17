@@ -16,7 +16,16 @@ import {
   useSignIn,
   useSignUp,
 } from '../lib/account';
-import { ErrorNote, Field, LoadError, PageLoading, busyButtonClass, cardClass, fieldClass, textButtonClass } from '../components/account/parts';
+import {
+  ErrorNote,
+  Field,
+  LoadError,
+  PageLoading,
+  busyButtonClass,
+  cardClass,
+  fieldClass,
+  textButtonClass,
+} from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 import { onGroupArrowKeys } from '../lib/roving';
 
@@ -43,10 +52,13 @@ const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
  * One page for both signing in and creating an account. A new account says
  * what it is for (`?as=employer`), which is the only extra question asked.
  *
- * Where the person lands: an employer goes to the employer page; otherwise
- * `?next=` when it is a path on this site. With nowhere to return to, someone
- * signing in lands on the map, and someone who has just created an account
- * lands on their own page, which starts them off.
+ * Where the person lands: the employer page for an employer, for someone who
+ * chose "Hire", and (with nowhere else to return to) for someone whose request
+ * to join a company or to have one added is waiting for an admin, since that
+ * is where its answer shows; otherwise `?next=` when it is a path on this
+ * site. With nowhere to return to, someone signing in lands on the map, and
+ * someone who has just created an account lands on their own page, which
+ * starts them off.
  *
  * The form is checked here before it is sent: every problem is named beside
  * its field at once, and the first is focused.
@@ -111,9 +123,13 @@ export default function SignIn() {
   if (account.data?.user && !resetPending && !resetting) {
     // The account decides, not the link: an invite link opened by someone else's session grants nothing.
     if (invited?.role === 'admin' && account.data.user.isAdmin) return <Navigate to="/admin" replace />;
+    // Someone waiting on an admin has one thing to come back for: the answer.
+    const waiting = account.data.memberships.some((m) => m.status === 'requested') || account.data.hasCompanyRequest === true;
     const hiring =
-      (invited ? invited.role === 'employer' && account.data.isEmployer : mode === 'create' && purpose === 'employer') ||
-      (!next && account.data.isEmployer);
+      (invited
+        ? invited.role === 'employer' && account.data.isEmployer
+        : (mode === 'create' && purpose === 'employer') || searchParams.get('as') === 'employer') ||
+      (!next && (account.data.isEmployer || waiting));
     // A new account with nowhere to return to starts on the person's own page.
     return <Navigate to={hiring ? '/employer' : (next ?? (signUp.isSuccess ? '/me' : '/map'))} replace />;
   }
@@ -229,7 +245,7 @@ export default function SignIn() {
             {inviteToken && inviteQuery.isError && (
               <p role="status" className="text-sm text-fg-muted" data-invite-problem>
                 {inviteQuery.error instanceof ApiError && inviteQuery.error.status === 404
-                  ? 'Invite link not valid or expired.'
+                  ? 'This invite link has been used or has expired. If it was yours, sign in with the account it made.'
                   : 'Invite could not be checked.'}
               </p>
             )}

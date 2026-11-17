@@ -6,6 +6,8 @@ import {
   accessApprovedEmail,
   accessDeclinedEmail,
   accessRequestedEmail,
+  companyRequestAnsweredEmail,
+  companyRequestedEmail,
   emailChangedEmail,
   inviteEmail,
   newApplicantEmail,
@@ -225,6 +227,72 @@ function longDate(date: Date): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
 
+/**
+ * A person asked for a company that is not in the data, or a missing plant of
+ * their company, to be added: tell the admins. Counted with the same person's
+ * access requests, so asking again and again does not become a stream of email.
+ */
+export async function companyAddRequested(input: {
+  requesterId: string;
+  name: string;
+  website: string | null;
+  place: string;
+  plant: boolean;
+}): Promise<void> {
+  try {
+    if (!emailEnabled()) return;
+    const [requester] = await db.select({ name: users.name, email: users.email }).from(users).where(eq(users.id, input.requesterId)).limit(1);
+    if (!requester) return;
+    const admins = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(and(eq(users.isAdmin, true), eq(users.emailNotices, true)));
+    if (admins.length === 0) return;
+    if (!(await claimNotice(`access:${input.requesterId}`, { userId: input.requesterId }, 60, ACCESS_NOTICES_PER_HOUR))) return;
+    await sendEmails(
+      admins.map((admin) =>
+        companyRequestedEmail({
+          to: admin.email,
+          requesterName: requester.name,
+          requesterEmail: requester.email,
+          name: input.name,
+          website: input.website,
+          place: input.place,
+          plant: input.plant,
+        })
+      )
+    );
+  } catch (err) {
+    failed('company request notice', err);
+  }
+}
+
+/**
+ * An admin answered a request to add a plant, or declined a request to add a
+ * company: tell the person. (A company that was added is told as an approval,
+ * through `accessDecided`.)
+ */
+export async function companyRequestAnswered(input: {
+  userId: string;
+  name: string;
+  place: string;
+  plant: boolean;
+  outcome: 'added' | 'declined';
+  /** The admin who answered: nobody is emailed about what they did themselves. */
+  byUserId: string;
+}): Promise<void> {
+  try {
+    if (!emailEnabled() || input.userId === input.byUserId) return;
+    const [person] = await db.select({ email: users.email, emailNotices: users.emailNotices }).from(users).where(eq(users.id, input.userId)).limit(1);
+    if (!person?.emailNotices) return;
+    await sendEmail(
+      companyRequestAnsweredEmail({ to: person.email, name: input.name, place: input.place, plant: input.plant, outcome: input.outcome })
+    );
+  } catch (err) {
+    failed('company request answer', err);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Applications
 // ---------------------------------------------------------------------------
@@ -372,11 +440,15 @@ export async function newsFor(userId: string): Promise<News> {
            AND a.user_id <> u.id AND a.status <> 'withdrawn' AND e.status = 'applied'
            AND (u.applicants_seen_at IS NULL OR e.at > u.applicants_seen_at)
       ) AS applicants,
-      (u.is_admin AND EXISTS (
+      (u.is_admin AND (EXISTS (
         SELECT 1 FROM company_members m
          WHERE m.status = 'requested'
            AND (u.access_seen_at IS NULL OR m.created_at AT TIME ZONE 'UTC' > u.access_seen_at)
-      )) AS access
+      ) OR EXISTS (
+        -- A request to add a company or a plant waits in the same place.
+        SELECT 1 FROM company_requests r
+         WHERE r.status = 'requested' AND (u.access_seen_at IS NULL OR r.created_at > u.access_seen_at)
+      ))) AS access
     FROM users u WHERE u.id = ${userId}
   `)) as unknown as News[];
   return { applications: Boolean(row?.applications), applicants: Boolean(row?.applicants), access: Boolean(row?.access) };

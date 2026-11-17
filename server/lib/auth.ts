@@ -54,7 +54,8 @@ export async function verifyPassword(password: string, stored: string): Promise<
 
 /** Why a password cannot be used, in words for the person, or null when it can. One rule everywhere. */
 export function passwordProblem(password: string): string | null {
-  return password.length < 8 || password.length > 200 ? 'Use a password of at least 8 characters.' : null;
+  // Eight spaces are eight characters and no password at all.
+  return password.length < 8 || password.length > 200 || !password.trim() ? 'Use a password of at least 8 characters.' : null;
 }
 
 /** What is stored for a secret token (a session, an invite, a password reset): its SHA-256, never the token. */

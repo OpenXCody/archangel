@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAdminOverview, type AccountUser } from '../lib/account';
+import { useAdminCompanyRequests } from '../lib/employerCompanies';
 import { AccountGate } from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 import AccessTab from '../components/admin/AccessTab';
@@ -39,13 +40,20 @@ function Waiting() {
   const overview = useAdminOverview();
   const requests = overview.data?.pendingMemberships ?? 0;
   const paths = overview.data?.draftPaths ?? 0;
-  if (requests === 0 && paths === 0) return null;
+  // Companies and plants people asked to have added: answered on the Access tab too.
+  const toAdd = useAdminCompanyRequests().data?.length ?? 0;
+  if (requests === 0 && paths === 0 && toAdd === 0) return null;
   return (
     <div className="mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-sm sm:mb-8" data-admin-waiting>
       <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Waiting</span>
       {requests > 0 && (
         <Link to="/admin?tab=access" className={waitingLinkClass}>
           {requests.toLocaleString('en-US')} access {requests === 1 ? 'request' : 'requests'}
+        </Link>
+      )}
+      {toAdd > 0 && (
+        <Link to="/admin?tab=access" className={waitingLinkClass} data-waiting-to-add>
+          {toAdd.toLocaleString('en-US')} {toAdd === 1 ? 'request' : 'requests'} to add a company or plant
         </Link>
       )}
       {paths > 0 && (

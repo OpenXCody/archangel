@@ -364,6 +364,25 @@ expect "every email is plain text with an HTML twin, from the sender" 0 "$(tail 
       !m.text || !m.html || !m.from || !m.text.includes("You got this email because") || /<img|<script/i.test(m.html) || /hash|scrypt/i.test(m.text));
     console.log(bad.length);
   });')"
+# --- Asking for a company that is not in the data -------------------------------
+FORGE="Emailtest Forge $RUN"
+OUT=$(req s4 POST /employer/company-requests "{\"name\":\"$FORGE\",\"place\":\"Waco, TX\",\"website\":\"https://www.emailtest-forge.example/about\"}")
+check "ask for a company to be added" 201 "$OUT" '"website":"emailtest-forge.example"'
+CR=$(printf '%s' "$OUT" | j request.id)
+expect "the admin is emailed about it" 1 "$(mail adm "Request to add $FORGE")"
+expect "it says who asked and where"  1 "$(mail adm "Request to add $FORGE" "m.text.includes('$(addr s4)') && m.text.includes('Waco, TX') ? 1 : 0")"
+expect "its action opens the access requests" "$APP_URL/admin?tab=access" "$(mail adm "Request to add $FORGE" "$LINK")"
+check "the admin has news of it"      200 "$(req adm GET /me/news)" '"access":true'
+check "the admin declines it"         200 "$(req adm PATCH /admin/company-requests/$CR '{"decision":"decline"}')" '"status":"declined"'
+expect "the person is told of the decline" 1 "$(mail s4 "Your request to add $FORGE was declined")"
+check "a second answer finds nothing waiting" 404 "$(req adm PATCH /admin/company-requests/$CR '{"decision":"decline"}')"
+expect "and sends nothing more"       1 "$(mail s4 "Your request to add $FORGE was declined")"
+OUT=$(req s4 POST /employer/company-requests "{\"name\":\"$FORGE Two\",\"place\":\"Waco, TX\"}")
+check "ask for another"               201 "$OUT"; CR=$(printf '%s' "$OUT" | j request.id)
+check "the admin gives access to the company added" 200 "$(req adm PATCH /admin/company-requests/$CR "{\"decision\":\"add\",\"companyId\":\"$CD\"}")" '"status":"added"'
+expect "the person is told as for an approval" 1 "$(mail s4 'You can now post jobs for')"
+check "and can post for it"           200 "$(req s4 GET /auth/me)" '"isEmployer":true'
+
 expect "every link in every email starts at APP_URL" 0 "$(tail -n +"$((START + 1))" "$OUTBOX" | node -e '
   const base = process.argv[1];
   let s = ""; process.stdin.on("data", (d) => (s += d)).on("end", () => {
