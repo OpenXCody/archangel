@@ -9,10 +9,12 @@ import maplibregl, {
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Maximize2, Minus, Plus } from 'lucide-react';
-import { factoriesApi, mapApi } from '../../lib/api';
+import { companiesApi, factoriesApi, mapApi, occupationsApi } from '../../lib/api';
 import { useMapStore, type PinInfo } from '../../stores/mapStore';
 import { currentTheme, type Theme } from '../../lib/theme';
+import { isNotFound } from './selection';
 import { US_STATES } from '@shared/states';
+import { formatCompanyName } from '@shared/displayName';
 import { FOCUS_AREAS, focusArea } from '@shared/scope';
 import {
   applyCameraRequest,
@@ -22,20 +24,27 @@ import {
   initialCamera,
   isAtHome,
   isPhoneLayout,
+  keepNearCountry,
   PANEL_WIDTH_PX,
+  SHEET_BAR_PX,
   sheetPeekPx,
+  viewFromHash,
+  viewToHash,
   zoomBy,
 } from './camera';
 import {
   addAppLayers,
+  EVERY_PIN,
   LAYER,
   PIN_INTERACTIVE_MIN_ZOOM,
+  pinInFocus,
   plainStyle,
   setMapPalette,
+  setPinView,
   quietBasemap,
-  setPinsEmphasised,
   setStateShadingDimmed,
   SOURCE,
+  type PinView,
 } from './layers';
 
 declare global {
@@ -65,10 +74,35 @@ const STATES_GEOJSON_URL = '/data/us-states.geojson';
 const STATE_SELECT_MAX_ZOOM = 6.5;
 
 
-/** How far from a pin a pointer still counts as on it: a mouse is exact, a finger is not. */
-function hitTolerancePx(): number {
-  return window.matchMedia('(pointer: coarse)').matches ? 10 : 4;
+/**
+ * How far from a pin's edge a pointer still counts as on it. A mouse is
+ * exact. A finger is not: close in, a tap takes the nearest pin within about
+ * 22px. Far out, where 22px is a state or two, the reach shrinks so a tap
+ * lands on the state under the finger unless it is right on a pin.
+ */
+const MOUSE_REACH_PX = 4;
+const TOUCH_REACH_NEAR_PX = 22;
+const TOUCH_REACH_FAR_PX = 10;
+/** A pin's own body, allowed on top of the reach. */
+const PIN_BODY_PX = 6;
+
+function reachPx(touch: boolean, zoom: number): number {
+  if (!touch) return MOUSE_REACH_PX;
+  const t = Math.min(1, Math.max(0, (zoom - 4) / (PIN_INTERACTIVE_MIN_ZOOM - 4)));
+  return TOUCH_REACH_FAR_PX + (TOUCH_REACH_NEAR_PX - TOUCH_REACH_FAR_PX) * t;
 }
+
+/**
+ * How long a tap or click waits before it selects anything. A second one
+ * inside this time makes it a double tap, which zooms and selects nothing.
+ */
+const TAP_SETTLE_MS = 250;
+/** Two taps this close together are one double tap. */
+const DOUBLE_TAP_SLOP_PX = 30;
+/** A click this soon after a touch came from that touch. */
+const TOUCH_CLICK_WINDOW_MS = 800;
+/** The address follows the camera this long after it comes to rest. */
+const ADDRESS_SETTLE_MS = 300;
 
 /** A pin's GeoJSON properties, as the hover card wants them. */
 function pinInfo(properties: Record<string, unknown> | null): PinInfo | null {
@@ -79,7 +113,7 @@ function pinInfo(properties: Record<string, unknown> | null): PinInfo | null {
     typeof value === 'string' && value.trim() !== '' && value !== 'null' ? value : null;
   return {
     id,
-    name: text(properties.name) ?? 'Factory',
+    name: text(properties.name) ?? 'Plant',
     companyName: text(properties.companyName),
     tier: Number(properties.tier) || 0,
     city: text(properties.city),
@@ -109,7 +143,15 @@ function collapseAttribution(map: MapLibreMap): void {
   observer.observe(el, { attributes: true, attributeFilter: ['class'] });
 }
 
-export default function Map() {
+interface MapProps {
+  /**
+   * Told where the camera has come to rest, as an address fragment ("" at the
+   * home view). Called after moves end, never during one.
+   */
+  onViewChange?: (hash: string) => void;
+}
+
+export default function Map({ onViewChange }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -118,6 +160,11 @@ export default function Map() {
   const [awayFromHome, setAwayFromHome] = useState(false);
   // True until the first camera request after a map is created has been handled.
   const firstRequestRef = useRef(true);
+  // True while the camera is where a link put it and the person has not yet
+  // touched anything: what the link selects must not move it.
+  const heldByAddressRef = useRef(false);
+  const onViewChangeRef = useRef(onViewChange);
+  onViewChangeRef.current = onViewChange;
 
   const selectedEntityType = useMapStore((s) => s.selectedEntityType);
   const selectedEntityId = useMapStore((s) => s.selectedEntityId);
@@ -132,19 +179,60 @@ export default function Map() {
   const selectedStateCode = selectedEntityType === 'state' ? selectedEntityId : null;
   const selectedAreaId = selectedEntityType === 'area' ? selectedEntityId : null;
 
-  // Every factory the filters allow, in one response. The whole country loads
-  // once; panning and zooming never refetch.
+  // Every factory in the country, in one response. It loads once; panning,
+  // zooming and filtering never refetch (filters are expressions: layers.ts).
   const { data: factoriesGeoJSON } = useQuery({
-    queryKey: ['factory-pins', filters.states, filters.company, filters.industry],
-    queryFn: () =>
-      factoriesApi.pins({
-        states: filters.states.length > 0 ? filters.states : undefined,
-        company: filters.company || undefined,
-        industry: filters.industry || undefined,
-      }),
+    queryKey: ['factory-pins'],
+    queryFn: () => factoriesApi.pins(),
     staleTime: 5 * 60 * 1000,
-    placeholderData: (previousData) => previousData, // keep the pins up while a filter loads
   });
+
+  // The map's subject, if it has one: a company (its plants alone) or a
+  // career (the industries where its work is done). The panel reads the same
+  // records under the same keys, so each is fetched once.
+  const { data: subjectCompany, error: subjectCompanyError } = useQuery({
+    queryKey: ['company', filters.company],
+    queryFn: () => companiesApi.get(filters.company as string),
+    enabled: Boolean(filters.company),
+    retry: false,
+  });
+  const { data: subjectCareer, error: subjectCareerError } = useQuery({
+    queryKey: ['occupation', filters.career],
+    queryFn: () => occupationsApi.get(filters.career as string),
+    enabled: Boolean(filters.career),
+    retry: false,
+  });
+
+  // The subject's chip is named once its record is in, and a subject a link
+  // named that does not exist is said so.
+  const nameSubject = useMapStore((s) => s.nameSubject);
+  const notFound = useMapStore((s) => s.notFound);
+  const subjectName = subjectCompany ? formatCompanyName(subjectCompany.name) : (subjectCareer?.title ?? null);
+  useEffect(() => {
+    if (subjectName) nameSubject(subjectName);
+  }, [subjectName, nameSubject]);
+  const subjectMissing = filters.company
+    ? isNotFound(subjectCompanyError)
+    : filters.career
+      ? isNotFound(subjectCareerError)
+      : false;
+  useEffect(() => {
+    if (!subjectMissing) return;
+    notFound(useMapStore.getState().filters.company ? 'That company is not listed.' : 'That career is not listed.');
+  }, [subjectMissing, notFound]);
+
+  const pinView = useMemo<PinView>(() => {
+    const industries = subjectCareer && !subjectCareer.everywhere ? (subjectCareer.industries ?? []) : [];
+    return {
+      states: filters.states,
+      industry: filters.industry,
+      companyPlants: filters.company ? (subjectCompany?.factories ?? []).map((f) => f.id) : null,
+      careerIndustries: filters.career && industries.length > 0 ? industries.map((i) => i.name) : null,
+    };
+  }, [filters.states, filters.industry, filters.company, filters.career, subjectCompany, subjectCareer]);
+  // The pointer handlers are bound once; they read the view from here.
+  const pinViewRef = useRef<PinView>(EVERY_PIN);
+  pinViewRef.current = pinView;
 
   // Where each factory is, by id: the hovered and selected pins are redrawn
   // from this, and a factory picked from search or a link is found with it.
@@ -240,8 +328,12 @@ export default function Map() {
 
       const theme = currentTheme();
       setMapPalette(theme);
-      const resumed = resumeCamera;
+      // A link that carries a camera opens on it; failing that, the map
+      // reopens where it was last left (a theme change, a visit to another page).
+      const fromAddress = viewFromHash(window.location.hash);
+      const resumed = fromAddress ?? resumeCamera;
       resumeCamera = null;
+      heldByAddressRef.current = fromAddress !== null;
       const camera = resumed ?? initialCamera();
 
       try {
@@ -249,8 +341,12 @@ export default function Map() {
           container: mapContainer.current!,
           style: keyless ? plainStyle() : `${MAPTILER_STYLE[theme]}?key=${mapKey}`,
           ...camera,
-          minZoom: 2,
+          minZoom: 1,
           maxZoom: 18,
+          // A phone is held upright: the map stays north-up and flat.
+          dragRotate: false,
+          pitchWithRotate: false,
+          touchPitch: false,
           // Added below, bottom-left, so the panel and the zoom buttons never cover it.
           attributionControl: false,
           renderWorldCopies: false,
@@ -301,7 +397,9 @@ export default function Map() {
         // settling, etc.). Critically, we must also re-fit after resize -
         // resize() alone recalculates canvas size but doesn't fix the center.
         currentMap.resize();
+        currentMap.touchZoomRotate.disableRotation();
         if (!resumed) fitUS(currentMap, { animate: false });
+        keepNearCountry(currentMap);
 
         try {
           // MapTiler basemap only; the plain style is already exactly what we want.
@@ -315,12 +413,23 @@ export default function Map() {
         setMapLoaded(true);
       });
 
+      // The address follows the camera once it has come to rest: one
+      // replaced history entry per pause, never one per frame.
+      let addressTimer = 0;
+      const reportView = () => {
+        window.clearTimeout(addressTimer);
+        addressTimer = window.setTimeout(() => {
+          if (map.current === currentMap) onViewChangeRef.current?.(viewToHash(currentMap));
+        }, ADDRESS_SETTLE_MS);
+      };
       // Offer "reset view" whenever the camera has left the home view. The
       // value only changes when the map crosses that line, so React re-renders
       // then and not on every move.
       currentMap.on('moveend', () => {
         setAwayFromHome(!isAtHome(currentMap));
+        reportView();
       });
+      currentMap.once('idle', reportView);
     }; // end initMap
 
     /**
@@ -331,44 +440,47 @@ export default function Map() {
      */
     const bindInteractions = (currentMap: MapLibreMap) => {
       const store = useMapStore.getState;
-      const hitLayers = [LAYER.pins, LAYER.areaFill, LAYER.stateFill];
-
       interface Hit {
         pin?: MapGeoJSONFeature;
         area?: MapGeoJSONFeature;
         state?: MapGeoJSONFeature;
       }
 
-      const hitTest = (point: maplibregl.Point): Hit => {
-        const r = hitTolerancePx();
-        const box: [PointLike, PointLike] = [[point.x - r, point.y - r], [point.x + r, point.y + r]];
-        // Far out, pins are points of light: the state or area under them takes the pointer.
-        // Far out, pins are a texture; with one company's sites on the map they are the subject.
-        const pinsPickable =
-          currentMap.getZoom() >= PIN_INTERACTIVE_MIN_ZOOM || Boolean(useMapStore.getState().filters.company);
-        const layers = hitLayers.filter((id) => currentMap.getLayer(id) && (pinsPickable || id !== LAYER.pins));
-        if (layers.length === 0) return {};
+      const hitTest = (point: maplibregl.Point, touch: boolean): Hit => {
         const hit: Hit = {};
-        let pinDistance = Infinity;
-        for (const feature of currentMap.queryRenderedFeatures(box, { layers })) {
-          switch (feature.layer.id) {
-            case LAYER.pins: {
-              // Of the pins within reach, the one nearest the pointer.
-              if (feature.geometry.type !== 'Point') break;
-              const at = currentMap.project(feature.geometry.coordinates as [number, number]);
-              const distance = (at.x - point.x) ** 2 + (at.y - point.y) ** 2;
-              if (distance < pinDistance) {
-                pinDistance = distance;
-                hit.pin = feature;
-              }
-              break;
-            }
-            case LAYER.areaFill:
-              hit.area ??= feature;
-              break;
-            case LAYER.stateFill:
-              hit.state ??= feature;
-              break;
+        const zoom = currentMap.getZoom();
+        const view = pinViewRef.current;
+
+        // The state and the focus area are whatever is exactly under the pointer.
+        const shapes = [LAYER.areaFill, LAYER.stateFill].filter((id) => currentMap.getLayer(id));
+        if (shapes.length > 0) {
+          for (const feature of currentMap.queryRenderedFeatures(point, { layers: shapes })) {
+            if (feature.layer.id === LAYER.areaFill) hit.area ??= feature;
+            else hit.state ??= feature;
+          }
+        }
+
+        // Far out, pins are a texture and the state or area under them takes
+        // the pointer; with one company's plants on the map they are the subject.
+        const pinsPickable = zoom >= PIN_INTERACTIVE_MIN_ZOOM || view.companyPlants !== null;
+        if (!pinsPickable || !currentMap.getLayer(LAYER.pins)) return hit;
+
+        // Of the pins within reach, the nearest; one the view holds up before
+        // one it has stepped back.
+        const reach = reachPx(touch, zoom) + PIN_BODY_PX;
+        const box: [PointLike, PointLike] = [[point.x - reach, point.y - reach], [point.x + reach, point.y + reach]];
+        let best = Infinity;
+        for (const feature of currentMap.queryRenderedFeatures(box, { layers: [LAYER.pins] })) {
+          if (feature.geometry.type !== 'Point') continue;
+          const at = currentMap.project(feature.geometry.coordinates as [number, number]);
+          const distance = Math.hypot(at.x - point.x, at.y - point.y);
+          if (distance > reach) continue;
+          const industry = feature.properties?.industry as unknown;
+          const receded = !pinInFocus(view, typeof industry === 'string' ? industry : null);
+          const rank = distance + (receded ? 1000 : 0);
+          if (rank < best) {
+            best = rank;
+            hit.pin = feature;
           }
         }
         return hit;
@@ -387,10 +499,8 @@ export default function Map() {
         return typeof code === 'string' && code !== '' ? code : undefined;
       };
 
-      currentMap.on('click', (e: MapMouseEvent) => {
-        const hit = hitTest(e.point);
-
-        // A pin under the pointer wins, at any zoom.
+      /** What a click on `hit` does: a pin first, then a focus area, then a state. */
+      const actOn = (hit: Hit): void => {
         if (hit.pin && hit.pin.geometry.type === 'Point') {
           const id = hit.pin.properties?.id as unknown;
           if (typeof id !== 'string') return;
@@ -415,7 +525,49 @@ export default function Map() {
         }
 
         store().setSidebarOpen(false);
+      };
+
+      // A tap is not acted on at once: a second tap in the same place makes
+      // it a double tap, which zooms (MapLibre's own gesture) and must not
+      // also select the state under it. So a selection waits out the
+      // double-tap window, and anything that starts moving the camera inside
+      // that window cancels it. The one exception is a mouse click on a pin:
+      // the hover card has already said what it is, and it answers at once.
+      let pendingTap: { timer: number; point: maplibregl.Point } | null = null;
+      let lastTouchAt = -Infinity;
+      const cancelTap = () => {
+        if (!pendingTap) return;
+        window.clearTimeout(pendingTap.timer);
+        pendingTap = null;
+      };
+      const noteTouch = () => {
+        lastTouchAt = performance.now();
+      };
+      currentMap.on('touchstart', noteTouch);
+      currentMap.on('touchend', noteTouch);
+
+      currentMap.on('click', (e: MapMouseEvent) => {
+        if (pendingTap) {
+          const first = pendingTap.point;
+          cancelTap();
+          // The second tap of a double tap: the zoom is MapLibre's to do.
+          if (Math.hypot(e.point.x - first.x, e.point.y - first.y) <= DOUBLE_TAP_SLOP_PX) return;
+        }
+        const touch = performance.now() - lastTouchAt < TOUCH_CLICK_WINDOW_MS;
+        const hit = hitTest(e.point, touch);
+        if (hit.pin && !touch) {
+          actOn(hit);
+          return;
+        }
+        const timer = window.setTimeout(() => {
+          pendingTap = null;
+          actOn(hit);
+        }, TAP_SETTLE_MS);
+        pendingTap = { timer, point: e.point };
       });
+      currentMap.on('dblclick', cancelTap);
+      currentMap.on('movestart', cancelTap);
+      currentMap.on('remove', cancelTap);
 
       // Hover. Mouse moves arrive faster than frames; look once per frame.
       let hoveredState: string | null = null;
@@ -454,7 +606,7 @@ export default function Map() {
       const updateHover = () => {
         frame = 0;
         if (!pending || currentMap.isMoving()) return;
-        const hit = hitTest(pending);
+        const hit = hitTest(pending, false);
         setHoveredPin(hit.pin ?? null);
         const overPoint = Boolean(hit.pin);
         const area = overPoint ? undefined : areaAt(hit);
@@ -544,7 +696,7 @@ export default function Map() {
   useEffect(() => {
     const m = map.current;
     const lngLat = selectedFactoryId ? pinIndex[selectedFactoryId] : undefined;
-    if (!m || !mapLoaded || !lngLat) return;
+    if (!m || !mapLoaded || !lngLat || heldByAddressRef.current) return;
     if (m.getZoom() >= 7 && m.getBounds().contains(lngLat)) return;
     flyToPoint(m, lngLat);
   }, [selectedFactoryId, pinIndex, mapLoaded]);
@@ -582,16 +734,62 @@ export default function Map() {
     previousAreaRef.current = selectedAreaId;
   }, [selectedAreaId, mapLoaded]);
 
-  // The state shading is an all-factories reference; while one company is the
-  // subject it steps back so it is not read as that company's footprint.
-  const companyFiltered = Boolean(filters.company);
+  // What the pins show: the filters and the subject, as filter and paint
+  // expressions over the one source. The state shading is an all-factories
+  // reference; while the map has a subject it steps back so it is not read as
+  // that company's or that career's footprint.
+  const hasSubject = pinView.companyPlants !== null || pinView.careerIndustries !== null;
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     try {
-      setStateShadingDimmed(map.current, companyFiltered);
-      setPinsEmphasised(map.current, companyFiltered);
-    } catch { /* the layers failed to add */ }
-  }, [companyFiltered, mapLoaded]);
+      setPinView(map.current, pinView);
+      setStateShadingDimmed(map.current, hasSubject);
+    } catch (err) {
+      console.error('Failed to apply the pin view:', err);
+    }
+  }, [pinView, hasSubject, mapLoaded]);
+
+  // A company that has just become the subject is framed: all of its plants,
+  // wherever they are. Not while one of its plants is being looked at, and
+  // not over a camera that came with the link.
+  const framedCompanyRef = useRef<string | null>(null);
+  const flyTo = useMapStore((s) => s.flyTo);
+  useEffect(() => {
+    if (!filters.company) {
+      framedCompanyRef.current = null;
+      return;
+    }
+    if (!subjectCompany || !mapLoaded || framedCompanyRef.current === filters.company) return;
+    framedCompanyRef.current = filters.company;
+    if (useMapStore.getState().selectedEntityType === 'factory') return;
+    const points = subjectCompany.factories
+      .filter((f) => f.latitude && f.longitude)
+      .map((f): [number, number] => [parseFloat(f.longitude as string), parseFloat(f.latitude as string)])
+      .filter(([lng, lat]) => Number.isFinite(lng) && Number.isFinite(lat));
+    if (points.length > 0) flyTo({ kind: 'points', points });
+  }, [filters.company, subjectCompany, mapLoaded, flyTo]);
+
+  // A career's plants are everywhere, so choosing one does not move the
+  // camera. The one case: the home view on a desktop, where the panel that
+  // has just opened covers the east coast. The country is framed again in
+  // the room that is left.
+  useEffect(() => {
+    if (!filters.career || !mapLoaded || awayFromHome || isPhoneLayout()) return;
+    flyTo({ kind: 'us' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.career, mapLoaded]);
+
+  // The camera a link carries stays put until the person does something.
+  useEffect(() => {
+    const release = () => {
+      heldByAddressRef.current = false;
+    };
+    const events = ['pointerdown', 'keydown', 'wheel', 'touchstart', 'popstate'] as const;
+    for (const name of events) window.addEventListener(name, release, { capture: true, passive: true });
+    return () => {
+      for (const name of events) window.removeEventListener(name, release, { capture: true });
+    };
+  }, []);
 
   // Carry out camera requests posted to the store. Waits for the map, and a
   // state waits for its shape: a request made early is applied as soon as it
@@ -602,6 +800,11 @@ export default function Map() {
     if (!m || !mapLoaded) return;
     if (!flyToTarget) {
       firstRequestRef.current = false;
+      return;
+    }
+    if (heldByAddressRef.current) {
+      firstRequestRef.current = false;
+      clearFlyTo();
       return;
     }
     const done = applyCameraRequest(m, flyToTarget, {
@@ -620,7 +823,8 @@ export default function Map() {
   // or sheet (phone).
   const phone = isPhoneLayout();
   const coveredRight = sidebarOpen && !phone ? PANEL_WIDTH_PX : 0;
-  const coveredBottom = sidebarOpen && phone ? sheetPeekPx() : 0;
+  const sheetDetent = useMapStore((s) => s.sheetDetent);
+  const coveredBottom = sidebarOpen && phone ? (sheetDetent === 'bar' ? SHEET_BAR_PX : sheetPeekPx()) : 0;
 
   return (
     <>
@@ -640,7 +844,7 @@ export default function Map() {
             type="button"
             onClick={resetView}
             disabled={!awayFromHome && !sidebarOpen}
-            className="map-overlay map-overlay-button flex h-10 w-10 items-center justify-center rounded-lg"
+            className="map-overlay map-overlay-button map-control flex items-center justify-center rounded-lg"
             title="Reset view"
             aria-label="Reset view"
           >
@@ -650,7 +854,7 @@ export default function Map() {
             <button
               type="button"
               onClick={() => map.current && zoomBy(map.current, 1)}
-              className="map-overlay-button flex h-10 w-10 items-center justify-center"
+              className="map-overlay-button map-control flex items-center justify-center"
               title="Zoom in"
               aria-label="Zoom in"
             >
@@ -660,7 +864,7 @@ export default function Map() {
             <button
               type="button"
               onClick={() => map.current && zoomBy(map.current, -1)}
-              className="map-overlay-button flex h-10 w-10 items-center justify-center"
+              className="map-overlay-button map-control flex items-center justify-center"
               title="Zoom out"
               aria-label="Zoom out"
             >

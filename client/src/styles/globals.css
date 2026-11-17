@@ -238,6 +238,131 @@ input {
     color: var(--color-fg-soft);
     cursor: default;
   }
+
+  /*
+   * Sizes of the map's own controls. A mouse gets compact ones; a finger
+   * gets 44px, the smallest target a thumb reliably hits. They follow the
+   * pointer, not the width of the window: a tablet is wide and still a thumb.
+   */
+  .map-control {
+    width: 40px;
+    height: 40px;
+  }
+  .map-search-button {
+    width: 36px;
+    height: 36px;
+  }
+  /* Type in the map's fields: under 16px, iOS zooms the whole page on focus. */
+  .map-field {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .map-row {
+    min-height: 36px;
+  }
+
+  /*
+   * A chip under the search box. The pill is drawn by .map-chip-surface
+   * behind the chip's buttons, so on a touch screen the buttons can be 44px
+   * tall while the pill keeps its size.
+   */
+  .map-chip {
+    --chip-inset: 0px;
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: stretch;
+    height: 32px;
+  }
+  .map-chip-surface {
+    position: absolute;
+    inset: var(--chip-inset) 0;
+    border-radius: 9999px;
+    pointer-events: none;
+    /* The lighter of the two shadows: a chip is a control, not a card. */
+    box-shadow: var(--shadow-control);
+  }
+  .map-chip > button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-fg-muted);
+    transition: color 0.15s ease;
+  }
+  .map-chip > button:hover,
+  .map-chip > button[aria-pressed='true'] {
+    color: var(--color-fg-default);
+  }
+  .map-chip-close {
+    justify-content: center;
+    width: 30px;
+  }
+  /*
+   * The row of chips scrolls sideways, and a scrolling box clips whatever
+   * leaves it, shadows included: in the light theme that cut the chips'
+   * shadows off in a hard-edged grey rectangle. The row is padded so the
+   * shadows have room, pulled back by the same amount so nothing moves, and
+   * lets the pointer through to the map everywhere but on the chips.
+   */
+  .map-chip-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin: -4px -16px -20px;
+    padding: 12px 16px 20px;
+    pointer-events: none;
+    scrollbar-width: none;
+  }
+  .map-chip-row::-webkit-scrollbar {
+    display: none;
+  }
+  .map-chip-row > * {
+    pointer-events: auto;
+  }
+
+  /*
+   * The detail sheet on a phone. It rests at one of three heights: a bar
+   * with the name (the whole map is usable behind it), a third of the
+   * screen, or nearly all of it. While a finger drags it the height is set
+   * on the element itself.
+   */
+  .map-sheet {
+    height: 32vh;
+    transition: height 0.22s ease;
+  }
+  .map-sheet[data-detent='bar'] {
+    height: 64px;
+  }
+  .map-sheet[data-detent='full'] {
+    height: 86vh;
+    height: min(86vh, calc(100dvh - 72px));
+  }
+
+  @media (pointer: coarse) {
+    .map-control,
+    .map-search-button {
+      width: 44px;
+      height: 44px;
+    }
+    .map-field {
+      font-size: 16px;
+      line-height: 24px;
+    }
+    .map-row {
+      min-height: 44px;
+    }
+    .map-chip {
+      --chip-inset: 6px;
+      height: 44px;
+    }
+    .map-chip-close {
+      width: 44px;
+    }
+    .map-chip-row {
+      margin-top: -8px;
+      padding-top: 10px;
+    }
+  }
 }
 
 /*
@@ -275,6 +400,14 @@ input {
 .archangel-map .maplibregl-ctrl-attrib-button:hover,
 .archangel-map .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
   background-color: var(--color-fg-default);
+}
+/* The "i" keeps its size; on a touch screen what takes the tap around it is thumb-sized. */
+@media (pointer: coarse) {
+  .archangel-map .maplibregl-ctrl-attrib-button::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+  }
 }
 /* MapLibre rings the button on any focus, so it stays lit after a click. */
 .archangel-map .maplibregl-ctrl-attrib-button:focus {
