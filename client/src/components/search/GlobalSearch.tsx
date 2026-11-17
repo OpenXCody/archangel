@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { searchApi, type SearchEntityType, type SearchResultItem } from '../../lib/api';
 import CompanyLogo from '../CompanyLogo';
+import { readStored, removeStored, writeStored } from '../../lib/storage';
 
 interface GlobalSearchProps {
   isOpen: boolean;
@@ -82,13 +83,13 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
 
   // Load recent searches from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem(RECENT_SEARCHES_KEY);
-    if (saved) {
-      try {
-        setRecentSearches(JSON.parse(saved));
-      } catch {
-        setRecentSearches([]);
-      }
+    const saved = readStored(RECENT_SEARCHES_KEY);
+    if (!saved) return;
+    try {
+      const parsed: unknown = JSON.parse(saved);
+      if (Array.isArray(parsed)) setRecentSearches(parsed.filter((s): s is string => typeof s === 'string').slice(0, MAX_RECENT_SEARCHES));
+    } catch {
+      // Not a list: start with none.
     }
   }, []);
 
@@ -136,7 +137,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     setRecentSearches((prev) => {
       const filtered = prev.filter((s) => s !== searchQuery);
       const updated = [searchQuery, ...filtered].slice(0, MAX_RECENT_SEARCHES);
-      localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+      writeStored(RECENT_SEARCHES_KEY, JSON.stringify(updated));
       return updated;
     });
   }, []);
@@ -145,14 +146,14 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const removeRecentSearch = useCallback((searchQuery: string) => {
     setRecentSearches((prev) => {
       const updated = prev.filter((s) => s !== searchQuery);
-      localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+      writeStored(RECENT_SEARCHES_KEY, JSON.stringify(updated));
       return updated;
     });
   }, []);
 
   // Clear all recent searches
   const clearRecentSearches = useCallback(() => {
-    localStorage.removeItem(RECENT_SEARCHES_KEY);
+    removeStored(RECENT_SEARCHES_KEY);
     setRecentSearches([]);
   }, []);
 

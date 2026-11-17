@@ -1,8 +1,9 @@
 /**
- * Industries as the map says them. The data carries the 21 NAICS
- * manufacturing subsectors by their full titles ("Fabricated Metal Product
- * Manufacturing"); on a map of manufacturing the last word says nothing, and
- * the rest reads better as plain words.
+ * Industries as the app says them, on the map and on a career's page alike.
+ * The data carries the 21 NAICS manufacturing subsectors by their full titles
+ * ("Fabricated Metal Product Manufacturing"); in a product about
+ * manufacturing the last word says nothing, and the rest reads better as
+ * plain words.
  */
 const SHORT: Record<string, string> = {
   'Apparel Manufacturing': 'Apparel',

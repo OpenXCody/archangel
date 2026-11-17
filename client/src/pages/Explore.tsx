@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { useNavigationType, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { statsApi, type EntityCounts } from '../lib/api';
+import { readStored, writeStored } from '../lib/storage';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 import ExploreNav, { isBrowseTab, type ExploreView } from '../components/explorer/ExploreNav';
 import ExploreOverview from '../components/explorer/ExploreOverview';
@@ -43,7 +44,7 @@ function Figures({ counts }: { counts?: EntityCounts }) {
  */
 function useScrollMemory(key: string) {
   const arrivedBy = useNavigationType();
-  const [saved] = useState(() => Number(sessionStorage.getItem(key) || 0));
+  const [saved] = useState(() => Number(readStored(key, 'session') || 0));
   // While navigating away the document shrinks and the browser clamps scrollY
   // before the cleanup runs, so only trust readings taken at (roughly) full
   // height and write the last trusted one on the way out.
@@ -58,7 +59,7 @@ function useScrollMemory(key: string) {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', onScroll);
-      sessionStorage.setItem(key, String(lastGood.current.y));
+      writeStored(key, String(lastGood.current.y), 'session');
     };
   }, [key]);
   useEffect(() => {

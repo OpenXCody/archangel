@@ -80,7 +80,7 @@ export default function AccountMenu() {
 
   if (isPending && !data) {
     // Hold the control's place so the header does not shift when the answer arrives.
-    return <div className="h-10 w-10 shrink-0" aria-hidden="true" />;
+    return <div className="h-11 w-11 shrink-0 lg:h-10 lg:w-10" aria-hidden="true" />;
   }
 
   const user = data?.user ?? null;
@@ -93,7 +93,7 @@ export default function AccountMenu() {
         aria-label="Sign in"
         aria-current={onSignIn ? 'page' : undefined}
         className={cn(
-          'flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium transition-colors lg:px-4',
+          'flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-full px-3 text-sm font-medium transition-colors lg:h-10 lg:px-4',
           onSignIn ? 'bg-bg-elevated text-fg-default' : 'text-fg-muted hover:bg-bg-elevated/50 hover:text-fg-default'
         )}
       >

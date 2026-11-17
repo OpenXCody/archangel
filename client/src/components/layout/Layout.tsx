@@ -95,7 +95,7 @@ export default function Layout() {
                 onClick={() => setIsSearchOpen(true)}
                 aria-label="Search"
                 title={`Search (${SEARCH_SHORTCUT})`}
-                className="flex h-10 items-center gap-2 px-3 rounded-full
+                className="flex h-11 min-w-11 items-center justify-center gap-2 px-3 rounded-full sm:h-10
                   bg-bg-elevated border border-border-subtle
                   text-sm text-fg-muted hover:text-fg-default
                   transition-colors flex-shrink-0"
