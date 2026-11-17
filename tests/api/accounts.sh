@@ -56,6 +56,11 @@ OCC=$(psql "$DB" -tAc "SELECT occupation_id FROM occupation_skills GROUP BY 1 OR
 SK=$(psql "$DB" -tAc "SELECT skill_id FROM occupation_skills WHERE occupation_id='$OCC' AND stage IS DISTINCT FROM 3 ORDER BY skill_id LIMIT 1")
 
 check "me when signed out"            200 "$(req anon GET /auth/me)" '"user":null'
+# Security headers on API responses (the page's are in vercel.json).
+HDRS=$(curl -sI "$API/health" | tr -d '\r' | tr 'A-Z' 'a-z')
+expect "API responses say nosniff"        1 "$(printf '%s' "$HDRS" | grep -c '^x-content-type-options: nosniff')"
+expect "API responses cannot be framed"   1 "$(printf '%s' "$HDRS" | grep -c "^content-security-policy: default-src 'none'; frame-ancestors 'none'")"
+expect "API does not name its framework"  0 "$(printf '%s' "$HDRS" | grep -c '^x-powered-by')"
 check "sign-up rejects short password" 400 "$(req s POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Sam Seeker","password":"short"}')"
 check "sign-up seeker"                201 "$(req s POST /auth/sign-up '{"email":"Seeker-'"$RUN"'@E2E.test","name":"Sam Seeker","password":"correct horse"}')" '"email":"seeker-'"$RUN"'@e2e.test"'
 check "sign-up duplicate"             409 "$(req x POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Dup","password":"correct horse"}')"

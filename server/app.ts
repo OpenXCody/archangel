@@ -24,6 +24,15 @@ import { publicCache } from './middleware/cache.js';
 export const app = express();
 
 app.disable('x-powered-by');
+// Every response from here is data, never a page: a browser must not guess its
+// type, show it in a frame, or load anything on its behalf. (The page's own
+// headers, with its Content-Security-Policy, are in vercel.json.)
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+  next();
+});
 // On Vercel every request arrives through its proxy, which sets
 // X-Forwarded-For itself. Trusting it makes req.ip the visitor's address, so
 // the sign-in throttle counts per visitor instead of lumping everyone together.

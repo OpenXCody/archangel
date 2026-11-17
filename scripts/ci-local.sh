@@ -78,6 +78,8 @@ tail -n 1 "$LOGS/create-db.log"
 step "Build"
 npm run build > "$LOGS/build.log" 2>&1 || { tail -n 40 "$LOGS/build.log"; die "the build failed."; }
 tail -n 3 "$LOGS/build.log"
+# The built page's inline scripts are the ones the Content-Security-Policy allows.
+node scripts/check-csp.mjs dist/index.html || die "the built page and the policy in vercel.json disagree."
 
 step "Servers"
 PORT=$API_PORT NODE_ENV=development EMAIL_OUTBOX="$OUTBOX" APP_URL="$WEB_URL" \
