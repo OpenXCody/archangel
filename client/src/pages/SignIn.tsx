@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,13 +8,15 @@ import {
   inviteRoleLabel,
   safeNextPath,
   useAccount,
+  useEmailOn,
+  useForgotPassword,
   useInvite,
   usePasswordReset,
   useResetPassword,
   useSignIn,
   useSignUp,
 } from '../lib/account';
-import { ErrorNote, Field, LoadError, PageLoading, cardClass, fieldClass } from '../components/account/parts';
+import { ErrorNote, Field, LoadError, PageLoading, busyButtonClass, cardClass, fieldClass, textButtonClass } from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 
 type Mode = 'sign-in' | 'create';
@@ -48,8 +50,12 @@ const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
  * A password reset link (`?reset=<token>`) opens on one field, the new
  * password, for the person the link was made for. Saving it signs them in and
  * they land where a sign-in would. An unusable link says so and leaves the
- * normal form. There is no "forgot password" flow to start here, because no
- * email is sent: an admin makes the link.
+ * normal form.
+ *
+ * When the app can send mail, "Forgot password?" under the form opens one
+ * field, the email address, and sends that link. The answer is the same
+ * whether or not the address has an account. When it cannot, the line says
+ * that an admin makes the link.
  */
 export default function SignIn() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -76,9 +82,11 @@ export default function SignIn() {
   const account = useAccount();
   const signIn = useSignIn();
   const signUp = useSignUp();
+  const emailOn = useEmailOn();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [forgetting, setForgetting] = useState(false);
 
   const active = mode === 'create' ? signUp : signIn;
   const busy = signIn.isPending || signUp.isPending;
@@ -115,6 +123,8 @@ export default function SignIn() {
       />
     );
   }
+
+  if (forgetting && emailOn) return <ForgotPassword initialEmail={email} onBack={() => setForgetting(false)} />;
 
   const switchMode = (nextMode: Mode) => {
     if (nextMode === mode) return;
@@ -264,12 +274,103 @@ export default function SignIn() {
           </form>
         </div>
 
-        {mode === 'sign-in' && (
-          <p className="mt-4 text-center text-sm text-fg-muted" data-forgot-password>
-            {/* Two lines on a phone, so the break falls between the sentences. */}
-            <span className="block sm:inline">Forgot your password?</span> An admin can give you a reset link.
-          </p>
+        {mode === 'sign-in' &&
+          (emailOn ? (
+            <p className="mt-4 text-center" data-forgot-password>
+              <button
+                type="button"
+                onClick={() => {
+                  signIn.reset();
+                  setForgetting(true);
+                }}
+                className={textButtonClass}
+              >
+                Forgot password?
+              </button>
+            </p>
+          ) : (
+            <p className="mt-4 text-center text-sm text-fg-muted" data-forgot-password>
+              {/* Two lines on a phone, so the break falls between the sentences. */}
+              <span className="block sm:inline">Forgot your password?</span> An admin can give you a reset link.
+            </p>
+          ))}
+      </div>
+    </PageContainer>
+  );
+}
+
+/**
+ * "Forgot password?": one field. What it says afterwards is the same for
+ * every address, so it never tells whether an address has an account.
+ */
+function ForgotPassword({ initialEmail, onBack }: { initialEmail: string; onBack: () => void }) {
+  const forgot = useForgotPassword();
+  const [email, setEmail] = useState(initialEmail);
+  const [problem, setProblem] = useState<string | null>(null);
+  const fieldRef = useRef<HTMLInputElement>(null);
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    if (forgot.isPending) return;
+    forgot.reset();
+    if (!email.trim()) {
+      setProblem('Enter your email address.');
+      fieldRef.current?.focus();
+      return;
+    }
+    setProblem(null);
+    forgot.mutate(email.trim(), { onError: () => fieldRef.current?.focus() });
+  };
+
+  return (
+    <PageContainer size="narrow">
+      <div className="mx-auto w-full max-w-md">
+        <PageHeader title="Reset password" />
+        {forgot.isSuccess ? (
+          <div className={cn(cardClass, 'p-4 sm:p-6')} role="status" data-forgot-sent>
+            <p className="text-sm text-fg-default">If that address has an account, a reset link is on its way.</p>
+            <p className="mt-1.5 break-all text-sm text-fg-muted">{forgot.variables}</p>
+            <p className="mt-1.5 text-sm text-fg-muted">The link works once and lasts 24 hours.</p>
+          </div>
+        ) : (
+          <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-forgot-form>
+            <Field label="Email" htmlFor="forgot-email">
+              <input
+                ref={fieldRef}
+                id="forgot-email"
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                autoFocus
+                aria-invalid={problem || forgot.error ? true : undefined}
+                aria-describedby={problem || forgot.error ? 'forgot-problem' : undefined}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={fieldClass}
+              />
+              <div id="forgot-problem">
+                <ErrorNote error={problem ?? forgot.error} className="mt-2" />
+              </div>
+            </Field>
+            <Button
+              type="submit"
+              aria-busy={forgot.isPending}
+              aria-disabled={forgot.isPending}
+              className={cn('h-11 w-full rounded-lg text-sm', busyButtonClass)}
+            >
+              {forgot.isPending && <Loader2 className="animate-spin" />}
+              Send reset link
+            </Button>
+          </form>
         )}
+        <p className="mt-4 text-center">
+          <button type="button" onClick={onBack} className={textButtonClass}>
+            Back to sign in
+          </button>
+        </p>
       </div>
     </PageContainer>
   );

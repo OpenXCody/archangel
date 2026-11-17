@@ -1,6 +1,6 @@
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { AccountUser } from '../lib/account';
+import { useAdminOverview, type AccountUser } from '../lib/account';
 import { AccountGate } from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 import AccessTab from '../components/admin/AccessTab';
@@ -28,6 +28,35 @@ export default function Admin() {
   return <AccountGate>{({ user }) => (user.isAdmin ? <AdminTools me={user} /> : <NotFound />)}</AccountGate>;
 }
 
+const waitingLinkClass = 'font-medium text-fg-default underline underline-offset-4 hover:no-underline';
+
+/**
+ * What is waiting for an admin, above the tabs: access requests and career
+ * paths not yet reviewed. Each links to where it is dealt with. Nothing is
+ * drawn when nothing waits, or before the counts are known.
+ */
+function Waiting() {
+  const overview = useAdminOverview();
+  const requests = overview.data?.pendingMemberships ?? 0;
+  const paths = overview.data?.draftPaths ?? 0;
+  if (requests === 0 && paths === 0) return null;
+  return (
+    <div className="mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-sm sm:mb-8" data-admin-waiting>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Waiting</span>
+      {requests > 0 && (
+        <Link to="/admin?tab=access" className={waitingLinkClass}>
+          {requests.toLocaleString('en-US')} access {requests === 1 ? 'request' : 'requests'}
+        </Link>
+      )}
+      {paths > 0 && (
+        <Link to="/admin?tab=data" className={waitingLinkClass}>
+          {paths.toLocaleString('en-US')} draft {paths === 1 ? 'path' : 'paths'}
+        </Link>
+      )}
+    </div>
+  );
+}
+
 function AdminTools({ me }: { me: AccountUser }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const requested = searchParams.get('tab');
@@ -44,6 +73,7 @@ function AdminTools({ me }: { me: AccountUser }) {
   return (
     <PageContainer>
       <PageHeader title="Admin Tools" />
+      <Waiting />
       <Tabs value={tab} onValueChange={selectTab}>
         <TabsList className="mb-6 flex h-auto w-full justify-start gap-6 overflow-x-auto rounded-none border-b border-border-subtle bg-transparent p-0 text-fg-muted sm:mb-8">
           {TABS.map(({ value, label }) => (

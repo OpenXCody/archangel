@@ -37,6 +37,13 @@ export const rowClass = 'border-t border-border-subtle first:border-t-0';
 export const outlineButtonClass = 'border-border-strong bg-transparent text-fg-default shadow-none hover:bg-bg-elevated';
 
 /**
+ * A control that is saving is marked `aria-busy` / `aria-disabled`, never
+ * `disabled`, so it keeps keyboard focus; this is how it looks meanwhile.
+ * (JobForm exports the same class under the same name.)
+ */
+export const busyButtonClass = 'aria-disabled:pointer-events-none aria-disabled:opacity-60';
+
+/**
  * A plain text action inside a row. Destructive ones look the same: the
  * confirmation, not the button, carries the weight.
  */

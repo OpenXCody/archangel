@@ -14,6 +14,7 @@ import {
 } from '../db/index.js';
 import { cleanText, handle, requireUser } from '../lib/auth.js';
 import { uuidParam } from '../middleware/validateUuid.js';
+import { newsFor } from '../lib/notices.js';
 
 /** A signed-in person's own data: profile, skills, goals, applications. */
 const router = Router();
@@ -57,14 +58,18 @@ function nextSkillsSql(occupationId: SQL, userId: string): SQL<NextSkill[]> {
   ), '[]'::json)`;
 }
 
-// PATCH /api/me { name?, homeZip?, about? }
+// PATCH /api/me { name?, homeZip?, about?, emailNotices? }
 router.patch(
   '/',
   handle(async (req, res) => {
     const user = req.user!;
-    const patch: { name?: string; homeZip?: string | null; about?: string | null; updatedAt: Date } = {
+    const patch: { name?: string; homeZip?: string | null; about?: string | null; emailNotices?: boolean; updatedAt: Date } = {
       updatedAt: new Date(),
     };
+    if (req.body?.emailNotices !== undefined) {
+      if (typeof req.body.emailNotices !== 'boolean') return res.status(400).json({ error: 'emailNotices must be true or false.' });
+      patch.emailNotices = req.body.emailNotices;
+    }
     if (req.body?.name !== undefined) {
       const name = cleanText(req.body.name, 80, 1);
       if (!name) return res.status(400).json({ error: 'Enter your name.' });
@@ -87,8 +92,34 @@ router.patch(
       isAdmin: users.isAdmin,
       homeZip: users.homeZip,
       about: users.about,
+      emailNotices: users.emailNotices,
     });
     res.json({ user: updated });
+  })
+);
+
+// GET /api/me/news - whether there is something the person has not seen:
+// { applications, applicants, access }. Booleans only; the header shows one dot.
+router.get(
+  '/news',
+  handle(async (req, res) => {
+    res.json(await newsFor(req.user!.id));
+  })
+);
+
+// POST /api/me/seen { applications?, applicants?, access? } - the person has
+// opened the page that shows that news. Answers with what is left unseen.
+router.post(
+  '/seen',
+  handle(async (req, res) => {
+    const now = new Date();
+    const seen: { applicationsSeenAt?: Date; applicantsSeenAt?: Date; accessSeenAt?: Date } = {};
+    if (req.body?.applications === true) seen.applicationsSeenAt = now;
+    if (req.body?.applicants === true) seen.applicantsSeenAt = now;
+    if (req.body?.access === true) seen.accessSeenAt = now;
+    if (Object.keys(seen).length === 0) return res.status(400).json({ error: 'Say what was seen: applications, applicants or access.' });
+    await db.update(users).set(seen).where(eq(users.id, req.user!.id));
+    res.json(await newsFor(req.user!.id));
   })
 );
 
@@ -244,10 +275,25 @@ router.get(
   })
 );
 
-// GET /api/me/applications
+/** One step in an application's history. */
+interface ApplicationEvent {
+  status: string;
+  at: string;
+}
+
+// GET /api/me/applications - each with its history (`events`, oldest first)
+// and `changed`: the company moved it since the person last opened their page.
+// Changed ones come first, then the newest.
 router.get(
   '/applications',
   handle(async (req, res) => {
+    const userId = req.user!.id;
+    const changed = sql<boolean>`EXISTS (
+      SELECT 1 FROM application_events e, users u
+      WHERE e.application_id = ${applications.id} AND u.id = ${userId}
+        AND e.by_user IS DISTINCT FROM ${applications.userId}
+        AND (u.applications_seen_at IS NULL OR e.at > u.applications_seen_at)
+    )`;
     const rows = await db
       .select({
         id: applications.id,
@@ -255,6 +301,11 @@ router.get(
         note: applications.note,
         createdAt: applications.createdAt,
         statusChangedAt: applications.statusChangedAt,
+        changed,
+        events: sql<ApplicationEvent[]>`COALESCE((
+          SELECT json_agg(json_build_object('status', e.status, 'at', e.at) ORDER BY e.at, e.id)
+          FROM application_events e WHERE e.application_id = ${applications.id}
+        ), '[]'::json)`,
         jobId: jobs.id,
         jobSerial: jobs.serial,
         jobTitle: jobs.title,
@@ -268,8 +319,8 @@ router.get(
       .innerJoin(jobs, eq(jobs.id, applications.jobId))
       .innerJoin(companies, eq(companies.id, jobs.companyId))
       .innerJoin(factories, eq(factories.id, jobs.factoryId))
-      .where(eq(applications.userId, req.user!.id))
-      .orderBy(sql`${applications.createdAt} DESC`);
+      .where(eq(applications.userId, userId))
+      .orderBy(sql`${changed} DESC`, sql`${applications.createdAt} DESC`);
     res.json({ applications: rows });
   })
 );

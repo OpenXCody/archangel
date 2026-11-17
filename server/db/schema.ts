@@ -943,6 +943,12 @@ export const users = pgTable(
     about: text('about'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    // Migration 0024. Notice emails (applications, company access) can be turned off;
+    // the *_seen_at columns are when the person last opened the page that shows that news.
+    emailNotices: boolean('email_notices').default(true).notNull(),
+    applicationsSeenAt: timestamp('applications_seen_at', { withTimezone: true }),
+    applicantsSeenAt: timestamp('applicants_seen_at', { withTimezone: true }),
+    accessSeenAt: timestamp('access_seen_at', { withTimezone: true }),
   },
   (table) => ({
     emailIdx: uniqueIndex('users_email_idx').on(table.email),
@@ -974,8 +980,11 @@ export const companyMembers = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     role: text('role').default('member').notNull(), // 'owner' | 'member'
-    status: text('status').default('requested').notNull(), // 'requested' | 'active'
+    status: text('status').default('requested').notNull(), // 'requested' | 'active' | 'declined'
     createdAt: timestamp('created_at').defaultNow().notNull(),
+    // Migration 0024: when an admin approved or declined the request, and who.
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    decidedBy: uuid('decided_by').references(() => users.id, { onDelete: 'set null' }),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.companyId, table.userId] }),
@@ -1178,3 +1187,38 @@ export const industryOccupations = pgTable(
     occupationIdx: index('industry_occupations_occupation_idx').on(table.occupationId),
   })
 );
+
+// ============================================
+// NOTICES (migration 0024)
+// ============================================
+
+// The history of an application: one row when it is made, one for every stage
+// the company moves it to, one when the applicant withdraws.
+export const applicationEvents = pgTable(
+  'application_events',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    applicationId: uuid('application_id')
+      .notNull()
+      .references(() => applications.id, { onDelete: 'cascade' }),
+    status: text('status').notNull(),
+    at: timestamp('at', { withTimezone: true }).defaultNow().notNull(),
+    // Who did it; null when that is not known or the person is gone.
+    byUser: uuid('by_user').references(() => users.id, { onDelete: 'set null' }),
+  },
+  (table) => ({
+    applicationIdx: index('application_events_application_idx').on(table.applicationId, table.at),
+  })
+);
+
+// Keeps notice emails from flooding anyone: one row per thing being limited,
+// with when its current window began and how many were sent in it
+// (see server/lib/notices.ts).
+export const noticeLog = pgTable('notice_log', {
+  key: text('key').primaryKey(),
+  windowStart: timestamp('window_start', { withTimezone: true }).defaultNow().notNull(),
+  count: integer('count').default(1).notNull(),
+  // Only so the row goes when the person or the job does.
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  jobId: uuid('job_id').references(() => jobs.id, { onDelete: 'cascade' }),
+});

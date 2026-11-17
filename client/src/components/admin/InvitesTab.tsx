@@ -9,6 +9,7 @@ import {
   inviteRoleLabel,
   useAdminInvites,
   useCreateInvite,
+  useEmailOn,
   useRevokeInvite,
   type AdminCompany,
   type CreatedInvite,
@@ -38,8 +39,13 @@ const selectContentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-border-st
 // tab and coming back must not lose it.
 let lastCreated: CreatedInvite | null = null;
 
-/** Invite a person by link: create, hand over the link, see what is pending. */
+/**
+ * Invite a person by link: create, hand over the link, see what is pending.
+ * When the app can send mail the link is emailed to the address as well; it
+ * is still shown here once.
+ */
 export default function InvitesTab() {
+  const emailOn = useEmailOn();
   const [created, setCreatedState] = useState<CreatedInvite | null>(lastCreated);
   const setCreated = (next: CreatedInvite | null) => {
     lastCreated = next;
@@ -47,7 +53,10 @@ export default function InvitesTab() {
   };
   return (
     <>
-      <PageSection title="New invite" description="No email is sent. The link is passed on by hand.">
+      <PageSection
+        title="New invite"
+        description={emailOn ? 'The link is emailed to the address, and shown here once.' : 'No email is sent. The link is passed on by hand.'}
+      >
         <InviteForm onCreated={setCreated} />
         {created && <InviteLink created={created} />}
       </PageSection>
@@ -135,6 +144,7 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
 
 /** The link of the invite just created. It cannot be shown again: only its hash is kept. */
 function InviteLink({ created }: { created: CreatedInvite }) {
+  const emailOn = useEmailOn();
   const inputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
   const link = `${window.location.origin}${created.path}`;
@@ -162,7 +172,16 @@ function InviteLink({ created }: { created: CreatedInvite }) {
       <Field
         label={`Invite link for ${created.invite.email}`}
         htmlFor="invite-link"
-        hint={`${inviteRoleLabel(created.invite.role, created.invite.companyName)}. Shown once. Expires in ${INVITE_DAYS} days.`}
+        hint={
+          <span data-invite-sent={created.emailed || undefined}>
+            {created.emailed
+              ? `Sent to ${created.invite.email}. `
+              : emailOn
+                ? 'The email could not be sent. Pass the link on by hand. '
+                : ''}
+            {inviteRoleLabel(created.invite.role, created.invite.companyName)}. Shown once. Expires in {INVITE_DAYS} days.
+          </span>
+        }
       >
         <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
           <input
