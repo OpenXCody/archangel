@@ -27,6 +27,10 @@ const ACTION: Record<string, string> = {
   'request cleared': 'Request cleared',
   invited: 'Invited',
   'invite revoked': 'Invite revoked',
+  'company request declined': 'Company request declined',
+  'plant request declined': 'Plant request declined',
+  'plant request marked added': 'Plant request marked added',
+  'company request answered, access given': 'Company added, access given',
 };
 
 const FIELD: Record<string, string> = {
