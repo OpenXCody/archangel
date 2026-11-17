@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { factoriesApi, occupationsApi } from '../../lib/api';
 import {
   EMPLOYMENT_TYPES,
+  useAccount,
   useCreateJob,
   type EmployerFactory,
   type EmploymentType,
@@ -15,10 +16,23 @@ import {
   type PayPeriod,
 } from '../../lib/account';
 import { DESCRIPTION_MAX, DESCRIPTION_WARN, checkPay, normalizeLink, payInputText, useEditJob } from '../../lib/employerJobs';
-import { employmentLabel, formatPlace } from '../../lib/jobFormat';
+import { clearDraft, draftKey, draftWhen, readDraft, writeDraft, type JobDraft, type JobDraftFields } from '../../lib/jobDraft';
+import { employmentLabel } from '../../lib/jobFormat';
 import CareerPicker, { type CareerOption } from './CareerPicker';
 import JobSkillTags, { type JobSkillTag } from './JobSkillTags';
-import { ErrorNote, Field, LoadError, busyButtonClass, fieldClass, outlineButtonClass, selectContentClass, selectTriggerClass } from './parts';
+import PlantPicker, { plantName, plantWhere } from './PlantPicker';
+import {
+  ErrorNote,
+  Field,
+  LoadError,
+  arrowKeyChoice,
+  busyButtonClass,
+  fieldClass,
+  outlineButtonClass,
+  selectContentClass,
+  selectTriggerClass,
+  textButtonClass,
+} from './parts';
 
 // These three live with the other shared form pieces; exported from here too for the files that import them from the job form.
 export { busyButtonClass, selectContentClass, selectTriggerClass };
@@ -58,8 +72,42 @@ const FIELD_FOCUS: [FieldName, string][] = [
  * The job form: post a job, post another like an existing one, or edit one.
  * Each problem is named beside the field it belongs to; nothing is sent until
  * there are none. On success the person lands on the job.
+ *
+ * What is typed is kept in this browser as it is typed (lib/jobDraft.ts), so
+ * a refresh, Back, a stray click or a session that ended brings it back. The
+ * form says when it has done so and offers to start over.
  */
-export default function JobForm({ company, mode, source, onCancel }: JobFormProps) {
+export default function JobForm(props: JobFormProps) {
+  const account = useAccount();
+  const key = draftKey(
+    account.data?.user?.id ?? 'nobody',
+    props.mode === 'post' || !props.source ? `post:${props.company.companyId}` : `${props.mode}:${props.source.job.id}`
+  );
+  // Read once per start: the fields below begin from it. Starting over begins again without it.
+  const [start, setStart] = useState(() => ({ count: 0, draft: readDraft(key) }));
+  return (
+    <JobFormFields
+      key={start.count}
+      {...props}
+      draftStore={key}
+      draft={start.draft}
+      onStartOver={() => {
+        clearDraft(key);
+        setStart((current) => ({ count: current.count + 1, draft: null }));
+      }}
+    />
+  );
+}
+
+interface JobFormFieldsProps extends JobFormProps {
+  /** Where this form's draft is kept. */
+  draftStore: string;
+  /** What was typed here before, when there is any. */
+  draft: JobDraft | null;
+  onStartOver: () => void;
+}
+
+function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onStartOver }: JobFormFieldsProps) {
   const navigate = useNavigate();
   const createJob = useCreateJob();
   const editJob = useEditJob(source?.job.id ?? '');
@@ -67,28 +115,31 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
   const from = source?.job;
 
   const [factoryId, setFactoryId] = useState(() => {
-    if (from) return company.factories.some((factory) => factory.id === from.factoryId) ? from.factoryId : '';
+    const wanted = draft?.factoryId ?? from?.factoryId;
+    if (wanted !== undefined) return company.factories.some((factory) => factory.id === wanted) ? wanted : '';
     return company.factories.length === 1 ? company.factories[0].id : '';
   });
-  const [career, setCareer] = useState<CareerOption | null>(from ? { id: from.occupationId, title: from.occupationTitle } : null);
+  const [career, setCareer] = useState<CareerOption | null>(
+    draft ? draft.career : from ? { id: from.occupationId, title: from.occupationTitle } : null
+  );
   const [skills, setSkills] = useState<JobSkillTag[]>(
-    () => source?.skills.map((skill) => ({ id: skill.id, name: skill.name, required: skill.required })) ?? []
+    () => draft?.skills ?? source?.skills.map((skill) => ({ id: skill.id, name: skill.name, required: skill.required })) ?? []
   );
   // The career whose skills the tags started from. Null until those have loaded.
   // A job being copied or edited brings its own tags.
-  const [seededFor, setSeededFor] = useState<string | null>(from?.occupationId ?? null);
-  const [title, setTitle] = useState(from?.title ?? '');
-  const [titleEdited, setTitleEdited] = useState(Boolean(from && from.title !== from.occupationTitle));
-  const [payMin, setPayMin] = useState(payInputText(from?.payMin ?? null));
-  const [payMax, setPayMax] = useState(payInputText(from?.payMax ?? null));
-  const [payPeriod, setPayPeriod] = useState<PayPeriod>(from?.payPeriod ?? 'hour');
+  const [seededFor, setSeededFor] = useState<string | null>(draft ? draft.seededFor : (from?.occupationId ?? null));
+  const [title, setTitle] = useState(draft?.title ?? from?.title ?? '');
+  const [titleEdited, setTitleEdited] = useState(draft?.titleEdited ?? Boolean(from && from.title !== from.occupationTitle));
+  const [payMin, setPayMin] = useState(draft?.payMin ?? payInputText(from?.payMin ?? null));
+  const [payMax, setPayMax] = useState(draft?.payMax ?? payInputText(from?.payMax ?? null));
+  const [payPeriod, setPayPeriod] = useState<PayPeriod>(draft?.payPeriod ?? from?.payPeriod ?? 'hour');
   // The pay the person has said is right, odd as it looks for its period.
   const [payConfirmed, setPayConfirmed] = useState<string | null>(null);
-  const [employmentType, setEmploymentType] = useState<EmploymentType>(from?.employmentType ?? 'full-time');
-  const [shift, setShift] = useState(from?.shift ?? '');
-  const [description, setDescription] = useState(from?.description ?? '');
-  const [applyIn, setApplyIn] = useState<'app' | 'link'>(from?.applyUrl ? 'link' : 'app');
-  const [applyUrl, setApplyUrl] = useState(from?.applyUrl ?? '');
+  const [employmentType, setEmploymentType] = useState<EmploymentType>(draft?.employmentType ?? from?.employmentType ?? 'full-time');
+  const [shift, setShift] = useState(draft?.shift ?? from?.shift ?? '');
+  const [description, setDescription] = useState(draft?.description ?? from?.description ?? '');
+  const [applyIn, setApplyIn] = useState<'app' | 'link'>(draft?.applyIn ?? (from?.applyUrl ? 'link' : 'app'));
+  const [applyUrl, setApplyUrl] = useState(draft?.applyUrl ?? from?.applyUrl ?? '');
   // Problems show once the person has tried to send the form.
   const [attempted, setAttempted] = useState(false);
   // Set the moment a post is sent, so a double click cannot send it twice
@@ -98,14 +149,32 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
   // the edits back, not the defaults.
   const editedTags = useRef(new Map<string, JobSkillTag[]>());
 
-  // Careers already recorded at the chosen factory are the likeliest picks.
+  // Kept as it is typed. A form nobody has touched leaves nothing behind, and
+  // one that was posted or saved has nothing left to keep.
+  const fields: JobDraftFields = {
+    factoryId, career, skills, seededFor, title, titleEdited, payMin, payMax, payPeriod, employmentType, shift, description, applyIn, applyUrl,
+  };
+  const typed = JSON.stringify(fields);
+  const untouched = useRef(typed);
+  const finished = useRef(false);
+  useEffect(() => {
+    if (finished.current) return;
+    if (!draft && typed === untouched.current) clearDraft(draftStore);
+    else writeDraft(draftStore, JSON.parse(typed) as JobDraftFields);
+  }, [typed, draft, draftStore]);
+
+  // Careers already recorded at the chosen factory are the likeliest picks;
+  // where none are, the careers typical of its industry.
   const factoryCareers = useQuery({
     queryKey: ['picker', 'factory-careers', factoryId],
     queryFn: () => factoriesApi.get(factoryId),
     enabled: Boolean(factoryId) && !editing,
     staleTime: 5 * 60_000,
   });
-  const suggestions: CareerOption[] = (factoryCareers.data?.occupations ?? []).map((o) => ({ id: o.id, title: o.title }));
+  const recorded = factoryCareers.data?.occupations ?? [];
+  const suggestions: CareerOption[] = (recorded.length > 0 ? recorded : (factoryCareers.data?.typicalCareers ?? []))
+    .slice(0, 8)
+    .map((o) => ({ id: o.id, title: o.title }));
 
   // The career's own skills are the default tags: stage 3 optional, the rest required.
   const careerId = career?.id ?? '';
@@ -114,6 +183,8 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
     queryFn: () => occupationsApi.get(careerId),
     enabled: Boolean(careerId),
     staleTime: 5 * 60_000,
+    // Asked even when the browser says it is offline, so the form says so rather than waiting.
+    networkMode: 'always',
   });
   const seeded = Boolean(careerId) && seededFor === careerId;
   if (careerId && careerSkills.data && !seeded) {
@@ -180,7 +251,7 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
       return;
     }
 
-    const fields = {
+    const sent = {
       title: title.trim() || career.title,
       description: description.trim(),
       employmentType,
@@ -194,34 +265,61 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
     const settled = () => {
       sending.current = false;
     };
+    // Posted or saved: what was typed is the job now.
+    const done = () => {
+      finished.current = true;
+      clearDraft(draftStore);
+    };
 
     sending.current = true;
     if (editing && from) {
-      editJob.mutate({ ...fields, skills: tags }, { onSuccess: () => navigate(`/jobs/${from.id}`), onSettled: settled });
+      editJob.mutate(
+        { ...sent, skills: tags },
+        {
+          onSuccess: () => {
+            done();
+            navigate(`/jobs/${from.id}`);
+          },
+          onSettled: settled,
+        }
+      );
     } else {
       createJob.mutate(
         {
           companyId: company.companyId,
           factoryId,
           occupationId: career.id,
-          ...fields,
+          ...sent,
           // Without the career's defaults and with nothing added, the server applies the defaults.
           skills: seeded || skills.length > 0 ? tags : undefined,
         },
-        { onSuccess: (created) => navigate(`/jobs/${created.id}`), onSettled: settled }
+        {
+          onSuccess: (created) => {
+            done();
+            navigate(`/jobs/${created.id}`);
+          },
+          onSettled: settled,
+        }
       );
     }
   };
 
-  const per = payPeriod === 'hour' ? 'per hour' : 'per year';
   const otherPeriod: PayPeriod = payPeriod === 'hour' ? 'year' : 'hour';
 
   return (
     <form onSubmit={submit} noValidate className="space-y-5" data-job-form={mode}>
+      {draft && (
+        <p role="status" className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-fg-muted" data-draft-restored>
+          Restored what you typed {draftWhen(draft.savedAt)}.
+          <button type="button" onClick={onStartOver} className={textButtonClass}>
+            Start over
+          </button>
+        </p>
+      )}
       {editing && from ? (
         <div>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Fixed label="Factory">{[from.factoryName, formatPlace(from.city, from.state)].filter(Boolean).join(' · ')}</Fixed>
+            <Fixed label="Factory">{[plantName({ name: from.factoryName }), plantWhere({ city: from.city, state: from.state })].filter(Boolean).join(' · ')}</Fixed>
             <Fixed label="Career">{from.occupationTitle}</Fixed>
           </dl>
           <p className="mt-1.5 text-xs text-fg-muted">Fixed once posted. For another factory or career, post another like this.</p>
@@ -229,23 +327,14 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Factory" htmlFor="job-factory">
-            <Select value={factoryId} onValueChange={setFactoryId}>
-              <SelectTrigger
-                id="job-factory"
-                aria-invalid={shown('factory') ? true : undefined}
-                aria-describedby={shown('factory') ? 'job-factory-error' : undefined}
-                className={selectTriggerClass}
-              >
-                <SelectValue placeholder="Choose a factory" />
-              </SelectTrigger>
-              <SelectContent className={selectContentClass}>
-                {company.factories.map((factory) => (
-                  <SelectItem key={factory.id} value={factory.id} className="py-2.5">
-                    {[factory.name, formatPlace(factory.city, factory.state)].filter(Boolean).join(' · ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <PlantPicker
+              id="job-factory"
+              factories={company.factories}
+              value={factoryId}
+              onChange={setFactoryId}
+              invalid={Boolean(shown('factory'))}
+              describedBy={shown('factory') ? 'job-factory-error' : undefined}
+            />
             <FieldError id="job-factory-error" message={shown('factory')} />
           </Field>
           <Field label="Career" htmlFor="job-career" hint={shown('career') ? undefined : 'Sets the default skills.'}>
@@ -254,7 +343,7 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
               value={career}
               onChange={pickCareer}
               suggestions={suggestions}
-              suggestionsLabel="Careers at this factory"
+              suggestionsLabel={recorded.length > 0 ? 'Careers at this factory' : 'Careers in this industry'}
             />
             <FieldError id="job-career-error" message={shown('career')} />
           </Field>
@@ -310,11 +399,11 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
       </Field>
 
       <fieldset className="min-w-0" aria-describedby={payProblem ? 'job-pay-error' : undefined}>
-        <legend className="mb-1.5 text-sm font-medium text-fg-muted">Pay range, in dollars</legend>
+        <legend className="mb-1.5 text-sm font-medium text-fg-muted">Pay range</legend>
         <div className="grid grid-cols-1 gap-3 xs:grid-cols-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <DollarInput
             id="job-pay-min"
-            label={`Lowest ${per}`}
+            label="Lowest"
             value={payMin}
             onChange={setPayMin}
             placeholder={payPeriod === 'hour' ? '24.00' : '52,000'}
@@ -322,7 +411,7 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
           />
           <DollarInput
             id="job-pay-max"
-            label={`Highest ${per}`}
+            label="Highest"
             value={payMax}
             onChange={setPayMax}
             placeholder={payPeriod === 'hour' ? '29.00' : '60,000'}
@@ -331,6 +420,7 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
           <div
             role="radiogroup"
             aria-label="Pay is per"
+            onKeyDown={arrowKeyChoice(['hour', 'year'] as const, payPeriod, setPayPeriod)}
             className="grid h-[42px] grid-cols-2 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1 xs:col-span-2 sm:col-span-1 sm:w-48"
           >
             {(['hour', 'year'] as const).map((period) => (
@@ -339,6 +429,7 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
                 type="button"
                 role="radio"
                 aria-checked={payPeriod === period}
+                tabIndex={payPeriod === period ? 0 : -1}
                 onClick={() => setPayPeriod(period)}
                 className={cn(
                   'rounded-md text-sm font-medium transition-colors',
@@ -351,6 +442,7 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
           </div>
         </div>
         <FieldError id="job-pay-error" message={payProblem ?? undefined} />
+        {!payProblem && !payQuestion && <p className="mt-1.5 text-xs text-fg-muted">Every job shows its pay.</p>}
         {!payProblem && payQuestion && (
           <div
             role="group"
@@ -438,7 +530,12 @@ export default function JobForm({ company, mode, source, onCancel }: JobFormProp
 
       <fieldset className="min-w-0">
         <legend className="mb-1.5 text-sm font-medium text-fg-muted">Applications</legend>
-        <div role="radiogroup" aria-label="Applications" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div
+          role="radiogroup"
+          aria-label="Applications"
+          onKeyDown={arrowKeyChoice(['app', 'link'] as const, applyIn, setApplyIn)}
+          className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+        >
           <ApplyChoice
             selected={applyIn === 'app'}
             onSelect={() => setApplyIn('app')}
@@ -561,6 +658,7 @@ function ApplyChoice({ selected, onSelect, title, detail }: { selected: boolean;
       type="button"
       role="radio"
       aria-checked={selected}
+      tabIndex={selected ? 0 : -1}
       onClick={onSelect}
       className={cn(
         'flex items-start gap-3 rounded-lg border p-3 text-left transition-colors',

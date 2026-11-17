@@ -11,6 +11,7 @@ import meRouter from './routes/me.js';
 import jobsRouter from './routes/jobs.js';
 import employerRouter from './routes/employer.js';
 import adminRouter from './routes/admin.js';
+import { adminCompanyRequestsRouter } from './routes/companyRequests.js';
 import exploreRouter from './routes/explore.js';
 import { noStore } from './lib/auth.js';
 import { requireAdminUser, requireAdminForWrites } from './middleware/adminAuth.js';
@@ -59,6 +60,8 @@ app.use('/api/me', noStore, meRouter);
 app.use('/api/jobs', noStore, jobsRouter);
 app.use('/api/employer', noStore, employerRouter);
 // Admin Tools: a signed-in admin account only.
+// Requests to add a company or a plant, answered by an admin (its own router, ahead of the rest of Admin Tools).
+app.use('/api/admin/company-requests', noStore, requireAdminUser, adminCompanyRequestsRouter);
 app.use('/api/admin', noStore, requireAdminUser, adminRouter);
 
 // Edge caching. The two heaviest map payloads get 5 minutes; everything else

@@ -5,6 +5,9 @@ import { handle, requireUser } from '../lib/auth.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { DECLINED_WAIT_DAYS, accessRequested, askAgainAt } from '../lib/notices.js';
+import { readCompanyTerm, searchCompanies } from '../lib/companySearch.js';
+import { pageLimit } from '../lib/paging.js';
+import { companyRequestsRouter } from './companyRequests.js';
 
 /**
  * The employer area. An employer is a signed-in person with an active
@@ -15,6 +18,8 @@ import { DECLINED_WAIT_DAYS, accessRequested, askAgainAt } from '../lib/notices.
 const router = Router();
 router.use(requireUser);
 router.param('companyId', uuidParam);
+// Asking for a company, or a plant of one, that is not in the data.
+router.use('/company-requests', companyRequestsRouter);
 
 // GET /api/employer - the person's companies, each with its factories in the
 // region and its jobs with applicant counts.
@@ -41,6 +46,8 @@ router.get(
             id: factories.id,
             companyId: factories.companyId,
             name: factories.name,
+            // The street tells apart two plants of one company in one city.
+            address: factories.address,
             city: factories.city,
             state: factories.state,
           })
@@ -80,6 +87,19 @@ router.get(
         jobs: jobRows.filter((j) => j.companyId === m.companyId),
       })),
     });
+  })
+);
+
+// GET /api/employer/companies?q=&limit= - find a company to join, by name.
+// Tolerant of spelling, spacing, "&" and the legal form; name matches only,
+// the closest first. `total` is how many match; `close` says that no name
+// matched and these are the nearest ones instead (see lib/companySearch.ts).
+router.get(
+  '/companies',
+  handle(async (req, res) => {
+    const term = readCompanyTerm(req.query.q);
+    if (!term) return res.json({ companies: [], total: 0, close: false });
+    res.json(await searchCompanies(term, pageLimit(req.query.limit, 8, 20)));
   })
 );
 

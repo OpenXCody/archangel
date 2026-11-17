@@ -248,9 +248,32 @@ interface FetchOptions {
   [key: string]: string | number | boolean | undefined;
 }
 
+/** How long a request may take before it is given up on. */
+export const REQUEST_TIMEOUT_MS = 20_000;
+export const UNREACHABLE = 'Could not reach the server. Check your connection and try again.';
+export const TOO_SLOW = 'The server took too long to answer. Check your connection and try again.';
+
+/**
+ * `fetch` that gives up when no answer has begun after `timeoutMs`, so nothing
+ * waits for ever on a connection that has gone. Throws an Error whose message
+ * is written for the person: no connection, or no answer in time. (Once the
+ * answer has begun, a large one may take as long as it needs to arrive.)
+ */
+export async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = REQUEST_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch {
+    throw new Error(controller.signal.aborted ? TOO_SLOW : UNREACHABLE);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** A public read. Anything that changes data, or is a person's own, goes through lib/account.ts. */
 async function apiFetch<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${API_BASE}${endpoint}`);
+  const response = await fetchWithTimeout(`${API_BASE}${endpoint}`);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Network error' }));

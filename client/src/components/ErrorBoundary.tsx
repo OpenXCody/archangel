@@ -13,6 +13,9 @@ interface State {
   error: Error | null;
 }
 
+/** When this tab last reloaded itself after failing to fetch a page's code. */
+const RELOADED_AT = 'archangel.reloadedAt';
+
 export default class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -25,6 +28,20 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // A page's code could not be fetched: after a release the files this tab
+    // knows by name are gone. Loading the app again gets the new ones. Once
+    // only (per ten minutes), so a real outage does not reload for ever.
+    if (/dynamically imported module|Importing a module script failed|Failed to load module script/i.test(error.message)) {
+      try {
+        const last = Number(window.sessionStorage.getItem(RELOADED_AT) ?? 0);
+        if (Date.now() - last > 10 * 60 * 1000) {
+          window.sessionStorage.setItem(RELOADED_AT, String(Date.now()));
+          window.location.reload();
+        }
+      } catch {
+        // No session storage: leave the choice to the person (Reload, below).
+      }
+    }
   }
 
   componentDidUpdate(previous: Props) {

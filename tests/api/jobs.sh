@@ -2,12 +2,15 @@
 # End-to-end check of what a company does with its jobs: edit one (fields and
 # skills), post another like it, delete one nobody applied to, read applicants
 # with their skills, and undo a Declined or Hired. Every step is also tried by
-# someone who must be refused. Prints one line per check and exits non-zero if
-# any fail.
+# someone who must be refused. Then what comes before a job: finding a career
+# by the words a plant uses, finding a company by its name, and asking for a
+# company or a plant that is not in the data. Prints one line per check and
+# exits non-zero if any fail.
 #
 # LOCAL ONLY: it creates and deletes users (emails ending @jobs.test), makes
 # them active members of two companies and one of them an admin directly in
-# the database, and posts jobs. Everything it made is removed on exit, however
+# the database, posts jobs, and adds one company with a plant and one career
+# of its own (named Jobtest…). Everything it made is removed on exit, however
 # the script ends. Never point it at production.
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/jobs.sh
 # Needs a running dev API, seeded data with two companies that have a factory
@@ -41,7 +44,8 @@ j() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=J
 
 # Jobs first: a job outlives the person who posted it.
 cleanup() {
-  psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHERE email LIKE '%@jobs.test'); DELETE FROM users WHERE email LIKE '%@jobs.test'" >/dev/null
+  psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHERE email LIKE '%@jobs.test'); DELETE FROM users WHERE email LIKE '%@jobs.test';
+    DELETE FROM companies WHERE name LIKE 'Jobtest$RUN%'; DELETE FROM occupations WHERE title LIKE 'Jobtest Flange Aligner $RUN'" >/dev/null
   rm -rf "$D"
 }
 trap cleanup EXIT
@@ -266,6 +270,124 @@ check "s2 withdraws"                  200 "$(req s2 PATCH /jobs/applications/$AP
 check "s1 withdraws"                  200 "$(req s1 PATCH /jobs/applications/$APP1 '{"status":"withdrawn"}')"
 check "withdrawn applications still count" 409 "$(req emp DELETE /jobs/$JOB)"
 check "another company's dashboard has none of it" 200 "$(req other GET /employer)" '"jobs":\[\]'
+
+# --- Extending, and the limit on posting ----------------------------------------
+check "reopen the first job"          200 "$(req emp PATCH /jobs/$JOB '{"status":"open"}')"
+sql "UPDATE jobs SET expires_at = now() + interval '2 days' WHERE id='$JOB'" >/dev/null
+check "extend an open job"            200 "$(req emp PATCH /jobs/$JOB '{"status":"open"}')"
+expect "its 60 days start again"      t "$(sql "SELECT expires_at > now() + interval '59 days' FROM jobs WHERE id='$JOB'")"
+check "extend by another company"     403 "$(req other PATCH /jobs/$JOB '{"status":"open"}')"
+sql "INSERT INTO jobs (company_id, factory_id, occupation_id, title, pay_min, pay_max, expires_at, created_by)
+     SELECT '$CA', '$FA', '$OCC', 'Limit filler ' || g, 2000, 2500, now() + interval '60 days', '$(uid emp)' FROM generate_series(1, 30) g" >/dev/null
+check "a 31st job in an hour is refused" 429 "$(req emp POST /jobs "{$POST_A,\"title\":\"One too many\",\"payMin\":2400,\"payMax\":2900}")" 'in the last hour'
+expect "and is not posted"            0 "$(sql "SELECT COUNT(*) FROM jobs WHERE title='One too many'")"
+check "another person still posts"    201 "$(req admin POST /jobs "{$POST_A,\"title\":\"Admin post\",\"payMin\":2400,\"payMax\":2900}")"
+sql "DELETE FROM jobs WHERE title LIKE 'Limit filler %' AND created_by='$(uid emp)'" >/dev/null
+check "the plants an employer picks from carry their street" 200 "$(req emp GET /employer)" '"address":'
+
+# --- Career search: the words a plant uses ------------------------------------
+# One career of this run's own, with another name it goes by.
+CAREER="Jobtest Flange Aligner $RUN"
+CAREER_ID=$(sql "INSERT INTO occupations (title, description) VALUES ('$CAREER', 'Sets flanges true before welding.') RETURNING id")
+sql "INSERT INTO occupation_aliases (alias_text, canonical_occupation_id) VALUES ('Flange Monkey $RUN', '$CAREER_ID'), ('F&M $RUN', '$CAREER_ID')" >/dev/null
+first() { curl -s -G "$API/occupations" --data-urlencode "search=$1" --data-urlencode "limit=5" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s);console.log((o.data[0]||{}).title+'|'+o.total)})"; }
+expect "career by its title"          "$CAREER|1" "$(first "jobtest flange aligner $RUN")"
+expect "career by another name"       "$CAREER|1" "$(first "flange monkey $RUN")"
+expect "another name, in capitals and spaced out" "$CAREER|1" "$(first "  FLANGE   Monkey $RUN ")"
+expect "another name with & for and"  "$CAREER|1" "$(first "f and m $RUN")"
+expect "words in any order"           "$CAREER|1" "$(first "$RUN aligner flange")"
+expect "words cut short"              "$CAREER|1" "$(first "jobt flan align $RUN")"
+expect "a plural"                     "$CAREER|1" "$(first "jobtest flange aligners $RUN")"
+expect "a level after the title"      "$CAREER|1" "$(first "jobtest flange aligner $RUN II")"
+expect "a shift before it"            "$CAREER|1" "$(first "2nd shift jobtest flange aligner $RUN")"
+expect "a wrong letter"               "$CAREER" "$(first "jobtest flange alignr $RUN" | cut -d'|' -f1)"
+expect "nothing like it finds nothing" "undefined|0" "$(first "zzqx$RUN vvkj")"
+QC=$(sql "SELECT COUNT(*) FROM occupations WHERE title='Quality Control Inspector'")
+if [ "$QC" = 1 ] && [ "$(sql "SELECT COUNT(*) FROM occupation_aliases WHERE alias_text='QA'")" = 1 ]; then
+  expect "QA finds the quality inspector" "Quality Control Inspector" "$(first QA | cut -d'|' -f1)"
+  expect "maint tech finds the maintenance technician" "Maintenance Technician" "$(first 'maint tech' | cut -d'|' -f1)"
+  expect "welder II finds the welder"  "Welder" "$(first 'welder II' | cut -d'|' -f1)"
+else echo "skip  the curated names (migration 0027_career_aliases not applied to this data)"; fi
+sql "DELETE FROM occupations WHERE id='$CAREER_ID'" >/dev/null
+expect "the career's other names go with it" 0 "$(sql "SELECT COUNT(*) FROM occupation_aliases WHERE alias_text LIKE '%$RUN'")"
+
+# --- Finding a company ----------------------------------------------------------
+# A company of this run's own with one plant, named so that nothing else matches.
+CO="Jobtest$RUN & Sons Precision Inc."
+CO_ID=$(sql "INSERT INTO companies (name, industry) VALUES ('$CO', 'Machinery') RETURNING id")
+sql "INSERT INTO factories (name, company_id, latitude, longitude, city, state) VALUES ('JOBTEST PLANT', '$CO_ID', '31.5', '-97.1', 'Waco', 'TX')" >/dev/null
+found() { curl -s -b "$D/$1" -G "$API/employer/companies" --data-urlencode "q=$2" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s);const c=o.companies||[];console.log((c[0]||{}).id+'|'+o.total+'|'+o.close)})"; }
+check "company search signed out"     401 "$(req anon GET "/employer/companies?q=jobtest$RUN")"
+check "company search, too short"     200 "$(req s3 GET '/employer/companies?q=j')" '"companies":\[\]'
+OUT=$(req s3 GET "/employer/companies?q=jobtest$RUN")
+check "company by the start of its name" 200 "$OUT" "\"id\":\"$CO_ID\""
+expect "the row says where it is"     "1|Waco, TX" "$(printf '%s' "$OUT" | j 'companies[0].factoryCount + "|" + o.companies[0].where')"
+expect "the name as written"          "$CO_ID|1|false" "$(found s3 "$CO")"
+expect "and for &"                    "$CO_ID|1|false" "$(found s3 "Jobtest$RUN and Sons Precision")"
+expect "two spaces"                   "$CO_ID|1|false" "$(found s3 "jobtest$RUN  &  sons   precision")"
+expect "the legal form, or another"   "$CO_ID|1|false" "$(found s3 "jobtest$RUN and sons precision corporation")"
+expect "no punctuation"               "$CO_ID|1|false" "$(found s3 "JOBTEST$RUN SONS PRECISION INC")"
+expect "words in any order"           "$CO_ID|1|false" "$(found s3 "precision jobtest$RUN")"
+expect "a wrong letter gives the closest" "$CO_ID|true" "$(found s3 "jobtest$RUN and sons precison" | cut -d'|' -f1,3)"
+expect "industry is not searched"     "undefined|0|false" "$(found s3 "zzqx$RUN machinery")"
+expect "a wildcard is not everything" "undefined|0|false" "$(found s3 "%%")"
+N=$(sql "SELECT COUNT(*) FROM companies WHERE name ILIKE 'General%'")
+if [ "$N" -gt 2 ]; then
+  OUT=$(req s3 GET '/employer/companies?q=general&limit=2')
+  expect "the list says how many more there are" "2|$N" "$(printf '%s' "$OUT" | j 'companies.length + "|" + o.total')"
+else echo "skip  the count of more matches (fewer than three companies named General)"; fi
+
+# --- Asking for a company, or a plant, that is not listed ----------------------
+ASK="Jobtest$RUN Hill Country Machine"
+check "ask signed out"                401 "$(req anon POST /employer/company-requests "{\"name\":\"$ASK\",\"place\":\"Dripping Springs, TX\"}")"
+check "ask without saying where"      400 "$(req s3 POST /employer/company-requests "{\"name\":\"$ASK\"}")" '"field":"place"'
+check "ask without a name"            400 "$(req s3 POST /employer/company-requests '{"place":"Dripping Springs, TX"}')" '"field":"name"'
+check "ask with a website that is not one" 400 "$(req s3 POST /employer/company-requests "{\"name\":\"$ASK\",\"place\":\"Dripping Springs, TX\",\"website\":\"not a site\"}")" '"field":"website"'
+check "ask for a company that is listed" 409 "$(req s3 POST /employer/company-requests "{\"name\":\"$(printf '%s' "$CO" | tr 'A-Z' 'a-z')\",\"place\":\"Waco\"}")" 'already listed'
+OUT=$(req s3 POST /employer/company-requests "{\"name\":\"$ASK\",\"place\":\"Dripping Springs, TX\",\"website\":\"HTTPS://www.Example.com/about\"}")
+check "ask for a company to be added" 201 "$OUT" '"website":"example.com"'
+ASK_ID=$(printf '%s' "$OUT" | j request.id)
+check "the same request twice is one" 200 "$(req s3 POST /employer/company-requests "{\"name\":\"$ASK\",\"place\":\"Dripping Springs\"}")" "\"id\":\"$ASK_ID\""
+check "the person sees it waiting"    200 "$(req s3 GET /employer/company-requests)" '"status":"requested"'
+check "the account knows a request is waiting" 200 "$(req s3 GET /auth/me)" '"hasCompanyRequest":true'
+check "requests are not for everyone to read" 403 "$(req s3 GET /admin/company-requests)"
+check "nor signed out"                401 "$(req anon GET /admin/company-requests)"
+check "the admin sees it with who asked" 200 "$(req admin GET /admin/company-requests)" "\"userEmail\":\"s3-$RUN@jobs.test\""
+check "an admin has news of it"       200 "$(req admin GET /me/news)" '"access":true'
+check "answer by someone who is not an admin" 403 "$(req emp PATCH /admin/company-requests/$ASK_ID "{\"decision\":\"add\",\"companyId\":\"$CO_ID\"}")"
+check "answer without a decision"     400 "$(req admin PATCH /admin/company-requests/$ASK_ID '{}')"
+check "add without saying which company" 400 "$(req admin PATCH /admin/company-requests/$ASK_ID '{"decision":"add"}')"
+check "add with a company that does not exist" 404 "$(req admin PATCH /admin/company-requests/$ASK_ID "{\"decision\":\"add\",\"companyId\":\"$NOBODY\"}")"
+expect "refused answers changed nothing" "requested|0" "$(sql "SELECT status FROM company_requests WHERE id='$ASK_ID'")|$(sql "SELECT COUNT(*) FROM company_members WHERE user_id='$(uid s3)'")"
+check "the admin gives access to the company added" 200 "$(req admin PATCH /admin/company-requests/$ASK_ID "{\"decision\":\"add\",\"companyId\":\"$CO_ID\"}")" '"status":"added"'
+expect "the person is an active member" active "$(sql "SELECT status FROM company_members WHERE user_id='$(uid s3)' AND company_id='$CO_ID'")"
+check "and has the company on their page" 200 "$(req s3 GET /employer)" "\"companyId\":\"$CO_ID\""
+check "nothing is waiting any more"   200 "$(req s3 GET /auth/me)" '"hasCompanyRequest":false'
+check "an answered request cannot be answered again" 404 "$(req admin PATCH /admin/company-requests/$ASK_ID '{"decision":"decline"}')"
+check "nor withdrawn by the person"   200 "$(req s3 DELETE /employer/company-requests/$ASK_ID)"
+expect "it stays on record"           added "$(sql "SELECT status FROM company_requests WHERE id='$ASK_ID'")"
+# A plant of a company: asked for by its members only.
+check "a plant asked for by a stranger" 403 "$(req s2 POST /employer/company-requests "{\"companyId\":\"$CO_ID\",\"place\":\"12 Mill Rd, Temple, TX\"}")"
+OUT=$(req s3 POST /employer/company-requests "{\"companyId\":\"$CO_ID\",\"place\":\"12 Mill Rd, Temple, TX\",\"name\":\"ignored\"}")
+check "a plant asked for by a member" 201 "$OUT" "\"companyId\":\"$CO_ID\""
+PLANT_ID=$(printf '%s' "$OUT" | j request.id)
+expect "it carries the company's own name" "$CO" "$(sql "SELECT name FROM company_requests WHERE id='$PLANT_ID'")"
+check "the admin marks the plant added" 200 "$(req admin PATCH /admin/company-requests/$PLANT_ID '{"decision":"add"}')" '"status":"added"'
+# Declined, withdrawn, and how many can wait.
+OUT=$(req s2 POST /employer/company-requests "{\"name\":\"$ASK Two\",\"place\":\"Kyle, TX\"}"); check "another person asks" 201 "$OUT"
+ASK2=$(printf '%s' "$OUT" | j request.id)
+check "one person cannot withdraw another's" 200 "$(req s3 DELETE /employer/company-requests/$ASK2)"
+expect "it is still waiting"          requested "$(sql "SELECT status FROM company_requests WHERE id='$ASK2'")"
+check "the admin declines it"         200 "$(req admin PATCH /admin/company-requests/$ASK2 '{"decision":"decline"}')" '"status":"declined"'
+check "the person reads the answer"   200 "$(req s2 GET /employer/company-requests)" '"status":"declined"'
+for n in 1 2 3 4 5; do req s2 POST /employer/company-requests "{\"name\":\"$ASK $n\",\"place\":\"Kyle, TX\"}" >/dev/null; done
+check "a sixth request waits for the first five" 409 "$(req s2 POST /employer/company-requests "{\"name\":\"$ASK 6\",\"place\":\"Kyle, TX\"}")" 'requests waiting'
+LAST=$(sql "SELECT id FROM company_requests WHERE user_id='$(uid s2)' AND status='requested' ORDER BY created_at DESC LIMIT 1")
+check "the person withdraws one"      200 "$(req s2 DELETE /employer/company-requests/$LAST)"
+expect "four are left waiting"        4 "$(sql "SELECT COUNT(*) FROM company_requests WHERE user_id='$(uid s2)' AND status='requested'")"
+sql "DELETE FROM companies WHERE id='$CO_ID'" >/dev/null
+cleanup; trap 'rm -rf "$D"' EXIT
+expect "nothing of this run is left behind" "0 0 0 0" "$(sql "SELECT (SELECT COUNT(*) FROM users WHERE email LIKE '%@jobs.test') || ' ' || (SELECT COUNT(*) FROM company_requests WHERE name LIKE 'Jobtest$RUN%') || ' ' || (SELECT COUNT(*) FROM companies WHERE name LIKE 'Jobtest$RUN%') || ' ' || (SELECT COUNT(*) FROM occupations WHERE title LIKE 'Jobtest %$RUN')")"
 
 [ $fail -eq 0 ] && echo "ALL PASSED" || echo "SOME FAILED"
 exit $fail

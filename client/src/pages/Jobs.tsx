@@ -280,6 +280,13 @@ export default function Jobs() {
               </li>
             ))}
           </ul>
+          {/* The one place a visiting employer learns they can list a job here. */}
+          <p className="mt-8 text-sm text-fg-muted" data-post-a-job>
+            Hiring?{' '}
+            <Link to="/employer" className="underline underline-offset-4 hover:text-fg-default">
+              Post a job
+            </Link>
+          </p>
         </>
       )}
     </PageContainer>

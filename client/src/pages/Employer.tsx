@@ -1,15 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Loader2, MoreHorizontal, Search, SearchX, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { companiesApi } from '../lib/api';
 import {
   ApiError,
   useCancelMembership,
+  useEmailOn,
   useEmployer,
   useJob,
   useRequestMembership,
@@ -19,7 +18,17 @@ import {
   type JobDetailResponse,
 } from '../lib/account';
 import { useDeleteJob } from '../lib/employerJobs';
-import { formatAgo, isExpired } from '../lib/jobFormat';
+import {
+  COMPANY_SEARCH_LIMIT,
+  useCompanyRequests,
+  useCompanySearch,
+  useWithdrawCompanyRequest,
+  type CompanyRequest,
+} from '../lib/employerCompanies';
+import { formatFactoryName } from '@shared/displayName';
+import { latestDraftCompany } from '../lib/jobDraft';
+import { formatAgo, formatDate, isExpired } from '../lib/jobFormat';
+import CompanyRequestForm from '../components/account/CompanyRequestForm';
 import JobForm, { selectContentClass, selectTriggerClass, type JobFormCompany } from '../components/account/JobForm';
 import ConfirmDialog from '../components/admin/ConfirmDialog';
 import {
@@ -36,6 +45,7 @@ import {
   fieldClass,
   outlineButtonClass,
   rowClass,
+  textButtonClass,
   useDebouncedValue,
 } from '../components/account/parts';
 import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
@@ -64,10 +74,15 @@ function EmployerPage({ user }: { user: AccountUser }) {
 function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }) {
   const navigate = useNavigate();
   const employer = useEmployer();
+  const asked = useCompanyRequests();
   const companies = employer.data ?? [];
   const active = companies.filter((company) => company.status === 'active');
   const pending = companies.filter((company) => company.status === 'requested');
   const declined = companies.filter((company) => company.status === 'declined');
+  // Companies and plants the person asked to have added.
+  const requests = asked.data ?? [];
+  const waiting = requests.filter((request) => request.status === 'requested');
+  const refused = requests.filter((request) => request.status === 'declined');
   const [joiningAnother, setJoiningAnother] = useState(false);
   const hasJobs = active.some((company) => company.jobs.length > 0);
 
@@ -75,7 +90,7 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
     return (
       <PageContainer size="narrow">
         <PageHeader backTo={{ to: '/employer', label: 'Your jobs' }} title="Post a job" description="Listed at once. Open for 60 days." />
-        <PostJob companies={active} onCancel={() => navigate('/employer')} />
+        <PostJob user={user} companies={active} onCancel={() => navigate('/employer')} />
       </PageContainer>
     );
   }
@@ -84,7 +99,8 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
     <PageContainer size="narrow">
       <PageHeader
         eyebrow={active.length > 0 ? 'Employer' : undefined}
-        title={active.length > 0 ? active.map((company) => company.companyName).join(', ') : 'Employer'}
+        // One company is named; several are named where their jobs are listed.
+        title={active.length === 1 ? active[0].companyName : active.length > 1 ? `${active.length} companies` : 'Employer'}
         description={
           active.length > 0
             ? 'Post jobs and review applicants.'
@@ -105,13 +121,13 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
         <LoadError error={employer.error} onRetry={() => void employer.refetch()} retrying={employer.isFetching} />
       ) : (
         <>
-          {pending.length > 0 && <PendingRequests companies={pending} />}
-          {declined.length > 0 && <DeclinedRequests companies={declined} />}
+          {(pending.length > 0 || waiting.length > 0) && <PendingRequests user={user} companies={pending} requests={waiting} />}
+          {(declined.length > 0 || refused.length > 0) && <DeclinedRequests companies={declined} requests={refused} />}
 
           {/* With nothing posted yet the form is the page; after that it is one press away, above the list. */}
           {active.length > 0 && !hasJobs && (
             <PageSection title="Post a job" description="Listed at once. Open for 60 days.">
-              <PostJob companies={active} />
+              <PostJob user={user} companies={active} />
             </PageSection>
           )}
 
@@ -121,7 +137,7 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
           {active.length === 0 ? (
             <PageSection
               title="Company"
-              description={user.isAdmin ? 'Admins join at once.' : 'Request access. An admin approves each request.'}
+              description={user.isAdmin ? 'Admins join at once.' : 'Find your company and request access. An admin approves each request.'}
             >
               <CompanySearch memberships={companies} instant={user.isAdmin} />
             </PageSection>
@@ -215,10 +231,27 @@ function JobFormPage({ mode, jobId, fromJob }: { mode: 'edit' | 'copy'; jobId: s
 // Requests waiting for an admin
 // ---------------------------------------------------------------------------
 
-function PendingRequests({ companies }: { companies: EmployerCompany[] }) {
+/** What a request to add something is about: the company, or a plant of it and where. */
+function requestSubject(request: CompanyRequest): string {
+  return request.companyId ? `${request.name}, plant at ${request.place}` : request.name;
+}
+
+interface PendingRequestsProps {
+  user: AccountUser;
+  /** Companies the person asked to join. */
+  companies: EmployerCompany[];
+  /** Companies and plants the person asked to have added. */
+  requests: CompanyRequest[];
+}
+
+function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
   const cancel = useCancelMembership();
+  const withdraw = useWithdrawCompanyRequest();
+  const emailOn = useEmailOn();
+  // Said once, under the list: how the person will hear.
+  const hears = emailOn && user.emailNotices ? `An email goes to ${user.email} when an admin answers.` : 'The answer shows here.';
   return (
-    <PageSection title="Pending approval">
+    <PageSection title="Waiting for an admin" description={hears}>
       <ul className={cardClass}>
         {companies.map((company) => {
           const cancelling = cancel.isPending && cancel.variables === company.companyId;
@@ -226,15 +259,18 @@ function PendingRequests({ companies }: { companies: EmployerCompany[] }) {
             <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-pending-company={company.companyId}>
               <div className="min-w-0 flex-1 basis-56">
                 <p className="break-words text-sm font-medium text-fg-default">{company.companyName}</p>
-                <p className="mt-0.5 text-sm text-fg-muted">Awaiting admin approval. Posting opens once approved.</p>
+                <p className="mt-0.5 text-sm text-fg-muted">Access requested. Posting opens once approved.</p>
               </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={cancelling}
-                onClick={() => cancel.mutate(company.companyId)}
-                className={cn('h-9', outlineButtonClass)}
+                aria-busy={cancelling}
+                aria-disabled={cancel.isPending}
+                onClick={() => {
+                  if (!cancel.isPending) cancel.mutate(company.companyId);
+                }}
+                className={cn('h-9', outlineButtonClass, busyButtonClass)}
               >
                 {cancelling && <Loader2 className="animate-spin" />}
                 Cancel request
@@ -242,8 +278,37 @@ function PendingRequests({ companies }: { companies: EmployerCompany[] }) {
             </li>
           );
         })}
+        {requests.map((request) => {
+          const withdrawing = withdraw.isPending && withdraw.variables === request.id;
+          return (
+            <li key={request.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-company-request-row={request.id}>
+              <div className="min-w-0 flex-1 basis-56">
+                <p className="break-words text-sm font-medium text-fg-default">{requestSubject(request)}</p>
+                <p className="mt-0.5 text-sm text-fg-muted">
+                  {request.companyId
+                    ? `Asked ${formatAgo(request.createdAt)} for this plant to be added.`
+                    : `Asked ${formatAgo(request.createdAt)} for this company to be added. Posting opens once it is.`}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                aria-busy={withdrawing}
+                aria-disabled={withdraw.isPending}
+                onClick={() => {
+                  if (!withdraw.isPending) withdraw.mutate(request.id);
+                }}
+                className={cn('h-9', outlineButtonClass, busyButtonClass)}
+              >
+                {withdrawing && <Loader2 className="animate-spin" />}
+                Cancel request
+              </Button>
+            </li>
+          );
+        })}
       </ul>
-      <ErrorNote error={cancel.error} className="mt-2" />
+      <ErrorNote error={cancel.error ?? withdraw.error} className="mt-2" />
     </PageSection>
   );
 }
@@ -265,7 +330,7 @@ function canAskAgain(company: EmployerCompany): boolean {
 // Requests an admin declined
 // ---------------------------------------------------------------------------
 
-function DeclinedRequests({ companies }: { companies: EmployerCompany[] }) {
+function DeclinedRequests({ companies, requests }: { companies: EmployerCompany[]; requests: CompanyRequest[] }) {
   const request = useRequestMembership();
   return (
     <PageSection title="Declined">
@@ -301,6 +366,15 @@ function DeclinedRequests({ companies }: { companies: EmployerCompany[] }) {
             </li>
           );
         })}
+        {requests.map((asked) => (
+          <li key={asked.id} className={cn(rowClass, 'p-4')} data-company-request-row={asked.id}>
+            <p className="break-words text-sm font-medium text-fg-default">{requestSubject(asked)}</p>
+            <p className="mt-0.5 text-sm text-fg-muted">
+              An admin declined the request to add this {asked.companyId ? 'plant' : 'company'}
+              {asked.decidedAt && ` on ${formatDay(asked.decidedAt)}`}.
+            </p>
+          </li>
+        ))}
       </ul>
       <ErrorNote error={request.error} className="mt-2" />
     </PageSection>
@@ -313,22 +387,41 @@ function DeclinedRequests({ companies }: { companies: EmployerCompany[] }) {
 
 function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[]; instant: boolean }) {
   const [term, setTerm] = useState('');
+  // The form that asks for a company that is not listed.
+  const [asking, setAsking] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const query = useDebouncedValue(term.trim());
   const request = useRequestMembership();
-  const results = useQuery({
-    queryKey: ['picker', 'companies', query],
-    queryFn: () => companiesApi.list({ search: query, limit: 8 }),
-    enabled: query.length >= 2,
-    staleTime: 60_000,
-  });
+  const results = useCompanySearch(query);
   const showResults = term.trim().length >= 2 && query.length >= 2;
   const CompanyIcon = ENTITY.company.icon;
+  const found = results.data;
+
+  const askToAdd = (
+    <button type="button" onClick={() => setAsking(true)} className={textButtonClass} data-ask-to-add>
+      Ask for it to be added
+    </button>
+  );
+
+  if (asking) {
+    return (
+      <CompanyRequestForm
+        initialName={term.trim()}
+        onCancel={() => setAsking(false)}
+        onDone={() => {
+          setAsking(false);
+          setTerm('');
+        }}
+      />
+    );
+  }
 
   return (
     <div>
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
         <input
+          ref={inputRef}
           type="text"
           role="searchbox"
           enterKeyHint="search"
@@ -343,7 +436,10 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
           <button
             type="button"
             aria-label="Clear search"
-            onClick={() => setTerm('')}
+            onClick={() => {
+              setTerm('');
+              inputRef.current?.focus();
+            }}
             className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted hover:text-fg-default"
           >
             {results.isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
@@ -354,56 +450,93 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
       {!showResults ? (
         <p className="mt-2 text-sm text-fg-muted">Enter at least two letters.</p>
       ) : (
-        <div className={cn(cardClass, 'mt-2')} aria-live="polite">
-          {results.isPending ? (
-            <p className="flex items-center gap-2 p-4 text-sm text-fg-muted">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Searching companies
+        <div aria-live="polite">
+          {found?.close && (
+            <p className="mt-3 text-sm text-fg-muted" data-company-close>
+              No company is named “{query}”. The closest:
             </p>
-          ) : results.isError ? (
-            <ErrorNote error={results.error} className="p-4" />
-          ) : results.data.data.length === 0 ? (
-            <p className="p-4 text-sm text-fg-muted">No company matches “{query}”.</p>
-          ) : (
-            <ul>
-              {results.data.data.map((company) => {
-                const membership = memberships.find((m) => m.companyId === company.id);
-                const busy = request.isPending && request.variables === company.id;
-                const factoryCount = company.factoryCount ?? 0;
-                return (
-                  <li key={company.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')}>
-                    <div className="flex min-w-0 flex-1 basis-48 items-start gap-3">
-                      <CompanyIcon className={cn('mt-0.5 h-4 w-4 shrink-0', ENTITY.company.text)} />
-                      <div className="min-w-0">
-                        <p className="break-words text-sm font-medium text-fg-default">{company.name}</p>
-                        <p className="mt-0.5 text-xs text-fg-muted">
-                          {[company.industry, `${factoryCount} ${factoryCount === 1 ? 'factory' : 'factories'}`]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </p>
+          )}
+          <div className={cn(cardClass, 'mt-2')}>
+            {results.isPending ? (
+              <p className="flex items-center gap-2 p-4 text-sm text-fg-muted">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Searching companies
+              </p>
+            ) : results.isError ? (
+              <ErrorNote error={results.error} className="p-4" />
+            ) : !found || found.companies.length === 0 ? (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4" data-company-none>
+                <p className="min-w-0 flex-1 basis-48 break-words text-sm text-fg-muted">No company matches “{query}”.</p>
+                {askToAdd}
+              </div>
+            ) : (
+              <ul>
+                {found.companies.map((company) => {
+                  const membership = memberships.find((m) => m.companyId === company.id);
+                  const busy = request.isPending && request.variables === company.id;
+                  return (
+                    <li key={company.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-company-result={company.id}>
+                      <div className="flex min-w-0 flex-1 basis-48 items-start gap-3">
+                        <CompanyIcon className={cn('mt-0.5 h-4 w-4 shrink-0', ENTITY.company.text)} />
+                        <div className="min-w-0">
+                          {/* The company's page, to check it is the right one; in a new tab so the search stays. */}
+                          <a
+                            href={`/companies/${company.slug ?? company.id}`}
+                            target="_blank"
+                            rel="noopener"
+                            className="break-words text-sm font-medium text-fg-default underline-offset-4 hover:underline"
+                          >
+                            {company.name}
+                          </a>
+                          <p className="mt-0.5 break-words text-xs text-fg-muted">
+                            {[
+                              company.industry,
+                              `${company.factoryCount} ${company.factoryCount === 1 ? 'factory' : 'factories'}`,
+                              company.where,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    {membership && !(membership.status === 'declined' && canAskAgain(membership)) ? (
-                      <span className="shrink-0 text-xs text-fg-muted">
-                        {membership.status === 'active' ? 'Member' : membership.status === 'declined' ? 'Declined' : 'Pending approval'}
-                      </span>
-                    ) : (
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={request.isPending}
-                        onClick={() => request.mutate(company.id)}
-                        aria-label={`${instant ? 'Join' : 'Request access to'} ${company.name}`}
-                        className="h-9"
-                      >
-                        {busy && <Loader2 className="animate-spin" />}
-                        {instant ? 'Join' : 'Request access'}
-                      </Button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+                      {membership && !(membership.status === 'declined' && canAskAgain(membership)) ? (
+                        <span className="shrink-0 text-xs text-fg-muted">
+                          {membership.status === 'active' ? 'Member' : membership.status === 'declined' ? 'Declined' : 'Pending approval'}
+                        </span>
+                      ) : (
+                        // Marked, not disabled, while it saves; focus then returns to the search box,
+                        // since the button gives way to the request's state.
+                        <Button
+                          type="button"
+                          size="sm"
+                          aria-busy={busy}
+                          aria-disabled={request.isPending}
+                          onClick={() => {
+                            if (request.isPending) return;
+                            request.mutate(company.id, { onSuccess: () => inputRef.current?.focus() });
+                          }}
+                          aria-label={`${instant ? 'Join' : 'Request access to'} ${company.name}`}
+                          className={cn('h-9', busyButtonClass)}
+                        >
+                          {busy && <Loader2 className="animate-spin" />}
+                          {instant ? 'Join' : 'Request access'}
+                        </Button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+          {found && found.companies.length > 0 && (
+            <p className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm text-fg-muted">
+              {!found.close && found.total > found.companies.length && (
+                <span data-company-more>
+                  {Math.min(found.companies.length, COMPANY_SEARCH_LIMIT)} of {found.total.toLocaleString('en-US')}. Type more of the name to narrow the list.
+                </span>
+              )}
+              <span>Not listed? {askToAdd}</span>
+            </p>
           )}
         </div>
       )}
@@ -426,6 +559,13 @@ function jobState(job: EmployerJob): JobState {
 
 /** Open jobs first, then the rest; newest first within each (the server's order). */
 const STATE_ORDER: Record<JobState, number> = { Open: 0, Draft: 1, Expired: 2, Closed: 3 };
+
+/** "Open until Jan 15", or how soon it closes once that is within two weeks. */
+function openUntil(expiresAt: string): string {
+  const days = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  if (days > 14 || Number.isNaN(days)) return `Open until ${formatDate(expiresAt).replace(/, \d{4}$/, '')}`;
+  return days <= 1 ? 'Open, closes tomorrow' : `Open, closes in ${days} days`;
+}
 
 const menuItemClass = 'cursor-pointer px-2.5 py-2.5 text-sm text-fg-default focus:bg-bg-elevated';
 
@@ -458,9 +598,9 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
                 <p className={cn('break-words text-sm font-medium', state === 'Open' ? 'text-fg-default' : 'text-fg-muted')}>{job.title}</p>
                 <p className="mt-0.5 break-words text-sm text-fg-muted">
                   <span className={cn(state === 'Open' && 'text-fg-default')} data-job-state={state.toLowerCase()}>
-                    {state}
+                    {state === 'Open' ? openUntil(job.expiresAt) : state}
                   </span>
-                  {' · '}Job #{job.serial} · {[job.factoryName, job.city].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
+                  {' · '}Job #{job.serial} · {[formatFactoryName(job.factoryName), job.city && formatFactoryName(job.city)].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
                 </p>
               </div>
               <p className={cn('text-sm sm:text-right', job.newApplicants > 0 ? 'text-fg-default' : 'text-fg-muted')}>
@@ -526,36 +666,60 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
 // Post a job
 // ---------------------------------------------------------------------------
 
-function PostJob({ companies, onCancel }: { companies: EmployerCompany[]; onCancel?: () => void }) {
-  const [companyId, setCompanyId] = useState(companies[0].companyId);
+function PostJob({ user, companies, onCancel }: { user: AccountUser; companies: EmployerCompany[]; onCancel?: () => void }) {
+  // Opens on the company whose job was being written last, if one was.
+  const [companyId, setCompanyId] = useState(
+    () => latestDraftCompany(user.id, companies.map((c) => c.companyId)) ?? companies[0].companyId
+  );
   const company = companies.find((c) => c.companyId === companyId) ?? companies[0];
+  // The form that asks for a plant that is not in the list.
+  const [askingFor, setAskingFor] = useState<string | null>(null);
+  const asking = askingFor === company.companyId;
 
   return (
-    <div className={cn(cardClass, 'p-4 sm:p-6')}>
-      {companies.length > 1 && (
-        <Field label="Company" htmlFor="job-company" className="mb-4">
-          <Select value={company.companyId} onValueChange={setCompanyId}>
-            <SelectTrigger id="job-company" className={selectTriggerClass}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className={selectContentClass}>
-              {companies.map((c) => (
-                <SelectItem key={c.companyId} value={c.companyId} className="py-2.5">
-                  {c.companyName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-      )}
-      {company.factories.length === 0 ? (
-        <p className="text-sm text-fg-muted">
-          {company.companyName} has no factory on record, so a job cannot be posted for it yet.
-        </p>
+    <>
+      <div className={cn(cardClass, 'p-4 sm:p-6')}>
+        {companies.length > 1 && (
+          <Field label="Company" htmlFor="job-company" className="mb-4">
+            <Select value={company.companyId} onValueChange={setCompanyId}>
+              <SelectTrigger id="job-company" className={selectTriggerClass}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className={selectContentClass}>
+                {companies.map((c) => (
+                  <SelectItem key={c.companyId} value={c.companyId} className="py-2.5">
+                    {c.companyName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        )}
+        {company.factories.length === 0 ? (
+          <p className="text-sm text-fg-muted" data-no-factory>
+            {company.companyName} has no factory on record. A job is posted at a factory, so one has to be added first.
+          </p>
+        ) : (
+          // A form per company: its factories differ. What was typed for each is kept.
+          <JobForm key={company.companyId} company={company} mode="post" onCancel={onCancel} />
+        )}
+      </div>
+      {asking ? (
+        <div className="mt-4">
+          <CompanyRequestForm
+            company={{ id: company.companyId, name: company.companyName }}
+            onCancel={() => setAskingFor(null)}
+            onDone={() => setAskingFor(null)}
+          />
+        </div>
       ) : (
-        // A fresh form per company: its factories differ.
-        <JobForm key={company.companyId} company={company} mode="post" onCancel={onCancel} />
+        <p className="mt-3 text-sm text-fg-muted">
+          {company.factories.length === 0 ? '' : 'Factory not in the list? '}
+          <button type="button" onClick={() => setAskingFor(company.companyId)} className={textButtonClass} data-ask-for-plant>
+            Ask for {company.factories.length === 0 ? 'a factory' : 'it'} to be added
+          </button>
+        </p>
       )}
-    </div>
+    </>
   );
 }

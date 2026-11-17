@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ExternalLink, Loader2, Lock, MapPin, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import {
   type JobDetailResponse,
   type JobSkill,
 } from '../lib/account';
-import { useApplicantList, useDeleteJob } from '../lib/employerJobs';
+import { useApplicantList, useDeleteJob, useExtendJob } from '../lib/employerJobs';
 import { useMarkSkill } from '../lib/seeker';
 import { employmentLabel, formatAgo, formatDate, formatPay, formatPlace } from '../lib/jobFormat';
 import {
@@ -35,6 +35,7 @@ import {
   textButtonClass,
 } from '../components/account/parts';
 import ApplicantList from '../components/account/ApplicantList';
+import JobDescription from '../components/account/JobDescription';
 import { SkillHeldToggle } from '../components/account/SkillStatusButton';
 import { busyButtonClass } from '../components/account/JobForm';
 import ConfirmDialog from '../components/admin/ConfirmDialog';
@@ -67,6 +68,24 @@ export default function JobDetail() {
   useEffect(() => {
     if (applyAsManager) document.getElementById('apply-note')?.focus();
   }, [applyAsManager]);
+
+  // A person who was managing this job and no longer can (signed out in
+  // another tab, or removed from the company) is told, not left with a page
+  // that quietly lost its applicants. Who is signed in is checked again.
+  const canManage = job.data?.canManage;
+  const managed = useRef(false);
+  const [lostAccess, setLostAccess] = useState(false);
+  const recheckAccount = account.refetch;
+  useEffect(() => {
+    if (canManage) {
+      managed.current = true;
+      setLostAccess(false);
+    } else if (canManage === false && managed.current) {
+      managed.current = false;
+      setLostAccess(true);
+      void recheckAccount();
+    }
+  }, [canManage, recheckAccount]);
 
   if (job.isPending) return <PageLoading label="Loading job" />;
 
@@ -145,6 +164,22 @@ export default function JobDetail() {
         }
       />
 
+      {lostAccess && !manages && (
+        <p role="status" className={cn(cardClass, 'mb-6 p-4 text-sm text-fg-default')} data-lost-access>
+          {signedIn ? (
+            `You no longer manage jobs for ${data.job.companyName.replace(/\.$/, '')}.`
+          ) : (
+            <>
+              You are signed out.{' '}
+              <Link to={signInPath(`/jobs/${data.job.id}`)} className="font-medium underline underline-offset-4 hover:no-underline">
+                Sign in
+              </Link>{' '}
+              to manage this job.
+            </>
+          )}
+        </p>
+      )}
+
       {manages ? (
         // The company's view comes first: the job's state, then who applied.
         <>
@@ -163,8 +198,8 @@ export default function JobDetail() {
 
       {data.job.description && (
         <PageSection title="About the job">
-          <div className={cn(cardClass, 'whitespace-pre-line break-words p-4 text-sm leading-relaxed text-fg-default sm:p-6')}>
-            {data.job.description}
+          <div className={cn(cardClass, 'p-4 text-sm leading-relaxed text-fg-default sm:p-6')}>
+            <JobDescription text={data.job.description} />
           </div>
         </PageSection>
       )}
@@ -497,7 +532,13 @@ function ManageSection({ job }: { job: JobDetailData }) {
             Applicants{count ? <span className="ml-2 font-normal tabular-nums text-fg-muted">{count}</span> : null}
           </span>
         }
-        description={count ? 'Ranked by required skills held. Skills are self-reported, not verified.' : undefined}
+        description={
+          !count
+            ? undefined
+            : applicants.data?.skills.some((skill) => skill.required)
+              ? 'Ranked by required skills held. Skills are self-reported, not verified.'
+              : 'In order of application: this job lists no required skills.'
+        }
       >
         {applicants.isPending ? (
           <RowsSkeleton rows={2} />
@@ -506,7 +547,7 @@ function ManageSection({ job }: { job: JobDetailData }) {
         ) : applicants.data.applications.length === 0 ? (
           <CardNote>{offsite ? 'People apply on your own site, so none are listed here.' : 'Nobody has applied yet.'}</CardNote>
         ) : (
-          <ApplicantList data={applicants.data} />
+          <ApplicantList data={applicants.data} job={job} />
         )}
       </PageSection>
     </div>
@@ -517,6 +558,9 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
   const navigate = useNavigate();
   const update = useUpdateJob(job.id);
   const remove = useDeleteJob();
+  const extend = useExtendJob();
+  // Offered once the 60 days are nearly up; before that there is nothing to gain.
+  const daysLeft = Math.ceil((new Date(job.expiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
   const [closing, setClosing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [reason, setReason] = useState('');
@@ -593,6 +637,22 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
             Reopen job
           </Button>
         )}
+        {listed && daysLeft <= 14 && (
+          <Button
+            type="button"
+            variant="outline"
+            aria-disabled={extend.isPending}
+            aria-busy={extend.isPending}
+            onClick={() => {
+              if (!extend.isPending) extend.mutate(job.id);
+            }}
+            className={cn('h-10 rounded-lg', outlineButtonClass, busyButtonClass)}
+            data-extend-job
+          >
+            {extend.isPending && <Loader2 className="animate-spin" />}
+            Extend 60 days
+          </Button>
+        )}
         {applicantCount === 0 && (
           <button
             type="button"
@@ -608,7 +668,14 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
       </div>
 
       {closing && listed && (
-        <form onSubmit={close} className="mt-4 space-y-3 border-t border-border-subtle pt-4">
+        <form
+          onSubmit={close}
+          onKeyDown={(event) => {
+            // Escape leaves the job open, as Cancel does.
+            if (event.key === 'Escape' && !update.isPending) setClosing(false);
+          }}
+          className="mt-4 space-y-3 border-t border-border-subtle pt-4"
+        >
           <Field label="Reason" htmlFor="close-reason" optional hint="Shown to people who applied, e.g. “Position filled”.">
             <input
               id="close-reason"
@@ -621,9 +688,9 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
             />
           </Field>
           <div className="flex flex-wrap gap-2">
+            {/* Looks like the rest: the step it took to get here carries the weight. */}
             <Button
               type="submit"
-              variant="destructive"
               aria-disabled={update.isPending}
               aria-busy={update.isPending}
               className={cn('h-10 rounded-lg', busyButtonClass)}
@@ -639,12 +706,12 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
               }}
               className={cn('h-10 rounded-lg', outlineButtonClass)}
             >
-              Keep it open
+              Cancel
             </Button>
           </div>
         </form>
       )}
-      <ErrorNote error={update.error} className="mt-3" />
+      <ErrorNote error={update.error ?? extend.error} className="mt-3" />
 
       <ConfirmDialog
         open={deleting}
