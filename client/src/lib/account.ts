@@ -18,10 +18,13 @@ import { API_BASE } from './api';
 export class ApiError extends Error {
   /** HTTP status, or 0 when the server could not be reached. */
   status: number;
-  constructor(message: string, status: number) {
+  /** What the server sent with the refusal, when it sent JSON. */
+  payload: unknown;
+  constructor(message: string, status: number, payload: unknown = null) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.payload = payload;
   }
 }
 
@@ -40,7 +43,7 @@ function messageFor(payload: unknown, status: number): string {
   return `The request could not be completed (${status}).`;
 }
 
-async function request<T>(path: string, { method = 'GET', body, headers }: RequestOptions = {}): Promise<T> {
+export async function request<T>(path: string, { method = 'GET', body, headers }: RequestOptions = {}): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE}${path}`, {
@@ -53,7 +56,7 @@ async function request<T>(path: string, { method = 'GET', body, headers }: Reque
     throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
   }
   const payload: unknown = await response.json().catch(() => null);
-  if (!response.ok) throw new ApiError(messageFor(payload, response.status), response.status);
+  if (!response.ok) throw new ApiError(messageFor(payload, response.status), response.status, payload);
   return payload as T;
 }
 
@@ -637,8 +640,6 @@ export const accountKeys = {
   adminCompanies: (q: string) => ['admin', 'companies', q] as const,
   invite: (token: string) => ['invite', token] as const,
   passwordReset: (token: string) => ['password-reset', token] as const,
-  /** Owned by AdminKeyGate; a signed-in admin counts as authorized there. */
-  importStatus: ['import-status'] as const,
 };
 
 const SIGNED_OUT: Account = { user: null, memberships: [], isEmployer: false };
@@ -653,7 +654,6 @@ function identityChanged(queryClient: QueryClient, account: Account): void {
   queryClient.removeQueries({ queryKey: accountKeys.employer });
   queryClient.removeQueries({ queryKey: accountKeys.admin });
   void queryClient.invalidateQueries({ queryKey: accountKeys.jobs });
-  void queryClient.invalidateQueries({ queryKey: accountKeys.importStatus });
 }
 
 function invalidate(queryClient: QueryClient, ...keys: readonly (readonly unknown[])[]): Promise<void> {

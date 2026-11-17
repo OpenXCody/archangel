@@ -13,9 +13,6 @@ import {
   Clock,
   Layers,
   Loader2,
-  Boxes,
-  GraduationCap,
-  BookOpen,
 } from 'lucide-react';
 import { searchApi, type SearchEntityType, type SearchResultItem } from '../../lib/api';
 import CompanyLogo from '../CompanyLogo';
@@ -58,24 +55,6 @@ const ENTITY_CONFIG: Record<
     label: 'State',
     iconClass: 'text-fg-muted',
     path: '/states',
-  },
-  refs: {
-    icon: Boxes,
-    label: 'Element',
-    iconClass: 'text-fg-muted',
-    path: '/refs',
-  },
-  schools: {
-    icon: GraduationCap,
-    label: 'School',
-    iconClass: 'text-fg-muted',
-    path: '/schools',
-  },
-  programs: {
-    icon: BookOpen,
-    label: 'Program',
-    iconClass: 'text-fg-muted',
-    path: '/programs',
   },
 };
 

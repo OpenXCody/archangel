@@ -5,7 +5,7 @@ import { test, expect, type Page, type APIRequestContext } from '@playwright/tes
 const API = '/api';
 
 /** Static routes every device profile must render cleanly. */
-const STATIC_ROUTES = ['/map', '/explore', '/import', '/import/bulk'];
+const STATIC_ROUTES = ['/map', '/explore', '/jobs', '/sign-in'];
 
 async function firstId(request: APIRequestContext, path: string): Promise<string | null> {
   for (let attempt = 0; attempt < 2; attempt++) {

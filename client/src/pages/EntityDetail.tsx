@@ -14,21 +14,13 @@ import {
   Factory,
   Briefcase,
   Wrench,
-  MapPin,
   ChevronRight,
-  Boxes,
-  GraduationCap,
-  BookOpen,
-  Clock,
 } from 'lucide-react';
 import {
   companiesApi,
   factoriesApi,
   occupationsApi,
   skillsApi,
-  refsApi,
-  schoolsApi,
-  programsApi,
   type EntityType,
   type CompanyDetail,
   type FactoryDetail,
@@ -36,9 +28,6 @@ import {
   type RelatedSkill,
   type CareerJob,
   type SkillDetail,
-  type RefDetail,
-  type SchoolDetail,
-  type ProgramDetail,
 } from '../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../components/CompanyLogo';
@@ -49,7 +38,7 @@ import { PageContainer, EmptyState } from '../components/layout/Page';
 
 // Entity type configs - monochrome with entity accent colors only on icons
 const ENTITY_CONFIG: Record<
-  Exclude<EntityType, 'persons'>,
+  EntityType,
   {
     icon: React.ElementType;
     label: string;
@@ -86,37 +75,13 @@ const ENTITY_CONFIG: Record<
     iconClass: 'text-fg-muted',
     borderClass: 'border-tint/10',
   },
-  refs: {
-    icon: Boxes,
-    label: 'Element',
-    badgeClass: 'bg-tint/5 text-fg-muted border-tint/10',
-    iconClass: 'text-fg-muted',
-    borderClass: 'border-tint/10',
-  },
-  schools: {
-    icon: GraduationCap,
-    label: 'School',
-    badgeClass: 'bg-tint/5 text-fg-muted border-tint/10',
-    iconClass: 'text-fg-muted',
-    borderClass: 'border-tint/10',
-  },
-  programs: {
-    icon: BookOpen,
-    label: 'Program',
-    badgeClass: 'bg-tint/5 text-fg-muted border-tint/10',
-    iconClass: 'text-fg-muted',
-    borderClass: 'border-tint/10',
-  },
 };
 
-function getEntityType(pathname: string): Exclude<EntityType, 'persons'> {
-  if (pathname.includes('/companies')) return 'companies';
-  if (pathname.includes('/factories')) return 'factories';
-  if (pathname.includes('/occupations')) return 'occupations';
-  if (pathname.includes('/skills')) return 'skills';
-  if (pathname.includes('/refs')) return 'refs';
-  if (pathname.includes('/schools')) return 'schools';
-  if (pathname.includes('/programs')) return 'programs';
+/** The kind of record a page shows is the first part of its address: /companies/:id, /factories/:id and so on. */
+function getEntityType(pathname: string): EntityType {
+  if (pathname.startsWith('/factories')) return 'factories';
+  if (pathname.startsWith('/occupations')) return 'occupations';
+  if (pathname.startsWith('/skills')) return 'skills';
   return 'companies';
 }
 
@@ -245,7 +210,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
   const [showAllSites, setShowAllSites] = useState(false);
   const [showAllCareers, setShowAllCareers] = useState(false);
   const name = formatCompanyName(data.name);
-  const sites = data.factories ?? [];
+  const sites = useMemo(() => data.factories ?? [], [data.factories]);
   const jobs = data.jobs ?? [];
 
   // Sites that can be placed, for the footprint and for framing them on the map.
@@ -275,7 +240,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
   );
   const shownSites = showAllSites ? sortedSites : sortedSites.slice(0, SITES_SHOWN);
 
-  const industries = data.industries?.length ? data.industries.map((industry) => industry.name) : data.industry ? [data.industry] : [];
+  const industries = data.industry ? [data.industry] : [];
   const facts = [
     sites.length > 0 ? `${sites.length.toLocaleString()} ${sites.length === 1 ? 'site' : 'sites'}` : null,
     byState.length > 1 ? `${byState.length} states` : byState.length === 1 ? byState[0].name : null,
@@ -430,7 +395,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
     .join(', ');
   const industry = data.industry || data.specialization;
   const jobs = data.jobs ?? [];
-  const nearby = data.nearby ?? [];
+  const nearby = useMemo(() => data.nearby ?? [], [data.nearby]);
   const latitude = parseFloat(data.latitude);
   const longitude = parseFloat(data.longitude);
   const located = Number.isFinite(latitude) && Number.isFinite(longitude);
@@ -890,220 +855,15 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
   );
 }
 
-// Ref Detail View (Elements: materials, machines, standards, processes, certifications)
-function RefDetailView({ data }: { data: RefDetail }) {
-  // Format ref type for display
-  const typeLabel = data.type.charAt(0).toUpperCase() + data.type.slice(1);
-
-  return (
-    <>
-      {/* Type + Manufacturer badge */}
-      <div className="flex flex-wrap gap-2 mt-4">
-        <span className="px-2 py-1 rounded-full text-xs bg-bg-elevated text-fg-muted border border-border-strong">
-          {typeLabel}
-        </span>
-        {data.manufacturer && (
-          <span className="px-2 py-1 rounded-full text-xs bg-tint/5 text-fg-muted border border-tint/10">
-            {data.manufacturer}
-          </span>
-        )}
-      </div>
-
-      {/* Tags */}
-      {data.tags && data.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-3">
-          {data.tags.map((tag, i) => (
-            <span key={i} className="px-2 py-0.5 rounded text-xs bg-tint/5 text-fg-soft">
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
-          <div className="text-2xl font-semibold text-fg-default">{data.skills?.length || 0}</div>
-          <div className="text-sm text-fg-muted">Skills</div>
-        </div>
-      </div>
-
-      {/* Aliases */}
-      {data.aliases?.length > 0 && (
-        <Section title="Also known as" count={data.aliases.length}>
-          <div className="flex flex-wrap gap-2">
-            {data.aliases.map((alias) => (
-              <span key={alias.id} className="px-3 py-1 rounded-full text-sm bg-tint/5 text-fg-muted border border-tint/10">
-                {alias.aliasText}
-              </span>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* Skills that reference this element */}
-      {data.skills?.length > 0 && (
-        <Section title="Referenced by skills" count={data.skills.length}>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {data.skills.map((skill) => (
-              <RelatedCard
-                key={skill.id}
-                to={`/skills/${skill.id}`}
-                icon={Wrench}
-                iconClass="text-fg-muted"
-                title={skill.name}
-                subtitle={skill.category}
-              />
-            ))}
-          </div>
-        </Section>
-      )}
-    </>
-  );
-}
-
-// School Detail View
-function SchoolDetailView({ data }: { data: SchoolDetail }) {
-  return (
-    <>
-      {/* Location + Type */}
-      <div className="flex flex-wrap gap-2 mt-4">
-        {data.state && (
-          <FilterPill to={`/explore?tab=schools&state=${encodeURIComponent(data.state)}`}>
-            <MapPin className="w-3 h-3" />
-            {data.state}
-          </FilterPill>
-        )}
-        {data.schoolType && (
-          <span className="px-2 py-1 rounded-full text-xs bg-bg-elevated text-fg-muted border border-border-strong">
-            {data.schoolType}
-          </span>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
-          <div className="text-2xl font-semibold text-fg-default">{data.programs?.length || 0}</div>
-          <div className="text-sm text-fg-muted">Programs</div>
-        </div>
-      </div>
-
-      {/* Programs */}
-      {data.programs?.length > 0 && (
-        <Section title="Programs offered" count={data.programs.length}>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {data.programs.map((program) => (
-              <RelatedCard
-                key={program.id}
-                to={`/programs/${program.id}`}
-                icon={BookOpen}
-                iconClass="text-fg-muted"
-                title={program.title}
-                subtitle={program.credentialType ? `${program.credentialType} · ${program.skillCount} skills` : `${program.skillCount} skills`}
-              />
-            ))}
-          </div>
-        </Section>
-      )}
-    </>
-  );
-}
-
-// Program Detail View
-function ProgramDetailView({ data }: { data: ProgramDetail }) {
-  return (
-    <>
-      {/* Parent school link */}
-      {data.school && (
-        <Link
-          to={`/schools/${data.school.id}`}
-          className="
-            inline-flex items-center gap-2 mt-4 px-4 py-2
-            bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg
-            text-fg-muted hover:bg-tint/[0.05] hover:text-fg-default transition-colors
-          "
-        >
-          <GraduationCap className="w-4 h-4 text-fg-muted" />
-          <span>{data.school.name}</span>
-          <ChevronRight className="w-4 h-4" />
-        </Link>
-      )}
-
-      {/* Credential type + Duration */}
-      <div className="flex flex-wrap gap-2 mt-4">
-        {data.credentialType && (
-          <span className="px-2 py-1 rounded-full text-xs bg-bg-elevated text-fg-muted border border-border-strong">
-            {data.credentialType}
-          </span>
-        )}
-        {data.durationHours && (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-tint/5 text-fg-muted border border-tint/10">
-            <Clock className="w-3 h-3" />
-            {data.durationHours} hours
-          </span>
-        )}
-        {data.cipCode && (
-          <span className="px-2 py-1 rounded-full text-xs bg-tint/5 text-fg-soft font-mono border border-tint/10">
-            CIP: {data.cipCode}
-          </span>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
-          <div className="text-2xl font-semibold text-fg-default">{data.skills?.length || 0}</div>
-          <div className="text-sm text-fg-muted">Skills Taught</div>
-        </div>
-      </div>
-
-      {/* Aliases */}
-      {data.aliases?.length > 0 && (
-        <Section title="Also known as" count={data.aliases.length}>
-          <div className="flex flex-wrap gap-2">
-            {data.aliases.map((alias) => (
-              <span key={alias.id} className="px-3 py-1 rounded-full text-sm bg-tint/5 text-fg-muted border border-tint/10">
-                {alias.aliasText}
-              </span>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* Skills taught */}
-      {data.skills?.length > 0 && (
-        <Section title="Skills taught" count={data.skills.length}>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {data.skills.map((skill) => (
-              <RelatedCard
-                key={skill.id}
-                to={`/skills/${skill.id}`}
-                icon={Wrench}
-                iconClass="text-fg-muted"
-                title={skill.name}
-                subtitle={skill.category}
-              />
-            ))}
-          </div>
-        </Section>
-      )}
-    </>
-  );
-}
-
-// Helper to get API fetch function
 // What a missing record is called, and the list to go to instead.
-const NOT_LISTED: Partial<Record<EntityType, string>> = {
+const NOT_LISTED: Record<EntityType, string> = {
   companies: 'company', factories: 'factory', occupations: 'career', skills: 'skill',
-  refs: 'element', schools: 'school', programs: 'program',
 };
-const BROWSE_WORD: Partial<Record<EntityType, string>> = {
+const BROWSE_WORD: Record<EntityType, string> = {
   companies: 'companies', factories: 'factories', occupations: 'careers', skills: 'skills',
-  refs: 'elements', schools: 'schools', programs: 'programs',
 };
 
-function getEntityFetcher(entityType: Exclude<EntityType, 'persons'>, id: string) {
+function getEntityFetcher(entityType: EntityType, id: string) {
   switch (entityType) {
     case 'companies':
       return () => companiesApi.get(id);
@@ -1113,24 +873,16 @@ function getEntityFetcher(entityType: Exclude<EntityType, 'persons'>, id: string
       return () => occupationsApi.get(id);
     case 'skills':
       return () => skillsApi.get(id);
-    case 'refs':
-      return () => refsApi.get(id);
-    case 'schools':
-      return () => schoolsApi.get(id);
-    case 'programs':
-      return () => programsApi.get(id);
   }
 }
 
 // Union type for all entity details
-type AnyEntityDetail = CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail | RefDetail | SchoolDetail | ProgramDetail;
+type AnyEntityDetail = CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail;
 
 // Type guard helpers
-// A career also lists industries (where the work is done), so that alone does not make a company.
 function isCompanyDetail(data: AnyEntityDetail): data is CompanyDetail {
-  // A career's response also carries `industries` (where the work is done),
-  // so that field alone does not make a company: a company has no skills.
-  return 'factories' in data && 'industries' in data && !('skills' in data);
+  // A career's response lists factories too: a company has no skills.
+  return 'factories' in data && !('skills' in data);
 }
 
 function isFactoryDetail(data: AnyEntityDetail): data is FactoryDetail {
@@ -1138,29 +890,18 @@ function isFactoryDetail(data: AnyEntityDetail): data is FactoryDetail {
 }
 
 function isOccupationDetail(data: AnyEntityDetail): data is OccupationDetail {
-  return 'skills' in data && 'factories' in data && !('school' in data);
+  return 'skills' in data && 'factories' in data;
 }
 
 function isSkillDetail(data: AnyEntityDetail): data is SkillDetail {
   return 'relatedSkills' in data;
 }
 
-function isRefDetail(data: AnyEntityDetail): data is RefDetail {
-  return 'type' in data && 'manufacturer' in data && 'properties' in data;
-}
-
-function isSchoolDetail(data: AnyEntityDetail): data is SchoolDetail {
-  return 'programs' in data && 'schoolType' in data;
-}
-
-function isProgramDetail(data: AnyEntityDetail): data is ProgramDetail {
-  return 'school' in data && 'cipCode' in data;
-}
-
 // Main EntityDetail component
 export default function EntityDetail() {
-  const { id, type: routeType } = useParams<{ id: string; type?: string }>();
-  const entityType = (routeType as Exclude<EntityType, 'persons'>) || getEntityType(window.location.pathname);
+  const { id } = useParams<{ id: string }>();
+  const { pathname, hash } = useLocation();
+  const entityType = getEntityType(pathname);
 
   const { data, isLoading, error } = useQuery<AnyEntityDetail>({
     queryKey: [entityType, id],
@@ -1182,7 +923,6 @@ export default function EntityDetail() {
   }, [slug, id, navigate]);
 
   // Cards deep-link to sections (#factories, #occupations, …); scroll once the data is on the page.
-  const { hash } = useLocation();
   useEffect(() => {
     if (!hash || !data) return;
     const el = document.getElementById(hash.slice(1));
@@ -1205,14 +945,14 @@ export default function EntityDetail() {
       <PageContainer size="narrow">
         <BackButton fallback={`/explore?tab=${entityType}`} />
         <EmptyState
-          title={`This ${NOT_LISTED[entityType] ?? 'page'} is not listed`}
+          title={`This ${NOT_LISTED[entityType]} is not listed`}
           description="The link may be old, or the record was removed."
           action={
             <Link
               to={`/explore?tab=${entityType}`}
               className="rounded-lg border border-border-strong px-4 py-2 text-sm font-medium text-fg-default hover:bg-bg-elevated"
             >
-              Browse {BROWSE_WORD[entityType] ?? 'everything'}
+              Browse {BROWSE_WORD[entityType]}
             </Link>
           }
         />
@@ -1266,9 +1006,6 @@ export default function EntityDetail() {
         {entityType === 'factories' && isFactoryDetail(data) && <FactoryDetailView data={data} />}
         {entityType === 'occupations' && isOccupationDetail(data) && <OccupationDetailView data={data} />}
         {entityType === 'skills' && isSkillDetail(data) && <SkillDetailView data={data} />}
-        {entityType === 'refs' && isRefDetail(data) && <RefDetailView data={data} />}
-        {entityType === 'schools' && isSchoolDetail(data) && <SchoolDetailView data={data} />}
-        {entityType === 'programs' && isProgramDetail(data) && <ProgramDetailView data={data} />}
       </div>
     </PageContainer>
   );

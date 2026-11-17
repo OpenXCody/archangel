@@ -6,7 +6,7 @@ import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { packPins } from '../../shared/pins.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerWriteError, coordinate, count, optionalName, requiredText } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalName, optionalText, requiredText, stateCode } from '../lib/writes.js';
 
 /** A company with this many factories nationwide counts as established. */
 const ESTABLISHED_MIN_SITES = 5;
@@ -329,32 +329,43 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
+const FACTORY_NEEDS =
+  'A factory needs a company, a name, a state, a latitude from -90 to 90 and a longitude from -180 to 180.';
+
 // POST /api/factories - Create factory
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const {
-      companyId,
-      name,
-      specialization,
-      description,
-      latitude,
-      longitude,
-      state,
-      workforceSize,
-      openPositions,
-    } = req.body;
+    const { companyId, name, specialization, description, latitude, longitude, workforceSize, openPositions } = req.body;
 
     const cleanName = requiredText(name, 300);
     const lat = coordinate(latitude, 'latitude');
     const lng = coordinate(longitude, 'longitude');
+    const state = stateCode(req.body?.state);
+    const city = optionalText(req.body?.city, 120);
+    const address = optionalText(req.body?.address, 300);
     const workforce = count(workforceSize);
     const openings = count(openPositions);
-    if (!cleanName || lat === null || lng === null) {
-      res.status(400).json({ error: 'A factory needs a name, a latitude from -90 to 90 and a longitude from -180 to 180.' });
+    if (!isUuid(companyId) || !cleanName || !state || lat === null || lng === null) {
+      res.status(400).json({ error: FACTORY_NEEDS });
+      return;
+    }
+    if (city === false || address === false) {
+      res.status(400).json({ error: 'A city is text of up to 120 characters and an address of up to 300.' });
       return;
     }
     if (workforce === false || openings === false) {
       res.status(400).json({ error: 'Workforce and open positions are whole numbers from 0 up.' });
+      return;
+    }
+
+    // One company does not have two plants of the same name in one state.
+    const [existing] = await db
+      .select({ id: factories.id, name: factories.name })
+      .from(factories)
+      .where(and(eq(factories.companyId, companyId), eq(factories.state, state), sql`lower(${factories.name}) = lower(${cleanName})`))
+      .limit(1);
+    if (existing) {
+      answerDuplicate(res, 'factory', existing, 'That company already has a factory with that name in that state.');
       return;
     }
 
@@ -365,6 +376,8 @@ router.post('/', async (req: Request, res: Response) => {
       description,
       latitude: lat,
       longitude: lng,
+      address,
+      city,
       state,
       workforceSize: workforce,
       openPositions: openings,
@@ -380,26 +393,23 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const {
-      companyId,
-      name,
-      specialization,
-      description,
-      latitude,
-      longitude,
-      state,
-      workforceSize,
-      openPositions,
-    } = req.body;
+    const { companyId, name, specialization, description, latitude, longitude, workforceSize, openPositions } = req.body;
 
     // A value that is left out stays as it is; one that is given must be usable.
     const cleanName = optionalName(name, 300);
     const lat = latitude === undefined ? undefined : coordinate(latitude, 'latitude');
     const lng = longitude === undefined ? undefined : coordinate(longitude, 'longitude');
+    const state = req.body?.state === undefined ? undefined : stateCode(req.body.state);
+    const city = optionalText(req.body?.city, 120);
+    const address = optionalText(req.body?.address, 300);
     const workforce = workforceSize === undefined ? undefined : count(workforceSize);
     const openings = openPositions === undefined ? undefined : count(openPositions);
-    if (cleanName === false || lat === null || lng === null) {
-      res.status(400).json({ error: 'A factory needs a name, a latitude from -90 to 90 and a longitude from -180 to 180.' });
+    if ((companyId !== undefined && !isUuid(companyId)) || cleanName === false || state === null || lat === null || lng === null) {
+      res.status(400).json({ error: FACTORY_NEEDS });
+      return;
+    }
+    if (city === false || address === false) {
+      res.status(400).json({ error: 'A city is text of up to 120 characters and an address of up to 300.' });
       return;
     }
     if (workforce === false || openings === false) {
@@ -415,6 +425,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         description,
         latitude: lat,
         longitude: lng,
+        address,
+        city,
         state,
         workforceSize: workforce,
         openPositions: openings,

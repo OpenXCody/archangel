@@ -74,17 +74,3 @@ export const FOCUS_AREAS: FocusArea[] = [
 export function focusArea(id: string): FocusArea | undefined {
   return FOCUS_AREAS.find((area) => area.id === id);
 }
-
-/** Bounds of the first focus area. Kept for callers that frame "the" focus area. */
-export function focusBounds(): Bounds {
-  return FOCUS_AREAS[0].bounds;
-}
-
-/** Great-circle distance in miles between two points. */
-export function milesBetween(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return 3958.8 * 2 * Math.asin(Math.sqrt(a));
-}

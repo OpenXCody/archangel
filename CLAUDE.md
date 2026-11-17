@@ -11,7 +11,7 @@ Archangel is a workforce map of US manufacturing, filled out in depth one focus 
 - **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui
 - **State**: Zustand (UI), TanStack Query (server)
 - **Backend**: Express.js, TypeScript, Drizzle ORM
-- **Database**: PostgreSQL + PostGIS (Neon)
+- **Database**: PostgreSQL (Neon), with `pg_trgm` for search
 - **Maps**: MapLibre GL JS + MapTiler (free tier)
 
 ## Theme and colour
@@ -32,37 +32,30 @@ Never name a palette colour in a component (`text-emerald-400`, `bg-white/10`): 
 
 ```
 archangel/
-├── client/src/           # React app
-│   ├── components/       # ui/ (shadcn), layout/ (Layout, Page shell), map/, explorer/, import/, search/
-│   ├── pages/            # MapView, NodeExplorer, DataImport, entity/*
-│   ├── stores/           # Zustand stores
-│   └── lib/              # api.ts, platform.ts, utils.ts
+├── client/
+│   ├── index.html        # applies the theme before first paint
+│   ├── public/           # manifest, icons, data/us-states.geojson, data/areas/*.geojson
+│   └── src/
+│       ├── App.tsx       # every route
+│       ├── components/   # ui/ (shadcn), layout/ (Layout, Page shell), map/, explorer/, search/, account/, admin/
+│       ├── pages/        # MapView, Explore, EntityDetail, Jobs, JobDetail, SignIn, Me, Employer, Admin, NotFound
+│       ├── stores/       # mapStore (Zustand)
+│       ├── lib/          # api.ts (public reads), account.ts (everything signed in), employerJobs.ts, seeker.ts, records.ts, theme.ts, geocode.ts, jobFormat.ts
+│       └── styles/       # globals.css (theme tokens)
 ├── server/               # Express API (app.ts is THE app; index.ts listens locally, api/index.ts serves it on Vercel)
-│   ├── routes/           # companies, factories, occupations, skills, refs, schools, programs, persons, search, map, stats, import
-│   ├── middleware/       # adminAuth (x-admin-secret), validateUuid, cache
-│   └── db/               # schema.ts, index.ts
-├── shared/               # states.ts, tokens.ts, displayName.ts, companyNormalization.ts, addressStubFilter.ts
-├── specs/                # Detailed specifications (READ THESE)
-└── public/data/          # us-states.geojson
+│   ├── routes/           # companies, factories, occupations, skills, search, map, stats, explore, auth, me, jobs, employer, admin
+│   ├── middleware/       # adminAuth (signed-in admin), validateUuid, cache
+│   ├── lib/              # auth, invites, passwordResets, scope, paging, writes, openJobs, companyFilters, wipeGuard
+│   ├── db/               # schema.ts, index.ts
+│   └── scripts/          # import-pillar-bulk.ts (factories from Pillar), seed.ts (local sample data)
+├── shared/               # states.ts, scope.ts, pins.ts, displayName.ts, companyNormalization.ts, addressStubFilter.ts
+├── data/                 # curated lists (career paths, company profiles, careers by industry) behind the generated migrations
+├── migrations/           # SQL; 0010 onward run through scripts/migrate.mjs
+├── scripts/              # migrate.mjs, make-admin.mjs, build-*-sql.mjs, enrich-naics.mjs, check-*.mjs (lint)
+└── tests/                # responsive.spec.ts (Playwright), api/*.sh (local API suites)
 ```
 
-## Before Implementing Any Feature
-
-1. **Read the relevant spec** in `specs/` directory
-2. **Check `specs/07_DESIGN_SYSTEM.md`** for visual patterns
-3. **Use existing tokens** from `globals.css` and `tokens.ts`
-
-## Key Specs
-
-| Task | Read First |
-|------|------------|
-| Database/types | `specs/05_DATABASE_SCHEMA.md` |
-| Import pipeline | `specs/01_DATA_IMPORT.md` |
-| Map visualization | `specs/02_MAP_VIEW.md` |
-| Entity browsing | `specs/03_NODE_EXPLORER.md` |
-| Search modal | `specs/04_GLOBAL_SEARCH.md` |
-| Deployment | `specs/06_APP_DEPLOYMENT.md` |
-| UI components | `specs/07_DESIGN_SYSTEM.md` |
+There are no spec documents: the code and this file say how things are. `README.md` covers running it locally, the checks, how data gets in and how it deploys.
 
 ## Coverage and focus areas
 
@@ -103,13 +96,15 @@ On screen an occupation is a **Career**, and a job is one opening for a career a
 Roles are relationships, not account types (`server/lib/auth.ts`):
 - **Seeker**: any signed-in person. Owns their skills (learning/held), career goals and applications.
 - **Employer**: a person with an active membership in a company (`company_members`). A join request is approved by an admin.
-- **Admin**: `users.is_admin`. The first is claimed by a signed-in person who presents `ADMIN_SECRET` (`POST /api/auth/claim-admin`; an endpoint only, there is no UI for it). After that, admins make admins from Admin Tools. Nobody removes their own admin role, and the last admin cannot be removed. The `x-admin-secret` header still works for data writes, but not for `/api/admin/*`, which takes a signed-in admin only.
+- **Admin**: `users.is_admin`, and nothing else: there is no admin key, header or setting that opens a write. The first admin signs up in the app and is then made one on the command line (`node scripts/make-admin.mjs <email>`, which reads `DATABASE_URL`). After that, admins make admins from Admin Tools. Nobody removes their own admin role, and the last admin cannot be removed. Every route that changes a company, factory, career or skill, and all of `/api/admin/*`, takes a signed-in admin: 401 signed out, 403 otherwise.
 
 **Invites** (`invites` table, `server/lib/invites.ts`): an admin creates a one-time link for an email address (`/sign-in?invite=<token>`), as a user, an employer of one company, or an admin. The link is shown once (only the token's hash is stored), lasts 14 days, and there is one pending invite per address. When mail is on the link is also emailed to the address; when it is off the admin passes it on. Signing up through it creates the account, applies the role and marks the invite accepted in one transaction. An address that already has an account is not invited; its roles are changed under People.
 
 **Passwords** (`password_resets` table, `server/lib/passwordResets.ts`): a signed-in person changes their own on `/me` (`POST /api/auth/password { current, next }`), which ends their other sessions. Someone who cannot sign in gets a one-time link from an admin (People → Manage → Password reset link; `POST /api/admin/users/:id/reset-link`). It opens `/sign-in?reset=<token>`, is shown once (only the token's hash is stored), lasts 24 hours and replaces any unused link for that person. Using it sets the password, ends all of that person's sessions and signs them in. When mail is on the link is also emailed to the person, and "Forgot password?" on the sign-in page sends one without an admin (`POST /api/auth/forgot { email }`: the same answer whether or not the address has an account, given before any account is looked up). When mail is off the admin passes the link on and the sign-in page says so.
 
-**Admin Tools** (`/admin`, `client/src/pages/Admin.tsx`, tabs in `client/src/components/admin/`) is reached from "Admin Tools" in the account menu, shown to admins only. Tabs (`?tab=`): `people` (search, roles, company access, delete), `access` (requests to join a company), `invites`, `data` (counts, import tools, career paths awaiting review, a company's domain and featured flag). To anyone who is not an admin the page is the not-found page.
+**Admin Tools** (`/admin`, `client/src/pages/Admin.tsx`, tabs in `client/src/components/admin/`) is reached from "Admin Tools" in the account menu, shown to admins only. Tabs (`?tab=`): `people` (search, roles, company access, delete), `access` (requests to join a company), `invites`, `data` (counts, a company's profile, adding a record, career paths awaiting review). To anyone who is not an admin the page is the not-found page.
+
+**Add a record** (`components/admin/AddRecord.tsx`, `lib/records.ts`) adds one company, factory, career or skill through the validated POST endpoints. It names what was added with a link to its page; a duplicate (409) links to the record that is already there. There is no spreadsheet import: data in bulk comes from scripts and generated migrations (see `README.md`).
 
 Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in responses are `no-store`.
 
@@ -132,26 +127,28 @@ Migration `0024_email_notices.sql` adds all of the above. `tests/api/email.sh` c
 
 ## Routes
 
-**Public:** `/map` (opens on the US; `?area=austin`, `?state=TX`), `/explore`, `/jobs`, `/jobs/:id`, `/companies/:id` (id or slug: `/companies/tesla`), `/factories/:id`, `/occupations/:id` (career page with path), `/skills/:id`, `/refs/:id`, `/schools/:id`, `/programs/:id`, `/sign-in`
+**Public:** `/map` (opens on the US; `?area=austin`, `?state=TX`), `/explore`, `/jobs`, `/jobs/:id`, `/companies/:id` (id or slug: `/companies/tesla`), `/factories/:id`, `/occupations/:id` (career page with path), `/skills/:id`, `/sign-in`
 
-`/explore` opens on an overview (`components/explorer/ExploreOverview.tsx`: featured employers, careers with a path, the most connected skills, places); the lists of everything are behind it at `?tab=companies|factories|occupations|skills|refs|schools|programs`, filtered and sorted from the address (`state`, `industry`, `category`, `sort`).
+`/explore` opens on an overview (`components/explorer/ExploreOverview.tsx`: featured employers, careers with a path, the most connected skills, places); the lists of everything are behind it at `?tab=companies|factories|occupations|skills`, filtered and sorted from the address (`state`, `industry`, `category`, `sort`).
 
-**Signed in:** `/me` (seeker), `/employer` (company members), `/admin` (Admin Tools, admins; `?tab=people|access|invites|data`), `/import`, `/import/bulk` (admins; linked from Admin Tools, not the nav)
+**Signed in:** `/me` (seeker), `/employer` (company members), `/admin` (Admin Tools, admins; `?tab=people|access|invites|data`)
+
+Old addresses: `/import` and `/import/bulk` redirect to `/admin?tab=data`; `/tree` redirects to the map. Anything else unknown (including the removed `/refs/:id`, `/schools/:id`, `/programs/:id`) is the not-found page.
 
 ## API Endpoints
 
-- Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search`, `/api/map/*`, `/api/stats/counts`, `/api/explore/overview` (everything the Explore overview shows, in one response), `/api/explore/facets` (the industries and skill categories the browse lists filter by), `/api/jobs`, `/api/jobs/:id`
-- `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, claim-admin, `invite/:token` (what an invite grants; 404 when unknown, used or expired), `password` (change your own), `reset/:token` (whose password a reset link sets; 404 when unknown, used or expired), `reset` POST `{ token, password }`
+- Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search` (companies, factories, careers, skills, and states from `shared/states.ts`), `/api/map/*`, `/api/stats/counts` (companies, factories, occupations, skills, total), `/api/explore/overview` (everything the Explore overview shows, in one response), `/api/explore/facets` (the industries and skill categories the browse lists filter by), `/api/jobs`, `/api/jobs/:id`
+- `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, `invite/:token` (what an invite grants; 404 when unknown, used or expired), `password` (change your own), `reset/:token` (whose password a reset link sets; 404 when unknown, used or expired), `reset` POST `{ token, password }`
 - `/api/me/*` profile, skills, goals (each with `next` skills), applications, `careers/reach`
 - `/api/jobs` POST; `/:id` PATCH (fields, `skills` as the whole list, close, reopen; company members and admins) and DELETE (only a job with no applications, else 409); `/:id/apply`; `/:id/applications` (ranked; the job's `skills` once, and per applicant `heldSkillIds` and `learningSkillIds`); `/applications/:id` (stage and private note). An application link is stored as https; one typed without a scheme gets it
 - `/api/employer/*` memberships and the employer dashboard
 - `/api/admin/*` (signed-in admin only: 401 signed out, 403 otherwise): `overview`; `users` (`?q=`, paged), `users/:id` PATCH `{ isAdmin }` and DELETE; `users/:id/reset-link` POST; `memberships` GET, POST (add a person to a company), PATCH (approve or remove); `invites` GET, POST, `invites/:id` DELETE; `paths?status=draft`; `companies?q=`, `companies/:id` PATCH `{ domain, featured }`
-- `/api/import/*`, `/api/review/*` (admin)
+- Record writes (signed-in admin): `POST`, `PUT /:id`, `DELETE /:id` on `/api/companies`, `/api/factories`, `/api/occupations`, `/api/skills`, checked through `server/lib/writes.ts`. A `POST` that would repeat a record answers 409 with `existing: { id, name }` (a company by name in any letter case; a factory by company, name and state; a career by title; a skill by name). A factory needs `companyId`, `name`, `state` (a code from `shared/states.ts`), `latitude` and `longitude` as numbers, and takes `city` and `address`
 - `PUT /api/occupations/:id/path` sets a career's skills and stages in bulk (admin)
 
 ## Migrations
 
-`scripts/migrate.mjs` applies the SQL files it lists (0010 onward) once each, before every build (`npm run build`), and skips when `DATABASE_URL` is unset. New tables go in a new idempotent SQL file in `migrations/`, added to the list in that script, and mirrored in `server/db/schema.ts`. Migrations 0000-0009 predate the runner. `0015_invites.sql` adds the `invites` table. `0020_password_resets.sql` adds the `password_resets` table. `0021_industry_careers.sql` adds and fills `industry_occupations`.
+`scripts/migrate.mjs` applies the SQL files it lists (0010 onward) once each, before every build (`npm run build`), and skips when `DATABASE_URL` is unset. New tables go in a new idempotent SQL file in `migrations/`, added to the list in that script, and mirrored in `server/db/schema.ts`. Migrations 0000-0009 predate the runner: a new database gets them by hand, once (`README.md`). `0015_invites.sql` adds the `invites` table. `0020_password_resets.sql` adds the `password_resets` table. `0021_industry_careers.sql` adds and fills `industry_occupations`. `0023_remove_legacy.sql` drops what the product no longer has: Elements (`refs`), Schools, Programs and People with their junction and alias tables, the `states`, `industries` and `skill_categories` lookups, `skill_relations`, `entity_links`, the spreadsheet import's tables, and the columns `factories.state_id` and `skills.category_id`. `occupation_aliases` and `skill_aliases` are kept, empty, for search aliases and merges. A state is its two-letter code (`factories.state`, `shared/states.ts`); a company's industry and a skill's category are text on their own rows.
 
 ## Map
 
@@ -176,11 +173,12 @@ The rule of thumb: it should look like software Tesla would ship on a vehicle sc
 
 - TypeScript strict mode, no `any`
 - Functional components with hooks
-- Tailwind for styling (see design system)
+- Tailwind for styling
 - Colours come from theme tokens only (see "Theme and colour")
 - New pages compose `PageContainer` / `PageHeader` / `PageSection` / `EmptyState` from `components/layout/Page.tsx`; primitives come from `components/ui/` (shadcn)
 - Grids must set a mobile base (`grid-cols-1`) before breakpoint columns, and truncated children need `min-w-0`
-- Env: MapTiler key is `VITE_MAP_TOKEN`. Data writes need a signed-in admin (or the `x-admin-secret` header when `ADMIN_SECRET` is set). `ALLOW_OPEN_WRITES=1` opens them on a non-production machine with no secret set; nothing else does
+- Env: `DATABASE_URL`, and the MapTiler key `VITE_MAP_TOKEN`. Locally both live in `.env.local` (copied from `.env.example`); the server reads `.env.local`, then `.env` (`server/loadEnv.ts`). Data writes need a signed-in admin; no setting opens them
+- The page and the API are one origin (Vercel rewrites `/api`; in dev Vite proxies it), so there is no CORS and the client always calls `/api`
 - No service worker. The manifest is a static file (`client/public/manifest.webmanifest`); cache lifetimes are in `vercel.json`. The font (Oxanium) is bundled, not fetched from a third party
 - List routes read `limit`/`offset` through `server/lib/paging.ts`; record writes validate through `server/lib/writes.ts`
 - A new dependency is proven with a clean install (`npm ci` in a fresh copy, then `npm run build`), not with the packages already on disk: Vercel installs from the lockfile only
@@ -191,12 +189,14 @@ The rule of thumb: it should look like software Tesla would ship on a vehicle sc
 ## Common Commands
 
 ```bash
-npm run dev          # Start dev server
-npm run build        # Production build
-npm run db:migrate   # Run migrations
+npm run dev          # Page on :5173, API on :3000
+npm run build        # Production build (applies migrations first when DATABASE_URL is set)
+npm run db:migrate   # Apply migrations 0010 onward (scripts/migrate.mjs; needs DATABASE_URL)
 npm run db:seed -- --yes-wipe   # Sample data. EMPTIES the tables first; refuses any database not on localhost
+node --env-file=.env.local scripts/make-admin.mjs you@example.com   # Make an account that exists an admin
+npm run typecheck    # tsc
+npm run lint         # ESLint (no `any`), .js import endings, theme colours
 npm run test:ui      # Playwright responsive suite (7 device profiles)
-npm run lint         # ESLint (no `any`)
-# API suites, local only (they create and remove their own accounts):
+# API suites, local only (they create and remove their own accounts and records):
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/accounts.sh   (also seeker.sh, jobs.sh)
 ```

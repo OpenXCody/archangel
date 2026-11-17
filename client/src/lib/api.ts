@@ -1,63 +1,9 @@
 import { unpackPins, type PinsPayload } from '@shared/pins';
 
-// Relative by default: production serves /api on the same origin, and in dev
-// Vite proxies /api to the Express server — which also makes the dev build
-// reachable from a phone on the same network. Override with VITE_API_URL for
-// a native shell or a split deployment.
-export const API_BASE = import.meta.env.VITE_API_URL || '/api';
-
-// ---------------------------------------------------------------------------
-// Admin access. Writes and the import pipeline are gated server-side by an
-// ADMIN_SECRET; the key is entered once in the Data page and kept in this
-// browser only.
-// ---------------------------------------------------------------------------
-const ADMIN_SECRET_STORAGE_KEY = 'archangel.adminSecret';
-export const ADMIN_HEADER = 'x-admin-secret';
-
-export function getAdminSecret(): string | null {
-  try { return window.localStorage.getItem(ADMIN_SECRET_STORAGE_KEY); } catch { return null; }
-}
-export function setAdminSecret(secret: string): void {
-  try { window.localStorage.setItem(ADMIN_SECRET_STORAGE_KEY, secret); } catch { /* private mode */ }
-}
-export function clearAdminSecret(): void {
-  try { window.localStorage.removeItem(ADMIN_SECRET_STORAGE_KEY); } catch { /* ignore */ }
-}
-/** Headers to spread into any request that changes data. */
-export function adminHeaders(): Record<string, string> {
-  const secret = getAdminSecret();
-  return secret ? { [ADMIN_HEADER]: secret } : {};
-}
-
-/** Thrown when the server wants an admin key we don't have (or have wrong). */
-export class AdminAuthError extends Error {
-  status: number;
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = 'AdminAuthError';
-    this.status = status;
-  }
-}
-
-/**
- * `fetch` that carries the admin key. Use for uploads (FormData) and any
- * hand-built request that can't go through apiFetch. Content-Type is left
- * to the caller so multipart bodies keep their boundary.
- */
-export async function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
-  const headers = new Headers(init.headers);
-  for (const [k, v] of Object.entries(adminHeaders())) headers.set(k, v);
-  const response = await fetch(input, { ...init, headers });
-  if (response.status === 401 || response.status === 503) {
-    const body = await response.clone().json().catch(() => ({}));
-    if (body && typeof body.error === 'string' && /admin/i.test(body.error)) {
-      throw new AdminAuthError(body.error, response.status);
-    }
-  }
-  return response;
-}
-
-export interface ImportStatus { authRequired: boolean; authorized: boolean }
+// Always the same origin: production serves /api beside the page, and in dev
+// Vite proxies /api to the Express server (which also makes the dev build
+// reachable from a phone on the same network).
+export const API_BASE = '/api';
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -65,8 +11,6 @@ export interface PaginatedResponse<T> {
   offset: number;
   limit: number;
   hasMore: boolean;
-  // Legacy cursor support for backwards compatibility
-  nextCursor?: string | null;
 }
 
 // Related entity types
@@ -88,11 +32,6 @@ export interface RelatedCompany {
   id: string;
   name: string;
   industry: string | null;
-}
-
-export interface RelatedIndustry {
-  id: string;
-  name: string;
 }
 
 export interface RelatedOccupation {
@@ -182,7 +121,6 @@ export interface CompanyDetail extends Company {
   /** Open jobs here, newest first. */
   jobs?: CareerJob[];
   factories: RelatedFactory[];
-  industries: RelatedIndustry[];
   occupations?: CompanyOccupation[];
 }
 
@@ -277,7 +215,6 @@ export interface Skill {
   description: string | null;
   createdAt: string;
   occupationCount?: number;
-  programCount?: number;
   childCount?: number;
 }
 
@@ -294,126 +231,10 @@ export interface SkillDetail extends Skill {
   parent: SkillTreeNode | null;
   children: SkillTreeNode[];
   occupations: RelatedOccupationWithImportance[];
-  programs: RelatedProgramWithImportance[];
-  refs: Record<string, RelatedRef[]>;
   relatedSkills: RelatedSkill[];
 }
 
-export interface RelatedProgramWithImportance {
-  id: string;
-  title: string;
-  credentialType: string | null;
-  importance: 'required' | 'preferred' | 'nice_to_have';
-}
-
-export interface RelatedRef {
-  id: string;
-  name: string;
-  type: RefType;
-  manufacturer: string | null;
-}
-
-// Ref types
-export type RefType = 'material' | 'machine' | 'standard' | 'process' | 'certification';
-
-export interface Ref {
-  id: string;
-  type: RefType;
-  name: string;
-  description: string | null;
-  manufacturer: string | null;
-  tags: string[] | null;
-  createdAt: string;
-  skillCount?: number;
-}
-
-export interface RefDetail extends Ref {
-  properties: Record<string, unknown> | null;
-  skills: RelatedSkill[];
-  aliases: { id: string; aliasText: string }[];
-}
-
-// School types
-export interface School {
-  id: string;
-  name: string;
-  description: string | null;
-  state: string | null;
-  schoolType: string | null;
-  headquartersLat: string | null;
-  headquartersLng: string | null;
-  createdAt: string;
-  programCount?: number;
-}
-
-export interface SchoolDetail extends School {
-  programs: {
-    id: string;
-    title: string;
-    credentialType: string | null;
-    cipCode: string | null;
-    durationHours: number | null;
-    skillCount: number;
-  }[];
-}
-
-// Program types
-export interface Program {
-  id: string;
-  title: string;
-  description: string | null;
-  schoolId: string | null;
-  schoolName?: string | null;
-  cipCode: string | null;
-  credentialType: string | null;
-  durationHours: number | null;
-  isOpenSource: boolean;
-  createdAt: string;
-  skillCount?: number;
-}
-
-export interface ProgramDetail extends Program {
-  school: {
-    id: string;
-    name: string;
-    schoolType: string | null;
-    state: string | null;
-  } | null;
-  skills: RelatedSkill[];
-  aliases: { id: string; aliasText: string }[];
-}
-
-// Person types (read-only, no create/update from UI)
-export interface Person {
-  id: string;
-  fullName: string;
-  currentTitle: string | null;
-  currentEmployerId: string | null;
-  employerName?: string | null;
-  locationState: string | null;
-  createdAt: string;
-  skillCount?: number;
-}
-
-export interface PersonDetail extends Person {
-  employer: RelatedCompany | null;
-  proficiencies: {
-    id: string;
-    skillId: string;
-    skillName: string;
-    machineRefId: string | null;
-    machineRefName: string | null;
-    materialRefId: string | null;
-    materialRefName: string | null;
-    level: 'awareness' | 'novice' | 'competent' | 'proficient' | 'expert';
-    yearsExperience: number | null;
-    verifiedAt: string | null;
-  }[];
-}
-
-export type EntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'refs' | 'schools' | 'programs' | 'persons';
-export type Entity = Company | Factory | Occupation | Skill | Ref | School | Program | Person;
-export type EntityDetail = CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail | RefDetail | SchoolDetail | ProgramDetail | PersonDetail;
+export type EntityType = 'companies' | 'factories' | 'occupations' | 'skills';
 
 interface FetchOptions {
   offset?: number;
@@ -427,25 +248,13 @@ interface FetchOptions {
   [key: string]: string | number | boolean | undefined;
 }
 
-async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const method = (options?.method ?? 'GET').toUpperCase();
-  const isWrite = method !== 'GET' && method !== 'HEAD';
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(isWrite ? adminHeaders() : {}),
-      ...options?.headers,
-    },
-  });
+/** A public read. Anything that changes data, or is a person's own, goes through lib/account.ts. */
+async function apiFetch<T>(endpoint: string): Promise<T> {
+  const response = await fetch(`${API_BASE}${endpoint}`);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Network error' }));
-    const message: string = error.error || error.message || `HTTP ${response.status}`;
-    if ((response.status === 401 || response.status === 503) && /admin/i.test(message)) {
-      throw new AdminAuthError(message, response.status);
-    }
-    throw new Error(message);
+    throw new Error(error.error || error.message || `HTTP ${response.status}`);
   }
 
   return response.json();
@@ -516,52 +325,12 @@ export const skillsApi = {
     apiFetch<SkillDetail>(`/skills/${id}`),
 };
 
-// Refs API
-export const refsApi = {
-  list: (options: FetchOptions = {}) =>
-    apiFetch<PaginatedResponse<Ref>>(`/refs${buildQueryString(options)}`),
-
-  get: (id: string) =>
-    apiFetch<RefDetail>(`/refs/${id}`),
-};
-
-// Schools API
-export const schoolsApi = {
-  list: (options: FetchOptions = {}) =>
-    apiFetch<PaginatedResponse<School>>(`/schools${buildQueryString(options)}`),
-
-  get: (id: string) =>
-    apiFetch<SchoolDetail>(`/schools/${id}`),
-};
-
-// Programs API
-export const programsApi = {
-  list: (options: FetchOptions = {}) =>
-    apiFetch<PaginatedResponse<Program>>(`/programs${buildQueryString(options)}`),
-
-  get: (id: string) =>
-    apiFetch<ProgramDetail>(`/programs/${id}`),
-};
-
-// Persons API (read-only)
-export const personsApi = {
-  list: (options: FetchOptions = {}) =>
-    apiFetch<PaginatedResponse<Person>>(`/persons${buildQueryString(options)}`),
-
-  get: (id: string) =>
-    apiFetch<PersonDetail>(`/persons/${id}`),
-};
-
 // Entity counts for tabs
 export interface EntityCounts {
   companies: number;
   factories: number;
   occupations: number;
   skills: number;
-  refs: number;
-  schools: number;
-  programs: number;
-  persons: number;
   total: number;
 }
 
@@ -571,7 +340,7 @@ export const statsApi = {
 };
 
 // Search types
-export type SearchEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'refs' | 'schools' | 'programs';
+export type SearchEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states';
 
 export interface SearchResultItem {
   id: string;
@@ -591,9 +360,6 @@ export interface SearchResults {
     occupations: { count: number; items: SearchResultItem[] };
     skills: { count: number; items: SearchResultItem[] };
     states: { count: number; items: SearchResultItem[] };
-    refs: { count: number; items: SearchResultItem[] };
-    schools: { count: number; items: SearchResultItem[] };
-    programs: { count: number; items: SearchResultItem[] };
   };
   totalCount: number;
 }
@@ -616,41 +382,7 @@ export const searchApi = {
   },
 };
 
-// Unified entity fetcher
-export function getEntityApi(type: EntityType) {
-  switch (type) {
-    case 'companies':
-      return companiesApi;
-    case 'factories':
-      return factoriesApi;
-    case 'occupations':
-      return occupationsApi;
-    case 'skills':
-      return skillsApi;
-    case 'refs':
-      return refsApi;
-    case 'schools':
-      return schoolsApi;
-    case 'programs':
-      return programsApi;
-    case 'persons':
-      return personsApi;
-  }
-}
-
 // Map API types
-export interface StateSummary {
-  code: string;
-  name: string;
-  factoryCount: number;
-  totalWorkforce: number;
-  totalOpenPositions: number;
-}
-
-export interface StatesSummaryResponse {
-  states: StateSummary[];
-}
-
 /** A company in an overview's Top Companies list. */
 export interface TopCompany {
   id: string;
@@ -688,8 +420,6 @@ export interface AreaOverview extends RegionOverview {
 
 // Map API
 export const mapApi = {
-  statesSummary: () =>
-    apiFetch<StatesSummaryResponse>('/map/states/summary'),
   /** Factory count per 2-letter state code — drives the choropleth. */
   stateCounts: () =>
     apiFetch<Record<string, number>>('/map/state-counts'),

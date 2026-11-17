@@ -4,13 +4,14 @@
 # and exits non-zero if any fail.
 #
 # LOCAL ONLY: it creates and deletes users, invites and password reset links
-# (emails ending @e2e.test) and promotes one to admin directly in the database. For the
+# (emails ending @e2e.test), promotes one to admin with scripts/make-admin.mjs,
+# and adds and deletes one company, factory, career and skill. For the
 # "last admin" check it takes the admin role from any other local admin for a
 # moment, and it edits one company's domain and featured flag; both are put
 # back on exit, however the script ends. Never point it at production.
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/accounts.sh
-# Needs a running dev API with ADMIN_SECRET unset, seeded data that includes
-# Texas and non-Texas factories, and psql, curl and node on the PATH.
+# Needs a running dev API, seeded data that includes Texas and non-Texas
+# factories, and psql, curl and node on the PATH.
 set -u
 API=${API:-http://localhost:3000/api}
 DB=${DB:-postgresql://postgres:postgres@127.0.0.1:5432/archangel}
@@ -38,7 +39,7 @@ expect() { # name wanted got
 sql() { psql "$DB" -qtAc "$1"; }
 j() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s.split('\n').slice(0,-1).join('\n'));console.log(eval('o.'+process.argv[1]))})" "$1"; }
 
-psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'" >/dev/null
+psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHERE email LIKE '%@e2e.test'); DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'" >/dev/null
 # Whatever this run borrows from the local database goes back on exit.
 OTHER_ADMINS=''; PROFILE_ID=''; PROFILE_DOMAIN=''; PROFILE_FEATURED=''
 restore_local() {
@@ -70,8 +71,17 @@ check "goals show 1 held"             200 "$(req s GET /me/goals)" '"heldSkills"
 
 check "sign-up employer"              201 "$(req e POST /auth/sign-up '{"email":"emp-'"$RUN"'@e2e.test","name":"Erin Employer","password":"correct horse"}')"
 check "sign-up admin"                 201 "$(req a POST /auth/sign-up '{"email":"admin-'"$RUN"'@e2e.test","name":"Ada Admin","password":"correct horse"}')"
-check "claim-admin without key"       403 "$(req a POST /auth/claim-admin)"
-psql "$DB" -qtAc "UPDATE users SET is_admin=true WHERE email='admin-$RUN@e2e.test'" >/dev/null
+# There is one way to be an admin: the account. No route grants the role to
+# its caller, and the first admin is made on the command line.
+check "claim-admin is gone"           404 "$(req a POST /auth/claim-admin)"
+check "import status is gone"         404 "$(req anon GET /import/status)"
+check "not an admin yet"              403 "$(req a GET /admin/overview)"
+MAKE_ADMIN="$(cd "$(dirname "$0")/../.." && pwd)/scripts/make-admin.mjs"
+DATABASE_URL="$DB" node "$MAKE_ADMIN" "nobody-$RUN@e2e.test" >/dev/null 2>&1
+expect "make-admin refuses an unknown address" 1 "$?"
+DATABASE_URL="$DB" node "$MAKE_ADMIN" "Admin-$RUN@E2E.test" >/dev/null 2>&1
+expect "make-admin makes the admin"   0 "$?"
+expect "and only that account"        1 "$(sql "SELECT COUNT(*) FROM users WHERE is_admin AND email LIKE '%-$RUN@e2e.test'")"
 check "admin overview as admin"       200 "$(req a GET /admin/overview)" '"users":'
 check "employer posts before joining" 403 "$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\",\"payMin\":2400,\"payMax\":2900}")"
 check "request membership"            201 "$(req e POST /employer/memberships "{\"companyId\":\"$TXC\"}")" '"status":"requested"'
@@ -295,12 +305,69 @@ check "clear domain"                  200 "$(req a PATCH /admin/companies/$TXC '
 check "edit unknown company"          404 "$(req a PATCH /admin/companies/$NOBODY '{"featured":true}')"
 restore_local; PROFILE_ID=''
 
+# --- Records: one company, factory, career and skill, added by an admin ------
+REC="E2E Records $RUN"
+for kind in companies factories occupations skills; do
+  check "add to $kind signed out"       401 "$(req anon POST /$kind '{"name":"E2E Nobody","title":"E2E Nobody"}')"
+  check "add to $kind without the role" 403 "$(req s POST /$kind '{"name":"E2E Nobody","title":"E2E Nobody"}')"
+  check "change $kind without the role" 403 "$(req s PUT /$kind/$NOBODY '{"description":"x"}')"
+  check "delete $kind without the role" 403 "$(req s DELETE /$kind/$NOBODY)"
+done
+KEY=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -H 'x-admin-secret: anything' -d '{"name":"E2E Nobody"}' "$API/companies")
+expect "an admin key header opens nothing" 401 "$KEY"
+expect "refused adds wrote nothing"   0 "$(sql "SELECT (SELECT COUNT(*) FROM companies WHERE name='E2E Nobody') + (SELECT COUNT(*) FROM skills WHERE name='E2E Nobody') + (SELECT COUNT(*) FROM occupations WHERE title='E2E Nobody') + (SELECT COUNT(*) FROM factories WHERE name='E2E Nobody')")"
+
+check "company needs a name"          400 "$(req a POST /companies '{"name":"  "}')"
+OUT=$(req a POST /companies "{\"name\":\"$REC Co\",\"industry\":\"Robotics\"}")
+check "add a company"                 201 "$OUT" '"industry":"Robotics"'
+RCO=$(printf '%s' "$OUT" | j id)
+check "same company again, any case"  409 "$(req a POST /companies "{\"name\":\"e2e records $RUN CO\"}")" "\"existing\":{\"id\":\"$RCO\""
+check "new company has a page"        200 "$(req anon GET /companies/$RCO)" "\"name\":\"$REC Co\""
+
+check "factory needs a company"       400 "$(req a POST /factories "{\"name\":\"$REC Plant\",\"state\":\"TX\",\"latitude\":30.27,\"longitude\":-97.74}")"
+check "factory needs a state"         400 "$(req a POST /factories "{\"companyId\":\"$RCO\",\"name\":\"$REC Plant\",\"latitude\":30.27,\"longitude\":-97.74}")"
+check "state must be one of the list" 400 "$(req a POST /factories "{\"companyId\":\"$RCO\",\"name\":\"$REC Plant\",\"state\":\"Texas\",\"latitude\":30.27,\"longitude\":-97.74}")"
+check "latitude must be a number"     400 "$(req a POST /factories "{\"companyId\":\"$RCO\",\"name\":\"$REC Plant\",\"state\":\"TX\",\"latitude\":\"thirty\",\"longitude\":-97.74}")"
+check "longitude must be in range"    400 "$(req a POST /factories "{\"companyId\":\"$RCO\",\"name\":\"$REC Plant\",\"state\":\"TX\",\"latitude\":30.27,\"longitude\":-197.74}")"
+check "factory of an unknown company" 400 "$(req a POST /factories "{\"companyId\":\"$NOBODY\",\"name\":\"$REC Plant\",\"state\":\"TX\",\"latitude\":30.27,\"longitude\":-97.74}")"
+OUT=$(req a POST /factories "{\"companyId\":\"$RCO\",\"name\":\"$REC Plant\",\"state\":\"tx\",\"latitude\":30.27,\"longitude\":-97.74,\"city\":\"Austin\",\"address\":\"1 Test Way\"}")
+check "add a factory"                 201 "$OUT" '"address":"1 Test Way","city":"Austin","state":"TX"'
+RFA=$(printf '%s' "$OUT" | j id)
+check "same factory again"            409 "$(req a POST /factories "{\"companyId\":\"$RCO\",\"name\":\"$REC PLANT\",\"state\":\"TX\",\"latitude\":30.3,\"longitude\":-97.7}")" "\"existing\":{\"id\":\"$RFA\""
+check "same name in another state"    201 "$(req a POST /factories "{\"companyId\":\"$RCO\",\"name\":\"$REC Plant\",\"state\":\"OK\",\"latitude\":35.47,\"longitude\":-97.52}")" '"state":"OK"'
+check "new factory has a page"        200 "$(req anon GET /factories/$RFA)" "\"id\":\"$RCO\""
+check "change a factory's city"       200 "$(req a PUT /factories/$RFA '{"city":"Round Rock"}')" '"city":"Round Rock"'
+check "a change keeps what it left out" 200 "$(req anon GET /factories/$RFA)" '"address":"1 Test Way"'
+
+OUT=$(req a POST /occupations "{\"title\":\"$REC Career\",\"description\":\"Checks records.\"}")
+check "add a career"                  201 "$OUT" '"description":"Checks records."'
+ROC=$(printf '%s' "$OUT" | j id)
+check "same career again"             409 "$(req a POST /occupations "{\"title\":\"$REC CAREER\"}")" "\"existing\":{\"id\":\"$ROC\""
+OUT=$(req a POST /skills "{\"name\":\"$REC Skill\",\"category\":\"Machining\"}")
+check "add a skill"                   201 "$OUT" '"category":"Machining"'
+RSK=$(printf '%s' "$OUT" | j id)
+check "same skill again"              409 "$(req a POST /skills "{\"name\":\"$REC skill\"}")" "\"existing\":{\"id\":\"$RSK\""
+check "skill category must be text"   400 "$(req a POST /skills "{\"name\":\"$REC Skill 2\",\"category\":5}")"
+check "counts leave out removed kinds" 200 "$(req anon GET /stats/counts)" '^{"companies":[0-9]*,"factories":[0-9]*,"occupations":[0-9]*,"skills":[0-9]*,"total":[0-9]*}$'
+for gone in refs schools programs persons import/status review/summary; do
+  check "/$gone is gone"               404 "$(req a GET /$gone)"
+done
+
+# A body the JSON parser refuses is answered as the sender's mistake, not a 500.
+expect "malformed JSON is a 400"      400 "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{not json' "$API/auth/sign-in")"
+expect "a body over the limit is a 413" 413 "$(node -e "process.stdout.write(JSON.stringify({name:'x'.repeat(200000)}))" | curl -s -o /dev/null -w '%{http_code}' -b "$D/a" -X POST -H 'Content-Type: application/json' --data-binary @- "$API/companies")"
+
+check "delete the skill"              200 "$(req a DELETE /skills/$RSK)"
+check "delete the career"             200 "$(req a DELETE /occupations/$ROC)"
+check "delete the company"            200 "$(req a DELETE /companies/$RCO)"
+expect "its factories went with it"   0 "$(sql "SELECT COUNT(*) FROM factories WHERE name='$REC Plant'")"
+
 check "sign-out"                      200 "$(req s POST /auth/sign-out)"
 check "me after sign-out"             200 "$(req s GET /auth/me)" '"user":null'
 HDR=$(curl -s -D - -o /dev/null "$API/auth/me" | tr -d '\r' | grep -i '^cache-control' )
 case "$HDR" in *no-store*) echo "ok    auth responses are not cacheable";; *) echo "FAIL  cache header: $HDR"; fail=1;; esac
 CK=$(grep -c HttpOnly "$D/e" || true); [ "$CK" -ge 1 ] && echo "ok    session cookie is HttpOnly" || { echo "FAIL  cookie not HttpOnly"; fail=1; }
-psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'" >/dev/null
+psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHERE email LIKE '%@e2e.test'); DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'; DELETE FROM companies WHERE name LIKE 'E2E Records %'; DELETE FROM occupations WHERE title LIKE 'E2E Records %'; DELETE FROM skills WHERE name LIKE 'E2E Records %'" >/dev/null
 rm -rf "$D"
 [ $fail -eq 0 ] && echo "ALL PASSED" || echo "SOME FAILED"
 exit $fail

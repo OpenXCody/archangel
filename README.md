@@ -1,0 +1,104 @@
+# Archangel
+
+A workforce map of US manufacturing, live at [o-10.com](https://www.o-10.com).
+
+People explore **Companies → Factories → Jobs → Careers → Skills** on a map and through pages for each. A career has a path of skills in three stages. Someone looking for work marks the skills they have, sees which careers are within reach, and applies to jobs. A company's people post jobs and read applicants. Admins look after accounts and data. The whole country is covered; Austin, TX is the first area being filled out in depth.
+
+React, TypeScript, Vite and Tailwind in `client/`; Express and Drizzle in `server/`; PostgreSQL. `CLAUDE.md` describes how the code is laid out and the rules it follows.
+
+## Run it locally
+
+You need Node 20 or later (`.nvmrc`) and PostgreSQL 14 or later, with `psql` on the PATH.
+
+1. Install and configure.
+
+   ```bash
+   npm ci
+   cp .env.example .env.local     # then set DATABASE_URL and VITE_MAP_TOKEN
+   ```
+
+   Use a local database or your own Neon branch, never production's. Without a MapTiler key the map draws on a plain canvas.
+
+2. Create the database. Migrations 0000 to 0009 predate the migration runner and go in by hand, once; the runner applies the rest and records what it has applied.
+
+   ```bash
+   set -a; source .env.local; set +a      # puts DATABASE_URL in this shell
+   createdb archangel                      # the database DATABASE_URL names
+   psql "$DATABASE_URL" -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
+   for f in migrations/000*.sql; do psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "$f"; done
+   npm run db:migrate
+   ```
+
+3. Load sample data (142 companies, about 450 factories, careers and skills). It empties those tables first, and refuses any database that is not on localhost.
+
+   ```bash
+   npm run db:seed -- --yes-wipe
+   ```
+
+4. Start it. The page is on http://localhost:5173 and the API on http://localhost:3000 (`WEB_PORT` and `PORT` change them).
+
+   ```bash
+   npm run dev
+   ```
+
+5. Make yourself an admin. Sign up in the app, then:
+
+   ```bash
+   node --env-file=.env.local scripts/make-admin.mjs you@example.com
+   ```
+
+   There is no admin key. This is how the first admin exists, here and in production (run it with production's `DATABASE_URL`); after that, admins make admins from Admin Tools → People.
+
+## Checks
+
+Three kinds. Run all of them before merging.
+
+| Check | Command | What it covers |
+|---|---|---|
+| Static | `npm run typecheck` and `npm run lint` | Types; ESLint with no `any`; `.js` endings on server imports; colours from theme tokens only |
+| API | `bash tests/api/accounts.sh`, `jobs.sh`, `seeker.sh` | Accounts, roles, invites, records, jobs, applications and reach, end to end over HTTP, including every refusal |
+| Pages | `npm run test:ui` | Playwright: the map, Explore, jobs, sign-in, each kind of record's page and search, on seven device sizes, with no sideways scroll and no crash |
+
+The API suites are local only. They need the dev server running against a database with data in it, and `psql`, `curl` and `node` on the PATH; they create and remove their own accounts and records.
+
+```bash
+API=http://localhost:3000/api DB="$DATABASE_URL" bash tests/api/accounts.sh
+```
+
+`npm run test:ui` uses the dev server that is running (`BASE_URL` points it at another copy); `npm run test:ui:install` fetches the browser once.
+
+A new dependency is proven with a clean install: `npm ci` in a fresh copy of the tree, then `npm run build`. Vercel installs from the lockfile only.
+
+## How data gets in
+
+There is no upload screen. Data arrives three ways.
+
+- **Factories and their companies, in bulk**, from the Pillar database (facilities matched across public sources). `server/scripts/import-pillar-bulk.ts` reads Pillar and writes here: it skips facilities already imported (by EPA registry id), reuses a company that exists under the same normalised name or alias, and can be run again safely.
+
+  ```bash
+  DATABASE_URL=postgresql://...          # this app's database (the destination)
+  PILLAR_DATABASE_URL=postgresql://...   # Pillar (the source)
+  IMPORT_LIMIT=50000                     # most rows to pull (default 50000)
+  IMPORT_MIN_CONFIDENCE=60               # lowest match confidence to accept (default 60)
+  npx tsx server/scripts/import-pillar-bulk.ts
+  ```
+
+  `scripts/enrich-naics.mjs` then fills in missing industry codes from EPA's public export (a dry run unless `--apply` is given; its header says how).
+
+- **Curated lists**, as generated migrations. Career paths (`data/paths/*.json`), company profiles (`data/companies/profiles.json`) and the careers typical of each industry (`data/careers/industries.json`) are edited as JSON. A `scripts/build-*-sql.mjs` script turns a file into one idempotent SQL migration, which is added to the list in `scripts/migrate.mjs` and so ships with the next deploy:
+
+  ```bash
+  node scripts/build-paths-sql.mjs data/paths/technical-core-3.json migrations/00NN_career_paths.sql
+  ```
+
+  The generated SQL matches records by exact name, creates no companies or careers, and never overwrites a value set by hand or a path a person has approved.
+
+- **One record at a time**, by an admin: Admin Tools → Data → Add a record (a company, factory, career or skill). The same tab sets a company's logo domain, featured flag, industry and description, and approves draft career paths.
+
+## Deploying
+
+Vercel builds the `main` branch. The build command is `npm run build`, which first applies any migration not yet recorded (`scripts/migrate.mjs`, against the `DATABASE_URL` the build can see), then type-checks and builds the page. A failing migration fails the build, and the previous deployment stays live. The API is one serverless function (`api/index.ts`) serving the same Express app as local development; `vercel.json` routes `/api/*` to it and sets cache lifetimes.
+
+Production needs two settings: `DATABASE_URL` and `VITE_MAP_TOKEN`.
+
+A migration that removes something is applied before the new code is live, so for the minute or two a build takes the previous deployment runs against the new schema. Remove the code that reads a table in one deploy and the table in the next when that matters.

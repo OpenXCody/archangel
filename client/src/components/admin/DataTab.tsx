@@ -28,15 +28,16 @@ import {
   useDebouncedValue,
 } from '../account/parts';
 import { PageSection } from '../layout/Page';
+import AddRecord from './AddRecord';
 import CompanyPicker from './CompanyPicker';
 
-/** Counts, the import tools, career paths waiting for review, and a company's profile. */
+/** Counts, a company's profile, adding a record by hand, and career paths waiting for review. */
 export default function DataTab() {
   return (
     <>
       <CountsSection />
       <CompanyProfileSection />
-      <ImportSection />
+      <AddRecord />
       <PathsSection />
     </>
   );
@@ -66,31 +67,6 @@ function CountsSection() {
           ))}
         </dl>
       )}
-    </PageSection>
-  );
-}
-
-const IMPORT_TOOLS: { to: string; label: string; detail: string }[] = [
-  { to: '/import', label: 'Import', detail: 'Companies, factories, careers, skills. Review queue.' },
-  { to: '/import/bulk', label: 'Bulk import', detail: 'One spreadsheet, columns mapped to records.' },
-];
-
-function ImportSection() {
-  return (
-    <PageSection title="Import tools">
-      <ul className={cardClass}>
-        {IMPORT_TOOLS.map((tool) => (
-          <li key={tool.to} className={rowClass}>
-            <Link to={tool.to} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-elevated">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-fg-default">{tool.label}</p>
-                <p className="text-xs text-fg-muted">{tool.detail}</p>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" aria-hidden="true" />
-            </Link>
-          </li>
-        ))}
-      </ul>
     </PageSection>
   );
 }

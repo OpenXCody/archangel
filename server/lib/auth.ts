@@ -27,7 +27,7 @@ export interface SessionUser {
 
 declare module 'express-serve-static-core' {
   interface Request {
-    /** Set by `loadUser`: the signed-in user, or null. Undefined until loaded. */
+    /** Set by `getSessionUser`: the signed-in user, or null. Undefined until loaded. */
     user?: SessionUser | null;
   }
 }
@@ -136,11 +136,6 @@ export async function getSessionUser(req: Request): Promise<SessionUser | null> 
 export function noStore(_req: Request, res: Response, next: NextFunction): void {
   res.setHeader('Cache-Control', 'private, no-store');
   next();
-}
-
-/** Attach `req.user` (possibly null) and continue. */
-export function loadUser(req: Request, _res: Response, next: NextFunction): void {
-  getSessionUser(req).then(() => next(), next);
 }
 
 /** Continue only for a signed-in user; otherwise 401. */
