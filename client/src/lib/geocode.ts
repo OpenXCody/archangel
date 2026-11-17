@@ -148,6 +148,8 @@ export async function searchPlaces(query: string, signal?: AbortSignal): Promise
     const [first] = (feature.place_name ?? feature.text ?? '').split(',').map((part) => part.trim());
     const bare = first || feature.text || '';
     if (!bare) continue;
+    // A ZIP+4 ("78664-7301") is one side of one street: to a person it is the ZIP code again.
+    if (/^\d{5}-\d{4}$/.test(bare)) continue;
     const context = placeContext(feature, bare);
     // A county is named with its kind: "Travis" alone reads as a town.
     const name = feature.place_type?.[0] === 'county' ? countyName(bare, context) : bare;
