@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Search } from 'lucide-react';
 import { formatFactoryName } from '@shared/displayName';
 import { US_STATES } from '@shared/states';
@@ -14,8 +14,11 @@ export function plantName(factory: Pick<EmployerFactory, 'name'>): string {
 
 /** Where a plant is: its street when on record, then the city and state. */
 export function plantWhere(factory: Pick<EmployerFactory, 'address' | 'city' | 'state'>): string {
-  const street = factory.address ? formatFactoryName(factory.address) : '';
-  return [street, formatPlace(factory.city, factory.state)].filter(Boolean).join(' · ');
+  // In an address "ST" is Street, not the company the name formatter knows by those letters.
+  const street = factory.address ? formatFactoryName(factory.address).replace(/\bST\b/g, 'St') : '';
+  // Cities arrive in capitals as often as not.
+  const city = factory.city ? formatFactoryName(factory.city) : null;
+  return [street, formatPlace(city, factory.state)].filter(Boolean).join(' · ');
 }
 
 const STATE_NAMES = new Map<string, string>(US_STATES.map((state) => [state.code, state.name]));
@@ -53,11 +56,19 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
   const [term, setTerm] = useState('');
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  // By the name as shown, then by place: the raw records sort by their registry numbers.
+  const sorted = useMemo(
+    () =>
+      [...factories].sort(
+        (a, b) => plantName(a).localeCompare(plantName(b)) || plantWhere(a).localeCompare(plantWhere(b))
+      ),
+    [factories]
+  );
   const picked = factories.find((factory) => factory.id === value) ?? null;
   const FactoryIcon = ENTITY.factory.icon;
 
   const words = term.toLowerCase().split(/\s+/).filter(Boolean);
-  const options = words.length === 0 ? factories : factories.filter((factory) => words.every((word) => searchText(factory).includes(word)));
+  const options = words.length === 0 ? sorted : sorted.filter((factory) => words.every((word) => searchText(factory).includes(word)));
 
   useEffect(() => {
     if (value && focusPicked.current) changeRef.current?.focus();

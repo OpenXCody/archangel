@@ -37,6 +37,8 @@ const EMPLOYER_STATUSES = new Set([...PIPELINE, 'declined']);
 /** Stages a company can move an application back to from Hired or Declined. */
 const WORKING = new Set(['applied', 'reviewing', 'interview', 'offer']);
 const MAX_JOB_SKILLS = 60;
+/** How many jobs one person can post in an hour. */
+const MAX_POSTS_PER_HOUR = 30;
 
 /** Open, unexpired, and at a factory inside the app's region. */
 const isOpenInScope: SQL = and(
@@ -359,6 +361,16 @@ router.post(
       )
       .limit(1);
     if (twin) return res.status(200).json({ id: twin.id, serial: twin.serial });
+
+    // Each job is public at once, so one person posts only so many in an hour:
+    // a slip, a script or a stolen session cannot flood the jobs list.
+    const [recent] = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(jobs)
+      .where(and(eq(jobs.createdBy, user.id), gt(jobs.createdAt, new Date(Date.now() - 60 * 60 * 1000))));
+    if ((recent?.count ?? 0) >= MAX_POSTS_PER_HOUR) {
+      return res.status(429).json({ error: `You have posted ${MAX_POSTS_PER_HOUR} jobs in the last hour. Post the next one a little later.` });
+    }
 
     const created = await db.transaction(async (tx) => {
       const [job] = await tx

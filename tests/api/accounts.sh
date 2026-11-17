@@ -57,6 +57,7 @@ SK=$(psql "$DB" -tAc "SELECT skill_id FROM occupation_skills WHERE occupation_id
 
 check "me when signed out"            200 "$(req anon GET /auth/me)" '"user":null'
 check "sign-up rejects short password" 400 "$(req s POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Sam Seeker","password":"short"}')"
+check "sign-up rejects a password of spaces" 400 "$(req s POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Sam Seeker","password":"         "}')"
 check "sign-up seeker"                201 "$(req s POST /auth/sign-up '{"email":"Seeker-'"$RUN"'@E2E.test","name":"Sam Seeker","password":"correct horse"}')" '"email":"seeker-'"$RUN"'@e2e.test"'
 check "sign-up duplicate"             409 "$(req x POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Dup","password":"correct horse"}')"
 check "sign-in wrong password"        401 "$(req x POST /auth/sign-in '{"email":"seeker-'"$RUN"'@e2e.test","password":"wrong password"}')"

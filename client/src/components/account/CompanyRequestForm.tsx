@@ -19,7 +19,7 @@ type FieldName = 'name' | 'place' | 'website';
 
 /**
  * Ask for a company that is not in the data to be added, or, for a company
- * the person already posts for, a plant that is missing. Three short fields;
+ * the person already posts for, a plant that is missing. Three short fields at most;
  * an admin does the rest. Each problem is named beside its field.
  */
 export default function CompanyRequestForm({ company, initialName = '', onDone, onCancel }: CompanyRequestFormProps) {
@@ -107,13 +107,16 @@ export default function CompanyRequestForm({ company, initialName = '', onDone, 
           {input('name', name, setName, { maxLength: 120 })}
         </Field>
       )}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className={cn('grid grid-cols-1 gap-4', !company && 'sm:grid-cols-2')}>
         <Field label={company ? 'Where the plant is' : 'Where it is'} htmlFor={`${prefix}-place`}>
           {input('place', place, setPlace, { maxLength: 160, placeholder: company ? 'Street, city and state' : 'City and state' })}
         </Field>
-        <Field label="Website" htmlFor={`${prefix}-website`} optional>
-          {input('website', website, setWebsite, { maxLength: 300, placeholder: 'example.com', url: true })}
-        </Field>
+        {/* A plant belongs to a company already on record: its website is known. */}
+        {!company && (
+          <Field label="Website" htmlFor={`${prefix}-website`} optional>
+            {input('website', website, setWebsite, { maxLength: 300, placeholder: 'example.com', url: true })}
+          </Field>
+        )}
       </div>
       {/* A refusal that is not about one field. */}
       {!refused && <ErrorNote error={ask.error} />}

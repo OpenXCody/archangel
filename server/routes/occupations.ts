@@ -38,10 +38,20 @@ router.get('/', async (req: Request, res: Response) => {
       const [row] = await db.select({ count: sql<number>`COUNT(*)::int` }).from(occupations);
       total = row?.count ?? 0;
     }
-    for (const candidate of tries) {
-      const [row] = await db.select({ count: sql<number>`COUNT(*)::int` }).from(occupations).where(candidate.where);
+    for (const [index, candidate] of tries.entries()) {
+      let count = 0;
+      try {
+        const [row] = await db.select({ count: sql<number>`COUNT(*)::int` }).from(occupations).where(candidate.where);
+        count = row?.count ?? 0;
+      } catch (error) {
+        // Only the closest titles (the last try) may fail: they need the
+        // pg_trgm extension. Without it the answer is the plain one: nothing matched.
+        if (index === 0) throw error;
+        console.error('Career search: a fallback failed:', error instanceof Error ? error.name : 'error');
+        break;
+      }
       match = candidate;
-      total = row?.count ?? 0;
+      total = count;
       if (total > 0) break;
     }
     const whereClause = match?.where;

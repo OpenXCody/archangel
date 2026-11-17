@@ -600,7 +600,7 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
                   <span className={cn(state === 'Open' && 'text-fg-default')} data-job-state={state.toLowerCase()}>
                     {state === 'Open' ? openUntil(job.expiresAt) : state}
                   </span>
-                  {' · '}Job #{job.serial} · {[formatFactoryName(job.factoryName), job.city].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
+                  {' · '}Job #{job.serial} · {[formatFactoryName(job.factoryName), job.city && formatFactoryName(job.city)].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
                 </p>
               </div>
               <p className={cn('text-sm sm:text-right', job.newApplicants > 0 ? 'text-fg-default' : 'text-fg-muted')}>

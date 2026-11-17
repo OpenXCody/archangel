@@ -117,28 +117,50 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
     sql` AND `
   );
 
-  const keyed = sql`
-    WITH named AS (
+  // Reading a name is slow work across tens of thousands of companies, so it
+  // is done only for `candidates`: a cheap test on the name as stored, served
+  // by its trigram index, that every company that can match passes. Each
+  // candidate is then read once (MATERIALIZED): left to itself the planner
+  // would repeat the reading for every test below.
+  const keyedFrom = (candidates: SQL) => sql`
+    WITH named AS MATERIALIZED (
       SELECT c.id, c.name, c.slug, c.industry, c.featured, ${norm} AS norm
         FROM companies c
-       WHERE ${sql.raw(browsableCompanyNameSql('c.name'))} AND ${companyInScope('c')}
-    ), keyed AS (
+       WHERE (${candidates}) AND ${sql.raw(browsableCompanyNameSql('c.name'))} AND ${companyInScope('c')}
+    ), keyed AS MATERIALIZED (
       SELECT n.*, ${coreOf} AS core FROM named n
     )`;
-  const withPlaces = (matched: SQL, order: SQL) => sql`
-    ${keyed}, matched AS (${matched})
-    SELECT m.id, m.name, m.slug, m.industry, m.total,
-           (SELECT COUNT(*)::int FROM factories f WHERE f.company_id = m.id AND ${factoryInScope('f')}) AS factory_count,
+  const nameHas = (word: string): SQL => sql`c.name ILIKE ${`%${literal(word)}%`}`;
+  // A name that matches the term has each of its words somewhere in it; one
+  // that has the term as its initials starts with the same letter.
+  const hasEveryWord = sql.join(term.words.slice(0, 6).map(nameHas), sql` AND `);
+  const couldMatch =
+    term.initials === null ? hasEveryWord : sql`(${hasEveryWord}) OR lower(c.name) LIKE ${`${literal(term.initials.charAt(0))}%`}`;
+  // A near miss shares enough trigrams with the term, or holds one of its longer words whole.
+  const longWords = term.words.filter((word) => word.length >= 4).slice(0, 6);
+  const couldBeNear = sql.join([sql`c.name % ${core}`, sql`c.name %> ${core}`, ...longWords.map(nameHas)], sql` OR `);
+  // Plants are counted for the companies that matched, and where they are is
+  // looked up for the few that are returned.
+  const withPlaces = (candidates: SQL, matched: SQL, order: SQL) => sql`
+    ${keyedFrom(candidates)}, matched AS MATERIALIZED (${matched}),
+    counted AS (
+      SELECT m.*, COUNT(*) OVER ()::int AS total,
+             (SELECT COUNT(*)::int FROM factories f WHERE f.company_id = m.id AND ${factoryInScope('f')}) AS factory_count
+        FROM matched m
+    ), shown AS (
+      SELECT * FROM counted m ORDER BY ${order} LIMIT ${limit}
+    )
+    SELECT m.id, m.name, m.slug, m.industry, m.total, m.factory_count,
            (SELECT f.city FROM factories f WHERE f.company_id = m.id AND ${factoryInScope('f')} ORDER BY f.id LIMIT 1) AS city,
            (SELECT array_agg(s.state ORDER BY s.n DESC, s.state)
               FROM (SELECT f.state, COUNT(*) AS n FROM factories f
                      WHERE f.company_id = m.id AND ${factoryInScope('f')} AND f.state ~ '^[A-Z]{2}$'
                      GROUP BY f.state) s) AS states
-      FROM matched m
+      FROM shown m
      ORDER BY ${order}`;
 
   const ranked = sql`
-    SELECT r.*, COUNT(*) OVER ()::int AS total FROM (
+    SELECT * FROM (
       SELECT k.*, CASE
                WHEN k.core = ${core} OR k.norm = ${core} THEN 0
                WHEN k.core LIKE ${`${like}%`} THEN 1
@@ -146,15 +168,12 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
                WHEN (' ' || k.core) LIKE ${`% ${like}%`} THEN 2
                WHEN ${everyWord} THEN 3
                ${core.length < 4 ? sql`` : sql`WHEN k.core LIKE ${`%${like}%`} THEN 4`}
-             END AS rank,
-             (SELECT COUNT(*) FROM factories f WHERE f.company_id = k.id AND ${factoryInScope('f')}) AS plants
+             END AS rank
         FROM keyed k
     ) r
-    WHERE r.rank IS NOT NULL
-    ORDER BY r.rank, r.featured DESC, r.plants DESC, length(r.name), r.name
-    LIMIT ${limit}`;
+    WHERE r.rank IS NOT NULL`;
   const found = (await db.execute(
-    withPlaces(ranked, sql`m.rank, m.featured DESC, m.plants DESC, length(m.name), m.name`)
+    withPlaces(couldMatch, ranked, sql`m.rank, m.featured DESC, m.factory_count DESC, length(m.name), m.name`)
   )) as unknown as Row[];
   if (found.length > 0) {
     return { companies: found.map(toCompany), total: found[0].total, close: false };
@@ -163,7 +182,7 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
   // Nothing matched. The closest names: the whole name against the term, the
   // term inside the name ("atlantik"), or the name inside the term ("tesla motors").
   const near = sql`
-    SELECT s.*, COUNT(*) OVER ()::int AS total FROM (
+    SELECT * FROM (
       SELECT k.*, GREATEST(
                similarity(k.core, ${core}),
                word_similarity(${core}, k.core),
@@ -173,9 +192,16 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
     ) s
     WHERE s.sim >= ${CLOSE_ENOUGH}
     ORDER BY s.sim DESC, s.featured DESC, length(s.name), s.name
-    LIMIT ${Math.min(limit, 3)}`;
-  const close = (await db.execute(withPlaces(near, sql`m.sim DESC, m.featured DESC, length(m.name), m.name`))) as unknown as Row[];
-  return { companies: close.map(toCompany), total: close[0]?.total ?? 0, close: close.length > 0 };
+    LIMIT 3`;
+  try {
+    const close = (await db.execute(withPlaces(couldBeNear, near, sql`m.sim DESC, m.featured DESC, length(m.name), m.name`))) as unknown as Row[];
+    return { companies: close.map(toCompany), total: close.length, close: close.length > 0 };
+  } catch (error) {
+    // The closest names need the pg_trgm extension. Without it the answer is
+    // the plain one: nothing matched.
+    console.error(`company search: closest names failed (${error instanceof Error ? error.name : 'error'})`);
+    return { companies: [], total: 0, close: false };
+  }
 }
 
 function toCompany(row: Row): FoundCompany {

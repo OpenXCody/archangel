@@ -649,12 +649,21 @@ export const accountKeys = {
 
 const SIGNED_OUT: Account = { user: null, memberships: [], isEmployer: false };
 
+/** Written when someone signs in or out, so the browser's other tabs check who is signed in. */
+const IDENTITY_SIGNAL = 'archangel.identity';
+
 /**
  * A different person (or nobody) is now signed in: store who, drop everything
  * cached for the previous person, and refresh what is public but personalised.
  */
 function identityChanged(queryClient: QueryClient, account: Account): void {
   queryClient.setQueryData(accountKeys.account, account);
+  // Tell this browser's other tabs (see useSessionExpiryWatch). The value only has to change.
+  try {
+    window.localStorage.setItem(IDENTITY_SIGNAL, String(Date.now()));
+  } catch {
+    // Storage is unavailable: the other tabs find out when they next ask.
+  }
   queryClient.removeQueries({ queryKey: accountKeys.me });
   queryClient.removeQueries({ queryKey: accountKeys.employer });
   queryClient.removeQueries({ queryKey: accountKeys.admin });
@@ -701,9 +710,18 @@ export function useSessionExpiryWatch(): void {
     const offMutations = queryClient.getMutationCache().subscribe((event) => {
       if (event.type === 'updated' && event.action.type === 'error') recheck(event.action.error, false);
     });
+    // Signed in or out in another tab of this browser: this tab asks who is signed in now.
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== IDENTITY_SIGNAL) return;
+      void queryClient.invalidateQueries({ queryKey: accountKeys.account });
+      // A job page says whether its reader manages it: that may no longer hold.
+      void queryClient.invalidateQueries({ queryKey: accountKeys.jobDetails });
+    };
+    window.addEventListener('storage', onStorage);
     return () => {
       offQueries();
       offMutations();
+      window.removeEventListener('storage', onStorage);
     };
   }, [queryClient]);
 }
