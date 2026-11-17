@@ -28,6 +28,14 @@ export const fieldClass =
   'placeholder:text-fg-soft transition-colors focus:border-[color:var(--color-fg-muted)] focus:outline-none ' +
   'disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm';
 
+/** A select's trigger and list, matched to the text fields beside them. */
+export const selectTriggerClass =
+  'h-[42px] rounded-lg border-border-strong bg-bg-elevated px-3 text-base text-fg-default shadow-none sm:text-sm';
+export const selectContentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-border-strong bg-bg-surface';
+
+/** A button that is busy keeps focus: it is marked, not disabled. */
+export const busyButtonClass = 'aria-disabled:pointer-events-none aria-disabled:opacity-60';
+
 export const cardClass = 'rounded-xl border border-border-subtle bg-bg-surface';
 
 /** A row inside a card: a hairline between rows, none above the first. */

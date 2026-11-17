@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
 import companiesRouter from './routes/companies.js';
 import factoriesRouter from './routes/factories.js';
 import occupationsRouter from './routes/occupations.js';
@@ -29,7 +28,6 @@ app.disable('x-powered-by');
 // X-Forwarded-For itself. Trusting it makes req.ip the visitor's address, so
 // the sign-in throttle counts per visitor instead of lumping everyone together.
 if (process.env.VERCEL) app.set('trust proxy', true);
-app.use(cors());
 // A repeated query parameter (?state=TX&state=CA) arrives as an array, and an
 // object-shaped one (?state[a]=b) as an object. Every route reads single text
 // values, so the last one given wins and anything else is dropped, rather

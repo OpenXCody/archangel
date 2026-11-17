@@ -14,7 +14,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './client/src'),
       '@shared': path.resolve(__dirname, './shared'),
-      '@server': path.resolve(__dirname, './server'),
     },
   },
   root: './client',
@@ -38,7 +37,7 @@ export default defineConfig({
           vendor: ['react', 'react-dom', 'react-router-dom'],
           map: ['maplibre-gl'],
           query: ['@tanstack/react-query', 'zustand'],
-          ui: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-popover'],
+          ui: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
         },
       },
     },

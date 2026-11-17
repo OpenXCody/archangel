@@ -1,4 +1,4 @@
-// US States for dropdown selection
+// The states the app knows: the 50, the District of Columbia and Puerto Rico.
 export const US_STATES = [
   { code: 'AL', name: 'Alabama' },
   { code: 'AK', name: 'Alaska' },
@@ -56,27 +56,7 @@ export const US_STATES = [
 
 export type StateCode = typeof US_STATES[number]['code'];
 
-// Map state names to codes for flexible input
-export const STATE_NAME_TO_CODE: Record<string, StateCode> = Object.fromEntries(
-  US_STATES.map(s => [s.name.toLowerCase(), s.code])
-) as Record<string, StateCode>;
-
 // Map state codes to names
 export const STATE_CODE_TO_NAME: Record<StateCode, string> = Object.fromEntries(
   US_STATES.map(s => [s.code, s.name])
 ) as Record<StateCode, string>;
-
-// Normalize state input (accepts code or name)
-export function normalizeState(input: string): StateCode | null {
-  const trimmed = input.trim();
-  const upper = trimmed.toUpperCase();
-
-  // Check if it's already a valid code
-  if (US_STATES.some(s => s.code === upper)) {
-    return upper as StateCode;
-  }
-
-  // Check if it's a state name
-  const lower = trimmed.toLowerCase();
-  return STATE_NAME_TO_CODE[lower] || null;
-}

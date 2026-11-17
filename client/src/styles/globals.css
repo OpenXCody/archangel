@@ -44,11 +44,6 @@
     /* The edge of a field: 3:1 against the surface it sits on. */
     --input: 0 0% 40%;
     --ring: 0 0% 75%;
-    --chart-1: 0 0% 70%;
-    --chart-2: 0 0% 60%;
-    --chart-3: 0 0% 50%;
-    --chart-4: 0 0% 40%;
-    --chart-5: 0 0% 30%;
     --radius: 0.5rem;
 
     --color-bg-shell: #0a0a0a;
@@ -101,11 +96,6 @@
     --border: 210 10% 82%;
     --input: 213 7% 57%;
     --ring: 210 12% 30%;
-    --chart-1: 210 8% 30%;
-    --chart-2: 210 8% 42%;
-    --chart-3: 210 8% 54%;
-    --chart-4: 210 8% 66%;
-    --chart-5: 210 8% 78%;
 
     --color-bg-shell: #eceef0;
     --color-bg-base: #f6f7f8;
@@ -149,23 +139,6 @@ body {
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* Custom Header Styles */
-.header-title {
-  font-family: 'Oxanium Variable', sans-serif;
-  font-weight: 600;
-  font-size: calc(125% + 10px);
-  letter-spacing: 0.055em;
-  text-transform: uppercase;
-}
-
-.sub-header {
-  font-family: 'Oxanium Variable', sans-serif;
-  font-weight: 300;
-  font-size: 0.6rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
 }
 
 /* HTML and body setup */

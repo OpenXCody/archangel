@@ -18,14 +18,10 @@ import { DESCRIPTION_MAX, DESCRIPTION_WARN, checkPay, normalizeLink, payInputTex
 import { employmentLabel, formatPlace } from '../../lib/jobFormat';
 import CareerPicker, { type CareerOption } from './CareerPicker';
 import JobSkillTags, { type JobSkillTag } from './JobSkillTags';
-import { ErrorNote, Field, LoadError, fieldClass, outlineButtonClass } from './parts';
+import { ErrorNote, Field, LoadError, busyButtonClass, fieldClass, outlineButtonClass, selectContentClass, selectTriggerClass } from './parts';
 
-export const selectTriggerClass =
-  'h-[42px] rounded-lg border-border-strong bg-bg-elevated px-3 text-base text-fg-default shadow-none sm:text-sm';
-export const selectContentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-border-strong bg-bg-surface';
-
-/** A button that is busy keeps focus: it is marked, not disabled. */
-export const busyButtonClass = 'aria-disabled:pointer-events-none aria-disabled:opacity-60';
+// These three live with the other shared form pieces; exported from here too for the files that import them from the job form.
+export { busyButtonClass, selectContentClass, selectTriggerClass };
 
 /** The company a job is posted for, and where it can be. */
 export interface JobFormCompany {

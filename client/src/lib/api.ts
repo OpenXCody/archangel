@@ -1,10 +1,9 @@
 import { unpackPins, type PinsPayload } from '@shared/pins';
 
-// Relative by default: production serves /api on the same origin, and in dev
-// Vite proxies /api to the Express server — which also makes the dev build
-// reachable from a phone on the same network. Override with VITE_API_URL for
-// a native shell or a split deployment.
-export const API_BASE = import.meta.env.VITE_API_URL || '/api';
+// Always the same origin: production serves /api beside the page, and in dev
+// Vite proxies /api to the Express server (which also makes the dev build
+// reachable from a phone on the same network).
+export const API_BASE = '/api';
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -12,8 +11,6 @@ export interface PaginatedResponse<T> {
   offset: number;
   limit: number;
   hasMore: boolean;
-  // Legacy cursor support for backwards compatibility
-  nextCursor?: string | null;
 }
 
 // Related entity types
@@ -386,18 +383,6 @@ export const searchApi = {
 };
 
 // Map API types
-export interface StateSummary {
-  code: string;
-  name: string;
-  factoryCount: number;
-  totalWorkforce: number;
-  totalOpenPositions: number;
-}
-
-export interface StatesSummaryResponse {
-  states: StateSummary[];
-}
-
 /** A company in an overview's Top Companies list. */
 export interface TopCompany {
   id: string;
@@ -435,8 +420,6 @@ export interface AreaOverview extends RegionOverview {
 
 // Map API
 export const mapApi = {
-  statesSummary: () =>
-    apiFetch<StatesSummaryResponse>('/map/states/summary'),
   /** Factory count per 2-letter state code — drives the choropleth. */
   stateCounts: () =>
     apiFetch<Record<string, number>>('/map/state-counts'),

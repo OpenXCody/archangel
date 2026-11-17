@@ -9,8 +9,16 @@ import { cn } from '@/lib/utils';
 import type { AdminCompany } from '../../lib/account';
 import { exploreApi } from '../../lib/api';
 import { RECORD_KINDS, existingRecord, useAddRecord, type NewRecord, type RecordKind, type RecordLink } from '../../lib/records';
-import { busyButtonClass, selectContentClass, selectTriggerClass } from '../account/JobForm';
-import { ErrorNote, Field, cardClass, fieldClass, outlineButtonClass } from '../account/parts';
+import {
+  ErrorNote,
+  Field,
+  busyButtonClass,
+  cardClass,
+  fieldClass,
+  outlineButtonClass,
+  selectContentClass,
+  selectTriggerClass,
+} from '../account/parts';
 import { PageSection } from '../layout/Page';
 import CompanyPicker from './CompanyPicker';
 

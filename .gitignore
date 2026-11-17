@@ -21,10 +21,6 @@ dist/
 *.log
 npm-debug.log*
 
-# Capacitor
-ios/
-android/
-
 # Testing
 coverage/
 
@@ -44,12 +40,6 @@ drizzle/meta/
 # Bundled API - committed for Vercel
 # api/index.js
 
-# Uploads (temp files)
-uploads/
-
-# Test files
-test-*.csv
-
 # Local .env backups (never commit)
 .env.bak.*
 
@@ -57,7 +47,6 @@ test-*.csv
 test-results/
 playwright-report/
 
-# data-repair audit output
-geo-cleanup-audit.json
+# scripts/enrich-naics.mjs output
 enrich-naics.checkpoint.json
 enrich-naics-audit.json
