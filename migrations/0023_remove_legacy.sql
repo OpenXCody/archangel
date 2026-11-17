@@ -1,5 +1,5 @@
 -- Removes what the product no longer has. Safe to run more than once: every
--- statement is IF EXISTS, and the one rebuild (step 8) checks before it acts.
+-- statement is IF EXISTS, and the two blocks (steps 0 and 8) check before they act.
 --
 -- The product is Companies -> Factories -> Jobs -> Careers -> Skills. Gone are
 -- Elements (refs), Schools, Programs and People, with the support tables
@@ -9,6 +9,24 @@
 -- the spreadsheet import's bookkeeping.
 --
 -- Kept on purpose: occupation_aliases and skill_aliases.
+
+-- 0. A company's industries were also kept in a junction. Its own `industry`
+--    column is what the app reads: where that is empty, take one from the
+--    junction before the junction goes. (Skipped once the tables are gone.)
+DO $$
+BEGIN
+  IF to_regclass('public.company_industries') IS NOT NULL AND to_regclass('public.industries') IS NOT NULL THEN
+    UPDATE companies c
+    SET industry = picked.name
+    FROM (
+      SELECT ci.company_id, MIN(i.name) AS name
+      FROM company_industries ci
+      INNER JOIN industries i ON i.id = ci.industry_id
+      GROUP BY ci.company_id
+    ) picked
+    WHERE picked.company_id = c.id AND (c.industry IS NULL OR btrim(c.industry) = '');
+  END IF;
+END $$;
 
 -- 1. Columns that point at the lookups.
 ALTER TABLE factories DROP COLUMN IF EXISTS state_id;
