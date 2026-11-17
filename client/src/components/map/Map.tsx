@@ -413,9 +413,8 @@ export default function Map({ onViewChange }: MapProps) {
         setMapLoaded(true);
       });
 
-      // Offer "reset view" whenever the camera has left the home view. The
-      // value only changes when the map crosses that line, so React re-renders
-      // then and not on every move.
+      // The address follows the camera once it has come to rest: one
+      // replaced history entry per pause, never one per frame.
       let addressTimer = 0;
       const reportView = () => {
         window.clearTimeout(addressTimer);
@@ -423,6 +422,9 @@ export default function Map({ onViewChange }: MapProps) {
           if (map.current === currentMap) onViewChangeRef.current?.(viewToHash(currentMap));
         }, ADDRESS_SETTLE_MS);
       };
+      // Offer "reset view" whenever the camera has left the home view. The
+      // value only changes when the map crosses that line, so React re-renders
+      // then and not on every move.
       currentMap.on('moveend', () => {
         setAwayFromHome(!isAtHome(currentMap));
         reportView();

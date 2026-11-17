@@ -1,5 +1,6 @@
-import { useEffect, useRef, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   X,
   ChevronUp,
@@ -16,6 +17,7 @@ import {
   Navigation,
 } from 'lucide-react';
 import {
+  factoriesApi,
   type FactoryDetail,
   type CompanyDetail,
   type OccupationDetail,
@@ -28,6 +30,7 @@ import {
 } from '../../lib/api';
 import { useMapStore, type MapEntityType, type MapPlace, type SheetDetent } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
+import { milesBetween } from '@shared/scope';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../CompanyLogo';
 import { formatPay } from '../../lib/jobFormat';
@@ -321,6 +324,57 @@ function PlaceView({ place, data }: { place: MapPlace; data: BoundsOverview }) {
 
 // ─── A plant ───────────────────────────────────────────────────────────────
 
+/** How far "nearby" reaches, and how many plants it lists. */
+const NEARBY_MILES = 30;
+const NEARBY_COUNT = 5;
+
+interface NearbyPlant {
+  id: string;
+  name: string;
+  companyName: string | null;
+  miles: number;
+  lng: number;
+  lat: number;
+}
+
+/**
+ * The plants closest to one plant, from the pins the map already holds: the
+ * same query the map reads, so nothing is requested and the list is there
+ * with the panel.
+ */
+function useNearbyPlants(id: string, latitude: string, longitude: string): NearbyPlant[] {
+  const { data: pins } = useQuery({
+    queryKey: ['factory-pins'],
+    queryFn: () => factoriesApi.pins(),
+    staleTime: 5 * 60 * 1000,
+  });
+  return useMemo(() => {
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    if (!pins || !Number.isFinite(lat) || !Number.isFinite(lng)) return [];
+    // A degree of latitude is about 69 miles: skip the arithmetic for anything plainly out of reach.
+    const reachLat = NEARBY_MILES / 69;
+    const reachLng = reachLat / Math.max(0.2, Math.cos((lat * Math.PI) / 180));
+    const near: NearbyPlant[] = [];
+    for (const feature of pins.features) {
+      const [pinLng, pinLat] = feature.geometry.coordinates;
+      if (Math.abs(pinLat - lat) > reachLat || Math.abs(pinLng - lng) > reachLng) continue;
+      const pin = feature.properties;
+      if (pin.id === id) continue;
+      const miles = milesBetween(lat, lng, pinLat, pinLng);
+      if (miles <= NEARBY_MILES) near.push({ id: pin.id, name: pin.name, companyName: pin.companyName, miles, lng: pinLng, lat: pinLat });
+    }
+    return near.sort((a, b) => a.miles - b.miles).slice(0, NEARBY_COUNT);
+  }, [pins, id, latitude, longitude]);
+}
+
+/** "0.4 miles", "12 miles". */
+function milesAway(miles: number): string {
+  if (miles < 0.1) return 'Next door';
+  const shown = miles < 10 ? Math.round(miles * 10) / 10 : Math.round(miles);
+  return `${shown} ${shown === 1 ? 'mile' : 'miles'}`;
+}
+
 function FactoryView({ factory }: { factory: FactoryDetail }) {
   const { selectEntity, selectFactory, flyTo, setHoveredFactory } = useMapStore();
   const company = factory.company;
@@ -337,6 +391,8 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
   const stateCount = company?.stateCount ?? 0;
   const recorded = factory.occupations ?? [];
   const typical = factory.typicalCareers ?? [];
+  const sisters = new Set(nearby.map((site) => site.id));
+  const neighbours = useNearbyPlants(factory.id, factory.latitude, factory.longitude).filter((plant) => !sisters.has(plant.id));
   // A company whose one plant this is, under the same name, would only repeat the heading.
   const companyIsThisPlant =
     companyName !== null && siteCount <= 1 && !company?.description && factoryName.toLowerCase().startsWith(companyName.toLowerCase());
@@ -445,6 +501,29 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
                 onHover={(over) => setHoveredFactory(over ? site.id : null)}
               />
             ))}
+          </RowList>
+        </Section>
+      )}
+      {neighbours.length > 0 && (
+        <Section title="Plants nearby">
+          <RowList>
+            {neighbours.map((plant) => {
+              const name = formatFactoryName(plant.name);
+              const owner = plant.companyName ? formatCompanyName(plant.companyName) : null;
+              return (
+                <NodeRow
+                  key={plant.id}
+                  icon={Factory}
+                  title={name}
+                  subtitle={[owner && !name.toLowerCase().startsWith(owner.toLowerCase()) ? owner : null, milesAway(plant.miles)].filter(Boolean).join(' · ')}
+                  onPress={() => {
+                    selectFactory(plant.id);
+                    flyTo({ kind: 'point', lat: plant.lat, lng: plant.lng });
+                  }}
+                  onHover={(over) => setHoveredFactory(over ? plant.id : null)}
+                />
+              );
+            })}
           </RowList>
         </Section>
       )}
