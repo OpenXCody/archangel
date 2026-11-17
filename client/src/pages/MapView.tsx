@@ -1,36 +1,161 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Map from '../components/map/Map';
 import MapDetailPanel from '../components/map/MapDetailPanel';
 import MapSearch from '../components/map/MapSearch';
 import MapContextMenu from '../components/map/MapContextMenu';
 import MapHoverCard from '../components/map/MapHoverCard';
-import { useMapStore } from '../stores/mapStore';
+import { useMapStore, placeKey, type MapAddress, type MapPlace } from '../stores/mapStore';
 import { PHONE_LAYOUT_QUERY } from '../components/map/camera';
+import { useSelection } from '../components/map/selection';
 import { useTheme } from '../lib/theme';
-import { focusArea } from '@shared/scope';
+import { focusArea, type Bounds } from '@shared/scope';
 import { US_STATES } from '@shared/states';
 
 // Custom hook for responsive detection
 function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
 
   useEffect(() => {
     const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
-
+    setMatches(media.matches);
     const listener = () => setMatches(media.matches);
     media.addEventListener('change', listener);
     return () => media.removeEventListener('change', listener);
-  }, [matches, query]);
+  }, [query]);
 
   return matches;
 }
 
+// ─── The map in the address ────────────────────────────────────────────────
+//
+// What is selected, the map's subject and the industry filter live in the
+// query string, so a view can be linked, survives a reload, and Back walks
+// through what was looked at:
+//
+//   ?factory=<id>  ?state=TX  ?area=austin  ?skill=<id>     what the panel shows
+//   ?place=Round+Rock&in=Williamson+County,+TX&box=w_s_e_n   a place found by search
+//   ?company=<id or slug>  ?career=<id>                      the map's subject
+//   ?industry=<name>                                         the industry filter
+//
+// The camera lives in the fragment (#zoom/lat/lng), written by replacing the
+// current entry, so it never adds history.
+
+const ADDRESS_KEYS = ['factory', 'state', 'area', 'skill', 'place', 'in', 'box', 'company', 'career', 'industry'] as const;
+
+const EMPTY_ADDRESS: MapAddress = {
+  factory: null,
+  state: null,
+  area: null,
+  skill: null,
+  place: null,
+  company: null,
+  career: null,
+  industry: null,
+};
+
+function parseBox(text: string | null): Bounds | null {
+  if (!text) return null;
+  const parts = text.split('_').map(Number);
+  if (parts.length !== 4 || !parts.every(Number.isFinite)) return null;
+  const [west, south, east, north] = parts;
+  if (!(west < east && south < north && west >= -180 && east <= 180 && south >= -90 && north <= 90)) return null;
+  return [[west, south], [east, north]];
+}
+
+/** Read the address. `problem` says, in one line, what it asked for that does not exist. */
+function readAddress(params: URLSearchParams): { address: MapAddress; problem: string | null } {
+  let problem: string | null = null;
+  const text = (key: string): string | null => params.get(key)?.trim() || null;
+
+  const stateParam = text('state');
+  const stateCode = stateParam?.toUpperCase() ?? null;
+  const state = stateCode && US_STATES.some((s) => s.code === stateCode) ? stateCode : null;
+  if (stateParam && !state) problem = `No state “${stateParam}”.`;
+
+  const areaParam = text('area');
+  const area = areaParam && focusArea(areaParam) ? areaParam : null;
+  if (areaParam && !area) problem = `No focus area “${areaParam}”.`;
+
+  const placeName = text('place');
+  const box = parseBox(text('box'));
+  const place: MapPlace | null = placeName && box ? { name: placeName, context: text('in') ?? '', bounds: box } : null;
+  if (placeName && !place) problem = 'That place was not found.';
+
+  // One subject at a time: a company, or else a career.
+  const company = text('company');
+  return {
+    address: {
+      factory: text('factory'),
+      state,
+      area,
+      skill: text('skill'),
+      place,
+      company,
+      career: company ? null : text('career'),
+      industry: text('industry'),
+    },
+    problem,
+  };
+}
+
+/** The address the store's state stands for. */
+function addressOf(state: ReturnType<typeof useMapStore.getState>): MapAddress {
+  const selected = (type: string): string | null => (state.selectedEntityType === type ? state.selectedEntityId : null);
+  return {
+    factory: selected('factory'),
+    state: selected('state'),
+    area: selected('area'),
+    skill: selected('skill'),
+    place: state.selectedEntityType === 'place' ? state.selectedPlace : null,
+    company: state.filters.company,
+    career: state.filters.career,
+    industry: state.filters.industry,
+  };
+}
+
+/** Two addresses with the same key say the same thing. */
+function addressKey(address: MapAddress): string {
+  return [
+    address.factory,
+    address.state,
+    address.area,
+    address.skill,
+    address.place ? placeKey(address.place) : null,
+    address.company,
+    address.career,
+    address.industry,
+  ]
+    .map((part) => part ?? '')
+    .join('\n');
+}
+
+/** The query string for an address. Parameters that are not the map's are kept. */
+function toSearch(address: MapAddress, current: string): string {
+  const params = new URLSearchParams(current);
+  for (const key of ADDRESS_KEYS) params.delete(key);
+  const set = (key: string, value: string | null) => {
+    if (value) params.set(key, value);
+  };
+  set('factory', address.factory);
+  set('state', address.factory ? null : address.state);
+  set('area', address.factory ? null : address.area);
+  set('skill', address.skill);
+  if (address.place) {
+    set('place', address.place.name);
+    set('in', address.place.context || null);
+    set('box', address.place.bounds.flat().map((n) => String(Math.round(n * 1e4) / 1e4)).join('_'));
+  }
+  set('company', address.company);
+  set('career', address.career);
+  set('industry', address.industry);
+  const search = params.toString();
+  return search ? `?${search}` : '';
+}
+
 export default function MapView() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   // Same breakpoint the camera uses to decide between panel and sheet.
   const isMobile = useMediaQuery(PHONE_LAYOUT_QUERY);
   const theme = useTheme();
@@ -38,61 +163,63 @@ export default function MapView() {
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
-  const {
-    selectedEntityType,
-    selectedEntityId,
-    selectFactory,
-    selectState,
-    selectArea,
-    clearSelection,
-    sidebarOpen,
-  } = useMapStore();
+  const sidebarOpen = useMapStore((s) => s.sidebarOpen);
+  const subjectName = useMapStore((s) => s.filters.companyName ?? s.filters.careerTitle);
+  const storeKey = useMapStore((s) => addressKey(addressOf(s)));
+  const notice = useMapStore((s) => s.notice);
 
-  // URL ⇄ selection. Factories, focus areas and states live in the query
-  // string so a selection is shareable and browser Back walks through what
-  // you looked at. An id we do not know is ignored.
-  const urlFactory = searchParams.get('factory');
-  const urlAreaParam = searchParams.get('area');
-  const urlArea = urlAreaParam && focusArea(urlAreaParam) ? urlAreaParam : null;
-  const urlStateParam = searchParams.get('state')?.toUpperCase() ?? null;
-  const urlState = US_STATES.some((s) => s.code === urlStateParam) ? urlStateParam : null;
+  const fromUrl = useMemo(() => readAddress(new URLSearchParams(location.search)), [location.search]);
+  const urlKey = addressKey(fromUrl.address);
 
+  // Address → map. A link, a reload, Back and Forward all arrive here. What
+  // the address names that does not exist is said in one line beside the
+  // search, the country is shown, and the bad part is taken out of the address.
   useEffect(() => {
-    if (urlFactory) {
-      if (selectedEntityType !== 'factory' || selectedEntityId !== urlFactory) selectFactory(urlFactory);
-      return;
-    }
-    if (urlArea) {
-      if (selectedEntityType !== 'area' || selectedEntityId !== urlArea) selectArea(urlArea);
-      return;
-    }
-    if (urlState) {
-      if (selectedEntityType !== 'state' || selectedEntityId !== urlState) selectState(urlState);
-      return;
-    }
-    if (selectedEntityType === 'factory' || selectedEntityType === 'area' || selectedEntityType === 'state') {
-      clearSelection();
+    const live = useMapStore.getState();
+    if (addressKey(addressOf(live)) !== urlKey) live.restoreAddress(fromUrl.address);
+    if (fromUrl.problem) {
+      useMapStore.getState().notFound(fromUrl.problem);
+      navigate({ search: toSearch(EMPTY_ADDRESS, location.search), hash: '' }, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlFactory, urlArea, urlState]);
+  }, [urlKey, fromUrl.problem]);
 
+  // Map → address. A new selection or subject is a new entry, so Back
+  // returns to the last one. Something a link named that turned out not to
+  // exist replaces its entry instead: Back must not return to a dead link.
+  const lastNotice = useRef<string | null>(null);
   useEffect(() => {
     // Read the live store, not this render's snapshot: on first mount the
-    // URL→store effect above has just made the selection, and the snapshot
-    // would still say "nothing selected" and strip it back out of the URL.
+    // effect above has just restored the store from the address.
     const live = useMapStore.getState();
-    const want = (type: typeof live.selectedEntityType) =>
-      live.selectedEntityType === type ? live.selectedEntityId : null;
-    const wanted = { factory: want('factory'), area: want('area'), state: want('state') };
-    if (urlFactory === wanted.factory && urlArea === wanted.area && urlState === wanted.state) return;
-    const params = new URLSearchParams(searchParams);
-    for (const [key, value] of Object.entries(wanted)) {
-      if (value) params.set(key, value);
-      else params.delete(key);
-    }
-    setSearchParams(params);
+    const dead = live.notice !== null && live.notice !== lastNotice.current;
+    lastNotice.current = live.notice;
+    const address = addressOf(live);
+    if (addressKey(address) === urlKey) return;
+    navigate({ search: toSearch(address, location.search), hash: dead ? '' : window.location.hash }, { replace: dead });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEntityType, selectedEntityId]);
+  }, [storeKey, notice]);
+
+  // The camera, once it has come to rest. Replaces the entry: moving the map
+  // is not something Back should undo one drag at a time.
+  const onViewChange = useCallback(
+    (hash: string) => {
+      if (window.location.pathname !== '/map' || hash === window.location.hash) return;
+      navigate({ search: window.location.search, hash }, { replace: true });
+    },
+    [navigate]
+  );
+
+  // The tab names what is selected, or else what the map is showing.
+  const selection = useSelection();
+  const title = `${selection.name ?? subjectName ?? 'Map'} · Archangel`;
+  useEffect(() => {
+    // After the layout's own effect, which names the tab "Map" on arrival.
+    const timer = window.setTimeout(() => {
+      document.title = title;
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [title, location.key]);
 
   // Handle right-click on map
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
@@ -105,13 +232,8 @@ export default function MapView() {
     setContextMenu(null);
   }, []);
 
-  // Focus search input
   const focusSearch = useCallback(() => {
-    // Find and focus the search input
-    const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-    if (searchInput) {
-      searchInput.focus();
-    }
+    document.getElementById('map-search-input')?.focus();
   }, []);
 
   // Keyboard shortcut for search (/)
@@ -137,12 +259,14 @@ export default function MapView() {
       className="relative w-full h-[calc(100dvh-57px)] overflow-hidden"
       onContextMenu={handleContextMenu}
     >
+      {/* Search first, so it is the first thing the Tab key reaches: the way
+          into the map for anyone not using a pointer. It floats over the
+          canvas, which is drawn after it. */}
+      <MapSearch />
+
       {/* Map canvas */}
       {/* Keyed on the theme: the basemap and the palette are chosen when the map is created. */}
-      <Map key={theme} />
-
-      {/* Map search with filters */}
-      <MapSearch />
+      <Map key={theme} onViewChange={onViewChange} />
 
       {/* Hover preview for pins (pointer devices only) */}
       {!isMobile && <MapHoverCard />}

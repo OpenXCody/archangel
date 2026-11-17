@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -10,316 +10,426 @@ import {
   Briefcase,
   Wrench,
   MapPin,
-  Users,
   ChevronRight,
   Loader2,
   ArrowLeft,
-  Tag,
   MapPinned,
+  Navigation,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import {
   factoriesApi,
-  companiesApi,
-  occupationsApi,
-  skillsApi,
   type FactoryDetail,
   type CompanyDetail,
   type OccupationDetail,
   type SkillDetail,
   type StateOverview,
   type AreaOverview,
+  type BoundsOverview,
   type RegionOverview,
-  mapApi,
+  type CareerJob,
 } from '../../lib/api';
-import { useMapStore, type MapEntityType } from '../../stores/mapStore';
+import { useMapStore, type MapEntityType, type MapPlace, type SheetDetent } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
-
-const STATE_NAMES: Record<string, string> = Object.fromEntries(US_STATES.map((s) => [s.code, s.name]));
+import { milesBetween } from '@shared/scope';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../CompanyLogo';
 import { formatPay } from '../../lib/jobFormat';
-import { PANEL_WIDTH_PX, SHEET_PEEK_VH } from './camera';
+import { PANEL_WIDTH_PX, SHEET_BAR_PX, SHEET_FULL_VH, sheetPeekPx } from './camera';
+import { industryLabel } from './industry';
+import { isNotFound, useSelection } from './selection';
 
-// Body shared by the state panel and the focus-area panel: big totals up
-// top, then top companies and top industries. Top companies are clickable —
-// selectEntity navigates into the company detail view inside this same panel.
-function RegionOverviewBody({ data }: { data: RegionOverview }) {
-  const selectEntity = useMapStore((s) => s.selectEntity);
-  const totals = [
-    { label: 'Factories', value: data.totalFactories.toLocaleString() },
-    { label: 'Companies', value: data.totalCompanies.toLocaleString() },
-    // Shown only when there is a number: an empty tile says nothing.
-    ...(data.totalWorkforce > 0 ? [{ label: 'Workforce', value: data.totalWorkforce.toLocaleString() }] : []),
-  ];
+/*
+ * Words, the same in every panel:
+ *   plant   a factory, wherever the panel speaks about a place of work
+ *   people  how many work somewhere (never "workforce", "workers", "headcount", "positions")
+ *   career  an occupation
+ * Every number sits under or beside a label, and a section with nothing to
+ * say is left out rather than shown as "0".
+ *
+ * Every panel runs in the order a person asks: what is this, who is here,
+ * what work is here, where next.
+ */
+
+const STATE_NAMES: Record<string, string> = Object.fromEntries(US_STATES.map((s) => [s.code, s.name]));
+
+/** "ROUND ROCK" as "Round Rock": the source data shouts its city names. */
+function titleCase(text: string): string {
+  return text.toLowerCase().replace(/(^|[\s-])([a-z])/g, (_, lead: string, letter: string) => lead + letter.toUpperCase());
+}
+
+function cityAndState(city: string | null | undefined, state: string | null | undefined): string {
+  return [city ? titleCase(city) : null, state].filter(Boolean).join(', ');
+}
+
+// ─── Parts ─────────────────────────────────────────────────────────────────
+
+/** A titled part of a panel. `column` labels the figures down its right edge. */
+function Section({ title, column, children }: { title: string; column?: string; children: ReactNode }) {
   return (
-    <>
-      <div className={cn('grid gap-2 mb-6', totals.length === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
-        {totals.map((total) => (
-          <div key={total.label} className="min-w-0 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
-            <div className="text-[10px] uppercase tracking-wider text-fg-muted">{total.label}</div>
-            <div className="text-lg font-semibold text-fg-default mt-0.5 truncate">{total.value}</div>
-          </div>
-        ))}
+    <section className="mb-6">
+      <div className="mb-2 flex items-baseline justify-between gap-3">
+        <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted">{title}</h3>
+        {column && <span className="shrink-0 text-[11px] uppercase tracking-wider text-fg-soft">{column}</span>}
       </div>
-
-      {data.topCompanies.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">Top Companies</h3>
-          <div className="space-y-0.5">
-            {data.topCompanies.slice(0, 8).map((c) => (
-              <button
-                key={c.id}
-                onClick={() => selectEntity('company', c.id)}
-                title={`${c.count.toLocaleString()} ${c.count === 1 ? 'factory' : 'factories'} here, ${c.sites.toLocaleString()} nationwide`}
-                className="w-full group flex items-center gap-2.5 text-sm py-1.5 px-2 -mx-2 rounded-md hover:bg-tint/[0.05] transition-colors text-left"
-              >
-                <CompanyLogo name={formatCompanyName(c.name)} domain={c.domain} size={28} />
-                <span className="min-w-0 flex-1 truncate text-fg-default">{formatCompanyName(c.name)}</span>
-                <span className="flex items-center gap-1 flex-shrink-0 text-fg-muted text-xs tabular-nums">
-                  {c.count.toLocaleString()}
-                  <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {data.careers && data.careers.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">Careers here</h3>
-          <div className="space-y-2">
-            {data.careers.slice(0, 6).map((career) => (
-              <ConnectedNode key={career.id} type="occupation" id={career.id} name={career.title} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {data.topIndustries.length > 0 && (
-        <div>
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">Top Industries</h3>
-          <div className="space-y-1">
-            {data.topIndustries.map((ind, i) => (
-              <div key={i} className="flex items-center justify-between text-sm py-1">
-                <span className="text-fg-muted truncate">{ind.label}</span>
-                <span className="text-fg-muted text-xs ml-2 flex-shrink-0 tabular-nums">{ind.count.toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </>
+      {children}
+    </section>
   );
 }
 
-// Panel body for a selected state.
-function StateView({ data }: { data: StateOverview }) {
-  const name = US_STATES.find(s => s.code === data.code)?.name ?? data.code;
+/** Labelled figures, side by side. Give it only figures that have something to say. */
+function Figures({ items }: { items: { label: string; value: number }[] }) {
+  if (items.length === 0) return null;
   return (
-    <>
-      <div className="mb-5">
-        <h2 className="text-xl font-semibold text-fg-default tracking-tight">{name}</h2>
-        <p className="text-sm text-fg-muted mt-0.5">State overview</p>
-      </div>
-      <RegionOverviewBody data={data} />
-    </>
+    <dl className={`mb-6 grid gap-2 ${items.length >= 3 ? 'grid-cols-3' : items.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      {items.map((item) => (
+        <div key={item.label} className="min-w-0 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
+          <dt className="truncate text-[11px] uppercase tracking-wider text-fg-muted">{item.label}</dt>
+          <dd className="mt-0.5 truncate text-lg font-semibold tabular-nums text-fg-default">{item.value.toLocaleString()}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
-// Panel body for a selected focus area: the same overview, for the region
-// inside the geofence.
-function AreaView({ data }: { data: AreaOverview }) {
+/** The panel's title block. */
+function Heading({ title, subtitle, logo }: { title: string; subtitle?: ReactNode; logo?: ReactNode }) {
   return (
-    <>
-      <div className="mb-5">
-        <h2 className="text-xl font-semibold text-fg-default tracking-tight">{data.name}</h2>
-        <p className="text-sm text-fg-muted mt-0.5">{data.description}</p>
+    <div className="mb-5 flex items-start gap-3">
+      {logo}
+      <div className="min-w-0 flex-1">
+        <h2 className="break-words text-xl font-semibold leading-snug tracking-tight text-fg-default">{title}</h2>
+        {subtitle && <div className="mt-1 text-sm text-fg-muted">{subtitle}</div>}
       </div>
-      <RegionOverviewBody data={data} />
-    </>
+    </div>
   );
 }
 
-interface MapDetailPanelProps {
-  isMobile?: boolean;
-}
-
-// Entity icons and labels. One quiet treatment for every type on the map's panel.
-const entityConfig: Record<MapEntityType, { icon: typeof Factory; color: string; bgColor: string; label: string }> = {
-  factory: { icon: Factory, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'Factory' },
-  company: { icon: Building2, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'Company' },
-  occupation: { icon: Briefcase, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'Career' },
-  skill: { icon: Wrench, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'Skill' },
-  state: { icon: MapPin, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'State' },
-  area: { icon: MapPinned, color: 'text-fg-muted', bgColor: 'bg-bg-elevated', label: 'Focus area' },
-};
-
-// Connected node link component
-function ConnectedNode({
-  type,
-  id,
-  name,
+/** A row that leads somewhere in the panel: a company, a career, a skill, a plant. */
+function NodeRow({
+  icon: Icon,
+  logo,
+  title,
   subtitle,
-  count,
-  lat,
-  lng,
+  onPress,
+  onHover,
 }: {
-  type: MapEntityType;
-  id?: string;
-  name: string;
+  icon?: typeof Factory;
+  logo?: ReactNode;
+  title: string;
   subtitle?: string;
-  count?: number;
-  lat?: number;
-  lng?: number;
+  onPress: () => void;
+  onHover?: (over: boolean) => void;
 }) {
-  const { selectEntity, selectFactory, flyTo, setHoveredFactory } = useMapStore();
-  const config = entityConfig[type];
-  const Icon = config.icon;
-
-  const handleClick = () => {
-    if (id) {
-      // For factories, use selectFactory and fly to location if available
-      if (type === 'factory') {
-        selectFactory(id);
-        // If we have coordinates, ask the camera to go there
-        if (lat && lng) flyTo({ kind: 'point', lat, lng, zoom: 10 });
-      } else {
-        selectEntity(type, id);
-      }
-    }
-  };
-
-  // Highlight factory on map when hovering over list item
-  const handleMouseEnter = () => {
-    if (type === 'factory' && id) {
-      setHoveredFactory(id);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (type === 'factory') {
-      setHoveredFactory(null);
-    }
-  };
-
   return (
     <button
-      onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      disabled={!id}
-      className={`
-        flex items-center justify-between p-3 w-full text-left
-        bg-bg-elevated border border-tint/10 rounded-lg
-        ${id ? 'hover:bg-tint/[0.05] hover:border-tint/20 cursor-pointer' : 'opacity-60 cursor-default'}
-        transition-all group
-      `}
+      type="button"
+      onClick={onPress}
+      onMouseEnter={onHover ? () => onHover(true) : undefined}
+      onMouseLeave={onHover ? () => onHover(false) : undefined}
+      className="map-row group flex w-full items-center gap-3 border-b border-border-subtle bg-bg-elevated px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-tint/5"
     >
-      <div className="flex items-center gap-3">
-        <Icon className={`w-5 h-5 ${config.color}`} />
-        <div>
-          {subtitle && <div className="text-xs text-fg-muted">{subtitle}</div>}
-          <div className="text-sm font-medium text-fg-default ">
-            {type === 'factory' ? formatFactoryName(name) : type === 'company' ? formatCompanyName(name) : name}
-          </div>
-        </div>
-      </div>
-      {count !== undefined ? (
-        <span className="px-2 py-0.5 text-xs rounded-full bg-tint/5 border border-tint/10 text-fg-muted">
-          {count}
-        </span>
-      ) : id ? (
-        <ChevronRight className="w-4 h-4 text-fg-muted group-hover:text-fg-default" />
-      ) : null}
+      {logo ?? (Icon && <Icon className="h-4 w-4 shrink-0 text-fg-muted" aria-hidden="true" />)}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm text-fg-default">{title}</span>
+        {subtitle && <span className="block truncate text-xs text-fg-muted">{subtitle}</span>}
+      </span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft transition-colors group-hover:text-fg-default" aria-hidden="true" />
     </button>
   );
 }
 
-// Factory View Component
-//
-// What a click on a pin opens. It answers, without another click: what is
-// this place, who runs it, how big are they, are they hiring here, and where
-// are their other sites. The company's own panel is one step further for
-// someone who wants all of it.
+/** Rows that belong together, as one bordered list. */
+function RowList({ children }: { children: ReactNode }) {
+  return <div className="overflow-hidden rounded-lg border border-border-subtle">{children}</div>;
+}
+
+/** The way on from a panel: the full page of what it is about. */
+function PageLink({ to, children }: { to: string; children: ReactNode }) {
+  return (
+    <Link
+      to={to}
+      className="map-row mb-2 flex w-full items-center justify-center rounded-lg border border-border-strong px-4 py-2.5 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function CareerRows({ careers, limit }: { careers: { id: string; title: string; subtitle?: string }[]; limit: number }) {
+  const selectEntity = useMapStore((s) => s.selectEntity);
+  return (
+    <RowList>
+      {careers.slice(0, limit).map((career) => (
+        <NodeRow
+          key={career.id}
+          icon={Briefcase}
+          title={career.title}
+          subtitle={career.subtitle}
+          onPress={() => selectEntity('occupation', career.id, career.title)}
+        />
+      ))}
+    </RowList>
+  );
+}
+
+function JobRows({ jobs, limit }: { jobs: CareerJob[]; limit: number }) {
+  return (
+    <RowList>
+      {jobs.slice(0, limit).map((job) => (
+        <Link
+          key={job.id}
+          to={`/jobs/${job.id}`}
+          className="map-row group flex items-center justify-between gap-3 border-b border-border-subtle bg-bg-elevated px-3 py-2.5 transition-colors last:border-b-0 hover:bg-tint/5"
+        >
+          <span className="min-w-0">
+            <span className="block truncate text-sm text-fg-default">{job.title}</span>
+            <span className="block truncate text-xs text-fg-muted">{formatPay(job.payMin, job.payMax, job.payPeriod)}</span>
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" aria-hidden="true" />
+        </Link>
+      ))}
+    </RowList>
+  );
+}
+
+/** "and 12 more", when a list was cut short. */
+function More({ shown, total, noun }: { shown: number; total: number; noun: string }) {
+  if (total <= shown) return null;
+  return <p className="mt-2 text-xs text-fg-soft">and {(total - shown).toLocaleString()} more {noun}</p>;
+}
+
+// ─── A state, a focus area, a place ────────────────────────────────────────
+
+function RegionBody({ data, children }: { data: RegionOverview; children?: ReactNode }) {
+  const selectEntity = useMapStore((s) => s.selectEntity);
+  if (data.totalFactories === 0) {
+    return <p className="text-sm text-fg-muted">No plants are listed here.</p>;
+  }
+  return (
+    <>
+      <Figures
+        items={[
+          { label: 'Plants', value: data.totalFactories },
+          ...(data.totalCompanies > 0 ? [{ label: 'Companies', value: data.totalCompanies }] : []),
+        ]}
+      />
+
+      {/* Who is here */}
+      {data.topCompanies.length > 0 && (
+        <Section title="Companies" column="Plants here">
+          <div>
+            {data.topCompanies.slice(0, 8).map((c) => {
+              const name = formatCompanyName(c.name);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => selectEntity('company', c.id, name)}
+                  className="map-row group -mx-2 flex w-[calc(100%+1rem)] items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-tint/5"
+                >
+                  <CompanyLogo name={name} domain={c.domain} size={28} />
+                  <span className="min-w-0 flex-1 truncate text-fg-default">{name}</span>
+                  <span className="shrink-0 text-xs tabular-nums text-fg-muted">{c.count.toLocaleString()}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Section>
+      )}
+
+      {children}
+
+      {/* What work is here */}
+      {data.topIndustries.length > 0 && (
+        <Section title="Industries" column="Plants">
+          <div>
+            {data.topIndustries.map((industry) => (
+              <div key={industry.label} className="flex items-baseline justify-between gap-3 py-1 text-sm">
+                <span className="min-w-0 truncate text-fg-default">{industryLabel(industry.label)}</span>
+                <span className="shrink-0 text-xs tabular-nums text-fg-muted">{industry.count.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {data.careers && data.careers.length > 0 && (
+        <Section title="Careers in these industries">
+          <CareerRows careers={data.careers} limit={6} />
+        </Section>
+      )}
+    </>
+  );
+}
+
+function StateView({ data }: { data: StateOverview }) {
+  const name = STATE_NAMES[data.code] ?? data.code;
+  return (
+    <>
+      <Heading title={name} />
+      <RegionBody data={data} />
+      {data.totalFactories > 0 && <PageLink to={`/explore?tab=factories&state=${data.code}`}>All plants in {name}</PageLink>}
+    </>
+  );
+}
+
+function AreaView({ data }: { data: AreaOverview }) {
+  return (
+    <>
+      <Heading title={data.name} subtitle={data.description} />
+      <RegionBody data={data} />
+    </>
+  );
+}
+
+/** What a place found by search holds: the same overview, and the plants themselves. */
+function PlaceView({ place, data }: { place: MapPlace; data: BoundsOverview }) {
+  const { selectFactory, flyTo, setHoveredFactory } = useMapStore();
+  const shown = data.plants.slice(0, 8);
+  return (
+    <>
+      <Heading title={place.name} subtitle={place.context || undefined} />
+      <RegionBody data={data}>
+        {shown.length > 0 && (
+          <Section title="Plants">
+            <RowList>
+              {shown.map((plant) => {
+                const company = plant.companyName ? formatCompanyName(plant.companyName) : null;
+                const name = formatFactoryName(plant.name);
+                return (
+                  <NodeRow
+                    key={plant.id}
+                    logo={company ? <CompanyLogo name={company} domain={plant.companyDomain} size={24} /> : undefined}
+                    icon={Factory}
+                    title={name}
+                    subtitle={[company && !name.toLowerCase().startsWith(company.toLowerCase()) ? company : null, plant.city ? titleCase(plant.city) : null]
+                      .filter(Boolean)
+                      .join(' · ') || undefined}
+                    onPress={() => {
+                      selectFactory(plant.id);
+                      flyTo({ kind: 'point', lat: parseFloat(plant.latitude), lng: parseFloat(plant.longitude), zoom: 12 });
+                    }}
+                    onHover={(over) => setHoveredFactory(over ? plant.id : null)}
+                  />
+                );
+              })}
+            </RowList>
+            <More shown={shown.length} total={data.totalFactories} noun="on the map" />
+          </Section>
+        )}
+      </RegionBody>
+    </>
+  );
+}
+
+// ─── A plant ───────────────────────────────────────────────────────────────
+
+/** How far "nearby" reaches, and how many plants it lists. */
+const NEARBY_MILES = 30;
+const NEARBY_COUNT = 5;
+
+interface NearbyPlant {
+  id: string;
+  name: string;
+  companyName: string | null;
+  miles: number;
+  lng: number;
+  lat: number;
+}
+
+/**
+ * The plants closest to one plant, from the pins the map already holds: the
+ * same query the map reads, so nothing is requested and the list is there
+ * with the panel.
+ */
+function useNearbyPlants(id: string, latitude: string, longitude: string): NearbyPlant[] {
+  const { data: pins } = useQuery({
+    queryKey: ['factory-pins'],
+    queryFn: () => factoriesApi.pins(),
+    staleTime: 5 * 60 * 1000,
+  });
+  return useMemo(() => {
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    if (!pins || !Number.isFinite(lat) || !Number.isFinite(lng)) return [];
+    // A degree of latitude is about 69 miles: skip the arithmetic for anything plainly out of reach.
+    const reachLat = NEARBY_MILES / 69;
+    const reachLng = reachLat / Math.max(0.2, Math.cos((lat * Math.PI) / 180));
+    const near: NearbyPlant[] = [];
+    for (const feature of pins.features) {
+      const [pinLng, pinLat] = feature.geometry.coordinates;
+      if (Math.abs(pinLat - lat) > reachLat || Math.abs(pinLng - lng) > reachLng) continue;
+      const pin = feature.properties;
+      if (pin.id === id) continue;
+      const miles = milesBetween(lat, lng, pinLat, pinLng);
+      if (miles <= NEARBY_MILES) near.push({ id: pin.id, name: pin.name, companyName: pin.companyName, miles, lng: pinLng, lat: pinLat });
+    }
+    return near.sort((a, b) => a.miles - b.miles).slice(0, NEARBY_COUNT);
+  }, [pins, id, latitude, longitude]);
+}
+
+/** "0.4 miles", "12 miles". */
+function milesAway(miles: number): string {
+  if (miles < 0.1) return 'Next door';
+  const shown = miles < 10 ? Math.round(miles * 10) / 10 : Math.round(miles);
+  return `${shown} ${shown === 1 ? 'mile' : 'miles'}`;
+}
+
 function FactoryView({ factory }: { factory: FactoryDetail }) {
   const { selectEntity, selectFactory, flyTo, setHoveredFactory } = useMapStore();
   const company = factory.company;
   const factoryName = formatFactoryName(factory.name);
   const companyName = company ? formatCompanyName(company.name) : null;
-  const place = [factory.city ? titleCase(factory.city) : null, factory.state].filter(Boolean).join(', ');
-  const industry = factory.industry || factory.specialization || (company && company.industry !== 'Manufacturing' ? company.industry : null);
+  const place = cityAndState(factory.city, factory.state);
+  const industry = factory.industry
+    ? industryLabel(factory.industry)
+    : factory.specialization || (company && company.industry !== 'Manufacturing' ? company.industry : null);
+  const address = factory.address && factory.address.trim().toLowerCase() !== (factory.city ?? '').trim().toLowerCase() ? titleCase(factory.address.trim()) : null;
   const jobs = factory.jobs ?? [];
   const nearby = factory.nearby ?? [];
   const siteCount = company?.siteCount ?? 0;
   const stateCount = company?.stateCount ?? 0;
+  const recorded = factory.occupations ?? [];
+  const typical = factory.typicalCareers ?? [];
+  const sisters = new Set(nearby.map((site) => site.id));
+  const neighbours = useNearbyPlants(factory.id, factory.latitude, factory.longitude).filter((plant) => !sisters.has(plant.id));
+  // A company whose one plant this is, under the same name, would only repeat the heading.
+  const companyIsThisPlant =
+    companyName !== null && siteCount <= 1 && !company?.description && factoryName.toLowerCase().startsWith(companyName.toLowerCase());
 
   return (
     <>
-      {/* Who and what */}
-      <div className="mb-5 flex items-start gap-3">
-        {company && <CompanyLogo name={companyName ?? factoryName} domain={company.domain} size={44} className="rounded-lg" />}
-        <div className="min-w-0 flex-1">
-          <h2 className="break-words text-xl font-semibold leading-snug text-fg-default">{factoryName}</h2>
-          {(place || industry) && (
-            <p className="mt-1 text-sm text-fg-muted">{[place, industry].filter(Boolean).join(' · ')}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Numbers, only where there is one: an empty tile says nothing. */}
-      {(jobs.length > 0 || factory.workforceSize) ? (
-        <div className={cn('mb-6 grid gap-2.5', jobs.length > 0 && factory.workforceSize ? 'grid-cols-2' : 'grid-cols-1')}>
-          {jobs.length > 0 && (
-            <div className="rounded-lg border border-border-subtle bg-bg-elevated p-3">
-              <div className="text-[11px] text-fg-muted">Open jobs</div>
-              <div className="text-xl font-semibold text-fg-default">{jobs.length.toLocaleString()}</div>
-            </div>
-          )}
-          {factory.workforceSize ? (
-            <div className="rounded-lg border border-border-subtle bg-bg-elevated p-3">
-              <div className="text-[11px] text-fg-muted">Workforce</div>
-              <div className="text-xl font-semibold text-fg-default">{factory.workforceSize.toLocaleString()}</div>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
-      {/* Open jobs here */}
-      {jobs.length > 0 && (
-        <div className="mb-6">
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">Open jobs</h3>
-          <div className="space-y-2">
-            {jobs.slice(0, 4).map((job) => (
-              <Link
-                key={job.id}
-                to={`/jobs/${job.id}`}
-                className="group flex items-center justify-between gap-3 rounded-lg border border-border-subtle bg-bg-elevated p-3 transition-colors hover:border-border-strong"
-              >
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium text-fg-default">{job.title}</span>
-                  <span className="block text-xs text-fg-muted">{formatPay(job.payMin, job.payMax, job.payPeriod)}</span>
-                </span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted group-hover:text-fg-default" />
-              </Link>
-            ))}
-            {jobs.length > 4 && (
-              <Link to={`/factories/${factory.id}`} className="block py-1 text-center text-xs text-fg-muted underline-offset-4 hover:underline">
-                All {jobs.length} open jobs
-              </Link>
-            )}
-          </div>
-        </div>
+      {/* What is this */}
+      <Heading
+        title={factoryName}
+        logo={company ? <CompanyLogo name={companyName ?? factoryName} domain={company.domain} size={44} className="rounded-lg" /> : undefined}
+        subtitle={
+          (place || industry || address) && (
+            <>
+              {(place || industry) && <p>{[place, industry].filter(Boolean).join(' · ')}</p>}
+              {address && <p className="mt-0.5 text-xs text-fg-soft">{address}</p>}
+            </>
+          )
+        }
+      />
+      <Figures
+        items={[
+          ...(jobs.length > 0 ? [{ label: 'Open jobs', value: jobs.length }] : []),
+          ...(factory.workforceSize ? [{ label: 'People', value: factory.workforceSize }] : []),
+        ]}
+      />
+      {factory.description && (
+        <Section title="About this plant">
+          <p className="text-sm leading-relaxed text-fg-muted">{factory.description}</p>
+        </Section>
       )}
 
-      {/* The company */}
-      {company && companyName && (
-        <div className="mb-6">
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">Company</h3>
+      {/* Who is here */}
+      {company && companyName && !companyIsThisPlant && (
+        <Section title="Company">
           <button
             type="button"
-            onClick={() => selectEntity('company', company.id)}
+            onClick={() => selectEntity('company', company.id, companyName)}
             className="group w-full rounded-lg border border-border-subtle bg-bg-elevated p-3 text-left transition-colors hover:border-border-strong"
           >
             <span className="flex items-center justify-between gap-3">
@@ -327,619 +437,555 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
                 <span className="block truncate text-sm font-medium text-fg-default">{companyName}</span>
                 {siteCount > 0 && (
                   <span className="block text-xs text-fg-muted">
-                    {siteCount.toLocaleString()} {siteCount === 1 ? 'site' : 'sites'}
+                    {siteCount.toLocaleString()} {siteCount === 1 ? 'plant' : 'plants'}
                     {stateCount > 1 ? ` in ${stateCount} states` : ''}
                     {company.industry && company.industry !== 'Manufacturing' ? ` · ${company.industry}` : ''}
                   </span>
                 )}
               </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted group-hover:text-fg-default" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" aria-hidden="true" />
             </span>
             {company.description && (
               <span className="mt-2 line-clamp-3 block text-sm leading-relaxed text-fg-muted">{company.description}</span>
             )}
           </button>
-        </div>
+        </Section>
       )}
 
-      {/* The company's other sites, closest first */}
+      {/* What work is here */}
+      {jobs.length > 0 && (
+        <Section title="Open jobs">
+          <JobRows jobs={jobs} limit={4} />
+          {jobs.length > 4 && (
+            <Link to={`/factories/${factory.id}`} className="mt-2 block text-xs text-fg-muted underline-offset-4 hover:underline">
+              All {jobs.length} open jobs
+            </Link>
+          )}
+        </Section>
+      )}
+      {recorded.length > 0 ? (
+        <Section title="Careers here">
+          <CareerRows
+            careers={recorded.map((occ) => ({
+              id: occ.id,
+              title: occ.title,
+              subtitle: occ.headcount ? `${occ.headcount.toLocaleString()} ${occ.headcount === 1 ? 'person' : 'people'}` : undefined,
+            }))}
+            limit={4}
+          />
+          <More shown={Math.min(4, recorded.length)} total={recorded.length} noun="on the plant's page" />
+        </Section>
+      ) : (
+        typical.length > 0 && (
+          // With none recorded for the plant, the careers typical of its industry.
+          <Section title="Careers in this industry">
+            <CareerRows careers={typical} limit={6} />
+          </Section>
+        )
+      )}
+
+      {/* Where next */}
       {nearby.length > 0 && companyName && (
-        <div className="mb-6">
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">Other {companyName} sites</h3>
-          <div className="overflow-hidden rounded-lg border border-border-subtle">
+        <Section title={`Other ${companyName} plants`}>
+          <RowList>
             {nearby.map((site) => (
-              <button
+              <NodeRow
                 key={site.id}
-                type="button"
-                onClick={() => {
+                icon={Factory}
+                title={formatFactoryName(site.name)}
+                subtitle={cityAndState(site.city, site.state) || undefined}
+                onPress={() => {
                   selectFactory(site.id);
                   flyTo({ kind: 'point', lat: parseFloat(site.latitude), lng: parseFloat(site.longitude), zoom: 10 });
                 }}
-                onMouseEnter={() => setHoveredFactory(site.id)}
-                onMouseLeave={() => setHoveredFactory(null)}
-                className="group flex w-full items-center justify-between gap-3 border-b border-border-subtle bg-bg-elevated px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-tint/5"
-              >
-                <span className="min-w-0">
-                  <span className="block truncate text-sm text-fg-default">{formatFactoryName(site.name)}</span>
-                  <span className="block text-xs text-fg-muted">
-                    {[site.city ? titleCase(site.city) : null, site.state].filter(Boolean).join(', ')}
-                  </span>
-                </span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted group-hover:text-fg-default" />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* With none recorded for the site, the careers typical of its industry. */}
-      {(!factory.occupations || factory.occupations.length === 0) && factory.typicalCareers && factory.typicalCareers.length > 0 && (
-        <div className="mb-6">
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">Careers in this industry</h3>
-          <div className="space-y-2">
-            {factory.typicalCareers.slice(0, 6).map((career) => (
-              <ConnectedNode key={career.id} type="occupation" id={career.id} name={career.title} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Careers recorded at this site */}
-      {factory.occupations && factory.occupations.length > 0 && (
-        <div className="mb-6">
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">Careers here</h3>
-          <div className="space-y-2">
-            {factory.occupations.slice(0, 4).map((occ) => (
-              <ConnectedNode
-                key={occ.id}
-                type="occupation"
-                id={occ.id}
-                name={occ.title}
-                subtitle={occ.headcount ? `${occ.headcount.toLocaleString()} workers` : undefined}
+                onHover={(over) => setHoveredFactory(over ? site.id : null)}
               />
             ))}
-            {factory.occupations.length > 4 && (
-              <div className="py-1 text-center text-xs text-fg-muted">+{factory.occupations.length - 4} more careers</div>
-            )}
-          </div>
-        </div>
+          </RowList>
+        </Section>
       )}
-
-      {factory.description && (
-        <div className="mb-6">
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-muted">About this site</h3>
-          <p className="text-sm leading-relaxed text-fg-muted">{factory.description}</p>
-        </div>
+      {neighbours.length > 0 && (
+        <Section title="Plants nearby">
+          <RowList>
+            {neighbours.map((plant) => {
+              const name = formatFactoryName(plant.name);
+              const owner = plant.companyName ? formatCompanyName(plant.companyName) : null;
+              return (
+                <NodeRow
+                  key={plant.id}
+                  icon={Factory}
+                  title={name}
+                  subtitle={[owner && !name.toLowerCase().startsWith(owner.toLowerCase()) ? owner : null, milesAway(plant.miles)].filter(Boolean).join(' · ')}
+                  onPress={() => {
+                    selectFactory(plant.id);
+                    flyTo({ kind: 'point', lat: plant.lat, lng: plant.lng });
+                  }}
+                  onHover={(over) => setHoveredFactory(over ? plant.id : null)}
+                />
+              );
+            })}
+          </RowList>
+        </Section>
       )}
-
-      <Link
-        to={`/factories/${factory.id}`}
-        className="mb-2 flex w-full items-center justify-center rounded-lg border border-border-strong px-4 py-2.5 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated"
-      >
-        Factory page
-      </Link>
+      <PageLink to={`/factories/${factory.id}`}>Plant page</PageLink>
     </>
   );
 }
 
-/** "ROUND ROCK" as "Round Rock": the source data shouts its city names. */
-function titleCase(text: string): string {
-  return text.toLowerCase().replace(/(^|[\s-])([a-z])/g, (_, lead: string, letter: string) => lead + letter.toUpperCase());
-}
+// ─── A company ─────────────────────────────────────────────────────────────
 
-// Company View Component
 function CompanyView({ company }: { company: CompanyDetail }) {
-  const { setFilters, flyTo, resetView } = useMapStore();
-  const totalWorkforce = company.factories?.reduce((sum, f) => sum + (f.workforceSize || 0), 0) || 0;
-
-  const showAllFactories = () => {
-    if (!company.factories?.length) return;
-
-    // Set filter to show only this company's factories. Also clear any
-    // lingering state filter (a user can arrive here via
-    // state → top-company → "locate all" and we'd otherwise scope to
-    // state × company instead of everything we cover for the company).
-    setFilters({ company: company.id, companyName: formatCompanyName(company.name), states: [] });
-
-    // Frame every factory we have coordinates for. The camera works out
-    // zoom and how much room the panel or sheet needs.
-    const points = company.factories
-      .filter((f) => f.latitude && f.longitude)
-      .map((f): [number, number] => [parseFloat(f.longitude!), parseFloat(f.latitude!)]);
-
-    if (points.length === 0) {
-      resetView();
-      return;
-    }
-    flyTo({ kind: 'points', points });
-  };
+  const { flyTo, selectFactory, setHoveredFactory } = useMapStore();
+  const name = formatCompanyName(company.name);
+  const plants = company.factories ?? [];
+  const states = new Set(plants.map((f) => f.state).filter(Boolean));
+  const jobs = company.jobs ?? [];
+  const points = plants
+    .filter((f) => f.latitude && f.longitude)
+    .map((f): [number, number] => [parseFloat(f.longitude as string), parseFloat(f.latitude as string)])
+    .filter(([lng, lat]) => Number.isFinite(lng) && Number.isFinite(lat));
 
   return (
     <>
-      {/* Company Name & Industry */}
-      <div className="mb-6 flex items-start gap-3">
-        <CompanyLogo name={formatCompanyName(company.name)} domain={company.domain} size={44} className="rounded-lg" />
-        <div className="min-w-0">
-          <h2 className="text-xl font-semibold text-fg-default mb-1">{formatCompanyName(company.name)}</h2>
-          <p className="text-sm text-fg-muted">{company.industry || 'Manufacturing'}</p>
-        </div>
-      </div>
-
-      {/* Stats Grid - mobile-optimized */}
-      <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
-          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
-            <Factory className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="text-[10px] md:text-xs">Factories</span>
-          </div>
-          <div className="text-xl md:text-2xl font-semibold text-fg-default">
-            {company.factories?.length || 0}
-          </div>
-        </div>
-        {totalWorkforce > 0 && (
-          <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
-            <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
-              <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              <span className="text-[10px] md:text-xs">Workforce</span>
-            </div>
-            <div className="text-xl md:text-2xl font-semibold text-fg-default">
-              {totalWorkforce.toLocaleString()}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Show All Factories Button */}
-      {company.factories && company.factories.length > 0 && (
-        <button
-          onClick={showAllFactories}
-          className="w-full mb-6 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border-strong text-sm font-medium text-fg-default hover:bg-bg-elevated transition-colors"
-        >
-          Show all on map
-        </button>
-      )}
-
-      {/* Connected Factories */}
-      <div className="mb-6">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
-          Factories ({company.factories?.length || 0})
-        </h3>
-        <div className="space-y-2">
-          {company.factories?.slice(0, 5).map((factory) => (
-            <ConnectedNode
-              key={factory.id}
-              type="factory"
-              id={factory.id}
-              name={factory.name}
-              subtitle={factory.state || undefined}
-              lat={factory.latitude ? parseFloat(factory.latitude) : undefined}
-              lng={factory.longitude ? parseFloat(factory.longitude) : undefined}
-            />
-          ))}
-          {company.factories && company.factories.length > 5 && (
-            <div className="text-xs text-fg-muted text-center py-2">
-              +{company.factories.length - 5} more factories
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Industry */}
-      {company.industry && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
-            Industry
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            <span className="px-2 py-1 text-xs rounded-full border border-border-strong text-fg-muted">
-              {company.industry}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Description */}
+      {/* What is this */}
+      <Heading
+        title={name}
+        logo={<CompanyLogo name={name} domain={company.domain} size={44} className="rounded-lg" />}
+        subtitle={company.industry && company.industry !== 'Manufacturing' ? company.industry : undefined}
+      />
+      <Figures
+        items={[
+          ...(plants.length > 0 ? [{ label: 'Plants', value: plants.length }] : []),
+          ...(states.size > 1 ? [{ label: 'States', value: states.size }] : []),
+          ...(jobs.length > 0 ? [{ label: 'Open jobs', value: jobs.length }] : []),
+        ]}
+      />
       {company.description && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
-            Description
-          </h3>
-          <p className="text-sm text-fg-muted leading-relaxed">{company.description}</p>
-        </div>
+        <Section title="About">
+          <p className="text-sm leading-relaxed text-fg-muted">{company.description}</p>
+        </Section>
       )}
+      {plants.length === 0 && <p className="mb-6 text-sm text-fg-muted">No plants are listed for this company.</p>}
+
+      {/* What work is here */}
+      {jobs.length > 0 && (
+        <Section title="Open jobs">
+          <JobRows jobs={jobs} limit={4} />
+          <More shown={Math.min(4, jobs.length)} total={jobs.length} noun="on the company's page" />
+        </Section>
+      )}
+
+      {/* Where */}
+      {plants.length > 0 && (
+        <Section title="Plants">
+          <RowList>
+            {plants.slice(0, 6).map((plant) => (
+              <NodeRow
+                key={plant.id}
+                icon={Factory}
+                title={formatFactoryName(plant.name)}
+                subtitle={[cityAndState(plant.city, plant.state), plant.industry ? industryLabel(plant.industry) : null].filter(Boolean).join(' · ') || undefined}
+                onPress={() => {
+                  selectFactory(plant.id);
+                  if (plant.latitude && plant.longitude) {
+                    flyTo({ kind: 'point', lat: parseFloat(plant.latitude), lng: parseFloat(plant.longitude), zoom: 10 });
+                  }
+                }}
+                onHover={(over) => setHoveredFactory(over ? plant.id : null)}
+              />
+            ))}
+          </RowList>
+          <More shown={Math.min(6, plants.length)} total={plants.length} noun="on the map" />
+          {points.length > 1 && (
+            <button
+              type="button"
+              onClick={() => flyTo({ kind: 'points', points })}
+              className="map-row mt-3 flex w-full items-center justify-center rounded-lg border border-border-strong px-4 py-2.5 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated"
+            >
+              Show all {points.length.toLocaleString()} on the map
+            </button>
+          )}
+        </Section>
+      )}
+
+      {/* Where next */}
+      <PageLink to={`/companies/${company.slug || company.id}`}>Company page</PageLink>
     </>
   );
 }
 
-// Occupation View Component
+// ─── A career ──────────────────────────────────────────────────────────────
+
 function OccupationView({ occupation }: { occupation: OccupationDetail }) {
-  const selectState = useMapStore((s) => s.selectState);
+  const { selectState, selectEntity, selectFactory, flyTo, setHoveredFactory } = useMapStore();
   const skills = occupation.skills ?? [];
   const stages = [1, 2, 3].map((stage) => skills.filter((skill) => skill.stage === stage).length);
   const staged = stages.some((n) => n > 0);
   const industries = occupation.industries ?? [];
   const states = occupation.topStates ?? [];
+  const plants = occupation.factories ?? [];
+  const jobs = occupation.jobs ?? [];
   return (
     <>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-fg-default mb-1">{occupation.title}</h2>
-        {occupation.description && <p className="text-sm text-fg-muted">{occupation.description}</p>}
-        {skills.length > 0 && (
-          <p className="mt-2 text-xs tabular-nums text-fg-soft">
-            {skills.length} {skills.length === 1 ? 'skill' : 'skills'}
-            {staged && ` · Introduction ${stages[0]} · Fundamentals ${stages[1]} · Advanced ${stages[2]}`}
-          </p>
-        )}
-      </div>
+      {/* What is this */}
+      <Heading title={occupation.title} subtitle={occupation.description || undefined} />
 
       {/* Where the work is done: by industry, since few plants list their careers. */}
       {(industries.length > 0 || occupation.everywhere) && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">Where this work is done</h3>
+        <Section title="Where this work is done" column={occupation.everywhere ? undefined : 'Plants'}>
           {occupation.everywhere ? (
             <p className="text-sm text-fg-muted">Plants of every industry.</p>
           ) : (
-            <div className="space-y-1">
+            <div>
               {industries.map((industry) => (
                 <div key={industry.name} className="flex items-baseline justify-between gap-3 py-1 text-sm">
-                  <span className="min-w-0 text-fg-default">{industry.name.replace(/ Manufacturing$/, '')}</span>
-                  <span className="shrink-0 text-xs tabular-nums text-fg-muted">
-                    {industry.factoryCount.toLocaleString()} {industry.factoryCount === 1 ? 'plant' : 'plants'}
-                  </span>
+                  <span className="min-w-0 truncate text-fg-default">{industryLabel(industry.name)}</span>
+                  {industry.factoryCount > 0 && (
+                    <span className="shrink-0 text-xs tabular-nums text-fg-muted">{industry.factoryCount.toLocaleString()}</span>
+                  )}
                 </div>
               ))}
             </div>
           )}
           {occupation.elsewhereToo && <p className="mt-1 text-xs text-fg-soft">And plants of every other industry.</p>}
+          {!occupation.everywhere && industries.length > 0 && (
+            <p className="mt-2 text-xs text-fg-soft">Plants in these industries are lit on the map.</p>
+          )}
           {states.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {states.map((state) => (
-                <button
-                  key={state.code}
-                  type="button"
-                  onClick={() => selectState(state.code)}
-                  title={`${state.factoryCount.toLocaleString()} plants in these industries`}
-                  className="rounded-md border border-border-strong px-2 py-1 text-xs font-medium text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default"
-                >
-                  {STATE_NAMES[state.code] ?? state.code}
-                </button>
-              ))}
+            <div className="mt-3">
+              <p className="mb-1.5 text-xs text-fg-muted">States with the most of these plants</p>
+              <div className="flex flex-wrap gap-1.5">
+                {states.map((state) => (
+                  <button
+                    key={state.code}
+                    type="button"
+                    onClick={() => selectState(state.code)}
+                    title={`${state.factoryCount.toLocaleString()} plants in these industries`}
+                    className="map-row inline-flex items-center rounded-md border border-border-strong px-2.5 text-xs font-medium text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default"
+                  >
+                    {STATE_NAMES[state.code] ?? state.code}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
-        </div>
+        </Section>
       )}
 
-      {/* Skills */}
-      {occupation.skills && occupation.skills.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
-            Skills
-          </h3>
-          <div className="space-y-2">
-            {occupation.skills.slice(0, 5).map((skill) => (
-              <ConnectedNode
+      {/* Plants that record this career */}
+      {plants.length > 0 && (
+        <Section title="Plants that list this career">
+          <RowList>
+            {plants.slice(0, 3).map((plant) => (
+              <NodeRow
+                key={plant.id}
+                icon={Factory}
+                title={formatFactoryName(plant.name)}
+                subtitle={[
+                  plant.headcount ? `${plant.headcount.toLocaleString()} ${plant.headcount === 1 ? 'person' : 'people'}` : null,
+                  plant.state ? (STATE_NAMES[plant.state] ?? plant.state) : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ') || undefined}
+                onPress={() => {
+                  selectFactory(plant.id);
+                  if (plant.latitude && plant.longitude) {
+                    flyTo({ kind: 'point', lat: parseFloat(plant.latitude), lng: parseFloat(plant.longitude), zoom: 10 });
+                  }
+                }}
+                onHover={(over) => setHoveredFactory(over ? plant.id : null)}
+              />
+            ))}
+          </RowList>
+          <More shown={Math.min(3, plants.length)} total={plants.length} noun="on the career's page" />
+        </Section>
+      )}
+
+      {/* What the work takes */}
+      {jobs.length > 0 && (
+        <Section title="Open jobs">
+          <JobRows jobs={jobs} limit={3} />
+          <More shown={Math.min(3, jobs.length)} total={jobs.length} noun="on the career's page" />
+        </Section>
+      )}
+      {skills.length > 0 && (
+        <Section title="Skills">
+          {staged && (
+            <p className="mb-2 text-xs tabular-nums text-fg-muted">
+              Introduction {stages[0]} · Fundamentals {stages[1]} · Advanced {stages[2]}
+            </p>
+          )}
+          <RowList>
+            {skills.slice(0, 5).map((skill) => (
+              <NodeRow
                 key={skill.id}
-                type="skill"
-                id={skill.id}
-                name={skill.name}
+                icon={Wrench}
+                title={skill.name}
                 subtitle={skill.category || undefined}
+                onPress={() => selectEntity('skill', skill.id)}
               />
             ))}
-            {occupation.skills.length > 5 && (
-              <div className="text-xs text-fg-muted text-center py-2">
-                +{occupation.skills.length - 5} more skills
-              </div>
-            )}
-          </div>
-        </div>
+          </RowList>
+          <More shown={Math.min(5, skills.length)} total={skills.length} noun="on the career's page" />
+        </Section>
       )}
 
-      {/* Factories with this occupation */}
-      {occupation.factories && occupation.factories.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
-            Plants with this career
-          </h3>
-          <div className="space-y-2">
-            {occupation.factories.slice(0, 3).map((factory) => (
-              <ConnectedNode
-                key={factory.id}
-                type="factory"
-                id={factory.id}
-                name={factory.name}
-                subtitle={factory.headcount ? `${factory.headcount.toLocaleString()} positions` : factory.state || undefined}
-                lat={factory.latitude ? parseFloat(factory.latitude) : undefined}
-                lng={factory.longitude ? parseFloat(factory.longitude) : undefined}
-              />
-            ))}
-            {occupation.factories.length > 3 && (
-              <div className="text-xs text-fg-muted text-center py-2">
-                +{occupation.factories.length - 3} more factories
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Description */}
-      {occupation.description && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
-            Description
-          </h3>
-          <p className="text-sm text-fg-muted leading-relaxed">{occupation.description}</p>
-        </div>
-      )}
+      {/* Where next */}
+      <PageLink to={`/occupations/${occupation.id}`}>Career page</PageLink>
     </>
   );
 }
 
-// Skill View Component
+// ─── A skill ───────────────────────────────────────────────────────────────
+
 function SkillView({ skill }: { skill: SkillDetail }) {
+  const selectEntity = useMapStore((s) => s.selectEntity);
+  const careers = skill.occupations ?? [];
+  const related = skill.relatedSkills ?? [];
   return (
     <>
-      {/* Skill Name */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-fg-default mb-1">{skill.name}</h2>
-        {skill.category && (
-          <div className="flex items-center gap-2 mt-2">
-            <Tag className="w-4 h-4 text-fg-muted" />
-            <span className="text-sm text-fg-muted">{skill.category}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Stats - mobile-optimized */}
-      <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-6">
-        <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
-          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
-            <Briefcase className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="text-[10px] md:text-xs">Careers</span>
-          </div>
-          <div className="text-xl md:text-2xl font-semibold text-fg-default">
-            {skill.occupations?.length || 0}
-          </div>
-        </div>
-        <div className="bg-bg-elevated border border-tint/10 rounded-lg p-3 md:p-4">
-          <div className="flex items-center gap-1.5 md:gap-2 text-fg-muted mb-1">
-            <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="text-[10px] md:text-xs">Related Skills</span>
-          </div>
-          <div className="text-xl md:text-2xl font-semibold text-fg-default">
-            {skill.relatedSkills?.length || 0}
-          </div>
-        </div>
-      </div>
-
-      {/* Occupations using this skill */}
-      {skill.occupations && skill.occupations.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
-            Used in Careers
-          </h3>
-          <div className="space-y-2">
-            {skill.occupations.slice(0, 5).map((occ) => (
-              <ConnectedNode
-                key={occ.id}
-                type="occupation"
-                id={occ.id}
-                name={occ.title}
-                subtitle={occ.importance ? `${occ.importance.replace('_', ' ')}` : undefined}
-              />
-            ))}
-            {skill.occupations.length > 5 && (
-              <div className="text-xs text-fg-muted text-center py-2">
-                +{skill.occupations.length - 5} more careers
-              </div>
-            )}
-          </div>
-        </div>
+      <Heading title={skill.name} subtitle={skill.category || undefined} />
+      {skill.description && (
+        <Section title="About">
+          <p className="text-sm leading-relaxed text-fg-muted">{skill.description}</p>
+        </Section>
       )}
 
-      {/* Related Skills */}
-      {skill.relatedSkills && skill.relatedSkills.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-3">
-            Related Skills
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {skill.relatedSkills.slice(0, 8).map((s) => (
+      {careers.length > 0 && (
+        <Section title="Careers that use it">
+          <CareerRows careers={careers.map((occ) => ({ id: occ.id, title: occ.title }))} limit={5} />
+          <More shown={Math.min(5, careers.length)} total={careers.length} noun="on the skill's page" />
+        </Section>
+      )}
+
+      {related.length > 0 && (
+        <Section title="Related skills">
+          <div className="flex flex-wrap gap-1.5">
+            {related.slice(0, 8).map((s) => (
               <button
                 key={s.id}
-                onClick={() => useMapStore.getState().selectEntity('skill', s.id)}
-                className="px-2 py-1 text-xs rounded-full border border-border-strong text-fg-muted hover:bg-bg-elevated hover:text-fg-default transition-colors"
+                type="button"
+                onClick={() => selectEntity('skill', s.id)}
+                className="map-row inline-flex items-center rounded-md border border-border-strong px-2.5 text-xs text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default"
               >
                 {s.name}
               </button>
             ))}
-            {skill.relatedSkills.length > 8 && (
-              <span className="px-2 py-1 text-xs text-fg-muted">
-                +{skill.relatedSkills.length - 8} more
-              </span>
-            )}
           </div>
-        </div>
+        </Section>
       )}
 
-      {/* Description */}
-      {skill.description && (
-        <div className="mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
-            Description
-          </h3>
-          <p className="text-sm text-fg-muted leading-relaxed">{skill.description}</p>
-        </div>
-      )}
+      <PageLink to={`/skills/${skill.id}`}>Skill page</PageLink>
     </>
   );
 }
 
+// ─── The panel ─────────────────────────────────────────────────────────────
+
+const KIND: Record<MapEntityType, { icon: typeof Factory; label: string; missing: string }> = {
+  factory: { icon: Factory, label: 'Plant', missing: 'That plant is not listed.' },
+  company: { icon: Building2, label: 'Company', missing: 'That company is not listed.' },
+  occupation: { icon: Briefcase, label: 'Career', missing: 'That career is not listed.' },
+  skill: { icon: Wrench, label: 'Skill', missing: 'That skill is not listed.' },
+  state: { icon: MapPin, label: 'State', missing: 'That state was not found.' },
+  area: { icon: MapPinned, label: 'Focus area', missing: 'That focus area was not found.' },
+  place: { icon: Navigation, label: 'Place', missing: 'That place was not found.' },
+};
+
+interface MapDetailPanelProps {
+  isMobile?: boolean;
+}
+
+/** The sheet's resting heights on a phone, in px, smallest first. */
+function detentHeights(): Record<SheetDetent, number> {
+  return {
+    bar: SHEET_BAR_PX,
+    peek: sheetPeekPx(),
+    full: Math.min(Math.round((window.innerHeight * SHEET_FULL_VH) / 100), window.innerHeight - 72),
+  };
+}
+
 export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps) {
-  // Phone sheet: peek (SHEET_PEEK_VH) or expanded (85vh). The handle and the chevron both toggle it.
-  const [expanded, setExpanded] = useState(false);
-  const {
-    selectedEntityType,
-    selectedEntityId,
-    setSidebarOpen,
-    goBack,
-    canGoBack,
-  } = useMapStore();
+  const selection = useSelection();
+  const { type, id, name, isLoading, error } = selection;
+  const setSidebarOpen = useMapStore((s) => s.setSidebarOpen);
+  const goBack = useMapStore((s) => s.goBack);
+  const canGoBack = useMapStore((s) => s.navigationHistory.length > 0);
+  const notFound = useMapStore((s) => s.notFound);
+  const detent = useMapStore((s) => s.sheetDetent);
+  const setDetent = useMapStore((s) => s.setSheetDetent);
+  const asideRef = useRef<HTMLElement>(null);
 
-  // Fetch entity details based on type
-  const { data: factory, isLoading: factoryLoading } = useQuery<FactoryDetail>({
-    queryKey: ['factory', selectedEntityId],
-    queryFn: () => factoriesApi.get(selectedEntityId!),
-    enabled: selectedEntityType === 'factory' && !!selectedEntityId,
-  });
+  const kind = type ? KIND[type] : null;
+  const Icon = kind?.icon ?? Factory;
 
-  const { data: company, isLoading: companyLoading } = useQuery<CompanyDetail>({
-    queryKey: ['company', selectedEntityId],
-    queryFn: () => companiesApi.get(selectedEntityId!),
-    enabled: selectedEntityType === 'company' && !!selectedEntityId,
-  });
+  // A link to something that does not exist: say so beside the search and
+  // show the country, rather than an empty panel that reads as an outage.
+  const missing = error !== null && isNotFound(error);
+  useEffect(() => {
+    if (missing && kind) notFound(kind.missing);
+  }, [missing, kind, notFound]);
 
-  const { data: occupation, isLoading: occupationLoading } = useQuery<OccupationDetail>({
-    queryKey: ['occupation', selectedEntityId],
-    queryFn: () => occupationsApi.get(selectedEntityId!),
-    enabled: selectedEntityType === 'occupation' && !!selectedEntityId,
-  });
-
-  const { data: skill, isLoading: skillLoading } = useQuery<SkillDetail>({
-    queryKey: ['skill', selectedEntityId],
-    queryFn: () => skillsApi.get(selectedEntityId!),
-    enabled: selectedEntityType === 'skill' && !!selectedEntityId,
-  });
-
-  const { data: stateOverview, isLoading: stateLoading } = useQuery<StateOverview>({
-    queryKey: ['state-overview', selectedEntityId],
-    queryFn: () => mapApi.stateOverview(selectedEntityId as string),
-    enabled: selectedEntityType === 'state' && !!selectedEntityId,
-  });
-
-  const { data: areaOverview, isLoading: areaLoading } = useQuery<AreaOverview>({
-    queryKey: ['area-overview', selectedEntityId],
-    queryFn: () => mapApi.areaOverview(selectedEntityId as string),
-    enabled: selectedEntityType === 'area' && !!selectedEntityId,
-  });
-
-  const isLoading =
-    factoryLoading || companyLoading || occupationLoading || skillLoading || stateLoading || areaLoading;
-  const hasData = factory || company || occupation || skill || stateOverview || areaOverview;
+  // A sheet opens at its resting height, and one folded to its bar opens
+  // again for whatever is chosen next.
+  useEffect(() => {
+    setDetent('peek');
+  }, [setDetent]);
+  useEffect(() => {
+    if (useMapStore.getState().sheetDetent === 'bar') setDetent('peek');
+  }, [type, id, setDetent]);
 
   // Close on ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setSidebarOpen(false);
-      }
+      if (e.key === 'Escape') setSidebarOpen(false);
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [setSidebarOpen]);
 
-  const config = selectedEntityType ? entityConfig[selectedEntityType] : null;
-  const Icon = config?.icon || Factory;
+  // The sheet follows the finger on its header and settles on the nearest
+  // resting height when let go. The height is set on the element while
+  // dragging, so nothing re-renders per frame.
+  const drag = useRef<{ pointer: number; startY: number; startHeight: number; moved: boolean } | null>(null);
+  const onDragStart = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isMobile || e.pointerType === 'mouse' || !asideRef.current) return;
+    drag.current = { pointer: e.pointerId, startY: e.clientY, startHeight: asideRef.current.getBoundingClientRect().height, moved: false };
+  };
+  const onDragMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    const sheet = asideRef.current;
+    if (!d || !sheet || e.pointerId !== d.pointer) return;
+    const dy = e.clientY - d.startY;
+    if (!d.moved) {
+      if (Math.abs(dy) < 8) return;
+      d.moved = true;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      sheet.style.transition = 'none';
+    }
+    const heights = detentHeights();
+    sheet.style.height = `${Math.min(Math.max(d.startHeight - dy, heights.bar), heights.full)}px`;
+  };
+  const onDragEnd = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    const sheet = asideRef.current;
+    drag.current = null;
+    if (!d || !d.moved || !sheet) return;
+    const dy = e.clientY - d.startY;
+    const height = sheet.getBoundingClientRect().height;
+    sheet.style.transition = '';
+    sheet.style.height = '';
+    const heights = detentHeights();
+    const order: SheetDetent[] = ['bar', 'peek', 'full'];
+    // A nudge leaves it where it was. A real swipe goes to the next resting
+    // height in its direction from where the finger let go.
+    let next = detent;
+    if (Math.abs(dy) >= 40) {
+      const slack = 24;
+      next =
+        dy < 0
+          ? (order.find((each) => heights[each] >= height - slack) ?? 'full')
+          : ([...order].reverse().find((each) => heights[each] <= height + slack) ?? 'bar');
+    }
+    setDetent(next);
+  };
 
-  // Size comes from camera.ts, which frames the map around this panel: one
-  // source for both, so the camera can never disagree with what is on screen.
-  const panelClasses = isMobile
-    ? 'fixed inset-x-0 bottom-0 rounded-t-2xl z-50 animate-in slide-in-from-bottom duration-300 transition-[height]'
-    : 'absolute top-0 right-0 h-full z-50 animate-in slide-in-from-right duration-300';
-  const panelSize = isMobile
-    ? { height: expanded ? '85vh' : `${SHEET_PEEK_VH}vh` }
-    : { width: PANEL_WIDTH_PX };
+  const toggle = () => setDetent(detent === 'full' ? 'peek' : detent === 'bar' ? 'peek' : 'full');
+  const folded = isMobile && detent === 'bar';
+  const headerText = folded && name ? name : (kind?.label ?? 'Details');
+  const headerButton =
+    'map-search-button flex shrink-0 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-tint/10 hover:text-fg-default';
 
   return (
     <aside
-      className={`
-        ${panelClasses}
-        bg-bg-surface
-        ${isMobile ? 'border-t' : 'border-l'} border-border-subtle
-        flex flex-col
-        overflow-hidden
-      `}
-      style={panelSize}
-      role="complementary"
-      aria-label={`${config?.label || 'Entity'} details`}
+      ref={asideRef}
+      data-detent={isMobile ? detent : undefined}
+      className={`z-50 flex flex-col overflow-hidden border-border-subtle bg-bg-surface ${
+        isMobile
+          ? 'map-sheet fixed inset-x-0 bottom-0 rounded-t-2xl border-t animate-in slide-in-from-bottom duration-300'
+          : 'absolute right-0 top-0 h-full border-l animate-in slide-in-from-right duration-300'
+      }`}
+      style={isMobile ? undefined : { width: PANEL_WIDTH_PX }}
+      aria-label={name ? `${kind?.label ?? 'Details'}: ${name}` : (kind?.label ?? 'Details')}
     >
-      {isMobile && (
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          aria-label={expanded ? 'Collapse details' : 'Expand details'}
-          className="absolute left-1/2 top-1.5 z-10 -translate-x-1/2 rounded-full px-6 py-2"
-        >
-          <span className="block h-1.5 w-12 rounded-full bg-tint/30" />
-        </button>
-      )}
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-border-subtle">
-        <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
-          {canGoBack() && (
-            <button
-              onClick={goBack}
-              className="p-1.5 rounded-lg hover:bg-tint/10 text-fg-muted hover:text-fg-default transition-colors flex-shrink-0"
-              aria-label="Go back"
-              title="Go back"
-            >
-              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
-          )}
-          <div className={`p-1.5 md:p-2 rounded-lg flex-shrink-0 ${config?.bgColor || 'bg-bg-elevated'}`}>
-            <Icon className={`w-4 h-4 md:w-5 md:h-5 ${config?.color || 'text-fg-muted'}`} />
+      <div
+        className={isMobile ? 'touch-none' : undefined}
+        onPointerDown={onDragStart}
+        onPointerMove={onDragMove}
+        onPointerUp={onDragEnd}
+        onPointerCancel={onDragEnd}
+      >
+        {isMobile && (
+          <div className="flex justify-center pt-2" aria-hidden="true">
+            <span className="block h-1 w-10 rounded-full bg-tint/25" />
           </div>
-          <span className="px-2 py-0.5 text-[10px] md:text-xs font-medium rounded-full bg-tint/5 border border-tint/10 text-fg-muted truncate">
-            {config?.label || 'Entity'}
-          </span>
-        </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {isMobile && (
-            <button
-              type="button"
-              onClick={() => setExpanded((v) => !v)}
-              className="p-1.5 rounded-lg hover:bg-tint/10 text-fg-muted hover:text-fg-default transition-colors"
-              aria-label={expanded ? 'Collapse details' : 'Expand details'}
-              title={expanded ? 'Collapse' : 'Expand'}
+        )}
+        {/* Header */}
+        <div className={`flex items-center justify-between gap-2 border-b border-border-subtle ${isMobile ? 'px-2 pb-1.5 pt-0.5' : 'p-3'}`}>
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {canGoBack && (
+              <button type="button" onClick={goBack} className={headerButton} aria-label="Back" title="Back">
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            )}
+            <Icon className={`h-4 w-4 shrink-0 text-fg-muted ${canGoBack ? '' : 'ml-2'}`} aria-hidden="true" />
+            <span
+              className={
+                folded && name
+                  ? 'min-w-0 truncate text-sm font-medium text-fg-default'
+                  : 'min-w-0 truncate text-xs font-medium uppercase tracking-wider text-fg-muted'
+              }
             >
-              {expanded ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+              {headerText}
+            </span>
+          </div>
+          <div className="flex shrink-0 items-center">
+            {isMobile && (
+              <button
+                type="button"
+                onClick={toggle}
+                className={headerButton}
+                aria-label={detent === 'full' ? 'Make the panel smaller' : 'Make the panel larger'}
+                aria-expanded={detent === 'full'}
+              >
+                {detent === 'full' ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+              </button>
+            )}
+            <button type="button" onClick={() => setSidebarOpen(false)} className={headerButton} aria-label="Close" title="Close">
+              <X className="h-5 w-5" />
             </button>
-          )}
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-tint/10 text-fg-muted hover:text-fg-default transition-colors"
-            aria-label="Close details"
-            title="Close"
-          >
-            <X className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-3 md:p-4">
+      <div className="flex-1 overflow-y-auto overscroll-contain p-4" hidden={folded}>
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 text-fg-muted animate-spin" />
+            <Loader2 className="h-6 w-6 animate-spin text-fg-muted" aria-label="Loading" />
           </div>
-        ) : !hasData ? (
-          <div className="text-center py-12">
-            <p className="text-fg-muted">Failed to load details</p>
+        ) : error && !missing ? (
+          <div className="py-10 text-center">
+            <p className="text-sm text-fg-muted">This could not be loaded.</p>
             <button
-              onClick={() => setSidebarOpen(false)}
-              className="mt-4 text-sm text-fg-default underline underline-offset-4 hover:no-underline"
+              type="button"
+              onClick={selection.retry}
+              className="map-row mt-3 inline-flex items-center rounded-lg border border-border-strong px-4 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated"
             >
-              Close panel
+              Try again
             </button>
           </div>
         ) : (
           <>
-            {selectedEntityType === 'factory' && factory && <FactoryView factory={factory} />}
-            {selectedEntityType === 'company' && company && <CompanyView company={company} />}
-            {selectedEntityType === 'occupation' && occupation && <OccupationView occupation={occupation} />}
-            {selectedEntityType === 'skill' && skill && <SkillView skill={skill} />}
-            {selectedEntityType === 'state' && stateOverview && <StateView data={stateOverview} />}
-            {selectedEntityType === 'area' && areaOverview && <AreaView data={areaOverview} />}
+            {type === 'factory' && selection.factory && <FactoryView factory={selection.factory} />}
+            {type === 'company' && selection.company && <CompanyView company={selection.company} />}
+            {type === 'occupation' && selection.occupation && <OccupationView occupation={selection.occupation} />}
+            {type === 'skill' && selection.skill && <SkillView skill={selection.skill} />}
+            {type === 'state' && selection.state && <StateView data={selection.state} />}
+            {type === 'area' && selection.area && <AreaView data={selection.area} />}
+            {type === 'place' && selection.place && selection.placeOverview && (
+              <PlaceView place={selection.place} data={selection.placeOverview} />
+            )}
           </>
         )}
       </div>

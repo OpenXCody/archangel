@@ -66,7 +66,8 @@ export default function Layout() {
                     to={to}
                     aria-label={label}
                     className={`
-                      flex items-center gap-2 px-3 lg:px-4 py-2 rounded-full text-sm font-medium
+                      flex items-center justify-center gap-2 px-3 lg:px-4 py-2 rounded-full text-sm font-medium
+                      min-h-11 min-w-11 lg:min-h-0 lg:min-w-0
                       transition-colors
                       ${isActive
                         ? 'bg-bg-elevated text-fg-default'
