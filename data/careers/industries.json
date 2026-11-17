@@ -1,5 +1,5 @@
 {
-  "note": "Careers typical of each industry (NAICS manufacturing subsector, as factories.primary_naics_description names it). 'everywhere' lists careers found in plants of every industry. Titles must match occupations.title exactly. Order is the order shown. This is a curated starting point: it says what kind of work an industry has, not that a given plant employs it. In process industries (chemicals, food, paper and the like) the maintenance and controls trades are the work, so they lead those lists.",
+  "note": "Careers typical of each industry (NAICS manufacturing subsector, as factories.primary_naics_description names it). 'everywhere' lists careers found in plants of every industry. Titles must match occupations.title exactly. Order is the order shown. This is a curated starting point: it says what kind of work an industry has, not that a given plant employs it. In process industries (chemicals, food, paper and the like) the maintenance and controls trades are the work, so they lead those lists. Titles follow later renames (data/cleanup): migration 0021 was generated before them and is not regenerated; a change to this list goes out as a new migration.",
   "everywhere": [
     "Maintenance Technician",
     "Industrial Electrician",
@@ -155,7 +155,7 @@
         "Litho Process Engineer",
         "Yield Engineer",
         "Process Integration Engineer",
-        "Test Engineer Semiconductor",
+        "Semiconductor Test Engineer",
         "Failure Analysis Engineer",
         "EUV Scanner Operator",
         "Epitaxy Technician",
@@ -174,7 +174,7 @@
         "Litho Equipment Engineer",
         "PVD Process Engineer",
         "Wet Process Engineer",
-        "Reliability Engineer Semi",
+        "Semiconductor Reliability Engineer",
         "Vision Systems Engineer",
         "Test Engineer"
       ]

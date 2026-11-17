@@ -1,0 +1,801 @@
+{
+  "note": "First data cleanup after the usage review (2026-11). Every entry names rows by exact stored name or title. The generated migration is idempotent: a merge or deletion whose rows are already gone does nothing.",
+  "deleteCareers": {
+    "why": "The catalogue is for technical manufacturing roles. These are management, logistics and clerical roles, launch and mission operations, and software development for a CAD product.",
+    "titles": [
+      "Forklift Operator",
+      "Materials Handler",
+      "Shipping and Receiving Clerk",
+      "Tool Crib Attendant",
+      "Inventory Control Specialist",
+      "Supply Chain Coordinator",
+      "Operations Manager",
+      "Plant Manager",
+      "Production Supervisor",
+      "Manufacturing Supervisor",
+      "Quality Assurance Manager",
+      "Coil Handler",
+      "Marine Operations Coordinator",
+      "Flight Director",
+      "Launch Weather Specialist",
+      "Launch Controller",
+      "Mission Control Operator",
+      "Dragon Mission Specialist",
+      "Dragon Recovery Specialist",
+      "Fairing Recovery Specialist",
+      "Booster Recovery Technician",
+      "Orbital Analyst",
+      "Communications Console Op",
+      "Propulsion Console Operator",
+      "Production Test Pilot",
+      "API Developer CAD",
+      "CAD Software Developer",
+      "Cloud Platform Developer",
+      "Constraint Solver Developer",
+      "Driver Developer",
+      "File Format Developer",
+      "Geometry Kernel Developer",
+      "Graphics Engine Developer",
+      "Plugin Developer",
+      "Rendering Developer",
+      "Simulation Developer"
+    ]
+  },
+  "mergeCareers": [
+    {
+      "keep": "Power Supply Assembler",
+      "merge": [
+        "Power Supply Assembly"
+      ]
+    },
+    {
+      "keep": "Network Switch Assembler",
+      "merge": [
+        "Network Switch Assembly"
+      ]
+    },
+    {
+      "keep": "Engine Test Cell Operator",
+      "merge": [
+        "Engine Test Operator"
+      ]
+    },
+    {
+      "keep": "Autoclave Operator",
+      "merge": [
+        "Autoclave Cure Operator"
+      ]
+    },
+    {
+      "keep": "E-Coat Operator",
+      "merge": [
+        "E-Coat Operator Auto"
+      ]
+    },
+    {
+      "keep": "Oven Operator",
+      "merge": [
+        "Oven Operator Food"
+      ]
+    }
+  ],
+  "renameCareers": [
+    {
+      "from": "Reliability Engineer Semi",
+      "to": "Semiconductor Reliability Engineer"
+    },
+    {
+      "from": "Test Engineer Semiconductor",
+      "to": "Semiconductor Test Engineer"
+    },
+    {
+      "from": "Batch Operator Food",
+      "to": "Food Batch Operator"
+    },
+    {
+      "from": "Extrusion Operator Food",
+      "to": "Food Extrusion Operator"
+    },
+    {
+      "from": "Freeze Dryer Operator Food",
+      "to": "Food Freeze Dryer Operator"
+    },
+    {
+      "from": "Mixer Operator Food",
+      "to": "Food Mixer Operator"
+    },
+    {
+      "from": "Water Treatment Op Food",
+      "to": "Food Plant Water Treatment Operator"
+    },
+    {
+      "from": "Filler Operator Beverage",
+      "to": "Beverage Filler Operator"
+    },
+    {
+      "from": "Labeler Operator Beverage",
+      "to": "Beverage Labeler Operator"
+    },
+    {
+      "from": "Packer Operator Beverage",
+      "to": "Beverage Packer Operator"
+    },
+    {
+      "from": "Labeling Operator Pharma",
+      "to": "Pharmaceutical Labeling Operator"
+    },
+    {
+      "from": "Packaging Operator Pharma",
+      "to": "Pharmaceutical Packaging Operator"
+    },
+    {
+      "from": "QC Analyst Pharma",
+      "to": "Pharmaceutical QC Analyst"
+    },
+    {
+      "from": "Battery Installer Auto",
+      "to": "Automotive Battery Installer"
+    },
+    {
+      "from": "Carpet Installer Auto",
+      "to": "Automotive Carpet Installer"
+    },
+    {
+      "from": "Engine Assembly Tech Auto",
+      "to": "Automotive Engine Assembly Technician"
+    },
+    {
+      "from": "Fluid Fill Operator Auto",
+      "to": "Automotive Fluid Fill Operator"
+    },
+    {
+      "from": "Glass Installer Auto",
+      "to": "Automotive Glass Installer"
+    },
+    {
+      "from": "Headliner Installer Auto",
+      "to": "Automotive Headliner Installer"
+    },
+    {
+      "from": "Laser Weld Operator Auto",
+      "to": "Automotive Laser Weld Operator"
+    },
+    {
+      "from": "MIG Weld Operator Auto",
+      "to": "Automotive MIG Weld Operator"
+    },
+    {
+      "from": "Sealer Applicator Auto",
+      "to": "Automotive Sealer Applicator"
+    },
+    {
+      "from": "Seat Installer Auto",
+      "to": "Automotive Seat Installer"
+    },
+    {
+      "from": "Spot Weld Operator Auto",
+      "to": "Automotive Spot Weld Operator"
+    },
+    {
+      "from": "Wheel Installer Auto",
+      "to": "Automotive Wheel Installer"
+    }
+  ],
+  "skillCategories": {
+    "why": "Skills created with the career paths had no category; 'Welding' duplicated 'Welding & Fabrication'; one skill carried its old tree level as its category.",
+    "rename": {
+      "Welding": "Welding & Fabrication"
+    },
+    "assign": {
+      "Assembly & Electronics": [
+        "Assembly Hand Tool Use",
+        "Assembly Rework and Repair",
+        "Assembly Visual Inspection",
+        "Component-Level Troubleshooting",
+        "ESD Control",
+        "IPC J-STD-001 Certification",
+        "Sensor and I/O Wiring",
+        "Test Fixture Setup"
+      ],
+      "Quality & Measurement": [
+        "Gauge R&R Studies",
+        "In-Process Inspection",
+        "Inspection Record Keeping",
+        "Nonconformance Reporting"
+      ],
+      "Machining": [
+        "Die Component Fitting",
+        "Speeds and Feeds Calculation",
+        "Tool and Work Offsets",
+        "Workholding and Fixturing",
+        "Multi-Axis Machining"
+      ],
+      "Welding & Fabrication": [
+        "Oxy-Fuel Cutting",
+        "Pipe Welding",
+        "Weld Joint Fit-Up",
+        "Weld Symbol Interpretation"
+      ],
+      "Software & Programming": [
+        "Robot Teach Pendant Operation"
+      ],
+      "Maintenance & Repair": [
+        "End-of-Arm Tooling Setup",
+        "Robot Cell Safety",
+        "Process Tool Troubleshooting",
+        "Vacuum System Fundamentals"
+      ],
+      "Electrical Systems": [
+        "Industrial Network Troubleshooting"
+      ],
+      "Material Handling": [
+        "Inventory Scanning",
+        "Load Securing and Stacking"
+      ],
+      "Shop Fundamentals": [
+        "Shop Safety Practices",
+        "Shop Math",
+        "Work Instruction Reading",
+        "Shift Handover Reporting",
+        "Production Scheduling",
+        "Crew Training and Coaching",
+        "Lot Tracking",
+        "Process Recipe Execution"
+      ]
+    }
+  },
+  "deleteSkillTreeNodes": {
+    "why": "Nodes of an old skill tree stored as skills, with their level (Root, Category, Subcategory) as their category. No career, job or person uses them. Children keep their own category and lose the parent link.",
+    "categories": [
+      "Root",
+      "Category",
+      "Subcategory"
+    ]
+  },
+  "mergeSkills": [
+    {
+      "keep": "Plasma Etching",
+      "merge": [
+        "Plasma Etch"
+      ]
+    },
+    {
+      "keep": "Resistance Spot Welding",
+      "merge": [
+        "Resistance Spot Weld"
+      ]
+    },
+    {
+      "keep": "Squeak and Rattle Testing",
+      "merge": [
+        "Squeak Rattle Test"
+      ]
+    },
+    {
+      "keep": "Nonconformance Reporting",
+      "merge": [
+        "Non-Conformance Reporting"
+      ]
+    },
+    {
+      "keep": "Angle Beam UT - Shear Wave",
+      "merge": [
+        "Angle Beam Shear Wave"
+      ]
+    },
+    {
+      "keep": "Orbital Welding",
+      "merge": [
+        "Orbital TIG Welding"
+      ]
+    },
+    {
+      "keep": "Oscilloscope Usage",
+      "merge": [
+        "Oscilloscope Operation"
+      ]
+    },
+    {
+      "keep": "Propellant Loading",
+      "merge": [
+        "Propellant Loading Operations"
+      ]
+    },
+    {
+      "keep": "Wire Crimping and Termination",
+      "merge": [
+        "Crimping and Termination"
+      ]
+    },
+    {
+      "keep": "Cockpit Module Install",
+      "merge": [
+        "Cockpit Module Install Auto"
+      ]
+    },
+    {
+      "keep": "Color Matching",
+      "merge": [
+        "Color Matching Auto"
+      ]
+    },
+    {
+      "keep": "Conformal Coating",
+      "merge": [
+        "Conformal Coating Apply"
+      ]
+    },
+    {
+      "keep": "Seat Installation",
+      "merge": [
+        "Seat Installation Auto"
+      ]
+    },
+    {
+      "keep": "Vibration Analysis",
+      "merge": [
+        "Vibration Analysis Helo"
+      ]
+    },
+    {
+      "keep": "Wheel Alignment",
+      "merge": [
+        "Wheel Alignment Auto"
+      ]
+    },
+    {
+      "keep": "Laser Brazing",
+      "merge": [
+        "Laser Braze Automotive"
+      ]
+    }
+  ],
+  "renameSkills": [
+    {
+      "from": "AC Charge Auto",
+      "to": "Automotive AC Charge"
+    },
+    {
+      "from": "Die Setting Automotive",
+      "to": "Automotive Die Setting"
+    },
+    {
+      "from": "Door Hanging Auto",
+      "to": "Automotive Door Hanging"
+    },
+    {
+      "from": "Final Inspection Auto",
+      "to": "Automotive Final Inspection"
+    },
+    {
+      "from": "Fluid Fill Auto",
+      "to": "Automotive Fluid Fill"
+    },
+    {
+      "from": "Laser Weld Automotive",
+      "to": "Automotive Laser Welding"
+    },
+    {
+      "from": "MIG Weld Automotive",
+      "to": "Automotive MIG Welding"
+    },
+    {
+      "from": "PVC Undercoat Apply",
+      "to": "PVC Undercoat Application"
+    },
+    {
+      "from": "Paint Defect Repair Auto",
+      "to": "Automotive Paint Defect Repair"
+    },
+    {
+      "from": "Primer Surfacer Apply",
+      "to": "Primer Surfacer Application"
+    },
+    {
+      "from": "Sealer Application Auto",
+      "to": "Automotive Sealer Application"
+    },
+    {
+      "from": "Structural Adhesive Auto",
+      "to": "Automotive Structural Adhesive"
+    },
+    {
+      "from": "Water Leak Test Auto",
+      "to": "Automotive Water Leak Testing"
+    },
+    {
+      "from": "Waterproof Seal Apply",
+      "to": "Waterproof Seal Application"
+    },
+    {
+      "from": "Windshield Install Auto",
+      "to": "Automotive Windshield Installation"
+    }
+  ],
+  "mergeCompanies": [
+    {
+      "keep": "Airgas",
+      "merge": [
+        "Airgas USA",
+        "US Airgas"
+      ]
+    },
+    {
+      "keep": "Air Liquide",
+      "merge": [
+        "Air Liquide America"
+      ]
+    },
+    {
+      "keep": "Avery Dennison",
+      "merge": [
+        "Avery Dennison Mfg"
+      ]
+    },
+    {
+      "keep": "Bimbo Bakeries USA",
+      "merge": [
+        "Bimbo Bakeries"
+      ]
+    },
+    {
+      "keep": "Land O'lakes",
+      "merge": [
+        "Land O Lakes",
+        "Land O' Lakes"
+      ],
+      "rename": "Land O'Lakes"
+    },
+    {
+      "keep": "Agilent Technologies",
+      "merge": [
+        "Agilent Technologies US"
+      ]
+    },
+    {
+      "keep": "Bayer",
+      "merge": [
+        "Bayer US Holding"
+      ]
+    },
+    {
+      "keep": "Flex",
+      "merge": [
+        "Flextronics America",
+        "Flextronics"
+      ]
+    },
+    {
+      "keep": "Airborn",
+      "merge": [
+        "Airborn Manufacturing"
+      ]
+    },
+    {
+      "keep": "Argos USA",
+      "merge": [
+        "Argos",
+        "Argos Products"
+      ]
+    },
+    {
+      "keep": "Lafarge",
+      "merge": [
+        "Lafarge North America"
+      ]
+    },
+    {
+      "keep": "Bemis",
+      "merge": [
+        "Bemis Mfg"
+      ]
+    },
+    {
+      "keep": "Ardagh Holdings USA",
+      "merge": [
+        "Ardagh Group"
+      ],
+      "rename": "Ardagh Group"
+    },
+    {
+      "keep": "Bridgestone",
+      "merge": [
+        "Bridgestone Americas",
+        "Bridgestone/firestone",
+        "Bridgestone Firestone"
+      ]
+    },
+    {
+      "keep": "Crown Cork & Seal",
+      "merge": [
+        "Crown Cork & Seal Co (usa)"
+      ]
+    },
+    {
+      "keep": "Rpm International",
+      "merge": [
+        "Rpm"
+      ],
+      "rename": "RPM International"
+    },
+    {
+      "keep": "Bunge",
+      "merge": [
+        "Bunge North America"
+      ]
+    },
+    {
+      "keep": "Itt Industries",
+      "merge": [
+        "ITT Inc."
+      ],
+      "rename": "ITT"
+    },
+    {
+      "keep": "Cookson America",
+      "merge": [
+        "Cookson Group Plc"
+      ]
+    },
+    {
+      "keep": "Bp America",
+      "merge": [
+        "Bp Products North America"
+      ],
+      "rename": "BP America"
+    },
+    {
+      "keep": "Bway",
+      "merge": [
+        "Bway Manufacturing"
+      ]
+    },
+    {
+      "keep": "Mohawk Industries",
+      "merge": [
+        "Mohawk"
+      ]
+    },
+    {
+      "keep": "Black & Decker",
+      "merge": [
+        "Black & Decker US"
+      ]
+    },
+    {
+      "keep": "Flint Ink",
+      "merge": [
+        "Flint Ink North America"
+      ]
+    },
+    {
+      "keep": "Allegheny Wood Products",
+      "merge": [
+        "Allegheny Wood Products International"
+      ]
+    },
+    {
+      "keep": "Albemarle",
+      "merge": [
+        "Albemarle US"
+      ]
+    },
+    {
+      "keep": "Arctic Glacier USA",
+      "merge": [
+        "Arctic Glacier"
+      ],
+      "rename": "Arctic Glacier"
+    },
+    {
+      "keep": "Foamex",
+      "merge": [
+        "Foamex Intl",
+        "Foamex International"
+      ]
+    },
+    {
+      "keep": "Nxp Semiconductors",
+      "merge": [
+        "Nxp USA"
+      ],
+      "rename": "NXP Semiconductors"
+    },
+    {
+      "keep": "Sanmina",
+      "merge": [
+        "Sanmina-sci"
+      ]
+    },
+    {
+      "keep": "General Electric",
+      "merge": [
+        "GE"
+      ]
+    },
+    {
+      "keep": "Pepsi",
+      "merge": [
+        "PepsiCo",
+        "Pepsiamericas"
+      ],
+      "rename": "PepsiCo"
+    },
+    {
+      "keep": "B/e Aerospace",
+      "merge": [
+        "B E Aerospace"
+      ],
+      "rename": "B/E Aerospace"
+    },
+    {
+      "keep": "Abc-na",
+      "merge": [
+        "Abc /na"
+      ]
+    },
+    {
+      "keep": "Charley's Concrete",
+      "merge": [
+        "Charley''s Concrete"
+      ]
+    },
+    {
+      "keep": "Ams",
+      "merge": [
+        "Ams/"
+      ]
+    },
+    {
+      "keep": "Southwin",
+      "merge": [
+        "Southwin/"
+      ]
+    },
+    {
+      "keep": "Bw/ip International",
+      "merge": [
+        "Bw Ip International"
+      ]
+    },
+    {
+      "keep": "Aeroflex/inmet",
+      "merge": [
+        "Aeroflex Inmet"
+      ]
+    },
+    {
+      "keep": "Beatrice/hunt-wesson",
+      "merge": [
+        "Beatrice Hunt Wesson"
+      ]
+    },
+    {
+      "keep": "Apac Atlantic, Inc. Harrison Division",
+      "merge": [
+        "Apac Atlantic, Inc/harrison Division"
+      ]
+    }
+  ],
+  "renameCompanies": [
+    {
+      "from": "Georgia-pacific",
+      "to": "Georgia-Pacific"
+    },
+    {
+      "from": "Saint-gobain",
+      "to": "Saint-Gobain"
+    },
+    {
+      "from": "Sherwin-williams",
+      "to": "Sherwin-Williams"
+    },
+    {
+      "from": "Anheuser-busch",
+      "to": "Anheuser-Busch"
+    },
+    {
+      "from": "Bristol-myers Squibb",
+      "to": "Bristol-Myers Squibb"
+    },
+    {
+      "from": "Lyondellbasell",
+      "to": "LyondellBasell"
+    },
+    {
+      "from": "Calportland",
+      "to": "CalPortland"
+    },
+    {
+      "from": "Abb",
+      "to": "ABB"
+    },
+    {
+      "from": "Bd",
+      "to": "BD"
+    },
+    {
+      "from": "Azz",
+      "to": "AZZ"
+    },
+    {
+      "from": "At&t",
+      "to": "AT&T"
+    },
+    {
+      "from": "Icu Medical",
+      "to": "ICU Medical"
+    },
+    {
+      "from": "Oldcastle (crh)",
+      "to": "Oldcastle"
+    }
+  ],
+  "moveFactories": {
+    "why": "Plants filed under a company that does not own them.",
+    "moves": [
+      {
+        "fromCompany": "Tesla",
+        "factory": "TXM - TESLA RD READY MIX",
+        "toCompany": "Texas Materials"
+      },
+      {
+        "fromCompany": "Tesla",
+        "factory": "TESLA POWER AND AUTOMATION",
+        "toCompany": "Tesla Power and Automation"
+      },
+      {
+        "fromCompany": "Micron",
+        "factory": "MICRON TECHNOLOGY MEMORY APPLICATIONS GROUP",
+        "toCompany": "Micron Technology"
+      },
+      {
+        "fromCompany": "Micron",
+        "factory": "MICRON TECHNOLOGY PUERTO RICO INC",
+        "toCompany": "Micron Technology"
+      }
+    ]
+  },
+  "companyProfiles": [
+    {
+      "name": "Micron Technology",
+      "domain": "micron.com",
+      "featured": true,
+      "slug": "micron-technology",
+      "industry": "Semiconductors",
+      "description": "Makes memory and storage chips (DRAM and NAND) for computers, phones and data centers."
+    }
+  ],
+  "deleteFactories": {
+    "why": "Not plants: service centres, and a second record of the same plant.",
+    "rows": [
+      {
+        "company": "Tesla",
+        "factory": "TESLA SERVICE AUSTIN"
+      },
+      {
+        "company": "Tesla",
+        "factory": "TESLA DALLAS SERVICE"
+      },
+      {
+        "company": "Tesla",
+        "factory": "TESLA HOUSTON SERVICE"
+      },
+      {
+        "company": "Tesla",
+        "factory": "TESLA",
+        "city": "AUSTIN"
+      }
+    ]
+  },
+  "factoryRules": {
+    "placeholderCities": [
+      "PORTABLE",
+      "NO CITY NAME",
+      "UNKNOWN",
+      "NOT APPLICABLE",
+      "STATEWIDE"
+    ],
+    "duplicateWithinMetres": 300
+  }
+}
