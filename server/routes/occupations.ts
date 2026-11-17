@@ -9,6 +9,7 @@ import { answerDuplicate, answerWriteError, optionalText, requiredText } from '.
 import { careerMatch, careerNearMiss, readCareerTerm, withoutLevel, type CareerMatch } from '../lib/careerSearch.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 import { recordAudit } from '../lib/audit.js';
+import { refuseDeleteWithJobs } from '../lib/writes.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -359,6 +360,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 // applications, and people's goals go with it; `removed` counts them.
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    if (await refuseDeleteWithJobs(res, 'career', req.params.id)) return;
     const gone = await removeRecord('career', req.params.id, req.user!);
     if (!gone) {
       res.status(404).json({ error: 'Occupation not found' });

@@ -8,6 +8,7 @@ import { packPins } from '../../shared/pins.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalText, requiredText, stateCode } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
+import { refuseDeleteWithJobs } from '../lib/writes.js';
 
 /** A company with this many factories nationwide counts as established. */
 const ESTABLISHED_MIN_SITES = 5;
@@ -407,6 +408,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 // applications go with it; `removed` counts them.
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    if (await refuseDeleteWithJobs(res, 'factory', req.params.id)) return;
     const gone = await removeRecord('factory', req.params.id, req.user!);
     if (!gone) {
       res.status(404).json({ error: 'Factory not found' });

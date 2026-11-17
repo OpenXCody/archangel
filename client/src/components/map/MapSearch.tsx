@@ -30,9 +30,11 @@ import { useMapStore, type MapPlace } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
 import { FOCUS_AREAS, type Bounds, type FocusArea } from '@shared/scope';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
-import { industryLabel } from './industry';
+import { industryLabel } from '@shared/industry';
+import { readStored, writeStored } from '../../lib/storage';
 
 /** The sentence a first visit is given, once. */
+// client/index.html carries the same sentence as the page's description.
 const INTRODUCTION = 'Plants, careers and the skills they take, across US manufacturing.';
 /** Set in this browser once the map has been used, so the introduction is not said again. */
 const SEEN_KEY = 'archangel.map.seen';
@@ -40,21 +42,12 @@ const SEEN_KEY = 'archangel.map.seen';
 let seenThisLoad = false;
 
 function seenBefore(): boolean {
-  if (seenThisLoad) return true;
-  try {
-    return localStorage.getItem(SEEN_KEY) !== null;
-  } catch {
-    return false;
-  }
+  return seenThisLoad || readStored(SEEN_KEY) !== null;
 }
 
 function markSeen(): void {
   seenThisLoad = true;
-  try {
-    localStorage.setItem(SEEN_KEY, '1');
-  } catch {
-    // Remembered for this page load only.
-  }
+  writeStored(SEEN_KEY, '1');
 }
 
 type GroupId = 'regions' | 'companies' | 'occupations' | 'factories' | 'skills' | 'places';

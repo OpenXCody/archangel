@@ -58,6 +58,15 @@ OCC=$(psql "$DB" -tAc "SELECT occupation_id FROM occupation_skills GROUP BY 1 OR
 SK=$(psql "$DB" -tAc "SELECT skill_id FROM occupation_skills WHERE occupation_id='$OCC' AND stage IS DISTINCT FROM 3 ORDER BY skill_id LIMIT 1")
 
 check "me when signed out"            200 "$(req anon GET /auth/me)" '"user":null'
+# Security headers on API responses (the page's are in vercel.json).
+HDRS=$(curl -sI "$API/health" | tr -d '\r' | tr 'A-Z' 'a-z')
+expect "API responses say nosniff"        1 "$(printf '%s' "$HDRS" | grep -c '^x-content-type-options: nosniff')"
+expect "API responses cannot be framed"   1 "$(printf '%s' "$HDRS" | grep -c "^content-security-policy: default-src 'none'; frame-ancestors 'none'")"
+expect "API does not name its framework"  0 "$(printf '%s' "$HDRS" | grep -c '^x-powered-by')"
+# The heaviest cached reads take only their own parameters, so a made-up one cannot be used to miss the cache.
+check "pins with a made-up parameter"     400 "$(req anon GET '/factories/pins?_=1')" 'Unknown query parameter'
+check "state counts with one"             400 "$(req anon GET '/map/state-counts?x=1')" 'Unknown query parameter'
+check "state counts as the map asks"      200 "$(req anon GET /map/state-counts)"
 check "sign-up rejects short password" 400 "$(req s POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Sam Seeker","password":"short"}')"
 check "sign-up rejects a password of spaces" 400 "$(req s POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Sam Seeker","password":"         "}')"
 check "sign-up seeker"                201 "$(req s POST /auth/sign-up '{"email":"Seeker-'"$RUN"'@E2E.test","name":"Sam Seeker","password":"correct horse"}')" '"email":"seeker-'"$RUN"'@e2e.test"'
@@ -98,6 +107,13 @@ check "post with wrong factory"       400 "$(req e POST /jobs "{\"companyId\":\"
 OUT=$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\",\"payMin\":2400,\"payMax\":2900,\"shift\":\"2nd\"}")
 check "post job"                      201 "$OUT" '"serial":'
 JOB=$(printf '%s' "$OUT" | j id)
+# A record whose job has applications is not deleted: the delete would take the applications with it.
+sql "INSERT INTO applications (job_id, user_id) VALUES ('$JOB', '$EID')" >/dev/null
+check "delete a company with an applied-to job" 409 "$(req a DELETE /companies/$TXC)" '"jobs":'
+check "delete a factory with an applied-to job" 409 "$(req a DELETE /factories/$TXF)" '"jobs":'
+check "delete a career with an applied-to job"  409 "$(req a DELETE /occupations/$OCC)" '"jobs":'
+expect "and the job is still there"   1 "$(sql "SELECT COUNT(*) FROM jobs WHERE id='$JOB'")"
+sql "DELETE FROM applications WHERE job_id='$JOB' AND user_id='$EID'" >/dev/null
 check "employer dashboard lists job"  200 "$(req e GET /employer)" "\"id\":\"$JOB\""
 check "public job list"               200 "$(req anon GET /jobs)" "\"id\":\"$JOB\""
 check "public job detail, skills"     200 "$(req anon GET /jobs/$JOB)" '"required":true'

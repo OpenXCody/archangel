@@ -15,7 +15,7 @@ import { adminCompanyRequestsRouter } from './routes/companyRequests.js';
 import exploreRouter from './routes/explore.js';
 import { noStore } from './lib/auth.js';
 import { requireAdminUser, requireAdminForWrites } from './middleware/adminAuth.js';
-import { publicCache } from './middleware/cache.js';
+import { onlyQuery, publicCache } from './middleware/cache.js';
 
 /**
  * The one Express app. `server/index.ts` listens on it for local dev;
@@ -25,6 +25,15 @@ import { publicCache } from './middleware/cache.js';
 export const app = express();
 
 app.disable('x-powered-by');
+// Every response from here is data, never a page: a browser must not guess its
+// type, show it in a frame, or load anything on its behalf. (The page's own
+// headers, with its Content-Security-Policy, are in vercel.json.)
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+  next();
+});
 // On Vercel every request arrives through its proxy, which sets
 // X-Forwarded-For itself. Trusting it makes req.ip the visitor's address, so
 // the sign-in throttle counts per visitor instead of lumping everyone together.
@@ -66,8 +75,10 @@ app.use('/api/admin', noStore, requireAdminUser, adminRouter);
 
 // Edge caching. The two heaviest map payloads get 5 minutes; everything else
 // public gets 1 minute. Admin writes are never cached (GET-only middleware).
-app.get('/api/factories/pins', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
-app.get('/api/map/state-counts', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
+// Both take only the parameters named here, so an address made up to miss the
+// cache is refused before it reaches the database.
+app.get('/api/factories/pins', onlyQuery('states', 'company', 'industry'), publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
+app.get('/api/map/state-counts', onlyQuery(), publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
 
 // Public reads (cached at the edge); writes take a signed-in admin.
 app.use('/api/companies', publicCache(60), requireAdminForWrites, companiesRouter);
@@ -87,7 +98,7 @@ app.use((_req: Request, res: Response) => {
 });
 
 // Errors: log the real thing, return a generic message.
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   // A body the JSON parser refused is the sender's to fix, not a server fault.
   const status = (err as { status?: unknown }).status;
   if (status === 413) {
@@ -98,7 +109,8 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     res.status(400).json({ error: 'That request could not be read as JSON.' });
     return;
   }
-  console.error('Error:', err.message);
+  // The route and the stack, so a 500 in production's logs can be traced.
+  console.error(`Error on ${req.method} ${req.originalUrl.split('?')[0]}:`, err.stack ?? err.message);
   res.status(500).json({
     error: 'Internal Server Error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',

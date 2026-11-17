@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { writeStored } from './storage';
 
 /**
  * The app's theme: dark by default, light by choice. The choice is kept in
@@ -23,11 +24,8 @@ export function setTheme(theme: Theme): void {
   if (theme === 'light') root.setAttribute('data-theme', 'light');
   else root.removeAttribute('data-theme');
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', CHROME_COLOR[theme]);
-  try {
-    localStorage.setItem(STORAGE_KEY, theme);
-  } catch {
-    // Storage is unavailable (private mode): the choice lasts for this page only.
-  }
+  // With storage unavailable (private mode) the choice lasts for this page only.
+  writeStored(STORAGE_KEY, theme);
   for (const notify of listeners) notify();
 }
 
