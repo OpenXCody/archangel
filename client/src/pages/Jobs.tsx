@@ -1,36 +1,64 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { BriefcaseBusiness, Clock, Loader2, MapPin, Search, SearchX, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { STATE_CODE_TO_NAME, type StateCode } from '@shared/states';
 import CompanyLogo from '../components/CompanyLogo';
+import JobPlaceFilter, { DEFAULT_WITHIN, WITHIN_CHOICES, jobPlaceLabel, type JobPlace } from '../components/account/JobPlaceFilter';
 import { occupationsApi } from '../lib/api';
-import { useJobs, type JobSummary } from '../lib/account';
+import { useAccount, useJobs, type JobSummary } from '../lib/account';
 import { employmentLabel, formatAgo, formatPay, formatPlace } from '../lib/jobFormat';
 import { ENTITY, LoadError, cardClass, fieldClass, outlineButtonClass, useDebouncedValue } from '../components/account/parts';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
 
 const ALL_CAREERS = 'all';
-const ANYWHERE = 'anywhere';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** `?near=30.5083,-97.6789`: a point, as latitude then longitude. */
+function readPoint(raw: string | null): { lat: number; lng: number } | null {
+  const match = /^(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)$/.exec(raw ?? '');
+  if (!match) return null;
+  const lat = Number(match[1]);
+  const lng = Number(match[2]);
+  return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : null;
+}
+
+/** "12 miles", "2.4 miles", "Under 1 mile". */
+function milesAway(miles: number): string {
+  if (miles < 1) return 'Under 1 mile';
+  const shown = miles < 10 ? Math.round(miles * 10) / 10 : Math.round(miles);
+  return `${shown} ${shown === 1 ? 'mile' : 'miles'}`;
+}
 
 /**
  * Open jobs, newest first. The search text and the filters live in the URL
- * (`?q=`, `?state=`, `?career=`), so a filtered list can be linked to and Back
- * returns to it. The places and careers on offer come from the jobs that are
- * open: nothing here names a place of its own.
+ * (`?q=`, `?career=`, and a place: `?state=`, or `?near=<lat>,<lng>` with
+ * `&place=<its name>` and `&within=<miles>`), so a filtered list can be linked
+ * to and Back returns to it. Near a place, the nearest jobs come first and
+ * each says how far it is. The place is one the person typed or picked: the
+ * browser is never asked where they are.
  */
 export default function Jobs() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const homeZip = useAccount().data?.user?.homeZip ?? null;
   const q = searchParams.get('q')?.trim() ?? '';
   const careerParam = searchParams.get('career') ?? '';
   const career = UUID_RE.test(careerParam) ? careerParam : '';
   const stateParam = (searchParams.get('state') ?? '').toUpperCase();
-  const state = /^[A-Z]{2}$/.test(stateParam) ? stateParam : '';
+  const point = readPoint(searchParams.get('near'));
+  // A point wins over a state: the address holds one place.
+  const state = !point && /^[A-Z]{2}$/.test(stateParam) ? stateParam : '';
+  const withinParam = Number(searchParams.get('within'));
+  const within = WITHIN_CHOICES.includes(withinParam) ? withinParam : DEFAULT_WITHIN;
+  const place: JobPlace | null = point
+    ? { kind: 'near', ...point, label: searchParams.get('place')?.trim() || `${point.lat.toFixed(2)}, ${point.lng.toFixed(2)}` }
+    : state
+      ? { kind: 'state', code: state }
+      : null;
 
   const [term, setTerm] = useState(q);
   const debouncedTerm = useDebouncedValue(term.trim(), 300);
@@ -55,10 +83,22 @@ export default function Jobs() {
     setTerm(q);
   }, [q]);
 
-  const setFilter = (name: 'career' | 'state', value: string, none: string) => {
+  const setFilter = (name: 'career', value: string, none: string) => {
     const params = new URLSearchParams(searchParams);
     if (value && value !== none) params.set(name, value);
     else params.delete(name);
+    setSearchParams(params, { replace: true });
+  };
+
+  const setPlace = (next: JobPlace | null, miles = within) => {
+    const params = new URLSearchParams(searchParams);
+    for (const name of ['state', 'near', 'place', 'within']) params.delete(name);
+    if (next?.kind === 'state') params.set('state', next.code);
+    else if (next?.kind === 'near') {
+      params.set('near', `${next.lat.toFixed(4)},${next.lng.toFixed(4)}`);
+      params.set('place', next.label);
+      if (miles !== DEFAULT_WITHIN) params.set('within', String(miles));
+    }
     setSearchParams(params, { replace: true });
   };
 
@@ -67,7 +107,13 @@ export default function Jobs() {
     setSearchParams(new URLSearchParams(), { replace: true });
   };
 
-  const jobs = useJobs({ q: q || undefined, state: state || undefined, occupationId: career || undefined });
+  const jobs = useJobs({
+    q: q || undefined,
+    state: state || undefined,
+    occupationId: career || undefined,
+    near: point ? `${point.lat},${point.lng}` : undefined,
+    within: point ? within : undefined,
+  });
   // Every open job, unfiltered: the careers on offer come from this.
   const allJobs = useJobs({});
 
@@ -81,17 +127,8 @@ export default function Jobs() {
     return [...byId.values()].sort((a, b) => a.title.localeCompare(b.title));
   }, [allJobs.data]);
 
-  // Where the open jobs are, by state.
-  const stateOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const job of allJobs.data ?? []) {
-      if (job.state) counts.set(job.state, (counts.get(job.state) ?? 0) + 1);
-    }
-    return [...counts.entries()]
-      .map(([code, count]) => ({ code, count, name: STATE_CODE_TO_NAME[code as StateCode] ?? code }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [allJobs.data]);
-  const stateListed = stateOptions.some((option) => option.code === state);
+  // The states that have open jobs.
+  const jobStates = useMemo(() => [...new Set((allJobs.data ?? []).map((job) => job.state).filter((code): code is string => Boolean(code)))], [allJobs.data]);
 
   // A career linked to from elsewhere may have no open jobs; still name it in the filter.
   const careerListed = careerOptions.some((option) => option.id === career);
@@ -102,8 +139,11 @@ export default function Jobs() {
     staleTime: 5 * 60_000,
   });
 
-  const filtered = Boolean(q || career || state);
+  const filtered = Boolean(q || career || place);
   const count = jobs.data?.length ?? 0;
+  const placeName = jobPlaceLabel(place);
+  // Where a job opened from this list comes back to.
+  const here = `${location.pathname}${location.search}`;
 
   return (
     <PageContainer>
@@ -113,15 +153,15 @@ export default function Jobs() {
         description="Open positions. Each is tied to a career and its skills."
       />
 
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_200px_260px]">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_380px_220px]">
         <div className="relative min-w-0 sm:col-span-2 lg:col-span-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
           <input
             type="text"
             role="searchbox"
             enterKeyHint="search"
-            aria-label="Search jobs by title"
-            placeholder="Search job titles"
+            aria-label="Search jobs by title, company, career or town"
+            placeholder="Job, company or career"
             autoComplete="off"
             value={term}
             onChange={(e) => setTerm(e.target.value)}
@@ -138,27 +178,14 @@ export default function Jobs() {
             </button>
           )}
         </div>
-        <Select value={state || ANYWHERE} onValueChange={(value) => setFilter('state', value, ANYWHERE)}>
-          <SelectTrigger
-            aria-label="Filter by location"
-            className="h-11 min-w-0 rounded-lg border-border-strong bg-bg-surface px-3 text-base text-fg-default shadow-none sm:text-sm"
-          >
-            <SelectValue placeholder="Anywhere" />
-          </SelectTrigger>
-          <SelectContent className="max-w-[calc(100vw-2rem)] rounded-lg border-border-strong bg-bg-surface">
-            <SelectItem value={ANYWHERE} className="py-2.5">Anywhere</SelectItem>
-            {state && !stateListed && (
-              <SelectItem value={state} className="py-2.5">
-                {STATE_CODE_TO_NAME[state as StateCode] ?? state}
-              </SelectItem>
-            )}
-            {stateOptions.map((option) => (
-              <SelectItem key={option.code} value={option.code} className="py-2.5">
-                {option.name} ({option.count})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <JobPlaceFilter
+          value={place}
+          onChange={(next) => setPlace(next)}
+          within={within}
+          onWithinChange={(miles) => setPlace(place, miles)}
+          states={jobStates}
+          homeZip={homeZip}
+        />
         <Select value={career || ALL_CAREERS} onValueChange={(value) => setFilter('career', value, ALL_CAREERS)}>
           <SelectTrigger
             aria-label="Filter by career"
@@ -175,7 +202,7 @@ export default function Jobs() {
             )}
             {careerOptions.map((option) => (
               <SelectItem key={option.id} value={option.id} className="py-2.5">
-                {option.title} ({option.count})
+                {option.title}
               </SelectItem>
             ))}
           </SelectContent>
@@ -191,11 +218,24 @@ export default function Jobs() {
           <EmptyState
             icon={SearchX}
             title="No jobs match"
-            description="No open job fits these filters."
+            description={
+              place?.kind === 'near'
+                ? q || career
+                  ? `No open job within ${within} miles of ${placeName} fits these filters.`
+                  : `No open jobs within ${within} miles of ${placeName}.`
+                : 'No open job fits these filters.'
+            }
             action={
-              <Button type="button" variant="outline" onClick={clearFilters} className={cn('h-10', outlineButtonClass)}>
-                Clear filters
-              </Button>
+              <div className="flex flex-wrap justify-center gap-2">
+                {place?.kind === 'near' && within < 100 && (
+                  <Button type="button" onClick={() => setPlace(place, 100)} className="h-10 rounded-lg">
+                    Within 100 miles
+                  </Button>
+                )}
+                <Button type="button" variant="outline" onClick={clearFilters} className={cn('h-10', outlineButtonClass)}>
+                  Clear filters
+                </Button>
+              </div>
             }
           />
         ) : (
@@ -223,10 +263,12 @@ export default function Jobs() {
       ) : (
         <>
           <p className="mb-3 flex items-center gap-2 text-sm text-fg-muted" role="status">
-            {count} {filtered ? (count === 1 ? 'job matches' : 'jobs match') : count === 1 ? 'open job' : 'open jobs'}
+            {place?.kind === 'near'
+              ? `${count} ${count === 1 ? 'job' : 'jobs'} within ${within} miles of ${placeName}`
+              : `${count} ${filtered ? (count === 1 ? 'job matches' : 'jobs match') : count === 1 ? 'open job' : 'open jobs'}`}
             {jobs.isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Updating" />}
             {filtered && (
-              <button type="button" onClick={clearFilters} className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+              <button type="button" onClick={clearFilters} className="shrink-0 whitespace-nowrap font-medium text-fg-default underline underline-offset-4 hover:no-underline">
                 Clear filters
               </button>
             )}
@@ -234,7 +276,7 @@ export default function Jobs() {
           <ul className={cn('grid grid-cols-1 gap-3 lg:grid-cols-2', jobs.isPlaceholderData && 'opacity-60')}>
             {jobs.data.map((job) => (
               <li key={job.id} className="min-w-0">
-                <JobCard job={job} />
+                <JobCard job={job} from={filtered ? here : undefined} />
               </li>
             ))}
           </ul>
@@ -244,12 +286,15 @@ export default function Jobs() {
   );
 }
 
-function JobCard({ job }: { job: JobSummary }) {
+function JobCard({ job, from }: { job: JobSummary; from?: string }) {
   // Not every factory has a city on record; its name places it well enough.
-  const place = job.city ? formatPlace(job.city, job.state) : [job.factoryName, job.state].filter(Boolean).join(', ');
+  const town = job.city ? formatPlace(job.city, job.state) : [job.factoryName, job.state].filter(Boolean).join(', ');
+  // Near a chosen place, how far the job is from it.
+  const place = [town, typeof job.miles === 'number' ? milesAway(job.miles) : null].filter(Boolean).join(' · ');
   return (
     <Link
       to={`/jobs/${job.id}`}
+      state={from ? { from } : undefined}
       className={cn(cardClass, 'flex h-full flex-col p-4 transition-colors hover:border-border-strong hover:bg-bg-elevated')}
     >
       <div className="flex items-start justify-between gap-3">

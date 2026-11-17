@@ -172,7 +172,8 @@ function CareerRows({ careers, limit }: { careers: { id: string; title: string; 
   );
 }
 
-function JobRows({ jobs, limit }: { jobs: CareerJob[]; limit: number }) {
+/** `company`: name the company on each row, where the panel is not about one. */
+function JobRows({ jobs, limit, company = false }: { jobs: CareerJob[]; limit: number; company?: boolean }) {
   return (
     <RowList>
       {jobs.slice(0, limit).map((job) => (
@@ -183,13 +184,24 @@ function JobRows({ jobs, limit }: { jobs: CareerJob[]; limit: number }) {
         >
           <span className="min-w-0">
             <span className="block truncate text-sm text-fg-default">{job.title}</span>
-            <span className="block truncate text-xs text-fg-muted">{formatPay(job.payMin, job.payMax, job.payPeriod)}</span>
+            <span className="block truncate text-xs text-fg-muted">
+              {company && job.companyName ? `${formatCompanyName(job.companyName)} · ` : ''}
+              {formatPay(job.payMin, job.payMax, job.payPeriod)}
+            </span>
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" aria-hidden="true" />
         </Link>
       ))}
     </RowList>
   );
+}
+
+/** How many open jobs a region's panel lists before sending the person to the jobs list. */
+const REGION_JOBS_SHOWN = 4;
+
+/** The jobs list narrowed to a point: what "open jobs here" opens for a focus area or a place. */
+function jobsNear(lat: number, lng: number, name: string): string {
+  return `/jobs?${new URLSearchParams({ near: `${lat.toFixed(4)},${lng.toFixed(4)}`, place: name })}`;
 }
 
 /** "and 12 more", when a list was cut short. */
@@ -200,19 +212,35 @@ function More({ shown, total, noun }: { shown: number; total: number; noun: stri
 
 // ─── A state, a focus area, a place ────────────────────────────────────────
 
-function RegionBody({ data, children }: { data: RegionOverview; children?: ReactNode }) {
+/** `jobsLink`: the jobs list narrowed to this region, for when it has more open jobs than the panel lists. */
+function RegionBody({ data, jobsLink, children }: { data: RegionOverview; jobsLink: string; children?: ReactNode }) {
   const selectEntity = useMapStore((s) => s.selectEntity);
   if (data.totalFactories === 0) {
     return <p className="text-sm text-fg-muted">No plants are listed here.</p>;
   }
+  const jobs = data.jobs ?? [];
+  const openJobs = data.openJobs ?? jobs.length;
   return (
     <>
       <Figures
         items={[
           { label: 'Plants', value: data.totalFactories },
           ...(data.totalCompanies > 0 ? [{ label: 'Companies', value: data.totalCompanies }] : []),
+          ...(openJobs > 0 ? [{ label: 'Open jobs', value: openJobs }] : []),
         ]}
       />
+
+      {/* Who is hiring here: said only when someone is */}
+      {jobs.length > 0 && (
+        <Section title="Open jobs">
+          <JobRows jobs={jobs} limit={REGION_JOBS_SHOWN} company />
+          {openJobs > REGION_JOBS_SHOWN && (
+            <Link to={jobsLink} className="mt-2 block text-xs text-fg-muted underline-offset-4 hover:underline">
+              All {openJobs.toLocaleString()} open jobs
+            </Link>
+          )}
+        </Section>
+      )}
 
       {/* Who is here */}
       {data.topCompanies.length > 0 && (
@@ -267,7 +295,7 @@ function StateView({ data }: { data: StateOverview }) {
   return (
     <>
       <Heading title={name} />
-      <RegionBody data={data} />
+      <RegionBody data={data} jobsLink={`/jobs?state=${data.code}`} />
       {data.totalFactories > 0 && <PageLink to={`/explore?tab=factories&state=${data.code}`}>All plants in {name}</PageLink>}
     </>
   );
@@ -277,7 +305,10 @@ function AreaView({ data }: { data: AreaOverview }) {
   return (
     <>
       <Heading title={data.name} subtitle={data.description} />
-      <RegionBody data={data} />
+      <RegionBody
+        data={data}
+        jobsLink={jobsNear((data.bounds[0][1] + data.bounds[1][1]) / 2, (data.bounds[0][0] + data.bounds[1][0]) / 2, data.name)}
+      />
     </>
   );
 }
@@ -289,7 +320,10 @@ function PlaceView({ place, data }: { place: MapPlace; data: BoundsOverview }) {
   return (
     <>
       <Heading title={place.name} subtitle={place.context || undefined} />
-      <RegionBody data={data}>
+      <RegionBody
+        data={data}
+        jobsLink={jobsNear((data.bounds[0][1] + data.bounds[1][1]) / 2, (data.bounds[0][0] + data.bounds[1][0]) / 2, place.name)}
+      >
         {shown.length > 0 && (
           <Section title="Plants">
             <RowList>

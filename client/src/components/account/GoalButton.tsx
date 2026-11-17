@@ -3,7 +3,7 @@ import { Check, Loader2, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { signInPath, useAccount, useAddGoal, useMyGoals, useRemoveGoal } from '../../lib/account';
-import { ErrorNote, outlineButtonClass } from './parts';
+import { ErrorNote, busyButtonClass, outlineButtonClass } from './parts';
 
 interface GoalButtonProps {
   /** The career (occupation) to aim at. */
@@ -12,8 +12,9 @@ interface GoalButtonProps {
 }
 
 /**
- * Add a career to, or remove it from, the signed-in person's "Careers I'm
- * aiming at". Signed out, it is a link to sign in that returns to this page.
+ * Add a career to, or remove it from, the signed-in person's goals. One word
+ * for it everywhere: "Set as goal", then "Goal". Signed out, it is a link to
+ * sign in that returns to this page. While it saves it keeps the focus.
  */
 export default function GoalButton({ occupationId, className }: GoalButtonProps) {
   const location = useLocation();
@@ -28,27 +29,33 @@ export default function GoalButton({ occupationId, className }: GoalButtonProps)
     return (
       <Button type="button" variant="outline" disabled className={cn('h-10', outlineButtonClass, className)}>
         <Loader2 className="animate-spin" />
-        Aim for this career
+        Set as goal
       </Button>
     );
   }
 
   if (!signedIn) {
+    // A press that found the session had ended says so, here, beside the way back in.
+    const unsaved = addGoal.error ?? removeGoal.error;
     return (
-      <Button asChild variant="outline" className={cn('h-10', outlineButtonClass, className)}>
-        <Link to={signInPath(`${location.pathname}${location.search}`)}>
-          <Target />
-          Sign in to aim for this career
-        </Link>
-      </Button>
+      <div className={cn('inline-flex max-w-full flex-col gap-1.5', className)}>
+        <Button asChild variant="outline" className={cn('h-10', outlineButtonClass)}>
+          <Link to={signInPath(`${location.pathname}${location.search}`)}>
+            <Target />
+            Sign in to set as goal
+          </Link>
+        </Button>
+        <ErrorNote error={unsaved} />
+      </div>
     );
   }
 
   const isGoal = Boolean(goals.data?.some((goal) => goal.occupationId === occupationId));
-  const busy = addGoal.isPending || removeGoal.isPending;
+  const busy = addGoal.isPending || removeGoal.isPending || goals.isPending;
   const error = addGoal.error ?? removeGoal.error ?? goals.error;
 
   const toggle = () => {
+    if (busy) return;
     addGoal.reset();
     removeGoal.reset();
     if (isGoal) removeGoal.mutate(occupationId);
@@ -61,13 +68,14 @@ export default function GoalButton({ occupationId, className }: GoalButtonProps)
         type="button"
         variant={isGoal ? 'outline' : 'default'}
         aria-pressed={isGoal}
-        disabled={busy || goals.isPending}
+        aria-busy={busy}
+        aria-disabled={busy}
         onClick={toggle}
-        title={isGoal ? 'Remove from the careers you are aiming at' : undefined}
-        className={cn('h-10', isGoal && outlineButtonClass)}
+        title={isGoal ? 'Remove from your goals' : undefined}
+        className={cn('h-10', isGoal && outlineButtonClass, busyButtonClass)}
       >
-        {busy || goals.isPending ? <Loader2 className="animate-spin" /> : isGoal ? <Check className="text-success" /> : <Target />}
-        {isGoal ? 'Aiming at this career' : 'Aim for this career'}
+        {busy ? <Loader2 className="animate-spin" /> : isGoal ? <Check className="text-success" /> : <Target />}
+        {isGoal ? 'Goal' : 'Set as goal'}
       </Button>
       <ErrorNote error={error} />
     </div>

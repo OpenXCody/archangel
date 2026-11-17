@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 # End-to-end check of what a career seeker's skills turn into: careers within
-# reach (GET /api/me/careers/reach) and the next skills on their chosen
-# careers (GET /api/me/goals). Prints one line per check and exits non-zero if
-# any fail.
+# reach (GET /api/me/careers/reach), the next skills on their chosen careers
+# (GET /api/me/goals) and the skills suggested to them
+# (GET /api/me/skills/suggested); of the jobs list narrowed by place and by
+# what was typed (GET /api/jobs?near=&within=&q=) and the open jobs on a map
+# overview; and of a person's own account: changing their email
+# (POST /api/auth/email) and deleting it (DELETE /api/me). Prints one line per
+# check and exits non-zero if any fail.
 #
 # LOCAL ONLY: it creates and deletes users (emails ending @seeker.test) and,
-# so the ranking can be checked exactly, its own careers and skills (named
-# "Seeker Test ..."), written straight to the database. All of it is removed on
-# exit, however the script ends. Never point it at production.
+# so the ranking can be checked exactly, its own careers, skills, company,
+# factories and jobs (named "Seeker Test ..."), written straight to the
+# database. All of it is removed on exit, however the script ends. Never point
+# it at production.
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/seeker.sh
 # Needs a running dev API, and psql, curl and node on the PATH.
 set -u
@@ -39,12 +44,14 @@ j() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=J
 
 cleanup() {
   psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@seeker.test';
+    DELETE FROM companies WHERE name LIKE 'Seeker Test %';
     DELETE FROM occupations WHERE title LIKE 'Seeker Test %';
     DELETE FROM skills WHERE name LIKE 'Seeker Test %'" >/dev/null
   rm -rf "$D"
 }
 trap cleanup EXIT
 psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@seeker.test';
+  DELETE FROM companies WHERE name LIKE 'Seeker Test %';
   DELETE FROM occupations WHERE title LIKE 'Seeker Test %';
   DELETE FROM skills WHERE name LIKE 'Seeker Test %'" >/dev/null
 
@@ -151,8 +158,151 @@ check "no skills again, no careers"   200 "$(req s GET /me/careers/reach)" '"car
 HDR=$(curl -s -D - -o /dev/null -b "$D/s" "$API/me/careers/reach" | tr -d '\r' | grep -i '^cache-control')
 case "$HDR" in *no-store*) echo "ok    reach is not cacheable";; *) echo "FAIL  cache header: $HDR"; fail=1;; esac
 
+# --- Suggested skills ---------------------------------------------------------
+# A third person, starting from nothing. Suggestions are the skills of their
+# goals (earliest stage first), then of the careers within reach (the ones most
+# of those careers share first), none of them on the person's list.
+suggested() { j "skills.map(s=>s.name.replace('$P ','')).join(' ')"; }
+check "suggested requires sign-in"    401 "$(req anon GET /me/skills/suggested)"
+check "sign-up third seeker"          201 "$(req g POST /auth/sign-up '{"email":"goal-'"$RUN"'@seeker.test","name":"Gia Goal","password":"correct horse"}')"
+check "nothing to go on, nothing suggested" 200 "$(req g GET /me/skills/suggested)" '"skills":\[\]'
+check "aim at A"                      200 "$(req g PUT /me/goals/$A)"
+OUT=$(req g GET /me/skills/suggested)
+expect "a goal's skills, earliest stage first" "S01 S02 S03 S04 S05 S06" "$(printf '%s' "$OUT" | suggested)"
+expect "a suggestion carries what is shown" "career,careers,id,name,stage" "$(printf '%s' "$OUT" | j "skills.map(s=>Object.keys(s).sort().join(','))[0]")"
+expect "a suggestion names its career" "$P A" "$(printf '%s' "$OUT" | j "skills[0].career")"
+check "hold S01"                      200 "$(req g PUT /me/skills/$S01 '{"status":"held"}')"
+OUT=$(req g GET /me/skills/suggested)
+expect "goal skills first, then careers within reach" "S02 S03 S04 S05 S06 S08 S09 S10 S11 S12 S07" "$(printf '%s' "$OUT" | suggested)"
+expect "a held skill is not suggested" false "$(printf '%s' "$OUT" | j "skills.some(s=>s.id==='$S01')")"
+expect "how many careers call for it" 8 "$(printf '%s' "$OUT" | j "skills.find(s=>s.id==='$S08').careers")"
+check "learning S02"                  200 "$(req g PUT /me/skills/$S02 '{"status":"learning"}')"
+expect "a skill being learned is not suggested" false "$(req g GET /me/skills/suggested | j "skills.some(s=>s.id==='$S02')")"
+expect "limit is honoured"            3 "$(req g GET '/me/skills/suggested?limit=3' | j skills.length)"
+check "another person's suggestions are their own" 200 "$(req o GET /me/skills/suggested)" '"skills":\[\]'
+HDR=$(curl -s -D - -o /dev/null -b "$D/g" "$API/me/skills/suggested" | tr -d '\r' | grep -i '^cache-control')
+case "$HDR" in *no-store*) echo "ok    suggestions are not cacheable";; *) echo "FAIL  cache header: $HDR"; fail=1;; esac
+
+# --- Jobs near a place, and by what was typed --------------------------------
+# A company of our own with four factories far from any other, and one open
+# job at each:
+#   Home    46.0, -100.0   ND   shift Nights
+#   Town    46.3, -100.0   ND   city Seekerville   (20.7 miles north of Home)
+#   Far     47.5, -100.0   ND                      (103.6 miles north of Home)
+#   Nowhere coordinates that are not numbers, no state
+psql "$DB" -q >/dev/null <<SQL
+INSERT INTO companies (name) VALUES ('$P Works');
+INSERT INTO factories (company_id, name, latitude, longitude, city, state)
+SELECT c.id, '$P ' || f.name, f.lat, f.lng, f.city, f.state
+FROM companies c, (VALUES
+  ('Home', '46.0', '-100.0', NULL, 'ND'), ('Town', '46.3', '-100.0', 'Seekerville', 'ND'),
+  ('Far', '47.5', '-100.0', NULL, 'ND'), ('Nowhere', 'n/a', '', NULL, NULL)
+) AS f(name, lat, lng, city, state)
+WHERE c.name = '$P Works';
+INSERT INTO jobs (company_id, factory_id, occupation_id, title, shift, pay_min, pay_max, status, posted_at, expires_at)
+SELECT f.company_id, f.id, o.id, '$P Fitter ' || replace(f.name, '$P ', ''),
+       CASE WHEN f.name = '$P Home' THEN 'Nights' END, 2000, 3000, 'open',
+       now() - (CASE replace(f.name, '$P ', '') WHEN 'Home' THEN 3 WHEN 'Town' THEN 2 WHEN 'Far' THEN 1 ELSE 0 END) * interval '1 hour',
+       now() + interval '30 days'
+FROM factories f, occupations o
+WHERE f.name LIKE '$P %' AND o.title = '$P A';
+SQL
+expect "fixtures: four open jobs"     4 "$(sql "SELECT COUNT(*) FROM jobs WHERE title LIKE '$P Fitter %'")"
+jobTitles() { j "jobs.map(x=>x.title.replace('$P Fitter ','')).join('|')"; }
+NEAR="near=46.0,-100.0"
+OUT=$(req anon GET "/jobs?$NEAR")
+check "jobs near a point"             200 "$OUT"
+expect "within 50 miles unless said, nearest first" "Home|Town" "$(printf '%s' "$OUT" | jobTitles)"
+expect "each says how far it is"      "0 20.7" "$(printf '%s' "$OUT" | j "jobs.map(x=>x.miles).join(' ')")"
+expect "a smaller distance"           "Home" "$(req anon GET "/jobs?$NEAR&within=10" | jobTitles)"
+expect "a larger distance; unusable coordinates never match" "Home|Town|Far" "$(req anon GET "/jobs?$NEAR&within=150" | jobTitles)"
+expect "the distance is the great-circle one" "103.6" "$(req anon GET "/jobs?$NEAR&within=150" | j "jobs[2].miles")"
+expect "near and a career filter together" "Home|Town" "$(req anon GET "/jobs?$NEAR&occupationId=$A" | jobTitles)"
+expect "near and another career"      "" "$(req anon GET "/jobs?$NEAR&occupationId=$B" | jobTitles)"
+check "near must be a point"          400 "$(req anon GET '/jobs?near=round+rock')"
+check "latitude out of range"         400 "$(req anon GET '/jobs?near=91,0')"
+check "within must be a distance"     400 "$(req anon GET "/jobs?$NEAR&within=0")"
+expect "no distance without a place"  false "$(req anon GET "/jobs?q=$RUN+fitter" | j "jobs.some(x=>'miles' in x)")"
+expect "without a place, newest first" "Nowhere|Far|Town|Home" "$(req anon GET "/jobs?q=$RUN+fitter" | jobTitles)"
+expect "search finds the company"     4 "$(req anon GET "/jobs?q=$RUN+works" | j jobs.length)"
+expect "search finds the career"      4 "$(req anon GET "/jobs?q=seeker+$RUN+a" | j jobs.length)"
+expect "search finds the shift"       "Home" "$(req anon GET "/jobs?q=$RUN+night" | jobTitles)"
+expect "search finds the town"        "Town" "$(req anon GET "/jobs?q=$RUN+seekerville" | jobTitles)"
+expect "search finds the state by name" "Far|Town|Home" "$(req anon GET "/jobs?q=$RUN+jobs+in+north+dakota" | jobTitles)"
+expect "every word must match"        0 "$(req anon GET "/jobs?q=$RUN+fitter+zzzz" | j jobs.length)"
+expect "a longer form of a word still finds it" 4 "$(req anon GET "/jobs?q=$RUN+fitters" | j jobs.length)"
+expect "a percent sign is only a character" 0 "$(req anon GET "/jobs?q=$RUN+%25%25%25" | j jobs.length)"
+
+expect "the site search lists open jobs too" "$P Fitter Town|$P Works · Seekerville, ND" "$(req anon GET "/search?q=$RUN+seekerville" | j "results.jobs.items.map(x=>x.name+'|'+x.subtitle).join()")"
+expect "a job result opens the job"   jobs "$(req anon GET "/search?q=$RUN+seekerville" | j "results.jobs.items[0].type")"
+expect "the map's search asks for no jobs" 0 "$(req anon GET "/search?q=$RUN+seekerville&types=companies,factories,occupations,skills" | j "results.jobs.count")"
+
+# The same jobs on the map's overviews: a box around Home and Town.
+BOX="west=-100.1&south=45.9&east=-99.9&north=46.4"
+OUT=$(req anon GET "/map/bounds/overview?$BOX")
+check "a place's overview"            200 "$OUT"
+expect "open jobs in the box"         2 "$(printf '%s' "$OUT" | j openJobs)"
+expect "the newest first, with what a row shows" "$P Fitter Town|$P Works|2000" "$(printf '%s' "$OUT" | j "jobs.map(x=>[x.title,x.companyName,x.payMin].join('|'))[0]")"
+expect "a state's overview lists its open jobs" true "$(req anon GET /map/states/ND/overview | j "jobs.some(x=>x.title==='$P Fitter Far')")"
+sql "UPDATE jobs SET status='closed' WHERE title='$P Fitter Town'" >/dev/null
+expect "a closed job is not counted"  1 "$(req anon GET "/map/bounds/overview?$BOX" | j openJobs)"
+expect "nor listed near a place"      "Home" "$(req anon GET "/jobs?$NEAR" | jobTitles)"
+expect "no jobs, no list"             "0" "$(req anon GET '/map/bounds/overview?west=-100.1&south=48.9&east=-99.9&north=49.0' | j "jobs.concat([o.openJobs]).join(' ')")"
+
+# --- Changing my email --------------------------------------------------------
+E1="mail-$RUN@seeker.test"; E2="moved-$RUN@seeker.test"
+check "email change requires sign-in" 401 "$(req anon POST /auth/email '{"email":"'"$E2"'","password":"correct horse"}')"
+check "sign-up for the email change"  201 "$(req e POST /auth/sign-up '{"email":"'"$E1"'","name":"Em Mail","password":"correct horse"}')"
+check "a second session of theirs"    200 "$(req e2 POST /auth/sign-in '{"email":"'"$E1"'","password":"correct horse"}')"
+check "not an address"                400 "$(req e POST /auth/email '{"email":"nope","password":"correct horse"}')" '"field":"email"'
+check "the address they already have" 400 "$(req e POST /auth/email '{"email":"'"$E1"'","password":"correct horse"}')" 'already your email'
+check "no password"                   400 "$(req e POST /auth/email '{"email":"'"$E2"'"}')" '"field":"password"'
+check "wrong password"                400 "$(req e POST /auth/email '{"email":"'"$E2"'","password":"wrong horse"}')" 'not your current password'
+check "an address someone else has"   409 "$(req e POST /auth/email '{"email":"OTHER-'"$RUN"'@seeker.test","password":"correct horse"}')" 'already exists'
+expect "nothing changed by the refusals" "$E1" "$(req e GET /auth/me | j user.email)"
+check "email changed"                 200 "$(req e POST /auth/email '{"email":" Moved-'"$RUN"'@Seeker.Test ","password":"correct horse"}')" "\"email\":\"$E2\""
+expect "this session carries on"      "$E2" "$(req e GET /auth/me | j user.email)"
+expect "their other session ended"    null "$(req e2 GET /auth/me | j user)"
+check "the old address no longer signs in" 401 "$(req e2 POST /auth/sign-in '{"email":"'"$E1"'","password":"correct horse"}')"
+check "the new address does"          200 "$(req e2 POST /auth/sign-in '{"email":"'"$E2"'","password":"correct horse"}')"
+expect "one account, not two"         1 "$(sql "SELECT COUNT(*) FROM users WHERE email IN ('$E1','$E2')")"
+# The old address is told, when the API under test captures its email (OUTBOX is that file).
+if [ -n "${OUTBOX:-}" ] && [ -f "$OUTBOX" ]; then
+  expect "the old address is told"    1 "$(grep -c "\"kind\":\"email-changed\".*\"to\":\"$E1\"" "$OUTBOX")"
+  expect "and is told the new one"    1 "$(grep "\"to\":\"$E1\"" "$OUTBOX" | grep -c "$E2")"
+else echo "skip  email to the old address (set OUTBOX to the API's EMAIL_OUTBOX file to check it)"; fi
+
+# --- Deleting my account ------------------------------------------------------
+JOB=$(sql "SELECT id FROM jobs WHERE title='$P Fitter Home'")
+check "sign-up for the deletion"      201 "$(req d POST /auth/sign-up '{"email":"gone-'"$RUN"'@seeker.test","name":"Dee Leet","password":"correct horse"}')"
+DID=$(req d GET /auth/me | j user.id)
+check "a skill"                       200 "$(req d PUT /me/skills/$S01 '{"status":"held"}')"
+check "a goal"                        200 "$(req d PUT /me/goals/$A)"
+check "an application"                201 "$(req d POST /jobs/$JOB/apply '{"note":"hello"}')"
+sql "INSERT INTO company_members (company_id, user_id, role, status) SELECT id, '$DID', 'member', 'active' FROM companies WHERE name='$P Works'" >/dev/null
+check "deletion requires sign-in"     401 "$(req anon DELETE /me '{"password":"correct horse"}')"
+check "deletion needs the password"   400 "$(req d DELETE /me '{}')" 'Enter your password'
+check "wrong password deletes nothing" 400 "$(req d DELETE /me '{"password":"wrong horse"}')" 'not your password'
+expect "still there"                  1 "$(sql "SELECT COUNT(*) FROM users WHERE id='$DID'")"
+check "account deleted"               200 "$(req d DELETE /me '{"password":"correct horse"}')"
+expect "signed out by it"             null "$(req d GET /auth/me | j user)"
+expect "the account and what hung on it are gone" "0 0 0 0 0 0" "$(sql "SELECT (SELECT COUNT(*) FROM users WHERE id='$DID') || ' ' || (SELECT COUNT(*) FROM user_skills WHERE user_id='$DID') || ' ' || (SELECT COUNT(*) FROM user_goals WHERE user_id='$DID') || ' ' || (SELECT COUNT(*) FROM applications WHERE user_id='$DID') || ' ' || (SELECT COUNT(*) FROM company_members WHERE user_id='$DID') || ' ' || (SELECT COUNT(*) FROM sessions WHERE user_id='$DID')")"
+expect "the job they applied to stays" 1 "$(sql "SELECT COUNT(*) FROM jobs WHERE id='$JOB'")"
+check "the address can be used again" 201 "$(req d POST /auth/sign-up '{"email":"gone-'"$RUN"'@seeker.test","name":"Dee Again","password":"correct horse"}')"
+# The last admin cannot delete themselves. Checked only where this run's admin
+# is the only one, which a database with other admins in it cannot show.
+sql "UPDATE users SET is_admin=true WHERE email='gone-$RUN@seeker.test'" >/dev/null
+if [ "$(sql "SELECT COUNT(*) FROM users WHERE is_admin")" = "1" ]; then
+  check "the last admin cannot delete themselves" 409 "$(req d DELETE /me '{"password":"correct horse"}')" 'only admin'
+  expect "and is still there"         1 "$(sql "SELECT COUNT(*) FROM users WHERE email='gone-$RUN@seeker.test'")"
+else echo "skip  last admin (other admins exist in this database)"; fi
+sql "UPDATE users SET is_admin=true WHERE email='other-$RUN@seeker.test'" >/dev/null
+check "an admin who is not the last can" 200 "$(req d DELETE /me '{"password":"correct horse"}')"
+expect "one admin left"               1 "$(sql "SELECT COUNT(*) FROM users WHERE is_admin AND email LIKE '%-$RUN@seeker.test'")"
+
 cleanup
 expect "test accounts removed"        0 "$(sql "SELECT COUNT(*) FROM users WHERE email LIKE '%@seeker.test'")"
 expect "test careers and skills removed" 0 "$(sql "SELECT (SELECT COUNT(*) FROM occupations WHERE title LIKE 'Seeker Test %') + (SELECT COUNT(*) FROM skills WHERE name LIKE 'Seeker Test %')")"
+expect "test company, factories and jobs removed" 0 "$(sql "SELECT (SELECT COUNT(*) FROM companies WHERE name LIKE 'Seeker Test %') + (SELECT COUNT(*) FROM factories WHERE name LIKE 'Seeker Test %') + (SELECT COUNT(*) FROM jobs WHERE title LIKE 'Seeker Test %')")"
 [ $fail -eq 0 ] && echo "ALL PASSED" || echo "SOME FAILED"
 exit $fail

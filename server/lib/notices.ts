@@ -6,6 +6,7 @@ import {
   accessApprovedEmail,
   accessDeclinedEmail,
   accessRequestedEmail,
+  emailChangedEmail,
   inviteEmail,
   newApplicantEmail,
   resetEmail,
@@ -136,6 +137,16 @@ export async function sendForgotLink(email: string): Promise<void> {
     if (made) await sendEmail(resetEmail({ to: email, path: resetPath(token), hours: RESET_HOURS, byAdmin: false }));
   } catch (err) {
     failed('forgot password', err);
+  }
+}
+
+/** Tell the address an account used to have that it was changed. Never rejects. */
+export async function sendEmailChanged(input: { oldEmail: string; newEmail: string }): Promise<void> {
+  try {
+    if (!emailEnabled()) return;
+    await sendEmail(emailChangedEmail({ to: input.oldEmail, newEmail: input.newEmail }));
+  } catch (err) {
+    failed('email changed', err);
   }
 }
 

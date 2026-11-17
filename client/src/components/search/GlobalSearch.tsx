@@ -8,6 +8,7 @@ import {
   Building2,
   Factory,
   Briefcase,
+  BriefcaseBusiness,
   Wrench,
   MapPin,
   Clock,
@@ -44,6 +45,13 @@ const ENTITY_CONFIG: Record<
     iconClass: 'text-fg-muted',
     path: '/occupations',
   },
+  // Open jobs sit beside the careers they are for.
+  jobs: {
+    icon: BriefcaseBusiness,
+    label: 'Job',
+    iconClass: 'text-fg-muted',
+    path: '/jobs',
+  },
   skills: {
     icon: Wrench,
     label: 'Skill',
@@ -74,6 +82,19 @@ const MAX_RECENT_SEARCHES = 10;
 export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  // What had the focus when the dialog opened; it gets it back when the dialog closes.
+  const openerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (isOpen) {
+      openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      return;
+    }
+    const opener = openerRef.current;
+    openerRef.current = null;
+    // Only when the focus was left nowhere: choosing a result moves on to another page.
+    if (opener && opener.isConnected && (document.activeElement === document.body || document.activeElement === null)) opener.focus();
+  }, [isOpen]);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -189,6 +210,20 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
         case 'Escape':
           onClose();
           break;
+        case 'Tab': {
+          // Focus stays inside the dialog: Tab from the last control goes to the first.
+          const box = boxRef.current;
+          if (!box) break;
+          const stops = [...box.querySelectorAll<HTMLElement>('button, input, a[href], [tabindex]:not([tabindex="-1"])')].filter(
+            (el) => !el.hasAttribute('disabled')
+          );
+          if (stops.length === 0) break;
+          const at = stops.indexOf(document.activeElement as HTMLElement);
+          const next = at === -1 ? 0 : (at + (e.shiftKey ? -1 : 1) + stops.length) % stops.length;
+          e.preventDefault();
+          stops[next].focus();
+          break;
+        }
         case 'ArrowDown':
           e.preventDefault();
           setSelectedIndex((prev) => Math.min(prev + 1, results.length - 1));
@@ -198,6 +233,8 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           setSelectedIndex((prev) => Math.max(prev - 1, 0));
           break;
         case 'Enter':
+          // From the search field only: Enter on a button presses that button.
+          if (e.target !== inputRef.current) break;
           e.preventDefault();
           if (results[selectedIndex]) {
             navigateToResult(results[selectedIndex]);
@@ -225,16 +262,10 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   return (
     <>
       {/* Backdrop */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Search"
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div aria-hidden="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="fixed inset-x-4 top-[15vh] z-50 mx-auto max-w-[600px]">
+      <div ref={boxRef} role="dialog" aria-modal="true" aria-label="Search" className="fixed inset-x-4 top-[15vh] z-50 mx-auto max-w-[600px]">
         <div
           className="
             overflow-hidden rounded-xl
@@ -268,7 +299,12 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
             {isLoading && <Loader2 className="w-4 h-4 text-fg-soft animate-spin" />}
             {query && !isLoading && (
               <button
-                onClick={() => setQuery('')}
+                type="button"
+                aria-label="Clear search"
+                onClick={() => {
+                  setQuery('');
+                  inputRef.current?.focus();
+                }}
                 className="p-1 text-fg-soft hover:text-fg-muted transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -280,7 +316,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           </div>
 
           {/* Type filters */}
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-tint/5">
+          <div className="flex items-center gap-2 overflow-x-auto px-4 py-2 border-b border-tint/5 [&>button]:shrink-0">
             <button
               onClick={() => setTypeFilter(null)}
               className={`

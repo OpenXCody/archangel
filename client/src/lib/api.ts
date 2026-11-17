@@ -340,7 +340,7 @@ export const statsApi = {
 };
 
 // Search types
-export type SearchEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states';
+export type SearchEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'jobs';
 
 export interface SearchResultItem {
   id: string;
@@ -360,6 +360,8 @@ export interface SearchResults {
     occupations: { count: number; items: SearchResultItem[] };
     skills: { count: number; items: SearchResultItem[] };
     states: { count: number; items: SearchResultItem[] };
+    /** Open jobs. Absent from an answer that was asked for other kinds only. */
+    jobs?: { count: number; items: SearchResultItem[] };
   };
   totalCount: number;
 }
@@ -405,6 +407,10 @@ export interface RegionOverview {
   topIndustries: { label: string; count: number }[];
   /** Careers typical of the industries found here, the most characteristic first. */
   careers?: { id: string; title: string }[];
+  /** How many jobs are open at the plants here. */
+  openJobs?: number;
+  /** The newest of them: a short list, not all. */
+  jobs?: CareerJob[];
 }
 
 export interface StateOverview extends RegionOverview {

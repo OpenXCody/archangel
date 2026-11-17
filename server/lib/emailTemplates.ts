@@ -139,6 +139,22 @@ export function resetEmail(input: { to: string; path: string; hours: number; byA
   });
 }
 
+/** To the address an account used to have, when the person changes it: the one sign they would get if it was not them. */
+export function emailChangedEmail(input: { to: string; newEmail: string }): EmailMessage {
+  return build({
+    kind: 'email-changed',
+    to: input.to,
+    subject: 'Your Archangel email address was changed',
+    body: [
+      `The Archangel account that used ${input.to} now signs in with ${oneLine(input.newEmail, 254)}.`,
+      'If you made this change, there is nothing to do. If you did not, ask an Archangel admin for help.',
+    ],
+    action: { label: 'Open Archangel', url: appUrl('/sign-in') },
+    why: `the email address of an Archangel account was changed from ${input.to}`,
+    notice: false,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Notices: sent unless the person has turned them off
 // ---------------------------------------------------------------------------

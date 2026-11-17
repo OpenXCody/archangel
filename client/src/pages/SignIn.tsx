@@ -18,6 +18,7 @@ import {
 } from '../lib/account';
 import { ErrorNote, Field, LoadError, PageLoading, busyButtonClass, cardClass, fieldClass, textButtonClass } from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
+import { onGroupArrowKeys } from '../lib/roving';
 
 type Mode = 'sign-in' | 'create';
 /** What a new account is for. It only decides where the person lands. */
@@ -27,6 +28,11 @@ const MODES: { value: Mode; label: string }[] = [
   { value: 'sign-in', label: 'Sign in' },
   { value: 'create', label: 'Create account' },
 ];
+
+type FieldName = 'name' | 'email' | 'password';
+
+/** The same rule the server applies to an address. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
   { value: 'careers', label: 'Find a career', detail: 'Explore careers, track skills, apply.' },
@@ -38,8 +44,12 @@ const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
  * what it is for (`?as=employer`), which is the only extra question asked.
  *
  * Where the person lands: an employer goes to the employer page; otherwise
- * `?next=` when it is a path on this site; otherwise the map, to start
- * exploring.
+ * `?next=` when it is a path on this site. With nowhere to return to, someone
+ * signing in lands on the map, and someone who has just created an account
+ * lands on their own page, which starts them off.
+ *
+ * The form is checked here before it is sent: every problem is named beside
+ * its field at once, and the first is focused.
  *
  * An invite link (`?invite=<token>`) opens on Create account with the invited
  * email fixed and no purpose question: the invite already says what the
@@ -87,6 +97,10 @@ export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [forgetting, setForgetting] = useState(false);
+  const [problems, setProblems] = useState<Partial<Record<FieldName, string>>>({});
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   const active = mode === 'create' ? signUp : signIn;
   const busy = signIn.isPending || signUp.isPending;
@@ -100,7 +114,8 @@ export default function SignIn() {
     const hiring =
       (invited ? invited.role === 'employer' && account.data.isEmployer : mode === 'create' && purpose === 'employer') ||
       (!next && account.data.isEmployer);
-    return <Navigate to={hiring ? '/employer' : (next ?? '/map')} replace />;
+    // A new account with nowhere to return to starts on the person's own page.
+    return <Navigate to={hiring ? '/employer' : (next ?? (signUp.isSuccess ? '/me' : '/map'))} replace />;
   }
   if (!account.data || (inviteToken && inviteQuery.isPending) || resetPending) {
     if (account.error) {
@@ -130,6 +145,7 @@ export default function SignIn() {
     if (nextMode === mode) return;
     signIn.reset();
     signUp.reset();
+    setProblems({});
     const params = new URLSearchParams(searchParams);
     if (nextMode === 'create') params.set('mode', 'create');
     // With an invite the page opens on Create account, so signing in has to be asked for.
@@ -144,9 +160,27 @@ export default function SignIn() {
     setSearchParams(params, { replace: true });
   };
 
+  const clearProblem = (field: FieldName) => {
+    if (problems[field]) setProblems((current) => ({ ...current, [field]: undefined }));
+  };
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (busy) return;
+    // Every problem at once, each beside its field; the first one gets the focus.
+    const found: Partial<Record<FieldName, string>> = {};
+    if (mode === 'create' && !name.trim()) found.name = 'Enter your name.';
+    if (!invited && !EMAIL_RE.test(email.trim())) found.email = 'Enter a valid email address.';
+    if (mode === 'create' ? password.length < 8 : !password) {
+      found.password = mode === 'create' ? 'Use a password of at least 8 characters.' : 'Enter your password.';
+    }
+    setProblems(found);
+    if (found.name || found.email || found.password) {
+      signIn.reset();
+      signUp.reset();
+      (found.name ? nameRef : found.email ? emailRef : passwordRef).current?.focus();
+      return;
+    }
     if (invited && inviteToken) signUp.mutate({ name, email: invited.email, password, invite: inviteToken });
     else if (mode === 'create') signUp.mutate({ name, email, password });
     else signIn.mutate({ email, password });
@@ -160,13 +194,19 @@ export default function SignIn() {
         />
 
         <div className={cn(cardClass, 'p-4 sm:p-6')}>
-          <div role="tablist" aria-label="Sign in or create an account" className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-bg-elevated p-1">
+          <div
+            role="tablist"
+            aria-label="Sign in or create an account"
+            onKeyDown={(event) => onGroupArrowKeys(event, MODES.map((each) => each.value), mode, switchMode)}
+            className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-bg-elevated p-1"
+          >
             {MODES.map(({ value, label }) => (
               <button
                 key={value}
                 type="button"
                 role="tab"
                 aria-selected={mode === value}
+                tabIndex={mode === value ? 0 : -1}
                 onClick={() => switchMode(value)}
                 className={cn(
                   'h-9 rounded-md text-sm font-medium transition-colors',
@@ -199,13 +239,19 @@ export default function SignIn() {
               </p>
             )}
             {mode === 'create' && !invited && (
-              <div role="radiogroup" aria-label="Account purpose" className="grid grid-cols-2 gap-2">
+              <div
+                role="radiogroup"
+                aria-label="Account purpose"
+                onKeyDown={(event) => onGroupArrowKeys(event, PURPOSES.map((each) => each.value), purpose, setPurpose)}
+                className="grid grid-cols-2 gap-2"
+              >
                 {PURPOSES.map(({ value, label, detail }) => (
                   <button
                     key={value}
                     type="button"
                     role="radio"
                     aria-checked={purpose === value}
+                    tabIndex={purpose === value ? 0 : -1}
                     onClick={() => setPurpose(value)}
                     className={cn(
                       'min-w-0 rounded-lg border px-3 py-2.5 text-left transition-colors',
@@ -225,19 +271,27 @@ export default function SignIn() {
             {mode === 'create' && (
               <Field label="Name" htmlFor="sign-name">
                 <input
+                  ref={nameRef}
                   id="sign-name"
                   name="name"
                   type="text"
                   autoComplete="name"
                   maxLength={80}
+                  aria-invalid={problems.name ? true : undefined}
+                  aria-describedby={problems.name ? 'sign-name-problem' : undefined}
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    clearProblem('name');
+                  }}
                   className={fieldClass}
                 />
+                <FieldProblem id="sign-name-problem" problem={problems.name} />
               </Field>
             )}
             <Field label="Email" htmlFor="sign-email">
               <input
+                ref={emailRef}
                 id="sign-email"
                 name="email"
                 type="email"
@@ -247,27 +301,59 @@ export default function SignIn() {
                 spellCheck={false}
                 readOnly={Boolean(invited)}
                 aria-readonly={invited ? true : undefined}
+                aria-invalid={problems.email ? true : undefined}
+                aria-describedby={problems.email ? 'sign-email-problem' : undefined}
                 value={invited ? invited.email : email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  clearProblem('email');
+                }}
                 className={cn(fieldClass, invited && 'cursor-default text-fg-muted')}
               />
+              <FieldProblem id="sign-email-problem" problem={problems.email} />
             </Field>
-            <Field label="Password" htmlFor="sign-password" hint={mode === 'create' ? 'At least 8 characters.' : undefined}>
+            <Field
+              label="Password"
+              htmlFor="sign-password"
+              hint={mode === 'create' && !problems.password ? 'At least 8 characters.' : undefined}
+            >
               <input
+                ref={passwordRef}
                 id="sign-password"
                 name="password"
                 type="password"
                 autoComplete={mode === 'create' ? 'new-password' : 'current-password'}
                 maxLength={200}
+                aria-invalid={problems.password ? true : undefined}
+                aria-describedby={problems.password ? 'sign-password-problem' : undefined}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  clearProblem('password');
+                }}
                 className={fieldClass}
               />
+              <FieldProblem id="sign-password-problem" problem={problems.password} />
             </Field>
 
-            <ErrorNote error={active.error} />
+            {mode === 'create' && signUp.error instanceof ApiError && signUp.error.status === 409 ? (
+              // The address has an account: one press goes to signing in, with what was typed kept.
+              <p role="alert" className="text-sm text-danger" data-account-exists>
+                An account with that email already exists.{' '}
+                <button type="button" onClick={() => switchMode('sign-in')} className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+                  Sign in instead
+                </button>
+              </p>
+            ) : (
+              <ErrorNote error={active.error} />
+            )}
 
-            <Button type="submit" disabled={busy} className="h-11 w-full rounded-lg text-sm">
+            <Button
+              type="submit"
+              aria-busy={busy}
+              aria-disabled={busy}
+              className={cn('h-11 w-full rounded-lg text-sm', busyButtonClass)}
+            >
               {busy && <Loader2 className="animate-spin" />}
               {mode === 'create' ? 'Create account' : 'Sign in'}
             </Button>
@@ -296,6 +382,15 @@ export default function SignIn() {
           ))}
       </div>
     </PageContainer>
+  );
+}
+
+/** What is wrong with one field, said beside it. */
+function FieldProblem({ id, problem }: { id: string; problem: string | undefined }) {
+  return (
+    <div id={id}>
+      <ErrorNote error={problem} className="mt-2" />
+    </div>
   );
 }
 

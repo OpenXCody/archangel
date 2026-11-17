@@ -79,6 +79,10 @@ A skill is marked where it is listed: on a career's path each row starts with a 
 
 Careers within reach (`GET /api/me/careers/reach`, shown on `/me` under Careers): careers with a staged path of at least five skills of which the person holds at least one, ranked by the share held, each with the next skills to pick up. Held skills count fully; a skill being learned counts as half for the order only, never in the figure. Careers already chosen as goals are left out; goals carry their own `next` skills (`GET /api/me/goals`).
 
+A new account with nowhere to return to lands on `/me`. With no goal, skill or application the page is one question, "Start with a career" (search, or one tap on a career that has a path); choosing one fills the page. Suggested skills (`GET /api/me/skills/suggested`, under Skills on `/me`) are the skills of the person's goals, then of careers within reach, none already on their list; one tap on the mark adds one, another takes it off, and the list holds still while it is marked (`useSuggestedSkills` in `lib/seeker.ts` is not under the skills key). Removing a goal or skill leaves "Removed X. Undo" in its place until the page is left.
+
+`/jobs` narrows by place: `?state=`, or `?near=<lat>,<lng>&place=<name>&within=<miles>` (50 by default), chosen in the Where field (`components/account/JobPlaceFilter.tsx`: a ZIP code or town through `lib/geocode.ts`, or a state; a state select only when there is no map key). The browser is never asked for the person's location. `?q=` matches every typed word in the title, company, career, shift, city or state (`server/lib/jobSearch.ts`).
+
 ## Careers and plants
 
 Two different links, kept apart:
@@ -89,7 +93,7 @@ From it: a career lists its industries with plant counts and leading states (`GE
 
 ## Words
 
-On screen an occupation is a **Career**, and a job is one opening for a career at one factory. On the map a factory is a **plant** and headcount is **people**. Code, routes and tables still say `occupation`. A career's skills carry a stage: 1 Introduction, 2 Fundamentals, 3 Advanced.
+On screen an occupation is a **Career**, and a job is one opening for a career at one factory. On the map a factory is a **plant** and headcount is **people**. A career someone aims for is a **goal** ("Set as goal", "Goal", "Goals"). A plain account has no role label. Code, routes and tables still say `occupation`. A career's skills carry a stage: 1 Introduction, 2 Fundamentals, 3 Advanced.
 
 ## Users
 
@@ -137,9 +141,9 @@ Old addresses: `/import` and `/import/bulk` redirect to `/admin?tab=data`; `/tre
 
 ## API Endpoints
 
-- Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search` (companies, factories, careers, skills, and states from `shared/states.ts`), `/api/map/*`, `/api/stats/counts` (companies, factories, occupations, skills, total), `/api/explore/overview` (everything the Explore overview shows, in one response), `/api/explore/facets` (the industries and skill categories the browse lists filter by), `/api/jobs`, `/api/jobs/:id`
-- `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, `invite/:token` (what an invite grants; 404 when unknown, used or expired), `password` (change your own), `reset/:token` (whose password a reset link sets; 404 when unknown, used or expired), `reset` POST `{ token, password }`
-- `/api/me/*` profile, skills, goals (each with `next` skills), applications, `careers/reach`
+- Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search` (companies, factories, careers, skills, and states from `shared/states.ts`), `/api/map/*`, `/api/stats/counts` (companies, factories, occupations, skills, total), `/api/explore/overview` (everything the Explore overview shows, in one response), `/api/explore/facets` (the industries and skill categories the browse lists filter by), `/api/jobs`, `/api/jobs/:id`. `/api/jobs` GET takes `q`, `state`, `near`, `within` (with `near` each job carries `miles`, nearest first); `/api/search` also returns `results.jobs` (open jobs); the map overviews (`states/:code/overview`, `areas/:id/overview`, `bounds/overview`) carry `openJobs` and `jobs`, listed in the panel only when there are some
+- `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, `invite/:token` (what an invite grants; 404 when unknown, used or expired), `password` (change your own), `reset/:token` (whose password a reset link sets; 404 when unknown, used or expired), `reset` POST `{ token, password }`; `email` POST `{ email, password }` changes the sign-in address (ends other sessions, tells the old address by mail)
+- `/api/me/*` profile, skills, `skills/suggested`, goals (each with `next` skills), applications, `careers/reach`; `DELETE /api/me { password }` deletes your own account with its skills, goals, applications and memberships (posted jobs stay; not the last admin)
 - `/api/jobs` POST; `/:id` PATCH (fields, `skills` as the whole list, close, reopen; company members and admins) and DELETE (only a job with no applications, else 409); `/:id/apply`; `/:id/applications` (ranked; the job's `skills` once, and per applicant `heldSkillIds` and `learningSkillIds`); `/applications/:id` (stage and private note). An application link is stored as https; one typed without a scheme gets it
 - `/api/employer/*` memberships and the employer dashboard
 - `/api/admin/*` (signed-in admin only: 401 signed out, 403 otherwise): `overview`; `users` (`?q=`, paged), `users/:id` PATCH `{ isAdmin }` and DELETE; `users/:id/reset-link` POST; `memberships` GET, POST (add a person to a company), PATCH (approve or remove); `invites` GET, POST, `invites/:id` DELETE; `paths?status=draft`; `companies?q=`, `companies/:id` PATCH `{ domain, featured }`
@@ -172,7 +176,7 @@ Old addresses: `/import` and `/import/bulk` redirect to `/admin?tab=data`; `/tre
 The rule of thumb: it should look like software Tesla would ship on a vehicle screen, not like a consumer phone app.
 
 - Monochrome and quiet, in both themes. One accent (the geofence's blue). No entity colours anywhere.
-- No stars, badges, emoji, counters or "click here" hints. Emphasis comes from order, size and brightness.
+- No stars, badges, emoji, counters or "click here" hints. Emphasis comes from order, size and brightness. Application stages read by brightness, not hue. Section headings on entity pages carry no counts.
 - Nothing on the map that the person did not ask for: no numbered bubbles, no labels on pins. Counts and detail live in the panel they open.
 - Density reads naturally (a glow far out, distinct points close in), not as a chart.
 - Motion is short and purposeful. Nothing flashes a loading state for content the client already has.
@@ -190,7 +194,7 @@ The rule of thumb: it should look like software Tesla would ship on a vehicle sc
 - No service worker. The manifest is a static file (`client/public/manifest.webmanifest`); cache lifetimes are in `vercel.json`. The font (Oxanium) is bundled, not fetched from a third party
 - List routes read `limit`/`offset` through `server/lib/paging.ts`; record writes validate through `server/lib/writes.ts`
 - A new dependency is proven with a clean install (`npm ci` in a fresh copy, then `npm run build`), not with the packages already on disk: Vercel installs from the lockfile only
-- A control that is saving is marked `aria-busy` / `aria-disabled` (`busyButtonClass`), never `disabled`: a disabled control drops keyboard focus. A form names each problem beside its field and focuses the first
+- A control that is saving is marked `aria-busy` / `aria-disabled` (`busyButtonClass`), never `disabled`: a disabled control drops keyboard focus. A form names each problem beside its field and focuses the first Mutations run with `networkMode: 'always'`: a change made offline fails there and then. Button groups acting as tabs or radios use `onGroupArrowKeys` (`lib/roving.ts`) with a roving tabindex. After a deliberate sign-out a gated page sends the person to the map (`justLeft` in `lib/account.ts`)
 - An entity page picks its view from the address (`entityType`), never from the shape of the response; the shape checks in `EntityDetail.tsx` only narrow types. Adding a field to a response must not be able to change which page is drawn
 - Server/api relative imports MUST end in `.js` (`from './routes/map.js'`, `from '../db/index.js'`): the function runs as Node ESM on Vercel. `npm run lint` enforces it
 

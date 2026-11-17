@@ -142,9 +142,12 @@ export default function AccountMenu() {
         <DropdownMenuLabel className="px-2.5 py-2 font-normal">
           <span className="block truncate text-sm font-semibold text-fg-default">{user.name}</span>
           <span className="block truncate text-xs text-fg-muted">{user.email}</span>
-          <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
-            {roles.join(' · ')}
-          </span>
+          {/* A plain account has no label: only a role is worth naming. */}
+          {roles.length > 0 && (
+            <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
+              {roles.join(' · ')}
+            </span>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-[color:var(--color-border-subtle)]" />
         <DropdownMenuItem asChild className={pageItemClass(news?.applications)}>

@@ -89,6 +89,57 @@ export function nextSkillNames(next: NextSkill[]): string {
 }
 
 // ---------------------------------------------------------------------------
+// Suggested skills
+// ---------------------------------------------------------------------------
+
+/** A skill of one of the person's careers that is not on their list yet. */
+export interface SuggestedSkill {
+  id: string;
+  name: string;
+  stage: 1 | 2 | 3 | null;
+  /** One career it is for: a goal first, else the closest career within reach. */
+  career: string;
+  /** How many of those careers call for it. */
+  careers: number;
+}
+
+/**
+ * Not under the skills key, on purpose: marking a suggestion must not reshuffle
+ * the list under the finger. It is read when the page opens, when the person's
+ * goals change (`refreshSuggestedSkills`), and when they ask for more.
+ */
+export const suggestedSkillsKey = [...accountKeys.me, 'suggested-skills'] as const;
+
+async function fetchSuggestedSkills(): Promise<SuggestedSkill[]> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/me/skills/suggested`, { credentials: 'same-origin' });
+  } catch {
+    throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
+  }
+  const payload = (await response.json().catch(() => null)) as { skills?: SuggestedSkill[] } | null;
+  if (!response.ok || !payload?.skills) throw new ApiError('Something went wrong on our side. Please try again.', response.status);
+  return payload.skills;
+}
+
+/**
+ * Skills of the person's goal careers, then of the careers within reach, none
+ * of them on their list yet. Empty for a person with no goal and no held skill.
+ */
+export function useSuggestedSkills(enabled = true) {
+  return useQuery({
+    queryKey: suggestedSkillsKey,
+    queryFn: fetchSuggestedSkills,
+    enabled,
+    staleTime: Infinity,
+    // A fresh list each time the page is opened.
+    refetchOnMount: 'always',
+    placeholderData: keepPreviousData,
+    retry: (failureCount, error) => !(error instanceof ApiError && error.status >= 400 && error.status < 500) && failureCount < 1,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Marking a skill
 // ---------------------------------------------------------------------------
 

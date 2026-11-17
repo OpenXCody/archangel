@@ -38,6 +38,8 @@ function messageFor(payload: unknown, status: number): string {
   if (status >= 500) return 'Something went wrong on our side. Please try again.';
   if (payload && typeof payload === 'object' && 'error' in payload) {
     const { error } = payload as { error: unknown };
+    // The session ended elsewhere: say what that means for what was just pressed.
+    if (status === 401 && error === 'Sign in required') return 'You are signed out. Sign in to save this.';
     if (typeof error === 'string' && error) return error;
   }
   return `The request could not be completed (${status}).`;
@@ -105,6 +107,8 @@ export interface Account {
   user: AccountUser | null;
   memberships: Membership[];
   isEmployer: boolean;
+  /** Set in this browser only: when the person signed out, or deleted their account, here (ms since the epoch). */
+  leftAt?: number;
 }
 
 export interface SignedInAccount extends Account {
@@ -112,9 +116,9 @@ export interface SignedInAccount extends Account {
 }
 
 /**
- * What this account is, in the order that matters: "Admin", "Employer (Tesla)",
- * or "User" when it is neither. Roles are relationships, so one account can
- * hold more than one.
+ * What this account is, in the order that matters: "Admin", "Employer (Tesla)".
+ * Nothing when it is neither: a plain account needs no label. Roles are
+ * relationships, so one account can hold more than one.
  */
 export function accountRoles(account: Account): string[] {
   if (!account.user) return [];
@@ -124,7 +128,7 @@ export function accountRoles(account: Account): string[] {
   if (active.length === 1) roles.push(`Employer (${active[0].companyName})`);
   else if (active.length > 1) roles.push(`Employer (${active.length} companies)`);
   else if (account.memberships.some((m) => m.status === 'requested')) roles.push('Employer (pending approval)');
-  return roles.length > 0 ? roles : ['User'];
+  return roles;
 }
 
 export type SkillStatus = 'learning' | 'held';
@@ -215,6 +219,8 @@ export interface JobSummary {
   longitude: string | null;
   occupationId: string;
   occupationTitle: string;
+  /** Miles from the place the list was asked for (`near`); absent otherwise. */
+  miles?: number | null;
 }
 
 export interface JobDetail extends JobSummary {
@@ -248,6 +254,10 @@ export interface JobFilters {
   occupationId?: string;
   companyId?: string;
   factoryId?: string;
+  /** "latitude,longitude": only jobs within `within` miles of the point, nearest first. */
+  near?: string;
+  /** Miles; 50 when left out. */
+  within?: number;
   limit?: number;
 }
 
@@ -533,6 +543,9 @@ export const authApi = {
   options: () => request<AuthOptions>('/auth/options'),
   /** Emails a reset link to the address if it has an account. The answer is the same either way. */
   forgotPassword: (email: string) => request<{ ok: true }>('/auth/forgot', { method: 'POST', body: { email } }),
+  /** Changes the address the person signs in with, confirmed by their password. Ends their other sessions. */
+  changeEmail: (input: { email: string; password: string }) =>
+    request<Account>('/auth/email', { method: 'POST', body: input }),
 };
 
 export const meApi = {
@@ -550,6 +563,8 @@ export const meApi = {
     request<{ occupationId: string }>(`/me/goals/${occupationId}`, { method: 'PUT' }),
   removeGoal: (occupationId: string) => request<{ ok: true }>(`/me/goals/${occupationId}`, { method: 'DELETE' }),
   applications: () => request<{ applications: MyApplication[] }>('/me/applications').then((r) => r.applications),
+  /** Deletes the person's own account, confirmed by their password. */
+  deleteAccount: (password: string) => request<{ ok: true }>('/me', { method: 'DELETE', body: { password } }),
 };
 
 export const jobsApi = {
@@ -645,6 +660,15 @@ export const accountKeys = {
 const SIGNED_OUT: Account = { user: null, memberships: [], isEmployer: false };
 
 /**
+ * True for a moment after the person signs out (or deletes their account) in
+ * this browser. A page that needs an account then sends them on to the map
+ * rather than to the sign-in form, which would read as "sign in again".
+ */
+export function justLeft(account: Account): boolean {
+  return account.user === null && account.leftAt !== undefined && Date.now() - account.leftAt < 5000;
+}
+
+/**
  * A different person (or nobody) is now signed in: store who, drop everything
  * cached for the previous person, and refresh what is public but personalised.
  */
@@ -723,7 +747,8 @@ export function useSignOut() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: authApi.signOut,
-    onSuccess: () => identityChanged(queryClient, SIGNED_OUT),
+    // Marked, so a page that needs an account sends the person on, not to the sign-in form.
+    onSuccess: () => identityChanged(queryClient, { ...SIGNED_OUT, leftAt: Date.now() }),
   });
 }
 
@@ -774,6 +799,24 @@ export function useResetPassword() {
 /** Change the signed-in person's own password. */
 export function useChangePassword() {
   return useMutation({ mutationFn: authApi.changePassword });
+}
+
+/** Change the address the signed-in person signs in with. The answer is the account as it now is. */
+export function useChangeEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.changeEmail,
+    onSuccess: (account) => queryClient.setQueryData(accountKeys.account, account),
+  });
+}
+
+/** Delete the signed-in person's own account. Afterwards nobody is signed in here. */
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (password: string) => meApi.deleteAccount(password),
+    onSuccess: () => identityChanged(queryClient, { ...SIGNED_OUT, leftAt: Date.now() }),
+  });
 }
 
 /** Whether the app can send mail. It changes only with the deployment, so it is asked rarely. */
