@@ -31,6 +31,7 @@ import {
   LoadError,
   PageLoading,
   RowsSkeleton,
+  busyButtonClass,
   cardClass,
   fieldClass,
   outlineButtonClass,
@@ -66,6 +67,7 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
   const companies = employer.data ?? [];
   const active = companies.filter((company) => company.status === 'active');
   const pending = companies.filter((company) => company.status === 'requested');
+  const declined = companies.filter((company) => company.status === 'declined');
   const [joiningAnother, setJoiningAnother] = useState(false);
   const hasJobs = active.some((company) => company.jobs.length > 0);
 
@@ -104,6 +106,7 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
       ) : (
         <>
           {pending.length > 0 && <PendingRequests companies={pending} />}
+          {declined.length > 0 && <DeclinedRequests companies={declined} />}
 
           {/* With nothing posted yet the form is the page; after that it is one press away, above the list. */}
           {active.length > 0 && !hasJobs && (
@@ -245,6 +248,65 @@ function PendingRequests({ companies }: { companies: EmployerCompany[] }) {
   );
 }
 
+/** "Nov 3", with the year once it is not this one. */
+function formatDay(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' });
+}
+
+/** A declined request can be made again once its week is up. */
+function canAskAgain(company: EmployerCompany): boolean {
+  return !company.askAgainAt || new Date(company.askAgainAt).getTime() <= Date.now();
+}
+
+// ---------------------------------------------------------------------------
+// Requests an admin declined
+// ---------------------------------------------------------------------------
+
+function DeclinedRequests({ companies }: { companies: EmployerCompany[] }) {
+  const request = useRequestMembership();
+  return (
+    <PageSection title="Declined">
+      <ul className={cardClass}>
+        {companies.map((company) => {
+          const again = canAskAgain(company);
+          const asking = request.isPending && request.variables === company.companyId;
+          return (
+            <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-declined-company={company.companyId}>
+              <div className="min-w-0 flex-1 basis-56">
+                <p className="break-words text-sm font-medium text-fg-default">{company.companyName}</p>
+                <p className="mt-0.5 text-sm text-fg-muted">
+                  An admin declined this request{company.decidedAt && ` on ${formatDay(company.decidedAt)}`}.
+                  {!again && company.askAgainAt && ` It can be made again from ${formatDay(company.askAgainAt)}.`}
+                </p>
+              </div>
+              {again && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  aria-busy={asking}
+                  aria-disabled={request.isPending}
+                  onClick={() => {
+                    if (!request.isPending) request.mutate(company.companyId);
+                  }}
+                  className={cn('h-9', outlineButtonClass, busyButtonClass)}
+                >
+                  {asking && <Loader2 className="animate-spin" />}
+                  Request access again
+                </Button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <ErrorNote error={request.error} className="mt-2" />
+    </PageSection>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Join a company
 // ---------------------------------------------------------------------------
@@ -321,9 +383,9 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                         </p>
                       </div>
                     </div>
-                    {membership ? (
+                    {membership && !(membership.status === 'declined' && canAskAgain(membership)) ? (
                       <span className="shrink-0 text-xs text-fg-muted">
-                        {membership.status === 'active' ? 'Member' : 'Pending approval'}
+                        {membership.status === 'active' ? 'Member' : membership.status === 'declined' ? 'Declined' : 'Pending approval'}
                       </span>
                     ) : (
                       <Button

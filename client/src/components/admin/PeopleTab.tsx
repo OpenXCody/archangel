@@ -10,6 +10,7 @@ import {
   useCreateResetLink,
   useDecideMembership,
   useDeleteUser,
+  useEmailOn,
   useSetAdmin,
   type AccountUser,
   type AdminCompany,
@@ -140,6 +141,7 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
   const resetLinkId = useId();
   const setAdmin = useSetAdmin();
   const resetLink = useCreateResetLink();
+  const emailOn = useEmailOn();
   const addMembership = useAddMembership();
   const removeMembership = useDecideMembership();
   const deleteUser = useDeleteUser();
@@ -177,6 +179,7 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
               <li key={membership.companyId} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-1.5" data-membership={membership.companyId}>
                 <span className="min-w-0 break-words text-sm text-fg-default">{membership.companyName}</span>
                 {membership.status === 'requested' && <span className="text-xs text-fg-muted">Requested</span>}
+                {membership.status === 'declined' && <span className="text-xs text-fg-muted">Declined</span>}
                 <button
                   type="button"
                   disabled={removeMembership.isPending}
@@ -228,7 +231,9 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
             {resetLink.isPending && <Loader2 className="animate-spin" />}
             Password reset link
           </Button>
-          <p className="text-xs text-fg-muted">No email is sent. The link is passed on by hand.</p>
+          <p className="text-xs text-fg-muted">
+            {emailOn ? 'The link is emailed to the person, and shown here once.' : 'No email is sent. The link is passed on by hand.'}
+          </p>
         </div>
         {/* Shown once: only its hash is kept, so closing this panel loses it. A new one replaces it. */}
         {resetLink.data && (
@@ -236,7 +241,9 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
             <CopyLinkField
               id={resetLinkId}
               label={`Reset link for ${person.email}`}
-              hint={`Shown once. Expires in ${RESET_HOURS} hours. Replaces any earlier link.`}
+              hint={`${
+                resetLink.data.emailed ? `Sent to ${person.email}. ` : emailOn ? 'The email could not be sent. Pass the link on by hand. ' : ''
+              }Shown once. Expires in ${RESET_HOURS} hours. Replaces any earlier link.`}
               path={resetLink.data.link}
             />
           </div>
