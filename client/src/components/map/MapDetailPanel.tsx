@@ -524,21 +524,16 @@ function CompanyView({ company }: { company: CompanyDetail }) {
         </div>
       </div>
 
-      {/* Industries */}
-      {company.industries && company.industries.length > 0 && (
+      {/* Industry */}
+      {company.industry && (
         <div className="mb-6">
           <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted mb-2">
-            Industries
+            Industry
           </h3>
           <div className="flex flex-wrap gap-2">
-            {company.industries.map((ind) => (
-              <span
-                key={ind.id}
-                className="px-2 py-1 text-xs rounded-full border border-border-strong text-fg-muted"
-              >
-                {ind.name}
-              </span>
-            ))}
+            <span className="px-2 py-1 text-xs rounded-full border border-border-strong text-fg-muted">
+              {company.industry}
+            </span>
           </div>
         </div>
       )}

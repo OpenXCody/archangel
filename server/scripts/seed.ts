@@ -2,11 +2,7 @@ import 'dotenv/config';
 import { assertSafeToWipe } from '../lib/wipeGuard.js';
 import { db } from '../db/index.js';
 import {
-  states,
-  industries,
-  skillCategories,
   companies,
-  companyIndustries,
   factories,
   occupations,
   skills,
@@ -15,98 +11,7 @@ import {
 } from '../db/schema.js';
 
 // ============================================
-// US STATES DATA (50 states + DC)
-// ============================================
-
-const US_STATES = [
-  { code: 'AL', name: 'Alabama' },
-  { code: 'AK', name: 'Alaska' },
-  { code: 'AZ', name: 'Arizona' },
-  { code: 'AR', name: 'Arkansas' },
-  { code: 'CA', name: 'California' },
-  { code: 'CO', name: 'Colorado' },
-  { code: 'CT', name: 'Connecticut' },
-  { code: 'DE', name: 'Delaware' },
-  { code: 'FL', name: 'Florida' },
-  { code: 'GA', name: 'Georgia' },
-  { code: 'HI', name: 'Hawaii' },
-  { code: 'ID', name: 'Idaho' },
-  { code: 'IL', name: 'Illinois' },
-  { code: 'IN', name: 'Indiana' },
-  { code: 'IA', name: 'Iowa' },
-  { code: 'KS', name: 'Kansas' },
-  { code: 'KY', name: 'Kentucky' },
-  { code: 'LA', name: 'Louisiana' },
-  { code: 'ME', name: 'Maine' },
-  { code: 'MD', name: 'Maryland' },
-  { code: 'MA', name: 'Massachusetts' },
-  { code: 'MI', name: 'Michigan' },
-  { code: 'MN', name: 'Minnesota' },
-  { code: 'MS', name: 'Mississippi' },
-  { code: 'MO', name: 'Missouri' },
-  { code: 'MT', name: 'Montana' },
-  { code: 'NE', name: 'Nebraska' },
-  { code: 'NV', name: 'Nevada' },
-  { code: 'NH', name: 'New Hampshire' },
-  { code: 'NJ', name: 'New Jersey' },
-  { code: 'NM', name: 'New Mexico' },
-  { code: 'NY', name: 'New York' },
-  { code: 'NC', name: 'North Carolina' },
-  { code: 'ND', name: 'North Dakota' },
-  { code: 'OH', name: 'Ohio' },
-  { code: 'OK', name: 'Oklahoma' },
-  { code: 'OR', name: 'Oregon' },
-  { code: 'PA', name: 'Pennsylvania' },
-  { code: 'RI', name: 'Rhode Island' },
-  { code: 'SC', name: 'South Carolina' },
-  { code: 'SD', name: 'South Dakota' },
-  { code: 'TN', name: 'Tennessee' },
-  { code: 'TX', name: 'Texas' },
-  { code: 'UT', name: 'Utah' },
-  { code: 'VT', name: 'Vermont' },
-  { code: 'VA', name: 'Virginia' },
-  { code: 'WA', name: 'Washington' },
-  { code: 'WV', name: 'West Virginia' },
-  { code: 'WI', name: 'Wisconsin' },
-  { code: 'WY', name: 'Wyoming' },
-  { code: 'DC', name: 'District of Columbia' },
-];
-
-// ============================================
-// INDUSTRIES (11 controlled vocabulary items)
-// ============================================
-
-const INDUSTRIES_DATA = [
-  { name: 'Aerospace & Defense', description: 'Aircraft, spacecraft, missiles, and defense equipment manufacturing' },
-  { name: 'Agriculture & Food', description: 'Food processing, agricultural equipment, and food packaging' },
-  { name: 'Automotive', description: 'Vehicle manufacturing, parts, and automotive components' },
-  { name: 'Construction', description: 'Building materials, construction equipment, and prefabrication' },
-  { name: 'Electronics', description: 'Electronic components, semiconductors, and consumer electronics' },
-  { name: 'Energy', description: 'Oil & gas equipment, renewable energy, and power generation' },
-  { name: 'Industrial Machinery', description: 'Heavy machinery, industrial equipment, and automation systems' },
-  { name: 'Medical & Pharmaceuticals', description: 'Medical devices, pharmaceuticals, and healthcare equipment' },
-  { name: 'Metals & Fabrication', description: 'Steel production, metal fabrication, and foundries' },
-  { name: 'Polymers & Composites', description: 'Plastics, rubber, composites, and polymer processing' },
-  { name: 'Shipbuilding', description: 'Naval and commercial shipbuilding, ship repair, and marine vessels' },
-];
-
-// ============================================
-// SKILL CATEGORIES (8 controlled vocabulary items)
-// ============================================
-
-const SKILL_CATEGORIES_DATA = [
-  { name: 'Machining', description: 'CNC operation, manual machining, and precision cutting' },
-  { name: 'Welding & Fabrication', description: 'Welding techniques, metal forming, and fabrication' },
-  { name: 'Quality & Measurement', description: 'Quality control, inspection, metrology, and standards' },
-  { name: 'Assembly & Electronics', description: 'Mechanical assembly, soldering, and circuit board work' },
-  { name: 'Electrical Systems', description: 'Electrical wiring, motor controls, and troubleshooting' },
-  { name: 'Software & Programming', description: 'CAD/CAM, PLC programming, and CNC programming' },
-  { name: 'Material Handling', description: 'Forklift, crane operation, and equipment handling' },
-  { name: 'Maintenance & Repair', description: 'Hydraulics, pneumatics, and equipment maintenance' },
-];
-
-// ============================================
-// COMPANIES DATA (20 fictional companies with industry links)
+// COMPANIES DATA (20 fictional companies; the first industry listed is the company's)
 // ============================================
 
 const COMPANIES_DATA = [
@@ -4344,54 +4249,11 @@ async function seed() {
     console.log('Clearing existing data...');
     await db.delete(occupationSkills);
     await db.delete(factoryOccupations);
-    await db.delete(companyIndustries);
     await db.delete(factories);
     await db.delete(companies);
     await db.delete(occupations);
     await db.delete(skills);
-    await db.delete(skillCategories);
-    await db.delete(industries);
-    await db.delete(states);
     console.log('Existing data cleared.\n');
-
-    // Insert states
-    console.log('Inserting states...');
-    const insertedStates = await db.insert(states).values(
-      US_STATES.map((s) => ({
-        code: s.code,
-        name: s.name,
-      }))
-    ).returning();
-    console.log(`Inserted ${insertedStates.length} states.\n`);
-
-    // Create state lookup map
-    const stateMap = new Map(insertedStates.map((s) => [s.code, s.id]));
-
-    // Insert industries
-    console.log('Inserting industries...');
-    const insertedIndustries = await db.insert(industries).values(
-      INDUSTRIES_DATA.map((i) => ({
-        name: i.name,
-        description: i.description,
-      }))
-    ).returning();
-    console.log(`Inserted ${insertedIndustries.length} industries.\n`);
-
-    // Create industry lookup map
-    const industryMap = new Map(insertedIndustries.map((i) => [i.name, i.id]));
-
-    // Insert skill categories
-    console.log('Inserting skill categories...');
-    const insertedCategories = await db.insert(skillCategories).values(
-      SKILL_CATEGORIES_DATA.map((c) => ({
-        name: c.name,
-        description: c.description,
-      }))
-    ).returning();
-    console.log(`Inserted ${insertedCategories.length} skill categories.\n`);
-
-    // Create category lookup map
-    const categoryMap = new Map(insertedCategories.map((c) => [c.name, c.id]));
 
     // Combine all company data
     const allCompaniesData = [
@@ -4417,7 +4279,7 @@ async function seed() {
       allCompaniesData.map((c) => ({
         name: c.name,
         description: c.description,
-        industry: c.industries[0], // Legacy field - use primary industry
+        industry: c.industries[0],
         headquartersLat: c.lat,
         headquartersLng: c.lng,
       }))
@@ -4426,25 +4288,6 @@ async function seed() {
 
     // Create company lookup map
     const companyMap = new Map(insertedCompanies.map((c, i) => [allCompaniesData[i].name, { id: c.id, industries: allCompaniesData[i].industries }]));
-
-    // Insert company-industry relationships
-    console.log('Creating company-industry relationships...');
-    const companyIndustryValues: Array<{ companyId: string; industryId: string }> = [];
-    for (const [_companyName, data] of companyMap) {
-      for (const industryName of data.industries) {
-        const industryId = industryMap.get(industryName);
-        if (industryId) {
-          companyIndustryValues.push({
-            companyId: data.id,
-            industryId,
-          });
-        }
-      }
-    }
-    if (companyIndustryValues.length > 0) {
-      await db.insert(companyIndustries).values(companyIndustryValues);
-    }
-    console.log(`Created ${companyIndustryValues.length} company-industry relationships.\n`);
 
     // Insert occupations
     console.log('Inserting occupations...');
@@ -4457,13 +4300,12 @@ async function seed() {
     ).returning();
     console.log(`Inserted ${insertedOccupations.length} occupations.\n`);
 
-    // Insert skills with category references
+    // Insert skills
     console.log('Inserting skills...');
     const insertedSkills = await db.insert(skills).values(
       SKILLS_DATA.map((s) => ({
         name: s.name,
-        category: s.category, // Legacy field
-        categoryId: categoryMap.get(s.category),
+        category: s.category,
         description: s.description,
       }))
     ).returning();
@@ -4680,8 +4522,8 @@ async function seed() {
       description: string;
       latitude: string;
       longitude: string;
+      city: string;
       state: string;
-      stateId: string | undefined;
       workforceSize: number;
       openPositions: number;
     }> = [];
@@ -4738,8 +4580,8 @@ async function seed() {
           description: `${loc.specialization} facility located in ${loc.city}, ${loc.state}`,
           latitude: loc.lat.toString(),
           longitude: loc.lng.toString(),
+          city: loc.city,
           state: loc.state,
-          stateId: stateMap.get(loc.state),
           workforceSize: Math.floor(Math.random() * 1500) + 200,
           openPositions: Math.floor(Math.random() * 100) + 10,
         });
@@ -4785,11 +4627,7 @@ async function seed() {
     console.log('='.repeat(50));
     console.log('SEED COMPLETE');
     console.log('='.repeat(50));
-    console.log(`States: ${insertedStates.length}`);
-    console.log(`Industries: ${insertedIndustries.length}`);
-    console.log(`Skill Categories: ${insertedCategories.length}`);
     console.log(`Companies: ${insertedCompanies.length}`);
-    console.log(`Company-Industry Links: ${companyIndustryValues.length}`);
     console.log(`Factories: ${insertedFactories.length}`);
     console.log(`Occupations: ${insertedOccupations.length}`);
     console.log(`Skills: ${insertedSkills.length}`);

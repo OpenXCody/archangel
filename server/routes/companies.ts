@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
-import { db, companies, factories, companyIndustries, industries, jobs } from '../db/index.js';
+import { db, companies, factories, jobs } from '../db/index.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
@@ -150,16 +150,6 @@ router.get('/:id', async (req: Request, res: Response) => {
       .from(factories)
       .where(and(eq(factories.companyId, id), factoryInScope()));
 
-    // Get industries for this company (via junction table)
-    const companyIndustriesResult = await db
-      .select({
-        id: industries.id,
-        name: industries.name,
-      })
-      .from(companyIndustries)
-      .innerJoin(industries, eq(companyIndustries.industryId, industries.id))
-      .where(eq(companyIndustries.companyId, id));
-
     // Occupations across all of this company's in-scope factories, with how many of
     // its factories employ each — what the explorer's "N occupations" tag
     // links to.
@@ -178,7 +168,6 @@ router.get('/:id', async (req: Request, res: Response) => {
     res.json({
       ...company,
       factories: companyFactories,
-      industries: companyIndustriesResult,
       jobs: await listOpenJobs(eq(jobs.companyId, id)),
       occupations: Array.from(companyOccupations as Iterable<Record<string, unknown>>),
       factoryCount: companyFactories.length,

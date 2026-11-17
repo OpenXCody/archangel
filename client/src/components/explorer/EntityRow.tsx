@@ -1,8 +1,8 @@
 import { memo, useCallback, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import type { Company, Factory, Occupation, Skill, Ref, School, Program } from '../../lib/api';
-import { companiesApi, factoriesApi, occupationsApi, skillsApi, refsApi, schoolsApi, programsApi } from '../../lib/api';
+import type { Company, Factory, Occupation, Skill } from '../../lib/api';
+import { companiesApi, factoriesApi, occupationsApi, skillsApi } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { Skeleton } from '@/components/ui/skeleton';
 import CompanyLogo from '../CompanyLogo';
@@ -12,14 +12,14 @@ import type { BrowseTab } from './ExploreNav';
  * One row of a browse list. Every type reads the same way:
  *
  *   [logo]  Name
- *           what it is, in a line            (careers, skills, elements, schools, programs)
+ *           what it is, in a line            (careers, skills)
  *           facts about it, as plain text
  *
  * No tags and no icons: a company is known by its logo, everything else by
  * the list it is in. The whole row is the link.
  */
 
-export type BrowseEntity = Company | Factory | Occupation | Skill | Ref | School | Program;
+export type BrowseEntity = Company | Factory | Occupation | Skill;
 
 /** Industry value the bulk import stamped on nearly every company; not worth a line. */
 const GENERIC_INDUSTRY = 'manufacturing';
@@ -34,9 +34,6 @@ export function skillCategoryLabel(category: string | null | undefined): string 
 
 const count = (n: number | null | undefined, one: string, many: string): string | null =>
   n ? `${n.toLocaleString()} ${n === 1 ? one : many}` : null;
-
-const titleCase = (value: string | null | undefined): string | null =>
-  value ? value.charAt(0).toUpperCase() + value.slice(1).replace(/_/g, ' ') : null;
 
 type Part = string | null | undefined | false;
 const joined = (parts: Part[]): string => parts.filter((p): p is string => typeof p === 'string' && p.trim().length > 0).join(' · ');
@@ -132,43 +129,7 @@ function SkillRow({ data, onMouseEnter }: Props<Skill>) {
       to={`/skills/${data.id}`}
       name={data.name}
       summary={data.description}
-      facts={[skillCategoryLabel(data.category), careers && `in ${careers}`, count(data.programCount, 'program', 'programs')]}
-      onMouseEnter={onMouseEnter}
-    />
-  );
-}
-
-function RefRow({ data, onMouseEnter }: Props<Ref>) {
-  return (
-    <Row
-      to={`/refs/${data.id}`}
-      name={data.name}
-      summary={data.description}
-      facts={[titleCase(data.type), data.manufacturer, count(data.skillCount, 'skill', 'skills')]}
-      onMouseEnter={onMouseEnter}
-    />
-  );
-}
-
-function SchoolRow({ data, onMouseEnter }: Props<School>) {
-  return (
-    <Row
-      to={`/schools/${data.id}`}
-      name={data.name}
-      summary={data.description}
-      facts={[titleCase(data.schoolType), data.state, count(data.programCount, 'program', 'programs')]}
-      onMouseEnter={onMouseEnter}
-    />
-  );
-}
-
-function ProgramRow({ data, onMouseEnter }: Props<Program>) {
-  return (
-    <Row
-      to={`/programs/${data.id}`}
-      name={data.title}
-      summary={data.description}
-      facts={[data.schoolName, titleCase(data.credentialType), count(data.skillCount, 'skill', 'skills'), count(data.durationHours, 'hour', 'hours')]}
+      facts={[skillCategoryLabel(data.category), careers && `in ${careers}`]}
       onMouseEnter={onMouseEnter}
     />
   );
@@ -180,9 +141,6 @@ const FETCHERS: Record<BrowseTab, (id: string) => Promise<unknown>> = {
   factories: factoriesApi.get,
   occupations: occupationsApi.get,
   skills: skillsApi.get,
-  refs: refsApi.get,
-  schools: schoolsApi.get,
-  programs: programsApi.get,
 };
 
 function EntityRowInner({ type, data }: { type: BrowseTab; data: BrowseEntity }) {
@@ -196,9 +154,6 @@ function EntityRowInner({ type, data }: { type: BrowseTab; data: BrowseEntity })
     case 'factories':   return <FactoryRow data={data as Factory} onMouseEnter={prefetch} />;
     case 'occupations': return <OccupationRow data={data as Occupation} onMouseEnter={prefetch} />;
     case 'skills':      return <SkillRow data={data as Skill} onMouseEnter={prefetch} />;
-    case 'refs':        return <RefRow data={data as Ref} onMouseEnter={prefetch} />;
-    case 'schools':     return <SchoolRow data={data as School} onMouseEnter={prefetch} />;
-    case 'programs':    return <ProgramRow data={data as Program} onMouseEnter={prefetch} />;
   }
 }
 
@@ -211,9 +166,6 @@ const LINES: Record<BrowseTab, 2 | 3> = {
   factories: 2,
   occupations: 3,
   skills: 3,
-  refs: 3,
-  schools: 3,
-  programs: 3,
 };
 
 /** A row's placeholder while its list loads: the same height and shape. */

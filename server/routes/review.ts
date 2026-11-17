@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { eq, sql, isNull, and, desc } from 'drizzle-orm';
-import { db, factories, companies, factoryReview, factoriesQuarantine, externalReferences, entityLinks, factoryOccupations } from '../db/index.js';
+import { db, factories, companies, factoryReview, factoriesQuarantine, externalReferences, factoryOccupations } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 
@@ -97,7 +97,6 @@ router.post('/:id', async (req: Request, res: Response) => {
             .values({ id, reason: `review: ${item.reason} (${item.naics ?? 'no NAICS'})`, row, externalRefs: refs, occupationLinks: occ })
             .onConflictDoNothing();
           await tx.delete(externalReferences).where(and(eq(externalReferences.entityType, 'factories'), eq(externalReferences.entityId, id)));
-          await tx.delete(entityLinks).where(and(eq(entityLinks.entityType, 'factories'), eq(entityLinks.entityId, id)));
           // factory_review row cascades away with the factory; record the decision first
           await tx.update(factoryReview).set({ resolvedAt: new Date(), resolution }).where(eq(factoryReview.factoryId, id));
           await tx.delete(factories).where(eq(factories.id, id));

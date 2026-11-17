@@ -8,9 +8,6 @@ import {
   factoriesApi,
   occupationsApi,
   skillsApi,
-  refsApi,
-  schoolsApi,
-  programsApi,
   type PaginatedResponse,
 } from '../../lib/api';
 import { US_STATES, type StateCode } from '@shared/states';
@@ -19,7 +16,7 @@ import { EmptyState } from '../layout/Page';
 import { LoadError, outlineButtonClass } from '../account/parts';
 import EntityRow, { EntityRowSkeleton, type BrowseEntity } from './EntityRow';
 import FilterBar, { SORT_OPTIONS, type FilterState } from './FilterBar';
-import { BROWSE_LABEL, FOLDED_ON_PHONE, MORE_TABS as IN_MORE, type BrowseTab } from './ExploreNav';
+import type { BrowseTab } from './ExploreNav';
 
 const PAGE_SIZE = 20;
 
@@ -39,9 +36,6 @@ const LIST: Record<BrowseTab, (params: ListParams) => Promise<PaginatedResponse<
   factories: factoriesApi.list,
   occupations: occupationsApi.list,
   skills: skillsApi.list,
-  refs: refsApi.list,
-  schools: schoolsApi.list,
-  programs: programsApi.list,
 };
 
 const NOUN: Record<BrowseTab, [one: string, many: string]> = {
@@ -49,9 +43,6 @@ const NOUN: Record<BrowseTab, [one: string, many: string]> = {
   factories: ['factory', 'factories'],
   occupations: ['career', 'careers'],
   skills: ['skill', 'skills'],
-  refs: ['element', 'elements'],
-  schools: ['school', 'schools'],
-  programs: ['program', 'programs'],
 };
 
 /** Row height before it is measured: two or three lines of text. */
@@ -60,9 +51,6 @@ const ROW_ESTIMATE: Record<BrowseTab, number> = {
   factories: 77,
   occupations: 101,
   skills: 101,
-  refs: 101,
-  schools: 101,
-  programs: 101,
 };
 
 const isStateCode = (value: string | null): value is StateCode => US_STATES.some((s) => s.code === value);
@@ -184,8 +172,8 @@ function VirtualRows({
 }
 
 /**
- * A browse list behind the overview: every company, factory, career and so
- * on, filtered and sorted from the address (?state=, ?industry=, ?category=,
+ * A browse list behind the overview: every company, factory, career or
+ * skill, filtered and sorted from the address (?state=, ?industry=, ?category=,
  * ?sort=), so a filtered list can be linked to and survives Back.
  */
 export default function BrowseList({ tab }: { tab: BrowseTab }) {
@@ -270,7 +258,6 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
         industries={industries}
         categories={categories}
         summary={total === undefined ? null : `${total.toLocaleString()} ${total === 1 ? one : many}`}
-        title={IN_MORE.includes(tab) || tab === FOLDED_ON_PHONE ? BROWSE_LABEL[tab] : undefined}
       />
 
       {list.isLoading ? (

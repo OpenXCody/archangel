@@ -42,14 +42,10 @@ function App() {
               <Route path="/explore" element={<PageBoundary><Explore /></PageBoundary>} />
               <Route path="/import" element={<PageBoundary><AdminKeyGate><Import /></AdminKeyGate></PageBoundary>} />
               <Route path="/import/bulk" element={<PageBoundary><AdminKeyGate><BulkImport /></AdminKeyGate></PageBoundary>} />
-              <Route path="/entities/:type/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/companies/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/factories/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/occupations/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/skills/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
-              <Route path="/refs/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
-              <Route path="/schools/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
-              <Route path="/programs/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/sign-in" element={<PageBoundary><SignIn /></PageBoundary>} />
               <Route path="/me" element={<PageBoundary><Me /></PageBoundary>} />
               <Route path="/jobs" element={<PageBoundary><Jobs /></PageBoundary>} />

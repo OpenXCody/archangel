@@ -11,7 +11,7 @@ import {
   prepareForInsert,
   EntityType,
 } from '../lib/validators.js';
-import { db, companies, factories, occupations, skills, importBatches, errorQueue, states, externalReferences, importUploads } from '../db/index.js';
+import { db, companies, factories, occupations, skills, importBatches, errorQueue, externalReferences, importUploads } from '../db/index.js';
 import { eq, desc, ilike, and, lt } from 'drizzle-orm';
 import { pageLimit } from '../lib/paging.js';
 
@@ -316,15 +316,6 @@ router.post('/execute', async (req: Request, res: Response) => {
     let errorsQueued = 0;
     const companiesCreated = companyIdLookup.size;
 
-    // Pre-load state code → id for FK resolution (only relevant for factories)
-    const stateIdByCode = new Map<string, string>();
-    if (entityType === 'factories') {
-      const allStates = await db.select({ id: states.id, code: states.code }).from(states);
-      for (const s of allStates) {
-        stateIdByCode.set(s.code.toUpperCase(), s.id);
-      }
-    }
-
     // Pre-load existing EPA registry IDs to dedupe re-imports
     const existingEpaRegistry = new Set<string>();
     if (entityType === 'factories') {
@@ -378,12 +369,6 @@ router.post('/execute', async (req: Request, res: Response) => {
         }
 
         const cleanedData = prepareForInsert(data, entityType as EntityType);
-
-        // Resolve stateId FK from 2-letter state code for factories
-        if (entityType === 'factories' && typeof cleanedData.state === 'string' && cleanedData.state.length === 2) {
-          const sid = stateIdByCode.get(cleanedData.state);
-          if (sid) cleanedData.stateId = sid;
-        }
 
         // Insert based on entity type
         switch (entityType) {

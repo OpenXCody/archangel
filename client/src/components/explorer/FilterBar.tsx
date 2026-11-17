@@ -29,9 +29,6 @@ export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
   factories: [...BY_NAME, { value: 'workforce-desc', label: 'Largest workforce', field: 'workforceSize', order: 'desc' }],
   occupations: BY_TITLE,
   skills: BY_NAME,
-  refs: BY_NAME,
-  schools: BY_NAME,
-  programs: BY_TITLE,
 };
 
 export interface FilterState {
@@ -50,8 +47,6 @@ export interface FilterBarProps {
   categories?: string[];
   /** Shown beside the filters while one is set: how many rows match. */
   summary?: string | null;
-  /** The list's name, for a phone, where the navigation cannot spell it out. */
-  title?: string;
 }
 
 const ALL = '__all__';
@@ -121,7 +116,6 @@ export default function FilterBar({
   industries = [],
   categories = [],
   summary,
-  title,
 }: FilterBarProps) {
   const sortOptions = SORT_OPTIONS[activeTab];
   const stateOptions = useMemo(() => US_STATES.map((s) => ({ value: s.code as string, label: s.name as string })), []);
@@ -139,7 +133,6 @@ export default function FilterBar({
   return (
     <div className="my-2 flex flex-wrap items-center justify-between gap-x-6 sm:my-4">
       <div className="flex min-w-0 flex-wrap items-center gap-x-6">
-        {title && <h2 className="text-sm font-semibold text-fg-default sm:hidden">{title}</h2>}
         {showState && (
           <Choice
             label="State"

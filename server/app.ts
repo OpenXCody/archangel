@@ -8,10 +8,6 @@ import importRouter from './routes/import.js';
 import statsRouter from './routes/stats.js';
 import searchRouter from './routes/search.js';
 import mapRouter from './routes/map.js';
-import refsRouter from './routes/refs.js';
-import schoolsRouter from './routes/schools.js';
-import programsRouter from './routes/programs.js';
-import personsRouter from './routes/persons.js';
 import reviewRouter from './routes/review.js';
 import authRouter from './routes/auth.js';
 import meRouter from './routes/me.js';
@@ -89,11 +85,6 @@ app.use('/api/companies', publicCache(60), requireAdminForWrites, companiesRoute
 app.use('/api/factories', publicCache(60), requireAdminForWrites, factoriesRouter);
 app.use('/api/occupations', publicCache(60), requireAdminForWrites, occupationsRouter);
 app.use('/api/skills', publicCache(60), requireAdminForWrites, skillsRouter);
-app.use('/api/refs', publicCache(60), requireAdminForWrites, refsRouter);
-app.use('/api/schools', publicCache(60), requireAdminForWrites, schoolsRouter);
-app.use('/api/programs', publicCache(60), requireAdminForWrites, programsRouter);
-// People records can hold email addresses and profile links, so they are admin-only.
-app.use('/api/persons', noStore, requireAdmin, personsRouter);
 
 // Read-only
 app.use('/api/stats', publicCache(60), statsRouter);

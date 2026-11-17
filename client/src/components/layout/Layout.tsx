@@ -26,7 +26,7 @@ export default function Layout() {
   const section =
     navItems.find((n) => location.pathname === n.to || location.pathname.startsWith(`${n.to}/`))?.label ??
     accountPageTitle(location.pathname, isAdmin);
-  const isDetail = /^\/(companies|factories|occupations|skills|refs|schools|programs)\/[^/]+$/.test(location.pathname);
+  const isDetail = /^\/(companies|factories|occupations|skills)\/[^/]+$/.test(location.pathname);
   const title = isDetail ? null : section ? `${section} · Archangel` : 'Archangel';
   // Set on arrival, and again only if the title itself changes (an admin's
   // account loading), so a page that names itself afterwards keeps its title.

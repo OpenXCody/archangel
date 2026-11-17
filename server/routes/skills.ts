@@ -1,8 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql, and, ne, isNull } from 'drizzle-orm';
-import { db, skills, occupationSkills, occupations, skillRefs, refs, programSkills, programs } from '../db/index.js';
+import { db, skills, occupationSkills, occupations } from '../db/index.js';
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
-import { programInScope } from '../lib/scope.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerWriteError, optionalName, requiredText } from '../lib/writes.js';
 
@@ -58,7 +57,7 @@ router.get('/', async (req: Request, res: Response) => {
       ? sql`${skills.name} DESC`
       : sql`${skills.name} ASC`;
 
-    // Query with occupation count, program count, and tree info
+    // Query with occupation count and tree info
     const result = await db
       .select({
         id: skills.id,
@@ -68,7 +67,6 @@ router.get('/', async (req: Request, res: Response) => {
         parentSkillId: skills.parentSkillId,
         createdAt: skills.createdAt,
         occupationCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.skill_id = skills.id)`,
-        programCount: sql<number>`(SELECT COUNT(*)::int FROM program_skills ps INNER JOIN programs p ON p.id = ps.program_id WHERE ps.skill_id = skills.id AND ${programInScope('p')})`,
         childCount: sql<number>`(SELECT COUNT(*)::int FROM skills AS children WHERE children.parent_skill_id = skills.id)`,
       })
       .from(skills)
@@ -144,39 +142,6 @@ router.get('/:id', async (req: Request, res: Response) => {
       .innerJoin(occupations, eq(occupationSkills.occupationId, occupations.id))
       .where(eq(occupationSkills.skillId, id));
 
-    // Get in-scope programs teaching this skill
-    const programsResult = await db
-      .select({
-        id: programs.id,
-        title: programs.title,
-        credentialType: programs.credentialType,
-        importance: programSkills.importance,
-      })
-      .from(programSkills)
-      .innerJoin(programs, eq(programSkills.programId, programs.id))
-      .where(and(eq(programSkills.skillId, id), programInScope()));
-
-    // Get referenced elements (refs) grouped by type
-    const refsResult = await db
-      .select({
-        id: refs.id,
-        name: refs.name,
-        type: refs.type,
-        manufacturer: refs.manufacturer,
-      })
-      .from(skillRefs)
-      .innerJoin(refs, eq(skillRefs.refId, refs.id))
-      .where(eq(skillRefs.skillId, id));
-
-    // Group refs by type
-    const refsByType: Record<string, typeof refsResult> = {};
-    for (const ref of refsResult) {
-      if (!refsByType[ref.type]) {
-        refsByType[ref.type] = [];
-      }
-      refsByType[ref.type].push(ref);
-    }
-
     // Get related skills (same category)
     let relatedSkills: { id: string; name: string; category: string | null }[] = [];
     if (skill.category) {
@@ -196,8 +161,6 @@ router.get('/:id', async (req: Request, res: Response) => {
       parent,
       children,
       occupations: occupationsResult,
-      programs: programsResult,
-      refs: refsByType,
       relatedSkills,
     });
   } catch (error) {
