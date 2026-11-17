@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { and, eq, ilike, inArray, or, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, notInArray, or, sql } from 'drizzle-orm';
 import { db, occupations, occupationSkills, skills, factoryOccupations, factories, jobs } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
@@ -259,7 +259,10 @@ router.put('/:id/path', async (req: Request, res: Response) => {
         await tx.update(occupations).set({ pathStatus: status }).where(eq(occupations.id, id));
       }
       if (req.body?.replace === true) {
-        await tx.delete(occupationSkills).where(eq(occupationSkills.occupationId, id));
+        // Skills not listed go; the ones that stay keep what else is recorded of them.
+        await tx
+          .delete(occupationSkills)
+          .where(wanted.length > 0 ? and(eq(occupationSkills.occupationId, id), notInArray(occupationSkills.skillId, wanted)) : eq(occupationSkills.occupationId, id));
       }
       for (const row of rows) {
         await tx

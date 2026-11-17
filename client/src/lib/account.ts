@@ -357,6 +357,10 @@ export interface AdminMembership {
   domainMatches: boolean | null;
   /** How many people already have access to the company. */
   activeMembers: number;
+  /** When the person's account was made. */
+  userCreatedAt: string;
+  /** Other companies the person already has access to. */
+  otherCompanies: string[];
 }
 
 export interface AdminUserMembership {
@@ -372,7 +376,17 @@ export interface AdminUser {
   isAdmin: boolean;
   createdAt: string;
   memberships: AdminUserMembership[];
+  /** What deleting the account takes with it. */
+  applications: number;
+  jobsPosted: number;
+  /** Sessions that can still be used. */
+  sessions: number;
+  /** The admin who has had the role longest: another admin cannot remove the role or the account. */
+  isFirstAdmin: boolean;
 }
+
+/** The roles the People list can be narrowed to. `waiting`: a request to join a company not yet decided. */
+export type PeopleRole = 'admin' | 'employer' | 'waiting' | 'user';
 
 /** One page of people, newest first. */
 export interface AdminUsersPage {
@@ -391,11 +405,16 @@ export function personRoles(person: AdminUser): string[] {
   if (person.isAdmin) roles.push('Admin');
   const active = person.memberships.filter((m) => m.status === 'active');
   if (active.length > 0) roles.push(`Employer (${active.map((m) => m.companyName).join(', ')})`);
+  const waiting = person.memberships.filter((m) => m.status === 'requested');
+  if (waiting.length > 0) roles.push(`Waiting for approval (${waiting.map((m) => m.companyName).join(', ')})`);
   return roles.length > 0 ? roles : ['User'];
 }
 
-/** `decline` refuses a request and keeps the record; `remove` deletes the row, whatever its state. */
-export type MembershipDecision = 'approve' | 'decline' | 'remove';
+/**
+ * `decline` refuses a request and keeps the record; `reopen` takes an approval or a
+ * decline back, so the request waits again; `remove` deletes the row, whatever its state.
+ */
+export type MembershipDecision = 'approve' | 'decline' | 'reopen' | 'remove';
 
 export type InviteRole = 'user' | 'employer' | 'admin';
 
@@ -420,6 +439,14 @@ export interface Invite {
   companyName: string | null;
   createdAt: string;
   expiresAt: string;
+  /** Who made it; null when that account is gone. */
+  invitedBy?: string | null;
+  acceptedAt?: string | null;
+}
+
+/** An invite that can no longer be used: accepted, or run out. */
+export interface PastInvite extends Invite {
+  state: 'accepted' | 'expired';
 }
 
 /** A new invite with its link. The token exists in this response only. */
@@ -430,6 +457,8 @@ export interface CreatedInvite {
   path: string;
   /** The link was also emailed to the invited address. */
   emailed: boolean;
+  /** An earlier invite for the address was still open: its link no longer works. */
+  replaced?: boolean;
 }
 
 /** What an invite link says before it is accepted. */
@@ -437,6 +466,8 @@ export interface InviteGrant {
   email: string;
   role: InviteRole;
   companyName: string | null;
+  /** The admin who made the invite; null when that account is gone. */
+  invitedBy?: string | null;
 }
 
 /** How long a password reset link works. The server sets the real expiry; this is for the copy beside the link. */
@@ -490,6 +521,8 @@ export interface AdminCompany {
   industry: string | null;
   /** One line on what the company makes. */
   description: string | null;
+  /** How many factories it has, where a search result carries it. */
+  factoryCount?: number;
 }
 
 export interface AdminCompanyPatch {
@@ -587,8 +620,15 @@ export const adminApi = {
     request<{ status: string }>('/admin/memberships', { method: 'PATCH', body: input }),
   addMembership: (input: { companyId: string; userId: string }) =>
     request<{ status: MembershipStatus }>('/admin/memberships', { method: 'POST', body: input }),
-  users: (params: { q?: string; offset?: number; limit?: number }) =>
+  users: (params: { q?: string; role?: PeopleRole; offset?: number; limit?: number }) =>
     request<AdminUsersPage>(`/admin/users${queryString(params)}`),
+  /** Correct a person's name or email address. */
+  correctUser: (userId: string, patch: { name?: string; email?: string }) =>
+    request<{ id: string; name: string; email: string; isAdmin: boolean }>(`/admin/users/${userId}`, { method: 'PATCH', body: patch }),
+  /** End a person's sessions; for the admin's own account, every session but this one. */
+  signOutUser: (userId: string) => request<{ ended: number }>(`/admin/users/${userId}/sign-out`, { method: 'POST' }),
+  pastInvites: () => request<{ invites: PastInvite[] }>('/admin/invites/past').then((r) => r.invites),
+  paths: (status: 'draft' | 'approved') => request<{ paths: DraftPath[] }>(`/admin/paths?status=${status}`).then((r) => r.paths),
   setAdmin: (userId: string, isAdmin: boolean) =>
     request<{ id: string; isAdmin: boolean }>(`/admin/users/${userId}`, { method: 'PATCH', body: { isAdmin } }),
   deleteUser: (userId: string) => request<{ ok: true }>(`/admin/users/${userId}`, { method: 'DELETE' }),
@@ -634,9 +674,11 @@ export const accountKeys = {
   admin: ['admin'] as const,
   adminOverview: ['admin', 'overview'] as const,
   adminMemberships: (status: MembershipStatus) => ['admin', 'memberships', status] as const,
-  adminUsers: (q: string) => ['admin', 'users', q] as const,
+  adminUsers: (q: string, role: PeopleRole | '' = '') => ['admin', 'users', q, role] as const,
   adminInvites: ['admin', 'invites'] as const,
+  adminPastInvites: ['admin', 'invites', 'past'] as const,
   adminPaths: ['admin', 'paths'] as const,
+  adminPathsIn: (status: 'draft' | 'approved') => ['admin', 'paths', status] as const,
   adminCompanies: (q: string) => ['admin', 'companies', q] as const,
   invite: (token: string) => ['invite', token] as const,
   passwordReset: (token: string) => ['password-reset', token] as const,
@@ -1053,11 +1095,11 @@ export function useDecideMembership() {
   });
 }
 
-/** People matching `q` (name or email), newest first, a page at a time. */
-export function useAdminUsers(q: string) {
+/** People matching `q` (name, email or company) in `role`, newest first, a page at a time. */
+export function useAdminUsers(q: string, role: PeopleRole | '' = '') {
   return useInfiniteQuery({
-    queryKey: accountKeys.adminUsers(q),
-    queryFn: ({ pageParam }) => adminApi.users({ q, offset: pageParam, limit: ADMIN_USERS_PAGE }),
+    queryKey: accountKeys.adminUsers(q, role),
+    queryFn: ({ pageParam }) => adminApi.users({ q, role: role || undefined, offset: pageParam, limit: ADMIN_USERS_PAGE }),
     initialPageParam: 0,
     getNextPageParam: (last, pages) =>
       last.hasMore ? pages.reduce((count, page) => count + page.users.length, 0) : undefined,
@@ -1095,6 +1137,24 @@ export function useCreateResetLink() {
   return useMutation({ mutationFn: (userId: string) => adminApi.createResetLink(userId) });
 }
 
+/** Correct a person's name or email address. */
+export function useCorrectUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, patch }: { userId: string; patch: { name?: string; email?: string } }) => adminApi.correctUser(userId, patch),
+    onSuccess: () => personChanged(queryClient),
+  });
+}
+
+/** End a person's sessions. */
+export function useSignOutUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => adminApi.signOutUser(userId),
+    onSuccess: () => invalidate(queryClient, accountKeys.admin),
+  });
+}
+
 /** Add a person to a company, active at once. */
 export function useAddMembership() {
   const queryClient = useQueryClient();
@@ -1110,6 +1170,16 @@ export function useAdminInvites() {
     queryFn: adminApi.invites,
     staleTime: 0,
     refetchOnWindowFocus: true,
+    retry: retryUnlessClientError,
+  });
+}
+
+/** Invites that were accepted or ran out, newest first. */
+export function useAdminPastInvites() {
+  return useQuery({
+    queryKey: accountKeys.adminPastInvites,
+    queryFn: adminApi.pastInvites,
+    staleTime: 0,
     retry: retryUnlessClientError,
   });
 }
@@ -1135,6 +1205,17 @@ export function useDraftPaths() {
   return useQuery({
     queryKey: accountKeys.adminPaths,
     queryFn: adminApi.draftPaths,
+    staleTime: 0,
+    retry: retryUnlessClientError,
+  });
+}
+
+/** Careers whose path is in one state: drafts to review, or the ones approved. */
+export function useAdminPaths(status: 'draft' | 'approved', enabled = true) {
+  return useQuery({
+    queryKey: accountKeys.adminPathsIn(status),
+    queryFn: () => adminApi.paths(status),
+    enabled,
     staleTime: 0,
     retry: retryUnlessClientError,
   });

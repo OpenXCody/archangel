@@ -6,6 +6,7 @@ import SkillStatusButton, { SkillHeldToggle } from '../components/account/SkillS
 import { ErrorNote } from '../components/account/parts';
 import { signInPath, useAccount, useMySkills, type SkillStatus } from '../lib/account';
 import { useMarkSkill, type SkillMark } from '../lib/seeker';
+import { editPath, type RecordKind } from '../lib/records';
 import { formatPay } from '../lib/jobFormat';
 import {
   ArrowLeft,
@@ -75,6 +76,14 @@ const ENTITY_CONFIG: Record<
     iconClass: 'text-fg-muted',
     borderClass: 'border-tint/10',
   },
+};
+
+/** What Admin Tools calls each kind of record, for the Edit link an admin sees. */
+const RECORD_KIND: Record<EntityType, RecordKind> = {
+  companies: 'company',
+  factories: 'factory',
+  occupations: 'career',
+  skills: 'skill',
 };
 
 /** The kind of record a page shows is the first part of its address: /companies/:id, /factories/:id and so on. */
@@ -931,6 +940,9 @@ export default function EntityDetail() {
 
   const config = ENTITY_CONFIG[entityType];
   const Icon = config.icon;
+  // An admin corrects a record from its own page: Edit opens it in Admin Tools.
+  const { data: viewer } = useAccount();
+  const canEdit = Boolean(viewer?.user?.isAdmin);
 
   if (isLoading) {
     return (
@@ -991,6 +1003,15 @@ export default function EntityDetail() {
               <span className={`text-xs px-2 py-0.5 rounded-full border ${config.badgeClass}`}>
                 {config.label}
               </span>
+            )}
+            {canEdit && (
+              <Link
+                to={editPath(RECORD_KIND[entityType], data.id)}
+                className="ml-auto text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default"
+                data-admin-edit
+              >
+                Edit
+              </Link>
             )}
           </div>
           {description && <p className="text-fg-muted">{description}</p>}

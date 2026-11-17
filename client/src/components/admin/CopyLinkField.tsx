@@ -18,9 +18,13 @@ interface CopyLinkFieldProps {
 export default function CopyLinkField({ id, label, hint, path }: CopyLinkFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
+  const [refused, setRefused] = useState(false);
   const link = `${window.location.origin}${path}`;
 
-  useEffect(() => setCopied(false), [link]);
+  useEffect(() => {
+    setCopied(false);
+    setRefused(false);
+  }, [link]);
   useEffect(() => {
     if (!copied) return;
     const timer = window.setTimeout(() => setCopied(false), 2000);
@@ -31,15 +35,27 @@ export default function CopyLinkField({ id, label, hint, path }: CopyLinkFieldPr
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
+      setRefused(false);
     } catch {
-      // No clipboard access (an insecure origin, or permission refused): select it for a manual copy.
+      // No clipboard access (an insecure origin, or permission refused): select it for a manual copy, and say so.
       inputRef.current?.focus();
       inputRef.current?.select();
+      setRefused(true);
     }
   };
 
   return (
-    <Field label={label} htmlFor={id} hint={hint}>
+    <Field
+      label={label}
+      htmlFor={id}
+      hint={
+        refused ? (
+          <span role="status">The browser did not allow copying. The link is selected: copy it from the box.</span>
+        ) : (
+          hint
+        )
+      }
+    >
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
         <input
           ref={inputRef}

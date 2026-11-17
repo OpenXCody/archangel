@@ -6,6 +6,7 @@ import { useAdminMemberships, useDecideMembership, type AdminMembership, type Me
 import { formatAgo, formatDate } from '../../lib/jobFormat';
 import { CardNote, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, rowClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
+import { useAdminNotice } from './AdminNotice';
 
 /** The waiting list is read again this often while it is on screen, and whenever the tab comes back into view. */
 const REFRESH_MS = 60_000;
@@ -20,7 +21,8 @@ function Dot() {
 
 /**
  * What helps decide a request: where the person's address is, set beside the
- * company's own domain, and how many people already have access.
+ * company's own domain; how many people already have access; how long the
+ * person has had an account, and the companies they already act for.
  */
 function DecisionHelp({ request }: { request: AdminMembership }) {
   const members =
@@ -42,6 +44,11 @@ function DecisionHelp({ request }: { request: AdminMembership }) {
       )}
       <Dot />
       {members}
+      <span className="block" data-decision-person>
+        Account made {formatAgo(request.userCreatedAt)}
+        <Dot />
+        {request.otherCompanies.length > 0 ? `Already has access to ${request.otherCompanies.join(', ')}` : 'No other company'}
+      </span>
     </p>
   );
 }
@@ -56,14 +63,35 @@ export default function AccessTab() {
   const requests = useAdminMemberships('requested', { everyMs: REFRESH_MS });
   const declined = useAdminMemberships('declined');
   const decide = useDecideMembership();
+  const notice = useAdminNotice();
 
   const isBusy = (request: AdminMembership, decision: MembershipDecision) =>
     decide.isPending &&
     decide.variables?.companyId === request.companyId &&
     decide.variables?.userId === request.userId &&
     decide.variables?.decision === decision;
+  const said: Record<MembershipDecision, (request: AdminMembership) => string> = {
+    approve: (request) => `Approved ${request.userName} for ${request.companyName}.`,
+    decline: (request) => `Declined ${request.userName} for ${request.companyName}.`,
+    reopen: (request) => `Taken back. ${request.userName}’s request for ${request.companyName} is waiting again.`,
+    remove: (request) => `Cleared ${request.userName}’s request for ${request.companyName}.`,
+  };
   const act = (request: AdminMembership, decision: MembershipDecision) => {
-    if (!decide.isPending) decide.mutate({ companyId: request.companyId, userId: request.userId, decision });
+    if (decide.isPending) return;
+    // The row leaves the list: focus goes to the row that takes its place, the one after it.
+    const rows = (decision === 'approve' && request.status === 'declined' ? declined.data : requests.data) ?? [];
+    const next = rows[rows.findIndex((row) => row.userId === request.userId && row.companyId === request.companyId) + 1];
+    decide.mutate(
+      { companyId: request.companyId, userId: request.userId, decision },
+      {
+        onSuccess: () =>
+          notice.say(said[decision](request), {
+            // An approval or a decline made by mistake goes back to waiting.
+            undo: decision === 'approve' || decision === 'decline' ? () => act(request, 'reopen') : undefined,
+            focus: next ? `[data-request-row="${next.companyId}:${next.userId}"] button` : undefined,
+          }),
+      }
+    );
   };
 
   return (
@@ -83,6 +111,7 @@ export default function AccessTab() {
                 key={`${request.companyId}:${request.userId}`}
                 className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')}
                 data-request-email={request.userEmail}
+                data-request-row={`${request.companyId}:${request.userId}`}
               >
                 <div className="min-w-0 flex-1 basis-64">
                   <p className="break-words text-sm font-medium text-fg-default">{request.userName}</p>
@@ -96,7 +125,7 @@ export default function AccessTab() {
                   </p>
                   <DecisionHelp request={request} />
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="flex shrink-0 items-center gap-3">
                   <Button
                     type="button"
                     size="sm"
@@ -104,7 +133,7 @@ export default function AccessTab() {
                     aria-disabled={decide.isPending}
                     onClick={() => act(request, 'approve')}
                     aria-label={`Approve ${request.userName} for ${request.companyName}`}
-                    className={cn('h-9', busyButtonClass)}
+                    className={cn('h-10 px-4 sm:h-9', busyButtonClass)}
                   >
                     {isBusy(request, 'approve') && <Loader2 className="animate-spin" />}
                     Approve
@@ -117,7 +146,7 @@ export default function AccessTab() {
                     aria-disabled={decide.isPending}
                     onClick={() => act(request, 'decline')}
                     aria-label={`Decline ${request.userName} for ${request.companyName}`}
-                    className={cn('h-9', outlineButtonClass, busyButtonClass)}
+                    className={cn('h-10 px-4 sm:h-9', outlineButtonClass, busyButtonClass)}
                   >
                     {isBusy(request, 'decline') && <Loader2 className="animate-spin" />}
                     Decline
@@ -139,6 +168,7 @@ export default function AccessTab() {
                 key={`${request.companyId}:${request.userId}`}
                 className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')}
                 data-declined-email={request.userEmail}
+                data-request-row={`${request.companyId}:${request.userId}`}
               >
                 <div className="min-w-0 flex-1 basis-64">
                   <p className="break-words text-sm font-medium text-fg-default">{request.userName}</p>

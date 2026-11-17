@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 import { and, eq, ne, sql, type SQL } from 'drizzle-orm';
-import { db, companies, factories, occupations, skills, occupationAliases, skillAliases } from '../db/index.js';
+import { db, companies, factories, occupations, occupationSkills, skills, occupationAliases, skillAliases } from '../db/index.js';
 import { changedFields, recordAudit, type Actor, type Executor } from './audit.js';
 import { answerWriteError, coordinate, count, isUuid, optionalName, optionalText, stateCode } from './writes.js';
 
@@ -157,6 +157,8 @@ export interface RecordView {
   attached: Attached;
   /** Factories: the industries a plant can be filed under. */
   industries?: string[];
+  /** Careers: the skills on the path with the stage of each, read fresh (the public career page is cached). */
+  path?: { id: string; name: string; category: string | null; stage: number | null }[];
 }
 
 async function aliasesOf(executor: Executor, kind: 'career' | 'skill', id: string): Promise<string[]> {
@@ -234,6 +236,12 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
       fields: { title: row.title, description: row.description, onetCode: row.onetCode, pathStatus: row.pathStatus },
       aliases: await aliasesOf(db, 'career', id),
       attached,
+      path: await db
+        .select({ id: skills.id, name: skills.name, category: skills.category, stage: occupationSkills.stage })
+        .from(occupationSkills)
+        .innerJoin(skills, eq(skills.id, occupationSkills.skillId))
+        .where(eq(occupationSkills.occupationId, id))
+        .orderBy(sql`${occupationSkills.stage} ASC NULLS LAST`, skills.name),
     };
   }
   const [row] = await db.select().from(skills).where(eq(skills.id, id)).limit(1);
@@ -717,7 +725,7 @@ function likeLiteral(term: string): string {
   return term.replace(/[\\%_]/g, '\\$&');
 }
 
-/** "3 plants", "1 skill". */
+/** "3 factories", "1 skill". */
 function counted(n: number, one: string, many: string): string {
   return `${n.toLocaleString('en-US')} ${n === 1 ? one : many}`;
 }
@@ -726,7 +734,7 @@ function found(kind: RecordKind, row: Record<string, unknown>): FoundRecord {
   const id = String(row.id);
   const text = (value: unknown) => (typeof value === 'string' && value.trim() ? value.trim() : null);
   if (kind === 'company') {
-    const detail = [text(row.domain), counted(Number(row.plants) || 0, 'plant', 'plants')].filter(Boolean).join(' · ');
+    const detail = [text(row.domain), counted(Number(row.plants) || 0, 'factory', 'factories')].filter(Boolean).join(' · ');
     return { id, name: String(row.name), detail, href: `/companies/${text(row.slug) ?? id}` };
   }
   if (kind === 'factory') {
