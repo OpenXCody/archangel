@@ -5,6 +5,7 @@ import { handle, requireUser } from '../lib/auth.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { DECLINED_WAIT_DAYS, accessRequested, askAgainAt } from '../lib/notices.js';
+import { recordAudit } from '../lib/audit.js';
 
 /**
  * The employer area. An employer is a signed-in person with an active
@@ -99,10 +100,12 @@ router.post(
     const status = user.isAdmin ? 'active' : 'requested';
     const created = await db
       .insert(companyMembers)
-      .values({ companyId, userId: user.id, role: user.isAdmin ? 'owner' : 'member', status })
+      .values({ companyId, userId: user.id, role: 'member', status })
       .onConflictDoNothing()
       .returning({ status: companyMembers.status });
     let asked = created.length > 0 && status === 'requested';
+    // An admin who joins a company has given themselves access: that goes in the audit log.
+    let joined = created.length > 0 && status === 'active';
     if (created.length === 0) {
       const [existing] = await db.select({ status: companyMembers.status, decidedAt: companyMembers.decidedAt }).from(companyMembers).where(mine).limit(1);
       if (existing?.status === 'declined') {
@@ -117,15 +120,19 @@ router.post(
         // The same row, asked afresh. Only if it is still declined: two presses make one request.
         const reopened = await db
           .update(companyMembers)
-          .set({ status, role: user.isAdmin ? 'owner' : 'member', createdAt: new Date(), decidedAt: null, decidedBy: null })
+          .set({ status, role: 'member', createdAt: new Date(), decidedAt: null, decidedBy: null })
           .where(and(mine, eq(companyMembers.status, 'declined')))
           .returning({ status: companyMembers.status });
         asked = reopened.length > 0 && status === 'requested';
+        joined = reopened.length > 0 && status === 'active';
       }
     }
     const [row] = await db.select({ status: companyMembers.status, role: companyMembers.role }).from(companyMembers).where(mine).limit(1);
     // The admins are told of a request that was made just now, not of one already waiting.
     if (asked) await accessRequested({ requesterId: user.id, companyId });
+    if (joined) {
+      await recordAudit(db, { actor: user, kind: 'access', recordId: user.id, recordName: `${user.email} · ${company.name}`, action: 'added to company', detail: { companyId } });
+    }
     res.status(201).json({ companyId, status: row.status, role: row.role });
   })
 );

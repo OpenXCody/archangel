@@ -82,7 +82,7 @@ export function refusedField(error: unknown): string | null {
 }
 
 /** A record was added, changed, merged or deleted: everything that lists or shows records of its kind is stale. */
-function recordsChanged(queryClient: QueryClient, kind: RecordKind): void {
+function recordsChanged(queryClient: QueryClient, kind: RecordKind, goneId?: string): void {
   const entity = PATH[kind].slice(1);
   const stale: (readonly unknown[])[] = [
     ['entity-counts'],
@@ -101,7 +101,10 @@ function recordsChanged(queryClient: QueryClient, kind: RecordKind): void {
   if (kind === 'company' || kind === 'factory') stale.push(['factory-pins'], ['state-counts'], ['state-overview'], ['area-overview']);
   if (kind === 'career') stale.push(['admin', 'paths'], ['me']);
   if (kind === 'skill') stale.push(['occupations'], ['me']);
-  for (const queryKey of stale) void queryClient.invalidateQueries({ queryKey });
+  for (const queryKey of stale) {
+    // A record that was just deleted or merged away is not asked for again: its editor is about to close.
+    void queryClient.invalidateQueries({ queryKey, predicate: (query) => !(goneId && query.queryKey[2] === 'one' && query.queryKey[4] === goneId) });
+  }
 }
 
 /** Add one record. Lists, counts, pickers and the map's pins are refreshed so it shows where it belongs. */
@@ -268,7 +271,7 @@ export function useDeleteRecord(kind: RecordKind, id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => recordsApi.remove(kind, id),
-    onSuccess: () => recordsChanged(queryClient, kind),
+    onSuccess: () => recordsChanged(queryClient, kind, id),
   });
 }
 
@@ -276,7 +279,7 @@ export function useMergeRecord(kind: RecordKind, id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (into: string) => recordsApi.merge(kind, id, into),
-    onSuccess: () => recordsChanged(queryClient, kind),
+    onSuccess: () => recordsChanged(queryClient, kind, id),
   });
 }
 

@@ -287,7 +287,8 @@ router.put('/:id/path', async (req: Request, res: Response) => {
           kind: 'career',
           recordId: id,
           recordName: occupation.title,
-          action: !statusChanged ? 'path edited' : status === 'approved' ? 'path approved' : 'path returned to draft',
+          // A path written for the first time becomes a draft: that is an edit, not a return.
+          action: statusChanged && status === 'approved' ? 'path approved' : statusChanged && occupation.pathStatus === 'approved' ? 'path returned to draft' : 'path edited',
           detail: {
             ...(statusChanged ? { changes: { pathStatus: [occupation.pathStatus, status] } } : {}),
             ...(added.length > 0 ? { skillsAdded: added.slice(0, 40) } : {}),

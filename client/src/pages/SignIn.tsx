@@ -98,6 +98,7 @@ export default function SignIn() {
   if (account.data?.user && !resetPending && !resetting) {
     // An invite for another address, opened while someone is signed in here: say whose it is
     // rather than sending them on unexplained. It grants this account nothing.
+    if (inviteToken && inviteQuery.isPending) return <PageLoading label="Checking the invite" />;
     if (invite && invite.email !== account.data.user.email) {
       return <InviteForAnother inviteEmail={invite.email} signedInAs={account.data.user.email} />;
     }
