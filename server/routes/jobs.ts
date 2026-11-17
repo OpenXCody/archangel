@@ -33,7 +33,8 @@ const PAY_PERIODS = new Set(['hour', 'year']);
 /** Stages an employer can move an application through, in order. */
 const PIPELINE = ['applied', 'reviewing', 'interview', 'offer', 'hired'];
 const EMPLOYER_STATUSES = new Set([...PIPELINE, 'declined']);
-const TERMINAL = new Set(['hired', 'declined', 'withdrawn']);
+/** Stages a company can move an application back to from Hired or Declined. */
+const WORKING = new Set(['applied', 'reviewing', 'interview', 'offer']);
 const MAX_JOB_SKILLS = 60;
 
 /** Open, unexpired, and at a factory inside the app's region. */
@@ -209,20 +210,69 @@ function readJobFields(body: Request['body'], requireAll: boolean): { error: str
   if (body?.payMin !== undefined || body?.payMax !== undefined || requireAll) {
     const payMin = cents(body?.payMin);
     const payMax = cents(body?.payMax);
-    if (payMin === null || payMax === null || payMin === 0 || payMax < payMin) {
-      return { error: 'Enter a pay range: a lowest and a highest amount, lowest first.' };
+    if (payMin === null || payMax === null || payMin === 0) {
+      return { error: 'Enter the lowest and the highest pay, in whole cents.' };
     }
+    if (payMax < payMin) return { error: 'The lowest pay is above the highest.' };
     values.payMin = payMin;
     values.payMax = payMax;
   }
   if (body?.applyUrl !== undefined) {
-    const applyUrl = cleanText(body.applyUrl ?? '', 500);
-    if (applyUrl === null || (applyUrl && !/^https:\/\/[^\s]+$/i.test(applyUrl))) {
-      return { error: 'The application link must start with https://' };
+    const applyUrl = readApplyUrl(body.applyUrl);
+    if (applyUrl === undefined) {
+      return { error: 'Enter a web address for the application link, such as careers.example.com/apply.' };
     }
-    values.applyUrl = applyUrl || null;
+    values.applyUrl = applyUrl;
   }
   return { values };
+}
+
+/**
+ * The application link as stored: always https. An address typed without a
+ * scheme gets one. Null for none; undefined when it is not a usable address.
+ */
+function readApplyUrl(value: unknown): string | null | undefined {
+  const text = cleanText(value ?? '', 500);
+  if (text === null) return undefined;
+  if (!text) return null;
+  if (/\s/.test(text)) return undefined;
+  // http becomes https; any other scheme is not a web page.
+  const bare = text.replace(/^https?:\/\//i, '');
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(bare)) return undefined;
+  const link = `https://${bare}`;
+  if (link.length > 500) return undefined;
+  try {
+    const url = new URL(link);
+    return url.protocol === 'https:' && url.hostname.includes('.') && !url.username && !url.password ? link : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+type JobSkillRow = { skillId: string; required: boolean };
+
+/**
+ * The skills sent with a job: `[{ skillId, required? }]`. Entries that are not
+ * a skill id, and repeats, are dropped. An error when there are too many or
+ * one does not exist.
+ */
+async function readJobSkills(list: unknown[]): Promise<{ error: string } | { rows: JobSkillRow[] }> {
+  const seen = new Set<string>();
+  const rows: JobSkillRow[] = [];
+  for (const item of list as { skillId?: unknown; required?: unknown }[]) {
+    if (!isUuid(item?.skillId) || seen.has(item.skillId)) continue;
+    seen.add(item.skillId);
+    rows.push({ skillId: item.skillId, required: item.required !== false });
+  }
+  if (rows.length > MAX_JOB_SKILLS) return { error: `Tag at most ${MAX_JOB_SKILLS} skills on a job.` };
+  if (rows.length > 0) {
+    const known = await db
+      .select({ id: skills.id })
+      .from(skills)
+      .where(inArray(skills.id, rows.map((row) => row.skillId)));
+    if (known.length !== rows.length) return { error: 'One of the tagged skills does not exist.' };
+  }
+  return { rows };
 }
 
 // POST /api/jobs { companyId, factoryId, occupationId, payMin, payMax, ...optional }
@@ -261,25 +311,11 @@ router.post(
     if ('error' in parsed) return res.status(400).json({ error: parsed.error });
 
     const explicit: unknown = req.body?.skills;
-    let skillRows: { skillId: string; required: boolean }[];
+    let skillRows: JobSkillRow[];
     if (Array.isArray(explicit)) {
-      const seen = new Set<string>();
-      skillRows = [];
-      for (const item of explicit as { skillId?: unknown; required?: unknown }[]) {
-        if (!isUuid(item?.skillId) || seen.has(item.skillId)) continue;
-        seen.add(item.skillId);
-        skillRows.push({ skillId: item.skillId, required: item.required !== false });
-      }
-      if (skillRows.length > MAX_JOB_SKILLS) {
-        return res.status(400).json({ error: `Tag at most ${MAX_JOB_SKILLS} skills on a job.` });
-      }
-      if (skillRows.length > 0) {
-        const known = await db
-          .select({ id: skills.id })
-          .from(skills)
-          .where(inArray(skills.id, skillRows.map((row) => row.skillId)));
-        if (known.length !== skillRows.length) return res.status(400).json({ error: 'One of the tagged skills does not exist.' });
-      }
+      const tagged = await readJobSkills(explicit);
+      if ('error' in tagged) return res.status(400).json({ error: tagged.error });
+      skillRows = tagged.rows;
     } else {
       const defaults = await db
         .select({ skillId: occupationSkills.skillId, stage: occupationSkills.stage })
@@ -288,8 +324,19 @@ router.post(
       skillRows = defaults.map((row) => ({ skillId: row.skillId, required: row.stage !== 3 }));
     }
 
-    // The same post sent twice in a moment (a double click, a retry) is one job.
-    const title = parsed.values.title ?? occupation.title;
+    const fields = {
+      title: parsed.values.title ?? occupation.title,
+      description: parsed.values.description ?? null,
+      employmentType: parsed.values.employmentType ?? 'full-time',
+      shift: parsed.values.shift ?? null,
+      payMin: parsed.values.payMin as number,
+      payMax: parsed.values.payMax as number,
+      payPeriod: parsed.values.payPeriod ?? 'hour',
+      applyUrl: parsed.values.applyUrl ?? null,
+    };
+
+    // The same post sent twice in a moment (a double click, a retry) is one
+    // job. A copy that differs in any field ("post another like this") is not.
     const [twin] = await db
       .select({ id: jobs.id, serial: jobs.serial })
       .from(jobs)
@@ -298,7 +345,14 @@ router.post(
           eq(jobs.createdBy, user.id),
           eq(jobs.factoryId, factoryId),
           eq(jobs.occupationId, occupationId),
-          eq(jobs.title, title),
+          eq(jobs.title, fields.title),
+          eq(jobs.employmentType, fields.employmentType),
+          eq(jobs.payMin, fields.payMin),
+          eq(jobs.payMax, fields.payMax),
+          eq(jobs.payPeriod, fields.payPeriod),
+          sql`${jobs.description} IS NOT DISTINCT FROM ${fields.description}`,
+          sql`${jobs.shift} IS NOT DISTINCT FROM ${fields.shift}`,
+          sql`${jobs.applyUrl} IS NOT DISTINCT FROM ${fields.applyUrl}`,
           gt(jobs.createdAt, new Date(Date.now() - 15_000))
         )
       )
@@ -312,14 +366,7 @@ router.post(
           companyId,
           factoryId,
           occupationId,
-          title: parsed.values.title ?? occupation.title,
-          description: parsed.values.description ?? null,
-          employmentType: parsed.values.employmentType ?? 'full-time',
-          shift: parsed.values.shift ?? null,
-          payMin: parsed.values.payMin,
-          payMax: parsed.values.payMax,
-          payPeriod: parsed.values.payPeriod ?? 'hour',
-          applyUrl: parsed.values.applyUrl ?? null,
+          ...fields,
           status: 'open',
           expiresAt: new Date(Date.now() + JOB_TTL_DAYS * 24 * 60 * 60 * 1000),
           createdBy: user.id,
@@ -337,7 +384,8 @@ router.post(
   })
 );
 
-// PATCH /api/jobs/:id - edit fields, close, or reopen (reopening renews the 60 days)
+// PATCH /api/jobs/:id - edit fields, replace the skills ({ skills: [{ skillId, required }] }),
+// close, or reopen (reopening renews the 60 days). Company, factory and career stay as posted.
 router.patch(
   '/:id',
   requireUser,
@@ -361,7 +409,48 @@ router.patch(
     } else if (status !== undefined) {
       return res.status(400).json({ error: "status must be 'open' or 'closed'." });
     }
-    await db.update(jobs).set(patch).where(eq(jobs.id, job.id));
+
+    const explicit: unknown = req.body?.skills;
+    let skillRows: JobSkillRow[] | null = null;
+    if (explicit !== undefined) {
+      if (!Array.isArray(explicit)) return res.status(400).json({ error: 'skills must be a list.' });
+      const tagged = await readJobSkills(explicit);
+      if ('error' in tagged) return res.status(400).json({ error: tagged.error });
+      skillRows = tagged.rows;
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.update(jobs).set(patch).where(eq(jobs.id, job.id));
+      if (skillRows) {
+        // The list sent is the whole list: what is not in it is no longer asked for.
+        await tx.delete(jobSkills).where(eq(jobSkills.jobId, job.id));
+        if (skillRows.length > 0) {
+          await tx.insert(jobSkills).values(skillRows.map((row) => ({ jobId: job.id, ...row })));
+        }
+      }
+    });
+    res.json({ ok: true });
+  })
+);
+
+// DELETE /api/jobs/:id - remove a job nobody has applied to. One with
+// applications (withdrawn ones included) can only be closed: the people who
+// applied keep it on their page.
+router.delete(
+  '/:id',
+  requireUser,
+  handle(async (req, res) => {
+    const [job] = await db.select({ id: jobs.id, companyId: jobs.companyId }).from(jobs).where(eq(jobs.id, req.params.id)).limit(1);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+    if (!(await canManageCompany(req.user!, job.companyId))) return res.status(403).json({ error: 'Not your job to delete.' });
+    // One statement, so an application arriving at the same moment is not lost.
+    const [deleted] = await db
+      .delete(jobs)
+      .where(and(eq(jobs.id, job.id), sql`NOT EXISTS (SELECT 1 FROM applications a WHERE a.job_id = ${jobs.id})`))
+      .returning({ id: jobs.id });
+    if (!deleted) {
+      return res.status(409).json({ error: 'People have applied to this job, so it cannot be deleted. Close it instead.' });
+    }
     res.json({ ok: true });
   })
 );
@@ -408,17 +497,20 @@ interface ApplicantRow {
   note: string | null;
   employer_note: string | null;
   created_at: Date;
+  status_changed_at: Date;
   user_id: string;
   name: string;
   email: string;
   home_zip: string | null;
-  held_required: number;
-  total_required: number;
-  held_optional: number;
+  /** Ids of the job's skills this person holds, and is learning. */
+  held: string[];
+  learning: string[];
 }
 
 // GET /api/jobs/:id/applications - applicants, ranked: most required skills
-// held first, then optional skills held, then who applied first.
+// held first, then optional skills held, then who applied first. `skills` is
+// the job's own list; each applicant carries the ids of those they hold and
+// of those they are learning, so the rest are the ones they lack.
 router.get(
   '/:id/applications',
   requireUser,
@@ -428,49 +520,71 @@ router.get(
     if (!(await canManageCompany(req.user!, job.companyId))) {
       return res.status(403).json({ error: 'Only the company can read its applicants.' });
     }
+    const skillRows = await db
+      .select({ id: skills.id, name: skills.name, required: jobSkills.required })
+      .from(jobSkills)
+      .innerJoin(skills, eq(skills.id, jobSkills.skillId))
+      .where(eq(jobSkills.jobId, job.id))
+      .orderBy(sql`${jobSkills.required} DESC`, skills.name);
+    // Every applicant's standing on the job's skills in one pass, not one query each.
     const rows = (await db.execute(sql`
-      SELECT a.id, a.status, a.note, a.employer_note, a.created_at,
+      SELECT a.id, a.status, a.note, a.employer_note, a.created_at, a.status_changed_at,
              u.id AS user_id, u.name, u.email, u.home_zip,
-             (SELECT COUNT(*)::int FROM job_skills js
-                JOIN user_skills us ON us.skill_id = js.skill_id AND us.user_id = a.user_id AND us.status = 'held'
-               WHERE js.job_id = a.job_id AND js.required) AS held_required,
-             (SELECT COUNT(*)::int FROM job_skills js WHERE js.job_id = a.job_id AND js.required) AS total_required,
-             (SELECT COUNT(*)::int FROM job_skills js
-                JOIN user_skills us ON us.skill_id = js.skill_id AND us.user_id = a.user_id AND us.status = 'held'
-               WHERE js.job_id = a.job_id AND NOT js.required) AS held_optional
+             COALESCE(s.held, '[]'::json) AS held,
+             COALESCE(s.learning, '[]'::json) AS learning
         FROM applications a
         JOIN users u ON u.id = a.user_id
+        LEFT JOIN (
+          SELECT us.user_id,
+                 json_agg(us.skill_id) FILTER (WHERE us.status = 'held') AS held,
+                 json_agg(us.skill_id) FILTER (WHERE us.status = 'learning') AS learning
+            FROM user_skills us
+            JOIN job_skills js ON js.skill_id = us.skill_id AND js.job_id = ${job.id}
+           WHERE us.user_id IN (SELECT user_id FROM applications WHERE job_id = ${job.id})
+           GROUP BY us.user_id
+        ) s ON s.user_id = a.user_id
        WHERE a.job_id = ${job.id}
     `)) as unknown as ApplicantRow[];
 
-    const score = (r: ApplicantRow) => (r.total_required > 0 ? r.held_required / r.total_required : 0);
-    const ranked = [...rows].sort(
+    const requiredIds = new Set(skillRows.filter((skill) => skill.required).map((skill) => skill.id));
+    const totalRequired = requiredIds.size;
+    const counted = rows.map((row) => {
+      const heldRequired = row.held.filter((id) => requiredIds.has(id)).length;
+      return { row, heldRequired, heldOptional: row.held.length - heldRequired };
+    });
+    const score = (r: { heldRequired: number }) => (totalRequired > 0 ? r.heldRequired / totalRequired : 0);
+    const ranked = counted.sort(
       (a, b) =>
         score(b) - score(a) ||
-        b.held_optional - a.held_optional ||
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        b.heldOptional - a.heldOptional ||
+        new Date(a.row.created_at).getTime() - new Date(b.row.created_at).getTime()
     );
     res.json({
       // Skills are self-reported by applicants; nothing here is verified.
       skillsAreSelfReported: true,
-      applications: ranked.map((r) => ({
+      skills: skillRows,
+      applications: ranked.map(({ row: r, heldRequired, heldOptional }) => ({
         id: r.id,
         status: r.status,
         note: r.note,
         employerNote: r.employer_note,
         createdAt: r.created_at,
+        statusChangedAt: r.status_changed_at,
         applicant: { id: r.user_id, name: r.name, email: r.email, homeZip: r.home_zip },
-        heldRequired: r.held_required,
-        totalRequired: r.total_required,
-        heldOptional: r.held_optional,
+        heldRequired,
+        totalRequired,
+        heldOptional,
+        heldSkillIds: r.held,
+        learningSkillIds: r.learning,
       })),
     });
   })
 );
 
 // PATCH /api/jobs/applications/:applicationId { status?, employerNote? }
-// The company moves an application through its stages or declines it.
-// The applicant can only withdraw.
+// The company moves an application through its stages or declines it, and can
+// take a Hired or Declined back to a working stage. The applicant can only
+// withdraw, and a withdrawal is theirs: the company cannot change it.
 router.patch(
   '/applications/:applicationId',
   requireUser,
@@ -486,18 +600,28 @@ router.patch(
 
     const status: unknown = req.body?.status;
     const manages = await canManageCompany(user, row.companyId);
+    const isApplicant = row.userId === user.id;
+    if (!manages && !isApplicant) {
+      return res.status(403).json({ error: 'You cannot make that change to this application.' });
+    }
     const patch: Partial<typeof applications.$inferInsert> = {};
 
     if (status !== undefined) {
-      if (TERMINAL.has(row.status)) return res.status(409).json({ error: `This application is already ${row.status}.` });
-      if (status === 'withdrawn' && row.userId === user.id) {
+      if (row.status === 'withdrawn') return res.status(409).json({ error: 'This application is already withdrawn.' });
+      const decided = row.status === 'hired' || row.status === 'declined';
+      if (status === 'withdrawn' && isApplicant) {
+        if (decided) return res.status(409).json({ error: `This application is already ${row.status}.` });
         patch.status = 'withdrawn';
       } else if (manages && typeof status === 'string' && EMPLOYER_STATUSES.has(status)) {
-        patch.status = status;
+        // Hired and Declined can be undone, but only back into the pipeline.
+        if (decided && status !== row.status && !WORKING.has(status)) {
+          return res.status(409).json({ error: `This application is ${row.status}. Move it back to an earlier stage first.` });
+        }
+        if (status !== row.status) patch.status = status;
       } else {
         return res.status(403).json({ error: 'You cannot make that change to this application.' });
       }
-      patch.statusChangedAt = new Date();
+      if (patch.status) patch.statusChangedAt = new Date();
     }
     if (req.body?.employerNote !== undefined) {
       if (!manages) return res.status(403).json({ error: 'Only the company can add notes.' });
@@ -505,7 +629,11 @@ router.patch(
       if (employerNote === null) return res.status(400).json({ error: 'Keep the note under 2,000 characters.' });
       patch.employerNote = employerNote || null;
     }
-    if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'Nothing to change.' });
+    if (Object.keys(patch).length === 0) {
+      // Setting the stage it already has is not an error.
+      if (status === row.status) return res.json({ id: row.id, status: row.status });
+      return res.status(400).json({ error: 'Nothing to change.' });
+    }
     // Only if the application is still as it was read: a withdrawal and a
     // company's change sent at the same moment must not both succeed.
     const [changed] = await db

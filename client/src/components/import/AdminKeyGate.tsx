@@ -1,50 +1,23 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { KeyRound, LockOpen, LogOut } from 'lucide-react';
-import { getAdminSecret, setAdminSecret, clearAdminSecret } from '../../lib/api';
-import { ADMIN_STATUS_QUERY_KEY, fetchAdminStatus, isAdminAuthorized, useAdminStatus } from '../../lib/adminStatus';
+import { LogOut } from 'lucide-react';
+import { getAdminSecret, clearAdminSecret } from '../../lib/api';
+import { ADMIN_STATUS_QUERY_KEY, isAdminAuthorized, useAdminStatus } from '../../lib/adminStatus';
+import { AccountGate } from '../account/parts';
+import NotFound from '../../pages/NotFound';
 
 /**
- * Wraps admin-only UI. When the deployment requires an admin key and this
- * browser doesn't have a valid one, shows a single field to enter it. In
- * local dev with no ADMIN_SECRET configured, renders children directly.
+ * Wraps the import pages, which are for admins. Who counts is the server's
+ * answer (GET /api/import/status): a signed-in admin, or a browser holding a
+ * valid admin key from an earlier session. Anyone else gets what Admin Tools
+ * gives them: the sign-in page, or the not-found page.
  */
 export default function AdminKeyGate({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { data, isLoading, isError } = useAdminStatus();
-  const [draft, setDraft] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
-
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ADMIN_STATUS_QUERY_KEY });
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    const key = draft.trim();
-    if (!key) return;
-    setSubmitting(true);
-    setFeedback(null);
-    setAdminSecret(key);
-    try {
-      const status = await fetchAdminStatus();
-      if (status.authorized) {
-        setDraft('');
-        await invalidate();
-      } else {
-        clearAdminSecret();
-        setFeedback('That key was not accepted.');
-      }
-    } catch {
-      clearAdminSecret();
-      setFeedback('Could not reach the server.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const signOut = () => {
     clearAdminSecret();
-    invalidate();
+    void queryClient.invalidateQueries({ queryKey: ADMIN_STATUS_QUERY_KEY });
   };
 
   if (isLoading) return null;
@@ -57,40 +30,12 @@ export default function AdminKeyGate({ children }: { children: ReactNode }) {
     );
   }
 
+  // Not an admin here: the same as Admin Tools. Signed out, the account gate
+  // sends the person to sign in and back; signed in without the role, the page
+  // does not exist. (A signed-in admin never reaches this branch: the server
+  // counts the session as authorized.)
   if (data && !isAdminAuthorized(data)) {
-    return (
-      <div className="mx-auto mt-16 max-w-md rounded-xl border border-border-subtle bg-bg-surface p-6 px-4 sm:px-6">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bg-elevated">
-            <KeyRound className="h-5 w-5 text-fg-muted" />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold text-fg-default">Admin key required</h2>
-            <p className="text-sm text-fg-muted">Data changes on this deployment need the admin key. It stays in this browser.</p>
-          </div>
-        </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
-          <input
-            type="password"
-            autoComplete="off"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Admin key"
-            aria-label="Admin key"
-            className="flex-1 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-sm text-fg-default placeholder:text-fg-soft focus:border-border-strong"
-          />
-          <button
-            type="submit"
-            disabled={submitting || !draft.trim()}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            <LockOpen className="h-4 w-4" />
-            Unlock
-          </button>
-        </form>
-        {feedback && <p className="mt-3 text-sm text-danger">{feedback}</p>}
-      </div>
-    );
+    return <AccountGate>{({ user }) => (user.isAdmin ? <>{children}</> : <NotFound />)}</AccountGate>;
   }
 
   return (

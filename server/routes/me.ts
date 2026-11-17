@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, sql, type SQL } from 'drizzle-orm';
 import {
   db,
   users,
@@ -22,6 +22,40 @@ router.param('skillId', uuidParam);
 router.param('occupationId', uuidParam);
 
 const SKILL_STATUSES = new Set(['learning', 'held']);
+
+/** A skill on a career's path the person does not hold yet. */
+interface NextSkill {
+  id: string;
+  name: string;
+  stage: number | null;
+}
+
+/** How many careers "within reach" returns, and how many next skills each carries. */
+const REACH_LIMIT = 8;
+const NEXT_SKILLS = 3;
+/** A path shorter than this says too little to rank a career by. */
+const REACH_MIN_PATH = 5;
+
+/**
+ * The first skills of a career the person does not hold yet, as a JSON array
+ * of { id, name, stage }: earliest stage first, and within a stage the ones
+ * they are already learning ahead of the rest.
+ */
+function nextSkillsSql(occupationId: SQL, userId: string): SQL<NextSkill[]> {
+  return sql<NextSkill[]>`COALESCE((
+    SELECT json_agg(json_build_object('id', n.id, 'name', n.name, 'stage', n.stage) ORDER BY n.ord)
+    FROM (
+      SELECT s.id, s.name, os.stage,
+             ROW_NUMBER() OVER (ORDER BY os.stage ASC NULLS LAST, (us.status IS NULL), s.name) AS ord
+      FROM occupation_skills os
+      JOIN skills s ON s.id = os.skill_id
+      LEFT JOIN user_skills us ON us.skill_id = os.skill_id AND us.user_id = ${userId}
+      WHERE os.occupation_id = ${occupationId} AND us.status IS DISTINCT FROM 'held'
+      ORDER BY ord
+      LIMIT ${NEXT_SKILLS}
+    ) n
+  ), '[]'::json)`;
+}
 
 // PATCH /api/me { name?, homeZip?, about? }
 router.patch(
@@ -105,7 +139,7 @@ router.delete(
 );
 
 // GET /api/me/goals - careers the person is aiming at, with how many of each
-// career's skills they already hold.
+// career's skills they already hold and the next ones to pick up.
 router.get(
   '/goals',
   handle(async (req, res) => {
@@ -123,6 +157,7 @@ router.get(
           JOIN user_skills us ON us.skill_id = os.skill_id AND us.user_id = ${userId} AND us.status = 'held'
           WHERE os.occupation_id = ${occupations.id}
         )`,
+        next: nextSkillsSql(sql`${occupations.id}`, userId),
       })
       .from(userGoals)
       .innerJoin(occupations, eq(occupations.id, userGoals.occupationId))
@@ -155,6 +190,57 @@ router.delete(
       .delete(userGoals)
       .where(and(eq(userGoals.userId, req.user!.id), eq(userGoals.occupationId, req.params.occupationId)));
     res.json({ ok: true });
+  })
+);
+
+// GET /api/me/careers/reach - careers the person's skills already point at.
+//
+// Only careers with a staged path of at least five skills, of which the person
+// holds at least one, and which they have not already chosen as a goal (those
+// are in /goals). `held` counts held skills only, so it is the same figure as
+// the career page's "You have N of M". A skill being learned is not held: it
+// stays in `next`, and counts as half a skill for the order alone.
+router.get(
+  '/careers/reach',
+  handle(async (req, res) => {
+    const userId = req.user!.id;
+    const rows = await db.execute(sql`
+      WITH mine AS (
+        SELECT skill_id, status FROM user_skills WHERE user_id = ${userId}
+      ),
+      reach AS (
+        SELECT o.id, o.title,
+               COUNT(*)::int AS total,
+               COUNT(*) FILTER (WHERE m.status = 'held')::int AS held,
+               COUNT(*) FILTER (WHERE m.status = 'learning')::int AS learning
+        FROM occupation_skills os
+        JOIN occupations o ON o.id = os.occupation_id
+        LEFT JOIN mine m ON m.skill_id = os.skill_id
+        WHERE os.occupation_id IN (
+                SELECT os2.occupation_id FROM occupation_skills os2
+                JOIN mine m2 ON m2.skill_id = os2.skill_id AND m2.status = 'held'
+              )
+          AND NOT EXISTS (
+                SELECT 1 FROM user_goals g WHERE g.user_id = ${userId} AND g.occupation_id = os.occupation_id
+              )
+        GROUP BY o.id, o.title
+        HAVING COUNT(*) >= ${REACH_MIN_PATH} AND COUNT(os.stage) > 0
+        ORDER BY (COUNT(*) FILTER (WHERE m.status = 'held') + 0.5 * COUNT(*) FILTER (WHERE m.status = 'learning')) / COUNT(*) DESC,
+                 COUNT(*) FILTER (WHERE m.status = 'held') DESC, o.title ASC
+        LIMIT ${REACH_LIMIT}
+      )
+      SELECT r.id, r.title, r.held, r.total, ${nextSkillsSql(sql`r.id`, userId)} AS next
+      FROM reach r
+      ORDER BY (r.held + 0.5 * r.learning) / r.total DESC, r.held DESC, r.title ASC
+    `);
+    const careers = Array.from(rows as Iterable<Record<string, unknown>>).map((row) => ({
+      id: String(row.id),
+      title: String(row.title),
+      held: Number(row.held),
+      total: Number(row.total),
+      next: row.next as NextSkill[],
+    }));
+    res.json({ careers });
   })
 );
 

@@ -11,12 +11,12 @@ import { PageContainer } from '../layout/Page';
 
 /** Small shared pieces for the account, jobs, employer and admin pages. */
 
-/** Entity colours (CLAUDE.md). A career is the occupation entity. */
+/** Icons for the kinds of record. The app is monochrome: kinds differ by icon, not hue. A career is the occupation entity. */
 export const ENTITY: Record<'company' | 'factory' | 'career' | 'skill', { icon: ElementType; text: string; badge: string }> = {
-  company: { icon: Building2, text: 'text-warning', badge: 'bg-warning/10 text-warning' },
-  factory: { icon: Factory, text: 'text-info', badge: 'bg-info/10 text-info' },
-  career: { icon: Briefcase, text: 'text-info', badge: 'bg-info/20 text-info' },
-  skill: { icon: Wrench, text: 'text-success', badge: 'bg-success/10 text-success' },
+  company: { icon: Building2, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
+  factory: { icon: Factory, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
+  career: { icon: Briefcase, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
+  skill: { icon: Wrench, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
 };
 
 /**
