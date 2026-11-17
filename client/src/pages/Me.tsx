@@ -187,7 +187,7 @@ function Starter({ onStart }: { onStart: () => void }) {
                     >
                       {career.title}
                     </Link>
-                    <p className="mt-0.5 truncate text-sm text-fg-muted">
+                    <p className="mt-0.5 break-words text-sm text-fg-muted">
                       {career.description ? `${career.description} · ` : ''}
                       {count} skills
                     </p>
@@ -945,7 +945,7 @@ function SkillsSection() {
   return (
     <PageSection
       title="Skills"
-      description={`${counts || 'Held or learning'}. A company sees both when you apply.`}
+      description={`${counts || 'Held or learning'}. Shown to a company when you apply.`}
     >
       <SkillSearch mySkills={mine} onAdd={mark} disabled={skills.isPending} />
       <SuggestedSkills mySkills={mine} onMark={mark} />
