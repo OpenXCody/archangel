@@ -26,8 +26,9 @@ function readPoint(raw: string | null): { lat: number; lng: number } | null {
   return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : null;
 }
 
-/** "12 miles", "0.4 miles", "1 mile". */
+/** "12 miles", "2.4 miles", "Under 1 mile". */
 function milesAway(miles: number): string {
+  if (miles < 1) return 'Under 1 mile';
   const shown = miles < 10 ? Math.round(miles * 10) / 10 : Math.round(miles);
   return `${shown} ${shown === 1 ? 'mile' : 'miles'}`;
 }
@@ -152,7 +153,7 @@ export default function Jobs() {
         description="Open positions. Each is tied to a career and its skills."
       />
 
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_300px_240px]">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_380px_220px]">
         <div className="relative min-w-0 sm:col-span-2 lg:col-span-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
           <input
@@ -219,7 +220,9 @@ export default function Jobs() {
             title="No jobs match"
             description={
               place?.kind === 'near'
-                ? `No open job within ${within} miles of ${placeName} fits.`
+                ? q || career
+                  ? `No open job within ${within} miles of ${placeName} fits these filters.`
+                  : `No open jobs within ${within} miles of ${placeName}.`
                 : 'No open job fits these filters.'
             }
             action={
@@ -265,7 +268,7 @@ export default function Jobs() {
               : `${count} ${filtered ? (count === 1 ? 'job matches' : 'jobs match') : count === 1 ? 'open job' : 'open jobs'}`}
             {jobs.isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Updating" />}
             {filtered && (
-              <button type="button" onClick={clearFilters} className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+              <button type="button" onClick={clearFilters} className="shrink-0 whitespace-nowrap font-medium text-fg-default underline underline-offset-4 hover:no-underline">
                 Clear filters
               </button>
             )}
