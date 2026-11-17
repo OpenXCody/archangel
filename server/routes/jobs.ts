@@ -1,5 +1,5 @@
 import { Router, type Request } from 'express';
-import { and, eq, gt, ilike, inArray, sql, type SQL } from 'drizzle-orm';
+import { and, eq, gt, inArray, sql, type SQL } from 'drizzle-orm';
 import {
   db,
   jobs,
@@ -17,6 +17,7 @@ import { uuidParam } from '../middleware/validateUuid.js';
 import { SCOPE } from '../../shared/scope.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
 import { applicationReceived, applicationStatusChanged } from '../lib/notices.js';
+import { jobTextFilter, milesFromFactory, readNear } from '../lib/jobSearch.js';
 
 /**
  * Jobs and applications.
@@ -90,7 +91,10 @@ function isUuid(value: unknown): value is string {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
-// GET /api/jobs?occupationId=&companyId=&factoryId=&q=&limit=
+// GET /api/jobs?occupationId=&companyId=&factoryId=&q=&state=&near=<lat>,<lng>&within=<miles>&limit=
+// `q`: every word typed must be in the job's title, company, career, shift or
+// place. `near`: only jobs whose factory is within `within` miles (50 unless
+// said) of the point, nearest first, each with its distance as `miles`.
 router.get(
   '/',
   handle(async (req, res) => {
@@ -99,18 +103,25 @@ router.get(
     if (isUuid(occupationId)) filters.push(eq(jobs.occupationId, occupationId));
     if (isUuid(companyId)) filters.push(eq(jobs.companyId, companyId));
     if (isUuid(factoryId)) filters.push(eq(jobs.factoryId, factoryId));
-    if (typeof q === 'string' && q.trim()) filters.push(ilike(jobs.title, `%${q.trim().slice(0, 80)}%`));
+    const typed = jobTextFilter(q);
+    if (typed) filters.push(typed);
     if (typeof state === 'string' && /^[A-Za-z]{2}$/.test(state)) filters.push(eq(factories.state, state.toUpperCase()));
+    const near = readNear(req.query.near, req.query.within);
+    if (near === 'invalid') {
+      return res.status(400).json({ error: 'near is a latitude and a longitude, such as 30.27,-97.74; within is a number of miles.' });
+    }
+    const miles = near ? milesFromFactory(near) : null;
+    if (near && miles) filters.push(sql`${miles} <= ${near.within}`);
     const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
 
     const rows = await db
-      .select(jobSummary)
+      .select(miles ? { ...jobSummary, miles } : jobSummary)
       .from(jobs)
       .innerJoin(companies, eq(companies.id, jobs.companyId))
       .innerJoin(factories, eq(factories.id, jobs.factoryId))
       .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
       .where(and(...filters))
-      .orderBy(sql`${jobs.postedAt} DESC`)
+      .orderBy(...(miles ? [sql`${miles} ASC`] : []), sql`${jobs.postedAt} DESC`)
       .limit(limit);
     res.json({ jobs: rows });
   })

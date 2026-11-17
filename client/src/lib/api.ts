@@ -405,6 +405,10 @@ export interface RegionOverview {
   topIndustries: { label: string; count: number }[];
   /** Careers typical of the industries found here, the most characteristic first. */
   careers?: { id: string; title: string }[];
+  /** How many jobs are open at the plants here. */
+  openJobs?: number;
+  /** The newest of them: a short list, not all. */
+  jobs?: CareerJob[];
 }
 
 export interface StateOverview extends RegionOverview {

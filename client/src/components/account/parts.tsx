@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { errorMessage, signInPath, useAccount, type SignedInAccount } from '../../lib/account';
+import { errorMessage, justLeft, signInPath, useAccount, type SignedInAccount } from '../../lib/account';
 import { applicationStatusLabel } from '../../lib/jobFormat';
 import { PageContainer } from '../layout/Page';
 
@@ -198,7 +198,8 @@ export function AccountGate({ children }: { children: (account: SignedInAccount)
     return <PageLoading label="Checking who is signed in" />;
   }
   if (!data.user) {
-    return <Navigate to={signInPath(`${location.pathname}${location.search}`)} replace />;
+    // Someone who has just signed out here goes on to the map; anyone else is asked to sign in.
+    return <Navigate to={justLeft(data) ? '/map' : signInPath(`${location.pathname}${location.search}`)} replace />;
   }
   return <>{children(data as SignedInAccount)}</>;
 }

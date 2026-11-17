@@ -19,6 +19,9 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: false,
     },
+    // A change is sent when it is made, or fails there and then. Left to the
+    // default, one made offline waits unseen and sends itself on reconnect.
+    mutations: { networkMode: 'always' },
   },
 });
 

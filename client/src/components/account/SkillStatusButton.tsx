@@ -3,6 +3,7 @@ import { CheckCircle2, Circle, CircleDashed, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { signInPath, useAccount, useMySkills, useRemoveSkill, useSetSkillStatus, type SkillStatus } from '../../lib/account';
+import { onGroupArrowKeys } from '../../lib/roving';
 import { ErrorNote, outlineButtonClass } from './parts';
 
 type Choice = SkillStatus | 'none';
@@ -25,13 +26,25 @@ interface SkillStatusControlProps {
   className?: string;
 }
 
-/** The segmented choice itself, without any data fetching. */
+/**
+ * The segmented choice itself, without any data fetching. A radio group: Tab
+ * reaches it once, arrow keys move between the choices. While `disabled` (the
+ * answer is loading or saving) it keeps the focus and ignores presses.
+ */
 export function SkillStatusControl({ value, onChange, disabled, hideNone, label, className }: SkillStatusControlProps) {
   const choices = hideNone ? CHOICES.filter((choice) => choice.value !== 'none') : CHOICES;
+  const values = choices.map((choice) => choice.value);
+  const choose = (next: Choice) => {
+    if (!disabled && next !== value) onChange(next);
+  };
+  // With nothing chosen that is on offer, Tab lands on the first choice.
+  const tabStop = values.includes(value) ? value : values[0];
   return (
     <div
       role="radiogroup"
       aria-label={label}
+      aria-busy={disabled || undefined}
+      onKeyDown={(event) => onGroupArrowKeys(event, values, value, choose)}
       className={cn('inline-flex shrink-0 rounded-lg border border-border-strong bg-bg-elevated p-0.5', disabled && 'opacity-60', className)}
     >
       {choices.map((choice) => {
@@ -42,12 +55,11 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
             type="button"
             role="radio"
             aria-checked={selected}
-            disabled={disabled}
-            onClick={() => {
-              if (!selected) onChange(choice.value);
-            }}
+            aria-disabled={disabled || undefined}
+            tabIndex={choice.value === tabStop ? 0 : -1}
+            onClick={() => choose(choice.value)}
             className={cn(
-              'h-8 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors disabled:cursor-not-allowed',
+              'h-8 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors aria-disabled:cursor-default',
               selected
                 ? choice.value === 'held'
                   ? 'bg-success/15 text-success'
@@ -91,11 +103,13 @@ export function SkillHeldToggle({ value, onChange, disabled, label, className }:
       aria-pressed={held}
       aria-label={`${label}: ${state}`}
       title={held ? 'Held' : value === 'learning' ? 'Learning. Mark as held' : 'Mark as held'}
-      disabled={disabled}
-      onClick={() => onChange(held ? 'none' : 'held')}
+      aria-disabled={disabled || undefined}
+      onClick={() => {
+        if (!disabled) onChange(held ? 'none' : 'held');
+      }}
       className={cn(
         'flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-colors',
-        'disabled:cursor-not-allowed disabled:opacity-60',
+        'aria-disabled:cursor-default aria-disabled:opacity-60',
         held ? 'text-success' : 'text-fg-muted hover:text-fg-default',
         className
       )}
