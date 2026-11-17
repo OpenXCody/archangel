@@ -353,6 +353,10 @@ for gone in refs schools programs persons import/status review/summary; do
   check "/$gone is gone"               404 "$(req a GET /$gone)"
 done
 
+# A body the JSON parser refuses is answered as the sender's mistake, not a 500.
+expect "malformed JSON is a 400"      400 "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{not json' "$API/auth/sign-in")"
+expect "a body over the limit is a 413" 413 "$(node -e "process.stdout.write(JSON.stringify({name:'x'.repeat(200000)}))" | curl -s -o /dev/null -w '%{http_code}' -b "$D/a" -X POST -H 'Content-Type: application/json' --data-binary @- "$API/companies")"
+
 check "delete the skill"              200 "$(req a DELETE /skills/$RSK)"
 check "delete the career"             200 "$(req a DELETE /occupations/$ROC)"
 check "delete the company"            200 "$(req a DELETE /companies/$RCO)"

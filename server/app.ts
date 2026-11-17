@@ -85,6 +85,16 @@ app.use((_req: Request, res: Response) => {
 
 // Errors: log the real thing, return a generic message.
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  // A body the JSON parser refused is the sender's to fix, not a server fault.
+  const status = (err as { status?: unknown }).status;
+  if (status === 413) {
+    res.status(413).json({ error: 'That request is too large.' });
+    return;
+  }
+  if (status === 400) {
+    res.status(400).json({ error: 'That request could not be read as JSON.' });
+    return;
+  }
   console.error('Error:', err.message);
   res.status(500).json({
     error: 'Internal Server Error',

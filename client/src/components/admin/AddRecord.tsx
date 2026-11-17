@@ -95,6 +95,8 @@ export default function AddRecord() {
           onAdded={(record) => {
             setAdded(record);
             setRound((value) => value + 1);
+            // The form is new: put focus back at its start, ready for the next record.
+            window.setTimeout(() => document.getElementById(kind === 'factory' ? 'record-company' : 'record-name')?.focus(), 0);
           }}
         />
 
@@ -154,10 +156,11 @@ function RecordForm({ kind, onStart, onAdded }: RecordFormProps) {
   const shown = (field: FieldName) => (attempted ? problems[field] : undefined);
 
   const record = (): NewRecord | null => {
-    const text = (value: string) => value.trim() || undefined;
-    if (kind === 'company') return { kind, name: name.trim(), industry: text(industry) };
-    if (kind === 'career') return { kind, title: name.trim(), description: text(description) };
-    if (kind === 'skill') return { kind, name: name.trim(), category: text(category), description: text(description) };
+    // An optional field left empty is left out.
+    const given = (value: string) => value.trim() || undefined;
+    if (kind === 'company') return { kind, name: name.trim(), industry: given(industry) };
+    if (kind === 'career') return { kind, title: name.trim(), description: given(description) };
+    if (kind === 'skill') return { kind, name: name.trim(), category: given(category), description: given(description) };
     if (!company || lat === null || lng === null) return null;
     return {
       kind,
@@ -166,8 +169,8 @@ function RecordForm({ kind, onStart, onAdded }: RecordFormProps) {
       state,
       latitude: lat,
       longitude: lng,
-      city: text(city),
-      address: text(address),
+      city: given(city),
+      address: given(address),
     };
   };
 
@@ -187,7 +190,8 @@ function RecordForm({ kind, onStart, onAdded }: RecordFormProps) {
   };
 
   const existing = existingRecord(add.error, kind);
-  const text = (id: string, value: string, onChange: (value: string) => void, field?: FieldName, extra?: { maxLength?: number; list?: string; inputMode?: 'decimal' }) => (
+  /** One text input, marked when its field has a problem. */
+  const input = (id: string, value: string, onChange: (value: string) => void, field?: FieldName, extra?: { maxLength?: number; list?: string; inputMode?: 'decimal' }) => (
     <input
       id={id}
       type="text"
@@ -212,13 +216,13 @@ function RecordForm({ kind, onStart, onAdded }: RecordFormProps) {
 
       <div className={cn('grid grid-cols-1 gap-4', kind !== 'career' && 'sm:grid-cols-2')}>
         <Field label={NAME_LABEL[kind]} htmlFor="record-name">
-          {text('record-name', name, setName, 'name', { maxLength: kind === 'factory' ? 300 : 200 })}
+          {input('record-name', name, setName, 'name', { maxLength: kind === 'factory' ? 300 : 200 })}
           <FieldError id="record-name-error" message={shown('name')} />
         </Field>
 
         {kind === 'company' && (
           <Field label="Industry" htmlFor="record-industry" optional>
-            {text('record-industry', industry, setIndustry, undefined, { maxLength: 80, list: 'record-industries' })}
+            {input('record-industry', industry, setIndustry, undefined, { maxLength: 80, list: 'record-industries' })}
             <datalist id="record-industries">
               {(facets.data?.companyIndustries ?? []).map((value) => (
                 <option key={value} value={value} />
@@ -229,7 +233,7 @@ function RecordForm({ kind, onStart, onAdded }: RecordFormProps) {
 
         {kind === 'skill' && (
           <Field label="Category" htmlFor="record-category" optional>
-            {text('record-category', category, setCategory, undefined, { maxLength: 80, list: 'record-categories' })}
+            {input('record-category', category, setCategory, undefined, { maxLength: 80, list: 'record-categories' })}
             <datalist id="record-categories">
               {(facets.data?.skillCategories ?? []).map((value) => (
                 <option key={value} value={value} />
@@ -266,20 +270,20 @@ function RecordForm({ kind, onStart, onAdded }: RecordFormProps) {
         <>
           <div className="grid grid-cols-1 gap-4 xs:grid-cols-2">
             <Field label="Latitude" htmlFor="record-latitude" hint={shown('latitude') ? undefined : 'Decimal degrees.'}>
-              {text('record-latitude', latitude, setLatitude, 'latitude', { inputMode: 'decimal', maxLength: 20 })}
+              {input('record-latitude', latitude, setLatitude, 'latitude', { inputMode: 'decimal', maxLength: 20 })}
               <FieldError id="record-latitude-error" message={shown('latitude')} />
             </Field>
             <Field label="Longitude" htmlFor="record-longitude" hint={shown('longitude') ? undefined : 'West is negative.'}>
-              {text('record-longitude', longitude, setLongitude, 'longitude', { inputMode: 'decimal', maxLength: 20 })}
+              {input('record-longitude', longitude, setLongitude, 'longitude', { inputMode: 'decimal', maxLength: 20 })}
               <FieldError id="record-longitude-error" message={shown('longitude')} />
             </Field>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="City" htmlFor="record-city" optional>
-              {text('record-city', city, setCity, undefined, { maxLength: 120 })}
+              {input('record-city', city, setCity, undefined, { maxLength: 120 })}
             </Field>
             <Field label="Address" htmlFor="record-address" optional>
-              {text('record-address', address, setAddress, undefined, { maxLength: 300 })}
+              {input('record-address', address, setAddress, undefined, { maxLength: 300 })}
             </Field>
           </div>
         </>
