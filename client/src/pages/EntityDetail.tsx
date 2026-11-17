@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import GoalButton from '../components/account/GoalButton';
-import SkillStatusButton from '../components/account/SkillStatusButton';
-import { useAccount, useMySkills, type SkillStatus } from '../lib/account';
+import SkillStatusButton, { SkillHeldToggle } from '../components/account/SkillStatusButton';
+import { ErrorNote } from '../components/account/parts';
+import { signInPath, useAccount, useMySkills, type SkillStatus } from '../lib/account';
+import { useMarkSkill, type SkillMark } from '../lib/seeker';
 import { formatPay } from '../lib/jobFormat';
 import {
   ArrowLeft,
@@ -18,8 +20,6 @@ import {
   GraduationCap,
   BookOpen,
   Clock,
-  CheckCircle2,
-  CircleDashed,
 } from 'lucide-react';
 import {
   companiesApi,
@@ -525,6 +525,16 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
       )}
 
       {/* Careers recorded at this site */}
+      {(data.occupations?.length ?? 0) === 0 && (data.typicalCareers?.length ?? 0) > 0 && (
+        <Section id="occupations" title="Careers in this industry">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {data.typicalCareers?.map((career) => (
+              <RelatedCard key={career.id} to={`/occupations/${career.id}`} icon={Briefcase} iconClass="text-fg-muted" title={career.title} />
+            ))}
+          </div>
+        </Section>
+      )}
+
       {data.occupations?.length > 0 && (
         <Section id="occupations" title="Careers here" count={data.occupations.length}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -593,30 +603,53 @@ const PATH_STAGES: { stage: 1 | 2 | 3; label: string; hint: string }[] = [
   { stage: 3, label: 'Advanced', hint: 'What sets you apart' },
 ];
 
-/** One skill on a career's path, marked when the signed-in person holds or is learning it. */
-function PathSkill({ skill, status }: { skill: RelatedSkill; status: SkillStatus | undefined }) {
-  return (
-    <Link
-      to={`/skills/${skill.id}`}
-      className={`
-        group flex items-center gap-3 p-3 min-w-0 rounded-lg border transition-all duration-200
-        ${
-          status === 'held'
-            ? 'bg-bg-elevated border-border-strong hover:border-border-strong'
-            : 'bg-tint/[0.02] border-tint/10 hover:bg-tint/[0.05] hover:border-tint/20'
-        }
-      `}
-    >
-      {status === 'held' ? (
-        <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-success" aria-label="Held" />
-      ) : status === 'learning' ? (
-        <CircleDashed className="w-5 h-5 flex-shrink-0 text-fg-muted" aria-label="Learning" />
-      ) : (
+/** The row a skill sits in on a career's path. A held skill stands out from the rest. */
+function pathRowClass(status: SkillStatus | undefined): string {
+  return status === 'held'
+    ? 'bg-bg-elevated border-border-strong'
+    : 'bg-tint/[0.02] border-tint/10 hover:bg-tint/[0.05] hover:border-tint/20';
+}
+
+/**
+ * One skill on a career's path. Signed out, the row is a link to the skill.
+ * Signed in, the mark at its head sets the skill held (or clears it) in
+ * place, and the name is the link.
+ */
+function PathSkill({
+  skill,
+  status,
+  onMark,
+  disabled,
+}: {
+  skill: RelatedSkill;
+  status: SkillStatus | undefined;
+  /** Present for a signed-in person. */
+  onMark?: (mark: SkillMark) => void;
+  disabled?: boolean;
+}) {
+  const row = `group flex items-center min-w-0 rounded-lg border transition-all duration-200 ${pathRowClass(status)}`;
+  const name = <span className="flex-1 min-w-0 font-medium leading-snug text-fg-default break-words">{skill.name}</span>;
+  const chevron = <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0" />;
+
+  if (!onMark) {
+    return (
+      <Link to={`/skills/${skill.id}`} className={`${row} gap-3 p-3`}>
         <Wrench className="w-5 h-5 flex-shrink-0 text-fg-muted" />
-      )}
-      <span className="flex-1 min-w-0 font-medium leading-snug text-fg-default break-words">{skill.name}</span>
-      <ChevronRight className="w-4 h-4 text-fg-soft group-hover:text-fg-muted flex-shrink-0" />
-    </Link>
+        {name}
+        {chevron}
+      </Link>
+    );
+  }
+
+  // The mark sits where the icon does on a signed-out row, so the name does not move.
+  return (
+    <div className={`${row} py-px`} data-path-skill={skill.id} data-status={status ?? 'none'}>
+      <SkillHeldToggle label={skill.name} value={status ?? 'none'} onChange={onMark} disabled={disabled} />
+      <Link to={`/skills/${skill.id}`} className="flex flex-1 min-w-0 items-center gap-3 self-stretch py-[11px] pr-3">
+        {name}
+        {chevron}
+      </Link>
+    </div>
   );
 }
 
@@ -624,8 +657,10 @@ function PathSkill({ skill, status }: { skill: RelatedSkill; status: SkillStatus
 function OccupationDetailView({ data }: { data: OccupationDetail }) {
   const { data: account } = useAccount();
   const signedIn = Boolean(account?.user);
-  const { data: mySkills } = useMySkills(signedIn);
+  const { data: mySkills, isPending: skillsPending } = useMySkills(signedIn);
   const statusBySkill = new Map((mySkills ?? []).map((s) => [s.skillId, s.status]));
+  const markSkill = useMarkSkill();
+  const { pathname, search } = useLocation();
 
   const skills = data.skills ?? [];
   const jobs = data.jobs ?? [];
@@ -634,30 +669,25 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
   const unstaged = skills.filter((s) => !s.stage);
   const hasStages = staged.some((group) => group.skills.length > 0);
 
+  const pathSkill = (skill: RelatedSkill) => (
+    <PathSkill
+      key={skill.id}
+      skill={skill}
+      status={statusBySkill.get(skill.id)}
+      disabled={skillsPending}
+      onMark={signedIn ? (mark) => markSkill.mutate({ skillId: skill.id, name: skill.name, mark }) : undefined}
+    />
+  );
+
   return (
     <>
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <GoalButton occupationId={data.id} />
         {signedIn && skills.length > 0 && (
-          <span className="text-sm text-fg-muted">
-            You have <span className="text-fg-default font-medium">{heldCount}</span> of {skills.length} skills
+          <span className="text-sm text-fg-muted" data-held-count>
+            You have <span className="text-fg-default font-medium tabular-nums">{heldCount}</span> of {skills.length} skills
           </span>
         )}
-      </div>
-
-      <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-6">
-        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
-          <div className="text-2xl font-semibold text-fg-default">{skills.length}</div>
-          <div className="text-sm text-fg-muted">Skills</div>
-        </div>
-        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
-          <div className="text-2xl font-semibold text-fg-default">{jobs.length}</div>
-          <div className="text-sm text-fg-muted">Open jobs</div>
-        </div>
-        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
-          <div className="text-2xl font-semibold text-fg-default">{data.factories?.length || 0}</div>
-          <div className="text-sm text-fg-muted">Factories</div>
-        </div>
       </div>
 
       {/* The path: skills in the order they are learned */}
@@ -669,6 +699,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
               reviewed by a person yet.
             </p>
           )}
+          {signedIn && <ErrorNote error={markSkill.error} className="mb-3" />}
           {hasStages ? (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {staged.map((group) => (
@@ -680,9 +711,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
                   </div>
                   <div className="grid grid-cols-1 gap-2">
                     {group.skills.length > 0 ? (
-                      group.skills.map((skill) => (
-                        <PathSkill key={skill.id} skill={skill} status={statusBySkill.get(skill.id)} />
-                      ))
+                      group.skills.map(pathSkill)
                     ) : (
                       <p className="rounded-lg border border-dashed border-tint/10 p-3 text-sm text-fg-soft">
                         Nothing at this stage yet.
@@ -697,16 +726,28 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
             <div className={hasStages ? 'mt-6' : ''}>
               {hasStages && <h3 className="mb-2 text-sm font-semibold text-fg-default">Not yet placed on the path</h3>}
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {unstaged.map((skill) => (
-                  <PathSkill key={skill.id} skill={skill} status={statusBySkill.get(skill.id)} />
-                ))}
+                {unstaged.map(pathSkill)}
               </div>
             </div>
+          )}
+          {account && !signedIn && (
+            <p className="mt-4 text-sm text-fg-soft">
+              <Link
+                to={signInPath(`${pathname}${search}`)}
+                className="text-fg-muted underline underline-offset-2 hover:text-fg-default"
+              >
+                Sign in
+              </Link>{' '}
+              to mark the skills you have.
+            </p>
           )}
         </Section>
       )}
 
-      <OpenJobsSection jobs={jobs} empty="No open jobs for this career right now." />
+      <WhereWorkIsDone data={data} />
+
+      {/* Like the company and factory pages: a section only when there is a job to show. */}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} empty="" />}
 
       {/* Factories that employ this career */}
       {data.factories?.length > 0 && (
@@ -726,6 +767,61 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
         </Section>
       )}
     </>
+  );
+}
+
+/**
+ * Where a career's work is done: the industries that typically have it, with
+ * how many plants each has, and the states with the most of them (each opens
+ * on the map). It describes industries, not what any one plant employs.
+ */
+function WhereWorkIsDone({ data }: { data: OccupationDetail }) {
+  const industries = data.industries ?? [];
+  const states = data.topStates ?? [];
+  if (industries.length === 0 && !data.everywhere) return null;
+  return (
+    <Section id="where" title="Where this work is done">
+      {data.everywhere ? (
+        <p className="text-sm text-fg-muted">Plants of every industry.</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div className="min-w-0">
+            <ul className="divide-y divide-border-subtle border-y border-border-subtle">
+              {industries.map((industry) => (
+                <li key={industry.name}>
+                  <Link
+                    to={`/explore?tab=factories&industry=${encodeURIComponent(industry.name)}`}
+                    className="flex items-baseline justify-between gap-4 py-2.5 text-sm transition-colors hover:text-fg-default"
+                  >
+                    <span className="min-w-0 text-fg-default">{industry.name.replace(/ Manufacturing$/, '')}</span>
+                    <span className="shrink-0 tabular-nums text-fg-muted">
+                      {industry.factoryCount.toLocaleString()} {industry.factoryCount === 1 ? 'plant' : 'plants'}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {data.elsewhereToo && <p className="mt-2 text-xs text-fg-soft">And plants of every other industry.</p>}
+          </div>
+          {states.length > 0 && (
+            <div className="min-w-0">
+              <p className="mb-2 text-xs text-fg-soft">Most plants in these industries</p>
+              <div className="flex flex-wrap gap-2">
+                {states.map((state) => (
+                  <Link
+                    key={state.code}
+                    to={`/map?state=${state.code}`}
+                    className="rounded-md border border-border-strong px-2.5 py-1.5 text-sm text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default"
+                  >
+                    {STATE_CODE_TO_NAME[state.code as StateCode] ?? state.code}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </Section>
   );
 }
 
@@ -1030,6 +1126,7 @@ function getEntityFetcher(entityType: Exclude<EntityType, 'persons'>, id: string
 type AnyEntityDetail = CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail | RefDetail | SchoolDetail | ProgramDetail;
 
 // Type guard helpers
+// A career also lists industries (where the work is done), so that alone does not make a company.
 function isCompanyDetail(data: AnyEntityDetail): data is CompanyDetail {
   // A career's response also carries `industries` (where the work is done),
   // so that field alone does not make a company: a company has no skills.
@@ -1138,9 +1235,9 @@ export default function EntityDetail() {
 
       {/* Header - glass morphism card */}
       <div className="flex items-start gap-4">
-        {isCompanyDetail(data) ? (
+        {entityType === 'companies' && isCompanyDetail(data) ? (
           <CompanyLogo name={name} domain={data.domain} size={58} className="rounded-xl" />
-        ) : isFactoryDetail(data) && data.company?.domain ? (
+        ) : entityType === 'factories' && isFactoryDetail(data) && data.company?.domain ? (
           <CompanyLogo name={formatCompanyName(data.company.name)} domain={data.company.domain} size={58} className="rounded-xl" />
         ) : (
           <div className="p-3 rounded-xl bg-tint/[0.02] backdrop-blur-sm border border-tint/10">
@@ -1150,7 +1247,7 @@ export default function EntityDetail() {
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2 flex-wrap">
             <h1 className="text-2xl font-semibold text-fg-default">{name}</h1>
-            {!isCompanyDetail(data) && (
+            {entityType !== 'companies' && (
               <span className={`text-xs px-2 py-0.5 rounded-full border ${config.badgeClass}`}>
                 {config.label}
               </span>
@@ -1161,13 +1258,18 @@ export default function EntityDetail() {
       </div>
 
       {/* Entity-specific content */}
-      {isCompanyDetail(data) && <CompanyDetailView data={data} />}
-      {isFactoryDetail(data) && <FactoryDetailView data={data} />}
-      {isOccupationDetail(data) && <OccupationDetailView data={data} />}
-      {isSkillDetail(data) && <SkillDetailView data={data} />}
-      {isRefDetail(data) && <RefDetailView data={data} />}
-      {isSchoolDetail(data) && <SchoolDetailView data={data} />}
-      {isProgramDetail(data) && <ProgramDetailView data={data} />}
+      {/* The address says which kind of record this is; the shape checks only
+          narrow the type. A response that gains a field can then never draw
+          another kind's page. `data-entity-view` names the view for tests. */}
+      <div className="contents" data-entity-view={entityType}>
+        {entityType === 'companies' && isCompanyDetail(data) && <CompanyDetailView data={data} />}
+        {entityType === 'factories' && isFactoryDetail(data) && <FactoryDetailView data={data} />}
+        {entityType === 'occupations' && isOccupationDetail(data) && <OccupationDetailView data={data} />}
+        {entityType === 'skills' && isSkillDetail(data) && <SkillDetailView data={data} />}
+        {entityType === 'refs' && isRefDetail(data) && <RefDetailView data={data} />}
+        {entityType === 'schools' && isSchoolDetail(data) && <SchoolDetailView data={data} />}
+        {entityType === 'programs' && isProgramDetail(data) && <ProgramDetailView data={data} />}
+      </div>
     </PageContainer>
   );
 }

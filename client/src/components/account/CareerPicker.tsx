@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -29,6 +29,10 @@ interface CareerPickerProps {
 export default function CareerPicker({ id, value, onChange, suggestions = [], suggestionsLabel, disabled }: CareerPickerProps) {
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const changeRef = useRef<HTMLButtonElement>(null);
+  // Choosing a career replaces the search box it was chosen from. Focus goes
+  // to what took its place, not back to the top of the page.
+  const focusPicked = useRef(false);
   const [term, setTerm] = useState('');
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -48,7 +52,14 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
     : suggestions;
   const CareerIcon = ENTITY.career.icon;
 
+  const pickedId = value?.id;
+  useEffect(() => {
+    if (pickedId && focusPicked.current) changeRef.current?.focus();
+    focusPicked.current = false;
+  }, [pickedId]);
+
   const choose = (option: CareerOption) => {
+    focusPicked.current = true;
     onChange(option);
     setTerm('');
     setOpen(false);
@@ -81,6 +92,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
           {value.title}
         </span>
         <button
+          ref={changeRef}
           type="button"
           disabled={disabled}
           onClick={() => {

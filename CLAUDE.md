@@ -74,6 +74,18 @@ The map opens on the continental US. A focus area is somewhere to go, not a limi
 
 Pins carry a tier: 2 featured employer (`companies.featured`), 1 established company (five or more factories nationwide), 0 other. `companies.domain` is used for logos. Curated lists live in `data/` and load through generated migrations (`scripts/build-*-sql.mjs`).
 
+## Employers: jobs and applicants
+
+`/employer` is the list of a person's companies and jobs; the job form takes the page over from the address: `?post=1` (new), `?copy=<job id>` (another like an existing job), `?edit=<job id>` (change one; `&from=job` returns to the job's page). One form does all three: `components/account/JobForm.tsx`. A job's company, factory and career are fixed once posted. Employer-side hooks and the form's checks live in `client/src/lib/employerJobs.ts`.
+
+On a job's page a person who manages it sees the company's view first (state, Edit, Post another like this, Close or Delete, then applicants) and the listing below it, with skills unmarked. Applicants are a compact list (`components/account/ApplicantList.tsx`), filtered by stage; a row opens to the applicant's skills against the job's (held, learning, missing), their note and contact, the private note and the stage. Hired and Declined take a confirmation and can be moved back to a working stage; Withdrawn is the applicant's and the company cannot change it. A job with no applications can be deleted; one with applications can only be closed.
+
+## Seekers: skills and reach
+
+A skill is marked where it is listed: on a career's path each row starts with a mark (`SkillHeldToggle` in `components/account/SkillStatusButton.tsx`) that sets the skill held or clears it in one tap; learning is set on the skill's page or on `/me`. The change is optimistic (`useMarkSkill` in `client/src/lib/seeker.ts`), so "You have N of M" follows at once.
+
+Careers within reach (`GET /api/me/careers/reach`, shown on `/me` under Careers): careers with a staged path of at least five skills of which the person holds at least one, ranked by the share held, each with the next skills to pick up. Held skills count fully; a skill being learned counts as half for the order only, never in the figure. Careers already chosen as goals are left out; goals carry their own `next` skills (`GET /api/me/goals`).
+
 ## Careers and plants
 
 Two different links, kept apart:
@@ -113,8 +125,8 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 
 - Public reads: `/api/companies`, `/api/factories` (+ `/pins`, the map's packed pins: `shared/pins.ts`), `/api/occupations`, `/api/skills`, `/api/search`, `/api/map/*`, `/api/stats/counts`, `/api/explore/overview` (everything the Explore overview shows, in one response), `/api/explore/facets` (the industries and skill categories the browse lists filter by), `/api/jobs`, `/api/jobs/:id`
 - `/api/auth/*` sign-up (takes an optional `invite` token), sign-in, sign-out, me, claim-admin, `invite/:token` (what an invite grants; 404 when unknown, used or expired), `password` (change your own), `reset/:token` (whose password a reset link sets; 404 when unknown, used or expired), `reset` POST `{ token, password }`
-- `/api/me/*` profile, skills, goals, applications
-- `/api/jobs` POST/PATCH (company members), `/:id/apply`, `/:id/applications` (ranked), `/applications/:id`
+- `/api/me/*` profile, skills, goals (each with `next` skills), applications, `careers/reach`
+- `/api/jobs` POST; `/:id` PATCH (fields, `skills` as the whole list, close, reopen; company members and admins) and DELETE (only a job with no applications, else 409); `/:id/apply`; `/:id/applications` (ranked; the job's `skills` once, and per applicant `heldSkillIds` and `learningSkillIds`); `/applications/:id` (stage and private note). An application link is stored as https; one typed without a scheme gets it
 - `/api/employer/*` memberships and the employer dashboard
 - `/api/admin/*` (signed-in admin only: 401 signed out, 403 otherwise): `overview`; `users` (`?q=`, paged), `users/:id` PATCH `{ isAdmin }` and DELETE; `users/:id/reset-link` POST; `memberships` GET, POST (add a person to a company), PATCH (approve or remove); `invites` GET, POST, `invites/:id` DELETE; `paths?status=draft`; `companies?q=`, `companies/:id` PATCH `{ domain, featured }`
 - `/api/import/*`, `/api/review/*` (admin)
@@ -155,6 +167,8 @@ The rule of thumb: it should look like software Tesla would ship on a vehicle sc
 - No service worker. The manifest is a static file (`client/public/manifest.webmanifest`); cache lifetimes are in `vercel.json`. The font (Oxanium) is bundled, not fetched from a third party
 - List routes read `limit`/`offset` through `server/lib/paging.ts`; record writes validate through `server/lib/writes.ts`
 - A new dependency is proven with a clean install (`npm ci` in a fresh copy, then `npm run build`), not with the packages already on disk: Vercel installs from the lockfile only
+- A control that is saving is marked `aria-busy` / `aria-disabled` (`busyButtonClass`), never `disabled`: a disabled control drops keyboard focus. A form names each problem beside its field and focuses the first
+- An entity page picks its view from the address (`entityType`), never from the shape of the response; the shape checks in `EntityDetail.tsx` only narrow types. Adding a field to a response must not be able to change which page is drawn
 - Server/api relative imports MUST end in `.js` (`from './routes/map.js'`, `from '../db/index.js'`): the function runs as Node ESM on Vercel. `npm run lint` enforces it
 
 ## Common Commands
@@ -166,4 +180,6 @@ npm run db:migrate   # Run migrations
 npm run db:seed -- --yes-wipe   # Sample data. EMPTIES the tables first; refuses any database not on localhost
 npm run test:ui      # Playwright responsive suite (7 device profiles)
 npm run lint         # ESLint (no `any`)
+# API suites, local only (they create and remove their own accounts):
+#   API=http://localhost:3000/api DB=postgresql://... bash tests/api/accounts.sh   (also seeker.sh, jobs.sh)
 ```

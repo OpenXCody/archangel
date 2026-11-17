@@ -1,26 +1,27 @@
-import { useRef, useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronRight, Loader2, Search, X } from 'lucide-react';
+import { Loader2, MoreHorizontal, Search, SearchX, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { companiesApi, factoriesApi, occupationsApi } from '../lib/api';
+import { companiesApi } from '../lib/api';
 import {
-  EMPLOYMENT_TYPES,
+  ApiError,
   useCancelMembership,
-  useCreateJob,
   useEmployer,
+  useJob,
   useRequestMembership,
   type AccountUser,
   type EmployerCompany,
   type EmployerJob,
-  type EmploymentType,
-  type PayPeriod,
+  type JobDetailResponse,
 } from '../lib/account';
-import { employmentLabel, formatAgo, formatPlace, isExpired, parseDollars } from '../lib/jobFormat';
-import CareerPicker, { type CareerOption } from '../components/account/CareerPicker';
-import JobSkillTags, { type JobSkillTag } from '../components/account/JobSkillTags';
+import { useDeleteJob } from '../lib/employerJobs';
+import { formatAgo, isExpired } from '../lib/jobFormat';
+import JobForm, { selectContentClass, selectTriggerClass, type JobFormCompany } from '../components/account/JobForm';
+import ConfirmDialog from '../components/admin/ConfirmDialog';
 import {
   AccountGate,
   CardNote,
@@ -28,6 +29,7 @@ import {
   ErrorNote,
   Field,
   LoadError,
+  PageLoading,
   RowsSkeleton,
   cardClass,
   fieldClass,
@@ -35,18 +37,46 @@ import {
   rowClass,
   useDebouncedValue,
 } from '../components/account/parts';
-import { PageContainer, PageHeader, PageSection } from '../components/layout/Page';
+import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
 
 export default function Employer() {
   return <AccountGate>{(account) => <EmployerPage user={account.user} />}</AccountGate>;
 }
 
+/**
+ * The employer page is the list of a person's companies and their jobs. The
+ * job form takes the page over when asked for in the address: `?post=1` for a
+ * new job, `?copy=<job>` for another like an existing one, `?edit=<job>` to
+ * change one. `&from=job` says the form was opened from the job's own page.
+ */
 function EmployerPage({ user }: { user: AccountUser }) {
+  const [params] = useSearchParams();
+  const editId = params.get('edit');
+  const copyId = params.get('copy');
+  const sourceId = editId ?? copyId;
+  if (sourceId) {
+    return <JobFormPage key={sourceId} mode={editId ? 'edit' : 'copy'} jobId={sourceId} fromJob={params.get('from') === 'job'} />;
+  }
+  return <EmployerHome user={user} posting={params.has('post')} />;
+}
+
+function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }) {
+  const navigate = useNavigate();
   const employer = useEmployer();
   const companies = employer.data ?? [];
   const active = companies.filter((company) => company.status === 'active');
   const pending = companies.filter((company) => company.status === 'requested');
   const [joiningAnother, setJoiningAnother] = useState(false);
+  const hasJobs = active.some((company) => company.jobs.length > 0);
+
+  if (posting && active.length > 0) {
+    return (
+      <PageContainer size="narrow">
+        <PageHeader backTo={{ to: '/employer', label: 'Your jobs' }} title="Post a job" description="Listed at once. Open for 60 days." />
+        <PostJob companies={active} onCancel={() => navigate('/employer')} />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer size="narrow">
@@ -58,6 +88,13 @@ function EmployerPage({ user }: { user: AccountUser }) {
             ? 'Post jobs and review applicants.'
             : "Post jobs at a company's factories and review applicants."
         }
+        actions={
+          hasJobs ? (
+            <Button asChild className="h-10 rounded-lg px-5">
+              <Link to="/employer?post=1">Post a job</Link>
+            </Button>
+          ) : undefined
+        }
       />
 
       {employer.isPending ? (
@@ -68,11 +105,15 @@ function EmployerPage({ user }: { user: AccountUser }) {
         <>
           {pending.length > 0 && <PendingRequests companies={pending} />}
 
-          {active.map((company) => (
-            <CompanyJobs key={company.companyId} company={company} showCompanyName={active.length > 1} />
-          ))}
+          {/* With nothing posted yet the form is the page; after that it is one press away, above the list. */}
+          {active.length > 0 && !hasJobs && (
+            <PageSection title="Post a job" description="Listed at once. Open for 60 days.">
+              <PostJob companies={active} />
+            </PageSection>
+          )}
 
-          {active.length > 0 && <PostJobSection companies={active} />}
+          {hasJobs &&
+            active.map((company) => <CompanyJobs key={company.companyId} company={company} showCompanyName={active.length > 1} />)}
 
           {active.length === 0 ? (
             <PageSection
@@ -94,6 +135,75 @@ function EmployerPage({ user }: { user: AccountUser }) {
           )}
         </>
       )}
+    </PageContainer>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The job form as a page: edit a job, or post another like it
+// ---------------------------------------------------------------------------
+
+function JobFormPage({ mode, jobId, fromJob }: { mode: 'edit' | 'copy'; jobId: string; fromJob: boolean }) {
+  const navigate = useNavigate();
+  const job = useJob(jobId);
+  const employer = useEmployer();
+  // The form starts from the job as it was when the page opened. A refetch
+  // while the person is typing must not start it again.
+  const [source, setSource] = useState<JobDetailResponse | null>(null);
+  useEffect(() => {
+    if (job.data) setSource((current) => current ?? job.data);
+  }, [job.data]);
+
+  const back = fromJob ? { to: `/jobs/${jobId}`, label: 'Job' } : { to: '/employer', label: 'Your jobs' };
+
+  if (job.isError || (job.data && !job.data.canManage)) {
+    const gone = !job.isError || (job.error instanceof ApiError && (job.error.status === 404 || job.error.status === 400));
+    return (
+      <PageContainer size="narrow">
+        {gone ? (
+          <EmptyState
+            icon={SearchX}
+            title="This job is not available"
+            description="It may have been deleted, or it belongs to another company."
+            action={
+              <Button asChild className="h-10 rounded-lg">
+                <Link to="/employer">Your jobs</Link>
+              </Button>
+            }
+          />
+        ) : (
+          <LoadError error={job.error} onRetry={() => void job.refetch()} retrying={job.isFetching} />
+        )}
+      </PageContainer>
+    );
+  }
+  // A copy needs the company's factories; an edit keeps the job's own.
+  if (!source || (mode === 'copy' && employer.isPending)) return <PageLoading label="Loading job" />;
+
+  const { job: from } = source;
+  const membership = (employer.data ?? []).find((company) => company.companyId === from.companyId && company.status === 'active');
+  // An admin can manage a job without belonging to its company: the copy then stays at the same factory.
+  const company: JobFormCompany = membership ?? {
+    companyId: from.companyId,
+    companyName: from.companyName,
+    factories: [{ id: from.factoryId, companyId: from.companyId, name: from.factoryName, city: from.city, state: from.state }],
+  };
+
+  return (
+    <PageContainer size="narrow">
+      <PageHeader
+        backTo={back}
+        eyebrow={mode === 'edit' ? `Job #${from.serial}` : undefined}
+        title={mode === 'edit' ? 'Edit job' : 'Post a job'}
+        description={
+          mode === 'edit'
+            ? 'Changes show on the listing at once.'
+            : `Copied from job #${from.serial}, ${from.title}. Posted as a new job, open for 60 days.`
+        }
+      />
+      <div className={cn(cardClass, 'p-4 sm:p-6')}>
+        <JobForm company={company} mode={mode} source={source} onCancel={() => navigate(back.to)} />
+      </div>
     </PageContainer>
   );
 }
@@ -244,47 +354,108 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
 // A company's jobs
 // ---------------------------------------------------------------------------
 
-function jobState(job: EmployerJob): 'Open' | 'Expired' | 'Closed' | 'Draft' {
+type JobState = 'Open' | 'Expired' | 'Closed' | 'Draft';
+
+function jobState(job: EmployerJob): JobState {
   if (job.status === 'closed') return 'Closed';
   if (job.status === 'open') return isExpired(job.expiresAt) ? 'Expired' : 'Open';
   return 'Draft';
 }
 
+/** Open jobs first, then the rest; newest first within each (the server's order). */
+const STATE_ORDER: Record<JobState, number> = { Open: 0, Draft: 1, Expired: 2, Closed: 3 };
+
+const menuItemClass = 'cursor-pointer px-2.5 py-2.5 text-sm text-fg-default focus:bg-bg-elevated';
+
 function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; showCompanyName: boolean }) {
-  return (
-    <PageSection
-      title={showCompanyName ? `Jobs at ${company.companyName}` : 'Jobs'}
-      description={company.jobs.length > 0 ? 'Select a job to review applicants or close it.' : undefined}
-    >
-      {company.jobs.length === 0 ? (
+  const navigate = useNavigate();
+  const remove = useDeleteJob();
+  const [deleting, setDeleting] = useState<EmployerJob | null>(null);
+  const jobs = company.jobs
+    .map((job) => ({ job, state: jobState(job) }))
+    .sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state]);
+
+  if (jobs.length === 0) {
+    return (
+      <PageSection title={`Jobs at ${company.companyName}`}>
         <CardNote>No jobs posted.</CardNote>
-      ) : (
-        <ul className={cardClass}>
-          {company.jobs.map((job) => {
-            const state = jobState(job);
-            return (
-              <li key={job.id} className={rowClass}>
-                <Link to={`/jobs/${job.id}`} className="flex items-center gap-3 p-4 transition-colors hover:bg-bg-elevated">
-                  <div className="min-w-0 flex-1">
-                    <p className="break-words text-sm font-medium text-fg-default">{job.title}</p>
-                    <p className="mt-0.5 break-words text-sm text-fg-muted">
-                      <span className={cn(state === 'Open' && 'text-fg-default')} data-job-state={state.toLowerCase()}>
-                        {state}
-                      </span>
-                      {' · '}Job #{job.serial} · {[job.factoryName, job.city].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
-                    </p>
-                    <p className={cn('mt-1 text-sm', job.newApplicants > 0 ? 'text-fg-default' : 'text-fg-muted')}>
-                      {job.applicants} {job.applicants === 1 ? 'applicant' : 'applicants'}
-                      {job.newApplicants > 0 && `, ${job.newApplicants} new`}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" />
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      </PageSection>
+    );
+  }
+
+  return (
+    <PageSection title={showCompanyName ? `Jobs at ${company.companyName}` : 'Jobs'}>
+      <ul className={cardClass}>
+        {jobs.map(({ job, state }) => (
+          <li key={job.id} className={cn(rowClass, 'flex items-stretch')} data-job-row={job.id}>
+            <Link
+              to={`/jobs/${job.id}`}
+              className="grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 py-3 pl-4 pr-2 transition-colors hover:bg-bg-elevated sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+            >
+              <div className="min-w-0">
+                <p className={cn('break-words text-sm font-medium', state === 'Open' ? 'text-fg-default' : 'text-fg-muted')}>{job.title}</p>
+                <p className="mt-0.5 break-words text-sm text-fg-muted">
+                  <span className={cn(state === 'Open' && 'text-fg-default')} data-job-state={state.toLowerCase()}>
+                    {state}
+                  </span>
+                  {' · '}Job #{job.serial} · {[job.factoryName, job.city].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
+                </p>
+              </div>
+              <p className={cn('text-sm sm:text-right', job.newApplicants > 0 ? 'text-fg-default' : 'text-fg-muted')}>
+                {job.applicants} {job.applicants === 1 ? 'applicant' : 'applicants'}
+                {job.newApplicants > 0 && `, ${job.newApplicants} new`}
+              </p>
+            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                aria-label={`Actions for job #${job.serial}, ${job.title}`}
+                className="flex w-11 shrink-0 items-center justify-center text-fg-muted transition-colors hover:bg-bg-elevated hover:text-fg-default"
+              >
+                <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl border-border-strong bg-bg-surface p-1.5">
+                <DropdownMenuItem className={menuItemClass} onSelect={() => navigate(`/employer?edit=${job.id}`)}>
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem className={menuItemClass} onSelect={() => navigate(`/employer?copy=${job.id}`)}>
+                  Post another like this
+                </DropdownMenuItem>
+                {/* A job with applicants can only be closed, which is done on its page. */}
+                {job.applicants === 0 && (
+                  <DropdownMenuItem
+                    className={menuItemClass}
+                    onSelect={() => {
+                      remove.reset();
+                      setDeleting(job);
+                    }}
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </li>
+        ))}
+      </ul>
+
+      <ConfirmDialog
+        open={deleting !== null}
+        title="Delete this job?"
+        description={
+          deleting && (
+            <p>
+              Job #{deleting.serial}, {deleting.title}, is removed for good. Nobody has applied to it.
+            </p>
+          )
+        }
+        confirmLabel="Delete job"
+        busy={remove.isPending}
+        error={remove.error}
+        onConfirm={() => {
+          if (deleting) remove.mutate(deleting.id, { onSuccess: () => setDeleting(null) });
+        }}
+        onCancel={() => setDeleting(null)}
+      />
     </PageSection>
   );
 }
@@ -293,391 +464,36 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
 // Post a job
 // ---------------------------------------------------------------------------
 
-const selectTriggerClass = 'h-[42px] rounded-lg border-border-strong bg-bg-elevated px-3 text-base text-fg-default shadow-none sm:text-sm';
-const selectContentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-border-strong bg-bg-surface';
-
-function PostJobSection({ companies }: { companies: EmployerCompany[] }) {
+function PostJob({ companies, onCancel }: { companies: EmployerCompany[]; onCancel?: () => void }) {
   const [companyId, setCompanyId] = useState(companies[0].companyId);
   const company = companies.find((c) => c.companyId === companyId) ?? companies[0];
 
   return (
-    <PageSection title="Post a job" description="Listed at once. Open for 60 days.">
-      <div className={cn(cardClass, 'p-4 sm:p-6')}>
-        {companies.length > 1 && (
-          <Field label="Company" htmlFor="job-company" className="mb-4">
-            <Select value={company.companyId} onValueChange={setCompanyId}>
-              <SelectTrigger id="job-company" className={selectTriggerClass}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className={selectContentClass}>
-                {companies.map((c) => (
-                  <SelectItem key={c.companyId} value={c.companyId} className="py-2.5">
-                    {c.companyName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-        )}
-        {company.factories.length === 0 ? (
-          <p className="text-sm text-fg-muted">
-            {company.companyName} has no factory on record, so a job cannot be posted for it yet.
-          </p>
-        ) : (
-          // A fresh form per company: its factories differ.
-          <PostJobForm key={company.companyId} company={company} />
-        )}
-      </div>
-    </PageSection>
-  );
-}
-
-function PostJobForm({ company }: { company: EmployerCompany }) {
-  const navigate = useNavigate();
-  const createJob = useCreateJob();
-
-  const [factoryId, setFactoryId] = useState(company.factories.length === 1 ? company.factories[0].id : '');
-  const [career, setCareer] = useState<CareerOption | null>(null);
-  const [skills, setSkills] = useState<JobSkillTag[]>([]);
-  // The career whose skills the tags started from. Null until those have loaded.
-  const [seededFor, setSeededFor] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [titleEdited, setTitleEdited] = useState(false);
-  const [payMin, setPayMin] = useState('');
-  const [payMax, setPayMax] = useState('');
-  const [payPeriod, setPayPeriod] = useState<PayPeriod>('hour');
-  const [employmentType, setEmploymentType] = useState<EmploymentType>('full-time');
-  const [shift, setShift] = useState('');
-  const [description, setDescription] = useState('');
-  const [applyIn, setApplyIn] = useState<'app' | 'link'>('app');
-  const [applyUrl, setApplyUrl] = useState('');
-  const [problem, setProblem] = useState<string | null>(null);
-  // Set the moment a post is sent, so a double click cannot send it twice
-  // (the mutation's own pending flag only changes on the next render).
-  const sending = useRef(false);
-  // Tags as the person left them, by career: going back to a career brings
-  // the edits back, not the defaults.
-  const editedTags = useRef(new Map<string, JobSkillTag[]>());
-
-  // Careers already recorded at the chosen factory are the likeliest picks.
-  const factoryCareers = useQuery({
-    queryKey: ['picker', 'factory-careers', factoryId],
-    queryFn: () => factoriesApi.get(factoryId),
-    enabled: Boolean(factoryId),
-    staleTime: 5 * 60_000,
-  });
-  const suggestions: CareerOption[] = (factoryCareers.data?.occupations ?? []).map((o) => ({ id: o.id, title: o.title }));
-
-  // The career's own skills are the default tags: stage 3 optional, the rest required.
-  const careerId = career?.id ?? '';
-  const careerSkills = useQuery({
-    queryKey: ['picker', 'career-skills', careerId],
-    queryFn: () => occupationsApi.get(careerId),
-    enabled: Boolean(careerId),
-    staleTime: 5 * 60_000,
-  });
-  const seeded = Boolean(careerId) && seededFor === careerId;
-  if (careerId && careerSkills.data && !seeded) {
-    // Set while rendering, so tags the client already has never flash a loader.
-    const defaults = careerSkills.data.skills.map((skill) => ({ id: skill.id, name: skill.name, required: skill.stage !== 3 }));
-    setSeededFor(careerId);
-    // Tags edited for this career earlier in the form come back as they were;
-    // otherwise the defaults, plus anything added while they were unavailable.
-    setSkills(
-      editedTags.current.get(careerId) ??
-        [...defaults, ...skills.filter((tag) => !defaults.some((skill) => skill.id === tag.id))]
-    );
-  }
-
-  const pickCareer = (next: CareerOption | null) => {
-    setCareer(next);
-    if (next?.id !== career?.id) {
-      if (career && seeded) editedTags.current.set(career.id, skills);
-      setSkills([]);
-      setSeededFor(null);
-    }
-    // The title follows the career until the person writes their own.
-    if (!titleEdited || !title.trim()) {
-      setTitle(next?.title ?? '');
-      setTitleEdited(false);
-    }
-  };
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (createJob.isPending || sending.current) return;
-    createJob.reset();
-
-    if (!factoryId || !career) return setProblem('Choose a factory and a career.');
-    const min = parseDollars(payMin);
-    const max = parseDollars(payMax);
-    if (min === null || max === null || max < min) {
-      return setProblem('Enter a pay range in dollars, lowest first.');
-    }
-    const link = applyUrl.trim();
-    if (applyIn === 'link' && !/^https:\/\/\S+$/i.test(link)) {
-      return setProblem('The application link must start with https://');
-    }
-    setProblem(null);
-
-    sending.current = true;
-    createJob.mutate(
-      {
-        companyId: company.companyId,
-        factoryId,
-        occupationId: career.id,
-        title: title.trim() || career.title,
-        description,
-        employmentType,
-        shift,
-        payMin: min,
-        payMax: max,
-        payPeriod,
-        applyUrl: applyIn === 'link' ? link : null,
-        // Without the career's defaults and with nothing added, the server applies the defaults.
-        skills: seeded || skills.length > 0 ? skills.map((skill) => ({ skillId: skill.id, required: skill.required })) : undefined,
-      },
-      {
-        onSuccess: (created) => navigate(`/jobs/${created.id}`),
-        onSettled: () => {
-          sending.current = false;
-        },
-      }
-    );
-  };
-
-  const per = payPeriod === 'hour' ? 'per hour' : 'per year';
-
-  return (
-    <form onSubmit={submit} noValidate className="space-y-5">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Factory" htmlFor="job-factory">
-          <Select value={factoryId} onValueChange={setFactoryId}>
-            <SelectTrigger id="job-factory" className={selectTriggerClass}>
-              <SelectValue placeholder="Choose a factory" />
-            </SelectTrigger>
-            <SelectContent className={selectContentClass}>
-              {company.factories.map((factory) => (
-                <SelectItem key={factory.id} value={factory.id} className="py-2.5">
-                  {[factory.name, formatPlace(factory.city, factory.state)].filter(Boolean).join(' · ')}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Career" htmlFor="job-career" hint="Sets the default skills.">
-          <CareerPicker
-            id="job-career"
-            value={career}
-            onChange={pickCareer}
-            suggestions={suggestions}
-            suggestionsLabel="Careers at this factory"
-          />
-        </Field>
-      </div>
-
-      {career && (
-        <fieldset className="min-w-0" data-job-skills>
-          <legend className="mb-1.5 text-sm font-medium text-fg-muted">Skills</legend>
-          {!seeded && careerSkills.isPending ? (
-            <p className="flex min-h-[42px] items-center gap-2 text-sm text-fg-muted">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading skills
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {!seeded && careerSkills.isError && (
-                <LoadError error={careerSkills.error} onRetry={() => void careerSkills.refetch()} retrying={careerSkills.isFetching} />
-              )}
-              <JobSkillTags
-                id="job-skill-add"
-                value={skills}
-                onChange={setSkills}
-                emptyNote={
-                  !seeded
-                    ? "Unless skills are added, the job uses the career's defaults."
-                    : careerSkills.data?.skills.length === 0
-                      ? 'No skills on record for this career.'
-                      : 'No skills tagged.'
-                }
-              />
-              {skills.length > 0 && <p className="text-xs text-fg-muted">Applicants are ranked by required skills held.</p>}
-            </div>
-          )}
-        </fieldset>
-      )}
-
-      <Field label="Job title" htmlFor="job-title" hint="Defaults to the career name.">
-        <input
-          id="job-title"
-          type="text"
-          maxLength={120}
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-            setTitleEdited(true);
-          }}
-          className={fieldClass}
-        />
-      </Field>
-
-      <fieldset className="min-w-0">
-        <legend className="mb-1.5 text-sm font-medium text-fg-muted">Pay range, in dollars</legend>
-        <div className="grid grid-cols-1 gap-3 xs:grid-cols-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-          <DollarInput id="job-pay-min" label={`Lowest ${per}`} value={payMin} onChange={setPayMin} placeholder={payPeriod === 'hour' ? '24.00' : '52,000'} />
-          <DollarInput id="job-pay-max" label={`Highest ${per}`} value={payMax} onChange={setPayMax} placeholder={payPeriod === 'hour' ? '29.00' : '60,000'} />
-          <div role="radiogroup" aria-label="Pay is per" className="grid h-[42px] grid-cols-2 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1 xs:col-span-2 sm:col-span-1 sm:w-48">
-            {(['hour', 'year'] as const).map((period) => (
-              <button
-                key={period}
-                type="button"
-                role="radio"
-                aria-checked={payPeriod === period}
-                onClick={() => setPayPeriod(period)}
-                className={cn(
-                  'rounded-md text-sm font-medium transition-colors',
-                  payPeriod === period ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
-                )}
-              >
-                Per {period}
-              </button>
-            ))}
-          </div>
-        </div>
-      </fieldset>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Type" htmlFor="job-type">
-          <Select value={employmentType} onValueChange={(value) => setEmploymentType(value as EmploymentType)}>
-            <SelectTrigger id="job-type" className={selectTriggerClass}>
+    <div className={cn(cardClass, 'p-4 sm:p-6')}>
+      {companies.length > 1 && (
+        <Field label="Company" htmlFor="job-company" className="mb-4">
+          <Select value={company.companyId} onValueChange={setCompanyId}>
+            <SelectTrigger id="job-company" className={selectTriggerClass}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent className={selectContentClass}>
-              {EMPLOYMENT_TYPES.map((type) => (
-                <SelectItem key={type} value={type} className="py-2.5">
-                  {employmentLabel(type)}
+              {companies.map((c) => (
+                <SelectItem key={c.companyId} value={c.companyId} className="py-2.5">
+                  {c.companyName}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Shift" htmlFor="job-shift" optional>
-          <input
-            id="job-shift"
-            type="text"
-            maxLength={40}
-            placeholder="Days, 2nd shift, rotating"
-            value={shift}
-            onChange={(e) => setShift(e.target.value)}
-            className={fieldClass}
-          />
-        </Field>
-      </div>
-
-      <Field label="Description" htmlFor="job-description" optional hint="The work, the schedule, and anything an applicant should know.">
-        <textarea
-          id="job-description"
-          rows={5}
-          maxLength={8000}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className={cn(fieldClass, 'resize-y')}
-        />
-      </Field>
-
-      <fieldset className="min-w-0">
-        <legend className="mb-1.5 text-sm font-medium text-fg-muted">Applications</legend>
-        <div role="radiogroup" aria-label="Applications" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <ApplyChoice
-            selected={applyIn === 'app'}
-            onSelect={() => setApplyIn('app')}
-            title="In the app"
-            detail="Applicants are listed on the job page, ranked by skills held."
-          />
-          <ApplyChoice
-            selected={applyIn === 'link'}
-            onSelect={() => setApplyIn('link')}
-            title="Company site"
-            detail="The job links to an external application page."
-          />
-        </div>
-        {applyIn === 'link' && (
-          <Field label="Application link" htmlFor="job-apply-url" className="mt-3">
-            <input
-              id="job-apply-url"
-              type="url"
-              inputMode="url"
-              autoCapitalize="none"
-              spellCheck={false}
-              maxLength={500}
-              placeholder="https://"
-              value={applyUrl}
-              onChange={(e) => setApplyUrl(e.target.value)}
-              className={fieldClass}
-            />
-          </Field>
-        )}
-      </fieldset>
-
-      <ErrorNote error={problem ?? createJob.error} />
-
-      <Button type="submit" disabled={createJob.isPending} className="h-11 w-full rounded-lg sm:w-auto sm:px-8">
-        {createJob.isPending && <Loader2 className="animate-spin" />}
-        Post job
-      </Button>
-    </form>
-  );
-}
-
-function DollarInput({ id, label, value, onChange, placeholder }: { id: string; label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
-  return (
-    <div className="min-w-0">
-      <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-fg-muted" aria-hidden="true">
-          $
-        </span>
-        <input
-          id={id}
-          type="text"
-          inputMode="decimal"
-          autoComplete="off"
-          aria-label={label}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={cn(fieldClass, 'pl-7')}
-        />
-      </div>
-      <span className="mt-1 block text-xs text-fg-muted">{label}</span>
-    </div>
-  );
-}
-
-function ApplyChoice({ selected, onSelect, title, detail }: { selected: boolean; onSelect: () => void; title: string; detail: string }) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      onClick={onSelect}
-      className={cn(
-        'flex items-start gap-3 rounded-lg border p-3 text-left transition-colors',
-        selected ? 'border-[color:var(--color-fg-muted)] bg-bg-elevated' : 'border-border-subtle hover:border-border-strong'
       )}
-    >
-      <span
-        className={cn(
-          'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
-          selected ? 'border-[color:var(--color-fg-default)]' : 'border-[color:var(--color-fg-soft)]'
-        )}
-        aria-hidden="true"
-      >
-        {selected && <span className="h-2 w-2 rounded-full bg-[color:var(--color-fg-default)]" />}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-medium text-fg-default">{title}</span>
-        <span className="mt-0.5 block text-xs text-fg-muted">{detail}</span>
-      </span>
-    </button>
+      {company.factories.length === 0 ? (
+        <p className="text-sm text-fg-muted">
+          {company.companyName} has no factory on record, so a job cannot be posted for it yet.
+        </p>
+      ) : (
+        // A fresh form per company: its factories differ.
+        <JobForm key={company.companyId} company={company} mode="post" onCancel={onCancel} />
+      )}
+    </div>
   );
 }

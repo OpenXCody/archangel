@@ -1,6 +1,8 @@
 import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
 
-const API = 'http://localhost:3000/api';
+// Through the app's own address (the dev server proxies /api), so the suite
+// tests whichever copy of the app BASE_URL points at.
+const API = '/api';
 
 /** Static routes every device profile must render cleanly. */
 const STATIC_ROUTES = ['/map', '/explore', '/import', '/import/bulk'];
@@ -31,7 +33,7 @@ async function assertHealthyLayout(page: Page, label: string): Promise<void> {
   // Something actually rendered (not a blank screen or a crashed boundary):
   // readable text, or — for canvas-first pages like the map — live controls.
   expect(metrics.bodyText > 20 || metrics.interactive >= 3, `${label}: page rendered nothing`).toBe(true);
-  await expect(page.getByText('Something went wrong'), `${label}: ErrorBoundary tripped`).toHaveCount(0);
+  await expect(page.getByText('This page could not be shown'), `${label}: ErrorBoundary tripped`).toHaveCount(0);
   // Evidence, not an assertion: a slow tile or font server must not fail a layout check.
   const file = `test-results/screens/${test.info().project.name}${label.replace(/[/#:]/g, '_')}.png`;
   await page.screenshot({ path: file, fullPage: false, timeout: 10_000 }).catch(() => undefined);
@@ -49,11 +51,31 @@ test('entity detail pages render without overflow', async ({ page, request }) =>
   const entities = ['/companies', '/factories', '/skills', '/occupations'];
   for (const base of entities) {
     const id = await firstId(request, base);
-    if (!id) continue;
+    // No record means the API is down or empty: that is a failure, not a pass.
+    expect(id, `${base}: the API returned a record to open`).toBeTruthy();
     await page.goto(`${base}/${id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1200);
     await assertHealthyLayout(page, `${base}/:id`);
+    // The page drawn is the one for this kind of record, and it has content:
+    // a career must not come out as a company page, nor as an empty one.
+    const view = page.locator(`[data-entity-view="${base.slice(1)}"]`);
+    await expect(view, `${base}/:id draws its own view`).toHaveCount(1);
+    expect(await view.locator('section, h2, h3').count(), `${base}/:id has content`).toBeGreaterThan(0);
   }
+});
+
+test('a career page shows its path, a company page its sites', async ({ page, request }) => {
+  const career = await firstId(request, '/occupations');
+  expect(career, 'the API returned a career to open').toBeTruthy();
+  await page.goto(`/occupations/${career}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-entity-view="occupations"]')).toHaveCount(1);
+  await expect(page.locator('#skills')).toBeVisible();
+
+  const company = await firstId(request, '/companies');
+  expect(company, 'the API returned a company to open').toBeTruthy();
+  await page.goto(`/companies/${company}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-entity-view="companies"]')).toHaveCount(1);
+  await expect(page.locator('#skills')).toHaveCount(0);
 });
 
 test('global search opens and is usable', async ({ page }) => {

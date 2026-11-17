@@ -1,27 +1,21 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { CheckCircle2, Circle, ExternalLink, Info, Loader2, Lock, MapPin, SearchX, Users } from 'lucide-react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { CheckCircle2, Circle, ExternalLink, Loader2, Lock, MapPin, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import {
   ApiError,
-  EMPLOYER_STATUSES,
-  isFinished,
   signInPath,
   useAccount,
   useApply,
   useJob,
-  useJobApplicants,
-  useUpdateApplication,
   useUpdateJob,
-  type Applicant,
-  type ApplicationStatus,
   type JobDetail as JobDetailData,
   type JobDetailResponse,
   type JobSkill,
 } from '../lib/account';
-import { applicationStatusLabel, employmentLabel, formatAgo, formatDate, formatPay, formatPlace } from '../lib/jobFormat';
+import { useApplicantList, useDeleteJob } from '../lib/employerJobs';
+import { employmentLabel, formatAgo, formatDate, formatPay, formatPlace } from '../lib/jobFormat';
 import {
   ApplicationStatusBadge,
   CardNote,
@@ -36,20 +30,40 @@ import {
   fieldClass,
   outlineButtonClass,
   rowClass,
+  textButtonClass,
 } from '../components/account/parts';
+import ApplicantList from '../components/account/ApplicantList';
+import { busyButtonClass } from '../components/account/JobForm';
+import ConfirmDialog from '../components/admin/ConfirmDialog';
 import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
 import CompanyLogo from '../components/CompanyLogo';
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const account = useAccount();
   const job = useJob(id);
   const signedIn = Boolean(account.data?.user);
+  // A person who manages the job sees it as its company does, until they
+  // choose to apply to it themselves.
+  const [applyAsManager, setApplyAsManager] = useState(false);
 
   const title = job.data?.job.title;
   useEffect(() => {
     if (title) document.title = `${title} · Jobs · Archangel`;
   }, [title]);
+
+  // A link to a part of the page (#manage-job) arrives before the job has
+  // loaded, so the browser finds nothing to scroll to. Go there once it has.
+  const loaded = Boolean(job.data);
+  useEffect(() => {
+    if (!loaded || location.hash.length < 2) return;
+    document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
+  }, [loaded, location.hash]);
+
+  useEffect(() => {
+    if (applyAsManager) document.getElementById('apply-note')?.focus();
+  }, [applyAsManager]);
 
   if (job.isPending) return <PageLoading label="Loading job" />;
 
@@ -76,6 +90,10 @@ export default function JobDetail() {
   }
 
   const data = job.data;
+  const manages = data.canManage;
+  const applying = !manages || applyAsManager || Boolean(data.myApplication);
+  // Skills are marked against the reader's own only when they are here to apply.
+  const marksHeld = signedIn && applying;
   const requiredSkills = data.skills.filter((skill) => skill.required);
   const optionalSkills = data.skills.filter((skill) => !skill.required);
   // Not every factory has a city on record; its name places it well enough.
@@ -83,10 +101,17 @@ export default function JobDetail() {
     ? formatPlace(data.job.city, data.job.state)
     : [data.job.factoryName, data.job.state].filter(Boolean).join(', ');
 
+  const terms = <TermsCard job={data.job} showApplications={manages} />;
+  const apply = (
+    <PageSection title="Apply">
+      <ApplyPanel data={data} signedIn={signedIn} />
+    </PageSection>
+  );
+
   return (
     <PageContainer size="narrow">
       <PageHeader
-        backTo={{ to: '/jobs', label: 'All jobs' }}
+        backTo={manages ? { to: '/employer', label: 'Your jobs' } : { to: '/jobs', label: 'All jobs' }}
         eyebrow={`Job #${data.job.serial}`}
         title={data.job.title}
         description={
@@ -105,15 +130,21 @@ export default function JobDetail() {
         }
       />
 
-      {!data.job.isOpen && <ClosedNotice job={data.job} />}
-
-      <PageSection>
-        <TermsCard job={data.job} />
-      </PageSection>
-
-      <PageSection title="Apply">
-        <ApplyPanel data={data} signedIn={signedIn} />
-      </PageSection>
+      {manages ? (
+        // The company's view comes first: the job's state, then who applied.
+        <>
+          <ManageSection job={data.job} />
+          <PageSection title="Listing" description="The job as applicants see it." className="mt-10 border-t border-border-subtle pt-8">
+            {terms}
+          </PageSection>
+        </>
+      ) : (
+        <>
+          {!data.job.isOpen && <ClosedNotice job={data.job} />}
+          <PageSection>{terms}</PageSection>
+          {apply}
+        </>
+      )}
 
       {data.job.description && (
         <PageSection title="About the job">
@@ -125,19 +156,13 @@ export default function JobDetail() {
 
       <PageSection
         title="Required skills"
-        description={
-          requiredSkills.length === 0
-            ? undefined
-            : signedIn
-              ? 'Marked against the skills you hold on your page.'
-              : undefined
-        }
+        description={requiredSkills.length > 0 && marksHeld ? 'Marked against the skills you hold on your page.' : undefined}
       >
         {requiredSkills.length === 0 ? (
           <CardNote>No required skills are listed for this job.</CardNote>
         ) : (
           <>
-            {signedIn ? (
+            {marksHeld ? (
               <HeldMeter
                 held={requiredSkills.filter((skill) => skill.held).length}
                 total={requiredSkills.length}
@@ -145,28 +170,40 @@ export default function JobDetail() {
                 className="mb-3"
               />
             ) : (
-              <p className="mb-3 text-sm text-fg-muted">
-                <Link
-                  to={signInPath(`/jobs/${data.job.id}`)}
-                  className="font-medium text-fg-default underline underline-offset-4 hover:no-underline"
-                >
-                  Sign in
-                </Link>{' '}
-                to see which of these you already hold.
-              </p>
+              !signedIn && (
+                <p className="mb-3 text-sm text-fg-muted">
+                  <Link
+                    to={signInPath(`/jobs/${data.job.id}`)}
+                    className="font-medium text-fg-default underline underline-offset-4 hover:no-underline"
+                  >
+                    Sign in
+                  </Link>{' '}
+                  to see which of these you already hold.
+                </p>
+              )
             )}
-            <SkillList skills={requiredSkills} signedIn={signedIn} />
+            <SkillList skills={requiredSkills} marksHeld={marksHeld} />
           </>
         )}
       </PageSection>
 
       {optionalSkills.length > 0 && (
         <PageSection title="Optional skills" description="Good to have, not needed to apply.">
-          <SkillList skills={optionalSkills} signedIn={signedIn} />
+          <SkillList skills={optionalSkills} marksHeld={marksHeld} />
         </PageSection>
       )}
 
-      {data.canManage && <ManageSection job={data.job} />}
+      {manages &&
+        (applying ? (
+          apply
+        ) : (
+          data.job.isOpen &&
+          !data.job.applyUrl && (
+            <button type="button" onClick={() => setApplyAsManager(true)} className={textButtonClass}>
+              Apply to this job myself
+            </button>
+          )
+        ))}
     </PageContainer>
   );
 }
@@ -216,7 +253,8 @@ function EntityLink({ kind, to, label, name }: { kind: 'company' | 'factory' | '
   );
 }
 
-function TermsCard({ job }: { job: JobDetailData }) {
+function TermsCard({ job, showApplications }: { job: JobDetailData; showApplications: boolean }) {
+  const host = job.applyUrl ? hostOf(job.applyUrl) : null;
   return (
     <div className={cardClass}>
       <dl className="grid grid-cols-1 gap-4 p-4 xs:grid-cols-2 sm:grid-cols-4 sm:p-6">
@@ -224,6 +262,20 @@ function TermsCard({ job }: { job: JobDetailData }) {
         <Term label="Type">{employmentLabel(job.employmentType)}</Term>
         <Term label="Shift">{job.shift || 'Not stated'}</Term>
         <Term label="Posted">{formatDate(job.postedAt)}</Term>
+        {/* Applicants meet this as the Apply panel; the company has none. */}
+        {showApplications && (
+          <div className="min-w-0 xs:col-span-2 sm:col-span-4">
+            <Term label="Applications">
+              {job.applyUrl ? (
+                <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className="break-all underline underline-offset-4 hover:no-underline">
+                  {host ?? job.applyUrl}
+                </a>
+              ) : (
+                'In the app'
+              )}
+            </Term>
+          </div>
+        )}
       </dl>
       <EntityLink kind="company" to={`/companies/${job.companyId}`} label="Company" name={job.companyName} />
       <EntityLink
@@ -241,12 +293,12 @@ function TermsCard({ job }: { job: JobDetailData }) {
 // Skills
 // ---------------------------------------------------------------------------
 
-function SkillList({ skills, signedIn }: { skills: JobSkill[]; signedIn: boolean }) {
+function SkillList({ skills, marksHeld }: { skills: JobSkill[]; marksHeld: boolean }) {
   return (
     <ul className={cardClass}>
       {skills.map((skill) => (
-        <li key={skill.id} className={cn(rowClass, 'flex items-center gap-3 px-4 py-2.5')} data-held={signedIn ? String(skill.held) : undefined}>
-          {signedIn ? (
+        <li key={skill.id} className={cn(rowClass, 'flex items-center gap-3 px-4 py-2.5')} data-held={marksHeld ? String(skill.held) : undefined}>
+          {marksHeld ? (
             skill.held ? (
               <CheckCircle2 className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
             ) : (
@@ -261,7 +313,7 @@ function SkillList({ skills, signedIn }: { skills: JobSkill[]; signedIn: boolean
           >
             {skill.name}
           </Link>
-          {signedIn && (
+          {marksHeld && (
             <span className={cn('shrink-0 text-xs font-medium', skill.held ? 'text-success' : 'text-fg-muted')}>
               {skill.held ? 'You hold this' : 'Not yet'}
             </span>
@@ -288,7 +340,6 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   const { job, myApplication } = data;
   const apply = useApply(job.id);
   const [note, setNote] = useState('');
-  const [applyAsManager, setApplyAsManager] = useState(false);
 
   // A withdrawn application can be taken up again while the job is open, so
   // the form comes back; otherwise the application's state is all there is to show.
@@ -313,30 +364,6 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
 
   if (!job.isOpen) {
     return <CardNote>This job is not taking applications.</CardNote>;
-  }
-
-  if (data.canManage && !applyAsManager) {
-    // The people who run the job mostly come here for its applicants, not to apply.
-    return (
-      <div className={cn(cardClass, 'p-4 sm:p-6')}>
-        <p className="text-sm text-fg-muted">
-          You manage this job for {job.companyName.replace(/\.$/, '')}.{' '}
-          {job.applyUrl ? 'People apply on your own site.' : 'People who apply are listed further down.'}
-        </p>
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-3">
-          <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
-            <a href="#manage-job">{job.applyUrl ? 'Manage this job' : 'Go to applicants'}</a>
-          </Button>
-          <button
-            type="button"
-            onClick={() => setApplyAsManager(true)}
-            className="text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default"
-          >
-            Apply to it myself
-          </button>
-        </div>
-      </div>
-    );
   }
 
   if (job.applyUrl) {
@@ -400,7 +427,12 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
         />
       </Field>
       <ErrorNote error={apply.error} />
-      <Button type="submit" disabled={apply.isPending} className="h-11 w-full rounded-lg sm:w-auto sm:px-8">
+      <Button
+        type="submit"
+        aria-disabled={apply.isPending}
+        aria-busy={apply.isPending}
+        className={cn('h-11 w-full rounded-lg sm:w-auto sm:px-8', busyButtonClass)}
+      >
         {apply.isPending && <Loader2 className="animate-spin" />}
         Apply
       </Button>
@@ -409,75 +441,56 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
 }
 
 // ---------------------------------------------------------------------------
-// For the company: close or reopen, and the applicants
+// For the company: the job's state and what can be done with it, then applicants
 // ---------------------------------------------------------------------------
 
 function ManageSection({ job }: { job: JobDetailData }) {
-  const applicants = useJobApplicants(job.id);
+  const applicants = useApplicantList(job.id);
   const count = applicants.data?.applications.length;
   // With an application link the company collects applications itself.
   const offsite = Boolean(job.applyUrl);
 
   return (
-    <div id="manage-job" className="mt-10 scroll-mt-16 border-t border-border-subtle pt-8">
-      <PageSection
-        title="Manage this job"
-        description={`Only people who manage jobs for ${job.companyName} see this part of the page.`}
-      >
-        <JobStatusControl job={job} />
+    <div id="manage-job" className="scroll-mt-20">
+      <PageSection title="Manage" description={`Seen only by people who manage jobs for ${job.companyName.replace(/\.$/, '')}.`}>
+        <JobStatusControl job={job} applicantCount={count} />
       </PageSection>
 
       <PageSection
         title={
-          <span className="inline-flex items-center gap-2">
-            <Users className="h-4 w-4 text-fg-muted" />
-            Applicants{typeof count === 'number' ? ` (${count})` : ''}
+          <span id="applicants" className="scroll-mt-20">
+            Applicants{count ? <span className="ml-2 font-normal tabular-nums text-fg-muted">{count}</span> : null}
           </span>
         }
-        description={
-          offsite && !count ? undefined : 'Ranked by required skills held, then optional skills held, then who applied first.'
-        }
+        description={count ? 'Ranked by required skills held. Skills are self-reported, not verified.' : undefined}
       >
         {applicants.isPending ? (
           <RowsSkeleton rows={2} />
         ) : applicants.isError ? (
           <LoadError error={applicants.error} onRetry={() => void applicants.refetch()} retrying={applicants.isFetching} />
+        ) : applicants.data.applications.length === 0 ? (
+          <CardNote>{offsite ? 'People apply on your own site, so none are listed here.' : 'Nobody has applied yet.'}</CardNote>
         ) : (
-          <>
-            {applicants.data.skillsAreSelfReported && !(offsite && count === 0) && (
-              <p className={cn(cardClass, 'mb-3 flex items-start gap-2 p-3 text-sm text-fg-muted')}>
-                <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>Skills are self-reported by applicants. Nothing here has been verified.</span>
-              </p>
-            )}
-            {applicants.data.applications.length === 0 ? (
-              <CardNote>
-                {offsite
-                  ? 'People apply to this job on your own site, so applicants are not listed here.'
-                  : 'Nobody has applied yet. Applicants appear here as soon as they do.'}
-              </CardNote>
-            ) : (
-              <ol className="space-y-3">
-                {applicants.data.applications.map((applicant, index) => (
-                  <ApplicantCard key={applicant.id} applicant={applicant} rank={index + 1} />
-                ))}
-              </ol>
-            )}
-          </>
+          <ApplicantList data={applicants.data} />
         )}
       </PageSection>
     </div>
   );
 }
 
-function JobStatusControl({ job }: { job: JobDetailData }) {
+function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applicantCount: number | undefined }) {
+  const navigate = useNavigate();
   const update = useUpdateJob(job.id);
+  const remove = useDeleteJob();
   const [closing, setClosing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [reason, setReason] = useState('');
   const closed = job.status === 'closed';
+  const listed = !closed && job.isOpen;
 
   const close = (event: FormEvent) => {
     event.preventDefault();
+    if (update.isPending) return;
     update.mutate(
       { status: 'closed', closedReason: reason },
       {
@@ -491,32 +504,33 @@ function JobStatusControl({ job }: { job: JobDetailData }) {
 
   return (
     <div className={cn(cardClass, 'p-4 sm:p-6')}>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-        <div className="min-w-0 flex-1 basis-56">
-          <p className="text-sm font-medium text-fg-default">
-            {closed ? 'Closed' : job.isOpen ? 'Open' : 'Expired'}
-            <span className="font-normal text-fg-muted">
-              {closed
-                ? job.closedReason
-                  ? `: ${job.closedReason}`
-                  : ''
-                : job.isOpen
-                  ? ` until ${formatDate(job.expiresAt)}`
-                  : ` on ${formatDate(job.expiresAt)}`}
-            </span>
-          </p>
-          <p className="mt-0.5 text-sm text-fg-muted">
-            {closed || !job.isOpen
-              ? 'Reopening lists the job again for 60 days.'
-              : 'Closing takes it off the jobs list. People who applied can still see it.'}
-          </p>
-        </div>
-        {closed || !job.isOpen ? (
-          <Button type="button" disabled={update.isPending} onClick={() => update.mutate({ status: 'open' })} className="h-10 rounded-lg">
-            {update.isPending && <Loader2 className="animate-spin" />}
-            Reopen job
-          </Button>
-        ) : (
+      <p className="text-sm font-medium text-fg-default" data-job-state={closed ? 'closed' : job.isOpen ? 'open' : 'expired'}>
+        {closed ? 'Closed' : job.isOpen ? 'Open' : 'Expired'}
+        <span className="font-normal text-fg-muted">
+          {closed
+            ? job.closedReason
+              ? `: ${job.closedReason}`
+              : ''
+            : job.isOpen
+              ? ` until ${formatDate(job.expiresAt)}`
+              : ` on ${formatDate(job.expiresAt)}`}
+        </span>
+      </p>
+      <p className="mt-0.5 text-sm text-fg-muted">
+        {listed
+          ? 'Closing takes it off the jobs list. People who applied can still see it.'
+          : 'Reopening lists the job again for 60 days.'}
+        {applicantCount ? ' A job with applicants can be closed, not deleted.' : ''}
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
+          <Link to={`/employer?edit=${job.id}&from=job`}>Edit</Link>
+        </Button>
+        <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
+          <Link to={`/employer?copy=${job.id}&from=job`}>Post another like this</Link>
+        </Button>
+        {listed ? (
           !closing && (
             <Button
               type="button"
@@ -530,31 +544,64 @@ function JobStatusControl({ job }: { job: JobDetailData }) {
               Close job
             </Button>
           )
+        ) : (
+          <Button
+            type="button"
+            aria-disabled={update.isPending}
+            aria-busy={update.isPending}
+            onClick={() => {
+              if (!update.isPending) update.mutate({ status: 'open' });
+            }}
+            className={cn('h-10 rounded-lg', busyButtonClass)}
+          >
+            {update.isPending && <Loader2 className="animate-spin" />}
+            Reopen job
+          </Button>
+        )}
+        {applicantCount === 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              remove.reset();
+              setDeleting(true);
+            }}
+            className={cn(textButtonClass, 'ml-2 h-10')}
+          >
+            Delete
+          </button>
         )}
       </div>
 
-      {closing && !closed && job.isOpen && (
+      {closing && listed && (
         <form onSubmit={close} className="mt-4 space-y-3 border-t border-border-subtle pt-4">
           <Field label="Reason" htmlFor="close-reason" optional hint="Shown to people who applied, e.g. “Position filled”.">
             <input
               id="close-reason"
               type="text"
               maxLength={120}
+              autoFocus
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className={fieldClass}
             />
           </Field>
           <div className="flex flex-wrap gap-2">
-            <Button type="submit" variant="destructive" disabled={update.isPending} className="h-10 rounded-lg">
+            <Button
+              type="submit"
+              variant="destructive"
+              aria-disabled={update.isPending}
+              aria-busy={update.isPending}
+              className={cn('h-10 rounded-lg', busyButtonClass)}
+            >
               {update.isPending && <Loader2 className="animate-spin" />}
               Close this job
             </Button>
             <Button
               type="button"
               variant="outline"
-              disabled={update.isPending}
-              onClick={() => setClosing(false)}
+              onClick={() => {
+                if (!update.isPending) setClosing(false);
+              }}
               className={cn('h-10 rounded-lg', outlineButtonClass)}
             >
               Keep it open
@@ -563,167 +610,21 @@ function JobStatusControl({ job }: { job: JobDetailData }) {
         </form>
       )}
       <ErrorNote error={update.error} className="mt-3" />
-    </div>
-  );
-}
 
-function ApplicantCard({ applicant, rank }: { applicant: Applicant; rank: number }) {
-  const move = useUpdateApplication();
-  const saveNote = useUpdateApplication();
-  const savedNote = applicant.employerNote ?? '';
-  const [note, setNote] = useState(savedNote);
-  const [pendingFinal, setPendingFinal] = useState<ApplicationStatus | null>(null);
-  const finished = isFinished(applicant.status);
-  const noteDirty = note !== savedNote;
-  const noteId = `employer-note-${applicant.id}`;
-
-  const moveTo = (status: ApplicationStatus) => {
-    move.mutate({ applicationId: applicant.id, patch: { status } }, { onSettled: () => setPendingFinal(null) });
-  };
-
-  const chooseStage = (value: string) => {
-    const status = value as ApplicationStatus;
-    if (status === applicant.status) return;
-    move.reset();
-    // Hired and declined cannot be undone, so they take a second step.
-    if (isFinished(status)) setPendingFinal(status);
-    else moveTo(status);
-  };
-
-  return (
-    <li className={cn(cardClass, 'p-4 sm:p-5')} data-applicant={applicant.applicant.email}>
-      <div className="flex flex-wrap items-start gap-x-4 gap-y-3">
-        <div className="flex min-w-0 flex-1 basis-56 items-start gap-3">
-          <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-bg-elevated text-xs font-semibold tabular-nums text-fg-muted"
-            aria-label={`Rank ${rank}`}
-          >
-            {rank}
-          </span>
-          <div className="min-w-0">
-            <p className="break-words text-sm font-semibold text-fg-default">{applicant.applicant.name}</p>
-            <a
-              href={`mailto:${applicant.applicant.email}`}
-              className="block break-all text-sm text-fg-muted underline-offset-4 hover:text-fg-default hover:underline"
-            >
-              {applicant.applicant.email}
-            </a>
-            <p className="mt-0.5 text-xs text-fg-muted">
-              {applicant.applicant.homeZip ? `ZIP ${applicant.applicant.homeZip} · ` : ''}Applied {formatAgo(applicant.createdAt)}
-            </p>
-          </div>
-        </div>
-
-        <div className="w-full shrink-0 sm:w-44">
-          {finished ? (
-            <div className="flex items-center gap-2 sm:justify-end">
-              <ApplicationStatusBadge status={applicant.status} />
-              <span className="text-xs text-fg-muted">Final</span>
-            </div>
-          ) : (
-            <Select value={applicant.status} onValueChange={chooseStage} disabled={move.isPending}>
-              <SelectTrigger
-                aria-label={`Stage for ${applicant.applicant.name}`}
-                className="h-[42px] rounded-lg border-border-strong bg-bg-elevated px-3 text-sm text-fg-default shadow-none"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-lg border-border-strong bg-bg-surface">
-                {EMPLOYER_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status} className="py-2.5">
-                    {applicationStatusLabel(status)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-      </div>
-
-      {pendingFinal && !finished && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-bg-elevated p-3" role="group" aria-label="Confirm final stage">
-          <span className="min-w-0 flex-1 basis-48 text-sm text-fg-default">
-            Mark {applicant.applicant.name} as {applicationStatusLabel(pendingFinal).toLowerCase()}? This is final and cannot be changed.
-          </span>
-          <div className="flex shrink-0 gap-2">
-            <Button type="button" size="sm" disabled={move.isPending} onClick={() => moveTo(pendingFinal)} className="h-9">
-              {move.isPending && <Loader2 className="animate-spin" />}
-              Confirm
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={move.isPending}
-              onClick={() => setPendingFinal(null)}
-              className={cn('h-9', outlineButtonClass)}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-      <ErrorNote error={move.error} className="mt-3" />
-
-      <div className="mt-4">
-        {applicant.totalRequired > 0 ? (
-          <HeldMeter held={applicant.heldRequired} total={applicant.totalRequired} noun="required skills held" />
-        ) : (
-          <p className="text-sm text-fg-muted">This job lists no required skills.</p>
-        )}
-        {applicant.heldOptional > 0 && (
-          <p className="mt-1 text-xs text-fg-muted">
-            Plus {applicant.heldOptional} optional {applicant.heldOptional === 1 ? 'skill' : 'skills'} held.
+      <ConfirmDialog
+        open={deleting}
+        title="Delete this job?"
+        description={
+          <p>
+            Job #{job.serial}, {job.title}, is removed for good. Nobody has applied to it.
           </p>
-        )}
-      </div>
-
-      {applicant.note && (
-        <div className="mt-4">
-          <p className="text-xs text-fg-muted">Note from {applicant.applicant.name}</p>
-          <p className="mt-1 whitespace-pre-line break-words rounded-lg bg-bg-elevated p-3 text-sm text-fg-default">{applicant.note}</p>
-        </div>
-      )}
-
-      <form
-        className="mt-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (!noteDirty || saveNote.isPending) return;
-          // The server stores the note trimmed; match it so the form reads as saved.
-          saveNote.mutate({ applicationId: applicant.id, patch: { employerNote: note } }, { onSuccess: () => setNote((text) => text.trim()) });
-        }}
-      >
-        <Field label="Private note" htmlFor={noteId} hint="Only your company sees this. The applicant never does.">
-          <textarea
-            id={noteId}
-            rows={2}
-            maxLength={2000}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            className={cn(fieldClass, 'resize-y')}
-          />
-        </Field>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <Button
-            type="submit"
-            variant="outline"
-            size="sm"
-            disabled={!noteDirty || saveNote.isPending}
-            className={cn('h-9', outlineButtonClass)}
-          >
-            {saveNote.isPending && <Loader2 className="animate-spin" />}
-            Save note
-          </Button>
-          {saveNote.isSuccess && !noteDirty && (
-            <span role="status" className="inline-flex items-center gap-1.5 text-xs text-success">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Saved
-            </span>
-          )}
-        </div>
-        <ErrorNote error={saveNote.error} className="mt-2" />
-      </form>
-    </li>
+        }
+        confirmLabel="Delete job"
+        busy={remove.isPending}
+        error={remove.error}
+        onConfirm={() => remove.mutate(job.id, { onSuccess: () => navigate('/employer', { replace: true }) })}
+        onCancel={() => setDeleting(false)}
+      />
+    </div>
   );
 }

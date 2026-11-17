@@ -25,6 +25,7 @@ import {
   type SkillStatus,
 } from '../lib/account';
 import { formatAgo, formatPlace } from '../lib/jobFormat';
+import { goalNextSkills, nextSkillNames, useCareersInReach, type NextSkill } from '../lib/seeker';
 import {
   AccountGate,
   ApplicationStatusBadge,
@@ -292,6 +293,7 @@ function GoalsSection() {
                   ) : (
                     <p className="mt-1 text-sm text-fg-muted">No skills on record.</p>
                   )}
+                  <NextSkills next={goalNextSkills(goal)} className="mt-1.5" />
                 </div>
                 <Button
                   type="button"
@@ -311,7 +313,71 @@ function GoalsSection() {
         </ul>
       )}
       <ErrorNote error={removeGoal.error} className="mt-2" />
+      <CareersInReach />
     </PageSection>
+  );
+}
+
+/** The skills to pick up next for a career, as one line of text. Nothing when none are left. */
+function NextSkills({ next, className }: { next: NextSkill[]; className?: string }) {
+  if (next.length === 0) return null;
+  return (
+    <p className={cn('break-words text-sm text-fg-muted', className)}>
+      <span className="text-fg-soft">Next</span> {nextSkillNames(next)}
+    </p>
+  );
+}
+
+/** How many careers within reach are listed before "Show all". */
+const REACH_SHOWN = 4;
+
+/**
+ * Careers the person's held skills already cover part of, closest first.
+ * Renders nothing until there is something to show: a person with no held
+ * skills sees no heading and no placeholder.
+ */
+function CareersInReach() {
+  const reach = useCareersInReach();
+  const [showAll, setShowAll] = useState(false);
+
+  if (reach.isError && !reach.data) {
+    return (
+      <div className="mt-5">
+        <h3 className="mb-2 text-sm font-medium text-fg-muted">Within reach</h3>
+        <LoadError error={reach.error} onRetry={() => void reach.refetch()} retrying={reach.isFetching} />
+      </div>
+    );
+  }
+  if (!reach.data || reach.data.length === 0) return null;
+  const careers = showAll ? reach.data : reach.data.slice(0, REACH_SHOWN);
+
+  return (
+    <div className="mt-5" data-careers-in-reach>
+      <h3 className="mb-2 text-sm font-medium text-fg-muted">Within reach</h3>
+      <ul className={cardClass}>
+        {careers.map((career) => (
+          <li key={career.id} className={cn(rowClass, 'px-4 py-3')}>
+            <div className="flex items-baseline gap-3">
+              <Link
+                to={`/occupations/${career.id}`}
+                className="min-w-0 flex-1 break-words text-sm font-medium text-fg-default underline-offset-4 hover:underline"
+              >
+                {career.title}
+              </Link>
+              <span className="shrink-0 text-sm tabular-nums text-fg-muted" aria-label={`${career.held} of ${career.total} skills held`}>
+                {career.held} of {career.total}
+              </span>
+            </div>
+            <NextSkills next={career.next} className="mt-0.5" />
+          </li>
+        ))}
+      </ul>
+      {!showAll && reach.data.length > REACH_SHOWN && (
+        <button type="button" onClick={() => setShowAll(true)} className={cn(textButtonClass, 'mt-3 px-1')}>
+          Show all
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -349,7 +415,12 @@ function SkillsSection() {
         ) : skills.isError ? (
           <LoadError error={skills.error} onRetry={() => void skills.refetch()} retrying={skills.isFetching} />
         ) : skills.data.length === 0 ? (
-          <CardNote>None added.</CardNote>
+          <CardNote>
+            None added.{' '}
+            <Link to="/explore?tab=occupations" className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+              Mark skills on a career's path
+            </Link>
+          </CardNote>
         ) : (
           <ul className={cardClass}>
             {skills.data.map((skill) => (

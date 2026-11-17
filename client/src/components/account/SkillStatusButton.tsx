@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Wrench } from 'lucide-react';
+import { CheckCircle2, Circle, CircleDashed, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { signInPath, useAccount, useMySkills, useRemoveSkill, useSetSkillStatus, type SkillStatus } from '../../lib/account';
@@ -60,6 +60,48 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
         );
       })}
     </div>
+  );
+}
+
+interface SkillHeldToggleProps {
+  /** The current answer; 'none' when the skill is not on the person's list. */
+  value: Choice;
+  /** 'held' when it was not held, 'none' when it was. */
+  onChange: (next: Choice) => void;
+  disabled?: boolean;
+  /** The skill's name, for screen readers. */
+  label: string;
+  className?: string;
+}
+
+/**
+ * The compact form of the control, for a skill in a list: one mark that reads
+ * as the skill's status (open circle, dashed while learning, checked when
+ * held) and, pressed, sets it held or clears it. Learning is set on the
+ * skill's own page. The mark is small; the button around it is a full touch
+ * target.
+ */
+export function SkillHeldToggle({ value, onChange, disabled, label, className }: SkillHeldToggleProps) {
+  const held = value === 'held';
+  const Icon = held ? CheckCircle2 : value === 'learning' ? CircleDashed : Circle;
+  const state = held ? 'Held' : value === 'learning' ? 'Learning' : 'Not held';
+  return (
+    <button
+      type="button"
+      aria-pressed={held}
+      aria-label={`${label}: ${state}`}
+      title={held ? 'Held' : value === 'learning' ? 'Learning. Mark as held' : 'Mark as held'}
+      disabled={disabled}
+      onClick={() => onChange(held ? 'none' : 'held')}
+      className={cn(
+        'flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-colors',
+        'disabled:cursor-not-allowed disabled:opacity-60',
+        held ? 'text-success' : 'text-fg-muted hover:text-fg-default',
+        className
+      )}
+    >
+      <Icon className="h-5 w-5" aria-hidden="true" />
+    </button>
   );
 }
 
