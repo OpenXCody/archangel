@@ -3,13 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import Layout from './components/layout/Layout';
 import ErrorBoundary, { PageBoundary } from './components/ErrorBoundary';
-import AdminKeyGate from './components/import/AdminKeyGate';
 
 // Lazy load pages for code splitting
 const MapView = lazy(() => import('./pages/MapView'));
 const Explore = lazy(() => import('./pages/Explore'));
-const Import = lazy(() => import('./pages/Import'));
-const BulkImport = lazy(() => import('./pages/BulkImport'));
 const EntityDetail = lazy(() => import('./pages/EntityDetail'));
 const SignIn = lazy(() => import('./pages/SignIn'));
 const Me = lazy(() => import('./pages/Me'));
@@ -40,8 +37,8 @@ function App() {
               {/* The Tree page is gone; old links land on the map. */}
               <Route path="/tree" element={<Navigate to="/map" replace />} />
               <Route path="/explore" element={<PageBoundary><Explore /></PageBoundary>} />
-              <Route path="/import" element={<PageBoundary><AdminKeyGate><Import /></AdminKeyGate></PageBoundary>} />
-              <Route path="/import/bulk" element={<PageBoundary><AdminKeyGate><BulkImport /></AdminKeyGate></PageBoundary>} />
+              {/* The import pages are gone; records are added from Admin Tools. */}
+              <Route path="/import/*" element={<Navigate to="/admin?tab=data" replace />} />
               <Route path="/companies/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/factories/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/occupations/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />

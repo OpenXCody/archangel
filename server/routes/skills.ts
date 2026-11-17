@@ -3,7 +3,7 @@ import { eq, ilike, or, sql, and, ne, isNull } from 'drizzle-orm';
 import { db, skills, occupationSkills, occupations } from '../db/index.js';
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerWriteError, optionalName, requiredText } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, optionalName, optionalText, requiredText } from '../lib/writes.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -172,10 +172,25 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/skills - Create skill
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { category, description } = req.body;
     const name = requiredText(req.body?.name);
+    const category = optionalText(req.body?.category, 80);
+    const description = optionalText(req.body?.description, 2000);
     if (!name) {
       res.status(400).json({ error: 'A skill needs a name of up to 200 characters.' });
+      return;
+    }
+    if (category === false || description === false) {
+      res.status(400).json({ error: 'A category is text of up to 80 characters and a description of up to 2,000.' });
+      return;
+    }
+
+    const [existing] = await db
+      .select({ id: skills.id, name: skills.name })
+      .from(skills)
+      .where(sql`lower(${skills.name}) = lower(${name})`)
+      .limit(1);
+    if (existing) {
+      answerDuplicate(res, 'skill', existing);
       return;
     }
 

@@ -15,16 +15,13 @@ import { setTheme, useTheme } from '../../lib/theme';
 
 /**
  * Titles for the account pages, for the browser tab. Null for any other path.
- * Admin Tools and the import tools it links to are named only for an admin:
- * to anyone else those pages do not exist.
+ * Admin Tools is named only for an admin: to anyone else the page does not exist.
  */
 export function accountPageTitle(pathname: string, isAdmin: boolean): string | null {
   if (pathname === '/sign-in') return 'Sign in';
   if (pathname === '/me') return 'Profile';
   if (pathname === '/employer') return 'Employer';
   if (pathname === '/admin') return isAdmin ? 'Admin Tools' : null;
-  if (pathname === '/import') return 'Import';
-  if (pathname === '/import/bulk') return 'Bulk import';
   return null;
 }
 

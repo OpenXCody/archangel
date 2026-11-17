@@ -5,7 +5,7 @@ import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerWriteError, optionalName, requiredText } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, optionalName, optionalText, requiredText } from '../lib/writes.js';
 
 const router = Router();
 // A company is addressed by its id, or, for reading, by its slug
@@ -183,22 +183,26 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/companies - Create company
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { aliases, industry, description, headquartersLat, headquartersLng } = req.body;
+    const { aliases, headquartersLat, headquartersLng } = req.body;
     const name = requiredText(req.body?.name);
+    const industry = optionalText(req.body?.industry, 80);
+    const description = optionalText(req.body?.description, 600);
     if (!name) {
       res.status(400).json({ error: 'A company needs a name of up to 200 characters.' });
       return;
     }
+    if (industry === false || description === false) {
+      res.status(400).json({ error: 'Industry is text of up to 80 characters and a description of up to 600.' });
+      return;
+    }
 
     // The same name in any letter case is the same company (compared as text, not as a pattern).
-    const existing = await db.select({ id: companies.id, name: companies.name })
+    const [existing] = await db.select({ id: companies.id, name: companies.name, slug: companies.slug })
       .from(companies)
       .where(sql`lower(${companies.name}) = lower(${name})`)
       .limit(1);
-
-    if (existing.length > 0) {
-      // Return existing company instead of error (upsert behavior for import flow)
-      res.status(200).json(existing[0]);
+    if (existing) {
+      answerDuplicate(res, 'company', existing);
       return;
     }
 

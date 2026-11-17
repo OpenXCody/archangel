@@ -11,37 +11,11 @@ export const importanceEnum = pgEnum('importance', [
   'nice_to_have',
 ]);
 
-export const importStatusEnum = pgEnum('import_status', [
-  'pending',
-  'processing',
-  'completed',
-  'failed',
-]);
-
-export const errorStatusEnum = pgEnum('error_status', [
-  'pending',
-  'resolved',
-  'skipped',
-]);
-
-export const errorTypeEnum = pgEnum('error_type', [
-  'missing_required',
-  'duplicate_exact',
-  'potential_alias',
-  'unlinked_relationship',
-  'invalid_format',
-  'out_of_range',
-]);
-
 export const entityTypeEnum = pgEnum('entity_type', [
   'companies',
   'factories',
   'occupations',
   'skills',
-  'refs',
-  'schools',
-  'programs',
-  'persons',
 ]);
 
 // ============================================
@@ -278,65 +252,10 @@ export const externalReferences = pgTable(
 );
 
 // ============================================
-// IMPORT TRACKING
-// ============================================
-
-export const importBatches = pgTable('import_batches', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  fileName: text('file_name').notNull(),
-  entityType: entityTypeEnum('entity_type').notNull(),
-  totalRows: integer('total_rows').notNull(),
-  createdCount: integer('created_count').default(0),
-  updatedCount: integer('updated_count').default(0),
-  skippedCount: integer('skipped_count').default(0),
-  status: importStatusEnum('status').default('pending'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  completedAt: timestamp('completed_at'),
-});
-
-export const errorQueue = pgTable(
-  'error_queue',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    importBatchId: uuid('import_batch_id').references(() => importBatches.id, {
-      onDelete: 'cascade',
-    }),
-    entityType: entityTypeEnum('entity_type').notNull(),
-    sourceRowNumber: integer('source_row_number').notNull(),
-    sourceRowData: text('source_row_data'),
-    errorType: errorTypeEnum('error_type').notNull(),
-    fieldName: text('field_name'),
-    originalValue: text('original_value'),
-    suggestedValue: text('suggested_value'),
-    status: errorStatusEnum('status').default('pending'),
-    resolvedAt: timestamp('resolved_at'),
-    resolutionNotes: text('resolution_notes'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-  },
-  (table) => ({
-    batchIdx: index('error_queue_batch_idx').on(table.importBatchId),
-    statusIdx: index('error_queue_status_idx').on(table.status),
-  })
-);
-
-// ============================================
-// IMPORT_UPLOADS (parsed upload payloads awaiting validate/execute)
-// Replaces the old in-process Map so the multi-step import flow survives
-// serverless instances that don't share memory. Rows are short-lived.
-// ============================================
-
-export const importUploads = pgTable('import_uploads', {
-  id: uuid('id').primaryKey(),
-  fileName: text('file_name').notNull(),
-  rowCount: integer('row_count').notNull(),
-  payload: jsonb('payload').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-// ============================================
-// FACTORY_REVIEW (manual review queue fed by scripts/enrich-naics.mjs)
+// FACTORY_REVIEW (written by scripts/enrich-naics.mjs)
 // A factory lands here when EPA has no NAICS for it, or only a
 // non-manufacturing one. Resolution: 'keep' | 'quarantine' | 'not_a_factory'.
+// There is no screen for it: rows are read and resolved in SQL.
 // ============================================
 
 export const factoryReview = pgTable('factory_review', {

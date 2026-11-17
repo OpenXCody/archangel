@@ -5,7 +5,7 @@ import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerWriteError, optionalName, requiredText } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, optionalName, optionalText, requiredText } from '../lib/writes.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -201,7 +201,6 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/occupations - Create occupation
 // PUT /api/occupations/:id/path - set which skills a career needs and the
 // stage of each (1 Introduction, 2 Fundamentals, 3 Advanced, or null).
 // Body: { skills: [{ skillId, stage }], replace?: boolean, status?: 'draft' | 'approved' }.
@@ -267,12 +266,28 @@ router.put('/:id/path', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/occupations - Create occupation
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { description, onetCode } = req.body;
+    const { onetCode } = req.body;
     const title = requiredText(req.body?.title);
+    const description = optionalText(req.body?.description, 2000);
     if (!title) {
       res.status(400).json({ error: 'A career needs a title of up to 200 characters.' });
+      return;
+    }
+    if (description === false) {
+      res.status(400).json({ error: 'A description is text of up to 2,000 characters.' });
+      return;
+    }
+
+    const [existing] = await db
+      .select({ id: occupations.id, name: occupations.title })
+      .from(occupations)
+      .where(sql`lower(${occupations.title}) = lower(${title})`)
+      .limit(1);
+    if (existing) {
+      answerDuplicate(res, 'career', existing);
       return;
     }
 

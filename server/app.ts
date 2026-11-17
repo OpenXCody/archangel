@@ -4,11 +4,9 @@ import companiesRouter from './routes/companies.js';
 import factoriesRouter from './routes/factories.js';
 import occupationsRouter from './routes/occupations.js';
 import skillsRouter from './routes/skills.js';
-import importRouter from './routes/import.js';
 import statsRouter from './routes/stats.js';
 import searchRouter from './routes/search.js';
 import mapRouter from './routes/map.js';
-import reviewRouter from './routes/review.js';
 import authRouter from './routes/auth.js';
 import meRouter from './routes/me.js';
 import jobsRouter from './routes/jobs.js';
@@ -16,7 +14,7 @@ import employerRouter from './routes/employer.js';
 import adminRouter from './routes/admin.js';
 import exploreRouter from './routes/explore.js';
 import { noStore } from './lib/auth.js';
-import { requireAdmin, requireAdminUser, requireAdminForWrites, adminAuthRequired, isAdminRequest } from './middleware/adminAuth.js';
+import { requireAdminUser, requireAdminForWrites, adminAuthRequired, isAdminRequest } from './middleware/adminAuth.js';
 import { publicCache } from './middleware/cache.js';
 
 /**
@@ -49,8 +47,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   }
   next();
 });
-// Import payloads (transformed rows for validate/execute) exceed the 100kb default.
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json());
 
 // Health check
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -91,10 +88,6 @@ app.use('/api/stats', publicCache(60), statsRouter);
 app.use('/api/search', publicCache(60), searchRouter);
 app.use('/api/map', publicCache(60), mapRouter);
 app.use('/api/explore', publicCache(300), exploreRouter);
-
-// Admin-only pipeline + data review queue
-app.use('/api/import', requireAdmin, importRouter);
-app.use('/api/review', requireAdmin, reviewRouter);
 
 // 404
 app.use((_req: Request, res: Response) => {

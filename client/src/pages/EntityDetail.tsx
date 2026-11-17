@@ -210,7 +210,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
   const [showAllSites, setShowAllSites] = useState(false);
   const [showAllCareers, setShowAllCareers] = useState(false);
   const name = formatCompanyName(data.name);
-  const sites = data.factories ?? [];
+  const sites = useMemo(() => data.factories ?? [], [data.factories]);
   const jobs = data.jobs ?? [];
 
   // Sites that can be placed, for the footprint and for framing them on the map.
@@ -395,7 +395,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
     .join(', ');
   const industry = data.industry || data.specialization;
   const jobs = data.jobs ?? [];
-  const nearby = data.nearby ?? [];
+  const nearby = useMemo(() => data.nearby ?? [], [data.nearby]);
   const latitude = parseFloat(data.latitude);
   const longitude = parseFloat(data.longitude);
   const located = Number.isFinite(latitude) && Number.isFinite(longitude);
