@@ -47,6 +47,9 @@ drizzle/meta/
 test-results/
 playwright-report/
 
+# scripts/ci-local.sh logs
+ci-results/
+
 # scripts/enrich-naics.mjs output
 enrich-naics.checkpoint.json
 enrich-naics-audit.json
