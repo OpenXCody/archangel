@@ -6,7 +6,8 @@ import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { packPins } from '../../shared/pins.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalName, optionalText, requiredText, stateCode } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalText, requiredText, stateCode } from '../lib/writes.js';
+import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 
 /** A company with this many factories nationwide counts as established. */
 const ESTABLISHED_MIN_SITES = 5;
@@ -383,81 +384,35 @@ router.post('/', async (req: Request, res: Response) => {
       openPositions: openings,
     }).returning();
 
+    await recordAdded('factory', result[0], req.user!);
     res.status(201).json(result[0]);
   } catch (error) {
     answerWriteError(res, error, 'factory');
   }
 });
 
-// PUT /api/factories/:id - Update factory
+// PUT /api/factories/:id - Change a factory. A value that is left out stays
+// as it is; one that is given must be usable: name, companyId, state,
+// latitude, longitude, city, address, industry, and the older specialization,
+// description, workforceSize and openPositions.
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const { companyId, name, specialization, description, latitude, longitude, workforceSize, openPositions } = req.body;
-
-    // A value that is left out stays as it is; one that is given must be usable.
-    const cleanName = optionalName(name, 300);
-    const lat = latitude === undefined ? undefined : coordinate(latitude, 'latitude');
-    const lng = longitude === undefined ? undefined : coordinate(longitude, 'longitude');
-    const state = req.body?.state === undefined ? undefined : stateCode(req.body.state);
-    const city = optionalText(req.body?.city, 120);
-    const address = optionalText(req.body?.address, 300);
-    const workforce = workforceSize === undefined ? undefined : count(workforceSize);
-    const openings = openPositions === undefined ? undefined : count(openPositions);
-    if ((companyId !== undefined && !isUuid(companyId)) || cleanName === false || state === null || lat === null || lng === null) {
-      res.status(400).json({ error: FACTORY_NEEDS });
-      return;
-    }
-    if (city === false || address === false) {
-      res.status(400).json({ error: 'A city is text of up to 120 characters and an address of up to 300.' });
-      return;
-    }
-    if (workforce === false || openings === false) {
-      res.status(400).json({ error: 'Workforce and open positions are whole numbers from 0 up.' });
-      return;
-    }
-
-    const result = await db.update(factories)
-      .set({
-        companyId,
-        name: cleanName,
-        specialization,
-        description,
-        latitude: lat,
-        longitude: lng,
-        address,
-        city,
-        state,
-        workforceSize: workforce,
-        openPositions: openings,
-        updatedAt: new Date(),
-      })
-      .where(eq(factories.id, id))
-      .returning();
-
-    if (result.length === 0) {
-      res.status(404).json({ error: 'Factory not found' });
-      return;
-    }
-
-    res.json(result[0]);
+    res.json(await changeRecord('factory', req.params.id, req.body, req.user!));
   } catch (error) {
-    answerWriteError(res, error, 'factory');
+    answerRefusal(res, error, 'factory');
   }
 });
 
-// DELETE /api/factories/:id - Delete factory
+// DELETE /api/factories/:id - Delete a factory. Its jobs and their
+// applications go with it; `removed` counts them.
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const result = await db.delete(factories).where(eq(factories.id, id)).returning();
-
-    if (result.length === 0) {
+    const gone = await removeRecord('factory', req.params.id, req.user!);
+    if (!gone) {
       res.status(404).json({ error: 'Factory not found' });
       return;
     }
-
-    res.json({ message: 'Factory deleted', id });
+    res.json({ message: 'Factory deleted', id: gone.id, removed: gone.removed });
   } catch (error) {
     console.error('Error deleting factory:', error);
     res.status(500).json({ error: 'Failed to delete factory' });

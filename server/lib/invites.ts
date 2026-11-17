@@ -10,12 +10,19 @@ import { hashToken } from './auth.js';
  */
 
 export const INVITE_DAYS = 14;
+/** An admin invite grants the most, so its link is open for the shortest time. */
+export const ADMIN_INVITE_DAYS = 3;
 
 export const INVITE_ROLES = ['user', 'employer', 'admin'] as const;
 export type InviteRole = (typeof INVITE_ROLES)[number];
 
 export function isInviteRole(value: unknown): value is InviteRole {
   return typeof value === 'string' && (INVITE_ROLES as readonly string[]).includes(value);
+}
+
+/** How many days an invite for this role can be used. */
+export function inviteDays(role: InviteRole): number {
+  return role === 'admin' ? ADMIN_INVITE_DAYS : INVITE_DAYS;
 }
 
 /** Tokens are 43 characters; anything much longer is not one of ours. */

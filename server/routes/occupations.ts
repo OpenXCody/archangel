@@ -5,7 +5,9 @@ import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerDuplicate, answerWriteError, optionalName, optionalText, requiredText } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
+import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
+import { recordAudit } from '../lib/audit.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -224,7 +226,10 @@ router.put('/:id/path', async (req: Request, res: Response) => {
       }
       rows.push({ occupationId: id, skillId: item.skillId, stage: stage as number | null });
     }
-    const [occupation] = await db.select({ id: occupations.id }).from(occupations).where(eq(occupations.id, id));
+    const [occupation] = await db
+      .select({ id: occupations.id, title: occupations.title, pathStatus: occupations.pathStatus })
+      .from(occupations)
+      .where(eq(occupations.id, id));
     if (!occupation) {
       res.status(404).json({ error: 'Occupation not found' });
       return;
@@ -243,6 +248,13 @@ router.put('/:id/path', async (req: Request, res: Response) => {
       return;
     }
     await db.transaction(async (tx) => {
+      const pathNow = () =>
+        tx
+          .select({ skillId: occupationSkills.skillId, name: skills.name, stage: occupationSkills.stage })
+          .from(occupationSkills)
+          .innerJoin(skills, eq(skills.id, occupationSkills.skillId))
+          .where(eq(occupationSkills.occupationId, id));
+      const before = await pathNow();
       if (status !== undefined) {
         await tx.update(occupations).set({ pathStatus: status }).where(eq(occupations.id, id));
       }
@@ -257,6 +269,29 @@ router.put('/:id/path', async (req: Request, res: Response) => {
             target: [occupationSkills.occupationId, occupationSkills.skillId],
             set: { stage: row.stage },
           });
+      }
+      // The line in the audit log: which skills came, went or changed stage, and the path's state.
+      const after = await pathNow();
+      const was = new Map(before.map((row) => [row.skillId, row]));
+      const is = new Map(after.map((row) => [row.skillId, row]));
+      const added = after.filter((row) => !was.has(row.skillId)).map((row) => row.name);
+      const removed = before.filter((row) => !is.has(row.skillId)).map((row) => row.name);
+      const restaged = after.filter((row) => was.has(row.skillId) && was.get(row.skillId)!.stage !== row.stage).map((row) => row.name);
+      const statusChanged = status !== undefined && status !== occupation.pathStatus;
+      if (statusChanged || added.length > 0 || removed.length > 0 || restaged.length > 0) {
+        await recordAudit(tx, {
+          actor: req.user!,
+          kind: 'career',
+          recordId: id,
+          recordName: occupation.title,
+          action: !statusChanged ? 'path edited' : status === 'approved' ? 'path approved' : 'path returned to draft',
+          detail: {
+            ...(statusChanged ? { changes: { pathStatus: [occupation.pathStatus, status] } } : {}),
+            ...(added.length > 0 ? { skillsAdded: added.slice(0, 40) } : {}),
+            ...(removed.length > 0 ? { skillsRemoved: removed.slice(0, 40) } : {}),
+            ...(restaged.length > 0 ? { skillsMoved: restaged.slice(0, 40) } : {}),
+          },
+        });
       }
     });
     res.json({ occupationId: id, skills: rows.length });
@@ -297,59 +332,32 @@ router.post('/', async (req: Request, res: Response) => {
       onetCode,
     }).returning();
 
+    await recordAdded('career', { id: result[0].id, name: result[0].title }, req.user!);
     res.status(201).json(result[0]);
   } catch (error) {
     answerWriteError(res, error, 'career');
   }
 });
 
-// PUT /api/occupations/:id - Update occupation
+// PUT /api/occupations/:id - Change a career: title, description, onetCode, aliases.
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const { description, onetCode } = req.body;
-    const title = optionalName(req.body?.title);
-    if (title === false) {
-      res.status(400).json({ error: 'A career needs a title of up to 200 characters.' });
-      return;
-    }
-    if (title === undefined && description === undefined && onetCode === undefined) {
-      res.status(400).json({ error: 'Nothing to change.' });
-      return;
-    }
-
-    const result = await db.update(occupations)
-      .set({
-        title,
-        description,
-        onetCode,
-      })
-      .where(eq(occupations.id, id))
-      .returning();
-
-    if (result.length === 0) {
-      res.status(404).json({ error: 'Occupation not found' });
-      return;
-    }
-
-    res.json(result[0]);
+    res.json(await changeRecord('career', req.params.id, req.body, req.user!));
   } catch (error) {
-    answerWriteError(res, error, 'career');
+    answerRefusal(res, error, 'career');
   }
 });
 
-// DELETE /api/occupations/:id - Delete occupation
+// DELETE /api/occupations/:id - Delete a career. Its path, jobs and their
+// applications, and people's goals go with it; `removed` counts them.
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const result = await db.delete(occupations).where(eq(occupations.id, id)).returning();
-
-    if (result.length === 0) {
+    const gone = await removeRecord('career', req.params.id, req.user!);
+    if (!gone) {
       res.status(404).json({ error: 'Occupation not found' });
       return;
     }
-
-    res.json({ message: 'Occupation deleted', id });
+    res.json({ message: 'Occupation deleted', id: gone.id, removed: gone.removed });
   } catch (error) {
     console.error('Error deleting occupation:', error);
     res.status(500).json({ error: 'Failed to delete occupation' });

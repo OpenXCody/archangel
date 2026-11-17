@@ -38,7 +38,7 @@ try {
   } else if (person.is_admin) {
     console.log(`make-admin: ${person.name} <${email}> is already an admin on ${host}. Nothing changed.`);
   } else {
-    await sql`UPDATE users SET is_admin = true, updated_at = now() WHERE id = ${person.id}`;
+    await sql`UPDATE users SET is_admin = true, admin_since = now(), updated_at = now() WHERE id = ${person.id}`;
     console.log(`make-admin: ${person.name} <${email}> is now an admin on ${host}.`);
   }
 } catch (error) {

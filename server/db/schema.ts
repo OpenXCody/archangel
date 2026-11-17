@@ -304,6 +304,8 @@ export const users = pgTable(
     applicationsSeenAt: timestamp('applications_seen_at', { withTimezone: true }),
     applicantsSeenAt: timestamp('applicants_seen_at', { withTimezone: true }),
     accessSeenAt: timestamp('access_seen_at', { withTimezone: true }),
+    // Migration 0025. When the person became an admin; the longest-standing admin is the first admin.
+    adminSince: timestamp('admin_since', { withTimezone: true }),
   },
   (table) => ({
     emailIdx: uniqueIndex('users_email_idx').on(table.email),
@@ -577,3 +579,31 @@ export const noticeLog = pgTable('notice_log', {
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
   jobId: uuid('job_id').references(() => jobs.id, { onDelete: 'cascade' }),
 });
+
+// ============================================
+// AUDIT LOG (migration 0025)
+// ============================================
+
+// One row for every change an admin makes. `kind` is what was changed
+// ('company' | 'factory' | 'career' | 'skill' | 'person' | 'access' |
+// 'invite') and `recordId` which one; both names are kept as text so a line
+// still reads after the record or the admin is gone. `detail` holds a short
+// before and after (see server/lib/audit.ts).
+export const auditLog = pgTable(
+  'audit_log',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    at: timestamp('at', { withTimezone: true }).defaultNow().notNull(),
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'set null' }),
+    actorName: text('actor_name').notNull(),
+    kind: text('kind').notNull(),
+    recordId: uuid('record_id'),
+    recordName: text('record_name').notNull(),
+    action: text('action').notNull(),
+    detail: jsonb('detail'),
+  },
+  (table) => ({
+    atIdx: index('audit_log_at_idx').on(table.at),
+    recordIdx: index('audit_log_record_idx').on(table.kind, table.recordId, table.at),
+  })
+);
