@@ -27,9 +27,6 @@ coverage/
 # Vercel
 .vercel/
 
-# Drizzle
-drizzle/meta/
-
 # Temp files
 *.tmp
 *.temp

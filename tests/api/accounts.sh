@@ -61,6 +61,10 @@ HDRS=$(curl -sI "$API/health" | tr -d '\r' | tr 'A-Z' 'a-z')
 expect "API responses say nosniff"        1 "$(printf '%s' "$HDRS" | grep -c '^x-content-type-options: nosniff')"
 expect "API responses cannot be framed"   1 "$(printf '%s' "$HDRS" | grep -c "^content-security-policy: default-src 'none'; frame-ancestors 'none'")"
 expect "API does not name its framework"  0 "$(printf '%s' "$HDRS" | grep -c '^x-powered-by')"
+# The heaviest cached reads take only their own parameters, so a made-up one cannot be used to miss the cache.
+check "pins with a made-up parameter"     400 "$(req anon GET '/factories/pins?_=1')" 'Unknown query parameter'
+check "state counts with one"             400 "$(req anon GET '/map/state-counts?x=1')" 'Unknown query parameter'
+check "state counts as the map asks"      200 "$(req anon GET /map/state-counts)"
 check "sign-up rejects short password" 400 "$(req s POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Sam Seeker","password":"short"}')"
 check "sign-up seeker"                201 "$(req s POST /auth/sign-up '{"email":"Seeker-'"$RUN"'@E2E.test","name":"Sam Seeker","password":"correct horse"}')" '"email":"seeker-'"$RUN"'@e2e.test"'
 check "sign-up duplicate"             409 "$(req x POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Dup","password":"correct horse"}')"

@@ -15,6 +15,7 @@
     "db:seed": "tsx server/scripts/seed.ts",
     "lint": "eslint . --ext .ts,.tsx && node scripts/check-esm-imports.mjs && node scripts/check-theme-colors.mjs && node scripts/check-csp.mjs",
     "typecheck": "tsc --noEmit",
+    "test:unit": "node --import tsx --test tests/unit/*.unit.ts",
     "test:ui": "playwright test",
     "test:ui:install": "playwright install chromium"
   },

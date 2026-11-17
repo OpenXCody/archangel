@@ -14,7 +14,7 @@ import adminRouter from './routes/admin.js';
 import exploreRouter from './routes/explore.js';
 import { noStore } from './lib/auth.js';
 import { requireAdminUser, requireAdminForWrites } from './middleware/adminAuth.js';
-import { publicCache } from './middleware/cache.js';
+import { onlyQuery, publicCache } from './middleware/cache.js';
 
 /**
  * The one Express app. `server/index.ts` listens on it for local dev;
@@ -72,8 +72,10 @@ app.use('/api/admin', noStore, requireAdminUser, adminRouter);
 
 // Edge caching. The two heaviest map payloads get 5 minutes; everything else
 // public gets 1 minute. Admin writes are never cached (GET-only middleware).
-app.get('/api/factories/pins', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
-app.get('/api/map/state-counts', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
+// Both take only the parameters named here, so an address made up to miss the
+// cache is refused before it reaches the database.
+app.get('/api/factories/pins', onlyQuery('states', 'company', 'industry'), publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
+app.get('/api/map/state-counts', onlyQuery(), publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
 
 // Public reads (cached at the edge); writes take a signed-in admin.
 app.use('/api/companies', publicCache(60), requireAdminForWrites, companiesRouter);

@@ -5,7 +5,7 @@
 #   createdb archangel_ci
 #   DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/archangel_ci bash scripts/ci-local.sh
 #
-# Against an EMPTY database on this machine it:
+# Against an EMPTY database on this machine it runs the unit checks, then:
 #   1. builds the schema from nothing and loads sample data
 #      (scripts/create-db.mjs --sample: migrations 0000-0009, the runner's
 #      migrations, the seed, then the runner's migrations a second time);
@@ -68,6 +68,10 @@ port_free() { ! curl -s -o /dev/null "http://localhost:$1/"; }
 
 port_free "$API_PORT" || die "something is already listening on port $API_PORT (set PORT)."
 port_free "$WEB_PORT" || die "something is already listening on port $WEB_PORT (set WEB_PORT)."
+
+step "Unit checks"
+node --import tsx --test tests/unit/*.unit.ts > "$LOGS/unit.log" 2>&1 || { grep -B2 -A12 '^not ok' "$LOGS/unit.log" | head -n 60; die "the unit checks failed."; }
+grep -E '^# (tests|pass|fail) ' "$LOGS/unit.log" | tr '\n' ' '; echo
 
 step "Schema from nothing, sample data"
 node scripts/create-db.mjs --sample > "$LOGS/create-db.log" 2>&1 || { tail -n 40 "$LOGS/create-db.log"; die "the database could not be built."; }
