@@ -19,7 +19,7 @@ import { US_STATES } from '@shared/states';
 import { FOCUS_AREAS } from '@shared/scope';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 
-// Map-relevant entity types (refs, schools, programs are not map-related)
+// The kinds of result the map can act on
 type MapSearchableEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states';
 type ResultGroupId = MapSearchableEntityType | 'places';
 
@@ -125,7 +125,7 @@ export default function MapSearch() {
   // Search query
   const { data: searchResults, isLoading } = useQuery({
     queryKey: ['map-search', debouncedQuery],
-    // Only the types the map can act on — skipping refs/schools/programs cuts the query fan-out by ~40%.
+    // Only the types the map can act on.
     queryFn: () => searchApi.search(debouncedQuery, { limit: 5, types: ['companies', 'factories', 'occupations', 'skills', 'states'] }),
     enabled: debouncedQuery.length >= 2,
     staleTime: 30000,

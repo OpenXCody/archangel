@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
-import { companies, factories, occupations, skills, states, refs, schools, programs } from '../db/schema.js';
+import { companies, factories, occupations, skills } from '../db/schema.js';
 import { ilike, or, and, count, sql, type AnyColumn } from 'drizzle-orm';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
-import { companyInScope, factoryInScope, programInScope, schoolInScope } from '../lib/scope.js';
+import { companyInScope, factoryInScope } from '../lib/scope.js';
+import { US_STATES } from '../../shared/states.js';
 import { pageLimit } from '../lib/paging.js';
 
 const router = Router();
@@ -44,7 +45,7 @@ function sortByRelevance<T extends { name: string }>(items: T[], query: string):
 interface SearchResultItem {
   id: string;
   name: string;
-  type: 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'refs' | 'schools' | 'programs';
+  type: 'companies' | 'factories' | 'occupations' | 'skills' | 'states';
   subtitle?: string;
   meta?: string;
   /** Companies only: the web domain their logo is looked up from. */
@@ -59,16 +60,13 @@ interface SearchResults {
     occupations: { count: number; items: SearchResultItem[] };
     skills: { count: number; items: SearchResultItem[] };
     states: { count: number; items: SearchResultItem[] };
-    refs: { count: number; items: SearchResultItem[] };
-    schools: { count: number; items: SearchResultItem[] };
-    programs: { count: number; items: SearchResultItem[] };
   };
   totalCount: number;
 }
 
-// GET /api/search - Global search across all entities.
-// Location-bound entities (companies, factories, schools, programs) only match
-// in scope, so a hit never links to a detail page that would 404.
+// GET /api/search - Search across companies, factories, careers, skills and states.
+// Companies and factories only match in scope, so a hit never links to a
+// detail page that would 404.
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { q, types, limit = '5' } = req.query;
@@ -102,10 +100,9 @@ router.get('/', async (req: Request, res: Response) => {
           END, length(${column}), ${column}`;
     const maxLimit = pageLimit(limit, 5, 20);
 
-    // Parse types filter (persons excluded from search for privacy)
     const typeFilter = types
       ? (types as string).split(',').map(t => t.trim())
-      : ['companies', 'factories', 'occupations', 'skills', 'states', 'refs', 'schools', 'programs'];
+      : ['companies', 'factories', 'occupations', 'skills', 'states'];
 
     const results: SearchResults = {
       query,
@@ -115,9 +112,6 @@ router.get('/', async (req: Request, res: Response) => {
         occupations: { count: 0, items: [] },
         skills: { count: 0, items: [] },
         states: { count: 0, items: [] },
-        refs: { count: 0, items: [] },
-        schools: { count: 0, items: [] },
-        programs: { count: 0, items: [] },
       },
       totalCount: 0,
     };
@@ -310,189 +304,18 @@ router.get('/', async (req: Request, res: Response) => {
       };
     }
 
-    // Search states
+    // States come from the fixed list (shared/states.ts), matched by name or
+    // by the whole two-letter code. A state has no id of its own: its code
+    // stands in, and the client opens it on the map.
     if (typeFilter.includes('states')) {
-      const [stateResults, stateCount] = await Promise.all([
-        db
-          .select({
-            id: states.id,
-            code: states.code,
-            name: states.name,
-          })
-          .from(states)
-          .where(
-            or(
-              ilike(states.name, searchPattern),
-              ilike(states.code, searchPattern)
-            )
-          )
-          .orderBy(byRelevance(states.name))
-          .limit(maxLimit),
-        db
-          .select({ count: count() })
-          .from(states)
-          .where(
-            or(
-              ilike(states.name, searchPattern),
-              ilike(states.code, searchPattern)
-            )
-          ),
-      ]);
-
-      const stateItems = stateResults.map((s) => ({
-        id: s.id,
-        name: s.name,
-        type: 'states' as const,
-        subtitle: s.code,
-      }));
+      const term = query.toLowerCase();
+      const stateItems = US_STATES.filter(
+        (s) => s.name.toLowerCase().includes(term) || s.code.toLowerCase() === term
+      ).map((s) => ({ id: s.code, name: s.name, type: 'states' as const, subtitle: s.code }));
 
       results.results.states = {
-        count: stateCount[0]?.count ?? 0,
-        items: sortByRelevance(stateItems, query),
-      };
-    }
-
-    // Search refs (elements)
-    if (typeFilter.includes('refs')) {
-      const [refResults, refCount] = await Promise.all([
-        db
-          .select({
-            id: refs.id,
-            name: refs.name,
-            type: refs.type,
-            manufacturer: refs.manufacturer,
-          })
-          .from(refs)
-          .where(
-            or(
-              ilike(refs.name, searchPattern),
-              ilike(refs.description, searchPattern),
-              ilike(refs.manufacturer, searchPattern)
-            )
-          )
-          .orderBy(byRelevance(refs.name))
-          .limit(maxLimit),
-        db
-          .select({ count: count() })
-          .from(refs)
-          .where(
-            or(
-              ilike(refs.name, searchPattern),
-              ilike(refs.description, searchPattern),
-              ilike(refs.manufacturer, searchPattern)
-            )
-          ),
-      ]);
-
-      const refItems = refResults.map((r) => ({
-        id: r.id,
-        name: r.name,
-        type: 'refs' as const,
-        subtitle: r.type,
-        meta: r.manufacturer || undefined,
-      }));
-
-      results.results.refs = {
-        count: refCount[0]?.count ?? 0,
-        items: sortByRelevance(refItems, query),
-      };
-    }
-
-    // Search schools
-    if (typeFilter.includes('schools')) {
-      const [schoolResults, schoolCount] = await Promise.all([
-        db
-          .select({
-            id: schools.id,
-            name: schools.name,
-            schoolType: schools.schoolType,
-            state: schools.state,
-          })
-          .from(schools)
-          .where(
-            and(
-              schoolInScope(),
-              or(
-                ilike(schools.name, searchPattern),
-                ilike(schools.description, searchPattern)
-              )
-            )
-          )
-          .orderBy(byRelevance(schools.name))
-          .limit(maxLimit),
-        db
-          .select({ count: count() })
-          .from(schools)
-          .where(
-            and(
-              schoolInScope(),
-              or(
-                ilike(schools.name, searchPattern),
-                ilike(schools.description, searchPattern)
-              )
-            )
-          ),
-      ]);
-
-      const schoolItems = schoolResults.map((s) => ({
-        id: s.id,
-        name: s.name,
-        type: 'schools' as const,
-        subtitle: s.schoolType || undefined,
-        meta: s.state || undefined,
-      }));
-
-      results.results.schools = {
-        count: schoolCount[0]?.count ?? 0,
-        items: sortByRelevance(schoolItems, query),
-      };
-    }
-
-    // Search programs
-    if (typeFilter.includes('programs')) {
-      const [programResults, programCount] = await Promise.all([
-        db
-          .select({
-            id: programs.id,
-            title: programs.title,
-            credentialType: programs.credentialType,
-          })
-          .from(programs)
-          .where(
-            and(
-              programInScope(),
-              or(
-                ilike(programs.title, searchPattern),
-                ilike(programs.description, searchPattern)
-              )
-            )
-          )
-          .orderBy(byRelevance(programs.title))
-          .limit(maxLimit),
-        db
-          .select({ count: count() })
-          .from(programs)
-          .where(
-            and(
-              programInScope(),
-              or(
-                ilike(programs.title, searchPattern),
-                ilike(programs.description, searchPattern)
-              )
-            )
-          ),
-      ]);
-
-      const programItems = programResults.map((p) => ({
-        id: p.id,
-        name: p.title,
-        type: 'programs' as const,
-        subtitle: p.credentialType || undefined,
-      }));
-
-      results.results.programs = {
-        count: programCount[0]?.count ?? 0,
-        items: sortByRelevance(programItems, query),
+        count: stateItems.length,
+        items: sortByRelevance(stateItems, query).slice(0, maxLimit),
       };
     }
 
@@ -502,10 +325,7 @@ router.get('/', async (req: Request, res: Response) => {
       results.results.factories.count +
       results.results.occupations.count +
       results.results.skills.count +
-      results.results.states.count +
-      results.results.refs.count +
-      results.results.schools.count +
-      results.results.programs.count;
+      results.results.states.count;
 
     res.json(results);
   } catch (error) {

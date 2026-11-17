@@ -10,9 +10,9 @@ import { SCOPE, type FocusArea } from '../../shared/scope.js';
  * regions being filled out in depth) are separate; see `areaBox`.
  *
  * Every public GET limits what it returns to SCOPE (shared/scope.ts). Rows
- * outside it stay in the database and stay reachable through the admin-only
- * routers (import, review) and the write handlers, which are deliberately
- * unscoped so other states can still be loaded and corrected.
+ * outside it stay in the database and stay reachable through the write
+ * handlers, which are deliberately unscoped so other states can still be
+ * loaded and corrected.
  *
  * Routes must build their conditions from these helpers and never compare
  * against a state code themselves; that keeps widening the region a change to
@@ -43,28 +43,6 @@ export function companyInScope(companyTable = 'companies'): SQL {
   return sql`EXISTS (
     SELECT 1 FROM factories scope_f
     WHERE scope_f.company_id = ${column(companyTable, 'id')} AND ${factoryInScope('scope_f')}
-  )`;
-}
-
-/** The school sits in the covered region. */
-export function schoolInScope(schoolTable = 'schools'): SQL {
-  if (SCOPE.stateCode === null) return sql`TRUE`;
-  return sql`${column(schoolTable, 'state')} = ${SCOPE.stateCode}`;
-}
-
-/**
- * Programs carry no location of their own; they take their school's. A program
- * with no school (an online or open curriculum) has no location to judge, so
- * it stays visible.
- */
-export function programInScope(programTable = 'programs'): SQL {
-  if (SCOPE.stateCode === null) return sql`TRUE`;
-  return sql`(
-    ${column(programTable, 'school_id')} IS NULL
-    OR EXISTS (
-      SELECT 1 FROM schools scope_s
-      WHERE scope_s.id = ${column(programTable, 'school_id')} AND ${schoolInScope('scope_s')}
-    )
   )`;
 }
 

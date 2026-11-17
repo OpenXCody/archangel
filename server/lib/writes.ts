@@ -1,4 +1,5 @@
 import type { Response } from 'express';
+import { US_STATES } from '../../shared/states.js';
 
 /**
  * Checks shared by the routes that create and change records (companies,
@@ -23,6 +24,36 @@ export function optionalName(value: unknown, max = 200): string | undefined | fa
   return requiredText(value, max) ?? false;
 }
 
+/**
+ * Optional text (a city, an address, a description): undefined when left out,
+ * null when given empty, the trimmed text otherwise. False when it is not text
+ * or runs past `max`.
+ */
+export function optionalText(value: unknown, max = 200): string | null | undefined | false {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (typeof value !== 'string') return false;
+  const text = value.trim();
+  if (text.length > max) return false;
+  return text === '' ? null : text;
+}
+
+const STATE_CODES: ReadonlySet<string> = new Set(US_STATES.map((state) => state.code));
+
+/** A state as its two-letter code (shared/states.ts), or null when it is not one. */
+export function stateCode(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const code = value.trim().toUpperCase();
+  return STATE_CODES.has(code) ? code : null;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** True for text in the form of a record id. */
+export function isUuid(value: unknown): value is string {
+  return typeof value === 'string' && UUID_RE.test(value);
+}
+
 /** A latitude or longitude as the text the table stores, or null when it is not one. */
 export function coordinate(value: unknown, kind: 'latitude' | 'longitude'): string | null {
   const number = typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN;
@@ -43,6 +74,19 @@ function pgCode(error: unknown): string | undefined {
   if (typeof own === 'string') return own;
   const cause = (error as { cause?: { code?: unknown } } | null)?.cause?.code;
   return typeof cause === 'string' ? cause : undefined;
+}
+
+/**
+ * Answers a write that would repeat a record that is already there: 409, with
+ * the record it would repeat so the person can be sent to it.
+ */
+export function answerDuplicate(
+  res: Response,
+  what: string,
+  existing: { id: string; name: string; slug?: string | null },
+  message = `A ${what} with that name already exists.`
+): void {
+  res.status(409).json({ error: message, existing });
 }
 
 /** Answers a failed write: 409 for a duplicate, 400 for a bad reference or value, else 500. */

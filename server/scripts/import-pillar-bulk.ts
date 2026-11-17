@@ -85,10 +85,6 @@ async function main() {
 
   // ─── 2. Preload Archangel reference data ─────────────────────────────
   console.log('Loading Archangel reference data…');
-  const stateIdByCode = new Map<string, string>();
-  const states = await arch<{ id: string; code: string }[]>`SELECT id, code FROM states`;
-  for (const s of states) stateIdByCode.set(s.code.toUpperCase(), s.id);
-
   // All existing EPA registry ids (skip factories we've already imported)
   const existingEpa = new Set<string>();
   const epaRefs = await arch<{ external_id: string }[]>`
@@ -106,7 +102,7 @@ async function main() {
     companyIdByName.set(c.name.toLowerCase().trim(), c.id);
     if (c.aliases) for (const a of c.aliases) companyIdByName.set(a.toLowerCase().trim(), c.id);
   }
-  console.log(`  states: ${stateIdByCode.size}, existing EPA refs: ${existingEpa.size.toLocaleString()}, existing companies: ${companyRows.length.toLocaleString()}`);
+  console.log(`  existing EPA refs: ${existingEpa.size.toLocaleString()}, existing companies: ${companyRows.length.toLocaleString()}`);
 
   // ─── 3. Normalize names + group rows by canonical company ────────────
   type EnrichedRow = (typeof pillarRows)[number] & { __canonical: string };
@@ -165,7 +161,6 @@ async function main() {
     address: string | null;
     city: string | null;
     state: string | null;
-    state_id: string | null;
     zip_code: string | null;
     latitude: string;
     longitude: string;
@@ -189,7 +184,6 @@ async function main() {
       address: r.address ?? null,
       city: r.city ?? null,
       state: r.state ?? null,
-      state_id: r.state ? stateIdByCode.get(String(r.state).toUpperCase()) ?? null : null,
       zip_code: r.zip ?? null,
       latitude: String(r.latitude),
       longitude: String(r.longitude),
@@ -210,7 +204,7 @@ async function main() {
   for (const batch of chunk(factoryRows, INSERT_BATCH)) {
     await arch`INSERT INTO factories ${arch(
       batch as any,
-      'id', 'company_id', 'name', 'address', 'city', 'state', 'state_id',
+      'id', 'company_id', 'name', 'address', 'city', 'state',
       'zip_code', 'latitude', 'longitude', 'primary_naics',
       'primary_naics_description', 'workforce_size', 'source_count', 'confidence',
     )}`;

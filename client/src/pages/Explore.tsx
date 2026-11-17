@@ -93,7 +93,7 @@ function ExploreView({ view }: { view: ExploreView }) {
 /**
  * Explore: an overview of what is here (/explore), and behind it a list of
  * everything of each kind (/explore?tab=companies, factories, occupations,
- * skills, refs, schools, programs).
+ * skills).
  */
 export default function Explore() {
   const [searchParams] = useSearchParams();
@@ -113,7 +113,7 @@ export default function Explore() {
         description={counts.isError ? undefined : <Figures counts={counts.data} />}
         className="mb-4 sm:mb-6"
       />
-      <ExploreNav active={view} counts={counts.data} />
+      <ExploreNav active={view} />
       <ExploreView key={view} view={view} />
     </PageContainer>
   );
