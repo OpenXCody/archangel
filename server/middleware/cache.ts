@@ -30,9 +30,14 @@ export function publicCache(seconds: number) {
  * the country, every state's count) that is the cheapest way to make the
  * server work: there, an address the app would never ask for is answered 400
  * before the database is touched.
+ *
+ * `path` is always allowed: on Vercel every API request arrives through the
+ * rewrite in vercel.json (`/api/:path*` to the one function), which adds the
+ * matched path to the query under that name. Refusing it refuses every
+ * request in production while passing every local test.
  */
 export function onlyQuery(...names: string[]) {
-  const known = new Set(names);
+  const known = new Set([...names, 'path']);
   return (req: Request, res: Response, next: NextFunction): void => {
     const unknown = Object.keys(req.query).find((name) => !known.has(name));
     if (unknown !== undefined) {
