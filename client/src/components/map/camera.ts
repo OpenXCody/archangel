@@ -16,6 +16,7 @@
  *    flat, so the same request always produces the same camera.
  */
 import {
+  LngLat,
   LngLatBounds,
   type Map as MapLibreMap,
   type LngLatBoundsLike,
@@ -31,17 +32,29 @@ import { useMapStore, type CameraRequest } from '../../stores/mapStore';
 export const PANEL_WIDTH_PX = 380;
 /** Phone detail sheet in its resting (peek) state, as a share of the viewport height. */
 export const SHEET_PEEK_VH = 32;
+/** Phone detail sheet opened out, as a share of the viewport height. */
+export const SHEET_FULL_VH = 86;
+/** Phone detail sheet folded down to its name: the map is all there behind it. */
+export const SHEET_BAR_PX = 64;
 /** At or below this width the detail panel is a bottom sheet. */
 export const PHONE_LAYOUT_QUERY = '(max-width: 768px)';
 
 /**
  * The floating search bar (16px from the top, about 46px tall) and the row of
- * focus-area chips under it (8px gap, about 30px tall), plus a little air.
+ * chips under it (8px gap, about 32px tall), plus a little air. On a phone
+ * the field is set in 16px type and the chips are thumb-sized, so both are
+ * taller.
  */
-const TOP_CONTROLS_PX = 104;
+const TOP_CONTROLS_DESKTOP_PX = 104;
+const TOP_CONTROLS_PHONE_PX = 118;
 /** Breathing room between fitted content and the edge of the visible area. */
 const FIT_MARGIN_DESKTOP_PX = 48;
 const FIT_MARGIN_PHONE_PX = 20;
+/**
+ * The country on a phone runs edge to edge: it is far wider than the screen
+ * is, so every pixel of margin makes it smaller.
+ */
+const HOME_MARGIN_PHONE_PX = 6;
 /** Never squeeze the visible area below this, however small the screen. */
 const MIN_VISIBLE_PX = 96;
 
@@ -64,9 +77,27 @@ export function isPhoneLayout(): boolean {
   return window.matchMedia(PHONE_LAYOUT_QUERY).matches;
 }
 
+/** True when the pointer is a finger: targets are thumb-sized and a tap is not exact. */
+export function isTouchPointer(): boolean {
+  return window.matchMedia('(pointer: coarse)').matches;
+}
+
+function topControlsPx(): number {
+  return isPhoneLayout() ? TOP_CONTROLS_PHONE_PX : TOP_CONTROLS_DESKTOP_PX;
+}
+
 /** Height of the phone sheet in its resting state, in px. */
 export function sheetPeekPx(): number {
   return Math.round((window.innerHeight * SHEET_PEEK_VH) / 100);
+}
+
+/**
+ * How much of the bottom of the map the phone sheet covers, in px. Opened out
+ * it covers nearly everything; the map is still framed for the resting sheet
+ * it returns to.
+ */
+export function sheetCoverPx(): number {
+  return useMapStore.getState().sheetDetent === 'bar' ? SHEET_BAR_PX : sheetPeekPx();
 }
 
 /**
@@ -79,7 +110,7 @@ export function sheetPeekPx(): number {
 function coveredEdges(): Edges {
   const panelOpen = useMapStore.getState().sidebarOpen;
   if (isPhoneLayout()) {
-    return { top: TOP_CONTROLS_PX, right: 0, bottom: panelOpen ? sheetPeekPx() : 0, left: 0 };
+    return { top: topControlsPx(), right: 0, bottom: panelOpen ? sheetCoverPx() : 0, left: 0 };
   }
   return { top: 0, right: panelOpen ? PANEL_WIDTH_PX : 0, bottom: 0, left: 0 };
 }
@@ -90,14 +121,34 @@ function fitPadding(map: MapLibreMap): Edges {
   const phone = isPhoneLayout();
   const side = phone ? FIT_MARGIN_PHONE_PX : FIT_MARGIN_DESKTOP_PX;
   // Desktop clears the search bar and chips on both sides so content stays vertically centered.
-  const vertical = phone ? FIT_MARGIN_PHONE_PX : TOP_CONTROLS_PX;
-  const padding: Edges = {
+  const vertical = phone ? FIT_MARGIN_PHONE_PX : topControlsPx();
+  return squeezed(map, {
     top: covered.top + vertical,
     right: covered.right + side,
     bottom: covered.bottom + vertical,
     left: covered.left + side,
-  };
+  });
+}
 
+/**
+ * Padding for the home view. On a desktop it is any other fit. On a phone the
+ * country is framed edge to edge in the part of the screen the detail sheet
+ * never covers: a portrait screen is far taller than the country, so the room
+ * left over goes below it, where the sheet opens, not above it as a band of
+ * Canada. Choosing a state then raises the sheet beside the country, not over it.
+ */
+function homePadding(map: MapLibreMap): Edges {
+  if (!isPhoneLayout()) return fitPadding(map);
+  return squeezed(map, {
+    top: topControlsPx() + HOME_MARGIN_PHONE_PX,
+    right: HOME_MARGIN_PHONE_PX,
+    bottom: sheetPeekPx() + HOME_MARGIN_PHONE_PX,
+    left: HOME_MARGIN_PHONE_PX,
+  });
+}
+
+/** Scale padding down where the canvas is too small to give all of it. */
+function squeezed(map: MapLibreMap, padding: Edges): Edges {
   const { clientWidth, clientHeight } = map.getContainer();
   const squeeze = (a: number, b: number, size: number): number => {
     const room = Math.max(0, size - MIN_VISIBLE_PX);
@@ -132,20 +183,28 @@ interface MoveOptions {
   animate?: boolean;
 }
 
-function fit(map: MapLibreMap, bounds: LngLatBoundsLike, maxZoom: number | undefined, duration: number): void {
+function fit(
+  map: MapLibreMap,
+  bounds: LngLatBoundsLike,
+  maxZoom: number | undefined,
+  duration: number,
+  padding: Edges = fitPadding(map)
+): void {
   dropSavedPadding(map);
-  map.fitBounds(bounds, {
-    padding: fitPadding(map),
-    ...(maxZoom === undefined ? {} : { maxZoom }),
-    bearing: 0,
-    pitch: 0,
-    duration,
-  });
+  freely(map, duration, () =>
+    map.fitBounds(bounds, {
+      padding,
+      ...(maxZoom === undefined ? {} : { maxZoom }),
+      bearing: 0,
+      pitch: 0,
+      duration,
+    })
+  );
 }
 
 /** Frame the continental United States. The home view. */
 export function fitUS(map: MapLibreMap, { animate = true }: MoveOptions = {}): void {
-  fit(map, US_BOUNDS, undefined, animate ? 700 : 0);
+  fit(map, US_BOUNDS, undefined, animate ? 700 : 0, homePadding(map));
 }
 
 /** Frame a focus area by the box around its boundary. */
@@ -192,14 +251,17 @@ export function flyToPoint(
   { animate = true }: MoveOptions = {}
 ): void {
   dropSavedPadding(map);
-  map.flyTo({
-    center: lngLat,
-    zoom: zoom ?? Math.max(map.getZoom(), POINT_ZOOM),
-    bearing: 0,
-    pitch: 0,
-    offset: visibleCenterOffset(),
-    duration: animate ? 500 : 0,
-  });
+  const duration = animate ? 500 : 0;
+  freely(map, duration, () =>
+    map.flyTo({
+      center: lngLat,
+      zoom: zoom ?? Math.max(map.getZoom(), POINT_ZOOM),
+      bearing: 0,
+      pitch: 0,
+      offset: visibleCenterOffset(),
+      duration,
+    })
+  );
 }
 
 /** The point on screen that sits in the middle of what the panel or sheet leaves visible. */
@@ -219,6 +281,108 @@ export function zoomBy(map: MapLibreMap, delta: number): void {
     pitch: 0,
     duration: 250,
   });
+}
+
+// ─── Staying near the country ──────────────────────────────────────────────
+
+/**
+ * Where the middle of the screen may be dragged to: the lower 48 states,
+ * Alaska, Hawaii and Puerto Rico, each with a margin, joined by corridors so
+ * a person can drag from one to the next. [west, south, east, north].
+ */
+const REACH: Array<[number, number, number, number]> = [
+  [-126.5, 23.5, -65.5, 50.5], // the lower 48
+  [-171, 51, -129, 72], // Alaska
+  [-136, 47, -122, 57], // up the coast to Alaska
+  [-161.5, 18, -117, 34], // out to Hawaii
+  [-82, 17, -64, 27.5], // down to Puerto Rico
+];
+
+/** The nearest point to `center` that the screen's middle may sit on. */
+export function nearestReachable(center: { lng: number; lat: number }): { lng: number; lat: number } {
+  let best = center;
+  let bestDistance = Infinity;
+  for (const [west, south, east, north] of REACH) {
+    const lng = Math.min(Math.max(center.lng, west), east);
+    const lat = Math.min(Math.max(center.lat, south), north);
+    const distance = (lng - center.lng) ** 2 + (lat - center.lat) ** 2;
+    if (distance === 0) return center;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = { lng, lat };
+    }
+  }
+  return best;
+}
+
+/** Maps whose camera is being moved by this file right now: those moves go where they are sent. */
+const movingFreely = new WeakSet<MapLibreMap>();
+
+/** Run a camera move that is exempt from the drag limit until it ends. */
+function freely(map: MapLibreMap, duration: number, move: () => void): void {
+  movingFreely.add(map);
+  if (duration > 0) {
+    map.once('moveend', () => movingFreely.delete(map));
+    move();
+  } else {
+    try {
+      move();
+    } finally {
+      movingFreely.delete(map);
+    }
+  }
+}
+
+/**
+ * Keep dragging, flicking and zooming by hand near the country: the middle of
+ * the screen cannot leave REACH. Flights made here are exempt, so a link or a
+ * search result is always reached. Also sets how far out the map can zoom:
+ * a little past the home view.
+ */
+export function keepNearCountry(map: MapLibreMap): void {
+  map.transformCameraUpdate = (next) => {
+    if (movingFreely.has(map)) return {};
+    const allowed = nearestReachable(next.center);
+    return allowed === next.center ? {} : { center: new LngLat(allowed.lng, allowed.lat) };
+  };
+  const setFloor = (): void => {
+    const home = map.cameraForBounds(US_BOUNDS, { padding: homePadding(map) });
+    if (home?.zoom !== undefined) map.setMinZoom(Math.max(0, home.zoom - 0.75));
+  };
+  setFloor();
+  map.on('resize', setFloor);
+}
+
+// ─── The camera in the address ─────────────────────────────────────────────
+
+/** A camera position a link can carry. */
+export interface MapViewpoint {
+  center: [number, number];
+  zoom: number;
+}
+
+/**
+ * The camera as an address fragment, "#zoom/latitude/longitude" (the order
+ * OpenStreetMap and MapLibre use), or "" at the home view so a plain /map
+ * stays plain.
+ */
+export function viewToHash(map: MapLibreMap): string {
+  if (isAtHome(map)) return '';
+  const center = map.getCenter();
+  const zoom = map.getZoom();
+  // Finer positions as the map closes in: about a pixel at any zoom.
+  const places = Math.max(2, Math.min(5, Math.ceil(zoom / 3) + 1));
+  return `#${zoom.toFixed(2)}/${center.lat.toFixed(places)}/${center.lng.toFixed(places)}`;
+}
+
+/** Read a camera position from an address fragment; null when it is not one. */
+export function viewFromHash(hash: string): MapViewpoint | null {
+  const match = /^#?(\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)$/.exec(hash.trim());
+  if (!match) return null;
+  const [zoom, lat, lng] = match.slice(1).map(Number);
+  if (!(zoom >= 0 && zoom <= 22 && Math.abs(lat) <= 85 && Math.abs(lng) <= 180)) return null;
+  const center = nearestReachable({ lng, lat });
+  return { center: [center.lng, center.lat], zoom };
 }
 
 
@@ -270,12 +434,16 @@ export function applyCameraRequest(
 /** Where a new map starts: on the whole country, before the first frame is drawn. */
 export function initialCamera(): Pick<MapOptions, 'bounds' | 'fitBoundsOptions'> {
   const phone = isPhoneLayout();
-  const margin = phone ? FIT_MARGIN_PHONE_PX : FIT_MARGIN_DESKTOP_PX;
   // The container is not measured yet; fitUS() on load applies the exact layout.
-  return {
-    bounds: US_BOUNDS,
-    fitBoundsOptions: { padding: { top: TOP_CONTROLS_PX, right: margin, bottom: margin, left: margin } },
-  };
+  const padding: Edges = phone
+    ? {
+        top: topControlsPx() + HOME_MARGIN_PHONE_PX,
+        right: HOME_MARGIN_PHONE_PX,
+        bottom: sheetPeekPx() + HOME_MARGIN_PHONE_PX,
+        left: HOME_MARGIN_PHONE_PX,
+      }
+    : { top: topControlsPx(), right: FIT_MARGIN_DESKTOP_PX, bottom: FIT_MARGIN_DESKTOP_PX, left: FIT_MARGIN_DESKTOP_PX };
+  return { bounds: US_BOUNDS, fitBoundsOptions: { padding } };
 }
 
 /** The zoom at which `bounds` exactly fills the visible area, or null if it cannot be worked out. */
@@ -287,7 +455,7 @@ function fitZoom(map: MapLibreMap, bounds: LngLatBoundsLike): number | null {
 /** True while the map still shows the home view, so "reset view" has nothing to do. */
 export function isAtHome(map: MapLibreMap): boolean {
   if (map.getBearing() !== 0 || map.getPitch() !== 0) return false;
-  const home = map.cameraForBounds(US_BOUNDS, { padding: fitPadding(map) });
+  const home = map.cameraForBounds(US_BOUNDS, { padding: homePadding(map) });
   if (!home || home.center === undefined || home.zoom === undefined) return false;
   if (Math.abs(map.getZoom() - home.zoom) > 0.05) return false;
   const want = map.project(home.center);

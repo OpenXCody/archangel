@@ -1,10 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { sql, type SQL } from 'drizzle-orm';
 import { db, factories } from '../db/index.js';
-import { factoryInArea, factoryInScope, isStateInScope } from '../lib/scope.js';
+import { factoryInArea, factoryInBox, factoryInScope, isStateInScope } from '../lib/scope.js';
 import { FOCUS_AREAS, focusArea } from '../../shared/scope.js';
 
 const router = Router();
+
+/** How many plants a place's panel is sent: enough to list a town's, not a city's. */
+const PLACE_PLANT_LIMIT = 24;
 
 // US state codes to full names mapping
 const STATE_CODE_TO_NAME: Record<string, string> = {
@@ -122,10 +125,10 @@ router.get('/states/summary', async (_req: Request, res: Response) => {
  * factories in the set, and its largest industries. `inSet` is given the name
  * the factories table goes by in each query.
  *
- * Top companies put featured employers first, then established companies
- * (those with several factories nationwide), then by factories in the set, so
- * the list opens on names people recognise rather than on whoever has the
- * most registry entries.
+ * Companies are listed by how many factories they have in the set, so the
+ * list reads as what it is: who is here, the largest presence first. Where
+ * two have the same number, the featured employer and then the company with
+ * more factories nationwide comes first, so ties open on names people know.
  */
 async function buildOverview(inSet: (factoryTable: string) => SQL) {
   const [totalsRow] = await db
@@ -148,7 +151,7 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
       AND c.name !~ '^\\d+\\s'
       AND c.name !~ '^\\d+/\\d'
     GROUP BY c.id, c.name, c.domain, c.featured
-    ORDER BY c.featured DESC, count DESC, sites DESC, c.name ASC
+    ORDER BY count DESC, c.featured DESC, sites DESC, c.name ASC
     LIMIT 12
   `);
 
@@ -240,6 +243,62 @@ router.get('/areas/:id/overview', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching area overview:', error);
     res.status(500).json({ error: 'Failed to fetch area overview' });
+  }
+});
+
+// GET /api/map/bounds/overview?west=&south=&east=&north= - Panel data for
+// any box on the map: what a place found by search holds. The same overview a
+// state or focus area has, plus the plants themselves when there are few
+// enough to list (the best-known companies' first).
+router.get('/bounds/overview', async (req: Request, res: Response) => {
+  const edge = (name: string): number => {
+    const raw = req.query[name];
+    return typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : NaN;
+  };
+  const west = edge('west');
+  const south = edge('south');
+  const east = edge('east');
+  const north = edge('north');
+  const valid =
+    [west, south, east, north].every(Number.isFinite) &&
+    west >= -180 && east <= 180 && south >= -90 && north <= 90 &&
+    west < east && south < north;
+  if (!valid) {
+    res.status(400).json({ error: 'Give west, south, east and north as degrees, west of east and south of north' });
+    return;
+  }
+  const bounds: [[number, number], [number, number]] = [[west, south], [east, north]];
+  try {
+    const overview = await buildOverview((t) => factoryInBox(bounds, t));
+    const plants = await db.execute(sql`
+      SELECT f.id, f.name, f.city, f.state, f.latitude, f.longitude,
+             c.id AS company_id, c.name AS company_name, c.domain AS company_domain
+      FROM factories f
+      LEFT JOIN companies c ON c.id = f.company_id
+      WHERE ${factoryInBox(bounds, 'f')} AND ${factoryInScope('f')}
+      ORDER BY COALESCE(c.featured, false) DESC,
+               (SELECT COUNT(*) FROM factories site WHERE site.company_id = f.company_id) DESC,
+               f.name ASC
+      LIMIT ${PLACE_PLANT_LIMIT}
+    `);
+    res.json({
+      bounds,
+      ...overview,
+      plants: Array.from(plants as Iterable<Record<string, unknown>>).map((r) => ({
+        id: r.id,
+        name: r.name,
+        city: r.city ?? null,
+        state: r.state ?? null,
+        latitude: r.latitude,
+        longitude: r.longitude,
+        companyId: r.company_id ?? null,
+        companyName: r.company_name ?? null,
+        companyDomain: r.company_domain ?? null,
+      })),
+    });
+  } catch (error) {
+    console.error('Error fetching bounds overview:', error);
+    res.status(500).json({ error: 'Failed to fetch overview' });
   }
 });
 

@@ -686,6 +686,26 @@ export interface AreaOverview extends RegionOverview {
   bounds: [[number, number], [number, number]];
 }
 
+/** A plant in a place's panel. */
+export interface PlacePlant {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  latitude: string;
+  longitude: string;
+  companyId: string | null;
+  companyName: string | null;
+  companyDomain: string | null;
+}
+
+/** What a box on the map holds: a place found by search. */
+export interface BoundsOverview extends RegionOverview {
+  bounds: [[number, number], [number, number]];
+  /** The plants inside, the best-known companies' first; a short list, not all of them. */
+  plants: PlacePlant[];
+}
+
 // Map API
 export const mapApi = {
   statesSummary: () =>
@@ -699,6 +719,9 @@ export const mapApi = {
   /** Panel data for a selected focus area. */
   areaOverview: (id: string) =>
     apiFetch<AreaOverview>(`/map/areas/${encodeURIComponent(id)}/overview`),
+  /** Panel data for any box: [[west, south], [east, north]]. */
+  boundsOverview: ([[west, south], [east, north]]: [[number, number], [number, number]]) =>
+    apiFetch<BoundsOverview>(`/map/bounds/overview${buildQueryString({ west, south, east, north })}`),
 };
 
 // Explore overview: what /explore opens on, in one response.

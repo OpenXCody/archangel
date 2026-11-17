@@ -20,6 +20,7 @@
 import type { Theme } from '../../lib/theme';
 import type {
   ExpressionSpecification,
+  FilterSpecification,
   Map as MapLibreMap,
   StyleSpecification,
 } from 'maplibre-gl';
@@ -233,7 +234,7 @@ const STATE_FILL_OPACITY: ExpressionSpecification = [
   6.3, 0,
 ];
 
-/** While one company is the subject, the all-factories shading steps back. */
+/** While a company or a career is the subject, the all-factories shading steps back. */
 export function setStateShadingDimmed(map: MapLibreMap, dimmed: boolean): void {
   if (!map.getLayer(LAYER.stateFill)) return;
   map.setPaintProperty(LAYER.stateFill, 'fill-opacity', dimmed ? 0.04 : STATE_FILL_OPACITY);
@@ -249,52 +250,159 @@ function byTier<T extends number | string>(featured: T, established: T, other: T
   return ['match', TIER, 2, featured, 1, established, other];
 }
 
+/** Zoom stops of the pin radius, per tier: featured, established, other. */
+const RADIUS_STOPS: Array<[zoom: number, featured: number, established: number, other: number]> = [
+  [2, 0.9, 0.6, 0.45],
+  [3.5, 1.2, 0.85, 0.6],
+  [5, 2, 1.4, 1],
+  [7, 3.6, 2.6, 1.9],
+  [9, 5.6, 4, 3],
+  [12, 9, 6.6, 5.2],
+  [15, 12, 9, 7.5],
+];
+
+/** Zoom stops of the pin opacity, per tier: pins fade in with zoom, the better-known employers first. */
+const OPACITY_STOPS: Array<[zoom: number, featured: number, established: number, other: number]> = [
+  [2, 0.5, 0.22, 0.1],
+  [3.5, 0.6, 0.3, 0.14],
+  [5, 0.8, 0.5, 0.28],
+  [6, 0.95, 0.75, 0.5],
+  [7.5, 1, 1, 0.9],
+];
+
+/** Opacity of a pin that has stepped back behind the map's subject: there, but not competing. */
+const RECEDED_OPACITY_STOPS: Array<[zoom: number, opacity: number]> = [
+  [2, 0.03],
+  [5, 0.06],
+  [6.5, 0.14],
+  [9, 0.3],
+];
+
 /**
  * Pin radius: a point of light when far, a pickable dot when close, and a
  * little larger for the employers a visitor is likelier to know. `extra`
  * grows every stop by the same amount, for rings that sit around a pin.
+ *
+ * With `focus` (a test on the feature), pins that pass are all drawn at the
+ * featured tier's size and the rest at the smallest: the map's subject at
+ * full strength, everything else stepped back.
  */
-function pinRadius(extra = 0): ExpressionSpecification {
-  const stop = (featured: number, established: number, other: number): ExpressionSpecification =>
-    byTier(featured + extra, established + extra, other + extra);
-  return [
-    'interpolate', ['linear'], ['zoom'],
-    2, stop(0.9, 0.6, 0.45),
-    3.5, stop(1.2, 0.85, 0.6),
-    5, stop(2, 1.4, 1),
-    7, stop(3.6, 2.6, 1.9),
-    9, stop(5.6, 4, 3),
-    12, stop(9, 6.6, 5.2),
-    15, stop(12, 9, 7.5),
-  ];
+function pinRadius(extra = 0, focus?: ExpressionSpecification): ExpressionSpecification {
+  const stops: Array<number | ExpressionSpecification> = [];
+  for (const [zoom, featured, established, other] of RADIUS_STOPS) {
+    const byTheirTier = byTier(featured + extra, established + extra, other + extra);
+    stops.push(zoom, focus ? ['case', focus, featured + extra, other + extra] : byTheirTier);
+  }
+  return ['interpolate', ['linear'], ['zoom'], ...stops] as ExpressionSpecification;
 }
 
-/** Pins fade in with zoom, the better-known employers first. */
-const PIN_OPACITY: ExpressionSpecification = [
-  'interpolate', ['linear'], ['zoom'],
-  2, byTier(0.5, 0.22, 0.1),
-  3.5, byTier(0.6, 0.3, 0.14),
-  5, byTier(0.8, 0.5, 0.28),
-  6, byTier(0.95, 0.75, 0.5),
-  7.5, byTier(1, 1, 0.9),
-];
+function pinOpacity(focus?: ExpressionSpecification): ExpressionSpecification {
+  const stops: Array<number | ExpressionSpecification> = [];
+  OPACITY_STOPS.forEach(([zoom, featured, established, other]) => {
+    const receded = recededOpacityAt(zoom);
+    stops.push(zoom, focus ? ['case', focus, featured, receded] : byTier(featured, established, other));
+  });
+  if (focus) {
+    const last = RECEDED_OPACITY_STOPS[RECEDED_OPACITY_STOPS.length - 1];
+    stops.push(last[0], ['case', focus, 1, last[1]]);
+  }
+  return ['interpolate', ['linear'], ['zoom'], ...stops] as ExpressionSpecification;
+}
+
+/** The receded opacity at a zoom, read off its own stops. */
+function recededOpacityAt(zoom: number): number {
+  const stops = RECEDED_OPACITY_STOPS;
+  if (zoom <= stops[0][0]) return stops[0][1];
+  for (let i = 1; i < stops.length; i++) {
+    const [z1, o1] = stops[i];
+    const [z0, o0] = stops[i - 1];
+    if (zoom <= z1) return o0 + ((o1 - o0) * (zoom - z0)) / (z1 - z0);
+  }
+  return stops[stops.length - 1][1];
+}
+
 const PIN_STROKE_WIDTH: ExpressionSpecification = ['interpolate', ['linear'], ['zoom'], 5, 0, 7, 0.6, 9, 0.9, 13, 1.2];
+const DENSITY_WEIGHT: ExpressionSpecification = byTier(1.4, 1.1, 1);
 
 /**
- * While one company is the subject its few sites are the whole picture: draw
- * them as full dots at any zoom and drop the density glow, which says nothing
- * about a handful of points.
+ * What the pins are showing right now. Every part of it is a filter or paint
+ * expression over the one source that holds the whole country: changing it
+ * never sends the 48,000 points again.
  */
-export function setPinsEmphasised(map: MapLibreMap, emphasised: boolean): void {
+export interface PinView {
+  /** Draw only pins in these states. Empty: every state. */
+  states: string[];
+  /** Draw only pins of this industry. */
+  industry: string | null;
+  /**
+   * One company is the subject: draw only these plants, as full dots at any
+   * zoom. An empty list (the company's record has not loaded, or it has no
+   * plants) draws none. null: no company.
+   */
+  companyPlants: string[] | null;
+  /**
+   * A career is the subject: pins of these industries stay at full strength
+   * and the rest step back. null: no career, or one found in every industry.
+   */
+  careerIndustries: string[] | null;
+}
+
+export const EVERY_PIN: PinView = { states: [], industry: null, companyPlants: null, careerIndustries: null };
+
+/** True when a pin with these properties is one the view holds up, not one it has stepped back. */
+export function pinInFocus(view: PinView, industry: string | null): boolean {
+  return view.careerIndustries === null || (industry !== null && view.careerIndustries.includes(industry));
+}
+
+/** Apply a view to the pin layers. Cheap to call; it only sets what the view needs. */
+export function setPinView(map: MapLibreMap, view: PinView): void {
   if (!map.getLayer(LAYER.pins)) return;
+
+  // Which pins exist at all.
+  const tests: ExpressionSpecification[] = [];
+  if (view.states.length > 0) tests.push(['in', ['get', 'state'], ['literal', view.states]]);
+  if (view.industry) tests.push(['==', ['get', 'industry'], view.industry]);
+  if (view.companyPlants) {
+    tests.push(
+      view.companyPlants.length > 0
+        ? ['match', ['get', 'id'], Array.from(new Set(view.companyPlants)), true, false]
+        : ['==', ['get', 'id'], '']
+    );
+  }
+  const only: FilterSpecification | null = tests.length > 0 ? ['all', ...tests] : null;
+  map.setFilter(LAYER.pins, only);
+  map.setFilter(LAYER.hiring, only ? ['all', IS_HIRING, ...tests] : IS_HIRING);
+  if (map.getLayer(LAYER.density)) map.setFilter(LAYER.density, only);
+
+  // How they are drawn.
+  const company = view.companyPlants !== null;
+  const focus: ExpressionSpecification | undefined =
+    !company && view.careerIndustries
+      ? view.careerIndustries.length > 0
+        ? ['in', ['get', 'industry'], ['literal', view.careerIndustries]]
+        : ['==', ['get', 'id'], '']
+      : undefined;
+
+  // While one company is the subject its few plants are the whole picture:
+  // full dots at any zoom, and no density glow, which says nothing about a
+  // handful of points. A career's plants are thousands: they keep the glow,
+  // weighted to them alone, and are drawn as the featured tier is.
   map.setPaintProperty(
     LAYER.pins,
     'circle-radius',
-    emphasised ? ['interpolate', ['linear'], ['zoom'], 2, 4, 6, 5.5, 9, 7, 12, 9.5, 15, 12] : pinRadius()
+    company ? ['interpolate', ['linear'], ['zoom'], 2, 4, 6, 5.5, 9, 7, 12, 9.5, 15, 12] : pinRadius(0, focus)
   );
-  map.setPaintProperty(LAYER.pins, 'circle-opacity', emphasised ? 1 : PIN_OPACITY);
-  map.setPaintProperty(LAYER.pins, 'circle-stroke-width', emphasised ? 1 : PIN_STROKE_WIDTH);
-  if (map.getLayer(LAYER.density)) map.setLayoutProperty(LAYER.density, 'visibility', emphasised ? 'none' : 'visible');
+  map.setPaintProperty(LAYER.pins, 'circle-opacity', company ? 1 : pinOpacity(focus));
+  map.setPaintProperty(LAYER.pins, 'circle-stroke-width', company ? 1 : PIN_STROKE_WIDTH);
+  // A receded pin's dark edge recedes with it, or it would read as a ring.
+  map.setPaintProperty(LAYER.pins, 'circle-stroke-opacity', focus ? ['case', focus, 1, 0.25] : 1);
+  map.setPaintProperty(LAYER.hiring, 'circle-radius', pinRadius(2.5, focus));
+  map.setPaintProperty(LAYER.hiring, 'circle-opacity', focus ? ['case', focus, 1, 0.25] : 1);
+  map.setPaintProperty(LAYER.hiring, 'circle-stroke-opacity', focus ? ['case', focus, 1, 0.25] : 1);
+  if (map.getLayer(LAYER.density)) {
+    map.setLayoutProperty(LAYER.density, 'visibility', company ? 'none' : 'visible');
+    map.setPaintProperty(LAYER.density, 'heatmap-weight', focus ? ['case', focus, DENSITY_WEIGHT, 0] : DENSITY_WEIGHT);
+  }
 }
 
 // ─── Sources and layers ────────────────────────────────────────────────────
@@ -406,7 +514,7 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
     source: SOURCE.factories,
     maxzoom: 7.5,
     paint: {
-      'heatmap-weight': byTier(1.4, 1.1, 1),
+      'heatmap-weight': DENSITY_WEIGHT,
       // Low and smooth on purpose: a haze that says "more here", never a blob
       // with an edge. The points of light on top carry the detail.
       'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 2, 0.012, 4, 0.03, 6, 0.12, 7.5, 0.3],
@@ -454,7 +562,7 @@ export function addAppLayers(map: MapLibreMap, beforeId: string | undefined): vo
     paint: {
       'circle-color': byTier(COLOR.pinFeatured, COLOR.pinEstablished, COLOR.pinOther),
       'circle-radius': pinRadius(),
-      'circle-opacity': PIN_OPACITY,
+      'circle-opacity': pinOpacity(),
       'circle-stroke-color': COLOR.pinStroke,
       'circle-stroke-width': PIN_STROKE_WIDTH,
     },
