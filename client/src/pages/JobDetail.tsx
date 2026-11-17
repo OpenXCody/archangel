@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { CheckCircle2, Circle, ExternalLink, Loader2, Lock, MapPin, SearchX } from 'lucide-react';
+import { ExternalLink, Loader2, Lock, MapPin, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -9,12 +9,14 @@ import {
   useAccount,
   useApply,
   useJob,
+  useMySkills,
   useUpdateJob,
   type JobDetail as JobDetailData,
   type JobDetailResponse,
   type JobSkill,
 } from '../lib/account';
 import { useApplicantList, useDeleteJob } from '../lib/employerJobs';
+import { useMarkSkill } from '../lib/seeker';
 import { employmentLabel, formatAgo, formatDate, formatPay, formatPlace } from '../lib/jobFormat';
 import {
   ApplicationStatusBadge,
@@ -33,6 +35,7 @@ import {
   textButtonClass,
 } from '../components/account/parts';
 import ApplicantList from '../components/account/ApplicantList';
+import { SkillHeldToggle } from '../components/account/SkillStatusButton';
 import { busyButtonClass } from '../components/account/JobForm';
 import ConfirmDialog from '../components/admin/ConfirmDialog';
 import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
@@ -101,6 +104,10 @@ export default function JobDetail() {
     ? formatPlace(data.job.city, data.job.state)
     : [data.job.factoryName, data.job.state].filter(Boolean).join(', ');
 
+  // A person who can mark skills meets them before the Apply button: the
+  // company ranks applicants by the required skills they hold, so marking
+  // first is what helps them.
+  const applyAfterSkills = marksHeld && !manages && data.job.isOpen && !data.myApplication && requiredSkills.length > 0;
   const terms = <TermsCard job={data.job} showApplications={manages} />;
   const apply = (
     <PageSection title="Apply">
@@ -142,7 +149,7 @@ export default function JobDetail() {
         <>
           {!data.job.isOpen && <ClosedNotice job={data.job} />}
           <PageSection>{terms}</PageSection>
-          {apply}
+          {!applyAfterSkills && apply}
         </>
       )}
 
@@ -156,7 +163,7 @@ export default function JobDetail() {
 
       <PageSection
         title="Required skills"
-        description={requiredSkills.length > 0 && marksHeld ? 'Marked against the skills you hold on your page.' : undefined}
+        description={requiredSkills.length > 0 && marksHeld ? 'Mark the ones you have. The company sees how many you hold.' : undefined}
       >
         {requiredSkills.length === 0 ? (
           <CardNote>No required skills are listed for this job.</CardNote>
@@ -192,6 +199,8 @@ export default function JobDetail() {
           <SkillList skills={optionalSkills} marksHeld={marksHeld} />
         </PageSection>
       )}
+
+      {applyAfterSkills && apply}
 
       {manages &&
         (applying ? (
@@ -294,33 +303,45 @@ function TermsCard({ job, showApplications }: { job: JobDetailData; showApplicat
 // ---------------------------------------------------------------------------
 
 function SkillList({ skills, marksHeld }: { skills: JobSkill[]; marksHeld: boolean }) {
+  // For a signed-in person each row carries the same mark as a career's path:
+  // one tap says "I have this", and the figure above follows at once.
+  const { data: mySkills } = useMySkills(marksHeld);
+  const markSkill = useMarkSkill();
+  const statusBySkill = new Map((mySkills ?? []).map((s) => [s.skillId, s.status]));
   return (
-    <ul className={cardClass}>
-      {skills.map((skill) => (
-        <li key={skill.id} className={cn(rowClass, 'flex items-center gap-3 px-4 py-2.5')} data-held={marksHeld ? String(skill.held) : undefined}>
-          {marksHeld ? (
-            skill.held ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
-            ) : (
-              <Circle className="h-4 w-4 shrink-0 text-fg-soft" aria-hidden="true" />
-            )
-          ) : (
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-success" aria-hidden="true" />
-          )}
-          <Link
-            to={`/skills/${skill.id}`}
-            className="min-w-0 flex-1 break-words text-sm text-fg-default underline-offset-4 hover:underline"
-          >
-            {skill.name}
-          </Link>
-          {marksHeld && (
-            <span className={cn('shrink-0 text-xs font-medium', skill.held ? 'text-success' : 'text-fg-muted')}>
-              {skill.held ? 'You hold this' : 'Not yet'}
-            </span>
-          )}
-        </li>
-      ))}
-    </ul>
+    <>
+      {marksHeld && <ErrorNote error={markSkill.error} className="mb-2" />}
+      <ul className={cardClass}>
+        {skills.map((skill) => {
+          // The person's own list is the live answer; the job's copy is the fallback until it loads.
+          const status = (mySkills ? statusBySkill.get(skill.id) : skill.held ? 'held' : undefined) ?? 'none';
+          const held = status === 'held';
+          return (
+            <li
+              key={skill.id}
+              className={cn(rowClass, 'flex items-center gap-1 py-0.5 pr-4', marksHeld ? 'pl-1' : 'gap-3 px-4 py-2.5')}
+              data-held={marksHeld ? String(held) : undefined}
+            >
+              {marksHeld ? (
+                <SkillHeldToggle
+                  value={status}
+                  label={skill.name}
+                  onChange={(mark) => markSkill.mutate({ skillId: skill.id, name: skill.name, mark })}
+                />
+              ) : (
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-fg-soft" aria-hidden="true" />
+              )}
+              <Link
+                to={`/skills/${skill.id}`}
+                className="min-w-0 flex-1 break-words text-sm text-fg-default underline-offset-4 hover:underline"
+              >
+                {skill.name}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 
