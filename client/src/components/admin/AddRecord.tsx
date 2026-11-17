@@ -200,7 +200,8 @@ function RecordForm({ kind, onStart, onAdded }: RecordFormProps) {
       onChange={(e) => onChange(e.target.value)}
       aria-invalid={field && shown(field) ? true : undefined}
       aria-describedby={field && shown(field) ? `${id}-error` : undefined}
-      className={cn(fieldClass, field && shown(field) && 'border-danger/60')}
+      // Suggestions come up as the field is typed in; the browser's own arrow for them is left off.
+      className={cn(fieldClass, field && shown(field) && 'border-danger/60', extra?.list && '[&::-webkit-calendar-picker-indicator]:!hidden')}
       {...extra}
     />
   );
