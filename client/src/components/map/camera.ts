@@ -55,6 +55,8 @@ const FIT_MARGIN_PHONE_PX = 20;
  * is, so every pixel of margin makes it smaller.
  */
 const HOME_MARGIN_PHONE_PX = 6;
+/** Below this height a wide canvas is a phone on its side. */
+const SHORT_CANVAS_PX = 560;
 /** Never squeeze the visible area below this, however small the screen. */
 const MIN_VISIBLE_PX = 96;
 
@@ -122,10 +124,13 @@ function fitPadding(map: MapLibreMap): Edges {
   const side = phone ? FIT_MARGIN_PHONE_PX : FIT_MARGIN_DESKTOP_PX;
   // Desktop clears the search bar and chips on both sides so content stays vertically centered.
   const vertical = phone ? FIT_MARGIN_PHONE_PX : topControlsPx();
+  // A short, wide canvas (a phone on its side) cannot spare that room twice:
+  // content sits under the search bar and runs to the bottom edge.
+  const short = !phone && map.getContainer().clientHeight < SHORT_CANVAS_PX;
   return squeezed(map, {
     top: covered.top + vertical,
     right: covered.right + side,
-    bottom: covered.bottom + vertical,
+    bottom: covered.bottom + (short ? FIT_MARGIN_PHONE_PX : vertical),
     left: covered.left + side,
   });
 }
