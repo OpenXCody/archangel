@@ -14,7 +14,7 @@ import employerRouter from './routes/employer.js';
 import adminRouter from './routes/admin.js';
 import exploreRouter from './routes/explore.js';
 import { noStore } from './lib/auth.js';
-import { requireAdminUser, requireAdminForWrites, adminAuthRequired, isAdminRequest } from './middleware/adminAuth.js';
+import { requireAdminUser, requireAdminForWrites } from './middleware/adminAuth.js';
 import { publicCache } from './middleware/cache.js';
 
 /**
@@ -54,22 +54,13 @@ app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Lets the admin UI know whether it needs to ask for a key (public, read-only).
-// A signed-in admin account counts as authorized, so it is never asked.
-app.get('/api/import/status', noStore, (req: Request, res: Response, next: NextFunction) => {
-  isAdminRequest(req).then(
-    (authorized) => res.json({ authRequired: adminAuthRequired(), authorized }),
-    next
-  );
-});
-
 // Accounts and everything tied to a signed-in person. Never cached: these
 // responses differ per person.
 app.use('/api/auth', noStore, authRouter);
 app.use('/api/me', noStore, meRouter);
 app.use('/api/jobs', noStore, jobsRouter);
 app.use('/api/employer', noStore, employerRouter);
-// Admin Tools: a signed-in admin account only (not the admin key, not open in local dev).
+// Admin Tools: a signed-in admin account only.
 app.use('/api/admin', noStore, requireAdminUser, adminRouter);
 
 // Edge caching. The two heaviest map payloads get 5 minutes; everything else
@@ -77,7 +68,7 @@ app.use('/api/admin', noStore, requireAdminUser, adminRouter);
 app.get('/api/factories/pins', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
 app.get('/api/map/state-counts', publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
 
-// Public reads, admin-gated writes
+// Public reads (cached at the edge); writes take a signed-in admin.
 app.use('/api/companies', publicCache(60), requireAdminForWrites, companiesRouter);
 app.use('/api/factories', publicCache(60), requireAdminForWrites, factoriesRouter);
 app.use('/api/occupations', publicCache(60), requireAdminForWrites, occupationsRouter);

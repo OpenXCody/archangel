@@ -19,7 +19,6 @@ import {
 } from '../lib/auth.js';
 import { MAX_INVITE_TOKEN_LENGTH, usableInvite } from '../lib/invites.js';
 import { MAX_RESET_TOKEN_LENGTH, usableReset } from '../lib/passwordResets.js';
-import { hasValidAdminSecret } from '../middleware/adminAuth.js';
 
 const router = Router();
 
@@ -288,19 +287,6 @@ router.post(
     clearAttempts(req, person.email);
     await startSession(res, person.id);
     res.json(await accountPayload(person));
-  })
-);
-
-// POST /api/auth/claim-admin - a signed-in person who presents the deployment's
-// admin key (x-admin-secret) becomes an admin. This is how the first admin exists.
-router.post(
-  '/claim-admin',
-  requireUser,
-  handle(async (req, res) => {
-    const user = req.user!;
-    if (!hasValidAdminSecret(req)) return res.status(403).json({ error: 'That admin key is not valid.' });
-    await db.update(users).set({ isAdmin: true, updatedAt: new Date() }).where(and(eq(users.id, user.id)));
-    res.json(await accountPayload({ ...user, isAdmin: true }));
   })
 );
 

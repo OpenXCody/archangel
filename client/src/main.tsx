@@ -5,6 +5,13 @@ import App from './App';
 import '@fontsource-variable/oxanium';
 import './styles/globals.css';
 
+// Earlier builds kept an admin key in this browser. Nothing reads it now: drop it.
+try {
+  window.localStorage.removeItem('archangel.adminSecret');
+} catch {
+  // storage unavailable: nothing to remove
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

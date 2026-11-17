@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import '../loadEnv.js';
 import { assertSafeToWipe } from '../lib/wipeGuard.js';
 import { db } from '../db/index.js';
 import {
