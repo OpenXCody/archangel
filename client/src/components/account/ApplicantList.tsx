@@ -3,7 +3,7 @@ import { Check, ChevronDown, CircleDashed, Loader2, Minus, Search } from 'lucide
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { EMPLOYER_STATUSES, useUpdateApplication, type ApplicationStatus } from '../../lib/account';
+import { EMPLOYER_STATUSES, useUpdateApplication, useUpdateJob, type ApplicationStatus } from '../../lib/account';
 import { applicantsCsv, saveTextFile, type ApplicantSkill, type JobApplicants, type RankedApplicant } from '../../lib/employerJobs';
 import { applicationStatusLabel, formatAgo, formatDate } from '../../lib/jobFormat';
 import { busyButtonClass } from './JobForm';
@@ -31,6 +31,9 @@ function appliedWhen(iso: string): string {
 
 /** The job the applicants are for: named in the email to an applicant and in the exported file. */
 export interface ApplicantsJob {
+  /** With `isOpen`: lets a hire offer to close the job. */
+  id?: string;
+  isOpen?: boolean;
   title: string;
   serial: number;
   companyName: string;
@@ -244,6 +247,7 @@ interface ApplicantPanelProps {
 function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
   const move = useUpdateApplication();
   const saveNote = useUpdateApplication();
+  const closeJob = useUpdateJob(job?.id ?? '');
   const stageRef = useRef<HTMLButtonElement>(null);
   const savedNote = applicant.employerNote ?? '';
   const [note, setNote] = useState(savedNote);
@@ -377,7 +381,23 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
           </button>
         </p>
       )}
-      <ErrorNote error={move.error} />
+      {/* Someone was hired and the job still takes applications: closing it is one press, not a hunt for the control. */}
+      {!pending && status === 'hired' && job?.id && job.isOpen && (
+        <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-muted" data-close-after-hire>
+          The job is still open.
+          <button
+            type="button"
+            aria-busy={closeJob.isPending}
+            onClick={() => {
+              if (!closeJob.isPending) closeJob.mutate({ status: 'closed', closedReason: 'Position filled' });
+            }}
+            className={textButtonClass}
+          >
+            Close it as filled
+          </button>
+        </p>
+      )}
+      <ErrorNote error={move.error ?? closeJob.error} />
 
       {skills.length === 0 ? (
         <p className="text-sm text-fg-muted">This job lists no skills.</p>
