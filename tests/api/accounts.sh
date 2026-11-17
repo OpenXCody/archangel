@@ -65,6 +65,9 @@ expect "API responses cannot be framed"   1 "$(printf '%s' "$HDRS" | grep -c "^c
 expect "API does not name its framework"  0 "$(printf '%s' "$HDRS" | grep -c '^x-powered-by')"
 # The heaviest cached reads take only their own parameters, so a made-up one cannot be used to miss the cache.
 check "pins with a made-up parameter"     400 "$(req anon GET '/factories/pins?_=1')" 'Unknown query parameter'
+# Vercel's rewrite adds the matched path to the query of every API request.
+check "pins as Vercel's rewrite sends them" 200 "$(req anon GET '/factories/pins?path=factories/pins')"
+check "state counts as the rewrite sends them" 200 "$(req anon GET '/map/state-counts?path=map/state-counts')"
 check "state counts with one"             400 "$(req anon GET '/map/state-counts?x=1')" 'Unknown query parameter'
 check "state counts as the map asks"      200 "$(req anon GET /map/state-counts)"
 check "sign-up rejects short password" 400 "$(req s POST /auth/sign-up '{"email":"seeker-'"$RUN"'@e2e.test","name":"Sam Seeker","password":"short"}')"
