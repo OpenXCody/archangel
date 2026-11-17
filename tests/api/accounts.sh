@@ -39,7 +39,7 @@ expect() { # name wanted got
 sql() { psql "$DB" -qtAc "$1"; }
 j() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s.split('\n').slice(0,-1).join('\n'));console.log(eval('o.'+process.argv[1]))})" "$1"; }
 
-psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'" >/dev/null
+psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHERE email LIKE '%@e2e.test'); DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'" >/dev/null
 # Whatever this run borrows from the local database goes back on exit.
 OTHER_ADMINS=''; PROFILE_ID=''; PROFILE_DOMAIN=''; PROFILE_FEATURED=''
 restore_local() {
@@ -363,7 +363,7 @@ check "me after sign-out"             200 "$(req s GET /auth/me)" '"user":null'
 HDR=$(curl -s -D - -o /dev/null "$API/auth/me" | tr -d '\r' | grep -i '^cache-control' )
 case "$HDR" in *no-store*) echo "ok    auth responses are not cacheable";; *) echo "FAIL  cache header: $HDR"; fail=1;; esac
 CK=$(grep -c HttpOnly "$D/e" || true); [ "$CK" -ge 1 ] && echo "ok    session cookie is HttpOnly" || { echo "FAIL  cookie not HttpOnly"; fail=1; }
-psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'; DELETE FROM companies WHERE name LIKE 'E2E Records %'; DELETE FROM occupations WHERE title LIKE 'E2E Records %'; DELETE FROM skills WHERE name LIKE 'E2E Records %'" >/dev/null
+psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHERE email LIKE '%@e2e.test'); DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'; DELETE FROM companies WHERE name LIKE 'E2E Records %'; DELETE FROM occupations WHERE title LIKE 'E2E Records %'; DELETE FROM skills WHERE name LIKE 'E2E Records %'" >/dev/null
 rm -rf "$D"
 [ $fail -eq 0 ] && echo "ALL PASSED" || echo "SOME FAILED"
 exit $fail
