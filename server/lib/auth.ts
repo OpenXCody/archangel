@@ -55,8 +55,41 @@ export async function verifyPassword(password: string, stored: string): Promise<
 /** Why a password cannot be used, in words for the person, or null when it can. One rule everywhere. */
 export function passwordProblem(password: string): string | null {
   // Eight spaces are eight characters and no password at all.
-  return password.length < 8 || password.length > 200 || !password.trim() ? 'Use a password of at least 8 characters.' : null;
+  if (password.length < 8 || password.length > 200 || !password.trim()) return 'Use a password of at least 8 characters.';
+  return COMMON_PASSWORDS.has(password.toLowerCase()) ? 'That password is one of the most common. Choose another.' : null;
 }
+
+/** The passwords of eight characters or more that are tried first by anyone guessing. */
+const COMMON_PASSWORDS: ReadonlySet<string> = new Set([
+  'password',
+  'password1',
+  'password12',
+  'password123',
+  'passw0rd',
+  '12345678',
+  '123456789',
+  '1234567890',
+  '11111111',
+  '00000000',
+  '87654321',
+  'qwertyui',
+  'qwertyuiop',
+  'qwerty123',
+  '1q2w3e4r',
+  'iloveyou',
+  'sunshine',
+  'princess',
+  'football',
+  'baseball',
+  'trustno1',
+  'superman',
+  'letmein1',
+  'welcome1',
+  'admin123',
+  'abc12345',
+  'changeme',
+  'archangel',
+]);
 
 /** What is stored for a secret token (a session, an invite, a password reset): its SHA-256, never the token. */
 export function hashToken(token: string): string {

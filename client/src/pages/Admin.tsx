@@ -1,32 +1,54 @@
+import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAdminOverview, type AccountUser } from '../lib/account';
+import { ApiError, accountKeys, useAdminOverview, type AccountUser } from '../lib/account';
 import { useAdminCompanyRequests } from '../lib/employerCompanies';
 import { AccountGate } from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 import AccessTab from '../components/admin/AccessTab';
+import { AdminNoticeLine, AdminNoticeProvider, useAdminNotice } from '../components/admin/AdminNotice';
 import DataTab from '../components/admin/DataTab';
+import HistoryTab from '../components/admin/HistoryTab';
 import InvitesTab from '../components/admin/InvitesTab';
 import PeopleTab from '../components/admin/PeopleTab';
 import NotFound from './NotFound';
 
-type TabValue = 'people' | 'access' | 'invites' | 'data';
+type TabValue = 'people' | 'access' | 'invites' | 'data' | 'history';
 
-const TABS: { value: TabValue; label: string }[] = [
+/** `short` is what a phone shows, so all five tabs fit across it. */
+const TABS: { value: TabValue; label: string; short?: string }[] = [
   { value: 'people', label: 'People' },
-  { value: 'access', label: 'Access requests' },
+  { value: 'access', label: 'Access requests', short: 'Access' },
   { value: 'invites', label: 'Invites' },
   { value: 'data', label: 'Data' },
+  { value: 'history', label: 'History' },
 ];
 
+/** What belongs to one tab only, dropped from the address when another is chosen. */
+const TAB_PARAMS = ['q', 'role', 'open', 'kind', 'id', 'show'];
+
 /**
- * Admin Tools: people, company access, invites and data upkeep, for a
- * signed-in admin. Signed out, the gate sends the person to sign in. Signed
- * in without the role, the page is the same as one that does not exist. The
- * API enforces the same rule on every /api/admin route.
+ * Admin Tools: people, company access, invites, data upkeep and the history
+ * of what admins changed, for a signed-in admin. Signed out, the gate sends
+ * the person to sign in. Signed in without the role, the page is the same as
+ * one that does not exist. The API enforces the same rule on every
+ * /api/admin route.
  */
 export default function Admin() {
-  return <AccountGate>{({ user }) => (user.isAdmin ? <AdminTools me={user} /> : <NotFound />)}</AccountGate>;
+  return (
+    <AccountGate>
+      {({ user }) =>
+        user.isAdmin ? (
+          <AdminNoticeProvider>
+            <AdminTools me={user} />
+          </AdminNoticeProvider>
+        ) : (
+          <NotFound />
+        )
+      }
+    </AccountGate>
+  );
 }
 
 const waitingLinkClass = 'font-medium text-fg-default underline underline-offset-4 hover:no-underline';
@@ -38,6 +60,13 @@ const waitingLinkClass = 'font-medium text-fg-default underline underline-offset
  */
 function Waiting() {
   const overview = useAdminOverview();
+  const queryClient = useQueryClient();
+  // The role was taken away while this page was open: ask again who is signed in, and the page goes with the role.
+  const refused = overview.error instanceof ApiError && overview.error.status === 403;
+  useEffect(() => {
+    if (refused) void queryClient.invalidateQueries({ queryKey: accountKeys.account });
+  }, [refused, queryClient]);
+
   const requests = overview.data?.pendingMemberships ?? 0;
   const paths = overview.data?.draftPaths ?? 0;
   // Companies and plants people asked to have added: answered on the Access tab too.
@@ -67,35 +96,61 @@ function Waiting() {
 
 function AdminTools({ me }: { me: AccountUser }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const notice = useAdminNotice();
   const requested = searchParams.get('tab');
   const tab: TabValue = TABS.find((t) => t.value === requested)?.value ?? 'people';
 
   const selectTab = (value: string) => {
     const params = new URLSearchParams(searchParams);
+    for (const name of TAB_PARAMS) params.delete(name);
     if (value === 'people') params.delete('tab');
     else params.set('tab', value);
+    notice.clear();
     // A tab is a place: Back returns to the one before.
     setSearchParams(params);
   };
+
+  // The browser tab names the place: "Admin Tools · Invites".
+  const label = TABS.find((t) => t.value === tab)?.label ?? 'People';
+  useEffect(() => {
+    // After the layout has named the page, which it does on arrival.
+    const timer = window.setTimeout(() => {
+      document.title = `Admin Tools · ${label} · Archangel`;
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [label]);
 
   return (
     <PageContainer>
       <PageHeader title="Admin Tools" />
       <Waiting />
       <Tabs value={tab} onValueChange={selectTab}>
-        <TabsList className="mb-6 flex h-auto w-full justify-start gap-6 overflow-x-auto rounded-none border-b border-border-subtle bg-transparent p-0 text-fg-muted sm:mb-8">
-          {TABS.map(({ value, label }) => (
+        <TabsList className="flex h-auto w-full justify-start gap-4 overflow-x-auto rounded-none border-b border-border-subtle bg-transparent p-0 text-fg-muted sm:gap-6">
+          {TABS.map(({ value, label: tabLabel, short }) => (
             <TabsTrigger
               key={value}
               value={value}
-              className="-mb-px rounded-none border-b-2 border-transparent px-0 pb-3 pt-1 text-sm font-medium text-fg-muted shadow-none transition-colors
-                hover:text-fg-default data-[state=active]:border-[color:var(--color-fg-default)] data-[state=active]:bg-transparent
+              // The ring is drawn inside the tab: the scrolling list would clip one drawn outside.
+              className="-mb-px rounded-none border-b-2 border-transparent px-1 pb-3 pt-1.5 text-sm font-medium text-fg-muted shadow-none transition-colors
+                hover:text-fg-default focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-offset-0
+                data-[state=active]:border-[color:var(--color-fg-default)] data-[state=active]:bg-transparent
                 data-[state=active]:text-fg-default data-[state=active]:shadow-none"
             >
-              {label}
+              {short ? (
+                <>
+                  <span className="sm:hidden" aria-hidden="true">
+                    {short}
+                  </span>
+                  <span className="sr-only sm:not-sr-only">{tabLabel}</span>
+                </>
+              ) : (
+                tabLabel
+              )}
             </TabsTrigger>
           ))}
         </TabsList>
+        {/* What the last action did, between the tabs and what they show. */}
+        <AdminNoticeLine />
         <TabsContent value="people" className="mt-0">
           <PeopleTab me={me} />
         </TabsContent>
@@ -107,6 +162,9 @@ function AdminTools({ me }: { me: AccountUser }) {
         </TabsContent>
         <TabsContent value="data" className="mt-0">
           <DataTab />
+        </TabsContent>
+        <TabsContent value="history" className="mt-0">
+          <HistoryTab />
         </TabsContent>
       </Tabs>
     </PageContainer>

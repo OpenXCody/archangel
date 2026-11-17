@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,7 @@ import {
   usePasswordReset,
   useResetPassword,
   useSignIn,
+  useSignOut,
   useSignUp,
 } from '../lib/account';
 import {
@@ -121,6 +122,12 @@ export default function SignIn() {
   // A usable reset link comes first, whoever is signed in here: its owner may still have a
   // session on this device and cannot change a password they have forgotten.
   if (account.data?.user && !resetPending && !resetting) {
+    // An invite for another address, opened while someone is signed in here: say whose it is
+    // rather than sending them on unexplained. It grants this account nothing.
+    if (inviteToken && inviteQuery.isPending) return <PageLoading label="Checking the invite" />;
+    if (invite && invite.email !== account.data.user.email) {
+      return <InviteForAnother inviteEmail={invite.email} signedInAs={account.data.user.email} />;
+    }
     // The account decides, not the link: an invite link opened by someone else's session grants nothing.
     if (invited?.role === 'admin' && account.data.user.isAdmin) return <Navigate to="/admin" replace />;
     // Someone waiting on an admin has one thing to come back for: the answer.
@@ -245,13 +252,14 @@ export default function SignIn() {
             {inviteToken && inviteQuery.isError && (
               <p role="status" className="text-sm text-fg-muted" data-invite-problem>
                 {inviteQuery.error instanceof ApiError && inviteQuery.error.status === 404
-                  ? 'This invite link has been used or has expired. If it was yours, sign in with the account it made.'
+                  ? inviteProblem(inviteQuery.error)
                   : 'Invite could not be checked.'}
               </p>
             )}
             {invited && (
               <p className="text-sm text-fg-muted" data-invite-grant>
                 Invited as {inviteRoleLabel(invited.role, invited.companyName)}
+                {invited.invitedBy ? ` by ${invited.invitedBy}` : ''}
               </p>
             )}
             {mode === 'create' && !invited && (
@@ -529,6 +537,49 @@ function ChoosePassword({ email, busy, error, onSubmit }: ChoosePasswordProps) {
             Save password
           </Button>
         </form>
+      </div>
+    </PageContainer>
+  );
+}
+
+/** Why an invite link cannot be used, as the server told it: used, expired, or not one of ours. */
+function inviteProblem(error: ApiError): string {
+  const reason = (error.payload as { reason?: unknown } | null)?.reason;
+  if (reason === 'used') return 'This invite has been used. Sign in with the account it made.';
+  if (reason === 'expired') return 'This invite has expired. Ask an admin for a new one.';
+  return 'This invite link is not valid. It may have been replaced or withdrawn: ask an admin for a new one.';
+}
+
+/** An invite for one address, opened while another account is signed in on this device. */
+function InviteForAnother({ inviteEmail, signedInAs }: { inviteEmail: string; signedInAs: string }) {
+  const signOut = useSignOut();
+  return (
+    <PageContainer size="narrow">
+      <div className="mx-auto w-full max-w-md">
+        <PageHeader title="Invite" />
+        <div className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-invite-other>
+          <p className="break-words text-sm text-fg-muted">
+            This invite is for <span className="font-medium text-fg-default">{inviteEmail}</span>. You are signed in as{' '}
+            <span className="font-medium text-fg-default">{signedInAs}</span>.
+          </p>
+          <ErrorNote error={signOut.error} />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              aria-disabled={signOut.isPending}
+              aria-busy={signOut.isPending}
+              onClick={() => {
+                if (!signOut.isPending) signOut.mutate();
+              }}
+              className={cn('h-10', busyButtonClass)}
+            >
+              Sign out to use it
+            </Button>
+            <Link to="/map" className="text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default">
+              Stay signed in
+            </Link>
+          </div>
+        </div>
       </div>
     </PageContainer>
   );

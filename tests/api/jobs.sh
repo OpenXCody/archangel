@@ -44,6 +44,8 @@ j() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=J
 
 # Jobs first: a job outlives the person who posted it.
 cleanup() {
+  # The audit lines this run's admin caused, while the account still names them.
+  psql "$DB" -qtAc "DELETE FROM audit_log WHERE actor_id IN (SELECT id FROM users WHERE email LIKE '%@jobs.test')" >/dev/null
   psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHERE email LIKE '%@jobs.test'); DELETE FROM users WHERE email LIKE '%@jobs.test';
     DELETE FROM companies WHERE name LIKE 'Jobtest$RUN%'; DELETE FROM occupations WHERE title LIKE 'Jobtest Flange Aligner $RUN'" >/dev/null
   rm -rf "$D"
