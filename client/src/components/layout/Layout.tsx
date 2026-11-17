@@ -54,9 +54,11 @@ export default function Layout() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-bg-surface border-b border-border-subtle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-14 gap-2 sm:gap-4">
+          {/* Three columns. From tablet up the outer two are equal, so the wordmark sits at the
+              centre of every page; a phone has no room for that, and centres it in what is left. */}
+          <div className="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-4">
             {/* Left: Navigation */}
-            <nav className="flex items-center gap-1 flex-shrink-0">
+            <nav className="flex min-w-0 items-center gap-1">
               {navItems.map(({ to, icon: Icon, label }) => {
                 const isActive = location.pathname === to || location.pathname.startsWith(`${to}/`);
 
@@ -82,13 +84,16 @@ export default function Layout() {
               })}
             </nav>
 
-            {/* Center: Logo - visible on tablet+ */}
-            <div className="flex items-center justify-center flex-1 min-w-0">
+            {/* Center: Logo */}
+            <div className="flex min-w-0 items-center justify-center">
               <span className="text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap">
                 ARCHANGEL
               </span>
             </div>
 
+            <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-4">
+            {/* On a phone the map keeps the search button's room, so the wordmark does not shift between pages. */}
+            {isMapView && <span className="w-10 shrink-0 sm:hidden" aria-hidden="true" />}
             {/* Right: Search button - hidden on map view */}
             {!isMapView && (
               <button
@@ -111,6 +116,7 @@ export default function Layout() {
 
             {/* End of the nav: sign in, or the signed-in person's menu */}
             <AccountMenu />
+            </div>
           </div>
         </div>
       </header>

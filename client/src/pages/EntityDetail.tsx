@@ -95,7 +95,7 @@ function BackButton({ fallback }: { fallback: string }) {
     <button
       type="button"
       onClick={() => (canGoBack ? navigate(-1) : navigate(fallback))}
-      className="inline-flex items-center gap-2 text-sm text-fg-muted hover:text-fg-default mb-6"
+      className="-my-2 mb-2 inline-flex min-h-11 items-center gap-2 pr-2 text-sm text-fg-muted hover:text-fg-default"
     >
       <ArrowLeft className="w-4 h-4" />
       Back
@@ -106,26 +106,23 @@ function BackButton({ fallback }: { fallback: string }) {
 function Section({
   id: anchor,
   title,
-  count,
+  note,
   children,
 }: {
   /** Anchor for deep links (#occupations). Defaults to a slug of the title; set it when the wording differs from the link. */
   id?: string;
   title: string;
-  count?: number;
+  /** A quiet word beside the heading. A list says how long it is by being there, so there is no count. */
+  note?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const id = anchor ?? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   return (
     <div id={id} className="mt-8 scroll-mt-20">
-      <h2 className="text-sm font-medium text-fg-soft uppercase tracking-wider mb-4 flex items-center gap-2">
-        {title}
-        {count !== undefined && (
-          <span className="text-xs px-2 py-0.5 rounded-full bg-tint/5 text-fg-muted border border-tint/10">
-            {count}
-          </span>
-        )}
-      </h2>
+      <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h2 className="text-sm font-medium text-fg-soft uppercase tracking-wider">{title}</h2>
+        {note}
+      </div>
       {children}
     </div>
   );
@@ -317,7 +314,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
 
       {/* Every site: where it is and what it makes */}
       {sites.length > 0 && (
-        <Section id="factories" title="Sites" count={sites.length}>
+        <Section id="factories" title="Sites">
           <ul className="overflow-hidden rounded-xl border border-border-subtle bg-bg-surface">
             {shownSites.map((site) => {
               const place = [site.city ? titleCase(site.city) : null, site.state].filter(Boolean).join(', ');
@@ -351,7 +348,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
       )}
       {/* Careers across this company's sites */}
       {(data.occupations?.length || 0) > 0 && (
-        <Section id="occupations" title="Careers" count={data.occupations?.length}>
+        <Section id="occupations" title="Careers">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {(showAllCareers ? data.occupations : data.occupations?.slice(0, CAREERS_SHOWN))?.map((occ) => (
               <RelatedCard
@@ -401,6 +398,12 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
   const located = Number.isFinite(latitude) && Number.isFinite(longitude);
   const siteCount = company?.siteCount ?? 0;
   const stateCount = company?.stateCount ?? 0;
+  // A company whose one site this is, under the same name, would only repeat the heading.
+  const companyIsThisSite =
+    companyName !== null &&
+    siteCount <= 1 &&
+    !company?.description &&
+    formatFactoryName(data.name).toLowerCase().startsWith(companyName.toLowerCase());
 
   // This site, marked, among the company's nearest others.
   const points = useMemo(
@@ -441,7 +444,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
       {jobs.length > 0 && <OpenJobsSection jobs={jobs} empty="" showCareer />}
 
       {/* Who runs it */}
-      {company && companyName && (
+      {company && companyName && !companyIsThisSite && (
         <Section title="Company">
           <Link
             to={`/companies/${company.slug ?? company.id}`}
@@ -501,7 +504,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
       )}
 
       {data.occupations?.length > 0 && (
-        <Section id="occupations" title="Careers here" count={data.occupations.length}>
+        <Section id="occupations" title="Careers here">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {(showAllCareers ? data.occupations : data.occupations.slice(0, CAREERS_SHOWN)).map((occ) => (
               <RelatedCard key={occ.id} to={`/occupations/${occ.id}`} icon={Briefcase} iconClass="text-fg-muted" title={occ.title} />
@@ -525,7 +528,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
 /** Open jobs at a company, a factory or for a career, with a way in for employers when there are none. */
 function OpenJobsSection({ jobs, empty, showCareer = false }: { jobs: CareerJob[]; empty: string; showCareer?: boolean }) {
   return (
-    <Section id="jobs" title="Open jobs" count={jobs.length}>
+    <Section id="jobs" title="Open jobs">
       {jobs.length > 0 ? (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {jobs.map((job) => (
@@ -536,7 +539,8 @@ function OpenJobsSection({ jobs, empty, showCareer = false }: { jobs: CareerJob[
               iconClass="text-fg-muted"
               title={job.title}
               subtitle={[
-                showCareer ? job.occupationTitle : job.companyName,
+                // The career is said only when the job is not simply named after it.
+                showCareer ? (job.occupationTitle !== job.title ? job.occupationTitle : null) : job.companyName,
                 job.city,
                 formatPay(job.payMin, job.payMax, job.payPeriod),
               ]
@@ -656,14 +660,27 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
       </div>
 
       {/* The path: skills in the order they are learned */}
+      {skills.length === 0 && (
+        <Section id="skills" title="Path">
+          <p className="text-sm text-fg-muted">Path not written yet.</p>
+        </Section>
+      )}
       {skills.length > 0 && (
-        <Section id="skills" title={hasStages ? 'Path' : 'Skills'} count={skills.length}>
-          {hasStages && data.pathStatus === 'draft' && (
-            <p className="mb-4 rounded-lg border border-border-strong bg-bg-elevated px-3 py-2 text-sm text-fg-muted">
-              <span className="font-medium text-fg-default">Draft path.</span> A starting point that has not been
-              reviewed by a person yet.
-            </p>
-          )}
+        <Section
+          id="skills"
+          title={hasStages ? 'Path' : 'Skills'}
+          note={
+            hasStages && data.pathStatus === 'draft' ? (
+              // Honest without undermining the page: one quiet word, with the sentence for anyone who asks.
+              <details className="group text-xs text-fg-soft" data-draft-path>
+                <summary className="inline-flex min-h-6 cursor-pointer list-none items-center underline decoration-dotted underline-offset-4 hover:text-fg-muted [&::-webkit-details-marker]:hidden">
+                  Draft
+                </summary>
+                <p className="mt-1 max-w-prose text-sm text-fg-muted">A starting point that has not been reviewed by a person yet.</p>
+              </details>
+            ) : undefined
+          }
+        >
           {signedIn && <ErrorNote error={markSkill.error} className="mb-3" />}
           {hasStages ? (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -716,7 +733,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
 
       {/* Factories that employ this career */}
       {data.factories?.length > 0 && (
-        <Section id="factories" title="Factories that employ this career" count={data.factories.length}>
+        <Section id="factories" title="Factories that employ this career">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.factories.map((factory) => (
               <RelatedCard
@@ -806,21 +823,9 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
         </div>
       )}
 
-      {/* Stats - occupation and related skill counts (real relationships) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
-          <div className="text-2xl font-semibold text-fg-default">{data.occupations?.length || 0}</div>
-          <div className="text-sm text-fg-muted">Careers</div>
-        </div>
-        <div className="bg-tint/[0.02] backdrop-blur-sm border border-tint/10 rounded-lg p-4">
-          <div className="text-2xl font-semibold text-fg-default">{data.relatedSkills?.length || 0}</div>
-          <div className="text-sm text-fg-muted">Related Skills</div>
-        </div>
-      </div>
-
       {/* Occupations - no importance badges */}
       {data.occupations?.length > 0 && (
-        <Section id="occupations" title="Careers requiring this skill" count={data.occupations.length}>
+        <Section id="occupations" title="Careers requiring this skill">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.occupations.map((occ) => (
               <RelatedCard
@@ -837,7 +842,7 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
 
       {/* Related Skills (same category) */}
       {data.relatedSkills?.length > 0 && (
-        <Section title="Related Skills" count={data.relatedSkills.length}>
+        <Section title="Related skills">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {data.relatedSkills.map((skill) => (
               <RelatedCard

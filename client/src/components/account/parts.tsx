@@ -133,14 +133,18 @@ export function CardNote({ children, className }: { children: ReactNode; classNa
   return <div className={cn(cardClass, 'px-4 py-6 text-center text-sm text-fg-muted', className)}>{children}</div>;
 }
 
+/**
+ * A stage reads by brightness, not hue: the further along, the brighter, and
+ * a finished application that went nowhere steps back.
+ */
 const STATUS_STYLE: Record<string, string> = {
-  applied: 'border-border-strong text-fg-default',
+  applied: 'border-border-strong text-fg-muted',
   reviewing: 'border-border-strong bg-bg-elevated text-fg-muted',
-  interview: 'border-warning/30 bg-warning/10 text-warning',
-  offer: 'border-success/30 bg-success/10 text-success',
-  hired: 'border-success/40 bg-success/20 text-success',
-  declined: 'border-danger/30 bg-danger/10 text-danger',
-  withdrawn: 'border-border-subtle text-fg-muted',
+  interview: 'border-border-strong bg-bg-elevated text-fg-default',
+  offer: 'border-fg-muted bg-bg-elevated text-fg-default',
+  hired: 'border-fg-default bg-fg-default text-bg-base',
+  declined: 'border-border-subtle text-fg-soft',
+  withdrawn: 'border-border-subtle text-fg-soft',
 };
 
 export function ApplicationStatusBadge({ status, className }: { status: string; className?: string }) {

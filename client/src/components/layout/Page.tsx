@@ -63,7 +63,7 @@ export function PageHeader({ title, description, eyebrow, icon: Icon, iconClassN
       {backTo && (
         <Link
           to={backTo.to}
-          className="mb-4 inline-flex items-center gap-2 text-sm text-fg-muted transition-colors hover:text-fg-default"
+          className="-mt-2 mb-2 inline-flex min-h-11 items-center gap-2 pr-2 text-sm text-fg-muted transition-colors hover:text-fg-default"
         >
           <ArrowLeft className="h-4 w-4" />
           {backTo.label}

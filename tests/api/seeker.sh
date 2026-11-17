@@ -233,6 +233,10 @@ expect "every word must match"        0 "$(req anon GET "/jobs?q=$RUN+fitter+zzz
 expect "a longer form of a word still finds it" 4 "$(req anon GET "/jobs?q=$RUN+fitters" | j jobs.length)"
 expect "a percent sign is only a character" 0 "$(req anon GET "/jobs?q=$RUN+%25%25%25" | j jobs.length)"
 
+expect "the site search lists open jobs too" "$P Fitter Town|$P Works · Seekerville, ND" "$(req anon GET "/search?q=$RUN+seekerville" | j "results.jobs.items.map(x=>x.name+'|'+x.subtitle).join()")"
+expect "a job result opens the job"   jobs "$(req anon GET "/search?q=$RUN+seekerville" | j "results.jobs.items[0].type")"
+expect "the map's search asks for no jobs" 0 "$(req anon GET "/search?q=$RUN+seekerville&types=companies,factories,occupations,skills" | j "results.jobs.count")"
+
 # The same jobs on the map's overviews: a box around Home and Town.
 BOX="west=-100.1&south=45.9&east=-99.9&north=46.4"
 OUT=$(req anon GET "/map/bounds/overview?$BOX")
@@ -262,6 +266,11 @@ expect "their other session ended"    null "$(req e2 GET /auth/me | j user)"
 check "the old address no longer signs in" 401 "$(req e2 POST /auth/sign-in '{"email":"'"$E1"'","password":"correct horse"}')"
 check "the new address does"          200 "$(req e2 POST /auth/sign-in '{"email":"'"$E2"'","password":"correct horse"}')"
 expect "one account, not two"         1 "$(sql "SELECT COUNT(*) FROM users WHERE email IN ('$E1','$E2')")"
+# The old address is told, when the API under test captures its email (OUTBOX is that file).
+if [ -n "${OUTBOX:-}" ] && [ -f "$OUTBOX" ]; then
+  expect "the old address is told"    1 "$(grep -c "\"kind\":\"email-changed\".*\"to\":\"$E1\"" "$OUTBOX")"
+  expect "and is told the new one"    1 "$(grep "\"to\":\"$E1\"" "$OUTBOX" | grep -c "$E2")"
+else echo "skip  email to the old address (set OUTBOX to the API's EMAIL_OUTBOX file to check it)"; fi
 
 # --- Deleting my account ------------------------------------------------------
 JOB=$(sql "SELECT id FROM jobs WHERE title='$P Fitter Home'")
