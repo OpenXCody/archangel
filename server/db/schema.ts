@@ -133,7 +133,12 @@ export const skills = pgTable(
     name: text('name').notNull(),
     // The skill's group as shown and filtered on ("Welding & Fabrication").
     category: text('category'),
+    // What the skill is and what a person who has it can do.
     description: text('description'),
+    // How it is usually learned or shown (on the job, a course, a named credential).
+    howLearned: text('how_learned'),
+    // The tools, machines or software it is done with: a short list.
+    tools: text('tools').array(),
     // Skill tree: self-referential parent for adjacency list pattern
     parentSkillId: uuid('parent_skill_id'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
