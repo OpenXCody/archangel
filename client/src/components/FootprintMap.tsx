@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
  * projected here with an Albers equal-area conic, so it needs no map library
  * and no tiles.
  *
- * Sites outside the lower 48 (Alaska, Hawaii, Puerto Rico) are not drawn; the
+ * Sites outside the lower 48 (Alaska, Hawaii) are not drawn; the
  * caller lists every site beside it.
  */
 
@@ -28,7 +28,7 @@ interface FootprintMapProps {
 }
 
 const STATES_URL = '/data/us-states.geojson';
-const NOT_DRAWN = new Set(['Alaska', 'Hawaii', 'Puerto Rico']);
+const NOT_DRAWN = new Set(['Alaska', 'Hawaii']);
 
 // Albers equal-area conic, the standard for a US map: parallels 29.5° and
 // 45.5°, centred on 96°W 37.5°N.

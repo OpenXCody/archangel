@@ -292,7 +292,7 @@ export function zoomBy(map: MapLibreMap, delta: number): void {
 
 /**
  * Where the middle of the screen may be dragged to: the lower 48 states,
- * Alaska, Hawaii and Puerto Rico, each with a margin, joined by corridors so
+ * Alaska and Hawaii, each with a margin, joined by corridors so
  * a person can drag from one to the next. [west, south, east, north].
  */
 const REACH: Array<[number, number, number, number]> = [
@@ -300,7 +300,6 @@ const REACH: Array<[number, number, number, number]> = [
   [-171, 51, -129, 72], // Alaska
   [-136, 47, -122, 57], // up the coast to Alaska
   [-161.5, 18, -117, 34], // out to Hawaii
-  [-82, 17, -64, 27.5], // down to Puerto Rico
 ];
 
 /** The nearest point to `center` that the screen's middle may sit on. */
