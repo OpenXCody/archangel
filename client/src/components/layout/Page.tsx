@@ -29,7 +29,8 @@ import { cn } from '@/lib/utils';
  *      - the page's one action, last in the block and always in this place:
  *        Open on the map (company, plant, industry), Set as goal (career),
  *        Not held / Learning / Held (skill). A job's action is a form, so it
- *        is the Apply section that follows the job's terms.
+ *        is the Apply section that follows the job's terms (for a person
+ *        marking skills, the skills first: the company ranks on them).
  *   2. Sections (`DetailSection`: small grey capitals, no counts), always in
  *      this order, leaving out what the page does not have:
  *      a. what it is: the page's own content (a plant's people and what it
@@ -37,8 +38,8 @@ import { cn } from '@/lib/utils';
  *         figures, a job's terms);
  *      b. where: the footprint and address, or the places and industries;
  *      c. open jobs;
- *      d. the records it leads to, in the product's own order:
- *         companies, plants, careers, skills;
+ *      d. the records it leads to, in the product's own order (the order
+ *         of Explore's tabs): companies, plants, careers, skills;
  *      e. sources, as one quiet line at the foot.
  *   3. Every list of records is a `RecordList` of `RecordRow`s: one card,
  *      hairlines between rows, the name, at most one grey line under it, and
@@ -46,8 +47,11 @@ import { cn } from '@/lib/utils';
  *      under the heading CAREERS does not need a briefcase on every line. A
  *      company's mark may lead its row, and a skill's row may carry the mark
  *      that says whether the person has it. A list longer than its cut ends
- *      in `ShowAll`. The one other shape is a table of figures by place
- *      (`FigureList` in `components/industry/parts.tsx`).
+ *      in `ShowAll`. Two other shapes exist, each for one thing: a table of
+ *      figures by place (`FigureList` in `components/industry/parts.tsx`),
+ *      and chips for places that open on the map (a career's leading states).
+ *   4. Words: a place is "City, ST"; the tab is the page's name and
+ *      "· Archangel", nothing between.
  */
 
 type PageSize = 'narrow' | 'default' | 'wide' | 'full';

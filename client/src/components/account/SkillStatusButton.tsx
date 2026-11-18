@@ -59,7 +59,7 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
             tabIndex={choice.value === tabStop ? 0 : -1}
             onClick={() => choose(choice.value)}
             className={cn(
-              'inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors aria-disabled:cursor-default',
+              'inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors aria-disabled:cursor-default sm:h-8',
               selected ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
             )}
           >
@@ -167,7 +167,7 @@ export default function SkillStatusButton({ skillId, className }: SkillStatusBut
 
   if (!signedIn) {
     return (
-      <Button asChild variant="outline" className={cn('h-10', outlineButtonClass, className)}>
+      <Button asChild variant="outline" className={cn('h-11 sm:h-10', outlineButtonClass, className)}>
         <Link to={signInPath(`${location.pathname}${location.search}`)}>
           Sign in to track this skill
         </Link>

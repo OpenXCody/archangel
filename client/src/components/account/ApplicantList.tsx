@@ -119,7 +119,7 @@ export default function ApplicantList({ data, job }: { data: JobApplicants; job?
         </div>
       </div>
 
-      <div className={cardClass}>
+      <div className={cn(cardClass, 'overflow-hidden')}>
         <div
           className={cn('hidden items-center gap-x-4 border-b border-border-subtle px-4 py-2 text-xs text-fg-muted sm:grid', COLUMNS)}
           aria-hidden="true"

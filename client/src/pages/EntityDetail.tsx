@@ -91,7 +91,7 @@ function cityState(city: string | null | undefined, state: string | null | undef
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
 /** A link inside a line of facts. The padding gives a finger room without moving the line. */
-const factLinkClass = 'py-3 underline decoration-border-strong underline-offset-4 transition-colors hover:text-fg-default hover:decoration-fg-muted';
+const factLinkClass = 'py-[15px] underline decoration-border-strong underline-offset-4 transition-colors hover:text-fg-default hover:decoration-fg-muted';
 
 /** A plant's street address as written: a curated plant's was typed by a person ("1530 FM 973") and is left as it is. */
 function streetAddress(plant: { address?: string | null; curated?: boolean }): string | null {

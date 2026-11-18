@@ -516,8 +516,8 @@ function SuggestedSkills({ mySkills, onMark }: { mySkills: MySkill[]; onMark: (s
   const statusOf = new Map(mySkills.map((skill) => [skill.skillId, skill.status]));
   const shown = expanded ? list : list.slice(0, SUGGESTED_SHOWN);
   const marked = list.some((skill) => statusOf.has(skill.id));
-  // Which career a skill is for is worth saying only when there is more than one.
-  const severalCareers = new Set(list.map((skill) => skill.career)).size > 1 || list.some((skill) => skill.careers > 1);
+  // Which career a skill is for is worth saying only when the rows on screen differ: one career down every row says nothing.
+  const severalCareers = new Set(shown.map((skill) => skill.career)).size > 1 || shown.some((skill) => skill.careers > 1);
   // More to show from this answer, or a fresh answer worth asking for.
   const hasMore = list.length > shown.length || marked;
 
