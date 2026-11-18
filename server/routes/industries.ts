@@ -106,6 +106,12 @@ router.get('/:slug', async (req: Request, res: Response) => {
     const coordinate = (column: string): SQL =>
       sql`CASE WHEN f.${sql.identifier(column)} ~ '^-?[0-9]+(\\.[0-9]+)?$' THEN f.${sql.identifier(column)}::float8 END`;
 
+    // One side of the box around a city's plants. The tenth and ninetieth
+    // percentiles, not the extremes: one plant filed under the wrong city
+    // would otherwise stretch the box across the state.
+    const edge = (column: string, fraction: number): SQL =>
+      sql`percentile_disc(${fraction}::float8) WITHIN GROUP (ORDER BY ${coordinate(column)})`;
+
     const [profileRows, totalRows, statRows, employerRows, plantRows, careerRows, jobRows, whereRows] = await Promise.all([
       db.execute(sql`SELECT summary FROM industry_profiles WHERE code = ${industry.code}`),
 
@@ -198,8 +204,8 @@ router.get('/:slug', async (req: Request, res: Response) => {
           `)
         : db.execute(sql`
             SELECT MIN(btrim(f.city)) AS city, MIN(f.state) AS state, COUNT(*)::int AS plants,
-                   MIN(${coordinate('longitude')}) AS west, MIN(${coordinate('latitude')}) AS south,
-                   MAX(${coordinate('longitude')}) AS east, MAX(${coordinate('latitude')}) AS north
+                   ${edge('longitude', 0.1)} AS west, ${edge('latitude', 0.1)} AS south,
+                   ${edge('longitude', 0.9)} AS east, ${edge('latitude', 0.9)} AS north
             FROM factories f
             WHERE ${here('f')} AND btrim(COALESCE(f.city, '')) <> ''
             GROUP BY upper(btrim(f.city))

@@ -78,6 +78,36 @@ test('a career page shows its path, a company page its sites', async ({ page, re
   await expect(page.locator('#skills')).toHaveCount(0);
 });
 
+test('industry pages render without overflow', async ({ page, request }) => {
+  await page.goto('/industries', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-industries-view] [data-figure-list] a').first(), 'the list of industries is drawn').toBeVisible();
+  await assertHealthyLayout(page, '/industries');
+
+  // The industry with the most plants in the sample's fullest state: a page with every part.
+  const res = await request.get(`${API}/industries?state=TX`);
+  expect(res.ok(), 'the API lists industries for a state').toBe(true);
+  const list = (await res.json()) as { industries: { slug: string; plants: number }[] };
+  const fullest = [...list.industries].sort((a, b) => b.plants - a.plants)[0];
+  expect(fullest?.plants ?? 0, 'the sample has plants with an industry in Texas').toBeGreaterThan(0);
+  await page.goto(`/industries/${fullest.slug}?state=TX`, { waitUntil: 'domcontentloaded' });
+  const view = page.locator('[data-industry-view]');
+  await expect(view.locator('[data-figures]'), 'the figures are drawn').toBeVisible();
+  await expect(page.locator('[data-place-choice]'), 'the place can be changed').toBeVisible();
+  await expect(view.locator('[data-open-map]'), 'the way to the map is there').toHaveAttribute('href', /^\/map\?industry=.+&state=TX$/);
+  expect(await view.locator('section').count(), 'the page has its parts').toBeGreaterThan(0);
+  await expect(page).toHaveTitle(/ in Texas · Archangel$/);
+  await assertHealthyLayout(page, '/industries/:slug?state=TX');
+
+  // The same industry for the country: the states it is largest in, each a link to that state's page.
+  await page.goto(`/industries/${fullest.slug}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#where a[href*="?state="]').first(), 'the states are listed').toBeVisible();
+  await assertHealthyLayout(page, '/industries/:slug');
+
+  // An address that names no industry says so and offers the list.
+  await page.goto('/industries/not-an-industry', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByText('This industry is not listed')).toBeVisible();
+});
+
 test('global search opens and is usable', async ({ page }) => {
   await page.goto('/explore', { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: /search/i }).first().click();
