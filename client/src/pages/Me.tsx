@@ -14,7 +14,6 @@ import {
   useRemoveGoal,
   useMarkSeen,
   useUpdateApplication,
-  accountRoles,
   type MyApplication,
   type MyGoal,
   type MySkill,
@@ -37,7 +36,6 @@ import {
   AccountGate,
   ApplicationStatusBadge,
   CardNote,
-  ENTITY,
   ErrorNote,
   HeldMeter,
   LoadError,
@@ -45,6 +43,7 @@ import {
   busyButtonClass,
   cardClass,
   fieldClass,
+  formatDay,
   outlineButtonClass,
   rowClass,
   textButtonClass,
@@ -61,8 +60,9 @@ export default function Me() {
 const linkClass = 'font-medium text-fg-default underline underline-offset-4 hover:no-underline';
 
 /**
- * The seeker's own page: what they are working toward (goals), what they can
- * do (skills) and where they have applied. Nothing here asks for more than a
+ * Profile, the seeker's own page: where they have applied (first, when they
+ * have: it is what the account's dot points to), what they are working toward
+ * (goals) and what they can do (skills, their own before any suggested). Nothing here asks for more than a
  * tap: careers and skills are picked from the catalogue, never typed out.
  * The account itself (name, sign-in, notices) is in settings.
  *
@@ -78,7 +78,6 @@ function MyPage({ account }: { account: SignedInAccount }) {
   const goals = useMyGoals();
   const skills = useMySkills();
   const applications = useMyApplications();
-  const roles = accountRoles(account);
 
   // Until all three have answered there is no telling which page to draw.
   const loading = goals.isPending || skills.isPending || applications.isPending;
@@ -97,12 +96,8 @@ function MyPage({ account }: { account: SignedInAccount }) {
 
   return (
     <PageContainer size="narrow">
-      <PageHeader
-        // While an admin views as a user the page reads as a user's does.
-        eyebrow={roles.length > 0 && !viewer.viewingAs ? roles.join(' · ') : undefined}
-        title={user.name}
-        description="Goals, skills and applications."
-      />
+      {/* The page is called Profile wherever it is pointed to; here it carries the person's name under that word. */}
+      <PageHeader eyebrow="Profile" title={user.name} description="Goals, skills and applications." />
       {loading ? (
         <div className="mb-8">
           <RowsSkeleton rows={3} />
@@ -111,9 +106,10 @@ function MyPage({ account }: { account: SignedInAccount }) {
         <Starter onStart={() => (startedHere.current = true)} />
       ) : (
         <>
+          {/* Only when there is one to follow (or the list could not be read). */}
+          {(applications.isError || (applications.data?.length ?? 0) > 0) && <ApplicationsSection email={user.email} />}
           <GoalsSection />
           <SkillsSection />
-          <ApplicationsSection email={user.email} />
         </>
       )}
     </PageContainer>
@@ -237,7 +233,6 @@ function GoalsSection() {
   const addGoal = useAddGoal();
   // Goals removed while this page is open keep their place until it is left, with a way back.
   const [removed, setRemoved] = useState<MyGoal[]>([]);
-  const CareerIcon = ENTITY.career.icon;
 
   const refreshSuggestions = () => void queryClient.invalidateQueries({ queryKey: suggestedSkillsKey });
   const removedIds = new Set(removed.map((goal) => goal.occupationId));
@@ -254,7 +249,7 @@ function GoalsSection() {
         <LoadError error={goals.error} onRetry={() => void goals.refetch()} retrying={goals.isFetching} />
       ) : listed.length === 0 ? (
         <CardNote>
-          No goals yet.{' '}
+          None yet.{' '}
           <Link to="/explore?tab=occupations" className={linkClass}>
             Browse careers
           </Link>
@@ -281,10 +276,7 @@ function GoalsSection() {
             }
             const removing = removeGoal.isPending && removeGoal.variables === goal.occupationId;
             return (
-              <li key={goal.occupationId} className={cn(rowClass, 'flex items-center gap-3 p-4')}>
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-bg-elevated">
-                  <CareerIcon className={cn('h-4 w-4', ENTITY.career.text)} />
-                </div>
+              <li key={goal.occupationId} className={cn(rowClass, 'flex items-center gap-3 py-3 pl-4 pr-2')}>
                 <div className="min-w-0 flex-1">
                   <Link
                     to={`/occupations/${goal.occupationId}`}
@@ -435,11 +427,9 @@ function SkillsSection() {
       description={`${counts || 'Held or learning'}. Shown to a company when you apply.`}
     >
       <SkillSearch mySkills={mine} onAdd={mark} disabled={skills.isPending} />
-      <SuggestedSkills mySkills={mine} onMark={mark} />
 
-      <div className={hasSuggestions ? 'mt-5' : 'mt-3'}>
-        {/* Two lists, so each is named. Alone, the person's own list needs no name under "Skills". */}
-        {hasSuggestions && listed.length > 0 && <h3 className="mb-2 text-sm font-medium text-fg-muted">On your list</h3>}
+      {/* The person's own list comes first and needs no name under "Skills"; what is suggested is named, below it. */}
+      <div className="mt-3">
         {skills.isPending ? (
           <RowsSkeleton rows={3} />
         ) : skills.isError ? (
@@ -469,6 +459,7 @@ function SkillsSection() {
         )}
       </div>
       <ErrorNote error={markSkill.error} className="mt-2" />
+      <SuggestedSkills mySkills={mine} onMark={mark} />
     </PageSection>
   );
 }
@@ -531,7 +522,7 @@ function SuggestedSkills({ mySkills, onMark }: { mySkills: MySkill[]; onMark: (s
   const hasMore = list.length > shown.length || marked;
 
   return (
-    <div className="mt-4" data-suggested-skills>
+    <div className="mt-5" data-suggested-skills>
       <h3 className="mb-2 text-sm font-medium text-fg-muted">Suggested</h3>
       <ul className={cn(cardClass, suggested.isPlaceholderData && 'opacity-60')}>
         {shown.map((skill) => (
@@ -698,14 +689,6 @@ function SkillSearch({ mySkills, onAdd, disabled }: SkillSearchProps) {
 // Applications
 // ---------------------------------------------------------------------------
 
-/** "Nov 3", with the year once it is not this one. */
-function formatStageDate(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const sameYear = date.getFullYear() === new Date().getFullYear();
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' });
-}
-
 function ApplicationsSection({ email }: { email: string }) {
   const applications = useMyApplications();
   const { mutate: markSeen } = useMarkSeen();
@@ -729,13 +712,6 @@ function ApplicationsSection({ email }: { email: string }) {
         <RowsSkeleton rows={2} />
       ) : applications.isError ? (
         <LoadError error={applications.error} onRetry={() => void applications.refetch()} retrying={applications.isFetching} />
-      ) : applications.data.length === 0 ? (
-        <CardNote>
-          None yet.{' '}
-          <Link to="/jobs" className={linkClass}>
-            Open jobs
-          </Link>
-        </CardNote>
       ) : (
         <ul className={cardClass}>
           {listed.map((application) => (
@@ -812,7 +788,7 @@ function ApplicationRow({ application, email }: { application: MyApplication; em
                 {index > 0 && ' · '}
                 {/* A stage and its date stay on one line together. */}
                 <span className={cn('whitespace-nowrap', index === application.events.length - 1 && 'text-fg-default')}>
-                  {applicationStatusLabel(event.status)} {formatStageDate(event.at)}
+                  {applicationStatusLabel(event.status)} {formatDay(event.at)}
                 </span>
               </Fragment>
             ))}

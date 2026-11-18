@@ -29,7 +29,7 @@ import {
 import { formatFactoryName } from '@shared/displayName';
 import { latestDraftCompany } from '../lib/jobDraft';
 import { useViewer } from '../lib/viewer';
-import { formatAgo, formatDate, isExpired } from '../lib/jobFormat';
+import { isExpired } from '../lib/jobFormat';
 import CompanyRequestForm from '../components/account/CompanyRequestForm';
 import JobForm, { selectContentClass, selectTriggerClass, type JobFormCompany } from '../components/account/JobForm';
 import ConfirmDialog from '../components/admin/ConfirmDialog';
@@ -45,6 +45,8 @@ import {
   busyButtonClass,
   cardClass,
   fieldClass,
+  formatDay,
+  formatOnDay,
   outlineButtonClass,
   rowClass,
   textButtonClass,
@@ -57,7 +59,7 @@ export default function Employer() {
 }
 
 /**
- * The employer page is the list of a person's companies and their jobs. The
+ * "Your jobs": the list of a person's companies and their jobs. The
  * job form takes the page over when asked for in the address: `?post=1` for a
  * new job, `?copy=<job>` for another like an existing one, `?edit=<job>` to
  * change one. `&from=job` says the form was opened from the job's own page.
@@ -89,6 +91,15 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
   const hasJobs = active.some((company) => company.jobs.length > 0);
   const viewer = useViewer();
 
+  // The page has one name, here as in the header, the menu and the links back to it.
+  useEffect(() => {
+    // After the layout has named the page, which it does on arrival.
+    const timer = window.setTimeout(() => {
+      document.title = 'Your jobs · Archangel';
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [posting]);
+
   if (posting && active.length > 0) {
     return (
       <PageContainer size="narrow">
@@ -101,13 +112,14 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
   return (
     <PageContainer size="narrow">
       <PageHeader
-        eyebrow={active.length > 0 ? 'Employer' : undefined}
-        // One company is named; several are named where their jobs are listed.
-        title={active.length === 1 ? active[0].companyName : active.length > 1 ? `${active.length} companies` : 'Employer'}
+        title="Your jobs"
+        // One company is named here; several are named where their jobs are listed.
         description={
-          active.length > 0
-            ? 'Post jobs and review applicants.'
-            : "Post jobs at a company's factories and review applicants."
+          active.length === 1
+            ? active[0].companyName
+            : active.length > 1
+              ? `${active.length} companies`
+              : "Post jobs at a company's plants and review applicants."
         }
         actions={
           hasJobs ? (
@@ -165,7 +177,7 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
             </PageSection>
           )}
 
-          {/* For someone here to hire, "Jobs" in the header is this page: the open list is one link away. */}
+          {/* For someone here to hire, the header's jobs item is this page: the open list is one link away. */}
           {viewer.employer && (
             <p className="mt-8 text-sm text-fg-muted" data-all-jobs>
               <Link to="/jobs" className="underline underline-offset-4 hover:text-fg-default">
@@ -250,12 +262,12 @@ function JobFormPage({ mode, jobId, fromJob }: { mode: 'edit' | 'copy'; jobId: s
       </PageContainer>
     );
   }
-  // A copy needs the company's factories; an edit keeps the job's own.
+  // A copy needs the company's plants; an edit keeps the job's own.
   if (!source || (mode === 'copy' && employer.isPending)) return <PageLoading label="Loading job" />;
 
   const { job: from } = source;
   const membership = (employer.data ?? []).find((company) => company.companyId === from.companyId && company.status === 'active');
-  // An admin can manage a job without belonging to its company: the copy then stays at the same factory.
+  // An admin can manage a job without belonging to its company: the copy then stays at the same plant.
   const company: JobFormCompany = membership ?? {
     companyId: from.companyId,
     companyName: from.companyName,
@@ -305,7 +317,7 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
   // Said once, under the list: how the person will hear.
   const hears = emailOn && user.emailNotices ? `An email goes to ${user.email} when an admin answers.` : 'The answer shows here.';
   return (
-    <PageSection title="Waiting for an admin" description={hears}>
+    <PageSection title="Waiting for approval" description={hears}>
       <ul className={cardClass}>
         {companies.map((company) => {
           const cancelling = cancel.isPending && cancel.variables === company.companyId;
@@ -313,7 +325,7 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
             <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-pending-company={company.companyId}>
               <div className="min-w-0 flex-1 basis-56">
                 <p className="break-words text-sm font-medium text-fg-default">{company.companyName}</p>
-                <p className="mt-0.5 text-sm text-fg-muted">Access requested. Posting opens once approved.</p>
+                <p className="mt-0.5 text-sm text-fg-muted">Posting opens once approved.</p>
               </div>
               <Button
                 type="button"
@@ -340,8 +352,8 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
                 <p className="break-words text-sm font-medium text-fg-default">{requestSubject(request)}</p>
                 <p className="mt-0.5 text-sm text-fg-muted">
                   {request.companyId
-                    ? `Asked ${formatAgo(request.createdAt)} for this plant to be added.`
-                    : `Asked ${formatAgo(request.createdAt)} for this company to be added. Posting opens once it is.`}
+                    ? `Asked ${formatOnDay(request.createdAt)} for this plant to be added.`
+                    : `Asked ${formatOnDay(request.createdAt)} for this company to be added. Posting opens once it is.`}
                 </p>
               </div>
               <Button
@@ -367,14 +379,6 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
   );
 }
 
-/** "Nov 3", with the year once it is not this one. */
-function formatDay(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const sameYear = date.getFullYear() === new Date().getFullYear();
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' });
-}
-
 /** A declined request can be made again once its week is up. */
 function canAskAgain(company: EmployerCompany): boolean {
   return !company.askAgainAt || new Date(company.askAgainAt).getTime() <= Date.now();
@@ -397,7 +401,7 @@ function DeclinedRequests({ companies, requests }: { companies: EmployerCompany[
               <div className="min-w-0 flex-1 basis-56">
                 <p className="break-words text-sm font-medium text-fg-default">{company.companyName}</p>
                 <p className="mt-0.5 text-sm text-fg-muted">
-                  An admin declined this request{company.decidedAt && ` on ${formatDay(company.decidedAt)}`}.
+                  An admin declined this request{company.decidedAt && ` ${formatOnDay(company.decidedAt)}`}.
                   {!again && company.askAgainAt && ` It can be made again from ${formatDay(company.askAgainAt)}.`}
                 </p>
               </div>
@@ -425,7 +429,7 @@ function DeclinedRequests({ companies, requests }: { companies: EmployerCompany[
             <p className="break-words text-sm font-medium text-fg-default">{requestSubject(asked)}</p>
             <p className="mt-0.5 text-sm text-fg-muted">
               An admin declined the request to add this {asked.companyId ? 'plant' : 'company'}
-              {asked.decidedAt && ` on ${formatDay(asked.decidedAt)}`}.
+              {asked.decidedAt && ` ${formatOnDay(asked.decidedAt)}`}.
             </p>
           </li>
         ))}
@@ -544,8 +548,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                           </a>
                           <p className="mt-0.5 break-words text-xs text-fg-muted">
                             {[
-                              company.industry,
-                              `${company.factoryCount} ${company.factoryCount === 1 ? 'factory' : 'factories'}`,
+                              `${company.factoryCount} ${company.factoryCount === 1 ? 'plant' : 'plants'}`,
                               company.where,
                             ]
                               .filter(Boolean)
@@ -555,7 +558,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                       </div>
                       {membership && !(membership.status === 'declined' && canAskAgain(membership)) ? (
                         <span className="shrink-0 text-xs text-fg-muted">
-                          {membership.status === 'active' ? 'Member' : membership.status === 'declined' ? 'Declined' : 'Pending approval'}
+                          {membership.status === 'active' ? 'Member' : membership.status === 'declined' ? 'Declined' : 'Waiting for approval'}
                         </span>
                       ) : (
                         // Marked, not disabled, while it saves; focus then returns to the search box,
@@ -617,8 +620,15 @@ const STATE_ORDER: Record<JobState, number> = { Open: 0, Draft: 1, Expired: 2, C
 /** "Open until Jan 15", or how soon it closes once that is within two weeks. */
 function openUntil(expiresAt: string): string {
   const days = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
-  if (days > 14 || Number.isNaN(days)) return `Open until ${formatDate(expiresAt).replace(/, \d{4}$/, '')}`;
+  if (days > 14 || Number.isNaN(days)) return `Open until ${formatDay(expiresAt)}`;
   return days <= 1 ? 'Open, closes tomorrow' : `Open, closes in ${days} days`;
+}
+
+/** The plant a job is at, with its town when the plant's name does not already say it: "North Campus, Dallas". */
+function plantAndTown(job: EmployerJob): string {
+  const plant = formatFactoryName(job.factoryName);
+  const town = job.city ? formatFactoryName(job.city) : null;
+  return town && !plant.toLowerCase().includes(town.toLowerCase()) ? `${plant}, ${town}` : plant;
 }
 
 const menuItemClass = 'cursor-pointer px-2.5 py-2.5 text-sm text-fg-default focus:bg-bg-elevated';
@@ -633,14 +643,15 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
 
   if (jobs.length === 0) {
     return (
-      <PageSection title={`Jobs at ${company.companyName}`}>
-        <CardNote>No jobs posted.</CardNote>
+      <PageSection title={company.companyName}>
+        <CardNote>None yet.</CardNote>
       </PageSection>
     );
   }
 
   return (
-    <PageSection title={showCompanyName ? `Jobs at ${company.companyName}` : 'Jobs'}>
+    // One company is named in the page's heading; several each head their own list.
+    <PageSection title={showCompanyName ? company.companyName : undefined}>
       <ul className={cardClass}>
         {jobs.map(({ job, state }) => (
           <li key={job.id} className={cn(rowClass, 'flex items-stretch')} data-job-row={job.id}>
@@ -654,7 +665,8 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
                   <span className={cn(state === 'Open' && 'text-fg-default')} data-job-state={state.toLowerCase()}>
                     {state === 'Open' ? openUntil(job.expiresAt) : state}
                   </span>
-                  {' · '}Job #{job.serial} · {[formatFactoryName(job.factoryName), job.city && formatFactoryName(job.city)].filter(Boolean).join(' · ')} · Posted {formatAgo(job.postedAt)}
+                  {' · '}
+                  {plantAndTown(job)}
                 </p>
               </div>
               <p className={cn('text-sm sm:text-right', job.newApplicants > 0 ? 'text-fg-default' : 'text-fg-muted')}>
@@ -751,10 +763,10 @@ function PostJob({ user, companies, onCancel }: { user: AccountUser; companies: 
         )}
         {company.factories.length === 0 ? (
           <p className="text-sm text-fg-muted" data-no-factory>
-            {company.companyName} has no factory on record. A job is posted at a factory, so one has to be added first.
+            {company.companyName} has no plant on record. A job is posted at a plant, so one has to be added first.
           </p>
         ) : (
-          // A form per company: its factories differ. What was typed for each is kept.
+          // A form per company: its plants differ. What was typed for each is kept.
           <JobForm key={company.companyId} company={company} mode="post" onCancel={onCancel} />
         )}
       </div>
@@ -768,9 +780,9 @@ function PostJob({ user, companies, onCancel }: { user: AccountUser; companies: 
         </div>
       ) : (
         <p className="mt-3 text-sm text-fg-muted">
-          {company.factories.length === 0 ? '' : 'Factory not in the list? '}
+          {company.factories.length === 0 ? '' : 'Plant not in the list? '}
           <button type="button" onClick={() => setAskingFor(company.companyId)} className={textButtonClass} data-ask-for-plant>
-            Ask for {company.factories.length === 0 ? 'a factory' : 'it'} to be added
+            Ask for {company.factories.length === 0 ? 'a plant' : 'it'} to be added
           </button>
         </p>
       )}

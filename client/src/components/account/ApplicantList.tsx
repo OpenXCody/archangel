@@ -1,13 +1,14 @@
-import { useId, useRef, useState, type ElementType } from 'react';
-import { Check, ChevronDown, CircleDashed, Loader2, Minus, Search } from 'lucide-react';
+import { useId, useRef, useState } from 'react';
+import { ChevronDown, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { EMPLOYER_STATUSES, useUpdateApplication, useUpdateJob, type ApplicationStatus } from '../../lib/account';
 import { applicantsCsv, saveTextFile, type ApplicantSkill, type JobApplicants, type RankedApplicant } from '../../lib/employerJobs';
-import { applicationStatusLabel, formatAgo, formatDate } from '../../lib/jobFormat';
+import { applicationStatusLabel } from '../../lib/jobFormat';
 import { busyButtonClass } from './JobForm';
-import { ErrorNote, Field, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass } from './parts';
+import { ErrorNote, Field, cardClass, fieldClass, formatDayCapital, outlineButtonClass, rowClass, textButtonClass } from './parts';
+import { SkillMark } from './SkillStatusButton';
 
 type StageFilter = 'all' | ApplicationStatus;
 
@@ -23,11 +24,8 @@ function isDecision(status: ApplicationStatus): boolean {
 /** Name, required skills, stage, applied, and the arrow. Phones stack these in two lines. */
 const COLUMNS = 'sm:grid-cols-[minmax(0,1fr)_8rem_6.5rem_7rem_1rem]';
 
-/** "Today", "3 days ago", "Nov 2, 2026". */
-function appliedWhen(iso: string): string {
-  const text = formatAgo(iso).replace(/^on /, '');
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
+/** "Today", "Yesterday", "Nov 2". */
+const appliedWhen = formatDayCapital;
 
 /** The job the applicants are for: named in the email to an applicant and in the exported file. */
 export interface ApplicantsJob {
@@ -217,10 +215,12 @@ function ApplicantRow({ applicant, skills, hasRequired, job, open, onToggle }: A
             <span className="text-sm text-fg-soft">None listed</span>
           )}
         </span>
+        {/* Open, the stage is the control just below: the word here steps aside and keeps its place. */}
         <span
           className={cn(
             'justify-self-end text-sm sm:justify-self-start',
-            status === 'applied' ? 'font-medium text-fg-default' : quiet ? 'text-fg-soft' : 'text-fg-muted'
+            status === 'applied' ? 'font-medium text-fg-default' : quiet ? 'text-fg-soft' : 'text-fg-muted',
+            open && 'invisible'
           )}
         >
           {applicationStatusLabel(status)}
@@ -310,9 +310,8 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
           >
             {person.email}
           </a>
-          <p className="mt-0.5 text-xs text-fg-muted">
-            {person.homeZip ? `ZIP ${person.homeZip} · ` : ''}Applied {formatDate(applicant.createdAt)}
-          </p>
+          {/* When they applied is in the row above, once. */}
+          {person.homeZip && <p className="mt-0.5 text-xs text-fg-muted">ZIP {person.homeZip}</p>}
         </div>
         <div className="w-full shrink-0 sm:w-44">
           {status === 'withdrawn' ? (
@@ -465,30 +464,31 @@ interface SkillStandingProps {
   learning: Set<string>;
 }
 
-/** One group of the job's skills, split by where the applicant stands on each. */
+/**
+ * One group of the job's skills, split by where the applicant stands on each.
+ * The same marks and brightness a seeker sees on their own skills.
+ */
 function SkillStanding({ title, skills, held, learning }: SkillStandingProps) {
-  const groups: { label: string; icon: ElementType; skills: ApplicantSkill[] }[] = [
-    { label: 'Held', icon: Check, skills: skills.filter((skill) => held.has(skill.id)) },
-    { label: 'Learning', icon: CircleDashed, skills: skills.filter((skill) => !held.has(skill.id) && learning.has(skill.id)) },
-    { label: 'Missing', icon: Minus, skills: skills.filter((skill) => !held.has(skill.id) && !learning.has(skill.id)) },
+  const groups: { label: string; mark: 'held' | 'learning' | 'none'; tone: string; skills: ApplicantSkill[] }[] = [
+    { label: 'Held', mark: 'held', tone: 'text-fg-default', skills: skills.filter((skill) => held.has(skill.id)) },
+    { label: 'Learning', mark: 'learning', tone: 'text-fg-muted', skills: skills.filter((skill) => !held.has(skill.id) && learning.has(skill.id)) },
+    { label: 'Missing', mark: 'none', tone: 'text-fg-soft', skills: skills.filter((skill) => !held.has(skill.id) && !learning.has(skill.id)) },
   ];
   return (
     <div className="min-w-0" data-skill-standing={title.split(' ')[0].toLowerCase()}>
       <p className="text-xs font-medium text-fg-muted">{title}</p>
       <dl className="mt-1.5 space-y-2">
         {groups.map(
-          ({ label, icon: Icon, skills: group }) =>
+          ({ label, mark, tone, skills: group }) =>
             group.length > 0 && (
               <div key={label} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-x-3" data-standing={label.toLowerCase()}>
                 <dt className="flex items-start gap-1.5 text-sm text-fg-muted">
-                  <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                  <SkillMark status={mark} className="mt-0.5 h-4 w-4" />
                   <span>
                     {label} <span className="tabular-nums">{group.length}</span>
                   </span>
                 </dt>
-                <dd className={cn('break-words text-sm', label === 'Held' ? 'text-fg-default' : 'text-fg-muted')}>
-                  {group.map((skill) => skill.name).join(', ')}
-                </dd>
+                <dd className={cn('break-words text-sm', tone)}>{group.map((skill) => skill.name).join(', ')}</dd>
               </div>
             )
         )}

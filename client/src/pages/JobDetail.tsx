@@ -419,11 +419,11 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
     return (
       <div className={cn(cardClass, 'p-4 sm:p-6')}>
         <p className="mb-3 text-sm text-fg-muted">
-          {job.companyName} takes applications for this job on its own site{host ? ` (${host})` : ''}.
+          {job.companyName} takes applications for this job on its own website{host ? ` (${host})` : ''}.
         </p>
         <Button asChild className="h-11 w-full rounded-lg sm:w-auto">
           <a href={job.applyUrl} target="_blank" rel="noopener noreferrer">
-            Apply on the company site
+            Apply on the company website
             <ExternalLink />
           </a>
         </Button>
@@ -520,7 +520,7 @@ function ManageSection({ job }: { job: JobDetailData }) {
         ) : applicants.isError ? (
           <LoadError error={applicants.error} onRetry={() => void applicants.refetch()} retrying={applicants.isFetching} />
         ) : applicants.data.applications.length === 0 ? (
-          <CardNote>{offsite ? 'People apply on your own site, so none are listed here.' : 'None yet.'}</CardNote>
+          <CardNote>{offsite ? 'People apply on your own website, so none are listed here.' : 'None yet.'}</CardNote>
         ) : (
           <ApplicantList data={applicants.data} job={job} />
         )}

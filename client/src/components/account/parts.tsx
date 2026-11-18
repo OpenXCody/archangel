@@ -236,6 +236,12 @@ export function formatDay(iso: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' });
 }
 
+/** The same, after a verb: "declined today", "declined on Nov 18". */
+export function formatOnDay(iso: string): string {
+  const day = formatDay(iso);
+  return day === 'today' || day === 'yesterday' || !day ? day : `on ${day}`;
+}
+
 /** The same, to stand at the start of a line: "Today". */
 export function formatDayCapital(iso: string): string {
   const day = formatDay(iso);

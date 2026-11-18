@@ -3,8 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAdminMemberships, useDecideMembership, type AdminMembership, type MembershipDecision } from '../../lib/account';
-import { formatAgo, formatDate } from '../../lib/jobFormat';
-import { CardNote, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, rowClass } from '../account/parts';
+import { CardNote, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, formatDay, formatOnDay, outlineButtonClass, rowClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import CompanyRequests from './CompanyRequests';
 import { useAdminNotice } from './AdminNotice';
@@ -46,7 +45,7 @@ function DecisionHelp({ request }: { request: AdminMembership }) {
       <Dot />
       {members}
       <span className="block" data-decision-person>
-        Account made {formatAgo(request.userCreatedAt)}
+        Account made {formatOnDay(request.userCreatedAt)}
         <Dot />
         {request.otherCompanies.length > 0 ? `Already has access to ${request.otherCompanies.join(', ')}` : 'No other company'}
       </span>
@@ -104,7 +103,7 @@ export default function AccessTab() {
         ) : requests.isError ? (
           <LoadError error={requests.error} onRetry={() => void requests.refetch()} retrying={requests.isFetching} />
         ) : requests.data.length === 0 ? (
-          <CardNote>None.</CardNote>
+          <CardNote>None yet.</CardNote>
         ) : (
           <ul className={cardClass}>
             {requests.data.map((request) => (
@@ -122,7 +121,7 @@ export default function AccessTab() {
                       {request.companyName}
                     </Link>
                     <Dot />
-                    Requested {formatAgo(request.createdAt)}
+                    Requested {formatOnDay(request.createdAt)}
                   </p>
                   <DecisionHelp request={request} />
                 </div>
@@ -184,7 +183,7 @@ export default function AccessTab() {
                     {request.decidedAt && (
                       <>
                         <Dot />
-                        Declined {formatDate(request.decidedAt)}
+                        Declined {formatDay(request.decidedAt)}
                       </>
                     )}
                   </p>

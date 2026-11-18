@@ -55,7 +55,7 @@ const FIELD: Record<string, string> = {
   email: 'email',
   specialization: 'specialization',
   workforceSize: 'people',
-  openPositions: 'open positions',
+  openPositions: 'open jobs',
   workforceYear: 'year of the people figure',
   workforceSource: 'source of the people figure',
   workforceNote: 'note on the people figure',
@@ -70,7 +70,7 @@ const FIELD: Record<string, string> = {
 
 /** What a count of attached things is called, one and many. */
 const ATTACHED: Record<string, [string, string]> = {
-  factories: ['factory', 'factories'],
+  factories: ['plant', 'plants'],
   jobs: ['job', 'jobs'],
   applications: ['application', 'applications'],
   members: ['person with access', 'people with access'],
@@ -84,7 +84,7 @@ const ATTACHED: Record<string, [string, string]> = {
   memberships: ['company membership', 'company memberships'],
 };
 
-/** "12 factories, 3 jobs": what hangs from a record, in words. Empty when nothing does. */
+/** "12 plants, 3 jobs": what hangs from a record, in words. Empty when nothing does. */
 export function attachedWords(attached: Record<string, number> | null | undefined): string {
   return Object.entries(attached ?? {})
     .filter(([, count]) => count > 0)
@@ -136,7 +136,7 @@ function detailWords(entry: AuditEntry): string | null {
 
 const KIND_WORD: Record<string, string> = {
   company: 'Company',
-  factory: 'Factory',
+  factory: 'Plant',
   career: 'Career',
   skill: 'Skill',
   person: 'Person',
@@ -164,7 +164,7 @@ interface HistoryListProps {
 }
 
 /** What admins changed, newest first: who, when, what, and a short before and after. */
-export default function HistoryList({ filter = {}, ownRecord = false, empty = 'Nothing yet.' }: HistoryListProps) {
+export default function HistoryList({ filter = {}, ownRecord = false, empty = 'None yet.' }: HistoryListProps) {
   const [pages, setPages] = useState(1);
   const audit = useAudit(filter, pages);
 

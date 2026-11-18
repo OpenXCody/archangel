@@ -152,7 +152,7 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
         aria-invalid={invalid ? true : undefined}
         aria-describedby={describedBy}
         autoComplete="off"
-        placeholder={factories.length > 8 ? 'Search by name, city or street' : 'Choose a factory'}
+        placeholder={factories.length > 8 ? 'Search by name, city or street' : 'Choose a plant'}
         value={term}
         onChange={(e) => {
           setTerm(e.target.value);
@@ -167,8 +167,8 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
 
       {open && (
         <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border-strong bg-bg-surface p-1 shadow-lg">
-          {options.length === 0 && <p className="px-2.5 py-2.5 text-sm text-fg-muted">No factory matches “{term.trim()}”.</p>}
-          <ul ref={listRef} id={listId} role="listbox" aria-label="Factories">
+          {options.length === 0 && <p className="px-2.5 py-2.5 text-sm text-fg-muted">No plant matches “{term.trim()}”.</p>}
+          <ul ref={listRef} id={listId} role="listbox" aria-label="Plants">
             {options.map((factory, index) => (
               <li
                 key={factory.id}
