@@ -26,6 +26,12 @@ CREATE OR REPLACE FUNCTION pg_temp.el_metres(lat1 float8, lng1 float8, lat2 floa
   SELECT round(sqrt(power((lat1 - lat2) * 111320, 2) + power((lng1 - lng2) * 111320 * cos(radians(lat1)), 2)))::integer
 $f$;
 
+-- A plant's name without the legal endings, for telling that two names are one ("GLOBITECH INC" is "GlobiTech").
+CREATE OR REPLACE FUNCTION pg_temp.el_bare(t text) RETURNS text LANGUAGE sql IMMUTABLE AS $f$
+  SELECT btrim(regexp_replace(regexp_replace(' ' || replace(pg_temp.el_norm(t), ' ', '  ') || ' ',
+    ' (the|inc|incorporated|llc|corp|corporation|co|company|lp|ltd|plc) ', ' ', 'g'), ' +', ' ', 'g'))
+$f$;
+
 -- The fuller of two texts: the one that is there, else the longer, else the later in byte order.
 -- Symmetric, so two files that both describe a record leave the same text whichever loads first.
 CREATE OR REPLACE FUNCTION pg_temp.el_fuller(a text, b text) RETURNS text LANGUAGE sql IMMUTABLE AS $f$
@@ -166,7 +172,7 @@ BEGIN
            (SELECT string_agg(format('%s (%s, %s)', f.name, coalesce(f.city, '?'), coalesce(f.state, '?')), '; ')
               FROM (SELECT * FROM factories f WHERE f.company_id = co.id ORDER BY f.state, f.name LIMIT 3) f) AS sample,
            -- Nothing ties the row to this company but its name: no plant in a state the file's plants are in, not the same web domain.
-           EXISTS (SELECT 1 FROM factories f WHERE f.company_id = co.id)
+           cardinality(v_states) > 0 AND EXISTS (SELECT 1 FROM factories f WHERE f.company_id = co.id)
              AND NOT EXISTS (SELECT 1 FROM factories f WHERE f.company_id = co.id AND f.state = ANY (v_states))
              AND co.domain IS DISTINCT FROM NULLIF(c->>'domain', '') AS name_only,
            (SELECT string_agg(a, '; ') FROM unnest(co.aliases) a WHERE lower(a) = ANY (v_names)) AS via
@@ -244,10 +250,10 @@ BEGIN
     name = v_name,
     -- Other names: what it had, the name it gives up, then the file's, 30 at most.
     aliases = (SELECT array_agg(a ORDER BY ord) FROM (
-                 SELECT a, min(ord) AS ord FROM unnest(
+                 SELECT DISTINCT ON (lower(a)) a, ord FROM unnest(
                    COALESCE(co.aliases, '{}') || CASE WHEN lower(co.name) <> lower(v_name) THEN ARRAY[co.name] ELSE '{}'::text[] END || v_akas
                  ) WITH ORDINALITY u(a, ord)
-                 WHERE lower(a) <> lower(v_name) GROUP BY a ORDER BY 2 LIMIT 30) s),
+                 WHERE lower(a) <> lower(v_name) ORDER BY lower(a), ord) s WHERE ord <= 30 OR ord IS NULL),
     domain = COALESCE(co.domain, NULLIF(c->>'domain', '')),
     industry = COALESCE(pg_temp.el_fuller(CASE WHEN lower(btrim(co.industry)) IN ('', 'manufacturing') THEN NULL ELSE co.industry END, c->>'industry'), co.industry),
     description = pg_temp.el_fuller(co.description, c->>'description'),
@@ -411,7 +417,7 @@ BEGIN
   DROP TABLE IF EXISTS el_p;
   CREATE TEMP TABLE el_p ON COMMIT DROP AS
     SELECT ord::integer AS i, p, (p->>'latitude')::float8 AS lat, (p->>'longitude')::float8 AS lng,
-           pg_temp.el_norm(p->>'name') AS nname,
+           pg_temp.el_bare(p->>'name') AS nname,
            v_drop || regexp_split_to_array(pg_temp.el_norm(coalesce(p->>'city', '') || ' ' || coalesce(p->>'state', '') || ' ' || coalesce(states->>(p->>'state'), '')), ' ') AS drop_words,
            NULL::text[] AS words, NULL::uuid AS fid
     FROM jsonb_array_elements(coalesce(c->'plants', '[]'::jsonb)) WITH ORDINALITY t(p, ord);
@@ -422,7 +428,7 @@ BEGIN
       SELECT p.i, f.id, f.name AS fname, f.curated, f.company_id, oc.name AS cname,
              CASE WHEN f.company_id = k THEN 0 WHEN oc.parent_company_id = k THEN 1 WHEN f.company_id = v_par THEN 2 ELSE 3 END AS rel,
              pg_temp.el_metres(p.lat, p.lng, x.lat, x.lng) AS d,
-             CASE WHEN pg_temp.el_norm(f.name) = p.nname THEN 0
+             CASE WHEN pg_temp.el_bare(f.name) = p.nname THEN 0
                   WHEN pg_temp.el_share(p.words, fw.words) THEN 1
                   WHEN cardinality(p.words) = 0 OR cardinality(fw.words) = 0 THEN 2
                   ELSE 3 END AS class,

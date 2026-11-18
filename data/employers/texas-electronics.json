@@ -1,0 +1,2343 @@
+{
+  "brief": "texas-electronics",
+  "retrieved": "2026-11-18",
+  "companies": [
+    {
+      "name": "Texas Instruments",
+      "alsoKnownAs": [
+        "TI",
+        "Texas Instruments Incorporated",
+        "Texas Instruments Inc",
+        "Texas Instruments, Inc"
+      ],
+      "parent": null,
+      "domain": "ti.com",
+      "industry": "Semiconductors",
+      "description": "Makes analog and embedded chips used in cars, factory equipment and electronics.",
+      "headquarters": {
+        "city": "Dallas",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.ti.com/about-ti/manufacturing.html",
+        "https://www.tomshardware.com/tech-industry/texas-instruments-to-cut-183-positions-in-its-north-texas-facilities-claims-report-about-400-employees-in-total-expected-to-be-laid-off-due-to-closure-of-older-plants"
+      ],
+      "plants": [
+        {
+          "name": "North Campus",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "13500 N Central Expy",
+          "zip": "75243",
+          "latitude": 32.93044,
+          "longitude": -96.75674,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Analog and embedded chips; the campus holds TI's Dallas wafer fabs, including the 300 mm DMOS6",
+          "employees": 4018,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"North Campus, 13500 North Central Expressway, Dallas\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises. The 2025 figure includes the 150 mm line (DFAB) that TI was closing at the end of 2025.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.tomshardware.com/tech-industry/texas-instruments-to-cut-183-positions-in-its-north-texas-facilities-claims-report-about-400-employees-in-total-expected-to-be-laid-off-due-to-closure-of-older-plants",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "RFAB",
+          "city": "Richardson",
+          "state": "TX",
+          "address": "300 W Renner Rd",
+          "zip": "75080",
+          "latitude": 32.99975,
+          "longitude": -96.72063,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Analog chips on 300 mm wafers (RFAB1 and RFAB2)",
+          "employees": 1483,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"RFAB, 3601 Alma Road, Richardson\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": 2009,
+          "status": "operating",
+          "sources": [
+            "https://www.ti.com/about-ti/manufacturing.html",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "Sherman (SM1)",
+          "city": "Sherman",
+          "state": "TX",
+          "address": "501 W Shepherd Dr",
+          "zip": "75092",
+          "latitude": 33.55352,
+          "longitude": -96.61442,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Analog and embedded chips on 300 mm wafers; first of up to four fabs planned on the site",
+          "employees": 287,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Sherman Manufacturing, 501 West Shepherd Drive, Sherman\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises. The fab was starting up during 2025 and began production in December 2025, so the count will have grown; the shell of a second fab (SM2) is built.",
+          "opened": 2025,
+          "status": "operating",
+          "sources": [
+            "https://www.ti.com/about-ti/newsroom/news-releases/2025/texas-instruments-plans-to-invest-more-than--60-billion-to-manufacture-billions-of-foundational-semiconductors-in-the-us.html",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "Sherman 150 mm fab",
+          "city": "Sherman",
+          "state": "TX",
+          "address": "6412 S US Highway 75",
+          "zip": "75090",
+          "latitude": 33.5816,
+          "longitude": -96.6039,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Chips on 150 mm wafers (line wound down at the end of 2025)",
+          "employees": 608,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Sherman, 6412 US Hwy 75 So, Sherman\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises. Last full year before the closure.",
+          "opened": null,
+          "status": "closed",
+          "sources": [
+            "https://www.tomshardware.com/tech-industry/texas-instruments-to-cut-183-positions-in-its-north-texas-facilities-claims-report-about-400-employees-in-total-expected-to-be-laid-off-due-to-closure-of-older-plants",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Samsung Austin Semiconductor",
+      "alsoKnownAs": [
+        "Samsung",
+        "Samsung Electronics",
+        "Samsung Austin Semiconductor LLC",
+        "Samsung Austin Semiconductor, LLC"
+      ],
+      "parent": "Samsung Electronics",
+      "domain": "samsung.com",
+      "industry": "Semiconductors",
+      "description": "Makes logic chips to order for phones, cars and computers.",
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://download.semiconductor.samsung.com/resources/others/Samsung_Austin_Semiconductor_2025_Economic_Impact_Report.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Samsung Austin Semiconductor",
+          "city": "Austin",
+          "state": "TX",
+          "address": "12100 Samsung Blvd",
+          "zip": "78754",
+          "latitude": 30.37324,
+          "longitude": -97.63608,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Logic chips made to order on 300 mm wafers (two fabs)",
+          "employees": 3342,
+          "employeesYear": 2025,
+          "employeesSource": "https://download.semiconductor.samsung.com/resources/others/Samsung_Austin_Semiconductor_2025_Economic_Impact_Report.pdf",
+          "employeesNote": "Company's 2025 economic impact report: the Austin campus \"had 3,342 employees\". The OSHA Form 300A annual average for 2025 at this address is 5,016, which may include contract workers.",
+          "opened": 1997,
+          "status": "operating",
+          "sources": [
+            "https://download.semiconductor.samsung.com/resources/others/Samsung_Austin_Semiconductor_2025_Economic_Impact_Report.pdf",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "Samsung Taylor",
+          "city": "Taylor",
+          "state": "TX",
+          "address": "1530 FM 973",
+          "zip": "76574",
+          "latitude": 30.5334,
+          "longitude": -97.4475,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Leading-edge logic chips (2 nm) once the fab is running",
+          "employees": 1150,
+          "employeesYear": 2025,
+          "employeesSource": "https://download.semiconductor.samsung.com/resources/others/Samsung_Austin_Semiconductor_2025_Economic_Impact_Report.pdf",
+          "employeesNote": "Company's 2025 economic impact report: the Taylor campus \"had 1,150 employees\" in 2025 while the fab was still being built; the report says the fab will be operational by the end of 2026. OSHA Form 300A annual average for 2025: 767.",
+          "opened": null,
+          "status": "under construction",
+          "sources": [
+            "https://download.semiconductor.samsung.com/resources/others/Samsung_Austin_Semiconductor_2025_Economic_Impact_Report.pdf",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "NXP Semiconductors",
+      "alsoKnownAs": [
+        "NXP",
+        "NXP USA",
+        "NXP USA Inc",
+        "NXP Semiconductors USA",
+        "Freescale Semiconductor",
+        "Freescale"
+      ],
+      "parent": null,
+      "domain": "nxp.com",
+      "industry": "Semiconductors",
+      "description": "Makes microcontrollers, sensors and radio chips for cars and industrial equipment.",
+      "headquarters": {
+        "city": "Eindhoven",
+        "state": null,
+        "country": "NL"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://communityimpact.com/austin/central-austin/government/2023/09/18/child-care-in-focus-as-austin-officials-consider-economic-deal-for-291m-nxp-expansion"
+      ],
+      "plants": [
+        {
+          "name": "Oak Hill fab",
+          "city": "Austin",
+          "state": "TX",
+          "address": "6501 W William Cannon Dr",
+          "zip": "78735",
+          "latitude": 30.238,
+          "longitude": -97.86608,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Chips on 200 mm wafers",
+          "employees": 1322,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"NXP USA TX30, 6501 W William Cannon Dr, Austin\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://communityimpact.com/austin/central-austin/government/2023/09/18/child-care-in-focus-as-austin-officials-consider-economic-deal-for-291m-nxp-expansion",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "Austin Technology & Manufacturing Center (Ed Bluestein)",
+          "city": "Austin",
+          "state": "TX",
+          "address": "3501 Ed Bluestein Blvd",
+          "zip": "78721",
+          "latitude": 30.27571,
+          "longitude": -97.66721,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Chips on 200 mm wafers",
+          "employees": 1074,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"NXP USA TX11, 3501 Ed Bluestein Blvd, Austin\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://communityimpact.com/austin/central-austin/government/2023/09/18/child-care-in-focus-as-austin-officials-consider-economic-deal-for-291m-nxp-expansion",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SkyWater Technology",
+      "alsoKnownAs": [
+        "SkyWater",
+        "SkyWater Texas",
+        "SkyWater Technology Foundry"
+      ],
+      "parent": null,
+      "domain": "skywatertechnology.com",
+      "industry": "Semiconductors",
+      "description": "Makes chips to order for other companies at US fabs in Minnesota and Texas.",
+      "headquarters": {
+        "city": "Bloomington",
+        "state": "MN",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.skywatertechnology.com/skywater-to-acquire-fab25/"
+      ],
+      "plants": [
+        {
+          "name": "Fab 25",
+          "city": "Austin",
+          "state": "TX",
+          "address": "5204 E Ben White Blvd",
+          "zip": "78741",
+          "latitude": 30.21435,
+          "longitude": -97.7248,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Chips made to order on 200 mm wafers (about 400,000 wafer starts a year)",
+          "employees": 1000,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.skywatertechnology.com/skywater-to-acquire-fab25/",
+          "employeesNote": "Company release, 30 June 2025: \"Approximately 1,000 Fab 25 employees have now joined SkyWater\" when it bought the fab from Infineon. The OSHA Form 300A annual average for 2025 is 881 (establishment at 3006 Alvin Devane Blvd, the same campus).",
+          "opened": 1995,
+          "status": "operating",
+          "sources": [
+            "https://www.skywatertechnology.com/skywater-to-acquire-fab25/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Applied Materials",
+      "alsoKnownAs": [
+        "Applied Materials Inc",
+        "Applied Materials, Inc.",
+        "AMAT"
+      ],
+      "parent": null,
+      "domain": "appliedmaterials.com",
+      "industry": "Chipmaking Equipment",
+      "description": "Builds the machines chipmakers use to deposit, etch and inspect layers on silicon wafers.",
+      "headquarters": {
+        "city": "Santa Clara",
+        "state": "CA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Austin manufacturing campus (Harris Branch)",
+          "city": "Austin",
+          "state": "TX",
+          "address": "9700 E US Highway 290",
+          "zip": "78724",
+          "latitude": 30.33735,
+          "longitude": -97.61759,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333242",
+          "products": "Final assembly and test of chipmaking equipment",
+          "employees": 4325,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"North America Region Austin Harris Branch, 9700 Hwy 290 E., Austin\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": 1992,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "GlobalWafers",
+      "alsoKnownAs": [
+        "GlobalWafers America",
+        "Globalwafers America",
+        "GlobiTech",
+        "GlobiTech Incorporated",
+        "GlobiTech Inc"
+      ],
+      "parent": "Sino-American Silicon Products",
+      "domain": "sas-globalwafers.com",
+      "industry": "Silicon Wafers",
+      "description": "Makes the silicon wafers that chip factories build chips on.",
+      "headquarters": {
+        "city": "Hsinchu",
+        "state": null,
+        "country": "TW"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://www.manufacturingdive.com/news/globalwafers-to-spend-additional-4-billion-us-operations-sherman-texas/748338/"
+      ],
+      "plants": [
+        {
+          "name": "GlobalWafers America",
+          "city": "Sherman",
+          "state": "TX",
+          "address": "3200 Northgate Dr",
+          "zip": "75092",
+          "latitude": 33.59538,
+          "longitude": -96.62018,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "300 mm silicon wafers",
+          "employees": 182,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"GlobalWafers America, 3200 Northgate Dr, Sherman\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": 2025,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "GlobiTech",
+          "city": "Sherman",
+          "state": "TX",
+          "address": "200 W FM 1417",
+          "zip": "75092",
+          "latitude": 33.59284,
+          "longitude": -96.60968,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Epitaxial silicon wafers and silicon carbide wafers",
+          "employees": 193,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"GlobiTech Incorporated, 200 FM1417 West, Sherman\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Coherent",
+      "alsoKnownAs": [
+        "Coherent Corp",
+        "Coherent Corp.",
+        "Finisar",
+        "Finisar Corporation",
+        "II-VI",
+        "II-VI Incorporated"
+      ],
+      "parent": null,
+      "domain": "coherent.com",
+      "industry": "Lasers & Photonics",
+      "description": "Makes lasers, optical components and compound semiconductor chips for data networks and sensing.",
+      "headquarters": {
+        "city": "Saxonburg",
+        "state": "PA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://blogs.nvidia.com/blog/coherent-texas-ai-optical/"
+      ],
+      "plants": [
+        {
+          "name": "Coherent Sherman",
+          "city": "Sherman",
+          "state": "TX",
+          "address": "6800 S US Highway 75",
+          "zip": "75090",
+          "latitude": 33.55636,
+          "longitude": -96.60825,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Laser chips (VCSEL and indium phosphide) on 150 mm wafers",
+          "employees": 334,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Finisar, 6800 S US 75, Sherman\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises. An expansion of the fab broke ground in June 2026.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://blogs.nvidia.com/blog/coherent-texas-ai-optical/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Qorvo",
+      "alsoKnownAs": [
+        "Qorvo Inc",
+        "Qorvo Texas",
+        "Qorvo Texas LLC",
+        "TriQuint Semiconductor",
+        "TriQuint",
+        "TriQuint Semiconductor Texas"
+      ],
+      "parent": null,
+      "domain": "qorvo.com",
+      "industry": "Semiconductors",
+      "description": "Makes radio-frequency chips and filters for phones, wireless networks and defense systems.",
+      "headquarters": {
+        "city": "Greensboro",
+        "state": "NC",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Qorvo Richardson fab",
+          "city": "Richardson",
+          "state": "TX",
+          "address": "500 W Renner Rd",
+          "zip": "75080",
+          "latitude": 32.99766,
+          "longitude": -96.72603,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Radio-frequency filters (BAW) and chips",
+          "employees": 1057,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Qorvo Texas, 500 W. Renner Rd, Richardson\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tower Semiconductor",
+      "alsoKnownAs": [
+        "Tower Semiconductor San Antonio",
+        "TowerJazz",
+        "TowerJazz Texas",
+        "Tower Semiconductor Ltd"
+      ],
+      "parent": null,
+      "domain": "towersemi.com",
+      "industry": "Semiconductors",
+      "description": "Makes analog chips to order for other companies.",
+      "headquarters": {
+        "city": "Migdal Haemek",
+        "state": null,
+        "country": "IL"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://careers.towersemi.com/?p=114"
+      ],
+      "plants": [
+        {
+          "name": "Tower Semiconductor San Antonio",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "9651 Westover Hills Blvd",
+          "zip": "78251",
+          "latitude": 29.47152,
+          "longitude": -98.67597,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Analog chips made to order on 200 mm wafers",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://careers.towersemi.com/?p=114"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "X-FAB Texas",
+      "alsoKnownAs": [
+        "X-FAB",
+        "X-FAB Texas Inc",
+        "X-FAB TEXAS INC.",
+        "X-Fab Texas",
+        "X-FAB Silicon Foundries"
+      ],
+      "parent": "X-FAB",
+      "domain": "xfab.com",
+      "industry": "Semiconductors",
+      "description": "Makes silicon carbide and silicon chips to order for other companies.",
+      "headquarters": {
+        "city": "Lubbock",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "X-FAB Texas",
+          "city": "Lubbock",
+          "state": "TX",
+          "address": "2301 N University Ave",
+          "zip": "79415",
+          "latitude": 33.62551,
+          "longitude": -101.8758,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Silicon carbide and silicon chips made to order on 150 mm wafers",
+          "employees": 451,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"X-FAB TEXAS INC., 2301 N. University Ave, Lubbock\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Flex",
+      "alsoKnownAs": [
+        "Flextronics",
+        "Flextronics America",
+        "Flextronics America LLC",
+        "Flextronics International",
+        "Flex Ltd"
+      ],
+      "parent": null,
+      "domain": "flex.com",
+      "industry": "Electronics Manufacturing",
+      "description": "Builds electronics for other companies: circuit boards, servers, networking and power equipment.",
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Flex Austin (Research Blvd campus)",
+          "city": "Austin",
+          "state": "TX",
+          "address": "12455 Research Blvd",
+          "zip": "78759",
+          "latitude": 30.4324,
+          "longitude": -97.75455,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334418",
+          "products": "Circuit board assembly and final assembly of computers, servers and other electronics for other brands",
+          "employees": 3532,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Flextronics America LLC-Research Campus, 12455 Research Blvd, Austin\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Foxconn",
+      "alsoKnownAs": [
+        "Foxconn Assembly",
+        "Foxconn Assembly LLC",
+        "Foxconn Corporation",
+        "Hon Hai Precision Industry",
+        "Hon Hai",
+        "Q-Edge",
+        "Q-Edge Corporation"
+      ],
+      "parent": null,
+      "domain": "foxconn.com",
+      "industry": "Electronics Manufacturing",
+      "description": "Assembles computers and servers for other brands, including AI servers.",
+      "headquarters": {
+        "city": "New Taipei",
+        "state": null,
+        "country": "TW"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Foxconn Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "8303 Fallbrook Dr",
+          "zip": "77064",
+          "latitude": 29.92478,
+          "longitude": -95.53132,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334111",
+          "products": "Server and computer assembly, including AI servers",
+          "employees": 547,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"8303-Foxconn Assembly LLC, 8303 Fallbrook Drive, Houston\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises. The site was being expanded for AI server production in 2025 and 2026, so the count is likely higher now.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wistron",
+      "alsoKnownAs": [
+        "Wistron Corporation",
+        "Wistron InfoComm",
+        "Wistron InfoComm (USA)",
+        "Wistron USA"
+      ],
+      "parent": null,
+      "domain": "wistron.com",
+      "industry": "Electronics Manufacturing",
+      "description": "Builds computers and AI server hardware for other brands.",
+      "headquarters": {
+        "city": "Taipei",
+        "state": null,
+        "country": "TW"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.manufacturingdive.com/news/wistron-opens-advanced-manufacturing-plant-nvidia-ai-systems/826042/",
+        "https://dallasinnovates.com/nvidia-wistron-kick-off-start-of-ai-supercomputer-factory-in-fort-worth/"
+      ],
+      "plants": [
+        {
+          "name": "Wistron Fort Worth (D1)",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "15200 Heritage Pkwy",
+          "zip": "76177",
+          "latitude": 32.99342,
+          "longitude": -97.30068,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": null,
+          "products": "Nvidia AI computing boards and systems (assembly and test)",
+          "employees": 500,
+          "employeesYear": 2026,
+          "employeesSource": "https://www.manufacturingdive.com/news/wistron-opens-advanced-manufacturing-plant-nvidia-ai-systems/826042/",
+          "employeesNote": "At the July 2026 opening Nvidia said the plant \"has already created 500 new jobs\" (Dallas Innovates: \"more than 500\"), with 1,000 planned by the end of 2026.",
+          "opened": 2026,
+          "status": "operating",
+          "sources": [
+            "https://www.manufacturingdive.com/news/wistron-opens-advanced-manufacturing-plant-nvidia-ai-systems/826042/",
+            "https://dallasinnovates.com/nvidia-wistron-kick-off-start-of-ai-supercomputer-factory-in-fort-worth/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Celestica",
+      "alsoKnownAs": [
+        "Celestica Inc",
+        "Celestica LLC",
+        "Celestica Texas"
+      ],
+      "parent": null,
+      "domain": "celestica.com",
+      "industry": "Electronics Manufacturing",
+      "description": "Builds networking, server and other electronic hardware for other companies.",
+      "headquarters": {
+        "city": "Toronto",
+        "state": null,
+        "country": "CA"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://evertiq.com/news/2026-06-23-celestica-expands-in-texas-with-300-million-investment",
+        "https://communityimpact.com/dallas-fort-worth/richardson/business/2026/06/17/tech-company-celestica-expanding-richardson-footprint-to-1-million-square-feet/"
+      ],
+      "plants": [
+        {
+          "name": "Celestica Richardson",
+          "city": "Richardson",
+          "state": "TX",
+          "address": "2811 Telecom Pkwy",
+          "zip": "75082",
+          "latitude": 32.99,
+          "longitude": -96.65623,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": null,
+          "products": "Data center networking and server hardware",
+          "employees": 400,
+          "employeesYear": 2026,
+          "employeesSource": "https://evertiq.com/news/2026-06-23-celestica-expands-in-texas-with-300-million-investment",
+          "employeesNote": "June 2026 expansion announcement: the project is to \"retain around 400 existing positions\" on the Richardson campus and add nearly 2,300; a further building at 2801 Telecom Pkwy was under construction.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://evertiq.com/news/2026-06-23-celestica-expands-in-texas-with-300-million-investment",
+            "https://communityimpact.com/dallas-fort-worth/richardson/business/2026/06/17/tech-company-celestica-expanding-richardson-footprint-to-1-million-square-feet/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raytheon",
+      "alsoKnownAs": [
+        "Raytheon Company",
+        "Raytheon Technologies",
+        "Raytheon Intelligence & Space",
+        "Raytheon Space and Airborne Systems",
+        "RTX"
+      ],
+      "parent": "RTX",
+      "domain": "rtx.com",
+      "industry": "Defense Electronics",
+      "description": "Makes radar, infrared sensors and other electronics for military aircraft, ships and missiles.",
+      "headquarters": {
+        "city": "Arlington",
+        "state": "VA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Raytheon McKinney",
+          "city": "McKinney",
+          "state": "TX",
+          "address": "2501 W University Dr",
+          "zip": "75071",
+          "latitude": 33.21346,
+          "longitude": -96.65257,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334511",
+          "products": "Airborne radar, electro-optical and infrared sensors and other defense electronics",
+          "employees": 5216,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Raytheon_McKinney_TX, 2501 West University, McKinney\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BAE Systems",
+      "alsoKnownAs": [
+        "BAE Systems Inc",
+        "BAE Systems, Inc.",
+        "BAE Systems Electronic Systems",
+        "BAE Systems Information and Electronic Systems Integration"
+      ],
+      "parent": null,
+      "domain": "baesystems.com",
+      "industry": "Defense Electronics",
+      "description": "Makes electronic systems for military aircraft, vehicles and munitions.",
+      "headquarters": {
+        "city": "London",
+        "state": null,
+        "country": "GB"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "BAE Systems Austin",
+          "city": "Austin",
+          "state": "TX",
+          "address": "825 E Howard Ln",
+          "zip": "78753",
+          "latitude": 30.41175,
+          "longitude": -97.65082,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334419",
+          "products": "Defense electronics: sensor, guidance and electronic warfare components",
+          "employees": 554,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"BAE Systems Electronic Systems ATX, 825 E. Howard Lane, Austin\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Elbit Systems of America",
+      "alsoKnownAs": [
+        "Elbit America",
+        "Elbit Systems of America LLC",
+        "Elbit Systems Ltd",
+        "EFW",
+        "EFW Inc"
+      ],
+      "parent": "Elbit Systems",
+      "domain": "elbitamerica.com",
+      "industry": "Defense Electronics",
+      "description": "Makes avionics, displays and night-vision electronics for military aircraft and vehicles.",
+      "headquarters": {
+        "city": "Fort Worth",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Elbit Systems of America Fort Worth",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "4700 Marine Creek Pkwy",
+          "zip": "76179",
+          "latitude": 32.82968,
+          "longitude": -97.38335,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334511",
+          "products": "Avionics, cockpit displays and helmet-mounted systems",
+          "employees": 694,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Elbit Systems of America - FWO, 4700 Marine Creek Pkwy, Fort Worth\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Leonardo DRS",
+      "alsoKnownAs": [
+        "DRS Technologies",
+        "DRS Network & Imaging Systems",
+        "DRS NIS Infrared Sensors and Systems",
+        "DRS Infrared Technologies",
+        "Leonardo DRS Inc"
+      ],
+      "parent": "Leonardo",
+      "domain": "leonardodrs.com",
+      "industry": "Defense Electronics",
+      "description": "Makes infrared sensors and other electronics for military vehicles, aircraft and soldiers.",
+      "headquarters": {
+        "city": "Arlington",
+        "state": "VA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.leonardodrs.com/locations/electro-optical-infrared-systems-dallas-tx/"
+      ],
+      "plants": [
+        {
+          "name": "Leonardo DRS Dallas",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "13532 N Central Expy",
+          "zip": "75243",
+          "latitude": 32.93337,
+          "longitude": -96.75336,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": null,
+          "products": "Infrared detectors and sensor assemblies (cooled and uncooled)",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.leonardodrs.com/locations/electro-optical-infrared-systems-dallas-tx/",
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=drs&city_name=dallas&state_abbr=TX&output=JSON"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Abbott",
+      "alsoKnownAs": [
+        "Abbott Laboratories",
+        "Abbott Diagnostics",
+        "Abbott Diagnostics Manufacturing",
+        "ABBOTT"
+      ],
+      "parent": null,
+      "domain": "abbott.com",
+      "industry": "Medical Diagnostics",
+      "description": "Makes diagnostic tests and analyzers, medical devices, nutrition products and medicines.",
+      "headquarters": {
+        "city": "Abbott Park",
+        "state": "IL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Abbott Diagnostics Irving",
+          "city": "Irving",
+          "state": "TX",
+          "address": "1921 Hurd Dr",
+          "zip": "75038",
+          "latitude": 32.87055,
+          "longitude": -96.97613,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334516",
+          "products": "Laboratory diagnostic analyzers",
+          "employees": 1146,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"CRLB TM Dallas, 1921 Hurd Drive, Irving\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=abbott&city_name=irving&state_abbr=TX&output=JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ericsson",
+      "alsoKnownAs": [
+        "Ericsson Inc",
+        "Ericsson, Inc",
+        "Telefonaktiebolaget LM Ericsson"
+      ],
+      "parent": null,
+      "domain": "ericsson.com",
+      "industry": "Telecom Equipment",
+      "description": "Makes radio and network equipment for mobile phone networks.",
+      "headquarters": {
+        "city": "Stockholm",
+        "state": null,
+        "country": "SE"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Ericsson USA 5G Smart Factory",
+          "city": "Lewisville",
+          "state": "TX",
+          "address": "2601 S Valley Pkwy",
+          "zip": "75067",
+          "latitude": 32.99876,
+          "longitude": -97.01398,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334220",
+          "products": "5G radios and antenna systems",
+          "employees": 599,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Smart Facility Office/Manu - Ericsson, Inc, 2601 S. Valley Pkwy, Lewisville\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": 2020,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SpaceX",
+      "alsoKnownAs": [
+        "Space Exploration Technologies",
+        "Space Exploration Technologies Corp",
+        "Space Exploration Technologies Corp.",
+        "Starlink"
+      ],
+      "parent": null,
+      "domain": "spacex.com",
+      "industry": "Aerospace",
+      "description": "Builds rockets, spacecraft and Starlink satellite internet equipment.",
+      "headquarters": {
+        "city": "Starbase",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "SpaceX Bastrop",
+          "city": "Bastrop",
+          "state": "TX",
+          "address": "858 FM 1209",
+          "zip": "78602",
+          "latitude": 30.15633,
+          "longitude": -97.40742,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334220",
+          "products": "Starlink satellite internet terminals",
+          "employees": 1486,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Bastrop, TX (Space Exploration Technologies), 858 FM 1209, Bastrop\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HID Global",
+      "alsoKnownAs": [
+        "HID",
+        "HID Global Corporation",
+        "HID Corporation"
+      ],
+      "parent": "Assa Abloy",
+      "domain": "hidglobal.com",
+      "industry": "Security Electronics",
+      "description": "Makes access cards, card readers and other secure identity products.",
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "HID Global Austin",
+          "city": "Austin",
+          "state": "TX",
+          "address": "611 Center Ridge Dr",
+          "zip": "78753",
+          "latitude": 30.4139,
+          "longitude": -97.66647,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": null,
+          "products": "Access control cards and readers",
+          "employees": 682,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"HID Global, 611 Center Ridge Dr, Austin\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises. The site is also the company headquarters, so the figure includes office staff.",
+          "opened": 2014,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Applied Optoelectronics",
+      "alsoKnownAs": [
+        "AOI",
+        "Applied Optoelectronics Inc",
+        "Applied Optoelectronics, Inc."
+      ],
+      "parent": null,
+      "domain": "ao-inc.com",
+      "industry": "Optical Components",
+      "description": "Makes lasers and optical transceivers for data centers and cable networks.",
+      "headquarters": {
+        "city": "Sugar Land",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Applied Optoelectronics Sugar Land",
+          "city": "Sugar Land",
+          "state": "TX",
+          "address": "13139 Jess Pirtle Blvd",
+          "zip": "77478",
+          "latitude": 29.63639,
+          "longitude": -95.61469,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Laser chips and optical transceivers",
+          "employees": 580,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Applied Optoelectronics, Inc. (2), 13139 Jess Pirtle Blvd, Sugar Land\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises. The site is also the company headquarters.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AirBorn",
+      "alsoKnownAs": [
+        "AirBorn Inc",
+        "Airborn, Inc",
+        "AirBorn Interconnect"
+      ],
+      "parent": "Molex",
+      "domain": "airborn.com",
+      "industry": "Connectors",
+      "description": "Makes rugged connectors and cable assemblies for aircraft, spacecraft and defense systems.",
+      "headquarters": {
+        "city": "Georgetown",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "AirBorn Georgetown",
+          "city": "Georgetown",
+          "state": "TX",
+          "address": "3500 AirBorn Cir",
+          "zip": "78626",
+          "latitude": 30.61333,
+          "longitude": -97.67825,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334417",
+          "products": "Electronic connectors and cable assemblies",
+          "employees": 515,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Airborn, Inc, 3500 AirBorn Circle, Georgetown\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ludlum Measurements",
+      "alsoKnownAs": [
+        "Ludlum Measurements Inc",
+        "Ludlum Measurements, Inc.",
+        "Ludlum"
+      ],
+      "parent": null,
+      "domain": "ludlums.com",
+      "industry": "Instruments",
+      "description": "Makes radiation detection and measurement instruments.",
+      "headquarters": {
+        "city": "Sweetwater",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Ludlum Measurements Sweetwater",
+          "city": "Sweetwater",
+          "state": "TX",
+          "address": "501 Oak St",
+          "zip": "79556",
+          "latitude": 32.47308,
+          "longitude": -100.41058,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334519",
+          "products": "Radiation detectors and survey meters",
+          "employees": 509,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Ludlum Measurements, Inc., 501 Oak Street, Sweetwater\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "EControls",
+      "alsoKnownAs": [
+        "EControls LLC",
+        "Genisys Controls",
+        "genisys controls"
+      ],
+      "parent": null,
+      "domain": "econtrols.com",
+      "industry": "Engine Controls",
+      "description": "Makes electronic control systems for industrial, marine and heavy-duty engines.",
+      "headquarters": {
+        "city": "San Antonio",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "EControls San Antonio",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "5757 Farinon Dr",
+          "zip": "78249",
+          "latitude": 29.56042,
+          "longitude": -98.59527,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334513",
+          "products": "Electronic engine controls and fuel system components",
+          "employees": 547,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"EControls, 5757 Farinon Drive, San Antonio\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Canadian Solar",
+      "alsoKnownAs": [
+        "Canadian Solar US Module Manufacturing",
+        "Canadian Solar USMM",
+        "Mesquite Modules",
+        "Mesquite Modules Corporation",
+        "Canadian Solar Inc"
+      ],
+      "parent": null,
+      "domain": "canadiansolar.com",
+      "industry": "Solar Panels",
+      "description": "Makes solar panels and builds solar and battery storage projects.",
+      "headquarters": {
+        "city": "Kitchener",
+        "state": null,
+        "country": "CA"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Canadian Solar Mesquite",
+          "city": "Mesquite",
+          "state": "TX",
+          "address": "3000 Skyline Dr",
+          "zip": "75149",
+          "latitude": 32.77904,
+          "longitude": -96.64298,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Solar panels (module assembly)",
+          "employees": 1673,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Mesquite Modules, 3000 Skyline Dr, Mesquite\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": 2023,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=canadian%20solar&state_abbr=TX&output=JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T1 Energy",
+      "alsoKnownAs": [
+        "T1 G1 Dallas Solar Module",
+        "T1 G1 Dallas Solar Module LLC",
+        "T1 Energy Inc",
+        "FREYR Battery",
+        "Freyr",
+        "Trina Solar US Manufacturing Module 1"
+      ],
+      "parent": null,
+      "domain": "t1energy.com",
+      "industry": "Solar Panels",
+      "description": "Makes solar panels in Texas and is building a solar cell factory there.",
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://www.manufacturingdive.com/news/t1-energy-850m-solar-cell-facility-rockdale-texas-g2-austin-us-supply-chain/742986/"
+      ],
+      "plants": [
+        {
+          "name": "G1_Dallas",
+          "city": "Wilmer",
+          "state": "TX",
+          "address": "1200 N Sunrise Rd",
+          "zip": "75172",
+          "latitude": 32.60129,
+          "longitude": -96.70424,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Solar panels (module assembly, 5 GW a year)",
+          "employees": 1050,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"T1 G1 Dallas Solar Module LLC, 1200 N Sunrise Rd, Wilmer\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises. The company filed under NAICS 333414; solar modules are classed here as 334413.",
+          "opened": 2024,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?city_name=wilmer&facility_name=solar&state_abbr=TX&output=JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Waaree Solar Americas",
+      "alsoKnownAs": [
+        "Waaree",
+        "Waaree Solar Americas Inc",
+        "Waaree Solar Americas Inc.",
+        "Waaree Energies"
+      ],
+      "parent": "Waaree Energies",
+      "domain": "waaree.com",
+      "industry": "Solar Panels",
+      "description": "Makes solar panels.",
+      "headquarters": {
+        "city": "Brookshire",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Waaree Brookshire",
+          "city": "Brookshire",
+          "state": "TX",
+          "address": "2439 Discovery Hills Pkwy",
+          "zip": "77423",
+          "latitude": 29.75086,
+          "longitude": -95.92807,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Solar panels (module assembly)",
+          "employees": 517,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Waaree Solar Americas Inc., 2439 Discovery Hills Parkway, Brookshire\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mission Solar Energy",
+      "alsoKnownAs": [
+        "Mission Solar",
+        "Mission Solar Energy LLC"
+      ],
+      "parent": "OCI",
+      "domain": "missionsolar.com",
+      "industry": "Solar Panels",
+      "description": "Has made solar panels in San Antonio since 2014; production was paused in 2026.",
+      "headquarters": {
+        "city": "San Antonio",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.solarpowerworldonline.com/2026/09/texas-records-suggest-oci-is-bringing-elite-solar-to-mission-solar-energy-manufacturing-site/"
+      ],
+      "plants": [
+        {
+          "name": "Mission Solar Energy",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "8303 S New Braunfels Ave",
+          "zip": "78235",
+          "latitude": 29.33794,
+          "longitude": -98.44054,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334413",
+          "products": "Solar panels (module assembly, 500 MW a year); idle since 2026",
+          "employees": 70,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.solarpowerworldonline.com/2026/09/texas-records-suggest-oci-is-bringing-elite-solar-to-mission-solar-energy-manufacturing-site/",
+          "employeesNote": "Company president's testimony quoted in Solar Power World, September 2026: \"we only had 70 employees by 2025, and have now temporarily ceased all manufacturing operations\". Marked closed because it is not producing; it may restart.",
+          "opened": 2014,
+          "status": "closed",
+          "sources": [
+            "https://www.solarpowerworldonline.com/2026/09/texas-records-suggest-oci-is-bringing-elite-solar-to-mission-solar-energy-manufacturing-site/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Siemens",
+      "alsoKnownAs": [
+        "Siemens Industry",
+        "Siemens Industry Inc",
+        "Siemens Industry, Inc",
+        "Siemens Energy & Automation",
+        "Siemens AG"
+      ],
+      "parent": null,
+      "domain": "siemens.com",
+      "industry": "Electrical Equipment",
+      "description": "Makes electrical distribution equipment, factory automation and building controls.",
+      "headquarters": {
+        "city": "Munich",
+        "state": null,
+        "country": "DE"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Siemens Grand Prairie",
+          "city": "Grand Prairie",
+          "state": "TX",
+          "address": "501 Fountain Pkwy",
+          "zip": "75050",
+          "latitude": 32.77896,
+          "longitude": -97.06068,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335313",
+          "products": "Low-voltage switchboards, panelboards and switchgear",
+          "employees": 1200,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Siemens Industry, Inc, 501 Fountain Parkway, Grand Prairie\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "Siemens Fort Worth",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "7200 Harris Legacy Dr",
+          "zip": "76140",
+          "latitude": 32.63799,
+          "longitude": -97.29876,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335313",
+          "products": "Electrical distribution equipment for data centers and other large buildings",
+          "employees": 515,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Siemens Industry Inc (Siemens Fort Worth), 7200 Harris Legacy Drive, Fort Worth\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=siemens&city_name=fort%20worth&state_abbr=TX&output=JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Schneider Electric",
+      "alsoKnownAs": [
+        "Schneider Electric USA",
+        "Schneider Electric USA Inc",
+        "Square D",
+        "Square D Company",
+        "Square D Co"
+      ],
+      "parent": null,
+      "domain": "se.com",
+      "industry": "Electrical Equipment",
+      "description": "Makes switchgear, circuit breakers and other equipment that distributes and controls electricity.",
+      "headquarters": {
+        "city": "Rueil-Malmaison",
+        "state": null,
+        "country": "FR"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://controldesign.com/industry-news/news/33011681/factory-will-make-el-paso-texas-the-home-of-schneider-electrics-largest-manufacturing-operation-in-the-united-states"
+      ],
+      "plants": [
+        {
+          "name": "Schneider Electric El Paso campus",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "1601 Northwestern Dr",
+          "zip": "79912",
+          "latitude": 31.88986,
+          "longitude": -106.5786,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335313",
+          "products": "Switchgear, switchboards and other low- and medium-voltage power distribution equipment",
+          "employees": 1500,
+          "employeesYear": 2023,
+          "employeesSource": "https://controldesign.com/industry-news/news/33011681/factory-will-make-el-paso-texas-the-home-of-schneider-electrics-largest-manufacturing-operation-in-the-united-states",
+          "employeesNote": "All of the company's El Paso plants together (Northwestern Dr and the plant opened in 2023), not one building: \"By the end of the year, the company expects to have approximately 1,500 employees in El Paso\" (September 2023). More capacity has been added since.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://controldesign.com/industry-news/news/33011681/factory-will-make-el-paso-texas-the-home-of-schneider-electrics-largest-manufacturing-operation-in-the-united-states",
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=schneider&city_name=el%20paso&state_abbr=TX&output=JSON"
+          ]
+        },
+        {
+          "name": "Schneider Electric Red Oak",
+          "city": "Red Oak",
+          "state": "TX",
+          "address": "371 Tater Brown Rd",
+          "zip": "75154",
+          "latitude": 32.54502,
+          "longitude": -96.79783,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": null,
+          "products": null,
+          "employees": 287,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Schneider Electric ROF, 371 Tater Brown Rd, Red Oak\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Eaton",
+      "alsoKnownAs": [
+        "Eaton Corporation",
+        "Eaton Corp",
+        "EATON",
+        "Cooper Industries",
+        "Cooper Power Systems",
+        "Cooper B-Line",
+        "Eaton B-Line",
+        "Cooper Crouse-Hinds",
+        "Eaton Crouse-Hinds"
+      ],
+      "parent": null,
+      "domain": "eaton.com",
+      "industry": "Electrical Equipment",
+      "description": "Makes circuit breakers, switchgear, transformers and other power management equipment.",
+      "headquarters": {
+        "city": "Dublin",
+        "state": null,
+        "country": "IE"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.bicmagazine.com/departments/operations/eaton-begins-production-at-newly-expanded-texas-facility/",
+        "https://www.tdworld.com/grid-innovations/article/21283024/eaton-latest-electrical-supplier-to-expand-sees-gains-in-industrial-electrification"
+      ],
+      "plants": [
+        {
+          "name": "Eaton El Paso (Helen of Troy Plaza)",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "1 Helen of Troy Plaza",
+          "zip": "79912",
+          "latitude": 31.87307,
+          "longitude": -106.5781,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335313",
+          "products": "Circuit breakers, switchboards and panelboards",
+          "employees": 665,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Eaton CPA, 1 Helen of Troy Plaza, El Paso\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.tdworld.com/grid-innovations/article/21283024/eaton-latest-electrical-supplier-to-expand-sees-gains-in-industrial-electrification",
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=eaton&city_name=el%20paso&state_abbr=TX&output=JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "Eaton El Paso (Trade Center Ave)",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "7800 Trade Center Ave",
+          "zip": "79912",
+          "latitude": 31.8978,
+          "longitude": -106.57845,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335313",
+          "products": "Circuit breakers, switchboards and panelboards",
+          "employees": 229,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"El Paso CPA, 7800 Trade Center Avenue, El Paso\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.tdworld.com/grid-innovations/article/21283024/eaton-latest-electrical-supplier-to-expand-sees-gains-in-industrial-electrification",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "Eaton Nacogdoches",
+          "city": "Nacogdoches",
+          "state": "TX",
+          "address": "2315 SE Stallings Dr",
+          "zip": "75961",
+          "latitude": 31.57937,
+          "longitude": -94.64872,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335311",
+          "products": "Voltage regulators and transformers for electric utilities",
+          "employees": 409,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Nacogdoches Manufacturing Plant, 2315 East Stallings, Nacogdoches\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises. A $100 million expansion finished in October 2025 and is to add about 200 jobs.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.bicmagazine.com/departments/operations/eaton-begins-production-at-newly-expanded-texas-facility/",
+            "https://www.tdworld.com/grid-innovations/article/21283024/eaton-latest-electrical-supplier-to-expand-sees-gains-in-industrial-electrification",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "Eaton B-Line Sherman",
+          "city": "Sherman",
+          "state": "TX",
+          "address": "4901 Marshall St",
+          "zip": "75090",
+          "latitude": 33.68599,
+          "longitude": -96.57476,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335932",
+          "products": "Cable tray and electrical support systems",
+          "employees": 368,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Eaton BLine, 4901 Marshall Drive, Sherman\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=b-line&city_name=sherman&state_abbr=TX&output=JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Toshiba International",
+      "alsoKnownAs": [
+        "Toshiba International Corporation",
+        "Toshiba International Corp",
+        "TIC",
+        "Toshiba"
+      ],
+      "parent": "Toshiba",
+      "domain": "toshiba.com",
+      "industry": "Motors & Drives",
+      "description": "Makes industrial electric motors, motor drives and uninterruptible power systems.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Toshiba International Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "13131 W Little York Rd",
+          "zip": "77041",
+          "latitude": 29.86044,
+          "longitude": -95.60573,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335312",
+          "products": "Electric motors, adjustable-speed drives and uninterruptible power systems",
+          "employees": 915,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Toshiba International Corporation, 13131 W Little York, Houston\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Powell Industries",
+      "alsoKnownAs": [
+        "Powell",
+        "Powell Industries Inc",
+        "Powell Industries, Inc.",
+        "Powell Electrical Systems",
+        "Powell Electrical Manufacturing"
+      ],
+      "parent": null,
+      "domain": "powellind.com",
+      "industry": "Electrical Equipment",
+      "description": "Makes switchgear and power control rooms for refineries, utilities and other heavy industry.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.sec.gov/Archives/edgar/data/80420/000008042025000152/powl-20250930.htm"
+      ],
+      "plants": [
+        {
+          "name": "Powell Industries Mosley Road",
+          "city": "Houston",
+          "state": "TX",
+          "address": "8550 Mosley Rd",
+          "zip": "77075",
+          "latitude": 29.64503,
+          "longitude": -95.25426,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335313",
+          "products": "Medium-voltage switchgear and power control equipment (headquarters and main plant)",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.sec.gov/Archives/edgar/data/80420/000008042025000152/powl-20250930.htm",
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=powell&city_name=houston&state_abbr=TX&output=JSON"
+          ]
+        },
+        {
+          "name": "Powell Industries Jacintoport",
+          "city": "Houston",
+          "state": "TX",
+          "address": "16535 Jacintoport Blvd",
+          "zip": "77015",
+          "latitude": 29.75658,
+          "longitude": -95.10815,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335313",
+          "products": "Large power control room modules, fabricated beside the ship channel for delivery by barge",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.sec.gov/Archives/edgar/data/80420/000008042025000152/powl-20250930.htm",
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=powell&city_name=houston&state_abbr=TX&output=JSON"
+          ]
+        },
+        {
+          "name": "Powell Industries Airport Boulevard",
+          "city": "Houston",
+          "state": "TX",
+          "address": "7232 Airport Blvd",
+          "zip": "77061",
+          "latitude": 29.65065,
+          "longitude": -95.29641,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335313",
+          "products": "Switchgear and power control equipment",
+          "employees": 627,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Powell Industries - Airport, 7232 Airport Blvd, Houston\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Encore Wire",
+      "alsoKnownAs": [
+        "Encore Wire Corporation",
+        "Encore Wire Corp",
+        "Encore Wire Corp."
+      ],
+      "parent": "Prysmian",
+      "domain": "encorewire.com",
+      "industry": "Wire & Cable",
+      "description": "Makes copper and aluminum electrical wire and cable for buildings.",
+      "headquarters": {
+        "city": "McKinney",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Encore Wire McKinney campus",
+          "city": "McKinney",
+          "state": "TX",
+          "address": "1329 Millwood Rd",
+          "zip": "75069",
+          "latitude": 33.18306,
+          "longitude": -96.60339,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331420",
+          "products": "Copper and aluminum building wire and cable, from its own copper rod mill",
+          "employees": 1645,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Encore Wire, 1329 Millwood Rd., McKinney\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Prysmian",
+      "alsoKnownAs": [
+        "Prysmian Group",
+        "Prysmian Cables and Systems",
+        "Prysmian Cables & Systems USA",
+        "Prysmian Cables and Systems USA LLC",
+        "General Cable",
+        "General Cable Industries",
+        "BICC General Cable Industries",
+        "Biccgeneral Cable Industries"
+      ],
+      "parent": null,
+      "domain": "prysmian.com",
+      "industry": "Wire & Cable",
+      "description": "Makes power and communications cable.",
+      "headquarters": {
+        "city": "Milan",
+        "state": null,
+        "country": "IT"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Prysmian Marshall plant (Scottsville)",
+          "city": "Scottsville",
+          "state": "TX",
+          "address": "9975 US Highway 80 E",
+          "zip": "75688",
+          "latitude": 32.52114,
+          "longitude": -94.23094,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331420",
+          "products": "Electrical wire and cable",
+          "employees": 563,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Prysmian Cables and Systems, 9975 US Highway 80 East, Scottsville\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=prysmian&state_abbr=TX&output=JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Southwire",
+      "alsoKnownAs": [
+        "Southwire Company",
+        "Southwire Company LLC",
+        "Southwire Co"
+      ],
+      "parent": null,
+      "domain": "southwire.com",
+      "industry": "Wire & Cable",
+      "description": "Makes electrical wire and cable for buildings, utilities and industry.",
+      "headquarters": {
+        "city": "Carrollton",
+        "state": "GA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "Southwire Denton",
+          "city": "Denton",
+          "state": "TX",
+          "address": "2727 Geesling Rd",
+          "zip": "76208",
+          "latitude": 33.23704,
+          "longitude": -97.07348,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331420",
+          "products": "Electrical wire and cable",
+          "employees": 300,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"Denton Plant, 2727 Geesling Road, Denton\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "Southwire El Paso",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "7811 Hoover Ave",
+          "zip": "79912",
+          "latitude": 31.90479,
+          "longitude": -106.57935,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331420",
+          "products": "Electrical wire and cable",
+          "employees": 206,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"El Paso (Southwire), 7811 Hoover Ave, El Paso\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TMEIC",
+      "alsoKnownAs": [
+        "TMEIC Corporation Americas",
+        "TMEIC Corporation",
+        "Toshiba Mitsubishi-Electric Industrial Systems"
+      ],
+      "parent": null,
+      "domain": "tmeic.com",
+      "industry": "Power Electronics",
+      "description": "Makes solar inverters, industrial motor drives and other power electronics.",
+      "headquarters": {
+        "city": "Tokyo",
+        "state": null,
+        "country": "JP"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "TMEIC Katy",
+          "city": "Katy",
+          "state": "TX",
+          "address": "25390 Clay Rd",
+          "zip": "77493",
+          "latitude": 29.83355,
+          "longitude": -95.81361,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": null,
+          "products": "Solar inverters and industrial power electronics",
+          "employees": 450,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"TMEIC Corporation Americas, 25390 Clay Rd, Katy\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tesla",
+      "alsoKnownAs": [
+        "Tesla Inc",
+        "Tesla, Inc.",
+        "Tesla Motors",
+        "Tesla Energy"
+      ],
+      "parent": null,
+      "domain": "tesla.com",
+      "industry": "Vehicles & Batteries",
+      "description": "Makes electric vehicles, batteries and grid energy storage systems.",
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://driveteslacanada.ca/news/tesla-megapack-3-production-texas-50gwh-megafactory/",
+        "https://coveringkaty.com/news/waller/tesla-now-hiring-for-brookshire-megafactory/",
+        "https://www.fox26houston.com/news/tesla-begins-hiring-new-200-million-megafactory-near-houston"
+      ],
+      "plants": [
+        {
+          "name": "Megafactory Houston",
+          "city": "Brookshire",
+          "state": "TX",
+          "address": "111 Empire Blvd",
+          "zip": "77423",
+          "latitude": 29.78028,
+          "longitude": -95.92974,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335910",
+          "products": "Megapack 3 grid battery systems (designed for 50 GWh a year)",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": "No current site figure found. The tax abatement commits Tesla to at least 375 people by the end of 2026, 750 by 2027 and 1,500 by 2028.",
+          "opened": 2026,
+          "status": "operating",
+          "sources": [
+            "https://driveteslacanada.ca/news/tesla-megapack-3-production-texas-50gwh-megafactory/",
+            "https://coveringkaty.com/news/waller/tesla-now-hiring-for-brookshire-megafactory/",
+            "https://www.fox26houston.com/news/tesla-begins-hiring-new-200-million-megafactory-near-houston"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LS Electric",
+      "alsoKnownAs": [
+        "LS Electric America",
+        "LS ELECTRIC America Inc",
+        "LS ELECTRIC",
+        "LSIS"
+      ],
+      "parent": null,
+      "domain": "ls-electric.com",
+      "industry": "Electrical Equipment",
+      "description": "Makes switchgear, circuit breakers and transformers for power distribution.",
+      "headquarters": {
+        "city": "Anyang",
+        "state": null,
+        "country": "KR"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://transformer-technology.com/ls-electric-launches-bastrop-campus-for-u-s-production-of-transformers-and-power-gear-transformer-technology-news/"
+      ],
+      "plants": [
+        {
+          "name": "LS Electric Bastrop Campus",
+          "city": "Bastrop",
+          "state": "TX",
+          "address": "409 Technology Dr",
+          "zip": "78602",
+          "latitude": 30.09579,
+          "longitude": -97.31199,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335313",
+          "products": "Low- and medium-voltage switchgear and other power distribution equipment",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": 2025,
+          "status": "operating",
+          "sources": [
+            "https://transformer-technology.com/ls-electric-launches-bastrop-campus-for-u-s-production-of-transformers-and-power-gear-transformer-technology-news/",
+            "https://www.elgincourier.com/article/3638,power-facility-adds-spark-to-growth"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "VanTran Transformers",
+      "alsoKnownAs": [
+        "VanTran",
+        "VanTran Industries",
+        "VanTran Transformer",
+        "VanTran Electric"
+      ],
+      "parent": null,
+      "domain": "vantran.com",
+      "industry": "Transformers",
+      "description": "Makes distribution transformers.",
+      "headquarters": {
+        "city": "Waco",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "VanTran Waco 1 (Imperial Drive)",
+          "city": "Waco",
+          "state": "TX",
+          "address": "7711 Imperial Dr",
+          "zip": "76712",
+          "latitude": 31.49627,
+          "longitude": -97.20022,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335311",
+          "products": "Distribution transformers",
+          "employees": 267,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"VanTran Transformers Waco 1, 7711 Imperial Drive, Waco\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        },
+        {
+          "name": "VanTran Waco 2 (Texas Central Parkway)",
+          "city": "Waco",
+          "state": "TX",
+          "address": "2700 Texas Central Pkwy",
+          "zip": "76712",
+          "latitude": 31.48899,
+          "longitude": -97.1797,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335311",
+          "products": "Distribution transformers",
+          "employees": 242,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"VanTran Transformers Waco 2, 2700 Texas Central Parkway, Waco\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TECO-Westinghouse",
+      "alsoKnownAs": [
+        "TECO-Westinghouse Motor Company",
+        "TECO Westinghouse",
+        "TECO-Westinghouse Motor Co",
+        "TWMC"
+      ],
+      "parent": "TECO Electric & Machinery",
+      "domain": "tecowestinghouse.com",
+      "industry": "Motors & Generators",
+      "description": "Makes large electric motors and generators for industry.",
+      "headquarters": {
+        "city": "Round Rock",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "plants": [
+        {
+          "name": "TECO-Westinghouse Round Rock",
+          "city": "Round Rock",
+          "state": "TX",
+          "address": "5100 N Interstate 35",
+          "zip": "78681",
+          "latitude": 30.56946,
+          "longitude": -97.69617,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335312",
+          "products": "Large electric motors and generators",
+          "employees": 242,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the company reported it to OSHA on Form 300A (establishment \"TECO-Westinghouse Motor Company, 5100 North IH-35, Round Rock\"). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ]
+        }
+      ]
+    }
+  ],
+  "unplaced": [
+    {
+      "company": "T1 Energy",
+      "plant": "G2_Austin solar cell fab (under construction since December 2025)",
+      "city": "Rockdale",
+      "why": "no street address found; the site is in Milam County near Rockdale"
+    },
+    {
+      "company": "Schneider Electric",
+      "plant": "El Paso Plant 6 (new building, shell permitted)",
+      "city": "El Paso",
+      "why": "a state permit record lists 1625 N Resler Dr, but I could not confirm on a page I read that ground is broken or what it will make"
+    },
+    {
+      "company": "Flex",
+      "plant": "Flex Dallas power products plant (400,000 sq ft, announced February 2025)",
+      "city": "Dallas",
+      "why": "address reported as 4001 N Prairie Creek Rd (geocodes to 32.77428, -96.66651) but the page stating it could not be opened, and I found no confirmation it is producing or how many work there"
+    },
+    {
+      "company": "Hubbell",
+      "plant": "San Antonio and Schulenburg plants",
+      "city": "San Antonio / Schulenburg",
+      "why": "known only from job postings; no street address, product or headcount confirmed"
+    },
+    {
+      "company": "Celestica",
+      "plant": "New building at 2801 Telecom Pkwy (343,000 sq ft, under construction in 2026)",
+      "city": "Richardson",
+      "why": "part of the same campus as the listed plant (OpenStreetMap places 2801 at 32.99128, -96.65312); not listed separately"
+    }
+  ],
+  "notes": "HEADCOUNTS. Most site figures are the \"annual average number of employees\" for calendar year 2025 that each establishment reported to OSHA on Form 300A (file: ITA_300A_Summary_Data_2025_through_08-31-2026.csv, linked from https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data). I read every such figure in the file itself; each employeesNote names the establishment row. It is a government source about that one site and that year, but it is self-reported, covers the whole establishment (offices on the same site included) and can include supervised temporary workers. Where a company statement about the site was found and read, it is used instead and the OSHA figure is given in the note (Samsung Austin 3,342 vs OSHA 5,016; Samsung Taylor 1,150 vs 767; SkyWater about 1,000 vs 881). Not from OSHA: Schneider El Paso (company expectation for end of 2023, all El Paso plants together), Wistron (Nvidia statement, July 2026), Celestica (expansion announcement, June 2026), Mission Solar (company testimony). No site figure, left null: Tower Semiconductor San Antonio (a January 2022 San Antonio Express-News report of 660 workers could not be opened), Leonardo DRS Dallas, Powell Mosley Road and Jacintoport, LS Electric Bastrop (a local paper reports 50 hires in its first phase), Tesla Megafactory. stateEmployees is null throughout: no source stating a Texas manufacturing total was read. SUBSECTOR CALLS, each following the NAICS code the plant reports rather than the grouping in the brief: (1) Applied Materials Austin is 333242, so Machinery Manufacturing. (2) Encore Wire, Prysmian and Southwire report 331420 (copper wire drawing), so Primary Metal Manufacturing; a reviewer who wants wire and cable under Electrical Equipment should change the subsector on those four plants (and null the NAICS). (3) Solar panel plants (Canadian Solar, T1 Energy, Waaree, Mission Solar) are 334413, so Computer and Electronic Product Manufacturing, not Electrical Equipment; T1 itself filed 333414, which I did not follow. STATUS CALLS. TI's older Sherman fab (150 mm) is marked closed on the strength of reports that the line was wound down at the end of 2025; its coordinates are from EPA's facility registry and are less certain than the others. Mission Solar is marked closed because the company said in 2026 that manufacturing had \"temporarily ceased\"; it may restart. Samsung Taylor is \"under construction\" (the company said the fab would be operational by the end of 2026; not confirmed). COMPANIES THAT MAY ALSO BE IN OTHER BRIEFS: Tesla (only the Megafactory is listed here; Giga Texas is a vehicle plant), SpaceX (only the Bastrop Starlink plant), Raytheon, Abbott, Siemens, Eaton, Flex. LEFT OUT ON PURPOSE. Dell: no current manufacturing in Texas was found (the Austin PC plant closed in 2008). Infineon: its Austin fab is now SkyWater's Fab 25; the existing database may list that plant under Infineon, Cypress Semiconductor or Spansion, which are not given as other names because they are different companies. L3Harris (Greenville 4,798, Waco 1,400 in the OSHA file) and Lockheed Martin Missiles and Fire Control (Grand Prairie 3,901, Lufkin 485) report aircraft and missile NAICS codes and belong to the transportation equipment brief. Hubbell: only small Texas plants known from job postings. ABB: no Texas plant confirmed. Thermon (San Marcos): the plant could not be confirmed on a page I could open. Rockwell Automation: no significant Texas plant found. Offices and service sites seen in the OSHA file and not treated as plants: HP Inc. Spring (2,662), Cirrus Logic Austin, Tokyo Electron Austin (502), 1Finity/Fujitsu Dallas (688), Motorola Solutions Allen (429), Raytheon Plano (476), Samsung Parmer Lane (443), Shermco Irving (1,070, electrical testing services), Texas Electric Cooperatives Georgetown. Seen in the OSHA file but not confirmed as manufacturing, so left out: Ultra Clean Technology Austin/Manor (766 and 705 reported, with hours that do not match), US Conec Fort Worth (560), Qorvo Campbell Road Richardson (334), Yokogawa Sugar Land (599, several sites combined), Honeywell El Paso (307) and Richardson (287), Delta Electronics Plano (248), ZT Systems Georgetown (202, now Sanmina), OmniOn Power Plano (320), Maverick Power McKinney and Garland (448), National Electric Coil Brownsville (322), Elin Energy Brookshire (159), Hithium Forney (97), CelLink Georgetown (121). SEG Solar (Houston and Tomball), Pegatron, Compal and Inventec were not researched to a usable standard. COORDINATES. From the project geocoder where it returned the house number; otherwise from the US Census geocoder (TI North Campus, Qorvo, Siemens Grand Prairie, Eaton Nacogdoches) or from EPA's Facility Registry Service record for the plant (TI RFAB and old Sherman fab, Samsung Taylor, T1 Wilmer, Siemens Fort Worth, both Eaton El Paso plants, Eaton B-Line, Prysmian, Schneider El Paso, Celestica, Leonardo DRS, Powell Jacintoport). LIMITS OF THIS PASS. The session's web search allowance ran out before every company was double-checked, and the page-fetch tool did not work, so pages were read with curl. Product lines and opening years for several plants rest on general knowledge and search-result summaries rather than a page I read: treat \"products\" as a description, not a sourced fact, for Raytheon, BAE Systems, Elbit, Abbott, HID Global, AirBorn, EControls, Ludlum, Siemens, Toshiba, Powell, TMEIC, VanTran, TECO-Westinghouse, Southwire and Prysmian. Three cited pages could not be opened from this session and are cited on the strength of search-result summaries: the Powell 10-K on sec.gov, the Leonardo DRS location page, and the 2025 Texas Instruments investment release. Schneider Red Oak has no product line because none was confirmed. The OSHA file for 2024 could not be downloaded, so plants that had not filed for 2025 by 31 August 2026 are missing a figure."
+}
