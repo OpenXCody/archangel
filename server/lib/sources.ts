@@ -44,10 +44,11 @@ export async function sourcesOf(entityType: 'companies' | 'factories', id: strin
     } else if (row.source === 'EPA_ECHO' && /^\d{12}$/.test(row.external_id)) {
       source = { label: 'EPA facility registry', url: `https://echo.epa.gov/detailed-facility-report?fid=${row.external_id}` };
     }
-    if (source && !seen.has(source.url)) {
-      seen.add(source.url);
+    // One line per site: several pages of one site read as the site.
+    if (source && !seen.has(source.label)) {
+      seen.add(source.label);
       sources.push(source);
     }
   }
-  return sources;
+  return sources.slice(0, 8);
 }

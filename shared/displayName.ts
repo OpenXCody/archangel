@@ -10,7 +10,8 @@ const ACRONYMS = new Set([
   // Legal forms that are initials. "Inc", "Corp", "Co" and "Ltd" are
   // abbreviations of words and read as words ("Dow Inc.", not "Dow INC.").
   'LLC', 'LP', 'LLP', 'PLLC', 'PC',
-  'USA', 'US', 'UK', 'EU', 'LA', 'SF', 'NYC', 'DC', 'NY',
+  // Not "LA": in a plant's name it is nearly always La Porte, La Grange or La Vergne.
+  'USA', 'US', 'UK', 'EU', 'SF', 'NYC', 'DC', 'NY',
   'HVAC', 'PCB', 'CNC', 'IT', 'IP', 'AI', 'ML', 'RV',
   'II', 'III', 'IV', 'VI', 'VII', 'VIII', 'IX',
   'TX', 'CA', 'FL', 'IL', 'MI', 'WA', 'AZ', 'NV', 'GA',
@@ -19,6 +20,8 @@ const ACRONYMS = new Set([
   'GE', 'GM', 'IBM', 'HP', 'AT&T', 'JP', 'UPS', 'FMC', 'FCA',
   'PPG', 'RPM', 'TDK', 'KLA', 'TSMC', 'ASML', 'NXP', 'ST', 'SK',
   '3M', 'ABB', 'BD', 'AZZ', 'ICU', 'GKN', 'ZF', 'TRW', 'NGK', 'JBS', 'CNH', 'AGCO', 'ITT', 'SPX', 'TE',
+  // Names the curated employers are written under (data/employers).
+  'INEOS', 'CITGO', 'TMEIC', 'ASARCO', 'GCC', 'USG', 'CFAN', 'AAON', 'SLB', 'NOV', 'HMH', 'ESAB', 'RFAB', 'FM', 'VCM',
 ]);
 
 // Legal forms that are abbreviations of words: "Inc", never "INC".
@@ -82,7 +85,8 @@ function fixAcronymsInPlace(name: string): string {
       const match = chunk.match(/^([^A-Za-z0-9]*)([A-Za-z0-9].*?)([^A-Za-z0-9]*)$/);
       if (!match) return chunk;
       const [, leading, core, trailing] = match;
-      if (ACRONYMS.has(core.toUpperCase())) {
+      // "St." written as a word with its full stop is Saint, not the acronym.
+      if (ACRONYMS.has(core.toUpperCase()) && !(trailing.startsWith('.') && /^[A-Z][a-z]+$/.test(core))) {
         return leading + core.toUpperCase() + trailing;
       }
       const spelling = SPELLINGS[core.toLowerCase()] ?? WORD_FORMS[core.toLowerCase()] ?? ordinal(core);

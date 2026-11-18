@@ -56,7 +56,7 @@ export function PlantFacts({ factory }: { factory: Pick<FactoryDetail, 'workforc
             {factory.workforceYear && <span className="text-fg-muted">, {factory.workforceYear}</span>}
           </p>
           {(factory.workforceSource || factory.workforceNote) && (
-            <p className="mt-1 text-sm text-fg-muted">
+            <p className="mt-1 line-clamp-2 text-sm text-fg-muted">
               {factory.workforceSource && <SourceLink url={factory.workforceSource} />}
               {factory.workforceSource && factory.workforceNote && ' · '}
               {factory.workforceNote}

@@ -418,7 +418,9 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
   const industry = factory.industry
     ? industryLabel(factory.industry)
     : factory.specialization || (company && company.industry !== 'Manufacturing' ? company.industry : null);
-  const address = factory.address && factory.address.trim().toLowerCase() !== (factory.city ?? '').trim().toLowerCase() ? titleCase(factory.address.trim()) : null;
+  // A curated plant's address was written by a person ("1530 FM 973") and is left as it is.
+  const street = factory.address?.trim() ?? '';
+  const address = street && street.toLowerCase() !== (factory.city ?? '').trim().toLowerCase() ? (factory.curated ? street : titleCase(street)) : null;
   const jobs = factory.jobs ?? [];
   const underConstruction = factory.status === 'under construction';
   const nearby = factory.nearby ?? [];

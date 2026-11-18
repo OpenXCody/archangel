@@ -467,7 +467,8 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
           </div>
           <div className="flex flex-col gap-3 border-t border-border-subtle px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <p className="min-w-0 text-sm text-fg-muted">
-              {[data.address ? titleCase(data.address) : null, place].filter(Boolean).join(', ') || 'Location on record'}
+              {/* A curated plant's address was written by a person ("1530 FM 973") and is left as it is. */}
+              {[data.address ? (data.curated ? data.address : titleCase(data.address)) : null, place].filter(Boolean).join(', ') || 'Location on record'}
             </p>
             <Link
               to={`/map?factory=${data.id}`}
