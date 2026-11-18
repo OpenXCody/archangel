@@ -51,7 +51,7 @@
       "name": "Work Instruction Reading",
       "category": "Shop Fundamentals",
       "what": "Following a written work instruction, traveler or standard operating procedure step by step, including its revision, cautions and sign-offs. A person who has it builds or runs the job the same way every time and stops when the paper and the part disagree.",
-      "learned": "Learned on the job in the first weeks; shown by passing an operator qualification on a station.",
+      "learned": "On the job in the first weeks; shown by passing an operator qualification on a station.",
       "tools": [
         "Paper travelers",
         "Electronic work instructions on a station terminal"
@@ -61,7 +61,7 @@
       "name": "Lot Tracking",
       "category": "Shop Fundamentals",
       "what": "Keeping each lot, batch or serial number tied to its materials, process steps and results as it moves through the plant. A person who has it scans or signs every move so any part can be traced back later.",
-      "learned": "Learned on the job on the plant's own system.",
+      "learned": "On the job on the plant's own system.",
       "tools": [
         "Manufacturing execution system (MES)",
         "Barcode and RFID scanners",
@@ -72,7 +72,7 @@
       "name": "Process Recipe Execution",
       "category": "Shop Fundamentals",
       "what": "Selecting the qualified recipe for a lot, loading it on a process tool, starting the run and confirming it finished inside its limits. A person who has it never runs a lot on the wrong recipe and knows what to do with an aborted run.",
-      "learned": "Learned on the job through tool-by-tool operator certification.",
+      "learned": "On the job through tool-by-tool operator certification.",
       "tools": [
         "Tool control software",
         "MES recipe dispatch",
@@ -135,7 +135,7 @@
       "name": "Dry Room Operations",
       "category": "Shop Fundamentals",
       "what": "Working in a very low humidity room where battery electrodes and electrolyte are exposed. A person who has it keeps moisture out through airlocks, limits on people and time in the room, and watches the dew point.",
-      "learned": "Learned on the job at a cell plant.",
+      "learned": "On the job at a cell plant.",
       "tools": [
         "Dew point meters",
         "Airlocks",
@@ -178,7 +178,7 @@
         "MES"
       ],
       "what": "Using a plant's MES to start and complete operations, record material and labor, and pull production data. A person who has it can find where an order stands and what happened to it at each step.",
-      "learned": "Learned on the job on the plant's system.",
+      "learned": "On the job on the plant's system.",
       "tools": [
         "MES products such as Siemens Opcenter, Rockwell Plex, SAP Digital Manufacturing"
       ]
@@ -1615,7 +1615,7 @@
       "name": "Assembly Hand Tool Use",
       "category": "Mechanical Assembly",
       "what": "Using the hand and power tools of an assembly station correctly: drivers, wrenches, ratchets, pliers, crimpers and pneumatic and DC electric tools. A person who has it picks the right tool and bit, does not damage the fastener or the part and looks after the tools.",
-      "learned": "Learned on the job in the first weeks; shown by passing a station qualification.",
+      "learned": "On the job in the first weeks; shown by passing a station qualification.",
       "tools": [
         "Screwdrivers and nut drivers",
         "Ratchets and sockets",
@@ -8042,7 +8042,7 @@
         "PT System Performance Check"
       ],
       "what": "Proving a penetrant line still works: running a known-defect panel each day and checking penetrant, emulsifier, developer, wash and dryer on schedule. A person who has it runs the checks and keeps the log.",
-      "learned": "Learned on the job on a penetrant line, as part of Level II certification.",
+      "learned": "On the job on a penetrant line, as part of Level II certification.",
       "tools": [
         "Known-defect test panels",
         "Refractometers",

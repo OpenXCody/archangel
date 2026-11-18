@@ -804,13 +804,13 @@ UPDATE skills SET category = 'Shop Fundamentals', description = 'The arithmetic,
   how_learned = 'A first-term course in machining and tool-and-die programs; employers often test it before hiring.', tools = ARRAY['Scientific calculator', 'Trig tables', 'Machinery''s Handbook']
   WHERE name = 'Shop Math';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Following a written work instruction, traveler or standard operating procedure step by step, including its revision, cautions and sign-offs. A person who has it builds or runs the job the same way every time and stops when the paper and the part disagree.',
-  how_learned = 'Learned on the job in the first weeks; shown by passing an operator qualification on a station.', tools = ARRAY['Paper travelers', 'Electronic work instructions on a station terminal']
+  how_learned = 'On the job in the first weeks; shown by passing an operator qualification on a station.', tools = ARRAY['Paper travelers', 'Electronic work instructions on a station terminal']
   WHERE name = 'Work Instruction Reading';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Keeping each lot, batch or serial number tied to its materials, process steps and results as it moves through the plant. A person who has it scans or signs every move so any part can be traced back later.',
-  how_learned = 'Learned on the job on the plant''s own system.', tools = ARRAY['Manufacturing execution system (MES)', 'Barcode and RFID scanners', 'Lot travelers']
+  how_learned = 'On the job on the plant''s own system.', tools = ARRAY['Manufacturing execution system (MES)', 'Barcode and RFID scanners', 'Lot travelers']
   WHERE name = 'Lot Tracking';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Selecting the qualified recipe for a lot, loading it on a process tool, starting the run and confirming it finished inside its limits. A person who has it never runs a lot on the wrong recipe and knows what to do with an aborted run.',
-  how_learned = 'Learned on the job through tool-by-tool operator certification.', tools = ARRAY['Tool control software', 'MES recipe dispatch', 'Run logs']
+  how_learned = 'On the job through tool-by-tool operator certification.', tools = ARRAY['Tool control software', 'MES recipe dispatch', 'Run logs']
   WHERE name = 'Process Recipe Execution';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Putting on a hood, coverall, boots, gloves and mask in the right order so skin, hair and street clothes shed nothing into a cleanroom. A person who has it can gown and de-gown without touching the outside of the garment.',
   how_learned = 'Taught and checked on the first day in a cleanroom job; semiconductor technician programs practice it.', tools = ARRAY['Bunny suits', 'Gowning benches', 'Air showers']
@@ -825,7 +825,7 @@ UPDATE skills SET category = 'Shop Fundamentals', description = 'Handling static
   how_learned = 'Employer training to an ANSI/ESD S20.20 program, usually refreshed yearly; part of IPC electronics assembly courses.', tools = ARRAY['Wrist straps and heel grounders', 'Dissipative mats', 'Ionizers', 'Shielding bags', 'Strap testers']
   WHERE name = 'ESD Control';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Working in a very low humidity room where battery electrodes and electrolyte are exposed. A person who has it keeps moisture out through airlocks, limits on people and time in the room, and watches the dew point.',
-  how_learned = 'Learned on the job at a cell plant.', tools = ARRAY['Dew point meters', 'Airlocks', 'Desiccant dehumidifiers']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Dew point meters', 'Airlocks', 'Desiccant dehumidifiers']
   WHERE name = 'Dry Room Operations';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Keeping loose hardware, tools, shavings and trash out of aircraft, engines and spacecraft. A person who has it cleans as they go, accounts for every fastener and inspects a work zone before it is closed.',
   how_learned = 'Employer training, required before working on flight hardware and refreshed yearly.', tools = ARRAY['FOD bags and containers', 'Tethered tools', 'Borescopes for closed areas']
@@ -834,7 +834,7 @@ UPDATE skills SET category = 'Shop Fundamentals', description = 'Accounting for 
   how_learned = 'Employer training; standard practice in aircraft, engine and spacecraft work.', tools = ARRAY['Shadow-foamed toolboxes', 'Tool cribs', 'Check-out tags or scanners']
   WHERE name = 'Tool Control';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Using a plant''s MES to start and complete operations, record material and labor, and pull production data. A person who has it can find where an order stands and what happened to it at each step.',
-  how_learned = 'Learned on the job on the plant''s system.', tools = ARRAY['MES products such as Siemens Opcenter, Rockwell Plex, SAP Digital Manufacturing']
+  how_learned = 'On the job on the plant''s system.', tools = ARRAY['MES products such as Siemens Opcenter, Rockwell Plex, SAP Digital Manufacturing']
   WHERE name = 'Manufacturing Execution System Use';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Running a bridge or gantry crane from a pendant or radio remote to lift, travel and set a load. A person who has it inspects the crane and hook before use, keeps the load low and under control and never lifts over people.',
   how_learned = 'Employer training and evaluation under OSHA 1910.179; NCCCO offers an overhead crane operator certification.', tools = ARRAY['Bridge and gantry cranes', 'Pendant and radio controls', 'Load charts']
@@ -1134,7 +1134,7 @@ UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Closi
   how_learned = 'On the job at a HIP supplier or a plant with its own unit.', tools = ARRAY['HIP vessels', 'Argon systems', 'Load fixtures', 'Cycle recorders']
   WHERE name = 'Hot Isostatic Pressing';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Using the hand and power tools of an assembly station correctly: drivers, wrenches, ratchets, pliers, crimpers and pneumatic and DC electric tools. A person who has it picks the right tool and bit, does not damage the fastener or the part and looks after the tools.',
-  how_learned = 'Learned on the job in the first weeks; shown by passing a station qualification.', tools = ARRAY['Screwdrivers and nut drivers', 'Ratchets and sockets', 'DC electric nutrunners', 'Air tools']
+  how_learned = 'On the job in the first weeks; shown by passing a station qualification.', tools = ARRAY['Screwdrivers and nut drivers', 'Ratchets and sockets', 'DC electric nutrunners', 'Air tools']
   WHERE name = 'Assembly Hand Tool Use';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Tightening fasteners to a specified torque and sequence. A person who has it reads the value and pattern from the instruction, sets and uses click, dial and electronic wrenches correctly, checks the calibration date and marks each fastener done.',
   how_learned = 'On the job; aviation maintenance and assembly programs teach it early.', tools = ARRAY['Click, beam, dial and electronic torque wrenches', 'Torque multipliers', 'Torque seal']
@@ -2409,7 +2409,7 @@ UPDATE skills SET category = 'Nondestructive Testing', description = 'Choosing a
   how_learned = 'Learned as part of Level II penetrant certification.', tools = ARRAY['Qualified products list', 'Specifications', 'Known-defect standards']
   WHERE name = 'Penetrant Sensitivity Levels';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Proving a penetrant line still works: running a known-defect panel each day and checking penetrant, emulsifier, developer, wash and dryer on schedule. A person who has it runs the checks and keeps the log.',
-  how_learned = 'Learned on the job on a penetrant line, as part of Level II certification.', tools = ARRAY['Known-defect test panels', 'Refractometers', 'Thermometers and pressure gauges', 'UV-A and white light meters']
+  how_learned = 'On the job on a penetrant line, as part of Level II certification.', tools = ARRAY['Known-defect test panels', 'Refractometers', 'Thermometers and pressure gauges', 'UV-A and white light meters']
   WHERE name = 'Penetrant System Performance Checks';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Measuring the UV-A intensity at the part and the white light in the booth before fluorescent inspection. A person who has it takes the readings at the set distance, logs them and replaces a lamp that falls short.',
   how_learned = 'Learned as part of Level II penetrant and magnetic particle certification.', tools = ARRAY['UV-A radiometers', 'White light meters', 'UV-A LED lamps']
