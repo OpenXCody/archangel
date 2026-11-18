@@ -39,13 +39,16 @@ const LIST: Record<BrowseTab, (params: ListParams) => Promise<PaginatedResponse<
   skills: skillsApi.list,
 };
 
-/** What an empty list says it has none of. */
-const MANY: Record<BrowseTab, string> = {
-  companies: 'companies',
-  factories: 'plants',
-  occupations: 'careers',
-  skills: 'skills',
+/** What each list holds, in the words the tabs use. */
+export const LIST_NOUN: Record<BrowseTab, [one: string, many: string]> = {
+  companies: ['company', 'companies'],
+  factories: ['plant', 'plants'],
+  occupations: ['career', 'careers'],
+  skills: ['skill', 'skills'],
 };
+
+/** "1 plant", "43,914 plants". */
+export const counted = (n: number, [one, many]: [string, string]) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
 /** Row height before it is measured: two or three lines of text (a phone gives a description two lines). */
 const ROW_ESTIMATE: Record<BrowseTab, number> = {
@@ -176,10 +179,10 @@ function VirtualRows({
 /**
  * A browse list behind the overview: every company, plant, career or
  * skill, filtered and sorted from the address (?state=, ?industry=, ?category=,
- * ?sort=), so a filtered list can be linked to and survives Back. `onCount`
- * hears how many rows the list holds with its filters applied.
+ * ?sort=), so a filtered list can be linked to and survives Back. Between the
+ * filters and the rows is one line: how many the list holds, filters applied.
  */
-export default function BrowseList({ tab, onCount }: { tab: BrowseTab; onCount?: (count: number | null | undefined) => void }) {
+export default function BrowseList({ tab }: { tab: BrowseTab }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const stateParam = searchParams.get('state');
@@ -247,18 +250,12 @@ export default function BrowseList({ tab, onCount }: { tab: BrowseTab; onCount?:
   const items = useMemo(() => list.data?.pages.flatMap((page) => page.data) ?? [], [list.data]);
   const total = list.data?.pages[0]?.total;
   // Said under the page's heading, by the page.
-  // Null when the list could not be loaded: there is no figure to wait for.
-  const count = total ?? (list.isError ? null : undefined);
-  useEffect(() => {
-    onCount?.(count);
-  }, [count, onCount]);
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = list;
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const clearFilters = () => setParam({ state: undefined, industry: undefined, category: undefined });
-  // Plants filtered to one industry: that industry has a page of its own, for the same state.
   const industryPage = tab === 'factories' ? industryPath(filters.industry, { state: filters.state }) : null;
 
   return (
@@ -273,13 +270,24 @@ export default function BrowseList({ tab, onCount }: { tab: BrowseTab; onCount?:
         categories={categories}
       />
 
-      {industryPage && filters.industry && (
-        <p className="-mt-1 mb-3 text-sm sm:-mt-2">
-          <Link to={industryPage} className="inline-flex min-h-11 items-center text-fg-muted underline underline-offset-4 hover:text-fg-default sm:min-h-0">
-            About {industryLabel(filters.industry)}
-            {filters.state ? ` in ${US_STATES.find((s) => s.code === filters.state)?.name ?? filters.state}` : ''}
-          </Link>
-        </p>
+      {/* How many, with the filters applied; the line holds its place while the answer is on its way. */}
+      {!(list.isError && items.length === 0) && (
+        <div className="mb-1 flex min-h-11 flex-wrap items-center justify-between gap-x-6 text-sm text-fg-muted sm:mb-2 sm:min-h-9">
+          <p role="status" className="tabular-nums" data-explore-count>
+            {total === undefined ? (
+              <span aria-hidden="true" className="inline-block h-3.5 w-28 animate-pulse rounded bg-primary/10 align-middle" />
+            ) : (
+              counted(total, LIST_NOUN[tab])
+            )}
+          </p>
+          {/* Plants filtered to one industry: that industry has a page of its own, for the same state. */}
+          {industryPage && filters.industry && (
+            <Link to={industryPage} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-fg-default sm:min-h-0">
+              About {industryLabel(filters.industry)}
+              {filters.state ? ` in ${US_STATES.find((s) => s.code === filters.state)?.name ?? filters.state}` : ''}
+            </Link>
+          )}
+        </div>
       )}
 
       {list.isLoading ? (
@@ -292,7 +300,7 @@ export default function BrowseList({ tab, onCount }: { tab: BrowseTab; onCount?:
         <LoadError error={list.error} onRetry={() => void list.refetch()} retrying={list.isFetching} />
       ) : items.length === 0 ? (
         <EmptyState
-          title={`No ${MANY[tab]}`}
+          title={`No ${LIST_NOUN[tab][1]}`}
           description={filtered ? 'Nothing matches these filters.' : undefined}
           action={
             filtered ? (

@@ -112,7 +112,7 @@ function Choice({
 /**
  * Filters on the left, sort on the right, all as plain text. A filter that is
  * set reads as its value; "Clear" puts the list back. How many rows match is
- * said under the page's heading, not here.
+ * the list's own line, under this one.
  */
 export default function FilterBar({
   activeTab,
@@ -140,7 +140,7 @@ export default function FilterBar({
   const filtered = Boolean(filters.state || filters.industry || filters.category);
 
   return (
-    <div className="my-2 flex flex-wrap items-center justify-between gap-x-6 sm:my-4">
+    <div className="mt-2 flex flex-wrap items-center justify-between gap-x-6 sm:mt-4">
       <div className="flex min-w-0 flex-wrap items-center gap-x-6">
         {showState && (
           <Choice

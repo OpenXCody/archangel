@@ -73,9 +73,9 @@ function Loading() {
  * Explore's Industries view (/industries): every manufacturing industry,
  * largest first, for the country or narrowed to a state or a focus area from
  * the address (?state=TX, ?area=austin). Above the list: manufacturing as a
- * whole in that place. `onCount` hears how many industries the place has.
+ * whole in that place.
  */
-export default function IndustryList({ onCount }: { onCount?: (count: number | null | undefined) => void }) {
+export default function IndustryList() {
   const [params] = useSearchParams();
   const place = readPlace(params);
   const where = placeQuery(place);
@@ -94,12 +94,6 @@ export default function IndustryList({ onCount }: { onCount?: (count: number | n
     placeholderData: (previous) => previous,
   });
   const data = query.data;
-
-  // Null when there is no figure to wait for: a place that is not one, or a list that could not be loaded.
-  const count = place.kind === 'unknown' || (query.isError && !data) ? null : query.isPlaceholderData ? undefined : data?.industries.length;
-  useEffect(() => {
-    onCount?.(count);
-  }, [count, onCount]);
 
   return (
     // The figures read across a column, not across the whole page.

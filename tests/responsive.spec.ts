@@ -152,7 +152,6 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Explore');
   await expect(tabs.locator('[aria-current="page"]')).toHaveAccessibleName('Industries');
   await expect(main.locator('[aria-current="page"]')).toHaveText('Explore');
-  await expect(page.locator('[data-explore-count]')).toHaveText(/^\d+ industries$/);
 
   // The last tab: where the row is wider than the screen it has scrolled the current tab into sight.
   await page.goto('/explore?tab=skills', { waitUntil: 'domcontentloaded' });
