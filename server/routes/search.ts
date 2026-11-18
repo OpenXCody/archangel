@@ -7,6 +7,7 @@ import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { US_STATES } from '../../shared/states.js';
 import { pageLimit } from '../lib/paging.js';
+import { searchIndustries } from '../lib/industries.js';
 
 const router = Router();
 
@@ -46,7 +47,7 @@ function sortByRelevance<T extends { name: string }>(items: T[], query: string):
 interface SearchResultItem {
   id: string;
   name: string;
-  type: 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'jobs';
+  type: 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'jobs' | 'industries';
   subtitle?: string;
   meta?: string;
   /** Companies only: the web domain their logo is looked up from. */
@@ -62,6 +63,7 @@ interface SearchResults {
     skills: { count: number; items: SearchResultItem[] };
     states: { count: number; items: SearchResultItem[] };
     jobs: { count: number; items: SearchResultItem[] };
+    industries: { count: number; items: SearchResultItem[] };
   };
   totalCount: number;
 }
@@ -104,7 +106,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     const typeFilter = types
       ? (types as string).split(',').map(t => t.trim())
-      : ['companies', 'factories', 'occupations', 'skills', 'states', 'jobs'];
+      : ['companies', 'factories', 'occupations', 'skills', 'states', 'jobs', 'industries'];
 
     const results: SearchResults = {
       query,
@@ -115,6 +117,7 @@ router.get('/', async (req: Request, res: Response) => {
         skills: { count: 0, items: [] },
         states: { count: 0, items: [] },
         jobs: { count: 0, items: [] },
+        industries: { count: 0, items: [] },
       },
       totalCount: 0,
     };
@@ -356,6 +359,22 @@ router.get('/', async (req: Request, res: Response) => {
       };
     }
 
+    // Industries come from the fixed list of 21 (shared/industry.ts), matched
+    // by name and by what they make. Like a state, an industry has no id of
+    // its own: its slug stands in, and the client opens its page.
+    if (typeFilter.includes('industries')) {
+      const found = await searchIndustries(query, 21);
+      results.results.industries = {
+        count: found.length,
+        items: found.slice(0, maxLimit).map((industry) => ({
+          id: industry.slug,
+          name: industry.name,
+          type: 'industries' as const,
+          subtitle: industry.summary ?? undefined,
+        })),
+      };
+    }
+
     // Calculate total count
     results.totalCount =
       results.results.companies.count +
@@ -363,7 +382,8 @@ router.get('/', async (req: Request, res: Response) => {
       results.results.occupations.count +
       results.results.skills.count +
       results.results.states.count +
-      results.results.jobs.count;
+      results.results.jobs.count +
+      results.results.industries.count;
 
     res.json(results);
   } catch (error) {
