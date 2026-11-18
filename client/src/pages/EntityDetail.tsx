@@ -8,6 +8,7 @@ import { signInPath, useAccount, useMySkills, type SkillStatus } from '../lib/ac
 import { useMarkSkill, type SkillMark } from '../lib/seeker';
 import { editPath, type RecordKind } from '../lib/records';
 import { formatPay } from '../lib/jobFormat';
+import { industryPath } from '../lib/industryLink';
 import {
   ArrowLeft,
   Loader2,
@@ -817,14 +818,64 @@ function WhereWorkIsDone({ data }: { data: OccupationDetail }) {
   );
 }
 
-// Skill Detail View
+/** Where a skill sits on the careers that use it, in the order it is met. */
+const SKILL_STAGES: { stage: 1 | 2 | 3; label: string; hint: string }[] = [
+  { stage: 1, label: 'Introduction', hint: 'Learned first' },
+  { stage: 2, label: 'Fundamentals', hint: 'Core of the work' },
+  { stage: 3, label: 'Advanced', hint: 'Learned later' },
+];
+
+/** One stage's careers on a skill's page: the first few, and the rest on request. */
+function SkillCareers({ label, hint, careers }: { label?: string; hint?: string; careers: SkillDetail['occupations'] }) {
+  const [showAll, setShowAll] = useState(false);
+  const shown = showAll ? careers : careers.slice(0, CAREERS_SHOWN);
+  return (
+    <div className="min-w-0" data-skill-stage={label ?? 'none'}>
+      {label && (
+        <p className="mb-2 flex flex-wrap items-baseline gap-x-2 text-sm">
+          <span className="font-medium text-fg-default">{label}</span>
+          {hint && <span className="text-fg-soft">{hint}</span>}
+        </p>
+      )}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {shown.map((career) => (
+          <RelatedCard key={career.id} to={`/occupations/${career.id}`} icon={Briefcase} iconClass="text-fg-muted" title={career.title} />
+        ))}
+      </div>
+      {careers.length > CAREERS_SHOWN && (
+        <button
+          type="button"
+          onClick={() => setShowAll((value) => !value)}
+          className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-fg-default underline underline-offset-4 hover:no-underline sm:min-h-0"
+        >
+          {showAll ? 'Show fewer' : `Show all ${careers.length.toLocaleString()}`}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A skill's page: what it is (the header), how it is learned, what it is done
+ * with, the careers that use it by where it comes on their paths, the
+ * industries those careers work in, the skills that go with it, and open jobs
+ * that ask for it. A part with nothing to say is not drawn.
+ */
 function SkillDetailView({ data }: { data: SkillDetail }) {
+  const careers = data.occupations ?? [];
+  const staged = SKILL_STAGES.map((def) => ({ ...def, careers: careers.filter((career) => career.stage === def.stage) })).filter(
+    (group) => group.careers.length > 0
+  );
+  const unstaged = careers.filter((career) => !career.stage);
+  const tools = data.tools ?? [];
+  const industries = data.industries ?? [];
+  const jobs = data.jobs ?? [];
   return (
     <>
       <div className="mt-5">
         <SkillStatusButton skillId={data.id} />
       </div>
-      {/* Category badge - clicking filters Skills tab by category */}
+      {/* The category opens the skills list filtered to it. */}
       {data.category && (
         <div className="mt-4">
           <FilterPill to={`/explore?tab=skills&category=${encodeURIComponent(data.category)}`}>
@@ -833,27 +884,63 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
         </div>
       )}
 
-      {/* Occupations - no importance badges */}
-      {data.occupations?.length > 0 && (
-        <Section id="occupations" title="Careers requiring this skill">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {data.occupations.map((occ) => (
-              <RelatedCard
-                key={occ.id}
-                to={`/occupations/${occ.id}`}
-                icon={Briefcase}
-                iconClass="text-fg-muted"
-                title={occ.title}
-              />
+      {(data.howLearned || tools.length > 0) && (
+        <div className="grid grid-cols-1 gap-x-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+          {data.howLearned && (
+            <Section id="learned" title="How it is learned">
+              <p className="text-fg-muted leading-relaxed" data-skill-learned>
+                {data.howLearned}
+              </p>
+            </Section>
+          )}
+          {tools.length > 0 && (
+            <Section id="tools" title="Done with">
+              <ul className="space-y-1.5 text-fg-muted" data-skill-tools>
+                {tools.map((tool) => (
+                  <li key={tool} className="leading-snug first-letter:uppercase">
+                    {tool}
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+        </div>
+      )}
+
+      {careers.length > 0 && (
+        <Section id="occupations" title="Careers that use it">
+          <div className="space-y-6">
+            {staged.map((group) => (
+              <SkillCareers key={group.stage} label={group.label} hint={group.hint} careers={group.careers} />
             ))}
+            {unstaged.length > 0 && <SkillCareers label={staged.length > 0 ? 'Other careers' : undefined} careers={unstaged} />}
           </div>
         </Section>
       )}
 
-      {/* Related Skills (same category) */}
+      {(industries.length > 0 || data.everywhere) && (
+        <Section id="industries" title="Where those careers work">
+          {industries.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {industries.map((industry) => (
+                <Link
+                  key={industry.name}
+                  to={industryPath(industry.name)}
+                  className="inline-flex min-h-11 items-center rounded-md border border-border-strong px-3 text-sm text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default sm:min-h-9"
+                >
+                  {industryLabel(industry.name)}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-fg-muted">Plants of every industry.</p>
+          )}
+        </Section>
+      )}
+
       {data.relatedSkills?.length > 0 && (
-        <Section title="Related skills">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <Section id="related" title="Skills that go with it">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.relatedSkills.map((skill) => (
               <RelatedCard
                 key={skill.id}
@@ -861,11 +948,16 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
                 icon={Wrench}
                 iconClass="text-fg-muted"
                 title={skill.name}
+                // Its category is said only when it is another one: a row of the same words says nothing.
+                subtitle={skill.category !== data.category ? skill.category : null}
               />
             ))}
           </div>
         </Section>
       )}
+
+      {/* Like the other pages: a section only when there is a job to show. */}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} empty="" />}
     </>
   );
 }

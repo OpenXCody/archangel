@@ -48,6 +48,8 @@ export interface RelatedOccupationWithImportance {
   title: string;
   onetCode: string | null;
   importance: 'required' | 'preferred' | 'nice_to_have';
+  /** Where the skill sits on this career's path: 1 Introduction, 2 Fundamentals, 3 Advanced. */
+  stage?: 1 | 2 | 3 | null;
 }
 
 export interface RelatedSkill {
@@ -212,26 +214,29 @@ export interface Skill {
   id: string;
   name: string;
   category: string | null;
+  /** What it is and what a person who has it can do. */
   description: string | null;
   createdAt: string;
   occupationCount?: number;
   childCount?: number;
 }
 
-// Skill tree relations
-export interface SkillTreeNode {
-  id: string;
-  name: string;
-  category: string | null;
-  childCount?: number;
-}
-
-// Skill with relations
+/** A skill as its page shows it: one answer from GET /api/skills/:id. */
 export interface SkillDetail extends Skill {
-  parent: SkillTreeNode | null;
-  children: SkillTreeNode[];
+  /** How it is usually learned or shown. */
+  howLearned?: string | null;
+  /** The tools, machines or software it is done with. */
+  tools?: string[] | null;
+  /** The careers that use it, each with the stage it holds on that career's path. */
   occupations: RelatedOccupationWithImportance[];
+  /** Industries those careers are typical of, the ones with most of them first. */
+  industries?: { name: string; careerCount: number }[];
+  /** True when its careers are found in plants of every industry rather than a few. */
+  everywhere?: boolean;
+  /** The skills that most often share a path with it. */
   relatedSkills: RelatedSkill[];
+  /** Open jobs that ask for it. */
+  jobs?: CareerJob[];
 }
 
 export type EntityType = 'companies' | 'factories' | 'occupations' | 'skills';
