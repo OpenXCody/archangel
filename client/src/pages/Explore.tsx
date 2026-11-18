@@ -1,33 +1,42 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
-import { useNavigationType, useSearchParams } from 'react-router-dom';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { statsApi, type EntityCounts } from '../lib/api';
 import { readStored, writeStored } from '../lib/storage';
 import { PageContainer, PageHeader } from '../components/layout/Page';
-import ExploreNav, { isBrowseTab, type ExploreView } from '../components/explorer/ExploreNav';
+import ExploreNav, { isBrowseTab, type BrowseTab, type ExploreView } from '../components/explorer/ExploreNav';
 import ExploreOverview from '../components/explorer/ExploreOverview';
 import BrowseList from '../components/explorer/BrowseList';
+import IndustryList from '../components/explorer/IndustryList';
 
-const FIGURES: { key: 'companies' | 'factories' | 'occupations' | 'skills'; one: string; many: string }[] = [
-  { key: 'companies', one: 'company', many: 'companies' },
-  { key: 'factories', one: 'factory', many: 'factories' },
-  { key: 'occupations', one: 'career', many: 'careers' },
-  { key: 'skills', one: 'skill', many: 'skills' },
-];
+/** What each list holds, in the words the tabs use. */
+const NOUN: Record<BrowseTab | 'industries', [one: string, many: string]> = {
+  industries: ['industry', 'industries'],
+  companies: ['company', 'companies'],
+  factories: ['plant', 'plants'],
+  occupations: ['career', 'careers'],
+  skills: ['skill', 'skills'],
+};
+const FIGURES: BrowseTab[] = ['companies', 'factories', 'occupations', 'skills'];
 
-/** How much is here, as one line of text. Holds its line while the figures load. */
+const counted = (n: number, [one, many]: [string, string]) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
+
+/** The line's place while its figure is on the way, so nothing below it moves. */
+function Holding({ wide = false }: { wide?: boolean }) {
+  return <span aria-hidden="true" className={`inline-block h-3.5 max-w-full animate-pulse rounded bg-primary/10 align-middle ${wide ? 'w-72' : 'w-28'}`} />;
+}
+
+/** The overview's line: how much is here, of each kind. Holds its line while the figures load. */
 function Figures({ counts }: { counts?: EntityCounts }) {
-  if (!counts) {
-    return <span aria-hidden="true" className="inline-block h-3.5 w-72 max-w-full animate-pulse rounded bg-primary/10 align-middle" />;
-  }
-  const parts = FIGURES.filter(({ key }) => counts[key] > 0);
+  if (!counts) return <Holding wide />;
+  const parts = FIGURES.filter((key) => counts[key] > 0);
   return (
     <span className="block tabular-nums [text-wrap:balance]">
-      {parts.map(({ key, one, many }, i) => (
+      {parts.map((key, i) => (
         // Each figure stays whole when the line wraps, and no line starts with a separator.
         <Fragment key={key}>
           <span className="whitespace-nowrap">
-            {counts[key].toLocaleString()} {counts[key] === 1 ? one : many}
+            {counted(counts[key], NOUN[key])}
             {i < parts.length - 1 && ' ·'}
           </span>{' '}
         </Fragment>
@@ -86,20 +95,27 @@ function useScrollMemory(key: string) {
 }
 
 /** One view of the page; remounted per view so each remembers its own scroll. */
-function ExploreView({ view }: { view: ExploreView }) {
+function View({ view, onCount }: { view: ExploreView; onCount: (count: number | undefined) => void }) {
   useScrollMemory(`explore.scroll.${view}`);
-  return view === 'overview' ? <ExploreOverview /> : <BrowseList tab={view} />;
+  if (view === 'overview') return <ExploreOverview />;
+  if (view === 'industries') return <IndustryList onCount={onCount} />;
+  return <BrowseList tab={view} onCount={onCount} />;
 }
 
 /**
- * Explore: an overview of what is here (/explore), and behind it a list of
- * everything of each kind (/explore?tab=companies, factories, occupations,
- * skills).
+ * Explore: an overview of what is here (/explore), and behind it each level
+ * of the product as a tab: the industries (/industries), then a list of every
+ * company, plant, career and skill (/explore?tab=companies, factories,
+ * occupations, skills). One heading and one tab row for all of them.
+ *
+ * Under the heading is one line: on the overview, how much there is of each
+ * kind; on a tab, how many that tab is showing, filters applied.
  */
 export default function Explore() {
+  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const tab = searchParams.get('tab');
-  const view: ExploreView = isBrowseTab(tab) ? tab : 'overview';
+  const view: ExploreView = pathname.startsWith('/industries') ? 'industries' : isBrowseTab(tab) ? tab : 'overview';
 
   const counts = useQuery({
     queryKey: ['entity-counts'],
@@ -107,15 +123,32 @@ export default function Explore() {
     staleTime: 1000 * 60 * 10,
   });
 
+  // What the open tab says it is showing. Kept with the view it came from, so
+  // one tab's figure is never shown under another.
+  const [shown, setShown] = useState<{ view: ExploreView; count: number | undefined }>({ view, count: undefined });
+  const onCount = useCallback((count: number | undefined) => setShown({ view, count }), [view]);
+  // A list with no filter holds what the overview's line says it does: no need to wait for it.
+  const filtered = ['state', 'industry', 'category'].some((name) => searchParams.get(name));
+  const whole = isBrowseTab(view) && !filtered ? counts.data?.[view] : undefined;
+  const count = (shown.view === view ? shown.count : undefined) ?? whole;
+
   return (
     <PageContainer>
       <PageHeader
-        title={<span className="block text-4xl leading-tight sm:text-5xl sm:leading-tight">Explore</span>}
-        description={counts.isError ? undefined : <Figures counts={counts.data} />}
-        className="mb-4 sm:mb-6"
+        title="Explore"
+        description={
+          view === 'overview' ? (
+            counts.isError ? undefined : <Figures counts={counts.data} />
+          ) : (
+            <span role="status" className="block tabular-nums" data-explore-count>
+              {count === undefined ? <Holding /> : counted(count, NOUN[view])}
+            </span>
+          )
+        }
+        className="mb-3 sm:mb-5"
       />
       <ExploreNav active={view} />
-      <ExploreView key={view} view={view} />
+      <View key={view} view={view} onCount={onCount} />
     </PageContainer>
   );
 }

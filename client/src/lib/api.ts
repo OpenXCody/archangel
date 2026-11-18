@@ -595,7 +595,15 @@ export interface ExploreOverview {
 
 /** What the browse lists can be filtered by, from every row. */
 export interface ExploreFacets {
+  /**
+   * Of the 21 industries, those some plant carries and those that are some
+   * company's industry (the one most of its plants are in), by the name a
+   * plant carries. Absent from an answer cached before this field existed.
+   */
+  industries?: { plants: string[]; companies: string[] };
+  /** The free text in companies.industry. Not an industry on screen: only the admin's company form reads it. */
   companyIndustries: string[];
+  /** The same list as `industries.plants`, under its older name. */
   factoryIndustries: string[];
   skillCategories: string[];
 }

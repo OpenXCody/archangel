@@ -1,14 +1,13 @@
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
-import { industriesApi, type IndustryList } from '../lib/api';
+import { industriesApi, type IndustryList as Industries } from '../../lib/api';
 import { industryLabel } from '@shared/industry';
 import { cn } from '@/lib/utils';
-import { EmptyState, PageContainer } from '../components/layout/Page';
-import { LoadError } from '../components/account/parts';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '../layout/Page';
+import { LoadError } from '../account/parts';
 import {
-  BackButton,
   FigureList,
   Figures,
   OUTLINE_LINK,
@@ -19,9 +18,9 @@ import {
   placeSearch,
   readPlace,
   type PagePlace,
-} from '../components/industry/parts';
+} from '../industry/parts';
 
-function IndustriesBody({ data, place }: { data: IndustryList; place: PagePlace }) {
+function Body({ data, place }: { data: Industries; place: PagePlace }) {
   const figures = [
     ...officialFigures(data.manufacturing),
     ...(data.plants > 0 ? [{ label: 'Plants listed', value: data.plants.toLocaleString() }] : []),
@@ -49,12 +48,34 @@ function IndustriesBody({ data, place }: { data: IndustryList; place: PagePlace 
   );
 }
 
+/** The same shape while the first answer is on its way: four figures, then rows. */
+function Loading() {
+  return (
+    <div aria-busy="true" aria-label="Loading">
+      <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+        {Array.from({ length: 4 }, (_, i) => (
+          <Skeleton key={i} className="h-[4.5rem] rounded-xl" />
+        ))}
+      </div>
+      <div className="mt-12 space-y-7">
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={i} className="flex items-center justify-between gap-4">
+            <Skeleton className="h-4" style={{ width: `${30 + ((i * 17) % 30)}%` }} />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /**
- * Every manufacturing industry, largest first, for the country or narrowed
- * to a state or a focus area from the address (?state=TX, ?area=austin).
- * Above the list: manufacturing as a whole in that place.
+ * Explore's Industries view (/industries): every manufacturing industry,
+ * largest first, for the country or narrowed to a state or a focus area from
+ * the address (?state=TX, ?area=austin). Above the list: manufacturing as a
+ * whole in that place. `onCount` hears how many industries the place has.
  */
-export default function IndustriesPage() {
+export default function IndustryList({ onCount }: { onCount?: (count: number | undefined) => void }) {
   const [params] = useSearchParams();
   const place = readPlace(params);
   const where = placeQuery(place);
@@ -74,13 +95,17 @@ export default function IndustriesPage() {
   });
   const data = query.data;
 
+  const count = place.kind === 'unknown' || query.isPlaceholderData ? undefined : data?.industries.length;
+  useEffect(() => {
+    onCount?.(count);
+  }, [count, onCount]);
+
   return (
-    <PageContainer size="narrow">
-      <BackButton fallback="/explore" />
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-fg-default sm:text-3xl">Industries</h1>
+    // The figures read across a column, not across the whole page.
+    <div className="max-w-3xl">
+      <div className="my-2 sm:my-4">
         <PlaceChoice place={place} />
-      </header>
+      </div>
 
       {place.kind === 'unknown' ? (
         <EmptyState
@@ -94,15 +119,13 @@ export default function IndustriesPage() {
         />
       ) : data ? (
         <div className={cn('transition-opacity', query.isPlaceholderData && 'opacity-60')} aria-busy={query.isPlaceholderData || undefined} data-industries-view>
-          <IndustriesBody data={data} place={place} />
+          <Body data={data} place={place} />
         </div>
       ) : query.isError ? (
         <LoadError error={query.error} onRetry={() => void query.refetch()} retrying={query.isFetching} className="mt-6" />
       ) : (
-        <div className="flex min-h-[320px] items-center justify-center" aria-busy="true" aria-label="Loading">
-          <Loader2 className="h-6 w-6 animate-spin text-fg-muted" />
-        </div>
+        <Loading />
       )}
-    </PageContainer>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Map, Layers, Search, BriefcaseBusiness } from 'lucide-react';
+import { Outlet, Link, NavLink, useLocation } from 'react-router-dom';
+import { Search } from 'lucide-react';
 import GlobalSearch from '../search/GlobalSearch';
 import AccountMenu, { accountPageTitle } from '../account/AccountMenu';
 import ViewAsSign from '../account/ViewAsSign';
@@ -10,23 +10,24 @@ import { SEARCH_SHORTCUT } from '../../lib/shortcut';
 
 interface NavItem {
   to: string;
-  icon: typeof Map;
   label: string;
-  /** What a screen reader hears, when it is more than the label. */
-  name?: string;
   /** Other paths this item stands for. */
   also?: string[];
 }
 
-// The map and Explore are for everyone. Jobs is the list of open jobs for a visitor and a
-// seeker; for someone here to hire it is their own jobs, with the open list one link below
-// them. A person's own page, settings and Admin Tools are in the account menu.
+// The three places, by their words at every width: the header says where you
+// are. The map and Explore are for everyone; Explore stands for everything
+// reached through it (the industries and every company, plant, career and
+// skill page). Jobs is the list of open jobs for a visitor and a seeker; for
+// someone here to hire it is "Your jobs", their own, with the open list one
+// link below them. A person's own page, settings and Admin Tools are in the
+// account menu.
 const navItems: NavItem[] = [
-  { to: '/map', icon: Map, label: 'Map' },
-  { to: '/explore', icon: Layers, label: 'Explore' },
-  { to: '/jobs', icon: BriefcaseBusiness, label: 'Jobs' },
+  { to: '/map', label: 'Map' },
+  { to: '/explore', label: 'Explore', also: ['/industries', '/companies', '/factories', '/occupations', '/skills'] },
+  { to: '/jobs', label: 'Jobs' },
 ];
-const employerJobs: NavItem = { to: '/employer', icon: BriefcaseBusiness, label: 'Jobs', name: 'Your jobs', also: ['/jobs'] };
+const employerJobs: NavItem = { to: '/employer', label: 'Your jobs', also: ['/jobs'] };
 
 function isAt(pathname: string, path: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
@@ -49,8 +50,9 @@ export default function Layout() {
     accountPageTitle(location.pathname, isAdmin);
   const isDetail = /^\/(companies|factories|occupations|skills)\/[^/]+$/.test(location.pathname);
   // The industry pages name themselves too: the industry, and the place.
+  // So does a page that is not there ("Not found"), which has no section.
   const namesItself = isDetail || /^\/industries(\/[^/]+)?$/.test(location.pathname);
-  const title = namesItself ? null : section ? `${section} · Archangel` : 'Archangel';
+  const title = namesItself || !section ? null : `${section} · Archangel`;
   // Set on arrival, and again only if the title itself changes (an admin's
   // account loading), so a page that names itself afterwards keeps its title.
   useEffect(() => {
@@ -91,49 +93,51 @@ export default function Layout() {
       <header className="sticky top-0 z-40 bg-bg-surface border-b border-border-subtle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Three columns. From tablet up the outer two are equal, so the wordmark sits at the
-              centre of every page; a phone has no room for that, and centres it in what is left. */}
+              centre of every page. A phone has no room for it beside three words: there the
+              middle column holds nothing, unless an admin is viewing as someone else. */}
           <div className="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-4">
             {/* Left: Navigation */}
-            <nav className="flex min-w-0 items-center gap-1">
-              {shownNav.map(({ to, icon: Icon, label, name, also }) => {
+            <nav aria-label="Main" className="-ml-2 flex min-w-0 items-center sm:ml-0 sm:gap-1">
+              {shownNav.map(({ to, label, also }) => {
                 const isActive = [to, ...(also ?? [])].some((path) => isAt(location.pathname, path));
 
                 return (
                   <NavLink
                     key={to}
                     to={to}
-                    aria-label={name ?? label}
+                    // Lit for everything the item stands for, not only its own address.
+                    aria-current={isActive ? 'page' : undefined}
                     className={`
-                      flex items-center justify-center gap-2 px-3 lg:px-4 py-2 rounded-full text-sm font-medium
-                      min-h-11 min-w-11 lg:min-h-0 lg:min-w-0
-                      transition-colors
+                      flex min-h-11 items-center whitespace-nowrap rounded-full px-2 text-sm font-medium xs:px-3
+                      transition-colors lg:min-h-0 lg:px-4 lg:py-2
                       ${isActive
                         ? 'bg-bg-elevated text-fg-default'
                         : 'text-fg-muted hover:text-fg-default hover:bg-bg-elevated/50'
                       }
                     `}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span className="hidden lg:inline">{label}</span>
+                    {label}
                   </NavLink>
                 );
               })}
             </nav>
 
-            {/* Center: Logo, or the sign that an admin is viewing as someone else */}
+            {/* Center: the wordmark, which leads to the map; or the sign that an admin is viewing as someone else */}
             <div className="flex min-w-0 items-center justify-center">
               {viewer.viewingAs ? (
                 <ViewAsSign />
               ) : (
-                <span className="text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap">
+                <Link
+                  to="/map"
+                  aria-label="Archangel: the map"
+                  className="hidden whitespace-nowrap rounded-md text-base font-semibold tracking-tight text-fg-default sm:block lg:text-lg"
+                >
                   ARCHANGEL
-                </span>
+                </Link>
               )}
             </div>
 
             <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-4">
-            {/* On a phone the map keeps the search button's room, so the wordmark does not shift between pages. */}
-            {isMapView && <span className="w-10 shrink-0 sm:hidden" aria-hidden="true" />}
             {/* Right: Search button - hidden on map view */}
             {!isMapView && (
               <button

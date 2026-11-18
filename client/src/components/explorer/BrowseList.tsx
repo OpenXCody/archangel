@@ -11,7 +11,7 @@ import {
   type PaginatedResponse,
 } from '../../lib/api';
 import { US_STATES, type StateCode } from '@shared/states';
-import { industryLabel, industryPath } from '@shared/industry';
+import { industryByName, industryBySlug, industryLabel, industryPath } from '@shared/industry';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '../layout/Page';
 import { LoadError, outlineButtonClass } from '../account/parts';
@@ -39,14 +39,15 @@ const LIST: Record<BrowseTab, (params: ListParams) => Promise<PaginatedResponse<
   skills: skillsApi.list,
 };
 
-const NOUN: Record<BrowseTab, [one: string, many: string]> = {
-  companies: ['company', 'companies'],
-  factories: ['factory', 'factories'],
-  occupations: ['career', 'careers'],
-  skills: ['skill', 'skills'],
+/** What an empty list says it has none of. */
+const MANY: Record<BrowseTab, string> = {
+  companies: 'companies',
+  factories: 'plants',
+  occupations: 'careers',
+  skills: 'skills',
 };
 
-/** Row height before it is measured: two or three lines of text. */
+/** Row height before it is measured: two or three lines of text (a phone gives a description two lines). */
 const ROW_ESTIMATE: Record<BrowseTab, number> = {
   companies: 77,
   factories: 77,
@@ -173,23 +174,27 @@ function VirtualRows({
 }
 
 /**
- * A browse list behind the overview: every company, factory, career or
+ * A browse list behind the overview: every company, plant, career or
  * skill, filtered and sorted from the address (?state=, ?industry=, ?category=,
- * ?sort=), so a filtered list can be linked to and survives Back.
+ * ?sort=), so a filtered list can be linked to and survives Back. `onCount`
+ * hears how many rows the list holds with its filters applied.
  */
-export default function BrowseList({ tab }: { tab: BrowseTab }) {
+export default function BrowseList({ tab, onCount }: { tab: BrowseTab; onCount?: (count: number | undefined) => void }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const stateParam = searchParams.get('state');
   const industryParam = searchParams.get('industry');
   const categoryParam = searchParams.get('category');
+  // An industry is one of the 21, by the name a plant carries or by its page's slug.
+  // Anything else in the address (an old link's free text) is no filter at all.
+  const industry = (industryByName(industryParam) ?? industryBySlug(industryParam))?.name;
   const filters: FilterState = useMemo(
     () => ({
       state: tab === 'factories' && isStateCode(stateParam) ? stateParam : undefined,
-      industry: (tab === 'companies' || tab === 'factories') && industryParam ? industryParam : undefined,
+      industry: tab === 'companies' || tab === 'factories' ? industry : undefined,
       category: tab === 'skills' && categoryParam ? categoryParam : undefined,
     }),
-    [tab, stateParam, industryParam, categoryParam]
+    [tab, stateParam, industry, categoryParam]
   );
   const filtered = Boolean(filters.state || filters.industry || filters.category);
 
@@ -235,11 +240,16 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     staleTime: 1000 * 60 * 10,
     enabled: tab === 'companies' || tab === 'factories' || tab === 'skills',
   });
-  const industries = tab === 'factories' ? facets.data?.factoryIndustries : facets.data?.companyIndustries;
+  // Of the 21: those some plant carries, or those that are some company's industry.
+  const industries = tab === 'factories' ? facets.data?.factoryIndustries : (facets.data?.industries?.companies ?? facets.data?.factoryIndustries);
   const categories = facets.data?.skillCategories;
 
   const items = useMemo(() => list.data?.pages.flatMap((page) => page.data) ?? [], [list.data]);
   const total = list.data?.pages[0]?.total;
+  // Said under the page's heading, by the page.
+  useEffect(() => {
+    onCount?.(total);
+  }, [total, onCount]);
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = list;
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
@@ -248,7 +258,6 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
   const clearFilters = () => setParam({ state: undefined, industry: undefined, category: undefined });
   // Plants filtered to one industry: that industry has a page of its own, for the same state.
   const industryPage = tab === 'factories' ? industryPath(filters.industry, { state: filters.state }) : null;
-  const [one, many] = NOUN[tab];
 
   return (
     <>
@@ -260,7 +269,6 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
         onFilterChange={(next) => setParam({ state: next.state, industry: next.industry, category: next.category })}
         industries={industries}
         categories={categories}
-        summary={total === undefined ? null : `${total.toLocaleString()} ${total === 1 ? one : many}`}
       />
 
       {industryPage && filters.industry && (
@@ -282,7 +290,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
         <LoadError error={list.error} onRetry={() => void list.refetch()} retrying={list.isFetching} />
       ) : items.length === 0 ? (
         <EmptyState
-          title={`No ${many}`}
+          title={`No ${MANY[tab]}`}
           description={filtered ? 'Nothing matches these filters.' : undefined}
           action={
             filtered ? (
