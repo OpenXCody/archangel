@@ -274,7 +274,8 @@ export default function IndustryPage() {
   // The address says what the page is about, so the tab can say it at once.
   const placeTitle = place.kind === 'state' || place.kind === 'area' ? place.name : null;
   useEffect(() => {
-    if (label) document.title = placeTitle ? `${label} in ${placeTitle} · Archangel` : `${label} · Industries · Archangel`;
+    // An address that names no industry still leaves the title of the page before it behind.
+    document.title = !label ? 'Industries · Archangel' : placeTitle ? `${label} in ${placeTitle} · Archangel` : `${label} · Industries · Archangel`;
   }, [label, placeTitle]);
 
   const query = useQuery({

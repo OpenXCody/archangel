@@ -308,6 +308,15 @@ function RegionBody({
               );
             })}
           </div>
+          {/* The panel lists the largest; the rest are a page away, for the same place. */}
+          {industryIn && data.topIndustries.length >= 8 && (
+            <Link
+              to={`/industries?${new URLSearchParams(industryIn.area ? { area: industryIn.area } : { state: industryIn.state ?? '' })}`}
+              className="mt-2 block text-xs text-fg-muted underline-offset-4 hover:underline"
+            >
+              All industries
+            </Link>
+          )}
         </Section>
       )}
 
