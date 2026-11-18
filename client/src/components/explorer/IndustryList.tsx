@@ -75,7 +75,7 @@ function Loading() {
  * the address (?state=TX, ?area=austin). Above the list: manufacturing as a
  * whole in that place. `onCount` hears how many industries the place has.
  */
-export default function IndustryList({ onCount }: { onCount?: (count: number | undefined) => void }) {
+export default function IndustryList({ onCount }: { onCount?: (count: number | null | undefined) => void }) {
   const [params] = useSearchParams();
   const place = readPlace(params);
   const where = placeQuery(place);
@@ -95,7 +95,8 @@ export default function IndustryList({ onCount }: { onCount?: (count: number | u
   });
   const data = query.data;
 
-  const count = place.kind === 'unknown' || query.isPlaceholderData ? undefined : data?.industries.length;
+  // Null when there is no figure to wait for: a place that is not one, or a list that could not be loaded.
+  const count = place.kind === 'unknown' || (query.isError && !data) ? null : query.isPlaceholderData ? undefined : data?.industries.length;
   useEffect(() => {
     onCount?.(count);
   }, [count, onCount]);

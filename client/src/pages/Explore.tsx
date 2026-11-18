@@ -21,6 +21,9 @@ const FIGURES: BrowseTab[] = ['companies', 'factories', 'occupations', 'skills']
 
 const counted = (n: number, [one, many]: [string, string]) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
+/** What a tab says it holds: a number, undefined while it is on its way, null when there is none to say (it failed to load). */
+export type Count = number | null | undefined;
+
 /** The line's place while its figure is on the way, so nothing below it moves. */
 function Holding({ wide = false }: { wide?: boolean }) {
   return <span aria-hidden="true" className={`inline-block h-3.5 max-w-full animate-pulse rounded bg-primary/10 align-middle ${wide ? 'w-72' : 'w-28'}`} />;
@@ -95,7 +98,7 @@ function useScrollMemory(key: string) {
 }
 
 /** One view of the page; remounted per view so each remembers its own scroll. */
-function View({ view, onCount }: { view: ExploreView; onCount: (count: number | undefined) => void }) {
+function View({ view, onCount }: { view: ExploreView; onCount: (count: Count) => void }) {
   useScrollMemory(`explore.scroll.${view}`);
   if (view === 'overview') return <ExploreOverview />;
   if (view === 'industries') return <IndustryList onCount={onCount} />;
@@ -125,12 +128,13 @@ export default function Explore() {
 
   // What the open tab says it is showing. Kept with the view it came from, so
   // one tab's figure is never shown under another.
-  const [shown, setShown] = useState<{ view: ExploreView; count: number | undefined }>({ view, count: undefined });
-  const onCount = useCallback((count: number | undefined) => setShown({ view, count }), [view]);
+  const [shown, setShown] = useState<{ view: ExploreView; count: Count }>({ view, count: undefined });
+  const onCount = useCallback((count: Count) => setShown({ view, count }), [view]);
   // A list with no filter holds what the overview's line says it does: no need to wait for it.
   const filtered = ['state', 'industry', 'category'].some((name) => searchParams.get(name));
   const whole = isBrowseTab(view) && !filtered ? counts.data?.[view] : undefined;
-  const count = (shown.view === view ? shown.count : undefined) ?? whole;
+  const told = shown.view === view ? shown.count : undefined;
+  const count = told === undefined ? whole : told;
 
   return (
     <PageContainer>
@@ -141,7 +145,8 @@ export default function Explore() {
             counts.isError ? undefined : <Figures counts={counts.data} />
           ) : (
             <span role="status" className="block tabular-nums" data-explore-count>
-              {count === undefined ? <Holding /> : counted(count, NOUN[view])}
+              {/* The line keeps its height when there is nothing to say, so the tabs do not move. */}
+              {count === undefined ? <Holding /> : count === null ? '\u00A0' : counted(count, NOUN[view])}
             </span>
           )
         }

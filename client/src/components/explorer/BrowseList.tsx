@@ -179,7 +179,7 @@ function VirtualRows({
  * ?sort=), so a filtered list can be linked to and survives Back. `onCount`
  * hears how many rows the list holds with its filters applied.
  */
-export default function BrowseList({ tab, onCount }: { tab: BrowseTab; onCount?: (count: number | undefined) => void }) {
+export default function BrowseList({ tab, onCount }: { tab: BrowseTab; onCount?: (count: number | null | undefined) => void }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const stateParam = searchParams.get('state');
@@ -247,9 +247,11 @@ export default function BrowseList({ tab, onCount }: { tab: BrowseTab; onCount?:
   const items = useMemo(() => list.data?.pages.flatMap((page) => page.data) ?? [], [list.data]);
   const total = list.data?.pages[0]?.total;
   // Said under the page's heading, by the page.
+  // Null when the list could not be loaded: there is no figure to wait for.
+  const count = total ?? (list.isError ? null : undefined);
   useEffect(() => {
-    onCount?.(total);
-  }, [total, onCount]);
+    onCount?.(count);
+  }, [count, onCount]);
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = list;
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
