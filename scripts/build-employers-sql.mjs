@@ -457,6 +457,8 @@ export function buildSql({ files, known = [], states, loaderSql, sources = [], r
     '-- returns. Nothing is changed whether this transaction is committed or rolled back.',
     '-- Run it all at once, on one connection. Then: ROLLBACK;',
     'BEGIN;',
+    // The functions may name tables and columns that only the schema run inside the rehearsal adds.
+    'SET LOCAL check_function_bodies = off;',
     '',
     loaderSql.trim(),
     '',

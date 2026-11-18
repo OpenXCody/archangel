@@ -168,7 +168,7 @@ before=$(state)
 build --rehearse --out "$D/rehearse.sql" "$D/data/e2e-loader-a.json"
 psql "$DB" -qtA -v ON_ERROR_STOP=1 -f "$D/rehearse.sql" > "$D/rehearsal.txt" 2>"$D/psql.log" || { cat "$D/psql.log"; fail=1; }
 expect "a rehearsal reports what it would do"            1 "$(grep -c '^e2e-loader-a: 4 companies (1 found, 3 created, 2 rows merged in' "$D/rehearsal.txt")"
-expect "a rehearsal names each merge"                    2 "$(grep -c '^company merged | E2E Loader Acme' "$D/rehearsal.txt")"
+expect "a rehearsal names each merge"                    1 "$(grep -c '^company merged | E2E Loader Acme | "E2E Loader Acme Corp" (2 plants in NV: .*; "E2E Loader Old Acme" (1 plant in NV: .*found by its other name "E2E Loader Acme Works")$' "$D/rehearsal.txt")"
 expect "a rehearsal leaves every row as it was"          "$before" "$(state)"
 expect "a rehearsal leaves no log"                       0 "$(sql "SELECT count(*) FROM load_log WHERE load LIKE 'e2e-loader-%'")"
 

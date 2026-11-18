@@ -700,7 +700,11 @@ CREATE OR REPLACE FUNCTION pg_temp.el_report(everything boolean) RETURNS SETOF t
     UNION ALL
     SELECT l.id, 9, format('%s%s %s | %s%s%s', CASE WHEN l.look THEN '' ELSE '  ' END, l.kind, l.action, l.company,
                            coalesce(' / ' || l.plant, ''), coalesce(' | ' || l.detail, ''))
-    FROM l WHERE (l.look OR everything) AND l.action NOT IN ('renamed')
+    FROM l WHERE (l.look OR everything) AND l.action NOT IN ('renamed', 'merged')
+    UNION ALL
+    -- The rows merged into one company, on one line.
+    SELECT min(l.id), 9, format('company merged | %s | %s', l.company, string_agg(regexp_replace(l.detail, ' into "[^"]*"$', ''), '; ' ORDER BY l.id))
+    FROM l WHERE l.action = 'merged' GROUP BY l.load, l.company
   )
   SELECT line FROM lines ORDER BY (sub < 9) DESC, ord, sub
 $f$;
