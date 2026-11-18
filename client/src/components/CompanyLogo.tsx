@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { cn } from '../lib/utils';
 import storedLogos from '../lib/logos.json';
 
 /**
- * What `scripts/fetch-logos.mjs` found for each curated company domain: the
- * file type of the logo stored in `client/public/logos/`, or null for a
- * domain known to have no usable mark.
+ * What `scripts/fetch-logos.mjs` found for each company domain the data
+ * names: the file type of the logo stored in `client/public/logos/`, or null
+ * for a domain known to have no usable mark.
  */
 const STORED: Record<string, string | null> = storedLogos;
 
@@ -41,19 +41,21 @@ const PLACEHOLDER_ICON_PX = 16;
  * A company's logo, found from its website domain, on a monogram tile.
  *
  * The monogram (first letter of the name) is always there underneath. The
- * image is laid over it only once it has loaded, so a slow, blocked or
- * missing logo shows the monogram and never a broken-image icon.
+ * image is laid over it only once that very image has loaded, so a slow,
+ * blocked or missing logo shows the monogram, never a broken-image icon or
+ * an empty tile, and never the last company's mark when a row is reused.
+ *
+ * A logo is drawn for a white page, so its tile is white in both themes. The
+ * mark is fitted inside it whole, at its own proportions.
  */
 export default function CompanyLogo({ name, domain, size = 28, className }: CompanyLogoProps) {
-  const [status, setStatus] = useState<'loading' | 'loaded' | 'failed'>('loading');
-  useEffect(() => setStatus('loading'), [domain]);
+  const source = logoSource(domain);
+  // What became of which address: the answer for one company's logo says
+  // nothing about the next one's.
+  const [result, setResult] = useState<{ source: string; ok: boolean } | null>(null);
+  const settled = result !== null && result.source === source ? result : null;
 
   const letter = name.trim().charAt(0).toUpperCase() || '?';
-  const source = logoSource(domain);
-  // A stored logo was checked when it was stored; the size test is for the
-  // favicon service, which answers with a 16 px placeholder when it has nothing.
-  const stored = source?.startsWith('/') ?? false;
-  const showImage = source !== null && status !== 'failed';
 
   return (
     <span
@@ -65,20 +67,26 @@ export default function CompanyLogo({ name, domain, size = 28, className }: Comp
       style={{ width: size, height: size, fontSize: Math.round(size * 0.46), lineHeight: 1 }}
     >
       {letter}
-      {showImage && (
+      {source !== null && settled?.ok !== false && (
         <img
+          // A new address is a new element, so the picture that was here
+          // before is gone at once and the monogram shows until this one loads.
+          key={source}
           src={source}
           alt=""
+          width={size}
+          height={size}
           loading="lazy"
           decoding="async"
           draggable={false}
-          onLoad={(e) => setStatus(stored || e.currentTarget.naturalWidth > PLACEHOLDER_ICON_PX ? 'loaded' : 'failed')}
-          onError={() => setStatus('failed')}
-          // Logos are drawn for light pages: give them a white tile. Invisible
-          // until loaded, so the monogram shows through meanwhile.
+          // A stored logo was checked when it was stored; the size test is for
+          // the favicon service, which answers with a 16 px placeholder when it
+          // has nothing.
+          onLoad={(e) => setResult({ source, ok: source.startsWith('/') || e.currentTarget.naturalWidth > PLACEHOLDER_ICON_PX })}
+          onError={() => setResult({ source, ok: false })}
           className={cn(
             'absolute inset-0 h-full w-full bg-white object-contain p-[12%]',
-            status === 'loaded' ? 'opacity-100' : 'opacity-0'
+            settled?.ok ? 'opacity-100' : 'opacity-0'
           )}
         />
       )}
