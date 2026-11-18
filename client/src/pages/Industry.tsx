@@ -25,7 +25,7 @@ import { LoadError } from '../components/account/parts';
 import { FOCUS, FigureList, Figures, PlaceChoice, SourceLine, officialFigures, placeQuery, placeSearch, readPlace, type PagePlace } from '../components/industry/parts';
 
 const CAREERS_SHOWN = 8;
-/** The states listed before "Show all": the section sits near the top of the page, so it starts short. */
+/** The states (or a state's towns) listed before "Show all": the section sits near the top of the page, so it starts short. */
 const STATES_SHOWN = 6;
 
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
@@ -117,7 +117,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
       {cities.length > 0 && (
         <DetailSection id="where" title="Where">
           <FigureList
-            rows={cities.map((city) => {
+            rows={(allStates ? cities : cities.slice(0, STATES_SHOWN)).map((city) => {
               const name = titleCase(city.name);
               const within = city.state ? (STATE_CODE_TO_NAME[city.state as StateCode] ?? city.state) : placeName;
               // The map, on this city, showing this industry's plants.
@@ -125,6 +125,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
               return { key: `${city.name}-${city.state ?? ''}`, to: `/map?${query}`, label: name, plants: city.plants };
             })}
           />
+          {cities.length > STATES_SHOWN && <ShowAll open={allStates} total={cities.length} onToggle={() => setAllStates((value) => !value)} />}
         </DetailSection>
       )}
 
