@@ -263,47 +263,55 @@ router.get('/', async (req: Request, res: Response) => {
       };
     }
 
-    // Search skills
+    // Search skills: by name, by another name a skill is known by (a merged
+    // or everyday name in skill_aliases), by what it is done with, or by category.
+    // The subqueries name the table outright: in a select list a column
+    // reference is written bare, and "id" would then mean the alias's own.
     if (typeFilter.includes('skills')) {
+      // Another name or a tool matches from the start of a word: "tig" finds
+      // "Orbital TIG Welding", not "Deviation Investigation".
+      const wordStart = (column: string) => sql`(${sql.raw(column)} ILIKE ${`${literal}%`} OR ${sql.raw(column)} ILIKE ${`% ${literal}%`})`;
+      const otherName = sql<string | null>`(
+        SELECT a.alias_text FROM skill_aliases a
+        WHERE a.canonical_skill_id = skills.id AND ${wordStart('a.alias_text')}
+        ORDER BY length(a.alias_text), a.alias_text LIMIT 1)`;
+      const skillMatches = or(
+        ilike(skills.name, searchPattern),
+        sql`EXISTS (SELECT 1 FROM skill_aliases a WHERE a.canonical_skill_id = skills.id AND ${wordStart('a.alias_text')})`,
+        sql`EXISTS (SELECT 1 FROM unnest(skills.tools) AS tool WHERE ${wordStart('tool')})`,
+        ilike(skills.category, searchPattern)
+      );
       const [skillResults, skillCount] = await Promise.all([
         db
           .select({
             id: skills.id,
             name: skills.name,
             category: skills.category,
+            otherName,
           })
           .from(skills)
-          .where(
-            or(
-              ilike(skills.name, searchPattern),
-              ilike(skills.category, searchPattern),
-              ilike(skills.description, searchPattern)
-            )
-          )
-          .orderBy(byRelevance(skills.name))
+          .where(skillMatches)
+          // A name that matches comes before one found by its other name, its tools or its category.
+          .orderBy(sql`CASE WHEN ${skills.name} ILIKE ${searchPattern} THEN 0 WHEN ${otherName} IS NOT NULL THEN 1 ELSE 2 END`, byRelevance(skills.name))
           .limit(maxLimit),
-        db
-          .select({ count: count() })
-          .from(skills)
-          .where(
-            or(
-              ilike(skills.name, searchPattern),
-              ilike(skills.category, searchPattern),
-              ilike(skills.description, searchPattern)
-            )
-          ),
+        db.select({ count: count() }).from(skills).where(skillMatches),
       ]);
 
+      const named = (name: string) => name.toLowerCase().includes(query.toLowerCase());
       const skillItems = skillResults.map((s) => ({
         id: s.id,
         name: s.name,
         type: 'skills' as const,
-        subtitle: s.category || undefined,
+        // Found by another name: say which, so the result explains itself.
+        subtitle: !named(s.name) && s.otherName ? `Also called ${s.otherName}` : s.category || undefined,
+        found: named(s.name) ? 0 : s.otherName ? 1 : 2,
       }));
 
       results.results.skills = {
         count: skillCount[0]?.count ?? 0,
-        items: sortByRelevance(skillItems, query),
+        items: sortByRelevance(skillItems.filter((item) => item.found === 0), query)
+          .concat(skillItems.filter((item) => item.found !== 0).sort((a, b) => a.found - b.found))
+          .map(({ found: _found, ...item }) => item),
       };
     }
 
