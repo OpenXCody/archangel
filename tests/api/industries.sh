@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Checks the industry level: /api/industries and /api/industries/:slug for the
 # country, a state and a focus area, the refusals, how a headcount that covers
-# only some of a company's plants is said, and that search and the Explore
-# overview find industries. Prints one line per check and exits non-zero if
-# any fail.
+# only some of a company's plants is said, that search and the Explore
+# overview find industries, that a company's industry is the one most of its
+# plants are in (the lists, their filter, search), and the order of the
+# careers list. Prints one line per check and exits non-zero if any fail.
 #
-# LOCAL ONLY: it adds two companies and five plants (names starting "E2E
-# Industry") in one industry of one state, straight into the database, and
+# LOCAL ONLY: it adds five companies and thirteen plants (names starting "E2E
+# Industry") in one state, straight into the database, and
 # removes them on exit however the script ends. Never point it at production.
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/industries.sh
 # Needs a running dev API with migrations 0035 and 0036 applied, and psql,
@@ -119,6 +120,49 @@ expect "and by what it makes"                 "glass-cement" "$(get '/search?q=c
 expect "not by a word every industry has"     0 "$(get '/search?q=plants&types=industries' | j 'o.results.industries.count')"
 expect "asked for other kinds, none are sent" 0 "$(get '/search?q=chem&types=companies' | j 'o.results.industries.count')"
 expect "the Explore overview lists the largest" true "$(get /explore/overview | j 'o.industries.length>=5 && o.industries.every(x=>x.slug&&x.name) && (o.industriesYear===null||o.industriesYear>=2024)')"
+
+# ── A company's industry: the one most of its plants are in ────────────────
+# Three: two chemical plants, one leather, one with no industry, one whose industry is not of the 21;
+# its own free text says something else. Four: one of each (a tie). Five: free text only.
+CHEM='Chemical Manufacturing'
+THREE=$(sql "INSERT INTO companies (name, industry) VALUES ('E2E Industry Three', 'Robots & Lasers') RETURNING id")
+FOUR=$(sql "INSERT INTO companies (name) VALUES ('E2E Industry Four') RETURNING id")
+FIVE=$(sql "INSERT INTO companies (name, industry) VALUES ('E2E Industry Five', 'Robots & Lasers') RETURNING id")
+mixed() { # name company industry-or-NULL
+  sql "INSERT INTO factories (name, company_id, latitude, longitude, state, city, primary_naics_description) VALUES ('E2E Industry $1', '$2', '61.2', '-149.9', '$ST', 'ANCHORAGE', $3)" >/dev/null
+}
+mixed 'Plant F' "$THREE" "'$CHEM'"; mixed 'Plant G' "$THREE" "'$CHEM'"; mixed 'Plant H' "$THREE" "'$IND'"
+mixed 'Plant I' "$THREE" NULL;      mixed 'Plant J' "$THREE" "'Robots & Lasers'"
+mixed 'Plant K' "$FOUR" "'$IND'";   mixed 'Plant L' "$FOUR" "'$CHEM'"
+mixed 'Five Works' "$FIVE" NULL
+R=$(get '/companies?search=E2E%20Industry&limit=20&sort=name')
+check "the companies list"                    200 "$R" '"name":"E2E Industry Three"'
+by() { printf '%s' "$R" | j "String((o.data.find(c=>c.name==='E2E Industry $1')||{}).industry)"; }
+expect "most of its plants decide it"         "$CHEM" "$(by Three)"
+expect "every plant in one industry"          "$IND" "$(by One)"
+expect "a tie goes to the name that sorts first" "$CHEM" "$(by Four)"
+expect "the free text is not an industry"     null "$(by Five)"
+R=$(get '/companies?industry=leather&search=E2E%20Industry&limit=20')
+expect "filtered by an industry's slug"       "E2E Industry One,E2E Industry Two" "$(printf '%s' "$R" | j 'o.data.map(c=>c.name).sort().join()')"
+expect "and by the name a plant carries"      2 "$(get "/companies?industry=$(printf '%s' "$IND" | sed 's/ /%20/g')&search=E2E%20Industry" | j 'o.total')"
+expect "the free text is not a filter"        0 "$(get '/companies?industry=Robots%20%26%20Lasers' | j 'o.total')"
+R=$(get /explore/facets)
+check "the lists' filters"                    200 "$R" '"industries":{"plants":\['
+expect "companies are offered the 21 only"    true "$(printf '%s' "$R" | j "o.industries.companies.includes('$IND') && !o.industries.companies.includes('Robots & Lasers') && o.industries.companies.length<=21 && o.industries.plants.length<=21")"
+expect "plants too, under the older name"     true "$(printf '%s' "$R" | j 'o.factoryIndustries.join()===o.industries.plants.join()')"
+R=$(get '/search?q=E2E%20Industry&types=companies,factories&limit=20')
+expect "search shows it by its short name"    Chemicals "$(printf '%s' "$R" | j "o.results.companies.items.find(c=>c.name==='E2E Industry Three').subtitle")"
+expect "and nothing for free text"            undefined "$(printf '%s' "$R" | j "String(o.results.companies.items.find(c=>c.name==='E2E Industry Five').subtitle)")"
+expect "a plant's line is its company and place" "E2E Industry One · Anchorage, AK" "$(printf '%s' "$R" | j "o.results.factories.items.find(f=>f.name==='E2E Industry Plant A').subtitle")"
+expect "without the company its name starts with" "Anchorage, AK" "$(printf '%s' "$R" | j "o.results.factories.items.find(f=>f.name==='E2E Industry Five Works').subtitle")"
+expect "the overview's companies carry one of the 21, or none" true "$(get /explore/overview | j "o.employers.every(e=>e.industry===null||/ Manufacturing$| Mills$| Activities$/.test(e.industry))")"
+
+# ── The careers list: something to follow first ─────────────────────────────
+R=$(get '/occupations?limit=100')
+expect "careers with a path, then the most skills" ok "$(printf '%s' "$R" | j "o.data.every((c,i,a)=>i===0||(!a[i-1].pathStatus)<(!c.pathStatus)||((!a[i-1].pathStatus)===(!c.pathStatus)&&a[i-1].skillCount>=c.skillCount))?'ok':'out of order'")"
+expect "the last page is the careers with no skills" 0 "$(get "/occupations?limit=1&offset=$(( $(sql 'SELECT COUNT(*) FROM occupations') - 1 ))" | j 'o.data[0].skillCount')"
+expect "sort=name is the plain name order"    "$(sql "SELECT title FROM occupations ORDER BY lower(title), id LIMIT 1")" "$(get '/occupations?sort=name&limit=1' | j 'o.data[0].title')"
+expect "and backwards"                        "$(sql "SELECT title FROM occupations ORDER BY lower(title) DESC, id LIMIT 1")" "$(get '/occupations?sort=name&order=desc&limit=1' | j 'o.data[0].title')"
 
 cleanup
 expect "test companies and plants removed"    0 "$(sql "SELECT (SELECT COUNT(*) FROM companies WHERE name LIKE 'E2E Industry %') + (SELECT COUNT(*) FROM factories WHERE name LIKE 'E2E Industry %')")"
