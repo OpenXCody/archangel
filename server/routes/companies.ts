@@ -152,6 +152,12 @@ router.get('/:id', async (req: Request, res: Response) => {
         openPositions: factories.openPositions,
         latitude: factories.latitude,
         longitude: factories.longitude,
+        // For the page of a company with one plant, which leads with that plant's own facts.
+        address: factories.address,
+        workforceSource: factories.workforceSource,
+        workforceNote: factories.workforceNote,
+        openedYear: factories.openedYear,
+        curated: factories.curated,
       })
       .from(factories)
       .where(and(eq(factories.companyId, id), factoryInScope()));
@@ -198,6 +204,24 @@ router.get('/:id', async (req: Request, res: Response) => {
       ORDER BY "factoryCount" DESC, o.title ASC
     `);
 
+    const occupationRows = Array.from(companyOccupations as Iterable<Record<string, unknown>>);
+    // A company with one plant and no careers recorded there: the careers
+    // typical of that plant's industry, as the plant's own page lists them.
+    const onlyIndustry = companyFactories.length === 1 ? companyFactories[0].industry : null;
+    const typicalCareers =
+      occupationRows.length === 0 && onlyIndustry
+        ? Array.from(
+            (await db.execute(sql`
+              SELECT o.id, o.title
+              FROM industry_occupations io
+              INNER JOIN occupations o ON o.id = io.occupation_id
+              WHERE io.industry = ${onlyIndustry}
+              ORDER BY io.rank ASC
+              LIMIT 10
+            `)) as Iterable<Record<string, unknown>>
+          ).map((r) => ({ id: String(r.id), title: String(r.title) }))
+        : [];
+
     res.json({
       ...company,
       parent: parent ?? null,
@@ -209,9 +233,10 @@ router.get('/:id', async (req: Request, res: Response) => {
       sources: await sourcesOf('companies', id),
       factories: companyFactories,
       jobs: await listOpenJobs(eq(jobs.companyId, id)),
-      occupations: Array.from(companyOccupations as Iterable<Record<string, unknown>>),
+      occupations: occupationRows,
+      typicalCareers,
       factoryCount: companyFactories.length,
-      occupationCount: (companyOccupations as unknown as { length?: number }).length ?? Array.from(companyOccupations as Iterable<unknown>).length,
+      occupationCount: occupationRows.length,
       totalWorkforce: companyFactories.reduce((sum, f) => sum + (f.workforceSize || 0), 0),
     });
   } catch (error) {

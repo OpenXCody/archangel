@@ -1,6 +1,5 @@
-import type { ReactNode } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronRight } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 import { US_STATES } from '@shared/states';
 import { FOCUS_AREAS, SCOPE, focusArea } from '@shared/scope';
 import {
@@ -13,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { IndustryStats } from '../../lib/api';
+import { BackLink, detailActionClass } from '../layout/Page';
 
 /*
  * Pieces the industry pages share. Words, as everywhere: people (how many
@@ -115,47 +115,16 @@ export function PlaceChoice({ place }: { place: PagePlace }) {
 }
 
 // ─── Page furniture ────────────────────────────────────────────────────────
+// The heading block, sections and record rows are the detail page's own
+// (`components/layout/Page.tsx`). These two names are kept for the list of
+// industries, which still asks for them here.
 
 /** Returns to wherever the person came from; with no history (a link opened cold), to `fallback`. */
 export function BackButton({ fallback }: { fallback: string }) {
-  const navigate = useNavigate();
-  const canGoBack = ((window.history.state as { idx?: number } | null)?.idx ?? 0) > 0;
-  return (
-    <button
-      type="button"
-      onClick={() => (canGoBack ? navigate(-1) : navigate(fallback))}
-      className={cn('-my-2 mb-2 inline-flex min-h-11 items-center gap-2 pr-2 text-sm text-fg-muted hover:text-fg-default', FOCUS)}
-    >
-      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-      Back
-    </button>
-  );
+  return <BackLink fallback={fallback} />;
 }
 
-/** A titled part of the page, like an entity page's. `column` labels the figures down its right edge. */
-export function Section({ id, title, column, children }: { id?: string; title: string; column?: ReactNode; children: ReactNode }) {
-  return (
-    <section id={id} className="mt-8 scroll-mt-20">
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className="text-sm font-medium uppercase tracking-wider text-fg-soft">{title}</h2>
-        {column && <span className="shrink-0 pr-4 text-[11px] uppercase tracking-wider text-fg-soft">{column}</span>}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-export const CARD_LIST = 'overflow-hidden rounded-xl border border-border-subtle bg-bg-surface';
-export const CARD_ROW =
-  'group flex min-h-[56px] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-bg-elevated focus-visible:bg-bg-elevated focus-visible:outline-none';
-
-/** A text action under a list ("Show all 51"). */
-export const TEXT_ACTION = cn('mt-3 inline-flex min-h-11 items-center text-sm font-medium text-fg-default underline underline-offset-4 hover:no-underline sm:min-h-0', FOCUS);
-
-export const OUTLINE_LINK = cn(
-  'inline-flex h-11 items-center justify-center rounded-lg border border-border-strong px-4 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated sm:h-10',
-  FOCUS
-);
+export const OUTLINE_LINK = detailActionClass;
 
 // ─── Figures ───────────────────────────────────────────────────────────────
 
@@ -285,43 +254,5 @@ export function FigureList({ rows, state: navState }: { rows: FigureRow[]; state
         ))}
       </ul>
     </div>
-  );
-}
-
-/** A row in a card list that leads to a page: what it is, a line under it, a figure at its right. */
-export function CardRow({
-  to,
-  lead,
-  title,
-  subtitle,
-  figure,
-  figureLabel,
-}: {
-  to: string;
-  lead?: ReactNode;
-  title: string;
-  subtitle?: string | null;
-  figure?: number | null;
-  /** What the figure counts, for a screen reader ("people"). */
-  figureLabel?: string;
-}) {
-  return (
-    <li className="border-b border-border-subtle last:border-b-0">
-      <Link to={to} className={CARD_ROW}>
-        {lead}
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-fg-default">{title}</span>
-          {subtitle && <span className="block truncate text-xs text-fg-muted">{subtitle}</span>}
-        </span>
-        {figure != null ? (
-          <span className="shrink-0 text-sm tabular-nums text-fg-default">
-            {figure.toLocaleString()}
-            {figureLabel && <span className="sr-only"> {figureLabel}</span>}
-          </span>
-        ) : (
-          <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" aria-hidden="true" />
-        )}
-      </Link>
-    </li>
   );
 }

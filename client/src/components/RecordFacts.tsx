@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
 import { formatCompanyName } from '@shared/displayName';
 import { STATE_CODE_TO_NAME, type StateCode } from '@shared/states';
 import type { CompanyDetail, FactoryDetail, RecordSource } from '../lib/api';
 import CompanyLogo from './CompanyLogo';
+import { RecordList, RecordRow } from './layout/Page';
 
 /**
  * The deeper facts a plant or a company has when its record was written from
@@ -41,7 +41,11 @@ export function peopleCount(people: number): string {
  * A plant's facts, said plainly: "4,500 people, 2024" with where that was
  * read, then what it makes and the year it opened.
  */
-export function PlantFacts({ factory }: { factory: Pick<FactoryDetail, 'workforceSize' | 'workforceYear' | 'workforceSource' | 'workforceNote' | 'products' | 'openedYear'> }) {
+export function PlantFacts({
+  factory,
+}: {
+  factory: Partial<Pick<FactoryDetail, 'workforceSize' | 'workforceYear' | 'workforceSource' | 'workforceNote' | 'products' | 'openedYear'>>;
+}) {
   const people = factory.workforceSize && factory.workforceSize > 0 ? factory.workforceSize : null;
   const rows: [string, string][] = [];
   if (factory.products) rows.push(['Makes', factory.products]);
@@ -148,34 +152,22 @@ export function CompanyStanding({ data }: { data: CompanyDetail }) {
   );
 }
 
-/** The companies that are part of this one. */
+/** The companies that are part of this one, each with how many plants it has. */
 export function CompanyFamily({ companies }: { companies: NonNullable<CompanyDetail['subsidiaries']> }) {
   return (
-    <ul className="overflow-hidden rounded-xl border border-border-subtle bg-bg-surface" data-company-family>
+    <RecordList data-company-family="">
       {companies.map((company) => {
         const name = formatCompanyName(company.name);
-        const detail = [
-          company.factoryCount > 0 ? `${company.factoryCount.toLocaleString()} ${company.factoryCount === 1 ? 'site' : 'sites'}` : null,
-          company.industry && company.industry !== 'Manufacturing' ? company.industry : null,
-        ]
-          .filter(Boolean)
-          .join(' · ');
         return (
-          <li key={company.id} className="border-b border-border-subtle last:border-b-0">
-            <Link
-              to={`/companies/${company.slug ?? company.id}`}
-              className="group flex min-h-[56px] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-bg-elevated"
-            >
-              <CompanyLogo name={name} domain={company.domain} size={32} className="rounded-md" />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-fg-default">{name}</span>
-                {detail && <span className="block truncate text-xs text-fg-muted">{detail}</span>}
-              </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" />
-            </Link>
-          </li>
+          <RecordRow
+            key={company.id}
+            to={`/companies/${company.slug ?? company.id}`}
+            lead={<CompanyLogo name={name} domain={company.domain} size={32} className="rounded-md" />}
+            title={name}
+            subtitle={company.factoryCount > 0 ? `${company.factoryCount.toLocaleString()} ${company.factoryCount === 1 ? 'plant' : 'plants'}` : null}
+          />
         );
       })}
-    </ul>
+    </RecordList>
   );
 }

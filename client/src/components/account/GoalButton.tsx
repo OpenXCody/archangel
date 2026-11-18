@@ -32,7 +32,7 @@ export default function GoalButton({ occupationId, className }: GoalButtonProps)
   if (account.isPending) {
     // Hold the button's place until we know who is signed in.
     return (
-      <Button type="button" variant="outline" disabled className={cn('h-10', outlineButtonClass, className)}>
+      <Button type="button" variant="outline" aria-busy aria-disabled className={cn('h-10', outlineButtonClass, busyButtonClass, className)}>
         <Loader2 className="animate-spin" />
         Set as goal
       </Button>
@@ -79,7 +79,7 @@ export default function GoalButton({ occupationId, className }: GoalButtonProps)
         title={isGoal ? 'Remove from your goals' : undefined}
         className={cn('h-10', isGoal && outlineButtonClass, busyButtonClass)}
       >
-        {busy ? <Loader2 className="animate-spin" /> : isGoal ? <Check className="text-success" /> : <Target />}
+        {busy ? <Loader2 className="animate-spin" /> : isGoal ? <Check /> : <Target />}
         {isGoal ? 'Goal' : 'Set as goal'}
       </Button>
       <ErrorNote error={error} />

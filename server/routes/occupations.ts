@@ -173,6 +173,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       .select({
         id: factories.id,
         name: factories.name,
+        city: factories.city,
         state: factories.state,
         companyId: factories.companyId,
         companyName: sql<string>`(SELECT name FROM companies WHERE companies.id = ${factories.companyId})`,

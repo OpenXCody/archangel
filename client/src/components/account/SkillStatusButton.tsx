@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom';
-import { CheckCircle2, Circle, CircleDashed, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { signInPath, useAccount, useMySkills, useRemoveSkill, useSetSkillStatus, type SkillStatus } from '../../lib/account';
@@ -60,19 +59,42 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
             tabIndex={choice.value === tabStop ? 0 : -1}
             onClick={() => choose(choice.value)}
             className={cn(
-              'h-8 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors aria-disabled:cursor-default',
-              selected
-                ? choice.value === 'held'
-                  ? 'bg-success/15 text-success'
-                  : 'bg-bg-surface text-fg-default'
-                : 'text-fg-muted hover:text-fg-default'
+              'inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors aria-disabled:cursor-default',
+              selected ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
             )}
           >
+            {/* The chosen answer carries the same mark the skill has in every list. */}
+            {selected && choice.value !== 'none' && <SkillMark status={choice.value} className="h-3.5 w-3.5" />}
             {choice.label}
           </button>
         );
       })}
     </div>
+  );
+}
+
+/**
+ * The one mark for a skill's status, wherever a skill is listed: a filled,
+ * bright disc with a tick when it is held; a half-filled ring, mid-bright,
+ * while it is being learned; an empty, quiet ring when it is neither. Shape
+ * and brightness say it; there is no colour for "held".
+ */
+export function SkillMark({ status, className }: { status: Choice; className?: string }) {
+  const tone = status === 'held' ? 'text-fg-default' : status === 'learning' ? 'text-fg-muted' : 'text-fg-soft';
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" data-skill-mark={status} className={cn('h-5 w-5 shrink-0', tone, className)}>
+      {status === 'held' ? (
+        <>
+          <circle cx="10" cy="10" r="8.25" fill="currentColor" />
+          <path d="M6.4 10.3l2.4 2.4 4.8-5.1" stroke="var(--color-bg-surface)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      ) : (
+        <>
+          <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
+          {status === 'learning' && <path d="M10 2.5a7.5 7.5 0 0 0 0 15z" fill="currentColor" />}
+        </>
+      )}
+    </svg>
   );
 }
 
@@ -89,14 +111,12 @@ interface SkillHeldToggleProps {
 
 /**
  * The compact form of the control, for a skill in a list: one mark that reads
- * as the skill's status (open circle, dashed while learning, checked when
- * held) and, pressed, sets it held or clears it. Learning is set on the
+ * as the skill's status (`SkillMark`) and, pressed, sets it held or clears it. Learning is set on the
  * skill's own page. The mark is small; the button around it is a full touch
  * target.
  */
 export function SkillHeldToggle({ value, onChange, disabled, label, className }: SkillHeldToggleProps) {
   const held = value === 'held';
-  const Icon = held ? CheckCircle2 : value === 'learning' ? CircleDashed : Circle;
   const state = held ? 'Held' : value === 'learning' ? 'Learning' : 'Not held';
   return (
     <button
@@ -110,12 +130,11 @@ export function SkillHeldToggle({ value, onChange, disabled, label, className }:
       }}
       className={cn(
         'flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-colors',
-        'aria-disabled:cursor-default aria-disabled:opacity-60',
-        held ? 'text-success' : 'text-fg-muted hover:text-fg-default',
+        'aria-disabled:cursor-default aria-disabled:opacity-60 [&:hover>svg]:text-fg-default',
         className
       )}
     >
-      <Icon className="h-5 w-5" aria-hidden="true" />
+      <SkillMark status={value} />
     </button>
   );
 }
@@ -150,7 +169,6 @@ export default function SkillStatusButton({ skillId, className }: SkillStatusBut
     return (
       <Button asChild variant="outline" className={cn('h-10', outlineButtonClass, className)}>
         <Link to={signInPath(`${location.pathname}${location.search}`)}>
-          <Wrench />
           Sign in to track this skill
         </Link>
       </Button>
