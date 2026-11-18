@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import type { Purpose } from '@shared/purpose';
 import { API_BASE, UNREACHABLE, fetchWithTimeout } from './api';
 
 /**
@@ -82,6 +83,9 @@ function retryUnlessClientError(failureCount: number, error: unknown): boolean {
 // Types
 // ---------------------------------------------------------------------------
 
+/** What an account is for: finding work, or hiring. It decides which tools are drawn, never what is allowed. */
+export type { Purpose };
+
 export interface AccountUser {
   id: string;
   email: string;
@@ -91,6 +95,8 @@ export interface AccountUser {
   about: string | null;
   /** Whether the person takes emails about applications and company access. */
   emailNotices: boolean;
+  /** What the account is for: set at sign-up or in settings, else read from the person's ties to a company. */
+  purpose: Purpose;
 }
 
 /** `declined`: an admin refused the request. The record stays, and the person can ask again after a week. */
@@ -563,7 +569,7 @@ function queryString(params: Record<string, string | number | undefined>): strin
 export const authApi = {
   me: () => request<Account>('/auth/me'),
   /** `invite` is the token from an invite link; the email must be the invited one. */
-  signUp: (input: { email: string; password: string; name: string; invite?: string }) =>
+  signUp: (input: { email: string; password: string; name: string; invite?: string; purpose?: Purpose }) =>
     request<Account>('/auth/sign-up', { method: 'POST', body: input }),
   signIn: (input: { email: string; password: string }) =>
     request<Account>('/auth/sign-in', { method: 'POST', body: input }),
@@ -587,7 +593,7 @@ export const authApi = {
 };
 
 export const meApi = {
-  updateProfile: (patch: { name?: string; homeZip?: string; about?: string; emailNotices?: boolean }) =>
+  updateProfile: (patch: { name?: string; homeZip?: string; about?: string; emailNotices?: boolean; purpose?: Purpose }) =>
     request<{ user: AccountUser }>('/me', { method: 'PATCH', body: patch }),
   news: () => request<News>('/me/news'),
   /** The person has opened the page that shows this news. Answers with what is left. */

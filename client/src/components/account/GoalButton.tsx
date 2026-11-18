@@ -3,6 +3,7 @@ import { Check, Loader2, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { signInPath, useAccount, useAddGoal, useMyGoals, useRemoveGoal } from '../../lib/account';
+import { useSeekerTools } from '../../lib/viewer';
 import { ErrorNote, busyButtonClass, outlineButtonClass } from './parts';
 
 interface GoalButtonProps {
@@ -15,6 +16,7 @@ interface GoalButtonProps {
  * Add a career to, or remove it from, the signed-in person's goals. One word
  * for it everywhere: "Set as goal", then "Goal". Signed out, it is a link to
  * sign in that returns to this page. While it saves it keeps the focus.
+ * Someone here to hire has no goals: for them it draws nothing.
  */
 export default function GoalButton({ occupationId, className }: GoalButtonProps) {
   const location = useLocation();
@@ -23,6 +25,9 @@ export default function GoalButton({ occupationId, className }: GoalButtonProps)
   const goals = useMyGoals(signedIn);
   const addGoal = useAddGoal();
   const removeGoal = useRemoveGoal();
+  const seekerTools = useSeekerTools();
+
+  if (!seekerTools) return null;
 
   if (account.isPending) {
     // Hold the button's place until we know who is signed in.

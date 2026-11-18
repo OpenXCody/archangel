@@ -3,28 +3,49 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { Map, Layers, Search, BriefcaseBusiness } from 'lucide-react';
 import GlobalSearch from '../search/GlobalSearch';
 import AccountMenu, { accountPageTitle } from '../account/AccountMenu';
+import ViewAsSign from '../account/ViewAsSign';
 import { useAccount } from '../../lib/account';
+import { useViewer } from '../../lib/viewer';
 import { SEARCH_SHORTCUT } from '../../lib/shortcut';
 
-// The same for everyone. Admin pages are reached from "Admin Tools" in the account menu.
-const navItems = [
+interface NavItem {
+  to: string;
+  icon: typeof Map;
+  label: string;
+  /** What a screen reader hears, when it is more than the label. */
+  name?: string;
+  /** Other paths this item stands for. */
+  also?: string[];
+}
+
+// The map and Explore are for everyone. Jobs is the list of open jobs for a visitor and a
+// seeker; for someone here to hire it is their own jobs, with the open list one link below
+// them. A person's own page, settings and Admin Tools are in the account menu.
+const navItems: NavItem[] = [
   { to: '/map', icon: Map, label: 'Map' },
   { to: '/explore', icon: Layers, label: 'Explore' },
   { to: '/jobs', icon: BriefcaseBusiness, label: 'Jobs' },
 ];
+const employerJobs: NavItem = { to: '/employer', icon: BriefcaseBusiness, label: 'Jobs', name: 'Your jobs', also: ['/jobs'] };
+
+function isAt(pathname: string, path: string): boolean {
+  return pathname === path || pathname.startsWith(`${path}/`);
+}
 
 export default function Layout() {
   const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { data: account } = useAccount();
   const isAdmin = Boolean(account?.user?.isAdmin);
+  const viewer = useViewer();
+  const shownNav = viewer.employer ? navItems.map((item) => (item.to === '/jobs' ? employerJobs : item)) : navItems;
 
   // Hide global search on map view (it has its own search)
   const isMapView = location.pathname === '/map';
 
   // Tab / history / bookmark titles. Detail pages override with the entity name.
   const section =
-    navItems.find((n) => location.pathname === n.to || location.pathname.startsWith(`${n.to}/`))?.label ??
+    navItems.find((n) => isAt(location.pathname, n.to))?.label ??
     accountPageTitle(location.pathname, isAdmin);
   const isDetail = /^\/(companies|factories|occupations|skills)\/[^/]+$/.test(location.pathname);
   const title = isDetail ? null : section ? `${section} · Archangel` : 'Archangel';
@@ -72,14 +93,14 @@ export default function Layout() {
           <div className="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-4">
             {/* Left: Navigation */}
             <nav className="flex min-w-0 items-center gap-1">
-              {navItems.map(({ to, icon: Icon, label }) => {
-                const isActive = location.pathname === to || location.pathname.startsWith(`${to}/`);
+              {shownNav.map(({ to, icon: Icon, label, name, also }) => {
+                const isActive = [to, ...(also ?? [])].some((path) => isAt(location.pathname, path));
 
                 return (
                   <NavLink
                     key={to}
                     to={to}
-                    aria-label={label}
+                    aria-label={name ?? label}
                     className={`
                       flex items-center justify-center gap-2 px-3 lg:px-4 py-2 rounded-full text-sm font-medium
                       min-h-11 min-w-11 lg:min-h-0 lg:min-w-0
@@ -97,11 +118,15 @@ export default function Layout() {
               })}
             </nav>
 
-            {/* Center: Logo */}
+            {/* Center: Logo, or the sign that an admin is viewing as someone else */}
             <div className="flex min-w-0 items-center justify-center">
-              <span className="text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap">
-                ARCHANGEL
-              </span>
+              {viewer.viewingAs ? (
+                <ViewAsSign />
+              ) : (
+                <span className="text-sm md:text-base lg:text-lg font-semibold tracking-tight text-fg-default whitespace-nowrap">
+                  ARCHANGEL
+                </span>
+              )}
             </div>
 
             <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-4">

@@ -31,7 +31,10 @@ import { PageContainer, PageHeader } from '../components/layout/Page';
 import { onGroupArrowKeys } from '../lib/roving';
 
 type Mode = 'sign-in' | 'create';
-/** What a new account is for. It only decides where the person lands. */
+/**
+ * What a new account is for, as the address says it (`?as=`). It is kept on the
+ * account ('work' or 'hire') and decides which tools the person is shown.
+ */
 type Purpose = 'careers' | 'employer';
 
 const MODES: { value: Mode; label: string }[] = [
@@ -51,10 +54,12 @@ const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
 
 /**
  * One page for both signing in and creating an account. A new account says
- * what it is for (`?as=employer`), which is the only extra question asked.
+ * what it is for (`?as=employer`), which is the only extra question asked;
+ * the answer is kept on the account and can be changed in settings.
  *
- * Where the person lands: the employer page for an employer, for someone who
- * chose "Hire", and (with nowhere else to return to) for someone whose request
+ * Where the person lands: the employer page for someone who chose "Hire",
+ * for an account that is for hiring (with nowhere else to return to), and
+ * (likewise) for someone whose request
  * to join a company or to have one added is waiting for an admin, since that
  * is where its answer shows; otherwise `?next=` when it is a path on this
  * site. With nowhere to return to, someone signing in lands on the map, and
@@ -136,7 +141,7 @@ export default function SignIn() {
       (invited
         ? invited.role === 'employer' && account.data.isEmployer
         : (mode === 'create' && purpose === 'employer') || searchParams.get('as') === 'employer') ||
-      (!next && (account.data.isEmployer || waiting));
+      (!next && (account.data.user.purpose === 'hire' || waiting));
     // A new account with nowhere to return to starts on the person's own page.
     return <Navigate to={hiring ? '/employer' : (next ?? (signUp.isSuccess ? '/me' : '/map'))} replace />;
   }
@@ -205,7 +210,7 @@ export default function SignIn() {
       return;
     }
     if (invited && inviteToken) signUp.mutate({ name, email: invited.email, password, invite: inviteToken });
-    else if (mode === 'create') signUp.mutate({ name, email, password });
+    else if (mode === 'create') signUp.mutate({ name, email, password, purpose: purpose === 'employer' ? 'hire' : 'work' });
     else signIn.mutate({ email, password });
   };
 

@@ -13,6 +13,7 @@ const Me = lazy(() => import('./pages/Me'));
 const Jobs = lazy(() => import('./pages/Jobs'));
 const JobDetail = lazy(() => import('./pages/JobDetail'));
 const Employer = lazy(() => import('./pages/Employer'));
+const Settings = lazy(() => import('./pages/Settings'));
 const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -48,6 +49,7 @@ function App() {
               <Route path="/jobs" element={<PageBoundary><Jobs /></PageBoundary>} />
               <Route path="/jobs/:id" element={<PageBoundary><JobDetail /></PageBoundary>} />
               <Route path="/employer" element={<PageBoundary><Employer /></PageBoundary>} />
+              <Route path="/settings" element={<PageBoundary><Settings /></PageBoundary>} />
               <Route path="/admin" element={<PageBoundary><Admin /></PageBoundary>} />
               <Route path="*" element={<NotFound />} />
             </Route>
