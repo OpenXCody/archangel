@@ -1,0 +1,190 @@
+{
+ "_about": "Decisions a person made about company logos, read by scripts/fetch-logos.mjs and never undone by a run. `none`: domains left on the lettermark, each with the reason. `kept`: marks placed by hand (the file is in client/public/logos/), each with where it came from. Add to either with: node scripts/fetch-logos.mjs --place a.com=mark.svg --note \"...\" or --none a.com --note \"...\"",
+ "none": {
+  "alamoconcrete.com": "its icon is the mark of its owner, Buzzi, not its own",
+  "allieduniversal.com": "its icon is its logo cut off at both sides",
+  "baf.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
+  "burndy.com": "its icon is the mark of its owner, Hubbell; its own logo is a wide wordmark",
+  "cocacolaswb.com": "its icon is its owner's logo in white, drawn for a dark page",
+  "crjackson.com": "its marks are white, drawn for a dark page",
+  "epiroc.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
+  "hmhw.com": "its icon is the default of the software its site runs on, not its own mark",
+  "justinbrands.com": "its icon is the initials of its holding company, not its own mark",
+  "magna.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
+  "oxychem.com": "its icon is a generic picture of a flask, not its mark",
+  "pentair.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
+  "russellstover.com": "its icon is the default of the software its site runs on, not its own mark",
+  "thecampbellscompany.com": "its icon is a campaign badge, not the company's mark",
+  "vintonsteel.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px"
+ },
+ "kept": {
+  "agilent.com": {
+   "ext": "png",
+   "from": "the spark symbol from Agilent's logo (Commons File:Agilent Technologies-Logo.svg); the wordmark is left out"
+  },
+  "agp.com": {
+   "ext": "png",
+   "from": "the icon of agp.com: three letters, a little wider than the limit, and it reads at 28 px"
+  },
+  "ajaxpaving.com": {
+   "ext": "png",
+   "from": "the badge from the header logo on ajaxpaving.com"
+  },
+  "amd.com": {
+   "ext": "png",
+   "from": "the arrow symbol from AMD's logo (Commons File:AMD Logo.svg, the logo of the Wikidata entry for amd.com); the wordmark is left out"
+  },
+  "americanseafoods.com": {
+   "ext": "png",
+   "from": "American Seafoods' seal (Commons File:ASC Logo (RGB - Web).png, the logo of the Wikidata entry for americanseafoods.com); the site's own icon is its web builder's"
+  },
+  "apextoolgroup.com": {
+   "ext": "png",
+   "from": "the round symbol from the header logo on apextoolgroup.com, the same one its favicon shows; the wordmark is left out"
+  },
+  "arcticglacier.com": {
+   "ext": "png",
+   "from": "the logo in the header of arcticglacier.com (its icon is a picture of a truck)"
+  },
+  "ball.com": {
+   "ext": "png",
+   "from": "the script wordmark on ball.com (og:image), set in black"
+  },
+  "bardmaterials.com": {
+   "ext": "svg",
+   "from": "the symbol from the header logo on bardmaterials.com, the same one its favicon shows; the wordmark is left out"
+  },
+  "beckmancoulter.com": {
+   "ext": "png",
+   "from": "the round symbol from the header logo on beckmancoulter.com; the wordmark is left out"
+  },
+  "belden.com": {
+   "ext": "png",
+   "from": "the logomark in the header of belden.com, fetched in a browser (the site refuses curl)"
+  },
+  "bench.com": {
+   "ext": "png",
+   "from": "the triangle from the header logo on bench.com, the same one its favicon shows"
+  },
+  "berridge.com": {
+   "ext": "png",
+   "from": "the logo in the header of berridge.com"
+  },
+  "bimbobakeriesusa.com": {
+   "ext": "png",
+   "from": "the logo in the header of bimbobakeriesusa.com"
+  },
+  "bms.com": {
+   "ext": "png",
+   "from": "the hand symbol from Bristol Myers Squibb's logo (Commons File:Bristol-Myers Squibb logo (2020).svg), the same one its favicon shows; the wordmark is left out"
+  },
+  "boeing.com": {
+   "ext": "svg",
+   "from": "the symbol from the header logo on boeing.com, the same one its favicon shows"
+  },
+  "briggsandstratton.com": {
+   "ext": "png",
+   "from": "the logo in the header of briggsandstratton.com"
+  },
+  "broxindustries.com": {
+   "ext": "png",
+   "from": "the logo in the header of broxindustries.com"
+  },
+  "cabotcorp.com": {
+   "ext": "png",
+   "from": "the symbol from the header logo on cabotcorp.com, the same one its favicon shows; the wordmark is left out"
+  },
+  "cdtechno.com": {
+   "ext": "svg",
+   "from": "the logo in the header of cdtechno.com"
+  },
+  "crh.com": {
+   "ext": "svg",
+   "from": "the square mark in the header of crh.com"
+  },
+  "cwmatthews.com": {
+   "ext": "svg",
+   "from": "the round logo in the footer of cwmatthews.com"
+  },
+  "danaher.com": {
+   "ext": "png",
+   "from": "the symbol from the header logo on danaher.com, the same one its favicon shows; the wordmark is left out"
+  },
+  "darntough.com": {
+   "ext": "png",
+   "from": "the logo in the header of darntough.com, fetched in a browser (the site refuses curl)"
+  },
+  "deere.com": {
+   "ext": "png",
+   "from": "the leaping deer emblem from the header logo on deere.com, the same one its favicon shows; the wordmark is left out"
+  },
+  "fcx.com": {
+   "ext": "png",
+   "from": "the FM symbol from Freeport-McMoRan's logo (Commons File:Freeport McMoRan.png); the wordmark is left out"
+  },
+  "gaf.com": {
+   "ext": "svg",
+   "from": "GAF's logo (Commons File:GAF logo.svg); gaf.com refuses automated requests"
+  },
+  "hsmsolutions.com": {
+   "ext": "png",
+   "from": "the icon of hsmsolutions.com: three letters, a little wider than the limit, and it reads at 28 px"
+  },
+  "irco.com": {
+   "ext": "png",
+   "from": "the IR badge from Ingersoll Rand's logo (Commons File:Ingersoll Rand logo.svg); the wordmark is left out"
+  },
+  "irvmat.com": {
+   "ext": "png",
+   "from": "the icon of irvmat.com: three letters, a little wider than the limit, and it reads at 28 px"
+  },
+  "itt.com": {
+   "ext": "svg",
+   "from": "ITT's logo (Commons File:ITT logo.svg, the logo of the Wikidata entry for itt.com): three letters, a little wider than the limit, and it reads at 28 px"
+  },
+  "johnsoncontrols.com": {
+   "ext": "png",
+   "from": "the symbol from the header logo on johnsoncontrols.com; the wordmark is left out"
+  },
+  "lyconinc.com": {
+   "ext": "png",
+   "from": "the logo in the header of lyconinc.com"
+  },
+  "martinmarietta.com": {
+   "ext": "png",
+   "from": "the symbol from the header logo on martinmarietta.com; the wordmark is left out"
+  },
+  "mfp.com": {
+   "ext": "png",
+   "from": "the touch icon of mfp.com (its SVG icon is white)"
+  },
+  "mohawkind.com": {
+   "ext": "png",
+   "from": "the red symbol from the header logo on mohawkind.com, the same one its favicon shows; the wordmark is left out"
+  },
+  "peterbilt.com": {
+   "ext": "svg",
+   "from": "the oval in the header of peterbilt.com: a little wider than the limit, and its shape reads at 28 px"
+  },
+  "rpminc.com": {
+   "ext": "svg",
+   "from": "the compact logo rpminc.com shows on a phone"
+  },
+  "schusterconcrete.com": {
+   "ext": "png",
+   "from": "the logo in the header of schusterconcrete.com"
+  },
+  "totalenergies.com": {
+   "ext": "png",
+   "from": "the logo in the header of totalenergies.com"
+  },
+  "trin.net": {
+   "ext": "png",
+   "from": "the triangle symbol from the header logo on trin.net; the wordmark is left out"
+  },
+  "tysonfoods.com": {
+   "ext": "png",
+   "from": "the touch icon of tysonfoods.com, fetched in a browser (the site refuses curl)"
+  }
+ }
+}
