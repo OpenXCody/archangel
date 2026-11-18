@@ -5,6 +5,7 @@ import { browsableCompanyNameSql } from '../lib/companyFilters.js';
 import { factoryInArea, factoryInScope } from '../lib/scope.js';
 import { FOCUS_AREAS } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
+import { listIndustries } from '../lib/industries.js';
 
 const router = Router();
 
@@ -16,6 +17,7 @@ const STAGE_SKILL_NAMES = 3;
 const FULL_PATH_SKILLS = 10;
 const SUPPORT_CATEGORIES = new Set(['material handling']);
 const STATE_COUNT = 10;
+const INDUSTRY_COUNT = 10;
 const OTHER = 'Other';
 
 type Row = Record<string, unknown>;
@@ -253,19 +255,30 @@ async function loadPlaces() {
   return { areas, states };
 }
 
+// The largest industries in the country: by people employed (official
+// figures) where published, else by plants listed.
+async function loadIndustries() {
+  const { industries, manufacturing } = await listIndustries({ kind: 'country', name: '' });
+  return {
+    industries: industries.slice(0, INDUSTRY_COUNT).map(({ slug, name, plants, employment }) => ({ slug, name, plants, employment })),
+    industriesYear: manufacturing?.year ?? null,
+  };
+}
+
 // GET /api/explore/overview - Everything the Explore overview shows, in one
 // response: featured employers, careers with a path, the most connected
 // skills, the focus areas and the states with the most factories.
 router.get('/overview', async (_req: Request, res: Response) => {
   try {
     const day = new Date().toISOString().slice(0, 10);
-    const [employers, careers, skillGroups, places] = await Promise.all([
+    const [employers, careers, skillGroups, places, byIndustry] = await Promise.all([
       loadEmployers(),
       loadCareers(day),
       loadSkillGroups(),
       loadPlaces(),
+      loadIndustries(),
     ]);
-    res.json({ employers, careers, skillGroups, areas: places.areas, states: places.states });
+    res.json({ employers, careers, skillGroups, areas: places.areas, states: places.states, ...byIndustry });
   } catch (error) {
     console.error('Error fetching explore overview:', error);
     res.status(500).json({ error: 'Failed to fetch explore overview' });

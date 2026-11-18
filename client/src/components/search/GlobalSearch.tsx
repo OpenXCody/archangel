@@ -14,6 +14,7 @@ import {
   Clock,
   Layers,
   Loader2,
+  Boxes,
 } from 'lucide-react';
 import { searchApi, type SearchEntityType, type SearchResultItem } from '../../lib/api';
 import CompanyLogo from '../CompanyLogo';
@@ -28,6 +29,13 @@ const ENTITY_CONFIG: Record<
   SearchEntityType,
   { icon: React.ElementType; label: string; iconClass: string; path: string }
 > = {
+  // An industry is the widest thing a search can name, and there are only 21: it leads.
+  industries: {
+    icon: Boxes,
+    label: 'Industry',
+    iconClass: 'text-fg-muted',
+    path: '/industries',
+  },
   companies: {
     icon: Building2,
     label: 'Company',

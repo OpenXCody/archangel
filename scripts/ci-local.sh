@@ -115,6 +115,7 @@ run_suite jobs bash tests/api/jobs.sh
 run_suite seeker env OUTBOX="$OUTBOX" bash tests/api/seeker.sh
 run_suite admin bash tests/api/admin.sh
 run_suite email env OUTBOX="$OUTBOX" APP_URL="$WEB_URL" bash tests/api/email.sh
+run_suite industries bash tests/api/industries.sh
 
 step "Device suite"
 if BASE_URL=$WEB_URL npx playwright test --trace off > "$LOGS/devices.log" 2>&1; then

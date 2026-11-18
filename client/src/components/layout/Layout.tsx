@@ -27,7 +27,9 @@ export default function Layout() {
     navItems.find((n) => location.pathname === n.to || location.pathname.startsWith(`${n.to}/`))?.label ??
     accountPageTitle(location.pathname, isAdmin);
   const isDetail = /^\/(companies|factories|occupations|skills)\/[^/]+$/.test(location.pathname);
-  const title = isDetail ? null : section ? `${section} · Archangel` : 'Archangel';
+  // The industry pages name themselves too: the industry, and the place.
+  const namesItself = isDetail || /^\/industries(\/[^/]+)?$/.test(location.pathname);
+  const title = namesItself ? null : section ? `${section} · Archangel` : 'Archangel';
   // Set on arrival, and again only if the title itself changes (an admin's
   // account loading), so a page that names itself afterwards keeps its title.
   useEffect(() => {

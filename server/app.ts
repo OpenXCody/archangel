@@ -13,6 +13,7 @@ import employerRouter from './routes/employer.js';
 import adminRouter from './routes/admin.js';
 import { adminCompanyRequestsRouter } from './routes/companyRequests.js';
 import exploreRouter from './routes/explore.js';
+import industriesRouter from './routes/industries.js';
 import { noStore } from './lib/auth.js';
 import { requireAdminUser, requireAdminForWrites } from './middleware/adminAuth.js';
 import { onlyQuery, publicCache } from './middleware/cache.js';
@@ -91,6 +92,7 @@ app.use('/api/stats', publicCache(60), statsRouter);
 app.use('/api/search', publicCache(60), searchRouter);
 app.use('/api/map', publicCache(60), mapRouter);
 app.use('/api/explore', publicCache(300), exploreRouter);
+app.use('/api/industries', publicCache(300), industriesRouter);
 
 // 404
 app.use((_req: Request, res: Response) => {
