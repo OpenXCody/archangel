@@ -1,0 +1,3657 @@
+{
+  "brief": "texas-food-consumer",
+  "retrieved": "2026-11-18",
+  "companies": [
+    {
+      "name": "Tyson Foods",
+      "alsoKnownAs": [
+        "Tyson",
+        "Tyson Foods Inc",
+        "Tyson Fresh Meats",
+        "Tyson Fresh Meats Inc",
+        "Tyson Farms",
+        "Tyson Farms Inc",
+        "Tyson Poultry",
+        "Tyson Poultry Inc",
+        "Tyson Prepared Foods",
+        "Tyson Prepared Foods Inc",
+        "Tyson Refrigerated Processed Meats",
+        "IBP",
+        "IBP Inc",
+        "Iowa Beef Processors",
+        "H&M Food Systems",
+        "Wright Brand Foods"
+      ],
+      "parent": null,
+      "domain": "tysonfoods.com",
+      "industry": "Meat & Poultry",
+      "description": "Processes beef, chicken and pork and makes bacon and prepared meats.",
+      "headquarters": {
+        "city": "Springdale",
+        "state": "AR",
+        "country": "US"
+      },
+      "stateEmployees": {
+        "state": "TX",
+        "count": 12000,
+        "year": 2021,
+        "source": "https://www.tysonfoods.com/news/news-releases/2021/1/tyson-foods-expanding-iconic-wright-brand-bacon-plant",
+        "note": "Company release, January 2021: 10 food processing plants in Texas with more than 12,000 team members. Predates the 2026 cut at Amarillo."
+      },
+      "sources": [
+        "https://www.tysonfoods.com/news/news-releases/2021/1/tyson-foods-expanding-iconic-wright-brand-bacon-plant",
+        "https://www.tysonfoods.com/news/news-releases/2022/8/tyson-foods-invests-200-million-amarillo-beef-plant"
+      ],
+      "plants": [
+        {
+          "name": "Amarillo Beef Plant",
+          "city": "Amarillo",
+          "state": "TX",
+          "address": "5000 N FM 1912",
+          "zip": "79108",
+          "latitude": 35.25907,
+          "longitude": -101.64996,
+          "subsector": "Food Manufacturing",
+          "naics": "311611",
+          "products": "Beef slaughter and fabrication",
+          "employees": 4000,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.dallasfed.org/research/heart/amarillo",
+          "employeesNote": "Dallas Fed 2025 profile; Tyson's own 2022 release also says 4,000. In January 2026 the plant went to one shift and a WARN notice listed 1,761 jobs cut; in August 2026 Tyson said it plans to bring the second shift back. No later site figure found, so the current number is likely well below 4,000.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110009497785",
+            "https://www.tysonfoods.com/news/news-releases/2022/8/tyson-foods-invests-200-million-amarillo-beef-plant",
+            "https://www.foodprocessing.com/ingredients/animal-proteins/news/55332156/tyson-to-close-lexington-nebraska-beef-plant-cut-amarillo-texas-plant-to-one-shift",
+            "https://www.dallasfed.org/research/heart/amarillo"
+          ]
+        },
+        {
+          "name": "Sherman Case Ready Plant",
+          "city": "Sherman",
+          "state": "TX",
+          "address": "4700 S US Highway 75",
+          "zip": "75090",
+          "latitude": 33.58078,
+          "longitude": -96.60529,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Case-ready beef and pork, ground beef",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110063866669"
+          ]
+        },
+        {
+          "name": "Wright Brand Bacon Plant",
+          "city": "Vernon",
+          "state": "TX",
+          "address": "700 Wheeler St",
+          "zip": "76384",
+          "latitude": 34.16308,
+          "longitude": -99.29278,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Wright Brand bacon",
+          "employees": 800,
+          "employeesYear": 2021,
+          "employeesSource": "https://www.tysonfoods.com/news/news-releases/2021/1/tyson-foods-expanding-iconic-wright-brand-bacon-plant",
+          "employeesNote": "Company release: an expansion due by March 2021 would bring employment at the plant to more than 800.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110031000574",
+            "https://www.tysonfoods.com/news/news-releases/2021/1/tyson-foods-expanding-iconic-wright-brand-bacon-plant"
+          ]
+        },
+        {
+          "name": "Center Poultry Plant",
+          "city": "Center",
+          "state": "TX",
+          "address": "1019 Shelbyville St",
+          "zip": "75935",
+          "latitude": 31.792676,
+          "longitude": -94.167863,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Chicken slaughter and processing",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000458683"
+          ]
+        },
+        {
+          "name": "Carthage Poultry Plant",
+          "city": "Carthage",
+          "state": "TX",
+          "address": "1484 NE Loop 436",
+          "zip": "75633",
+          "latitude": 32.17302,
+          "longitude": -94.32544,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Chicken slaughter and processing",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000756281"
+          ]
+        },
+        {
+          "name": "Seguin Poultry Plant",
+          "city": "Seguin",
+          "state": "TX",
+          "address": "1200 W Kingsbury St",
+          "zip": "78155",
+          "latitude": 29.5795,
+          "longitude": -97.982889,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Chicken processing",
+          "employees": 830,
+          "employeesYear": 2026,
+          "employeesSource": "https://www.seguinedc.com/site-selection/primary-employers/",
+          "employeesNote": "Seguin EDC top-10 employers list (source: City of Seguin), shown as about 830; the list is undated and was read in November 2026. The EDC's October 2021 release gave 546 full-time.",
+          "opened": 1989,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110035049630",
+            "https://www.seguinedc.com/site-selection/primary-employers/",
+            "https://www.seguinedc.com/news-and-media/p/item/38553/tyson-foods-announces-expansion-of-current-facility"
+          ]
+        },
+        {
+          "name": "Houston Prepared Foods Plant",
+          "city": "Houston",
+          "state": "TX",
+          "address": "300 Portwall St",
+          "zip": "77029",
+          "latitude": 29.78376,
+          "longitude": -95.27731,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Processed and prepared meats",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110008973263"
+          ]
+        },
+        {
+          "name": "Dallas Prepared Foods Plant",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "4114 Mint Way",
+          "zip": "75237",
+          "latitude": 32.684167,
+          "longitude": -96.886944,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Processed and prepared meats",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000504133"
+          ]
+        },
+        {
+          "name": "Fort Worth Prepared Foods Plant",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "7401 Will Rogers Blvd",
+          "zip": "76140",
+          "latitude": 32.64075,
+          "longitude": -97.31087,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Processed and prepared meats",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110040859470"
+          ]
+        },
+        {
+          "name": "North Richland Hills Prepared Foods Plant",
+          "city": "North Richland Hills",
+          "state": "TX",
+          "address": "6350 Browning Ct",
+          "zip": "76180",
+          "latitude": 32.851944,
+          "longitude": -97.245556,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Cooked and prepared meats",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000459691"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "JBS",
+      "alsoKnownAs": [
+        "JBS USA",
+        "JBS USA LLC",
+        "JBS Swift",
+        "JBS Swift Beef Company",
+        "Swift Beef Company",
+        "Swift Beef",
+        "Swift & Company",
+        "JBS Foods"
+      ],
+      "parent": null,
+      "domain": "jbsfoodsgroup.com",
+      "industry": "Beef Processing",
+      "description": "Slaughters cattle and packs beef at its Cactus plant in the Texas Panhandle.",
+      "headquarters": {
+        "city": "Greeley",
+        "state": "CO",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://provisioneronline.com/articles/118265-jbs-usa-invests-200m-in-beef-production"
+      ],
+      "plants": [
+        {
+          "name": "Cactus Beef Plant",
+          "city": "Cactus",
+          "state": "TX",
+          "address": "5950 Trail End Rd",
+          "zip": "79013",
+          "latitude": 36.051556,
+          "longitude": -102.010528,
+          "subsector": "Food Manufacturing",
+          "naics": "311611",
+          "products": "Beef slaughter, fabrication and ground beef",
+          "employees": 3700,
+          "employeesYear": 2025,
+          "employeesSource": "https://provisioneronline.com/articles/118265-jbs-usa-invests-200m-in-beef-production",
+          "employeesNote": "JBS USA announcement of February 2025, as carried by The National Provisioner: more than 3,700 team members.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000599941",
+            "https://provisioneronline.com/articles/118265-jbs-usa-invests-200m-in-beef-production"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pilgrim's",
+      "alsoKnownAs": [
+        "Pilgrim's Pride",
+        "Pilgrims Pride",
+        "Pilgrim's Pride Corporation",
+        "Pilgrim's Pride Corp",
+        "Pilgrims",
+        "Pilgrim Pride"
+      ],
+      "parent": "JBS",
+      "domain": "pilgrims.com",
+      "industry": "Poultry Processing",
+      "description": "Processes chicken and makes prepared chicken products at plants in East and Central Texas.",
+      "headquarters": {
+        "city": "Greeley",
+        "state": "CO",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://jbssa.com/about/news/2020/10-01"
+      ],
+      "plants": [
+        {
+          "name": "Mount Pleasant Complex",
+          "city": "Mount Pleasant",
+          "state": "TX",
+          "address": "1000 Pilgrim St",
+          "zip": "75455",
+          "latitude": 33.14798,
+          "longitude": -94.98246,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Chicken processing and prepared chicken products",
+          "employees": 3200,
+          "employeesYear": 2020,
+          "employeesSource": "https://jbsfoodsgroup.com/articles/pilgrim-s-to-invest-1-5-million-in-mt-pleasant-to-support-local-community-as-part-of-new-hometown-strong-initiative",
+          "employeesNote": "Company release, 2020; covers the Mount Pleasant complex as a whole.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110045468686",
+            "https://jbsfoodsgroup.com/articles/pilgrim-s-to-invest-1-5-million-in-mt-pleasant-to-support-local-community-as-part-of-new-hometown-strong-initiative"
+          ]
+        },
+        {
+          "name": "Lufkin Plant",
+          "city": "Lufkin",
+          "state": "TX",
+          "address": "1800 W Frank Ave",
+          "zip": "75904",
+          "latitude": 31.33378,
+          "longitude": -94.75537,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Chicken slaughter and processing",
+          "employees": 1400,
+          "employeesYear": 2020,
+          "employeesSource": "https://jbsfoodsgroup.com/articles/pilgrim-s-to-invest-685-000-in-lufkin-to-support-local-community-as-part-of-hometown-strong-initiative",
+          "employeesNote": "Company release, 2020: more than 1,400.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000505212",
+            "https://jbsfoodsgroup.com/articles/pilgrim-s-to-invest-685-000-in-lufkin-to-support-local-community-as-part-of-hometown-strong-initiative"
+          ]
+        },
+        {
+          "name": "Nacogdoches Plant",
+          "city": "Nacogdoches",
+          "state": "TX",
+          "address": "928 Martin Luther King Jr Blvd",
+          "zip": "75961",
+          "latitude": 31.59082,
+          "longitude": -94.64892,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Chicken slaughter and processing",
+          "employees": 1500,
+          "employeesYear": 2020,
+          "employeesSource": "https://jbssa.com/about/news/2020/11-11",
+          "employeesNote": "Company release, 2020: more than 1,500.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000505114",
+            "https://jbssa.com/about/news/2020/11-11"
+          ]
+        },
+        {
+          "name": "Waco Prepared Foods Plant",
+          "city": "Waco",
+          "state": "TX",
+          "address": "2500 E Lake Shore Dr",
+          "zip": "76705",
+          "latitude": 31.60988,
+          "longitude": -97.12684,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Prepared chicken: wings, fillets, nuggets",
+          "employees": 500,
+          "employeesYear": 2020,
+          "employeesSource": "https://jbssa.com/about/news/2020/10-01",
+          "employeesNote": "Company release, 2020: more than 500.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110002133147",
+            "https://jbssa.com/about/news/2020/10-01"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cargill",
+      "alsoKnownAs": [
+        "Cargill Inc",
+        "Cargill Meat Solutions",
+        "Cargill Meat Solutions Corp",
+        "Cargill Meat Solutions Corporation",
+        "Cargill Value Added Meats",
+        "Cargill Protein",
+        "Excel Corporation",
+        "Excel Corp"
+      ],
+      "parent": null,
+      "domain": "cargill.com",
+      "industry": "Meat Processing",
+      "description": "Packs beef at Friona and makes ground beef and cooked meats in Fort Worth and Waco.",
+      "headquarters": {
+        "city": "Wayzata",
+        "state": "MN",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://careers.cargill.com/en/friona-tx",
+        "https://careers.cargill.com/fortworth-tx",
+        "https://careers.cargill.com/en/waco-tx"
+      ],
+      "plants": [
+        {
+          "name": "Friona Beef Plant",
+          "city": "Friona",
+          "state": "TX",
+          "address": "1530 US Highway 60",
+          "zip": "79035",
+          "latitude": 34.5992,
+          "longitude": -102.7736,
+          "subsector": "Food Manufacturing",
+          "naics": "311611",
+          "products": "Beef slaughter and fabrication",
+          "employees": 2000,
+          "employeesYear": 2026,
+          "employeesSource": "https://careers.cargill.com/en/friona-tx",
+          "employeesNote": "Cargill careers page for the site, read November 2026: approximately 2,000 people.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110056965618",
+            "https://careers.cargill.com/en/friona-tx"
+          ]
+        },
+        {
+          "name": "Fort Worth Grind Facility",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "1301 Northpark Dr",
+          "zip": "76102",
+          "latitude": 32.773612,
+          "longitude": -97.333885,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Ground beef for grocery and foodservice brands",
+          "employees": 300,
+          "employeesYear": 2026,
+          "employeesSource": "https://careers.cargill.com/fortworth-tx",
+          "employeesNote": "Cargill careers page, read November 2026: around 300.",
+          "opened": 2012,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000502750",
+            "https://careers.cargill.com/fortworth-tx"
+          ]
+        },
+        {
+          "name": "Fort Worth Cooked Facility",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "3709 E 1st St",
+          "zip": "76111",
+          "latitude": 32.76664,
+          "longitude": -97.2934,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Cooked meat products",
+          "employees": 300,
+          "employeesYear": 2026,
+          "employeesSource": "https://careers.cargill.com/fortworth-tx",
+          "employeesNote": "Cargill careers page, read November 2026: 300 team members. Cargill bought the plant in 2016.",
+          "opened": 1999,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000769687",
+            "https://careers.cargill.com/fortworth-tx"
+          ]
+        },
+        {
+          "name": "Waco Cooked Meats Plant",
+          "city": "Waco",
+          "state": "TX",
+          "address": "2510 E Lake Shore Dr",
+          "zip": "76705",
+          "latitude": 31.6102,
+          "longitude": -97.12344,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Ready-to-eat cooked protein products",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": 1965,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000460484",
+            "https://careers.cargill.com/en/waco-tx"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wayne-Sanderson Farms",
+      "alsoKnownAs": [
+        "Sanderson Farms",
+        "Sanderson Farms Inc",
+        "Wayne Sanderson Farms",
+        "Wayne Farms",
+        "Sanderson Farms Inc Processing Division"
+      ],
+      "parent": "Cargill and Continental Grain",
+      "domain": "waynesandersonfarms.com",
+      "industry": "Poultry Processing",
+      "description": "Slaughters and processes chicken at four Texas complexes.",
+      "headquarters": {
+        "city": "Oakwood",
+        "state": "GA",
+        "country": "US"
+      },
+      "stateEmployees": {
+        "state": "TX",
+        "count": 6500,
+        "year": 2020,
+        "source": "https://www.kxxv.com/news/local-news/forbes-names-sanderson-farms-among-americas-best-employers-in-texas",
+        "note": "Sanderson Farms before the 2022 merger: over 6,500 people in Texas at processing plants, hatcheries and feed mills together."
+      },
+      "sources": [
+        "https://www.kxxv.com/news/local-news/forbes-names-sanderson-farms-among-americas-best-employers-in-texas"
+      ],
+      "plants": [
+        {
+          "name": "Palestine Processing Plant",
+          "city": "Palestine",
+          "state": "TX",
+          "address": "320 Sanderson Farms Pkwy",
+          "zip": "75803",
+          "latitude": 31.72486,
+          "longitude": -95.70055,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Chicken slaughter and processing",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": 2015,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110072085686"
+          ]
+        },
+        {
+          "name": "Tyler Processing Plant",
+          "city": "Tyler",
+          "state": "TX",
+          "address": "13523 FM 2015",
+          "zip": "75708",
+          "latitude": 32.46129,
+          "longitude": -95.23766,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Chicken slaughter and processing",
+          "employees": 1750,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.dallasfed.org/research/heart/tyler",
+          "employeesNote": "Dallas Fed 2025 profile of Tyler-Longview; the same figure is in the City of Tyler's 2022-23 annual financial report as cited on Wikipedia.",
+          "opened": 2019,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110072085741",
+            "https://www.dallasfed.org/research/heart/tyler"
+          ]
+        },
+        {
+          "name": "Bryan Processing Plant",
+          "city": "Bryan",
+          "state": "TX",
+          "address": "2000 Shiloh Ave",
+          "zip": "77803",
+          "latitude": 30.64899,
+          "longitude": -96.41521,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Chicken slaughter and processing",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": 1997,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110072083375"
+          ]
+        },
+        {
+          "name": "Waco Processing Plant",
+          "city": "Waco",
+          "state": "TX",
+          "address": "301 Aviation Pkwy",
+          "zip": "76705",
+          "latitude": 31.62246,
+          "longitude": -97.05488,
+          "subsector": "Food Manufacturing",
+          "naics": "311615",
+          "products": "Chicken slaughter and processing",
+          "employees": 1120,
+          "employeesYear": 2024,
+          "employeesSource": "https://wacochamber.com/wp-content/uploads/sites/8/2024/12/LW-ED-Presentation-11_19_24.pdf",
+          "employeesNote": "Greater Waco Chamber presentation, November 2024, listed as Sanderson Farms, Inc.",
+          "opened": 2007,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110072083934",
+            "https://wacochamber.com/wp-content/uploads/sites/8/2024/12/LW-ED-Presentation-11_19_24.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Caviness Beef Packers",
+      "alsoKnownAs": [
+        "Caviness Beef Packers Ltd",
+        "Caviness Packing",
+        "Caviness Packing Co",
+        "Caviness Packing Co Inc",
+        "Caviness Beef Packing"
+      ],
+      "parent": null,
+      "domain": "cavinessbeefpackers.com",
+      "industry": "Beef Processing",
+      "description": "Family-owned beef packer: slaughter in Hereford and ground beef in Amarillo.",
+      "headquarters": {
+        "city": "Hereford",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110041623945"
+      ],
+      "plants": [
+        {
+          "name": "Hereford Plant",
+          "city": "Hereford",
+          "state": "TX",
+          "address": "3255 W US Highway 60",
+          "zip": "79045",
+          "latitude": 34.758368,
+          "longitude": -102.471898,
+          "subsector": "Food Manufacturing",
+          "naics": "311611",
+          "products": "Beef slaughter and boxed beef",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110041623945",
+            "https://echo.epa.gov/detailed-facility-report?fid=110070342262"
+          ]
+        },
+        {
+          "name": "Amarillo Plant",
+          "city": "Amarillo",
+          "state": "TX",
+          "address": "8501 S FM 1541",
+          "zip": "79118",
+          "latitude": 35.123394,
+          "longitude": -101.84634,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Ground beef and further processing",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110071434513"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "STX Beef",
+      "alsoKnownAs": [
+        "STX Beef Company",
+        "STX Beef Co",
+        "Sam Kane Beef Processors",
+        "Sam Kane Beef Processors Inc",
+        "Kane Beef"
+      ],
+      "parent": null,
+      "domain": "stxbeef.com",
+      "industry": "Beef Processing",
+      "description": "Slaughters cattle and packs beef in Corpus Christi.",
+      "headquarters": {
+        "city": "Corpus Christi",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110005095182"
+      ],
+      "plants": [
+        {
+          "name": "Corpus Christi Plant",
+          "city": "Corpus Christi",
+          "state": "TX",
+          "address": "9001 Leopard St",
+          "zip": "78409",
+          "latitude": 27.821667,
+          "longitude": -97.53889,
+          "subsector": "Food Manufacturing",
+          "naics": "311611",
+          "products": "Beef slaughter and fabrication",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110005095182"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "John Soules Foods",
+      "alsoKnownAs": [
+        "John Soules Foods Inc",
+        "John Soules Food"
+      ],
+      "parent": null,
+      "domain": "johnsoulesfoods.com",
+      "industry": "Prepared Meats",
+      "description": "Makes fajita meat and other cooked beef and chicken products.",
+      "headquarters": {
+        "city": "Tyler",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.dallasfed.org/research/heart/tyler"
+      ],
+      "plants": [
+        {
+          "name": "Tyler Plant",
+          "city": "Tyler",
+          "state": "TX",
+          "address": "10150 FM 14",
+          "zip": "75706",
+          "latitude": 32.41116,
+          "longitude": -95.27783,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Cooked and ready-to-cook beef and chicken",
+          "employees": 1000,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.dallasfed.org/research/heart/tyler",
+          "employeesNote": "Dallas Fed 2025 profile of Tyler-Longview; the City of Tyler's 2022-23 annual financial report, as cited on Wikipedia, gives the same figure.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110034039038",
+            "https://www.dallasfed.org/research/heart/tyler"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sadler's Smokehouse",
+      "alsoKnownAs": [
+        "Sadlers Smokehouse",
+        "Sadler's Smokehouse LLC",
+        "Sadler's Bar-B-Que Sales",
+        "Sadlers Bar B Que Sales",
+        "SBBQ Operations"
+      ],
+      "parent": "Hormel Foods",
+      "domain": "sadlerssmokehouse.com",
+      "industry": "Smoked Meats",
+      "description": "Makes pit-smoked brisket and other smoked meats; part of Hormel Foods since 2020.",
+      "headquarters": {
+        "city": "Henderson",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://hormelfoods.com/newsroom/press-releases/hormel-foods-announces-acquisition-of-sadlers-smokehouse-business"
+      ],
+      "plants": [
+        {
+          "name": "Henderson Plant",
+          "city": "Henderson",
+          "state": "TX",
+          "address": "1206 N Frisco St",
+          "zip": "75652",
+          "latitude": 32.162222,
+          "longitude": -94.827222,
+          "subsector": "Food Manufacturing",
+          "naics": "311612",
+          "products": "Pit-smoked beef, pork and poultry",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000502199",
+            "https://hormelfoods.com/newsroom/press-releases/hormel-foods-announces-acquisition-of-sadlers-smokehouse-business"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Frito-Lay",
+      "alsoKnownAs": [
+        "Frito Lay",
+        "Frito-Lay Inc",
+        "Frito Lay Inc",
+        "Frito-Lay North America",
+        "PepsiCo Foods North America",
+        "Frito-Lay Incorporated"
+      ],
+      "parent": "PepsiCo",
+      "domain": "fritolay.com",
+      "industry": "Snack Foods",
+      "description": "Makes potato chips, corn chips and other salty snacks.",
+      "headquarters": {
+        "city": "Plano",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.pepsico.com/newsroom/press-releases/2021/frito-lay-to-create-160-jobs-with-rosenberg-texas-plant-expansion"
+      ],
+      "plants": [
+        {
+          "name": "Frito-Lay Rosenberg",
+          "city": "Rosenberg",
+          "state": "TX",
+          "address": "3310 State Highway 36 N",
+          "zip": "77471",
+          "latitude": 29.570963,
+          "longitude": -95.857038,
+          "subsector": "Food Manufacturing",
+          "naics": "311919",
+          "products": "Corn and tortilla chips, Funyuns and other snacks",
+          "employees": 750,
+          "employeesYear": 2021,
+          "employeesSource": "https://www.pepsico.com/newsroom/press-releases/2021/frito-lay-to-create-160-jobs-with-rosenberg-texas-plant-expansion",
+          "employeesNote": "PepsiCo release, June 2021: more than 750 full-time plant and fleet associates, before an expansion due by 2023 that was to add 160 jobs.",
+          "opened": 1982,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110070738254",
+            "https://www.pepsico.com/newsroom/press-releases/2021/frito-lay-to-create-160-jobs-with-rosenberg-texas-plant-expansion"
+          ]
+        },
+        {
+          "name": "Frito-Lay San Antonio",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "4855 Greatland Dr",
+          "zip": "78218",
+          "latitude": 29.47264,
+          "longitude": -98.398925,
+          "subsector": "Food Manufacturing",
+          "naics": "311919",
+          "products": "Salty snacks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000500627"
+          ]
+        },
+        {
+          "name": "Frito-Lay Irving",
+          "city": "Irving",
+          "state": "TX",
+          "address": "701 N Wildwood Dr",
+          "zip": "75061",
+          "latitude": 32.821,
+          "longitude": -96.91685,
+          "subsector": "Food Manufacturing",
+          "naics": "311919",
+          "products": "Salty snacks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000456499"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "H-E-B",
+      "alsoKnownAs": [
+        "HEB",
+        "H-E-B Grocery Company",
+        "HEB Grocery Company",
+        "H. E. Butt Grocery Company",
+        "H.E. Butt Grocery",
+        "H-E-B LP"
+      ],
+      "parent": null,
+      "domain": "heb.com",
+      "industry": "Grocery Manufacturing",
+      "description": "Grocer that makes its own bread, milk, ice cream, meat and snacks in San Antonio and Houston.",
+      "headquarters": {
+        "city": "San Antonio",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://careers.heb.com/about-heb"
+      ],
+      "plants": [
+        {
+          "name": "San Antonio Manufacturing Complex (Rittiman Road)",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "5311 Rittiman Rd",
+          "zip": "78218",
+          "latitude": 29.48477,
+          "longitude": -98.38553,
+          "subsector": "Food Manufacturing",
+          "naics": null,
+          "products": "Bread and baked goods, milk, cultured dairy, ice cream, meat and snacks for H-E-B stores",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110033869829",
+            "https://dairyfoods.com/articles/85148-aiming-high"
+          ]
+        },
+        {
+          "name": "Houston Bakery and Milk Plant (Clay Road)",
+          "city": "Houston",
+          "state": "TX",
+          "address": "10010 Clay Rd",
+          "zip": "77080",
+          "latitude": 29.83339,
+          "longitude": -95.53988,
+          "subsector": "Food Manufacturing",
+          "naics": null,
+          "products": "Bread and milk for H-E-B stores",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000462044"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Blue Bell Creameries",
+      "alsoKnownAs": [
+        "Blue Bell",
+        "Blue Bell Creameries LP",
+        "Blue Bell Creameries Inc",
+        "Blue Bell Ice Cream"
+      ],
+      "parent": null,
+      "domain": "bluebell.com",
+      "industry": "Ice Cream",
+      "description": "Makes ice cream and frozen snacks.",
+      "headquarters": {
+        "city": "Brenham",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://kwhi.com/2019/10/04/national-manufacturing-day-spotlight-blue-bell-creameries/"
+      ],
+      "plants": [
+        {
+          "name": "Brenham Creamery",
+          "city": "Brenham",
+          "state": "TX",
+          "address": "1101 S Blue Bell Rd",
+          "zip": "77833",
+          "latitude": 30.16352,
+          "longitude": -96.3778,
+          "subsector": "Food Manufacturing",
+          "naics": "311520",
+          "products": "Ice cream and frozen snacks",
+          "employees": 750,
+          "employeesYear": 2019,
+          "employeesSource": "https://kwhi.com/2019/10/04/national-manufacturing-day-spotlight-blue-bell-creameries/",
+          "employeesNote": "Company official quoted by KWHI radio, October 2019: around 750 people at the Brenham facility alone.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110057515531",
+            "https://kwhi.com/2019/10/04/national-manufacturing-day-spotlight-blue-bell-creameries/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bimbo Bakeries USA",
+      "alsoKnownAs": [
+        "Bimbo Bakeries",
+        "Bimbo Bakeries USA Inc",
+        "Mrs Baird's",
+        "Mrs Baird's Bakeries",
+        "Mrs. Baird's Bakeries",
+        "Mrs Bairds Bakeries",
+        "Mrs Bairds Bakeries Inc",
+        "Mrs Baird's Bakeries Business Trust",
+        "Earthgrains Baking",
+        "Earthgrains"
+      ],
+      "parent": "Grupo Bimbo",
+      "domain": "bimbobakeriesusa.com",
+      "industry": "Commercial Bakery",
+      "description": "Bakes Mrs Baird's and other packaged bread, buns and sweet goods.",
+      "headquarters": {
+        "city": "Horsham",
+        "state": "PA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110005153181"
+      ],
+      "plants": [
+        {
+          "name": "Fort Worth Bakery (Mrs Baird's)",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "7301 South Fwy",
+          "zip": "76134",
+          "latitude": 32.63782,
+          "longitude": -97.31942,
+          "subsector": "Food Manufacturing",
+          "naics": "311812",
+          "products": "Packaged bread and buns",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110005153181"
+          ]
+        },
+        {
+          "name": "Houston Bakery (Mrs Baird's)",
+          "city": "Houston",
+          "state": "TX",
+          "address": "6650 N Houston Rosslyn Rd",
+          "zip": "77091",
+          "latitude": 29.86307,
+          "longitude": -95.48221,
+          "subsector": "Food Manufacturing",
+          "naics": "311812",
+          "products": "Packaged bread and buns",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110001870495"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Barcel USA",
+      "alsoKnownAs": [
+        "Barcel",
+        "Barcel USA LLC"
+      ],
+      "parent": "Grupo Bimbo",
+      "domain": "barcel-usa.com",
+      "industry": "Snack Foods",
+      "description": "Makes Takis rolled tortilla chips and other snacks.",
+      "headquarters": {
+        "city": "Coppell",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110058217987"
+      ],
+      "plants": [
+        {
+          "name": "Barcel USA Coppell",
+          "city": "Coppell",
+          "state": "TX",
+          "address": "301 Northpoint Dr",
+          "zip": "75019",
+          "latitude": 32.96935,
+          "longitude": -97.02144,
+          "subsector": "Food Manufacturing",
+          "naics": "311919",
+          "products": "Takis and other snack chips",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110058217987"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Flowers Foods",
+      "alsoKnownAs": [
+        "Flowers Baking",
+        "Flowers Baking Co",
+        "Flowers Baking Company",
+        "Flowers Baking Co of Denton",
+        "Flowers Baking Co of Houston",
+        "Flowers Baking Company of Tyler",
+        "Flowers Baking Co of El Paso",
+        "Flowers Baking Co of San Antonio",
+        "Flowers Foods Inc"
+      ],
+      "parent": null,
+      "domain": "flowersfoods.com",
+      "industry": "Commercial Bakery",
+      "description": "Bakes Nature's Own, Wonder and other packaged bread, buns and rolls.",
+      "headquarters": {
+        "city": "Thomasville",
+        "state": "GA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110070375585"
+      ],
+      "plants": [
+        {
+          "name": "Flowers Baking Co. of Denton",
+          "city": "Denton",
+          "state": "TX",
+          "address": "4210 Edwards Rd",
+          "zip": "76208",
+          "latitude": 33.17603,
+          "longitude": -97.0831,
+          "subsector": "Food Manufacturing",
+          "naics": "311812",
+          "products": "Packaged bread and buns",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110070375585"
+          ]
+        },
+        {
+          "name": "Flowers Baking Co. of Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "3000 Washington Ave",
+          "zip": "77007",
+          "latitude": 29.76919,
+          "longitude": -95.38919,
+          "subsector": "Food Manufacturing",
+          "naics": "311812",
+          "products": "Packaged bread and buns",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110001870501"
+          ]
+        },
+        {
+          "name": "Flowers Baking Co. of Tyler",
+          "city": "Tyler",
+          "state": "TX",
+          "address": "1200 W Erwin St",
+          "zip": "75702",
+          "latitude": 32.35044,
+          "longitude": -95.31368,
+          "subsector": "Food Manufacturing",
+          "naics": "311812",
+          "products": "Packaged bread and buns",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110001879209"
+          ]
+        },
+        {
+          "name": "Flowers Baking Co. of El Paso",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "301 Dallas St",
+          "zip": "79901",
+          "latitude": 31.76933,
+          "longitude": -106.47292,
+          "subsector": "Food Manufacturing",
+          "naics": "311812",
+          "products": "Packaged bread and buns",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110034673770"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mission Foods",
+      "alsoKnownAs": [
+        "Mission Foods Inc",
+        "Gruma",
+        "Gruma Corporation",
+        "Gruma USA",
+        "Mission Tortillas"
+      ],
+      "parent": "Gruma",
+      "domain": "missionfoods.com",
+      "industry": "Tortillas",
+      "description": "Makes flour and corn tortillas, wraps and tortilla chips.",
+      "headquarters": {
+        "city": "Irving",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.missionfoods.com/about-us/"
+      ],
+      "plants": [
+        {
+          "name": "Mission Foods Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "12600 Wallisville Rd",
+          "zip": "77013",
+          "latitude": 29.80205,
+          "longitude": -95.21569,
+          "subsector": "Food Manufacturing",
+          "naics": "311830",
+          "products": "Tortillas and tortilla chips",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110002133405"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Azteca Milling",
+      "alsoKnownAs": [
+        "Azteca Milling LP",
+        "Azteca Milling L.P.",
+        "Maseca"
+      ],
+      "parent": "Gruma",
+      "domain": "aztecamilling.com",
+      "industry": "Corn Flour",
+      "description": "Mills corn into Maseca masa flour for tortillas and chips.",
+      "headquarters": {
+        "city": "Irving",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110070502574"
+      ],
+      "plants": [
+        {
+          "name": "Azteca Milling Plainview",
+          "city": "Plainview",
+          "state": "TX",
+          "address": "1388 County Road U",
+          "zip": "79072",
+          "latitude": 34.123449,
+          "longitude": -101.748651,
+          "subsector": "Food Manufacturing",
+          "naics": "311211",
+          "products": "Corn masa flour",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110070502574",
+            "https://echo.epa.gov/detailed-facility-report?fid=110007180610"
+          ]
+        },
+        {
+          "name": "Azteca Milling Edinburg",
+          "city": "Edinburg",
+          "state": "TX",
+          "address": "501 W Chapin St",
+          "zip": "78541",
+          "latitude": 26.31647,
+          "longitude": -98.16605,
+          "subsector": "Food Manufacturing",
+          "naics": "311211",
+          "products": "Corn masa flour",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110013296405"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Kraft Heinz",
+      "alsoKnownAs": [
+        "Kraft Heinz Company",
+        "The Kraft Heinz Co",
+        "Kraft Heinz Foods",
+        "Kraft Heinz Foods Company",
+        "Kraft Foods",
+        "Kraft Foods Group",
+        "Kraft Foods Group Inc",
+        "Kraft"
+      ],
+      "parent": null,
+      "domain": "kraftheinzcompany.com",
+      "industry": "Packaged Foods",
+      "description": "Makes Lunchables, Oscar Mayer meats, barbecue sauce and Velveeta meals in Garland.",
+      "headquarters": {
+        "city": "Chicago",
+        "state": "IL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.areadevelopment.com/newsitems/12-19-2019/kraft-heinz-food-company-garland-texas.shtml"
+      ],
+      "plants": [
+        {
+          "name": "Kraft Heinz Garland",
+          "city": "Garland",
+          "state": "TX",
+          "address": "2340 Forest Ln",
+          "zip": "75042",
+          "latitude": 32.90816,
+          "longitude": -96.66295,
+          "subsector": "Food Manufacturing",
+          "naics": null,
+          "products": "Lunchables, Oscar Mayer Naturals, Kraft barbecue sauce, Velveeta Skillets",
+          "employees": 843,
+          "employeesYear": 2019,
+          "employeesSource": "https://www.areadevelopment.com/newsitems/12-19-2019/kraft-heinz-food-company-garland-texas.shtml",
+          "employeesNote": "December 2019, when a state-backed expansion was to add about 250 jobs to a workforce of 843.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000456293",
+            "https://www.areadevelopment.com/newsitems/12-19-2019/kraft-heinz-food-company-garland-texas.shtml"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mars Wrigley",
+      "alsoKnownAs": [
+        "Mars Chocolate North America",
+        "Mars Chocolate North America LLC",
+        "Mars Wrigley Confectionery",
+        "M&M/Mars",
+        "Mars Snackfood US"
+      ],
+      "parent": "Mars",
+      "domain": "mars.com",
+      "industry": "Candy",
+      "description": "Makes chocolate bars and fruit candy at its Waco plant.",
+      "headquarters": {
+        "city": "Chicago",
+        "state": "IL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://wacochamber.com/wp-content/uploads/sites/8/2024/12/LW-ED-Presentation-11_19_24.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Mars Wrigley Waco",
+          "city": "Waco",
+          "state": "TX",
+          "address": "1001 Texas Central Pkwy",
+          "zip": "76712",
+          "latitude": 31.49098,
+          "longitude": -97.19855,
+          "subsector": "Food Manufacturing",
+          "naics": null,
+          "products": "Chocolate bars and fruit candy",
+          "employees": 695,
+          "employeesYear": 2024,
+          "employeesSource": "https://wacochamber.com/wp-content/uploads/sites/8/2024/12/LW-ED-Presentation-11_19_24.pdf",
+          "employeesNote": "Greater Waco Chamber presentation, November 2024.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000460616",
+            "https://wacochamber.com/wp-content/uploads/sites/8/2024/12/LW-ED-Presentation-11_19_24.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Campbell's",
+      "alsoKnownAs": [
+        "Campbell Soup",
+        "Campbell Soup Company",
+        "Campbell Soup Supply Co",
+        "Campbell Soup Supply Company",
+        "The Campbell's Company",
+        "Pace Foods"
+      ],
+      "parent": null,
+      "domain": "thecampbellscompany.com",
+      "industry": "Packaged Foods",
+      "description": "Makes sauces and salsa in Paris, Texas, where soup production is being wound down.",
+      "headquarters": {
+        "city": "Camden",
+        "state": "NJ",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.foodprocessing.com/on-the-plant-floor/plant-operations-and-engineering/news/55128940/campbells-paris-texas-plant-to-lose-soup-operations-shift-to-sauce-salsa"
+      ],
+      "plants": [
+        {
+          "name": "Campbell's Paris Plant",
+          "city": "Paris",
+          "state": "TX",
+          "address": "500 NW Loop 286",
+          "zip": "75460",
+          "latitude": 33.69075,
+          "longitude": -95.56042,
+          "subsector": "Food Manufacturing",
+          "naics": "311422",
+          "products": "Pasta sauce and salsa; canned soup until the changeover",
+          "employees": 680,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.foodprocessing.com/on-the-plant-floor/plant-operations-and-engineering/news/55128940/campbells-paris-texas-plant-to-lose-soup-operations-shift-to-sauce-salsa",
+          "employeesNote": "July 2024: nearly 680 positions, of which the company said about 300 would go over two years as soup production ends. The current figure is lower.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110055376052",
+            "https://www.foodprocessing.com/on-the-plant-floor/plant-operations-and-engineering/news/55128940/campbells-paris-texas-plant-to-lose-soup-operations-shift-to-sauce-salsa"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hilmar Cheese Company",
+      "alsoKnownAs": [
+        "Hilmar Cheese",
+        "Hilmar Cheese Co",
+        "Hilmar Cheese Company Inc",
+        "Hilmar"
+      ],
+      "parent": null,
+      "domain": "hilmar.com",
+      "industry": "Cheese & Whey",
+      "description": "Makes cheese and whey protein ingredients.",
+      "headquarters": {
+        "city": "Hilmar",
+        "state": "CA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110033809001"
+      ],
+      "plants": [
+        {
+          "name": "Hilmar Cheese Dalhart",
+          "city": "Dalhart",
+          "state": "TX",
+          "address": "12400 US Highway 385",
+          "zip": "79022",
+          "latitude": 36.08211,
+          "longitude": -102.50911,
+          "subsector": "Food Manufacturing",
+          "naics": "311513",
+          "products": "Cheddar and American-style cheese, whey protein",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": 2007,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110033809001"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Leprino Foods",
+      "alsoKnownAs": [
+        "Leprino Foods Company",
+        "Leprino Foods Co",
+        "Leprino"
+      ],
+      "parent": null,
+      "domain": "leprinofoods.com",
+      "industry": "Cheese & Dairy",
+      "description": "Makes mozzarella and dairy ingredients.",
+      "headquarters": {
+        "city": "Denver",
+        "state": "CO",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.dallasfed.org/research/heart/lubbock"
+      ],
+      "plants": [
+        {
+          "name": "Leprino Foods Lubbock",
+          "city": "Lubbock",
+          "state": "TX",
+          "address": "4301 E 19th St",
+          "zip": "79403",
+          "latitude": 33.57837,
+          "longitude": -101.77907,
+          "subsector": "Food Manufacturing",
+          "naics": "311513",
+          "products": "Mozzarella cheese and dairy ingredients",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110071278417",
+            "https://www.dallasfed.org/research/heart/lubbock"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cacique Foods",
+      "alsoKnownAs": [
+        "Cacique",
+        "Cacique Inc",
+        "Cacique LLC"
+      ],
+      "parent": null,
+      "domain": "caciquefoods.com",
+      "industry": "Cheese & Dairy",
+      "description": "Makes Hispanic-style cheeses and creams.",
+      "headquarters": {
+        "city": "Irving",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110071824553"
+      ],
+      "plants": [
+        {
+          "name": "Cacique Foods Amarillo",
+          "city": "Amarillo",
+          "state": "TX",
+          "address": "8501 S Georgia St",
+          "zip": "79118",
+          "latitude": 35.12317,
+          "longitude": -101.86375,
+          "subsector": "Food Manufacturing",
+          "naics": null,
+          "products": "Hispanic-style cheeses and creams",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110071824553"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Great Lakes Cheese",
+      "alsoKnownAs": [
+        "Great Lakes Cheese Co",
+        "Great Lakes Cheese Company"
+      ],
+      "parent": null,
+      "domain": "greatlakescheese.com",
+      "industry": "Cheese Packaging",
+      "description": "Cuts, shreds, slices and packs cheese for store brands.",
+      "headquarters": {
+        "city": "Hiram",
+        "state": "OH",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110071536473"
+      ],
+      "plants": [
+        {
+          "name": "Great Lakes Cheese Abilene",
+          "city": "Abilene",
+          "state": "TX",
+          "address": "2670 Great Lakes Dr",
+          "zip": "79602",
+          "latitude": 32.4354,
+          "longitude": -99.68179,
+          "subsector": "Food Manufacturing",
+          "naics": "311513",
+          "products": "Packaged sliced, shredded and chunk cheese",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110071536473"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Daisy Brand",
+      "alsoKnownAs": [
+        "Daisy",
+        "Daisy Brand LLC",
+        "Daisy Brand Inc"
+      ],
+      "parent": null,
+      "domain": "daisybrand.com",
+      "industry": "Dairy Products",
+      "description": "Makes sour cream and cottage cheese.",
+      "headquarters": {
+        "city": "Dallas",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110034641902"
+      ],
+      "plants": [
+        {
+          "name": "Daisy Brand Garland",
+          "city": "Garland",
+          "state": "TX",
+          "address": "3636 Leon Rd",
+          "zip": "75041",
+          "latitude": 32.87373,
+          "longitude": -96.66139,
+          "subsector": "Food Manufacturing",
+          "naics": "311511",
+          "products": "Sour cream and cottage cheese",
+          "employees": 200,
+          "employeesYear": 2019,
+          "employeesSource": "https://www.areadevelopment.com/newsitems/12-19-2019/kraft-heinz-food-company-garland-texas.shtml",
+          "employeesNote": "An article on Garland's food employers, December 2019: about 200 workers.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110034641902",
+            "https://www.areadevelopment.com/newsitems/12-19-2019/kraft-heinz-food-company-garland-texas.shtml"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dairy Farmers of America",
+      "alsoKnownAs": [
+        "DFA",
+        "DFA Dairy Brands",
+        "DFA Dairy Brands Fluid",
+        "Oak Farms Dairy",
+        "Oak Farms",
+        "Southern Foods Group",
+        "Southern Foods Group LLC"
+      ],
+      "parent": null,
+      "domain": "dfamilk.com",
+      "industry": "Milk & Dairy",
+      "description": "Farmer cooperative that bottles Oak Farms milk in Dallas and San Antonio.",
+      "headquarters": {
+        "city": "Kansas City",
+        "state": "KS",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110000464603"
+      ],
+      "plants": [
+        {
+          "name": "Oak Farms Dairy Dallas",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "1114 N Lancaster Ave",
+          "zip": "75203",
+          "latitude": 32.761128,
+          "longitude": -96.814224,
+          "subsector": "Food Manufacturing",
+          "naics": "311511",
+          "products": "Milk and dairy drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000457112"
+          ]
+        },
+        {
+          "name": "Oak Farms Dairy San Antonio",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "1314 Fredericksburg Rd",
+          "zip": "78201",
+          "latitude": 29.45791,
+          "longitude": -98.51779,
+          "subsector": "Food Manufacturing",
+          "naics": "311511",
+          "products": "Milk and dairy drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000464603"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hiland Dairy",
+      "alsoKnownAs": [
+        "Hiland Dairy Foods",
+        "Hiland Dairy Foods LLC",
+        "Hiland Dairy Foods Company"
+      ],
+      "parent": "Prairie Farms Dairy and Dairy Farmers of America",
+      "domain": "hilanddairy.com",
+      "industry": "Milk & Dairy",
+      "description": "Bottles milk and makes dairy products.",
+      "headquarters": {
+        "city": "Springfield",
+        "state": "MO",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110000504874"
+      ],
+      "plants": [
+        {
+          "name": "Hiland Dairy Dallas",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "5327 S Lamar St",
+          "zip": "75215",
+          "latitude": 32.74302,
+          "longitude": -96.75963,
+          "subsector": "Food Manufacturing",
+          "naics": "311511",
+          "products": "Milk",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000504874"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ruiz Foods",
+      "alsoKnownAs": [
+        "Ruiz Food Products",
+        "Ruiz Food Products Inc",
+        "Ruiz Foods Inc"
+      ],
+      "parent": null,
+      "domain": "ruizfoods.com",
+      "industry": "Frozen Foods",
+      "description": "Makes El Monterey frozen burritos and Tornados snacks.",
+      "headquarters": {
+        "city": "Frisco",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110034472540"
+      ],
+      "plants": [
+        {
+          "name": "Ruiz Foods Denison",
+          "city": "Denison",
+          "state": "TX",
+          "address": "2410 Texoma Dr",
+          "zip": "75020",
+          "latitude": 33.77508,
+          "longitude": -96.57105,
+          "subsector": "Food Manufacturing",
+          "naics": "311412",
+          "products": "Frozen burritos, taquitos and rolled snacks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110034472540"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Russell Stover Chocolates",
+      "alsoKnownAs": [
+        "Russell Stover",
+        "Russell Stover Candies",
+        "Russell Stover Candies Inc",
+        "Russell Stover Chocolates LLC"
+      ],
+      "parent": "Lindt & Sprüngli",
+      "domain": "russellstover.com",
+      "industry": "Candy",
+      "description": "Makes boxed chocolates and candy.",
+      "headquarters": {
+        "city": "Kansas City",
+        "state": "MO",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Russell_Stover_Candies"
+      ],
+      "plants": [
+        {
+          "name": "Russell Stover Corsicana",
+          "city": "Corsicana",
+          "state": "TX",
+          "address": "1997 Pecan Delight Ave",
+          "zip": "75109",
+          "latitude": 32.073,
+          "longitude": -96.444583,
+          "subsector": "Food Manufacturing",
+          "naics": null,
+          "products": "Boxed chocolates and chocolate candy",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110002052901",
+            "https://en.wikipedia.org/wiki/Russell_Stover_Candies"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "C.H. Guenther & Son",
+      "alsoKnownAs": [
+        "C H Guenther & Son",
+        "C. H. Guenther & Son",
+        "C.H. Guenther & Son Inc",
+        "CH Guenther",
+        "Pioneer Flour Mills",
+        "Pioneer"
+      ],
+      "parent": null,
+      "domain": "chg.com",
+      "industry": "Flour & Baking Mixes",
+      "description": "Mills flour and makes Pioneer baking and gravy mixes.",
+      "headquarters": {
+        "city": "San Antonio",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110011437748"
+      ],
+      "plants": [
+        {
+          "name": "Pioneer Flour Mills",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "129 E Guenther St",
+          "zip": "78204",
+          "latitude": 29.41165,
+          "longitude": -98.49662,
+          "subsector": "Food Manufacturing",
+          "naics": "311211",
+          "products": "Flour, baking mixes and gravy mixes",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110011437748"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PepsiCo",
+      "alsoKnownAs": [
+        "Pepsi",
+        "PepsiCo Inc",
+        "Pepsi-Cola",
+        "Pepsi Cola",
+        "Pepsi Bottling Group",
+        "The Pepsi Bottling Group",
+        "Bottling Group LLC",
+        "Pepsi Beverages Company",
+        "PepsiCo Beverages North America",
+        "Pepsi-Cola Company",
+        "Quaker Oats",
+        "Gatorade"
+      ],
+      "parent": null,
+      "domain": "pepsico.com",
+      "industry": "Soft Drinks",
+      "description": "Bottles Pepsi soft drinks and Gatorade and makes beverage concentrate; owner of Frito-Lay.",
+      "headquarters": {
+        "city": "Purchase",
+        "state": "NY",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110009500520"
+      ],
+      "plants": [
+        {
+          "name": "Pepsi Mesquite Bottling Plant",
+          "city": "Mesquite",
+          "state": "TX",
+          "address": "4532 US Highway 67",
+          "zip": "75150",
+          "latitude": 32.80281,
+          "longitude": -96.66569,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312111",
+          "products": "Bottled and canned soft drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110009500520",
+            "https://www.cityofmesquite.com/DocumentCenter/View/26041/2023-City-of-Mesquite-TX---Annual-Comprehensive-Financial-Report"
+          ]
+        },
+        {
+          "name": "Pepsi Houston Bottling Plant",
+          "city": "Houston",
+          "state": "TX",
+          "address": "9300 La Porte Fwy",
+          "zip": "77017",
+          "latitude": 29.7085,
+          "longitude": -95.26619,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312111",
+          "products": "Bottled and canned soft drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000461125"
+          ]
+        },
+        {
+          "name": "Pepsi San Antonio Bottling Plant",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "6100 NE Loop 410",
+          "zip": "78218",
+          "latitude": 29.469014,
+          "longitude": -98.40444,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312111",
+          "products": "Bottled and canned soft drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000464765"
+          ]
+        },
+        {
+          "name": "Gatorade Dallas Plant",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "2822 Glenfield Ave",
+          "zip": "75233",
+          "latitude": 32.71698,
+          "longitude": -96.86845,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312111",
+          "products": "Gatorade sports drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110002131666"
+          ]
+        },
+        {
+          "name": "PepsiCo Arlington Concentrate Plant",
+          "city": "Arlington",
+          "state": "TX",
+          "address": "1000 113th St",
+          "zip": "76011",
+          "latitude": 32.76082,
+          "longitude": -97.04343,
+          "subsector": "Food Manufacturing",
+          "naics": "311930",
+          "products": "Beverage concentrate and flavoring syrup",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000458870"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Keurig Dr Pepper",
+      "alsoKnownAs": [
+        "KDP",
+        "Keurig Dr Pepper Inc",
+        "Dr Pepper Snapple Group",
+        "Dr Pepper",
+        "Dr Pepper Bottling Company of Texas",
+        "Dr Pepper/Seven Up",
+        "Dr Pepper Seven Up Bottling"
+      ],
+      "parent": null,
+      "domain": "keurigdrpepper.com",
+      "industry": "Soft Drinks",
+      "description": "Bottles Dr Pepper, 7UP and other soft drinks.",
+      "headquarters": {
+        "city": "Frisco",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110005094423"
+      ],
+      "plants": [
+        {
+          "name": "Keurig Dr Pepper Irving",
+          "city": "Irving",
+          "state": "TX",
+          "address": "2304 Century Center Blvd",
+          "zip": "75062",
+          "latitude": 32.84413,
+          "longitude": -96.89491,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312111",
+          "products": "Bottled and canned soft drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110005094423"
+          ]
+        },
+        {
+          "name": "Keurig Dr Pepper Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "2400 Holly Hall St",
+          "zip": "77054",
+          "latitude": 29.68385,
+          "longitude": -95.39409,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312111",
+          "products": "Bottled and canned soft drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110071447178"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Coca-Cola Southwest Beverages",
+      "alsoKnownAs": [
+        "CCSWB",
+        "Coca-Cola Southwest Beverages LLC",
+        "Coca-Cola Bottling Co of North Texas",
+        "Coca-Cola Bottling Company of North Texas",
+        "Coca-Cola Bottling Co of the Southwest",
+        "Coca-Cola Bottling Co of Southwest",
+        "Houston Coca-Cola Bottling Co",
+        "Valley Coca-Cola Bottling Co",
+        "Coca-Cola Bottling Co Magnolia"
+      ],
+      "parent": "Arca Continental",
+      "domain": "cocacolaswb.com",
+      "industry": "Soft Drinks",
+      "description": "Bottles and distributes Coca-Cola drinks across Texas and neighbouring states.",
+      "headquarters": {
+        "city": "Dallas",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.cocacolaswb.com/"
+      ],
+      "plants": [
+        {
+          "name": "Houston Production Center",
+          "city": "Houston",
+          "state": "TX",
+          "address": "10475 Deer Trail Dr",
+          "zip": "77038",
+          "latitude": 29.92556,
+          "longitude": -95.42218,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312111",
+          "products": "Bottled and canned soft drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110070674691",
+            "https://www.cocacolaswb.com/"
+          ]
+        },
+        {
+          "name": "Fort Worth Production Center",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "3400 Fossil Creek Blvd",
+          "zip": "76137",
+          "latitude": 32.84545,
+          "longitude": -97.30759,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312111",
+          "products": "Bottled and canned soft drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000459762",
+            "https://www.cocacolaswb.com/"
+          ]
+        },
+        {
+          "name": "San Antonio Production Center",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "1 Coca-Cola Pl",
+          "zip": "78219",
+          "latitude": 29.42294,
+          "longitude": -98.4392,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312111",
+          "products": "Bottled and canned soft drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000464934",
+            "https://www.cocacolaswb.com/"
+          ]
+        },
+        {
+          "name": "El Paso Production Center",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "11001 Gateway Blvd W",
+          "zip": "79935",
+          "latitude": 31.74692,
+          "longitude": -106.33381,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312111",
+          "products": "Bottled and canned soft drinks",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000466399",
+            "https://www.cocacolaswb.com/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Anheuser-Busch",
+      "alsoKnownAs": [
+        "Anheuser Busch",
+        "Anheuser-Busch Inc",
+        "Anheuser-Busch LLC",
+        "Anheuser-Busch Companies",
+        "Anheuser-Busch InBev",
+        "AB InBev"
+      ],
+      "parent": "Anheuser-Busch InBev",
+      "domain": "anheuser-busch.com",
+      "industry": "Brewing",
+      "description": "Brews Budweiser, Bud Light and other beers.",
+      "headquarters": {
+        "city": "St. Louis",
+        "state": "MO",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110000461401"
+      ],
+      "plants": [
+        {
+          "name": "Houston Brewery",
+          "city": "Houston",
+          "state": "TX",
+          "address": "775 Gellhorn Dr",
+          "zip": "77029",
+          "latitude": 29.77328,
+          "longitude": -95.27117,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312120",
+          "products": "Beer",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000461401"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Molson Coors",
+      "alsoKnownAs": [
+        "Molson Coors Beverage Company",
+        "Molson Coors USA",
+        "Molson Coors USA LLC",
+        "MillerCoors",
+        "MillerCoors LLC",
+        "Miller Coors LLC",
+        "Miller Brewing",
+        "Miller Brewing Company",
+        "Miller Breweries West"
+      ],
+      "parent": null,
+      "domain": "molsoncoors.com",
+      "industry": "Brewing",
+      "description": "Brews Miller Lite, Coors Light and other beers.",
+      "headquarters": {
+        "city": "Chicago",
+        "state": "IL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110000459753"
+      ],
+      "plants": [
+        {
+          "name": "Fort Worth Brewery",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "7001 South Fwy",
+          "zip": "76134",
+          "latitude": 32.64339,
+          "longitude": -97.31958,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312120",
+          "products": "Beer",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000459753"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Niagara Bottling",
+      "alsoKnownAs": [
+        "Niagara Bottling LLC",
+        "Niagara",
+        "Niagara Water"
+      ],
+      "parent": null,
+      "domain": "niagarawater.com",
+      "industry": "Bottled Water",
+      "description": "Bottles water and other drinks and makes its own plastic bottles.",
+      "headquarters": {
+        "city": "Diamond Bar",
+        "state": "CA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110067420115"
+      ],
+      "plants": [
+        {
+          "name": "Niagara Bottling Seguin",
+          "city": "Seguin",
+          "state": "TX",
+          "address": "1730 8th St",
+          "zip": "78155",
+          "latitude": 29.586319,
+          "longitude": -97.97652,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312112",
+          "products": "Bottled water",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110067420115"
+          ]
+        },
+        {
+          "name": "Niagara Bottling Dallas",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "4851 Mountain Creek Pkwy",
+          "zip": "75236",
+          "latitude": 32.67796,
+          "longitude": -96.96812,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312112",
+          "products": "Bottled water",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110070123043"
+          ]
+        },
+        {
+          "name": "Niagara Bottling Lancaster",
+          "city": "Lancaster",
+          "state": "TX",
+          "address": "1535 E Belt Line Rd",
+          "zip": "75146",
+          "latitude": 32.587591,
+          "longitude": -96.725548,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312112",
+          "products": "Bottled water",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110072060095"
+          ]
+        },
+        {
+          "name": "Niagara Bottling Missouri City",
+          "city": "Missouri City",
+          "state": "TX",
+          "address": "14810 Fairway Pines Dr",
+          "zip": "77489",
+          "latitude": 29.60866,
+          "longitude": -95.51541,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312112",
+          "products": "Bottled water",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110070124101"
+          ]
+        },
+        {
+          "name": "Niagara Bottling Baytown",
+          "city": "Baytown",
+          "state": "TX",
+          "address": "5711 E Grand Pkwy S",
+          "zip": "77523",
+          "latitude": 29.72963,
+          "longitude": -94.88799,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312112",
+          "products": "Bottled water",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110072060096"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Spoetzl Brewery",
+      "alsoKnownAs": [
+        "Spoetzl Brewery Inc",
+        "Shiner",
+        "Shiner Beers",
+        "K. Spoetzl Brewery"
+      ],
+      "parent": "Gambrinus",
+      "domain": "shiner.com",
+      "industry": "Brewing",
+      "description": "Brews Shiner Bock and other Shiner beers.",
+      "headquarters": {
+        "city": "Shiner",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.shiner.com/brewery/"
+      ],
+      "plants": [
+        {
+          "name": "Spoetzl Brewery",
+          "city": "Shiner",
+          "state": "TX",
+          "address": "603 E Brewery St",
+          "zip": "77984",
+          "latitude": 29.43426,
+          "longitude": -97.16713,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312120",
+          "products": "Shiner beers",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": 1909,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110002054106",
+            "https://www.shiner.com/brewery/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tito's Handmade Vodka",
+      "alsoKnownAs": [
+        "Tito's",
+        "Titos Handmade Vodka",
+        "Fifth Generation",
+        "Fifth Generation Inc",
+        "Mockingbird Distillery"
+      ],
+      "parent": null,
+      "domain": "titosvodka.com",
+      "industry": "Distilling",
+      "description": "Distils and bottles vodka in Austin.",
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.titosvodka.com/our-story"
+      ],
+      "plants": [
+        {
+          "name": "Tito's Distillery",
+          "city": "Austin",
+          "state": "TX",
+          "address": "12101 Moore Rd",
+          "zip": "78719",
+          "latitude": 30.11945,
+          "longitude": -97.66549,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312140",
+          "products": "Vodka",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110033784849",
+            "https://www.titosvodka.com/our-story"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primo Brands",
+      "alsoKnownAs": [
+        "Ozarka",
+        "BlueTriton Brands",
+        "BlueTriton",
+        "Nestle Waters North America",
+        "Nestlé Waters North America",
+        "Nestle Waters",
+        "Ozarka Nestle Waters"
+      ],
+      "parent": null,
+      "domain": "primobrands.com",
+      "industry": "Bottled Water",
+      "description": "Bottles Ozarka spring water in East Texas.",
+      "headquarters": {
+        "city": "Tampa",
+        "state": "FL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110027364698"
+      ],
+      "plants": [
+        {
+          "name": "Ozarka Hawkins Bottling Plant",
+          "city": "Hawkins",
+          "state": "TX",
+          "address": "3265 FM 2869",
+          "zip": "75765",
+          "latitude": 32.66648,
+          "longitude": -95.19141,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312112",
+          "products": "Ozarka spring water",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110027364698"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Alcon",
+      "alsoKnownAs": [
+        "Alcon Laboratories",
+        "Alcon Laboratories Inc",
+        "Alcon Manufacturing",
+        "Alcon Manufacturing Ltd",
+        "Alcon Research",
+        "Alcon Research LLC",
+        "Alcon Surgical",
+        "Alcon Vision"
+      ],
+      "parent": null,
+      "domain": "alcon.com",
+      "industry": "Eye Care Products",
+      "description": "Makes eye-care medicines, eye drops and products for eye surgery.",
+      "headquarters": {
+        "city": "Geneva",
+        "state": null,
+        "country": "CH"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110001138572"
+      ],
+      "plants": [
+        {
+          "name": "Alcon Fort Worth Campus",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "6201 South Fwy",
+          "zip": "76134",
+          "latitude": 32.65733,
+          "longitude": -97.32096,
+          "subsector": "Chemical Manufacturing",
+          "naics": "325412",
+          "products": "Sterile eye drops and ophthalmic medicines",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110001138572"
+          ]
+        },
+        {
+          "name": "Alcon Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "9965 Buffalo Speedway",
+          "zip": "77054",
+          "latitude": 29.67352,
+          "longitude": -95.42357,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": "339112",
+          "products": "Products for eye surgery",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110032661787"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Abbott",
+      "alsoKnownAs": [
+        "Abbott Laboratories",
+        "Abbott Labs",
+        "Abbott Diagnostics",
+        "Abbott Diagnostics Manufacturing",
+        "Abbott Laboratories Inc",
+        "St. Jude Medical",
+        "St Jude Medical",
+        "Advanced Neuromodulation Systems",
+        "Advanced Neuromodulation Systems Inc"
+      ],
+      "parent": null,
+      "domain": "abbott.com",
+      "industry": "Medical Devices",
+      "description": "Makes diagnostic analysers and test reagents in Irving and neurostimulation devices in Plano.",
+      "headquarters": {
+        "city": "Abbott Park",
+        "state": "IL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110002130809"
+      ],
+      "plants": [
+        {
+          "name": "Abbott Diagnostics Irving",
+          "city": "Irving",
+          "state": "TX",
+          "address": "1921 Hurd Dr",
+          "zip": "75038",
+          "latitude": 32.87055,
+          "longitude": -96.97613,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334510",
+          "products": "Laboratory diagnostic analysers and reagents",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110002130809"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Stryker",
+      "alsoKnownAs": [
+        "Stryker Corporation",
+        "Stryker Corp",
+        "Stryker Communications",
+        "Stryker Communications Corp",
+        "KLS Stryker"
+      ],
+      "parent": null,
+      "domain": "stryker.com",
+      "industry": "Medical Devices",
+      "description": "Makes operating-room equipment: surgical lights, booms and video integration systems.",
+      "headquarters": {
+        "city": "Portage",
+        "state": "MI",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.flowermound.gov/DocumentCenter/View/49840/ACFR-2025"
+      ],
+      "plants": [
+        {
+          "name": "Stryker Communications Flower Mound",
+          "city": "Flower Mound",
+          "state": "TX",
+          "address": "571 Silveron Blvd",
+          "zip": "75028",
+          "latitude": 32.9931,
+          "longitude": -97.0554,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": null,
+          "products": "Operating-room lights, equipment booms and integration systems",
+          "employees": 480,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.flowermound.gov/DocumentCenter/View/49840/ACFR-2025",
+          "employeesNote": "Town of Flower Mound annual financial report for fiscal 2025, principal employers table. The site also houses the division's offices.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110072221392",
+            "https://www.flowermound.gov/DocumentCenter/View/49840/ACFR-2025"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Johnson & Johnson",
+      "alsoKnownAs": [
+        "Johnson & Johnson MedTech",
+        "J&J",
+        "Ethicon",
+        "Ethicon Inc",
+        "Ethicon San Angelo",
+        "Mentor",
+        "Mentor Texas",
+        "Mentor Texas Operations",
+        "Mentor Worldwide",
+        "Mentor Corporation"
+      ],
+      "parent": null,
+      "domain": "jnj.com",
+      "industry": "Medical Devices",
+      "description": "Makes Ethicon surgical sutures in San Angelo and Mentor breast implants in Irving.",
+      "headquarters": {
+        "city": "New Brunswick",
+        "state": "NJ",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110000460661",
+        "https://echo.epa.gov/detailed-facility-report?fid=110000456131"
+      ],
+      "plants": [
+        {
+          "name": "Ethicon San Angelo",
+          "city": "San Angelo",
+          "state": "TX",
+          "address": "3348 Pulliam St",
+          "zip": "76905",
+          "latitude": 31.47431,
+          "longitude": -100.39069,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": null,
+          "products": "Surgical sutures and needles",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000460661"
+          ]
+        },
+        {
+          "name": "Mentor Texas",
+          "city": "Irving",
+          "state": "TX",
+          "address": "3041 Skyway Cir N",
+          "zip": "75038",
+          "latitude": 32.87418,
+          "longitude": -96.9863,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": "339112",
+          "products": "Silicone breast implants",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000456131"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Orthofix",
+      "alsoKnownAs": [
+        "Orthofix Medical",
+        "Orthofix Medical Inc",
+        "Orthofix Inc",
+        "Orthofix US"
+      ],
+      "parent": null,
+      "domain": "orthofix.com",
+      "industry": "Medical Devices",
+      "description": "Makes bone growth stimulators and spine and orthopedic implants.",
+      "headquarters": {
+        "city": "Lewisville",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110038381658"
+      ],
+      "plants": [
+        {
+          "name": "Orthofix Lewisville",
+          "city": "Lewisville",
+          "state": "TX",
+          "address": "3451 Plano Pkwy",
+          "zip": "75056",
+          "latitude": 33.06896,
+          "longitude": -96.87196,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": null,
+          "products": "Bone growth stimulators; spine and orthopedic devices",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110038381658"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Argon Medical Devices",
+      "alsoKnownAs": [
+        "Argon Medical",
+        "Argon Medical Devices Inc",
+        "Argon Medical Div of Henley International"
+      ],
+      "parent": null,
+      "domain": "argonmedical.com",
+      "industry": "Medical Devices",
+      "description": "Makes catheters, guidewires, biopsy needles and other single-use devices.",
+      "headquarters": {
+        "city": "Plano",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110005088038"
+      ],
+      "plants": [
+        {
+          "name": "Argon Medical Athens",
+          "city": "Athens",
+          "state": "TX",
+          "address": "1445 Flat Creek Rd",
+          "zip": "75751",
+          "latitude": 32.209529,
+          "longitude": -95.825368,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": "339112",
+          "products": "Catheters, guidewires and biopsy needles",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110005088038"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LivaNova",
+      "alsoKnownAs": [
+        "LivaNova USA",
+        "LivaNova PLC",
+        "Cyberonics",
+        "Cyberonics Inc"
+      ],
+      "parent": null,
+      "domain": "livanova.com",
+      "industry": "Medical Devices",
+      "description": "Makes implantable nerve-stimulation devices for epilepsy and depression.",
+      "headquarters": {
+        "city": "London",
+        "state": null,
+        "country": "GB"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110034624636"
+      ],
+      "plants": [
+        {
+          "name": "LivaNova Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "100 Cyberonics Blvd",
+          "zip": "77058",
+          "latitude": 29.57296,
+          "longitude": -95.10644,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334510",
+          "products": "VNS Therapy implantable nerve stimulators",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110034624636"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cardinal Health",
+      "alsoKnownAs": [
+        "Cardinal Health Inc",
+        "Cardinal Health 200",
+        "Cardinal Health Presource",
+        "Cardinal Healthcare",
+        "Allegiance Healthcare",
+        "Allegiance Healthcare Corp"
+      ],
+      "parent": null,
+      "domain": "cardinalhealth.com",
+      "industry": "Medical Supplies",
+      "description": "Assembles sterile surgical procedure kits in El Paso.",
+      "headquarters": {
+        "city": "Dublin",
+        "state": "OH",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110043587829"
+      ],
+      "plants": [
+        {
+          "name": "Cardinal Health Presource El Paso",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "1320 Don Haskins Dr",
+          "zip": "79936",
+          "latitude": 31.72367,
+          "longitude": -106.28789,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": "339113",
+          "products": "Surgical procedure kits and packs",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110043587829"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "James Avery Artisan Jewelry",
+      "alsoKnownAs": [
+        "James Avery",
+        "James Avery Craftsman",
+        "James Avery Craftsman Inc",
+        "James Avery Jewelry"
+      ],
+      "parent": null,
+      "domain": "jamesavery.com",
+      "industry": "Jewelry",
+      "description": "Designs and makes sterling silver and gold jewelry in the Texas Hill Country.",
+      "headquarters": {
+        "city": "Kerrville",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://en.wikipedia.org/wiki/James_Avery_Artisan_Jewelry"
+      ],
+      "plants": [
+        {
+          "name": "James Avery Kerrville",
+          "city": "Kerrville",
+          "state": "TX",
+          "address": "145 Avery Rd N",
+          "zip": "78028",
+          "latitude": 30.09945,
+          "longitude": -99.14619,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": "339910",
+          "products": "Jewelry: casting, finishing and assembly",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110005154536",
+            "https://en.wikipedia.org/wiki/James_Avery_Artisan_Jewelry"
+          ]
+        },
+        {
+          "name": "James Avery Fredericksburg",
+          "city": "Fredericksburg",
+          "state": "TX",
+          "address": "108 Industrial Loop",
+          "zip": "78624",
+          "latitude": 30.25019,
+          "longitude": -98.85176,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": "339910",
+          "products": "Jewelry manufacturing",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110005153804"
+          ]
+        },
+        {
+          "name": "James Avery Hondo",
+          "city": "Hondo",
+          "state": "TX",
+          "address": "1101 Castro Ave",
+          "zip": "78861",
+          "latitude": 29.35433,
+          "longitude": -99.15947,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": "339910",
+          "products": "Jewelry manufacturing",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110012182761"
+          ]
+        },
+        {
+          "name": "James Avery Comfort",
+          "city": "Comfort",
+          "state": "TX",
+          "address": "105 US Highway 87",
+          "zip": "78013",
+          "latitude": 29.98574,
+          "longitude": -98.90391,
+          "subsector": "Miscellaneous Manufacturing",
+          "naics": "339910",
+          "products": "Jewelry manufacturing",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110008156299"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Justin Brands",
+      "alsoKnownAs": [
+        "Justin Boots",
+        "Justin Boot Company",
+        "Justin Boot",
+        "Justin Brands Inc",
+        "Tony Lama",
+        "Tony Lama Company",
+        "Tony Lama Boots",
+        "Nocona Boot Company",
+        "Nocona Boot",
+        "Nocona Boots",
+        "Chippewa Boots"
+      ],
+      "parent": "Berkshire Hathaway",
+      "domain": "justinbrands.com",
+      "industry": "Western Boots",
+      "description": "Makes Justin, Tony Lama and Nocona western and work boots.",
+      "headquarters": {
+        "city": "Fort Worth",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110000466246"
+      ],
+      "plants": [
+        {
+          "name": "Justin Brands El Paso (Tony Lama plant)",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "1137 Tony Lama St",
+          "zip": "79915",
+          "latitude": 31.7675,
+          "longitude": -106.37221,
+          "subsector": "Leather and Allied Product Manufacturing",
+          "naics": "316210",
+          "products": "Western boots",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110000466246"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Lucchese",
+      "alsoKnownAs": [
+        "Lucchese Boot Company",
+        "Lucchese Boot Co",
+        "Lucchese Inc",
+        "Lucchese Bootmaker",
+        "Lucchese Boots"
+      ],
+      "parent": null,
+      "domain": "lucchese.com",
+      "industry": "Western Boots",
+      "description": "Makes handmade western boots.",
+      "headquarters": {
+        "city": "El Paso",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.lucchese.com/pages/our-story"
+      ],
+      "plants": [
+        {
+          "name": "Lucchese El Paso",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "20 Zane Grey St",
+          "zip": "79906",
+          "latitude": 31.81213,
+          "longitude": -106.39909,
+          "subsector": "Leather and Allied Product Manufacturing",
+          "naics": "316210",
+          "products": "Handmade western boots",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110070288249",
+            "https://www.lucchese.com/pages/our-story",
+            "https://en.wikipedia.org/wiki/Lucchese_Boot_Company"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hatco",
+      "alsoKnownAs": [
+        "Hatco Inc",
+        "Stetson Hats",
+        "Resistol",
+        "Resistol Hats",
+        "Byer-Rolnick"
+      ],
+      "parent": null,
+      "domain": "hatco.com",
+      "industry": "Hats",
+      "description": "Makes Stetson and Resistol felt and straw hats.",
+      "headquarters": {
+        "city": "Garland",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resistol"
+      ],
+      "plants": [
+        {
+          "name": "Hatco Garland",
+          "city": "Garland",
+          "state": "TX",
+          "address": "601 Marion Dr",
+          "zip": "75042",
+          "latitude": 32.90779,
+          "longitude": -96.65382,
+          "subsector": "Apparel Manufacturing",
+          "naics": "315990",
+          "products": "Felt and straw western hats",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110022542818",
+            "https://en.wikipedia.org/wiki/Resistol"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ReadyOne Industries",
+      "alsoKnownAs": [
+        "ReadyOne Industries Inc",
+        "ReadyOne",
+        "Ready One Industries",
+        "National Center for the Employment of the Disabled",
+        "NCED"
+      ],
+      "parent": null,
+      "domain": "readyone.org",
+      "industry": "Military Apparel",
+      "description": "Nonprofit that sews military uniforms and gear, employing people with disabilities.",
+      "headquarters": {
+        "city": "El Paso",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.readyone.org/about-us/"
+      ],
+      "plants": [
+        {
+          "name": "ReadyOne Industries El Paso",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "1414 Ability Dr",
+          "zip": "79936",
+          "latitude": 31.74312,
+          "longitude": -106.31532,
+          "subsector": "Apparel Manufacturing",
+          "naics": null,
+          "products": "Military uniforms and apparel",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110067076363",
+            "https://www.readyone.org/about-us/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Anderson Bean Boot Company",
+      "alsoKnownAs": [
+        "Anderson Bean",
+        "Anderson Bean Boot Co",
+        "Anderson Bean Boot Co Inc",
+        "Rios of Mercedes",
+        "Rios of Mercedes Boot Company"
+      ],
+      "parent": null,
+      "domain": "andersonbean.com",
+      "industry": "Western Boots",
+      "description": "Makes handmade western boots.",
+      "headquarters": {
+        "city": "Mercedes",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110070298607"
+      ],
+      "plants": [
+        {
+          "name": "Anderson Bean Mercedes",
+          "city": "Mercedes",
+          "state": "TX",
+          "address": "1750 E Expressway 83",
+          "zip": "78570",
+          "latitude": 26.158223,
+          "longitude": -97.905307,
+          "subsector": "Leather and Allied Product Manufacturing",
+          "naics": "316210",
+          "products": "Handmade western boots",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110070298607"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "American Hat Company",
+      "alsoKnownAs": [
+        "American Hat Co",
+        "American Hat Co Inc",
+        "American Hat"
+      ],
+      "parent": null,
+      "domain": "americanhat.net",
+      "industry": "Hats",
+      "description": "Makes felt and straw cowboy hats.",
+      "headquarters": {
+        "city": "Bowie",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110033542110"
+      ],
+      "plants": [
+        {
+          "name": "American Hat Company Bowie",
+          "city": "Bowie",
+          "state": "TX",
+          "address": "3091 US Highway 81 N",
+          "zip": "76230",
+          "latitude": 33.59747,
+          "longitude": -97.87253,
+          "subsector": "Apparel Manufacturing",
+          "naics": "315990",
+          "products": "Felt and straw cowboy hats",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110033542110"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Circle Y Saddles",
+      "alsoKnownAs": [
+        "Circle Y",
+        "Circle Y of Yoakum",
+        "Circle Y Saddles Inc",
+        "Circle Y Saddlery"
+      ],
+      "parent": null,
+      "domain": "circley.com",
+      "industry": "Saddles & Tack",
+      "description": "Makes western saddles and leather tack.",
+      "headquarters": {
+        "city": "Yoakum",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110005143040"
+      ],
+      "plants": [
+        {
+          "name": "Circle Y Yoakum",
+          "city": "Yoakum",
+          "state": "TX",
+          "address": "602 Front St",
+          "zip": "77995",
+          "latitude": 29.2882,
+          "longitude": -97.149947,
+          "subsector": "Leather and Allied Product Manufacturing",
+          "naics": null,
+          "products": "Western saddles and tack",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110005143040"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hexcel",
+      "alsoKnownAs": [
+        "Hexcel Corporation",
+        "Hexcel Corp",
+        "Hexcel Reinforcements"
+      ],
+      "parent": null,
+      "domain": "hexcel.com",
+      "industry": "Technical Textiles",
+      "description": "Weaves carbon-fibre and glass reinforcement fabrics for aircraft and industry.",
+      "headquarters": {
+        "city": "Stamford",
+        "state": "CT",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110005049704"
+      ],
+      "plants": [
+        {
+          "name": "Hexcel Seguin",
+          "city": "Seguin",
+          "state": "TX",
+          "address": "1913 N King St",
+          "zip": "78155",
+          "latitude": 29.58845,
+          "longitude": -97.95039,
+          "subsector": "Textile Mills",
+          "naics": "313210",
+          "products": "Woven carbon-fibre and glass reinforcement fabrics",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110005049704"
+          ]
+        }
+      ]
+    }
+  ],
+  "unplaced": [
+    {
+      "company": "Bimbo Bakeries USA",
+      "plant": "Arlington Bakery (Earthgrains)",
+      "city": "Arlington",
+      "why": "737 N Great Southwest Pkwy: the geocoder returns only the street, and the EPA coordinate for the record is 5 km away from it; an air permit is listed as operating"
+    },
+    {
+      "company": "Flowers Foods",
+      "plant": "Flowers Baking Co. of San Antonio",
+      "city": "San Antonio",
+      "why": "6000 NE Loop 410: the geocoder returns only the road, kilometres from the site; the EPA record has an effective stormwater permit but no coordinate"
+    },
+    {
+      "company": "Abbott",
+      "plant": "Abbott Neuromodulation (former St. Jude Medical)",
+      "city": "Plano",
+      "why": "6901 Preston Rd: the geocoder returns only Preston Road, not the building; the EPA record (St Jude Medical, hazardous-waste registration active) has no coordinate"
+    },
+    {
+      "company": "Medtronic",
+      "plant": "Medtronic Powered Surgical Solutions (Midas Rex)",
+      "city": "Fort Worth",
+      "why": "4620 N Beach St: the geocoder returns only North Beach Street; the EPA record has no coordinate. Not confirmed as operating either"
+    },
+    {
+      "company": "Producer Owned Beef",
+      "plant": "Amarillo beef plant (under construction)",
+      "city": "Amarillo",
+      "why": "no street address: the EPA record gives only survey sections, and the geocoder returns a ZIP-code centre. The Dallas Fed's 2025 Amarillo profile says construction is under way on the $670 million plant; a stormwater permit in its name is effective to 2028"
+    }
+  ],
+  "notes": "HOW THIS FILE WAS BUILT. Web search stopped working part-way through (the session's shared search limit was reached after about 35 searches), so the rest was done from pages fetched by address and from two government services: EPA's ECHO facility search and detailed facility reports (plant names, street addresses, NAICS codes, permit status, inspection dates) and the project geocoder. Every headcount in the file was read on the page cited. 21 of 101 plants have one; the others are null because no source could be searched for, not because none exists. COORDINATES. The geocoder's first result was used when it matched the house number in the right place. Where it returned only the street or the wrong place, the coordinate comes from the plant's EPA facility report (a permit record with a stated accuracy of 50 m or better), cross-checked against the geocoder's street: Tyson Center, Seguin, Dallas and North Richland Hills; JBS Cactus; Pilgrim's Mount Pleasant; Cargill Friona and the Fort Worth grind plant; both Caviness plants; STX Beef; Sadler's; Frito-Lay Rosenberg, San Antonio and Irving; Pepsi Houston and Arlington; Azteca Milling (both); Hilmar; Russell Stover; Oak Farms Dallas; Niagara Seguin and Lancaster; Alcon Fort Worth; Argon; James Avery Fredericksburg and Comfort; Anderson Bean; American Hat; Circle Y; Hexcel. Three are looser than the rest and worth a look on a map: Pepsi San Antonio (EPA accuracy 150 m), Coca-Cola San Antonio and Lucchese El Paso (geocoder gave the street, both short streets), and Caviness Amarillo (EPA point with no stated accuracy). LivaNova Houston is the OpenStreetMap position of Cyberonics Boulevard, a short street that ends at the plant. OPERATING STATUS. With no search, 'still operating' rests on the EPA record for most plants: an air permit marked operating, an effective stormwater permit in the current operator's name, a Toxics Release Inventory report for 2023 or 2024, or a state inspection in 2024 to 2026. Plants included on weaker evidence (an EPA record with no current-status field, plus general knowledge): Tyson Carthage (2026 job postings seen in search results), Sadler's Smokehouse (last TRI report 2020), Caviness Hereford (TRI 2022), Russell Stover Corsicana, Great Lakes Cheese Abilene, Cacique Amarillo (its stormwater permit shows as expired August 2026), the four Coca-Cola production centers (the company's site says it has 7 production plants but does not list them), Alcon Houston, Abbott Irving, Orthofix (the only EPA record is a construction-era one), ReadyOne, Lucchese, American Hat, Anderson Bean and Tito's. A reviewer with search should confirm these. Opening years for the four Wayne-Sanderson plants are from general knowledge, not from a page read in this session. JUDGMENT CALLS. (1) Tyson Amarillo carries 4,000 employees (Dallas Fed 2025; Tyson 2022) although the plant went to one shift in January 2026 with 1,761 jobs cut by WARN notice and Tyson said in August 2026 it would restore the shift; no later site figure was found, and the note says so. Set it to null if a stale figure is worse than none. (2) Campbell's Paris carries 680 (July 2024) though soup production has since ended and the workforce is smaller. (3) Tyson Seguin uses the Seguin EDC's undated top-employers list (about 830) rather than the EDC's 2021 release (546). (4) Cargill's figures are from its own careers pages, which are undated; the year given is the year read. (5) Pilgrim's figures are all from 2020 company releases. (6) Subsector follows what the plant makes, not the brief: Alcon Fort Worth is Chemical Manufacturing (ophthalmic medicines, NAICS 325412 in the EPA record); Abbott Irving and LivaNova Houston are Computer and Electronic Product Manufacturing (electromedical apparatus, 334510); PepsiCo's Arlington concentrate plant is Food Manufacturing (311930). (7) Ethicon and Mentor are entered as plants of Johnson & Johnson, which the database already lists. (8) Stryker Flower Mound is the Communications division's base; the headcount is the whole site, offices included. (9) Wayne-Sanderson Farms' state figure is Sanderson Farms' 2020 number and includes hatcheries and feed mills. (10) Hiland Dairy's Dallas plant is the former Borden plant on South Lamar (the EPA's 2024 TRI report is in Hiland's name); 'Borden' is deliberately not listed as another name for Hiland. LEFT OUT, AND WHY. Not confirmed as operating, or as manufacturing, without search: Pilgrim's Dallas (2411 Ferris St); Frito-Lay's Dallas baked-snacks plant on Duncanville Rd / Morse Dr and its Lubbock plant (last TRI report 2022); Mission Foods Dallas (the EPA record at 4000 Dan Morton Dr shows a terminated permit), San Antonio and El Paso; Bimbo's Lubbock and Rockwall plants; Oak Farms Houston; Borden Dairy (which Texas plants it still runs is unclear; Conroe is the likely one); Pepsi Conroe; Coca-Cola McAllen, Abilene and Nacogdoches; Mars Petcare Temple; Holmes Foods (Nixon); Eddy Packing (Yoakum); Continental Dairy Facilities (Littlefield); Riviana Foods (Freeport); Refresco (Waco, Fort Worth); Smith+Nephew Fort Worth (the EPA record is coded biological products, not devices); Essilor in Farmers Branch (headquarters and prescription laboratory; manufacturing not confirmed); Hatco's Longview site; Nokona ball gloves (no address found). From the brief's leads: Hershey, Nestle, Ventura Foods and Imperial Sugar have no Texas plant that could be confirmed (Imperial Sugar's Sugar Land refinery closed in 2003); Hormel is represented by Sadler's Smokehouse; Frito-Lay 'Mesquite' appears to be PepsiCo's Mesquite bottling plant; Williamson-Dickie, Levi Strauss, VF and Fruit of the Loom have offices or closed plants in the EPA lists but no Texas plant confirmed as operating; ADM and Dana were not researched (grain and automotive, outside these industries). SITES TO REVISIT WITH SEARCH. Headcounts likely to exist for: Tyson Sherman (older lists say about 1,400 to 1,800), Tyson Center (an undated city brochure says nearly 1,400), Wayne-Sanderson Palestine and Bryan, Caviness, H-E-B's manufacturing plants, the Frito-Lay plants, Molson Coors Fort Worth, Anheuser-Busch Houston, Alcon, Ethicon San Angelo, Hilmar, Leprino Lubbock (the Dallas Fed says it is expected to employ 600 when finished in 2026), Hatco (an old Garland list says 390), Justin Brands and Lucchese in El Paso, ReadyOne."
+}

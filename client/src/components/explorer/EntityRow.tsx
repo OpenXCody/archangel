@@ -49,10 +49,12 @@ interface RowProps {
   leading?: ReactNode;
   /** Leads the facts line (a factory's company logo). */
   factsLeading?: ReactNode;
+  /** Ends the facts line and is never cut short (a factory's people). */
+  factsEnd?: string | null;
   onMouseEnter?: () => void;
 }
 
-function Row({ to, name, summary, facts, leading, factsLeading, onMouseEnter }: RowProps) {
+function Row({ to, name, summary, facts, leading, factsLeading, factsEnd, onMouseEnter }: RowProps) {
   const factsText = joined(facts ?? []);
   return (
     <Link
@@ -64,10 +66,11 @@ function Row({ to, name, summary, facts, leading, factsLeading, onMouseEnter }: 
       <div className="min-w-0 flex-1">
         <h3 className="truncate text-base font-medium leading-6 text-fg-default underline-offset-4 group-hover:underline">{name}</h3>
         {summary && <p className="truncate text-sm leading-6 text-fg-muted">{summary}</p>}
-        {(factsText || factsLeading) && (
+        {(factsText || factsLeading || factsEnd) && (
           <p className="flex min-w-0 items-center gap-2 text-sm leading-6 text-fg-soft">
             {factsLeading}
             <span className="min-w-0 truncate">{factsText}</span>
+            {factsEnd && <span className="-ml-1 shrink-0 whitespace-nowrap">{factsText ? `· ${factsEnd}` : factsEnd}</span>}
           </p>
         )}
       </div>
@@ -102,6 +105,7 @@ function FactoryRow({ data, onMouseEnter }: Props<Factory>) {
       name={formatFactoryName(data.name)}
       factsLeading={company && data.companyDomain ? <CompanyLogo name={company} domain={data.companyDomain} size={20} className="rounded" /> : null}
       facts={[company, place]}
+      factsEnd={data.workforceSize ? `${data.workforceSize.toLocaleString()} people` : null}
       onMouseEnter={onMouseEnter}
     />
   );

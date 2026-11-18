@@ -44,6 +44,7 @@ cleanup() {
     DELETE FROM jobs WHERE title LIKE 'E2E Admin %';
     DELETE FROM users WHERE email LIKE '%@admin.test';
     DELETE FROM invites WHERE email LIKE '%@admin.test';
+    DELETE FROM external_references WHERE url LIKE 'https://e2e-admin.example.com/%';
     DELETE FROM companies WHERE name LIKE 'E2E Admin %';
     DELETE FROM occupations WHERE title LIKE 'E2E Admin %';
     DELETE FROM skills WHERE name LIKE 'E2E Admin %';" >/dev/null
@@ -118,6 +119,35 @@ check "the editor reads the factory"  200 "$(req a GET /admin/records/factory/$F
 check "factories near a point"        200 "$(req a GET "/admin/records/factory/similar?name=Other&lat=30.2701&lng=-97.7401")" "\"id\":\"$FA\""
 check "factories are not merged"      400 "$(req a POST /admin/records/factory/$FA/merge "{\"into\":\"$FA\"}")"
 
+# --- A factory's depth: people, what it makes, when it opened ---------------
+check "people with year, source and note" 200 "$(req a PUT /factories/$FA '{"workforceSize":4500,"workforceYear":2024,"workforceSource":"https://e2e-admin.example.com/fact-sheet","workforceNote":"Includes  contractors","products":"Logic chips","openedYear":1997,"status":"under construction"}')" '"workforceSize":4500'
+expect "they are stored, and the plant counts as described" "4500|2024|https://e2e-admin.example.com/fact-sheet|Includes contractors|Logic chips|1997|under construction|t" \
+  "$(sql "SELECT concat_ws('|', workforce_size, workforce_year, workforce_source, workforce_note, products, opened_year, status, curated) FROM factories WHERE id='$FA'")"
+check "the editor reads them"         200 "$(req a GET /admin/records/factory/$FA)" '"workforceYear":2024'
+check "the factory's page carries them" 200 "$(req p GET /factories/$FA)" '"products":"Logic chips","openedYear":1997,"status":"under construction","curated":true'
+expect "the history has the figure, before and after" '>4500' "$(req a GET "/admin/audit?kind=factory&record=$FA" | j 'entries[0].detail.changes.workforceSize.join(">")')"
+expect "and what it makes"            '>Logic chips' "$(req a GET "/admin/audit?kind=factory&record=$FA" | j 'entries[0].detail.changes.products.join(">")')"
+check "a year that is not one"        400 "$(req a PUT /factories/$FA '{"workforceYear":"last year"}')" '"field":"workforceYear"'
+check "a source that is not a web address" 400 "$(req a PUT /factories/$FA '{"workforceSource":"the plant manager"}')" '"field":"workforceSource"'
+check "an opening year yet to come"   400 "$(req a PUT /factories/$FA '{"openedYear":2199}')" '"field":"openedYear"'
+check "a status that is not one"      400 "$(req a PUT /factories/$FA '{"status":"closed"}')" '"field":"status"'
+check "people that are not a number"  400 "$(req a PUT /factories/$FA '{"workforceSize":"many"}')" '"field":"workforceSize"'
+check "a refused change changed nothing" 200 "$(req a GET /admin/records/factory/$FA)" '"status":"under construction"'
+check "clearing the figure clears what described it" 200 "$(req a PUT /factories/$FA '{"workforceSize":null,"status":"operating"}')" '"workforceYear":null,"workforceSource":null,"workforceNote":null'
+
+# --- A company's depth: what it is part of, and its headquarters ------------
+check "part of, and headquarters"     200 "$(req a PUT /companies/$CB "{\"parentCompanyId\":\"$CA\",\"headquartersCity\":\"Fort Worth\",\"headquartersState\":\"tx\",\"headquartersCountry\":\"US\"}")" '"headquartersState":"TX"'
+check "the editor reads them"         200 "$(req a GET /admin/records/company/$CB)" "\"parentCompanyId\":\"$CA\",\"parentName\":\"$REC Motors Inc\""
+expect "the history names the parent" ">$REC Motors Inc" "$(req a GET "/admin/audit?kind=company&record=$CB" | j 'entries[0].detail.changes.parent.join(">")')"
+check "the company's page says what it is part of" 200 "$(req p GET /companies/$CB)" "\"parent\":{\"id\":\"$CA\""
+check "and its headquarters"          200 "$(req p GET /companies/$CB)" '"headquarters":{"city":"Fort Worth","state":"TX","country":"US"}'
+check "the parent's page lists it"    200 "$(req p GET /companies/$CA)" "\"subsidiaries\":\[{\"id\":\"$CB\""
+check "a company is not part of its own part" 400 "$(req a PUT /companies/$CA "{\"parentCompanyId\":\"$CB\"}")" '"field":"parent"'
+check "nor of itself"                 400 "$(req a PUT /companies/$CB "{\"parentCompanyId\":\"$CB\"}")" '"field":"parent"'
+check "nor of a company that is not there" 400 "$(req a PUT /companies/$CB "{\"parentCompanyId\":\"$NOBODY\"}")" '"field":"parent"'
+check "a headquarters state that is not one" 400 "$(req a PUT /companies/$CB '{"headquartersState":"Texas"}')" '"field":"headquartersState"'
+check "a company can stand alone again" 200 "$(req a PUT /companies/$CB '{"parentCompanyId":null}')" '"parentCompanyId":null'
+
 # --- Near-duplicates ---------------------------------------------------------
 OUT=$(req a GET "/admin/records/company/similar?name=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$REC Motors Corp")")
 check "a name with another ending is close" 200 "$OUT" "\"id\":\"$CB\""
@@ -130,6 +160,10 @@ expect "an unrelated name is not close" 0 "$(req a GET '/admin/records/company/s
 OCC=$(sql "SELECT occupation_id FROM occupation_skills GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1")
 sql "INSERT INTO jobs (company_id, factory_id, occupation_id, title, expires_at) VALUES ('$CA', '$FA', '$OCC', '$REC Job', now() + interval '30 days')" >/dev/null
 sql "INSERT INTO company_members (company_id, user_id, status) VALUES ('$CA', '$PID', 'active'), ('$CB', '$PID', 'requested'), ('$CA', '$BID', 'active')" >/dev/null
+# What a load of research leaves on a company: people in a state, where its facts came from, and a company that is part of it.
+sql "INSERT INTO company_state_headcounts (company_id, state, people, year) VALUES ('$CA', 'TX', 1200, 2024);
+     INSERT INTO external_references (entity_type, entity_id, source, external_id, url) VALUES ('companies', '$CA', 'CURATED', 'e2e-admin', 'https://e2e-admin.example.com/about');
+     INSERT INTO companies (name, parent_company_id) VALUES ('$REC Part', '$CA')" >/dev/null
 check "what a company carries"        200 "$(req a GET /admin/records/company/$CA)" '"attached":{"factories":1,"jobs":1,"members":2}'
 check "merge needs a target"          400 "$(req a POST /admin/records/company/$CA/merge '{}')"
 check "merge into itself"             400 "$(req a POST /admin/records/company/$CA/merge "{\"into\":\"$CA\"}")"
@@ -139,6 +173,9 @@ check "merge one company into another" 200 "$OUT" "\"kept\":{\"id\":\"$CB\""
 expect "the answer counts what moved" '1 1 2' "$(printf '%s' "$OUT" | j 'moved.factories + " " + o.moved.jobs + " " + o.moved.members')"
 expect "the merged company is gone"   0 "$(sql "SELECT COUNT(*) FROM companies WHERE id='$CA'")"
 expect "its factory and job moved"    '2 1' "$(sql "SELECT (SELECT COUNT(*) FROM factories WHERE company_id='$CB') || ' ' || (SELECT COUNT(*) FROM jobs WHERE company_id='$CB')")"
+expect "so did its people in a state, its sources and the company that is part of it" '1200 1 1' \
+  "$(sql "SELECT (SELECT people FROM company_state_headcounts WHERE company_id='$CB' AND state='TX') || ' ' || (SELECT COUNT(*) FROM external_references WHERE entity_type='companies' AND entity_id='$CB' AND source='CURATED') || ' ' || (SELECT COUNT(*) FROM companies WHERE name='$REC Part' AND parent_company_id='$CB')")"
+check "the kept company's page lists its sources" 200 "$(req p GET /companies/$CB)" '"sources":\[{"label":"e2e-admin.example.com","url":"https://e2e-admin.example.com/about"}\]'
 expect "a person at both keeps access" active "$(sql "SELECT status FROM company_members WHERE company_id='$CB' AND user_id='$PID'")"
 expect "the other member moved"       active "$(sql "SELECT status FROM company_members WHERE company_id='$CB' AND user_id='$BID'")"
 expect "the old name is kept as an alias" t "$(sql "SELECT aliases @> ARRAY['$REC Motors Inc', '$REC Cars'] FROM companies WHERE id='$CB'")"

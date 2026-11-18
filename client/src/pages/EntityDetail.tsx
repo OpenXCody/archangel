@@ -35,6 +35,7 @@ import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { industryByName, industryLabel, industryPath } from '@shared/industry';
 import CompanyLogo from '../components/CompanyLogo';
 import FootprintMap from '../components/FootprintMap';
+import { CompanyFamily, CompanyStanding, PlantFacts, SourceList, peopleCount } from '../components/RecordFacts';
 import { useMapStore } from '../stores/mapStore';
 import { STATE_CODE_TO_NAME, type StateCode } from '@shared/states';
 import { PageContainer, EmptyState } from '../components/layout/Page';
@@ -239,13 +240,19 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
   }, [sites]);
 
+  // Sites whose size is known come first, the largest first; the rest by state and name.
   const sortedSites = useMemo(
     () =>
       [...sites].sort(
-        (a, b) => (a.state ?? 'ZZ').localeCompare(b.state ?? 'ZZ') || formatFactoryName(a.name).localeCompare(formatFactoryName(b.name))
+        (a, b) =>
+          (b.workforceSize ?? 0) - (a.workforceSize ?? 0) ||
+          (a.state ?? 'ZZ').localeCompare(b.state ?? 'ZZ') ||
+          formatFactoryName(a.name).localeCompare(formatFactoryName(b.name))
       ),
     [sites]
   );
+  // People are counted at the sites that state a figure, and said so when that is not all of them.
+  const sized = sites.filter((site) => (site.workforceSize ?? 0) > 0).length;
   const shownSites = showAllSites ? sortedSites : sortedSites.slice(0, SITES_SHOWN);
 
   // The industry most of the company's sites are classified in is a page of
@@ -263,7 +270,9 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
   const facts = [
     sites.length > 0 ? `${sites.length.toLocaleString()} ${sites.length === 1 ? 'site' : 'sites'}` : null,
     byState.length > 1 ? `${byState.length} states` : byState.length === 1 ? byState[0].name : null,
-    (data.totalWorkforce ?? 0) > 0 ? `${data.totalWorkforce?.toLocaleString()} people` : null,
+    (data.totalWorkforce ?? 0) > 0
+      ? `${peopleCount(data.totalWorkforce ?? 0)}${sized > 0 && sized < sites.length ? ` at ${sized} ${sized === 1 ? 'site' : 'sites'}` : ''}`
+      : null,
   ].filter(Boolean);
 
   // Show only this company's sites on the map, framed. The map reads both
@@ -296,6 +305,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
           ))}
         </p>
       )}
+      <CompanyStanding data={data} />
 
       {/* Footprint: where the sites are, and how many in each state */}
       {placed.length > 0 && (
@@ -334,13 +344,27 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
       {/* Open jobs: said only when there are some */}
       {jobs.length > 0 && <OpenJobsSection jobs={jobs} empty="" showCareer />}
 
+      {/* The companies that are part of this one */}
+      {(data.subsidiaries?.length ?? 0) > 0 && (
+        <Section id="companies" title="Companies">
+          <CompanyFamily companies={data.subsidiaries ?? []} />
+        </Section>
+      )}
+
       {/* Every site: where it is and what it makes */}
       {sites.length > 0 && (
         <Section id="factories" title="Sites">
           <ul className="overflow-hidden rounded-xl border border-border-subtle bg-bg-surface">
             {shownSites.map((site) => {
               const place = [site.city ? titleCase(site.city) : null, site.state].filter(Boolean).join(', ');
-              const detail = [place, site.industry ? industryLabel(site.industry) : site.specialization].filter(Boolean).join(' · ');
+              const detail = [
+                place,
+                site.status === 'under construction' ? 'Under construction' : null,
+                site.workforceSize ? peopleCount(site.workforceSize) : null,
+                site.products || (site.industry ? industryLabel(site.industry) : site.specialization),
+              ]
+                .filter(Boolean)
+                .join(' · ');
               return (
                 <li key={site.id} className="border-b border-border-subtle last:border-b-0">
                   <Link
@@ -395,6 +419,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
         </Section>
       )}
 
+      <SourceList sources={data.sources} />
     </>
   );
 }
@@ -415,6 +440,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
   const industry = data.industry ? industryLabel(data.industry) : data.specialization;
   // The plant's industry is a page of its own, for the plant's state.
   const industryPage = industryPath(data.industry, { state: data.state });
+  const underConstruction = data.status === 'under construction';
   const jobs = data.jobs ?? [];
   const nearby = useMemo(() => data.nearby ?? [], [data.nearby]);
   const latitude = parseFloat(data.latitude);
@@ -442,7 +468,7 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
 
   return (
     <>
-      {(place || industry) && (
+      {(place || industry || underConstruction) && (
         <p className="mt-4 text-sm text-fg-muted">
           {place}
           {place && industry ? ' · ' : ''}
@@ -453,8 +479,10 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
           ) : (
             industry
           )}
+          {underConstruction ? `${place || industry ? ' · ' : ''}Under construction` : ''}
         </p>
       )}
+      <PlantFacts factory={data} />
 
       {/* Where it is */}
       {located && (
@@ -464,7 +492,8 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
           </div>
           <div className="flex flex-col gap-3 border-t border-border-subtle px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <p className="min-w-0 text-sm text-fg-muted">
-              {[data.address ? titleCase(data.address) : null, place].filter(Boolean).join(', ') || 'Location on record'}
+              {/* A curated plant's address was written by a person ("1530 FM 973") and is left as it is. */}
+              {[data.address ? (data.curated ? data.address : titleCase(data.address)) : null, place].filter(Boolean).join(', ') || 'Location on record'}
             </p>
             <Link
               to={`/map?factory=${data.id}`}
@@ -557,6 +586,8 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
           )}
         </Section>
       )}
+
+      <SourceList sources={data.sources} />
     </>
   );
 }
