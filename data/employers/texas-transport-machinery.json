@@ -1,0 +1,458 @@
+{
+  "brief": "texas-transport-machinery",
+  "retrieved": "2026-11-18",
+  "companies": [
+    {
+      "name": "Lockheed Martin",
+      "alsoKnownAs": [
+        "Lockheed Martin Corp",
+        "Lockheed Martin Corporation",
+        "Lockheed Martin Aeronautics",
+        "Lockheed Martin Aeronautics Company",
+        "Lockheed Martin Aeronautics Co",
+        "Lockheed Martin Missiles and Fire Control",
+        "Lockheed Martin Missiles & Fire Control",
+        "Lockheed Martin Tactical Aircraft Systems"
+      ],
+      "parent": null,
+      "domain": "lockheedmartin.com",
+      "industry": "Aerospace & Defense",
+      "description": "Builds the F-35 fighter in Fort Worth and missiles, rocket artillery and fire-control systems in Grand Prairie and Lufkin.",
+      "headquarters": {
+        "city": "Bethesda",
+        "state": "MD",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://lockheedmartin.com/en-us/careers/locations/texas.html"
+      ],
+      "plants": [
+        {
+          "name": "Fort Worth Air Force Plant 4",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "1 Lockheed Blvd",
+          "zip": "76108",
+          "latitude": 32.7717,
+          "longitude": -97.44976,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "F-35 Lightning II final assembly; F-16 support; headquarters of Lockheed Martin Aeronautics",
+          "employees": 18700,
+          "employeesYear": 2023,
+          "employeesSource": "https://www.tarrantcountytx.gov/en/administration/staff/economic-development/financial-status/labor-force-and-economic-base.html",
+          "employeesNote": "Tarrant County list of top employers (North Central Texas Council of Governments data, 2023); the figure is for Lockheed Martin in the county, which is this plant.",
+          "opened": 1942,
+          "status": "operating",
+          "sources": [
+            "https://www.tarrantcountytx.gov/en/administration/staff/economic-development/financial-status/labor-force-and-economic-base.html",
+            "https://en.wikipedia.org/wiki/Air_Force_Plant_4",
+            "https://lockheedmartin.com/en-us/careers/locations/texas.html"
+          ]
+        },
+        {
+          "name": "Lockheed Martin Missiles and Fire Control Grand Prairie",
+          "city": "Grand Prairie",
+          "state": "TX",
+          "address": "1701 W Marshall Dr",
+          "zip": "75051",
+          "latitude": 32.71744,
+          "longitude": -97.02893,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336414",
+          "products": "Missile and rocket systems (PAC-3, GMLRS, HIMARS) and fire-control sensors; headquarters of Missiles and Fire Control",
+          "employees": 4000,
+          "employeesYear": 2020,
+          "employeesSource": "https://dallasnews.com/news/2021/05/18/these-10-companies-in-grand-prairie-employ-more-than-17000-people",
+          "employeesNote": "From the City of Grand Prairie annual financial report for 2020, as listed by the Dallas Morning News. Newer figures of about 4,800 to 5,000 are reported but could not be checked on an open page.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://dallasnews.com/news/2021/05/18/these-10-companies-in-grand-prairie-employ-more-than-17000-people",
+            "https://lockheedmartin.com/en-us/careers/locations/texas.html"
+          ]
+        },
+        {
+          "name": "Lufkin Operations",
+          "city": "Lufkin",
+          "state": "TX",
+          "address": "1008 N John Redditt Dr",
+          "zip": "75904",
+          "latitude": 31.34229,
+          "longitude": -94.76196,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336419",
+          "products": "Electronics and sub-assemblies for PAC-3, THAAD, GMLRS, ATACMS and JASSM/LRASM missiles",
+          "employees": 450,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.lockheedmartin.com/en-us/careers/life-at-lm/2025/30-years-of-innovation.html",
+          "employeesNote": "Company says \"more than 450 employees\".",
+          "opened": 1995,
+          "status": "operating",
+          "sources": [
+            "https://www.lockheedmartin.com/en-us/careers/life-at-lm/2025/30-years-of-innovation.html",
+            "https://news.lockheedmartin.com/2009-04-16-Lockheed-Martin-to-Break-Ground-on-New-Lufkin-Operations-Plant-Expansion"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bell",
+      "alsoKnownAs": [
+        "Bell Textron",
+        "Bell Textron Inc",
+        "Bell Textron Inc.",
+        "Bell Helicopter",
+        "Bell Helicopter Textron",
+        "Bell Helicopter Textron Inc",
+        "Bell Helicopter-Textron",
+        "Bell Flight"
+      ],
+      "parent": "Textron",
+      "domain": "bellflight.com",
+      "industry": "Helicopters & Tiltrotors",
+      "description": "Makes military and commercial helicopters and tiltrotors, including the V-22 Osprey and the Army MV-75.",
+      "headquarters": {
+        "city": "Fort Worth",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://news.bellflight.com/en-US/253090-bell-accelerates-mv-75-program-for-army-invests-large-sums-across-dfw/"
+      ],
+      "plants": [
+        {
+          "name": "Bell Fort Worth",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "3255 Bell Flight Blvd",
+          "zip": "76118",
+          "latitude": 32.80704,
+          "longitude": -97.16049,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "Headquarters and main plant: rotor systems, gears, transmissions and composite parts for Bell helicopters and tiltrotors; engineering",
+          "employees": 4000,
+          "employeesYear": 2025,
+          "employeesSource": "https://news.bellflight.com/en-US/253090-bell-accelerates-mv-75-program-for-army-invests-large-sums-across-dfw/",
+          "employeesNote": "Article carried on Bell's news site: \"more than 8,000 people total, including about 4,000 work in Fort Worth\". Covers the headquarters plant and Bell's other Fort Worth buildings.",
+          "opened": 1951,
+          "status": "operating",
+          "sources": [
+            "https://news.bellflight.com/en-US/253090-bell-accelerates-mv-75-program-for-army-invests-large-sums-across-dfw/"
+          ]
+        },
+        {
+          "name": "Bell Amarillo Assembly Center",
+          "city": "Amarillo",
+          "state": "TX",
+          "address": "401 Tiltrotor Dr",
+          "zip": "79111",
+          "latitude": 35.20953,
+          "longitude": -101.71636,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "Final assembly of the V-22 Osprey, AH-1Z and UH-1Y; chosen for MV-75 final assembly",
+          "employees": 900,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.dallasfed.org/research/heart/amarillo",
+          "employeesNote": "Federal Reserve Bank of Dallas metro profile: \"Bell Helicopter's production plant employs 900 workers\". Bell gave layoff notices to about 30 people here in June 2026.",
+          "opened": 1999,
+          "status": "operating",
+          "sources": [
+            "https://www.dallasfed.org/research/heart/amarillo",
+            "https://news.bellflight.com/en-US/253090-bell-accelerates-mv-75-program-for-army-invests-large-sums-across-dfw/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "General Motors",
+      "alsoKnownAs": [
+        "General Motors LLC",
+        "General Motors Corp",
+        "General Motors Corporation",
+        "General Motors Company",
+        "GM",
+        "General Motors Arlington Assembly",
+        "GM Arlington Assembly Plant"
+      ],
+      "parent": null,
+      "domain": "gm.com",
+      "industry": "Motor Vehicles",
+      "description": "Builds its full-size SUVs (Tahoe, Suburban, Yukon, Escalade) at one assembly plant in Arlington.",
+      "headquarters": {
+        "city": "Detroit",
+        "state": "MI",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.gm.com/company/facilities/arlington",
+        "https://www.arlingtontx.com/blog/general-motors-70-years-of-economic-impact-in-arlington/"
+      ],
+      "plants": [
+        {
+          "name": "Arlington Assembly",
+          "city": "Arlington",
+          "state": "TX",
+          "address": "2625 E Abram St",
+          "zip": "76010",
+          "latitude": 32.73833,
+          "longitude": -97.07361,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336110",
+          "products": "Chevrolet Tahoe and Suburban, GMC Yukon and Yukon XL, Cadillac Escalade (stamping, body, paint, assembly)",
+          "employees": 5400,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.arlingtontx.com/blog/general-motors-70-years-of-economic-impact-in-arlington/",
+          "employeesNote": "Greater Arlington Chamber, August 2024, carrying GM's statement: \"The site employs over 5,400 people\". The Dallas Fed profile gives 5,200.",
+          "opened": 1954,
+          "status": "operating",
+          "sources": [
+            "https://www.gm.com/company/facilities/arlington",
+            "https://www.arlingtontx.com/blog/general-motors-70-years-of-economic-impact-in-arlington/",
+            "https://www.dallasfed.org/research/heart/fortworth"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Toyota Motor Manufacturing Texas",
+      "alsoKnownAs": [
+        "Toyota",
+        "Toyota Motor Manufacturing Texas Inc",
+        "Toyota Motor Manufacturing, Texas, Inc.",
+        "Toyota Motor Manufacturing Texas, Inc.",
+        "Toyota Texas",
+        "TMMTX"
+      ],
+      "parent": "Toyota",
+      "domain": "toyota.com",
+      "industry": "Motor Vehicles",
+      "description": "Builds Toyota Tundra pickups and Sequoia SUVs in San Antonio.",
+      "headquarters": {
+        "city": "San Antonio",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://pressroom.toyota.com/facility/toyota-motor-manufacturing-texas-tmmtx/"
+      ],
+      "plants": [
+        {
+          "name": "Toyota Motor Manufacturing Texas",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "1 Lone Star Pass",
+          "zip": "78264",
+          "latitude": 29.26285,
+          "longitude": -98.54046,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336110",
+          "products": "Tundra pickups and Sequoia SUVs (stamping, body weld, paint, assembly); rear axles",
+          "employees": 4000,
+          "employeesYear": 2025,
+          "employeesSource": "https://pressroom.toyota.com/facility/toyota-motor-manufacturing-texas-tmmtx/",
+          "employeesNote": "Toyota's own count. More than 20 suppliers on the same site employ a further 5,600 people.",
+          "opened": 2006,
+          "status": "operating",
+          "sources": [
+            "https://pressroom.toyota.com/facility/toyota-motor-manufacturing-texas-tmmtx/",
+            "https://www.dallasfed.org/research/heart/sanantonio"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tesla",
+      "alsoKnownAs": [
+        "Tesla Inc",
+        "Tesla, Inc.",
+        "Tesla Motors",
+        "Tesla Motors Inc",
+        "Tesla Gigafactory Texas",
+        "Gigafactory Texas"
+      ],
+      "parent": null,
+      "domain": "tesla.com",
+      "industry": "Electric Vehicles",
+      "description": "Builds the Model Y and Cybertruck, and is starting the Cybercab, at Giga Texas east of Austin.",
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.statesman.com/business/article/tesla-gigafactory-texas-employment-austin-musk-22162199.php"
+      ],
+      "plants": [
+        {
+          "name": "Giga Texas",
+          "city": "Austin",
+          "state": "TX",
+          "address": "1 Tesla Road",
+          "zip": "78725",
+          "latitude": 30.22087,
+          "longitude": -97.61865,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336110",
+          "products": "Model Y, Cybertruck and Cybercab; battery cells and packs; company headquarters",
+          "employees": 16506,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.statesman.com/business/article/tesla-gigafactory-texas-employment-austin-musk-22162199.php",
+          "employeesNote": "Year-end 2025 count from Tesla's compliance report to Travis County, as reported by the Austin American-Statesman; down from 21,191 at the end of 2024. Includes headquarters staff at the site.",
+          "opened": 2022,
+          "status": "operating",
+          "sources": [
+            "https://www.statesman.com/business/article/tesla-gigafactory-texas-employment-austin-musk-22162199.php",
+            "https://techcrunch.com/2026/04/03/teslas-texas-factory-workforce-reportedly-shrunk-22-in-2025/",
+            "https://en.wikipedia.org/wiki/Gigafactory_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Peterbilt",
+      "alsoKnownAs": [
+        "Peterbilt Motors",
+        "Peterbilt Motors Company",
+        "Peterbilt Motors Co",
+        "Peterbilt Motors Co."
+      ],
+      "parent": "PACCAR",
+      "domain": "peterbilt.com",
+      "industry": "Heavy Trucks",
+      "description": "Builds Peterbilt Class 8 trucks at its headquarters plant in Denton.",
+      "headquarters": {
+        "city": "Denton",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.dentonedp.com/workforce/major-employers"
+      ],
+      "plants": [
+        {
+          "name": "Peterbilt Denton",
+          "city": "Denton",
+          "state": "TX",
+          "address": "3200 Airport Rd",
+          "zip": "76207",
+          "latitude": 33.20242,
+          "longitude": -97.17548,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336120",
+          "products": "Class 8 highway and vocational trucks (Models 579, 589, 567 and others)",
+          "employees": 2000,
+          "employeesYear": 2021,
+          "employeesSource": "https://www.dentonedp.com/workforce/major-employers",
+          "employeesNote": "Denton Economic Development Partnership major-employers list (the list is the 2021 one, dated May 2022). Trade press put the plant at more than 2,500 in 2020.",
+          "opened": 1980,
+          "status": "operating",
+          "sources": [
+            "https://www.dentonedp.com/workforce/major-employers"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SpaceX",
+      "alsoKnownAs": [
+        "Space Exploration Technologies",
+        "Space Exploration Technologies Corp",
+        "Space Exploration Technologies Corp.",
+        "SpaceX Starbase",
+        "Starlink"
+      ],
+      "parent": null,
+      "domain": "spacex.com",
+      "industry": "Rockets & Spacecraft",
+      "description": "Builds and launches Starship at Starbase, tests rocket engines at McGregor and makes Starlink terminals in Bastrop.",
+      "headquarters": {
+        "city": "Starbase",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://fortune.com/2025/02/13/musks-spacex-moves-closer-starbase-city-texas-county-approves-vote/",
+        "https://dallasnews.com/business/2024/04/02/elon-musk-boosts-headcount-by-86-at-biggest-site-of-his-texas-empire"
+      ],
+      "plants": [
+        {
+          "name": "Starbase",
+          "city": "Starbase",
+          "state": "TX",
+          "address": "1 Rocket Rd",
+          "zip": "78521",
+          "latitude": 25.98803,
+          "longitude": -97.18702,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336414",
+          "products": "Starship and Super Heavy production, testing and launch",
+          "employees": 3400,
+          "employeesYear": 2024,
+          "employeesSource": "https://fortune.com/2025/02/13/musks-spacex-moves-closer-starbase-city-texas-county-approves-vote/",
+          "employeesNote": "Includes contractors: \"More than 3,400 full-time SpaceX employees and contractors work at the Starbase site\", from a Cameron County impact study issued in 2024.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://fortune.com/2025/02/13/musks-spacex-moves-closer-starbase-city-texas-county-approves-vote/",
+            "https://en.wikipedia.org/wiki/SpaceX_Starbase"
+          ]
+        },
+        {
+          "name": "SpaceX McGregor Rocket Development and Test Facility",
+          "city": "McGregor",
+          "state": "TX",
+          "address": "1 Rocket Rd",
+          "zip": "76657",
+          "latitude": 31.40368,
+          "longitude": -97.46176,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336415",
+          "products": "Test firing of every Merlin and Raptor rocket engine; engine and stage refurbishment",
+          "employees": 600,
+          "employeesYear": 2024,
+          "employeesSource": "https://dallasnews.com/business/2024/04/02/elon-musk-boosts-headcount-by-86-at-biggest-site-of-his-texas-empire",
+          "employeesNote": "Dallas Morning News, April 2024: \"Waco economic development officials say SpaceX has 600 workers at a rocket-engine test site in McGregor\".",
+          "opened": 2003,
+          "status": "operating",
+          "sources": [
+            "https://dallasnews.com/business/2024/04/02/elon-musk-boosts-headcount-by-86-at-biggest-site-of-his-texas-empire",
+            "https://en.wikipedia.org/wiki/SpaceX_Rocket_Development_and_Test_Facility"
+          ]
+        },
+        {
+          "name": "SpaceX Bastrop",
+          "city": "Bastrop",
+          "state": "TX",
+          "address": "858 FM 1209",
+          "zip": "78602",
+          "latitude": 30.15633,
+          "longitude": -97.40742,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334220",
+          "products": "Starlink user terminals (satellite internet kits)",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://dallasnews.com/business/2024/04/02/elon-musk-boosts-headcount-by-86-at-biggest-site-of-his-texas-empire"
+          ]
+        }
+      ]
+    }
+  ],
+  "unplaced": [],
+  "notes": "Lockheed Martin Grand Prairie: the only site figure that could be read on an open page is the city's 2020 one (4,000); the city's own pages and newer press figures (about 4,800 to 5,000) were not reachable from the research environment. Bell: \"Textron\" is deliberately not listed as an alias of Bell (Textron has other subsidiaries); existing \"Textron\" rows in the Dallas-Fort Worth area and Amarillo are very likely Bell sites and should be reviewed by hand. Bell's Grand Prairie Drive Systems Center (about 1,200 people in the city's 2020 report) and its Alliance plant now being fitted out at 15100 N Beach St, Fort Worth, are listed under unplaced. General Motors: GM says it employs over 9,000 in Texas, but that includes GM Financial and the Austin technical centre, so no state manufacturing figure is given. Tarrant County's list shows 10,512 for the Arlington plant, which does not match GM's own 5,400 and was not used. Tesla: the Megapack factory near Brookshire and the lithium refinery near Robstown are outside these two industries and are left to other briefs. SpaceX: McGregor is a test site rather than a factory but is kept because it is one of the company's three large Texas sites; the Bastrop Starlink plant is filed under Computer and Electronic Product Manufacturing."
+}

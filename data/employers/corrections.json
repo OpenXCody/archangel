@@ -1,0 +1,9 @@
+{
+  "note": "Our corrections to the research files in this folder, laid over them by scripts/build-employers-sql.mjs (see scripts/ingest/README.md). The research files stay as they were delivered.",
+  "companies": {
+    "Bell": {
+      "why": "The company already named Bell in the data is Bell Incorporated of Sioux Falls, SD, which makes paper boxes. It is not the helicopter maker.",
+      "setAside": [{ "name": "Bell", "withPlant": "BELL INCORPORATED", "renameTo": "Bell Incorporated" }]
+    }
+  }
+}
