@@ -1,0 +1,26 @@
+{
+  "note": "The 21 manufacturing industries (NAICS subsectors 311 to 339) as the product describes them: one plain sentence on what each makes. 'name' is the title a plant carries in factories.primary_naics_description and must match shared/industry.ts (a unit check fails otherwise). Loaded into industry_profiles by scripts/build-industry-stats-sql.mjs; a change goes out as a new generated migration.",
+  "industries": [
+    { "code": "311", "name": "Food Manufacturing", "summary": "Plants that turn crops, milk and livestock into food: meat, dairy, baked goods, snacks and animal feed." },
+    { "code": "312", "name": "Beverage and Tobacco Product Manufacturing", "summary": "Bottlers, breweries, wineries and distilleries, and the plants that make cigarettes and other tobacco products." },
+    { "code": "313", "name": "Textile Mills", "summary": "Mills that spin fiber into yarn and thread, and weave, knit and finish fabric." },
+    { "code": "314", "name": "Textile Product Mills", "summary": "Plants that make goods from fabric other than clothing: carpet, linens, canvas, rope and bags." },
+    { "code": "315", "name": "Apparel Manufacturing", "summary": "Plants that cut and sew clothing, and mills that knit it." },
+    { "code": "316", "name": "Leather and Allied Product Manufacturing", "summary": "Tanneries, and plants that make footwear, luggage, belts and other leather goods." },
+    { "code": "321", "name": "Wood Product Manufacturing", "summary": "Sawmills, and plants that make lumber, plywood, trusses, flooring, pallets and manufactured homes." },
+    { "code": "322", "name": "Paper Manufacturing", "summary": "Mills that make pulp, paper and paperboard, and plants that turn them into boxes, bags and tissue." },
+    { "code": "323", "name": "Printing and Related Support Activities", "summary": "Plants that print books, labels, packaging, signs and forms, and the shops that prepare and finish the work." },
+    { "code": "324", "name": "Petroleum and Coal Products Manufacturing", "summary": "Refineries that turn crude oil into fuels, and plants that make asphalt, roofing materials and lubricants." },
+    { "code": "325", "name": "Chemical Manufacturing", "summary": "Plants that make basic chemicals, plastic resins, fertilizer, medicines, paints, soaps and cosmetics." },
+    { "code": "326", "name": "Plastics and Rubber Products Manufacturing", "summary": "Plants that mold, extrude and form plastic and rubber into parts, pipe, film, bottles, foam, hoses and tires." },
+    { "code": "327", "name": "Nonmetallic Mineral Product Manufacturing", "summary": "Plants that make glass, cement, concrete, brick, tile, lime and gypsum products from sand, stone and clay." },
+    { "code": "331", "name": "Primary Metal Manufacturing", "summary": "Mills, smelters and foundries that make steel, aluminum, copper and other metals, and shape them into plate, bar, pipe, wire and castings." },
+    { "code": "332", "name": "Fabricated Metal Product Manufacturing", "summary": "Shops and plants that cut, form, weld, machine and coat metal into structural steel, tanks, hardware, tools, valves and precision parts." },
+    { "code": "333", "name": "Machinery Manufacturing", "summary": "Plants that build machines: farm, construction and oilfield equipment, engines, pumps, compressors, heating and cooling units, and the machinery other factories run on." },
+    { "code": "334", "name": "Computer and Electronic Product Manufacturing", "summary": "Plants that make semiconductors, circuit boards, computers, communications equipment, and measuring, medical and navigation instruments." },
+    { "code": "335", "name": "Electrical Equipment, Appliance, and Component Manufacturing", "summary": "Plants that make lighting, household appliances, motors, generators, transformers, switchgear, batteries, wire and cable." },
+    { "code": "336", "name": "Transportation Equipment Manufacturing", "summary": "Plants that build cars, trucks, trailers, aircraft, spacecraft, rail cars, ships and boats, and the parts that go into them." },
+    { "code": "337", "name": "Furniture and Related Product Manufacturing", "summary": "Plants that make household and office furniture, kitchen cabinets, mattresses, shelving and store fixtures." },
+    { "code": "339", "name": "Miscellaneous Manufacturing", "summary": "Plants that make medical devices and supplies, and goods that fit no other industry: jewelry, sporting goods, toys, signs and office supplies." }
+  ]
+}

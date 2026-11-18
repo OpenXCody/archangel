@@ -645,3 +645,45 @@ export const auditLog = pgTable(
     recordIdx: index('audit_log_record_idx').on(table.kind, table.recordId, table.at),
   })
 );
+
+// ============================================
+// INDUSTRIES (migrations 0035, 0036)
+// ============================================
+
+// What each of the 21 manufacturing industries makes, in one sentence.
+// Curated in data/industries/industries.json. `name` is the title a plant
+// carries in factories.primary_naics_description; the page address (slug)
+// lives with the list in shared/industry.ts.
+export const industryProfiles = pgTable(
+  'industry_profiles',
+  {
+    code: text('code').primaryKey(),
+    name: text('name').notNull(),
+    summary: text('summary').notNull(),
+  },
+  (table) => ({
+    nameKey: uniqueIndex('industry_profiles_name_key').on(table.name),
+  })
+);
+
+// Official statistics by industry and place (scripts/ingest/qcew.mjs), one
+// row per year. `state` is 'US' for the nation or a two-letter code;
+// `industryCode` is a NAICS subsector, or '31-33' for manufacturing as a
+// whole. A figure the source withheld is null, never zero.
+export const industryStats = pgTable(
+  'industry_stats',
+  {
+    state: text('state').notNull(),
+    industryCode: text('industry_code').notNull(),
+    year: integer('year').notNull(),
+    establishments: integer('establishments'),
+    employment: integer('employment'),
+    avgAnnualPay: integer('avg_annual_pay'),
+    source: text('source').notNull(),
+    sourceUrl: text('source_url'),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.state, table.industryCode, table.year] }),
+    industryIdx: index('industry_stats_industry_idx').on(table.industryCode, table.year),
+  })
+);
