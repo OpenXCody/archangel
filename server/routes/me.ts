@@ -15,6 +15,7 @@ import {
 import { cleanText, clearAttempts, endSession, handle, requireUser, tooManyAttempts, verifyPassword } from '../lib/auth.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { newsFor } from '../lib/notices.js';
+import { hasCompanyTie, isPurpose, purposeFrom, type Purpose } from '../lib/purpose.js';
 
 /** A signed-in person's own data: profile, skills, goals, applications. */
 const router = Router();
@@ -58,14 +59,20 @@ function nextSkillsSql(occupationId: SQL, userId: string): SQL<NextSkill[]> {
   ), '[]'::json)`;
 }
 
-// PATCH /api/me { name?, homeZip?, about?, emailNotices? }
+// PATCH /api/me { name?, homeZip?, about?, emailNotices?, purpose? }
+// `purpose` is what the account is for, 'work' or 'hire': which tools the
+// interface draws. It changes nothing the person is allowed to do.
 router.patch(
   '/',
   handle(async (req, res) => {
     const user = req.user!;
-    const patch: { name?: string; homeZip?: string | null; about?: string | null; emailNotices?: boolean; updatedAt: Date } = {
+    const patch: { name?: string; homeZip?: string | null; about?: string | null; emailNotices?: boolean; purpose?: Purpose; updatedAt: Date } = {
       updatedAt: new Date(),
     };
+    if (req.body?.purpose !== undefined) {
+      if (!isPurpose(req.body.purpose)) return res.status(400).json({ error: 'purpose must be work or hire.' });
+      patch.purpose = req.body.purpose;
+    }
     if (req.body?.emailNotices !== undefined) {
       if (typeof req.body.emailNotices !== 'boolean') return res.status(400).json({ error: 'emailNotices must be true or false.' });
       patch.emailNotices = req.body.emailNotices;
@@ -93,8 +100,11 @@ router.patch(
       homeZip: users.homeZip,
       about: users.about,
       emailNotices: users.emailNotices,
+      purpose: users.purpose,
     });
-    res.json({ user: updated });
+    // Never said: read from what the person has, as /api/auth/me does.
+    const purpose = purposeFrom(updated.purpose, isPurpose(updated.purpose) ? false : await hasCompanyTie(user.id));
+    res.json({ user: { ...updated, purpose } });
   })
 );
 

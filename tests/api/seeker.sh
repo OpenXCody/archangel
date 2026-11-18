@@ -279,6 +279,12 @@ DID=$(req d GET /auth/me | j user.id)
 check "a skill"                       200 "$(req d PUT /me/skills/$S01 '{"status":"held"}')"
 check "a goal"                        200 "$(req d PUT /me/goals/$A)"
 check "an application"                201 "$(req d POST /jobs/$JOB/apply '{"note":"hello"}')"
+# What the account is for changes the tools drawn, and nothing the person has.
+expect "a new account is for work"    work "$(req d GET /auth/me | j user.purpose)"
+check "set to hire"                   200 "$(req d PATCH /me '{"purpose":"hire"}')" '"purpose":"hire"'
+expect "skill, goal and application are all still there" "1 1 1" "$(echo "$(req d GET /me/skills | j skills.length) $(req d GET /me/goals | j goals.length) $(req d GET /me/applications | j applications.length)")"
+check "a seeker's routes still answer" 200 "$(req d GET /me/careers/reach)"
+check "set back to work"              200 "$(req d PATCH /me '{"purpose":"work"}')" '"purpose":"work"'
 sql "INSERT INTO company_members (company_id, user_id, role, status) SELECT id, '$DID', 'member', 'active' FROM companies WHERE name='$P Works'" >/dev/null
 check "deletion requires sign-in"     401 "$(req anon DELETE /me '{"password":"correct horse"}')"
 check "deletion needs the password"   400 "$(req d DELETE /me '{}')" 'Enter your password'

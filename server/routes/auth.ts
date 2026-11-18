@@ -23,6 +23,7 @@ import { MAX_INVITE_TOKEN_LENGTH, usableInvite } from '../lib/invites.js';
 import { MAX_RESET_TOKEN_LENGTH, usableReset } from '../lib/passwordResets.js';
 import { emailEnabled, finishLater } from '../lib/email.js';
 import { sendEmailChanged, sendForgotLink } from '../lib/notices.js';
+import { isPurpose, purposeFrom } from '../lib/purpose.js';
 
 const router = Router();
 
@@ -38,19 +39,25 @@ async function accountPayload(user: SessionUser) {
     .from(companyMembers)
     .innerJoin(companies, eq(companies.id, companyMembers.companyId))
     .where(eq(companyMembers.userId, user.id));
-  // Whether the person takes notice emails, for the switch on their page.
-  const [prefs] = await db.select({ emailNotices: users.emailNotices }).from(users).where(eq(users.id, user.id)).limit(1);
-  // A request to have a company or a plant added that an admin has not answered yet.
-  const [asked] = await db
-    .select({ id: companyRequests.id })
-    .from(companyRequests)
-    .where(and(eq(companyRequests.userId, user.id), eq(companyRequests.status, 'requested')))
+  // Whether the person takes notice emails, for the switch in settings, and what they said the account is for.
+  const [prefs] = await db
+    .select({ emailNotices: users.emailNotices, purpose: users.purpose })
+    .from(users)
+    .where(eq(users.id, user.id))
     .limit(1);
+  // The person's requests to have a company or a plant added, whatever became of them.
+  const asked = await db.select({ status: companyRequests.status }).from(companyRequests).where(eq(companyRequests.userId, user.id));
   return {
-    user: { ...user, emailNotices: prefs?.emailNotices ?? true },
+    user: {
+      ...user,
+      emailNotices: prefs?.emailNotices ?? true,
+      // 'work' or 'hire': which tools the interface draws. Never what is allowed.
+      purpose: purposeFrom(prefs?.purpose, memberships.length > 0 || asked.length > 0),
+    },
     memberships,
     isEmployer: memberships.some((m) => m.status === 'active'),
-    hasCompanyRequest: Boolean(asked),
+    // One that an admin has not answered yet.
+    hasCompanyRequest: asked.some((request) => request.status === 'requested'),
   };
 }
 
@@ -107,9 +114,12 @@ router.get(
   })
 );
 
-// POST /api/auth/sign-up { email, password, name, invite? }
+// POST /api/auth/sign-up { email, password, name, invite?, purpose? }
 // With an invite token, the email must be the invited one; the account, its
 // invited role and the invite's acceptance are written together or not at all.
+// `purpose` is what the account is for, 'work' (the default) or 'hire'. Only
+// 'hire' is kept: an account that did not ask to hire follows its
+// relationships until its owner chooses in settings (lib/purpose.ts).
 router.post(
   '/sign-up',
   handle(async (req, res) => {
@@ -117,6 +127,8 @@ router.post(
     const name = cleanText(req.body?.name, 80, 1);
     const password = typeof req.body?.password === 'string' ? req.body.password : '';
     const inviteToken: unknown = req.body?.invite ?? null;
+    const purpose: unknown = req.body?.purpose ?? null;
+    if (purpose !== null && !isPurpose(purpose)) return res.status(400).json({ error: 'purpose must be work or hire.' });
     if (!email) return res.status(400).json({ error: 'Enter a valid email address.' });
     if (!name) {
       const given = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
@@ -154,7 +166,7 @@ router.post(
       // the check above; the second must lose quietly, not fail.
       const [created] = await tx
         .insert(users)
-        .values({ email, name, passwordHash, isAdmin, adminSince: isAdmin ? new Date() : null })
+        .values({ email, name, passwordHash, isAdmin, adminSince: isAdmin ? new Date() : null, purpose: purpose === 'hire' ? 'hire' : null })
         .onConflictDoNothing()
         .returning({ id: users.id });
       if (!created) return { problem: 'exists' as const };
