@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BriefcaseBusiness, Clock, Loader2, MapPin, Search, SearchX, X } from 'lucide-react';
+import { Clock, Loader2, MapPin, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import CompanyLogo from '../components/CompanyLogo';
@@ -15,7 +14,6 @@ import { employmentLabel, formatAgo, formatPay, formatPlace } from '../lib/jobFo
 import { ENTITY, LoadError, cardClass, fieldClass, outlineButtonClass, useDebouncedValue } from '../components/account/parts';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
 
-const ALL_CAREERS = 'all';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** `?near=30.5083,-97.6789`: a point, as latitude then longitude. */
@@ -41,6 +39,11 @@ function milesAway(miles: number): string {
  * to and Back returns to it. Near a place, the nearest jobs come first and
  * each says how far it is. The place is one the person typed or picked: the
  * browser is never asked where they are.
+ *
+ * Two fields: what (a job, a company or a career, typed) and where. A career
+ * is narrowed to by its page's link (`?career=`), and the line above the list
+ * then names it. With no open job anywhere there is nothing to filter: the
+ * page is one sentence and the way on.
  */
 export default function Jobs() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -86,13 +89,6 @@ export default function Jobs() {
     setTerm(q);
   }, [q]);
 
-  const setFilter = (name: 'career', value: string, none: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (value && value !== none) params.set(name, value);
-    else params.delete(name);
-    setSearchParams(params, { replace: true });
-  };
-
   const setPlace = (next: JobPlace | null, miles = within) => {
     const params = new URLSearchParams(searchParams);
     for (const name of ['state', 'near', 'place', 'within']) params.delete(name);
@@ -117,100 +113,87 @@ export default function Jobs() {
     near: point ? `${point.lat},${point.lng}` : undefined,
     within: point ? within : undefined,
   });
-  // Every open job, unfiltered: the careers on offer come from this.
+  // Every open job, unfiltered: whether there is anything to filter, and the states on offer.
   const allJobs = useJobs({});
-
-  const careerOptions = useMemo(() => {
-    const byId = new Map<string, { id: string; title: string; count: number }>();
-    for (const job of allJobs.data ?? []) {
-      const entry = byId.get(job.occupationId);
-      if (entry) entry.count += 1;
-      else byId.set(job.occupationId, { id: job.occupationId, title: job.occupationTitle, count: 1 });
-    }
-    return [...byId.values()].sort((a, b) => a.title.localeCompare(b.title));
-  }, [allJobs.data]);
 
   // The states that have open jobs.
   const jobStates = useMemo(() => [...new Set((allJobs.data ?? []).map((job) => job.state).filter((code): code is string => Boolean(code)))], [allJobs.data]);
 
-  // A career linked to from elsewhere may have no open jobs; still name it in the filter.
-  const careerListed = careerOptions.some((option) => option.id === career);
+  // The career a link narrowed the list to, by name: from a job that has it, else looked up
+  // (a career linked to from its page may have no open job).
+  const careerInList = career ? (allJobs.data ?? []).find((job) => job.occupationId === career)?.occupationTitle : undefined;
   const linkedCareer = useQuery({
     queryKey: ['picker', 'occupation', career],
     queryFn: () => occupationsApi.get(career),
-    enabled: Boolean(career) && allJobs.isSuccess && !careerListed,
+    enabled: Boolean(career) && allJobs.isSuccess && !careerInList,
     staleTime: 5 * 60_000,
   });
+  const careerTitle = careerInList ?? linkedCareer.data?.title ?? null;
 
   const filtered = Boolean(q || career || place);
   const count = jobs.data?.length ?? 0;
   const placeName = jobPlaceLabel(place);
+  // Nothing is open anywhere: no fields over an empty list.
+  const nothingOpen = !filtered && allJobs.isSuccess && allJobs.data.length === 0;
+  const jobWord = (n: number) => (n === 1 ? 'job' : 'jobs');
+  const where = place?.kind === 'near' ? ` within ${within} miles of ${placeName}` : place ? ` in ${placeName}` : '';
+  // What the list is, in one line: how many, and what narrowed it.
+  const summary =
+    career && careerTitle && !q
+      ? `${count} open ${jobWord(count)} for ${careerTitle}${where}`
+      : place?.kind === 'near'
+        ? `${count} ${jobWord(count)} within ${within} miles of ${placeName}`
+        : `${count} ${filtered ? (count === 1 ? 'job matches' : 'jobs match') : `open ${jobWord(count)}`}`;
   // Where a job opened from this list comes back to.
   const here = `${location.pathname}${location.search}`;
 
   return (
     <PageContainer>
-      <PageHeader
-        icon={BriefcaseBusiness}
-        title="Jobs"
-        description="Open positions. Each is tied to a career and its skills."
-      />
+      <PageHeader title="Jobs" description="Open jobs. Each is tied to a career and its skills." />
 
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_380px_220px]">
-        <div className="relative min-w-0 sm:col-span-2 lg:col-span-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
-          <input
-            type="text"
-            role="searchbox"
-            enterKeyHint="search"
-            aria-label="Search jobs by title, company, career or town"
-            placeholder="Job, company or career"
-            autoComplete="off"
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
-            className={cn(fieldClass, 'h-11 bg-bg-surface pl-9 pr-10')}
-          />
-          {term && (
-            <button
-              type="button"
-              aria-label="Clear search"
-              onClick={() => setTerm('')}
-              className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted hover:text-fg-default"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+      {!filtered && allJobs.isPending ? (
+        // Whether there is anything to filter is not known yet: the fields' room is held, not the fields.
+        <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_380px]" aria-hidden="true">
+          <Skeleton className="h-11 rounded-lg" />
+          <Skeleton className="h-11 rounded-lg" />
         </div>
-        <JobPlaceFilter
-          value={place}
-          onChange={(next) => setPlace(next)}
-          within={within}
-          onWithinChange={(miles) => setPlace(place, miles)}
-          states={jobStates}
-          homeZip={homeZip}
-        />
-        <Select value={career || ALL_CAREERS} onValueChange={(value) => setFilter('career', value, ALL_CAREERS)}>
-          <SelectTrigger
-            aria-label="Filter by career"
-            className="h-11 min-w-0 rounded-lg border-border-strong bg-bg-surface px-3 text-base text-fg-default shadow-none sm:text-sm"
-          >
-            <SelectValue placeholder="All careers" />
-          </SelectTrigger>
-          <SelectContent className="max-w-[calc(100vw-2rem)] rounded-lg border-border-strong bg-bg-surface">
-            <SelectItem value={ALL_CAREERS} className="py-2.5">All careers</SelectItem>
-            {career && !careerListed && (
-              <SelectItem value={career} className="py-2.5">
-                {linkedCareer.data?.title ?? 'Selected career'}
-              </SelectItem>
+      ) : nothingOpen ? null : (
+        <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="relative min-w-0">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+            <input
+              type="text"
+              role="searchbox"
+              enterKeyHint="search"
+              // Heard as it is read.
+              aria-label="Job, company or career"
+              placeholder="Job, company or career"
+              autoComplete="off"
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              className={cn(fieldClass, 'h-11 bg-bg-surface pl-9 pr-10')}
+            />
+            {term && (
+              <button
+                type="button"
+                aria-label="Clear search"
+                onClick={() => setTerm('')}
+                className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted hover:text-fg-default"
+              >
+                <X className="h-4 w-4" />
+              </button>
             )}
-            {careerOptions.map((option) => (
-              <SelectItem key={option.id} value={option.id} className="py-2.5">
-                {option.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+          </div>
+          <JobPlaceFilter
+            value={place}
+            onChange={(next) => setPlace(next)}
+            within={within}
+            onWithinChange={(miles) => setPlace(place, miles)}
+            states={jobStates}
+            homeZip={homeZip}
+          />
+        </div>
+      )}
 
       {jobs.isPending ? (
         <JobCardsSkeleton />
@@ -219,7 +202,6 @@ export default function Jobs() {
       ) : count === 0 ? (
         filtered ? (
           <EmptyState
-            icon={SearchX}
             title="No jobs match"
             description={
               place?.kind === 'near'
@@ -243,7 +225,6 @@ export default function Jobs() {
           />
         ) : (
           <EmptyState
-            icon={BriefcaseBusiness}
             title="No open jobs"
             description="Jobs posted by employers appear here."
             action={
@@ -253,19 +234,18 @@ export default function Jobs() {
                   <Link to={postJob.to}>Post a job</Link>
                 </Button>
               ) : (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <Button asChild className="h-10 rounded-lg">
-                      <Link to="/explore?tab=occupations">Browse careers</Link>
-                    </Button>
-                    <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
-                      <Link to="/map">Open the map</Link>
-                    </Button>
-                  </div>
+                // Everyone else: the one way on. A visitor who came to hire is told, quietly, that they can.
+                <div className="flex flex-col items-center gap-3">
+                  <Button asChild className="h-10 rounded-lg">
+                    <Link to="/explore?tab=occupations">Browse careers</Link>
+                  </Button>
                   {postJob && (
-                    <Link to={postJob.to} className="text-sm text-fg-muted underline underline-offset-4 hover:text-fg-default" data-post-a-job>
-                      Post a job
-                    </Link>
+                    <p className="text-sm text-fg-muted" data-post-a-job>
+                      Hiring?{' '}
+                      <Link to={postJob.to} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-fg-default">
+                        Post a job
+                      </Link>
+                    </p>
                   )}
                 </div>
               )
@@ -275,9 +255,7 @@ export default function Jobs() {
       ) : (
         <>
           <p className="mb-3 flex items-center gap-2 text-sm text-fg-muted" role="status">
-            {place?.kind === 'near'
-              ? `${count} ${count === 1 ? 'job' : 'jobs'} within ${within} miles of ${placeName}`
-              : `${count} ${filtered ? (count === 1 ? 'job matches' : 'jobs match') : count === 1 ? 'open job' : 'open jobs'}`}
+            {summary}
             {jobs.isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Updating" />}
             {filtered && (
               <button type="button" onClick={clearFilters} className="shrink-0 whitespace-nowrap font-medium text-fg-default underline underline-offset-4 hover:no-underline">
@@ -294,9 +272,9 @@ export default function Jobs() {
           </ul>
           {/* The one place a visiting employer learns they can list a job here. A seeker is not asked. */}
           {postJob && (
-            <p className="mt-8 text-sm text-fg-muted" data-post-a-job>
+            <p className="mt-6 text-sm text-fg-muted" data-post-a-job>
               {postJob.visitor && 'Hiring? '}
-              <Link to={postJob.to} className="underline underline-offset-4 hover:text-fg-default">
+              <Link to={postJob.to} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-fg-default">
                 Post a job
               </Link>
             </p>
@@ -308,7 +286,7 @@ export default function Jobs() {
 }
 
 function JobCard({ job, from }: { job: JobSummary; from?: string }) {
-  // Not every factory has a city on record; its name places it well enough.
+  // Not every plant has a city on record; its name places it well enough.
   const town = job.city ? formatPlace(job.city, job.state) : [job.factoryName, job.state].filter(Boolean).join(', ');
   // Near a chosen place, how far the job is from it.
   const place = [town, typeof job.miles === 'number' ? milesAway(job.miles) : null].filter(Boolean).join(' · ');
