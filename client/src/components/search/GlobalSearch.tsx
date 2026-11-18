@@ -1,93 +1,54 @@
-import { formatCompanyName, formatFactoryName } from '@shared/displayName';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import {
-  Search,
-  X,
-  Building2,
-  Factory,
-  Briefcase,
-  BriefcaseBusiness,
-  Wrench,
-  MapPin,
-  Clock,
-  Layers,
-  Loader2,
-  Boxes,
-} from 'lucide-react';
-import { searchApi, type SearchEntityType, type SearchResultItem } from '../../lib/api';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { Search, X, Loader2 } from 'lucide-react';
+import { searchApi, type SearchEntityType } from '../../lib/api';
 import CompanyLogo from '../CompanyLogo';
 import { readStored, removeStored, writeStored } from '../../lib/storage';
+import { groupHeading, groupRows, noResults, recordRows, regionRows, ROWS_PER_GROUP, type SearchRow } from './results';
 
 interface GlobalSearchProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ENTITY_CONFIG: Record<
-  SearchEntityType,
-  { icon: React.ElementType; label: string; iconClass: string; path: string }
-> = {
-  // An industry is the widest thing a search can name, and there are only 21: it leads.
-  industries: {
-    icon: Boxes,
-    label: 'Industry',
-    iconClass: 'text-fg-muted',
-    path: '/industries',
-  },
-  companies: {
-    icon: Building2,
-    label: 'Company',
-    iconClass: 'text-fg-muted',
-    path: '/companies',
-  },
-  factories: {
-    icon: Factory,
-    label: 'Factory',
-    iconClass: 'text-fg-muted',
-    path: '/factories',
-  },
-  occupations: {
-    icon: Briefcase,
-    label: 'Career',
-    iconClass: 'text-fg-muted',
-    path: '/occupations',
-  },
-  // Open jobs sit beside the careers they are for.
-  jobs: {
-    icon: BriefcaseBusiness,
-    label: 'Job',
-    iconClass: 'text-fg-muted',
-    path: '/jobs',
-  },
-  skills: {
-    icon: Wrench,
-    label: 'Skill',
-    iconClass: 'text-fg-muted',
-    path: '/skills',
-  },
-  states: {
-    icon: MapPin,
-    label: 'State',
-    iconClass: 'text-fg-muted',
-    path: '/states',
-  },
-};
+/** What the API is asked for. States and focus areas are lists the page already has. */
+const ASKED: SearchEntityType[] = ['industries', 'companies', 'factories', 'occupations', 'skills', 'jobs'];
 
-const QUICK_LINKS = [
-  { type: 'companies' as const, label: 'Browse all companies', path: '/explore?tab=companies' },
-  { type: 'factories' as const, label: 'Browse all factories', path: '/explore?tab=factories' },
-  { type: 'occupations' as const, label: 'Browse all careers', path: '/explore?tab=occupations' },
-  { type: 'skills' as const, label: 'Browse all skills', path: '/explore?tab=skills' },
-];
-
-/** Name shown for a result group. The data type stays "occupations"; people read "careers". */
-const groupName = (type: SearchEntityType): string => (type === 'occupations' ? 'careers' : type);
+/** Where choosing a row leads: a record's page, or the map for a place. */
+function pageOf(row: SearchRow): string | null {
+  switch (row.kind) {
+    case 'area':
+      return `/map?area=${encodeURIComponent(row.area.id)}`;
+    case 'state':
+      return `/map?state=${encodeURIComponent(row.code)}`;
+    case 'industry':
+      return `/industries/${row.slug}`;
+    case 'company':
+      return `/companies/${row.id}`;
+    case 'factory':
+      return `/factories/${row.id}`;
+    case 'occupation':
+      return `/occupations/${row.id}`;
+    case 'skill':
+      return `/skills/${row.id}`;
+    case 'job':
+      return `/jobs/${row.id}`;
+    case 'place':
+      return null;
+  }
+}
 
 const RECENT_SEARCHES_KEY = 'archangel_recent_searches';
-const MAX_RECENT_SEARCHES = 10;
+const MAX_RECENT_SEARCHES = 6;
 
+/**
+ * The header's search: one field over everything the product holds. With
+ * nothing typed it shows nothing but the field (and what was searched for
+ * before, if anything was). Results are grouped and worded as the map's
+ * search groups and words them (./results.ts): no counts, no filters, a
+ * company by its logo and every other row by the group it is in.
+ */
 export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -107,7 +68,6 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [typeFilter, setTypeFilter] = useState<SearchEntityType | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   // Load recent searches from localStorage
@@ -125,7 +85,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   // Debounce query
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedQuery(query);
+      setDebouncedQuery(query.trim());
     }, 200);
     return () => clearTimeout(timer);
   }, [query]);
@@ -137,35 +97,33 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
       setQuery('');
       setDebouncedQuery('');
       setSelectedIndex(0);
-      setTypeFilter(null);
     }
   }, [isOpen]);
 
-  // Search query
-  const { data: searchResults, isLoading } = useQuery({
-    queryKey: ['search', debouncedQuery, typeFilter],
-    queryFn: () =>
-      searchApi.search(debouncedQuery, {
-        types: typeFilter ? [typeFilter] : undefined,
-        limit: 5,
-      }),
-    enabled: debouncedQuery.length >= 1,
+  const hasQuery = debouncedQuery.length >= 1;
+
+  const { data: searchResults, isFetching } = useQuery({
+    queryKey: ['search', debouncedQuery],
+    queryFn: () => searchApi.search(debouncedQuery, { types: ASKED, limit: ROWS_PER_GROUP }),
+    enabled: hasQuery,
     staleTime: 30000,
+    // The list being read stays until the next answer is in: nothing flashes between letters.
+    placeholderData: keepPreviousData,
   });
 
-  // Flatten results for keyboard navigation
-  const flatResults = useCallback((): SearchResultItem[] => {
-    if (!searchResults) return [];
-    // The order the groups are drawn in, so the arrow keys reach every row.
-    return (Object.keys(ENTITY_CONFIG) as SearchEntityType[]).flatMap((type) => searchResults.results[type]?.items || []);
-  }, [searchResults]);
+  // The groups as they are drawn; the arrow keys walk the same order.
+  const groups = useMemo(
+    () => (hasQuery ? groupRows({ regions: regionRows(debouncedQuery), ...recordRows(searchResults, debouncedQuery) }) : []),
+    [hasQuery, debouncedQuery, searchResults]
+  );
+  const rows = useMemo(() => groups.flatMap((group) => group.rows), [groups]);
 
   // Save recent search
   const saveRecentSearch = useCallback((searchQuery: string) => {
-    if (!searchQuery.trim()) return;
+    const term = searchQuery.trim();
+    if (!term) return;
     setRecentSearches((prev) => {
-      const filtered = prev.filter((s) => s !== searchQuery);
-      const updated = [searchQuery, ...filtered].slice(0, MAX_RECENT_SEARCHES);
+      const updated = [term, ...prev.filter((s) => s !== term)].slice(0, MAX_RECENT_SEARCHES);
       writeStored(RECENT_SEARCHES_KEY, JSON.stringify(updated));
       return updated;
     });
@@ -184,28 +142,18 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const clearRecentSearches = useCallback(() => {
     removeStored(RECENT_SEARCHES_KEY);
     setRecentSearches([]);
+    inputRef.current?.focus();
   }, []);
 
-  // Navigate to result
-  const navigateToResult = useCallback(
-    (item: SearchResultItem) => {
+  const chooseRow = useCallback(
+    (row: SearchRow) => {
+      const page = pageOf(row);
+      if (!page) return;
       saveRecentSearch(query);
-      const config = ENTITY_CONFIG[item.type];
       onClose();
-      // A state has no page of its own: it opens on the map.
-      if (item.type === 'states') navigate(`/map?state=${encodeURIComponent(item.subtitle ?? '')}`);
-      else navigate(`${config.path}/${item.id}`);
+      navigate(page);
     },
     [navigate, onClose, query, saveRecentSearch]
-  );
-
-  // Navigate to quick link
-  const navigateToQuickLink = useCallback(
-    (path: string) => {
-      onClose();
-      navigate(path);
-    },
-    [navigate, onClose]
   );
 
   // Handle keyboard navigation
@@ -213,8 +161,6 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const results = flatResults();
-
       switch (e.key) {
         case 'Escape':
           onClose();
@@ -235,7 +181,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
         }
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedIndex((prev) => Math.min(prev + 1, results.length - 1));
+          setSelectedIndex((prev) => Math.min(prev + 1, Math.max(rows.length - 1, 0)));
           break;
         case 'ArrowUp':
           e.preventDefault();
@@ -245,28 +191,32 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           // From the search field only: Enter on a button presses that button.
           if (e.target !== inputRef.current) break;
           e.preventDefault();
-          if (results[selectedIndex]) {
-            navigateToResult(results[selectedIndex]);
-          }
+          if (rows[selectedIndex]) chooseRow(rows[selectedIndex]);
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, flatResults, selectedIndex, onClose, navigateToResult]);
+  }, [isOpen, rows, selectedIndex, onClose, chooseRow]);
 
-  // Reset selection when results change
+  // The highlight starts on the first row of every new answer.
   useEffect(() => {
     setSelectedIndex(0);
-  }, [searchResults]);
+  }, [debouncedQuery, searchResults]);
+
+  // Keep the highlighted row in view when the arrow keys move it.
+  const activeKey = rows[selectedIndex]?.key;
+  useEffect(() => {
+    if (activeKey) document.getElementById(`search-${activeKey}`)?.scrollIntoView({ block: 'nearest' });
+  }, [activeKey]);
 
   if (!isOpen) return null;
 
-  const results = flatResults();
-  const hasQuery = debouncedQuery.length >= 1;
-  const hasResults = results.length > 0;
-  const showNoResults = hasQuery && !isLoading && !hasResults;
+  // An answer for what is typed now, not the one kept from the letters before.
+  const settled = hasQuery && !isFetching && query.trim() === debouncedQuery;
+  const showNoResults = settled && rows.length === 0;
+  const showRecent = !query && recentSearches.length > 0;
 
   return (
     <>
@@ -274,39 +224,32 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
       <div aria-hidden="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div ref={boxRef} role="dialog" aria-modal="true" aria-label="Search" className="fixed inset-x-4 top-[15vh] z-50 mx-auto max-w-[600px]">
-        <div
-          className="
-            overflow-hidden rounded-xl
-            bg-bg-surface
-            border border-tint/10
-            shadow-2xl
-          "
-          onClick={(e) => e.stopPropagation()}
-        >
+      <div ref={boxRef} role="dialog" aria-modal="true" aria-label="Search" className="fixed inset-x-4 top-[12vh] z-50 mx-auto max-w-[600px]">
+        <div className="overflow-hidden rounded-xl border border-tint/10 bg-bg-surface shadow-2xl" onClick={(e) => e.stopPropagation()}>
           {/* Search input */}
-          <div className="flex items-center gap-3 border-b border-tint/10 px-4 py-3">
-            <Search className="w-5 h-5 text-fg-soft flex-shrink-0" />
+          <div className="flex items-center gap-3 px-4 py-3">
+            <Search className="h-5 w-5 flex-shrink-0 text-fg-soft" aria-hidden="true" />
             <input
               ref={inputRef}
               type="text"
+              role="combobox"
+              aria-expanded={rows.length > 0}
+              aria-controls="search-results"
+              aria-autocomplete="list"
+              aria-activedescendant={activeKey ? `search-${activeKey}` : undefined}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search Archangel..."
-              className="
-                flex-1 bg-transparent text-fg-default
-                placeholder:text-fg-soft
-                text-base
-              "
-              style={{
-                outline: 'none',
-                border: 'none',
-                boxShadow: 'none',
-                WebkitAppearance: 'none',
-              }}
+              placeholder="Company, plant, career or skill"
+              aria-label="Company, plant, career or skill"
+              className="min-w-0 flex-1 bg-transparent text-base text-fg-default placeholder:text-fg-soft"
+              style={{ outline: 'none', border: 'none', boxShadow: 'none', WebkitAppearance: 'none' }}
             />
-            {isLoading && <Loader2 className="w-4 h-4 text-fg-soft animate-spin" />}
-            {query && !isLoading && (
+            {isFetching && hasQuery && <Loader2 className="h-4 w-4 animate-spin text-fg-soft" aria-hidden="true" />}
+            {query && (
               <button
                 type="button"
                 aria-label="Clear search"
@@ -314,247 +257,98 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                   setQuery('');
                   inputRef.current?.focus();
                 }}
-                className="p-1 text-fg-soft hover:text-fg-muted transition-colors"
+                className="-my-2 flex h-11 w-9 items-center justify-center text-fg-soft transition-colors hover:text-fg-default"
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </button>
             )}
-            <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-tint/5 text-xs text-fg-soft border border-tint/10">
-              esc
-            </kbd>
+            <kbd className="hidden items-center gap-0.5 rounded border border-tint/10 bg-tint/5 px-1.5 py-0.5 text-xs text-fg-soft sm:flex">esc</kbd>
           </div>
 
-          {/* Type filters */}
-          <div className="flex items-center gap-2 overflow-x-auto px-4 py-2 border-b border-tint/5 [&>button]:shrink-0">
-            <button
-              onClick={() => setTypeFilter(null)}
-              className={`
-                px-2.5 py-1 text-xs rounded-full transition-colors
-                ${!typeFilter
-                  ? 'bg-tint/10 text-fg-default'
-                  : 'text-fg-soft hover:text-fg-muted hover:bg-tint/5'
-                }
-              `}
-            >
-              All
-            </button>
-            {(Object.keys(ENTITY_CONFIG) as SearchEntityType[]).map((type) => {
-              const config = ENTITY_CONFIG[type];
-              const Icon = config.icon;
-              return (
-                <button
-                  key={type}
-                  onClick={() => setTypeFilter(typeFilter === type ? null : type)}
-                  className={`
-                    flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full transition-colors
-                    ${typeFilter === type
-                      ? 'bg-tint/10 text-fg-default'
-                      : 'text-fg-soft hover:text-fg-muted hover:bg-tint/5'
-                    }
-                  `}
-                >
-                  <Icon className={`w-3.5 h-3.5 ${config.iconClass}`} />
-                  <span className="capitalize">{groupName(type)}</span>
+          {/* What was searched for before, until something is typed */}
+          {showRecent && (
+            <div className="border-t border-tint/10 px-2 py-2">
+              <div className="flex items-center justify-between px-2 pb-1">
+                <h4 className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Recent</h4>
+                <button type="button" onClick={clearRecentSearches} className="-my-2 flex h-9 items-center text-xs text-fg-muted transition-colors hover:text-fg-default">
+                  Clear
                 </button>
-              );
-            })}
-          </div>
-
-          {/* Content */}
-          <div className="max-h-[50vh] overflow-y-auto">
-            {/* Recent searches (when no query) */}
-            {!hasQuery && recentSearches.length > 0 && (
-              <div className="px-4 py-3">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-medium text-fg-soft uppercase tracking-wider">
-                    Recent Searches
-                  </h4>
-                  <button
-                    onClick={clearRecentSearches}
-                    className="text-xs text-fg-soft hover:text-fg-muted transition-colors"
-                  >
-                    Clear all
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  {recentSearches.map((search) => (
-                    <div
-                      key={search}
-                      className="
-                        flex items-center gap-3 px-3 py-2 rounded-lg
-                        hover:bg-tint/5 cursor-pointer group
-                      "
-                      onClick={() => setQuery(search)}
-                    >
-                      <Clock className="w-4 h-4 text-fg-soft" />
-                      <span className="flex-1 text-sm text-fg-muted">{search}</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeRecentSearch(search);
-                        }}
-                        className="p-1 opacity-0 group-hover:opacity-100 text-fg-soft hover:text-fg-muted transition-opacity"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
               </div>
-            )}
+              <ul>
+                {recentSearches.map((search) => (
+                  <li key={search} className="group flex items-center rounded-lg hover:bg-tint/5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuery(search);
+                        inputRef.current?.focus();
+                      }}
+                      className="min-h-11 min-w-0 flex-1 truncate px-2 text-left text-sm text-fg-default sm:min-h-9"
+                    >
+                      {search}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Forget “${search}”`}
+                      onClick={() => removeRecentSearch(search)}
+                      className="flex h-11 w-10 shrink-0 items-center justify-center text-fg-soft transition-colors hover:text-fg-default sm:h-9"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-            {/* Quick links (when no query) */}
-            {!hasQuery && (
-              <div className="px-4 py-3 border-t border-tint/5">
-                <h4 className="text-xs font-medium text-fg-soft uppercase tracking-wider mb-2">
-                  Quick Links
-                </h4>
-                <div className="space-y-1">
-                  {QUICK_LINKS.map((link) => {
-                    const config = ENTITY_CONFIG[link.type];
-                    const Icon = config.icon;
+          {/* Results */}
+          <div
+            id="search-results"
+            role="listbox"
+            aria-label="Search results"
+            hidden={rows.length === 0}
+            className="max-h-[min(60vh,32rem)] overflow-y-auto border-t border-tint/10"
+          >
+            <div className="py-1.5">
+              {groups.map((group) => (
+                <div key={group.id} role="group" aria-labelledby={`search-group-${group.id}`} className="px-2 py-1.5">
+                  <div id={`search-group-${group.id}`} role="presentation" className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                    {groupHeading(group.id)}
+                  </div>
+                  {group.rows.map((row) => {
+                    const index = rows.indexOf(row);
+                    const active = index === selectedIndex;
                     return (
                       <div
-                        key={link.path}
-                        className="
-                          flex items-center gap-3 px-3 py-2 rounded-lg
-                          hover:bg-tint/5 cursor-pointer
-                        "
-                        onClick={() => navigateToQuickLink(link.path)}
+                        key={row.key}
+                        id={`search-${row.key}`}
+                        role="option"
+                        aria-selected={active}
+                        // Keep the field focused: the pointer chooses, it does not move focus.
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => chooseRow(row)}
+                        onMouseMove={() => {
+                          if (!active) setSelectedIndex(index);
+                        }}
+                        className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 sm:min-h-0 ${active ? 'bg-tint/10' : ''}`}
                       >
-                        <Icon className={`w-4 h-4 ${config.iconClass}`} />
-                        <span className="text-sm text-fg-muted">{link.label}</span>
+                        {row.kind === 'company' && <CompanyLogo name={row.title} domain={row.domain} size={24} className="rounded" />}
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm text-fg-default">{row.title}</span>
+                          {row.subtitle && <span className="block truncate text-xs text-fg-muted">{row.subtitle}</span>}
+                        </span>
                       </div>
                     );
                   })}
                 </div>
-              </div>
-            )}
-
-            {/* Search results */}
-            {hasQuery && hasResults && (
-              <div className="py-2">
-                {(Object.keys(ENTITY_CONFIG) as SearchEntityType[]).map((type) => {
-                  const items = searchResults?.results[type]?.items || [];
-                  if (items.length === 0) return null;
-
-                  const config = ENTITY_CONFIG[type];
-                  const Icon = config.icon;
-
-                  return (
-                    <div key={type} className="px-4 py-2">
-                      <h4 className="text-xs font-medium text-fg-soft uppercase tracking-wider mb-2">
-                        {groupName(type)}
-                        <span className="ml-2 text-fg-soft">
-                          {searchResults?.results[type]?.count || 0}
-                        </span>
-                      </h4>
-                      <div className="space-y-1">
-                        {items.map((item) => {
-                          const globalIndex = results.findIndex(
-                            (r) => r.id === item.id && r.type === item.type
-                          );
-                          const isSelected = globalIndex === selectedIndex;
-
-                          return (
-                            <div
-                              key={`${item.type}-${item.id}`}
-                              role="option"
-                              aria-selected={isSelected}
-                              className={`
-                                flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer
-                                ${isSelected ? 'bg-tint/10' : 'hover:bg-tint/5'}
-                              `}
-                              onClick={() => navigateToResult(item)}
-                              onMouseEnter={() => setSelectedIndex(globalIndex)}
-                            >
-                              {item.type === 'companies' && item.domain ? (
-                                <CompanyLogo name={item.name} domain={item.domain} size={20} className="rounded" />
-                              ) : (
-                                <Icon className={`w-4 h-4 flex-shrink-0 ${config.iconClass}`} />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-fg-default truncate">
-                                  {item.type === 'companies'
-                                    ? formatCompanyName(item.name)
-                                    : item.type === 'factories'
-                                      ? formatFactoryName(item.name)
-                                      : item.name}
-                                </p>
-                                {item.subtitle && (
-                                  <p className="text-xs text-fg-soft truncate">{item.subtitle}</p>
-                                )}
-                              </div>
-                              {item.meta && (
-                                <span className="text-xs text-fg-soft flex-shrink-0">
-                                  {item.meta}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* No results */}
-            {showNoResults && (
-              <div className="px-4 py-8 text-center">
-                <Layers className="w-12 h-12 text-fg-soft mx-auto mb-3" />
-                <h4 className="text-fg-muted font-medium mb-1">
-                  No results for "{debouncedQuery}"
-                </h4>
-                <p className="text-sm text-fg-soft mb-4">
-                  Try checking your spelling or using different terms
-                </p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {QUICK_LINKS.map((link) => (
-                    <button
-                      key={link.path}
-                      onClick={() => navigateToQuickLink(link.path)}
-                      className="
-                        px-3 py-1.5 text-sm rounded-lg
-                        bg-tint/5 text-fg-muted
-                        hover:bg-tint/10 transition-colors
-                      "
-                    >
-                      Browse {link.type}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Loading */}
-            {hasQuery && isLoading && (
-              <div className="px-4 py-8 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 text-fg-soft animate-spin" />
-              </div>
-            )}
+              ))}
+            </div>
           </div>
 
-          {/* Footer */}
-          <div className="hidden sm:flex items-center gap-4 px-4 py-2 border-t border-tint/5 text-xs text-fg-soft">
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-tint/5 border border-tint/10">
-                <span className="text-[10px]">&#8593;&#8595;</span>
-              </kbd>
-              Navigate
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-tint/5 border border-tint/10">
-                <span className="text-[10px]">&#9166;</span>
-              </kbd>
-              Select
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-tint/5 border border-tint/10">esc</kbd>
-              Close
-            </span>
-          </div>
+          {/* Said, not only shown: a screen reader hears how the search came out. */}
+          <p role="status" className={showNoResults ? 'border-t border-tint/10 px-4 py-3 text-sm text-fg-muted' : 'sr-only'}>
+            {showNoResults ? noResults(debouncedQuery) : settled ? `${rows.length} ${rows.length === 1 ? 'result' : 'results'}.` : ''}
+          </p>
         </div>
       </div>
     </>
