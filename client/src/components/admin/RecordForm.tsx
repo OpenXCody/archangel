@@ -49,7 +49,9 @@ type FieldName =
   | 'city'
   | 'address'
   | 'category'
-  | 'onetCode';
+  | 'onetCode'
+  | 'howLearned'
+  | 'tools';
 
 /** The control to put focus on for each field with a problem, in form order. */
 const FIELD_FOCUS: [FieldName, string][] = [
@@ -63,6 +65,8 @@ const FIELD_FOCUS: [FieldName, string][] = [
   ['city', 'record-city'],
   ['address', 'record-address'],
   ['description', 'record-description'],
+  ['howLearned', 'record-how-learned'],
+  ['tools', 'record-tools'],
   ['onetCode', 'record-onet'],
   ['domain', 'record-domain'],
   ['aliases', 'record-aliases'],
@@ -144,6 +148,8 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   const [domain, setDomain] = useState(text(fields.domain));
   const [featured, setFeatured] = useState(fields.featured === true);
   const [aliases, setAliases] = useState((record?.aliases ?? []).join('\n'));
+  const [howLearned, setHowLearned] = useState(text(fields.howLearned));
+  const [tools, setTools] = useState((record?.tools ?? []).join('\n'));
   const [onetCode, setOnetCode] = useState(text(fields.onetCode));
   const [hqLatitude, setHqLatitude] = useState(text(fields.headquartersLat));
   const [hqLongitude, setHqLongitude] = useState(text(fields.headquartersLng));
@@ -195,6 +201,11 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
     .map((line) => line.trim())
     .filter(Boolean);
 
+  const toolList = tools
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
   /** What adding sends: an optional field left empty is left out. */
   const newRecord = (): NewRecord | null => {
     if (kind === 'company') return { kind, name: name.trim(), industry: given(industry) };
@@ -219,7 +230,9 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
       };
     }
     if (kind === 'career') return { title: name.trim(), description: orNull(description), onetCode: orNull(onetCode), aliases: aliasList };
-    if (kind === 'skill') return { name: name.trim(), category: orNull(category), description: orNull(description), aliases: aliasList };
+    if (kind === 'skill') {
+      return { name: name.trim(), category: orNull(category), description: orNull(description), howLearned: orNull(howLearned), tools: toolList, aliases: aliasList };
+    }
     return {
       name: name.trim(),
       ...(company ? { companyId: company.id } : {}),
@@ -460,7 +473,15 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
           label="Description"
           htmlFor="record-description"
           optional
-          hint={kind === 'company' && !shown('description') ? 'One line on what the company makes.' : undefined}
+          hint={
+            shown('description')
+              ? undefined
+              : kind === 'company'
+                ? 'One line on what the company makes.'
+                : kind === 'skill'
+                  ? 'What it is and what a person who has it can do.'
+                  : undefined
+          }
         >
           <textarea
             id="record-description"
@@ -519,6 +540,40 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
           {input('record-onet', onetCode, setOnetCode, 'onetCode', { maxLength: 20 })}
           <FieldError id="record-onet-error" message={shown('onetCode')} />
         </Field>
+      )}
+      {kind === 'skill' && editing && (
+        <>
+          <Field
+            label="How it is learned"
+            htmlFor="record-how-learned"
+            optional
+            hint={shown('howLearned') ? undefined : 'On the job, a course, an apprenticeship, a credential. Name a credential only when it is real and current.'}
+          >
+            <textarea
+              id="record-how-learned"
+              rows={2}
+              maxLength={1000}
+              value={howLearned}
+              onChange={(e) => setHowLearned(e.target.value)}
+              aria-invalid={shown('howLearned') ? true : undefined}
+              aria-describedby={shown('howLearned') ? 'record-how-learned-error' : undefined}
+              className={cn(fieldClass, 'resize-y', shown('howLearned') && 'border-danger/60')}
+            />
+            <FieldError id="record-how-learned-error" message={shown('howLearned')} />
+          </Field>
+          <Field label="Done with" htmlFor="record-tools" optional hint={shown('tools') ? undefined : 'Tools, machines or software. One per line, up to 12.'}>
+            <textarea
+              id="record-tools"
+              rows={Math.min(8, Math.max(2, toolList.length + 1))}
+              value={tools}
+              onChange={(e) => setTools(e.target.value)}
+              aria-invalid={shown('tools') ? true : undefined}
+              aria-describedby={shown('tools') ? 'record-tools-error' : undefined}
+              className={cn(fieldClass, 'resize-y', shown('tools') && 'border-danger/60')}
+            />
+            <FieldError id="record-tools-error" message={shown('tools')} />
+          </Field>
+        </>
       )}
       {(kind === 'career' || kind === 'skill') && editing && otherNames}
 

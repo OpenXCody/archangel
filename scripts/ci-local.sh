@@ -10,7 +10,7 @@
 #      (scripts/create-db.mjs --sample: migrations 0000-0009, the runner's
 #      migrations, the seed, then the runner's migrations a second time);
 #   2. builds the app and serves the built page and the API;
-#   3. runs the five API suites (accounts, jobs, seeker, admin, email);
+#   3. runs the six API suites (accounts, jobs, seeker, admin, email, industries);
 #   4. runs the Playwright device suite against the built page.
 # Every suite runs even if an earlier one fails; the exit code is non-zero if
 # any did. The servers it started are stopped on the way out.

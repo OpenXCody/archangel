@@ -39,7 +39,7 @@ export type NewRecord =
       address?: string;
     }
   | { kind: 'career'; title: string; description?: string }
-  | { kind: 'skill'; name: string; category?: string; description?: string };
+  | { kind: 'skill'; name: string; category?: string; description?: string; howLearned?: string; tools?: string[] };
 
 /** A record as the page that links to it needs it. */
 export interface RecordLink {
@@ -153,6 +153,8 @@ export interface RecordView {
   industries?: string[];
   /** Careers: the skills on the path with the stage of each. */
   path?: PathSkill[];
+  /** Skills: the tools, machines or software it is done with. */
+  tools?: string[];
 }
 
 /** One skill on a career's path. Stage 1 Introduction, 2 Fundamentals, 3 Advanced, or none. */

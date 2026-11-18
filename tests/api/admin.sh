@@ -160,6 +160,17 @@ check "nor another career's title"    409 "$(req a PUT /occupations/$OB "{\"alia
 check "a career with nothing to change" 400 "$(req a PUT /occupations/$OA '{}')"
 check "a skill's category and other names" 200 "$(req a PUT /skills/$SA "{\"category\":\"Semiconductor\",\"aliases\":[\"$REC Etch\"]}")" '"category":"Semiconductor"'
 check "the editor reads them back"    200 "$(req a GET /admin/records/skill/$SA)" "\"aliases\":\[\"$REC Etch\"\]"
+check "how a skill is learned and what it is done with" 200 "$(req a PUT /skills/$SA "{\"howLearned\":\"  On the job.  \",\"tools\":[\"Etch tool\",\" etch tool \",\"Gas cabinet\",\"\"]}")" '"howLearned":"On the job."'
+expect "the tools are kept as a list, once each" "Etch tool|Gas cabinet" "$(sql "SELECT array_to_string(tools, '|') FROM skills WHERE id='$SA'")"
+check "the editor reads those back too" 200 "$(req a GET /admin/records/skill/$SA)" '"tools":\["Etch tool","Gas cabinet"\]'
+check "tools that are not a list"     400 "$(req a PUT /skills/$SA '{"tools":"a wrench"}')" '"field":"tools"'
+check "more tools than a short list holds" 400 "$(req a PUT /skills/$SA "{\"tools\":$(node -e 'console.log(JSON.stringify(Array.from({length:13},(_,i)=>"tool "+i)))')}")" '"field":"tools"'
+check "how it is learned must be text" 400 "$(req a PUT /skills/$SA '{"howLearned":5}')" '"field":"howLearned"'
+expect "the refusals changed nothing" "On the job.|2" "$(sql "SELECT how_learned || '|' || array_length(tools, 1) FROM skills WHERE id='$SA'")"
+expect "the change is in the skill's history" "howLearned,tools" "$(req a GET "/admin/audit?kind=skill&record=$SA" | j 'entries.map((e) => Object.keys((e.detail || {}).changes || {}).sort().join(","))[0]')"
+check "clearing them"                 200 "$(req a PUT /skills/$SA '{"howLearned":"","tools":[]}')"
+expect "leaves both empty"            "true true" "$(sql "SELECT (how_learned IS NULL) || ' ' || (tools IS NULL) FROM skills WHERE id='$SA'")"
+check "a new skill can carry them"    201 "$(req a POST /skills "{\"name\":\"$REC Etch Endpoint\",\"howLearned\":\"A course.\",\"tools\":[\"Spectrometer\"]}")" '"tools":\["Spectrometer"\]'
 
 check "write a path"                  200 "$(req a PUT /occupations/$OA/path "{\"skills\":[{\"skillId\":\"$SA\",\"stage\":1},{\"skillId\":\"$SC\",\"stage\":2}],\"status\":\"draft\"}")"
 sql "UPDATE occupation_skills SET importance='preferred' WHERE occupation_id='$OA' AND skill_id='$SC'" >/dev/null

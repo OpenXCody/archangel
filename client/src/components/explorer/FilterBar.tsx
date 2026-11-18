@@ -28,7 +28,9 @@ export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
   companies: [{ value: 'factories-desc', label: 'Most sites', field: 'factoryCount', order: 'desc' }, ...BY_NAME],
   factories: [...BY_NAME, { value: 'workforce-desc', label: 'Largest workforce', field: 'workforceSize', order: 'desc' }],
   occupations: BY_TITLE,
-  skills: BY_NAME,
+  // The skills most careers use first: the list opens on what matters most,
+  // not on the alphabet.
+  skills: [{ value: 'careers-desc', label: 'Most careers', field: 'occupationCount', order: 'desc' }, ...BY_NAME],
 };
 
 export interface FilterState {
