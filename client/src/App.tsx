@@ -12,6 +12,8 @@ const SignIn = lazy(() => import('./pages/SignIn'));
 const Me = lazy(() => import('./pages/Me'));
 const Jobs = lazy(() => import('./pages/Jobs'));
 const JobDetail = lazy(() => import('./pages/JobDetail'));
+const Industries = lazy(() => import('./pages/Industries'));
+const Industry = lazy(() => import('./pages/Industry'));
 const Employer = lazy(() => import('./pages/Employer'));
 const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -43,6 +45,8 @@ function App() {
               <Route path="/factories/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/occupations/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/skills/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
+              <Route path="/industries" element={<PageBoundary><Industries /></PageBoundary>} />
+              <Route path="/industries/:slug" element={<PageBoundary><Industry /></PageBoundary>} />
               <Route path="/sign-in" element={<PageBoundary><SignIn /></PageBoundary>} />
               <Route path="/me" element={<PageBoundary><Me /></PageBoundary>} />
               <Route path="/jobs" element={<PageBoundary><Jobs /></PageBoundary>} />

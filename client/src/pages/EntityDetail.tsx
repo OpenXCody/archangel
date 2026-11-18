@@ -31,7 +31,7 @@ import {
   type SkillDetail,
 } from '../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
-import { industryLabel } from '@shared/industry';
+import { industryByName, industryLabel, industryPath } from '@shared/industry';
 import CompanyLogo from '../components/CompanyLogo';
 import FootprintMap from '../components/FootprintMap';
 import { useMapStore } from '../stores/mapStore';
@@ -247,7 +247,18 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
   );
   const shownSites = showAllSites ? sortedSites : sortedSites.slice(0, SITES_SHOWN);
 
-  const industries = data.industry ? [data.industry] : [];
+  // The industry most of the company's sites are classified in is a page of
+  // its own; where the sites are all in one state, that state's page of it.
+  const leadingIndustry = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const site of sites) if (industryByName(site.industry)) counts.set(site.industry as string, (counts.get(site.industry as string) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? null;
+  }, [sites]);
+  const industryPage = industryPath(leadingIndustry, { state: byState.length === 1 ? byState[0].code : null });
+  // The company's own words for what it makes; where it has none (or only the
+  // import's "Manufacturing"), the industry its sites are in.
+  const ownIndustry = data.industry && data.industry.trim().toLowerCase() !== 'manufacturing' ? data.industry : null;
+  const industries = ownIndustry ? [ownIndustry] : leadingIndustry ? [industryLabel(leadingIndustry)] : data.industry ? [data.industry] : [];
   const facts = [
     sites.length > 0 ? `${sites.length.toLocaleString()} ${sites.length === 1 ? 'site' : 'sites'}` : null,
     byState.length > 1 ? `${byState.length} states` : byState.length === 1 ? byState[0].name : null,
@@ -275,7 +286,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
             <span key={industry}>
               {index > 0 && ', '}
               <Link
-                to={`/explore?tab=companies&industry=${encodeURIComponent(industry)}`}
+                to={industryPage ?? `/explore?tab=companies&industry=${encodeURIComponent(industry)}`}
                 className="underline-offset-4 hover:text-fg-default hover:underline"
               >
                 {industry}
@@ -401,6 +412,8 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
     .filter(Boolean)
     .join(', ');
   const industry = data.industry ? industryLabel(data.industry) : data.specialization;
+  // The plant's industry is a page of its own, for the plant's state.
+  const industryPage = industryPath(data.industry, { state: data.state });
   const jobs = data.jobs ?? [];
   const nearby = useMemo(() => data.nearby ?? [], [data.nearby]);
   const latitude = parseFloat(data.latitude);
@@ -428,7 +441,19 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
 
   return (
     <>
-      {(place || industry) && <p className="mt-4 text-sm text-fg-muted">{[place, industry].filter(Boolean).join(' · ')}</p>}
+      {(place || industry) && (
+        <p className="mt-4 text-sm text-fg-muted">
+          {place}
+          {place && industry ? ' · ' : ''}
+          {industry && industryPage ? (
+            <Link to={industryPage} className="underline-offset-4 hover:text-fg-default hover:underline">
+              {industry}
+            </Link>
+          ) : (
+            industry
+          )}
+        </p>
+      )}
 
       {/* Where it is */}
       {located && (
@@ -782,7 +807,7 @@ function WhereWorkIsDone({ data }: { data: OccupationDetail }) {
               {industries.map((industry) => (
                 <li key={industry.name}>
                   <Link
-                    to={`/explore?tab=factories&industry=${encodeURIComponent(industry.name)}`}
+                    to={industryPath(industry.name) ?? `/explore?tab=factories&industry=${encodeURIComponent(industry.name)}`}
                     className="flex items-baseline justify-between gap-4 py-2.5 text-sm transition-colors hover:text-fg-default"
                   >
                     <span className="min-w-0 text-fg-default">{industryLabel(industry.name)}</span>

@@ -35,7 +35,7 @@ import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../CompanyLogo';
 import { formatPay } from '../../lib/jobFormat';
 import { PANEL_WIDTH_PX, SHEET_BAR_PX, SHEET_FULL_VH, sheetPeekPx } from './camera';
-import { industryLabel } from '@shared/industry';
+import { industryLabel, industryPath } from '@shared/industry';
 import { isNotFound, useSelection } from './selection';
 
 /*
@@ -212,8 +212,21 @@ function More({ shown, total, noun }: { shown: number; total: number; noun: stri
 
 // ─── A state, a focus area, a place ────────────────────────────────────────
 
-/** `jobsLink`: the jobs list narrowed to this region, for when it has more open jobs than the panel lists. */
-function RegionBody({ data, jobsLink, children }: { data: RegionOverview; jobsLink: string; children?: ReactNode }) {
+/**
+ * `jobsLink`: the jobs list narrowed to this region, for when it has more open jobs than the panel lists.
+ * `industryIn`: the state or focus area an industry's row opens that industry's page for.
+ */
+function RegionBody({
+  data,
+  jobsLink,
+  industryIn,
+  children,
+}: {
+  data: RegionOverview;
+  jobsLink: string;
+  industryIn?: { state?: string; area?: string };
+  children?: ReactNode;
+}) {
   const selectEntity = useMapStore((s) => s.selectEntity);
   if (data.totalFactories === 0) {
     return <p className="text-sm text-fg-muted">No plants are listed here.</p>;
@@ -271,12 +284,29 @@ function RegionBody({ data, jobsLink, children }: { data: RegionOverview; jobsLi
       {data.topIndustries.length > 0 && (
         <Section title="Industries" column="Plants">
           <div>
-            {data.topIndustries.map((industry) => (
-              <div key={industry.label} className="flex items-baseline justify-between gap-3 py-1 text-sm">
-                <span className="min-w-0 truncate text-fg-default">{industryLabel(industry.label)}</span>
-                <span className="shrink-0 text-xs tabular-nums text-fg-muted">{industry.count.toLocaleString()}</span>
-              </div>
-            ))}
+            {data.topIndustries.map((industry) => {
+              const row = (
+                <>
+                  <span className="min-w-0 truncate text-fg-default">{industryLabel(industry.label)}</span>
+                  <span className="shrink-0 text-xs tabular-nums text-fg-muted">{industry.count.toLocaleString()}</span>
+                </>
+              );
+              // Each industry opens its page for this place; a label that is not one of the 21 stays text.
+              const page = industryPath(industry.label, industryIn);
+              return page ? (
+                <Link
+                  key={industry.label}
+                  to={page}
+                  className="map-row -mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded-md px-2 py-1 text-sm transition-colors hover:bg-tint/5"
+                >
+                  {row}
+                </Link>
+              ) : (
+                <div key={industry.label} className="flex items-baseline justify-between gap-3 py-1 text-sm">
+                  {row}
+                </div>
+              );
+            })}
           </div>
         </Section>
       )}
@@ -295,7 +325,7 @@ function StateView({ data }: { data: StateOverview }) {
   return (
     <>
       <Heading title={name} />
-      <RegionBody data={data} jobsLink={`/jobs?state=${data.code}`} />
+      <RegionBody data={data} jobsLink={`/jobs?state=${data.code}`} industryIn={{ state: data.code }} />
       {data.totalFactories > 0 && <PageLink to={`/explore?tab=factories&state=${data.code}`}>All plants in {name}</PageLink>}
     </>
   );
@@ -308,6 +338,7 @@ function AreaView({ data }: { data: AreaOverview }) {
       <RegionBody
         data={data}
         jobsLink={jobsNear((data.bounds[0][1] + data.bounds[1][1]) / 2, (data.bounds[0][0] + data.bounds[1][0]) / 2, data.name)}
+        industryIn={{ area: data.id }}
       />
     </>
   );

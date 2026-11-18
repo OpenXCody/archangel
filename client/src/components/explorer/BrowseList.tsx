@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useWindowVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import {
@@ -11,6 +11,7 @@ import {
   type PaginatedResponse,
 } from '../../lib/api';
 import { US_STATES, type StateCode } from '@shared/states';
+import { industryLabel, industryPath } from '@shared/industry';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '../layout/Page';
 import { LoadError, outlineButtonClass } from '../account/parts';
@@ -245,6 +246,8 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const clearFilters = () => setParam({ state: undefined, industry: undefined, category: undefined });
+  // Plants filtered to one industry: that industry has a page of its own, for the same state.
+  const industryPage = tab === 'factories' ? industryPath(filters.industry, { state: filters.state }) : null;
   const [one, many] = NOUN[tab];
 
   return (
@@ -259,6 +262,15 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
         categories={categories}
         summary={total === undefined ? null : `${total.toLocaleString()} ${total === 1 ? one : many}`}
       />
+
+      {industryPage && filters.industry && (
+        <p className="-mt-1 mb-3 text-sm sm:-mt-2">
+          <Link to={industryPage} className="inline-flex min-h-11 items-center text-fg-muted underline underline-offset-4 hover:text-fg-default sm:min-h-0">
+            About {industryLabel(filters.industry)}
+            {filters.state ? ` in ${US_STATES.find((s) => s.code === filters.state)?.name ?? filters.state}` : ''}
+          </Link>
+        </p>
+      )}
 
       {list.isLoading ? (
         <div className={GRID} aria-busy="true" aria-label="Loading">

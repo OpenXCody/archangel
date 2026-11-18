@@ -363,7 +363,7 @@ export const statsApi = {
 };
 
 // Search types
-export type SearchEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'jobs';
+export type SearchEntityType = 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'jobs' | 'industries';
 
 export interface SearchResultItem {
   id: string;
@@ -385,6 +385,8 @@ export interface SearchResults {
     states: { count: number; items: SearchResultItem[] };
     /** Open jobs. Absent from an answer that was asked for other kinds only. */
     jobs?: { count: number; items: SearchResultItem[] };
+    /** Industries, by name or by what they make; `id` is the industry's slug. Absent as jobs are. */
+    industries?: { count: number; items: SearchResultItem[] };
   };
   totalCount: number;
 }
@@ -530,12 +532,24 @@ export interface ExploreState {
   factoryCount: number;
 }
 
+/** One of the country's largest industries. */
+export interface ExploreIndustry {
+  slug: string;
+  name: string;
+  plants: number;
+  /** Official: people employed, where published. */
+  employment: number | null;
+}
+
 export interface ExploreOverview {
   employers: ExploreEmployer[];
   careers: ExploreCareer[];
   skillGroups: ExploreSkillGroup[];
   areas: ExploreArea[];
   states: ExploreState[];
+  /** The largest industries, and the year their official figures are for. */
+  industries?: ExploreIndustry[];
+  industriesYear?: number | null;
 }
 
 /** What the browse lists can be filtered by, from every row. */
@@ -550,4 +564,97 @@ export const exploreApi = {
     apiFetch<ExploreOverview>('/explore/overview'),
   facets: () =>
     apiFetch<ExploreFacets>('/explore/facets'),
+};
+
+// Industries: the 21 manufacturing industries, for the country, a state or a focus area.
+
+/** The place an industry answer is about. */
+export type IndustryPlace =
+  | { kind: 'country'; name: string }
+  | { kind: 'state'; code: string; name: string }
+  | { kind: 'area'; id: string; name: string };
+
+/** Official figures for an industry in a place. A figure the source withheld is null. */
+export interface IndustryStats {
+  year: number;
+  establishments: number | null;
+  /** People employed (annual average). */
+  employment: number | null;
+  /** Dollars a year. */
+  avgAnnualPay: number | null;
+  /** Who published the figures, as said on screen. */
+  source: string;
+  sourceUrl: string | null;
+}
+
+/** One industry in the list of all of them. */
+export interface IndustrySummary {
+  slug: string;
+  code: string;
+  /** The title a plant carries; `industryLabel` gives the short form. */
+  name: string;
+  /** Plants the product lists. */
+  plants: number;
+  /** Official: people employed and establishments, where published. */
+  employment: number | null;
+  establishments: number | null;
+}
+
+export interface IndustryList {
+  place: IndustryPlace;
+  /** Every plant listed in the place. */
+  plants: number;
+  /** The official figure for manufacturing as a whole. */
+  manufacturing: IndustryStats | null;
+  industries: IndustrySummary[];
+}
+
+/** A company among an industry's employers in a place. */
+export interface IndustryEmployer {
+  id: string;
+  name: string;
+  slug: string | null;
+  domain: string | null;
+  /** Its plants of this industry in the place. */
+  plants: number;
+  /** People at those of them whose headcount is recorded (`counted` plants), or null when none is. */
+  people: number | null;
+  counted: number;
+}
+
+export interface IndustryPlant {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  people: number;
+  companyName: string | null;
+  companyDomain: string | null;
+}
+
+export interface IndustryDetail {
+  industry: { slug: string; code: string; name: string; summary: string | null };
+  place: IndustryPlace;
+  stats: IndustryStats | null;
+  /** What the product lists: plants of this industry in the place, and their companies. */
+  plants: number;
+  companies: number;
+  employers: IndustryEmployer[];
+  /** Plants whose headcount is recorded, largest first. */
+  largestPlants: IndustryPlant[];
+  careers: { id: string; title: string }[];
+  openJobs: number;
+  jobs: CareerJob[];
+  /** For the country: the states, largest first. */
+  states?: { code: string; name: string; plants: number; employment: number | null }[];
+  /** For a state or a focus area: its cities, most plants first, each with a box around its plants for the map. */
+  cities?: { name: string; state: string | null; plants: number; box: [[number, number], [number, number]] | null }[];
+}
+
+/** `place`: a state code or a focus area's id, as the page's address carries it. */
+export const industriesApi = {
+  list: (place: { state?: string; area?: string } = {}) =>
+    apiFetch<IndustryList>(`/industries${buildQueryString(place)}`),
+  get: (slug: string, place: { state?: string; area?: string } = {}) =>
+    apiFetch<IndustryDetail>(`/industries/${encodeURIComponent(slug)}${buildQueryString(place)}`),
 };
