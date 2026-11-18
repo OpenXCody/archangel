@@ -38,6 +38,9 @@ test('a research file is brought to the shape the loader takes', () => {
             plant({ name: 'Island', state: 'PR', latitude: 18.2, longitude: -66.5 }),
             plant({ name: 'Odd Industry', subsector: 'Widgets' }),
             plant({ name: 'austin plant' }),
+            plant({ name: 'Ready Mix', naics: '327320', subsector: 'Nonmetallic Mineral Product Manufacturing' }),
+            plant({ name: 'Hot Mix', naics: '324121', subsector: 'Petroleum and Coal Products Manufacturing' }),
+            plant({ name: 'Refinery', naics: '324110', subsector: 'Petroleum and Coal Products Manufacturing', rank: 3 }),
           ],
         }),
         { alsoKnownAs: ['Nameless'] },
@@ -52,12 +55,22 @@ test('a research file is brought to the shape the loader takes', () => {
   assert.equal(acme.parent, undefined, 'a company is not its own parent');
   assert.equal(acme.domain, 'acme.com');
   assert.deepEqual(acme.people, [{ state: 'TX', count: 4500, year: 2024, source: 'https://example.com/a' }]);
-  assert.deepEqual(acme.plants.map((p: { name: string }) => p.name), ['Austin Plant', 'No Source']);
+  assert.deepEqual(acme.plants.map((p: { name: string }) => p.name), ['Austin Plant', 'No Source', 'Refinery']);
+  assert.equal(acme.plants[2].rank, undefined, 'a field the loader has no place for is left behind');
   assert.equal(acme.plants[0].naics, '333111');
   assert.equal(acme.plants[0].employees, 1200);
   assert.equal(acme.plants[1].employees, undefined, 'a headcount with no source is not loaded');
-  assert.deepEqual(acme.notLoaded, ['Closed Plant (closed)']);
-  assert.equal(problems.length, 6, problems.join('\n'));
+  assert.deepEqual(acme.notLoaded, ['Closed Plant (closed)', 'Island (Puerto Rico)', 'Ready Mix (construction materials, NAICS 327320)', 'Hot Mix (construction materials, NAICS 324121)']);
+  assert.equal(problems.length, 8, problems.join('\n'));
+});
+
+test('a company the file only names is still a company', () => {
+  const { file, problems } = normaliseFile(
+    { companies: [{ name: 'Plain', alsoKnownAs: null, parent: null, domain: null, industry: null, description: null, headquarters: null, stateEmployees: null, sources: null, plants: [plant({ sources: null })] }] },
+    STATES
+  );
+  assert.deepEqual(problems, []);
+  assert.deepEqual(Object.keys(file.companies[0]).sort(), ['name', 'plants']);
 });
 
 test('the only plant of a company in a city is marked, so the loader may look further for it', () => {

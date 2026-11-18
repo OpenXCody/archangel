@@ -267,7 +267,10 @@ BEGIN
     headquarters_state = CASE WHEN co.headquarters_city IS NULL THEN NULLIF(h->>'state', '') ELSE co.headquarters_state END,
     headquarters_country = CASE WHEN co.headquarters_city IS NULL THEN NULLIF(h->>'country', '') ELSE co.headquarters_country END,
     parent_company_id = COALESCE(v_parent, co.parent_company_id),
-    featured = true,
+    -- A featured employer has a profile: a company the file only names (no web domain, no description) is loaded
+    -- and left as it is.
+    featured = co.featured OR COALESCE(co.domain, NULLIF(c->>'domain', '')) IS NOT NULL
+               OR pg_temp.el_fuller(co.description, c->>'description') IS NOT NULL,
     slug = COALESCE(co.slug, CASE WHEN v_slug <> '' AND COALESCE(co.domain, NULLIF(c->>'domain', '')) IS NOT NULL
                                    AND NOT EXISTS (SELECT 1 FROM companies o WHERE o.slug = v_slug) THEN v_slug END),
     updated_at = now()
@@ -657,7 +660,7 @@ CREATE OR REPLACE FUNCTION pg_temp.el_report(everything boolean) RETURNS SETOF t
   loads AS (SELECT load, min(id) AS first FROM l GROUP BY load),
   summary AS (
     SELECT lo.first AS ord, 0 AS sub, format(
-      '%s: %s companies (%s found, %s created, %s rows merged in, %s renamed); %s plants (%s matched, %s moved, %s inserted, %s swept from a parent; %s not loaded: closed or announced)',
+      '%s: %s companies (%s found, %s created, %s rows merged in, %s renamed); %s plants (%s matched, %s moved, %s inserted, %s swept from a parent; %s not loaded)',
       lo.load,
       count(*) FILTER (WHERE kind = 'company' AND action IN ('found', 'created')),
       count(*) FILTER (WHERE kind = 'company' AND action = 'found'),

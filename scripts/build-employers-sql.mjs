@@ -57,6 +57,9 @@ export const SUBSECTORS = [
 ];
 const SUBSECTOR_BY_KEY = new Map(SUBSECTORS.map((name) => [name.toLowerCase().replace(/[^a-z]+/g, ' ').trim(), name]));
 
+/** NAICS codes, by their leading digits, that the map does not cover: cement and concrete products (3273), asphalt paving mixtures (324121). */
+export const NOT_COVERED = ['3273', '324121'];
+
 const LOADED_STATUSES = ['operating', 'under construction'];
 const OTHER_STATUSES = ['announced', 'closed'];
 const THIS_YEAR = new Date().getFullYear();
@@ -183,7 +186,8 @@ export function normaliseFile(raw, states, label = raw?.brief ?? 'file') {
         continue;
       }
       if (state === 'PR') {
-        say(where, 'is in Puerto Rico, which the map no longer covers; left out');
+        say(where, 'is in Puerto Rico, which the map does not cover; not loaded');
+        notLoaded.push(`${plantName} (Puerto Rico)`);
         continue;
       }
       const city = text(p.city, 120);
@@ -213,6 +217,14 @@ export function normaliseFile(raw, states, label = raw?.brief ?? 'file') {
       if (naics && !/^3[1-3]\d{4}$/.test(naics)) {
         say(where, `NAICS "${p.naics}" is not a six-digit manufacturing code; left out`);
         naics = null;
+      }
+      // Construction materials are not manufacturing here: concrete (ready-mix, block, pipe, precast), cement, and
+      // asphalt paving mixtures were taken off the map and do not come back through a file.
+      if (naics && NOT_COVERED.some((code) => naics.startsWith(code))) {
+        say(where, `is construction materials (NAICS ${naics}), which the map does not cover; not loaded`);
+        notLoaded.push(`${plantName} (construction materials, NAICS ${naics})`);
+        seenPlants.delete(key);
+        continue;
       }
       let employees = wholeNumber(p.employees, 1, 200_000);
       if (p.employees !== null && p.employees !== undefined && employees === null) say(where, `employees "${p.employees}" is not a whole number; left out`);
@@ -291,6 +303,7 @@ export function normaliseFile(raw, states, label = raw?.brief ?? 'file') {
   };
   for (const c of companies) place(c);
   return { file: { brief, retrieved: text(raw?.retrieved, 20), companies: ordered }, problems };
+  // (A file's `source` note, where it has one, stays in the JSON: it is for people, and the SQL has no use for it.)
 }
 
 /**
@@ -512,7 +525,7 @@ async function main() {
   const count = (list, pick) => list.reduce((n, file) => n + file.companies.reduce((m, c) => m + pick(c), 0), 0);
   const report = [
     `${files.length} file${files.length === 1 ? '' : 's'} to load: ${count(files, () => 1)} companies, ${count(files, (c) => c.plants?.length ?? 0)} plants ` +
-      `(${count(files, (c) => (c.plants ?? []).filter((p) => p.employees).length)} with a headcount), ${count(files, (c) => c.notLoaded?.length ?? 0)} closed or announced and not loaded.`,
+      `(${count(files, (c) => (c.plants ?? []).filter((p) => p.employees).length)} with a headcount), ${count(files, (c) => c.notLoaded?.length ?? 0)} not loaded (closed, announced, or not covered).`,
     correctionPaths.size ? `${corrected.size} of ${Object.keys(corrections.companies).length} corrections applied.` : null,
     ...Object.keys(corrections.companies).filter((name) => !corrected.has(name.toLowerCase())).map((name) => `  check: a correction names "${name}", which is in none of these files`),
     known.length ? `${known.length} more known for their names: ${[...knownPaths].map((file) => path.basename(file)).join(', ')}.` : null,

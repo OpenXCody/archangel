@@ -83,6 +83,8 @@ cat > "$D/data/e2e-loader-a.json" <<'JSON'
         "subsector": "Machinery Manufacturing", "naics": "999999", "employees": 10, "employeesYear": 2024, "employeesSource": null, "status": "operating", "sources": [] },
       { "name": "Old Site", "city": "Austin", "state": "NV", "latitude": 39.46, "longitude": -116.8, "subsector": "Machinery Manufacturing", "status": "closed" },
       { "name": "Planned Site", "city": "Austin", "state": "NV", "latitude": 39.47, "longitude": -116.8, "subsector": "Machinery Manufacturing", "status": "announced" },
+      { "name": "Ready Mix Yard", "city": "Austin", "state": "NV", "latitude": 39.49, "longitude": -116.8, "subsector": "Nonmetallic Mineral Product Manufacturing", "naics": "327320", "status": "operating" },
+      { "name": "Island Plant", "city": "Ponce", "state": "PR", "latitude": 18.0, "longitude": -66.6, "subsector": "Machinery Manufacturing", "status": "operating" },
       { "name": "Nowhere", "city": "Austin", "state": "NV", "latitude": 0, "longitude": 0, "subsector": "Machinery Manufacturing", "status": "operating" },
       { "name": "No Industry", "city": "Austin", "state": "NV", "latitude": 39.48, "longitude": -116.8, "subsector": "Widgets", "status": "operating" }
     ] },
@@ -92,6 +94,10 @@ cat > "$D/data/e2e-loader-a.json" <<'JSON'
       { "name": "Kidco Assembly", "city": "Austin", "state": "NV", "latitude": 39.55, "longitude": -116.75,
         "subsector": "Transportation Equipment Manufacturing", "naics": "336411", "employees": 400, "employeesYear": 2025,
         "employeesSource": "https://example.test/kidco", "status": "operating", "sources": [] } ] },
+  { "name": "E2E Loader Plain", "alsoKnownAs": null, "parent": null, "domain": null, "industry": null, "description": null, "headquarters": null,
+    "stateEmployees": null, "sources": null, "plants": [
+      { "name": "Plain Works", "city": "Austin", "state": "NV", "latitude": 39.62, "longitude": -117.05, "subsector": "Food Manufacturing", "rank": 7,
+        "employees": 320, "employeesYear": 2025, "employeesSource": "https://example.test/osha", "status": "operating", "sources": null } ] },
   { "name": "E2E Loader Homonym", "alsoKnownAs": [], "parent": "E2E Loader Brand New Parent", "domain": "homonym-e2e.test", "industry": "Gizmos",
     "description": "Makes gizmos.", "plants": [
       { "name": "Gizmo Works", "city": "Austin", "state": "NV", "latitude": 39.6, "longitude": -117.0, "subsector": "Miscellaneous Manufacturing", "status": "operating" } ] }
@@ -147,7 +153,7 @@ plant() { # company plant column
 
 # --- What the generator settles before any SQL runs --------------------------
 build --check "$D/data/e2e-loader-a.json" "$D/data/e2e-loader-b.json"
-expect "a closed and an announced plant are set aside"   1 "$(grep -c '2 closed or announced and not loaded' "$D/build.log")"
+expect "a closed and an announced plant are set aside, with a concrete plant and one in Puerto Rico" 1 "$(grep -c '4 not loaded (closed, announced, or not covered)' "$D/build.log")"
 expect "coordinates outside the country are left out"    1 "$(grep -c 'Nowhere: coordinates' "$D/build.log")"
 expect "an unknown subsector is left out"                1 "$(grep -c 'No Industry: subsector' "$D/build.log")"
 expect "a NAICS code that is not manufacturing is dropped" 1 "$(grep -c 'New Site: NAICS' "$D/build.log")"
@@ -161,7 +167,7 @@ fixture
 before=$(state)
 build --rehearse --out "$D/rehearse.sql" "$D/data/e2e-loader-a.json"
 psql "$DB" -qtA -v ON_ERROR_STOP=1 -f "$D/rehearse.sql" > "$D/rehearsal.txt" 2>"$D/psql.log" || { cat "$D/psql.log"; fail=1; }
-expect "a rehearsal reports what it would do"            1 "$(grep -c '^e2e-loader-a: 3 companies (1 found, 2 created, 2 rows merged in' "$D/rehearsal.txt")"
+expect "a rehearsal reports what it would do"            1 "$(grep -c '^e2e-loader-a: 4 companies (1 found, 3 created, 2 rows merged in' "$D/rehearsal.txt")"
 expect "a rehearsal names each merge"                    2 "$(grep -c '^company merged | E2E Loader Acme' "$D/rehearsal.txt")"
 expect "a rehearsal leaves every row as it was"          "$before" "$(state)"
 expect "a rehearsal leaves no log"                       0 "$(sql "SELECT count(*) FROM load_log WHERE load LIKE 'e2e-loader-%'")"
@@ -185,12 +191,15 @@ expect "a stranger's plant that names the company moves" "under construction|50"
 expect "and is no longer the stranger's"                 0 "$(sql "SELECT count(*) FROM factories WHERE name = 'E2E LOADER ACME WAREHOUSE'")"
 expect "a stranger's plant that names nobody stays"      "E2E Loader Stranger" "$(sql "SELECT c.name FROM factories f JOIN companies c ON c.id = f.company_id WHERE f.name = 'E2E LOADER UNRELATED WIDGETS'")"
 expect "so the plant beside it is new, with no headcount" "333||t" "$(plant 'E2E Loader Acme' 'New Site' "concat_ws('|', primary_naics, coalesce(workforce_size::text, ''), curated)")"
-expect "closed, announced and unusable plants are not loaded" 0 "$(sql "SELECT count(*) FROM factories WHERE name IN ('Old Site', 'Planned Site', 'Nowhere', 'No Industry')")"
+expect "closed, announced, uncovered and unusable plants are not loaded" 0 "$(sql "SELECT count(*) FROM factories WHERE name IN ('Old Site', 'Planned Site', 'Nowhere', 'No Industry', 'Ready Mix Yard', 'Island Plant')")"
+expect "and the log says which, and why"                 "Island Plant (Puerto Rico)|Old Site (closed)|Planned Site (announced)|Ready Mix Yard (construction materials, NAICS 327320)" \
+  "$(sql "SELECT string_agg(plant, '|' ORDER BY plant) FROM load_log WHERE load = 'e2e-loader-a' AND action = 'not loaded'")"
 expect "a subsidiary is created with its parent"         "E2E Loader Parent|true" "$(sql "SELECT p.name || '|' || c.featured FROM companies c JOIN companies p ON p.id = c.parent_company_id WHERE c.name = 'E2E Loader Kidco'")"
 expect "the parent is not made a featured employer"      "f" "$(sql "SELECT featured FROM companies WHERE name = 'E2E Loader Parent'")"
 expect "its plant filed under the parent moves to it"    "400|2025" "$(plant 'E2E Loader Kidco' 'Kidco Assembly' "workforce_size || '|' || workforce_year")"
 expect "the parent's other plants named for it follow"   "E2E Loader Kidco" "$(sql "SELECT c.name FROM factories f JOIN companies c ON c.id = f.company_id WHERE f.name = 'E2E LOADER KIDCO PLANT 2'")"
 expect "the parent keeps the plant that is its own"      "E2E Loader Parent" "$(sql "SELECT c.name FROM factories f JOIN companies c ON c.id = f.company_id WHERE f.name = 'E2E LOADER PARENT HEAD WORKS'")"
+expect "a company with no profile in the file is loaded but not featured" "false|1" "$(sql "SELECT featured || '|' || (SELECT count(*) FROM factories f WHERE f.company_id = c.id AND f.curated) FROM companies c WHERE name = 'E2E Loader Plain'")"
 expect "a missing parent is created bare"                "false|0" "$(sql "SELECT featured || '|' || (SELECT count(*) FROM factories f WHERE f.company_id = c.id) FROM companies c WHERE name = 'E2E Loader Brand New Parent'")"
 expect "a different company with the same name stands aside" "E2E Loader Homonym Boxes" "$(sql "SELECT c.name FROM factories f JOIN companies c ON c.id = f.company_id WHERE f.name = 'E2E LOADER HOMONYM BOXES'")"
 expect "and the researched one is new"                   "Gizmo Works" "$(sql "SELECT string_agg(f.name, ',') FROM factories f JOIN companies c ON c.id = f.company_id WHERE c.name = 'E2E Loader Homonym'")"
@@ -198,7 +207,7 @@ expect "sources are kept for the plant"                  "https://example.test/m
   "$(sql "SELECT string_agg(e.url, ',' ORDER BY e.url) FROM external_references e JOIN factories f ON f.id = e.entity_id WHERE e.entity_type = 'factories' AND e.source = 'CURATED' AND f.name = 'Main Plant' AND $IN_AREA")"
 expect "and for the company"                             "https://example.test/acme" \
   "$(sql "SELECT string_agg(e.url, ',' ORDER BY e.url) FROM external_references e JOIN companies c ON c.id = e.entity_id WHERE e.entity_type = 'companies' AND e.source = 'CURATED' AND c.name = 'E2E Loader Acme'")"
-expect "every decision is in the log"                    "created 2|found 1|inserted 2|matched 2|merged 2|moved 2|not loaded 2|swept 1" \
+expect "every decision is in the log"                    "created 3|found 1|inserted 3|matched 2|merged 2|moved 2|not loaded 4|swept 1" \
   "$(sql "SELECT string_agg(action || ' ' || n, '|' ORDER BY action) FROM (SELECT action, count(*) AS n FROM load_log WHERE load = 'e2e-loader-a' AND action IN ('found', 'created', 'merged', 'matched', 'moved', 'inserted', 'swept', 'not loaded') GROUP BY action) s")"
 once=$(state)
 load e2e-loader-a
