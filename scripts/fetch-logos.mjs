@@ -25,8 +25,8 @@
 //                                   (and any folder given with --employers)
 //
 // A run is safe to repeat: a domain with a stored mark is skipped, and so is
-// one already found to have none (until --retry). A mark stored by an earlier
-// run stays until --prune, whether or not this run's sources name its domain.
+// one already found to have none (until --retry). What an earlier run settled
+// stays until --prune, whether or not this run's sources name the domain.
 // "None" is written down only when Wikimedia and the icon services answered;
 // a domain they could not be asked about is tried again by the next run.
 //
@@ -547,15 +547,18 @@ async function worker(id) {
 await Promise.all(Array.from({ length: Math.min(JOBS, queue.length) }, (_, id) => worker(id)));
 rmSync(tmpRoot, { recursive: true, force: true });
 
-// A stored mark stays in the list; a domain found to have none stays only
-// while the data names it. --prune drops the marks the data no longer names.
+// What earlier runs settled stays in the list, a stored mark and a "none"
+// alike, whether or not this run's sources name the domain. --prune drops
+// what the data no longer names, and removes those files.
 const kept = {};
 for (const domain of Object.keys(list).sort()) {
-  const named = domains.has(domain);
   const ext = list[domain];
-  if (ext && existsSync(path.join(OUT, `${domain}.${ext}`)) && (named || !prune)) kept[domain] = ext;
-  else if (named) kept[domain] = null;
-  else if (ext && prune) rmSync(path.join(OUT, `${domain}.${ext}`), { force: true });
+  const stored = ext && existsSync(path.join(OUT, `${domain}.${ext}`));
+  if (prune && !domains.has(domain)) {
+    if (stored) rmSync(path.join(OUT, `${domain}.${ext}`), { force: true });
+    continue;
+  }
+  kept[domain] = stored ? ext : null;
 }
 writeFileSync(LIST, `${JSON.stringify(kept, null, 1)}\n`);
 
