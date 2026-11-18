@@ -798,1228 +798,1228 @@ UPDATE skills SET parent_skill_id = NULL WHERE parent_skill_id IS NOT NULL AND p
 -- What each kept skill is ---------------------------------------------------
 
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Reading an engineering drawing: its views, dimensions, tolerances, notes, title block and revision level. A person who has it can tell from the print exactly what part or assembly is called for and what must be checked.',
-  how_learned = 'Taught in the first term of machining, welding and drafting programs at community colleges, and in most apprenticeships. Shown by making or inspecting a part to print.', tools = ARRAY['Orthographic and section views', 'bills of material', '3D model viewers']
+  how_learned = 'Taught in the first term of machining, welding and drafting programs at community colleges, and in most apprenticeships. Shown by making or inspecting a part to print.', tools = ARRAY['Orthographic and section views', 'Bills of material', '3D model viewers']
   WHERE name = 'Blueprint Reading';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'The arithmetic, fractions and decimals, unit conversion, geometry and right-angle trigonometry used at a machine or bench. A person who has it can work out a missing dimension, a bolt circle, a taper or a tolerance stack without help.',
-  how_learned = 'A first-term course in machining and tool-and-die programs; employers often test it before hiring.', tools = ARRAY['Scientific calculator', 'trig tables', 'Machinery''s Handbook']
+  how_learned = 'A first-term course in machining and tool-and-die programs; employers often test it before hiring.', tools = ARRAY['Scientific calculator', 'Trig tables', 'Machinery''s Handbook']
   WHERE name = 'Shop Math';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Following a written work instruction, traveler or standard operating procedure step by step, including its revision, cautions and sign-offs. A person who has it builds or runs the job the same way every time and stops when the paper and the part disagree.',
-  how_learned = 'Learned on the job in the first weeks; shown by passing an operator qualification on a station.', tools = ARRAY['Paper travelers', 'electronic work instructions on a station terminal']
+  how_learned = 'Learned on the job in the first weeks; shown by passing an operator qualification on a station.', tools = ARRAY['Paper travelers', 'Electronic work instructions on a station terminal']
   WHERE name = 'Work Instruction Reading';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Keeping each lot, batch or serial number tied to its materials, process steps and results as it moves through the plant. A person who has it scans or signs every move so any part can be traced back later.',
-  how_learned = 'Learned on the job on the plant''s own system.', tools = ARRAY['Manufacturing execution system (MES)', 'barcode and RFID scanners', 'lot travelers']
+  how_learned = 'Learned on the job on the plant''s own system.', tools = ARRAY['Manufacturing execution system (MES)', 'Barcode and RFID scanners', 'Lot travelers']
   WHERE name = 'Lot Tracking';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Selecting the qualified recipe for a lot, loading it on a process tool, starting the run and confirming it finished inside its limits. A person who has it never runs a lot on the wrong recipe and knows what to do with an aborted run.',
-  how_learned = 'Learned on the job through tool-by-tool operator certification.', tools = ARRAY['Tool control software', 'MES recipe dispatch', 'run logs']
+  how_learned = 'Learned on the job through tool-by-tool operator certification.', tools = ARRAY['Tool control software', 'MES recipe dispatch', 'Run logs']
   WHERE name = 'Process Recipe Execution';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Putting on a hood, coverall, boots, gloves and mask in the right order so skin, hair and street clothes shed nothing into a cleanroom. A person who has it can gown and de-gown without touching the outside of the garment.',
-  how_learned = 'Taught and checked on the first day in a cleanroom job; semiconductor technician programs practice it.', tools = ARRAY['Bunny suits', 'gowning benches', 'air showers']
+  how_learned = 'Taught and checked on the first day in a cleanroom job; semiconductor technician programs practice it.', tools = ARRAY['Bunny suits', 'Gowning benches', 'Air showers']
   WHERE name = 'Cleanroom Gowning';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Working inside a classified cleanroom without adding particles: slow movement, approved wipes, pens and paper, material wipe-down and pass-throughs. A person who has it knows the room''s ISO 14644 class and what is and is not allowed in it.',
-  how_learned = 'Employer training before entry, then supervised work; covered in semiconductor and medical device technician programs.', tools = ARRAY['Lint-free wipes', 'isopropyl alcohol', 'pass-through chambers', 'particle counters']
+  how_learned = 'Employer training before entry, then supervised work; covered in semiconductor and medical device technician programs.', tools = ARRAY['Lint-free wipes', 'Isopropyl alcohol', 'Pass-through chambers', 'Particle counters']
   WHERE name = 'Cleanroom Protocols';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Gowning in sterile garments for an aseptic filling area and proving it by contact plates taken from gloves and gown afterwards. A person who has it is qualified to enter the fill room and requalifies on a set schedule.',
-  how_learned = 'Site training followed by repeated qualified gownings with passing microbial results.', tools = ARRAY['Sterile gowns, goggles and gloves', 'contact plates']
+  how_learned = 'Site training followed by repeated qualified gownings with passing microbial results.', tools = ARRAY['Sterile gowns, goggles and gloves', 'Contact plates']
   WHERE name = 'Aseptic Gowning Qualification';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Handling static-sensitive parts so a discharge cannot damage them: grounding yourself and the work, and keeping parts in shielded packaging. A person who has it tests their wrist strap or footwear every shift and works only at a protected station.',
-  how_learned = 'Employer training to an ANSI/ESD S20.20 program, usually refreshed yearly; part of IPC electronics assembly courses.', tools = ARRAY['Wrist straps and heel grounders', 'dissipative mats', 'ionizers', 'shielding bags', 'strap testers']
+  how_learned = 'Employer training to an ANSI/ESD S20.20 program, usually refreshed yearly; part of IPC electronics assembly courses.', tools = ARRAY['Wrist straps and heel grounders', 'Dissipative mats', 'Ionizers', 'Shielding bags', 'Strap testers']
   WHERE name = 'ESD Control';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Working in a very low humidity room where battery electrodes and electrolyte are exposed. A person who has it keeps moisture out through airlocks, limits on people and time in the room, and watches the dew point.',
-  how_learned = 'Learned on the job at a cell plant.', tools = ARRAY['Dew point meters', 'airlocks', 'desiccant dehumidifiers']
+  how_learned = 'Learned on the job at a cell plant.', tools = ARRAY['Dew point meters', 'Airlocks', 'Desiccant dehumidifiers']
   WHERE name = 'Dry Room Operations';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Keeping loose hardware, tools, shavings and trash out of aircraft, engines and spacecraft. A person who has it cleans as they go, accounts for every fastener and inspects a work zone before it is closed.',
-  how_learned = 'Employer training, required before working on flight hardware and refreshed yearly.', tools = ARRAY['FOD bags and containers', 'tethered tools', 'borescopes for closed areas']
+  how_learned = 'Employer training, required before working on flight hardware and refreshed yearly.', tools = ARRAY['FOD bags and containers', 'Tethered tools', 'Borescopes for closed areas']
   WHERE name = 'FOD Prevention';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Accounting for every tool taken to a job so none is left inside the product. A person who has it checks tools out and in, inspects a shadowed box at the start and end of a shift and reports a missing tool at once.',
-  how_learned = 'Employer training; standard practice in aircraft, engine and spacecraft work.', tools = ARRAY['Shadow-foamed toolboxes', 'tool cribs', 'check-out tags or scanners']
+  how_learned = 'Employer training; standard practice in aircraft, engine and spacecraft work.', tools = ARRAY['Shadow-foamed toolboxes', 'Tool cribs', 'Check-out tags or scanners']
   WHERE name = 'Tool Control';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Using a plant''s MES to start and complete operations, record material and labor, and pull production data. A person who has it can find where an order stands and what happened to it at each step.',
   how_learned = 'Learned on the job on the plant''s system.', tools = ARRAY['MES products such as Siemens Opcenter, Rockwell Plex, SAP Digital Manufacturing']
   WHERE name = 'Manufacturing Execution System Use';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Running a bridge or gantry crane from a pendant or radio remote to lift, travel and set a load. A person who has it inspects the crane and hook before use, keeps the load low and under control and never lifts over people.',
-  how_learned = 'Employer training and evaluation under OSHA 1910.179; NCCCO offers an overhead crane operator certification.', tools = ARRAY['Bridge and gantry cranes', 'pendant and radio controls', 'load charts']
+  how_learned = 'Employer training and evaluation under OSHA 1910.179; NCCCO offers an overhead crane operator certification.', tools = ARRAY['Bridge and gantry cranes', 'Pendant and radio controls', 'Load charts']
   WHERE name = 'Overhead Crane Operation';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Choosing and attaching slings, shackles and lifting points so a load lifts level and within rated capacity. A person who has it can estimate weight and center of gravity, read sling angle tables and inspect rigging for damage.',
-  how_learned = 'Millwright and ironworker apprenticeships; employer qualified-rigger training; NCCCO Rigger Level I and II.', tools = ARRAY['Wire rope, chain and synthetic slings', 'shackles', 'eyebolts and hoist rings', 'spreader bars']
+  how_learned = 'Millwright and ironworker apprenticeships; employer qualified-rigger training; NCCCO Rigger Level I and II.', tools = ARRAY['Wire rope, chain and synthetic slings', 'Shackles', 'Eyebolts and hoist rings', 'Spreader bars']
   WHERE name = 'Rigging and Slinging';
 UPDATE skills SET category = 'Shop Fundamentals', description = 'Driving a powered industrial truck to lift, carry and stack loads. A person who has it does the pre-shift check, reads the capacity plate and travels and stacks safely around people and racking.',
-  how_learned = 'Employer training and a hands-on evaluation required by OSHA 1910.178, repeated at least every three years. The employer issues the certification.', tools = ARRAY['Sit-down and stand-up counterbalance trucks', 'reach trucks', 'electric pallet jacks']
+  how_learned = 'Employer training and a hands-on evaluation required by OSHA 1910.178, repeated at least every three years. The employer issues the certification.', tools = ARRAY['Sit-down and stand-up counterbalance trucks', 'Reach trucks', 'Electric pallet jacks']
   WHERE name = 'Forklift Operation';
 UPDATE skills SET category = 'Safety', description = 'The basic habits of working safely around machines: guards in place, eye and hearing protection, no loose clothing, clear aisles, knowing the emergency stops and reporting hazards. A person who has it can be left at a machine without being a danger to themselves or others.',
-  how_learned = 'Employer orientation and the first weeks of any trade program. An OSHA 10-hour General Industry outreach card shows the basics.', tools = ARRAY['Machine guards', 'emergency stops', 'safety glasses and hearing protection']
+  how_learned = 'Employer orientation and the first weeks of any trade program. An OSHA 10-hour General Industry outreach card shows the basics.', tools = ARRAY['Machine guards', 'Emergency stops', 'Safety glasses and hearing protection']
   WHERE name = 'Shop Safety Practices';
 UPDATE skills SET category = 'Safety', description = 'Shutting equipment down and locking out every energy source, electrical, pneumatic, hydraulic, gravity and stored, before putting hands in it. A person who has it applies their own lock and tag, releases stored energy and tries the start before work begins.',
-  how_learned = 'Employer training as an authorized employee under OSHA 1910.147, with a yearly check of each procedure.', tools = ARRAY['Padlocks and hasps', 'breaker and valve lockouts', 'tags', 'machine-specific lockout procedures']
+  how_learned = 'Employer training as an authorized employee under OSHA 1910.147, with a yearly check of each procedure.', tools = ARRAY['Padlocks and hasps', 'Breaker and valve lockouts', 'Tags', 'Machine-specific lockout procedures']
   WHERE name = 'Lockout Tagout';
 UPDATE skills SET category = 'Safety', description = 'Recognizing shock and arc-flash hazards and working so neither can reach you. A person who has it reads an arc-flash label, tests for absence of voltage before touching and wears the rated protective equipment for the task.',
-  how_learned = 'Employer qualified-person training built on NFPA 70E, refreshed at least every three years.', tools = ARRAY['Voltage testers', 'arc-rated clothing and face shields', 'insulated gloves and tools']
+  how_learned = 'Employer qualified-person training built on NFPA 70E, refreshed at least every three years.', tools = ARRAY['Voltage testers', 'Arc-rated clothing and face shields', 'Insulated gloves and tools']
   WHERE name = 'Electrical Safety';
 UPDATE skills SET category = 'Safety', description = 'Working safely on battery packs and drive systems that stay energized and cannot simply be switched off. A person who has it uses insulated tools and gloves, respects approach limits and verifies isolation before touching a conductor.',
-  how_learned = 'Employer high-voltage qualification, usually in levels, built on NFPA 70E practice.', tools = ARRAY['Class 0 insulating gloves', 'insulated hand tools', 'voltage testers', 'service disconnects']
+  how_learned = 'Employer high-voltage qualification, usually in levels, built on NFPA 70E practice.', tools = ARRAY['Class 0 insulating gloves', 'Insulated hand tools', 'Voltage testers', 'Service disconnects']
   WHERE name = 'High Voltage Safety';
 UPDATE skills SET category = 'Safety', description = 'Handling acids, solvents, resins and process chemicals without exposure or a spill. A person who has it reads the label and safety data sheet first, uses the right gloves and ventilation and knows where the eyewash and shower are.',
-  how_learned = 'Employer hazard communication training under OSHA 1910.1200 before first exposure.', tools = ARRAY['Chemical-resistant gloves, aprons and face shields', 'fume hoods', 'eyewash stations', 'spill kits']
+  how_learned = 'Employer hazard communication training under OSHA 1910.1200 before first exposure.', tools = ARRAY['Chemical-resistant gloves, aprons and face shields', 'Fume hoods', 'Eyewash stations', 'Spill kits']
   WHERE name = 'Chemical Safety';
 UPDATE skills SET category = 'Safety', description = 'Finding what matters in a safety data sheet: hazards, required protection, first aid, storage and what the chemical must not be mixed with. A person who has it can look up any chemical on site and act on what the sheet says.',
-  how_learned = 'Part of hazard communication training under OSHA 1910.1200.', tools = ARRAY['16-section GHS safety data sheets', 'container labels and pictograms']
+  how_learned = 'Part of hazard communication training under OSHA 1910.1200.', tools = ARRAY['16-section GHS safety data sheets', 'Container labels and pictograms']
   WHERE name = 'Safety Data Sheet Reading';
 UPDATE skills SET category = 'Safety', description = 'Choosing and wearing the right protective equipment for a task, by hazard: impact, chemical splash, heat, noise, cuts. A person who has it knows the limits of each item and checks it before use.',
-  how_learned = 'Employer training tied to the hazard assessment required by OSHA 1910.132.', tools = ARRAY['Safety glasses, goggles and face shields', 'gloves by material', 'hearing protection', 'aluminized and arc-rated clothing']
+  how_learned = 'Employer training tied to the hazard assessment required by OSHA 1910.132.', tools = ARRAY['Safety glasses, goggles and face shields', 'Gloves by material', 'Hearing protection', 'Aluminized and arc-rated clothing']
   WHERE name = 'PPE Selection';
 UPDATE skills SET category = 'Safety', description = 'Receiving, storing, moving and disposing of hazardous materials and waste under the rules that apply. A person who has it segregates incompatibles, labels containers and completes the paperwork correctly.',
-  how_learned = 'Employer training; DOT hazmat employee training (49 CFR 172.704, every three years) for shipping, and OSHA HAZWOPER (1910.120) for spill response and waste sites.', tools = ARRAY['Flammable and corrosive cabinets', 'secondary containment', 'drum handling equipment', 'waste labels and manifests']
+  how_learned = 'Employer training; DOT hazmat employee training (49 CFR 172.704, every three years) for shipping, and OSHA HAZWOPER (1910.120) for spill response and waste sites.', tools = ARRAY['Flammable and corrosive cabinets', 'Secondary containment', 'Drum handling equipment', 'Waste labels and manifests']
   WHERE name = 'Hazardous Materials Handling';
 UPDATE skills SET category = 'Safety', description = 'Working with toxic, corrosive, flammable and pyrophoric process gases such as silane, chlorine and arsine. A person who has it changes cylinders in a gas cabinet with the correct purge cycles and responds properly to a gas alarm.',
-  how_learned = 'Employer training at a fab or gas supplier, with supervised cylinder changes before working alone.', tools = ARRAY['Gas cabinets and valve manifold boxes', 'purge panels', 'gas detection systems', 'self-contained breathing apparatus']
+  how_learned = 'Employer training at a fab or gas supplier, with supervised cylinder changes before working alone.', tools = ARRAY['Gas cabinets and valve manifold boxes', 'Purge panels', 'Gas detection systems', 'Self-contained breathing apparatus']
   WHERE name = 'Specialty Gas Handling';
 UPDATE skills SET category = 'Safety', description = 'Working around Class 3B and Class 4 industrial lasers without eye or skin injury. A person who has it knows the laser class and wavelength, wears matching eyewear when a beam is open and never defeats an enclosure interlock.',
-  how_learned = 'Employer training under an ANSI Z136.1 program run by the site''s Laser Safety Officer.', tools = ARRAY['Wavelength-rated eyewear', 'interlocked enclosures', 'beam stops', 'warning signs and lights']
+  how_learned = 'Employer training under an ANSI Z136.1 program run by the site''s Laser Safety Officer.', tools = ARRAY['Wavelength-rated eyewear', 'Interlocked enclosures', 'Beam stops', 'Warning signs and lights']
   WHERE name = 'Laser Safety';
 UPDATE skills SET category = 'Safety', description = 'Keeping radiation dose as low as reasonably achievable around X-ray tubes and gamma sources by time, distance and shielding. A person who has it wears and reads dosimetry, sets up boundaries and surveys the area before and after an exposure.',
-  how_learned = 'Radiation safety training required by the state or NRC license. Radiographers using gamma sources must hold a radiographer certification such as ASNT IRRSP or a state card.', tools = ARRAY['Survey meters', 'film badges and pocket dosimeters', 'shielded cabinets and vaults', 'boundary signs']
+  how_learned = 'Radiation safety training required by the state or NRC license. Radiographers using gamma sources must hold a radiographer certification such as ASNT IRRSP or a state card.', tools = ARRAY['Survey meters', 'Film badges and pocket dosimeters', 'Shielded cabinets and vaults', 'Boundary signs']
   WHERE name = 'Radiation Safety';
 UPDATE skills SET category = 'Safety', description = 'Entering and working in a robot cell without being struck or trapped. A person who has it uses the gate interlock and their own lock, carries the teach pendant with the enabling switch and understands the cell''s safeguarded space.',
-  how_learned = 'Employer training based on ANSI/RIA R15.06; robot makers include it in their operator courses.', tools = ARRAY['Interlocked gates', 'light curtains and area scanners', 'teach pendant enabling switch', 'lockout points']
+  how_learned = 'Employer training based on ANSI/RIA R15.06; robot makers include it in their operator courses.', tools = ARRAY['Interlocked gates', 'Light curtains and area scanners', 'Teach pendant enabling switch', 'Lockout points']
   WHERE name = 'Robot Cell Safety';
 UPDATE skills SET category = 'Safety', description = 'Working on hydraulic systems without injury from stored pressure, hot oil or a pinhole leak. A person who has it bleeds accumulators and blocks loads before opening a line and never feels for a leak by hand.',
-  how_learned = 'Covered in fluid power courses and maintenance apprenticeships; reinforced by employer lockout training.', tools = ARRAY['Pressure gauges and test points', 'accumulator bleed valves', 'load blocks', 'cardboard for leak checks']
+  how_learned = 'Covered in fluid power courses and maintenance apprenticeships; reinforced by employer lockout training.', tools = ARRAY['Pressure gauges and test points', 'Accumulator bleed valves', 'Load blocks', 'Cardboard for leak checks']
   WHERE name = 'Hydraulic Safety';
 UPDATE skills SET category = 'Safety', description = 'Protecting skin and lungs when cutting, sanding and curing composites. A person who has it controls carbon and glass dust at the source and handles resins and hardeners, which can sensitize skin, with the right gloves.',
-  how_learned = 'Employer training; covered in composite technician programs.', tools = ARRAY['Downdraft tables and vacuum sanders', 'nitrile gloves', 'respirators', 'coveralls']
+  how_learned = 'Employer training; covered in composite technician programs.', tools = ARRAY['Downdraft tables and vacuum sanders', 'Nitrile gloves', 'Respirators', 'Coveralls']
   WHERE name = 'Composite Material Safety';
 UPDATE skills SET category = 'Safety', description = 'Loading, sieving and recovering fine metal and polymer powders for additive manufacturing. A person who has it controls dust, grounds equipment against static and treats reactive powders such as aluminum and titanium as a fire and explosion hazard.',
-  how_learned = 'Machine maker and employer training before running a powder-bed printer.', tools = ARRAY['Sieving stations', 'inert-gas glove boxes', 'explosion-rated vacuums', 'grounding straps', 'respirators']
+  how_learned = 'Machine maker and employer training before running a powder-bed printer.', tools = ARRAY['Sieving stations', 'Inert-gas glove boxes', 'Explosion-rated vacuums', 'Grounding straps', 'Respirators']
   WHERE name = 'Metal Powder Handling';
 UPDATE skills SET category = 'Safety', description = 'Handling, moving and installing explosive devices such as initiators, rocket motors and warheads. A person who has it follows quantity and distance limits, grounds themselves and the item and uses only approved tools.',
-  how_learned = 'Employer explosives safety certification on a defense or space program, renewed on a schedule.', tools = ARRAY['Grounding straps and conductive footwear', 'non-sparking tools', 'approved containers and magazines']
+  how_learned = 'Employer explosives safety certification on a defense or space program, renewed on a schedule.', tools = ARRAY['Grounding straps and conductive footwear', 'Non-sparking tools', 'Approved containers and magazines']
   WHERE name = 'Ordnance Handling';
 UPDATE skills SET category = 'Safety', description = 'Entering tanks, pits, vessels and ducts that have limited access and may hold a bad atmosphere. A person who has it works to an entry permit, tests the air first, keeps an attendant outside and knows the rescue plan.',
-  how_learned = 'Employer training as entrant, attendant or supervisor under OSHA 1910.146.', tools = ARRAY['Four-gas monitors', 'ventilation blowers', 'retrieval tripods and harnesses', 'entry permits']
+  how_learned = 'Employer training as entrant, attendant or supervisor under OSHA 1910.146.', tools = ARRAY['Four-gas monitors', 'Ventilation blowers', 'Retrieval tripods and harnesses', 'Entry permits']
   WHERE name = 'Confined Space Entry';
 UPDATE skills SET category = 'Safety', description = 'Working at height tied off so a fall is stopped before injury. A person who has it inspects a harness and lanyard, picks a rated anchor and knows the clearance a fall needs.',
-  how_learned = 'Employer training; required by OSHA whenever fall protection is used.', tools = ARRAY['Full-body harnesses', 'shock-absorbing lanyards and self-retracting lifelines', 'anchors', 'aerial lifts']
+  how_learned = 'Employer training; required by OSHA whenever fall protection is used.', tools = ARRAY['Full-body harnesses', 'Shock-absorbing lanyards and self-retracting lifelines', 'Anchors', 'Aerial lifts']
   WHERE name = 'Fall Protection';
 UPDATE skills SET category = 'Safety', description = 'Using a respirator correctly where paint, solvent, dust or fume cannot be controlled at the source. A person who has it picks the right cartridge, does a seal check each time and keeps the mask clean and stored.',
-  how_learned = 'Medical clearance, training and a yearly fit test under OSHA 1910.134.', tools = ARRAY['Half-face and full-face cartridge respirators', 'powered air-purifying respirators', 'supplied-air hoods']
+  how_learned = 'Medical clearance, training and a yearly fit test under OSHA 1910.134.', tools = ARRAY['Half-face and full-face cartridge respirators', 'Powered air-purifying respirators', 'Supplied-air hoods']
   WHERE name = 'Respiratory Protection';
 UPDATE skills SET category = 'Machining', description = 'Working a CNC machine''s control: loading and proving out a program, jogging, setting modes and overrides, reading alarms and restarting safely mid-program. A person who has it can run a job on the control without a setup person standing by.',
   how_learned = 'Machining programs at community colleges and on the job; NIMS CNC Milling and CNC Turning Operations credentials cover it.', tools = ARRAY['FANUC, Haas, Siemens SINUMERIK, Mazak and Okuma controls']
   WHERE name = 'CNC Control Operation';
 UPDATE skills SET category = 'Machining', description = 'Telling the machine where the part and each tool are: touching off tools, setting work coordinates such as G54 and adjusting wear offsets to hold size. A person who has it can bring a part back into tolerance from a measurement without editing the program.',
-  how_learned = 'Machining programs and on the job; part of NIMS CNC setup credentials.', tools = ARRAY['Tool presetters and touch probes', 'edge finders', 'indicator', 'offset pages on the control']
+  how_learned = 'Machining programs and on the job; part of NIMS CNC setup credentials.', tools = ARRAY['Tool presetters and touch probes', 'Edge finders', 'Indicator', 'Offset pages on the control']
   WHERE name = 'Tool and Work Offsets';
 UPDATE skills SET category = 'Machining', description = 'Holding a part so it cannot move and is not distorted while it is cut. A person who has it chooses and sets up vises, chucks, soft jaws, collets, clamps and fixtures, and indicates the part true before cutting.',
-  how_learned = 'Machining programs and apprenticeships; on the job.', tools = ARRAY['Vises and parallels', 'three- and four-jaw chucks', 'collets', 'soft jaws', 'fixture plates', 'dial indicators']
+  how_learned = 'Machining programs and apprenticeships; on the job.', tools = ARRAY['Vises and parallels', 'Three- and four-jaw chucks', 'Collets', 'Soft jaws', 'Fixture plates', 'Dial indicators']
   WHERE name = 'Workholding and Fixturing';
 UPDATE skills SET category = 'Machining', description = 'Working out spindle speed, feed rate and depth of cut from the material, the cutter and the machine. A person who has it can set starting values from surface speed and chip load, then adjust them by the sound, chips and finish.',
-  how_learned = 'A core topic in machining programs; tested in NIMS machining credentials.', tools = ARRAY['Tooling catalogs', 'Machinery''s Handbook', 'feed and speed calculators']
+  how_learned = 'A core topic in machining programs; tested in NIMS machining credentials.', tools = ARRAY['Tooling catalogs', 'Machinery''s Handbook', 'Feed and speed calculators']
   WHERE name = 'Speeds and Feeds Calculation';
 UPDATE skills SET category = 'Machining', description = 'Writing and editing CNC programs by hand in G and M code: moves, canned cycles, cutter compensation and subprograms. A person who has it can read any program at the control and fix or shorten it.',
-  how_learned = 'Machining programs at community colleges; NIMS CNC Milling and Turning Programming, Setup and Operations credentials.', tools = ARRAY['FANUC-style G-code', 'control editors', 'backplot and simulation software']
+  how_learned = 'Machining programs at community colleges; NIMS CNC Milling and Turning Programming, Setup and Operations credentials.', tools = ARRAY['FANUC-style G-code', 'Control editors', 'Backplot and simulation software']
   WHERE name = 'G-Code Programming';
 UPDATE skills SET category = 'Machining', description = 'Building CNC toolpaths from a 3D model in CAM software, choosing tools and strategies, simulating the cut and posting code for a specific machine. A person who has it can take a part from model to proven program.',
-  how_learned = 'Community-college CNC programming courses; software makers'' certifications such as Mastercam''s; on the job.', tools = ARRAY['Mastercam', 'Fusion 360', 'NX CAM', 'GibbsCAM', 'post processors']
+  how_learned = 'Community-college CNC programming courses; software makers'' certifications such as Mastercam''s; on the job.', tools = ARRAY['Mastercam', 'Fusion 360', 'NX CAM', 'GibbsCAM', 'Post processors']
   WHERE name = 'CAM Programming';
 UPDATE skills SET category = 'Machining', description = 'Setting up and running vertical and horizontal machining centers: loading tools, setting offsets, running first parts and holding dimensions through a lot. A person who has it works from a setup sheet and corrects for tool wear.',
-  how_learned = 'Machining programs and on the job; NIMS CNC Milling credentials.', tools = ARRAY['Vertical and horizontal machining centers', 'end mills, drills and face mills', 'tool holders', 'probes']
+  how_learned = 'Machining programs and on the job; NIMS CNC Milling credentials.', tools = ARRAY['Vertical and horizontal machining centers', 'End mills, drills and face mills', 'Tool holders', 'Probes']
   WHERE name = 'CNC Milling';
 UPDATE skills SET category = 'Machining', description = 'Running CNC lathes with live tooling, a Y axis and sub-spindles, so a part is turned, milled and drilled complete in one machine. A person who has it can set up both spindles and time the handoff between them.',
-  how_learned = 'On the job after basic CNC turning; machine makers'' courses. NIMS CNC Turning credentials cover the basics.', tools = ARRAY['Mill-turn centers', 'live tool holders', 'bar feeders', 'sub-spindles']
+  how_learned = 'On the job after basic CNC turning; machine makers'' courses. NIMS CNC Turning credentials cover the basics.', tools = ARRAY['Mill-turn centers', 'Live tool holders', 'Bar feeders', 'Sub-spindles']
   WHERE name = 'Multi-Axis Turning';
 UPDATE skills SET category = 'Machining', description = 'Running a sliding-headstock lathe, where bar stock feeds through a guide bushing past the tools, to make long, small, precise parts. A person who has it sets guide bushing tension, bar feeder and gang tools and holds tenths over a long run.',
-  how_learned = 'On the job in a screw-machine shop; machine makers'' training.', tools = ARRAY['Citizen, Star and Tsugami Swiss-type lathes', 'guide bushings', 'bar feeders']
+  how_learned = 'On the job in a screw-machine shop; machine makers'' training.', tools = ARRAY['Citizen, Star and Tsugami Swiss-type lathes', 'Guide bushings', 'Bar feeders']
   WHERE name = 'Swiss-Type Machining';
 UPDATE skills SET category = 'Machining', description = 'Setting up and running machines that tilt and rotate the part or spindle so complex surfaces are cut in one clamping. A person who has it sets the rotary center, uses tool center point control and checks for collisions before cutting.',
-  how_learned = 'On the job after three-axis experience; advanced CNC courses and machine makers'' training.', tools = ARRAY['Trunnion and swivel-head machining centers', 'probing', 'CAM simulation']
+  how_learned = 'On the job after three-axis experience; advanced CNC courses and machine makers'' training.', tools = ARRAY['Trunnion and swivel-head machining centers', 'Probing', 'CAM simulation']
   WHERE name = '5-Axis Machining';
 UPDATE skills SET category = 'Machining', description = 'Turning, facing, boring, grooving and single-point threading on an engine lathe by hand. A person who has it can make a round part to a thousandth from a drawing.',
-  how_learned = 'The first machine taught in machining programs and apprenticeships; NIMS Turning credentials.', tools = ARRAY['Engine lathe', 'three- and four-jaw chucks', 'carbide and high-speed steel tools', 'dial indicators']
+  how_learned = 'The first machine taught in machining programs and apprenticeships; NIMS Turning credentials.', tools = ARRAY['Engine lathe', 'Three- and four-jaw chucks', 'Carbide and high-speed steel tools', 'Dial indicators']
   WHERE name = 'Manual Lathe Operation';
 UPDATE skills SET category = 'Machining', description = 'Squaring stock, milling steps and pockets, drilling and boring holes to position on a knee mill. A person who has it trams the head, indicates a vise and works to a thousandth with the dials or readout.',
-  how_learned = 'Machining programs and apprenticeships; NIMS Milling credential.', tools = ARRAY['Bridgeport-style knee mill', 'digital readout', 'edge finder', 'boring head', 'end mills']
+  how_learned = 'Machining programs and apprenticeships; NIMS Milling credential.', tools = ARRAY['Bridgeport-style knee mill', 'Digital readout', 'Edge finder', 'Boring head', 'End mills']
   WHERE name = 'Manual Mill Operation';
 UPDATE skills SET category = 'Machining', description = 'Finishing hardened parts to tenths of a thousandth and a fine surface on surface, cylindrical and centerless grinders. A person who has it picks the wheel, controls heat and checks size and finish as they go.',
-  how_learned = 'Tool-and-die and machining apprenticeships; NIMS Grinding credential.', tools = ARRAY['Surface, cylindrical and centerless grinders', 'magnetic chucks', 'grinding wheels', 'coolant']
+  how_learned = 'Tool-and-die and machining apprenticeships; NIMS Grinding credential.', tools = ARRAY['Surface, cylindrical and centerless grinders', 'Magnetic chucks', 'Grinding wheels', 'Coolant']
   WHERE name = 'Precision Grinding';
 UPDATE skills SET category = 'Machining', description = 'Truing a grinding wheel so it runs round and dressing it so it cuts freely, including forming a radius or profile on the wheel. A person who has it also ring-tests and mounts wheels safely.',
-  how_learned = 'Learned with precision grinding, in apprenticeships and on the job.', tools = ARRAY['Single-point and rotary diamond dressers', 'radius dressers', 'wheel balancers']
+  how_learned = 'Learned with precision grinding, in apprenticeships and on the job.', tools = ARRAY['Single-point and rotary diamond dressers', 'Radius dressers', 'Wheel balancers']
   WHERE name = 'Grinding Wheel Dressing';
 UPDATE skills SET category = 'Machining', description = 'Grinding holes and contours to very exact size and position in hardened tooling. A person who has it locates features within tenths and finishes die and gauge details that other machines cannot.',
-  how_learned = 'Tool-and-die apprenticeship, late in training; on the job.', tools = ARRAY['Moore-type jig grinders', 'CNC jig grinders', 'indicators and gauge blocks']
+  how_learned = 'Tool-and-die apprenticeship, late in training; on the job.', tools = ARRAY['Moore-type jig grinders', 'CNC jig grinders', 'Indicators and gauge blocks']
   WHERE name = 'Jig Grinding';
 UPDATE skills SET category = 'Machining', description = 'Bringing bores and flat faces to final size, geometry and finish with abrasive stones or loose abrasive on a lap. A person who has it can hold a bore straight and round within tenths and lap a face flat to light bands.',
-  how_learned = 'On the job in gauge, hydraulic and toolroom work.', tools = ARRAY['Honing machines and mandrels', 'lapping plates and compounds', 'air gauges', 'optical flats']
+  how_learned = 'On the job in gauge, hydraulic and toolroom work.', tools = ARRAY['Honing machines and mandrels', 'Lapping plates and compounds', 'Air gauges', 'Optical flats']
   WHERE name = 'Honing and Lapping';
 UPDATE skills SET category = 'Machining', description = 'Cutting hardened metal with an electrically charged wire to make punches, dies and fine profiles. A person who has it threads and aligns the wire, sets power and flushing and plans skim cuts for size and finish.',
-  how_learned = 'Tool-and-die apprenticeships and on the job; machine makers'' training. NIMS offers EDM credentials.', tools = ARRAY['Wire EDM machines', 'brass and coated wire', 'deionized water systems']
+  how_learned = 'Tool-and-die apprenticeships and on the job; machine makers'' training. NIMS offers EDM credentials.', tools = ARRAY['Wire EDM machines', 'Brass and coated wire', 'Deionized water systems']
   WHERE name = 'Wire EDM';
 UPDATE skills SET category = 'Machining', description = 'Burning a cavity into hardened metal with a shaped electrode. A person who has it makes and mounts electrodes, sets overburn, flushing and power, and orbits to final size and finish.',
-  how_learned = 'Tool-and-die and moldmaking apprenticeships; NIMS offers EDM credentials.', tools = ARRAY['Sinker EDM machines', 'graphite and copper electrodes', 'dielectric oil', 'electrode holders']
+  how_learned = 'Tool-and-die and moldmaking apprenticeships; NIMS offers EDM credentials.', tools = ARRAY['Sinker EDM machines', 'Graphite and copper electrodes', 'Dielectric oil', 'Electrode holders']
   WHERE name = 'Sinker EDM';
 UPDATE skills SET category = 'Machining', description = 'Milling triangular or square pocket patterns into thick plate to leave thin skins and stiffening ribs for tanks and fuselage panels. A person who has it controls rib and skin thickness on a large, flexible part that moves as it is cut.',
-  how_learned = 'On the job at an aerospace structures plant.', tools = ARRAY['Large gantry and vacuum-bed mills', 'ultrasonic thickness gauges']
+  how_learned = 'On the job at an aerospace structures plant.', tools = ARRAY['Large gantry and vacuum-bed mills', 'Ultrasonic thickness gauges']
   WHERE name = 'Isogrid Machining';
 UPDATE skills SET category = 'Machining', description = 'Machining mounting faces, holes and datums on large aluminum die castings such as vehicle underbodies. A person who has it fixtures a thin, slightly warped casting without distorting it and holds positions across its length.',
-  how_learned = 'On the job at a casting plant, after general CNC experience.', tools = ARRAY['Large horizontal and gantry machining centers', 'hydraulic fixtures', 'in-machine probing']
+  how_learned = 'On the job at a casting plant, after general CNC experience.', tools = ARRAY['Large horizontal and gantry machining centers', 'Hydraulic fixtures', 'In-machine probing']
   WHERE name = 'Structural Casting Machining';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Gas metal arc welding: a wire fed through a gun under shielding gas. A person who has it sets voltage, wire speed and gas for the joint and lays sound fillet and groove welds in flat, horizontal, vertical and overhead positions.',
-  how_learned = 'Community-college welding programs and apprenticeships. Shown by a welder qualification test, most often to AWS D1.1 for structural steel.', tools = ARRAY['GMAW power sources and wire feeders', 'solid wire', 'argon and CO2 mixes', 'pulse machines']
+  how_learned = 'Community-college welding programs and apprenticeships. Shown by a welder qualification test, most often to AWS D1.1 for structural steel.', tools = ARRAY['GMAW power sources and wire feeders', 'Solid wire', 'Argon and CO2 mixes', 'Pulse machines']
   WHERE name = 'MIG Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Gas tungsten arc welding: an arc from a tungsten electrode with filler added by hand. A person who has it controls heat with a foot pedal or torch control and makes clean, precise welds on thin and critical parts.',
-  how_learned = 'Welding programs, usually after MIG and stick. Shown by a qualification test to the code the work falls under, such as AWS D17.1 for aerospace or ASME Section IX for pressure work.', tools = ARRAY['AC/DC TIG power sources', 'tungsten electrodes', 'argon', 'filler rod', 'purge fixtures']
+  how_learned = 'Welding programs, usually after MIG and stick. Shown by a qualification test to the code the work falls under, such as AWS D17.1 for aerospace or ASME Section IX for pressure work.', tools = ARRAY['AC/DC TIG power sources', 'Tungsten electrodes', 'Argon', 'Filler rod', 'Purge fixtures']
   WHERE name = 'TIG Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Shielded metal arc welding with flux-coated electrodes. A person who has it strikes and holds an arc, runs E6010 and E7018 rod in all positions and welds outdoors and on dirty or heavy steel.',
-  how_learned = 'Welding programs and apprenticeships. Shown by a plate or pipe qualification test, commonly to AWS D1.1.', tools = ARRAY['Stick power sources', 'E6010, E6011 and E7018 electrodes', 'rod ovens', 'chipping hammer']
+  how_learned = 'Welding programs and apprenticeships. Shown by a plate or pipe qualification test, commonly to AWS D1.1.', tools = ARRAY['Stick power sources', 'E6010, E6011 and E7018 electrodes', 'Rod ovens', 'Chipping hammer']
   WHERE name = 'Stick Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Wire welding with a flux-filled wire, with or without shielding gas, for high deposition on thicker steel. A person who has it sets the machine for the wire, controls slag and runs out-of-position welds.',
   how_learned = 'Welding programs and structural shops. Shown by an AWS D1.1 qualification test.', tools = ARRAY['Wire feeders', 'E71T-1 and self-shielded wires', 'CO2 and argon mixes']
   WHERE name = 'Flux-Cored Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Welding aluminum alloys by TIG or MIG. A person who has it cleans oxide before welding, manages the metal''s fast heat flow, picks 4043 or 5356 filler and avoids porosity and crater cracks.',
-  how_learned = 'Welding programs after steel; on the job. Qualification tests are to AWS D1.2 for structures or AWS D17.1 for aerospace.', tools = ARRAY['AC TIG machines', 'spool guns and push-pull MIG', '4043 and 5356 filler', 'stainless brushes']
+  how_learned = 'Welding programs after steel; on the job. Qualification tests are to AWS D1.2 for structures or AWS D17.1 for aerospace.', tools = ARRAY['AC TIG machines', 'Spool guns and push-pull MIG', '4043 and 5356 filler', 'Stainless brushes']
   WHERE name = 'Aluminum Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Welding stainless steels so the joint keeps its strength and corrosion resistance. A person who has it limits heat input, back-purges the root and picks filler to match the grade.',
-  how_learned = 'Welding programs and on the job. Qualification tests are to AWS D1.6, AWS D17.1 or ASME Section IX depending on the work.', tools = ARRAY['TIG and pulsed MIG machines', '308L and 316L filler', 'argon back-purge equipment']
+  how_learned = 'Welding programs and on the job. Qualification tests are to AWS D1.6, AWS D17.1 or ASME Section IX depending on the work.', tools = ARRAY['TIG and pulsed MIG machines', '308L and 316L filler', 'Argon back-purge equipment']
   WHERE name = 'Stainless Steel Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'TIG welding titanium, which is ruined by air while hot. A person who has it shields the weld and the cooling metal with argon and judges the result by weld color.',
-  how_learned = 'On the job in aerospace and medical work after TIG experience; qualification to AWS D17.1.', tools = ARRAY['TIG machines', 'trailing shields and purge chambers', 'high-purity argon']
+  how_learned = 'On the job in aerospace and medical work after TIG experience; qualification to AWS D17.1.', tools = ARRAY['TIG machines', 'Trailing shields and purge chambers', 'High-purity argon']
   WHERE name = 'Titanium Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Joining aluminum-lithium and 2219 alloys used for launch vehicle tanks, by fusion or friction stir welding. A person who has it prepares the joint to remove the oxide layer and controls the porosity and cracking these alloys are prone to.',
-  how_learned = 'On the job at a launch vehicle plant; qualification to AWS D17.1 or the builder''s own specification.', tools = ARRAY['Variable polarity TIG and plasma equipment', 'friction stir welding tools', 'weld fixtures']
+  how_learned = 'On the job at a launch vehicle plant; qualification to AWS D17.1 or the builder''s own specification.', tools = ARRAY['Variable polarity TIG and plasma equipment', 'Friction stir welding tools', 'Weld fixtures']
   WHERE name = 'Aluminum-Lithium Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Welding pipe joints that cannot be turned, in fixed positions up to 6G. A person who has it puts in an open root and fills and caps it to pass X-ray or a bend test.',
-  how_learned = 'Welding programs and pipefitter apprenticeships. Shown by a pipe qualification test to ASME Section IX or API 1104.', tools = ARRAY['Stick and TIG machines', 'pipe bevellers and clamps', 'purge dams']
+  how_learned = 'Welding programs and pipefitter apprenticeships. Shown by a pipe qualification test to ASME Section IX or API 1104.', tools = ARRAY['Stick and TIG machines', 'Pipe bevellers and clamps', 'Purge dams']
   WHERE name = 'Pipe Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Automatic TIG welding of tube and pipe with a head that travels around the joint. A person who has it prepares square tube ends, programs the weld schedule and judges the finished bead inside and out.',
-  how_learned = 'Equipment makers'' courses and on the job in semiconductor, pharmaceutical and aerospace tubing work, which follow ASME BPE or the customer''s specification.', tools = ARRAY['Orbital weld heads and power supplies', 'tube facing tools', 'purge gas and oxygen analyzers', 'borescopes']
+  how_learned = 'Equipment makers'' courses and on the job in semiconductor, pharmaceutical and aerospace tubing work, which follow ASME BPE or the customer''s specification.', tools = ARRAY['Orbital weld heads and power supplies', 'Tube facing tools', 'Purge gas and oxygen analyzers', 'Borescopes']
   WHERE name = 'Orbital Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Welding propellant and cryogenic tanks that must stay leak-tight and tough at very low temperature. A person who has it holds fit-up and heat input on long seams and welds to X-ray quality.',
-  how_learned = 'On the job at a launch vehicle or pressure vessel plant after proven TIG or automatic welding experience.', tools = ARRAY['Automatic seam welders', 'weld fixtures and clamps', 'radiographic and helium leak inspection']
+  how_learned = 'On the job at a launch vehicle or pressure vessel plant after proven TIG or automatic welding experience.', tools = ARRAY['Automatic seam welders', 'Weld fixtures and clamps', 'Radiographic and helium leak inspection']
   WHERE name = 'Cryogenic Tank Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Forming, fitting and welding the shells, domes and fittings of a pressure vessel and preparing it for proof test. A person who has it works to the code or specification the vessel is built under and keeps the weld and material records it requires.',
-  how_learned = 'On the job at a code shop or spacecraft plant; welders qualify to ASME Section IX or AWS D17.1.', tools = ARRAY['Weld positioners and fixtures', 'plate rolls', 'proof test and leak test equipment']
+  how_learned = 'On the job at a code shop or spacecraft plant; welders qualify to ASME Section IX or AWS D17.1.', tools = ARRAY['Weld positioners and fixtures', 'Plate rolls', 'Proof test and leak test equipment']
   WHERE name = 'Pressure Vessel Fabrication';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Welding in a vacuum chamber with a focused beam of electrons, for deep, narrow welds in reactive and thick metals. A person who has it fixtures the part, aligns the beam to the joint and sets beam current, focus and travel speed.',
-  how_learned = 'On the job at an aerospace or engine plant; operators qualify to AWS D17.1.', tools = ARRAY['Electron beam welding chambers', 'vacuum pumps', 'CNC work tables', 'joint-finding optics']
+  how_learned = 'On the job at an aerospace or engine plant; operators qualify to AWS D17.1.', tools = ARRAY['Electron beam welding chambers', 'Vacuum pumps', 'CNC work tables', 'Joint-finding optics']
   WHERE name = 'Electron Beam Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Joining metal with a focused laser, by hand-fed optics or more often a robot. A person who has it sets power, focus position, speed and shielding gas, keeps optics clean and reads a weld for undercut, porosity and lack of fusion.',
-  how_learned = 'On the job and through laser makers'' courses, after laser safety training.', tools = ARRAY['Fiber and disk lasers', 'scanner and fixed optics', 'robots', 'seam tracking', 'cover glass']
+  how_learned = 'On the job and through laser makers'' courses, after laser safety training.', tools = ARRAY['Fiber and disk lasers', 'Scanner and fixed optics', 'Robots', 'Seam tracking', 'Cover glass']
   WHERE name = 'Laser Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Joining sheet with a laser-melted filler wire that flows into the seam without melting the panels, as on a car roof joint. A person who has it sets wire feed, laser power and tracking so the seam is smooth enough to paint.',
-  how_learned = 'On the job in an automotive body shop.', tools = ARRAY['Laser brazing heads with tactile seam tracking', 'copper-silicon wire', 'robots']
+  how_learned = 'On the job in an automotive body shop.', tools = ARRAY['Laser brazing heads with tactile seam tracking', 'Copper-silicon wire', 'Robots']
   WHERE name = 'Laser Brazing';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Joining aluminum without melting it, by a rotating pin that stirs the two edges together. A person who has it sets tool speed, travel and force, clamps the joint rigidly and inspects for voids and lack of penetration.',
-  how_learned = 'On the job at an aerospace, rail or battery enclosure plant; AWS D17.3 covers aerospace aluminum work.', tools = ARRAY['Friction stir welding machines', 'pin tools', 'backing anvils and clamps', 'phased array UT for inspection']
+  how_learned = 'On the job at an aerospace, rail or battery enclosure plant; AWS D17.3 covers aerospace aluminum work.', tools = ARRAY['Friction stir welding machines', 'Pin tools', 'Backing anvils and clamps', 'Phased array UT for inspection']
   WHERE name = 'Friction Stir Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Joining overlapped sheet by squeezing it between copper electrodes and passing current. A person who has it sets current, time and force for the stack-up and checks nugget size.',
-  how_learned = 'On the job in automotive and sheet metal plants; AWS D8.1M covers automotive weld quality and AWS D17.2 aerospace work.', tools = ARRAY['Pedestal and gun spot welders', 'weld controllers', 'electrode caps', 'chisel and peel test tools']
+  how_learned = 'On the job in automotive and sheet metal plants; AWS D8.1M covers automotive weld quality and AWS D17.2 aerospace work.', tools = ARRAY['Pedestal and gun spot welders', 'Weld controllers', 'Electrode caps', 'Chisel and peel test tools']
   WHERE name = 'Resistance Spot Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Running a robot spot welding cell: weld schedules, gun and tip condition, and the position of every weld on the part. A person who has it recovers from faults, touches up weld points and keeps weld quality between tip changes.',
-  how_learned = 'On the job in an automotive body shop, with robot maker training.', tools = ARRAY['Servo weld guns', 'weld timers', 'tip dressers', 'FANUC, KUKA and ABB robots']
+  how_learned = 'On the job in an automotive body shop, with robot maker training.', tools = ARRAY['Servo weld guns', 'Weld timers', 'Tip dressers', 'FANUC, KUKA and ABB robots']
   WHERE name = 'Robotic Spot Welding';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Restoring the face of spot weld electrodes as they mushroom and pick up coating, and changing them when worn. A person who has it sets dress frequency and checks the dressed tip so welds stay full size.',
-  how_learned = 'On the job in a body shop.', tools = ARRAY['Automatic tip dressers', 'cutter blades', 'electrode caps', 'tip alignment gauges']
+  how_learned = 'On the job in a body shop.', tools = ARRAY['Automatic tip dressers', 'Cutter blades', 'Electrode caps', 'Tip alignment gauges']
   WHERE name = 'Spot Weld Tip Dressing';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Preparing and assembling parts for welding: bevel, root opening, alignment and tacks. A person who has it sets a joint to the welding procedure and allows for the distortion the weld will cause.',
-  how_learned = 'Welding and fabrication programs; on the job.', tools = ARRAY['Squares, levels and fit-up clamps', 'grinders', 'root gap gauges', 'tack welds']
+  how_learned = 'Welding and fabrication programs; on the job.', tools = ARRAY['Squares, levels and fit-up clamps', 'Grinders', 'Root gap gauges', 'Tack welds']
   WHERE name = 'Weld Joint Fit-Up';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Reading the welding symbols on a drawing: weld type, size, length, side, contour and any testing called for. A person who has it knows what weld goes where without asking.',
-  how_learned = 'Taught with blueprint reading in welding programs. The symbols are defined in AWS A2.4.', tools = ARRAY['Welding symbol charts', 'fabrication drawings']
+  how_learned = 'Taught with blueprint reading in welding programs. The symbols are defined in AWS A2.4.', tools = ARRAY['Welding symbol charts', 'Fabrication drawings']
   WHERE name = 'Weld Symbol Interpretation';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Examining a finished weld by eye and gauge for size, profile, undercut, porosity, cracks and overlap against the acceptance criteria of the code. A person who has it can accept or reject a weld and say why.',
-  how_learned = 'Welding programs and on the job. The AWS Certified Welding Inspector (CWI) is the recognized credential for inspectors.', tools = ARRAY['Fillet weld gauges', 'bridge cam gauge', 'undercut gauge', 'flashlight and magnifier']
+  how_learned = 'Welding programs and on the job. The AWS Certified Welding Inspector (CWI) is the recognized credential for inspectors.', tools = ARRAY['Fillet weld gauges', 'Bridge cam gauge', 'Undercut gauge', 'Flashlight and magnifier']
   WHERE name = 'Visual Weld Inspection';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Proving a weld by breaking it: bend tests, peel and chisel tests on spot welds, pull tests and cut-and-etch sections. A person who has it prepares the sample, runs the test and reads the result against the standard.',
-  how_learned = 'On the job in a weld lab or body shop; welding programs teach the guided bend test.', tools = ARRAY['Bend test jigs', 'chisels and peel fixtures', 'tensile testers', 'saws and macro-etch']
+  how_learned = 'On the job in a weld lab or body shop; welding programs teach the guided bend test.', tools = ARRAY['Bend test jigs', 'Chisels and peel fixtures', 'Tensile testers', 'Saws and macro-etch']
   WHERE name = 'Destructive Weld Testing';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Writing a welding procedure specification and proving it with a test weld recorded on a procedure qualification record. A person who has it knows the essential variables of the code and what change requires requalifying.',
-  how_learned = 'On the job as a welding engineer or lead; AWS CWI training covers the code rules. AWS D1.1, AWS D17.1 and ASME Section IX each set their own requirements.', tools = ARRAY['Welding codes', 'test coupons', 'tensile and bend testing', 'procedure and qualification records']
+  how_learned = 'On the job as a welding engineer or lead; AWS CWI training covers the code rules. AWS D1.1, AWS D17.1 and ASME Section IX each set their own requirements.', tools = ARRAY['Welding codes', 'Test coupons', 'Tensile and bend testing', 'Procedure and qualification records']
   WHERE name = 'Weld Procedure Qualification';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Passing a welding test to a code: welding a coupon in a set position, process and thickness that then passes visual and bend or X-ray examination. A person who has it is qualified for that range of work and keeps the qualification current by welding with the process.',
-  how_learned = 'Tested by an employer or an AWS Accredited Test Facility, which can issue AWS Certified Welder cards. Tests are commonly to AWS D1.1 or ASME Section IX.', tools = ARRAY['Test plates and pipe coupons', 'bend test jig', 'qualification records']
+  how_learned = 'Tested by an employer or an AWS Accredited Test Facility, which can issue AWS Certified Welder cards. Tests are commonly to AWS D1.1 or ASME Section IX.', tools = ARRAY['Test plates and pipe coupons', 'Bend test jig', 'Qualification records']
   WHERE name = 'Welder Performance Qualification';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Cutting steel with an oxygen and fuel gas torch. A person who has it sets up and leak-checks regulators and hoses, lights and adjusts the flame and makes a clean, square cut by hand or on a track.',
-  how_learned = 'Taught at the start of welding programs.', tools = ARRAY['Oxy-acetylene and oxy-propane torches', 'regulators and flashback arrestors', 'cutting tips', 'track burners']
+  how_learned = 'Taught at the start of welding programs.', tools = ARRAY['Oxy-acetylene and oxy-propane torches', 'Regulators and flashback arrestors', 'Cutting tips', 'Track burners']
   WHERE name = 'Oxy-Fuel Cutting';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Cutting steel, stainless and aluminum with a plasma arc, by hand or on a CNC table. A person who has it sets amperage, gas and cut height for the material and replaces consumables before cut quality drops.',
-  how_learned = 'Welding and fabrication programs; on the job.', tools = ARRAY['Hand plasma cutters', 'CNC plasma tables', 'nozzles and electrodes', 'nesting software']
+  how_learned = 'Welding and fabrication programs; on the job.', tools = ARRAY['Hand plasma cutters', 'CNC plasma tables', 'Nozzles and electrodes', 'Nesting software']
   WHERE name = 'Plasma Cutting';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Cutting sheet and plate on a CNC laser. A person who has it loads nests, sets focus, assist gas and power for the material and thickness, and keeps nozzle and lens in condition for a clean edge.',
-  how_learned = 'On the job; machine makers'' courses.', tools = ARRAY['Fiber and CO2 laser cutters', 'nitrogen and oxygen assist gas', 'nesting software']
+  how_learned = 'On the job; machine makers'' courses.', tools = ARRAY['Fiber and CO2 laser cutters', 'Nitrogen and oxygen assist gas', 'Nesting software']
   WHERE name = 'Laser Cutting';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Cutting metal, composite and stone with a high-pressure water stream carrying garnet abrasive, with no heat-affected edge. A person who has it sets pressure, abrasive flow and speed for edge quality and maintains the pump, orifice and mixing tube.',
-  how_learned = 'On the job; machine makers'' courses.', tools = ARRAY['Waterjet tables and intensifier pumps', 'garnet abrasive', 'nesting software']
+  how_learned = 'On the job; machine makers'' courses.', tools = ARRAY['Waterjet tables and intensifier pumps', 'Garnet abrasive', 'Nesting software']
   WHERE name = 'Abrasive Waterjet Cutting';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Bending sheet metal to angle and dimension on a press brake. A person who has it picks punch and die, sets the back gauge, works out bend order and allowance and checks the first part.',
-  how_learned = 'On the job and in fabrication programs; the Fabricators & Manufacturers Association offers a Precision Sheet Metal Operator certification.', tools = ARRAY['CNC press brakes', 'punches and V-dies', 'back gauges', 'protractors and angle gauges']
+  how_learned = 'On the job and in fabrication programs; the Fabricators & Manufacturers Association offers a Precision Sheet Metal Operator certification.', tools = ARRAY['CNC press brakes', 'Punches and V-dies', 'Back gauges', 'Protractors and angle gauges']
   WHERE name = 'Press Brake Operation';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Shaping sheet and plate by shearing, bending, rolling and hand forming. A person who has it can turn a flat blank into a finished shape without cracking or marking it.',
-  how_learned = 'Sheet metal apprenticeships and fabrication programs.', tools = ARRAY['Shears', 'slip and plate rolls', 'box-and-pan brakes', 'stakes and mallets']
+  how_learned = 'Sheet metal apprenticeships and fabrication programs.', tools = ARRAY['Shears', 'Slip and plate rolls', 'Box-and-pan brakes', 'Stakes and mallets']
   WHERE name = 'Sheet Metal Forming';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Developing a flat pattern from a drawing, with bend allowances, and marking it on the sheet. A person who has it lays out cones, transitions and boxes that fold to size.',
-  how_learned = 'Sheet metal apprenticeships and fabrication programs; CAD unfolding is learned on the job.', tools = ARRAY['Scribes, dividers and squares', 'layout fluid', 'flat-pattern functions in CAD']
+  how_learned = 'Sheet metal apprenticeships and fabrication programs; CAD unfolding is learned on the job.', tools = ARRAY['Scribes, dividers and squares', 'Layout fluid', 'Flat-pattern functions in CAD']
   WHERE name = 'Sheet Metal Layout';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Cutting, drilling, fitting and welding beams, columns and plate into structural members to shop drawings. A person who has it lays out from the drawing, holds length and squareness and prepares joints for field assembly.',
-  how_learned = 'Ironworker and fitter apprenticeships; on the job in a structural shop working to AWS D1.1.', tools = ARRAY['Band saws and drill lines', 'ironworkers', 'magnetic drills', 'fitting clamps', 'welding machines']
+  how_learned = 'Ironworker and fitter apprenticeships; on the job in a structural shop working to AWS D1.1.', tools = ARRAY['Band saws and drill lines', 'Ironworkers', 'Magnetic drills', 'Fitting clamps', 'Welding machines']
   WHERE name = 'Structural Steel Fabrication';
 UPDATE skills SET category = 'Welding & Fabrication', description = 'Cutting, bending and finishing rigid tube for fluid lines: bends without wrinkles or flattening, and flared, beaded or swaged ends that seal. A person who has it can make a line that fits from a drawing or a sample.',
-  how_learned = 'On the job in aerospace and hydraulic work; aviation maintenance schools teach it.', tools = ARRAY['Hand and CNC mandrel benders', 'flaring and beading tools', 'swaging machines', 'tube cutters and deburring tools']
+  how_learned = 'On the job in aerospace and hydraulic work; aviation maintenance schools teach it.', tools = ARRAY['Hand and CNC mandrel benders', 'Flaring and beading tools', 'Swaging machines', 'Tube cutters and deburring tools']
   WHERE name = 'Tube Bending and Flaring';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Installing a stamping die in a press: moving it in, locating and clamping it, setting shut height, feed and sensors, and running first hits. A person who has it changes a press over safely and hands it to production making good parts.',
-  how_learned = 'On the job in a stamping plant, moving up from press operator; the Precision Metalforming Association offers die-setter training.', tools = ARRAY['Die carts and cranes', 'hydraulic clamps', 'shut height and tonnage monitors', 'die protection sensors']
+  how_learned = 'On the job in a stamping plant, moving up from press operator; the Precision Metalforming Association offers die-setter training.', tools = ARRAY['Die carts and cranes', 'Hydraulic clamps', 'Shut height and tonnage monitors', 'Die protection sensors']
   WHERE name = 'Die Setting';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Running a press where coil stock steps through a series of stations in one die. A person who has it threads the strip, sets feed length and pilot release and watches for misfeeds, slug pulls and burrs.',
-  how_learned = 'On the job in a stamping plant.', tools = ARRAY['Mechanical presses', 'coil reels, straighteners and servo feeds', 'die protection sensors']
+  how_learned = 'On the job in a stamping plant.', tools = ARRAY['Mechanical presses', 'Coil reels, straighteners and servo feeds', 'Die protection sensors']
   WHERE name = 'Progressive Die Operation';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Running a press line where fingers or robots carry each blank from die to die for drawing, trimming, flanging and piercing. A person who has it sets transfer timing and grippers and clears a mis-hit without damaging the dies.',
-  how_learned = 'On the job in a stamping plant.', tools = ARRAY['Transfer and tandem press lines', 'transfer rails and fingers', 'scrap chutes and conveyors']
+  how_learned = 'On the job in a stamping plant.', tools = ARRAY['Transfer and tandem press lines', 'Transfer rails and fingers', 'Scrap chutes and conveyors']
   WHERE name = 'Transfer Die Operation';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Forming a deep shape from a flat blank in a draw die. A person who has it adjusts binder pressure, lubrication and blank position to stop splits and wrinkles.',
-  how_learned = 'On the job in a stamping plant, usually after experience as a press operator.', tools = ARRAY['Double-action and cushion presses', 'draw beads', 'lubricants', 'thinning gauges']
+  how_learned = 'On the job in a stamping plant, usually after experience as a press operator.', tools = ARRAY['Double-action and cushion presses', 'Draw beads', 'Lubricants', 'Thinning gauges']
   WHERE name = 'Draw Die Operation';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Proving a new or repaired die in a press until it makes parts to print. A person who has it reads splits, wrinkles, springback and burrs on a panel and decides what to change in the die.',
-  how_learned = 'Tool-and-die apprenticeship followed by years on the tryout floor.', tools = ARRAY['Tryout presses', 'grid-marked blanks', 'thinning gauges', 'grinders and shims']
+  how_learned = 'Tool-and-die apprenticeship followed by years on the tryout floor.', tools = ARRAY['Tryout presses', 'Grid-marked blanks', 'Thinning gauges', 'Grinders and shims']
   WHERE name = 'Die Tryout';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Fitting the mating faces of a die so they bear evenly, by closing them with marking compound and grinding the high spots. A person who has it brings a die to full contact without losing the form.',
-  how_learned = 'Tool-and-die apprenticeship; on the job in a die shop.', tools = ARRAY['Spotting presses', 'spotting blue', 'hand grinders and stones']
+  how_learned = 'Tool-and-die apprenticeship; on the job in a die shop.', tools = ARRAY['Spotting presses', 'Spotting blue', 'Hand grinders and stones']
   WHERE name = 'Die Spotting';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Fitting and timing the working parts of a die: punches, buttons, pilots, strippers, cams and springs. A person who has it sets clearances and replaces worn details so the die cuts cleanly.',
-  how_learned = 'Tool-and-die apprenticeship; on the job in die maintenance.', tools = ARRAY['Surface grinders', 'shims and feeler gauges', 'indicators', 'die springs and nitrogen cylinders']
+  how_learned = 'Tool-and-die apprenticeship; on the job in die maintenance.', tools = ARRAY['Surface grinders', 'Shims and feeler gauges', 'Indicators', 'Die springs and nitrogen cylinders']
   WHERE name = 'Die Component Fitting';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Checking a stamped panel for splits, wrinkles, thinning, burrs and surface lows and highs. A person who has it stones a panel to show surface defects and checks it on a fixture against trim and hole positions.',
-  how_learned = 'On the job in a stamping plant.', tools = ARRAY['Checking fixtures', 'highlight oil and stoning blocks', 'thickness gauges', 'feeler gauges']
+  how_learned = 'On the job in a stamping plant.', tools = ARRAY['Checking fixtures', 'Highlight oil and stoning blocks', 'Thickness gauges', 'Feeler gauges']
   WHERE name = 'Stamped Panel Inspection';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Folding the edge of an outer panel over an inner panel to make doors, hoods and decklids. A person who has it sets pre-hem and final hem by die or roller so the edge is tight and the surface shows no marks.',
-  how_learned = 'On the job in an automotive body shop.', tools = ARRAY['Hem dies and presses', 'robotic roller hemming heads', 'hem adhesive dispensers']
+  how_learned = 'On the job in an automotive body shop.', tools = ARRAY['Hem dies and presses', 'Robotic roller hemming heads', 'Hem adhesive dispensers']
   WHERE name = 'Hemming';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Shaping a round blank over a rotating mandrel into a dome, cone or cylinder. A person who has it works the metal in passes without thinning or wrinkling it and anneals when it hardens.',
-  how_learned = 'On the job in a spinning shop or tank plant.', tools = ARRAY['Manual and CNC spinning lathes', 'mandrels', 'forming rollers']
+  how_learned = 'On the job in a spinning shop or tank plant.', tools = ARRAY['Manual and CNC spinning lathes', 'Mandrels', 'Forming rollers']
   WHERE name = 'Metal Spin Forming';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Running a high-pressure die casting cell through its cycle: ladle, shot, cooling, extraction, spray. A person who has it watches shot curves and die temperatures and sorts castings for cold shuts, flash and porosity.',
-  how_learned = 'On the job; the North American Die Casting Association offers operator courses.', tools = ARRAY['Cold-chamber die casting machines', 'ladles and extraction robots', 'die temperature control units']
+  how_learned = 'On the job; the North American Die Casting Association offers operator courses.', tools = ARRAY['Cold-chamber die casting machines', 'Ladles and extraction robots', 'Die temperature control units']
   WHERE name = 'Die Casting Machine Operation';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Setting how molten metal is pushed into the die: slow shot, fast shot, changeover point and intensification pressure. A person who has it reads the shot trace and adjusts it to cut porosity and misruns.',
-  how_learned = 'On the job, moving up from machine operator; North American Die Casting Association courses.', tools = ARRAY['Shot end and shot sleeve', 'shot monitoring systems', 'plunger tips and lubricant']
+  how_learned = 'On the job, moving up from machine operator; North American Die Casting Association courses.', tools = ARRAY['Shot end and shot sleeve', 'Shot monitoring systems', 'Plunger tips and lubricant']
   WHERE name = 'Die Casting Shot Control';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Die casting with the air pulled from the cavity before the shot so structural castings come out with little trapped gas. A person who has it keeps vacuum channels, valves and seals working and reads the vacuum level each cycle.',
-  how_learned = 'On the job at a structural casting plant.', tools = ARRAY['Vacuum units, chill vents and valves', 'die seals', 'vacuum monitoring']
+  how_learned = 'On the job at a structural casting plant.', tools = ARRAY['Vacuum units, chill vents and valves', 'Die seals', 'Vacuum monitoring']
   WHERE name = 'Vacuum Die Casting';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Setting where, how long and how much release agent is sprayed on a casting die each cycle. A person who has it balances die temperature and release so castings neither solder to the die nor carry gas from excess spray.',
-  how_learned = 'On the job in a die casting plant.', tools = ARRAY['Spray manifolds and robots', 'die lubricant mixing systems', 'thermal cameras']
+  how_learned = 'On the job in a die casting plant.', tools = ARRAY['Spray manifolds and robots', 'Die lubricant mixing systems', 'Thermal cameras']
   WHERE name = 'Die Lubricant Spray Setup';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Installing a casting die, connecting its cooling, vacuum and hydraulic lines, and keeping it running. A person who has it changes inserts and ejector pins, cleans vents and polishes out soldering.',
-  how_learned = 'On the job, often after a tool-and-die or maintenance background.', tools = ARRAY['Overhead cranes', 'die clamps', 'thermal oil and water units', 'ejector systems']
+  how_learned = 'On the job, often after a tool-and-die or maintenance background.', tools = ARRAY['Overhead cranes', 'Die clamps', 'Thermal oil and water units', 'Ejector systems']
   WHERE name = 'Die Casting Die Setup and Maintenance';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Removing gates, runners, overflows and flash from a casting in a trim press or by saw and robot. A person who has it sets the trim die and checks that nothing is left on, or cut into, the part.',
-  how_learned = 'On the job in a casting plant.', tools = ARRAY['Trim presses and trim dies', 'band saws', 'robotic deburring cells']
+  how_learned = 'On the job in a casting plant.', tools = ARRAY['Trim presses and trim dies', 'Band saws', 'Robotic deburring cells']
   WHERE name = 'Casting Trimming';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Melting and holding casting alloy at the right chemistry, temperature and cleanliness. A person who has it charges the furnace, degasses and fluxes the melt and takes samples for chemistry and density.',
-  how_learned = 'On the job in a foundry or die casting plant.', tools = ARRAY['Melting and holding furnaces', 'rotary degassers', 'spectrometers', 'reduced pressure test']
+  how_learned = 'On the job in a foundry or die casting plant.', tools = ARRAY['Melting and holding furnaces', 'Rotary degassers', 'Spectrometers', 'Reduced pressure test']
   WHERE name = 'Aluminum Melt Preparation';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Building metal parts layer by layer, most often by laser powder bed fusion. A person who has it sets up the build plate and recoater, loads powder, starts and monitors the build and removes it safely.',
-  how_learned = 'Machine makers'' training and on the job; some community colleges teach additive manufacturing. SME offers additive manufacturing certifications.', tools = ARRAY['Laser powder bed fusion machines such as EOS and Nikon SLM Solutions', 'inert gas systems', 'sieving stations']
+  how_learned = 'Machine makers'' training and on the job; some community colleges teach additive manufacturing. SME offers additive manufacturing certifications.', tools = ARRAY['Laser powder bed fusion machines such as EOS and Nikon SLM Solutions', 'Inert gas systems', 'Sieving stations']
   WHERE name = 'Metal 3D Printing';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Printing plastic parts by filament extrusion, resin curing or powder sintering. A person who has it picks the process and material, orients the part, tunes settings and clears supports.',
-  how_learned = 'Community-college and maker programs; on the job. SME offers additive manufacturing certifications.', tools = ARRAY['FDM, SLA and SLS printers', 'slicing software', 'wash and cure stations']
+  how_learned = 'Community-college and maker programs; on the job. SME offers additive manufacturing certifications.', tools = ARRAY['FDM, SLA and SLS printers', 'Slicing software', 'Wash and cure stations']
   WHERE name = 'Polymer 3D Printing';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Preparing a 3D printing job: repairing the model, orienting and nesting parts, adding supports and slicing. A person who has it lays out a build that prints first time and is easy to remove.',
-  how_learned = 'On the job; software makers'' training.', tools = ARRAY['Materialise Magics', 'Autodesk Netfabb', 'machine makers'' build software']
+  how_learned = 'On the job; software makers'' training.', tools = ARRAY['Materialise Magics', 'Autodesk Netfabb', 'Machine makers'' build software']
   WHERE name = 'Additive Build Preparation';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Finishing printed parts: depowdering, stress relief, cutting from the build plate, removing supports and finishing surfaces. A person who has it brings a raw build to a part that meets drawing.',
-  how_learned = 'On the job in an additive shop.', tools = ARRAY['Depowdering stations', 'furnaces', 'wire EDM and band saws', 'hand tools and blasting cabinets']
+  how_learned = 'On the job in an additive shop.', tools = ARRAY['Depowdering stations', 'Furnaces', 'Wire EDM and band saws', 'Hand tools and blasting cabinets']
   WHERE name = 'Additive Part Post-Processing';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Designing parts to be printed: self-supporting angles, wall thickness, internal channels, lattice and build orientation. A person who has it can redesign a machined or cast part to print reliably and use less material.',
-  how_learned = 'Engineering courses and on the job; SME and ASTM offer additive manufacturing training.', tools = ARRAY['CAD with lattice and topology tools', 'build simulation software']
+  how_learned = 'Engineering courses and on the job; SME and ASTM offer additive manufacturing training.', tools = ARRAY['CAD with lattice and topology tools', 'Build simulation software']
   WHERE name = 'Design for Additive Manufacturing';
 UPDATE skills SET category = 'Casting, Forming & Additive', description = 'Closing internal porosity in castings and printed parts with high temperature and gas pressure in a pressure vessel. A person who has it loads parts, runs the specified cycle and reviews the temperature and pressure record.',
-  how_learned = 'On the job at a HIP supplier or a plant with its own unit.', tools = ARRAY['HIP vessels', 'argon systems', 'load fixtures', 'cycle recorders']
+  how_learned = 'On the job at a HIP supplier or a plant with its own unit.', tools = ARRAY['HIP vessels', 'Argon systems', 'Load fixtures', 'Cycle recorders']
   WHERE name = 'Hot Isostatic Pressing';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Using the hand and power tools of an assembly station correctly: drivers, wrenches, ratchets, pliers, crimpers and pneumatic and DC electric tools. A person who has it picks the right tool and bit, does not damage the fastener or the part and looks after the tools.',
-  how_learned = 'Learned on the job in the first weeks; shown by passing a station qualification.', tools = ARRAY['Screwdrivers and nut drivers', 'ratchets and sockets', 'DC electric nutrunners', 'air tools']
+  how_learned = 'Learned on the job in the first weeks; shown by passing a station qualification.', tools = ARRAY['Screwdrivers and nut drivers', 'Ratchets and sockets', 'DC electric nutrunners', 'Air tools']
   WHERE name = 'Assembly Hand Tool Use';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Tightening fasteners to a specified torque and sequence. A person who has it reads the value and pattern from the instruction, sets and uses click, dial and electronic wrenches correctly, checks the calibration date and marks each fastener done.',
-  how_learned = 'On the job; aviation maintenance and assembly programs teach it early.', tools = ARRAY['Click, beam, dial and electronic torque wrenches', 'torque multipliers', 'torque seal']
+  how_learned = 'On the job; aviation maintenance and assembly programs teach it early.', tools = ARRAY['Click, beam, dial and electronic torque wrenches', 'Torque multipliers', 'Torque seal']
   WHERE name = 'Torque Wrench Use';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Checking your own or another''s assembly by eye against the instruction: right parts, right orientation, nothing missing, damaged or loose. A person who has it catches a defect at the station instead of passing it on.',
-  how_learned = 'On the job; workmanship standards are taught for each product.', tools = ARRAY['Workmanship standards and limit samples', 'magnifiers and inspection lights']
+  how_learned = 'On the job; workmanship standards are taught for each product.', tools = ARRAY['Workmanship standards and limit samples', 'Magnifiers and inspection lights']
   WHERE name = 'Assembly Visual Inspection';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Taking an assembly apart to correct a defect and rebuilding it to the same standard without causing new damage. A person who has it follows the approved rework method and records what was done.',
-  how_learned = 'On the job, after proving the original build skills; electronics rework is taught in IPC-7711/7721 courses.', tools = ARRAY['Extraction tools', 'rework stations', 'replacement hardware', 'rework records']
+  how_learned = 'On the job, after proving the original build skills; electronics rework is taught in IPC-7711/7721 courses.', tools = ARRAY['Extraction tools', 'Rework stations', 'Replacement hardware', 'Rework records']
   WHERE name = 'Assembly Rework and Repair';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Removing and fitting rolling bearings without damaging them. A person who has it presses on the correct ring, heats or cools parts for an interference fit, sets clearance or preload and keeps everything clean.',
-  how_learned = 'Maintenance and millwright apprenticeships; on the job in assembly.', tools = ARRAY['Arbor and hydraulic presses', 'induction bearing heaters', 'pullers', 'feeler gauges and dial indicators']
+  how_learned = 'Maintenance and millwright apprenticeships; on the job in assembly.', tools = ARRAY['Arbor and hydraulic presses', 'Induction bearing heaters', 'Pullers', 'Feeler gauges and dial indicators']
   WHERE name = 'Bearing Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Joining parts with an interference fit, by force or by heating one part and chilling the other. A person who has it checks sizes first, aligns the parts and watches the press force for a fit that is too loose or too tight.',
-  how_learned = 'On the job in powertrain, motor and aerospace assembly.', tools = ARRAY['Servo and hydraulic presses with force monitoring', 'induction heaters', 'liquid nitrogen', 'bore gauges']
+  how_learned = 'On the job in powertrain, motor and aerospace assembly.', tools = ARRAY['Servo and hydraulic presses with force monitoring', 'Induction heaters', 'Liquid nitrogen', 'Bore gauges']
   WHERE name = 'Press and Shrink Fitting';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Measuring the imbalance of a rotating part and correcting it by adding or removing weight. A person who has it mounts the rotor, reads amount and angle in one or two planes and brings it within the balance grade.',
-  how_learned = 'On the job; balancing machine makers'' training.', tools = ARRAY['Hard-bearing balancing machines', 'correction weights', 'drills and mills for material removal']
+  how_learned = 'On the job; balancing machine makers'' training.', tools = ARRAY['Hard-bearing balancing machines', 'Correction weights', 'Drills and mills for material removal']
   WHERE name = 'Dynamic Balancing';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Applying structural adhesive that carries load in a vehicle body, battery pack or assembly. A person who has it checks surface condition, bead size and position and open time, and knows how the joint is cured.',
-  how_learned = 'On the job; adhesive suppliers train operators and technicians.', tools = ARRAY['Metered dispensing systems and robots', 'one- and two-part epoxies and urethanes', 'bead inspection cameras']
+  how_learned = 'On the job; adhesive suppliers train operators and technicians.', tools = ARRAY['Metered dispensing systems and robots', 'One- and two-part epoxies and urethanes', 'Bead inspection cameras']
   WHERE name = 'Structural Adhesive Application';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Joining aluminum and mixed-metal sheet without welding, by self-piercing rivets, flow-drill screws or clinching. A person who has it sets the tool for the stack-up and checks head height and joint cross-sections.',
-  how_learned = 'On the job in an aluminum body shop; equipment makers'' training.', tools = ARRAY['Servo rivet setters and dies', 'flow-drill screw drivers', 'robots', 'cross-section tools']
+  how_learned = 'On the job in an aluminum body shop; equipment makers'' training.', tools = ARRAY['Servo rivet setters and dies', 'Flow-drill screw drivers', 'Robots', 'Cross-section tools']
   WHERE name = 'SPR and Flow-Drill Screw Joining';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Bringing the underbody, body sides and roof together in a framing station and locking the geometry with the first welds. A person who has it keeps locators, clamps and gates in condition so every body comes out on dimension.',
-  how_learned = 'On the job in an automotive body shop.', tools = ARRAY['Framing gates and fixtures', 'locating pins and clamps', 'spot weld robots', 'in-line measurement']
+  how_learned = 'On the job in an automotive body shop.', tools = ARRAY['Framing gates and fixtures', 'Locating pins and clamps', 'Spot weld robots', 'In-line measurement']
   WHERE name = 'Body-in-White Framing';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Hanging and adjusting doors, hoods, lids and fenders so gaps are even and surfaces sit flush. A person who has it measures, shims and adjusts hinges and strikers to the build specification.',
-  how_learned = 'On the job in body and final assembly.', tools = ARRAY['Gap and flush gauges', 'hinge fixtures', 'shims', 'closing-effort gauges']
+  how_learned = 'On the job in body and final assembly.', tools = ARRAY['Gap and flush gauges', 'Hinge fixtures', 'Shims', 'Closing-effort gauges']
   WHERE name = 'Panel Gap and Flush Fitting';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Raising the drive unit, battery or engine and subframe into the body and fastening them at the marriage station. A person who has it aligns the carriers, runs the fasteners in sequence and confirms every joint is recorded.',
-  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Lift carriers and automated guided vehicles', 'multi-spindle DC nutrunners', 'alignment pins']
+  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Lift carriers and automated guided vehicles', 'Multi-spindle DC nutrunners', 'Alignment pins']
   WHERE name = 'Powertrain Marriage';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Loading a built-up instrument panel into the vehicle, locating and fastening it and connecting its harnesses and ducts. A person who has it uses the assist arm without marking trim and confirms every connector is seated.',
-  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Load-assist manipulators', 'DC electric tools', 'connector seating checks']
+  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Load-assist manipulators', 'DC electric tools', 'Connector seating checks']
   WHERE name = 'Cockpit Module Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Loading seats into the vehicle, fastening them to torque and connecting airbag, heater and sensor plugs. A person who has it treats seat fasteners as safety-critical and confirms each one is recorded.',
   how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Seat load-assist arms', 'DC nutrunners with torque recording']
   WHERE name = 'Seat Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing a vehicle''s heating and cooling module, lines and ducts and connecting them without leaks. A person who has it seats line fittings and seals correctly and keeps the system clean and capped until charge.',
-  how_learned = 'On the job in vehicle assembly.', tools = ARRAY['DC electric tools', 'line connection fixtures', 'caps and plugs']
+  how_learned = 'On the job in vehicle assembly.', tools = ARRAY['DC electric tools', 'Line connection fixtures', 'Caps and plugs']
   WHERE name = 'Vehicle HVAC Module Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Bonding windshields and fixed glass to the body with urethane. A person who has it primes glass and flange, lays a continuous bead of the right shape and sets the glass to gap and height.',
-  how_learned = 'On the job in vehicle assembly.', tools = ARRAY['Urethane dispensing robots and guns', 'glass primers', 'setting fixtures and suction lifters']
+  how_learned = 'On the job in vehicle assembly.', tools = ARRAY['Urethane dispensing robots and guns', 'Glass primers', 'Setting fixtures and suction lifters']
   WHERE name = 'Glass Bonding';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Filling a new vehicle''s brake, coolant, refrigerant and washer systems by evacuating each circuit, leak-checking it and filling to quantity. A person who has it connects the adapters, reads a failed vacuum decay and reworks the leak.',
-  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Evacuate-and-fill machines', 'fill adapters', 'refrigerant charging equipment']
+  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Evacuate-and-fill machines', 'Fill adapters', 'Refrigerant charging equipment']
   WHERE name = 'Vehicle Fluid Fill';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Laying a wiring harness into a vehicle body along its path, clipping it and seating every connector. A person who has it keeps the harness away from edges and moving parts and confirms each connector locks.',
-  how_learned = 'On the job in vehicle assembly.', tools = ARRAY['Clips and retainers', 'connector position assurance locks', 'harness boards']
+  how_learned = 'On the job in vehicle assembly.', tools = ARRAY['Clips and retainers', 'Connector position assurance locks', 'Harness boards']
   WHERE name = 'Vehicle Harness Routing';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Setting toe, camber and caster on a new vehicle at the alignment station and centering the steering wheel. A person who has it reads the machine, makes the adjustments and torques the locking fasteners.',
-  how_learned = 'On the job at the end of a vehicle assembly line.', tools = ARRAY['Non-contact alignment machines', 'adjusting tools', 'steering wheel levels']
+  how_learned = 'On the job at the end of a vehicle assembly line.', tools = ARRAY['Non-contact alignment machines', 'Adjusting tools', 'Steering wheel levels']
   WHERE name = 'Wheel Alignment';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Driving solid rivets in aircraft structure with a rivet gun and bucking bar or a squeezer. A person who has it picks rivet length, sets air pressure, forms a shop head to size and removes a bad rivet without enlarging the hole.',
-  how_learned = 'Aviation maintenance schools and aerospace manufacturing programs; on the job with a training panel test.', tools = ARRAY['Rivet guns and sets', 'bucking bars', 'rivet squeezers', 'rivet gauges', 'clecos']
+  how_learned = 'Aviation maintenance schools and aerospace manufacturing programs; on the job with a training panel test.', tools = ARRAY['Rivet guns and sets', 'Bucking bars', 'Rivet squeezers', 'Rivet gauges', 'Clecos']
   WHERE name = 'Solid Rivet Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing blind rivets and blind bolts where the back of the joint cannot be reached. A person who has it selects grip length from the stack-up, pulls the fastener and checks stem break and collar position.',
-  how_learned = 'Aviation maintenance schools and on the job.', tools = ARRAY['Pneumatic and hand pullers', 'grip gauges', 'CherryMAX and similar blind fasteners']
+  how_learned = 'Aviation maintenance schools and on the job.', tools = ARRAY['Pneumatic and hand pullers', 'Grip gauges', 'CherryMAX and similar blind fasteners']
   WHERE name = 'Blind Rivet Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing threaded pin-and-collar fasteners in aircraft structure. A person who has it checks hole size and grip, seats the pin, runs the collar until its wrenching element shears off and verifies pin protrusion.',
-  how_learned = 'On the job at an aerostructures plant after basic drilling and riveting; employers test on a sample panel.', tools = ARRAY['Hex keys and ratchets', 'pneumatic collar drivers', 'grip and protrusion gauges']
+  how_learned = 'On the job at an aerostructures plant after basic drilling and riveting; employers test on a sample panel.', tools = ARRAY['Hex keys and ratchets', 'Pneumatic collar drivers', 'Grip and protrusion gauges']
   WHERE name = 'Hi-Lok Fastener Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing lockbolts, where a collar is swaged onto a grooved pin by a pulling tool. A person who has it selects grip, checks collar swage with a gauge and removes a bad one without damaging structure.',
-  how_learned = 'On the job; aviation maintenance schools.', tools = ARRAY['Pneumatic-hydraulic pulling tools and nose assemblies', 'swage gauges', 'collar cutters']
+  how_learned = 'On the job; aviation maintenance schools.', tools = ARRAY['Pneumatic-hydraulic pulling tools and nose assemblies', 'Swage gauges', 'Collar cutters']
   WHERE name = 'Lockbolt Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Fitting riveted or bonded anchor nuts so a screw can be installed where the back is closed off. A person who has it drills the rivet pattern with a drill jig, countersinks and rivets the nutplate without distorting it.',
-  how_learned = 'On the job; aviation maintenance schools.', tools = ARRAY['Nutplate drill jigs', 'microstop countersinks', 'rivet squeezers', 'clecos']
+  how_learned = 'On the job; aviation maintenance schools.', tools = ARRAY['Nutplate drill jigs', 'Microstop countersinks', 'Rivet squeezers', 'Clecos']
   WHERE name = 'Nutplate Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing wire-coil and key-locking thread inserts to give strong threads in soft metal or to repair damaged ones. A person who has it drills and taps to the insert''s size, sets it to depth and breaks off the tang or drives the keys.',
-  how_learned = 'On the job in machining, assembly and repair.', tools = ARRAY['Insert taps', 'installation and tang break-off tools', 'thread plug gauges']
+  how_learned = 'On the job in machining, assembly and repair.', tools = ARRAY['Insert taps', 'Installation and tang break-off tools', 'Thread plug gauges']
   WHERE name = 'Threaded Insert Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Drilling, reaming and deburring fastener holes in aircraft structure to size, position and squareness. A person who has it steps a hole up to final size, uses drill guides and checks it with a hole gauge.',
-  how_learned = 'Aviation maintenance schools and aerospace assembly programs; on the job.', tools = ARRAY['Pneumatic drill motors', 'drill bushings and guides', 'reamers', 'hole gauges', 'deburring tools']
+  how_learned = 'Aviation maintenance schools and aerospace assembly programs; on the job.', tools = ARRAY['Pneumatic drill motors', 'Drill bushings and guides', 'Reamers', 'Hole gauges', 'Deburring tools']
   WHERE name = 'Fastener Hole Drilling and Reaming';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Cutting a countersink so a flush fastener sits level with the skin. A person who has it sets a stop-controlled cutter to depth on scrap first and checks flushness on the part.',
-  how_learned = 'Aviation maintenance schools and on the job.', tools = ARRAY['Microstop countersink cages and cutters', 'flushness gauges']
+  how_learned = 'Aviation maintenance schools and on the job.', tools = ARRAY['Microstop countersink cages and cutters', 'Flushness gauges']
   WHERE name = 'Countersinking';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Pulling an oversize mandrel through a hole to leave compressive stress around it, so the structure resists fatigue cracks. A person who has it checks starting hole size, pulls the mandrel and sleeve, reams to final size and verifies expansion.',
-  how_learned = 'On the job, with tooling supplier training.', tools = ARRAY['Split-sleeve mandrels and puller units', 'go/no-go hole gauges', 'reamers']
+  how_learned = 'On the job, with tooling supplier training.', tools = ARRAY['Split-sleeve mandrels and puller units', 'Go/no-go hole gauges', 'Reamers']
   WHERE name = 'Cold Expansion of Fastener Holes';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Recognizing aircraft fasteners by part number, head marking, material and finish, and choosing the right diameter and grip length. A person who has it never substitutes a fastener and can read AN, MS and NAS callouts.',
-  how_learned = 'Aviation maintenance schools; on the job.', tools = ARRAY['Fastener standards charts', 'grip gauges', 'thread gauges']
+  how_learned = 'Aviation maintenance schools; on the job.', tools = ARRAY['Fastener standards charts', 'Grip gauges', 'Thread gauges']
   WHERE name = 'Aerospace Fastener Identification';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Measuring the gap between mating structure and filling it so fasteners do not pull parts out of shape. A person who has it picks solid, laminated or liquid shim by gap size and the limits in the specification.',
-  how_learned = 'On the job at an aerostructures plant.', tools = ARRAY['Feeler gauges', 'laminated peel shim stock', 'liquid shim compounds']
+  how_learned = 'On the job at an aerostructures plant.', tools = ARRAY['Feeler gauges', 'Laminated peel shim stock', 'Liquid shim compounds']
   WHERE name = 'Shimming';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Mixing and applying two-part sealants to aircraft joints and fasteners: faying surface, fillet, brush coat and wet installation. A person who has it cleans the surface, works within the application life and leaves a bead with no voids.',
-  how_learned = 'On the job at an aerostructures plant; employers certify sealers.', tools = ARRAY['Sealant cartridges and guns', 'fairing tools', 'solvent cleaners', 'hardness testers for cure']
+  how_learned = 'On the job at an aerostructures plant; employers certify sealers.', tools = ARRAY['Sealant cartridges and guns', 'Fairing tools', 'Solvent cleaners', 'Hardness testers for cure']
   WHERE name = 'Aerospace Sealant Application';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Securing bolts, plugs and connectors with twisted wire so they cannot loosen. A person who has it routes the wire to pull in the tightening direction, twists it evenly and leaves a neat pigtail.',
-  how_learned = 'Aviation maintenance schools and on the job; NASM33540 sets the practice.', tools = ARRAY['Safety wire pliers', 'stainless and Inconel wire', 'safety cable tools']
+  how_learned = 'Aviation maintenance schools and on the job; NASM33540 sets the practice.', tools = ARRAY['Safety wire pliers', 'Stainless and Inconel wire', 'Safety cable tools']
   WHERE name = 'Safety Wire Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Joining large aircraft sections, fuselage barrels or wing to body: aligning them, drilling the join and installing the fasteners. A person who has it works from the alignment data and keeps the sections stress-free while fastening.',
-  how_learned = 'On the job after experience in structural assembly.', tools = ARRAY['Join tooling and jacks', 'laser trackers', 'drill jigs', 'temporary fasteners']
+  how_learned = 'On the job after experience in structural assembly.', tools = ARRAY['Join tooling and jacks', 'Laser trackers', 'Drill jigs', 'Temporary fasteners']
   WHERE name = 'Major Structural Join';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Locating, drilling and fastening skin panels to frames and stringers. A person who has it holds edge margin and contour, deburrs and seals between drilling and fastening.',
-  how_learned = 'On the job at an aerostructures plant.', tools = ARRAY['Clecos and clamps', 'drill motors', 'rivet guns', 'contour gauges']
+  how_learned = 'On the job at an aerostructures plant.', tools = ARRAY['Clecos and clamps', 'Drill motors', 'Rivet guns', 'Contour gauges']
   WHERE name = 'Skin Panel Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Hanging rudders, elevators, ailerons, flaps and spoilers on their hinges and connecting their actuators. A person who has it checks hinge alignment, free movement and clearances through full travel.',
-  how_learned = 'On the job at an aircraft plant; aviation maintenance schools cover the principles.', tools = ARRAY['Hinge alignment tools', 'slings and fixtures', 'torque wrenches', 'clearance gauges']
+  how_learned = 'On the job at an aircraft plant; aviation maintenance schools cover the principles.', tools = ARRAY['Hinge alignment tools', 'Slings and fixtures', 'Torque wrenches', 'Clearance gauges']
   WHERE name = 'Flight Control Surface Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Adjusting cables, rods and actuators so each control surface is neutral when the control is neutral and moves through its specified travel. A person who has it sets cable tension, installs rig pins and records travel.',
-  how_learned = 'FAA Airframe and Powerplant training; on the job at an aircraft plant.', tools = ARRAY['Rig pins', 'cable tensiometers', 'protractors and inclinometers', 'travel boards']
+  how_learned = 'FAA Airframe and Powerplant training; on the job at an aircraft plant.', tools = ARRAY['Rig pins', 'Cable tensiometers', 'Protractors and inclinometers', 'Travel boards']
   WHERE name = 'Flight Control Rigging';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Servicing shock struts with oil and nitrogen, rigging gear doors and uplocks and proving the gear by retraction test on jacks. A person who has it works to the maintenance manual and checks clearances and timing through the full cycle.',
-  how_learned = 'FAA Airframe and Powerplant training; on the job.', tools = ARRAY['Aircraft jacks', 'hydraulic power carts', 'strut servicing equipment', 'nitrogen carts']
+  how_learned = 'FAA Airframe and Powerplant training; on the job.', tools = ARRAY['Aircraft jacks', 'Hydraulic power carts', 'Strut servicing equipment', 'Nitrogen carts']
   WHERE name = 'Landing Gear Servicing and Rigging';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing rigid tubes and flexible hoses in a hydraulic system. A person who has it keeps lines clean and capped, routes them without strain or chafing, torques fittings correctly and clamps to spacing.',
-  how_learned = 'Aviation maintenance schools and fluid power courses; on the job.', tools = ARRAY['Flare and flareless fittings', 'crowfoot wrenches', 'tube clamps', 'caps and plugs']
+  how_learned = 'Aviation maintenance schools and fluid power courses; on the job.', tools = ARRAY['Flare and flareless fittings', 'Crowfoot wrenches', 'Tube clamps', 'Caps and plugs']
   WHERE name = 'Hydraulic Line Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'The last look into a bay, tank or compartment before it is closed for good. A person who has it checks for debris, loose hardware, chafing and missing safeties, photographs the area and signs the closeout.',
-  how_learned = 'On the job in aircraft and spacecraft assembly, after foreign object and tool control training.', tools = ARRAY['Inspection lights and mirrors', 'borescopes', 'closeout photo records']
+  how_learned = 'On the job in aircraft and spacecraft assembly, after foreign object and tool control training.', tools = ARRAY['Inspection lights and mirrors', 'Borescopes', 'Closeout photo records']
   WHERE name = 'Closeout Inspection';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Building a liquid rocket engine from its major parts: chamber, injector, pumps, valves, ducts and nozzle. A person who has it works to clean-assembly rules, installs seals without damage, torques and safeties every joint and records each step.',
-  how_learned = 'On the job at an engine plant, usually from an aircraft engine or precision assembly background.', tools = ARRAY['Engine build stands', 'torque and stretch tools', 'seal installation tools', 'borescopes']
+  how_learned = 'On the job at an engine plant, usually from an aircraft engine or precision assembly background.', tools = ARRAY['Engine build stands', 'Torque and stretch tools', 'Seal installation tools', 'Borescopes']
   WHERE name = 'Rocket Engine Assembly';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Assembling a rocket engine''s pumps: rotor, bearings, seals, inducer and turbine. A person who has it measures and sets axial and radial clearances, balances the rotor and assembles in clean conditions.',
-  how_learned = 'On the job at an engine plant, from a turbomachinery or precision assembly background.', tools = ARRAY['Balancing machines', 'bearing heaters and presses', 'dial indicators and depth micrometers', 'clean benches']
+  how_learned = 'On the job at an engine plant, from a turbomachinery or precision assembly background.', tools = ARRAY['Balancing machines', 'Bearing heaters and presses', 'Dial indicators and depth micrometers', 'Clean benches']
   WHERE name = 'Turbopump Assembly';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Building and testing valves that control cryogenic and high-pressure propellants. A person who has it installs seats and seals without damage, assembles to cleanliness limits for oxygen service and runs leak and function tests.',
-  how_learned = 'On the job at a propulsion or valve plant.', tools = ARRAY['Clean benches', 'seal installation tools', 'leak test and flow benches', 'torque tools']
+  how_learned = 'On the job at a propulsion or valve plant.', tools = ARRAY['Clean benches', 'Seal installation tools', 'Leak test and flow benches', 'Torque tools']
   WHERE name = 'Propellant Valve Assembly';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Making and assembling a rocket engine injector: its orifices, posts and manifolds. A person who has it holds very small hole sizes and positions, keeps passages clean and flow-checks the finished injector.',
-  how_learned = 'On the job at a propulsion plant, from precision machining or welding.', tools = ARRAY['EDM and precision drilling', 'brazing and welding equipment', 'water flow benches', 'borescopes']
+  how_learned = 'On the job at a propulsion plant, from precision machining or welding.', tools = ARRAY['EDM and precision drilling', 'Brazing and welding equipment', 'Water flow benches', 'Borescopes']
   WHERE name = 'Injector Fabrication';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Making the coolant passages in a thrust chamber or nozzle wall, by milling channels and closing them out or by joining tubes. A person who has it holds wall thickness along the channel and proves each passage is open and leak-tight.',
-  how_learned = 'On the job at a propulsion plant.', tools = ARRAY['CNC slotting and milling', 'brazing, plating or welding closeout', 'flow and proof test equipment']
+  how_learned = 'On the job at a propulsion plant.', tools = ARRAY['CNC slotting and milling', 'Brazing, plating or welding closeout', 'Flow and proof test equipment']
   WHERE name = 'Regenerative Cooling Channel Fabrication';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing the gimbal and actuators that steer a rocket engine and checking their travel. A person who has it sets actuator length and alignment and verifies the engine moves freely through its full range.',
-  how_learned = 'On the job at an engine or launch vehicle plant.', tools = ARRAY['Hydraulic and electromechanical actuators', 'alignment tooling', 'travel measurement equipment']
+  how_learned = 'On the job at an engine or launch vehicle plant.', tools = ARRAY['Hydraulic and electromechanical actuators', 'Alignment tooling', 'Travel measurement equipment']
   WHERE name = 'Thrust Vector Control Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Mounting and connecting small spacecraft thrusters: aligning them, connecting propellant lines and electrical leads and leak-checking the joints. A person who has it keeps the propellant system clean and closed throughout.',
-  how_learned = 'On the job in spacecraft assembly.', tools = ARRAY['Alignment fixtures', 'tube fittings and orbital weld heads', 'helium leak detectors']
+  how_learned = 'On the job in spacecraft assembly.', tools = ARRAY['Alignment fixtures', 'Tube fittings and orbital weld heads', 'Helium leak detectors']
   WHERE name = 'Thruster Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Mounting propellant and pressurant tanks in a vehicle and connecting their lines. A person who has it supports the tank without loading its fittings, torques mounts and proves the joints leak-tight.',
-  how_learned = 'On the job at a launch vehicle or spacecraft plant.', tools = ARRAY['Lifting fixtures', 'torque tools', 'leak test equipment']
+  how_learned = 'On the job at a launch vehicle or spacecraft plant.', tools = ARRAY['Lifting fixtures', 'Torque tools', 'Leak test equipment']
   WHERE name = 'Propellant Tank Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing composite overwrapped pressure vessels that hold high-pressure gas. A person who has it handles them so the overwrap is never struck or scratched, inspects for damage and mounts them without stress.',
-  how_learned = 'On the job, with handling and damage-recognition training.', tools = ARRAY['Protective covers', 'lifting slings', 'mounting straps and brackets', 'inspection lights']
+  how_learned = 'On the job, with handling and damage-recognition training.', tools = ARRAY['Protective covers', 'Lifting slings', 'Mounting straps and brackets', 'Inspection lights']
   WHERE name = 'COPV Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing the latches, pushers and release devices that part stages and fairings in flight. A person who has it sets preload and gaps, connects pneumatic or electrical lines and verifies each device is armed as designed.',
-  how_learned = 'On the job at a launch vehicle plant.', tools = ARRAY['Pneumatic pushers and latches', 'preload measurement tools', 'gap gauges']
+  how_learned = 'On the job at a launch vehicle plant.', tools = ARRAY['Pneumatic pushers and latches', 'Preload measurement tools', 'Gap gauges']
   WHERE name = 'Separation System Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing and adjusting mechanisms that deploy or move in service: solar arrays, landing legs, hatches, docking hardware and control surfaces. A person who has it sets hinges, latches and actuators and proves the motion in a deployment test.',
-  how_learned = 'On the job in spacecraft and launch vehicle assembly.', tools = ARRAY['Deployment test fixtures and offloaders', 'alignment tools', 'torque tools']
+  how_learned = 'On the job in spacecraft and launch vehicle assembly.', tools = ARRAY['Deployment test fixtures and offloaders', 'Alignment tools', 'Torque tools']
   WHERE name = 'Spacecraft Mechanism Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Installing life support and thermal control loops: pumps, heat exchangers, tubing and valves. A person who has it keeps the system clean, makes up fittings to torque and proof- and leak-tests the loop.',
-  how_learned = 'On the job in spacecraft assembly.', tools = ARRAY['Tube fittings', 'orbital weld heads', 'proof pressure and helium leak test equipment']
+  how_learned = 'On the job in spacecraft assembly.', tools = ARRAY['Tube fittings', 'Orbital weld heads', 'Proof pressure and helium leak test equipment']
   WHERE name = 'Spacecraft Fluid System Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Fitting multi-layer insulation blankets to a spacecraft. A person who has it handles the thin layers without tearing or contaminating them, closes seams, grounds each blanket and keeps vents clear.',
-  how_learned = 'On the job in spacecraft assembly.', tools = ARRAY['Blanket templates', 'lacing cord and tape', 'grounding straps', 'ohmmeters']
+  how_learned = 'On the job in spacecraft assembly.', tools = ARRAY['Blanket templates', 'Lacing cord and tape', 'Grounding straps', 'Ohmmeters']
   WHERE name = 'Multi-Layer Insulation Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Building a satellite''s structure and installing its units, harness and propulsion, then stacking it for launch. A person who has it works to cleanliness and electrostatic rules and records every fastener and connector mate.',
-  how_learned = 'On the job at a satellite plant.', tools = ARRAY['Assembly dollies and lifting fixtures', 'torque tools', 'connector mate logs']
+  how_learned = 'On the job at a satellite plant.', tools = ARRAY['Assembly dollies and lifting fixtures', 'Torque tools', 'Connector mate logs']
   WHERE name = 'Satellite Bus Assembly';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Bonding or fastening thermal protection tiles to a vehicle. A person who has it prepares the surface, places each tile to its gap and step limits and proves the bond.',
-  how_learned = 'On the job at a spacecraft plant.', tools = ARRAY['Tile adhesives', 'gap and step gauges', 'bond pull testers']
+  how_learned = 'On the job at a spacecraft plant.', tools = ARRAY['Tile adhesives', 'Gap and step gauges', 'Bond pull testers']
   WHERE name = 'Heat Shield Tile Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Inspecting, folding and packing recovery parachutes to a written procedure with witnessed steps. A person who has it counts every tool and tie, controls line order and records each stage.',
-  how_learned = 'On the job under a qualified packer; an FAA parachute rigger certificate is a common background.', tools = ARRAY['Packing tables', 'line separators', 'tension devices', 'packing presses']
+  how_learned = 'On the job under a qualified packer; an FAA parachute rigger certificate is a common background.', tools = ARRAY['Packing tables', 'Line separators', 'Tension devices', 'Packing presses']
   WHERE name = 'Parachute Packing';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Assembling the sections of a guided missile: seeker, guidance, warhead, motor and control surfaces. A person who has it follows explosives safety rules, mates sections and connectors in order and records each step.',
-  how_learned = 'On the job at a defense plant, after explosives safety certification.', tools = ARRAY['Assembly stands', 'torque tools', 'grounding equipment', 'lifting fixtures']
+  how_learned = 'On the job at a defense plant, after explosives safety certification.', tools = ARRAY['Assembly stands', 'Torque tools', 'Grounding equipment', 'Lifting fixtures']
   WHERE name = 'Missile Assembly';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Fitting a ballscrew and its support bearings in a machine axis. A person who has it aligns the screw parallel to the ways, sets bearing preload and checks for binding along the travel.',
-  how_learned = 'On the job at a machine tool builder or in machine rebuilding.', tools = ARRAY['Dial indicators', 'alignment bars', 'torque wrenches', 'bearing preload tools']
+  how_learned = 'On the job at a machine tool builder or in machine rebuilding.', tools = ARRAY['Dial indicators', 'Alignment bars', 'Torque wrenches', 'Bearing preload tools']
   WHERE name = 'Ballscrew Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Mounting linear rails and bearing blocks so an axis runs straight and free. A person who has it sets the master rail to a reference edge, aligns the second rail parallel and tightens in sequence.',
-  how_learned = 'On the job at a machine tool or automation equipment builder.', tools = ARRAY['Straightedges', 'dial indicators', 'torque wrenches', 'rail alignment fixtures']
+  how_learned = 'On the job at a machine tool or automation equipment builder.', tools = ARRAY['Straightedges', 'Dial indicators', 'Torque wrenches', 'Rail alignment fixtures']
   WHERE name = 'Linear Guide Installation';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Building a machine tool spindle: matched bearings, spacers, shaft, drawbar and housing. A person who has it works clean, sets preload, runs the spindle in and checks runout and temperature.',
-  how_learned = 'On the job at a spindle or machine tool builder.', tools = ARRAY['Clean benches', 'bearing heaters', 'precision spacers', 'runout indicators', 'run-in stands']
+  how_learned = 'On the job at a spindle or machine tool builder.', tools = ARRAY['Clean benches', 'Bearing heaters', 'Precision spacers', 'Runout indicators', 'Run-in stands']
   WHERE name = 'Spindle Assembly';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Removing metal by hand from a machine''s sliding surfaces until they are flat and bear evenly, with pockets that hold oil. A person who has it reads the blue pattern from a master and scrapes to a set number of contact points.',
-  how_learned = 'Long apprenticeship at a machine tool builder or rebuilder.', tools = ARRAY['Hand and power scrapers', 'surface plates and straightedges', 'marking blue', 'levels']
+  how_learned = 'Long apprenticeship at a machine tool builder or rebuilder.', tools = ARRAY['Hand and power scrapers', 'Surface plates and straightedges', 'Marking blue', 'Levels']
   WHERE name = 'Hand Scraping of Machine Ways';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Setting a machine tool''s axes straight, square and parallel to one another. A person who has it measures with levels, squares and indicators and corrects by shimming, scraping or adjusting.',
-  how_learned = 'On the job at a machine tool builder or as a service technician.', tools = ARRAY['Precision levels', 'granite squares', 'test bars', 'dial indicators', 'laser alignment systems']
+  how_learned = 'On the job at a machine tool builder or as a service technician.', tools = ARRAY['Precision levels', 'Granite squares', 'Test bars', 'Dial indicators', 'Laser alignment systems']
   WHERE name = 'Machine Tool Geometric Alignment';
 UPDATE skills SET category = 'Mechanical Assembly', description = 'Setting a machine level and evenly supported on its foundation. A person who has it adjusts each mount, checks for twist along the bed and rechecks after the machine settles.',
-  how_learned = 'Millwright apprenticeship; machine installers learn it on the job.', tools = ARRAY['Precision machinist levels', 'leveling mounts and jacks', 'anchor bolts and grout']
+  how_learned = 'Millwright apprenticeship; machine installers learn it on the job.', tools = ARRAY['Precision machinist levels', 'Leveling mounts and jacks', 'Anchor bolts and grout']
   WHERE name = 'Machine Leveling';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Hand soldering leaded components and wires into plated holes. A person who has it controls tip temperature and time, gets full hole fill and a good fillet, and avoids lifted pads and cold joints.',
-  how_learned = 'Electronics programs and employer training; IPC J-STD-001 courses teach and test it.', tools = ARRAY['Temperature-controlled soldering stations', 'solder wire and flux', 'lead formers and cutters', 'magnification']
+  how_learned = 'Electronics programs and employer training; IPC J-STD-001 courses teach and test it.', tools = ARRAY['Temperature-controlled soldering stations', 'Solder wire and flux', 'Lead formers and cutters', 'Magnification']
   WHERE name = 'Through-Hole Soldering';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Hand soldering and replacing surface-mount parts, from chip resistors to fine-pitch leaded packages. A person who has it works under magnification with paste, flux and hot air without bridging leads or lifting pads.',
-  how_learned = 'Electronics programs and employer training; IPC J-STD-001 and IPC-7711/7721 courses.', tools = ARRAY['Fine-tip irons and hot-air tools', 'tweezers', 'solder paste and flux', 'stereo microscopes']
+  how_learned = 'Electronics programs and employer training; IPC J-STD-001 and IPC-7711/7721 courses.', tools = ARRAY['Fine-tip irons and hot-air tools', 'Tweezers', 'Solder paste and flux', 'Stereo microscopes']
   WHERE name = 'Surface-Mount Soldering';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Soldering to IPC J-STD-001, the industry requirement for materials, methods and acceptance of soldered connections. A person who has it knows what Class 2 and Class 3 work demands and builds to it.',
-  how_learned = 'A J-STD-001 course from an IPC-licensed training center, ending in the Certified IPC Specialist credential, renewed every two years.', tools = ARRAY['The J-STD-001 standard', 'soldering stations', 'inspection magnification']
+  how_learned = 'A J-STD-001 course from an IPC-licensed training center, ending in the Certified IPC Specialist credential, renewed every two years.', tools = ARRAY['The J-STD-001 standard', 'Soldering stations', 'Inspection magnification']
   WHERE name = 'J-STD-001 Soldering';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Judging a finished board against IPC-A-610, the acceptance standard for electronic assemblies. A person who has it can tell target, acceptable and defect conditions for solder joints, component placement and damage in each product class.',
-  how_learned = 'An IPC-A-610 course from an IPC-licensed training center, ending in the Certified IPC Specialist credential, renewed every two years.', tools = ARRAY['The IPC-A-610 standard', 'microscopes and ring lights']
+  how_learned = 'An IPC-A-610 course from an IPC-licensed training center, ending in the Certified IPC Specialist credential, renewed every two years.', tools = ARRAY['The IPC-A-610 standard', 'Microscopes and ring lights']
   WHERE name = 'IPC-A-610 Workmanship Inspection';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Printing solder paste onto a bare board through a stencil. A person who has it aligns the stencil, sets squeegee pressure, speed and separation, manages paste life and cleans the stencil before deposits degrade.',
-  how_learned = 'On the job on a surface-mount line; printer makers'' training.', tools = ARRAY['Stencil printers', 'laser-cut stencils', 'squeegees', 'solder paste', 'under-stencil wipe']
+  how_learned = 'On the job on a surface-mount line; printer makers'' training.', tools = ARRAY['Stencil printers', 'Laser-cut stencils', 'Squeegees', 'Solder paste', 'Under-stencil wipe']
   WHERE name = 'Solder Paste Printing';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Programming and tuning the machine that measures every paste deposit after printing. A person who has it sets volume, height and offset limits tight enough to stop defects without stopping the line for false calls.',
-  how_learned = 'On the job on a surface-mount line; machine makers'' training.', tools = ARRAY['3D solder paste inspection machines', 'board design data', 'printer feedback links']
+  how_learned = 'On the job on a surface-mount line; machine makers'' training.', tools = ARRAY['3D solder paste inspection machines', 'Board design data', 'Printer feedback links']
   WHERE name = 'Solder Paste Inspection Setup';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Preparing and tuning a placement machine program: part data, feeder setup, pick positions, vision and placement order. A person who has it loads a new board, corrects mispicks and balances the line for throughput.',
-  how_learned = 'On the job as a surface-mount operator moving into setup; machine makers'' courses.', tools = ARRAY['Placement machines from Fuji, Panasonic, ASMPT, Yamaha and Juki', 'feeders and nozzles', 'offline programming software']
+  how_learned = 'On the job as a surface-mount operator moving into setup; machine makers'' courses.', tools = ARRAY['Placement machines from Fuji, Panasonic, ASMPT, Yamaha and Juki', 'Feeders and nozzles', 'Offline programming software']
   WHERE name = 'Pick and Place Programming';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Setting a reflow oven so every joint on a board reaches the right temperature for the right time. A person who has it attaches thermocouples to a board, runs a profile and adjusts zone temperatures and belt speed to meet the paste and component limits.',
-  how_learned = 'On the job on a surface-mount line; process engineering courses from equipment and paste suppliers.', tools = ARRAY['Convection reflow ovens', 'thermal profilers and thermocouples', 'solder paste data sheets']
+  how_learned = 'On the job on a surface-mount line; process engineering courses from equipment and paste suppliers.', tools = ARRAY['Convection reflow ovens', 'Thermal profilers and thermocouples', 'Solder paste data sheets']
   WHERE name = 'Reflow Profiling';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Soldering through-hole parts by passing the board over a wave of molten solder or by a programd solder nozzle. A person who has it sets flux, preheat, wave height and speed and corrects bridges, skips and poor hole fill.',
-  how_learned = 'On the job in an electronics plant; equipment makers'' training.', tools = ARRAY['Wave and selective soldering machines', 'fluxers and preheaters', 'pallets', 'solder pot analysis']
+  how_learned = 'On the job in an electronics plant; equipment makers'' training.', tools = ARRAY['Wave and selective soldering machines', 'Fluxers and preheaters', 'Pallets', 'Solder pot analysis']
   WHERE name = 'Wave and Selective Soldering';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Programming the camera systems that check boards for missing, shifted and wrong parts and bad joints. A person who has it builds the component library, sets thresholds and cuts false calls without letting defects through.',
-  how_learned = 'On the job on a surface-mount line; machine makers'' training.', tools = ARRAY['2D and 3D AOI machines from Koh Young, Omron and Mirtec', 'board design data']
+  how_learned = 'On the job on a surface-mount line; machine makers'' training.', tools = ARRAY['2D and 3D AOI machines from Koh Young, Omron and Mirtec', 'Board design data']
   WHERE name = 'Automated Optical Inspection Programming';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Removing and replacing ball grid array parts whose joints are hidden under the package. A person who has it profiles the heat for the board, removes the part, dresses the pads and places and reflows the new one.',
-  how_learned = 'On the job as an experienced rework technician; IPC-7711/7721 courses cover the methods.', tools = ARRAY['BGA rework stations with split-vision alignment', 'preheaters', 'thermocouples', 'X-ray for verification']
+  how_learned = 'On the job as an experienced rework technician; IPC-7711/7721 courses cover the methods.', tools = ARRAY['BGA rework stations with split-vision alignment', 'Preheaters', 'Thermocouples', 'X-ray for verification']
   WHERE name = 'BGA Rework';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Putting new solder balls on a removed BGA so it can be used again. A person who has it cleans the old solder, places balls with a stencil or preform and reflows them without damaging the package.',
-  how_learned = 'On the job after BGA rework experience.', tools = ARRAY['Reballing stencils and fixtures', 'solder spheres and tacky flux', 'reflow oven or rework station']
+  how_learned = 'On the job after BGA rework experience.', tools = ARRAY['Reballing stencils and fixtures', 'Solder spheres and tacky flux', 'Reflow oven or rework station']
   WHERE name = 'BGA Reballing';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Using X-ray to see solder joints hidden under BGA, QFN and similar packages. A person who has it finds bridges, opens, head-in-pillow and excess voiding and measures void percentage.',
-  how_learned = 'On the job; machine makers'' training.', tools = ARRAY['2D and angled-view X-ray systems', 'void measurement software']
+  how_learned = 'On the job; machine makers'' training.', tools = ARRAY['2D and angled-view X-ray systems', 'Void measurement software']
   WHERE name = 'X-Ray Inspection of Solder Joints';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Separating finished boards from the panel they were built in without cracking parts or joints near the edge. A person who has it sets up the router, saw or laser and fixtures the panel so boards are not flexed.',
-  how_learned = 'On the job in an electronics plant.', tools = ARRAY['Depaneling routers', 'V-score separators', 'laser depanelers', 'support fixtures']
+  how_learned = 'On the job in an electronics plant.', tools = ARRAY['Depaneling routers', 'V-score separators', 'Laser depanelers', 'Support fixtures']
   WHERE name = 'PCB Depaneling';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Applying a thin protective coating over an assembled board. A person who has it masks connectors and keep-out areas, sprays, dips or dispenses to thickness, cures and inspects coverage under UV light.',
-  how_learned = 'On the job; coating suppliers'' training.', tools = ARRAY['Selective coating machines and spray booths', 'acrylic, urethane and silicone coatings', 'masking', 'UV lamps', 'wet film gauges']
+  how_learned = 'On the job; coating suppliers'' training.', tools = ARRAY['Selective coating machines and spray booths', 'Acrylic, urethane and silicone coatings', 'Masking', 'UV lamps', 'Wet film gauges']
   WHERE name = 'Conformal Coating';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Filling a housing or covering a circuit with resin to protect it from moisture, vibration and voltage. A person who has it mixes and degasses two-part material, fills without trapping air and cures it.',
-  how_learned = 'On the job in electronics and power electronics plants.', tools = ARRAY['Meter-mix dispensing equipment', 'vacuum chambers', 'epoxy, urethane and silicone compounds', 'cure ovens']
+  how_learned = 'On the job in electronics and power electronics plants.', tools = ARRAY['Meter-mix dispensing equipment', 'Vacuum chambers', 'Epoxy, urethane and silicone compounds', 'Cure ovens']
   WHERE name = 'Potting and Encapsulation';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Finding the failed part on a circuit board from its symptoms and the schematic. A person who has it measures voltages and signals, isolates the fault to a component and replaces it.',
-  how_learned = 'Electronics technology associate programs and military electronics training; on the job.', tools = ARRAY['Multimeters', 'oscilloscopes', 'bench power supplies', 'schematics', 'rework stations']
+  how_learned = 'Electronics technology associate programs and military electronics training; on the job.', tools = ARRAY['Multimeters', 'Oscilloscopes', 'Bench power supplies', 'Schematics', 'Rework stations']
   WHERE name = 'Component-Level Troubleshooting';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Building a wire harness from a drawing: cutting and marking wire, routing it on a board, terminating, bundling and labeling. A person who has it works to IPC/WHMA-A-620 workmanship.',
-  how_learned = 'On the job; an IPC/WHMA-A-620 course ending in the Certified IPC Specialist credential is the recognized training.', tools = ARRAY['Harness boards', 'wire cutters and strippers', 'crimp tools', 'heat shrink', 'tie wraps and lacing', 'continuity testers']
+  how_learned = 'On the job; an IPC/WHMA-A-620 course ending in the Certified IPC Specialist credential is the recognized training.', tools = ARRAY['Harness boards', 'Wire cutters and strippers', 'Crimp tools', 'Heat shrink', 'Tie wraps and lacing', 'Continuity testers']
   WHERE name = 'Wire Harness Assembly';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Stripping wire and crimping contacts, terminals and splices that hold and conduct. A person who has it picks the tool and die for the contact and wire size, inspects each crimp and proves the setup with a pull test.',
-  how_learned = 'On the job; IPC/WHMA-A-620 courses teach and test it.', tools = ARRAY['Ratcheting and military-specification crimp tools', 'positioners and locators', 'strippers', 'pull testers']
+  how_learned = 'On the job; IPC/WHMA-A-620 courses teach and test it.', tools = ARRAY['Ratcheting and military-specification crimp tools', 'Positioners and locators', 'Strippers', 'Pull testers']
   WHERE name = 'Wire Crimping and Termination';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Tying wire bundles with lacing cord or straps and supporting them with clamps at the right spacing. A person who has it leaves no chafe points, keeps bend radius and separates bundles as the drawing requires.',
-  how_learned = 'Aviation maintenance schools and on the job in aerospace wiring.', tools = ARRAY['Lacing cord', 'cable straps and tie guns', 'cushioned clamps']
+  how_learned = 'Aviation maintenance schools and on the job in aerospace wiring.', tools = ARRAY['Lacing cord', 'Cable straps and tie guns', 'Cushioned clamps']
   WHERE name = 'Wire Bundle Lacing and Clamping';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Building coaxial cables: stripping to exact dimensions, fitting crimp or solder connectors and testing the result. A person who has it keeps the cable''s geometry intact so signal loss and reflections stay within limits.',
-  how_learned = 'On the job in avionics, radar and telecom work.', tools = ARRAY['Coax strippers', 'crimp and solder connectors such as SMA, TNC and N', 'network analyzers for return loss']
+  how_learned = 'On the job in avionics, radar and telecom work.', tools = ARRAY['Coax strippers', 'Crimp and solder connectors such as SMA, TNC and N', 'Network analyzers for return loss']
   WHERE name = 'RF and Coaxial Cable Assembly';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Assembling multi-pin connectors: crimping contacts, inserting and extracting them, fitting backshells and strain relief. A person who has it reads the pin-out, seats every contact and checks retention.',
-  how_learned = 'On the job in harness, avionics and spacecraft work; IPC/WHMA-A-620 courses cover it.', tools = ARRAY['Circular and rectangular connectors such as MIL-DTL-38999 and D-sub', 'insertion and extraction tools', 'backshell tools']
+  how_learned = 'On the job in harness, avionics and spacecraft work; IPC/WHMA-A-620 courses cover it.', tools = ARRAY['Circular and rectangular connectors such as MIL-DTL-38999 and D-sub', 'Insertion and extraction tools', 'Backshell tools']
   WHERE name = 'Connector Assembly';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Fitting connectors to optical fiber or splicing it, then cleaning, inspecting and testing the link. A person who has it cleaves and polishes or fusion-splices, inspects the end face and measures loss.',
-  how_learned = 'On the job; short courses from training providers and equipment makers.', tools = ARRAY['Cleavers and strippers', 'fusion splicers', 'inspection scopes', 'optical loss test sets']
+  how_learned = 'On the job; short courses from training providers and equipment makers.', tools = ARRAY['Cleavers and strippers', 'Fusion splicers', 'Inspection scopes', 'Optical loss test sets']
   WHERE name = 'Fiber Optic Termination';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Making low-resistance electrical paths between structure, equipment and cable shields so static, lightning and interference have a path to ground. A person who has it prepares the surface, installs the strap or jumper and measures the resistance.',
-  how_learned = 'Aviation maintenance schools and on the job in aircraft and spacecraft wiring.', tools = ARRAY['Bonding straps and jumpers', 'surface preparation tools', 'milliohm meters']
+  how_learned = 'Aviation maintenance schools and on the job in aircraft and spacecraft wiring.', tools = ARRAY['Bonding straps and jumpers', 'Surface preparation tools', 'Milliohm meters']
   WHERE name = 'Electrical Bonding and Grounding';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Building inverters, converters and chargers: mounting power modules, capacitors, busbars and control boards in a housing. A person who has it controls torque on electrical joints, creepage and clearance, and thermal interface coverage.',
-  how_learned = 'On the job in a power electronics plant.', tools = ARRAY['DC electric torque tools', 'busbars and laminated bus', 'thermal interface dispensers', 'hipot testers']
+  how_learned = 'On the job in a power electronics plant.', tools = ARRAY['DC electric torque tools', 'Busbars and laminated bus', 'Thermal interface dispensers', 'Hipot testers']
   WHERE name = 'Power Electronics Assembly';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Building the power semiconductor modules at the heart of an inverter: die on a substrate, wire or clip bonds, terminals, gel and housing. A person who has it runs the attach, bond and encapsulation steps and reads the inspection results.',
-  how_learned = 'On the job at a power module plant.', tools = ARRAY['Die bonders', 'heavy-wire bonders', 'vacuum solder and sinter presses', 'acoustic microscopes']
+  how_learned = 'On the job at a power module plant.', tools = ARRAY['Die bonders', 'Heavy-wire bonders', 'Vacuum solder and sinter presses', 'Acoustic microscopes']
   WHERE name = 'Power Module Assembly';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Attaching power dies with a silver paste or film that is pressed and heated into a solid joint able to run hotter than solder. A person who has it controls print or placement, drying and the pressure and temperature of the sinter press.',
-  how_learned = 'On the job at a power module plant.', tools = ARRAY['Sinter presses', 'silver sinter paste and film', 'shear testers', 'acoustic microscopes']
+  how_learned = 'On the job at a power module plant.', tools = ARRAY['Sinter presses', 'Silver sinter paste and film', 'Shear testers', 'Acoustic microscopes']
   WHERE name = 'Silver Sintering Die Attach';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Applying paste, gap filler or pads between a heat source and its heat sink. A person who has it lays down the right pattern and amount so the gap is filled without voids or squeeze-out.',
-  how_learned = 'On the job in electronics, battery and power electronics assembly.', tools = ARRAY['Dispensing robots and hand dispensers', 'thermal greases, gap fillers and pads', 'coverage inspection']
+  how_learned = 'On the job in electronics, battery and power electronics assembly.', tools = ARRAY['Dispensing robots and hand dispensers', 'Thermal greases, gap fillers and pads', 'Coverage inspection']
   WHERE name = 'Thermal Interface Material Application';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Mounting heat sinks and cold plates on processors and power devices. A person who has it applies the interface material, seats the sink flat and tightens in sequence to even pressure.',
-  how_learned = 'On the job in server and power electronics assembly.', tools = ARRAY['Torque drivers', 'spring-loaded fasteners', 'thermal interface materials']
+  how_learned = 'On the job in server and power electronics assembly.', tools = ARRAY['Torque drivers', 'Spring-loaded fasteners', 'Thermal interface materials']
   WHERE name = 'Heat Sink Installation';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Assembling the liquid cooling of power electronics: cold plates, hoses, fittings and seals. A person who has it keeps sealing surfaces clean, makes up connections and leak-tests the loop.',
-  how_learned = 'On the job in a power electronics plant.', tools = ARRAY['Cold plates', 'quick-connect and hose fittings', 'pressure decay leak testers']
+  how_learned = 'On the job in a power electronics plant.', tools = ARRAY['Cold plates', 'Quick-connect and hose fittings', 'Pressure decay leak testers']
   WHERE name = 'Cold Plate and Coolant Loop Assembly';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Installing processors, memory, drives, cards and power supplies in a server chassis to a build sheet. A person who has it handles parts under ESD control, seats each fully and records serial numbers.',
-  how_learned = 'On the job at a server plant; CompTIA A+ covers the hardware basics.', tools = ARRAY['ESD workstations', 'torque screwdrivers', 'build sheets and barcode scanners']
+  how_learned = 'On the job at a server plant; CompTIA A+ covers the hardware basics.', tools = ARRAY['ESD workstations', 'Torque screwdrivers', 'Build sheets and barcode scanners']
   WHERE name = 'Server Component Installation';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Mounting servers, switches and power distribution in a rack and wiring it to a rack elevation drawing. A person who has it installs rails and heavy units safely and labels every unit and cable.',
-  how_learned = 'On the job at a server integration plant.', tools = ARRAY['Rack lifts', 'rail kits', 'power distribution units', 'label printers']
+  how_learned = 'On the job at a server integration plant.', tools = ARRAY['Rack lifts', 'Rail kits', 'Power distribution units', 'Label printers']
   WHERE name = 'Server Rack Integration';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Routing power and network cables in a rack so each reaches its port with the right length, bend radius and label. A person who has it dresses bundles so airflow and service access stay clear.',
-  how_learned = 'On the job at a server integration plant.', tools = ARRAY['Cable managers', 'hook-and-loop ties', 'cable testers', 'label printers']
+  how_learned = 'On the job at a server integration plant.', tools = ARRAY['Cable managers', 'Hook-and-loop ties', 'Cable testers', 'Label printers']
   WHERE name = 'Rack Cable Routing and Dressing';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Setting a server''s firmware to the customer''s build: BIOS options, boot order, management controller network and credentials, firmware levels. A person who has it applies settings by script or by hand and verifies them.',
-  how_learned = 'On the job at a server plant.', tools = ARRAY['BIOS and UEFI setup', 'baseboard management controllers', 'Redfish and IPMI tools']
+  how_learned = 'On the job at a server plant.', tools = ARRAY['BIOS and UEFI setup', 'Baseboard management controllers', 'Redfish and IPMI tools']
   WHERE name = 'BIOS and BMC Configuration';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Building drive arrays on a server''s storage controller to the ordered level and layout. A person who has it creates and initializes the array and confirms every drive is healthy.',
-  how_learned = 'On the job at a server plant; covered in server administration courses.', tools = ARRAY['RAID controller setup utilities', 'command-line storage tools']
+  how_learned = 'On the job at a server plant; covered in server administration courses.', tools = ARRAY['RAID controller setup utilities', 'Command-line storage tools']
   WHERE name = 'RAID Configuration';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Loading an operating system image and drivers onto new computers over the network and confirming each unit boots and reports correctly. A person who has it runs the imaging station and clears units that fail.',
-  how_learned = 'On the job at a computer or server plant.', tools = ARRAY['Network boot (PXE) servers', 'imaging software', 'test scripts']
+  how_learned = 'On the job at a computer or server plant.', tools = ARRAY['Network boot (PXE) servers', 'Imaging software', 'Test scripts']
   WHERE name = 'Operating System Imaging';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Fitting a lithium battery into a phone or laptop: placing it on its adhesive, routing and connecting the flex. A person who has it never bends, presses or punctures the cell and knows what to do if one is damaged.',
-  how_learned = 'On the job at a device assembly plant.', tools = ARRAY['Placement fixtures', 'press tools with force limits', 'fire-safe containers']
+  how_learned = 'On the job at a device assembly plant.', tools = ARRAY['Placement fixtures', 'Press tools with force limits', 'Fire-safe containers']
   WHERE name = 'Device Battery Installation';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Placing a camera module in a device, connecting its flex and fixing it so it stays aligned. A person who has it keeps the lens and sensor free of dust and fingerprints and checks the image after assembly.',
-  how_learned = 'On the job at a device assembly plant.', tools = ARRAY['Clean benches', 'vacuum pick-up tools', 'alignment fixtures', 'image test stations']
+  how_learned = 'On the job at a device assembly plant.', tools = ARRAY['Clean benches', 'Vacuum pick-up tools', 'Alignment fixtures', 'Image test stations']
   WHERE name = 'Camera Module Assembly';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Bonding and connecting a display to a device housing. A person who has it aligns the panel, applies adhesive or gasket evenly, presses it to the set force and checks for dust, light leak and dead pixels.',
-  how_learned = 'On the job at a device assembly plant.', tools = ARRAY['Lamination and press fixtures', 'adhesive dispensers', 'display test patterns']
+  how_learned = 'On the job at a device assembly plant.', tools = ARRAY['Lamination and press fixtures', 'Adhesive dispensers', 'Display test patterns']
   WHERE name = 'Display Module Assembly';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Running the calibration stations that teach each finished device its own touch panel, cameras and motion sensors. A person who has it loads the unit, runs the routine and reads a failure well enough to send it to the right repair.',
-  how_learned = 'On the job at a device assembly plant.', tools = ARRAY['Calibration fixtures and targets', 'station test software']
+  how_learned = 'On the job at a device assembly plant.', tools = ARRAY['Calibration fixtures and targets', 'Station test software']
   WHERE name = 'Device Sensor Calibration';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Applying the gaskets and adhesives that keep water and dust out of a device and proving the seal. A person who has it places seals without gaps or twists and runs the leak test.',
-  how_learned = 'On the job at a device assembly plant.', tools = ARRAY['Gasket placement fixtures', 'adhesive dispensers', 'pressure decay leak testers']
+  how_learned = 'On the job at a device assembly plant.', tools = ARRAY['Gasket placement fixtures', 'Adhesive dispensers', 'Pressure decay leak testers']
   WHERE name = 'Device Enclosure Sealing';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Building flat-panel antennas made of many small radiating elements and their circuit boards. A person who has it bonds and fastens the layers, connects them and supports the radio-frequency test that follows.',
-  how_learned = 'On the job at an antenna plant.', tools = ARRAY['Bonding and lamination fixtures', 'DC torque tools', 'antenna test ranges']
+  how_learned = 'On the job at an antenna plant.', tools = ARRAY['Bonding and lamination fixtures', 'DC torque tools', 'Antenna test ranges']
   WHERE name = 'Phased Array Antenna Assembly';
 UPDATE skills SET category = 'Electronics Assembly', description = 'Building the optical terminals satellites use to send data by laser: mounting optics, lasers and pointing mechanisms and aligning them. A person who has it works clean and aligns to very small angles.',
-  how_learned = 'On the job at a satellite plant, usually from an optics or precision assembly background.', tools = ARRAY['Optical benches', 'alignment lasers and autocollimators', 'clean benches', 'torque tools']
+  how_learned = 'On the job at a satellite plant, usually from an optics or precision assembly background.', tools = ARRAY['Optical benches', 'Alignment lasers and autocollimators', 'Clean benches', 'Torque tools']
   WHERE name = 'Laser Communication Terminal Assembly';
 UPDATE skills SET category = 'Composites', description = 'Laying plies of carbon, glass or aramid fabric onto a tool in the order and fiber direction the ply table calls for. A person who has it works the material into contours without bridging or wrinkles, keeps it clean and tracks its out-time.',
-  how_learned = 'Composite technician programs at community colleges and on the job. The American Composites Manufacturers Association''s Certified Composites Technician covers it.', tools = ARRAY['Layup tools', 'prepreg and dry fabric', 'ply tables and laser projectors', 'squeegees and heat guns']
+  how_learned = 'Composite technician programs at community colleges and on the job. The American Composites Manufacturers Association''s Certified Composites Technician covers it.', tools = ARRAY['Layup tools', 'Prepreg and dry fabric', 'Ply tables and laser projectors', 'Squeegees and heat guns']
   WHERE name = 'Composite Layup';
 UPDATE skills SET category = 'Composites', description = 'Laying unidirectional prepreg tape, whose strength runs one way only, so that each ply''s angle is right and edges butt without gaps or overlaps beyond the limit. A person who has it controls splices and steers tape on contours.',
-  how_learned = 'On the job after general layup experience.', tools = ARRAY['Unidirectional prepreg tape', 'laser ply projectors', 'angle templates', 'gap gauges']
+  how_learned = 'On the job after general layup experience.', tools = ARRAY['Unidirectional prepreg tape', 'Laser ply projectors', 'Angle templates', 'Gap gauges']
   WHERE name = 'Unidirectional Tape Layup';
 UPDATE skills SET category = 'Composites', description = 'Cutting plies to shape and fiber angle, by knife and template or on a CNC cutter, and kitting them in layup order. A person who has it nests to save material and labels each ply with its number and direction.',
-  how_learned = 'On the job in a composites shop.', tools = ARRAY['CNC ply cutters', 'templates and knives', 'nesting software', 'freezer storage and out-time logs']
+  how_learned = 'On the job in a composites shop.', tools = ARRAY['CNC ply cutters', 'Templates and knives', 'Nesting software', 'Freezer storage and out-time logs']
   WHERE name = 'Ply Cutting and Kitting';
 UPDATE skills SET category = 'Composites', description = 'Getting a layup tool ready: cleaning it, checking the surface and vacuum integrity, and applying release agent in the right number of coats. A person who has it prevents a part sticking to, or being marked by, its tool.',
-  how_learned = 'On the job in a composites shop.', tools = ARRAY['Solvent cleaners', 'mold sealers and release agents', 'lint-free wipes', 'leak check equipment']
+  how_learned = 'On the job in a composites shop.', tools = ARRAY['Solvent cleaners', 'Mold sealers and release agents', 'Lint-free wipes', 'Leak check equipment']
   WHERE name = 'Layup Tool Preparation';
 UPDATE skills SET category = 'Composites', description = 'Compacting plies under vacuum every few layers to remove trapped air and bulk before cure. A person who has it knows how often and how long the specification requires and bags a temporary debulk quickly.',
-  how_learned = 'Learned with layup, on the job.', tools = ARRAY['Reusable vacuum bags', 'perforated release film', 'vacuum pumps and gauges']
+  how_learned = 'Learned with layup, on the job.', tools = ARRAY['Reusable vacuum bags', 'Perforated release film', 'Vacuum pumps and gauges']
   WHERE name = 'Debulking';
 UPDATE skills SET category = 'Composites', description = 'Fitting honeycomb or foam core into a sandwich panel: trimming it to shape, splicing sections, potting where fasteners will go and bonding it without crushing. A person who has it keeps ribbon direction right and the core dry and clean.',
-  how_learned = 'On the job in a composites shop.', tools = ARRAY['Core saws and knives', 'foaming splice adhesive', 'potting compound', 'film adhesive']
+  how_learned = 'On the job in a composites shop.', tools = ARRAY['Core saws and knives', 'Foaming splice adhesive', 'Potting compound', 'Film adhesive']
   WHERE name = 'Honeycomb Core Installation';
 UPDATE skills SET category = 'Composites', description = 'Sealing a layup under a vacuum bag for cure: release film, bleeder, breather, bag film, sealant tape and ports in the right order. A person who has it pleats the bag over contours and passes a leak check.',
-  how_learned = 'Composite technician programs and on the job; covered by the Certified Composites Technician credential.', tools = ARRAY['Bagging film', 'breather and release films', 'sealant tape', 'vacuum ports, hoses and gauges', 'leak detectors']
+  how_learned = 'Composite technician programs and on the job; covered by the Certified Composites Technician credential.', tools = ARRAY['Bagging film', 'Breather and release films', 'Sealant tape', 'Vacuum ports, hoses and gauges', 'Leak detectors']
   WHERE name = 'Vacuum Bagging';
 UPDATE skills SET category = 'Composites', description = 'Placing temperature sensors on a part and tool so the cure is controlled from its hottest and coldest points. A person who has it follows the survey for where the leading and lagging thermocouples go and checks each one before the door closes.',
-  how_learned = 'On the job in a composites shop.', tools = ARRAY['Type J and K thermocouples', 'high-temperature tape', 'thermocouple testers']
+  how_learned = 'On the job in a composites shop.', tools = ARRAY['Type J and K thermocouples', 'High-temperature tape', 'Thermocouple testers']
   WHERE name = 'Thermocouple Placement';
 UPDATE skills SET category = 'Composites', description = 'Loading, running and unloading an autoclave that cures composites under heat and pressure. A person who has it connects vacuum and thermocouples, verifies the recipe, watches the run and responds to a lost bag or sensor.',
-  how_learned = 'On the job, starting as a loader; autoclave makers train operators on the controls.', tools = ARRAY['Autoclaves and their control systems', 'vacuum manifolds', 'nitrogen supply', 'load carts']
+  how_learned = 'On the job, starting as a loader; autoclave makers train operators on the controls.', tools = ARRAY['Autoclaves and their control systems', 'Vacuum manifolds', 'Nitrogen supply', 'Load carts']
   WHERE name = 'Autoclave Operation';
 UPDATE skills SET category = 'Composites', description = 'Building the heat-up, hold, pressure and cool-down recipe an autoclave or oven follows, from the material specification and the load. A person who has it sets ramp rates and holds so every part in the load meets its cure.',
-  how_learned = 'On the job, moving up from autoclave operator; process engineering training.', tools = ARRAY['Autoclave control software', 'material and process specifications', 'thermal survey data']
+  how_learned = 'On the job, moving up from autoclave operator; process engineering training.', tools = ARRAY['Autoclave control software', 'Material and process specifications', 'Thermal survey data']
   WHERE name = 'Cure Cycle Programming';
 UPDATE skills SET category = 'Composites', description = 'Watching temperature, pressure and vacuum through a cure and reviewing the record afterwards against the specification. A person who has it catches a lagging thermocouple or a leaking bag in time and knows what makes a cure discrepant.',
-  how_learned = 'On the job in a composites shop.', tools = ARRAY['Cure charts and data loggers', 'hot bonders', 'vacuum gauges']
+  how_learned = 'On the job in a composites shop.', tools = ARRAY['Cure charts and data loggers', 'Hot bonders', 'Vacuum gauges']
   WHERE name = 'Cure Cycle Monitoring';
 UPDATE skills SET category = 'Composites', description = 'Keeping thick laminates and large resin masses from overheating as the resin''s own reaction releases heat. A person who has it slows ramps, adds dwells and watches the part thermocouples for a runaway.',
-  how_learned = 'On the job, as a senior cure operator or process engineer.', tools = ARRAY['Embedded thermocouples', 'cure modeling data', 'autoclave controls']
+  how_learned = 'On the job, as a senior cure operator or process engineer.', tools = ARRAY['Embedded thermocouples', 'Cure modeling data', 'Autoclave controls']
   WHERE name = 'Cure Exotherm Control';
 UPDATE skills SET category = 'Composites', description = 'Curing composites under vacuum bag pressure alone in an oven or with heat blankets. A person who has it gets air out of the laminate before the resin flows, because there is no autoclave pressure to close voids.',
-  how_learned = 'On the job in a composites shop.', tools = ARRAY['Cure ovens', 'heat blankets and hot bonders', 'vacuum pumps and gauges']
+  how_learned = 'On the job in a composites shop.', tools = ARRAY['Cure ovens', 'Heat blankets and hot bonders', 'Vacuum pumps and gauges']
   WHERE name = 'Out-of-Autoclave Curing';
 UPDATE skills SET category = 'Composites', description = 'Pulling liquid resin through dry fiber under vacuum, or injecting it into a closed mold. A person who has it lays out feed lines and flow media, checks the bag for leaks, mixes and degasses resin and watches the flow front until the part is filled.',
-  how_learned = 'Composite technician programs and on the job; covered by the Certified Composites Technician credential.', tools = ARRAY['Flow media and spiral tubing', 'resin traps', 'vacuum pumps', 'resin mixing and degassing equipment']
+  how_learned = 'Composite technician programs and on the job; covered by the Certified Composites Technician credential.', tools = ARRAY['Flow media and spiral tubing', 'Resin traps', 'Vacuum pumps', 'Resin mixing and degassing equipment']
   WHERE name = 'Resin Infusion';
 UPDATE skills SET category = 'Composites', description = 'Cutting cured composite to its edge line and drilling it without delamination, fiber breakout or heat damage. A person who has it uses the right cutter and speed, backs up the exit side and controls dust.',
-  how_learned = 'On the job in a composites shop or aerostructures plant.', tools = ARRAY['Diamond-coated routers and drills', 'CNC routers and waterjets', 'drill guides', 'dust extraction']
+  how_learned = 'On the job in a composites shop or aerostructures plant.', tools = ARRAY['Diamond-coated routers and drills', 'CNC routers and waterjets', 'Drill guides', 'Dust extraction']
   WHERE name = 'Composite Trimming and Drilling';
 UPDATE skills SET category = 'Composites', description = 'Preparing a surface so adhesive bonds to it: solvent cleaning, abrading or grit blasting, peel ply removal, or anodizing and priming metal. A person who has it proves cleanliness with a water break test and bonds within the allowed time.',
-  how_learned = 'On the job in bonding shops.', tools = ARRAY['Abrasive pads and grit blast', 'solvent wipes', 'peel ply', 'bond primers', 'water break test']
+  how_learned = 'On the job in bonding shops.', tools = ARRAY['Abrasive pads and grit blast', 'Solvent wipes', 'Peel ply', 'Bond primers', 'Water break test']
   WHERE name = 'Adhesive Surface Preparation';
 UPDATE skills SET category = 'Composites', description = 'Laying film adhesive on a bond surface. A person who has it handles the film cold, cuts it to the pattern, removes every backing and avoids trapped air and overlaps beyond the limit.',
-  how_learned = 'On the job in a bonding shop.', tools = ARRAY['Film adhesives', 'templates and knives', 'freezer storage and out-time logs']
+  how_learned = 'On the job in a bonding shop.', tools = ARRAY['Film adhesives', 'Templates and knives', 'Freezer storage and out-time logs']
   WHERE name = 'Film Adhesive Application';
 UPDATE skills SET category = 'Composites', description = 'Mixing two-part paste adhesive to ratio and applying it at the right thickness. A person who has it works within pot life, controls bondline thickness and cleans up squeeze-out.',
-  how_learned = 'On the job in a bonding shop.', tools = ARRAY['Paste adhesives and cartridges', 'scales and mixers', 'glass beads or scrim for bondline control']
+  how_learned = 'On the job in a bonding shop.', tools = ARRAY['Paste adhesives and cartridges', 'Scales and mixers', 'Glass beads or scrim for bondline control']
   WHERE name = 'Paste Adhesive Application';
 UPDATE skills SET category = 'Composites', description = 'Joining two already-cured composite parts with adhesive. A person who has it fits the parts dry first, prepares both surfaces, applies adhesive, holds them in a fixture under pressure and cures.',
-  how_learned = 'On the job in a bonding shop.', tools = ARRAY['Bond fixtures and clamps', 'adhesives', 'vacuum bags', 'ovens and autoclaves']
+  how_learned = 'On the job in a bonding shop.', tools = ARRAY['Bond fixtures and clamps', 'Adhesives', 'Vacuum bags', 'Ovens and autoclaves']
   WHERE name = 'Secondary Bonding';
 UPDATE skills SET category = 'Composites', description = 'Joining composite details in the cure itself: uncured plies cured together, or uncured plies cured against an already-cured part with adhesive between. A person who has it locates the details on the tool and keeps them in place through bagging and cure.',
-  how_learned = 'On the job, after layup and bonding experience.', tools = ARRAY['Layup and locating tooling', 'film adhesive', 'cauls and pressure intensifiers']
+  how_learned = 'On the job, after layup and bonding experience.', tools = ARRAY['Layup and locating tooling', 'Film adhesive', 'Cauls and pressure intensifiers']
   WHERE name = 'Co-Cure and Co-Bond Processing';
 UPDATE skills SET category = 'Composites', description = 'Checking a layup as it is built and after cure: ply count and direction, where plies end, wrinkles, bridging, foreign material, and dry or resin-rich areas. A person who has it buys off each ply against the ply table.',
-  how_learned = 'On the job as a senior layup technician or inspector.', tools = ARRAY['Ply tables', 'laser projection', 'inspection lights', 'ply-by-ply sign-off records']
+  how_learned = 'On the job as a senior layup technician or inspector.', tools = ARRAY['Ply tables', 'Laser projection', 'Inspection lights', 'Ply-by-ply sign-off records']
   WHERE name = 'Laminate Layup Inspection';
 UPDATE skills SET category = 'Composites', description = 'Finding the extent of damage in composite structure and deciding, from the repair manual, whether it is allowable, repairable or beyond limits. A person who has it maps the damage by visual, tap and ultrasonic inspection.',
-  how_learned = 'FAA Airframe and Powerplant training plus composite repair courses; on the job.', tools = ARRAY['Tap hammers', 'ultrasonic flaw detectors', 'structural repair manuals']
+  how_learned = 'FAA Airframe and Powerplant training plus composite repair courses; on the job.', tools = ARRAY['Tap hammers', 'Ultrasonic flaw detectors', 'Structural repair manuals']
   WHERE name = 'Composite Damage Assessment';
 UPDATE skills SET category = 'Composites', description = 'Finding and following the approved repair for a structure in the manufacturer''s structural repair manual. A person who has it identifies the part and zone, reads the allowable damage limits and picks the right repair scheme.',
-  how_learned = 'FAA Airframe and Powerplant training; on the job.', tools = ARRAY['Structural repair manuals', 'aircraft effectivity data']
+  how_learned = 'FAA Airframe and Powerplant training; on the job.', tools = ARRAY['Structural repair manuals', 'Aircraft effectivity data']
   WHERE name = 'Structural Repair Manual Use';
 UPDATE skills SET category = 'Composites', description = 'Driving absorbed moisture out of composite structure before a heated repair, so steam does not blister the laminate or weaken the bond. A person who has it applies low heat under vacuum for the specified time and confirms the part is dry.',
-  how_learned = 'Composite repair courses and on the job.', tools = ARRAY['Heat blankets and hot bonders', 'vacuum bags', 'moisture meters']
+  how_learned = 'Composite repair courses and on the job.', tools = ARRAY['Heat blankets and hot bonders', 'Vacuum bags', 'Moisture meters']
   WHERE name = 'Composite Drying Before Repair';
 UPDATE skills SET category = 'Composites', description = 'Repairing a damaged laminate by sanding the surrounding plies to a shallow taper or a series of steps and laying in matching replacement plies. A person who has it holds the taper ratio, matches ply direction and cures the patch with a hot bonder.',
-  how_learned = 'Composite repair courses for aircraft mechanics; on the job under an experienced repair technician.', tools = ARRAY['Die grinders and sanders', 'hot bonders and heat blankets', 'repair plies and adhesive', 'vacuum bags']
+  how_learned = 'Composite repair courses for aircraft mechanics; on the job under an experienced repair technician.', tools = ARRAY['Die grinders and sanders', 'Hot bonders and heat blankets', 'Repair plies and adhesive', 'Vacuum bags']
   WHERE name = 'Scarf and Step Repair';
 UPDATE skills SET category = 'Composites', description = 'Repairing composite structure with a fastened metal or composite doubler. A person who has it lays out the fastener pattern, drills composite without delamination and installs fasteners wet with sealant.',
-  how_learned = 'FAA Airframe and Powerplant training plus composite repair courses.', tools = ARRAY['Repair doublers', 'drill guides', 'composite-rated fasteners', 'sealant']
+  how_learned = 'FAA Airframe and Powerplant training plus composite repair courses.', tools = ARRAY['Repair doublers', 'Drill guides', 'Composite-rated fasteners', 'Sealant']
   WHERE name = 'Bolted Composite Repair';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Hardening steel by heating it above its critical temperature, quenching it, then tempering to the hardness wanted. A person who has it loads to limit distortion, holds quench delay and verifies hardness.',
-  how_learned = 'On the job in a heat treat shop; metallurgy courses at community colleges.', tools = ARRAY['Batch and continuous furnaces', 'oil, polymer and gas quench', 'tempering furnaces', 'hardness testers']
+  how_learned = 'On the job in a heat treat shop; metallurgy courses at community colleges.', tools = ARRAY['Batch and continuous furnaces', 'Oil, polymer and gas quench', 'Tempering furnaces', 'Hardness testers']
   WHERE name = 'Quench and Temper Hardening';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Adding carbon to the surface of low-carbon steel in a furnace atmosphere so that, once quenched, it has a hard case over a tough core. A person who has it controls carbon potential, time and temperature and checks case depth.',
-  how_learned = 'On the job in a heat treat shop.', tools = ARRAY['Atmosphere and vacuum carburizing furnaces', 'oxygen probes and dew point analyzers', 'test coupons']
+  how_learned = 'On the job in a heat treat shop.', tools = ARRAY['Atmosphere and vacuum carburizing furnaces', 'Oxygen probes and dew point analyzers', 'Test coupons']
   WHERE name = 'Carburizing';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Hardening a steel surface with nitrogen at a temperature low enough to avoid distortion. A person who has it prepares and masks parts, runs the gas or plasma cycle and checks case depth and white layer.',
-  how_learned = 'On the job in a heat treat shop.', tools = ARRAY['Gas and plasma nitriding furnaces', 'ammonia dissociation meters', 'microhardness testers']
+  how_learned = 'On the job in a heat treat shop.', tools = ARRAY['Gas and plasma nitriding furnaces', 'Ammonia dissociation meters', 'Microhardness testers']
   WHERE name = 'Nitriding';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Softening metal or refining its grain by heating and controlled cooling, so it can be formed or machined. A person who has it picks the cycle for the alloy and cools at the rate it needs.',
-  how_learned = 'On the job in a heat treat shop; metallurgy courses.', tools = ARRAY['Furnaces with atmosphere control', 'load thermocouples', 'hardness testers']
+  how_learned = 'On the job in a heat treat shop; metallurgy courses.', tools = ARRAY['Furnaces with atmosphere control', 'Load thermocouples', 'Hardness testers']
   WHERE name = 'Annealing and Normalizing';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Heating aluminum, titanium or nickel alloys to dissolve their hardening elements, then quenching fast enough to keep them dissolved. A person who has it holds soak time and the maximum quench delay.',
-  how_learned = 'On the job in a heat treat shop.', tools = ARRAY['Drop-bottom and air furnaces', 'water and glycol quench tanks', 'load thermocouples']
+  how_learned = 'On the job in a heat treat shop.', tools = ARRAY['Drop-bottom and air furnaces', 'Water and glycol quench tanks', 'Load thermocouples']
   WHERE name = 'Solution Heat Treatment';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Aging a solution-treated alloy at a controlled temperature and time to bring it to its specified temper, such as T6. A person who has it loads for even heating and verifies the result by hardness and conductivity.',
-  how_learned = 'On the job in a heat treat shop.', tools = ARRAY['Aging ovens', 'recorders', 'hardness and conductivity testers']
+  how_learned = 'On the job in a heat treat shop.', tools = ARRAY['Aging ovens', 'Recorders', 'Hardness and conductivity testers']
   WHERE name = 'Precipitation Hardening';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Heating a welded, machined or formed part below its transformation temperature and cooling it slowly to remove locked-in stress. A person who has it supports the part so it does not sag and follows the specified cycle.',
-  how_learned = 'On the job in a heat treat or fabrication shop.', tools = ARRAY['Furnaces', 'thermocouples attached to the part', 'recorders']
+  how_learned = 'On the job in a heat treat or fabrication shop.', tools = ARRAY['Furnaces', 'Thermocouples attached to the part', 'Recorders']
   WHERE name = 'Stress Relieving';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Heat treating in a vacuum furnace so parts come out clean and bright. A person who has it loads fixtures, sets vacuum level and partial pressure, runs gas quench and leak-checks the furnace.',
-  how_learned = 'On the job in a heat treat shop; furnace makers'' training.', tools = ARRAY['Vacuum furnaces', 'diffusion and mechanical pumps', 'gas quench systems', 'graphite fixtures']
+  how_learned = 'On the job in a heat treat shop; furnace makers'' training.', tools = ARRAY['Vacuum furnaces', 'Diffusion and mechanical pumps', 'Gas quench systems', 'Graphite fixtures']
   WHERE name = 'Vacuum Heat Treatment';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Bringing aluminum castings to temper, such as T5, T6 or T7, without distorting thin sections. A person who has it racks castings for support and airflow and controls quench.',
-  how_learned = 'On the job at a casting plant.', tools = ARRAY['Continuous and batch furnaces', 'quench systems', 'racks', 'Brinell testers']
+  how_learned = 'On the job at a casting plant.', tools = ARRAY['Continuous and batch furnaces', 'Quench systems', 'Racks', 'Brinell testers']
   WHERE name = 'Aluminum Casting Heat Treatment';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Proving that a furnace''s temperature measurement is right, as AMS 2750 requires: sensor selection and replacement, instrument calibration and system accuracy tests. A person who has it runs the tests on schedule and keeps the records an audit will ask for.',
-  how_learned = 'On the job in a heat treat shop that holds aerospace or automotive approvals; pyrometry courses from industry trainers.', tools = ARRAY['Calibrated test thermocouples and field test instruments', 'furnace recorders', 'AMS 2750']
+  how_learned = 'On the job in a heat treat shop that holds aerospace or automotive approvals; pyrometry courses from industry trainers.', tools = ARRAY['Calibrated test thermocouples and field test instruments', 'Furnace recorders', 'AMS 2750']
   WHERE name = 'Pyrometry';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Mapping the temperature across a furnace''s or autoclave''s working zone with a rack of test thermocouples, to show every point stays within the tolerance of its class. A person who has it sets up the survey, runs it and reports it to AMS 2750.',
-  how_learned = 'On the job in heat treat and composites; pyrometry courses.', tools = ARRAY['Survey racks and thermocouples', 'multi-channel data loggers', 'AMS 2750']
+  how_learned = 'On the job in heat treat and composites; pyrometry courses.', tools = ARRAY['Survey racks and thermocouples', 'Multi-channel data loggers', 'AMS 2750']
   WHERE name = 'Temperature Uniformity Survey';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Measuring hardness by the depth an indenter sinks under load. A person who has it picks the scale for the material, prepares and supports the part, verifies the tester on test blocks each day and reports a valid reading.',
-  how_learned = 'Machining, metallurgy and quality programs; on the job. The method is ASTM E18.', tools = ARRAY['Rockwell testers', 'diamond and ball indenters', 'test blocks', 'anvils']
+  how_learned = 'Machining, metallurgy and quality programs; on the job. The method is ASTM E18.', tools = ARRAY['Rockwell testers', 'Diamond and ball indenters', 'Test blocks', 'Anvils']
   WHERE name = 'Rockwell Hardness Testing';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Measuring the hardness of castings and forgings by pressing a ball into the surface and measuring the dent. A person who has it prepares a flat spot, applies the load for the set time and reads the diameter with a scope.',
-  how_learned = 'On the job in foundries, forges and heat treat shops. The method is ASTM E10.', tools = ARRAY['Brinell testers', '10 mm carbide ball', 'measuring microscope', 'test blocks']
+  how_learned = 'On the job in foundries, forges and heat treat shops. The method is ASTM E10.', tools = ARRAY['Brinell testers', '10 mm carbide ball', 'Measuring microscope', 'Test blocks']
   WHERE name = 'Brinell Hardness Testing';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Growing a protective oxide coating on aluminum in an acid bath under current. A person who has it racks parts for good contact, runs the clean, etch, anodize, dye and seal steps and checks coating thickness.',
-  how_learned = 'On the job in a finishing shop. Aerospace work is done to MIL-A-8625 (now MIL-PRF-8625), which defines the coating types.', tools = ARRAY['Process tanks and rectifiers', 'titanium and aluminum racks', 'bath titration kits', 'eddy current thickness gauges']
+  how_learned = 'On the job in a finishing shop. Aerospace work is done to MIL-A-8625 (now MIL-PRF-8625), which defines the coating types.', tools = ARRAY['Process tanks and rectifiers', 'Titanium and aluminum racks', 'Bath titration kits', 'Eddy current thickness gauges']
   WHERE name = 'Anodizing';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Building a thick, wear-resistant oxide coating on aluminum in a chilled bath at higher voltage (MIL-A-8625 Type III). A person who has it allows for the growth in size, prevents burning and masks surfaces that must stay bare.',
-  how_learned = 'On the job in a finishing shop after general anodizing experience.', tools = ARRAY['Chilled sulfuric acid tanks', 'high-voltage rectifiers', 'masking lacquers and plugs', 'thickness gauges']
+  how_learned = 'On the job in a finishing shop after general anodizing experience.', tools = ARRAY['Chilled sulfuric acid tanks', 'High-voltage rectifiers', 'Masking lacquers and plugs', 'Thickness gauges']
   WHERE name = 'Hard Anodizing';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Treating aluminum with a chemical film that resists corrosion, holds paint and still conducts. A person who has it cleans and deoxidizes the part, controls immersion time and handles the fresh coating gently.',
-  how_learned = 'On the job in a finishing shop. The coating is specified by MIL-DTL-5541.', tools = ARRAY['Immersion tanks', 'brush and pen applicators for touch-up', 'bath test kits']
+  how_learned = 'On the job in a finishing shop. The coating is specified by MIL-DTL-5541.', tools = ARRAY['Immersion tanks', 'Brush and pen applicators for touch-up', 'Bath test kits']
   WHERE name = 'Chemical Conversion Coating';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Removing free iron from stainless steel in nitric or citric acid so its protective oxide forms fully. A person who has it picks the bath for the grade, controls time and temperature and tests the result.',
-  how_learned = 'On the job in a finishing shop. The process is specified by ASTM A967 and AMS 2700.', tools = ARRAY['Acid tanks', 'rinse tanks', 'copper sulfate and water immersion test kits']
+  how_learned = 'On the job in a finishing shop. The process is specified by ASTM A967 and AMS 2700.', tools = ARRAY['Acid tanks', 'Rinse tanks', 'Copper sulfate and water immersion test kits']
   WHERE name = 'Passivation of Stainless Steel';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Depositing a metal coating from a solution with current, on racks or in barrels. A person who has it cleans and activates the surface, sets current for the area being plated, controls the bath and bakes high-strength steel afterwards to prevent hydrogen embrittlement.',
-  how_learned = 'On the job in a plating shop. The National Association for Surface Finishing teaches a Certified Electroplater-Finisher course.', tools = ARRAY['Plating tanks, racks and barrels', 'rectifiers', 'Hull cells', 'thickness testers', 'bake ovens']
+  how_learned = 'On the job in a plating shop. The National Association for Surface Finishing teaches a Certified Electroplater-Finisher course.', tools = ARRAY['Plating tanks, racks and barrels', 'Rectifiers', 'Hull cells', 'Thickness testers', 'Bake ovens']
   WHERE name = 'Electroplating';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Plating a uniform nickel-phosphorus coating by chemical reaction, without current, so recesses and bores are covered evenly. A person who has it holds bath temperature, pH and chemistry and controls thickness by time.',
-  how_learned = 'On the job in a plating shop.', tools = ARRAY['Heated plating tanks with filtration', 'bath analysis and replenishment', 'thickness testers']
+  how_learned = 'On the job in a plating shop.', tools = ARRAY['Heated plating tanks with filtration', 'Bath analysis and replenishment', 'Thickness testers']
   WHERE name = 'Electroless Nickel Plating';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Plating thick, hard chromium on wear surfaces such as hydraulic rods, usually followed by grinding to size. A person who has it masks the part, builds conforming anodes for even thickness and bakes for embrittlement relief.',
-  how_learned = 'On the job in a plating shop.', tools = ARRAY['Chromic acid tanks with fume control', 'conforming anodes', 'masking', 'rectifiers']
+  how_learned = 'On the job in a plating shop.', tools = ARRAY['Chromic acid tanks with fume control', 'Conforming anodes', 'Masking', 'Rectifiers']
   WHERE name = 'Hard Chrome Plating';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Smoothing and brightening stainless steel by dissolving a thin surface layer in an electrolytic bath. A person who has it racks for even current, sets time and current density and checks finish.',
-  how_learned = 'On the job in a finishing shop.', tools = ARRAY['Electropolishing tanks and rectifiers', 'racks', 'surface roughness testers']
+  how_learned = 'On the job in a finishing shop.', tools = ARRAY['Electropolishing tanks and rectifiers', 'Racks', 'Surface roughness testers']
   WHERE name = 'Electropolishing';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Running the cleaning and conversion stages that prepare a car body or metal part for paint. A person who has it keeps each stage''s temperature, concentration and spray pressures in range by titration and adjustment.',
-  how_learned = 'On the job in a paint shop; chemical suppliers train operators.', tools = ARRAY['Spray and immersion washers', 'titration kits', 'conductivity and pH meters']
+  how_learned = 'On the job in a paint shop; chemical suppliers train operators.', tools = ARRAY['Spray and immersion washers', 'Titration kits', 'Conductivity and pH meters']
   WHERE name = 'Phosphate Pretreatment';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Running an electrocoat tank, where a charged body is dipped and primer deposits evenly over every surface, inside and out. A person who has it holds bath solids, pH, conductivity and voltage, keeps the rinses clean and checks film build after bake.',
-  how_learned = 'On the job in a paint shop; paint suppliers train operators.', tools = ARRAY['E-coat tanks and rectifiers', 'ultrafiltration', 'anolyte systems', 'bake ovens', 'film thickness gauges']
+  how_learned = 'On the job in a paint shop; paint suppliers train operators.', tools = ARRAY['E-coat tanks and rectifiers', 'Ultrafiltration', 'Anolyte systems', 'Bake ovens', 'Film thickness gauges']
   WHERE name = 'E-Coat Operation';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Applying sealer to body seams and underbody coating before paint, by hand gun, brush or robot. A person who has it covers each seam fully without skips and tools the bead so it does not show.',
-  how_learned = 'On the job in an automotive paint shop.', tools = ARRAY['Sealer pumps and guns', 'robots', 'brushes and spatulas', 'seam maps']
+  how_learned = 'On the job in an automotive paint shop.', tools = ARRAY['Sealer pumps and guns', 'Robots', 'Brushes and spatulas', 'Seam maps']
   WHERE name = 'Seam Sealer Application';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Applying primer, color and clear coat with a spray gun. A person who has it mixes and thins to viscosity, sets fluid, fan and air pressure and lays even, wet coats without runs, dry spray or missed areas.',
-  how_learned = 'Auto body and industrial coatings programs; on the job.', tools = ARRAY['HVLP and electrostatic spray guns', 'viscosity cups', 'paint mixing rooms', 'spray booths']
+  how_learned = 'Auto body and industrial coatings programs; on the job.', tools = ARRAY['HVLP and electrostatic spray guns', 'Viscosity cups', 'Paint mixing rooms', 'Spray booths']
   WHERE name = 'Spray Gun Painting';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Running the robots and rotary bell atomizers that paint car bodies. A person who has it adjusts flow, bell speed, shaping air and voltage by zone, keeps applicators clean and corrects film build and appearance from measurements.',
-  how_learned = 'On the job in an automotive paint shop; robot and applicator makers'' training.', tools = ARRAY['Paint robots', 'rotary bell atomizers', 'color change systems', 'film thickness measurement']
+  how_learned = 'On the job in an automotive paint shop; robot and applicator makers'' training.', tools = ARRAY['Paint robots', 'Rotary bell atomizers', 'Color change systems', 'Film thickness measurement']
   WHERE name = 'Robotic Paint Application';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Covering what must not be painted and leaving a clean edge. A person who has it picks tape and plugs for the paint and bake temperature and removes masking at the right time.',
-  how_learned = 'On the job in a paint shop.', tools = ARRAY['Masking tapes and films', 'plugs and caps', 'fine-line tape', 'knives']
+  how_learned = 'On the job in a paint shop.', tools = ARRAY['Masking tapes and films', 'Plugs and caps', 'Fine-line tape', 'Knives']
   WHERE name = 'Paint Masking';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Taking a surface back to clean metal or sound substrate before coating, by abrasive blasting, sanding or chemical stripping. A person who has it reaches the cleanliness and surface profile the coating needs without damaging the part.',
-  how_learned = 'On the job; industrial coatings programs. The Association for Materials Protection and Performance publishes the surface preparation standards.', tools = ARRAY['Abrasive blast cabinets and pots', 'sanders', 'chemical strippers', 'surface profile gauges']
+  how_learned = 'On the job; industrial coatings programs. The Association for Materials Protection and Performance publishes the surface preparation standards.', tools = ARRAY['Abrasive blast cabinets and pots', 'Sanders', 'Chemical strippers', 'Surface profile gauges']
   WHERE name = 'Coating Removal and Surface Preparation';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Judging and adjusting color so a part matches its standard under more than one light. A person who has it reads spectrophotometer values, compares against master panels and tints or adjusts application to correct a shift.',
-  how_learned = 'On the job in a paint shop or paint lab.', tools = ARRAY['Spectrophotometers', 'light booths', 'master color panels', 'tinting systems']
+  how_learned = 'On the job in a paint shop or paint lab.', tools = ARRAY['Spectrophotometers', 'Light booths', 'Master color panels', 'Tinting systems']
   WHERE name = 'Color Matching';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Recognizing paint defects and what causes them: dirt, craters, runs and sags, orange peel, solvent pop, mottle and thin film. A person who has it marks each defect, classes it and feeds the pattern back to the process.',
-  how_learned = 'On the job in a paint shop.', tools = ARRAY['Inspection light tunnels', 'automated defect detection systems', 'defect standards']
+  how_learned = 'On the job in a paint shop.', tools = ARRAY['Inspection light tunnels', 'Automated defect detection systems', 'Defect standards']
   WHERE name = 'Paint Defect Identification';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Removing a paint defect from a finished surface by sanding and polishing, or by spot repair when it is too deep. A person who has it takes off no more clear coat than needed and leaves no haze or swirl.',
-  how_learned = 'On the job in a paint shop; auto body programs.', tools = ARRAY['Denibbing tools', 'fine abrasives', 'rotary and orbital polishers', 'touch-up guns']
+  how_learned = 'On the job in a paint shop; auto body programs.', tools = ARRAY['Denibbing tools', 'Fine abrasives', 'Rotary and orbital polishers', 'Touch-up guns']
   WHERE name = 'Paint Defect Repair';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Measuring wet and dry coating thickness. A person who has it verifies the gauge on shims, takes readings in the pattern the specification calls for and knows the acceptable range for each coat.',
-  how_learned = 'On the job in a paint shop; coating inspector courses.', tools = ARRAY['Magnetic and eddy current dry film gauges', 'wet film combs', 'calibration shims']
+  how_learned = 'On the job in a paint shop; coating inspector courses.', tools = ARRAY['Magnetic and eddy current dry film gauges', 'Wet film combs', 'Calibration shims']
   WHERE name = 'Paint Film Thickness Measurement';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Measuring how a painted surface looks: gloss, orange peel and distinctness of image. A person who has it takes readings at set locations and ties a change to film build, flow or bake.',
-  how_learned = 'On the job in an automotive paint shop.', tools = ARRAY['Gloss meters', 'wave-scan orange peel meters']
+  how_learned = 'On the job in an automotive paint shop.', tools = ARRAY['Gloss meters', 'Wave-scan orange peel meters']
   WHERE name = 'Paint Appearance Measurement';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Proving a coating is bonded to its surface by cross-hatch tape test or pull-off test. A person who has it makes the cuts or bonds the dolly correctly and rates the result against the standard.',
-  how_learned = 'On the job in paint and coating work. The cross-hatch tape test is ASTM D3359.', tools = ARRAY['Cross-hatch cutters and tape', 'pull-off adhesion testers']
+  how_learned = 'On the job in paint and coating work. The cross-hatch tape test is ASTM D3359.', tools = ARRAY['Cross-hatch cutters and tape', 'Pull-off adhesion testers']
   WHERE name = 'Coating Adhesion Testing';
 UPDATE skills SET category = 'Finishing & Heat Treatment', description = 'Applying radar-absorbing coatings and materials to aircraft surfaces. A person who has it controls thickness closely, since performance depends on it, and treats gaps, edges and fasteners as the specification requires.',
-  how_learned = 'On the job at a military aircraft plant, with a security clearance, after industrial painting experience.', tools = ARRAY['Spray guns and robots', 'thickness measurement', 'gap fillers and tapes']
+  how_learned = 'On the job at a military aircraft plant, with a security clearance, after industrial painting experience.', tools = ARRAY['Spray guns and robots', 'Thickness measurement', 'Gap fillers and tapes']
   WHERE name = 'Low-Observable Coating Application';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Moving wafers between carriers and tools without touching, scratching or contaminating them. A person who has it loads pods on a tool, uses a vacuum wand only when allowed and knows what to do with a dropped or broken wafer.',
-  how_learned = 'Taught in the first days at a fab and checked before working alone; semiconductor technician programs practice it.', tools = ARRAY['Front-opening unified pods (FOUPs) and cassettes', 'load ports', 'vacuum wands', 'automated material handling']
+  how_learned = 'Taught in the first days at a fab and checked before working alone; semiconductor technician programs practice it.', tools = ARRAY['Front-opening unified pods (FOUPs) and cassettes', 'Load ports', 'Vacuum wands', 'Automated material handling']
   WHERE name = 'Wafer Handling';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Printing a circuit pattern onto a wafer: coat with photoresist, expose through a mask on a scanner, develop. A person who has it runs lots through the litho cell, checks the tool''s focus and dose monitors and sends wafers on for measurement.',
-  how_learned = 'On the job through tool certification; semiconductor manufacturing programs at community colleges teach the process.', tools = ARRAY['Steppers and scanners from ASML, Nikon and Canon', 'coat and develop tracks', 'reticles']
+  how_learned = 'On the job through tool certification; semiconductor manufacturing programs at community colleges teach the process.', tools = ARRAY['Steppers and scanners from ASML, Nikon and Canon', 'Coat and develop tracks', 'Reticles']
   WHERE name = 'Photolithography';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Spinning a uniform film of photoresist onto a wafer on a track: prime, dispense, spin, edge bead removal and soft bake. A person who has it keeps thickness on target and finds the cause of streaks, comets and bubbles.',
-  how_learned = 'On the job in a litho area.', tools = ARRAY['Coater tracks', 'resist pumps and filters', 'hot plates', 'film thickness tools']
+  how_learned = 'On the job in a litho area.', tools = ARRAY['Coater tracks', 'Resist pumps and filters', 'Hot plates', 'Film thickness tools']
   WHERE name = 'Photoresist Coating';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Baking an exposed wafer and washing away the resist that should not remain. A person who has it holds post-exposure bake temperature and develop time, which set the printed line width, and recognizes residue and pattern collapse.',
-  how_learned = 'On the job in a litho area.', tools = ARRAY['Developer tracks', 'hot plates', 'TMAH developer', 'inspection microscopes']
+  how_learned = 'On the job in a litho area.', tools = ARRAY['Developer tracks', 'Hot plates', 'TMAH developer', 'Inspection microscopes']
   WHERE name = 'Photoresist Developing';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Removing photoresist once it has done its job, by oxygen plasma or wet chemistry, without attacking the layers beneath. A person who has it picks the method for an implanted or etched resist and checks for residue.',
-  how_learned = 'On the job in etch or wet process areas.', tools = ARRAY['Plasma ashers', 'sulfuric-peroxide and solvent strip tools', 'inspection microscopes']
+  how_learned = 'On the job in etch or wet process areas.', tools = ARRAY['Plasma ashers', 'Sulfuric-peroxide and solvent strip tools', 'Inspection microscopes']
   WHERE name = 'Photoresist Stripping';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Exposing wafers on a 193 nm scanner that keeps a film of water between lens and wafer to print finer features. A person who has it watches for immersion-specific defects such as water marks and bubbles and keeps the wafer edge and topcoat in control.',
-  how_learned = 'On the job as an experienced litho technician or engineer; scanner makers'' training.', tools = ARRAY['ArF immersion scanners', 'topcoat or topcoat-free resists', 'defect inspection tools']
+  how_learned = 'On the job as an experienced litho technician or engineer; scanner makers'' training.', tools = ARRAY['ArF immersion scanners', 'Topcoat or topcoat-free resists', 'Defect inspection tools']
   WHERE name = 'Immersion Lithography';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Exposing wafers with 13.5 nm extreme ultraviolet light, in vacuum, from reflective masks. A person who has it monitors dose, focus and source power, handles EUV reticles and pellicles and tracks the random defects that EUV is prone to.',
   how_learned = 'On the job at a leading-edge fab; ASML trains customers'' engineers and its own field service engineers.', tools = ARRAY['ASML NXE and EXE scanners', 'EUV reticles and pods', 'CD-SEM and defect inspection tools']
   WHERE name = 'EUV Lithography';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Exposing a wafer with stepped focus and dose, measuring the result and finding the settings that give the widest process window. A person who has it reads Bossung curves and sets the scanner''s best focus and dose.',
-  how_learned = 'On the job as a litho process technician or engineer.', tools = ARRAY['Scanners', 'CD-SEM', 'process window analysis software']
+  how_learned = 'On the job as a litho process technician or engineer.', tools = ARRAY['Scanners', 'CD-SEM', 'Process window analysis software']
   WHERE name = 'Focus-Exposure Matrix Analysis';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Adjusting mask shapes in software so that what prints on the wafer matches the design despite diffraction. A person who has it builds and calibrates the model from wafer measurements and verifies the corrected layout.',
   how_learned = 'Engineering degree and on-the-job training in a fab or mask data group.', tools = ARRAY['Siemens Calibre', 'Synopsys Proteus', 'CD-SEM calibration data']
   WHERE name = 'Optical Proximity Correction';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Measuring the width of the smallest printed and etched features and comparing it with target. A person who has it picks the sites, runs the measurement and reads the trend across a wafer and lot.',
-  how_learned = 'On the job in a metrology area.', tools = ARRAY['CD-SEM', 'optical scatterometry tools', 'SPC charts']
+  how_learned = 'On the job in a metrology area.', tools = ARRAY['CD-SEM', 'Optical scatterometry tools', 'SPC charts']
   WHERE name = 'Critical Dimension Measurement';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Running the scanning electron microscope that measures line widths in production. A person who has it writes and edits measurement recipes, sets pattern recognition and focus and avoids charging and resist shrink that distort the reading.',
-  how_learned = 'On the job; tool makers'' training.', tools = ARRAY['CD-SEMs from Hitachi and Applied Materials', 'recipe editors']
+  how_learned = 'On the job; tool makers'' training.', tools = ARRAY['CD-SEMs from Hitachi and Applied Materials', 'Recipe editors']
   WHERE name = 'CD-SEM Operation';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Measuring how well one patterned layer lines up with the layer below. A person who has it runs overlay targets, reads the error map and feeds corrections back to the scanner.',
-  how_learned = 'On the job in a litho or metrology area.', tools = ARRAY['Overlay tools such as KLA Archer and ASML YieldStar', 'scanner correction software']
+  how_learned = 'On the job in a litho or metrology area.', tools = ARRAY['Overlay tools such as KLA Archer and ASML YieldStar', 'Scanner correction software']
   WHERE name = 'Overlay Measurement';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Measuring the thickness and optical constants of thin films from the way they change polarized light. A person who has it picks the film model, runs the map and judges whether the fit can be trusted.',
-  how_learned = 'On the job in a fab metrology or thin films area.', tools = ARRAY['Spectroscopic ellipsometers from KLA, Onto and J.A. Woollam', 'film stack models']
+  how_learned = 'On the job in a fab metrology or thin films area.', tools = ARRAY['Spectroscopic ellipsometers from KLA, Onto and J.A. Woollam', 'Film stack models']
   WHERE name = 'Ellipsometry';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Measuring sheet resistance of a doped or metal layer with four in-line probes. A person who has it maps a monitor wafer and reads uniformity as a check on implant dose, anneal or film thickness.',
-  how_learned = 'On the job in implant, diffusion and metals areas.', tools = ARRAY['Four-point probe mappers', 'monitor wafers']
+  how_learned = 'On the job in implant, diffusion and metals areas.', tools = ARRAY['Four-point probe mappers', 'Monitor wafers']
   WHERE name = 'Four-Point Probe Measurement';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Finding the stress in a deposited film from how much it bows the wafer. A person who has it measures curvature before and after deposition and reports tensile or compressive stress.',
-  how_learned = 'On the job in thin films and metrology.', tools = ARRAY['Wafer bow and stress gauges', 'film thickness data']
+  how_learned = 'On the job in thin films and metrology.', tools = ARRAY['Wafer bow and stress gauges', 'Film thickness data']
   WHERE name = 'Thin Film Stress Measurement';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Counting particles in cleanroom air, in process liquids and on monitor wafers run through a tool. A person who has it runs the checks on schedule and holds a tool that adds too many.',
-  how_learned = 'On the job in a fab.', tools = ARRAY['Unpatterned wafer surface scanners', 'airborne and liquid particle counters']
+  how_learned = 'On the job in a fab.', tools = ARRAY['Unpatterned wafer surface scanners', 'Airborne and liquid particle counters']
   WHERE name = 'Particle Count Monitoring';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Scanning wafers for particles, scratches and pattern defects at set points in the process flow. A person who has it runs inspection recipes, reads the defect map and holds a lot that exceeds its limit.',
-  how_learned = 'On the job in a defect or yield area.', tools = ARRAY['Brightfield and darkfield inspection tools from KLA and Applied Materials', 'defect management software']
+  how_learned = 'On the job in a defect or yield area.', tools = ARRAY['Brightfield and darkfield inspection tools from KLA and Applied Materials', 'Defect management software']
   WHERE name = 'Wafer Defect Inspection';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Revisiting defects found by inspection in an electron microscope to see what each one is. A person who has it drives to the coordinates, images the defect and takes an elemental spectrum when the source is unclear.',
-  how_learned = 'On the job in a defect area.', tools = ARRAY['Defect review SEMs', 'energy-dispersive X-ray analysis']
+  how_learned = 'On the job in a defect area.', tools = ARRAY['Defect review SEMs', 'Energy-dispersive X-ray analysis']
   WHERE name = 'Defect SEM Review';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Sorting defects into types, such as particle, scratch, residue, bridge or void, by hand or by training an automatic classifier. A person who has it keeps classes consistent enough that a rise in one type points at a tool.',
-  how_learned = 'On the job in a defect or yield area.', tools = ARRAY['Review SEM images', 'automatic defect classification software', 'defect libraries']
+  how_learned = 'On the job in a defect or yield area.', tools = ARRAY['Review SEM images', 'Automatic defect classification software', 'Defect libraries']
   WHERE name = 'Defect Classification';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Reading the pattern of failing dies or defects across a wafer, such as edge rings, scratches, clusters and repeaters, and tracing it to a process step or tool. A person who has it stacks maps across lots and compares tool histories.',
-  how_learned = 'On the job as a yield or test technician or engineer.', tools = ARRAY['Yield management software', 'bin maps from probe', 'tool and chamber history']
+  how_learned = 'On the job as a yield or test technician or engineer.', tools = ARRAY['Yield management software', 'Bin maps from probe', 'Tool and chamber history']
   WHERE name = 'Wafer Map Analysis';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Depositing thin films on wafers from reacting gases. A person who has it runs deposition recipes, checks thickness and uniformity on monitors and recognizes a chamber that needs cleaning or seasoning.',
-  how_learned = 'On the job through tool certification; semiconductor manufacturing programs teach the principles.', tools = ARRAY['CVD tools from Applied Materials, Lam Research and Tokyo Electron', 'gas cabinets', 'film thickness tools']
+  how_learned = 'On the job through tool certification; semiconductor manufacturing programs teach the principles.', tools = ARRAY['CVD tools from Applied Materials, Lam Research and Tokyo Electron', 'Gas cabinets', 'Film thickness tools']
   WHERE name = 'Chemical Vapor Deposition';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Depositing polysilicon, nitride and oxide films on batches of wafers in a low-pressure furnace tube. A person who has it loads boats, runs the recipe and checks thickness across the boat and from run to run.',
-  how_learned = 'On the job in a diffusion area.', tools = ARRAY['Vertical and horizontal furnaces', 'quartz boats', 'ellipsometers']
+  how_learned = 'On the job in a diffusion area.', tools = ARRAY['Vertical and horizontal furnaces', 'Quartz boats', 'Ellipsometers']
   WHERE name = 'LPCVD';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Depositing dielectric films with a plasma so the wafer can stay at a lower temperature. A person who has it runs deposition and chamber clean recipes and tracks thickness, uniformity, stress and particles.',
-  how_learned = 'On the job in a thin films area.', tools = ARRAY['PECVD chambers', 'RF generators and matches', 'film thickness and stress tools']
+  how_learned = 'On the job in a thin films area.', tools = ARRAY['PECVD chambers', 'RF generators and matches', 'Film thickness and stress tools']
   WHERE name = 'PECVD';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Building a film one atomic layer at a time by alternating precursor pulses and purges. A person who has it runs ALD recipes, keeps precursor delivery stable and verifies thickness to a few angstroms.',
-  how_learned = 'On the job in a thin films area.', tools = ARRAY['ALD reactors', 'precursor ampoules and delivery lines', 'ellipsometers']
+  how_learned = 'On the job in a thin films area.', tools = ARRAY['ALD reactors', 'Precursor ampoules and delivery lines', 'Ellipsometers']
   WHERE name = 'Atomic Layer Deposition';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Growing a single-crystal layer of silicon or silicon-germanium on a wafer. A person who has it runs the pre-clean and growth recipes and checks thickness, doping and crystal defects.',
-  how_learned = 'On the job in an epitaxy area.', tools = ARRAY['Epitaxial reactors', 'hydrogen, silane and chlorosilane gas systems', 'four-point probes and film thickness tools']
+  how_learned = 'On the job in an epitaxy area.', tools = ARRAY['Epitaxial reactors', 'Hydrogen, silane and chlorosilane gas systems', 'Four-point probes and film thickness tools']
   WHERE name = 'Epitaxial Growth';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Depositing metal films by knocking atoms off a target with argon plasma. A person who has it runs sputter recipes, tracks target life and checks sheet resistance and uniformity.',
-  how_learned = 'On the job in a metals area.', tools = ARRAY['Sputter systems such as Applied Materials Endura', 'targets and shields', 'four-point probes']
+  how_learned = 'On the job in a metals area.', tools = ARRAY['Sputter systems such as Applied Materials Endura', 'Targets and shields', 'Four-point probes']
   WHERE name = 'PVD Sputtering';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Sputtering the thin barrier and copper seed that line trenches and vias before copper fill. A person who has it tunes for coverage on the sidewalls and bottom of deep features.',
-  how_learned = 'On the job as a metals process technician or engineer.', tools = ARRAY['Ionized PVD chambers', 'tantalum and copper targets', 'cross-section SEM']
+  how_learned = 'On the job as a metals process technician or engineer.', tools = ARRAY['Ionized PVD chambers', 'Tantalum and copper targets', 'Cross-section SEM']
   WHERE name = 'Barrier and Seed Layer Deposition';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Removing material from a wafer with a reactive plasma to transfer the resist pattern into the film below. A person who has it runs etch recipes, checks depth and line width afterwards and keeps the chamber in condition between cleans.',
-  how_learned = 'On the job through tool certification; semiconductor manufacturing programs teach the principles.', tools = ARRAY['Etch tools from Lam Research, Tokyo Electron and Applied Materials', 'fluorine, chlorine and bromine process gases']
+  how_learned = 'On the job through tool certification; semiconductor manufacturing programs teach the principles.', tools = ARRAY['Etch tools from Lam Research, Tokyo Electron and Applied Materials', 'Fluorine, chlorine and bromine process gases']
   WHERE name = 'Plasma Etching';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Plasma etching in which ions are driven straight down at the wafer, giving vertical sidewalls. A person who has it balances pressure, power and gas mix for etch rate, profile and selectivity to the mask.',
-  how_learned = 'On the job in an etch area.', tools = ARRAY['Capacitively coupled etch chambers', 'RF generators', 'endpoint systems']
+  how_learned = 'On the job in an etch area.', tools = ARRAY['Capacitively coupled etch chambers', 'RF generators', 'Endpoint systems']
   WHERE name = 'Reactive Ion Etching';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Etching with a high-density plasma whose density and ion energy are set separately by source and bias power. A person who has it uses that control for deep or highly selective etches.',
-  how_learned = 'On the job as an experienced etch technician or engineer.', tools = ARRAY['ICP etch chambers', 'source and bias RF generators', 'helium backside cooling']
+  how_learned = 'On the job as an experienced etch technician or engineer.', tools = ARRAY['ICP etch chambers', 'Source and bias RF generators', 'Helium backside cooling']
   WHERE name = 'Inductively Coupled Plasma Etching';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Setting up and reading the signal that tells an etch or polish to stop at the right layer. A person who has it picks the wavelength or signal to watch and sets the algorithm so the stop is neither early nor late.',
-  how_learned = 'On the job as an etch or polish technician or engineer.', tools = ARRAY['Optical emission spectrometers', 'laser interferometers', 'motor current and eddy current endpoint on polishers']
+  how_learned = 'On the job as an etch or polish technician or engineer.', tools = ARRAY['Optical emission spectrometers', 'Laser interferometers', 'Motor current and eddy current endpoint on polishers']
   WHERE name = 'Endpoint Detection';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Cleaning and etching wafers in chemical baths or single-wafer spray tools. A person who has it runs the clean sequence, tracks bath life and concentration and handles acids safely.',
-  how_learned = 'On the job in a wet process area.', tools = ARRAY['Wet benches and single-wafer cleaners', 'SC1, SC2, hydrofluoric acid and sulfuric-peroxide chemistries', 'rinse and dry modules']
+  how_learned = 'On the job in a wet process area.', tools = ARRAY['Wet benches and single-wafer cleaners', 'SC1, SC2, hydrofluoric acid and sulfuric-peroxide chemistries', 'Rinse and dry modules']
   WHERE name = 'Wet Bench Processing';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Removing a film in a liquid etchant chosen to attack it and spare what lies beneath. A person who has it controls time, temperature and bath age for the etch rate and checks for undercut.',
-  how_learned = 'On the job in a wet process area.', tools = ARRAY['Buffered oxide etch', 'hot phosphoric acid', 'etch rate monitors']
+  how_learned = 'On the job in a wet process area.', tools = ARRAY['Buffered oxide etch', 'Hot phosphoric acid', 'Etch rate monitors']
   WHERE name = 'Wet Chemical Etching';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Driving dopant ions into a wafer at a set energy and dose. A person who has it runs implant recipes, confirms species, dose and tilt, and works safely around high voltage and toxic source gases.',
-  how_learned = 'On the job through tool certification.', tools = ARRAY['Implanters from Applied Materials and Axcelis', 'ion sources', 'dose monitors']
+  how_learned = 'On the job through tool certification.', tools = ARRAY['Implanters from Applied Materials and Axcelis', 'Ion sources', 'Dose monitors']
   WHERE name = 'Ion Implantation';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Growing silicon dioxide on wafers in a furnace with oxygen or steam. A person who has it loads boats, runs the recipe and checks oxide thickness and uniformity.',
-  how_learned = 'On the job in a diffusion area.', tools = ARRAY['Vertical furnaces', 'quartz boats', 'ellipsometers']
+  how_learned = 'On the job in a diffusion area.', tools = ARRAY['Vertical furnaces', 'Quartz boats', 'Ellipsometers']
   WHERE name = 'Thermal Oxidation';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Heating batches of wafers in a controlled atmosphere to repair implant damage, drive dopants in or densify films. A person who has it runs the recipe and confirms the result on monitor wafers.',
-  how_learned = 'On the job in a diffusion area.', tools = ARRAY['Vertical and horizontal furnaces', 'nitrogen and forming gas', 'four-point probes']
+  how_learned = 'On the job in a diffusion area.', tools = ARRAY['Vertical and horizontal furnaces', 'Nitrogen and forming gas', 'Four-point probes']
   WHERE name = 'Furnace Annealing';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Heating a single wafer for seconds with lamps to activate dopants or form silicides without letting them spread. A person who has it runs spike and soak anneals and keeps the temperature measurement calibrated.',
-  how_learned = 'On the job in an implant or diffusion area.', tools = ARRAY['Lamp-based rapid thermal processors', 'pyrometers', 'sheet resistance monitors']
+  how_learned = 'On the job in an implant or diffusion area.', tools = ARRAY['Lamp-based rapid thermal processors', 'Pyrometers', 'Sheet resistance monitors']
   WHERE name = 'Rapid Thermal Processing';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Polishing a wafer flat with slurry on a rotating pad. A person who has it runs polish recipes, changes pads and conditioners, and checks removal, dishing and scratches.',
-  how_learned = 'On the job through tool certification.', tools = ARRAY['Polishers from Applied Materials and Ebara', 'pads, conditioners and slurry', 'post-polish cleaners', 'film thickness tools']
+  how_learned = 'On the job through tool certification.', tools = ARRAY['Polishers from Applied Materials and Ebara', 'Pads, conditioners and slurry', 'Post-polish cleaners', 'Film thickness tools']
   WHERE name = 'Chemical Mechanical Planarization';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Watching the sensor traces of a process tool, such as pressures, powers, flows and temperatures, to catch a run that drifts from normal. A person who has it sets limits and models, and follows an alarm back to the hardware at fault.',
-  how_learned = 'On the job as an equipment or process engineer.', tools = ARRAY['Fault detection software', 'tool sensor data', 'statistical limits']
+  how_learned = 'On the job as an equipment or process engineer.', tools = ARRAY['Fault detection software', 'Tool sensor data', 'Statistical limits']
   WHERE name = 'Fault Detection and Classification';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Picking dies from a sawn wafer and bonding them to a leadframe or substrate with epoxy, film or solder. A person who has it sets dispense pattern, placement and bond force and checks coverage, tilt and bondline thickness.',
-  how_learned = 'On the job at an assembly and test plant; die bonder makers'' training.', tools = ARRAY['Die bonders from ASMPT, Besi and Kulicke & Soffa', 'dispensers', 'cure ovens', 'shear testers']
+  how_learned = 'On the job at an assembly and test plant; die bonder makers'' training.', tools = ARRAY['Die bonders from ASMPT, Besi and Kulicke & Soffa', 'Dispensers', 'Cure ovens', 'Shear testers']
   WHERE name = 'Die Attach';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Cutting a finished wafer into individual dies. A person who has it mounts the wafer on tape, aligns to the streets, sets blade, speed and water and checks for chipping and cracks.',
-  how_learned = 'On the job at an assembly and test plant.', tools = ARRAY['Dicing saws such as Disco', 'diamond blades', 'dicing tape and frames', 'inspection microscopes']
+  how_learned = 'On the job at an assembly and test plant.', tools = ARRAY['Dicing saws such as Disco', 'Diamond blades', 'Dicing tape and frames', 'Inspection microscopes']
   WHERE name = 'Wafer Dicing';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Connecting a die to its package with fine wire, by ball bonding or wedge bonding. A person who has it sets force, ultrasonic power, time and temperature, programs the loops and checks bonds by pull and shear.',
-  how_learned = 'On the job at an assembly and test plant; bonder makers'' training.', tools = ARRAY['Wire bonders from Kulicke & Soffa and ASMPT', 'capillaries and wedges', 'gold and aluminum wire', 'pull and shear testers']
+  how_learned = 'On the job at an assembly and test plant; bonder makers'' training.', tools = ARRAY['Wire bonders from Kulicke & Soffa and ASMPT', 'Capillaries and wedges', 'Gold and aluminum wire', 'Pull and shear testers']
   WHERE name = 'Wire Bonding';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Ball bonding with copper wire, which is harder than gold and oxidizes as the ball forms. A person who has it runs forming gas at the bond head and tunes the bond to avoid damaging the pad beneath.',
-  how_learned = 'On the job after gold wire bonding experience.', tools = ARRAY['Wire bonders with forming gas kits', 'copper and palladium-coated copper wire', 'pull and shear testers']
+  how_learned = 'On the job after gold wire bonding experience.', tools = ARRAY['Wire bonders with forming gas kits', 'Copper and palladium-coated copper wire', 'Pull and shear testers']
   WHERE name = 'Copper Wire Bonding';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Mounting a die face down so its solder bumps join directly to the substrate. A person who has it sets flux, placement accuracy and the reflow or thermocompression profile and checks for opens and bridges.',
-  how_learned = 'On the job at an advanced packaging plant.', tools = ARRAY['Flip chip bonders', 'reflow ovens', 'X-ray and acoustic microscopes']
+  how_learned = 'On the job at an advanced packaging plant.', tools = ARRAY['Flip chip bonders', 'Reflow ovens', 'X-ray and acoustic microscopes']
   WHERE name = 'Flip Chip Bonding';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Flowing epoxy under a flip chip die to lock the solder joints against stress. A person who has it sets dispense pattern, volume and substrate temperature so the gap fills without voids and the fillet is even.',
-  how_learned = 'On the job at a packaging plant.', tools = ARRAY['Jet and needle dispensers', 'heated stages', 'acoustic microscopes', 'cure ovens']
+  how_learned = 'On the job at a packaging plant.', tools = ARRAY['Jet and needle dispensers', 'Heated stages', 'Acoustic microscopes', 'Cure ovens']
   WHERE name = 'Underfill Dispensing';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Encapsulating bonded dies by forcing heated epoxy mold compound into a mold around them. A person who has it sets temperature, transfer pressure and cure time and checks for voids, wire sweep and incomplete fill.',
-  how_learned = 'On the job at a packaging plant.', tools = ARRAY['Transfer and compression molding presses', 'mold compound', 'X-ray', 'post-mold cure ovens']
+  how_learned = 'On the job at a packaging plant.', tools = ARRAY['Transfer and compression molding presses', 'Mold compound', 'X-ray', 'Post-mold cure ovens']
   WHERE name = 'Transfer Molding';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Checking wire bond and die attach strength by pulling wires with a hook and shearing balls and dies with a tool. A person who has it reads the force and the failure mode against the limits, which in military and aerospace work come from MIL-STD-883.',
-  how_learned = 'On the job at a packaging plant.', tools = ARRAY['Bond testers such as Nordson Dage', 'pull hooks and shear tools']
+  how_learned = 'On the job at a packaging plant.', tools = ARRAY['Bond testers such as Nordson Dage', 'Pull hooks and shear tools']
   WHERE name = 'Bond Pull and Shear Testing';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Testing every die on a wafer electrically before it is cut. A person who has it loads the probe card, sets up the prober, checks contact and cleans the probe tips, and judges whether a bad map is the wafer or the setup.',
-  how_learned = 'On the job at a fab or test plant.', tools = ARRAY['Wafer probers from Tokyo Electron and Accretech', 'probe cards', 'automatic test equipment']
+  how_learned = 'On the job at a fab or test plant.', tools = ARRAY['Wafer probers from Tokyo Electron and Accretech', 'Probe cards', 'Automatic test equipment']
   WHERE name = 'Wafer Probe Testing';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Testing packaged devices on automatic test equipment and sorting them into bins. A person who has it sets up the handler and load board, runs the program and tells a real failure from a contact or setup problem.',
-  how_learned = 'On the job at a test plant; tester makers'' training for those who write test programs.', tools = ARRAY['Testers from Advantest and Teradyne', 'handlers', 'load boards and sockets']
+  how_learned = 'On the job at a test plant; tester makers'' training for those who write test programs.', tools = ARRAY['Testers from Advantest and Teradyne', 'Handlers', 'Load boards and sockets']
   WHERE name = 'Semiconductor Final Test';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Finding the physical spot in a chip that causes an electrical failure. A person who has it uses light emission, laser stimulation and thermal imaging to localize the fault before the device is cut open.',
-  how_learned = 'Engineering degree and on-the-job training in a failure analysis lab.', tools = ARRAY['Photon emission microscopes', 'laser scanning (OBIRCH) systems', 'lock-in thermography', 'nanoprobers']
+  how_learned = 'Engineering degree and on-the-job training in a failure analysis lab.', tools = ARRAY['Photon emission microscopes', 'Laser scanning (OBIRCH) systems', 'Lock-in thermography', 'Nanoprobers']
   WHERE name = 'Electrical Fault Isolation';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Cutting into a chip at an exact spot with a focused ion beam and imaging the exposed layers. A person who has it protects the surface, mills and polishes the face and takes a clear image.',
   how_learned = 'On the job in a failure analysis or process lab; microscope makers'' training.', tools = ARRAY['Dual-beam FIB-SEM systems']
   WHERE name = 'FIB Cross-Sectioning';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Cutting and thinning a slice of a device until electrons pass through it, for imaging in a transmission electron microscope. A person who has it lifts out a lamella from the right place and thins it without damage.',
-  how_learned = 'On the job in a failure analysis or materials lab.', tools = ARRAY['Dual-beam FIB-SEM systems', 'lift-out needles and grids']
+  how_learned = 'On the job in a failure analysis or materials lab.', tools = ARRAY['Dual-beam FIB-SEM systems', 'Lift-out needles and grids']
   WHERE name = 'TEM Sample Preparation';
 UPDATE skills SET category = 'Semiconductor Processing', description = 'Measuring how dopants and impurities are distributed with depth by sputtering the surface and analyzing the ions that come off. A person who has it sets up the measurement and turns it into a concentration profile using standards.',
-  how_learned = 'Science or engineering degree and on-the-job training in a materials lab.', tools = ARRAY['SIMS instruments', 'implant standards']
+  how_learned = 'Science or engineering degree and on-the-job training in a materials lab.', tools = ARRAY['SIMS instruments', 'Implant standards']
   WHERE name = 'SIMS Analysis';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Mixing active material, binder, conductive additive and solvent into a uniform slurry for coating. A person who has it weighs and adds in order, runs the mixer program and checks viscosity, solids content and fineness before release.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Planetary and continuous mixers', 'viscometers', 'grind gauges', 'solids analyzers']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Planetary and continuous mixers', 'Viscometers', 'Grind gauges', 'Solids analyzers']
   WHERE name = 'Electrode Slurry Mixing';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Coating slurry onto copper or aluminum foil and drying it in a long oven. A person who has it sets the die gap, pump and line speed, and holds coat weight, edges and alignment between the two sides.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Slot-die coaters', 'drying ovens', 'in-line coat weight gauges', 'solvent recovery']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Slot-die coaters', 'Drying ovens', 'In-line coat weight gauges', 'Solvent recovery']
   WHERE name = 'Electrode Coating';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Making an electrode without solvent, by forming dry powder into a film and laminating it to foil. A person who has it controls powder feed, roll gap and temperature so the film is even and holds together.',
-  how_learned = 'On the job at a cell plant that uses the process.', tools = ARRAY['Powder feeders', 'multi-roll calenders and laminators', 'thickness gauges']
+  how_learned = 'On the job at a cell plant that uses the process.', tools = ARRAY['Powder feeders', 'Multi-roll calenders and laminators', 'Thickness gauges']
   WHERE name = 'Dry Electrode Coating';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Pressing a coated electrode between rolls to its target thickness and density. A person who has it sets roll gap, force and temperature and checks thickness, wrinkles and foil stretch.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Calender roll presses', 'thickness gauges', 'web tension control']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Calender roll presses', 'Thickness gauges', 'Web tension control']
   WHERE name = 'Electrode Calendering';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Cutting a wide electrode roll into narrow strips. A person who has it sets up the knives, holds width and watches for burrs and dust that could short a cell.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Slitters with shear knives', 'burr measurement microscopes', 'dust collection']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Slitters with shear knives', 'Burr measurement microscopes', 'Dust collection']
   WHERE name = 'Electrode Slitting';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Unwinding and feeding the thin porous film that keeps the electrodes apart. A person who has it controls tension and tracking and catches wrinkles, tears and contamination.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Unwind stands', 'tension and edge guide controls', 'web inspection cameras']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Unwind stands', 'Tension and edge guide controls', 'Web inspection cameras']
   WHERE name = 'Separator Handling';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Winding anode, separator and cathode into a jelly roll, or stacking them, with exact alignment. A person who has it sets tension and edge guidance, checks overhang and resistance-tests the roll for shorts.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Winding and stacking machines', 'X-ray alignment inspection', 'hipot testers']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Winding and stacking machines', 'X-ray alignment inspection', 'Hipot testers']
   WHERE name = 'Cell Winding';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Placing a wound electrode assembly into its can without scraping or deforming it. A person who has it runs the insertion station and checks for damage and seating depth.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Insertion machines', 'insulators', 'vision inspection']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Insertion machines', 'Insulators', 'Vision inspection']
   WHERE name = 'Jelly Roll Can Insertion';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Welding electrode foils or tabs to the cell''s terminals, by ultrasonic or laser welding. A person who has it sets energy, pressure and amplitude and proves weld strength by pull test.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Ultrasonic welders', 'laser welders', 'pull testers']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Ultrasonic welders', 'Laser welders', 'Pull testers']
   WHERE name = 'Electrode Tab Welding';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Dosing electrolyte into a cell under vacuum in a dry room so it soaks the electrodes fully. A person who has it runs the fill cycle, verifies fill weight and works safely with a flammable, moisture-sensitive liquid.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Vacuum fill machines', 'precision scales', 'dry room or glove box']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Vacuum fill machines', 'Precision scales', 'Dry room or glove box']
   WHERE name = 'Electrolyte Filling';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Closing a filled cell for good, by laser welding the cap or crimping the can. A person who has it sets up the weld or crimp and checks each seal for leaks.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Laser welders', 'crimping stations', 'helium leak testers']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Laser welders', 'Crimping stations', 'Helium leak testers']
   WHERE name = 'Cell Sealing';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Giving a new cell its first controlled charge and discharge cycles, which build the protective layer on the anode. A person who has it loads trays, runs the protocol and pulls cells whose voltage or temperature goes outside limits.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Formation chargers and cyclers', 'tray handling systems', 'fire detection and suppression']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Formation chargers and cyclers', 'Tray handling systems', 'Fire detection and suppression']
   WHERE name = 'Cell Formation';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Releasing the gas a cell produces during formation and resealing it. A person who has it runs the degas step under vacuum and checks the final seal.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Degas and final seal stations', 'vacuum chambers']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Degas and final seal stations', 'Vacuum chambers']
   WHERE name = 'Cell Degassing';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Resting formed cells for days at a set temperature and measuring how far their voltage falls, to find cells with internal shorts. A person who has it manages the storage lots and reads the voltage-drop data.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Temperature-controlled aging rooms', 'open-circuit voltage testers']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Temperature-controlled aging rooms', 'Open-circuit voltage testers']
   WHERE name = 'Cell Aging';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Measuring each cell''s capacity, voltage and internal resistance and sorting cells into matched groups. A person who has it runs the grading equipment and holds the sort limits.',
-  how_learned = 'On the job at a cell plant.', tools = ARRAY['Capacity graders', 'resistance testers', 'sorting machines']
+  how_learned = 'On the job at a cell plant.', tools = ARRAY['Capacity graders', 'Resistance testers', 'Sorting machines']
   WHERE name = 'Cell Grading';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Measuring individual cell voltages in a tray, module or pack and checking the sense wiring that carries them. A person who has it finds an open or crossed sense line and a cell that is out of balance.',
-  how_learned = 'On the job at a cell or pack plant.', tools = ARRAY['Multimeters', 'voltage sense harnesses', 'battery management system test software']
+  how_learned = 'On the job at a cell or pack plant.', tools = ARRAY['Multimeters', 'Voltage sense harnesses', 'Battery management system test software']
   WHERE name = 'Cell Voltage Monitoring';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Building cells into a module: placing cells, adhesive and cooling parts, then welding or bolting the connections. A person who has it works under high-voltage rules and checks polarity at every step.',
-  how_learned = 'On the job at a pack plant, after high-voltage safety qualification.', tools = ARRAY['Cell placement fixtures and robots', 'adhesive dispensers', 'insulated tools']
+  how_learned = 'On the job at a pack plant, after high-voltage safety qualification.', tools = ARRAY['Cell placement fixtures and robots', 'Adhesive dispensers', 'Insulated tools']
   WHERE name = 'Battery Module Assembly';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Installing modules, busbars, cooling, electronics and harnesses into a pack enclosure and closing it. A person who has it follows the torque and connection sequence and records each high-voltage joint.',
-  how_learned = 'On the job at a pack plant, after high-voltage safety qualification.', tools = ARRAY['Lift assists', 'DC torque tools with recording', 'insulated tools']
+  how_learned = 'On the job at a pack plant, after high-voltage safety qualification.', tools = ARRAY['Lift assists', 'DC torque tools with recording', 'Insulated tools']
   WHERE name = 'Battery Pack Assembly';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Fitting the rigid conductors that carry current between cells, modules and pack terminals. A person who has it keeps joint surfaces clean, torques or welds each joint and checks its resistance.',
-  how_learned = 'On the job at a pack or power electronics plant.', tools = ARRAY['Insulated torque tools', 'micro-ohmmeters', 'laser welders']
+  how_learned = 'On the job at a pack or power electronics plant.', tools = ARRAY['Insulated torque tools', 'Micro-ohmmeters', 'Laser welders']
   WHERE name = 'Busbar Installation';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Welding cell terminals to current collectors or busbars, usually by laser. A person who has it keeps the parts clamped tight, checks weld position and depth and proves strength and resistance on samples.',
-  how_learned = 'On the job at a pack plant.', tools = ARRAY['Laser welders with scanner optics', 'clamping fixtures', 'weld monitoring', 'pull testers and micro-ohmmeters']
+  how_learned = 'On the job at a pack plant.', tools = ARRAY['Laser welders with scanner optics', 'Clamping fixtures', 'Weld monitoring', 'Pull testers and micro-ohmmeters']
   WHERE name = 'Cell Interconnect Welding';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Routing and connecting the orange high-voltage cables of a pack or vehicle. A person who has it seats and locks each connector, torques terminals and confirms the interlock circuit is complete.',
-  how_learned = 'On the job, after high-voltage safety qualification.', tools = ARRAY['Insulated tools', 'high-voltage connectors', 'torque tools', 'insulation testers']
+  how_learned = 'On the job, after high-voltage safety qualification.', tools = ARRAY['Insulated tools', 'High-voltage connectors', 'Torque tools', 'Insulation testers']
   WHERE name = 'High-Voltage Harness Installation';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Fitting the battery management electronics and their sense wiring to a module or pack and checking that every cell voltage and temperature reads correctly. A person who has it loads the configuration and clears wiring faults.',
-  how_learned = 'On the job at a pack plant.', tools = ARRAY['Battery management boards', 'voltage and temperature sense harnesses', 'diagnostic software']
+  how_learned = 'On the job at a pack plant.', tools = ARRAY['Battery management boards', 'Voltage and temperature sense harnesses', 'Diagnostic software']
   WHERE name = 'Battery Management System Installation';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Installing the cold plates, manifolds and hoses that carry coolant through a pack. A person who has it makes up each connection and pressure-tests the circuit before the pack is closed.',
-  how_learned = 'On the job at a pack plant.', tools = ARRAY['Cold plates and manifolds', 'quick connectors', 'pressure decay testers']
+  how_learned = 'On the job at a pack plant.', tools = ARRAY['Cold plates and manifolds', 'Quick connectors', 'Pressure decay testers']
   WHERE name = 'Battery Pack Cooling System Assembly';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Sealing a pack''s lid and penetrations against water and dust. A person who has it lays the sealant bead or gasket without gaps, torques the lid in sequence and confirms the seal by leak test.',
-  how_learned = 'On the job at a pack plant.', tools = ARRAY['Sealant dispensing robots', 'gaskets', 'torque tools', 'leak testers']
+  how_learned = 'On the job at a pack plant.', tools = ARRAY['Sealant dispensing robots', 'Gaskets', 'Torque tools', 'Leak testers']
   WHERE name = 'Pack Enclosure Sealing';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Proving a pack''s enclosure and coolant circuit are tight, by pressure decay or helium. A person who has it connects the tester, runs the cycle and finds the leak path when a pack fails.',
-  how_learned = 'On the job at a pack plant.', tools = ARRAY['Pressure decay testers', 'helium sniffers', 'test ports and plugs']
+  how_learned = 'On the job at a pack plant.', tools = ARRAY['Pressure decay testers', 'Helium sniffers', 'Test ports and plugs']
   WHERE name = 'Pack Leak Testing';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Running a finished pack through its final electrical test: isolation, contactors, communication, voltage and a charge and discharge pulse. A person who has it connects the pack safely and reads a failure back to the part at fault.',
-  how_learned = 'On the job at a pack plant, after high-voltage safety qualification.', tools = ARRAY['End-of-line test stands', 'battery cyclers', 'isolation testers', 'diagnostic software']
+  how_learned = 'On the job at a pack plant, after high-voltage safety qualification.', tools = ARRAY['End-of-line test stands', 'Battery cyclers', 'Isolation testers', 'Diagnostic software']
   WHERE name = 'Battery Pack End-of-Line Testing';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Putting copper windings into a motor stator and connecting the phases. A person who has it runs the winding, inserting and forming equipment and checks resistance and insulation.',
-  how_learned = 'On the job at a motor plant.', tools = ARRAY['Winding and insertion machines', 'slot insulation', 'surge and resistance testers']
+  how_learned = 'On the job at a motor plant.', tools = ARRAY['Winding and insertion machines', 'Slot insulation', 'Surge and resistance testers']
   WHERE name = 'Stator Winding';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Forming flat copper wire into hairpins, inserting them into stator slots and twisting the ends ready for welding. A person who has it runs the forming and insertion stations without scraping the wire''s insulation.',
-  how_learned = 'On the job at a motor plant.', tools = ARRAY['Hairpin forming, insertion and twisting machines', 'slot liners']
+  how_learned = 'On the job at a motor plant.', tools = ARRAY['Hairpin forming, insertion and twisting machines', 'Slot liners']
   WHERE name = 'Hairpin Insertion';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Laser welding pairs of hairpin ends to complete a stator''s winding. A person who has it keeps ends stripped and aligned, sets the weld and checks each joint for size and spatter.',
-  how_learned = 'On the job at a motor plant.', tools = ARRAY['Laser welders with scanner optics', 'vision alignment', 'resistance testers']
+  how_learned = 'On the job at a motor plant.', tools = ARRAY['Laser welders with scanner optics', 'Vision alignment', 'Resistance testers']
   WHERE name = 'Hairpin Welding';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Filling a stator''s windings with resin to insulate them, hold them still and carry heat away. A person who has it preheats the stator, applies or trickles the resin and cures it without voids.',
-  how_learned = 'On the job at a motor plant.', tools = ARRAY['Trickle impregnation and potting equipment', 'cure ovens', 'epoxy resins']
+  how_learned = 'On the job at a motor plant.', tools = ARRAY['Trickle impregnation and potting equipment', 'Cure ovens', 'Epoxy resins']
   WHERE name = 'Stator Impregnation and Potting';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Inserting permanent magnets into a rotor and fixing them with adhesive or resin. A person who has it handles strong magnets safely, keeps polarity right and checks each one is seated.',
-  how_learned = 'On the job at a motor plant.', tools = ARRAY['Magnet insertion fixtures', 'adhesive dispensers', 'polarity checkers']
+  how_learned = 'On the job at a motor plant.', tools = ARRAY['Magnet insertion fixtures', 'Adhesive dispensers', 'Polarity checkers']
   WHERE name = 'Rotor Magnet Installation';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Putting a traction motor together: rotor into stator, bearings, housing, resolver and terminals. A person who has it guides the magnetized rotor in without contact and sets bearing fits and position sensor alignment.',
-  how_learned = 'On the job at a motor or drive unit plant.', tools = ARRAY['Rotor insertion fixtures', 'presses', 'DC torque tools', 'resolver alignment equipment']
+  how_learned = 'On the job at a motor or drive unit plant.', tools = ARRAY['Rotor insertion fixtures', 'Presses', 'DC torque tools', 'Resolver alignment equipment']
   WHERE name = 'Electric Motor Assembly';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Fitting a stator into its housing and closing it with the end covers, seals and cooling connections. A person who has it heats the housing for the fit, seats the stator to depth and leak-tests the cooling jacket.',
-  how_learned = 'On the job at a motor or drive unit plant.', tools = ARRAY['Induction heaters', 'presses', 'sealant dispensers', 'leak testers']
+  how_learned = 'On the job at a motor or drive unit plant.', tools = ARRAY['Induction heaters', 'Presses', 'Sealant dispensers', 'Leak testers']
   WHERE name = 'Motor Housing Assembly';
 UPDATE skills SET category = 'Battery & Electric Drive', description = 'Testing each finished motor or drive unit: insulation, resistance, back-EMF, noise and vibration, and performance under load. A person who has it runs the stand and tells a real failure from a fixture or connection fault.',
-  how_learned = 'On the job at a motor plant.', tools = ARRAY['End-of-line test stands', 'dynamometers', 'hipot and surge testers', 'accelerometers']
+  how_learned = 'On the job at a motor plant.', tools = ARRAY['End-of-line test stands', 'Dynamometers', 'Hipot and surge testers', 'Accelerometers']
   WHERE name = 'Motor End-of-Line Testing';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Working the way regulated drug, device and food plants must: follow the approved procedure exactly, record each step as it is done, in ink or a validated system, and report any deviation. A person who has it produces a batch record that an auditor can follow.',
-  how_learned = 'Employer training before touching product, refreshed yearly. The rules are in FDA regulations: 21 CFR Parts 210 and 211 for drugs, Part 820 for devices and Part 117 for food.', tools = ARRAY['Batch records and logbooks', 'electronic batch record systems', 'standard operating procedures']
+  how_learned = 'Employer training before touching product, refreshed yearly. The rules are in FDA regulations: 21 CFR Parts 210 and 211 for drugs, Part 820 for devices and Part 117 for food.', tools = ARRAY['Batch records and logbooks', 'Electronic batch record systems', 'Standard operating procedures']
   WHERE name = 'Current Good Manufacturing Practice';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Working with sterile product and components so nothing living gets in: slow movements, never reaching over open containers, sanitized gloves, first air kept clear. A person who has it passes a media fill and routine glove and gown monitoring.',
-  how_learned = 'Site training and qualification by media fill at a sterile manufacturing plant; microbiology lab courses teach the basics.', tools = ARRAY['Laminar flow hoods', 'isolators and restricted access barriers', 'sterile tools', 'sanitizing agents']
+  how_learned = 'Site training and qualification by media fill at a sterile manufacturing plant; microbiology lab courses teach the basics.', tools = ARRAY['Laminar flow hoods', 'Isolators and restricted access barriers', 'Sterile tools', 'Sanitizing agents']
   WHERE name = 'Aseptic Technique';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Filling sterile product into sterile containers and closing them inside a controlled zone. A person who has it sets up the filler with sterilized parts, checks fill weights and stopper placement and makes only approved interventions.',
-  how_learned = 'On the job at a sterile fill plant, after aseptic gowning and media fill qualification.', tools = ARRAY['Vial, syringe and pouch fillers', 'isolators', 'stopper bowls and cappers', 'fill weight checks']
+  how_learned = 'On the job at a sterile fill plant, after aseptic gowning and media fill qualification.', tools = ARRAY['Vial, syringe and pouch fillers', 'Isolators', 'Stopper bowls and cappers', 'Fill weight checks']
   WHERE name = 'Aseptic Filling';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Sampling the air, surfaces and people in a clean manufacturing area for particles and microbes. A person who has it takes samples at the mapped sites without contaminating them and knows the alert and action limits.',
-  how_learned = 'On the job in a pharmaceutical quality or microbiology group.', tools = ARRAY['Active air samplers', 'settle and contact plates', 'particle counters', 'incubators']
+  how_learned = 'On the job in a pharmaceutical quality or microbiology group.', tools = ARRAY['Active air samplers', 'Settle and contact plates', 'Particle counters', 'Incubators']
   WHERE name = 'Environmental Monitoring';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Freeze drying a product: freezing it on the shelves, then pulling vacuum so the ice leaves as vapor. A person who has it loads the dryer aseptically, runs the cycle and checks shelf temperature and chamber pressure through each stage.',
-  how_learned = 'On the job at a sterile fill plant.', tools = ARRAY['Freeze dryers', 'vacuum pumps and condensers', 'stoppering systems', 'cycle recorders']
+  how_learned = 'On the job at a sterile fill plant.', tools = ARRAY['Freeze dryers', 'Vacuum pumps and condensers', 'Stoppering systems', 'Cycle recorders']
   WHERE name = 'Lyophilization';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Turning drug and filler powders into a uniform, free-flowing blend for tableting. A person who has it charges by weight, runs the granulator, dryer, mill and blender to the batch record and samples for moisture and uniformity.',
-  how_learned = 'On the job at a solid-dose pharmaceutical plant.', tools = ARRAY['High-shear and fluid-bed granulators', 'mills', 'bin and V-blenders', 'moisture balances']
+  how_learned = 'On the job at a solid-dose pharmaceutical plant.', tools = ARRAY['High-shear and fluid-bed granulators', 'Mills', 'Bin and V-blenders', 'Moisture balances']
   WHERE name = 'Granulation and Blending';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Running a rotary tablet press. A person who has it sets fill depth and compression force, checks weight, thickness, hardness and friability at intervals and corrects sticking, capping and weight drift.',
-  how_learned = 'On the job at a solid-dose pharmaceutical or supplement plant.', tools = ARRAY['Rotary tablet presses', 'punches and dies', 'hardness testers', 'friability testers', 'balances']
+  how_learned = 'On the job at a solid-dose pharmaceutical or supplement plant.', tools = ARRAY['Rotary tablet presses', 'Punches and dies', 'Hardness testers', 'Friability testers', 'Balances']
   WHERE name = 'Tablet Compression';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Spraying a thin polymer coat onto tablets tumbling in a heated pan. A person who has it balances spray rate, air temperature and pan speed, and checks weight gain and appearance.',
-  how_learned = 'On the job at a solid-dose pharmaceutical plant.', tools = ARRAY['Perforated pan coaters', 'spray guns', 'coating suspension tanks']
+  how_learned = 'On the job at a solid-dose pharmaceutical plant.', tools = ARRAY['Perforated pan coaters', 'Spray guns', 'Coating suspension tanks']
   WHERE name = 'Tablet Film Coating';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Sterilizing product, components or equipment with saturated steam under pressure. A person who has it loads to the validated pattern, runs the cycle and reviews temperature, time and biological indicator results before release.',
-  how_learned = 'On the job in pharmaceutical and device plants. Cycles are validated to ISO 17665.', tools = ARRAY['Steam sterilizers (autoclaves)', 'biological and chemical indicators', 'load thermocouples']
+  how_learned = 'On the job in pharmaceutical and device plants. Cycles are validated to ISO 17665.', tools = ARRAY['Steam sterilizers (autoclaves)', 'Biological and chemical indicators', 'Load thermocouples']
   WHERE name = 'Steam Sterilization';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Sterilizing heat-sensitive medical devices with ethylene oxide gas. A person who has it runs preconditioning, gas exposure and aeration, handles a toxic and flammable gas safely and reviews the cycle record.',
-  how_learned = 'On the job at a device or contract sterilization plant. Cycles are validated to ISO 11135.', tools = ARRAY['Ethylene oxide chambers', 'preconditioning and aeration rooms', 'biological indicators', 'gas monitors']
+  how_learned = 'On the job at a device or contract sterilization plant. Cycles are validated to ISO 11135.', tools = ARRAY['Ethylene oxide chambers', 'Preconditioning and aeration rooms', 'Biological indicators', 'Gas monitors']
   WHERE name = 'Ethylene Oxide Sterilization';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Proving by a written protocol that equipment is installed correctly, operates across its range and makes good product every time (installation, operational and performance qualification). A person who has it executes protocol steps, records data and raises deviations.',
-  how_learned = 'On the job in a validation or quality group at a regulated plant.', tools = ARRAY['Validation protocols', 'calibrated instruments', 'data loggers']
+  how_learned = 'On the job in a validation or quality group at a regulated plant.', tools = ARRAY['Validation protocols', 'Calibrated instruments', 'Data loggers']
   WHERE name = 'Process Validation';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Measuring how much of a drug or impurity is in a sample by liquid chromatography. A person who has it prepares mobile phase, standards and samples, runs system suitability and integrates peaks to the method.',
-  how_learned = 'A chemistry degree or laboratory technology program, then method training on the job.', tools = ARRAY['HPLC systems from Waters and Agilent', 'columns', 'chromatography data systems']
+  how_learned = 'A chemistry degree or laboratory technology program, then method training on the job.', tools = ARRAY['HPLC systems from Waters and Agilent', 'Columns', 'Chromatography data systems']
   WHERE name = 'HPLC Analysis';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Separating and measuring volatile compounds, such as residual solvents, by gas chromatography. A person who has it prepares standards and samples, sets the method and checks system suitability.',
-  how_learned = 'A chemistry degree or laboratory technology program, then method training on the job.', tools = ARRAY['Gas chromatographs with flame ionization detectors', 'headspace samplers', 'columns']
+  how_learned = 'A chemistry degree or laboratory technology program, then method training on the job.', tools = ARRAY['Gas chromatographs with flame ionization detectors', 'Headspace samplers', 'Columns']
   WHERE name = 'Gas Chromatography';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Measuring how fast a tablet or capsule releases its drug in a stirred vessel. A person who has it sets up the apparatus, pulls samples at the time points and analyzes them. The method is USP chapter 711.',
-  how_learned = 'Laboratory technology program or chemistry degree; on the job in a quality control lab.', tools = ARRAY['Dissolution baths with paddles and baskets', 'autosamplers', 'UV spectrophotometers or HPLC']
+  how_learned = 'Laboratory technology program or chemistry degree; on the job in a quality control lab.', tools = ARRAY['Dissolution baths with paddles and baskets', 'Autosamplers', 'UV spectrophotometers or HPLC']
   WHERE name = 'Dissolution Testing';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Measuring small amounts of water in a sample by titration. A person who has it standardizes the reagent, handles samples so they pick up no moisture and reports the result.',
-  how_learned = 'Laboratory technology program or chemistry degree; on the job in a quality control lab.', tools = ARRAY['Volumetric and coulometric Karl Fischer titrators', 'analytical balances']
+  how_learned = 'Laboratory technology program or chemistry degree; on the job in a quality control lab.', tools = ARRAY['Volumetric and coulometric Karl Fischer titrators', 'Analytical balances']
   WHERE name = 'Karl Fischer Titration';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Testing injectable products and water for bacterial endotoxin with the LAL assay. A person who has it prepares standards and dilutions in endotoxin-free ware and runs gel-clot or kinetic methods. The method is USP chapter 85.',
-  how_learned = 'Microbiology degree or laboratory program; on the job in a quality control lab.', tools = ARRAY['Plate and tube readers', 'LAL reagent', 'depyrogenated glassware']
+  how_learned = 'Microbiology degree or laboratory program; on the job in a quality control lab.', tools = ARRAY['Plate and tube readers', 'LAL reagent', 'Depyrogenated glassware']
   WHERE name = 'Endotoxin Testing';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Testing whether a sterile product contains any living organism, by filtering or inoculating it into growth media and incubating for 14 days. A person who has it works in an isolator or clean hood so the test itself adds nothing. The method is USP chapter 71.',
-  how_learned = 'Microbiology degree or laboratory program; on the job in a quality control lab.', tools = ARRAY['Sterility test isolators', 'membrane filtration units', 'growth media', 'incubators']
+  how_learned = 'Microbiology degree or laboratory program; on the job in a quality control lab.', tools = ARRAY['Sterility test isolators', 'Membrane filtration units', 'Growth media', 'Incubators']
   WHERE name = 'Sterility Testing';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Counting the bacteria, yeast and mold in a product, ingredient or device by plating and incubating samples. A person who has it prepares dilutions, plates them, counts colonies and reports against the limit.',
-  how_learned = 'Microbiology degree or laboratory program; on the job in a food or pharmaceutical lab.', tools = ARRAY['Agar plates and membrane filters', 'incubators', 'colony counters', 'biosafety cabinets']
+  how_learned = 'Microbiology degree or laboratory program; on the job in a food or pharmaceutical lab.', tools = ARRAY['Agar plates and membrane filters', 'Incubators', 'Colony counters', 'Biosafety cabinets']
   WHERE name = 'Microbial Enumeration Testing';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Running the part of a hazard analysis and critical control point plan that sits at your station: checking the critical limit, recording it and acting when it is missed. A person who has it knows the plant''s critical control points and why each exists.',
-  how_learned = 'Employer training; HACCP courses accredited by the International HACCP Alliance. Under FDA rules a plant''s food safety plan is overseen by a Preventive Controls Qualified Individual.', tools = ARRAY['Monitoring logs', 'calibrated thermometers', 'metal detectors', 'food safety plans']
+  how_learned = 'Employer training; HACCP courses accredited by the International HACCP Alliance. Under FDA rules a plant''s food safety plan is overseen by a Preventive Controls Qualified Individual.', tools = ARRAY['Monitoring logs', 'Calibrated thermometers', 'Metal detectors', 'Food safety plans']
   WHERE name = 'HACCP Food Safety';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Cleaning and sanitizing food equipment to the written procedure: disassemble, rinse, wash, rinse, inspect, sanitize. A person who has it verifies the result by inspection and swab before the line restarts.',
-  how_learned = 'On the job at a food plant.', tools = ARRAY['Foamers and sanitizer dosing', 'brushes color-coded by zone', 'ATP swab meters']
+  how_learned = 'On the job at a food plant.', tools = ARRAY['Foamers and sanitizer dosing', 'Brushes color-coded by zone', 'ATP swab meters']
   WHERE name = 'Sanitation Procedures';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Keeping allergens out of products that do not declare them. A person who has it follows the schedule and segregation rules, does the full allergen clean at changeover and verifies it with a test swab.',
-  how_learned = 'On the job at a food plant.', tools = ARRAY['Allergen test swabs', 'color-coded tools', 'changeover checklists']
+  how_learned = 'On the job at a food plant.', tools = ARRAY['Allergen test swabs', 'Color-coded tools', 'Changeover checklists']
   WHERE name = 'Allergen Changeover Cleaning';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Weighing ingredients to a formula and blending or cooking the batch. A person who has it scales in the right order, runs the mixer or kettle to time and temperature and records each lot number used.',
-  how_learned = 'On the job at a food or beverage plant.', tools = ARRAY['Scales', 'ribbon blenders, mixers and kettles', 'batch sheets']
+  how_learned = 'On the job at a food or beverage plant.', tools = ARRAY['Scales', 'Ribbon blenders, mixers and kettles', 'Batch sheets']
   WHERE name = 'Food Batching and Blending';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Cleaning tanks, pipes and fillers without taking them apart, by circulating rinse, caustic, acid and sanitizer. A person who has it runs the cycle and confirms time, temperature, concentration and flow were met.',
-  how_learned = 'On the job at a food, beverage or pharmaceutical plant.', tools = ARRAY['CIP skids', 'spray balls', 'conductivity and temperature sensors', 'chemical titration kits']
+  how_learned = 'On the job at a food, beverage or pharmaceutical plant.', tools = ARRAY['CIP skids', 'Spray balls', 'Conductivity and temperature sensors', 'Chemical titration kits']
   WHERE name = 'Clean-in-Place Operation';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Heating a liquid product to a set temperature for a set time to kill harmful organisms, then cooling it. A person who has it runs the pasteurizer, checks the holding temperature and flow diversion and keeps the legal records.',
-  how_learned = 'On the job at a dairy, juice or beverage plant. Milk plants work to the Grade A Pasteurized Milk Ordinance.', tools = ARRAY['Plate and tubular heat exchangers', 'holding tubes', 'flow diversion valves', 'recording thermometers']
+  how_learned = 'On the job at a dairy, juice or beverage plant. Milk plants work to the Grade A Pasteurized Milk Ordinance.', tools = ARRAY['Plate and tubular heat exchangers', 'Holding tubes', 'Flow diversion valves', 'Recording thermometers']
   WHERE name = 'Pasteurization';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Sterilizing sealed cans, jars and pouches with steam or hot water under pressure. A person who has it vents and runs the retort to the scheduled process and records time, temperature and pressure for every load.',
-  how_learned = 'On the job. For low-acid canned foods, FDA requires retort operations to be supervised by someone who has completed a Better Process Control School.', tools = ARRAY['Still and rotary retorts', 'temperature recorders', 'reference thermometers']
+  how_learned = 'On the job. For low-acid canned foods, FDA requires retort operations to be supervised by someone who has completed a Better Process Control School.', tools = ARRAY['Still and rotary retorts', 'Temperature recorders', 'Reference thermometers']
   WHERE name = 'Retort Operation';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Running a filler for bottles or cans. A person who has it sets fill level and speed, changes over for size, checks closures and codes and clears jams safely.',
-  how_learned = 'On the job at a beverage or food plant.', tools = ARRAY['Rotary fillers', 'cappers', 'fill level inspection', 'date coders']
+  how_learned = 'On the job at a beverage or food plant.', tools = ARRAY['Rotary fillers', 'Cappers', 'Fill level inspection', 'Date coders']
   WHERE name = 'Bottle and Can Filling';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Closing cans with a double seam that stays airtight. A person who has it tears seams down at intervals, measures overlap and tightness and adjusts the seaming rolls.',
-  how_learned = 'On the job at a canning plant; seamer and can makers run seam evaluation courses.', tools = ARRAY['Can seamers', 'seam micrometers', 'seam saws and projectors']
+  how_learned = 'On the job at a canning plant; seamer and can makers run seam evaluation courses.', tools = ARRAY['Can seamers', 'Seam micrometers', 'Seam saws and projectors']
   WHERE name = 'Can Seaming';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Dissolving carbon dioxide in a beverage to its specified level. A person who has it controls product temperature and pressure and tests carbonation on filled packages.',
-  how_learned = 'On the job at a beverage plant.', tools = ARRAY['Carbonators and chillers', 'carbonation testers', 'CO2 supply systems']
+  how_learned = 'On the job at a beverage plant.', tools = ARRAY['Carbonators and chillers', 'Carbonation testers', 'CO2 supply systems']
   WHERE name = 'Beverage Carbonation';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Measuring dissolved sugar in a syrup or beverage. A person who has it takes a temperature-corrected reading and adjusts the batch to target.',
-  how_learned = 'On the job at a food or beverage plant.', tools = ARRAY['Refractometers', 'density meters']
+  how_learned = 'On the job at a food or beverage plant.', tools = ARRAY['Refractometers', 'Density meters']
   WHERE name = 'Brix Measurement';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Turning a liquid into powder by atomizing it into hot air. A person who has it balances feed rate and inlet and outlet air temperatures for the right moisture and manages the dust explosion hazard.',
-  how_learned = 'On the job at a dairy, food or chemical plant.', tools = ARRAY['Spray dryers with nozzle or rotary atomizers', 'cyclones and bag filters', 'moisture analyzers']
+  how_learned = 'On the job at a dairy, food or chemical plant.', tools = ARRAY['Spray dryers with nozzle or rotary atomizers', 'Cyclones and bag filters', 'Moisture analyzers']
   WHERE name = 'Spray Drying';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Running the machines at the end of a line: cartoners, case packers, coders, wrappers and palletizers. A person who has it changes over for a new size, keeps materials fed and clears jams safely.',
-  how_learned = 'On the job; the packaging machinery association PMMI offers mechatronics certificates for packaging technicians.', tools = ARRAY['Cartoners and case packers', 'inkjet and laser coders', 'stretch wrappers', 'palletizers']
+  how_learned = 'On the job; the packaging machinery association PMMI offers mechatronics certificates for packaging technicians.', tools = ARRAY['Cartoners and case packers', 'Inkjet and laser coders', 'Stretch wrappers', 'Palletizers']
   WHERE name = 'Packaging Line Operation';
 UPDATE skills SET category = 'Food & Pharmaceutical Processing', description = 'Running the in-line checks that reject packages that are off weight or carry metal or other foreign material. A person who has it challenges each device with test pieces on schedule and holds product when a check fails.',
-  how_learned = 'On the job at a food or pharmaceutical packaging line.', tools = ARRAY['Metal detectors', 'X-ray inspection systems', 'checkweighers', 'certified test pieces']
+  how_learned = 'On the job at a food or pharmaceutical packaging line.', tools = ARRAY['Metal detectors', 'X-ray inspection systems', 'Checkweighers', 'Certified test pieces']
   WHERE name = 'Metal Detection and Checkweighing';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Reading electrical drawings: power distribution, control circuits, ladder diagrams and wiring diagrams. A person who has it traces a circuit from source to load, finds a device on the drawing and in the panel and knows what state each contact should be in.',
-  how_learned = 'Electrical and mechatronics programs at community colleges; electrical apprenticeships.', tools = ARRAY['Ladder and wiring diagrams', 'panel layouts', 'wire and terminal numbers']
+  how_learned = 'Electrical and mechatronics programs at community colleges; electrical apprenticeships.', tools = ARRAY['Ladder and wiring diagrams', 'Panel layouts', 'Wire and terminal numbers']
   WHERE name = 'Electrical Schematic Reading';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Measuring voltage, current, resistance and continuity safely with a digital multimeter. A person who has it picks the function and range, places leads correctly and reads what the result says about the circuit.',
-  how_learned = 'Taught first in electrical, electronics and maintenance programs.', tools = ARRAY['Digital multimeters', 'clamp meters', 'test leads and probes']
+  how_learned = 'Taught first in electrical, electronics and maintenance programs.', tools = ARRAY['Digital multimeters', 'Clamp meters', 'Test leads and probes']
   WHERE name = 'Multimeter Testing';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Viewing electrical signals over time on an oscilloscope. A person who has it sets time base, voltage scale and trigger, uses the right probe and reads amplitude, frequency, rise time and noise.',
-  how_learned = 'Electronics technology programs; on the job.', tools = ARRAY['Digital storage oscilloscopes', 'passive, differential and current probes']
+  how_learned = 'Electronics technology programs; on the job.', tools = ARRAY['Digital storage oscilloscopes', 'Passive, differential and current probes']
   WHERE name = 'Oscilloscope Measurement';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Working on a plant''s three-phase power: switchgear, transformers, motor control centers and feeders. A person who has it reads a one-line diagram, switches and isolates equipment safely and tests it dead before work.',
-  how_learned = 'Electrical apprenticeship leading to a journeyman license; employer qualified-person training under NFPA 70E.', tools = ARRAY['Motor control centers', 'disconnects and breakers', 'voltage testers', 'arc-rated protective equipment']
+  how_learned = 'Electrical apprenticeship leading to a journeyman license; employer qualified-person training under NFPA 70E.', tools = ARRAY['Motor control centers', 'Disconnects and breakers', 'Voltage testers', 'Arc-rated protective equipment']
   WHERE name = '480 V Power Distribution';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Connecting three-phase motors and their starters. A person who has it reads the nameplate, makes the wye or delta connection for the supply voltage, sets overload protection and checks rotation.',
-  how_learned = 'Electrical apprenticeships and industrial maintenance programs.', tools = ARRAY['Motor starters and overload relays', 'lugs and insulation kits', 'phase rotation meters']
+  how_learned = 'Electrical apprenticeships and industrial maintenance programs.', tools = ARRAY['Motor starters and overload relays', 'Lugs and insulation kits', 'Phase rotation meters']
   WHERE name = 'Three-Phase Motor Wiring';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Finding why a motor will not start, stop or run right. A person who has it works through the control circuit with a meter and the schematic, from the interlocks and overloads to the contactor and the motor.',
-  how_learned = 'Industrial maintenance and electrical programs; on the job.', tools = ARRAY['Multimeters and clamp meters', 'schematics', 'contactors, relays and overloads']
+  how_learned = 'Industrial maintenance and electrical programs; on the job.', tools = ARRAY['Multimeters and clamp meters', 'Schematics', 'Contactors, relays and overloads']
   WHERE name = 'Motor Control Troubleshooting';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Bending and installing electrical conduit. A person who has it makes accurate 90s, offsets and saddles, keeps the total bend between pull points within the code limit and supports the run.',
-  how_learned = 'Electrical apprenticeship.', tools = ARRAY['Hand, mechanical and hydraulic benders', 'threaders', 'levels and tape']
+  how_learned = 'Electrical apprenticeship.', tools = ARRAY['Hand, mechanical and hydraulic benders', 'Threaders', 'Levels and tape']
   WHERE name = 'Conduit Bending';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Testing the insulation of motors, cables and windings with a megohmmeter. A person who has it isolates the equipment, applies the right test voltage, corrects for temperature and trends the result.',
-  how_learned = 'Electrical apprenticeships and maintenance programs; on the job.', tools = ARRAY['Megohmmeters', 'grounding sticks']
+  how_learned = 'Electrical apprenticeships and maintenance programs; on the job.', tools = ARRAY['Megohmmeters', 'Grounding sticks']
   WHERE name = 'Insulation Resistance Testing';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Wiring sensors and actuators to a controller''s inputs and outputs. A person who has it knows sourcing from sinking, wires and terminates to the drawing, labels each wire and checks every point from the device to the controller.',
-  how_learned = 'Mechatronics and electrical programs; on the job as a panel builder or controls technician.', tools = ARRAY['Proximity and photoelectric sensors', 'terminal blocks and ferrules', 'I/O modules', 'wire markers']
+  how_learned = 'Mechatronics and electrical programs; on the job as a panel builder or controls technician.', tools = ARRAY['Proximity and photoelectric sensors', 'Terminal blocks and ferrules', 'I/O modules', 'Wire markers']
   WHERE name = 'Sensor and I/O Wiring';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Writing programs for programmable logic controllers in ladder diagram: contacts, coils, timers, counters, compares and sequences. A person who has it can turn a machine''s sequence of operations into working, readable logic.',
-  how_learned = 'Mechatronics and automation programs at community colleges; PLC makers'' courses.', tools = ARRAY['PLCs and their programming software', 'simulators', 'I/O test panels']
+  how_learned = 'Mechatronics and automation programs at community colleges; PLC makers'' courses.', tools = ARRAY['PLCs and their programming software', 'Simulators', 'I/O test panels']
   WHERE name = 'PLC Ladder Logic Programming';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Going online with a running controller to find why a machine has stopped. A person who has it follows the logic to the condition that is not met, then to the sensor, wire or output behind it, without changing the program.',
-  how_learned = 'Industrial maintenance programs; on the job.', tools = ARRAY['Laptop with PLC software', 'cross-reference and trend tools', 'multimeter']
+  how_learned = 'Industrial maintenance programs; on the job.', tools = ARRAY['Laptop with PLC software', 'Cross-reference and trend tools', 'Multimeter']
   WHERE name = 'PLC Ladder Logic Troubleshooting';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Configuring and programming Rockwell Automation controllers in Studio 5000 Logix Designer: I/O configuration, tags, routines, add-on instructions and communication. A person who has it can go online, edit and download safely.',
   how_learned = 'Rockwell Automation and distributor courses; community-college automation programs.', tools = ARRAY['ControlLogix and CompactLogix controllers', 'Studio 5000 Logix Designer', 'RSLinx']
@@ -2034,34 +2034,34 @@ UPDATE skills SET category = 'Electrical & Controls', description = 'Building th
   how_learned = 'Automation programs and software makers'' courses.', tools = ARRAY['FactoryTalk View', 'Siemens WinCC', 'Ignition']
   WHERE name = 'HMI Development';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Connecting controllers and machines to plant software through OPC UA. A person who has it configures servers and clients, maps tags, sets security certificates and checks that data arrives.',
-  how_learned = 'On the job as a controls or manufacturing systems engineer.', tools = ARRAY['OPC UA servers such as Kepware', 'Ignition', 'controller OPC UA settings']
+  how_learned = 'On the job as a controls or manufacturing systems engineer.', tools = ARRAY['OPC UA servers such as Kepware', 'Ignition', 'Controller OPC UA settings']
   WHERE name = 'OPC UA Integration';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Finding faults on the networks that tie controllers, drives and I/O together. A person who has it checks addresses, switches, cables and connectors and reads device and switch diagnostics.',
-  how_learned = 'Automation programs; on the job.', tools = ARRAY['EtherNet/IP and PROFINET', 'managed switches', 'cable testers', 'Wireshark']
+  how_learned = 'Automation programs; on the job.', tools = ARRAY['EtherNet/IP and PROFINET', 'Managed switches', 'Cable testers', 'Wireshark']
   WHERE name = 'Industrial Network Troubleshooting';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Checking the controller area network that links a vehicle''s or machine''s electronic units. A person who has it measures bus resistance and voltage, reads the traffic with an interface and finds a missing node or a wiring fault.',
-  how_learned = 'Automotive and electronics programs; on the job in test.', tools = ARRAY['CAN interfaces and analysis software such as Vector CANalyzer', 'oscilloscopes', 'multimeters']
+  how_learned = 'Automotive and electronics programs; on the job in test.', tools = ARRAY['CAN interfaces and analysis software such as Vector CANalyzer', 'Oscilloscopes', 'Multimeters']
   WHERE name = 'CAN Bus Diagnostics';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Commissioning the drive that sets an AC motor''s speed. A person who has it enters motor data, sets ramps, limits and control source, tunes it to the load and reads fault codes.',
-  how_learned = 'Industrial maintenance and electrical programs; drive makers'' courses.', tools = ARRAY['Drives such as Allen-Bradley PowerFlex, Siemens SINAMICS and ABB ACS', 'keypads and drive software']
+  how_learned = 'Industrial maintenance and electrical programs; drive makers'' courses.', tools = ARRAY['Drives such as Allen-Bradley PowerFlex, Siemens SINAMICS and ABB ACS', 'Keypads and drive software']
   WHERE name = 'Variable Frequency Drive Setup';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Setting up a servo axis: motor and feedback, limits, scaling, homing and the link to the motion controller. A person who has it brings an axis from wiring to its first controlled move.',
-  how_learned = 'Automation programs; drive makers'' courses.', tools = ARRAY['Servo drives such as Allen-Bradley Kinetix, Siemens SINAMICS and Yaskawa Sigma', 'encoders', 'drive software']
+  how_learned = 'Automation programs; drive makers'' courses.', tools = ARRAY['Servo drives such as Allen-Bradley Kinetix, Siemens SINAMICS and Yaskawa Sigma', 'Encoders', 'Drive software']
   WHERE name = 'Servo Drive Configuration';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Adjusting a servo loop''s gains and filters so the axis follows its command quickly without overshoot or ringing. A person who has it reads the following error, runs the autotune and finishes by hand.',
-  how_learned = 'On the job as a controls or motion engineer; drive makers'' courses.', tools = ARRAY['Drive tuning software and scopes', 'notch filters', 'load inertia data']
+  how_learned = 'On the job as a controls or motion engineer; drive makers'' courses.', tools = ARRAY['Drive tuning software and scopes', 'Notch filters', 'Load inertia data']
   WHERE name = 'Servo Tuning';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Checking and adjusting process transmitters for pressure, temperature, flow and level against a traceable standard. A person who has it runs a multi-point check, adjusts zero and span and records readings as found and as left.',
-  how_learned = 'Instrumentation programs at community colleges; the ISA Certified Control Systems Technician credential.', tools = ARRAY['Documenting process calibrators', 'pressure pumps and modules', 'temperature baths', 'HART communicators']
+  how_learned = 'Instrumentation programs at community colleges; the ISA Certified Control Systems Technician credential.', tools = ARRAY['Documenting process calibrators', 'Pressure pumps and modules', 'Temperature baths', 'HART communicators']
   WHERE name = 'Instrumentation Calibration';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Reading piping and instrumentation diagrams. A person who has it follows a process line through its valves, instruments and control loops, and finds each tag in the plant.',
-  how_learned = 'Process technology and instrumentation programs; on the job. The symbols follow ISA-5.1.', tools = ARRAY['P&IDs', 'instrument indexes', 'line lists']
+  how_learned = 'Process technology and instrumentation programs; on the job. The symbols follow ISA-5.1.', tools = ARRAY['P&IDs', 'Instrument indexes', 'Line lists']
   WHERE name = 'P&ID Reading';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Running an industrial robot from its pendant: jogging in each coordinate frame, stepping through a program, touching up points and recovering from a fault. A person who has it can get a stopped cell running again safely.',
   how_learned = 'Robotics and mechatronics programs; robot makers'' operator courses.', tools = ARRAY['FANUC, ABB, KUKA and Yaskawa teach pendants']
   WHERE name = 'Robot Teach Pendant Operation';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Writing and editing teach pendant programs on FANUC robots: frames, motion types, registers, I/O, calls and error handling. A person who has it can program a handling, welding or dispensing task from nothing.',
-  how_learned = 'FANUC America courses, and its certified training programs at community colleges.', tools = ARRAY['FANUC robots and controllers', 'teach pendant', 'ROBOGUIDE simulation']
+  how_learned = 'FANUC America courses, and its certified training programs at community colleges.', tools = ARRAY['FANUC robots and controllers', 'Teach pendant', 'ROBOGUIDE simulation']
   WHERE name = 'FANUC Robot Programming';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Programming ABB robots in the RAPID language: tool and work object data, motion instructions, routines and I/O. A person who has it can program and touch up a task at the pendant or offline.',
   how_learned = 'ABB training courses; robotics programs.', tools = ARRAY['ABB robots and controllers', 'FlexPendant', 'RobotStudio']
@@ -2070,613 +2070,613 @@ UPDATE skills SET category = 'Electrical & Controls', description = 'Programming
   how_learned = 'KUKA College courses; robotics programs.', tools = ARRAY['KUKA robots and controllers', 'smartPAD', 'KUKA.Sim']
   WHERE name = 'KUKA Robot Programming';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Programming Universal Robots collaborative arms: waypoints, grippers, force and safety settings. A person who has it sets up a simple tending or assembly task and its safety configuration.',
-  how_learned = 'Universal Robots'' free online academy and its instructor-led courses.', tools = ARRAY['UR robots', 'PolyScope', 'grippers and URCaps']
+  how_learned = 'Universal Robots'' free online academy and its instructor-led courses.', tools = ARRAY['UR robots', 'PolyScope', 'Grippers and URCaps']
   WHERE name = 'Universal Robots Programming';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Programming robots in a 3D model of the cell before it is built. A person who has it checks reach, cycle time and collisions, then downloads and touches up the program on the floor.',
-  how_learned = 'Robotics engineering courses; software makers'' training.', tools = ARRAY['ROBOGUIDE', 'RobotStudio', 'Process Simulate', 'cell CAD models']
+  how_learned = 'Robotics engineering courses; software makers'' training.', tools = ARRAY['ROBOGUIDE', 'RobotStudio', 'Process Simulate', 'Cell CAD models']
   WHERE name = 'Offline Robot Programming and Simulation';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Fitting and adjusting what a robot holds: grippers, vacuum cups, weld guns, dispensers and tool changers. A person who has it sets the tool center point and payload, connects air and signals and proves the grip.',
-  how_learned = 'Robotics and mechatronics programs; on the job.', tools = ARRAY['Pneumatic and electric grippers', 'vacuum cups and generators', 'tool changers']
+  how_learned = 'Robotics and mechatronics programs; on the job.', tools = ARRAY['Pneumatic and electric grippers', 'Vacuum cups and generators', 'Tool changers']
   WHERE name = 'End-of-Arm Tooling Setup';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Designing the gripper or tool a robot carries for a specific part. A person who has it sizes grip force and vacuum, keeps weight inside the robot''s payload and builds in part-present sensing.',
-  how_learned = 'Mechanical or mechatronics engineering study; on the job at an integrator.', tools = ARRAY['CAD', 'gripper and vacuum component catalogs', '3D printing for fingers']
+  how_learned = 'Mechanical or mechatronics engineering study; on the job at an integrator.', tools = ARRAY['CAD', 'Gripper and vacuum component catalogs', '3D printing for fingers']
   WHERE name = 'End-of-Arm Tooling Design';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Laying out a robot cell: robot choice and reach, fixtures, safeguarding, part flow and cycle time. A person who has it produces a layout that makes rate and passes a risk assessment.',
-  how_learned = 'Engineering study; on the job at an integrator or in plant automation.', tools = ARRAY['CAD and simulation software', 'robot reach and payload data', 'safety standards']
+  how_learned = 'Engineering study; on the job at an integrator or in plant automation.', tools = ARRAY['CAD and simulation software', 'Robot reach and payload data', 'Safety standards']
   WHERE name = 'Robot Cell Design';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Making a collaborative robot application safe to share space with people. A person who has it carries out the risk assessment, sets force and speed limits and safety zones and validates them by measurement. ISO/TS 15066 gives the limits.',
-  how_learned = 'Robot makers'' and integrators'' safety courses.', tools = ARRAY['Robot safety configuration', 'force and pressure measurement devices', 'area scanners']
+  how_learned = 'Robot makers'' and integrators'' safety courses.', tools = ARRAY['Robot safety configuration', 'Force and pressure measurement devices', 'Area scanners']
   WHERE name = 'Collaborative Robot Safeguarding';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Installing a vision system so it sees the part well: camera and lens choice, working distance, lighting, mounting and calibration. A person who has it gets a sharp, repeatable image before any programming starts.',
-  how_learned = 'On the job; vision makers'' courses.', tools = ARRAY['Smart cameras', 'lenses', 'ring, bar and back lights', 'calibration targets']
+  how_learned = 'On the job; vision makers'' courses.', tools = ARRAY['Smart cameras', 'Lenses', 'Ring, bar and back lights', 'Calibration targets']
   WHERE name = 'Machine Vision Setup';
 UPDATE skills SET category = 'Electrical & Controls', description = 'Programming a vision system to find, measure or inspect a part: pattern matching, edges, blobs, codes and pass/fail logic sent to the controller. A person who has it tunes the tools so good parts pass and bad ones do not.',
   how_learned = 'Vision makers'' courses, such as Cognex and Keyence; on the job.', tools = ARRAY['Cognex In-Sight and VisionPro', 'Keyence vision systems']
   WHERE name = 'Machine Vision Programming';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Carrying out scheduled upkeep on equipment: inspect, clean, lubricate, adjust and replace wear parts before they fail. A person who has it follows the task list, notices what is not on it and records what was found.',
-  how_learned = 'Industrial maintenance programs and on the job. The Society for Maintenance & Reliability Professionals'' CMRT is the technician credential.', tools = ARRAY['Computerized maintenance management systems', 'grease guns and lubricants', 'hand tools', 'checklists']
+  how_learned = 'Industrial maintenance programs and on the job. The Society for Maintenance & Reliability Professionals'' CMRT is the technician credential.', tools = ARRAY['Computerized maintenance management systems', 'Grease guns and lubricants', 'Hand tools', 'Checklists']
   WHERE name = 'Preventive Maintenance';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Deciding when to service a machine from its measured condition, such as vibration, temperature, oil and motor current, rather than the calendar. A person who has it sets up routes, trends the readings and calls for work when a trend turns.',
-  how_learned = 'On the job in a reliability group; vibration and thermography certifications build towards it.', tools = ARRAY['Vibration data collectors', 'infrared cameras', 'oil analysis', 'ultrasound detectors']
+  how_learned = 'On the job in a reliability group; vibration and thermography certifications build towards it.', tools = ARRAY['Vibration data collectors', 'Infrared cameras', 'Oil analysis', 'Ultrasound detectors']
   WHERE name = 'Condition-Based Maintenance';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Finding out why a production tool has stopped or is making bad product. A person who has it reads the alarm and the tool''s history, checks the likely causes in order and proves the fix before releasing the tool.',
-  how_learned = 'On the job, tool by tool; equipment makers'' maintenance courses.', tools = ARRAY['Tool alarm logs and manuals', 'multimeters', 'leak detectors', 'spare parts']
+  how_learned = 'On the job, tool by tool; equipment makers'' maintenance courses.', tools = ARRAY['Tool alarm logs and manuals', 'Multimeters', 'Leak detectors', 'Spare parts']
   WHERE name = 'Process Equipment Troubleshooting';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Working out how reliable equipment is from its history: mean time between failures, mean time to repair and availability. A person who has it cleans the downtime data, calculates the figures and uses them to rank what to fix first.',
-  how_learned = 'On the job as an equipment or reliability engineer.', tools = ARRAY['Maintenance and downtime records', 'spreadsheets', 'reliability software']
+  how_learned = 'On the job as an equipment or reliability engineer.', tools = ARRAY['Maintenance and downtime records', 'Spreadsheets', 'Reliability software']
   WHERE name = 'Equipment Reliability Metrics';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Repairing hydraulic pumps, valves, cylinders and hoses. A person who has it isolates and depressurizes the system, replaces or reseals the component cleanly and bleeds and tests the system afterwards.',
-  how_learned = 'Industrial maintenance programs and apprenticeships. The International Fluid Power Society certifies hydraulic mechanics and specialists.', tools = ARRAY['Seal kits and installation tools', 'hose crimpers', 'pressure gauges', 'flow meters']
+  how_learned = 'Industrial maintenance programs and apprenticeships. The International Fluid Power Society certifies hydraulic mechanics and specialists.', tools = ARRAY['Seal kits and installation tools', 'Hose crimpers', 'Pressure gauges', 'Flow meters']
   WHERE name = 'Hydraulic System Repair';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Finding the cause of a slow, weak, hot or erratic hydraulic system. A person who has it works from the schematic, measuring pressure and flow at test points until the fault is isolated to a component.',
-  how_learned = 'Fluid power courses; on the job. The International Fluid Power Society certifies hydraulic specialists.', tools = ARRAY['Pressure gauges and test hoses', 'flow meters', 'infrared thermometers', 'schematics']
+  how_learned = 'Fluid power courses; on the job. The International Fluid Power Society certifies hydraulic specialists.', tools = ARRAY['Pressure gauges and test hoses', 'Flow meters', 'Infrared thermometers', 'Schematics']
   WHERE name = 'Hydraulic System Troubleshooting';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Reading fluid power diagrams: the symbols for pumps, valves, actuators and accumulators and how a circuit works in each valve position. A person who has it can trace flow and pressure through a machine''s circuit.',
-  how_learned = 'Fluid power courses in maintenance and mechatronics programs. The symbols follow ISO 1219.', tools = ARRAY['Hydraulic and pneumatic schematics', 'symbol charts']
+  how_learned = 'Fluid power courses in maintenance and mechatronics programs. The symbols follow ISO 1219.', tools = ARRAY['Hydraulic and pneumatic schematics', 'Symbol charts']
   WHERE name = 'Hydraulic Schematic Reading';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Checking and recharging the nitrogen precharge of an accumulator and replacing its bladder or seals. A person who has it bleeds the oil side to zero first and uses a charging rig, never shop air or oxygen.',
-  how_learned = 'Fluid power courses; on the job.', tools = ARRAY['Charging and gauging kits', 'nitrogen bottles and regulators']
+  how_learned = 'Fluid power courses; on the job.', tools = ARRAY['Charging and gauging kits', 'Nitrogen bottles and regulators']
   WHERE name = 'Hydraulic Accumulator Service';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Changing hydraulic filters and keeping contamination out while the system is open. A person who has it reads the clogging indicator, fits the right element, tops up through a filter and bleeds air.',
-  how_learned = 'On the job in maintenance.', tools = ARRAY['Filter elements', 'filter carts', 'clogging indicators']
+  how_learned = 'On the job in maintenance.', tools = ARRAY['Filter elements', 'Filter carts', 'Clogging indicators']
   WHERE name = 'Hydraulic Filter Service';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Sampling hydraulic oil and reading the lab report for particles, water and wear metals. A person who has it takes a clean, representative sample and knows the target ISO cleanliness code.',
-  how_learned = 'On the job in maintenance or reliability.', tools = ARRAY['Sample bottles and vacuum pumps', 'particle counters', 'lab reports']
+  how_learned = 'On the job in maintenance or reliability.', tools = ARRAY['Sample bottles and vacuum pumps', 'Particle counters', 'Lab reports']
   WHERE name = 'Hydraulic Fluid Analysis';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Measuring pressure and flow in a hydraulic system to prove a pump, valve or actuator is doing its job. A person who has it connects test equipment safely and sets relief and reducing valves to specification.',
-  how_learned = 'Fluid power courses; on the job.', tools = ARRAY['Test gauges', 'flow meters', 'hydraulic test stands']
+  how_learned = 'Fluid power courses; on the job.', tools = ARRAY['Test gauges', 'Flow meters', 'Hydraulic test stands']
   WHERE name = 'Hydraulic Pressure and Flow Testing';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Removing, flushing, testing and replacing electrohydraulic servo and proportional valves. A person who has it keeps everything very clean, checks null and response and knows when a valve must go back to the maker.',
-  how_learned = 'On the job; valve makers'' courses.', tools = ARRAY['Servo valve test stands', 'flushing plates', 'clean benches']
+  how_learned = 'On the job; valve makers'' courses.', tools = ARRAY['Servo valve test stands', 'Flushing plates', 'Clean benches']
   WHERE name = 'Servo Valve Service';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Maintaining compressed-air circuits: cylinders, valves, regulators, filters and tubing. A person who has it finds leaks and sticking valves, rebuilds cylinders and sets pressure, speed and cushioning.',
-  how_learned = 'Industrial maintenance and mechatronics programs. The International Fluid Power Society certifies pneumatic mechanics and specialists.', tools = ARRAY['Solenoid valves and manifolds', 'filter-regulator-lubricator units', 'flow controls', 'leak detectors']
+  how_learned = 'Industrial maintenance and mechatronics programs. The International Fluid Power Society certifies pneumatic mechanics and specialists.', tools = ARRAY['Solenoid valves and manifolds', 'Filter-regulator-lubricator units', 'Flow controls', 'Leak detectors']
   WHERE name = 'Pneumatic System Repair';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Maintaining centrifugal and positive displacement pumps. A person who has it replaces mechanical seals and bearings, sets clearances, aligns the pump to its driver and recognizes cavitation.',
-  how_learned = 'Industrial maintenance and millwright programs; on the job.', tools = ARRAY['Mechanical seals and packing', 'pullers and presses', 'dial indicators', 'alignment tools']
+  how_learned = 'Industrial maintenance and millwright programs; on the job.', tools = ARRAY['Mechanical seals and packing', 'Pullers and presses', 'Dial indicators', 'Alignment tools']
   WHERE name = 'Pump Maintenance';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Aligning the shafts of a motor and the machine it drives so couplings and bearings last. A person who has it corrects soft foot, measures offset and angle and shims and moves the machine into tolerance.',
-  how_learned = 'Millwright apprenticeship and industrial maintenance programs; alignment system makers'' courses.', tools = ARRAY['Laser alignment systems', 'dial indicators', 'precut shims', 'jacking bolts']
+  how_learned = 'Millwright apprenticeship and industrial maintenance programs; alignment system makers'' courses.', tools = ARRAY['Laser alignment systems', 'Dial indicators', 'Precut shims', 'Jacking bolts']
   WHERE name = 'Shaft Alignment';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Rebuilding industrial gear reducers. A person who has it strips and inspects gears, bearings and seals, sets backlash and bearing end play, checks the tooth contact pattern and refills with the right oil.',
-  how_learned = 'Millwright apprenticeship; on the job.', tools = ARRAY['Pullers and presses', 'dial indicators', 'marking compound', 'feeler gauges']
+  how_learned = 'Millwright apprenticeship; on the job.', tools = ARRAY['Pullers and presses', 'Dial indicators', 'Marking compound', 'Feeler gauges']
   WHERE name = 'Gearbox Repair';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Keeping conveyors running: tracking and tensioning belts, replacing rollers, bearings, chains and sprockets, and servicing drives. A person who has it tracks a belt that runs off and splices a new one.',
-  how_learned = 'Industrial maintenance programs; on the job.', tools = ARRAY['Belt tracking and tensioning tools', 'splice kits', 'chain breakers', 'grease guns']
+  how_learned = 'Industrial maintenance programs; on the job.', tools = ARRAY['Belt tracking and tensioning tools', 'Splice kits', 'Chain breakers', 'Grease guns']
   WHERE name = 'Conveyor Maintenance';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Measuring a machine''s vibration and reading the spectrum to find imbalance, misalignment, looseness and bearing or gear wear. A person who has it collects good data and names the likely fault and its severity.',
-  how_learned = 'Certification courses to ISO 18436-2, Categories I to IV, from the Vibration Institute and Mobius Institute.', tools = ARRAY['Vibration data collectors and accelerometers', 'spectrum analysis software']
+  how_learned = 'Certification courses to ISO 18436-2, Categories I to IV, from the Vibration Institute and Mobius Institute.', tools = ARRAY['Vibration data collectors and accelerometers', 'Spectrum analysis software']
   WHERE name = 'Vibration Analysis';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Finding faults by their heat with an infrared camera: loose electrical connections, overloaded circuits, failing bearings and insulation gaps. A person who has it sets emissivity and focus, images under load and rates the severity.',
-  how_learned = 'Thermographer certification courses, Level I to III, from infrared training providers.', tools = ARRAY['Infrared cameras', 'reporting software']
+  how_learned = 'Thermographer certification courses, Level I to III, from infrared training providers.', tools = ARRAY['Infrared cameras', 'Reporting software']
   WHERE name = 'Infrared Thermography';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Pumping a chamber down and keeping it there. A person who has it knows which pump and gauge work in which pressure range, follows the valve sequence and uses a rate-of-rise test to tell a leak from outgassing.',
-  how_learned = 'On the job on vacuum process tools; semiconductor manufacturing programs teach the principles.', tools = ARRAY['Dry and rotary vane roughing pumps', 'turbomolecular and cryogenic pumps', 'Pirani, capacitance and ion gauges']
+  how_learned = 'On the job on vacuum process tools; semiconductor manufacturing programs teach the principles.', tools = ARRAY['Dry and rotary vane roughing pumps', 'Turbomolecular and cryogenic pumps', 'Pirani, capacitance and ion gauges']
   WHERE name = 'Vacuum System Operation';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Finding leaks in vacuum and pressure systems with a helium mass spectrometer. A person who has it calibrates the detector, sprays or sniffs joints in a sensible order and tells a real leak from background.',
-  how_learned = 'On the job; leak detector makers'' courses.', tools = ARRAY['Helium leak detectors', 'spray probes and sniffers', 'calibrated leaks']
+  how_learned = 'On the job; leak detector makers'' courses.', tools = ARRAY['Helium leak detectors', 'Spray probes and sniffers', 'Calibrated leaks']
   WHERE name = 'Helium Leak Detection';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Reading the mass spectrum of the gas left in a vacuum chamber. A person who has it tells an air leak from water or contamination by the peaks present and tracks chamber condition over time.',
   how_learned = 'On the job as a vacuum or equipment engineer.', tools = ARRAY['Quadrupole residual gas analyzers and their software']
   WHERE name = 'Residual Gas Analysis';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Running the plant that makes ultrapure water for a fab. A person who has it monitors resistivity, organic carbon, particles and flow through each stage and changes filters and resins on condition.',
-  how_learned = 'On the job in fab facilities, often from a water treatment background.', tools = ARRAY['Reverse osmosis units', 'ion exchange beds', 'UV units', 'resistivity and organic carbon analyzers']
+  how_learned = 'On the job in fab facilities, often from a water treatment background.', tools = ARRAY['Reverse osmosis units', 'Ion exchange beds', 'UV units', 'Resistivity and organic carbon analyzers']
   WHERE name = 'Ultrapure Water System Operation';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Finding and following the current, approved maintenance data for a task: the maintenance manual, parts catalog, wiring manual and service bulletins. A person who has it confirms the data applies to the specific aircraft before starting.',
-  how_learned = 'FAA Airframe and Powerplant training.', tools = ARRAY['Aircraft maintenance manuals', 'illustrated parts catalogs', 'wiring diagram manuals']
+  how_learned = 'FAA Airframe and Powerplant training.', tools = ARRAY['Aircraft maintenance manuals', 'Illustrated parts catalogs', 'Wiring diagram manuals']
   WHERE name = 'Aircraft Maintenance Manual Use';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Recording maintenance as 14 CFR Part 43 requires: what was done, with what data, when, and by whom, with signature and certificate number. A person who has it writes entries that support return to service.',
-  how_learned = 'FAA Airframe and Powerplant training; the certificate itself is the authority to sign.', tools = ARRAY['Aircraft logbooks', 'work orders', 'maintenance tracking software']
+  how_learned = 'FAA Airframe and Powerplant training; the certificate itself is the authority to sign.', tools = ARRAY['Aircraft logbooks', 'Work orders', 'Maintenance tracking software']
   WHERE name = 'Aircraft Maintenance Record Entries';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Starting and running an aircraft''s engines on the ground for leak, function and performance checks. A person who has it follows the checklist, watches limits and knows the emergency shutdown actions.',
-  how_learned = 'Employer run-and-taxi qualification on the aircraft type, held in addition to an FAA Airframe and Powerplant certificate.', tools = ARRAY['Aircraft flight deck', 'chocks and fire guard equipment', 'engine run checklists']
+  how_learned = 'Employer run-and-taxi qualification on the aircraft type, held in addition to an FAA Airframe and Powerplant certificate.', tools = ARRAY['Aircraft flight deck', 'Chocks and fire guard equipment', 'Engine run checklists']
   WHERE name = 'Aircraft Engine Ground Run';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Removing, inspecting, building up and installing aircraft wheels and tires. A person who has it deflates before disassembly, inflates in a safety cage with nitrogen and checks brake wear.',
-  how_learned = 'FAA Airframe and Powerplant training; on the job.', tools = ARRAY['Bead breakers', 'inflation cages', 'nitrogen carts', 'torque wrenches']
+  how_learned = 'FAA Airframe and Powerplant training; on the job.', tools = ARRAY['Bead breakers', 'Inflation cages', 'Nitrogen carts', 'Torque wrenches']
   WHERE name = 'Aircraft Wheel and Tire Service';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Repairing damaged aircraft skin and structure with patches, doublers and splices. A person who has it removes rivets without enlarging holes, lays out a rivet pattern with correct edge distance and spacing and restores the original strength.',
-  how_learned = 'FAA Airframe and Powerplant training; repairs follow the structural repair manual or FAA Advisory Circular 43.13-1B.', tools = ARRAY['Rivet guns and bucking bars', 'drills', 'sheet metal brakes and shears', 'layout tools']
+  how_learned = 'FAA Airframe and Powerplant training; repairs follow the structural repair manual or FAA Advisory Circular 43.13-1B.', tools = ARRAY['Rivet guns and bucking bars', 'Drills', 'Sheet metal brakes and shears', 'Layout tools']
   WHERE name = 'Aircraft Sheet Metal Repair';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Finding, removing and treating corrosion on aircraft structure. A person who has it identifies the type, blends it out within limits, restores the conversion coat and primer and applies preventive compound.',
-  how_learned = 'FAA Airframe and Powerplant training.', tools = ARRAY['Abrasive pads and blend tools', 'conversion coating', 'primers', 'corrosion preventive compounds']
+  how_learned = 'FAA Airframe and Powerplant training.', tools = ARRAY['Abrasive pads and blend tools', 'Conversion coating', 'Primers', 'Corrosion preventive compounds']
   WHERE name = 'Aircraft Corrosion Control';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Inspecting, leak-checking and replacing the ducts, valves and clamps that carry hot engine bleed air. A person who has it finds leaks, tests valves and installs duct joints so they stay sealed.',
-  how_learned = 'FAA Airframe and Powerplant training; on the job.', tools = ARRAY['Duct clamps and seals', 'leak detection equipment', 'torque wrenches']
+  how_learned = 'FAA Airframe and Powerplant training; on the job.', tools = ARRAY['Duct clamps and seals', 'Leak detection equipment', 'Torque wrenches']
   WHERE name = 'Aircraft Bleed Air System Service';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Bringing a flown rocket engine back to flight condition: inspecting it, cleaning it and replacing seals and worn parts. A person who has it works to the reuse limits for each part and records what was found.',
-  how_learned = 'On the job at an engine plant, after engine assembly experience.', tools = ARRAY['Borescopes', 'leak test equipment', 'engine build stands', 'cleaning equipment']
+  how_learned = 'On the job at an engine plant, after engine assembly experience.', tools = ARRAY['Borescopes', 'Leak test equipment', 'Engine build stands', 'Cleaning equipment']
   WHERE name = 'Rocket Engine Refurbishment';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Inspecting flown hardware for heat damage, cracks, leaks and wear before it flies again. A person who has it follows the inspection plan, documents each finding and knows what needs engineering review.',
-  how_learned = 'On the job at a launch vehicle plant, from an aircraft or structures inspection background.', tools = ARRAY['Borescopes', 'ultrasonic and eddy current equipment', 'inspection lights and mirrors']
+  how_learned = 'On the job at a launch vehicle plant, from an aircraft or structures inspection background.', tools = ARRAY['Borescopes', 'Ultrasonic and eddy current equipment', 'Inspection lights and mirrors']
   WHERE name = 'Post-Flight Hardware Inspection';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Operating the heavy hydraulic equipment that carries a rocket to the pad and raises it upright. A person who has it runs the lift sequence, watches loads and pressures and services the hydraulics.',
-  how_learned = 'On the job at a launch site, from a heavy equipment or hydraulics background.', tools = ARRAY['Transporter-erectors', 'hydraulic power units', 'control consoles']
+  how_learned = 'On the job at a launch site, from a heavy equipment or hydraulics background.', tools = ARRAY['Transporter-erectors', 'Hydraulic power units', 'Control consoles']
   WHERE name = 'Transporter-Erector Operation';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Connecting and checking the ground lines that feed a vehicle fluids, gases, power and data until liftoff. A person who has it mates each connection, leak-checks it and verifies the release mechanism.',
-  how_learned = 'On the job at a launch or test site.', tools = ARRAY['Umbilical plates and arms', 'leak detectors', 'release mechanisms']
+  how_learned = 'On the job at a launch or test site.', tools = ARRAY['Umbilical plates and arms', 'Leak detectors', 'Release mechanisms']
   WHERE name = 'Umbilical Connection and Checkout';
 UPDATE skills SET category = 'Maintenance & Repair', description = 'Inspecting, mating and maintaining quick-disconnect couplings on propellant and gas lines. A person who has it checks seals, engages and locks the coupling and proves it leak-tight.',
-  how_learned = 'On the job in ground support or test.', tools = ARRAY['Quick-disconnect couplings', 'seal kits', 'leak detectors']
+  how_learned = 'On the job in ground support or test.', tools = ARRAY['Quick-disconnect couplings', 'Seal kits', 'Leak detectors']
   WHERE name = 'Quick-Disconnect Coupling Service';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Measuring outside, inside, depth and step dimensions with dial or digital calipers to about a thousandth of an inch. A person who has it zeroes the tool, holds it square with light, even pressure and knows when a caliper is not accurate enough.',
-  how_learned = 'Taught in the first weeks of machining and quality programs; NIMS Measurement, Materials and Safety credential.', tools = ARRAY['Dial, digital and vernier calipers', 'gauge blocks for checking']
+  how_learned = 'Taught in the first weeks of machining and quality programs; NIMS Measurement, Materials and Safety credential.', tools = ARRAY['Dial, digital and vernier calipers', 'Gauge blocks for checking']
   WHERE name = 'Caliper Measurement';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Measuring to a ten-thousandth of an inch with outside, inside and depth micrometers. A person who has it reads the thimble and vernier, uses the ratchet for consistent feel and checks zero against a standard.',
-  how_learned = 'Machining and quality programs; NIMS Measurement, Materials and Safety credential.', tools = ARRAY['Outside, inside and depth micrometers', 'setting standards', 'micrometer stands']
+  how_learned = 'Machining and quality programs; NIMS Measurement, Materials and Safety credential.', tools = ARRAY['Outside, inside and depth micrometers', 'Setting standards', 'Micrometer stands']
   WHERE name = 'Micrometer Measurement';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Measuring heights, steps and hole locations from a surface plate. A person who has it sets the part on its datum, zeroes the gauge and uses an indicator or probe to pick up each feature.',
-  how_learned = 'Machining and quality programs; on the job in inspection.', tools = ARRAY['Digital height gauges', 'granite surface plates', 'test indicators', 'angle plates and V-blocks']
+  how_learned = 'Machining and quality programs; on the job in inspection.', tools = ARRAY['Digital height gauges', 'Granite surface plates', 'Test indicators', 'Angle plates and V-blocks']
   WHERE name = 'Height Gauge Measurement';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Measuring inside diameters to tenths with a dial bore gauge. A person who has it sets the gauge to a master, rocks it to find the true reading and checks a bore for taper and out-of-round.',
-  how_learned = 'Machining and quality programs; on the job.', tools = ARRAY['Dial bore gauges', 'setting rings and micrometers', 'telescoping gauges', 'air gauges']
+  how_learned = 'Machining and quality programs; on the job.', tools = ARRAY['Dial bore gauges', 'Setting rings and micrometers', 'Telescoping gauges', 'Air gauges']
   WHERE name = 'Bore Gauge Measurement';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Building an exact length by wringing gauge blocks together, to set or check other instruments. A person who has it picks the fewest blocks, wrings them clean and handles them so they neither warm nor rust.',
-  how_learned = 'Metrology and toolmaking courses; on the job in a calibration lab.', tools = ARRAY['Steel and ceramic gauge block sets', 'optical flats', 'sine bars']
+  how_learned = 'Metrology and toolmaking courses; on the job in a calibration lab.', tools = ARRAY['Steel and ceramic gauge block sets', 'Optical flats', 'Sine bars']
   WHERE name = 'Gauge Block Use';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Checking screw threads for size and form. A person who has it uses go and no-go gauges correctly and measures pitch diameter with thread micrometers or the three-wire method.',
-  how_learned = 'Machining and inspection programs; on the job.', tools = ARRAY['Thread ring and plug gauges', 'thread micrometers', 'thread wires', 'pitch gauges']
+  how_learned = 'Machining and inspection programs; on the job.', tools = ARRAY['Thread ring and plug gauges', 'Thread micrometers', 'Thread wires', 'Pitch gauges']
   WHERE name = 'Thread Measurement';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Measuring surface finish with a stylus profilometer and reading values such as Ra and Rz against the drawing. A person who has it sets cutoff and trace direction correctly and checks the instrument on a reference specimen.',
-  how_learned = 'Machining and quality programs; on the job.', tools = ARRAY['Portable and bench profilometers', 'reference specimens', 'comparison plates']
+  how_learned = 'Machining and quality programs; on the job.', tools = ARRAY['Portable and bench profilometers', 'Reference specimens', 'Comparison plates']
   WHERE name = 'Surface Roughness Measurement';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Inspecting a part''s profile as a magnified shadow on a screen. A person who has it stages and aligns the part, picks the magnification and measures with the stage, an overlay or edge detection.',
-  how_learned = 'Quality and machining programs; on the job in inspection.', tools = ARRAY['Optical comparators', 'overlay charts', 'stage micrometers']
+  how_learned = 'Quality and machining programs; on the job in inspection.', tools = ARRAY['Optical comparators', 'Overlay charts', 'Stage micrometers']
   WHERE name = 'Optical Comparator Inspection';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Reading geometric dimensioning and tolerancing on a drawing: datums, feature control frames, material condition modifiers and each of the tolerance symbols. A person who has it knows what a callout allows and how the feature must be set up and measured.',
-  how_learned = 'Courses at community colleges and from training firms. ASME certifies Geometric Dimensioning and Tolerancing Professionals at Technologist and Senior levels, to its Y14.5 standard.', tools = ARRAY['ASME Y14.5', 'functional gauges', 'CMMs']
+  how_learned = 'Courses at community colleges and from training firms. ASME certifies Geometric Dimensioning and Tolerancing Professionals at Technologist and Senior levels, to its Y14.5 standard.', tools = ARRAY['ASME Y14.5', 'Functional gauges', 'CMMs']
   WHERE name = 'GD&T Interpretation';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Adding up the tolerances along a chain of parts to find the largest and smallest gap or interference an assembly can have. A person who has it runs worst-case and statistical stacks and says which tolerance to change.',
-  how_learned = 'Mechanical engineering study and GD&T courses; on the job in design.', tools = ARRAY['Spreadsheets', 'tolerance analysis software', 'assembly drawings']
+  how_learned = 'Mechanical engineering study and GD&T courses; on the job in design.', tools = ARRAY['Spreadsheets', 'Tolerance analysis software', 'Assembly drawings']
   WHERE name = 'Tolerance Stack-Up Analysis';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Running a coordinate measuring machine: fixturing the part, qualifying probes, running a program and reading the report. A person who has it knows when a result is wrong because of the setup, not the part.',
-  how_learned = 'Quality programs at community colleges; CMM makers'' operator courses; on the job.', tools = ARRAY['Bridge CMMs from Hexagon, Zeiss and Mitutoyo', 'touch and scanning probes', 'PC-DMIS and Calypso']
+  how_learned = 'Quality programs at community colleges; CMM makers'' operator courses; on the job.', tools = ARRAY['Bridge CMMs from Hexagon, Zeiss and Mitutoyo', 'Touch and scanning probes', 'PC-DMIS and Calypso']
   WHERE name = 'CMM Operation';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Writing the measurement program for a part from its drawing and model. A person who has it builds the alignment from the datums, chooses how many points to take on each feature, sets probe angles and outputs the dimensions the drawing requires.',
   how_learned = 'CMM makers'' programming courses after operating experience.', tools = ARRAY['PC-DMIS', 'Calypso', 'MCOSMOS', 'CAD models']
   WHERE name = 'CMM Programming';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Establishing a part''s coordinate system on a measuring machine from its datum features, or by best fit to the model. A person who has it gets the same alignment the drawing intends, which every reported dimension depends on.',
-  how_learned = 'CMM makers'' advanced courses; on the job as a senior programr or metrologist.', tools = ARRAY['CMM and scanning software', 'datum fixtures', 'CAD models']
+  how_learned = 'CMM makers'' advanced courses; on the job as a senior programr or metrologist.', tools = ARRAY['CMM and scanning software', 'Datum fixtures', 'CAD models']
   WHERE name = 'CMM Part Alignment';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Measuring large parts, tools and assemblies with a laser tracker and a hand-held reflector. A person who has it locates the tracker, ties in to reference points and reports positions against the model.',
-  how_learned = 'Tracker makers'' courses; the Coordinate Metrology Society certifies portable metrology operators.', tools = ARRAY['Laser trackers from Leica, FARO and API', 'reflectors', 'SpatialAnalyzer and PolyWorks']
+  how_learned = 'Tracker makers'' courses; the Coordinate Metrology Society certifies portable metrology operators.', tools = ARRAY['Laser trackers from Leica, FARO and API', 'Reflectors', 'SpatialAnalyzer and PolyWorks']
   WHERE name = 'Laser Tracker Metrology';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Capturing a part''s whole surface with a structured-light or laser scanner. A person who has it prepares the surface, plans the scan positions and gets complete, accurate data.',
-  how_learned = 'Scanner makers'' courses; on the job in a metrology lab.', tools = ARRAY['Structured-light scanners such as ZEISS ATOS', 'laser line scanners', 'reference targets']
+  how_learned = 'Scanner makers'' courses; on the job in a metrology lab.', tools = ARRAY['Structured-light scanners such as ZEISS ATOS', 'Laser line scanners', 'Reference targets']
   WHERE name = '3D Scanning';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Turning scan or CT data into results: cleaning and aligning the point cloud, comparing it with the CAD model as a color map and extracting dimensions. A person who has it knows how alignment choices change the answer.',
   how_learned = 'Software makers'' courses; on the job in metrology.', tools = ARRAY['PolyWorks', 'Geomagic', 'ZEISS Inspect', 'VGSTUDIO MAX']
   WHERE name = 'Scan Data Processing';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Measuring a vehicle body or its subassemblies against the model, at the points that control fit. A person who has it sets the body on its locators, measures by CMM or optical system and reports deviations by zone.',
-  how_learned = 'On the job in an automotive body shop or metrology lab.', tools = ARRAY['Horizontal-arm CMMs', 'in-line laser measurement', 'checking fixtures']
+  how_learned = 'On the job in an automotive body shop or metrology lab.', tools = ARRAY['Horizontal-arm CMMs', 'In-line laser measurement', 'Checking fixtures']
   WHERE name = 'Body Dimensional Measurement';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Checking how well a CNC machine moves in a circle, using a telescoping bar between spindle and table. A person who has it runs the test and reads the plot for backlash, squareness, scale and servo mismatch.',
-  how_learned = 'On the job as a machine tool service or maintenance technician; ballbar makers'' training.', tools = ARRAY['Renishaw ballbar', 'analysis software']
+  how_learned = 'On the job as a machine tool service or maintenance technician; ballbar makers'' training.', tools = ARRAY['Renishaw ballbar', 'Analysis software']
   WHERE name = 'Ballbar Testing';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Measuring how accurately a machine axis positions along its travel with a laser interferometer. A person who has it aligns the optics, records the errors and reports accuracy and repeatability.',
-  how_learned = 'On the job as a machine tool service technician; interferometer makers'' training.', tools = ARRAY['Laser interferometer systems such as Renishaw XL-80', 'environmental compensation sensors']
+  how_learned = 'On the job as a machine tool service technician; interferometer makers'' training.', tools = ARRAY['Laser interferometer systems such as Renishaw XL-80', 'Environmental compensation sensors']
   WHERE name = 'Machine Tool Laser Calibration';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Entering measured errors into a CNC control so the machine corrects itself: pitch error tables, backlash and squareness values. A person who has it loads the compensation and verifies the gain with a second measurement.',
-  how_learned = 'On the job as a machine tool service technician.', tools = ARRAY['CNC parameter and compensation pages', 'laser and ballbar data']
+  how_learned = 'On the job as a machine tool service technician.', tools = ARRAY['CNC parameter and compensation pages', 'Laser and ballbar data']
   WHERE name = 'CNC Axis Error Compensation';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Comparing a pressure gauge or transmitter with a more accurate standard across its range. A person who has it applies pressure in steps, up and down, records the errors and adjusts or rejects the instrument.',
-  how_learned = 'Metrology and instrumentation programs; on the job in a calibration lab. ASQ offers the Certified Calibration Technician credential.', tools = ARRAY['Deadweight testers', 'pressure comparators and reference gauges', 'hand pumps']
+  how_learned = 'Metrology and instrumentation programs; on the job in a calibration lab. ASQ offers the Certified Calibration Technician credential.', tools = ARRAY['Deadweight testers', 'Pressure comparators and reference gauges', 'Hand pumps']
   WHERE name = 'Pressure Gauge Calibration';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Comparing thermocouples, resistance thermometers and indicators with a reference at set temperatures. A person who has it gives each point time to settle, records the error and applies or reports corrections.',
-  how_learned = 'Metrology and instrumentation programs; on the job. ASQ offers the Certified Calibration Technician credential.', tools = ARRAY['Dry-block calibrators and stirred baths', 'reference thermometers', 'ice point']
+  how_learned = 'Metrology and instrumentation programs; on the job. ASQ offers the Certified Calibration Technician credential.', tools = ARRAY['Dry-block calibrators and stirred baths', 'Reference thermometers', 'Ice point']
   WHERE name = 'Temperature Calibration';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Checking a torque tool against a transducer at points across its range. A person who has it loads the wrench correctly, records the readings, adjusts it and labels it with the due date.',
-  how_learned = 'On the job in a calibration lab or tool crib. ASQ offers the Certified Calibration Technician credential.', tools = ARRAY['Torque testers and transducers', 'loading benches']
+  how_learned = 'On the job in a calibration lab or tool crib. ASQ offers the Certified Calibration Technician credential.', tools = ARRAY['Torque testers and transducers', 'Loading benches']
   WHERE name = 'Torque Wrench Calibration';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Estimating how far a measurement could be from the true value. A person who has it lists the contributors, such as the standard, resolution, repeatability and temperature, combines them in a budget and states the expanded uncertainty.',
-  how_learned = 'Metrology courses; on the job in a calibration lab accredited to ISO/IEC 17025. ASQ''s Certified Calibration Technician covers the basics.', tools = ARRAY['Uncertainty budgets', 'spreadsheets', 'calibration certificates']
+  how_learned = 'Metrology courses; on the job in a calibration lab accredited to ISO/IEC 17025. ASQ''s Certified Calibration Technician covers the basics.', tools = ARRAY['Uncertainty budgets', 'Spreadsheets', 'Calibration certificates']
   WHERE name = 'Measurement Uncertainty Analysis';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Checking parts at the machine or station while the job runs, at the frequency the control plan sets. A person who has it measures the called-out features, records them and stops the job when a trend or a part goes out.',
-  how_learned = 'On the job; machining and quality programs.', tools = ARRAY['Calipers, micrometers and gauges', 'check sheets and SPC charts', 'go and no-go gauges']
+  how_learned = 'On the job; machining and quality programs.', tools = ARRAY['Calipers, micrometers and gauges', 'Check sheets and SPC charts', 'Go and no-go gauges']
   WHERE name = 'In-Process Inspection';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Verifying every dimension, note and requirement on the first part from a new or changed process. A person who has it balloons the drawing, measures each characteristic and completes the report, in aerospace on the three forms of AS9102.',
-  how_learned = 'On the job in inspection; quality programs.', tools = ARRAY['Ballooned drawings', 'CMMs and hand gauges', 'AS9102 forms', 'first article software']
+  how_learned = 'On the job in inspection; quality programs.', tools = ARRAY['Ballooned drawings', 'CMMs and hand gauges', 'AS9102 forms', 'First article software']
   WHERE name = 'First Article Inspection';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Recording inspection results so they can be trusted later: actual values, the gauge used, date, stamp or signature, and corrections made properly. A person who has it leaves a record that stands up in an audit.',
-  how_learned = 'On the job; covered in quality programs.', tools = ARRAY['Inspection reports', 'travelers', 'inspection stamps', 'quality management software']
+  how_learned = 'On the job; covered in quality programs.', tools = ARRAY['Inspection reports', 'Travelers', 'Inspection stamps', 'Quality management software']
   WHERE name = 'Inspection Record Keeping';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Writing up a part that does not meet requirements: what the requirement is, what was found, how many, and where the parts are held. A person who has it tags and segregates the material and writes a report someone else can act on.',
-  how_learned = 'On the job in inspection; quality programs.', tools = ARRAY['Nonconformance reports and tags', 'hold areas', 'quality management software']
+  how_learned = 'On the job in inspection; quality programs.', tools = ARRAY['Nonconformance reports and tags', 'Hold areas', 'Quality management software']
   WHERE name = 'Nonconformance Reporting';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Deciding what happens to nonconforming material: use as is, rework, repair, return or scrap. A person who has it presents the facts, knows who has authority for each disposition and records the decision.',
-  how_learned = 'On the job in quality or manufacturing engineering.', tools = ARRAY['Nonconformance reports', 'engineering dispositions', 'customer concession requests']
+  how_learned = 'On the job in quality or manufacturing engineering.', tools = ARRAY['Nonconformance reports', 'Engineering dispositions', 'Customer concession requests']
   WHERE name = 'Material Review Board Disposition';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Inspecting a sample from a lot and accepting or rejecting the lot on the result. A person who has it reads sample size and accept number from the plan for the lot size and quality level, and picks the sample at random.',
-  how_learned = 'Quality programs; covered by ASQ''s Certified Quality Inspector and Technician credentials. The common plans are ANSI/ASQ Z1.4.', tools = ARRAY['Sampling tables', 'receiving inspection records']
+  how_learned = 'Quality programs; covered by ASQ''s Certified Quality Inspector and Technician credentials. The common plans are ANSI/ASQ Z1.4.', tools = ARRAY['Sampling tables', 'Receiving inspection records']
   WHERE name = 'Acceptance Sampling';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Keeping the chain of paperwork that ties a part to its material, processes and inspections: mill certificates, lot numbers, process certifications and serial numbers. A person who has it can prove where a part came from.',
-  how_learned = 'On the job in receiving, stores and inspection.', tools = ARRAY['Material test reports', 'certificates of conformance', 'lot and serial records']
+  how_learned = 'On the job in receiving, stores and inspection.', tools = ARRAY['Material test reports', 'Certificates of conformance', 'Lot and serial records']
   WHERE name = 'Material Traceability Records';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Charting measurements from a process to tell normal variation from a real change. A person who has it plots the data, recognizes out-of-control signals and reacts as the control plan says.',
   how_learned = 'Quality programs; employer training. Covered by ASQ''s Certified Quality Technician and Engineer credentials.', tools = ARRAY['X-bar and R, individuals and attribute charts', 'Minitab', 'SPC software at the station']
   WHERE name = 'Statistical Process Control';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Comparing a process''s spread and centering with the tolerance, as Cp and Cpk. A person who has it collects enough stable data, checks its distribution and says whether the process can hold the tolerance.',
-  how_learned = 'Quality and engineering programs; ASQ''s Certified Quality Engineer and Six Sigma credentials.', tools = ARRAY['Minitab', 'JMP', 'capability study worksheets']
+  how_learned = 'Quality and engineering programs; ASQ''s Certified Quality Engineer and Six Sigma credentials.', tools = ARRAY['Minitab', 'JMP', 'Capability study worksheets']
   WHERE name = 'Process Capability Analysis';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Testing a measurement system by having several people measure the same parts several times, to split gauge variation into repeatability and reproducibility. A person who has it runs the study and judges whether the gauge is fit for the tolerance.',
-  how_learned = 'Quality programs; AIAG''s Measurement Systems Analysis manual is the reference.', tools = ARRAY['Minitab', 'study worksheets', 'master parts']
+  how_learned = 'Quality programs; AIAG''s Measurement Systems Analysis manual is the reference.', tools = ARRAY['Minitab', 'Study worksheets', 'Master parts']
   WHERE name = 'Gauge R&R Studies';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Changing several process settings together in a planned pattern to learn which matter and how they interact. A person who has it picks factors and levels, runs the trials in random order and reads the effects.',
   how_learned = 'Engineering study; ASQ''s Certified Quality Engineer and Six Sigma Black Belt credentials.', tools = ARRAY['JMP', 'Minitab', 'Design-Expert']
   WHERE name = 'Design of Experiments';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Working from a failure back to the cause that, once removed, stops it happening again. A person who has it gathers the facts first, uses five-whys and cause-and-effect diagrams and tests the suspected cause before closing.',
-  how_learned = 'Employer training; quality programs. Covered by ASQ''s quality credentials.', tools = ARRAY['Five-whys', 'fishbone diagrams', 'fault trees', 'is/is-not analysis']
+  how_learned = 'Employer training; quality programs. Covered by ASQ''s quality credentials.', tools = ARRAY['Five-whys', 'Fishbone diagrams', 'Fault trees', 'Is/is-not analysis']
   WHERE name = 'Root Cause Analysis';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Solving a customer problem in the eight disciplines: team, problem description, containment, root cause, corrective action, verification, prevention and closure. A person who has it writes an 8D report the customer accepts.',
-  how_learned = 'Employer and customer training in automotive and electronics supply chains.', tools = ARRAY['8D report forms', 'containment records', 'verification data']
+  how_learned = 'Employer and customer training in automotive and electronics supply chains.', tools = ARRAY['8D report forms', 'Containment records', 'Verification data']
   WHERE name = '8D Problem Solving';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Running a corrective action from the problem to proof that it worked: investigation, root cause, action, verification of effectiveness. A person who has it writes records that satisfy the quality system and its auditors.',
-  how_learned = 'On the job in quality; ASQ''s Certified Quality Engineer and Auditor credentials cover it.', tools = ARRAY['Corrective action systems', 'investigation reports', 'effectiveness checks']
+  how_learned = 'On the job in quality; ASQ''s Certified Quality Engineer and Auditor credentials cover it.', tools = ARRAY['Corrective action systems', 'Investigation reports', 'Effectiveness checks']
   WHERE name = 'Corrective and Preventive Action';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Listing the ways each process step can fail, what each failure does and how it is caught, then ranking them to decide what to fix first. A person who has it builds the analysis with the people who run the process and keeps it current.',
-  how_learned = 'Employer training; AIAG''s FMEA handbook is the reference. Covered by ASQ''s Certified Quality Engineer.', tools = ARRAY['FMEA worksheets and software', 'process flow diagrams']
+  how_learned = 'Employer training; AIAG''s FMEA handbook is the reference. Covered by ASQ''s Certified Quality Engineer.', tools = ARRAY['FMEA worksheets and software', 'Process flow diagrams']
   WHERE name = 'Process FMEA';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Listing the ways a design can fail to do its job, the effects and the causes, and ranking them to decide what to change or test. A person who has it ties each failure mode to a design control.',
-  how_learned = 'Engineering study and employer training; AIAG''s FMEA handbook is the reference.', tools = ARRAY['FMEA worksheets and software', 'boundary and parameter diagrams']
+  how_learned = 'Engineering study and employer training; AIAG''s FMEA handbook is the reference.', tools = ARRAY['FMEA worksheets and software', 'Boundary and parameter diagrams']
   WHERE name = 'Design FMEA';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Writing the control plan: for each process step, what is checked, how, how often, by whom and what to do when it fails. A person who has it links the plan to the FMEA and the drawing''s key characteristics.',
-  how_learned = 'Employer training in automotive and aerospace quality; AIAG''s APQP manual is the reference.', tools = ARRAY['Control plan forms', 'process flow diagrams', 'FMEAs']
+  how_learned = 'Employer training in automotive and aerospace quality; AIAG''s APQP manual is the reference.', tools = ARRAY['Control plan forms', 'Process flow diagrams', 'FMEAs']
   WHERE name = 'Control Plan Development';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Assembling the evidence that a supplier''s process can make a part to requirements: dimensional results, material and performance tests, capability studies, control plan and the signed warrant. A person who has it prepares or reviews a complete package.',
-  how_learned = 'Employer training in the automotive supply chain; AIAG''s PPAP manual is the reference.', tools = ARRAY['Part submission warrants', 'dimensional reports', 'capability studies']
+  how_learned = 'Employer training in the automotive supply chain; AIAG''s PPAP manual is the reference.', tools = ARRAY['Part submission warrants', 'Dimensional reports', 'Capability studies']
   WHERE name = 'PPAP Submission';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Knowing what ISO 9001 requires of a quality management system and how a plant shows it: document control, records, internal audits, corrective action and management review. A person who has it can prepare an area for audit and audit another.',
-  how_learned = 'Internal auditor and lead auditor courses; ASQ''s Certified Quality Auditor.', tools = ARRAY['The ISO 9001 standard', 'quality manual and procedures', 'audit checklists']
+  how_learned = 'Internal auditor and lead auditor courses; ASQ''s Certified Quality Auditor.', tools = ARRAY['The ISO 9001 standard', 'Quality manual and procedures', 'Audit checklists']
   WHERE name = 'ISO 9001 Quality System Requirements';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Knowing what AS9100 adds to ISO 9001 for aerospace: configuration control, product safety, counterfeit parts prevention, first article inspection and control of suppliers. A person who has it works and audits to those requirements.',
-  how_learned = 'AS9100 internal and lead auditor courses; on the job in aerospace quality.', tools = ARRAY['The AS9100 standard', 'audit checklists', 'customer flow-down requirements']
+  how_learned = 'AS9100 internal and lead auditor courses; on the job in aerospace quality.', tools = ARRAY['The AS9100 standard', 'Audit checklists', 'Customer flow-down requirements']
   WHERE name = 'AS9100 Quality System Requirements';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Knowing what ISO 13485 requires of a medical device maker: design controls, risk management, validated processes, traceability and complaint handling. A person who has it works and audits to those requirements.',
-  how_learned = 'ISO 13485 internal and lead auditor courses; on the job in device quality.', tools = ARRAY['The ISO 13485 standard', 'device history records', 'audit checklists']
+  how_learned = 'ISO 13485 internal and lead auditor courses; on the job in device quality.', tools = ARRAY['The ISO 13485 standard', 'Device history records', 'Audit checklists']
   WHERE name = 'ISO 13485 Quality System Requirements';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Knowing what IATF 16949 requires of an automotive supplier, including customer-specific requirements and the core tools: APQP, PPAP, FMEA, MSA and SPC. A person who has it works and audits to those requirements.',
-  how_learned = 'IATF 16949 internal and lead auditor courses; AIAG core tools training.', tools = ARRAY['The IATF 16949 standard', 'AIAG core tool manuals', 'audit checklists']
+  how_learned = 'IATF 16949 internal and lead auditor courses; AIAG core tools training.', tools = ARRAY['The IATF 16949 standard', 'AIAG core tool manuals', 'Audit checklists']
   WHERE name = 'IATF 16949 Quality System Requirements';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Writing instructions an operator can follow without asking: one action per step, in order, with photos, torque values, tools and checks. A person who has it tries the instruction on the floor and controls its revisions.',
-  how_learned = 'On the job in manufacturing engineering.', tools = ARRAY['Work instruction templates and authoring software', 'photos and annotated models']
+  how_learned = 'On the job in manufacturing engineering.', tools = ARRAY['Work instruction templates and authoring software', 'Photos and annotated models']
   WHERE name = 'Work Instruction Writing';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Organizing a work area by sort, set in order, shine, standardize and sustain, so everything needed has a marked place and anything abnormal shows. A person who has it sets up an area and keeps it audited.',
-  how_learned = 'Employer training; lean certificate programs.', tools = ARRAY['Shadow boards', 'floor marking', 'red tags', 'audit sheets']
+  how_learned = 'Employer training; lean certificate programs.', tools = ARRAY['Shadow boards', 'Floor marking', 'Red tags', 'Audit sheets']
   WHERE name = '5S Workplace Organization';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Documenting the best known way to do a job, with its sequence, timing against takt and the work in process allowed, and working to it. A person who has it writes the standard work sheets and improves them with the operators.',
-  how_learned = 'Employer lean training; SME''s Lean Certification covers it.', tools = ARRAY['Standard work combination sheets', 'work element timing', 'takt time calculations']
+  how_learned = 'Employer lean training; SME''s Lean Certification covers it.', tools = ARRAY['Standard work combination sheets', 'Work element timing', 'Takt time calculations']
   WHERE name = 'Standard Work';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Drawing how material and information flow for a product family, from order to shipment, to see where time is lost. A person who has it maps the current state on the floor, measures lead time against work time and draws a future state.',
-  how_learned = 'Employer lean training; SME''s Lean Certification covers it.', tools = ARRAY['Value stream map symbols', 'stopwatch', 'process data boxes']
+  how_learned = 'Employer lean training; SME''s Lean Certification covers it.', tools = ARRAY['Value stream map symbols', 'Stopwatch', 'Process data boxes']
   WHERE name = 'Value Stream Mapping';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Leading a short, focused improvement event in which a team studies an area, changes it and proves the result within days. A person who has it scopes the event, keeps the team on the method and follows up on open actions.',
-  how_learned = 'Employer lean training; SME''s Lean Certification covers it.', tools = ARRAY['Event charters', 'before and after measurements', 'action lists']
+  how_learned = 'Employer lean training; SME''s Lean Certification covers it.', tools = ARRAY['Event charters', 'Before and after measurements', 'Action lists']
   WHERE name = 'Kaizen Event Facilitation';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Running an improvement project through define, measure, analyze, improve and control, using data at each step. A person who has it scopes a project, validates the measurement, finds the significant causes and holds the gain.',
-  how_learned = 'ASQ''s Certified Six Sigma Green Belt and Black Belt, or an employer''s belt program.', tools = ARRAY['Minitab', 'project charters', 'control plans']
+  how_learned = 'ASQ''s Certified Six Sigma Green Belt and Black Belt, or an employer''s belt program.', tools = ARRAY['Minitab', 'Project charters', 'Control plans']
   WHERE name = 'Six Sigma DMAIC';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Cutting the time a machine is down between jobs. A person who has it films a changeover, separates what can be done while the machine runs from what cannot, and standardizes tools, positions and clamping.',
-  how_learned = 'Employer lean training; on the job in setup.', tools = ARRAY['Changeover videos and timing sheets', 'quick-release clamps', 'pre-staged tool carts']
+  how_learned = 'Employer lean training; on the job in setup.', tools = ARRAY['Changeover videos and timing sheets', 'Quick-release clamps', 'Pre-staged tool carts']
   WHERE name = 'Quick Changeover';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Dividing the work of an assembly line among stations so each fits within takt time. A person who has it lists the work elements and their times, respects the order they must follow and levels the load.',
-  how_learned = 'Industrial engineering study; on the job.', tools = ARRAY['Yamazumi charts', 'precedence diagrams', 'time study data']
+  how_learned = 'Industrial engineering study; on the job.', tools = ARRAY['Yamazumi charts', 'Precedence diagrams', 'Time study data']
   WHERE name = 'Line Balancing';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Measuring how long a job takes: breaking it into elements, timing them over many cycles and applying allowances to set a standard time. A person who has it gets a figure both operators and planners accept.',
-  how_learned = 'Industrial engineering study; on the job.', tools = ARRAY['Stopwatch or video', 'time study sheets', 'predetermined time systems']
+  how_learned = 'Industrial engineering study; on the job.', tools = ARRAY['Stopwatch or video', 'Time study sheets', 'Predetermined time systems']
   WHERE name = 'Time Study';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Designing a process so a mistake cannot be made or is caught at once: pins that stop a part going in backwards, sensors that confirm a part is present, tools that count. A person who has it finds where errors happen and adds the simplest device that stops them.',
-  how_learned = 'Employer lean and quality training; on the job in manufacturing engineering.', tools = ARRAY['Locating pins and fixtures', 'presence sensors', 'pick-to-light', 'torque tool interlocks']
+  how_learned = 'Employer lean and quality training; on the job in manufacturing engineering.', tools = ARRAY['Locating pins and fixtures', 'Presence sensors', 'Pick-to-light', 'Torque tool interlocks']
   WHERE name = 'Error Proofing';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Measuring how much of a machine''s scheduled time makes good parts at full speed, as availability, performance and quality. A person who has it collects honest loss data and ranks the losses.',
   how_learned = 'Employer training; on the job in industrial engineering and maintenance.', tools = ARRAY['Downtime tracking and MES data', 'Pareto charts']
   WHERE name = 'OEE Analysis';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Preparing and examining a metal sample under the microscope: section, mount, grind, polish and etch. A person who has it reads grain structure, case depth, weld penetration and porosity and takes microhardness traverses.',
-  how_learned = 'Materials science and metallurgical technology programs; on the job in a materials lab.', tools = ARRAY['Abrasive saws', 'mounting presses', 'grinder-polishers', 'metallurgical microscopes', 'microhardness testers']
+  how_learned = 'Materials science and metallurgical technology programs; on the job in a materials lab.', tools = ARRAY['Abrasive saws', 'Mounting presses', 'Grinder-polishers', 'Metallurgical microscopes', 'Microhardness testers']
   WHERE name = 'Metallographic Examination';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Pulling a specimen to failure to measure its yield strength, tensile strength and elongation. A person who has it prepares and measures the specimen, sets up grips and extensometer and reports the results. The method for metals is ASTM E8.',
-  how_learned = 'Materials and engineering technology programs; on the job in a materials lab.', tools = ARRAY['Universal testing machines', 'extensometers', 'specimen grips']
+  how_learned = 'Materials and engineering technology programs; on the job in a materials lab.', tools = ARRAY['Universal testing machines', 'Extensometers', 'Specimen grips']
   WHERE name = 'Tensile Testing';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Checking a finished vehicle before it leaves the line: fit and finish, function of every feature, fluid leaks and stored fault codes. A person who has it follows the inspection route, records each defect and confirms its repair.',
-  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Inspection light tunnels', 'diagnostic scan tools', 'defect tracking systems']
+  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Inspection light tunnels', 'Diagnostic scan tools', 'Defect tracking systems']
   WHERE name = 'Vehicle Final Inspection';
 UPDATE skills SET category = 'Quality & Measurement', description = 'Inspecting a vehicle''s heat shield: tile gaps and steps, bond condition, cracks and chips. A person who has it measures to the limits and marks anything that needs repair.',
-  how_learned = 'On the job at a spacecraft plant.', tools = ARRAY['Gap and step gauges', 'inspection lights', 'tap hammers']
+  how_learned = 'On the job at a spacecraft plant.', tools = ARRAY['Gap and step gauges', 'Inspection lights', 'Tap hammers']
   WHERE name = 'Thermal Protection System Inspection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Examining a surface directly by eye, with adequate light and simple aids, for cracks, corrosion, damage and workmanship defects. A person who has it knows the acceptance criteria and inspects at the required distance, angle and light level.',
-  how_learned = 'Employer training and certification under SNT-TC-1A or NAS 410; the first method most inspectors learn.', tools = ARRAY['Flashlights and light meters', 'mirrors and magnifiers', 'weld gauges']
+  how_learned = 'Employer training and certification under SNT-TC-1A or NAS 410; the first method most inspectors learn.', tools = ARRAY['Flashlights and light meters', 'Mirrors and magnifiers', 'Weld gauges']
   WHERE name = 'Visual Testing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Looking inside engines, tanks, tubes and closed structure with a borescope. A person who has it guides the probe without damaging anything, recognizes cracks, burns, erosion and debris and measures and records what is found.',
-  how_learned = 'FAA Airframe and Powerplant training and engine makers'' courses; on the job.', tools = ARRAY['Video borescopes with articulating tips', 'measurement software', 'guide tubes']
+  how_learned = 'FAA Airframe and Powerplant training and engine makers'' courses; on the job.', tools = ARRAY['Video borescopes with articulating tips', 'Measurement software', 'Guide tubes']
   WHERE name = 'Borescope Inspection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Finding cracks and porosity open to the surface: apply penetrant, let it dwell, remove the excess, apply developer and read the indications. A person who has it carries out each step to the procedure and tells a relevant indication from a false one.',
-  how_learned = 'Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or, in aerospace, NAS 410.', tools = ARRAY['Penetrants, removers and developers', 'process lines or spray cans', 'white and UV-A light']
+  how_learned = 'Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or, in aerospace, NAS 410.', tools = ARRAY['Penetrants, removers and developers', 'Process lines or spray cans', 'White and UV-A light']
   WHERE name = 'Liquid Penetrant Testing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Penetrant testing with a dye that glows under UV-A light in a darkened booth, the more sensitive form used on aerospace parts. A person who has it adapts their eyes, controls booth light levels and inspects every surface. ASTM E1417 sets the process.',
-  how_learned = 'Level II penetrant certification under NAS 410, with experience on a fluorescent line.', tools = ARRAY['Fluorescent penetrant lines', 'inspection booths', 'UV-A lamps', 'light meters']
+  how_learned = 'Level II penetrant certification under NAS 410, with experience on a fluorescent line.', tools = ARRAY['Fluorescent penetrant lines', 'Inspection booths', 'UV-A lamps', 'Light meters']
   WHERE name = 'Fluorescent Penetrant Inspection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Running penetrant that rinses off with water alone (Method A). A person who has it controls wash pressure, temperature and time so surface penetrant is removed without washing it out of defects.',
   how_learned = 'Learned as part of Level II penetrant certification.', tools = ARRAY['Wash stations with pressure and temperature gauges', 'UV-A light at the wash station']
   WHERE name = 'Water-Washable Penetrant Method';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Running penetrant that needs an emulsifier before it will rinse (Methods B and D), used when shallow or wide defects must not be washed out. A person who has it controls emulsifier contact time and concentration closely.',
-  how_learned = 'Learned as part of Level II penetrant certification.', tools = ARRAY['Emulsifier tanks', 'refractometers for concentration', 'timers']
+  how_learned = 'Learned as part of Level II penetrant certification.', tools = ARRAY['Emulsifier tanks', 'Refractometers for concentration', 'Timers']
   WHERE name = 'Post-Emulsifiable Penetrant Method';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Penetrant testing with spray cans and wiping (Method C), for spot checks and field work. A person who has it wipes with a cloth dampened with solvent and never sprays solvent on the part.',
-  how_learned = 'Learned as part of Level II penetrant certification; also taught to welders.', tools = ARRAY['Penetrant, cleaner and developer spray cans', 'lint-free cloths']
+  how_learned = 'Learned as part of Level II penetrant certification; also taught to welders.', tools = ARRAY['Penetrant, cleaner and developer spray cans', 'Lint-free cloths']
   WHERE name = 'Solvent-Removable Penetrant Method';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Applying the developer that draws penetrant back out of a defect, as dry powder, a water-based bath or a solvent spray. A person who has it applies a thin, even coat and reads within the development time window.',
-  how_learned = 'Learned as part of Level II penetrant certification.', tools = ARRAY['Dry powder stations', 'aqueous developer tanks', 'non-aqueous spray developer']
+  how_learned = 'Learned as part of Level II penetrant certification.', tools = ARRAY['Dry powder stations', 'Aqueous developer tanks', 'Non-aqueous spray developer']
   WHERE name = 'Penetrant Developer Application';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Choosing and verifying the penetrant sensitivity a part requires, from Level ½ to Level 4. A person who has it knows which level the specification calls for and why a rough casting and a polished turbine disk need different ones.',
-  how_learned = 'Learned as part of Level II penetrant certification.', tools = ARRAY['Qualified products list', 'specifications', 'known-defect standards']
+  how_learned = 'Learned as part of Level II penetrant certification.', tools = ARRAY['Qualified products list', 'Specifications', 'Known-defect standards']
   WHERE name = 'Penetrant Sensitivity Levels';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Proving a penetrant line still works: running a known-defect panel each day and checking penetrant, emulsifier, developer, wash and dryer on schedule. A person who has it runs the checks and keeps the log.',
-  how_learned = 'Learned on the job on a penetrant line, as part of Level II certification.', tools = ARRAY['Known-defect test panels', 'refractometers', 'thermometers and pressure gauges', 'UV-A and white light meters']
+  how_learned = 'Learned on the job on a penetrant line, as part of Level II certification.', tools = ARRAY['Known-defect test panels', 'Refractometers', 'Thermometers and pressure gauges', 'UV-A and white light meters']
   WHERE name = 'Penetrant System Performance Checks';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Measuring the UV-A intensity at the part and the white light in the booth before fluorescent inspection. A person who has it takes the readings at the set distance, logs them and replaces a lamp that falls short.',
-  how_learned = 'Learned as part of Level II penetrant and magnetic particle certification.', tools = ARRAY['UV-A radiometers', 'white light meters', 'UV-A LED lamps']
+  how_learned = 'Learned as part of Level II penetrant and magnetic particle certification.', tools = ARRAY['UV-A radiometers', 'White light meters', 'UV-A LED lamps']
   WHERE name = 'UV-A Light Intensity Checks';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Finding surface and near-surface cracks in steel by magnetizing it and applying iron particles, which gather at a flaw. A person who has it magnetizes in two directions, applies particles correctly and interprets the indications.',
-  how_learned = 'Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.', tools = ARRAY['Wet horizontal benches', 'yokes', 'coils', 'fluorescent and visible particles']
+  how_learned = 'Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.', tools = ARRAY['Wet horizontal benches', 'Yokes', 'Coils', 'Fluorescent and visible particles']
   WHERE name = 'Magnetic Particle Testing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Magnetic particle testing with fluorescent particles in a liquid bath, read under UV-A light. A person who has it checks bath concentration by settling test and inspects in a darkened booth. ASTM E1444 sets the process.',
-  how_learned = 'Level II magnetic particle certification, with experience on a wet bench.', tools = ARRAY['Wet horizontal benches', 'centrifuge tubes', 'UV-A lamps']
+  how_learned = 'Level II magnetic particle certification, with experience on a wet bench.', tools = ARRAY['Wet horizontal benches', 'Centrifuge tubes', 'UV-A lamps']
   WHERE name = 'Wet Fluorescent Magnetic Particle Inspection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Magnetic particle testing with dry colored powder, used on welds, castings and hot or rough surfaces. A person who has it dusts the powder lightly while the current is on and blows off the excess gently.',
-  how_learned = 'Level II magnetic particle certification; also taught to weld inspectors.', tools = ARRAY['Yokes and prods', 'powder bulbs and blowers']
+  how_learned = 'Level II magnetic particle certification; also taught to weld inspectors.', tools = ARRAY['Yokes and prods', 'Powder bulbs and blowers']
   WHERE name = 'Dry Powder Magnetic Particle Inspection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Magnetizing a local area with a hand-held electromagnetic yoke. A person who has it sets leg spacing, inspects in two directions at right angles and proves the yoke by lifting its test weight.',
-  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['AC and DC yokes', 'lift test weights', 'field indicators']
+  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['AC and DC yokes', 'Lift test weights', 'Field indicators']
   WHERE name = 'MT Yoke Technique';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Magnetizing a part lengthwise by placing it in a coil, to find flaws that run around it. A person who has it works out the current from the part''s length and diameter and repositions long parts.',
-  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['Bench coils and cable wraps', 'ammeters']
+  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['Bench coils and cable wraps', 'Ammeters']
   WHERE name = 'MT Coil Technique';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Magnetizing a part circularly by passing current through it between bench heads, or through a central conductor, to find flaws that run lengthwise. A person who has it sets current for the diameter and makes good contact to avoid arc burns.',
-  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['Wet horizontal benches', 'contact pads', 'central conductor bars']
+  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['Wet horizontal benches', 'Contact pads', 'Central conductor bars']
   WHERE name = 'MT Head Shot Technique';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Choosing the magnetizing current: alternating for surface cracks, half-wave or full-wave direct for flaws a little below the surface. A person who has it picks the type and amperage the procedure and part require.',
-  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['Multi-current magnetizing units', 'ammeters']
+  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['Multi-current magnetizing units', 'Ammeters']
   WHERE name = 'MT Current Selection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Confirming that a part is magnetized enough, and in the right direction, to show flaws. A person who has it uses notched shims, pie gauges and a gauss meter and adjusts the setup until the field is adequate.',
-  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['Notched shims', 'pie gauges', 'Hall-effect gauss meters']
+  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['Notched shims', 'Pie gauges', 'Hall-effect gauss meters']
   WHERE name = 'MT Field Strength Measurement';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Removing leftover magnetism after inspection so a part does not attract chips or disturb instruments. A person who has it demagnetizes with a reducing alternating or reversing field and verifies the residual with a field meter.',
-  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['Demagnetizing coils', 'field indicators']
+  how_learned = 'Learned as part of Level II magnetic particle certification.', tools = ARRAY['Demagnetizing coils', 'Field indicators']
   WHERE name = 'MT Demagnetization';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Finding internal flaws and measuring thickness by sending high-frequency sound into a part and reading the echoes. A person who has it sets up and calibrates the instrument, scans to the procedure and evaluates indications.',
-  how_learned = 'Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.', tools = ARRAY['Ultrasonic flaw detectors', 'transducers and wedges', 'couplant', 'calibration blocks']
+  how_learned = 'Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.', tools = ARRAY['Ultrasonic flaw detectors', 'Transducers and wedges', 'Couplant', 'Calibration blocks']
   WHERE name = 'Ultrasonic Testing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Reading the basic ultrasonic display, where echo height is plotted against time. A person who has it tells the back wall, geometry and flaw echoes apart and reads depth and amplitude from the screen.',
-  how_learned = 'Learned as part of Level I and II ultrasonic certification.', tools = ARRAY['Ultrasonic flaw detectors', 'calibration blocks']
+  how_learned = 'Learned as part of Level I and II ultrasonic certification.', tools = ARRAY['Ultrasonic flaw detectors', 'Calibration blocks']
   WHERE name = 'A-Scan Interpretation';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Setting up an ultrasonic instrument on standard blocks before inspection: range, sensitivity, beam exit point and angle. A person who has it calibrates on the right block for the job and rechecks during and after the inspection.',
-  how_learned = 'Learned as part of Level I and II ultrasonic certification.', tools = ARRAY['IIW blocks', 'distance and sensitivity blocks', 'step wedges', 'flat-bottom hole blocks']
+  how_learned = 'Learned as part of Level I and II ultrasonic certification.', tools = ARRAY['IIW blocks', 'Distance and sensitivity blocks', 'Step wedges', 'Flat-bottom hole blocks']
   WHERE name = 'UT Calibration with Reference Blocks';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Choosing the transducer for an inspection: frequency, size, angle and type. A person who has it trades penetration against sensitivity and picks dual-element or delay-line probes for thin or near-surface work.',
-  how_learned = 'Learned as part of Level II ultrasonic certification.', tools = ARRAY['Contact, angle-beam, dual-element, delay-line and immersion transducers', 'wedges']
+  how_learned = 'Learned as part of Level II ultrasonic certification.', tools = ARRAY['Contact, angle-beam, dual-element, delay-line and immersion transducers', 'Wedges']
   WHERE name = 'UT Transducer Selection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Inspecting with sound sent straight into the part, to find laminations and flaws parallel to the surface and to measure thickness. A person who has it watches for loss of back wall as well as flaw echoes.',
-  how_learned = 'Learned as part of Level I and II ultrasonic certification.', tools = ARRAY['Straight-beam transducers', 'flaw detectors', 'step blocks']
+  how_learned = 'Learned as part of Level I and II ultrasonic certification.', tools = ARRAY['Straight-beam transducers', 'Flaw detectors', 'Step blocks']
   WHERE name = 'Straight-Beam UT';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Inspecting with sound sent in at an angle, as shear waves, to reach flaws in welds and around geometry. A person who has it plots the sound path and locates a reflector from its surface distance and depth.',
-  how_learned = 'Learned as part of Level II ultrasonic certification.', tools = ARRAY['Angle-beam transducers and wedges', 'IIW block', 'weld plotting aids']
+  how_learned = 'Learned as part of Level II ultrasonic certification.', tools = ARRAY['Angle-beam transducers and wedges', 'IIW block', 'Weld plotting aids']
   WHERE name = 'Angle-Beam UT';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Scanning by hand with the transducer on the part''s surface, the same probe sending and receiving. A person who has it keeps coupling and scan overlap consistent and picks a couplant suited to the surface and temperature.',
-  how_learned = 'Learned as part of Level I and II ultrasonic certification.', tools = ARRAY['Flaw detectors', 'contact transducers', 'couplants']
+  how_learned = 'Learned as part of Level I and II ultrasonic certification.', tools = ARRAY['Flaw detectors', 'Contact transducers', 'Couplants']
   WHERE name = 'Contact Pulse-Echo UT';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Inspecting a part under water with the transducer held off the surface by a scanner. A person who has it sets water path and angle, normalizes the probe to the surface and runs the scan.',
-  how_learned = 'Level II ultrasonic certification, with experience on an immersion system.', tools = ARRAY['Immersion tanks', 'scanning bridges and manipulators', 'focused transducers']
+  how_learned = 'Level II ultrasonic certification, with experience on an immersion system.', tools = ARRAY['Immersion tanks', 'Scanning bridges and manipulators', 'Focused transducers']
   WHERE name = 'Immersion UT';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Inspecting with a sender on one side of the part and a receiver on the other, so a flaw shows as lost signal. A person who has it keeps the two aligned and reads the loss map of a composite or bonded panel.',
-  how_learned = 'Level II ultrasonic certification, with experience on composite inspection systems.', tools = ARRAY['Water-jet (squirter) systems', 'paired transducers', 'C-scan recording']
+  how_learned = 'Level II ultrasonic certification, with experience on composite inspection systems.', tools = ARRAY['Water-jet (squirter) systems', 'Paired transducers', 'C-scan recording']
   WHERE name = 'Through-Transmission UT';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Measuring wall thickness from one side with ultrasound, to find thinning from corrosion or machining. A person who has it calibrates on a step block of the same material and corrects for temperature and coatings.',
-  how_learned = 'Short employer courses; part of Level I and II ultrasonic certification.', tools = ARRAY['Ultrasonic thickness gauges', 'dual-element transducers', 'step blocks']
+  how_learned = 'Short employer courses; part of Level I and II ultrasonic certification.', tools = ARRAY['Ultrasonic thickness gauges', 'Dual-element transducers', 'Step blocks']
   WHERE name = 'UT Thickness Measurement';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Judging how large a reflector is from its echo. A person who has it builds a distance-amplitude curve from reference reflectors, compares indications against it and measures length by probe movement.',
-  how_learned = 'Learned as part of Level II ultrasonic certification.', tools = ARRAY['Reference blocks with side-drilled and flat-bottom holes', 'flaw detectors with DAC and TCG functions']
+  how_learned = 'Learned as part of Level II ultrasonic certification.', tools = ARRAY['Reference blocks with side-drilled and flat-bottom holes', 'Flaw detectors with DAC and TCG functions']
   WHERE name = 'UT Flaw Sizing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Ultrasonic inspection of welded joints for lack of fusion, cracks, slag and porosity. A person who has it scans from both sides, locates each indication in the weld cross-section and accepts or rejects it to the code.',
-  how_learned = 'Level II ultrasonic certification with weld experience; AWS D1.1 and ASME Section V set the methods.', tools = ARRAY['Angle-beam transducers', 'flaw detectors', 'weld plotting aids', 'reference blocks']
+  how_learned = 'Level II ultrasonic certification with weld experience; AWS D1.1 and ASME Section V set the methods.', tools = ARRAY['Angle-beam transducers', 'Flaw detectors', 'Weld plotting aids', 'Reference blocks']
   WHERE name = 'UT of Welds';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Ultrasonic inspection of composite laminates and bonded structure for delaminations, disbonds, porosity and inclusions. A person who has it calibrates on a reference panel of the same layup and reads signal loss as well as echoes.',
-  how_learned = 'Level II ultrasonic certification with composite experience, under NAS 410.', tools = ARRAY['Flaw detectors', 'low-frequency and delay-line transducers', 'composite reference standards']
+  how_learned = 'Level II ultrasonic certification with composite experience, under NAS 410.', tools = ARRAY['Flaw detectors', 'Low-frequency and delay-line transducers', 'Composite reference standards']
   WHERE name = 'UT of Composites';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Reading the plan-view map an automated ultrasonic scan produces. A person who has it sets the gates, reads the color scale and marks out and measures each indication.',
   how_learned = 'Level II ultrasonic certification, with experience on scanning systems.', tools = ARRAY['C-scan systems and analysis software']
   WHERE name = 'UT C-Scan Interpretation';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Ultrasonic testing with a multi-element probe whose beam is steered and focused electronically. A person who has it sets up linear and sectorial scans, calibrates each beam and reads the images.',
-  how_learned = 'A phased array course and supervised hours on top of Level II ultrasonic certification.', tools = ARRAY['Phased array instruments such as the OmniScan', 'array probes and wedges', 'scanners and encoders']
+  how_learned = 'A phased array course and supervised hours on top of Level II ultrasonic certification.', tools = ARRAY['Phased array instruments such as the OmniScan', 'Array probes and wedges', 'Scanners and encoders']
   WHERE name = 'Phased Array UT';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Recording encoded phased array data and analyzing it afterwards in software. A person who has it sets up the scan plan and encoder, checks data quality and sizes indications from the stored views.',
-  how_learned = 'Phased array courses; on the job.', tools = ARRAY['Encoded scanners', 'acquisition and analysis software']
+  how_learned = 'Phased array courses; on the job.', tools = ARRAY['Encoded scanners', 'Acquisition and analysis software']
   WHERE name = 'Phased Array Data Acquisition and Analysis';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Recording the signal between every pair of elements in an array and reconstructing a focused image of the whole area by the total focusing method. A person who has it sets up the capture and judges the image.',
-  how_learned = 'Advanced courses after phased array experience.', tools = ARRAY['Phased array instruments with total focusing method', 'array probes']
+  how_learned = 'Advanced courses after phased array experience.', tools = ARRAY['Phased array instruments with total focusing method', 'Array probes']
   WHERE name = 'Full Matrix Capture UT';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Sizing weld flaws from the faint signals diffracted by their tips, using a sender and receiver on either side of the weld. A person who has it sets probe separation and reads through-wall height from the image.',
-  how_learned = 'A specialist course and supervised hours on top of Level II ultrasonic certification.', tools = ARRAY['Paired probes and wedges', 'encoded scanners', 'analysis software']
+  how_learned = 'A specialist course and supervised hours on top of Level II ultrasonic certification.', tools = ARRAY['Paired probes and wedges', 'Encoded scanners', 'Analysis software']
   WHERE name = 'Time-of-Flight Diffraction';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Finding internal flaws by passing X-rays or gamma rays through a part onto film or a detector. A person who has it sets up the shot safely, produces an image of the required quality and interprets it.',
-  how_learned = 'Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410, plus radiation safety training.', tools = ARRAY['X-ray tubes and gamma sources', 'film and digital detectors', 'image quality indicators']
+  how_learned = 'Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410, plus radiation safety training.', tools = ARRAY['X-ray tubes and gamma sources', 'Film and digital detectors', 'Image quality indicators']
   WHERE name = 'Radiographic Testing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Making radiographs on film. A person who has it chooses film and screens, places the source and film, exposes to the required density and identifies each film to its part and location.',
-  how_learned = 'Learned as part of Level II radiographic certification.', tools = ARRAY['X-ray tubes', 'film cassettes and lead screens', 'lead markers', 'densitometers']
+  how_learned = 'Learned as part of Level II radiographic certification.', tools = ARRAY['X-ray tubes', 'Film cassettes and lead screens', 'Lead markers', 'Densitometers']
   WHERE name = 'Film Radiography';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Developing exposed film by hand or in a processor. A person who has it controls developer temperature, time and replenishment, avoids marks and fog and checks density with a densitometer.',
-  how_learned = 'Learned as part of Level I and II radiographic certification.', tools = ARRAY['Automatic processors and hand tanks', 'safelights', 'step wedges', 'densitometers']
+  how_learned = 'Learned as part of Level I and II radiographic certification.', tools = ARRAY['Automatic processors and hand tanks', 'Safelights', 'Step wedges', 'Densitometers']
   WHERE name = 'Radiographic Film Processing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Radiography with reusable phosphor plates read by a laser scanner in place of film. A person who has it sets exposure for the plate, scans and erases it and verifies image quality on screen.',
-  how_learned = 'Level II radiographic certification with digital training.', tools = ARRAY['Imaging plates', 'plate scanners', 'viewing software and calibrated monitors']
+  how_learned = 'Level II radiographic certification with digital training.', tools = ARRAY['Imaging plates', 'Plate scanners', 'Viewing software and calibrated monitors']
   WHERE name = 'Computed Radiography';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Radiography with a flat-panel detector that shows the image at once. A person who has it calibrates the detector, sets geometry and exposure and checks sharpness and contrast against the requirement.',
-  how_learned = 'Level II radiographic certification with digital training.', tools = ARRAY['Flat-panel detectors', 'X-ray cabinets and manipulators', 'image software']
+  how_learned = 'Level II radiographic certification with digital training.', tools = ARRAY['Flat-panel detectors', 'X-ray cabinets and manipulators', 'Image software']
   WHERE name = 'Digital Radiography';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Choosing the image quality indicator for the material and thickness and placing it so the radiograph proves its own sensitivity. A person who has it knows which hole or wire must be visible.',
-  how_learned = 'Learned as part of Level II radiographic certification. ASTM E1025 and E747 define the indicators.', tools = ARRAY['Hole-type and wire-type image quality indicators', 'shims']
+  how_learned = 'Learned as part of Level II radiographic certification. ASTM E1025 and E747 define the indicators.', tools = ARRAY['Hole-type and wire-type image quality indicators', 'Shims']
   WHERE name = 'IQI Selection and Placement';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Working out kilovoltage, current, time and distance for a shot from the material, thickness and film or detector. A person who has it uses exposure charts and keeps geometric unsharpness within the limit.',
-  how_learned = 'Learned as part of Level II radiographic certification.', tools = ARRAY['Exposure charts', 'source decay tables', 'calculators']
+  how_learned = 'Learned as part of Level II radiographic certification.', tools = ARRAY['Exposure charts', 'Source decay tables', 'Calculators']
   WHERE name = 'RT Exposure Calculation';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Keeping scattered radiation from fogging the image. A person who has it uses collimators, masks, filters and lead backing and checks for backscatter with a lead letter behind the film.',
-  how_learned = 'Learned as part of Level II radiographic certification.', tools = ARRAY['Collimators and diaphragms', 'lead screens, masks and sheet']
+  how_learned = 'Learned as part of Level II radiographic certification.', tools = ARRAY['Collimators and diaphragms', 'Lead screens, masks and sheet']
   WHERE name = 'RT Scattered Radiation Control';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Reading a radiograph: first confirming its quality, then finding and naming each indication and judging it against the acceptance standard. A person who has it tells porosity, inclusions, shrinkage, cracks and lack of fusion from film artifacts.',
-  how_learned = 'Level II radiographic certification, with many hours of supervised film reading.', tools = ARRAY['High-intensity viewers', 'densitometers', 'reference radiographs']
+  how_learned = 'Level II radiographic certification, with many hours of supervised film reading.', tools = ARRAY['High-intensity viewers', 'Densitometers', 'Reference radiographs']
   WHERE name = 'Radiograph Interpretation';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Radiographing welded joints in plate and pipe. A person who has it picks single- or double-wall technique, places markers and indicators and evaluates the weld to the code.',
-  how_learned = 'Level II radiographic certification with weld experience; ASME Section V and AWS D1.1 set the methods.', tools = ARRAY['X-ray tubes and gamma sources', 'pipe crawlers', 'location markers']
+  how_learned = 'Level II radiographic certification with weld experience; ASME Section V and AWS D1.1 set the methods.', tools = ARRAY['X-ray tubes and gamma sources', 'Pipe crawlers', 'Location markers']
   WHERE name = 'RT of Welds';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Radiographing castings and grading what is found, such as gas porosity, shrinkage and inclusions, against reference radiographs. A person who has it plans shots to cover changing sections.',
-  how_learned = 'Level II radiographic certification with casting experience. ASTM publishes the reference radiographs, such as E155 for aluminum and E446 for steel.', tools = ARRAY['X-ray systems', 'reference radiograph sets']
+  how_learned = 'Level II radiographic certification with casting experience. ASTM publishes the reference radiographs, such as E155 for aluminum and E446 for steel.', tools = ARRAY['X-ray systems', 'Reference radiograph sets']
   WHERE name = 'RT of Castings';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Checking production castings for porosity and inclusions on an X-ray cell that shows the image live. A person who has it runs the cell, compares what it sees with the acceptance level for each zone and sorts the castings.',
-  how_learned = 'On the job at a casting plant, with radiation safety training.', tools = ARRAY['In-line X-ray cabinets and manipulators', 'automatic defect recognition software']
+  how_learned = 'On the job at a casting plant, with radiation safety training.', tools = ARRAY['In-line X-ray cabinets and manipulators', 'Automatic defect recognition software']
   WHERE name = 'Real-Time X-Ray Inspection of Castings';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Building a 3D picture of a part''s inside from many X-ray views. A person who has it fixtures the part, sets voltage, filtering and resolution, reconstructs the volume and inspects it for porosity, cracks and dimensions.',
-  how_learned = 'On the job in a CT lab, with radiation safety training; system makers'' courses.', tools = ARRAY['Industrial CT systems', 'reconstruction and analysis software such as VGSTUDIO MAX']
+  how_learned = 'On the job in a CT lab, with radiation safety training; system makers'' courses.', tools = ARRAY['Industrial CT systems', 'Reconstruction and analysis software such as VGSTUDIO MAX']
   WHERE name = 'Industrial CT Scanning';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Finding surface cracks in metal with a probe that induces eddy currents and senses how a flaw disturbs them. A person who has it sets up on a reference standard with notches and scans edges, radii and fastener rows.',
-  how_learned = 'Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.', tools = ARRAY['Eddy current instruments', 'pencil probes', 'notched reference standards']
+  how_learned = 'Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.', tools = ARRAY['Eddy current instruments', 'Pencil probes', 'Notched reference standards']
   WHERE name = 'Eddy Current Surface Inspection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Inspecting the bore of a fastener hole for cracks with a rotating probe. A person who has it picks the probe for the hole size, sets up on a notched standard and indexes through the full depth.',
-  how_learned = 'Level II eddy current certification with aircraft structure experience.', tools = ARRAY['Rotating scanner guns', 'bolt hole probes', 'hole reference standards']
+  how_learned = 'Level II eddy current certification with aircraft structure experience.', tools = ARRAY['Rotating scanner guns', 'Bolt hole probes', 'Hole reference standards']
   WHERE name = 'Bolt Hole Eddy Current Inspection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Scanning a wide strip in one pass with a probe that holds many coils, giving a mapped image. A person who has it sets up the array, encodes the scan and reads the color map.',
-  how_learned = 'Advanced course after Level II eddy current certification.', tools = ARRAY['Array instruments and probes', 'encoders', 'reference standards']
+  how_learned = 'Advanced course after Level II eddy current certification.', tools = ARRAY['Array instruments and probes', 'Encoders', 'Reference standards']
   WHERE name = 'Eddy Current Array Inspection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Reading the eddy current display, where a signal''s direction and size show what caused it. A person who has it sets frequency, gain and rotation so a crack signal stands apart from lift-off and geometry.',
-  how_learned = 'Learned as part of Level II eddy current certification.', tools = ARRAY['Impedance plane instruments', 'reference standards']
+  how_learned = 'Learned as part of Level II eddy current certification.', tools = ARRAY['Impedance plane instruments', 'Reference standards']
   WHERE name = 'Eddy Current Impedance Plane Analysis';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Dealing with the signals caused by the probe''s distance from the surface and by nearby edges. A person who has it rotates the lift-off signal out of the way and uses guides or shielded probes near edges.',
-  how_learned = 'Learned as part of Level II eddy current certification.', tools = ARRAY['Shielded probes', 'probe guides and shoes', 'non-conductive shims']
+  how_learned = 'Learned as part of Level II eddy current certification.', tools = ARRAY['Shielded probes', 'Probe guides and shoes', 'Non-conductive shims']
   WHERE name = 'Eddy Current Lift-Off Compensation';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Choosing the probe and frequency for an eddy current inspection from the material, the depth of interest and the geometry. A person who has it knows what absolute, differential and reflection probes are each for.',
-  how_learned = 'Learned as part of Level II eddy current certification.', tools = ARRAY['Pencil, spot, ring and sliding probes', 'probe adapters']
+  how_learned = 'Learned as part of Level II eddy current certification.', tools = ARRAY['Pencil, spot, ring and sliding probes', 'Probe adapters']
   WHERE name = 'Eddy Current Probe Selection';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Measuring electrical conductivity with an eddy current meter to verify an aluminum alloy''s temper or find heat damage. A person who has it calibrates on standards near the expected value and corrects for temperature.',
-  how_learned = 'Short employer courses; part of Level I and II eddy current certification.', tools = ARRAY['Conductivity meters', 'conductivity standards']
+  how_learned = 'Short employer courses; part of Level I and II eddy current certification.', tools = ARRAY['Conductivity meters', 'Conductivity standards']
   WHERE name = 'Eddy Current Conductivity Measurement';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Measuring paint, anodize and other non-conductive coating thickness on metal with an eddy current gauge. A person who has it sets the gauge on shims over the same base metal.',
-  how_learned = 'On the job in finishing and inspection; part of Level I eddy current training.', tools = ARRAY['Eddy current and magnetic coating thickness gauges', 'calibration shims']
+  how_learned = 'On the job in finishing and inspection; part of Level I eddy current training.', tools = ARRAY['Eddy current and magnetic coating thickness gauges', 'Calibration shims']
   WHERE name = 'Eddy Current Coating Thickness Measurement';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Eddy current inspection of aircraft structure: cracks at fasteners and radii, and corrosion or cracks in a second layer found at low frequency. A person who has it works to the aircraft''s non-destructive testing manual.',
-  how_learned = 'Level II eddy current certification under NAS 410 with aircraft experience.', tools = ARRAY['Eddy current instruments', 'sliding and ring probes', 'structure reference standards']
+  how_learned = 'Level II eddy current certification under NAS 410 with aircraft experience.', tools = ARRAY['Eddy current instruments', 'Sliding and ring probes', 'Structure reference standards']
   WHERE name = 'Eddy Current Inspection of Aircraft Structure';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Writing the procedure an inspection is carried out to: equipment, calibration, coverage, sensitivity and acceptance criteria. A person who has it turns a code or customer requirement into steps a Level II can follow, and qualifies the technique.',
-  how_learned = 'Level III certification in the method; on the job.', tools = ARRAY['Codes and specifications', 'technique sheets', 'qualification samples']
+  how_learned = 'Level III certification in the method; on the job.', tools = ARRAY['Codes and specifications', 'Technique sheets', 'Qualification samples']
   WHERE name = 'NDT Procedure Writing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Specifying and verifying the reference standards an inspection is calibrated on: the material, and the size and position of the holes or notches. A person who has it gets a standard made that represents the part and the flaw to be found.',
-  how_learned = 'Level III certification in the method; on the job.', tools = ARRAY['Reference blocks', 'EDM notches', 'flat-bottom and side-drilled holes']
+  how_learned = 'Level III certification in the method; on the job.', tools = ARRAY['Reference blocks', 'EDM notches', 'Flat-bottom and side-drilled holes']
   WHERE name = 'NDT Reference Standard Design';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Finding disbonds and delaminations near the surface of bonded and composite panels by tapping and listening for a dull note. A person who has it taps in a regular grid, marks out the dull area and knows the method''s limits.',
-  how_learned = 'Composite repair and aircraft maintenance courses; on the job.', tools = ARRAY['Tap hammers and coins', 'electronic tap testers']
+  how_learned = 'Composite repair and aircraft maintenance courses; on the job.', tools = ARRAY['Tap hammers and coins', 'Electronic tap testers']
   WHERE name = 'Tap Testing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Finding where adhesive has let go between skin and core or between layers, using low-frequency instruments. A person who has it sets up on a standard with built-in disbonds and maps the unbonded area.',
-  how_learned = 'Employer training and certification on bond testers; often added to ultrasonic certification.', tools = ARRAY['Bond testers using pitch-catch, resonance and mechanical impedance', 'reference panels']
+  how_learned = 'Employer training and certification on bond testers; often added to ultrasonic certification.', tools = ARRAY['Bond testers using pitch-catch, resonance and mechanical impedance', 'Reference panels']
   WHERE name = 'Bond Testing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Marking out and measuring a delamination found in a laminate, in area and in depth. A person who has it finds the edges by signal drop and reports size and ply depth for the repair decision.',
-  how_learned = 'Learned with ultrasonic inspection of composites.', tools = ARRAY['Ultrasonic flaw detectors', 'phased array probes', 'marking templates']
+  how_learned = 'Learned with ultrasonic inspection of composites.', tools = ARRAY['Ultrasonic flaw detectors', 'Phased array probes', 'Marking templates']
   WHERE name = 'Delamination Sizing';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Estimating the void content of a laminate from how much ultrasound it absorbs. A person who has it compares the loss with porosity reference panels and reports it against the limit.',
-  how_learned = 'Learned with ultrasonic inspection of composites.', tools = ARRAY['Through-transmission and pulse-echo systems', 'porosity reference panels']
+  how_learned = 'Learned with ultrasonic inspection of composites.', tools = ARRAY['Through-transmission and pulse-echo systems', 'Porosity reference panels']
   WHERE name = 'Composite Porosity Evaluation';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Finding the full extent of impact damage in a composite, which is usually wider inside than the dent shows. A person who has it scans beyond the visible mark and maps the damage for assessment.',
-  how_learned = 'Learned with composite inspection, on the job.', tools = ARRAY['Ultrasonic and bond test instruments', 'tap hammers', 'marking grids']
+  how_learned = 'Learned with composite inspection, on the job.', tools = ARRAY['Ultrasonic and bond test instruments', 'Tap hammers', 'Marking grids']
   WHERE name = 'Impact Damage Mapping';
 UPDATE skills SET category = 'Nondestructive Testing', description = 'Finding disbonds and delaminations by imaging how a surface deforms under a small load from vacuum, heat or vibration. A person who has it applies the load, reads the fringe patterns and marks out defects.',
-  how_learned = 'System makers'' courses and employer certification.', tools = ARRAY['Shearography cameras', 'vacuum hoods', 'heat lamps']
+  how_learned = 'System makers'' courses and employer certification.', tools = ARRAY['Shearography cameras', 'Vacuum hoods', 'Heat lamps']
   WHERE name = 'Laser Shearography';
 UPDATE skills SET category = 'Testing', description = 'Setting up the fixture that holds and connects a unit under test: mounting it, connecting instruments and cables, loading the right program and running the self-check. A person who has it gets repeatable contact and knows a fixture fault from a product fault.',
-  how_learned = 'On the job in a test area; electronics technology programs.', tools = ARRAY['Bed-of-nails and functional fixtures', 'pogo pins', 'cables and adapters', 'golden units']
+  how_learned = 'On the job in a test area; electronics technology programs.', tools = ARRAY['Bed-of-nails and functional fixtures', 'Pogo pins', 'Cables and adapters', 'Golden units']
   WHERE name = 'Test Fixture Setup';
 UPDATE skills SET category = 'Testing', description = 'Running a product through its functional test: applying power and inputs, checking outputs against limits and recording the result. A person who has it follows the procedure exactly and describes a failure well enough to be diagnosed.',
-  how_learned = 'On the job in a test area; electronics technology programs.', tools = ARRAY['Functional test stations', 'power supplies and loads', 'test executive software']
+  how_learned = 'On the job in a test area; electronics technology programs.', tools = ARRAY['Functional test stations', 'Power supplies and loads', 'Test executive software']
   WHERE name = 'Functional Testing';
 UPDATE skills SET category = 'Testing', description = 'Building the test that probes a loaded board net by net for shorts, opens and wrong or missing parts. A person who has it specifies the fixture from the board data, writes and debugs the program and tunes out false failures.',
-  how_learned = 'On the job as a test engineer; tester makers'' courses.', tools = ARRAY['In-circuit testers from Keysight and Teradyne', 'bed-of-nails fixtures', 'flying probe testers']
+  how_learned = 'On the job as a test engineer; tester makers'' courses.', tools = ARRAY['In-circuit testers from Keysight and Teradyne', 'Bed-of-nails fixtures', 'Flying probe testers']
   WHERE name = 'In-Circuit Test Development';
 UPDATE skills SET category = 'Testing', description = 'Testing the connections between chips on a board through the chips'' own built-in test cells (IEEE 1149.1). A person who has it builds the scan chain from the design data, generates the tests and reads a failure down to the pin.',
-  how_learned = 'On the job as a test engineer or technician; tool makers'' courses.', tools = ARRAY['JTAG controllers and software', 'board netlists', 'device description files']
+  how_learned = 'On the job as a test engineer or technician; tool makers'' courses.', tools = ARRAY['JTAG controllers and software', 'Board netlists', 'Device description files']
   WHERE name = 'Boundary Scan Testing';
 UPDATE skills SET category = 'Testing', description = 'Proving insulation by applying a high voltage between conductors and ground and measuring leakage. A person who has it sets voltage, ramp, dwell and trip limit from the specification and runs the test inside a guarded fixture.',
-  how_learned = 'On the job in electrical and electronics test, after electrical safety training.', tools = ARRAY['Hipot testers', 'guarded test fixtures and interlocks', 'discharge sticks']
+  how_learned = 'On the job in electrical and electronics test, after electrical safety training.', tools = ARRAY['Hipot testers', 'Guarded test fixtures and interlocks', 'Discharge sticks']
   WHERE name = 'Hi-Pot Testing';
 UPDATE skills SET category = 'Testing', description = 'Checking that every wire in a harness or installation goes where the drawing says, with no opens, shorts or crossed pins. A person who has it uses a meter or an automatic tester and finds the fault when one shows.',
-  how_learned = 'Electronics and aviation maintenance programs; on the job.', tools = ARRAY['Multimeters', 'automatic harness testers', 'breakout boxes', 'time-domain reflectometers']
+  how_learned = 'Electronics and aviation maintenance programs; on the job.', tools = ARRAY['Multimeters', 'Automatic harness testers', 'Breakout boxes', 'Time-domain reflectometers']
   WHERE name = 'Continuity and Wiring Verification';
 UPDATE skills SET category = 'Testing', description = 'Running new devices or systems under heat and electrical load for a set time so weak units fail before shipping. A person who has it loads the boards or racks, monitors the run and logs each failure.',
-  how_learned = 'On the job in semiconductor and electronics test.', tools = ARRAY['Burn-in ovens and boards', 'system burn-in racks', 'monitoring software']
+  how_learned = 'On the job in semiconductor and electronics test.', tools = ARRAY['Burn-in ovens and boards', 'System burn-in racks', 'Monitoring software']
   WHERE name = 'Burn-In Testing';
 UPDATE skills SET category = 'Testing', description = 'Stressing a product with temperature, vibration, humidity and voltage beyond normal use to find how and when it fails. A person who has it sets up the chamber and monitoring, steps the stress and records each failure for analysis.',
-  how_learned = 'On the job in a reliability lab; ASQ''s Certified Reliability Engineer covers the theory.', tools = ARRAY['Thermal cycling and humidity chambers', 'combined temperature and vibration chambers', 'data loggers']
+  how_learned = 'On the job in a reliability lab; ASQ''s Certified Reliability Engineer covers the theory.', tools = ARRAY['Thermal cycling and humidity chambers', 'Combined temperature and vibration chambers', 'Data loggers']
   WHERE name = 'Reliability Stress Testing';
 UPDATE skills SET category = 'Testing', description = 'Estimating a product''s life in use from tests run at raised stress. A person who has it picks the stress and its model, runs enough samples to failure and fits the life distribution.',
   how_learned = 'Engineering study; ASQ''s Certified Reliability Engineer.', tools = ARRAY['Environmental chambers', 'Weibull analysis software']
   WHERE name = 'Accelerated Life Testing';
 UPDATE skills SET category = 'Testing', description = 'Shaking a product to a specified sine, random or shock profile. A person who has it fixtures the unit, places control and response accelerometers and runs the profile without over-testing.',
-  how_learned = 'On the job in an environmental test lab; shaker makers'' courses.', tools = ARRAY['Electrodynamic shakers', 'vibration controllers', 'accelerometers', 'shock machines']
+  how_learned = 'On the job in an environmental test lab; shaker makers'' courses.', tools = ARRAY['Electrodynamic shakers', 'Vibration controllers', 'Accelerometers', 'Shock machines']
   WHERE name = 'Vibration and Shock Testing';
 UPDATE skills SET category = 'Testing', description = 'Cycling a spacecraft or unit between hot and cold in a vacuum chamber to prove it works in space conditions. A person who has it instruments the unit, pumps the chamber down, runs the profile and watches temperatures and pressure.',
-  how_learned = 'On the job in a space test lab.', tools = ARRAY['Thermal vacuum chambers', 'cold shrouds and heaters', 'thermocouples', 'data acquisition']
+  how_learned = 'On the job in a space test lab.', tools = ARRAY['Thermal vacuum chambers', 'Cold shrouds and heaters', 'Thermocouples', 'Data acquisition']
   WHERE name = 'Thermal Vacuum Testing';
 UPDATE skills SET category = 'Testing', description = 'Measuring the electromagnetic noise a product emits and its immunity to outside interference. A person who has it sets up the unit and antennas in a chamber, runs emissions and immunity scans to the standard and finds the source of a failure.',
-  how_learned = 'Electrical engineering study; on the job in a test lab.', tools = ARRAY['Shielded and anechoic chambers', 'EMI receivers', 'antennas and line impedance networks']
+  how_learned = 'Electrical engineering study; on the job in a test lab.', tools = ARRAY['Shielded and anechoic chambers', 'EMI receivers', 'Antennas and line impedance networks']
   WHERE name = 'EMC Testing';
 UPDATE skills SET category = 'Testing', description = 'Measuring a radio signal''s power across frequency. A person who has it sets span, resolution bandwidth and reference level and reads power, harmonics and spurious signals.',
-  how_learned = 'Electronics technology and engineering programs; on the job in radio-frequency test.', tools = ARRAY['Spectrum analyzers', 'power meters', 'attenuators and couplers']
+  how_learned = 'Electronics technology and engineering programs; on the job in radio-frequency test.', tools = ARRAY['Spectrum analyzers', 'Power meters', 'Attenuators and couplers']
   WHERE name = 'Spectrum Analyzer Measurement';
 UPDATE skills SET category = 'Testing', description = 'Measuring how a cable, antenna, filter or amplifier reflects and passes signals across frequency. A person who has it calibrates at the test ports and reads return loss, insertion loss and phase.',
-  how_learned = 'Electronics technology and engineering programs; on the job in radio-frequency test.', tools = ARRAY['Vector network analyzers', 'calibration kits', 'phase-stable cables']
+  how_learned = 'Electronics technology and engineering programs; on the job in radio-frequency test.', tools = ARRAY['Vector network analyzers', 'Calibration kits', 'Phase-stable cables']
   WHERE name = 'Vector Network Analyzer Measurement';
 UPDATE skills SET category = 'Testing', description = 'Writing test and data acquisition programs in NI LabVIEW. A person who has it controls instruments, sequences a test, logs data and builds an operator screen.',
-  how_learned = 'NI courses; engineering and electronics programs. NI certifies developers at Associate (CLAD), Developer (CLD) and Architect (CLA) levels.', tools = ARRAY['LabVIEW', 'TestStand', 'NI data acquisition hardware', 'instrument drivers']
+  how_learned = 'NI courses; engineering and electronics programs. NI certifies developers at Associate (CLAD), Developer (CLD) and Architect (CLA) levels.', tools = ARRAY['LabVIEW', 'TestStand', 'NI data acquisition hardware', 'Instrument drivers']
   WHERE name = 'LabVIEW Programming';
 UPDATE skills SET category = 'Testing', description = 'Testing inverters, converters and chargers under power: isolation, control signals, switching, efficiency and behavior under load. A person who has it connects the unit safely, runs the sequence and reads a failure back to a board or module.',
-  how_learned = 'On the job in power electronics test, after high-voltage safety qualification.', tools = ARRAY['Programmable power supplies and loads', 'power analyzers', 'oscilloscopes with differential probes']
+  how_learned = 'On the job in power electronics test, after high-voltage safety qualification.', tools = ARRAY['Programmable power supplies and loads', 'Power analyzers', 'Oscilloscopes with differential probes']
   WHERE name = 'Power Electronics Functional Test';
 UPDATE skills SET category = 'Testing', description = 'Running a motor, drive unit or engine against a controlled load to measure torque, speed, power and efficiency. A person who has it mounts and aligns the unit, runs the test points and watches temperatures and vibration.',
-  how_learned = 'On the job in a test lab.', tools = ARRAY['Dynamometers', 'torque transducers', 'power analyzers', 'data acquisition']
+  how_learned = 'On the job in a test lab.', tools = ARRAY['Dynamometers', 'Torque transducers', 'Power analyzers', 'Data acquisition']
   WHERE name = 'Dynamometer Testing';
 UPDATE skills SET category = 'Testing', description = 'Driving a finished vehicle on rollers at the end of the line to check acceleration, braking, transmission and stability systems. A person who has it follows the test sequence and reads the pass and fail results.',
-  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Roll and brake test machines', 'diagnostic scan tools']
+  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Roll and brake test machines', 'Diagnostic scan tools']
   WHERE name = 'Vehicle Roll and Brake Test';
 UPDATE skills SET category = 'Testing', description = 'Finding unwanted noises in a vehicle by shaking it or driving it over a rough track, then curing them. A person who has it locates the source by ear and with listening tools.',
-  how_learned = 'On the job in vehicle final assembly and quality.', tools = ARRAY['Shaker rigs and rough-road tracks', 'chassis ears', 'felt and anti-squeak tapes']
+  how_learned = 'On the job in vehicle final assembly and quality.', tools = ARRAY['Shaker rigs and rough-road tracks', 'Chassis ears', 'Felt and anti-squeak tapes']
   WHERE name = 'Squeak and Rattle Testing';
 UPDATE skills SET category = 'Testing', description = 'Soaking a finished vehicle in a spray booth and checking the cabin and luggage space for water. A person who has it knows the usual leak paths, finds the entry point and sends it for sealing.',
-  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Water test booths', 'moisture probes', 'ultrasonic leak detectors']
+  how_learned = 'On the job in vehicle final assembly.', tools = ARRAY['Water test booths', 'Moisture probes', 'Ultrasonic leak detectors']
   WHERE name = 'Water Leak Testing';
 UPDATE skills SET category = 'Testing', description = 'Setting a vehicle''s headlamp beams to the correct height and direction on an aiming machine. A person who has it positions the aimer, reads the pattern and adjusts each lamp.',
-  how_learned = 'On the job at the end of a vehicle assembly line.', tools = ARRAY['Headlamp aimers', 'adjusting tools']
+  how_learned = 'On the job at the end of a vehicle assembly line.', tools = ARRAY['Headlamp aimers', 'Adjusting tools']
   WHERE name = 'Headlamp Aiming';
 UPDATE skills SET category = 'Testing', description = 'Calibrating a vehicle''s driver-assistance cameras and radars to its direction of travel after assembly. A person who has it sets up the targets, runs the routine through the diagnostic tool and confirms each sensor has learned.',
-  how_learned = 'On the job at the end of a vehicle assembly line; automotive programs.', tools = ARRAY['Calibration targets and frames', 'diagnostic scan tools', 'wheel alignment equipment']
+  how_learned = 'On the job at the end of a vehicle assembly line; automotive programs.', tools = ARRAY['Calibration targets and frames', 'Diagnostic scan tools', 'Wheel alignment equipment']
   WHERE name = 'ADAS Calibration';
 UPDATE skills SET category = 'Testing', description = 'Firing a rocket engine or stage on a test stand. A person who has it prepares the stand, follows the countdown procedure step by step, watches the limits that abort a test and makes the stand safe afterwards.',
-  how_learned = 'On the job at a rocket test site.', tools = ARRAY['Test stands', 'propellant and pressurant systems', 'control and data acquisition systems']
+  how_learned = 'On the job at a rocket test site.', tools = ARRAY['Test stands', 'Propellant and pressurant systems', 'Control and data acquisition systems']
   WHERE name = 'Hot Fire Testing';
 UPDATE skills SET category = 'Testing', description = 'Running a newly built engine through the test that proves it meets specification before delivery. A person who has it sets up the test, runs the profile and reviews thrust or power, pressures, temperatures and vibration against limits.',
-  how_learned = 'On the job in an engine test cell.', tools = ARRAY['Engine test cells and stands', 'data acquisition', 'test procedures']
+  how_learned = 'On the job in an engine test cell.', tools = ARRAY['Engine test cells and stands', 'Data acquisition', 'Test procedures']
   WHERE name = 'Engine Acceptance Testing';
 UPDATE skills SET category = 'Testing', description = 'Loading propellants and high-pressure gases into a vehicle or test stand. A person who has it follows the loading procedure, controls flow and pressure and wears the protection the propellant requires.',
-  how_learned = 'On the job at a launch or test site, with hazardous operations training.', tools = ARRAY['Loading carts and skids', 'flow meters and scales', 'protective suits and breathing air']
+  how_learned = 'On the job at a launch or test site, with hazardous operations training.', tools = ARRAY['Loading carts and skids', 'Flow meters and scales', 'Protective suits and breathing air']
   WHERE name = 'Propellant Loading';
 UPDATE skills SET category = 'Testing', description = 'Working with liquid oxygen, liquid methane and other cryogenic fluids. A person who has it chills lines down before flow, keeps oxygen systems free of oil and grease and protects against cold burns and trapped liquid.',
-  how_learned = 'On the job at a propulsion test or launch site, with cryogenic and oxygen safety training.', tools = ARRAY['Vacuum-jacketed lines and tanks', 'cryogenic valves', 'relief devices', 'face shields and cryogenic gloves']
+  how_learned = 'On the job at a propulsion test or launch site, with cryogenic and oxygen safety training.', tools = ARRAY['Vacuum-jacketed lines and tanks', 'Cryogenic valves', 'Relief devices', 'Face shields and cryogenic gloves']
   WHERE name = 'Cryogenic Propellant Handling';
 UPDATE skills SET category = 'Testing', description = 'Watching the live data from a test or flight and reviewing it afterwards. A person who has it knows the normal range of each channel, spots a trend before it reaches a limit and pulls the data for analysis.',
-  how_learned = 'On the job in test operations.', tools = ARRAY['Telemetry displays', 'data acquisition and plotting software']
+  how_learned = 'On the job in test operations.', tools = ARRAY['Telemetry displays', 'Data acquisition and plotting software']
   WHERE name = 'Test Telemetry Review';
 UPDATE skills SET category = 'Testing', description = 'Leak-checking an aircraft''s pitot and static lines and verifying altimeter and airspeed readings with a test set. A person who has it connects the adapters, applies pressure slowly and records the results. FAA rules require the altimeter system check every 24 months for instrument flight.',
-  how_learned = 'FAA Airframe and Powerplant or avionics training; on the job at a repair station.', tools = ARRAY['Pitot-static test sets', 'adapters and hoses']
+  how_learned = 'FAA Airframe and Powerplant or avionics training; on the job at a repair station.', tools = ARRAY['Pitot-static test sets', 'Adapters and hoses']
   WHERE name = 'Pitot-Static System Testing';
 UPDATE skills SET category = 'Testing', description = 'Checking the data bus that links civil aircraft avionics. A person who has it reads and sends labels with a bus analyzer and finds a unit or wire that is not talking.',
-  how_learned = 'Avionics programs and on the job.', tools = ARRAY['ARINC 429 bus analyzers', 'breakout boxes', 'oscilloscopes']
+  how_learned = 'Avionics programs and on the job.', tools = ARRAY['ARINC 429 bus analyzers', 'Breakout boxes', 'Oscilloscopes']
   WHERE name = 'ARINC 429 Data Bus Testing';
 UPDATE skills SET category = 'Testing', description = 'Checking the data bus used in military aircraft and spacecraft. A person who has it monitors traffic between the bus controller and remote terminals, checks waveform and termination and finds the faulty stub or unit.',
-  how_learned = 'Military avionics training and on the job.', tools = ARRAY['1553 bus analyzers', 'couplers and terminators', 'oscilloscopes']
+  how_learned = 'Military avionics training and on the job.', tools = ARRAY['1553 bus analyzers', 'Couplers and terminators', 'Oscilloscopes']
   WHERE name = 'MIL-STD-1553 Data Bus Testing';
 UPDATE skills SET category = 'Testing', description = 'Testing a radar''s transmitter, receiver and antenna against specification. A person who has it measures power, sensitivity and pattern with test equipment and aligns the system.',
-  how_learned = 'Military electronics training or an electronics technology degree; on the job at a defense plant.', tools = ARRAY['Spectrum and network analyzers', 'power meters', 'signal generators', 'antenna ranges']
+  how_learned = 'Military electronics training or an electronics technology degree; on the job at a defense plant.', tools = ARRAY['Spectrum and network analyzers', 'Power meters', 'Signal generators', 'Antenna ranges']
   WHERE name = 'Radar System Testing';
 UPDATE skills SET category = 'Design & Software', description = 'Modeling parts and assemblies and making drawings in SolidWorks. A person who has it builds models that update cleanly when a dimension changes and produces drawings a shop can work from.',
   how_learned = 'Community-college drafting and engineering programs. Dassault Systèmes certifies users as Certified SOLIDWORKS Associate (CSWA) and Professional (CSWP).', tools = ARRAY['SOLIDWORKS', 'SOLIDWORKS PDM']
@@ -2700,7 +2700,7 @@ UPDATE skills SET category = 'Design & Software', description = 'Designing a par
   how_learned = 'Community-college and online courses. Autodesk certifies users.', tools = ARRAY['Autodesk Fusion']
   WHERE name = 'Fusion 360';
 UPDATE skills SET category = 'Design & Software', description = 'Making a drawing that fully defines a part: views, sections, dimensions, tolerances, notes and title block, to a drafting standard such as ASME Y14.5. A person who has it leaves nothing for the shop to guess.',
-  how_learned = 'Drafting and engineering programs. The American Design Drafting Association certifies drafters.', tools = ARRAY['CAD drawing modules', 'drafting standards']
+  how_learned = 'Drafting and engineering programs. The American Design Drafting Association certifies drafters.', tools = ARRAY['CAD drawing modules', 'Drafting standards']
   WHERE name = 'Engineering Drawing Creation';
 UPDATE skills SET category = 'Design & Software', description = 'Putting part models together into an assembly with mates or constraints. A person who has it structures subassemblies, checks interference and motion and produces the bill of material.',
   how_learned = 'Drafting and engineering programs.', tools = ARRAY['SOLIDWORKS', 'Creo', 'NX', 'CATIA']
@@ -2709,22 +2709,22 @@ UPDATE skills SET category = 'Design & Software', description = 'Working with de
   how_learned = 'On the job; software makers'' courses.', tools = ARRAY['Teamcenter', 'Windchill', 'ENOVIA', 'SOLIDWORKS PDM']
   WHERE name = 'PDM and PLM Use';
 UPDATE skills SET category = 'Design & Software', description = 'Shaping a design so it can be made and assembled reliably at reasonable cost: fewer parts, sensible tolerances, features a process can actually produce. A person who has it reviews a design with the people who will make it and changes it early.',
-  how_learned = 'Engineering study; on the job between design and manufacturing.', tools = ARRAY['Design review checklists', 'process capability data', 'cost models']
+  how_learned = 'Engineering study; on the job between design and manufacturing.', tools = ARRAY['Design review checklists', 'Process capability data', 'Cost models']
   WHERE name = 'Design for Manufacturability';
 UPDATE skills SET category = 'Design & Software', description = 'Predicting stress, deflection, vibration and heat flow in a part with a computer model. A person who has it builds the mesh, applies loads and constraints that match reality and checks the answer against a hand calculation or test.',
   how_learned = 'Engineering degree; software makers'' courses.', tools = ARRAY['Ansys', 'Abaqus', 'Nastran', 'SOLIDWORKS Simulation']
   WHERE name = 'Finite Element Analysis';
 UPDATE skills SET category = 'Design & Software', description = 'Programming CNC mills, lathes and routers in Mastercam. A person who has it imports or draws geometry, builds toolpaths, verifies them and posts code for the machine.',
-  how_learned = 'Community-college CNC programs. Mastercam certifies users at Associate and Professional levels.', tools = ARRAY['Mastercam Mill, Lathe and Multiaxis', 'post processors']
+  how_learned = 'Community-college CNC programs. Mastercam certifies users at Associate and Professional levels.', tools = ARRAY['Mastercam Mill, Lathe and Multiaxis', 'Post processors']
   WHERE name = 'Mastercam';
 UPDATE skills SET category = 'Design & Software', description = 'Programming CNC machines in GibbsCAM, often used for multi-task and Swiss-type lathes. A person who has it builds and synchronizes operations across spindles and turrets and posts proven code.',
-  how_learned = 'On the job; reseller courses.', tools = ARRAY['GibbsCAM', 'post processors']
+  how_learned = 'On the job; reseller courses.', tools = ARRAY['GibbsCAM', 'Post processors']
   WHERE name = 'GibbsCAM';
 UPDATE skills SET category = 'Design & Software', description = 'Programming complex three- and five-axis milling in PowerMill, widely used for molds, dies and aerospace parts. A person who has it builds collision-free multi-axis toolpaths and controls surface finish.',
-  how_learned = 'On the job; Autodesk and reseller courses.', tools = ARRAY['Autodesk PowerMill', 'post processors']
+  how_learned = 'On the job; Autodesk and reseller courses.', tools = ARRAY['Autodesk PowerMill', 'Post processors']
   WHERE name = 'PowerMill';
 UPDATE skills SET category = 'Design & Software', description = 'Checking a CNC program in a virtual copy of the machine before it runs. A person who has it builds the machine, fixture and stock setup, runs the posted code and clears collisions, gouges and excess material.',
-  how_learned = 'On the job as a CNC programr; CGTech courses.', tools = ARRAY['VERICUT', 'machine and tool libraries']
+  how_learned = 'On the job as a CNC programr; CGTech courses.', tools = ARRAY['VERICUT', 'Machine and tool libraries']
   WHERE name = 'Vericut Simulation';
 
 -- Other names a skill is known by --------------------------------------------

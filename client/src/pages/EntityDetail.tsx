@@ -897,7 +897,7 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
             <Section id="tools" title="Done with">
               <ul className="space-y-1.5 text-fg-muted" data-skill-tools>
                 {tools.map((tool) => (
-                  <li key={tool} className="leading-snug first-letter:uppercase">
+                  <li key={tool} className="leading-snug">
                     {tool}
                   </li>
                 ))}

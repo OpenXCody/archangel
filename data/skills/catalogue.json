@@ -32,7 +32,7 @@
       "learned": "Taught in the first term of machining, welding and drafting programs at community colleges, and in most apprenticeships. Shown by making or inspecting a part to print.",
       "tools": [
         "Orthographic and section views",
-        "bills of material",
+        "Bills of material",
         "3D model viewers"
       ]
     },
@@ -43,7 +43,7 @@
       "learned": "A first-term course in machining and tool-and-die programs; employers often test it before hiring.",
       "tools": [
         "Scientific calculator",
-        "trig tables",
+        "Trig tables",
         "Machinery's Handbook"
       ]
     },
@@ -54,7 +54,7 @@
       "learned": "Learned on the job in the first weeks; shown by passing an operator qualification on a station.",
       "tools": [
         "Paper travelers",
-        "electronic work instructions on a station terminal"
+        "Electronic work instructions on a station terminal"
       ]
     },
     {
@@ -64,8 +64,8 @@
       "learned": "Learned on the job on the plant's own system.",
       "tools": [
         "Manufacturing execution system (MES)",
-        "barcode and RFID scanners",
-        "lot travelers"
+        "Barcode and RFID scanners",
+        "Lot travelers"
       ]
     },
     {
@@ -76,7 +76,7 @@
       "tools": [
         "Tool control software",
         "MES recipe dispatch",
-        "run logs"
+        "Run logs"
       ]
     },
     {
@@ -86,8 +86,8 @@
       "learned": "Taught and checked on the first day in a cleanroom job; semiconductor technician programs practice it.",
       "tools": [
         "Bunny suits",
-        "gowning benches",
-        "air showers"
+        "Gowning benches",
+        "Air showers"
       ]
     },
     {
@@ -97,9 +97,9 @@
       "learned": "Employer training before entry, then supervised work; covered in semiconductor and medical device technician programs.",
       "tools": [
         "Lint-free wipes",
-        "isopropyl alcohol",
-        "pass-through chambers",
-        "particle counters"
+        "Isopropyl alcohol",
+        "Pass-through chambers",
+        "Particle counters"
       ]
     },
     {
@@ -112,7 +112,7 @@
       "learned": "Site training followed by repeated qualified gownings with passing microbial results.",
       "tools": [
         "Sterile gowns, goggles and gloves",
-        "contact plates"
+        "Contact plates"
       ]
     },
     {
@@ -125,10 +125,10 @@
       "learned": "Employer training to an ANSI/ESD S20.20 program, usually refreshed yearly; part of IPC electronics assembly courses.",
       "tools": [
         "Wrist straps and heel grounders",
-        "dissipative mats",
-        "ionizers",
-        "shielding bags",
-        "strap testers"
+        "Dissipative mats",
+        "Ionizers",
+        "Shielding bags",
+        "Strap testers"
       ]
     },
     {
@@ -138,8 +138,8 @@
       "learned": "Learned on the job at a cell plant.",
       "tools": [
         "Dew point meters",
-        "airlocks",
-        "desiccant dehumidifiers"
+        "Airlocks",
+        "Desiccant dehumidifiers"
       ]
     },
     {
@@ -153,8 +153,8 @@
       "learned": "Employer training, required before working on flight hardware and refreshed yearly.",
       "tools": [
         "FOD bags and containers",
-        "tethered tools",
-        "borescopes for closed areas"
+        "Tethered tools",
+        "Borescopes for closed areas"
       ]
     },
     {
@@ -164,8 +164,8 @@
       "learned": "Employer training; standard practice in aircraft, engine and spacecraft work.",
       "tools": [
         "Shadow-foamed toolboxes",
-        "tool cribs",
-        "check-out tags or scanners"
+        "Tool cribs",
+        "Check-out tags or scanners"
       ]
     },
     {
@@ -190,8 +190,8 @@
       "learned": "Employer training and evaluation under OSHA 1910.179; NCCCO offers an overhead crane operator certification.",
       "tools": [
         "Bridge and gantry cranes",
-        "pendant and radio controls",
-        "load charts"
+        "Pendant and radio controls",
+        "Load charts"
       ]
     },
     {
@@ -201,9 +201,9 @@
       "learned": "Millwright and ironworker apprenticeships; employer qualified-rigger training; NCCCO Rigger Level I and II.",
       "tools": [
         "Wire rope, chain and synthetic slings",
-        "shackles",
-        "eyebolts and hoist rings",
-        "spreader bars"
+        "Shackles",
+        "Eyebolts and hoist rings",
+        "Spreader bars"
       ]
     },
     {
@@ -221,8 +221,8 @@
       "learned": "Employer training and a hands-on evaluation required by OSHA 1910.178, repeated at least every three years. The employer issues the certification.",
       "tools": [
         "Sit-down and stand-up counterbalance trucks",
-        "reach trucks",
-        "electric pallet jacks"
+        "Reach trucks",
+        "Electric pallet jacks"
       ],
       "careers": [
         {
@@ -245,8 +245,8 @@
       "learned": "Employer orientation and the first weeks of any trade program. An OSHA 10-hour General Industry outreach card shows the basics.",
       "tools": [
         "Machine guards",
-        "emergency stops",
-        "safety glasses and hearing protection"
+        "Emergency stops",
+        "Safety glasses and hearing protection"
       ]
     },
     {
@@ -263,9 +263,9 @@
       "learned": "Employer training as an authorized employee under OSHA 1910.147, with a yearly check of each procedure.",
       "tools": [
         "Padlocks and hasps",
-        "breaker and valve lockouts",
-        "tags",
-        "machine-specific lockout procedures"
+        "Breaker and valve lockouts",
+        "Tags",
+        "Machine-specific lockout procedures"
       ]
     },
     {
@@ -275,8 +275,8 @@
       "learned": "Employer qualified-person training built on NFPA 70E, refreshed at least every three years.",
       "tools": [
         "Voltage testers",
-        "arc-rated clothing and face shields",
-        "insulated gloves and tools"
+        "Arc-rated clothing and face shields",
+        "Insulated gloves and tools"
       ]
     },
     {
@@ -286,9 +286,9 @@
       "learned": "Employer high-voltage qualification, usually in levels, built on NFPA 70E practice.",
       "tools": [
         "Class 0 insulating gloves",
-        "insulated hand tools",
-        "voltage testers",
-        "service disconnects"
+        "Insulated hand tools",
+        "Voltage testers",
+        "Service disconnects"
       ]
     },
     {
@@ -298,9 +298,9 @@
       "learned": "Employer hazard communication training under OSHA 1910.1200 before first exposure.",
       "tools": [
         "Chemical-resistant gloves, aprons and face shields",
-        "fume hoods",
-        "eyewash stations",
-        "spill kits"
+        "Fume hoods",
+        "Eyewash stations",
+        "Spill kits"
       ]
     },
     {
@@ -316,7 +316,7 @@
       "learned": "Part of hazard communication training under OSHA 1910.1200.",
       "tools": [
         "16-section GHS safety data sheets",
-        "container labels and pictograms"
+        "Container labels and pictograms"
       ]
     },
     {
@@ -329,9 +329,9 @@
       "learned": "Employer training tied to the hazard assessment required by OSHA 1910.132.",
       "tools": [
         "Safety glasses, goggles and face shields",
-        "gloves by material",
-        "hearing protection",
-        "aluminized and arc-rated clothing"
+        "Gloves by material",
+        "Hearing protection",
+        "Aluminized and arc-rated clothing"
       ]
     },
     {
@@ -344,9 +344,9 @@
       "learned": "Employer training; DOT hazmat employee training (49 CFR 172.704, every three years) for shipping, and OSHA HAZWOPER (1910.120) for spill response and waste sites.",
       "tools": [
         "Flammable and corrosive cabinets",
-        "secondary containment",
-        "drum handling equipment",
-        "waste labels and manifests"
+        "Secondary containment",
+        "Drum handling equipment",
+        "Waste labels and manifests"
       ]
     },
     {
@@ -356,9 +356,9 @@
       "learned": "Employer training at a fab or gas supplier, with supervised cylinder changes before working alone.",
       "tools": [
         "Gas cabinets and valve manifold boxes",
-        "purge panels",
-        "gas detection systems",
-        "self-contained breathing apparatus"
+        "Purge panels",
+        "Gas detection systems",
+        "Self-contained breathing apparatus"
       ]
     },
     {
@@ -368,9 +368,9 @@
       "learned": "Employer training under an ANSI Z136.1 program run by the site's Laser Safety Officer.",
       "tools": [
         "Wavelength-rated eyewear",
-        "interlocked enclosures",
-        "beam stops",
-        "warning signs and lights"
+        "Interlocked enclosures",
+        "Beam stops",
+        "Warning signs and lights"
       ]
     },
     {
@@ -387,9 +387,9 @@
       "learned": "Radiation safety training required by the state or NRC license. Radiographers using gamma sources must hold a radiographer certification such as ASNT IRRSP or a state card.",
       "tools": [
         "Survey meters",
-        "film badges and pocket dosimeters",
-        "shielded cabinets and vaults",
-        "boundary signs"
+        "Film badges and pocket dosimeters",
+        "Shielded cabinets and vaults",
+        "Boundary signs"
       ]
     },
     {
@@ -399,9 +399,9 @@
       "learned": "Employer training based on ANSI/RIA R15.06; robot makers include it in their operator courses.",
       "tools": [
         "Interlocked gates",
-        "light curtains and area scanners",
-        "teach pendant enabling switch",
-        "lockout points"
+        "Light curtains and area scanners",
+        "Teach pendant enabling switch",
+        "Lockout points"
       ]
     },
     {
@@ -411,9 +411,9 @@
       "learned": "Covered in fluid power courses and maintenance apprenticeships; reinforced by employer lockout training.",
       "tools": [
         "Pressure gauges and test points",
-        "accumulator bleed valves",
-        "load blocks",
-        "cardboard for leak checks"
+        "Accumulator bleed valves",
+        "Load blocks",
+        "Cardboard for leak checks"
       ]
     },
     {
@@ -423,9 +423,9 @@
       "learned": "Employer training; covered in composite technician programs.",
       "tools": [
         "Downdraft tables and vacuum sanders",
-        "nitrile gloves",
-        "respirators",
-        "coveralls"
+        "Nitrile gloves",
+        "Respirators",
+        "Coveralls"
       ]
     },
     {
@@ -438,10 +438,10 @@
       "learned": "Machine maker and employer training before running a powder-bed printer.",
       "tools": [
         "Sieving stations",
-        "inert-gas glove boxes",
-        "explosion-rated vacuums",
-        "grounding straps",
-        "respirators"
+        "Inert-gas glove boxes",
+        "Explosion-rated vacuums",
+        "Grounding straps",
+        "Respirators"
       ]
     },
     {
@@ -451,8 +451,8 @@
       "learned": "Employer explosives safety certification on a defense or space program, renewed on a schedule.",
       "tools": [
         "Grounding straps and conductive footwear",
-        "non-sparking tools",
-        "approved containers and magazines"
+        "Non-sparking tools",
+        "Approved containers and magazines"
       ],
       "careers": [
         {
@@ -476,9 +476,9 @@
       "learned": "Employer training as entrant, attendant or supervisor under OSHA 1910.146.",
       "tools": [
         "Four-gas monitors",
-        "ventilation blowers",
-        "retrieval tripods and harnesses",
-        "entry permits"
+        "Ventilation blowers",
+        "Retrieval tripods and harnesses",
+        "Entry permits"
       ],
       "careers": [
         {
@@ -498,9 +498,9 @@
       "learned": "Employer training; required by OSHA whenever fall protection is used.",
       "tools": [
         "Full-body harnesses",
-        "shock-absorbing lanyards and self-retracting lifelines",
-        "anchors",
-        "aerial lifts"
+        "Shock-absorbing lanyards and self-retracting lifelines",
+        "Anchors",
+        "Aerial lifts"
       ],
       "careers": [
         {
@@ -519,8 +519,8 @@
       "learned": "Medical clearance, training and a yearly fit test under OSHA 1910.134.",
       "tools": [
         "Half-face and full-face cartridge respirators",
-        "powered air-purifying respirators",
-        "supplied-air hoods"
+        "Powered air-purifying respirators",
+        "Supplied-air hoods"
       ],
       "careers": [
         {
@@ -553,9 +553,9 @@
       "learned": "Machining programs and on the job; part of NIMS CNC setup credentials.",
       "tools": [
         "Tool presetters and touch probes",
-        "edge finders",
-        "indicator",
-        "offset pages on the control"
+        "Edge finders",
+        "Indicator",
+        "Offset pages on the control"
       ]
     },
     {
@@ -565,11 +565,11 @@
       "learned": "Machining programs and apprenticeships; on the job.",
       "tools": [
         "Vises and parallels",
-        "three- and four-jaw chucks",
-        "collets",
-        "soft jaws",
-        "fixture plates",
-        "dial indicators"
+        "Three- and four-jaw chucks",
+        "Collets",
+        "Soft jaws",
+        "Fixture plates",
+        "Dial indicators"
       ]
     },
     {
@@ -580,7 +580,7 @@
       "tools": [
         "Tooling catalogs",
         "Machinery's Handbook",
-        "feed and speed calculators"
+        "Feed and speed calculators"
       ]
     },
     {
@@ -590,8 +590,8 @@
       "learned": "Machining programs at community colleges; NIMS CNC Milling and Turning Programming, Setup and Operations credentials.",
       "tools": [
         "FANUC-style G-code",
-        "control editors",
-        "backplot and simulation software"
+        "Control editors",
+        "Backplot and simulation software"
       ]
     },
     {
@@ -608,7 +608,7 @@
         "Fusion 360",
         "NX CAM",
         "GibbsCAM",
-        "post processors"
+        "Post processors"
       ]
     },
     {
@@ -622,9 +622,9 @@
       "learned": "Machining programs and on the job; NIMS CNC Milling credentials.",
       "tools": [
         "Vertical and horizontal machining centers",
-        "end mills, drills and face mills",
-        "tool holders",
-        "probes"
+        "End mills, drills and face mills",
+        "Tool holders",
+        "Probes"
       ]
     },
     {
@@ -634,9 +634,9 @@
       "learned": "On the job after basic CNC turning; machine makers' courses. NIMS CNC Turning credentials cover the basics.",
       "tools": [
         "Mill-turn centers",
-        "live tool holders",
-        "bar feeders",
-        "sub-spindles"
+        "Live tool holders",
+        "Bar feeders",
+        "Sub-spindles"
       ]
     },
     {
@@ -646,8 +646,8 @@
       "learned": "On the job in a screw-machine shop; machine makers' training.",
       "tools": [
         "Citizen, Star and Tsugami Swiss-type lathes",
-        "guide bushings",
-        "bar feeders"
+        "Guide bushings",
+        "Bar feeders"
       ]
     },
     {
@@ -660,7 +660,7 @@
       "learned": "On the job after three-axis experience; advanced CNC courses and machine makers' training.",
       "tools": [
         "Trunnion and swivel-head machining centers",
-        "probing",
+        "Probing",
         "CAM simulation"
       ]
     },
@@ -671,9 +671,9 @@
       "learned": "The first machine taught in machining programs and apprenticeships; NIMS Turning credentials.",
       "tools": [
         "Engine lathe",
-        "three- and four-jaw chucks",
-        "carbide and high-speed steel tools",
-        "dial indicators"
+        "Three- and four-jaw chucks",
+        "Carbide and high-speed steel tools",
+        "Dial indicators"
       ]
     },
     {
@@ -683,10 +683,10 @@
       "learned": "Machining programs and apprenticeships; NIMS Milling credential.",
       "tools": [
         "Bridgeport-style knee mill",
-        "digital readout",
-        "edge finder",
-        "boring head",
-        "end mills"
+        "Digital readout",
+        "Edge finder",
+        "Boring head",
+        "End mills"
       ]
     },
     {
@@ -701,9 +701,9 @@
       "learned": "Tool-and-die and machining apprenticeships; NIMS Grinding credential.",
       "tools": [
         "Surface, cylindrical and centerless grinders",
-        "magnetic chucks",
-        "grinding wheels",
-        "coolant"
+        "Magnetic chucks",
+        "Grinding wheels",
+        "Coolant"
       ]
     },
     {
@@ -713,8 +713,8 @@
       "learned": "Learned with precision grinding, in apprenticeships and on the job.",
       "tools": [
         "Single-point and rotary diamond dressers",
-        "radius dressers",
-        "wheel balancers"
+        "Radius dressers",
+        "Wheel balancers"
       ]
     },
     {
@@ -725,7 +725,7 @@
       "tools": [
         "Moore-type jig grinders",
         "CNC jig grinders",
-        "indicators and gauge blocks"
+        "Indicators and gauge blocks"
       ]
     },
     {
@@ -738,9 +738,9 @@
       "learned": "On the job in gauge, hydraulic and toolroom work.",
       "tools": [
         "Honing machines and mandrels",
-        "lapping plates and compounds",
-        "air gauges",
-        "optical flats"
+        "Lapping plates and compounds",
+        "Air gauges",
+        "Optical flats"
       ]
     },
     {
@@ -750,8 +750,8 @@
       "learned": "Tool-and-die apprenticeships and on the job; machine makers' training. NIMS offers EDM credentials.",
       "tools": [
         "Wire EDM machines",
-        "brass and coated wire",
-        "deionized water systems"
+        "Brass and coated wire",
+        "Deionized water systems"
       ]
     },
     {
@@ -767,9 +767,9 @@
       "learned": "Tool-and-die and moldmaking apprenticeships; NIMS offers EDM credentials.",
       "tools": [
         "Sinker EDM machines",
-        "graphite and copper electrodes",
-        "dielectric oil",
-        "electrode holders"
+        "Graphite and copper electrodes",
+        "Dielectric oil",
+        "Electrode holders"
       ]
     },
     {
@@ -782,7 +782,7 @@
       "learned": "On the job at an aerospace structures plant.",
       "tools": [
         "Large gantry and vacuum-bed mills",
-        "ultrasonic thickness gauges"
+        "Ultrasonic thickness gauges"
       ]
     },
     {
@@ -792,8 +792,8 @@
       "learned": "On the job at a casting plant, after general CNC experience.",
       "tools": [
         "Large horizontal and gantry machining centers",
-        "hydraulic fixtures",
-        "in-machine probing"
+        "Hydraulic fixtures",
+        "In-machine probing"
       ]
     },
     {
@@ -810,9 +810,9 @@
       "learned": "Community-college welding programs and apprenticeships. Shown by a welder qualification test, most often to AWS D1.1 for structural steel.",
       "tools": [
         "GMAW power sources and wire feeders",
-        "solid wire",
-        "argon and CO2 mixes",
-        "pulse machines"
+        "Solid wire",
+        "Argon and CO2 mixes",
+        "Pulse machines"
       ]
     },
     {
@@ -829,10 +829,10 @@
       "learned": "Welding programs, usually after MIG and stick. Shown by a qualification test to the code the work falls under, such as AWS D17.1 for aerospace or ASME Section IX for pressure work.",
       "tools": [
         "AC/DC TIG power sources",
-        "tungsten electrodes",
-        "argon",
-        "filler rod",
-        "purge fixtures"
+        "Tungsten electrodes",
+        "Argon",
+        "Filler rod",
+        "Purge fixtures"
       ]
     },
     {
@@ -847,8 +847,8 @@
       "tools": [
         "Stick power sources",
         "E6010, E6011 and E7018 electrodes",
-        "rod ovens",
-        "chipping hammer"
+        "Rod ovens",
+        "Chipping hammer"
       ]
     },
     {
@@ -876,9 +876,9 @@
       "learned": "Welding programs after steel; on the job. Qualification tests are to AWS D1.2 for structures or AWS D17.1 for aerospace.",
       "tools": [
         "AC TIG machines",
-        "spool guns and push-pull MIG",
+        "Spool guns and push-pull MIG",
         "4043 and 5356 filler",
-        "stainless brushes"
+        "Stainless brushes"
       ]
     },
     {
@@ -892,7 +892,7 @@
       "tools": [
         "TIG and pulsed MIG machines",
         "308L and 316L filler",
-        "argon back-purge equipment"
+        "Argon back-purge equipment"
       ]
     },
     {
@@ -902,8 +902,8 @@
       "learned": "On the job in aerospace and medical work after TIG experience; qualification to AWS D17.1.",
       "tools": [
         "TIG machines",
-        "trailing shields and purge chambers",
-        "high-purity argon"
+        "Trailing shields and purge chambers",
+        "High-purity argon"
       ]
     },
     {
@@ -913,8 +913,8 @@
       "learned": "On the job at a launch vehicle plant; qualification to AWS D17.1 or the builder's own specification.",
       "tools": [
         "Variable polarity TIG and plasma equipment",
-        "friction stir welding tools",
-        "weld fixtures"
+        "Friction stir welding tools",
+        "Weld fixtures"
       ]
     },
     {
@@ -924,8 +924,8 @@
       "learned": "Welding programs and pipefitter apprenticeships. Shown by a pipe qualification test to ASME Section IX or API 1104.",
       "tools": [
         "Stick and TIG machines",
-        "pipe bevellers and clamps",
-        "purge dams"
+        "Pipe bevellers and clamps",
+        "Purge dams"
       ]
     },
     {
@@ -938,9 +938,9 @@
       "learned": "Equipment makers' courses and on the job in semiconductor, pharmaceutical and aerospace tubing work, which follow ASME BPE or the customer's specification.",
       "tools": [
         "Orbital weld heads and power supplies",
-        "tube facing tools",
-        "purge gas and oxygen analyzers",
-        "borescopes"
+        "Tube facing tools",
+        "Purge gas and oxygen analyzers",
+        "Borescopes"
       ]
     },
     {
@@ -950,8 +950,8 @@
       "learned": "On the job at a launch vehicle or pressure vessel plant after proven TIG or automatic welding experience.",
       "tools": [
         "Automatic seam welders",
-        "weld fixtures and clamps",
-        "radiographic and helium leak inspection"
+        "Weld fixtures and clamps",
+        "Radiographic and helium leak inspection"
       ]
     },
     {
@@ -961,8 +961,8 @@
       "learned": "On the job at a code shop or spacecraft plant; welders qualify to ASME Section IX or AWS D17.1.",
       "tools": [
         "Weld positioners and fixtures",
-        "plate rolls",
-        "proof test and leak test equipment"
+        "Plate rolls",
+        "Proof test and leak test equipment"
       ]
     },
     {
@@ -972,9 +972,9 @@
       "learned": "On the job at an aerospace or engine plant; operators qualify to AWS D17.1.",
       "tools": [
         "Electron beam welding chambers",
-        "vacuum pumps",
+        "Vacuum pumps",
         "CNC work tables",
-        "joint-finding optics"
+        "Joint-finding optics"
       ]
     },
     {
@@ -988,10 +988,10 @@
       "learned": "On the job and through laser makers' courses, after laser safety training.",
       "tools": [
         "Fiber and disk lasers",
-        "scanner and fixed optics",
-        "robots",
-        "seam tracking",
-        "cover glass"
+        "Scanner and fixed optics",
+        "Robots",
+        "Seam tracking",
+        "Cover glass"
       ]
     },
     {
@@ -1001,8 +1001,8 @@
       "learned": "On the job in an automotive body shop.",
       "tools": [
         "Laser brazing heads with tactile seam tracking",
-        "copper-silicon wire",
-        "robots"
+        "Copper-silicon wire",
+        "Robots"
       ]
     },
     {
@@ -1018,9 +1018,9 @@
       "learned": "On the job at an aerospace, rail or battery enclosure plant; AWS D17.3 covers aerospace aluminum work.",
       "tools": [
         "Friction stir welding machines",
-        "pin tools",
-        "backing anvils and clamps",
-        "phased array UT for inspection"
+        "Pin tools",
+        "Backing anvils and clamps",
+        "Phased array UT for inspection"
       ]
     },
     {
@@ -1033,9 +1033,9 @@
       "learned": "On the job in automotive and sheet metal plants; AWS D8.1M covers automotive weld quality and AWS D17.2 aerospace work.",
       "tools": [
         "Pedestal and gun spot welders",
-        "weld controllers",
-        "electrode caps",
-        "chisel and peel test tools"
+        "Weld controllers",
+        "Electrode caps",
+        "Chisel and peel test tools"
       ]
     },
     {
@@ -1045,8 +1045,8 @@
       "learned": "On the job in an automotive body shop, with robot maker training.",
       "tools": [
         "Servo weld guns",
-        "weld timers",
-        "tip dressers",
+        "Weld timers",
+        "Tip dressers",
         "FANUC, KUKA and ABB robots"
       ]
     },
@@ -1060,9 +1060,9 @@
       "learned": "On the job in a body shop.",
       "tools": [
         "Automatic tip dressers",
-        "cutter blades",
-        "electrode caps",
-        "tip alignment gauges"
+        "Cutter blades",
+        "Electrode caps",
+        "Tip alignment gauges"
       ]
     },
     {
@@ -1072,9 +1072,9 @@
       "learned": "Welding and fabrication programs; on the job.",
       "tools": [
         "Squares, levels and fit-up clamps",
-        "grinders",
-        "root gap gauges",
-        "tack welds"
+        "Grinders",
+        "Root gap gauges",
+        "Tack welds"
       ],
       "careers": [
         {
@@ -1089,7 +1089,7 @@
       "learned": "Taught with blueprint reading in welding programs. The symbols are defined in AWS A2.4.",
       "tools": [
         "Welding symbol charts",
-        "fabrication drawings"
+        "Fabrication drawings"
       ]
     },
     {
@@ -1103,9 +1103,9 @@
       "learned": "Welding programs and on the job. The AWS Certified Welding Inspector (CWI) is the recognized credential for inspectors.",
       "tools": [
         "Fillet weld gauges",
-        "bridge cam gauge",
-        "undercut gauge",
-        "flashlight and magnifier"
+        "Bridge cam gauge",
+        "Undercut gauge",
+        "Flashlight and magnifier"
       ]
     },
     {
@@ -1115,9 +1115,9 @@
       "learned": "On the job in a weld lab or body shop; welding programs teach the guided bend test.",
       "tools": [
         "Bend test jigs",
-        "chisels and peel fixtures",
-        "tensile testers",
-        "saws and macro-etch"
+        "Chisels and peel fixtures",
+        "Tensile testers",
+        "Saws and macro-etch"
       ]
     },
     {
@@ -1131,9 +1131,9 @@
       "learned": "On the job as a welding engineer or lead; AWS CWI training covers the code rules. AWS D1.1, AWS D17.1 and ASME Section IX each set their own requirements.",
       "tools": [
         "Welding codes",
-        "test coupons",
-        "tensile and bend testing",
-        "procedure and qualification records"
+        "Test coupons",
+        "Tensile and bend testing",
+        "Procedure and qualification records"
       ]
     },
     {
@@ -1146,8 +1146,8 @@
       "learned": "Tested by an employer or an AWS Accredited Test Facility, which can issue AWS Certified Welder cards. Tests are commonly to AWS D1.1 or ASME Section IX.",
       "tools": [
         "Test plates and pipe coupons",
-        "bend test jig",
-        "qualification records"
+        "Bend test jig",
+        "Qualification records"
       ]
     },
     {
@@ -1157,9 +1157,9 @@
       "learned": "Taught at the start of welding programs.",
       "tools": [
         "Oxy-acetylene and oxy-propane torches",
-        "regulators and flashback arrestors",
-        "cutting tips",
-        "track burners"
+        "Regulators and flashback arrestors",
+        "Cutting tips",
+        "Track burners"
       ]
     },
     {
@@ -1170,8 +1170,8 @@
       "tools": [
         "Hand plasma cutters",
         "CNC plasma tables",
-        "nozzles and electrodes",
-        "nesting software"
+        "Nozzles and electrodes",
+        "Nesting software"
       ],
       "careers": [
         {
@@ -1192,8 +1192,8 @@
       "learned": "On the job; machine makers' courses.",
       "tools": [
         "Fiber and CO2 laser cutters",
-        "nitrogen and oxygen assist gas",
-        "nesting software"
+        "Nitrogen and oxygen assist gas",
+        "Nesting software"
       ],
       "careers": [
         {
@@ -1208,8 +1208,8 @@
       "learned": "On the job; machine makers' courses.",
       "tools": [
         "Waterjet tables and intensifier pumps",
-        "garnet abrasive",
-        "nesting software"
+        "Garnet abrasive",
+        "Nesting software"
       ],
       "careers": [
         {
@@ -1224,9 +1224,9 @@
       "learned": "On the job and in fabrication programs; the Fabricators & Manufacturers Association offers a Precision Sheet Metal Operator certification.",
       "tools": [
         "CNC press brakes",
-        "punches and V-dies",
-        "back gauges",
-        "protractors and angle gauges"
+        "Punches and V-dies",
+        "Back gauges",
+        "Protractors and angle gauges"
       ]
     },
     {
@@ -1239,9 +1239,9 @@
       "learned": "Sheet metal apprenticeships and fabrication programs.",
       "tools": [
         "Shears",
-        "slip and plate rolls",
-        "box-and-pan brakes",
-        "stakes and mallets"
+        "Slip and plate rolls",
+        "Box-and-pan brakes",
+        "Stakes and mallets"
       ]
     },
     {
@@ -1251,8 +1251,8 @@
       "learned": "Sheet metal apprenticeships and fabrication programs; CAD unfolding is learned on the job.",
       "tools": [
         "Scribes, dividers and squares",
-        "layout fluid",
-        "flat-pattern functions in CAD"
+        "Layout fluid",
+        "Flat-pattern functions in CAD"
       ]
     },
     {
@@ -1262,10 +1262,10 @@
       "learned": "Ironworker and fitter apprenticeships; on the job in a structural shop working to AWS D1.1.",
       "tools": [
         "Band saws and drill lines",
-        "ironworkers",
-        "magnetic drills",
-        "fitting clamps",
-        "welding machines"
+        "Ironworkers",
+        "Magnetic drills",
+        "Fitting clamps",
+        "Welding machines"
       ]
     },
     {
@@ -1281,9 +1281,9 @@
       "learned": "On the job in aerospace and hydraulic work; aviation maintenance schools teach it.",
       "tools": [
         "Hand and CNC mandrel benders",
-        "flaring and beading tools",
-        "swaging machines",
-        "tube cutters and deburring tools"
+        "Flaring and beading tools",
+        "Swaging machines",
+        "Tube cutters and deburring tools"
       ]
     },
     {
@@ -1296,9 +1296,9 @@
       "learned": "On the job in a stamping plant, moving up from press operator; the Precision Metalforming Association offers die-setter training.",
       "tools": [
         "Die carts and cranes",
-        "hydraulic clamps",
-        "shut height and tonnage monitors",
-        "die protection sensors"
+        "Hydraulic clamps",
+        "Shut height and tonnage monitors",
+        "Die protection sensors"
       ]
     },
     {
@@ -1308,8 +1308,8 @@
       "learned": "On the job in a stamping plant.",
       "tools": [
         "Mechanical presses",
-        "coil reels, straighteners and servo feeds",
-        "die protection sensors"
+        "Coil reels, straighteners and servo feeds",
+        "Die protection sensors"
       ]
     },
     {
@@ -1324,8 +1324,8 @@
       "learned": "On the job in a stamping plant.",
       "tools": [
         "Transfer and tandem press lines",
-        "transfer rails and fingers",
-        "scrap chutes and conveyors"
+        "Transfer rails and fingers",
+        "Scrap chutes and conveyors"
       ]
     },
     {
@@ -1335,9 +1335,9 @@
       "learned": "On the job in a stamping plant, usually after experience as a press operator.",
       "tools": [
         "Double-action and cushion presses",
-        "draw beads",
-        "lubricants",
-        "thinning gauges"
+        "Draw beads",
+        "Lubricants",
+        "Thinning gauges"
       ]
     },
     {
@@ -1347,9 +1347,9 @@
       "learned": "Tool-and-die apprenticeship followed by years on the tryout floor.",
       "tools": [
         "Tryout presses",
-        "grid-marked blanks",
-        "thinning gauges",
-        "grinders and shims"
+        "Grid-marked blanks",
+        "Thinning gauges",
+        "Grinders and shims"
       ]
     },
     {
@@ -1359,8 +1359,8 @@
       "learned": "Tool-and-die apprenticeship; on the job in a die shop.",
       "tools": [
         "Spotting presses",
-        "spotting blue",
-        "hand grinders and stones"
+        "Spotting blue",
+        "Hand grinders and stones"
       ]
     },
     {
@@ -1370,9 +1370,9 @@
       "learned": "Tool-and-die apprenticeship; on the job in die maintenance.",
       "tools": [
         "Surface grinders",
-        "shims and feeler gauges",
-        "indicators",
-        "die springs and nitrogen cylinders"
+        "Shims and feeler gauges",
+        "Indicators",
+        "Die springs and nitrogen cylinders"
       ]
     },
     {
@@ -1385,9 +1385,9 @@
       "learned": "On the job in a stamping plant.",
       "tools": [
         "Checking fixtures",
-        "highlight oil and stoning blocks",
-        "thickness gauges",
-        "feeler gauges"
+        "Highlight oil and stoning blocks",
+        "Thickness gauges",
+        "Feeler gauges"
       ]
     },
     {
@@ -1401,8 +1401,8 @@
       "learned": "On the job in an automotive body shop.",
       "tools": [
         "Hem dies and presses",
-        "robotic roller hemming heads",
-        "hem adhesive dispensers"
+        "Robotic roller hemming heads",
+        "Hem adhesive dispensers"
       ],
       "careers": [
         {
@@ -1423,8 +1423,8 @@
       "learned": "On the job in a spinning shop or tank plant.",
       "tools": [
         "Manual and CNC spinning lathes",
-        "mandrels",
-        "forming rollers"
+        "Mandrels",
+        "Forming rollers"
       ]
     },
     {
@@ -1437,8 +1437,8 @@
       "learned": "On the job; the North American Die Casting Association offers operator courses.",
       "tools": [
         "Cold-chamber die casting machines",
-        "ladles and extraction robots",
-        "die temperature control units"
+        "Ladles and extraction robots",
+        "Die temperature control units"
       ]
     },
     {
@@ -1451,8 +1451,8 @@
       "learned": "On the job, moving up from machine operator; North American Die Casting Association courses.",
       "tools": [
         "Shot end and shot sleeve",
-        "shot monitoring systems",
-        "plunger tips and lubricant"
+        "Shot monitoring systems",
+        "Plunger tips and lubricant"
       ]
     },
     {
@@ -1462,8 +1462,8 @@
       "learned": "On the job at a structural casting plant.",
       "tools": [
         "Vacuum units, chill vents and valves",
-        "die seals",
-        "vacuum monitoring"
+        "Die seals",
+        "Vacuum monitoring"
       ]
     },
     {
@@ -1476,8 +1476,8 @@
       "learned": "On the job in a die casting plant.",
       "tools": [
         "Spray manifolds and robots",
-        "die lubricant mixing systems",
-        "thermal cameras"
+        "Die lubricant mixing systems",
+        "Thermal cameras"
       ]
     },
     {
@@ -1490,9 +1490,9 @@
       "learned": "On the job, often after a tool-and-die or maintenance background.",
       "tools": [
         "Overhead cranes",
-        "die clamps",
-        "thermal oil and water units",
-        "ejector systems"
+        "Die clamps",
+        "Thermal oil and water units",
+        "Ejector systems"
       ]
     },
     {
@@ -1505,8 +1505,8 @@
       "learned": "On the job in a casting plant.",
       "tools": [
         "Trim presses and trim dies",
-        "band saws",
-        "robotic deburring cells"
+        "Band saws",
+        "Robotic deburring cells"
       ]
     },
     {
@@ -1519,9 +1519,9 @@
       "learned": "On the job in a foundry or die casting plant.",
       "tools": [
         "Melting and holding furnaces",
-        "rotary degassers",
-        "spectrometers",
-        "reduced pressure test"
+        "Rotary degassers",
+        "Spectrometers",
+        "Reduced pressure test"
       ]
     },
     {
@@ -1536,8 +1536,8 @@
       "learned": "Machine makers' training and on the job; some community colleges teach additive manufacturing. SME offers additive manufacturing certifications.",
       "tools": [
         "Laser powder bed fusion machines such as EOS and Nikon SLM Solutions",
-        "inert gas systems",
-        "sieving stations"
+        "Inert gas systems",
+        "Sieving stations"
       ]
     },
     {
@@ -1547,8 +1547,8 @@
       "learned": "Community-college and maker programs; on the job. SME offers additive manufacturing certifications.",
       "tools": [
         "FDM, SLA and SLS printers",
-        "slicing software",
-        "wash and cure stations"
+        "Slicing software",
+        "Wash and cure stations"
       ]
     },
     {
@@ -1562,7 +1562,7 @@
       "tools": [
         "Materialise Magics",
         "Autodesk Netfabb",
-        "machine makers' build software"
+        "Machine makers' build software"
       ]
     },
     {
@@ -1575,9 +1575,9 @@
       "learned": "On the job in an additive shop.",
       "tools": [
         "Depowdering stations",
-        "furnaces",
-        "wire EDM and band saws",
-        "hand tools and blasting cabinets"
+        "Furnaces",
+        "Wire EDM and band saws",
+        "Hand tools and blasting cabinets"
       ]
     },
     {
@@ -1593,7 +1593,7 @@
       "learned": "Engineering courses and on the job; SME and ASTM offer additive manufacturing training.",
       "tools": [
         "CAD with lattice and topology tools",
-        "build simulation software"
+        "Build simulation software"
       ]
     },
     {
@@ -1606,9 +1606,9 @@
       "learned": "On the job at a HIP supplier or a plant with its own unit.",
       "tools": [
         "HIP vessels",
-        "argon systems",
-        "load fixtures",
-        "cycle recorders"
+        "Argon systems",
+        "Load fixtures",
+        "Cycle recorders"
       ]
     },
     {
@@ -1618,9 +1618,9 @@
       "learned": "Learned on the job in the first weeks; shown by passing a station qualification.",
       "tools": [
         "Screwdrivers and nut drivers",
-        "ratchets and sockets",
+        "Ratchets and sockets",
         "DC electric nutrunners",
-        "air tools"
+        "Air tools"
       ]
     },
     {
@@ -1634,8 +1634,8 @@
       "learned": "On the job; aviation maintenance and assembly programs teach it early.",
       "tools": [
         "Click, beam, dial and electronic torque wrenches",
-        "torque multipliers",
-        "torque seal"
+        "Torque multipliers",
+        "Torque seal"
       ]
     },
     {
@@ -1645,7 +1645,7 @@
       "learned": "On the job; workmanship standards are taught for each product.",
       "tools": [
         "Workmanship standards and limit samples",
-        "magnifiers and inspection lights"
+        "Magnifiers and inspection lights"
       ]
     },
     {
@@ -1655,9 +1655,9 @@
       "learned": "On the job, after proving the original build skills; electronics rework is taught in IPC-7711/7721 courses.",
       "tools": [
         "Extraction tools",
-        "rework stations",
-        "replacement hardware",
-        "rework records"
+        "Rework stations",
+        "Replacement hardware",
+        "Rework records"
       ]
     },
     {
@@ -1667,9 +1667,9 @@
       "learned": "Maintenance and millwright apprenticeships; on the job in assembly.",
       "tools": [
         "Arbor and hydraulic presses",
-        "induction bearing heaters",
-        "pullers",
-        "feeler gauges and dial indicators"
+        "Induction bearing heaters",
+        "Pullers",
+        "Feeler gauges and dial indicators"
       ]
     },
     {
@@ -1684,9 +1684,9 @@
       "learned": "On the job in powertrain, motor and aerospace assembly.",
       "tools": [
         "Servo and hydraulic presses with force monitoring",
-        "induction heaters",
-        "liquid nitrogen",
-        "bore gauges"
+        "Induction heaters",
+        "Liquid nitrogen",
+        "Bore gauges"
       ]
     },
     {
@@ -1700,8 +1700,8 @@
       "learned": "On the job; balancing machine makers' training.",
       "tools": [
         "Hard-bearing balancing machines",
-        "correction weights",
-        "drills and mills for material removal"
+        "Correction weights",
+        "Drills and mills for material removal"
       ]
     },
     {
@@ -1717,8 +1717,8 @@
       "learned": "On the job; adhesive suppliers train operators and technicians.",
       "tools": [
         "Metered dispensing systems and robots",
-        "one- and two-part epoxies and urethanes",
-        "bead inspection cameras"
+        "One- and two-part epoxies and urethanes",
+        "Bead inspection cameras"
       ]
     },
     {
@@ -1736,9 +1736,9 @@
       "learned": "On the job in an aluminum body shop; equipment makers' training.",
       "tools": [
         "Servo rivet setters and dies",
-        "flow-drill screw drivers",
-        "robots",
-        "cross-section tools"
+        "Flow-drill screw drivers",
+        "Robots",
+        "Cross-section tools"
       ],
       "careers": [
         {
@@ -1759,9 +1759,9 @@
       "learned": "On the job in an automotive body shop.",
       "tools": [
         "Framing gates and fixtures",
-        "locating pins and clamps",
-        "spot weld robots",
-        "in-line measurement"
+        "Locating pins and clamps",
+        "Spot weld robots",
+        "In-line measurement"
       ],
       "careers": [
         {
@@ -1780,9 +1780,9 @@
       "learned": "On the job in body and final assembly.",
       "tools": [
         "Gap and flush gauges",
-        "hinge fixtures",
-        "shims",
-        "closing-effort gauges"
+        "Hinge fixtures",
+        "Shims",
+        "Closing-effort gauges"
       ],
       "careers": [
         {
@@ -1806,8 +1806,8 @@
       "learned": "On the job in vehicle final assembly.",
       "tools": [
         "Lift carriers and automated guided vehicles",
-        "multi-spindle DC nutrunners",
-        "alignment pins"
+        "Multi-spindle DC nutrunners",
+        "Alignment pins"
       ]
     },
     {
@@ -1822,7 +1822,7 @@
       "tools": [
         "Load-assist manipulators",
         "DC electric tools",
-        "connector seating checks"
+        "Connector seating checks"
       ]
     },
     {
@@ -1845,8 +1845,8 @@
       "learned": "On the job in vehicle assembly.",
       "tools": [
         "DC electric tools",
-        "line connection fixtures",
-        "caps and plugs"
+        "Line connection fixtures",
+        "Caps and plugs"
       ]
     },
     {
@@ -1860,8 +1860,8 @@
       "learned": "On the job in vehicle assembly.",
       "tools": [
         "Urethane dispensing robots and guns",
-        "glass primers",
-        "setting fixtures and suction lifters"
+        "Glass primers",
+        "Setting fixtures and suction lifters"
       ]
     },
     {
@@ -1877,8 +1877,8 @@
       "learned": "On the job in vehicle final assembly.",
       "tools": [
         "Evacuate-and-fill machines",
-        "fill adapters",
-        "refrigerant charging equipment"
+        "Fill adapters",
+        "Refrigerant charging equipment"
       ]
     },
     {
@@ -1891,8 +1891,8 @@
       "learned": "On the job in vehicle assembly.",
       "tools": [
         "Clips and retainers",
-        "connector position assurance locks",
-        "harness boards"
+        "Connector position assurance locks",
+        "Harness boards"
       ],
       "careers": [
         {
@@ -1913,8 +1913,8 @@
       "learned": "On the job at the end of a vehicle assembly line.",
       "tools": [
         "Non-contact alignment machines",
-        "adjusting tools",
-        "steering wheel levels"
+        "Adjusting tools",
+        "Steering wheel levels"
       ]
     },
     {
@@ -1927,10 +1927,10 @@
       "learned": "Aviation maintenance schools and aerospace manufacturing programs; on the job with a training panel test.",
       "tools": [
         "Rivet guns and sets",
-        "bucking bars",
-        "rivet squeezers",
-        "rivet gauges",
-        "clecos"
+        "Bucking bars",
+        "Rivet squeezers",
+        "Rivet gauges",
+        "Clecos"
       ]
     },
     {
@@ -1940,7 +1940,7 @@
       "learned": "Aviation maintenance schools and on the job.",
       "tools": [
         "Pneumatic and hand pullers",
-        "grip gauges",
+        "Grip gauges",
         "CherryMAX and similar blind fasteners"
       ],
       "careers": [
@@ -1968,8 +1968,8 @@
       "learned": "On the job at an aerostructures plant after basic drilling and riveting; employers test on a sample panel.",
       "tools": [
         "Hex keys and ratchets",
-        "pneumatic collar drivers",
-        "grip and protrusion gauges"
+        "Pneumatic collar drivers",
+        "Grip and protrusion gauges"
       ]
     },
     {
@@ -1979,8 +1979,8 @@
       "learned": "On the job; aviation maintenance schools.",
       "tools": [
         "Pneumatic-hydraulic pulling tools and nose assemblies",
-        "swage gauges",
-        "collar cutters"
+        "Swage gauges",
+        "Collar cutters"
       ],
       "careers": [
         {
@@ -2004,9 +2004,9 @@
       "learned": "On the job; aviation maintenance schools.",
       "tools": [
         "Nutplate drill jigs",
-        "microstop countersinks",
-        "rivet squeezers",
-        "clecos"
+        "Microstop countersinks",
+        "Rivet squeezers",
+        "Clecos"
       ],
       "careers": [
         {
@@ -2028,8 +2028,8 @@
       "learned": "On the job in machining, assembly and repair.",
       "tools": [
         "Insert taps",
-        "installation and tang break-off tools",
-        "thread plug gauges"
+        "Installation and tang break-off tools",
+        "Thread plug gauges"
       ],
       "careers": [
         {
@@ -2050,10 +2050,10 @@
       "learned": "Aviation maintenance schools and aerospace assembly programs; on the job.",
       "tools": [
         "Pneumatic drill motors",
-        "drill bushings and guides",
-        "reamers",
-        "hole gauges",
-        "deburring tools"
+        "Drill bushings and guides",
+        "Reamers",
+        "Hole gauges",
+        "Deburring tools"
       ]
     },
     {
@@ -2066,7 +2066,7 @@
       "learned": "Aviation maintenance schools and on the job.",
       "tools": [
         "Microstop countersink cages and cutters",
-        "flushness gauges"
+        "Flushness gauges"
       ]
     },
     {
@@ -2080,8 +2080,8 @@
       "learned": "On the job, with tooling supplier training.",
       "tools": [
         "Split-sleeve mandrels and puller units",
-        "go/no-go hole gauges",
-        "reamers"
+        "Go/no-go hole gauges",
+        "Reamers"
       ]
     },
     {
@@ -2097,8 +2097,8 @@
       "learned": "Aviation maintenance schools; on the job.",
       "tools": [
         "Fastener standards charts",
-        "grip gauges",
-        "thread gauges"
+        "Grip gauges",
+        "Thread gauges"
       ]
     },
     {
@@ -2112,8 +2112,8 @@
       "learned": "On the job at an aerostructures plant.",
       "tools": [
         "Feeler gauges",
-        "laminated peel shim stock",
-        "liquid shim compounds"
+        "Laminated peel shim stock",
+        "Liquid shim compounds"
       ]
     },
     {
@@ -2139,9 +2139,9 @@
       "learned": "On the job at an aerostructures plant; employers certify sealers.",
       "tools": [
         "Sealant cartridges and guns",
-        "fairing tools",
-        "solvent cleaners",
-        "hardness testers for cure"
+        "Fairing tools",
+        "Solvent cleaners",
+        "Hardness testers for cure"
       ]
     },
     {
@@ -2154,8 +2154,8 @@
       "learned": "Aviation maintenance schools and on the job; NASM33540 sets the practice.",
       "tools": [
         "Safety wire pliers",
-        "stainless and Inconel wire",
-        "safety cable tools"
+        "Stainless and Inconel wire",
+        "Safety cable tools"
       ]
     },
     {
@@ -2168,9 +2168,9 @@
       "learned": "On the job after experience in structural assembly.",
       "tools": [
         "Join tooling and jacks",
-        "laser trackers",
-        "drill jigs",
-        "temporary fasteners"
+        "Laser trackers",
+        "Drill jigs",
+        "Temporary fasteners"
       ],
       "careers": [
         {
@@ -2185,9 +2185,9 @@
       "learned": "On the job at an aerostructures plant.",
       "tools": [
         "Clecos and clamps",
-        "drill motors",
-        "rivet guns",
-        "contour gauges"
+        "Drill motors",
+        "Rivet guns",
+        "Contour gauges"
       ]
     },
     {
@@ -2205,9 +2205,9 @@
       "learned": "On the job at an aircraft plant; aviation maintenance schools cover the principles.",
       "tools": [
         "Hinge alignment tools",
-        "slings and fixtures",
-        "torque wrenches",
-        "clearance gauges"
+        "Slings and fixtures",
+        "Torque wrenches",
+        "Clearance gauges"
       ]
     },
     {
@@ -2228,9 +2228,9 @@
       "learned": "FAA Airframe and Powerplant training; on the job at an aircraft plant.",
       "tools": [
         "Rig pins",
-        "cable tensiometers",
-        "protractors and inclinometers",
-        "travel boards"
+        "Cable tensiometers",
+        "Protractors and inclinometers",
+        "Travel boards"
       ],
       "careers": [
         {
@@ -2253,9 +2253,9 @@
       "learned": "FAA Airframe and Powerplant training; on the job.",
       "tools": [
         "Aircraft jacks",
-        "hydraulic power carts",
-        "strut servicing equipment",
-        "nitrogen carts"
+        "Hydraulic power carts",
+        "Strut servicing equipment",
+        "Nitrogen carts"
       ],
       "careers": [
         {
@@ -2273,9 +2273,9 @@
       "learned": "Aviation maintenance schools and fluid power courses; on the job.",
       "tools": [
         "Flare and flareless fittings",
-        "crowfoot wrenches",
-        "tube clamps",
-        "caps and plugs"
+        "Crowfoot wrenches",
+        "Tube clamps",
+        "Caps and plugs"
       ],
       "careers": [
         {
@@ -2296,8 +2296,8 @@
       "learned": "On the job in aircraft and spacecraft assembly, after foreign object and tool control training.",
       "tools": [
         "Inspection lights and mirrors",
-        "borescopes",
-        "closeout photo records"
+        "Borescopes",
+        "Closeout photo records"
       ]
     },
     {
@@ -2313,9 +2313,9 @@
       "learned": "On the job at an engine plant, usually from an aircraft engine or precision assembly background.",
       "tools": [
         "Engine build stands",
-        "torque and stretch tools",
-        "seal installation tools",
-        "borescopes"
+        "Torque and stretch tools",
+        "Seal installation tools",
+        "Borescopes"
       ]
     },
     {
@@ -2325,9 +2325,9 @@
       "learned": "On the job at an engine plant, from a turbomachinery or precision assembly background.",
       "tools": [
         "Balancing machines",
-        "bearing heaters and presses",
-        "dial indicators and depth micrometers",
-        "clean benches"
+        "Bearing heaters and presses",
+        "Dial indicators and depth micrometers",
+        "Clean benches"
       ]
     },
     {
@@ -2340,9 +2340,9 @@
       "learned": "On the job at a propulsion or valve plant.",
       "tools": [
         "Clean benches",
-        "seal installation tools",
-        "leak test and flow benches",
-        "torque tools"
+        "Seal installation tools",
+        "Leak test and flow benches",
+        "Torque tools"
       ]
     },
     {
@@ -2352,9 +2352,9 @@
       "learned": "On the job at a propulsion plant, from precision machining or welding.",
       "tools": [
         "EDM and precision drilling",
-        "brazing and welding equipment",
-        "water flow benches",
-        "borescopes"
+        "Brazing and welding equipment",
+        "Water flow benches",
+        "Borescopes"
       ]
     },
     {
@@ -2367,8 +2367,8 @@
       "learned": "On the job at a propulsion plant.",
       "tools": [
         "CNC slotting and milling",
-        "brazing, plating or welding closeout",
-        "flow and proof test equipment"
+        "Brazing, plating or welding closeout",
+        "Flow and proof test equipment"
       ]
     },
     {
@@ -2381,8 +2381,8 @@
       "learned": "On the job at an engine or launch vehicle plant.",
       "tools": [
         "Hydraulic and electromechanical actuators",
-        "alignment tooling",
-        "travel measurement equipment"
+        "Alignment tooling",
+        "Travel measurement equipment"
       ]
     },
     {
@@ -2399,8 +2399,8 @@
       "learned": "On the job in spacecraft assembly.",
       "tools": [
         "Alignment fixtures",
-        "tube fittings and orbital weld heads",
-        "helium leak detectors"
+        "Tube fittings and orbital weld heads",
+        "Helium leak detectors"
       ]
     },
     {
@@ -2414,8 +2414,8 @@
       "learned": "On the job at a launch vehicle or spacecraft plant.",
       "tools": [
         "Lifting fixtures",
-        "torque tools",
-        "leak test equipment"
+        "Torque tools",
+        "Leak test equipment"
       ]
     },
     {
@@ -2428,9 +2428,9 @@
       "learned": "On the job, with handling and damage-recognition training.",
       "tools": [
         "Protective covers",
-        "lifting slings",
-        "mounting straps and brackets",
-        "inspection lights"
+        "Lifting slings",
+        "Mounting straps and brackets",
+        "Inspection lights"
       ]
     },
     {
@@ -2445,8 +2445,8 @@
       "learned": "On the job at a launch vehicle plant.",
       "tools": [
         "Pneumatic pushers and latches",
-        "preload measurement tools",
-        "gap gauges"
+        "Preload measurement tools",
+        "Gap gauges"
       ]
     },
     {
@@ -2464,8 +2464,8 @@
       "learned": "On the job in spacecraft and launch vehicle assembly.",
       "tools": [
         "Deployment test fixtures and offloaders",
-        "alignment tools",
-        "torque tools"
+        "Alignment tools",
+        "Torque tools"
       ]
     },
     {
@@ -2480,8 +2480,8 @@
       "learned": "On the job in spacecraft assembly.",
       "tools": [
         "Tube fittings",
-        "orbital weld heads",
-        "proof pressure and helium leak test equipment"
+        "Orbital weld heads",
+        "Proof pressure and helium leak test equipment"
       ]
     },
     {
@@ -2498,9 +2498,9 @@
       "learned": "On the job in spacecraft assembly.",
       "tools": [
         "Blanket templates",
-        "lacing cord and tape",
-        "grounding straps",
-        "ohmmeters"
+        "Lacing cord and tape",
+        "Grounding straps",
+        "Ohmmeters"
       ],
       "careers": [
         {
@@ -2523,8 +2523,8 @@
       "learned": "On the job at a satellite plant.",
       "tools": [
         "Assembly dollies and lifting fixtures",
-        "torque tools",
-        "connector mate logs"
+        "Torque tools",
+        "Connector mate logs"
       ],
       "careers": [
         {
@@ -2539,8 +2539,8 @@
       "learned": "On the job at a spacecraft plant.",
       "tools": [
         "Tile adhesives",
-        "gap and step gauges",
-        "bond pull testers"
+        "Gap and step gauges",
+        "Bond pull testers"
       ]
     },
     {
@@ -2550,9 +2550,9 @@
       "learned": "On the job under a qualified packer; an FAA parachute rigger certificate is a common background.",
       "tools": [
         "Packing tables",
-        "line separators",
-        "tension devices",
-        "packing presses"
+        "Line separators",
+        "Tension devices",
+        "Packing presses"
       ]
     },
     {
@@ -2562,9 +2562,9 @@
       "learned": "On the job at a defense plant, after explosives safety certification.",
       "tools": [
         "Assembly stands",
-        "torque tools",
-        "grounding equipment",
-        "lifting fixtures"
+        "Torque tools",
+        "Grounding equipment",
+        "Lifting fixtures"
       ],
       "careers": [
         {
@@ -2582,9 +2582,9 @@
       "learned": "On the job at a machine tool builder or in machine rebuilding.",
       "tools": [
         "Dial indicators",
-        "alignment bars",
-        "torque wrenches",
-        "bearing preload tools"
+        "Alignment bars",
+        "Torque wrenches",
+        "Bearing preload tools"
       ]
     },
     {
@@ -2597,9 +2597,9 @@
       "learned": "On the job at a machine tool or automation equipment builder.",
       "tools": [
         "Straightedges",
-        "dial indicators",
-        "torque wrenches",
-        "rail alignment fixtures"
+        "Dial indicators",
+        "Torque wrenches",
+        "Rail alignment fixtures"
       ]
     },
     {
@@ -2609,10 +2609,10 @@
       "learned": "On the job at a spindle or machine tool builder.",
       "tools": [
         "Clean benches",
-        "bearing heaters",
-        "precision spacers",
-        "runout indicators",
-        "run-in stands"
+        "Bearing heaters",
+        "Precision spacers",
+        "Runout indicators",
+        "Run-in stands"
       ]
     },
     {
@@ -2625,9 +2625,9 @@
       "learned": "Long apprenticeship at a machine tool builder or rebuilder.",
       "tools": [
         "Hand and power scrapers",
-        "surface plates and straightedges",
-        "marking blue",
-        "levels"
+        "Surface plates and straightedges",
+        "Marking blue",
+        "Levels"
       ]
     },
     {
@@ -2640,10 +2640,10 @@
       "learned": "On the job at a machine tool builder or as a service technician.",
       "tools": [
         "Precision levels",
-        "granite squares",
-        "test bars",
-        "dial indicators",
-        "laser alignment systems"
+        "Granite squares",
+        "Test bars",
+        "Dial indicators",
+        "Laser alignment systems"
       ]
     },
     {
@@ -2653,8 +2653,8 @@
       "learned": "Millwright apprenticeship; machine installers learn it on the job.",
       "tools": [
         "Precision machinist levels",
-        "leveling mounts and jacks",
-        "anchor bolts and grout"
+        "Leveling mounts and jacks",
+        "Anchor bolts and grout"
       ]
     },
     {
@@ -2664,9 +2664,9 @@
       "learned": "Electronics programs and employer training; IPC J-STD-001 courses teach and test it.",
       "tools": [
         "Temperature-controlled soldering stations",
-        "solder wire and flux",
-        "lead formers and cutters",
-        "magnification"
+        "Solder wire and flux",
+        "Lead formers and cutters",
+        "Magnification"
       ]
     },
     {
@@ -2682,9 +2682,9 @@
       "learned": "Electronics programs and employer training; IPC J-STD-001 and IPC-7711/7721 courses.",
       "tools": [
         "Fine-tip irons and hot-air tools",
-        "tweezers",
-        "solder paste and flux",
-        "stereo microscopes"
+        "Tweezers",
+        "Solder paste and flux",
+        "Stereo microscopes"
       ]
     },
     {
@@ -2697,8 +2697,8 @@
       "learned": "A J-STD-001 course from an IPC-licensed training center, ending in the Certified IPC Specialist credential, renewed every two years.",
       "tools": [
         "The J-STD-001 standard",
-        "soldering stations",
-        "inspection magnification"
+        "Soldering stations",
+        "Inspection magnification"
       ]
     },
     {
@@ -2711,7 +2711,7 @@
       "learned": "An IPC-A-610 course from an IPC-licensed training center, ending in the Certified IPC Specialist credential, renewed every two years.",
       "tools": [
         "The IPC-A-610 standard",
-        "microscopes and ring lights"
+        "Microscopes and ring lights"
       ]
     },
     {
@@ -2721,10 +2721,10 @@
       "learned": "On the job on a surface-mount line; printer makers' training.",
       "tools": [
         "Stencil printers",
-        "laser-cut stencils",
-        "squeegees",
-        "solder paste",
-        "under-stencil wipe"
+        "Laser-cut stencils",
+        "Squeegees",
+        "Solder paste",
+        "Under-stencil wipe"
       ]
     },
     {
@@ -2740,8 +2740,8 @@
       "learned": "On the job on a surface-mount line; machine makers' training.",
       "tools": [
         "3D solder paste inspection machines",
-        "board design data",
-        "printer feedback links"
+        "Board design data",
+        "Printer feedback links"
       ]
     },
     {
@@ -2751,8 +2751,8 @@
       "learned": "On the job as a surface-mount operator moving into setup; machine makers' courses.",
       "tools": [
         "Placement machines from Fuji, Panasonic, ASMPT, Yamaha and Juki",
-        "feeders and nozzles",
-        "offline programming software"
+        "Feeders and nozzles",
+        "Offline programming software"
       ]
     },
     {
@@ -2765,8 +2765,8 @@
       "learned": "On the job on a surface-mount line; process engineering courses from equipment and paste suppliers.",
       "tools": [
         "Convection reflow ovens",
-        "thermal profilers and thermocouples",
-        "solder paste data sheets"
+        "Thermal profilers and thermocouples",
+        "Solder paste data sheets"
       ]
     },
     {
@@ -2780,9 +2780,9 @@
       "learned": "On the job in an electronics plant; equipment makers' training.",
       "tools": [
         "Wave and selective soldering machines",
-        "fluxers and preheaters",
-        "pallets",
-        "solder pot analysis"
+        "Fluxers and preheaters",
+        "Pallets",
+        "Solder pot analysis"
       ],
       "careers": [
         {
@@ -2804,7 +2804,7 @@
       "learned": "On the job on a surface-mount line; machine makers' training.",
       "tools": [
         "2D and 3D AOI machines from Koh Young, Omron and Mirtec",
-        "board design data"
+        "Board design data"
       ]
     },
     {
@@ -2814,8 +2814,8 @@
       "learned": "On the job as an experienced rework technician; IPC-7711/7721 courses cover the methods.",
       "tools": [
         "BGA rework stations with split-vision alignment",
-        "preheaters",
-        "thermocouples",
+        "Preheaters",
+        "Thermocouples",
         "X-ray for verification"
       ]
     },
@@ -2826,8 +2826,8 @@
       "learned": "On the job after BGA rework experience.",
       "tools": [
         "Reballing stencils and fixtures",
-        "solder spheres and tacky flux",
-        "reflow oven or rework station"
+        "Solder spheres and tacky flux",
+        "Reflow oven or rework station"
       ]
     },
     {
@@ -2841,7 +2841,7 @@
       "learned": "On the job; machine makers' training.",
       "tools": [
         "2D and angled-view X-ray systems",
-        "void measurement software"
+        "Void measurement software"
       ]
     },
     {
@@ -2852,8 +2852,8 @@
       "tools": [
         "Depaneling routers",
         "V-score separators",
-        "laser depanelers",
-        "support fixtures"
+        "Laser depanelers",
+        "Support fixtures"
       ]
     },
     {
@@ -2863,10 +2863,10 @@
       "learned": "On the job; coating suppliers' training.",
       "tools": [
         "Selective coating machines and spray booths",
-        "acrylic, urethane and silicone coatings",
-        "masking",
+        "Acrylic, urethane and silicone coatings",
+        "Masking",
         "UV lamps",
-        "wet film gauges"
+        "Wet film gauges"
       ]
     },
     {
@@ -2879,9 +2879,9 @@
       "learned": "On the job in electronics and power electronics plants.",
       "tools": [
         "Meter-mix dispensing equipment",
-        "vacuum chambers",
-        "epoxy, urethane and silicone compounds",
-        "cure ovens"
+        "Vacuum chambers",
+        "Epoxy, urethane and silicone compounds",
+        "Cure ovens"
       ]
     },
     {
@@ -2891,10 +2891,10 @@
       "learned": "Electronics technology associate programs and military electronics training; on the job.",
       "tools": [
         "Multimeters",
-        "oscilloscopes",
-        "bench power supplies",
-        "schematics",
-        "rework stations"
+        "Oscilloscopes",
+        "Bench power supplies",
+        "Schematics",
+        "Rework stations"
       ]
     },
     {
@@ -2909,11 +2909,11 @@
       "learned": "On the job; an IPC/WHMA-A-620 course ending in the Certified IPC Specialist credential is the recognized training.",
       "tools": [
         "Harness boards",
-        "wire cutters and strippers",
-        "crimp tools",
-        "heat shrink",
-        "tie wraps and lacing",
-        "continuity testers"
+        "Wire cutters and strippers",
+        "Crimp tools",
+        "Heat shrink",
+        "Tie wraps and lacing",
+        "Continuity testers"
       ]
     },
     {
@@ -2923,9 +2923,9 @@
       "learned": "On the job; IPC/WHMA-A-620 courses teach and test it.",
       "tools": [
         "Ratcheting and military-specification crimp tools",
-        "positioners and locators",
-        "strippers",
-        "pull testers"
+        "Positioners and locators",
+        "Strippers",
+        "Pull testers"
       ]
     },
     {
@@ -2939,8 +2939,8 @@
       "learned": "Aviation maintenance schools and on the job in aerospace wiring.",
       "tools": [
         "Lacing cord",
-        "cable straps and tie guns",
-        "cushioned clamps"
+        "Cable straps and tie guns",
+        "Cushioned clamps"
       ]
     },
     {
@@ -2954,8 +2954,8 @@
       "learned": "On the job in avionics, radar and telecom work.",
       "tools": [
         "Coax strippers",
-        "crimp and solder connectors such as SMA, TNC and N",
-        "network analyzers for return loss"
+        "Crimp and solder connectors such as SMA, TNC and N",
+        "Network analyzers for return loss"
       ]
     },
     {
@@ -2969,8 +2969,8 @@
       "learned": "On the job in harness, avionics and spacecraft work; IPC/WHMA-A-620 courses cover it.",
       "tools": [
         "Circular and rectangular connectors such as MIL-DTL-38999 and D-sub",
-        "insertion and extraction tools",
-        "backshell tools"
+        "Insertion and extraction tools",
+        "Backshell tools"
       ],
       "careers": [
         {
@@ -2997,9 +2997,9 @@
       "learned": "On the job; short courses from training providers and equipment makers.",
       "tools": [
         "Cleavers and strippers",
-        "fusion splicers",
-        "inspection scopes",
-        "optical loss test sets"
+        "Fusion splicers",
+        "Inspection scopes",
+        "Optical loss test sets"
       ],
       "careers": [
         {
@@ -3024,8 +3024,8 @@
       "learned": "Aviation maintenance schools and on the job in aircraft and spacecraft wiring.",
       "tools": [
         "Bonding straps and jumpers",
-        "surface preparation tools",
-        "milliohm meters"
+        "Surface preparation tools",
+        "Milliohm meters"
       ],
       "careers": [
         {
@@ -3053,9 +3053,9 @@
       "learned": "On the job in a power electronics plant.",
       "tools": [
         "DC electric torque tools",
-        "busbars and laminated bus",
-        "thermal interface dispensers",
-        "hipot testers"
+        "Busbars and laminated bus",
+        "Thermal interface dispensers",
+        "Hipot testers"
       ]
     },
     {
@@ -3068,9 +3068,9 @@
       "learned": "On the job at a power module plant.",
       "tools": [
         "Die bonders",
-        "heavy-wire bonders",
-        "vacuum solder and sinter presses",
-        "acoustic microscopes"
+        "Heavy-wire bonders",
+        "Vacuum solder and sinter presses",
+        "Acoustic microscopes"
       ]
     },
     {
@@ -3083,9 +3083,9 @@
       "learned": "On the job at a power module plant.",
       "tools": [
         "Sinter presses",
-        "silver sinter paste and film",
-        "shear testers",
-        "acoustic microscopes"
+        "Silver sinter paste and film",
+        "Shear testers",
+        "Acoustic microscopes"
       ]
     },
     {
@@ -3102,8 +3102,8 @@
       "learned": "On the job in electronics, battery and power electronics assembly.",
       "tools": [
         "Dispensing robots and hand dispensers",
-        "thermal greases, gap fillers and pads",
-        "coverage inspection"
+        "Thermal greases, gap fillers and pads",
+        "Coverage inspection"
       ]
     },
     {
@@ -3113,8 +3113,8 @@
       "learned": "On the job in server and power electronics assembly.",
       "tools": [
         "Torque drivers",
-        "spring-loaded fasteners",
-        "thermal interface materials"
+        "Spring-loaded fasteners",
+        "Thermal interface materials"
       ]
     },
     {
@@ -3127,8 +3127,8 @@
       "learned": "On the job in a power electronics plant.",
       "tools": [
         "Cold plates",
-        "quick-connect and hose fittings",
-        "pressure decay leak testers"
+        "Quick-connect and hose fittings",
+        "Pressure decay leak testers"
       ]
     },
     {
@@ -3144,8 +3144,8 @@
       "learned": "On the job at a server plant; CompTIA A+ covers the hardware basics.",
       "tools": [
         "ESD workstations",
-        "torque screwdrivers",
-        "build sheets and barcode scanners"
+        "Torque screwdrivers",
+        "Build sheets and barcode scanners"
       ]
     },
     {
@@ -3158,9 +3158,9 @@
       "learned": "On the job at a server integration plant.",
       "tools": [
         "Rack lifts",
-        "rail kits",
-        "power distribution units",
-        "label printers"
+        "Rail kits",
+        "Power distribution units",
+        "Label printers"
       ]
     },
     {
@@ -3173,9 +3173,9 @@
       "learned": "On the job at a server integration plant.",
       "tools": [
         "Cable managers",
-        "hook-and-loop ties",
-        "cable testers",
-        "label printers"
+        "Hook-and-loop ties",
+        "Cable testers",
+        "Label printers"
       ]
     },
     {
@@ -3189,7 +3189,7 @@
       "learned": "On the job at a server plant.",
       "tools": [
         "BIOS and UEFI setup",
-        "baseboard management controllers",
+        "Baseboard management controllers",
         "Redfish and IPMI tools"
       ]
     },
@@ -3200,7 +3200,7 @@
       "learned": "On the job at a server plant; covered in server administration courses.",
       "tools": [
         "RAID controller setup utilities",
-        "command-line storage tools"
+        "Command-line storage tools"
       ]
     },
     {
@@ -3214,8 +3214,8 @@
       "learned": "On the job at a computer or server plant.",
       "tools": [
         "Network boot (PXE) servers",
-        "imaging software",
-        "test scripts"
+        "Imaging software",
+        "Test scripts"
       ],
       "careers": [
         {
@@ -3237,8 +3237,8 @@
       "learned": "On the job at a device assembly plant.",
       "tools": [
         "Placement fixtures",
-        "press tools with force limits",
-        "fire-safe containers"
+        "Press tools with force limits",
+        "Fire-safe containers"
       ]
     },
     {
@@ -3248,9 +3248,9 @@
       "learned": "On the job at a device assembly plant.",
       "tools": [
         "Clean benches",
-        "vacuum pick-up tools",
-        "alignment fixtures",
-        "image test stations"
+        "Vacuum pick-up tools",
+        "Alignment fixtures",
+        "Image test stations"
       ]
     },
     {
@@ -3263,8 +3263,8 @@
       "learned": "On the job at a device assembly plant.",
       "tools": [
         "Lamination and press fixtures",
-        "adhesive dispensers",
-        "display test patterns"
+        "Adhesive dispensers",
+        "Display test patterns"
       ]
     },
     {
@@ -3280,7 +3280,7 @@
       "learned": "On the job at a device assembly plant.",
       "tools": [
         "Calibration fixtures and targets",
-        "station test software"
+        "Station test software"
       ]
     },
     {
@@ -3293,8 +3293,8 @@
       "learned": "On the job at a device assembly plant.",
       "tools": [
         "Gasket placement fixtures",
-        "adhesive dispensers",
-        "pressure decay leak testers"
+        "Adhesive dispensers",
+        "Pressure decay leak testers"
       ]
     },
     {
@@ -3309,7 +3309,7 @@
       "tools": [
         "Bonding and lamination fixtures",
         "DC torque tools",
-        "antenna test ranges"
+        "Antenna test ranges"
       ]
     },
     {
@@ -3322,9 +3322,9 @@
       "learned": "On the job at a satellite plant, usually from an optics or precision assembly background.",
       "tools": [
         "Optical benches",
-        "alignment lasers and autocollimators",
-        "clean benches",
-        "torque tools"
+        "Alignment lasers and autocollimators",
+        "Clean benches",
+        "Torque tools"
       ]
     },
     {
@@ -3344,9 +3344,9 @@
       "learned": "Composite technician programs at community colleges and on the job. The American Composites Manufacturers Association's Certified Composites Technician covers it.",
       "tools": [
         "Layup tools",
-        "prepreg and dry fabric",
-        "ply tables and laser projectors",
-        "squeegees and heat guns"
+        "Prepreg and dry fabric",
+        "Ply tables and laser projectors",
+        "Squeegees and heat guns"
       ]
     },
     {
@@ -3356,9 +3356,9 @@
       "learned": "On the job after general layup experience.",
       "tools": [
         "Unidirectional prepreg tape",
-        "laser ply projectors",
-        "angle templates",
-        "gap gauges"
+        "Laser ply projectors",
+        "Angle templates",
+        "Gap gauges"
       ]
     },
     {
@@ -3372,9 +3372,9 @@
       "learned": "On the job in a composites shop.",
       "tools": [
         "CNC ply cutters",
-        "templates and knives",
-        "nesting software",
-        "freezer storage and out-time logs"
+        "Templates and knives",
+        "Nesting software",
+        "Freezer storage and out-time logs"
       ]
     },
     {
@@ -3388,9 +3388,9 @@
       "learned": "On the job in a composites shop.",
       "tools": [
         "Solvent cleaners",
-        "mold sealers and release agents",
-        "lint-free wipes",
-        "leak check equipment"
+        "Mold sealers and release agents",
+        "Lint-free wipes",
+        "Leak check equipment"
       ]
     },
     {
@@ -3403,8 +3403,8 @@
       "learned": "Learned with layup, on the job.",
       "tools": [
         "Reusable vacuum bags",
-        "perforated release film",
-        "vacuum pumps and gauges"
+        "Perforated release film",
+        "Vacuum pumps and gauges"
       ]
     },
     {
@@ -3419,9 +3419,9 @@
       "learned": "On the job in a composites shop.",
       "tools": [
         "Core saws and knives",
-        "foaming splice adhesive",
-        "potting compound",
-        "film adhesive"
+        "Foaming splice adhesive",
+        "Potting compound",
+        "Film adhesive"
       ]
     },
     {
@@ -3438,10 +3438,10 @@
       "learned": "Composite technician programs and on the job; covered by the Certified Composites Technician credential.",
       "tools": [
         "Bagging film",
-        "breather and release films",
-        "sealant tape",
-        "vacuum ports, hoses and gauges",
-        "leak detectors"
+        "Breather and release films",
+        "Sealant tape",
+        "Vacuum ports, hoses and gauges",
+        "Leak detectors"
       ]
     },
     {
@@ -3451,8 +3451,8 @@
       "learned": "On the job in a composites shop.",
       "tools": [
         "Type J and K thermocouples",
-        "high-temperature tape",
-        "thermocouple testers"
+        "High-temperature tape",
+        "Thermocouple testers"
       ]
     },
     {
@@ -3462,9 +3462,9 @@
       "learned": "On the job, starting as a loader; autoclave makers train operators on the controls.",
       "tools": [
         "Autoclaves and their control systems",
-        "vacuum manifolds",
-        "nitrogen supply",
-        "load carts"
+        "Vacuum manifolds",
+        "Nitrogen supply",
+        "Load carts"
       ]
     },
     {
@@ -3477,8 +3477,8 @@
       "learned": "On the job, moving up from autoclave operator; process engineering training.",
       "tools": [
         "Autoclave control software",
-        "material and process specifications",
-        "thermal survey data"
+        "Material and process specifications",
+        "Thermal survey data"
       ]
     },
     {
@@ -3491,8 +3491,8 @@
       "learned": "On the job in a composites shop.",
       "tools": [
         "Cure charts and data loggers",
-        "hot bonders",
-        "vacuum gauges"
+        "Hot bonders",
+        "Vacuum gauges"
       ]
     },
     {
@@ -3505,8 +3505,8 @@
       "learned": "On the job, as a senior cure operator or process engineer.",
       "tools": [
         "Embedded thermocouples",
-        "cure modeling data",
-        "autoclave controls"
+        "Cure modeling data",
+        "Autoclave controls"
       ]
     },
     {
@@ -3519,8 +3519,8 @@
       "learned": "On the job in a composites shop.",
       "tools": [
         "Cure ovens",
-        "heat blankets and hot bonders",
-        "vacuum pumps and gauges"
+        "Heat blankets and hot bonders",
+        "Vacuum pumps and gauges"
       ],
       "careers": [
         {
@@ -3543,9 +3543,9 @@
       "learned": "Composite technician programs and on the job; covered by the Certified Composites Technician credential.",
       "tools": [
         "Flow media and spiral tubing",
-        "resin traps",
-        "vacuum pumps",
-        "resin mixing and degassing equipment"
+        "Resin traps",
+        "Vacuum pumps",
+        "Resin mixing and degassing equipment"
       ],
       "careers": [
         {
@@ -3566,8 +3566,8 @@
       "tools": [
         "Diamond-coated routers and drills",
         "CNC routers and waterjets",
-        "drill guides",
-        "dust extraction"
+        "Drill guides",
+        "Dust extraction"
       ]
     },
     {
@@ -3580,10 +3580,10 @@
       "learned": "On the job in bonding shops.",
       "tools": [
         "Abrasive pads and grit blast",
-        "solvent wipes",
-        "peel ply",
-        "bond primers",
-        "water break test"
+        "Solvent wipes",
+        "Peel ply",
+        "Bond primers",
+        "Water break test"
       ]
     },
     {
@@ -3593,8 +3593,8 @@
       "learned": "On the job in a bonding shop.",
       "tools": [
         "Film adhesives",
-        "templates and knives",
-        "freezer storage and out-time logs"
+        "Templates and knives",
+        "Freezer storage and out-time logs"
       ]
     },
     {
@@ -3604,8 +3604,8 @@
       "learned": "On the job in a bonding shop.",
       "tools": [
         "Paste adhesives and cartridges",
-        "scales and mixers",
-        "glass beads or scrim for bondline control"
+        "Scales and mixers",
+        "Glass beads or scrim for bondline control"
       ]
     },
     {
@@ -3618,9 +3618,9 @@
       "learned": "On the job in a bonding shop.",
       "tools": [
         "Bond fixtures and clamps",
-        "adhesives",
-        "vacuum bags",
-        "ovens and autoclaves"
+        "Adhesives",
+        "Vacuum bags",
+        "Ovens and autoclaves"
       ]
     },
     {
@@ -3634,8 +3634,8 @@
       "learned": "On the job, after layup and bonding experience.",
       "tools": [
         "Layup and locating tooling",
-        "film adhesive",
-        "cauls and pressure intensifiers"
+        "Film adhesive",
+        "Cauls and pressure intensifiers"
       ]
     },
     {
@@ -3651,9 +3651,9 @@
       "learned": "On the job as a senior layup technician or inspector.",
       "tools": [
         "Ply tables",
-        "laser projection",
-        "inspection lights",
-        "ply-by-ply sign-off records"
+        "Laser projection",
+        "Inspection lights",
+        "Ply-by-ply sign-off records"
       ]
     },
     {
@@ -3668,8 +3668,8 @@
       "learned": "FAA Airframe and Powerplant training plus composite repair courses; on the job.",
       "tools": [
         "Tap hammers",
-        "ultrasonic flaw detectors",
-        "structural repair manuals"
+        "Ultrasonic flaw detectors",
+        "Structural repair manuals"
       ]
     },
     {
@@ -3682,7 +3682,7 @@
       "learned": "FAA Airframe and Powerplant training; on the job.",
       "tools": [
         "Structural repair manuals",
-        "aircraft effectivity data"
+        "Aircraft effectivity data"
       ]
     },
     {
@@ -3695,8 +3695,8 @@
       "learned": "Composite repair courses and on the job.",
       "tools": [
         "Heat blankets and hot bonders",
-        "vacuum bags",
-        "moisture meters"
+        "Vacuum bags",
+        "Moisture meters"
       ]
     },
     {
@@ -3710,9 +3710,9 @@
       "learned": "Composite repair courses for aircraft mechanics; on the job under an experienced repair technician.",
       "tools": [
         "Die grinders and sanders",
-        "hot bonders and heat blankets",
-        "repair plies and adhesive",
-        "vacuum bags"
+        "Hot bonders and heat blankets",
+        "Repair plies and adhesive",
+        "Vacuum bags"
       ]
     },
     {
@@ -3722,9 +3722,9 @@
       "learned": "FAA Airframe and Powerplant training plus composite repair courses.",
       "tools": [
         "Repair doublers",
-        "drill guides",
-        "composite-rated fasteners",
-        "sealant"
+        "Drill guides",
+        "Composite-rated fasteners",
+        "Sealant"
       ]
     },
     {
@@ -3737,9 +3737,9 @@
       "learned": "On the job in a heat treat shop; metallurgy courses at community colleges.",
       "tools": [
         "Batch and continuous furnaces",
-        "oil, polymer and gas quench",
-        "tempering furnaces",
-        "hardness testers"
+        "Oil, polymer and gas quench",
+        "Tempering furnaces",
+        "Hardness testers"
       ]
     },
     {
@@ -3749,8 +3749,8 @@
       "learned": "On the job in a heat treat shop.",
       "tools": [
         "Atmosphere and vacuum carburizing furnaces",
-        "oxygen probes and dew point analyzers",
-        "test coupons"
+        "Oxygen probes and dew point analyzers",
+        "Test coupons"
       ]
     },
     {
@@ -3760,8 +3760,8 @@
       "learned": "On the job in a heat treat shop.",
       "tools": [
         "Gas and plasma nitriding furnaces",
-        "ammonia dissociation meters",
-        "microhardness testers"
+        "Ammonia dissociation meters",
+        "Microhardness testers"
       ],
       "careers": [
         {
@@ -3781,8 +3781,8 @@
       "learned": "On the job in a heat treat shop; metallurgy courses.",
       "tools": [
         "Furnaces with atmosphere control",
-        "load thermocouples",
-        "hardness testers"
+        "Load thermocouples",
+        "Hardness testers"
       ],
       "careers": [
         {
@@ -3798,8 +3798,8 @@
       "learned": "On the job in a heat treat shop.",
       "tools": [
         "Drop-bottom and air furnaces",
-        "water and glycol quench tanks",
-        "load thermocouples"
+        "Water and glycol quench tanks",
+        "Load thermocouples"
       ],
       "careers": [
         {
@@ -3817,8 +3817,8 @@
       "learned": "On the job in a heat treat shop.",
       "tools": [
         "Aging ovens",
-        "recorders",
-        "hardness and conductivity testers"
+        "Recorders",
+        "Hardness and conductivity testers"
       ],
       "careers": [
         {
@@ -3840,8 +3840,8 @@
       "learned": "On the job in a heat treat or fabrication shop.",
       "tools": [
         "Furnaces",
-        "thermocouples attached to the part",
-        "recorders"
+        "Thermocouples attached to the part",
+        "Recorders"
       ]
     },
     {
@@ -3851,9 +3851,9 @@
       "learned": "On the job in a heat treat shop; furnace makers' training.",
       "tools": [
         "Vacuum furnaces",
-        "diffusion and mechanical pumps",
-        "gas quench systems",
-        "graphite fixtures"
+        "Diffusion and mechanical pumps",
+        "Gas quench systems",
+        "Graphite fixtures"
       ]
     },
     {
@@ -3866,8 +3866,8 @@
       "learned": "On the job at a casting plant.",
       "tools": [
         "Continuous and batch furnaces",
-        "quench systems",
-        "racks",
+        "Quench systems",
+        "Racks",
         "Brinell testers"
       ]
     },
@@ -3883,7 +3883,7 @@
       "learned": "On the job in a heat treat shop that holds aerospace or automotive approvals; pyrometry courses from industry trainers.",
       "tools": [
         "Calibrated test thermocouples and field test instruments",
-        "furnace recorders",
+        "Furnace recorders",
         "AMS 2750"
       ]
     },
@@ -3897,7 +3897,7 @@
       "learned": "On the job in heat treat and composites; pyrometry courses.",
       "tools": [
         "Survey racks and thermocouples",
-        "multi-channel data loggers",
+        "Multi-channel data loggers",
         "AMS 2750"
       ]
     },
@@ -3912,9 +3912,9 @@
       "learned": "Machining, metallurgy and quality programs; on the job. The method is ASTM E18.",
       "tools": [
         "Rockwell testers",
-        "diamond and ball indenters",
-        "test blocks",
-        "anvils"
+        "Diamond and ball indenters",
+        "Test blocks",
+        "Anvils"
       ]
     },
     {
@@ -3928,8 +3928,8 @@
       "tools": [
         "Brinell testers",
         "10 mm carbide ball",
-        "measuring microscope",
-        "test blocks"
+        "Measuring microscope",
+        "Test blocks"
       ],
       "careers": [
         {
@@ -3949,9 +3949,9 @@
       "learned": "On the job in a finishing shop. Aerospace work is done to MIL-A-8625 (now MIL-PRF-8625), which defines the coating types.",
       "tools": [
         "Process tanks and rectifiers",
-        "titanium and aluminum racks",
-        "bath titration kits",
-        "eddy current thickness gauges"
+        "Titanium and aluminum racks",
+        "Bath titration kits",
+        "Eddy current thickness gauges"
       ],
       "careers": [
         {
@@ -3966,9 +3966,9 @@
       "learned": "On the job in a finishing shop after general anodizing experience.",
       "tools": [
         "Chilled sulfuric acid tanks",
-        "high-voltage rectifiers",
-        "masking lacquers and plugs",
-        "thickness gauges"
+        "High-voltage rectifiers",
+        "Masking lacquers and plugs",
+        "Thickness gauges"
       ]
     },
     {
@@ -3987,8 +3987,8 @@
       "learned": "On the job in a finishing shop. The coating is specified by MIL-DTL-5541.",
       "tools": [
         "Immersion tanks",
-        "brush and pen applicators for touch-up",
-        "bath test kits"
+        "Brush and pen applicators for touch-up",
+        "Bath test kits"
       ],
       "careers": [
         {
@@ -4009,8 +4009,8 @@
       "learned": "On the job in a finishing shop. The process is specified by ASTM A967 and AMS 2700.",
       "tools": [
         "Acid tanks",
-        "rinse tanks",
-        "copper sulfate and water immersion test kits"
+        "Rinse tanks",
+        "Copper sulfate and water immersion test kits"
       ],
       "careers": [
         {
@@ -4031,10 +4031,10 @@
       "learned": "On the job in a plating shop. The National Association for Surface Finishing teaches a Certified Electroplater-Finisher course.",
       "tools": [
         "Plating tanks, racks and barrels",
-        "rectifiers",
+        "Rectifiers",
         "Hull cells",
-        "thickness testers",
-        "bake ovens"
+        "Thickness testers",
+        "Bake ovens"
       ],
       "careers": [
         {
@@ -4049,8 +4049,8 @@
       "learned": "On the job in a plating shop.",
       "tools": [
         "Heated plating tanks with filtration",
-        "bath analysis and replenishment",
-        "thickness testers"
+        "Bath analysis and replenishment",
+        "Thickness testers"
       ],
       "careers": [
         {
@@ -4068,9 +4068,9 @@
       "learned": "On the job in a plating shop.",
       "tools": [
         "Chromic acid tanks with fume control",
-        "conforming anodes",
-        "masking",
-        "rectifiers"
+        "Conforming anodes",
+        "Masking",
+        "Rectifiers"
       ],
       "careers": [
         {
@@ -4085,8 +4085,8 @@
       "learned": "On the job in a finishing shop.",
       "tools": [
         "Electropolishing tanks and rectifiers",
-        "racks",
-        "surface roughness testers"
+        "Racks",
+        "Surface roughness testers"
       ],
       "careers": [
         {
@@ -4104,8 +4104,8 @@
       "learned": "On the job in a paint shop; chemical suppliers train operators.",
       "tools": [
         "Spray and immersion washers",
-        "titration kits",
-        "conductivity and pH meters"
+        "Titration kits",
+        "Conductivity and pH meters"
       ],
       "careers": [
         {
@@ -4126,10 +4126,10 @@
       "learned": "On the job in a paint shop; paint suppliers train operators.",
       "tools": [
         "E-coat tanks and rectifiers",
-        "ultrafiltration",
-        "anolyte systems",
-        "bake ovens",
-        "film thickness gauges"
+        "Ultrafiltration",
+        "Anolyte systems",
+        "Bake ovens",
+        "Film thickness gauges"
       ]
     },
     {
@@ -4143,9 +4143,9 @@
       "learned": "On the job in an automotive paint shop.",
       "tools": [
         "Sealer pumps and guns",
-        "robots",
-        "brushes and spatulas",
-        "seam maps"
+        "Robots",
+        "Brushes and spatulas",
+        "Seam maps"
       ],
       "careers": [
         {
@@ -4169,9 +4169,9 @@
       "learned": "Auto body and industrial coatings programs; on the job.",
       "tools": [
         "HVLP and electrostatic spray guns",
-        "viscosity cups",
-        "paint mixing rooms",
-        "spray booths"
+        "Viscosity cups",
+        "Paint mixing rooms",
+        "Spray booths"
       ],
       "careers": [
         {
@@ -4198,9 +4198,9 @@
       "learned": "On the job in an automotive paint shop; robot and applicator makers' training.",
       "tools": [
         "Paint robots",
-        "rotary bell atomizers",
-        "color change systems",
-        "film thickness measurement"
+        "Rotary bell atomizers",
+        "Color change systems",
+        "Film thickness measurement"
       ]
     },
     {
@@ -4213,9 +4213,9 @@
       "learned": "On the job in a paint shop.",
       "tools": [
         "Masking tapes and films",
-        "plugs and caps",
-        "fine-line tape",
-        "knives"
+        "Plugs and caps",
+        "Fine-line tape",
+        "Knives"
       ],
       "careers": [
         {
@@ -4239,9 +4239,9 @@
       "learned": "On the job; industrial coatings programs. The Association for Materials Protection and Performance publishes the surface preparation standards.",
       "tools": [
         "Abrasive blast cabinets and pots",
-        "sanders",
-        "chemical strippers",
-        "surface profile gauges"
+        "Sanders",
+        "Chemical strippers",
+        "Surface profile gauges"
       ],
       "careers": [
         {
@@ -4259,9 +4259,9 @@
       "learned": "On the job in a paint shop or paint lab.",
       "tools": [
         "Spectrophotometers",
-        "light booths",
-        "master color panels",
-        "tinting systems"
+        "Light booths",
+        "Master color panels",
+        "Tinting systems"
       ]
     },
     {
@@ -4274,8 +4274,8 @@
       "learned": "On the job in a paint shop.",
       "tools": [
         "Inspection light tunnels",
-        "automated defect detection systems",
-        "defect standards"
+        "Automated defect detection systems",
+        "Defect standards"
       ]
     },
     {
@@ -4289,9 +4289,9 @@
       "learned": "On the job in a paint shop; auto body programs.",
       "tools": [
         "Denibbing tools",
-        "fine abrasives",
-        "rotary and orbital polishers",
-        "touch-up guns"
+        "Fine abrasives",
+        "Rotary and orbital polishers",
+        "Touch-up guns"
       ],
       "careers": [
         {
@@ -4310,8 +4310,8 @@
       "learned": "On the job in a paint shop; coating inspector courses.",
       "tools": [
         "Magnetic and eddy current dry film gauges",
-        "wet film combs",
-        "calibration shims"
+        "Wet film combs",
+        "Calibration shims"
       ],
       "careers": [
         {
@@ -4340,7 +4340,7 @@
       "learned": "On the job in an automotive paint shop.",
       "tools": [
         "Gloss meters",
-        "wave-scan orange peel meters"
+        "Wave-scan orange peel meters"
       ],
       "careers": [
         {
@@ -4361,7 +4361,7 @@
       "learned": "On the job in paint and coating work. The cross-hatch tape test is ASTM D3359.",
       "tools": [
         "Cross-hatch cutters and tape",
-        "pull-off adhesion testers"
+        "Pull-off adhesion testers"
       ],
       "careers": [
         {
@@ -4383,8 +4383,8 @@
       "learned": "On the job at a military aircraft plant, with a security clearance, after industrial painting experience.",
       "tools": [
         "Spray guns and robots",
-        "thickness measurement",
-        "gap fillers and tapes"
+        "Thickness measurement",
+        "Gap fillers and tapes"
       ],
       "careers": [
         {
@@ -4402,9 +4402,9 @@
       "learned": "Taught in the first days at a fab and checked before working alone; semiconductor technician programs practice it.",
       "tools": [
         "Front-opening unified pods (FOUPs) and cassettes",
-        "load ports",
-        "vacuum wands",
-        "automated material handling"
+        "Load ports",
+        "Vacuum wands",
+        "Automated material handling"
       ]
     },
     {
@@ -4418,8 +4418,8 @@
       "learned": "On the job through tool certification; semiconductor manufacturing programs at community colleges teach the process.",
       "tools": [
         "Steppers and scanners from ASML, Nikon and Canon",
-        "coat and develop tracks",
-        "reticles"
+        "Coat and develop tracks",
+        "Reticles"
       ]
     },
     {
@@ -4432,9 +4432,9 @@
       "learned": "On the job in a litho area.",
       "tools": [
         "Coater tracks",
-        "resist pumps and filters",
-        "hot plates",
-        "film thickness tools"
+        "Resist pumps and filters",
+        "Hot plates",
+        "Film thickness tools"
       ]
     },
     {
@@ -4447,9 +4447,9 @@
       "learned": "On the job in a litho area.",
       "tools": [
         "Developer tracks",
-        "hot plates",
+        "Hot plates",
         "TMAH developer",
-        "inspection microscopes"
+        "Inspection microscopes"
       ]
     },
     {
@@ -4462,8 +4462,8 @@
       "learned": "On the job in etch or wet process areas.",
       "tools": [
         "Plasma ashers",
-        "sulfuric-peroxide and solvent strip tools",
-        "inspection microscopes"
+        "Sulfuric-peroxide and solvent strip tools",
+        "Inspection microscopes"
       ]
     },
     {
@@ -4473,8 +4473,8 @@
       "learned": "On the job as an experienced litho technician or engineer; scanner makers' training.",
       "tools": [
         "ArF immersion scanners",
-        "topcoat or topcoat-free resists",
-        "defect inspection tools"
+        "Topcoat or topcoat-free resists",
+        "Defect inspection tools"
       ]
     },
     {
@@ -4499,7 +4499,7 @@
       "tools": [
         "Scanners",
         "CD-SEM",
-        "process window analysis software"
+        "Process window analysis software"
       ]
     },
     {
@@ -4530,7 +4530,7 @@
       "learned": "On the job in a metrology area.",
       "tools": [
         "CD-SEM",
-        "optical scatterometry tools",
+        "Optical scatterometry tools",
         "SPC charts"
       ]
     },
@@ -4541,7 +4541,7 @@
       "learned": "On the job; tool makers' training.",
       "tools": [
         "CD-SEMs from Hitachi and Applied Materials",
-        "recipe editors"
+        "Recipe editors"
       ]
     },
     {
@@ -4551,7 +4551,7 @@
       "learned": "On the job in a litho or metrology area.",
       "tools": [
         "Overlay tools such as KLA Archer and ASML YieldStar",
-        "scanner correction software"
+        "Scanner correction software"
       ]
     },
     {
@@ -4564,7 +4564,7 @@
       "learned": "On the job in a fab metrology or thin films area.",
       "tools": [
         "Spectroscopic ellipsometers from KLA, Onto and J.A. Woollam",
-        "film stack models"
+        "Film stack models"
       ]
     },
     {
@@ -4577,7 +4577,7 @@
       "learned": "On the job in implant, diffusion and metals areas.",
       "tools": [
         "Four-point probe mappers",
-        "monitor wafers"
+        "Monitor wafers"
       ]
     },
     {
@@ -4590,7 +4590,7 @@
       "learned": "On the job in thin films and metrology.",
       "tools": [
         "Wafer bow and stress gauges",
-        "film thickness data"
+        "Film thickness data"
       ]
     },
     {
@@ -4603,7 +4603,7 @@
       "learned": "On the job in a fab.",
       "tools": [
         "Unpatterned wafer surface scanners",
-        "airborne and liquid particle counters"
+        "Airborne and liquid particle counters"
       ]
     },
     {
@@ -4616,7 +4616,7 @@
       "learned": "On the job in a defect or yield area.",
       "tools": [
         "Brightfield and darkfield inspection tools from KLA and Applied Materials",
-        "defect management software"
+        "Defect management software"
       ]
     },
     {
@@ -4626,7 +4626,7 @@
       "learned": "On the job in a defect area.",
       "tools": [
         "Defect review SEMs",
-        "energy-dispersive X-ray analysis"
+        "Energy-dispersive X-ray analysis"
       ]
     },
     {
@@ -4636,8 +4636,8 @@
       "learned": "On the job in a defect or yield area.",
       "tools": [
         "Review SEM images",
-        "automatic defect classification software",
-        "defect libraries"
+        "Automatic defect classification software",
+        "Defect libraries"
       ]
     },
     {
@@ -4647,8 +4647,8 @@
       "learned": "On the job as a yield or test technician or engineer.",
       "tools": [
         "Yield management software",
-        "bin maps from probe",
-        "tool and chamber history"
+        "Bin maps from probe",
+        "Tool and chamber history"
       ]
     },
     {
@@ -4664,8 +4664,8 @@
       "learned": "On the job through tool certification; semiconductor manufacturing programs teach the principles.",
       "tools": [
         "CVD tools from Applied Materials, Lam Research and Tokyo Electron",
-        "gas cabinets",
-        "film thickness tools"
+        "Gas cabinets",
+        "Film thickness tools"
       ]
     },
     {
@@ -4681,8 +4681,8 @@
       "learned": "On the job in a diffusion area.",
       "tools": [
         "Vertical and horizontal furnaces",
-        "quartz boats",
-        "ellipsometers"
+        "Quartz boats",
+        "Ellipsometers"
       ]
     },
     {
@@ -4699,7 +4699,7 @@
       "tools": [
         "PECVD chambers",
         "RF generators and matches",
-        "film thickness and stress tools"
+        "Film thickness and stress tools"
       ]
     },
     {
@@ -4715,8 +4715,8 @@
       "learned": "On the job in a thin films area.",
       "tools": [
         "ALD reactors",
-        "precursor ampoules and delivery lines",
-        "ellipsometers"
+        "Precursor ampoules and delivery lines",
+        "Ellipsometers"
       ]
     },
     {
@@ -4729,8 +4729,8 @@
       "learned": "On the job in an epitaxy area.",
       "tools": [
         "Epitaxial reactors",
-        "hydrogen, silane and chlorosilane gas systems",
-        "four-point probes and film thickness tools"
+        "Hydrogen, silane and chlorosilane gas systems",
+        "Four-point probes and film thickness tools"
       ]
     },
     {
@@ -4746,8 +4746,8 @@
       "learned": "On the job in a metals area.",
       "tools": [
         "Sputter systems such as Applied Materials Endura",
-        "targets and shields",
-        "four-point probes"
+        "Targets and shields",
+        "Four-point probes"
       ]
     },
     {
@@ -4761,8 +4761,8 @@
       "learned": "On the job as a metals process technician or engineer.",
       "tools": [
         "Ionized PVD chambers",
-        "tantalum and copper targets",
-        "cross-section SEM"
+        "Tantalum and copper targets",
+        "Cross-section SEM"
       ]
     },
     {
@@ -4775,7 +4775,7 @@
       "learned": "On the job through tool certification; semiconductor manufacturing programs teach the principles.",
       "tools": [
         "Etch tools from Lam Research, Tokyo Electron and Applied Materials",
-        "fluorine, chlorine and bromine process gases"
+        "Fluorine, chlorine and bromine process gases"
       ]
     },
     {
@@ -4792,7 +4792,7 @@
       "tools": [
         "Capacitively coupled etch chambers",
         "RF generators",
-        "endpoint systems"
+        "Endpoint systems"
       ]
     },
     {
@@ -4808,8 +4808,8 @@
       "learned": "On the job as an experienced etch technician or engineer.",
       "tools": [
         "ICP etch chambers",
-        "source and bias RF generators",
-        "helium backside cooling"
+        "Source and bias RF generators",
+        "Helium backside cooling"
       ]
     },
     {
@@ -4819,8 +4819,8 @@
       "learned": "On the job as an etch or polish technician or engineer.",
       "tools": [
         "Optical emission spectrometers",
-        "laser interferometers",
-        "motor current and eddy current endpoint on polishers"
+        "Laser interferometers",
+        "Motor current and eddy current endpoint on polishers"
       ]
     },
     {
@@ -4831,7 +4831,7 @@
       "tools": [
         "Wet benches and single-wafer cleaners",
         "SC1, SC2, hydrofluoric acid and sulfuric-peroxide chemistries",
-        "rinse and dry modules"
+        "Rinse and dry modules"
       ]
     },
     {
@@ -4844,8 +4844,8 @@
       "learned": "On the job in a wet process area.",
       "tools": [
         "Buffered oxide etch",
-        "hot phosphoric acid",
-        "etch rate monitors"
+        "Hot phosphoric acid",
+        "Etch rate monitors"
       ]
     },
     {
@@ -4858,8 +4858,8 @@
       "learned": "On the job through tool certification.",
       "tools": [
         "Implanters from Applied Materials and Axcelis",
-        "ion sources",
-        "dose monitors"
+        "Ion sources",
+        "Dose monitors"
       ]
     },
     {
@@ -4869,8 +4869,8 @@
       "learned": "On the job in a diffusion area.",
       "tools": [
         "Vertical furnaces",
-        "quartz boats",
-        "ellipsometers"
+        "Quartz boats",
+        "Ellipsometers"
       ]
     },
     {
@@ -4880,8 +4880,8 @@
       "learned": "On the job in a diffusion area.",
       "tools": [
         "Vertical and horizontal furnaces",
-        "nitrogen and forming gas",
-        "four-point probes"
+        "Nitrogen and forming gas",
+        "Four-point probes"
       ]
     },
     {
@@ -4897,8 +4897,8 @@
       "learned": "On the job in an implant or diffusion area.",
       "tools": [
         "Lamp-based rapid thermal processors",
-        "pyrometers",
-        "sheet resistance monitors"
+        "Pyrometers",
+        "Sheet resistance monitors"
       ]
     },
     {
@@ -4915,9 +4915,9 @@
       "learned": "On the job through tool certification.",
       "tools": [
         "Polishers from Applied Materials and Ebara",
-        "pads, conditioners and slurry",
-        "post-polish cleaners",
-        "film thickness tools"
+        "Pads, conditioners and slurry",
+        "Post-polish cleaners",
+        "Film thickness tools"
       ]
     },
     {
@@ -4930,8 +4930,8 @@
       "learned": "On the job as an equipment or process engineer.",
       "tools": [
         "Fault detection software",
-        "tool sensor data",
-        "statistical limits"
+        "Tool sensor data",
+        "Statistical limits"
       ]
     },
     {
@@ -4945,9 +4945,9 @@
       "learned": "On the job at an assembly and test plant; die bonder makers' training.",
       "tools": [
         "Die bonders from ASMPT, Besi and Kulicke & Soffa",
-        "dispensers",
-        "cure ovens",
-        "shear testers"
+        "Dispensers",
+        "Cure ovens",
+        "Shear testers"
       ]
     },
     {
@@ -4957,9 +4957,9 @@
       "learned": "On the job at an assembly and test plant.",
       "tools": [
         "Dicing saws such as Disco",
-        "diamond blades",
-        "dicing tape and frames",
-        "inspection microscopes"
+        "Diamond blades",
+        "Dicing tape and frames",
+        "Inspection microscopes"
       ],
       "careers": [
         {
@@ -4978,9 +4978,9 @@
       "learned": "On the job at an assembly and test plant; bonder makers' training.",
       "tools": [
         "Wire bonders from Kulicke & Soffa and ASMPT",
-        "capillaries and wedges",
-        "gold and aluminum wire",
-        "pull and shear testers"
+        "Capillaries and wedges",
+        "Gold and aluminum wire",
+        "Pull and shear testers"
       ]
     },
     {
@@ -4993,8 +4993,8 @@
       "learned": "On the job after gold wire bonding experience.",
       "tools": [
         "Wire bonders with forming gas kits",
-        "copper and palladium-coated copper wire",
-        "pull and shear testers"
+        "Copper and palladium-coated copper wire",
+        "Pull and shear testers"
       ]
     },
     {
@@ -5004,7 +5004,7 @@
       "learned": "On the job at an advanced packaging plant.",
       "tools": [
         "Flip chip bonders",
-        "reflow ovens",
+        "Reflow ovens",
         "X-ray and acoustic microscopes"
       ]
     },
@@ -5015,9 +5015,9 @@
       "learned": "On the job at a packaging plant.",
       "tools": [
         "Jet and needle dispensers",
-        "heated stages",
-        "acoustic microscopes",
-        "cure ovens"
+        "Heated stages",
+        "Acoustic microscopes",
+        "Cure ovens"
       ]
     },
     {
@@ -5027,9 +5027,9 @@
       "learned": "On the job at a packaging plant.",
       "tools": [
         "Transfer and compression molding presses",
-        "mold compound",
+        "Mold compound",
         "X-ray",
-        "post-mold cure ovens"
+        "Post-mold cure ovens"
       ]
     },
     {
@@ -5039,7 +5039,7 @@
       "learned": "On the job at a packaging plant.",
       "tools": [
         "Bond testers such as Nordson Dage",
-        "pull hooks and shear tools"
+        "Pull hooks and shear tools"
       ]
     },
     {
@@ -5052,8 +5052,8 @@
       "learned": "On the job at a fab or test plant.",
       "tools": [
         "Wafer probers from Tokyo Electron and Accretech",
-        "probe cards",
-        "automatic test equipment"
+        "Probe cards",
+        "Automatic test equipment"
       ]
     },
     {
@@ -5067,8 +5067,8 @@
       "learned": "On the job at a test plant; tester makers' training for those who write test programs.",
       "tools": [
         "Testers from Advantest and Teradyne",
-        "handlers",
-        "load boards and sockets"
+        "Handlers",
+        "Load boards and sockets"
       ]
     },
     {
@@ -5078,9 +5078,9 @@
       "learned": "Engineering degree and on-the-job training in a failure analysis lab.",
       "tools": [
         "Photon emission microscopes",
-        "laser scanning (OBIRCH) systems",
-        "lock-in thermography",
-        "nanoprobers"
+        "Laser scanning (OBIRCH) systems",
+        "Lock-in thermography",
+        "Nanoprobers"
       ]
     },
     {
@@ -5105,7 +5105,7 @@
       "learned": "On the job in a failure analysis or materials lab.",
       "tools": [
         "Dual-beam FIB-SEM systems",
-        "lift-out needles and grids"
+        "Lift-out needles and grids"
       ]
     },
     {
@@ -5118,7 +5118,7 @@
       "learned": "Science or engineering degree and on-the-job training in a materials lab.",
       "tools": [
         "SIMS instruments",
-        "implant standards"
+        "Implant standards"
       ]
     },
     {
@@ -5128,9 +5128,9 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Planetary and continuous mixers",
-        "viscometers",
-        "grind gauges",
-        "solids analyzers"
+        "Viscometers",
+        "Grind gauges",
+        "Solids analyzers"
       ]
     },
     {
@@ -5140,9 +5140,9 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Slot-die coaters",
-        "drying ovens",
-        "in-line coat weight gauges",
-        "solvent recovery"
+        "Drying ovens",
+        "In-line coat weight gauges",
+        "Solvent recovery"
       ]
     },
     {
@@ -5155,8 +5155,8 @@
       "learned": "On the job at a cell plant that uses the process.",
       "tools": [
         "Powder feeders",
-        "multi-roll calenders and laminators",
-        "thickness gauges"
+        "Multi-roll calenders and laminators",
+        "Thickness gauges"
       ]
     },
     {
@@ -5166,8 +5166,8 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Calender roll presses",
-        "thickness gauges",
-        "web tension control"
+        "Thickness gauges",
+        "Web tension control"
       ]
     },
     {
@@ -5177,8 +5177,8 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Slitters with shear knives",
-        "burr measurement microscopes",
-        "dust collection"
+        "Burr measurement microscopes",
+        "Dust collection"
       ]
     },
     {
@@ -5188,8 +5188,8 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Unwind stands",
-        "tension and edge guide controls",
-        "web inspection cameras"
+        "Tension and edge guide controls",
+        "Web inspection cameras"
       ]
     },
     {
@@ -5200,7 +5200,7 @@
       "tools": [
         "Winding and stacking machines",
         "X-ray alignment inspection",
-        "hipot testers"
+        "Hipot testers"
       ]
     },
     {
@@ -5213,8 +5213,8 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Insertion machines",
-        "insulators",
-        "vision inspection"
+        "Insulators",
+        "Vision inspection"
       ]
     },
     {
@@ -5227,8 +5227,8 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Ultrasonic welders",
-        "laser welders",
-        "pull testers"
+        "Laser welders",
+        "Pull testers"
       ]
     },
     {
@@ -5238,8 +5238,8 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Vacuum fill machines",
-        "precision scales",
-        "dry room or glove box"
+        "Precision scales",
+        "Dry room or glove box"
       ]
     },
     {
@@ -5249,8 +5249,8 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Laser welders",
-        "crimping stations",
-        "helium leak testers"
+        "Crimping stations",
+        "Helium leak testers"
       ]
     },
     {
@@ -5263,8 +5263,8 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Formation chargers and cyclers",
-        "tray handling systems",
-        "fire detection and suppression"
+        "Tray handling systems",
+        "Fire detection and suppression"
       ]
     },
     {
@@ -5274,7 +5274,7 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Degas and final seal stations",
-        "vacuum chambers"
+        "Vacuum chambers"
       ]
     },
     {
@@ -5284,7 +5284,7 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Temperature-controlled aging rooms",
-        "open-circuit voltage testers"
+        "Open-circuit voltage testers"
       ]
     },
     {
@@ -5294,8 +5294,8 @@
       "learned": "On the job at a cell plant.",
       "tools": [
         "Capacity graders",
-        "resistance testers",
-        "sorting machines"
+        "Resistance testers",
+        "Sorting machines"
       ]
     },
     {
@@ -5308,8 +5308,8 @@
       "learned": "On the job at a cell or pack plant.",
       "tools": [
         "Multimeters",
-        "voltage sense harnesses",
-        "battery management system test software"
+        "Voltage sense harnesses",
+        "Battery management system test software"
       ]
     },
     {
@@ -5322,8 +5322,8 @@
       "learned": "On the job at a pack plant, after high-voltage safety qualification.",
       "tools": [
         "Cell placement fixtures and robots",
-        "adhesive dispensers",
-        "insulated tools"
+        "Adhesive dispensers",
+        "Insulated tools"
       ]
     },
     {
@@ -5334,7 +5334,7 @@
       "tools": [
         "Lift assists",
         "DC torque tools with recording",
-        "insulated tools"
+        "Insulated tools"
       ]
     },
     {
@@ -5344,8 +5344,8 @@
       "learned": "On the job at a pack or power electronics plant.",
       "tools": [
         "Insulated torque tools",
-        "micro-ohmmeters",
-        "laser welders"
+        "Micro-ohmmeters",
+        "Laser welders"
       ]
     },
     {
@@ -5355,9 +5355,9 @@
       "learned": "On the job at a pack plant.",
       "tools": [
         "Laser welders with scanner optics",
-        "clamping fixtures",
-        "weld monitoring",
-        "pull testers and micro-ohmmeters"
+        "Clamping fixtures",
+        "Weld monitoring",
+        "Pull testers and micro-ohmmeters"
       ]
     },
     {
@@ -5370,9 +5370,9 @@
       "learned": "On the job, after high-voltage safety qualification.",
       "tools": [
         "Insulated tools",
-        "high-voltage connectors",
-        "torque tools",
-        "insulation testers"
+        "High-voltage connectors",
+        "Torque tools",
+        "Insulation testers"
       ]
     },
     {
@@ -5389,8 +5389,8 @@
       "learned": "On the job at a pack plant.",
       "tools": [
         "Battery management boards",
-        "voltage and temperature sense harnesses",
-        "diagnostic software"
+        "Voltage and temperature sense harnesses",
+        "Diagnostic software"
       ]
     },
     {
@@ -5404,8 +5404,8 @@
       "learned": "On the job at a pack plant.",
       "tools": [
         "Cold plates and manifolds",
-        "quick connectors",
-        "pressure decay testers"
+        "Quick connectors",
+        "Pressure decay testers"
       ]
     },
     {
@@ -5415,9 +5415,9 @@
       "learned": "On the job at a pack plant.",
       "tools": [
         "Sealant dispensing robots",
-        "gaskets",
-        "torque tools",
-        "leak testers"
+        "Gaskets",
+        "Torque tools",
+        "Leak testers"
       ]
     },
     {
@@ -5427,8 +5427,8 @@
       "learned": "On the job at a pack plant.",
       "tools": [
         "Pressure decay testers",
-        "helium sniffers",
-        "test ports and plugs"
+        "Helium sniffers",
+        "Test ports and plugs"
       ]
     },
     {
@@ -5441,9 +5441,9 @@
       "learned": "On the job at a pack plant, after high-voltage safety qualification.",
       "tools": [
         "End-of-line test stands",
-        "battery cyclers",
-        "isolation testers",
-        "diagnostic software"
+        "Battery cyclers",
+        "Isolation testers",
+        "Diagnostic software"
       ]
     },
     {
@@ -5453,8 +5453,8 @@
       "learned": "On the job at a motor plant.",
       "tools": [
         "Winding and insertion machines",
-        "slot insulation",
-        "surge and resistance testers"
+        "Slot insulation",
+        "Surge and resistance testers"
       ]
     },
     {
@@ -5464,7 +5464,7 @@
       "learned": "On the job at a motor plant.",
       "tools": [
         "Hairpin forming, insertion and twisting machines",
-        "slot liners"
+        "Slot liners"
       ]
     },
     {
@@ -5474,8 +5474,8 @@
       "learned": "On the job at a motor plant.",
       "tools": [
         "Laser welders with scanner optics",
-        "vision alignment",
-        "resistance testers"
+        "Vision alignment",
+        "Resistance testers"
       ]
     },
     {
@@ -5488,8 +5488,8 @@
       "learned": "On the job at a motor plant.",
       "tools": [
         "Trickle impregnation and potting equipment",
-        "cure ovens",
-        "epoxy resins"
+        "Cure ovens",
+        "Epoxy resins"
       ]
     },
     {
@@ -5502,8 +5502,8 @@
       "learned": "On the job at a motor plant.",
       "tools": [
         "Magnet insertion fixtures",
-        "adhesive dispensers",
-        "polarity checkers"
+        "Adhesive dispensers",
+        "Polarity checkers"
       ]
     },
     {
@@ -5513,9 +5513,9 @@
       "learned": "On the job at a motor or drive unit plant.",
       "tools": [
         "Rotor insertion fixtures",
-        "presses",
+        "Presses",
         "DC torque tools",
-        "resolver alignment equipment"
+        "Resolver alignment equipment"
       ]
     },
     {
@@ -5525,9 +5525,9 @@
       "learned": "On the job at a motor or drive unit plant.",
       "tools": [
         "Induction heaters",
-        "presses",
-        "sealant dispensers",
-        "leak testers"
+        "Presses",
+        "Sealant dispensers",
+        "Leak testers"
       ]
     },
     {
@@ -5540,9 +5540,9 @@
       "learned": "On the job at a motor plant.",
       "tools": [
         "End-of-line test stands",
-        "dynamometers",
-        "hipot and surge testers",
-        "accelerometers"
+        "Dynamometers",
+        "Hipot and surge testers",
+        "Accelerometers"
       ]
     },
     {
@@ -5559,8 +5559,8 @@
       "learned": "Employer training before touching product, refreshed yearly. The rules are in FDA regulations: 21 CFR Parts 210 and 211 for drugs, Part 820 for devices and Part 117 for food.",
       "tools": [
         "Batch records and logbooks",
-        "electronic batch record systems",
-        "standard operating procedures"
+        "Electronic batch record systems",
+        "Standard operating procedures"
       ]
     },
     {
@@ -5570,9 +5570,9 @@
       "learned": "Site training and qualification by media fill at a sterile manufacturing plant; microbiology lab courses teach the basics.",
       "tools": [
         "Laminar flow hoods",
-        "isolators and restricted access barriers",
-        "sterile tools",
-        "sanitizing agents"
+        "Isolators and restricted access barriers",
+        "Sterile tools",
+        "Sanitizing agents"
       ]
     },
     {
@@ -5585,9 +5585,9 @@
       "learned": "On the job at a sterile fill plant, after aseptic gowning and media fill qualification.",
       "tools": [
         "Vial, syringe and pouch fillers",
-        "isolators",
-        "stopper bowls and cappers",
-        "fill weight checks"
+        "Isolators",
+        "Stopper bowls and cappers",
+        "Fill weight checks"
       ]
     },
     {
@@ -5597,9 +5597,9 @@
       "learned": "On the job in a pharmaceutical quality or microbiology group.",
       "tools": [
         "Active air samplers",
-        "settle and contact plates",
-        "particle counters",
-        "incubators"
+        "Settle and contact plates",
+        "Particle counters",
+        "Incubators"
       ]
     },
     {
@@ -5612,9 +5612,9 @@
       "learned": "On the job at a sterile fill plant.",
       "tools": [
         "Freeze dryers",
-        "vacuum pumps and condensers",
-        "stoppering systems",
-        "cycle recorders"
+        "Vacuum pumps and condensers",
+        "Stoppering systems",
+        "Cycle recorders"
       ]
     },
     {
@@ -5628,9 +5628,9 @@
       "learned": "On the job at a solid-dose pharmaceutical plant.",
       "tools": [
         "High-shear and fluid-bed granulators",
-        "mills",
-        "bin and V-blenders",
-        "moisture balances"
+        "Mills",
+        "Bin and V-blenders",
+        "Moisture balances"
       ],
       "careers": [
         {
@@ -5645,10 +5645,10 @@
       "learned": "On the job at a solid-dose pharmaceutical or supplement plant.",
       "tools": [
         "Rotary tablet presses",
-        "punches and dies",
-        "hardness testers",
-        "friability testers",
-        "balances"
+        "Punches and dies",
+        "Hardness testers",
+        "Friability testers",
+        "Balances"
       ]
     },
     {
@@ -5661,8 +5661,8 @@
       "learned": "On the job at a solid-dose pharmaceutical plant.",
       "tools": [
         "Perforated pan coaters",
-        "spray guns",
-        "coating suspension tanks"
+        "Spray guns",
+        "Coating suspension tanks"
       ]
     },
     {
@@ -5675,8 +5675,8 @@
       "learned": "On the job in pharmaceutical and device plants. Cycles are validated to ISO 17665.",
       "tools": [
         "Steam sterilizers (autoclaves)",
-        "biological and chemical indicators",
-        "load thermocouples"
+        "Biological and chemical indicators",
+        "Load thermocouples"
       ]
     },
     {
@@ -5686,9 +5686,9 @@
       "learned": "On the job at a device or contract sterilization plant. Cycles are validated to ISO 11135.",
       "tools": [
         "Ethylene oxide chambers",
-        "preconditioning and aeration rooms",
-        "biological indicators",
-        "gas monitors"
+        "Preconditioning and aeration rooms",
+        "Biological indicators",
+        "Gas monitors"
       ]
     },
     {
@@ -5704,8 +5704,8 @@
       "learned": "On the job in a validation or quality group at a regulated plant.",
       "tools": [
         "Validation protocols",
-        "calibrated instruments",
-        "data loggers"
+        "Calibrated instruments",
+        "Data loggers"
       ]
     },
     {
@@ -5718,8 +5718,8 @@
       "learned": "A chemistry degree or laboratory technology program, then method training on the job.",
       "tools": [
         "HPLC systems from Waters and Agilent",
-        "columns",
-        "chromatography data systems"
+        "Columns",
+        "Chromatography data systems"
       ]
     },
     {
@@ -5732,8 +5732,8 @@
       "learned": "A chemistry degree or laboratory technology program, then method training on the job.",
       "tools": [
         "Gas chromatographs with flame ionization detectors",
-        "headspace samplers",
-        "columns"
+        "Headspace samplers",
+        "Columns"
       ]
     },
     {
@@ -5743,7 +5743,7 @@
       "learned": "Laboratory technology program or chemistry degree; on the job in a quality control lab.",
       "tools": [
         "Dissolution baths with paddles and baskets",
-        "autosamplers",
+        "Autosamplers",
         "UV spectrophotometers or HPLC"
       ]
     },
@@ -5754,7 +5754,7 @@
       "learned": "Laboratory technology program or chemistry degree; on the job in a quality control lab.",
       "tools": [
         "Volumetric and coulometric Karl Fischer titrators",
-        "analytical balances"
+        "Analytical balances"
       ],
       "careers": [
         {
@@ -5770,7 +5770,7 @@
       "tools": [
         "Plate and tube readers",
         "LAL reagent",
-        "depyrogenated glassware"
+        "Depyrogenated glassware"
       ]
     },
     {
@@ -5780,9 +5780,9 @@
       "learned": "Microbiology degree or laboratory program; on the job in a quality control lab.",
       "tools": [
         "Sterility test isolators",
-        "membrane filtration units",
-        "growth media",
-        "incubators"
+        "Membrane filtration units",
+        "Growth media",
+        "Incubators"
       ]
     },
     {
@@ -5796,9 +5796,9 @@
       "learned": "Microbiology degree or laboratory program; on the job in a food or pharmaceutical lab.",
       "tools": [
         "Agar plates and membrane filters",
-        "incubators",
-        "colony counters",
-        "biosafety cabinets"
+        "Incubators",
+        "Colony counters",
+        "Biosafety cabinets"
       ]
     },
     {
@@ -5811,9 +5811,9 @@
       "learned": "Employer training; HACCP courses accredited by the International HACCP Alliance. Under FDA rules a plant's food safety plan is overseen by a Preventive Controls Qualified Individual.",
       "tools": [
         "Monitoring logs",
-        "calibrated thermometers",
-        "metal detectors",
-        "food safety plans"
+        "Calibrated thermometers",
+        "Metal detectors",
+        "Food safety plans"
       ]
     },
     {
@@ -5829,7 +5829,7 @@
       "learned": "On the job at a food plant.",
       "tools": [
         "Foamers and sanitizer dosing",
-        "brushes color-coded by zone",
+        "Brushes color-coded by zone",
         "ATP swab meters"
       ]
     },
@@ -5843,8 +5843,8 @@
       "learned": "On the job at a food plant.",
       "tools": [
         "Allergen test swabs",
-        "color-coded tools",
-        "changeover checklists"
+        "Color-coded tools",
+        "Changeover checklists"
       ],
       "careers": [
         {
@@ -5863,8 +5863,8 @@
       "learned": "On the job at a food or beverage plant.",
       "tools": [
         "Scales",
-        "ribbon blenders, mixers and kettles",
-        "batch sheets"
+        "Ribbon blenders, mixers and kettles",
+        "Batch sheets"
       ],
       "careers": [
         {
@@ -5885,9 +5885,9 @@
       "learned": "On the job at a food, beverage or pharmaceutical plant.",
       "tools": [
         "CIP skids",
-        "spray balls",
-        "conductivity and temperature sensors",
-        "chemical titration kits"
+        "Spray balls",
+        "Conductivity and temperature sensors",
+        "Chemical titration kits"
       ]
     },
     {
@@ -5900,9 +5900,9 @@
       "learned": "On the job at a dairy, juice or beverage plant. Milk plants work to the Grade A Pasteurized Milk Ordinance.",
       "tools": [
         "Plate and tubular heat exchangers",
-        "holding tubes",
-        "flow diversion valves",
-        "recording thermometers"
+        "Holding tubes",
+        "Flow diversion valves",
+        "Recording thermometers"
       ]
     },
     {
@@ -5912,8 +5912,8 @@
       "learned": "On the job. For low-acid canned foods, FDA requires retort operations to be supervised by someone who has completed a Better Process Control School.",
       "tools": [
         "Still and rotary retorts",
-        "temperature recorders",
-        "reference thermometers"
+        "Temperature recorders",
+        "Reference thermometers"
       ]
     },
     {
@@ -5926,9 +5926,9 @@
       "learned": "On the job at a beverage or food plant.",
       "tools": [
         "Rotary fillers",
-        "cappers",
-        "fill level inspection",
-        "date coders"
+        "Cappers",
+        "Fill level inspection",
+        "Date coders"
       ]
     },
     {
@@ -5938,8 +5938,8 @@
       "learned": "On the job at a canning plant; seamer and can makers run seam evaluation courses.",
       "tools": [
         "Can seamers",
-        "seam micrometers",
-        "seam saws and projectors"
+        "Seam micrometers",
+        "Seam saws and projectors"
       ],
       "careers": [
         {
@@ -5960,7 +5960,7 @@
       "learned": "On the job at a beverage plant.",
       "tools": [
         "Carbonators and chillers",
-        "carbonation testers",
+        "Carbonation testers",
         "CO2 supply systems"
       ]
     },
@@ -5974,7 +5974,7 @@
       "learned": "On the job at a food or beverage plant.",
       "tools": [
         "Refractometers",
-        "density meters"
+        "Density meters"
       ]
     },
     {
@@ -5987,8 +5987,8 @@
       "learned": "On the job at a dairy, food or chemical plant.",
       "tools": [
         "Spray dryers with nozzle or rotary atomizers",
-        "cyclones and bag filters",
-        "moisture analyzers"
+        "Cyclones and bag filters",
+        "Moisture analyzers"
       ]
     },
     {
@@ -6004,9 +6004,9 @@
       "learned": "On the job; the packaging machinery association PMMI offers mechatronics certificates for packaging technicians.",
       "tools": [
         "Cartoners and case packers",
-        "inkjet and laser coders",
-        "stretch wrappers",
-        "palletizers"
+        "Inkjet and laser coders",
+        "Stretch wrappers",
+        "Palletizers"
       ],
       "careers": [
         {
@@ -6027,8 +6027,8 @@
       "tools": [
         "Metal detectors",
         "X-ray inspection systems",
-        "checkweighers",
-        "certified test pieces"
+        "Checkweighers",
+        "Certified test pieces"
       ],
       "careers": [
         {
@@ -6043,8 +6043,8 @@
       "learned": "Electrical and mechatronics programs at community colleges; electrical apprenticeships.",
       "tools": [
         "Ladder and wiring diagrams",
-        "panel layouts",
-        "wire and terminal numbers"
+        "Panel layouts",
+        "Wire and terminal numbers"
       ]
     },
     {
@@ -6057,8 +6057,8 @@
       "learned": "Taught first in electrical, electronics and maintenance programs.",
       "tools": [
         "Digital multimeters",
-        "clamp meters",
-        "test leads and probes"
+        "Clamp meters",
+        "Test leads and probes"
       ]
     },
     {
@@ -6071,7 +6071,7 @@
       "learned": "Electronics technology programs; on the job.",
       "tools": [
         "Digital storage oscilloscopes",
-        "passive, differential and current probes"
+        "Passive, differential and current probes"
       ]
     },
     {
@@ -6084,9 +6084,9 @@
       "learned": "Electrical apprenticeship leading to a journeyman license; employer qualified-person training under NFPA 70E.",
       "tools": [
         "Motor control centers",
-        "disconnects and breakers",
-        "voltage testers",
-        "arc-rated protective equipment"
+        "Disconnects and breakers",
+        "Voltage testers",
+        "Arc-rated protective equipment"
       ]
     },
     {
@@ -6099,8 +6099,8 @@
       "learned": "Electrical apprenticeships and industrial maintenance programs.",
       "tools": [
         "Motor starters and overload relays",
-        "lugs and insulation kits",
-        "phase rotation meters"
+        "Lugs and insulation kits",
+        "Phase rotation meters"
       ]
     },
     {
@@ -6110,8 +6110,8 @@
       "learned": "Industrial maintenance and electrical programs; on the job.",
       "tools": [
         "Multimeters and clamp meters",
-        "schematics",
-        "contactors, relays and overloads"
+        "Schematics",
+        "Contactors, relays and overloads"
       ]
     },
     {
@@ -6121,8 +6121,8 @@
       "learned": "Electrical apprenticeship.",
       "tools": [
         "Hand, mechanical and hydraulic benders",
-        "threaders",
-        "levels and tape"
+        "Threaders",
+        "Levels and tape"
       ]
     },
     {
@@ -6139,7 +6139,7 @@
       "learned": "Electrical apprenticeships and maintenance programs; on the job.",
       "tools": [
         "Megohmmeters",
-        "grounding sticks"
+        "Grounding sticks"
       ]
     },
     {
@@ -6149,9 +6149,9 @@
       "learned": "Mechatronics and electrical programs; on the job as a panel builder or controls technician.",
       "tools": [
         "Proximity and photoelectric sensors",
-        "terminal blocks and ferrules",
+        "Terminal blocks and ferrules",
         "I/O modules",
-        "wire markers"
+        "Wire markers"
       ]
     },
     {
@@ -6164,7 +6164,7 @@
       "learned": "Mechatronics and automation programs at community colleges; PLC makers' courses.",
       "tools": [
         "PLCs and their programming software",
-        "simulators",
+        "Simulators",
         "I/O test panels"
       ]
     },
@@ -6178,8 +6178,8 @@
       "learned": "Industrial maintenance programs; on the job.",
       "tools": [
         "Laptop with PLC software",
-        "cross-reference and trend tools",
-        "multimeter"
+        "Cross-reference and trend tools",
+        "Multimeter"
       ]
     },
     {
@@ -6256,7 +6256,7 @@
       "tools": [
         "OPC UA servers such as Kepware",
         "Ignition",
-        "controller OPC UA settings"
+        "Controller OPC UA settings"
       ]
     },
     {
@@ -6269,8 +6269,8 @@
       "learned": "Automation programs; on the job.",
       "tools": [
         "EtherNet/IP and PROFINET",
-        "managed switches",
-        "cable testers",
+        "Managed switches",
+        "Cable testers",
         "Wireshark"
       ]
     },
@@ -6285,8 +6285,8 @@
       "learned": "Automotive and electronics programs; on the job in test.",
       "tools": [
         "CAN interfaces and analysis software such as Vector CANalyzer",
-        "oscilloscopes",
-        "multimeters"
+        "Oscilloscopes",
+        "Multimeters"
       ],
       "careers": [
         {
@@ -6316,7 +6316,7 @@
       "learned": "Industrial maintenance and electrical programs; drive makers' courses.",
       "tools": [
         "Drives such as Allen-Bradley PowerFlex, Siemens SINAMICS and ABB ACS",
-        "keypads and drive software"
+        "Keypads and drive software"
       ]
     },
     {
@@ -6326,8 +6326,8 @@
       "learned": "Automation programs; drive makers' courses.",
       "tools": [
         "Servo drives such as Allen-Bradley Kinetix, Siemens SINAMICS and Yaskawa Sigma",
-        "encoders",
-        "drive software"
+        "Encoders",
+        "Drive software"
       ]
     },
     {
@@ -6337,8 +6337,8 @@
       "learned": "On the job as a controls or motion engineer; drive makers' courses.",
       "tools": [
         "Drive tuning software and scopes",
-        "notch filters",
-        "load inertia data"
+        "Notch filters",
+        "Load inertia data"
       ]
     },
     {
@@ -6351,8 +6351,8 @@
       "learned": "Instrumentation programs at community colleges; the ISA Certified Control Systems Technician credential.",
       "tools": [
         "Documenting process calibrators",
-        "pressure pumps and modules",
-        "temperature baths",
+        "Pressure pumps and modules",
+        "Temperature baths",
         "HART communicators"
       ]
     },
@@ -6366,8 +6366,8 @@
       "learned": "Process technology and instrumentation programs; on the job. The symbols follow ISA-5.1.",
       "tools": [
         "P&IDs",
-        "instrument indexes",
-        "line lists"
+        "Instrument indexes",
+        "Line lists"
       ]
     },
     {
@@ -6389,7 +6389,7 @@
       "learned": "FANUC America courses, and its certified training programs at community colleges.",
       "tools": [
         "FANUC robots and controllers",
-        "teach pendant",
+        "Teach pendant",
         "ROBOGUIDE simulation"
       ]
     },
@@ -6426,7 +6426,7 @@
       "tools": [
         "UR robots",
         "PolyScope",
-        "grippers and URCaps"
+        "Grippers and URCaps"
       ]
     },
     {
@@ -6441,7 +6441,7 @@
         "ROBOGUIDE",
         "RobotStudio",
         "Process Simulate",
-        "cell CAD models"
+        "Cell CAD models"
       ]
     },
     {
@@ -6451,8 +6451,8 @@
       "learned": "Robotics and mechatronics programs; on the job.",
       "tools": [
         "Pneumatic and electric grippers",
-        "vacuum cups and generators",
-        "tool changers"
+        "Vacuum cups and generators",
+        "Tool changers"
       ]
     },
     {
@@ -6465,7 +6465,7 @@
       "learned": "Mechanical or mechatronics engineering study; on the job at an integrator.",
       "tools": [
         "CAD",
-        "gripper and vacuum component catalogs",
+        "Gripper and vacuum component catalogs",
         "3D printing for fingers"
       ]
     },
@@ -6476,8 +6476,8 @@
       "learned": "Engineering study; on the job at an integrator or in plant automation.",
       "tools": [
         "CAD and simulation software",
-        "robot reach and payload data",
-        "safety standards"
+        "Robot reach and payload data",
+        "Safety standards"
       ]
     },
     {
@@ -6490,8 +6490,8 @@
       "learned": "Robot makers' and integrators' safety courses.",
       "tools": [
         "Robot safety configuration",
-        "force and pressure measurement devices",
-        "area scanners"
+        "Force and pressure measurement devices",
+        "Area scanners"
       ]
     },
     {
@@ -6501,9 +6501,9 @@
       "learned": "On the job; vision makers' courses.",
       "tools": [
         "Smart cameras",
-        "lenses",
-        "ring, bar and back lights",
-        "calibration targets"
+        "Lenses",
+        "Ring, bar and back lights",
+        "Calibration targets"
       ]
     },
     {
@@ -6526,9 +6526,9 @@
       "learned": "Industrial maintenance programs and on the job. The Society for Maintenance & Reliability Professionals' CMRT is the technician credential.",
       "tools": [
         "Computerized maintenance management systems",
-        "grease guns and lubricants",
-        "hand tools",
-        "checklists"
+        "Grease guns and lubricants",
+        "Hand tools",
+        "Checklists"
       ]
     },
     {
@@ -6541,9 +6541,9 @@
       "learned": "On the job in a reliability group; vibration and thermography certifications build towards it.",
       "tools": [
         "Vibration data collectors",
-        "infrared cameras",
-        "oil analysis",
-        "ultrasound detectors"
+        "Infrared cameras",
+        "Oil analysis",
+        "Ultrasound detectors"
       ]
     },
     {
@@ -6556,9 +6556,9 @@
       "learned": "On the job, tool by tool; equipment makers' maintenance courses.",
       "tools": [
         "Tool alarm logs and manuals",
-        "multimeters",
-        "leak detectors",
-        "spare parts"
+        "Multimeters",
+        "Leak detectors",
+        "Spare parts"
       ]
     },
     {
@@ -6576,8 +6576,8 @@
       "learned": "On the job as an equipment or reliability engineer.",
       "tools": [
         "Maintenance and downtime records",
-        "spreadsheets",
-        "reliability software"
+        "Spreadsheets",
+        "Reliability software"
       ]
     },
     {
@@ -6592,9 +6592,9 @@
       "learned": "Industrial maintenance programs and apprenticeships. The International Fluid Power Society certifies hydraulic mechanics and specialists.",
       "tools": [
         "Seal kits and installation tools",
-        "hose crimpers",
-        "pressure gauges",
-        "flow meters"
+        "Hose crimpers",
+        "Pressure gauges",
+        "Flow meters"
       ]
     },
     {
@@ -6604,9 +6604,9 @@
       "learned": "Fluid power courses; on the job. The International Fluid Power Society certifies hydraulic specialists.",
       "tools": [
         "Pressure gauges and test hoses",
-        "flow meters",
-        "infrared thermometers",
-        "schematics"
+        "Flow meters",
+        "Infrared thermometers",
+        "Schematics"
       ]
     },
     {
@@ -6616,7 +6616,7 @@
       "learned": "Fluid power courses in maintenance and mechatronics programs. The symbols follow ISO 1219.",
       "tools": [
         "Hydraulic and pneumatic schematics",
-        "symbol charts"
+        "Symbol charts"
       ]
     },
     {
@@ -6626,7 +6626,7 @@
       "learned": "Fluid power courses; on the job.",
       "tools": [
         "Charging and gauging kits",
-        "nitrogen bottles and regulators"
+        "Nitrogen bottles and regulators"
       ]
     },
     {
@@ -6640,8 +6640,8 @@
       "learned": "On the job in maintenance.",
       "tools": [
         "Filter elements",
-        "filter carts",
-        "clogging indicators"
+        "Filter carts",
+        "Clogging indicators"
       ]
     },
     {
@@ -6654,8 +6654,8 @@
       "learned": "On the job in maintenance or reliability.",
       "tools": [
         "Sample bottles and vacuum pumps",
-        "particle counters",
-        "lab reports"
+        "Particle counters",
+        "Lab reports"
       ]
     },
     {
@@ -6668,8 +6668,8 @@
       "learned": "Fluid power courses; on the job.",
       "tools": [
         "Test gauges",
-        "flow meters",
-        "hydraulic test stands"
+        "Flow meters",
+        "Hydraulic test stands"
       ]
     },
     {
@@ -6682,8 +6682,8 @@
       "learned": "On the job; valve makers' courses.",
       "tools": [
         "Servo valve test stands",
-        "flushing plates",
-        "clean benches"
+        "Flushing plates",
+        "Clean benches"
       ]
     },
     {
@@ -6693,9 +6693,9 @@
       "learned": "Industrial maintenance and mechatronics programs. The International Fluid Power Society certifies pneumatic mechanics and specialists.",
       "tools": [
         "Solenoid valves and manifolds",
-        "filter-regulator-lubricator units",
-        "flow controls",
-        "leak detectors"
+        "Filter-regulator-lubricator units",
+        "Flow controls",
+        "Leak detectors"
       ]
     },
     {
@@ -6705,9 +6705,9 @@
       "learned": "Industrial maintenance and millwright programs; on the job.",
       "tools": [
         "Mechanical seals and packing",
-        "pullers and presses",
-        "dial indicators",
-        "alignment tools"
+        "Pullers and presses",
+        "Dial indicators",
+        "Alignment tools"
       ]
     },
     {
@@ -6717,9 +6717,9 @@
       "learned": "Millwright apprenticeship and industrial maintenance programs; alignment system makers' courses.",
       "tools": [
         "Laser alignment systems",
-        "dial indicators",
-        "precut shims",
-        "jacking bolts"
+        "Dial indicators",
+        "Precut shims",
+        "Jacking bolts"
       ]
     },
     {
@@ -6729,9 +6729,9 @@
       "learned": "Millwright apprenticeship; on the job.",
       "tools": [
         "Pullers and presses",
-        "dial indicators",
-        "marking compound",
-        "feeler gauges"
+        "Dial indicators",
+        "Marking compound",
+        "Feeler gauges"
       ]
     },
     {
@@ -6741,9 +6741,9 @@
       "learned": "Industrial maintenance programs; on the job.",
       "tools": [
         "Belt tracking and tensioning tools",
-        "splice kits",
-        "chain breakers",
-        "grease guns"
+        "Splice kits",
+        "Chain breakers",
+        "Grease guns"
       ]
     },
     {
@@ -6756,7 +6756,7 @@
       "learned": "Certification courses to ISO 18436-2, Categories I to IV, from the Vibration Institute and Mobius Institute.",
       "tools": [
         "Vibration data collectors and accelerometers",
-        "spectrum analysis software"
+        "Spectrum analysis software"
       ]
     },
     {
@@ -6771,7 +6771,7 @@
       "learned": "Thermographer certification courses, Level I to III, from infrared training providers.",
       "tools": [
         "Infrared cameras",
-        "reporting software"
+        "Reporting software"
       ]
     },
     {
@@ -6784,7 +6784,7 @@
       "learned": "On the job on vacuum process tools; semiconductor manufacturing programs teach the principles.",
       "tools": [
         "Dry and rotary vane roughing pumps",
-        "turbomolecular and cryogenic pumps",
+        "Turbomolecular and cryogenic pumps",
         "Pirani, capacitance and ion gauges"
       ]
     },
@@ -6795,8 +6795,8 @@
       "learned": "On the job; leak detector makers' courses.",
       "tools": [
         "Helium leak detectors",
-        "spray probes and sniffers",
-        "calibrated leaks"
+        "Spray probes and sniffers",
+        "Calibrated leaks"
       ]
     },
     {
@@ -6818,9 +6818,9 @@
       "learned": "On the job in fab facilities, often from a water treatment background.",
       "tools": [
         "Reverse osmosis units",
-        "ion exchange beds",
+        "Ion exchange beds",
         "UV units",
-        "resistivity and organic carbon analyzers"
+        "Resistivity and organic carbon analyzers"
       ]
     },
     {
@@ -6838,8 +6838,8 @@
       "learned": "FAA Airframe and Powerplant training.",
       "tools": [
         "Aircraft maintenance manuals",
-        "illustrated parts catalogs",
-        "wiring diagram manuals"
+        "Illustrated parts catalogs",
+        "Wiring diagram manuals"
       ]
     },
     {
@@ -6852,8 +6852,8 @@
       "learned": "FAA Airframe and Powerplant training; the certificate itself is the authority to sign.",
       "tools": [
         "Aircraft logbooks",
-        "work orders",
-        "maintenance tracking software"
+        "Work orders",
+        "Maintenance tracking software"
       ]
     },
     {
@@ -6866,8 +6866,8 @@
       "learned": "Employer run-and-taxi qualification on the aircraft type, held in addition to an FAA Airframe and Powerplant certificate.",
       "tools": [
         "Aircraft flight deck",
-        "chocks and fire guard equipment",
-        "engine run checklists"
+        "Chocks and fire guard equipment",
+        "Engine run checklists"
       ]
     },
     {
@@ -6881,9 +6881,9 @@
       "learned": "FAA Airframe and Powerplant training; on the job.",
       "tools": [
         "Bead breakers",
-        "inflation cages",
-        "nitrogen carts",
-        "torque wrenches"
+        "Inflation cages",
+        "Nitrogen carts",
+        "Torque wrenches"
       ]
     },
     {
@@ -6908,9 +6908,9 @@
       "learned": "FAA Airframe and Powerplant training; repairs follow the structural repair manual or FAA Advisory Circular 43.13-1B.",
       "tools": [
         "Rivet guns and bucking bars",
-        "drills",
-        "sheet metal brakes and shears",
-        "layout tools"
+        "Drills",
+        "Sheet metal brakes and shears",
+        "Layout tools"
       ],
       "careers": [
         {
@@ -6930,9 +6930,9 @@
       "learned": "FAA Airframe and Powerplant training.",
       "tools": [
         "Abrasive pads and blend tools",
-        "conversion coating",
-        "primers",
-        "corrosion preventive compounds"
+        "Conversion coating",
+        "Primers",
+        "Corrosion preventive compounds"
       ],
       "careers": [
         {
@@ -6951,8 +6951,8 @@
       "learned": "FAA Airframe and Powerplant training; on the job.",
       "tools": [
         "Duct clamps and seals",
-        "leak detection equipment",
-        "torque wrenches"
+        "Leak detection equipment",
+        "Torque wrenches"
       ]
     },
     {
@@ -6965,9 +6965,9 @@
       "learned": "On the job at an engine plant, after engine assembly experience.",
       "tools": [
         "Borescopes",
-        "leak test equipment",
-        "engine build stands",
-        "cleaning equipment"
+        "Leak test equipment",
+        "Engine build stands",
+        "Cleaning equipment"
       ]
     },
     {
@@ -6982,8 +6982,8 @@
       "learned": "On the job at a launch vehicle plant, from an aircraft or structures inspection background.",
       "tools": [
         "Borescopes",
-        "ultrasonic and eddy current equipment",
-        "inspection lights and mirrors"
+        "Ultrasonic and eddy current equipment",
+        "Inspection lights and mirrors"
       ]
     },
     {
@@ -6997,8 +6997,8 @@
       "learned": "On the job at a launch site, from a heavy equipment or hydraulics background.",
       "tools": [
         "Transporter-erectors",
-        "hydraulic power units",
-        "control consoles"
+        "Hydraulic power units",
+        "Control consoles"
       ]
     },
     {
@@ -7011,8 +7011,8 @@
       "learned": "On the job at a launch or test site.",
       "tools": [
         "Umbilical plates and arms",
-        "leak detectors",
-        "release mechanisms"
+        "Leak detectors",
+        "Release mechanisms"
       ]
     },
     {
@@ -7025,8 +7025,8 @@
       "learned": "On the job in ground support or test.",
       "tools": [
         "Quick-disconnect couplings",
-        "seal kits",
-        "leak detectors"
+        "Seal kits",
+        "Leak detectors"
       ]
     },
     {
@@ -7036,7 +7036,7 @@
       "learned": "Taught in the first weeks of machining and quality programs; NIMS Measurement, Materials and Safety credential.",
       "tools": [
         "Dial, digital and vernier calipers",
-        "gauge blocks for checking"
+        "Gauge blocks for checking"
       ]
     },
     {
@@ -7049,8 +7049,8 @@
       "learned": "Machining and quality programs; NIMS Measurement, Materials and Safety credential.",
       "tools": [
         "Outside, inside and depth micrometers",
-        "setting standards",
-        "micrometer stands"
+        "Setting standards",
+        "Micrometer stands"
       ]
     },
     {
@@ -7063,9 +7063,9 @@
       "learned": "Machining and quality programs; on the job in inspection.",
       "tools": [
         "Digital height gauges",
-        "granite surface plates",
-        "test indicators",
-        "angle plates and V-blocks"
+        "Granite surface plates",
+        "Test indicators",
+        "Angle plates and V-blocks"
       ]
     },
     {
@@ -7078,9 +7078,9 @@
       "learned": "Machining and quality programs; on the job.",
       "tools": [
         "Dial bore gauges",
-        "setting rings and micrometers",
-        "telescoping gauges",
-        "air gauges"
+        "Setting rings and micrometers",
+        "Telescoping gauges",
+        "Air gauges"
       ],
       "careers": [
         {
@@ -7099,8 +7099,8 @@
       "learned": "Metrology and toolmaking courses; on the job in a calibration lab.",
       "tools": [
         "Steel and ceramic gauge block sets",
-        "optical flats",
-        "sine bars"
+        "Optical flats",
+        "Sine bars"
       ]
     },
     {
@@ -7110,9 +7110,9 @@
       "learned": "Machining and inspection programs; on the job.",
       "tools": [
         "Thread ring and plug gauges",
-        "thread micrometers",
-        "thread wires",
-        "pitch gauges"
+        "Thread micrometers",
+        "Thread wires",
+        "Pitch gauges"
       ]
     },
     {
@@ -7125,8 +7125,8 @@
       "learned": "Machining and quality programs; on the job.",
       "tools": [
         "Portable and bench profilometers",
-        "reference specimens",
-        "comparison plates"
+        "Reference specimens",
+        "Comparison plates"
       ]
     },
     {
@@ -7139,8 +7139,8 @@
       "learned": "Quality and machining programs; on the job in inspection.",
       "tools": [
         "Optical comparators",
-        "overlay charts",
-        "stage micrometers"
+        "Overlay charts",
+        "Stage micrometers"
       ]
     },
     {
@@ -7153,7 +7153,7 @@
       "learned": "Courses at community colleges and from training firms. ASME certifies Geometric Dimensioning and Tolerancing Professionals at Technologist and Senior levels, to its Y14.5 standard.",
       "tools": [
         "ASME Y14.5",
-        "functional gauges",
+        "Functional gauges",
         "CMMs"
       ]
     },
@@ -7167,8 +7167,8 @@
       "learned": "Mechanical engineering study and GD&T courses; on the job in design.",
       "tools": [
         "Spreadsheets",
-        "tolerance analysis software",
-        "assembly drawings"
+        "Tolerance analysis software",
+        "Assembly drawings"
       ]
     },
     {
@@ -7181,7 +7181,7 @@
       "learned": "Quality programs at community colleges; CMM makers' operator courses; on the job.",
       "tools": [
         "Bridge CMMs from Hexagon, Zeiss and Mitutoyo",
-        "touch and scanning probes",
+        "Touch and scanning probes",
         "PC-DMIS and Calypso"
       ]
     },
@@ -7207,7 +7207,7 @@
       "learned": "CMM makers' advanced courses; on the job as a senior programr or metrologist.",
       "tools": [
         "CMM and scanning software",
-        "datum fixtures",
+        "Datum fixtures",
         "CAD models"
       ]
     },
@@ -7221,7 +7221,7 @@
       "learned": "Tracker makers' courses; the Coordinate Metrology Society certifies portable metrology operators.",
       "tools": [
         "Laser trackers from Leica, FARO and API",
-        "reflectors",
+        "Reflectors",
         "SpatialAnalyzer and PolyWorks"
       ]
     },
@@ -7236,8 +7236,8 @@
       "learned": "Scanner makers' courses; on the job in a metrology lab.",
       "tools": [
         "Structured-light scanners such as ZEISS ATOS",
-        "laser line scanners",
-        "reference targets"
+        "Laser line scanners",
+        "Reference targets"
       ]
     },
     {
@@ -7265,8 +7265,8 @@
       "learned": "On the job in an automotive body shop or metrology lab.",
       "tools": [
         "Horizontal-arm CMMs",
-        "in-line laser measurement",
-        "checking fixtures"
+        "In-line laser measurement",
+        "Checking fixtures"
       ]
     },
     {
@@ -7276,7 +7276,7 @@
       "learned": "On the job as a machine tool service or maintenance technician; ballbar makers' training.",
       "tools": [
         "Renishaw ballbar",
-        "analysis software"
+        "Analysis software"
       ]
     },
     {
@@ -7289,7 +7289,7 @@
       "learned": "On the job as a machine tool service technician; interferometer makers' training.",
       "tools": [
         "Laser interferometer systems such as Renishaw XL-80",
-        "environmental compensation sensors"
+        "Environmental compensation sensors"
       ]
     },
     {
@@ -7302,7 +7302,7 @@
       "learned": "On the job as a machine tool service technician.",
       "tools": [
         "CNC parameter and compensation pages",
-        "laser and ballbar data"
+        "Laser and ballbar data"
       ]
     },
     {
@@ -7312,8 +7312,8 @@
       "learned": "Metrology and instrumentation programs; on the job in a calibration lab. ASQ offers the Certified Calibration Technician credential.",
       "tools": [
         "Deadweight testers",
-        "pressure comparators and reference gauges",
-        "hand pumps"
+        "Pressure comparators and reference gauges",
+        "Hand pumps"
       ]
     },
     {
@@ -7323,8 +7323,8 @@
       "learned": "Metrology and instrumentation programs; on the job. ASQ offers the Certified Calibration Technician credential.",
       "tools": [
         "Dry-block calibrators and stirred baths",
-        "reference thermometers",
-        "ice point"
+        "Reference thermometers",
+        "Ice point"
       ]
     },
     {
@@ -7334,7 +7334,7 @@
       "learned": "On the job in a calibration lab or tool crib. ASQ offers the Certified Calibration Technician credential.",
       "tools": [
         "Torque testers and transducers",
-        "loading benches"
+        "Loading benches"
       ]
     },
     {
@@ -7344,8 +7344,8 @@
       "learned": "Metrology courses; on the job in a calibration lab accredited to ISO/IEC 17025. ASQ's Certified Calibration Technician covers the basics.",
       "tools": [
         "Uncertainty budgets",
-        "spreadsheets",
-        "calibration certificates"
+        "Spreadsheets",
+        "Calibration certificates"
       ]
     },
     {
@@ -7355,8 +7355,8 @@
       "learned": "On the job; machining and quality programs.",
       "tools": [
         "Calipers, micrometers and gauges",
-        "check sheets and SPC charts",
-        "go and no-go gauges"
+        "Check sheets and SPC charts",
+        "Go and no-go gauges"
       ]
     },
     {
@@ -7374,7 +7374,7 @@
         "Ballooned drawings",
         "CMMs and hand gauges",
         "AS9102 forms",
-        "first article software"
+        "First article software"
       ]
     },
     {
@@ -7384,9 +7384,9 @@
       "learned": "On the job; covered in quality programs.",
       "tools": [
         "Inspection reports",
-        "travelers",
-        "inspection stamps",
-        "quality management software"
+        "Travelers",
+        "Inspection stamps",
+        "Quality management software"
       ]
     },
     {
@@ -7399,8 +7399,8 @@
       "learned": "On the job in inspection; quality programs.",
       "tools": [
         "Nonconformance reports and tags",
-        "hold areas",
-        "quality management software"
+        "Hold areas",
+        "Quality management software"
       ]
     },
     {
@@ -7416,8 +7416,8 @@
       "learned": "On the job in quality or manufacturing engineering.",
       "tools": [
         "Nonconformance reports",
-        "engineering dispositions",
-        "customer concession requests"
+        "Engineering dispositions",
+        "Customer concession requests"
       ]
     },
     {
@@ -7430,7 +7430,7 @@
       "learned": "Quality programs; covered by ASQ's Certified Quality Inspector and Technician credentials. The common plans are ANSI/ASQ Z1.4.",
       "tools": [
         "Sampling tables",
-        "receiving inspection records"
+        "Receiving inspection records"
       ]
     },
     {
@@ -7444,8 +7444,8 @@
       "learned": "On the job in receiving, stores and inspection.",
       "tools": [
         "Material test reports",
-        "certificates of conformance",
-        "lot and serial records"
+        "Certificates of conformance",
+        "Lot and serial records"
       ]
     },
     {
@@ -7480,7 +7480,7 @@
       "tools": [
         "Minitab",
         "JMP",
-        "capability study worksheets"
+        "Capability study worksheets"
       ]
     },
     {
@@ -7497,8 +7497,8 @@
       "learned": "Quality programs; AIAG's Measurement Systems Analysis manual is the reference.",
       "tools": [
         "Minitab",
-        "study worksheets",
-        "master parts"
+        "Study worksheets",
+        "Master parts"
       ]
     },
     {
@@ -7525,9 +7525,9 @@
       "learned": "Employer training; quality programs. Covered by ASQ's quality credentials.",
       "tools": [
         "Five-whys",
-        "fishbone diagrams",
-        "fault trees",
-        "is/is-not analysis"
+        "Fishbone diagrams",
+        "Fault trees",
+        "Is/is-not analysis"
       ]
     },
     {
@@ -7537,8 +7537,8 @@
       "learned": "Employer and customer training in automotive and electronics supply chains.",
       "tools": [
         "8D report forms",
-        "containment records",
-        "verification data"
+        "Containment records",
+        "Verification data"
       ]
     },
     {
@@ -7555,8 +7555,8 @@
       "learned": "On the job in quality; ASQ's Certified Quality Engineer and Auditor credentials cover it.",
       "tools": [
         "Corrective action systems",
-        "investigation reports",
-        "effectiveness checks"
+        "Investigation reports",
+        "Effectiveness checks"
       ]
     },
     {
@@ -7569,7 +7569,7 @@
       "learned": "Employer training; AIAG's FMEA handbook is the reference. Covered by ASQ's Certified Quality Engineer.",
       "tools": [
         "FMEA worksheets and software",
-        "process flow diagrams"
+        "Process flow diagrams"
       ]
     },
     {
@@ -7582,7 +7582,7 @@
       "learned": "Engineering study and employer training; AIAG's FMEA handbook is the reference.",
       "tools": [
         "FMEA worksheets and software",
-        "boundary and parameter diagrams"
+        "Boundary and parameter diagrams"
       ]
     },
     {
@@ -7592,7 +7592,7 @@
       "learned": "Employer training in automotive and aerospace quality; AIAG's APQP manual is the reference.",
       "tools": [
         "Control plan forms",
-        "process flow diagrams",
+        "Process flow diagrams",
         "FMEAs"
       ]
     },
@@ -7609,8 +7609,8 @@
       "learned": "Employer training in the automotive supply chain; AIAG's PPAP manual is the reference.",
       "tools": [
         "Part submission warrants",
-        "dimensional reports",
-        "capability studies"
+        "Dimensional reports",
+        "Capability studies"
       ]
     },
     {
@@ -7623,8 +7623,8 @@
       "learned": "Internal auditor and lead auditor courses; ASQ's Certified Quality Auditor.",
       "tools": [
         "The ISO 9001 standard",
-        "quality manual and procedures",
-        "audit checklists"
+        "Quality manual and procedures",
+        "Audit checklists"
       ]
     },
     {
@@ -7638,8 +7638,8 @@
       "learned": "AS9100 internal and lead auditor courses; on the job in aerospace quality.",
       "tools": [
         "The AS9100 standard",
-        "audit checklists",
-        "customer flow-down requirements"
+        "Audit checklists",
+        "Customer flow-down requirements"
       ]
     },
     {
@@ -7652,8 +7652,8 @@
       "learned": "ISO 13485 internal and lead auditor courses; on the job in device quality.",
       "tools": [
         "The ISO 13485 standard",
-        "device history records",
-        "audit checklists"
+        "Device history records",
+        "Audit checklists"
       ]
     },
     {
@@ -7667,7 +7667,7 @@
       "tools": [
         "The IATF 16949 standard",
         "AIAG core tool manuals",
-        "audit checklists"
+        "Audit checklists"
       ]
     },
     {
@@ -7677,7 +7677,7 @@
       "learned": "On the job in manufacturing engineering.",
       "tools": [
         "Work instruction templates and authoring software",
-        "photos and annotated models"
+        "Photos and annotated models"
       ]
     },
     {
@@ -7687,9 +7687,9 @@
       "learned": "Employer training; lean certificate programs.",
       "tools": [
         "Shadow boards",
-        "floor marking",
-        "red tags",
-        "audit sheets"
+        "Floor marking",
+        "Red tags",
+        "Audit sheets"
       ]
     },
     {
@@ -7702,8 +7702,8 @@
       "learned": "Employer lean training; SME's Lean Certification covers it.",
       "tools": [
         "Standard work combination sheets",
-        "work element timing",
-        "takt time calculations"
+        "Work element timing",
+        "Takt time calculations"
       ]
     },
     {
@@ -7713,8 +7713,8 @@
       "learned": "Employer lean training; SME's Lean Certification covers it.",
       "tools": [
         "Value stream map symbols",
-        "stopwatch",
-        "process data boxes"
+        "Stopwatch",
+        "Process data boxes"
       ],
       "careers": [
         {
@@ -7732,8 +7732,8 @@
       "learned": "Employer lean training; SME's Lean Certification covers it.",
       "tools": [
         "Event charters",
-        "before and after measurements",
-        "action lists"
+        "Before and after measurements",
+        "Action lists"
       ],
       "careers": [
         {
@@ -7748,8 +7748,8 @@
       "learned": "ASQ's Certified Six Sigma Green Belt and Black Belt, or an employer's belt program.",
       "tools": [
         "Minitab",
-        "project charters",
-        "control plans"
+        "Project charters",
+        "Control plans"
       ]
     },
     {
@@ -7766,8 +7766,8 @@
       "learned": "Employer lean training; on the job in setup.",
       "tools": [
         "Changeover videos and timing sheets",
-        "quick-release clamps",
-        "pre-staged tool carts"
+        "Quick-release clamps",
+        "Pre-staged tool carts"
       ],
       "careers": [
         {
@@ -7782,8 +7782,8 @@
       "learned": "Industrial engineering study; on the job.",
       "tools": [
         "Yamazumi charts",
-        "precedence diagrams",
-        "time study data"
+        "Precedence diagrams",
+        "Time study data"
       ]
     },
     {
@@ -7793,8 +7793,8 @@
       "learned": "Industrial engineering study; on the job.",
       "tools": [
         "Stopwatch or video",
-        "time study sheets",
-        "predetermined time systems"
+        "Time study sheets",
+        "Predetermined time systems"
       ]
     },
     {
@@ -7811,9 +7811,9 @@
       "learned": "Employer lean and quality training; on the job in manufacturing engineering.",
       "tools": [
         "Locating pins and fixtures",
-        "presence sensors",
-        "pick-to-light",
-        "torque tool interlocks"
+        "Presence sensors",
+        "Pick-to-light",
+        "Torque tool interlocks"
       ]
     },
     {
@@ -7842,10 +7842,10 @@
       "learned": "Materials science and metallurgical technology programs; on the job in a materials lab.",
       "tools": [
         "Abrasive saws",
-        "mounting presses",
-        "grinder-polishers",
-        "metallurgical microscopes",
-        "microhardness testers"
+        "Mounting presses",
+        "Grinder-polishers",
+        "Metallurgical microscopes",
+        "Microhardness testers"
       ]
     },
     {
@@ -7855,8 +7855,8 @@
       "learned": "Materials and engineering technology programs; on the job in a materials lab.",
       "tools": [
         "Universal testing machines",
-        "extensometers",
-        "specimen grips"
+        "Extensometers",
+        "Specimen grips"
       ],
       "careers": [
         {
@@ -7875,8 +7875,8 @@
       "learned": "On the job in vehicle final assembly.",
       "tools": [
         "Inspection light tunnels",
-        "diagnostic scan tools",
-        "defect tracking systems"
+        "Diagnostic scan tools",
+        "Defect tracking systems"
       ]
     },
     {
@@ -7889,8 +7889,8 @@
       "learned": "On the job at a spacecraft plant.",
       "tools": [
         "Gap and step gauges",
-        "inspection lights",
-        "tap hammers"
+        "Inspection lights",
+        "Tap hammers"
       ]
     },
     {
@@ -7906,8 +7906,8 @@
       "learned": "Employer training and certification under SNT-TC-1A or NAS 410; the first method most inspectors learn.",
       "tools": [
         "Flashlights and light meters",
-        "mirrors and magnifiers",
-        "weld gauges"
+        "Mirrors and magnifiers",
+        "Weld gauges"
       ]
     },
     {
@@ -7920,8 +7920,8 @@
       "learned": "FAA Airframe and Powerplant training and engine makers' courses; on the job.",
       "tools": [
         "Video borescopes with articulating tips",
-        "measurement software",
-        "guide tubes"
+        "Measurement software",
+        "Guide tubes"
       ],
       "careers": [
         {
@@ -7944,8 +7944,8 @@
       "learned": "Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or, in aerospace, NAS 410.",
       "tools": [
         "Penetrants, removers and developers",
-        "process lines or spray cans",
-        "white and UV-A light"
+        "Process lines or spray cans",
+        "White and UV-A light"
       ]
     },
     {
@@ -7961,9 +7961,9 @@
       "learned": "Level II penetrant certification under NAS 410, with experience on a fluorescent line.",
       "tools": [
         "Fluorescent penetrant lines",
-        "inspection booths",
+        "Inspection booths",
         "UV-A lamps",
-        "light meters"
+        "Light meters"
       ]
     },
     {
@@ -7990,8 +7990,8 @@
       "learned": "Learned as part of Level II penetrant certification.",
       "tools": [
         "Emulsifier tanks",
-        "refractometers for concentration",
-        "timers"
+        "Refractometers for concentration",
+        "Timers"
       ]
     },
     {
@@ -8004,7 +8004,7 @@
       "learned": "Learned as part of Level II penetrant certification; also taught to welders.",
       "tools": [
         "Penetrant, cleaner and developer spray cans",
-        "lint-free cloths"
+        "Lint-free cloths"
       ]
     },
     {
@@ -8017,8 +8017,8 @@
       "learned": "Learned as part of Level II penetrant certification.",
       "tools": [
         "Dry powder stations",
-        "aqueous developer tanks",
-        "non-aqueous spray developer"
+        "Aqueous developer tanks",
+        "Non-aqueous spray developer"
       ]
     },
     {
@@ -8031,8 +8031,8 @@
       "learned": "Learned as part of Level II penetrant certification.",
       "tools": [
         "Qualified products list",
-        "specifications",
-        "known-defect standards"
+        "Specifications",
+        "Known-defect standards"
       ]
     },
     {
@@ -8045,8 +8045,8 @@
       "learned": "Learned on the job on a penetrant line, as part of Level II certification.",
       "tools": [
         "Known-defect test panels",
-        "refractometers",
-        "thermometers and pressure gauges",
+        "Refractometers",
+        "Thermometers and pressure gauges",
         "UV-A and white light meters"
       ]
     },
@@ -8060,7 +8060,7 @@
       "learned": "Learned as part of Level II penetrant and magnetic particle certification.",
       "tools": [
         "UV-A radiometers",
-        "white light meters",
+        "White light meters",
         "UV-A LED lamps"
       ]
     },
@@ -8077,9 +8077,9 @@
       "learned": "Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.",
       "tools": [
         "Wet horizontal benches",
-        "yokes",
-        "coils",
-        "fluorescent and visible particles"
+        "Yokes",
+        "Coils",
+        "Fluorescent and visible particles"
       ]
     },
     {
@@ -8093,7 +8093,7 @@
       "learned": "Level II magnetic particle certification, with experience on a wet bench.",
       "tools": [
         "Wet horizontal benches",
-        "centrifuge tubes",
+        "Centrifuge tubes",
         "UV-A lamps"
       ]
     },
@@ -8107,7 +8107,7 @@
       "learned": "Level II magnetic particle certification; also taught to weld inspectors.",
       "tools": [
         "Yokes and prods",
-        "powder bulbs and blowers"
+        "Powder bulbs and blowers"
       ]
     },
     {
@@ -8120,8 +8120,8 @@
       "learned": "Learned as part of Level II magnetic particle certification.",
       "tools": [
         "AC and DC yokes",
-        "lift test weights",
-        "field indicators"
+        "Lift test weights",
+        "Field indicators"
       ]
     },
     {
@@ -8131,7 +8131,7 @@
       "learned": "Learned as part of Level II magnetic particle certification.",
       "tools": [
         "Bench coils and cable wraps",
-        "ammeters"
+        "Ammeters"
       ]
     },
     {
@@ -8144,8 +8144,8 @@
       "learned": "Learned as part of Level II magnetic particle certification.",
       "tools": [
         "Wet horizontal benches",
-        "contact pads",
-        "central conductor bars"
+        "Contact pads",
+        "Central conductor bars"
       ]
     },
     {
@@ -8158,7 +8158,7 @@
       "learned": "Learned as part of Level II magnetic particle certification.",
       "tools": [
         "Multi-current magnetizing units",
-        "ammeters"
+        "Ammeters"
       ]
     },
     {
@@ -8168,7 +8168,7 @@
       "learned": "Learned as part of Level II magnetic particle certification.",
       "tools": [
         "Notched shims",
-        "pie gauges",
+        "Pie gauges",
         "Hall-effect gauss meters"
       ]
     },
@@ -8179,7 +8179,7 @@
       "learned": "Learned as part of Level II magnetic particle certification.",
       "tools": [
         "Demagnetizing coils",
-        "field indicators"
+        "Field indicators"
       ]
     },
     {
@@ -8195,9 +8195,9 @@
       "learned": "Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.",
       "tools": [
         "Ultrasonic flaw detectors",
-        "transducers and wedges",
-        "couplant",
-        "calibration blocks"
+        "Transducers and wedges",
+        "Couplant",
+        "Calibration blocks"
       ]
     },
     {
@@ -8207,7 +8207,7 @@
       "learned": "Learned as part of Level I and II ultrasonic certification.",
       "tools": [
         "Ultrasonic flaw detectors",
-        "calibration blocks"
+        "Calibration blocks"
       ]
     },
     {
@@ -8220,9 +8220,9 @@
       "learned": "Learned as part of Level I and II ultrasonic certification.",
       "tools": [
         "IIW blocks",
-        "distance and sensitivity blocks",
-        "step wedges",
-        "flat-bottom hole blocks"
+        "Distance and sensitivity blocks",
+        "Step wedges",
+        "Flat-bottom hole blocks"
       ]
     },
     {
@@ -8237,7 +8237,7 @@
       "learned": "Learned as part of Level II ultrasonic certification.",
       "tools": [
         "Contact, angle-beam, dual-element, delay-line and immersion transducers",
-        "wedges"
+        "Wedges"
       ]
     },
     {
@@ -8250,8 +8250,8 @@
       "learned": "Learned as part of Level I and II ultrasonic certification.",
       "tools": [
         "Straight-beam transducers",
-        "flaw detectors",
-        "step blocks"
+        "Flaw detectors",
+        "Step blocks"
       ]
     },
     {
@@ -8265,7 +8265,7 @@
       "tools": [
         "Angle-beam transducers and wedges",
         "IIW block",
-        "weld plotting aids"
+        "Weld plotting aids"
       ]
     },
     {
@@ -8280,8 +8280,8 @@
       "learned": "Learned as part of Level I and II ultrasonic certification.",
       "tools": [
         "Flaw detectors",
-        "contact transducers",
-        "couplants"
+        "Contact transducers",
+        "Couplants"
       ]
     },
     {
@@ -8296,8 +8296,8 @@
       "learned": "Level II ultrasonic certification, with experience on an immersion system.",
       "tools": [
         "Immersion tanks",
-        "scanning bridges and manipulators",
-        "focused transducers"
+        "Scanning bridges and manipulators",
+        "Focused transducers"
       ]
     },
     {
@@ -8311,7 +8311,7 @@
       "learned": "Level II ultrasonic certification, with experience on composite inspection systems.",
       "tools": [
         "Water-jet (squirter) systems",
-        "paired transducers",
+        "Paired transducers",
         "C-scan recording"
       ]
     },
@@ -8322,8 +8322,8 @@
       "learned": "Short employer courses; part of Level I and II ultrasonic certification.",
       "tools": [
         "Ultrasonic thickness gauges",
-        "dual-element transducers",
-        "step blocks"
+        "Dual-element transducers",
+        "Step blocks"
       ]
     },
     {
@@ -8340,7 +8340,7 @@
       "learned": "Learned as part of Level II ultrasonic certification.",
       "tools": [
         "Reference blocks with side-drilled and flat-bottom holes",
-        "flaw detectors with DAC and TCG functions"
+        "Flaw detectors with DAC and TCG functions"
       ]
     },
     {
@@ -8354,9 +8354,9 @@
       "learned": "Level II ultrasonic certification with weld experience; AWS D1.1 and ASME Section V set the methods.",
       "tools": [
         "Angle-beam transducers",
-        "flaw detectors",
-        "weld plotting aids",
-        "reference blocks"
+        "Flaw detectors",
+        "Weld plotting aids",
+        "Reference blocks"
       ]
     },
     {
@@ -8369,8 +8369,8 @@
       "learned": "Level II ultrasonic certification with composite experience, under NAS 410.",
       "tools": [
         "Flaw detectors",
-        "low-frequency and delay-line transducers",
-        "composite reference standards"
+        "Low-frequency and delay-line transducers",
+        "Composite reference standards"
       ]
     },
     {
@@ -8400,8 +8400,8 @@
       "learned": "A phased array course and supervised hours on top of Level II ultrasonic certification.",
       "tools": [
         "Phased array instruments such as the OmniScan",
-        "array probes and wedges",
-        "scanners and encoders"
+        "Array probes and wedges",
+        "Scanners and encoders"
       ]
     },
     {
@@ -8415,7 +8415,7 @@
       "learned": "Phased array courses; on the job.",
       "tools": [
         "Encoded scanners",
-        "acquisition and analysis software"
+        "Acquisition and analysis software"
       ]
     },
     {
@@ -8429,7 +8429,7 @@
       "learned": "Advanced courses after phased array experience.",
       "tools": [
         "Phased array instruments with total focusing method",
-        "array probes"
+        "Array probes"
       ]
     },
     {
@@ -8445,8 +8445,8 @@
       "learned": "A specialist course and supervised hours on top of Level II ultrasonic certification.",
       "tools": [
         "Paired probes and wedges",
-        "encoded scanners",
-        "analysis software"
+        "Encoded scanners",
+        "Analysis software"
       ]
     },
     {
@@ -8462,8 +8462,8 @@
       "learned": "Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410, plus radiation safety training.",
       "tools": [
         "X-ray tubes and gamma sources",
-        "film and digital detectors",
-        "image quality indicators"
+        "Film and digital detectors",
+        "Image quality indicators"
       ]
     },
     {
@@ -8477,9 +8477,9 @@
       "learned": "Learned as part of Level II radiographic certification.",
       "tools": [
         "X-ray tubes",
-        "film cassettes and lead screens",
-        "lead markers",
-        "densitometers"
+        "Film cassettes and lead screens",
+        "Lead markers",
+        "Densitometers"
       ]
     },
     {
@@ -8494,9 +8494,9 @@
       "learned": "Learned as part of Level I and II radiographic certification.",
       "tools": [
         "Automatic processors and hand tanks",
-        "safelights",
-        "step wedges",
-        "densitometers"
+        "Safelights",
+        "Step wedges",
+        "Densitometers"
       ]
     },
     {
@@ -8509,8 +8509,8 @@
       "learned": "Level II radiographic certification with digital training.",
       "tools": [
         "Imaging plates",
-        "plate scanners",
-        "viewing software and calibrated monitors"
+        "Plate scanners",
+        "Viewing software and calibrated monitors"
       ]
     },
     {
@@ -8525,7 +8525,7 @@
       "tools": [
         "Flat-panel detectors",
         "X-ray cabinets and manipulators",
-        "image software"
+        "Image software"
       ]
     },
     {
@@ -8539,7 +8539,7 @@
       "learned": "Learned as part of Level II radiographic certification. ASTM E1025 and E747 define the indicators.",
       "tools": [
         "Hole-type and wire-type image quality indicators",
-        "shims"
+        "Shims"
       ]
     },
     {
@@ -8552,8 +8552,8 @@
       "learned": "Learned as part of Level II radiographic certification.",
       "tools": [
         "Exposure charts",
-        "source decay tables",
-        "calculators"
+        "Source decay tables",
+        "Calculators"
       ]
     },
     {
@@ -8566,7 +8566,7 @@
       "learned": "Learned as part of Level II radiographic certification.",
       "tools": [
         "Collimators and diaphragms",
-        "lead screens, masks and sheet"
+        "Lead screens, masks and sheet"
       ]
     },
     {
@@ -8579,8 +8579,8 @@
       "learned": "Level II radiographic certification, with many hours of supervised film reading.",
       "tools": [
         "High-intensity viewers",
-        "densitometers",
-        "reference radiographs"
+        "Densitometers",
+        "Reference radiographs"
       ]
     },
     {
@@ -8594,8 +8594,8 @@
       "learned": "Level II radiographic certification with weld experience; ASME Section V and AWS D1.1 set the methods.",
       "tools": [
         "X-ray tubes and gamma sources",
-        "pipe crawlers",
-        "location markers"
+        "Pipe crawlers",
+        "Location markers"
       ]
     },
     {
@@ -8605,7 +8605,7 @@
       "learned": "Level II radiographic certification with casting experience. ASTM publishes the reference radiographs, such as E155 for aluminum and E446 for steel.",
       "tools": [
         "X-ray systems",
-        "reference radiograph sets"
+        "Reference radiograph sets"
       ]
     },
     {
@@ -8618,7 +8618,7 @@
       "learned": "On the job at a casting plant, with radiation safety training.",
       "tools": [
         "In-line X-ray cabinets and manipulators",
-        "automatic defect recognition software"
+        "Automatic defect recognition software"
       ]
     },
     {
@@ -8634,7 +8634,7 @@
       "learned": "On the job in a CT lab, with radiation safety training; system makers' courses.",
       "tools": [
         "Industrial CT systems",
-        "reconstruction and analysis software such as VGSTUDIO MAX"
+        "Reconstruction and analysis software such as VGSTUDIO MAX"
       ]
     },
     {
@@ -8650,8 +8650,8 @@
       "learned": "Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.",
       "tools": [
         "Eddy current instruments",
-        "pencil probes",
-        "notched reference standards"
+        "Pencil probes",
+        "Notched reference standards"
       ]
     },
     {
@@ -8664,8 +8664,8 @@
       "learned": "Level II eddy current certification with aircraft structure experience.",
       "tools": [
         "Rotating scanner guns",
-        "bolt hole probes",
-        "hole reference standards"
+        "Bolt hole probes",
+        "Hole reference standards"
       ]
     },
     {
@@ -8678,8 +8678,8 @@
       "learned": "Advanced course after Level II eddy current certification.",
       "tools": [
         "Array instruments and probes",
-        "encoders",
-        "reference standards"
+        "Encoders",
+        "Reference standards"
       ]
     },
     {
@@ -8692,7 +8692,7 @@
       "learned": "Learned as part of Level II eddy current certification.",
       "tools": [
         "Impedance plane instruments",
-        "reference standards"
+        "Reference standards"
       ]
     },
     {
@@ -8706,8 +8706,8 @@
       "learned": "Learned as part of Level II eddy current certification.",
       "tools": [
         "Shielded probes",
-        "probe guides and shoes",
-        "non-conductive shims"
+        "Probe guides and shoes",
+        "Non-conductive shims"
       ]
     },
     {
@@ -8720,7 +8720,7 @@
       "learned": "Learned as part of Level II eddy current certification.",
       "tools": [
         "Pencil, spot, ring and sliding probes",
-        "probe adapters"
+        "Probe adapters"
       ]
     },
     {
@@ -8734,7 +8734,7 @@
       "learned": "Short employer courses; part of Level I and II eddy current certification.",
       "tools": [
         "Conductivity meters",
-        "conductivity standards"
+        "Conductivity standards"
       ]
     },
     {
@@ -8748,7 +8748,7 @@
       "learned": "On the job in finishing and inspection; part of Level I eddy current training.",
       "tools": [
         "Eddy current and magnetic coating thickness gauges",
-        "calibration shims"
+        "Calibration shims"
       ],
       "careers": [
         {
@@ -8767,8 +8767,8 @@
       "learned": "Level II eddy current certification under NAS 410 with aircraft experience.",
       "tools": [
         "Eddy current instruments",
-        "sliding and ring probes",
-        "structure reference standards"
+        "Sliding and ring probes",
+        "Structure reference standards"
       ]
     },
     {
@@ -8784,8 +8784,8 @@
       "learned": "Level III certification in the method; on the job.",
       "tools": [
         "Codes and specifications",
-        "technique sheets",
-        "qualification samples"
+        "Technique sheets",
+        "Qualification samples"
       ]
     },
     {
@@ -8800,7 +8800,7 @@
       "tools": [
         "Reference blocks",
         "EDM notches",
-        "flat-bottom and side-drilled holes"
+        "Flat-bottom and side-drilled holes"
       ]
     },
     {
@@ -8810,7 +8810,7 @@
       "learned": "Composite repair and aircraft maintenance courses; on the job.",
       "tools": [
         "Tap hammers and coins",
-        "electronic tap testers"
+        "Electronic tap testers"
       ]
     },
     {
@@ -8824,7 +8824,7 @@
       "learned": "Employer training and certification on bond testers; often added to ultrasonic certification.",
       "tools": [
         "Bond testers using pitch-catch, resonance and mechanical impedance",
-        "reference panels"
+        "Reference panels"
       ]
     },
     {
@@ -8834,8 +8834,8 @@
       "learned": "Learned with ultrasonic inspection of composites.",
       "tools": [
         "Ultrasonic flaw detectors",
-        "phased array probes",
-        "marking templates"
+        "Phased array probes",
+        "Marking templates"
       ]
     },
     {
@@ -8849,7 +8849,7 @@
       "learned": "Learned with ultrasonic inspection of composites.",
       "tools": [
         "Through-transmission and pulse-echo systems",
-        "porosity reference panels"
+        "Porosity reference panels"
       ]
     },
     {
@@ -8859,8 +8859,8 @@
       "learned": "Learned with composite inspection, on the job.",
       "tools": [
         "Ultrasonic and bond test instruments",
-        "tap hammers",
-        "marking grids"
+        "Tap hammers",
+        "Marking grids"
       ]
     },
     {
@@ -8870,8 +8870,8 @@
       "learned": "System makers' courses and employer certification.",
       "tools": [
         "Shearography cameras",
-        "vacuum hoods",
-        "heat lamps"
+        "Vacuum hoods",
+        "Heat lamps"
       ]
     },
     {
@@ -8881,9 +8881,9 @@
       "learned": "On the job in a test area; electronics technology programs.",
       "tools": [
         "Bed-of-nails and functional fixtures",
-        "pogo pins",
-        "cables and adapters",
-        "golden units"
+        "Pogo pins",
+        "Cables and adapters",
+        "Golden units"
       ]
     },
     {
@@ -8896,8 +8896,8 @@
       "learned": "On the job in a test area; electronics technology programs.",
       "tools": [
         "Functional test stations",
-        "power supplies and loads",
-        "test executive software"
+        "Power supplies and loads",
+        "Test executive software"
       ]
     },
     {
@@ -8911,8 +8911,8 @@
       "learned": "On the job as a test engineer; tester makers' courses.",
       "tools": [
         "In-circuit testers from Keysight and Teradyne",
-        "bed-of-nails fixtures",
-        "flying probe testers"
+        "Bed-of-nails fixtures",
+        "Flying probe testers"
       ]
     },
     {
@@ -8928,8 +8928,8 @@
       "learned": "On the job as a test engineer or technician; tool makers' courses.",
       "tools": [
         "JTAG controllers and software",
-        "board netlists",
-        "device description files"
+        "Board netlists",
+        "Device description files"
       ]
     },
     {
@@ -8945,8 +8945,8 @@
       "learned": "On the job in electrical and electronics test, after electrical safety training.",
       "tools": [
         "Hipot testers",
-        "guarded test fixtures and interlocks",
-        "discharge sticks"
+        "Guarded test fixtures and interlocks",
+        "Discharge sticks"
       ]
     },
     {
@@ -8960,9 +8960,9 @@
       "learned": "Electronics and aviation maintenance programs; on the job.",
       "tools": [
         "Multimeters",
-        "automatic harness testers",
-        "breakout boxes",
-        "time-domain reflectometers"
+        "Automatic harness testers",
+        "Breakout boxes",
+        "Time-domain reflectometers"
       ]
     },
     {
@@ -8976,8 +8976,8 @@
       "learned": "On the job in semiconductor and electronics test.",
       "tools": [
         "Burn-in ovens and boards",
-        "system burn-in racks",
-        "monitoring software"
+        "System burn-in racks",
+        "Monitoring software"
       ]
     },
     {
@@ -8995,8 +8995,8 @@
       "learned": "On the job in a reliability lab; ASQ's Certified Reliability Engineer covers the theory.",
       "tools": [
         "Thermal cycling and humidity chambers",
-        "combined temperature and vibration chambers",
-        "data loggers"
+        "Combined temperature and vibration chambers",
+        "Data loggers"
       ]
     },
     {
@@ -9021,9 +9021,9 @@
       "learned": "On the job in an environmental test lab; shaker makers' courses.",
       "tools": [
         "Electrodynamic shakers",
-        "vibration controllers",
-        "accelerometers",
-        "shock machines"
+        "Vibration controllers",
+        "Accelerometers",
+        "Shock machines"
       ],
       "careers": [
         {
@@ -9041,9 +9041,9 @@
       "learned": "On the job in a space test lab.",
       "tools": [
         "Thermal vacuum chambers",
-        "cold shrouds and heaters",
-        "thermocouples",
-        "data acquisition"
+        "Cold shrouds and heaters",
+        "Thermocouples",
+        "Data acquisition"
       ]
     },
     {
@@ -9057,7 +9057,7 @@
       "tools": [
         "Shielded and anechoic chambers",
         "EMI receivers",
-        "antennas and line impedance networks"
+        "Antennas and line impedance networks"
       ]
     },
     {
@@ -9071,8 +9071,8 @@
       "learned": "Electronics technology and engineering programs; on the job in radio-frequency test.",
       "tools": [
         "Spectrum analyzers",
-        "power meters",
-        "attenuators and couplers"
+        "Power meters",
+        "Attenuators and couplers"
       ]
     },
     {
@@ -9088,8 +9088,8 @@
       "learned": "Electronics technology and engineering programs; on the job in radio-frequency test.",
       "tools": [
         "Vector network analyzers",
-        "calibration kits",
-        "phase-stable cables"
+        "Calibration kits",
+        "Phase-stable cables"
       ]
     },
     {
@@ -9101,7 +9101,7 @@
         "LabVIEW",
         "TestStand",
         "NI data acquisition hardware",
-        "instrument drivers"
+        "Instrument drivers"
       ]
     },
     {
@@ -9115,8 +9115,8 @@
       "learned": "On the job in power electronics test, after high-voltage safety qualification.",
       "tools": [
         "Programmable power supplies and loads",
-        "power analyzers",
-        "oscilloscopes with differential probes"
+        "Power analyzers",
+        "Oscilloscopes with differential probes"
       ],
       "careers": [
         {
@@ -9143,9 +9143,9 @@
       "learned": "On the job in a test lab.",
       "tools": [
         "Dynamometers",
-        "torque transducers",
-        "power analyzers",
-        "data acquisition"
+        "Torque transducers",
+        "Power analyzers",
+        "Data acquisition"
       ]
     },
     {
@@ -9158,7 +9158,7 @@
       "learned": "On the job in vehicle final assembly.",
       "tools": [
         "Roll and brake test machines",
-        "diagnostic scan tools"
+        "Diagnostic scan tools"
       ]
     },
     {
@@ -9168,8 +9168,8 @@
       "learned": "On the job in vehicle final assembly and quality.",
       "tools": [
         "Shaker rigs and rough-road tracks",
-        "chassis ears",
-        "felt and anti-squeak tapes"
+        "Chassis ears",
+        "Felt and anti-squeak tapes"
       ]
     },
     {
@@ -9182,8 +9182,8 @@
       "learned": "On the job in vehicle final assembly.",
       "tools": [
         "Water test booths",
-        "moisture probes",
-        "ultrasonic leak detectors"
+        "Moisture probes",
+        "Ultrasonic leak detectors"
       ]
     },
     {
@@ -9196,7 +9196,7 @@
       "learned": "On the job at the end of a vehicle assembly line.",
       "tools": [
         "Headlamp aimers",
-        "adjusting tools"
+        "Adjusting tools"
       ],
       "careers": [
         {
@@ -9217,8 +9217,8 @@
       "learned": "On the job at the end of a vehicle assembly line; automotive programs.",
       "tools": [
         "Calibration targets and frames",
-        "diagnostic scan tools",
-        "wheel alignment equipment"
+        "Diagnostic scan tools",
+        "Wheel alignment equipment"
       ],
       "careers": [
         {
@@ -9242,8 +9242,8 @@
       "learned": "On the job at a rocket test site.",
       "tools": [
         "Test stands",
-        "propellant and pressurant systems",
-        "control and data acquisition systems"
+        "Propellant and pressurant systems",
+        "Control and data acquisition systems"
       ]
     },
     {
@@ -9253,8 +9253,8 @@
       "learned": "On the job in an engine test cell.",
       "tools": [
         "Engine test cells and stands",
-        "data acquisition",
-        "test procedures"
+        "Data acquisition",
+        "Test procedures"
       ]
     },
     {
@@ -9267,8 +9267,8 @@
       "learned": "On the job at a launch or test site, with hazardous operations training.",
       "tools": [
         "Loading carts and skids",
-        "flow meters and scales",
-        "protective suits and breathing air"
+        "Flow meters and scales",
+        "Protective suits and breathing air"
       ]
     },
     {
@@ -9282,9 +9282,9 @@
       "learned": "On the job at a propulsion test or launch site, with cryogenic and oxygen safety training.",
       "tools": [
         "Vacuum-jacketed lines and tanks",
-        "cryogenic valves",
-        "relief devices",
-        "face shields and cryogenic gloves"
+        "Cryogenic valves",
+        "Relief devices",
+        "Face shields and cryogenic gloves"
       ]
     },
     {
@@ -9298,7 +9298,7 @@
       "learned": "On the job in test operations.",
       "tools": [
         "Telemetry displays",
-        "data acquisition and plotting software"
+        "Data acquisition and plotting software"
       ]
     },
     {
@@ -9313,7 +9313,7 @@
       "learned": "FAA Airframe and Powerplant or avionics training; on the job at a repair station.",
       "tools": [
         "Pitot-static test sets",
-        "adapters and hoses"
+        "Adapters and hoses"
       ]
     },
     {
@@ -9327,8 +9327,8 @@
       "learned": "Avionics programs and on the job.",
       "tools": [
         "ARINC 429 bus analyzers",
-        "breakout boxes",
-        "oscilloscopes"
+        "Breakout boxes",
+        "Oscilloscopes"
       ]
     },
     {
@@ -9343,8 +9343,8 @@
       "learned": "Military avionics training and on the job.",
       "tools": [
         "1553 bus analyzers",
-        "couplers and terminators",
-        "oscilloscopes"
+        "Couplers and terminators",
+        "Oscilloscopes"
       ],
       "careers": [
         {
@@ -9362,9 +9362,9 @@
       "learned": "Military electronics training or an electronics technology degree; on the job at a defense plant.",
       "tools": [
         "Spectrum and network analyzers",
-        "power meters",
-        "signal generators",
-        "antenna ranges"
+        "Power meters",
+        "Signal generators",
+        "Antenna ranges"
       ],
       "careers": [
         {
@@ -9466,7 +9466,7 @@
       "learned": "Drafting and engineering programs. The American Design Drafting Association certifies drafters.",
       "tools": [
         "CAD drawing modules",
-        "drafting standards"
+        "Drafting standards"
       ]
     },
     {
@@ -9522,8 +9522,8 @@
       "learned": "Engineering study; on the job between design and manufacturing.",
       "tools": [
         "Design review checklists",
-        "process capability data",
-        "cost models"
+        "Process capability data",
+        "Cost models"
       ]
     },
     {
@@ -9555,7 +9555,7 @@
       "learned": "Community-college CNC programs. Mastercam certifies users at Associate and Professional levels.",
       "tools": [
         "Mastercam Mill, Lathe and Multiaxis",
-        "post processors"
+        "Post processors"
       ]
     },
     {
@@ -9565,7 +9565,7 @@
       "learned": "On the job; reseller courses.",
       "tools": [
         "GibbsCAM",
-        "post processors"
+        "Post processors"
       ]
     },
     {
@@ -9575,7 +9575,7 @@
       "learned": "On the job; Autodesk and reseller courses.",
       "tools": [
         "Autodesk PowerMill",
-        "post processors"
+        "Post processors"
       ]
     },
     {
@@ -9585,7 +9585,7 @@
       "learned": "On the job as a CNC programr; CGTech courses.",
       "tools": [
         "VERICUT",
-        "machine and tool libraries"
+        "Machine and tool libraries"
       ]
     }
   ],
