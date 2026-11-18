@@ -8,7 +8,7 @@ export type BrowseTab = EntityType;
 /** A view of Explore: the overview, the industries, or one of the lists. */
 export type ExploreView = 'overview' | 'industries' | BrowseTab;
 
-export const BROWSE_LABEL: Record<BrowseTab, string> = {
+const BROWSE_LABEL: Record<BrowseTab, string> = {
   companies: 'Companies',
   factories: 'Plants',
   occupations: 'Careers',
@@ -25,7 +25,7 @@ export const isBrowseTab = (value: string | null): value is BrowseTab =>
 export const exploreHref = (view: ExploreView) =>
   view === 'overview' ? '/explore' : view === 'industries' ? '/industries' : `/explore?tab=${view}`;
 
-export const exploreLabel = (view: ExploreView) =>
+const exploreLabel = (view: ExploreView) =>
   view === 'overview' ? 'Overview' : view === 'industries' ? 'Industries' : BROWSE_LABEL[view];
 
 // The current view is heavier and underlined. Every label reserves its heavier
