@@ -1,9 +1,607 @@
 {
-  "note": "Our corrections to the research files in this folder, laid over them by scripts/build-employers-sql.mjs (see scripts/ingest/README.md). The research files stay as they were delivered.",
+  "note": "Our corrections to the research files in this folder, laid over them by scripts/build-employers-sql.mjs (see scripts/ingest/README.md). The research files stay as they were delivered. Each entry is keyed by the company's name in the research and says why. addAlsoKnownAs names are the exact names of existing company rows, read from the live site's public data on 2026-11-18.",
   "companies": {
     "Bell": {
       "why": "The company already named Bell in the data is Bell Incorporated of Sioux Falls, SD, which makes paper boxes. It is not the helicopter maker.",
-      "setAside": [{ "name": "Bell", "withPlant": "BELL INCORPORATED", "renameTo": "Bell Incorporated" }]
+      "setAside": [
+        {
+          "name": "Bell",
+          "withPlant": "BELL INCORPORATED",
+          "renameTo": "Bell Incorporated"
+        }
+      ]
+    },
+    "Clayton Homes": {
+      "why": "The existing company named Clayton is Clayton Corp of Fenton, MO, which makes aerosol valves.",
+      "dropAlsoKnownAs": [
+        "Clayton"
+      ]
+    },
+    "International Paper": {
+      "why": "The existing company named Ip is Molding Products LLC of South Bend, IN.",
+      "dropAlsoKnownAs": [
+        "IP"
+      ]
+    },
+    "Bureau of Engraving and Printing": {
+      "why": "The existing company named Bep is Bepco, Inc of Winston-Salem, NC.",
+      "dropAlsoKnownAs": [
+        "BEP"
+      ]
+    },
+    "Blue Bell Creameries": {
+      "why": "The existing company named Blue Bell is Blue Bell Inc, the workwear maker (Nashville, TN and Madison, VA), not the creamery.",
+      "dropAlsoKnownAs": [
+        "Blue Bell"
+      ]
+    },
+    "Toyota Motor Manufacturing Texas": {
+      "why": "\"Toyota Manufacturing\" also matches Mazda Toyota Manufacturing in Alabama.",
+      "dropAlsoKnownAs": [
+        "Toyota Manufacturing"
+      ]
+    },
+    "H-E-B": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Heb Grocery"
+      ]
+    },
+    "NOV": {
+      "why": "The featured company is stored as \"National Oilwell Var\" (same web domain, nov.com); the rest are its divisions.",
+      "addAlsoKnownAs": [
+        "National Oilwell Var",
+        "Brandt a National Oilwell Var",
+        "National Oilwell Phoenix Energy",
+        "Nov Ameron Fillmore Concrete Pole Manufacturing",
+        "Nov Ameron Tulsa Pole Products Tube Manufacturing",
+        "Nov Tubascope Navasota Coating"
+      ]
+    },
+    "Dow": {
+      "why": "Union Carbide and Rohm and Haas are Dow subsidiaries; two rows are Union Carbide plants stored as companies.",
+      "addAlsoKnownAs": [
+        "Bound Brook Facility Union Carbide",
+        "Cypress Polypropylene Plant Union Carbide",
+        "Rohm and Haas Chemicals"
+      ]
+    },
+    "INEOS": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. INEOS Styrolution is left as its own company.",
+      "addAlsoKnownAs": [
+        "Ineos Americas",
+        "Ineos US I",
+        "Ineos O&p USA",
+        "Ineos Oligomers USA",
+        "Ineos Phenol",
+        "Ineos Polypropylene",
+        "Ineos Calabrian"
+      ]
+    },
+    "Shell": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Shell Oil",
+        "Shell Chemical Appalachia"
+      ]
+    },
+    "Celanese": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Celanese Americas",
+        "Celanese International",
+        "Celanese Polymer Products",
+        "Hoechst Celanese Chemical"
+      ]
+    },
+    "Westlake": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Westlake Chemicals & Vinyls",
+        "Westlake Compounds",
+        "Westlake Vinyls"
+      ]
+    },
+    "Olin": {
+      "why": "Winchester is Olin's ammunition business.",
+      "addAlsoKnownAs": [
+        "Olin Winchester"
+      ]
+    },
+    "Lubrizol": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Lubrizol Oilfield Chemistry"
+      ]
+    },
+    "Braskem": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Braskem Amer"
+      ]
+    },
+    "Ascend Performance Materials": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Ascend Performance Materials Operations",
+        "Ascend Performance Materials Texas"
+      ]
+    },
+    "Indorama Ventures": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. Its Port Neches plant is the one it bought from Huntsman in 2020: the research's coordinates are that row's.",
+      "addAlsoKnownAs": [
+        "Indorama Ventures Holdings"
+      ],
+      "plants": {
+        "Indorama Ventures Port Neches": {
+          "sameAs": "HUNTSMAN PETROCHEMICAL LLC PORT NECHES FACILITY"
+        }
+      }
+    },
+    "Arkema": {
+      "why": "Elf Atochem North America became Arkema.",
+      "addAlsoKnownAs": [
+        "Elf Atochem Na"
+      ]
+    },
+    "Invista": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Invista Sa Rl"
+      ]
+    },
+    "Shintech": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Shintech Louisiana"
+      ]
+    },
+    "Air Liquide": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Air Liquide Industrial US",
+        "Air Liquide Large Industries US",
+        "American Air Liquide Holdings",
+        "Air Liquide Large Industries U.s.",
+        "Air Liquide Advanced Materials",
+        "Air Liquide Advanced Technologies US",
+        "Air Liquide American",
+        "Air Liquide Amer",
+        "Air Liquide America Specialty Gases",
+        "Air Liquide Electronics U.s.",
+        "Air Liquide Electronics US",
+        "Air Liquide Global E&c Solutions US"
+      ]
+    },
+    "Linde": {
+      "why": "Praxair merged into Linde in 2018.",
+      "addAlsoKnownAs": [
+        "Linde Gas",
+        "Linde Gas North America",
+        "Praxair Distribution",
+        "Praxair Surface Technologies"
+      ]
+    },
+    "Alcon": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. Alcon Industries, Alcon Connectors and Alcon Tool are other companies and are left alone.",
+      "addAlsoKnownAs": [
+        "Alcon Labs",
+        "Alcon Manufacturing",
+        "Alcon Surgical"
+      ]
+    },
+    "Flint Hills Resources": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Flint Hills Resources Pine Bend",
+        "Flint Hills Resources Corpus Christi Llc, Corpus Christi Refinery"
+      ]
+    },
+    "TotalEnergies": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Totalenergies Cray Valley",
+        "Totalenergies Holdings USA",
+        "Totalenergies Petrochemicals & Refining"
+      ]
+    },
+    "Delek US": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Delek Renewables",
+        "Alon USA Partners"
+      ]
+    },
+    "Igloo": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Igloo Prods"
+      ]
+    },
+    "Dart Container": {
+      "why": "Dart bought Solo Cup in 2012.",
+      "addAlsoKnownAs": [
+        "Solo Cup Operating"
+      ]
+    },
+    "Bridgestone": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Bridgestone Americas Tire Operations",
+        "Bridgestone Aircraft Tire (usa)",
+        "Bridgestone Apm",
+        "Bridgestone Apm Foaming",
+        "Bridgestone Hosepower",
+        "Bridgestone Metalpha USA",
+        "Bridgestone Sporting Goods Mfg USA",
+        "Bridgestone/firestone Americas Holding",
+        "Bridgestone/firestone North America Tire"
+      ]
+    },
+    "Ericsson": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Ericsson Radio Systems"
+      ]
+    },
+    "AirBorn": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Airborn Electronics"
+      ]
+    },
+    "Prysmian": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Prysmian Cables & Systems (us)",
+        "Prysmian Group Specialty Cables",
+        "General Cable Texas Operations"
+      ]
+    },
+    "JBS": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Jbs USA Food"
+      ]
+    },
+    "Pilgrim's": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "East Plant/pilgrim's Pride"
+      ]
+    },
+    "Bimbo Bakeries USA": {
+      "why": "Earthgrains became part of Bimbo Bakeries USA in 2011.",
+      "addAlsoKnownAs": [
+        "Earthgrains Baking Companies"
+      ]
+    },
+    "Campbell's": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Campbell Soup Supply"
+      ]
+    },
+    "Ruiz Foods": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Ruiz Food Products."
+      ]
+    },
+    "Argon Medical Devices": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Argon Medical Devices Biocoatings"
+      ]
+    },
+    "Nucor": {
+      "why": "Vulcraft is Nucor's joist business. The Terrell plant is in the data 5.5 km from where it stands.",
+      "addAlsoKnownAs": [
+        "Vulcraft of New York"
+      ],
+      "plants": {
+        "Nucor Building Systems Texas": {
+          "sameAs": "NUCOR BUILDING SYSTEMS"
+        }
+      }
+    },
+    "Gerdau": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Gerdau USA"
+      ]
+    },
+    "Tenaris": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Tenaris Coiled Tubes"
+      ]
+    },
+    "Tyler Pipe": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Tyler Pipe Co Div of Mcwane"
+      ]
+    },
+    "Wyman-Gordon": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Wyman Gordon Mayville Die & Tool"
+      ]
+    },
+    "Simpson Strong-Tie": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Simpson Strong-tie Anchor Systems"
+      ]
+    },
+    "Martin Marietta": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Martin Marietta Materials Southwest",
+        "Martin Marietta Arizona"
+      ]
+    },
+    "Amrize": {
+      "why": "Holcim's North American business became Amrize in 2025; these are its regional companies.",
+      "addAlsoKnownAs": [
+        "Amrize Mid-atlantic",
+        "Amrize Building Envelope",
+        "Amrize Northeast",
+        "Holcim (us)",
+        "Holcim-sor",
+        "Amrize Cement",
+        "Amrize Mid Atlantic Inc Dba Patriot Ready Mix",
+        "Amrize Mid-america",
+        "Amrize Midwest",
+        "Holcim Participations (us)"
+      ]
+    },
+    "Ash Grove": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. The Hunter cement plant is the row filed under Ash Grove Cement South Texas.",
+      "addAlsoKnownAs": [
+        "Ash Grove Cement South Texas",
+        "Ash Grove Cement West",
+        "Ash Grove Materials"
+      ]
+    },
+    "Cemex": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Cemex Construction Materials Houston",
+        "Cemex Construction Materials",
+        "Cemex Construction Materials Pacific",
+        "Cemex Construction Materials Florida"
+      ]
+    },
+    "Buzzi Unicem USA": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Buzzi Unicem Ready Mix"
+      ]
+    },
+    "GCC": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. The Odessa plant is in the data 15 km from where it stands, at the town's coordinates.",
+      "addAlsoKnownAs": [
+        "Gcc Alliance Concrete",
+        "Gcc Mid Continent Concret",
+        "Gcc Rio Grande"
+      ],
+      "plants": {
+        "Odessa Cement Plant": {
+          "sameAs": "GCC PERMIAN, LLC"
+        }
+      }
+    },
+    "USG": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Usg Interiors",
+        "Usg Ind",
+        "Usg Structural Technologies"
+      ]
+    },
+    "Georgia-Pacific": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. Camden Plywood and Lumber is in the data as a company of its own.",
+      "addAlsoKnownAs": [
+        "Georgia Pacific Wood Products",
+        "Georgia-pacific Resins",
+        "Georgia Pacific Panel Products",
+        "Georgia-pacific Building Products",
+        "Georgia-pacific Corrugated"
+      ],
+      "plants": {
+        "Camden Plywood and Lumber": {
+          "sameAs": "CAMDEN PLYWOOD & LUMBER"
+        }
+      }
+    },
+    "West Fraser": {
+      "why": "West Fraser bought Norbord in 2021.",
+      "addAlsoKnownAs": [
+        "West Fraser (usa)",
+        "Norbord Texas Jefferson",
+        "Norbord Texas Nacogdoches"
+      ]
+    },
+    "Smurfit Westrock": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Smurfit Westrock U.s. Holding",
+        "Rock-tenn Specialty Products",
+        "Smurfit Kappa Orange County"
+      ]
+    },
+    "L3Harris": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. E-Systems' divisions in Florida and Virginia went to Raytheon, not L3Harris.",
+      "addAlsoKnownAs": [
+        "L-3 Communications Avionics System",
+        "L-3 Communications Integrated Sys",
+        "L-3 Communications Mobile-vision",
+        "L-3 Communications Westwood",
+        "L3 Communications Holdings"
+      ],
+      "dropAlsoKnownAs": [
+        "E-Systems",
+        "E-Systems Inc",
+        "E Systems"
+      ]
+    },
+    "Safran": {
+      "why": "Labinal is Safran Electrical & Power.",
+      "addAlsoKnownAs": [
+        "Labinal Components & Sys",
+        "Labinal Components & Systems"
+      ]
+    },
+    "Big Tex Trailers": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Big Tex Trailers Manufacturing"
+      ]
+    },
+    "Daikin": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Daikin America",
+        "Daikin Applied Americas",
+        "Goodman Global Group"
+      ]
+    },
+    "Trane Technologies": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Trane Technologies Manufacturing"
+      ]
+    },
+    "Baker Hughes": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Baker Hughes Mining Tools"
+      ]
+    },
+    "Komatsu": {
+      "why": "Joy Global became Komatsu Mining in 2017. The Longview plant is in the data under its Joy Global name, 5.8 km from the research's coordinates.",
+      "addAlsoKnownAs": [
+        "Joy Global Mining",
+        "Joy Global Surface Mining",
+        "Joy Global Underground Mining"
+      ],
+      "plants": {
+        "Komatsu Longview": {
+          "sameAs": "JOY GLOBAL LONGVIEW OPERATIONS LLC"
+        }
+      }
+    },
+    "SLB": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Schlumberger Holdings",
+        "Schlumberger Technology",
+        "Dowell Schlumberger"
+      ]
+    },
+    "Halliburton": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Halliburton Geophysical Services"
+      ]
+    },
+    "HMH": {
+      "why": "Hydril's pressure control business is part of HMH.",
+      "addAlsoKnownAs": [
+        "Hydril USA Distribution"
+      ]
+    },
+    "Epiroc": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Epiroc Drilling Tools"
+      ]
+    },
+    "ESAB": {
+      "why": "Thermadyne became Victor Technologies, now ESAB.",
+      "addAlsoKnownAs": [
+        "Esab Group",
+        "Thermadyne Holdings"
+      ]
+    },
+    "Alamo Group": {
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "addAlsoKnownAs": [
+        "Alamo Group (il)",
+        "Alamo Group USA"
+      ]
+    },
+    "Qarbon Aerospace": {
+      "why": "Qarbon runs the Red Oak plant that the data has under Triumph.",
+      "plants": {
+        "Qarbon Aerospace Red Oak": {
+          "sameAs": "TRIUMPH AEROSTRUCTURES RED OAK FACILITY"
+        }
+      }
+    },
+    "Champion Homes": {
+      "why": "The Burleson plant is in the data under its Redman Homes name.",
+      "plants": {
+        "Champion Homes Burleson": {
+          "sameAs": "REDMAN HOMES INC"
+        }
+      }
+    },
+    "Hiland Dairy": {
+      "why": "Hiland bought Borden's Dallas plant in 2022; the data has it under Borden.",
+      "plants": {
+        "Hiland Dairy Dallas": {
+          "sameAs": "BORDEN DAIRY CO OF TEXAS LLC"
+        }
+      }
+    },
+    "Southwire": {
+      "why": "Southwire bought United Copper Industries of Denton in 2019; the data has the plant under that name.",
+      "plants": {
+        "Southwire Denton": {
+          "sameAs": "UNITED COPPER INDUSTRIES"
+        }
+      }
+    },
+    "Micron Technology": {
+      "why": "The existing company named Micron holds Micron Manufacturing Co of Grand Rapids, MI and Micron Industries of Garland, TX, which are other companies.",
+      "dropAlsoKnownAs": [
+        "Micron"
+      ]
+    },
+    "Subaru of Indiana Automotive": {
+      "why": "The plant is in the data under Subaru, 879 m from the research's coordinates.",
+      "plants": {
+        "Subaru of Indiana Automotive": {
+          "sameAs": "SUBARU OF INDIANA AUTOMOTIVE INC"
+        }
+      }
+    },
+    "Collins Aerospace": {
+      "why": "Collins' Rockford plant is the former Hamilton Sundstrand plant, which the data has under United Technologies.",
+      "plants": {
+        "Collins Aerospace Rockford": {
+          "sameAs": "HAMILTON SUNDSTRAND"
+        }
+      }
+    },
+    "Tyson Foods": {
+      "why": "Tyson's one plant at Holcomb, KS is in the data 7 km away, at the town's coordinates.",
+      "plants": {
+        "Tyson Fresh Meats Holcomb": {
+          "sameAs": "TYSON FRESH MEATS INC"
+        }
+      }
+    },
+    "General Motors": {
+      "why": "The only General Motors row near Flint Assembly is the Buick-Oldsmobile-Cadillac division's (Buick City, closed in 1999), a different plant.",
+      "plants": {
+        "Flint Assembly": {
+          "isNew": true
+        }
+      }
     }
   }
 }

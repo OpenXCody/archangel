@@ -420,6 +420,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
     : factory.specialization || (company && company.industry !== 'Manufacturing' ? company.industry : null);
   const address = factory.address && factory.address.trim().toLowerCase() !== (factory.city ?? '').trim().toLowerCase() ? titleCase(factory.address.trim()) : null;
   const jobs = factory.jobs ?? [];
+  const underConstruction = factory.status === 'under construction';
   const nearby = factory.nearby ?? [];
   const siteCount = company?.siteCount ?? 0;
   const stateCount = company?.stateCount ?? 0;
@@ -440,7 +441,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
         subtitle={
           (place || industry || address) && (
             <>
-              {(place || industry) && <p>{[place, industry].filter(Boolean).join(' · ')}</p>}
+              {(place || industry || underConstruction) && <p>{[place, industry, underConstruction ? 'Under construction' : null].filter(Boolean).join(' · ')}</p>}
               {address && <p className="mt-0.5 text-xs text-fg-soft">{address}</p>}
             </>
           )
@@ -449,9 +450,15 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
       <Figures
         items={[
           ...(jobs.length > 0 ? [{ label: 'Open jobs', value: jobs.length }] : []),
-          ...(factory.workforceSize ? [{ label: 'People', value: factory.workforceSize }] : []),
+          // The year says how current the figure is.
+          ...(factory.workforceSize ? [{ label: factory.workforceYear ? `People, ${factory.workforceYear}` : 'People', value: factory.workforceSize }] : []),
         ]}
       />
+      {factory.products && (
+        <Section title="Makes">
+          <p className="text-sm leading-relaxed text-fg-default">{factory.products}</p>
+        </Section>
+      )}
       {factory.description && (
         <Section title="About this plant">
           <p className="text-sm leading-relaxed text-fg-muted">{factory.description}</p>

@@ -247,6 +247,8 @@ export function normaliseFile(raw, states, label = raw?.brief ?? 'file') {
           sources: urls(p.sources),
           // The existing plant this one is, by its exact name, when the corrections say so.
           sameAs: text(p.sameAs, 300),
+          // No existing plant is this one, when the corrections say so: the nearby rows are other plants.
+          isNew: p.isNew === true ? true : null,
         })
       );
     }
@@ -273,7 +275,22 @@ export function normaliseFile(raw, states, label = raw?.brief ?? 'file') {
       })
     );
   }
-  return { file: { brief, retrieved: text(raw?.retrieved, 20), companies }, problems };
+  // A company another names as its parent goes first, so that what the parent gathers (rows merged into it) is
+  // there when its companies look for their plants under it.
+  const byName = new Map(companies.map((c) => [c.name.toLowerCase(), c]));
+  const ordered = [];
+  const placed = new Set();
+  const place = (c, depth = 0) => {
+    if (placed.has(c)) return;
+    const parent = c.parent ? byName.get(c.parent.toLowerCase()) : null;
+    if (parent && depth < 8) place(parent, depth + 1);
+    if (!placed.has(c)) {
+      placed.add(c);
+      ordered.push(c);
+    }
+  };
+  for (const c of companies) place(c);
+  return { file: { brief, retrieved: text(raw?.retrieved, 20), companies: ordered }, problems };
 }
 
 /**
@@ -288,7 +305,8 @@ export function normaliseFile(raw, states, label = raw?.brief ?? 'file') {
  *   set               company fields to replace (parent, domain, ...)
  *   dropPlants        plants to leave out, by name
  *   plants            { "<plant name>": { field: value } }: plant fields to replace;
- *                     `sameAs` names the existing plant this one is, by its exact name
+ *                     `sameAs` names the existing plant this one is, by its exact name;
+ *                     `isNew: true` says no existing plant is this one
  * Every entry carries `why`.
  */
 export function applyCorrections(raw, corrections) {

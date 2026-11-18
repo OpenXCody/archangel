@@ -40,6 +40,11 @@ export const companies = pgTable(
     featured: boolean('featured').default(false).notNull(),
     // Short name for the company's page (/companies/tesla); unique when set.
     slug: text('slug'),
+    // Migration 0030. The company this one is part of (Bell is part of Textron), and where its headquarters are.
+    parentCompanyId: uuid('parent_company_id'),
+    headquartersCity: text('headquarters_city'),
+    headquartersState: text('headquarters_state'),
+    headquartersCountry: text('headquarters_country'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
@@ -84,6 +89,20 @@ export const factories = pgTable(
     sourceCount: integer('source_count').default(1).notNull(),
     // Pillar's match confidence at export time, 0-100
     confidence: integer('confidence').default(50).notNull(),
+    // Migration 0030. workforceSize is the people working at the site; these say what
+    // year that figure is for, where it is stated, and anything to know about it
+    // ("includes contractors").
+    workforceYear: smallint('workforce_year'),
+    workforceSource: text('workforce_source'),
+    workforceNote: text('workforce_note'),
+    // One line on what is made there.
+    products: text('products'),
+    // The year production started.
+    openedYear: smallint('opened_year'),
+    // 'operating' | 'under construction'
+    status: text('status').default('operating').notNull(),
+    // The plant's facts were written from sources (a research file, or an admin), not only a facility list.
+    curated: boolean('curated').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
@@ -234,6 +253,10 @@ export const skillAliases = pgTable(
 
 // ============================================
 // EXTERNAL REFERENCES (Flexible Key-Value)
+// Where a record came from. A plant from the EPA's registry has source
+// 'EPA_ECHO' and the registry id as externalId. A curated company or plant has
+// one row per source address: source 'CURATED', externalId the research file's
+// name (or 'admin'), url the address; kept once per record (migration 0030).
 // ============================================
 
 export const externalReferences = pgTable(
@@ -253,6 +276,43 @@ export const externalReferences = pgTable(
     externalIdIdx: index('external_refs_external_id_idx').on(table.externalId),
   })
 );
+
+// ============================================
+// COMPANY HEADCOUNT BY STATE (migration 0030)
+// How many people a company employs in one state, when a source says so.
+// ============================================
+
+export const companyStateHeadcounts = pgTable(
+  'company_state_headcounts',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    state: text('state').notNull(),
+    people: integer('people').notNull(),
+    year: smallint('year'),
+    source: text('source'),
+    note: text('note'),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.companyId, table.state] }),
+  })
+);
+
+// What a bulk load decided, one line per decision (migration 0030). Written by
+// the migrations scripts/build-employers-sql.mjs generates; read in SQL.
+export const loadLog = pgTable('load_log', {
+  id: serial('id').primaryKey(),
+  runAt: timestamp('run_at', { withTimezone: true }).defaultNow().notNull(),
+  load: text('load').notNull(),
+  kind: text('kind').notNull(),
+  action: text('action').notNull(),
+  look: boolean('look').default(false).notNull(),
+  company: text('company'),
+  plant: text('plant'),
+  detail: text('detail'),
+  metres: integer('metres'),
+});
 
 // ============================================
 // FACTORY_REVIEW (written by scripts/enrich-naics.mjs)

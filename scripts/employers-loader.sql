@@ -280,25 +280,33 @@ BEGIN
     WHERE e->>'count' IS NOT NULL AND e->>'state' IS NOT NULL
   ON CONFLICT (company_id, state) DO UPDATE
     SET people = EXCLUDED.people, year = EXCLUDED.year, source = EXCLUDED.source, note = EXCLUDED.note
-    WHERE (COALESCE(EXCLUDED.year, 0), EXCLUDED.people, COALESCE(EXCLUDED.source, '') COLLATE "C")
-        > (COALESCE(company_state_headcounts.year, 0), company_state_headcounts.people, COALESCE(company_state_headcounts.source, '') COLLATE "C");
+    WHERE (COALESCE(EXCLUDED.year, 0), EXCLUDED.people, COALESCE(EXCLUDED.source, '') COLLATE "C", COALESCE(EXCLUDED.note, '') COLLATE "C")
+        > (COALESCE(company_state_headcounts.year, 0), company_state_headcounts.people, COALESCE(company_state_headcounts.source, '') COLLATE "C", COALESCE(company_state_headcounts.note, '') COLLATE "C");
 
   INSERT INTO external_references (entity_type, entity_id, source, external_id, url)
     SELECT DISTINCT 'companies'::entity_type, k, 'CURATED', current_setting('el.load'), u
     FROM jsonb_array_elements_text(coalesce(c->'sources', '[]'::jsonb)) u WHERE btrim(u) <> ''
   ON CONFLICT (entity_type, entity_id, url) WHERE source = 'CURATED' DO NOTHING;
 
-  -- For the person rehearsing: companies whose name contains this one's and
-  -- were left alone. A name that belongs in alsoKnownAs shows up here.
-  IF hints AND length(v_name) >= 3 THEN
+  -- For the person rehearsing: companies left alone whose name contains this
+  -- one's name or one of its other names, or that share its web domain. A
+  -- name that belongs in alsoKnownAs shows up here; so does a namesake.
+  IF hints THEN
     SELECT string_agg(format('%s (%s)', name, plants), '; ' ORDER BY plants DESC, name) INTO v_similar FROM (
-      SELECT co.name, (SELECT count(*) FROM factories f WHERE f.company_id = co.id) AS plants
-      FROM companies co
-      WHERE co.id <> k AND co.name ILIKE '%' || replace(replace(v_name, '%', ''), '_', '') || '%'
-        AND position(' ' || pg_temp.el_norm(v_name) || ' ' IN ' ' || pg_temp.el_norm(co.name) || ' ') > 0
-      ORDER BY 2 DESC, 1 LIMIT 8) s;
+      SELECT DISTINCT co.name, (SELECT count(*) FROM factories f WHERE f.company_id = co.id) AS plants
+      FROM unnest(ARRAY[v_name] || v_akas) key
+      JOIN companies co ON co.name ILIKE '%' || replace(replace(key, '%', ''), '_', '') || '%'
+      WHERE co.id <> k AND lower(co.name) <> ALL (v_guard)
+        AND (length(pg_temp.el_norm(key)) >= 5 OR key = v_name) AND length(pg_temp.el_norm(key)) >= 3
+        AND position(' ' || pg_temp.el_norm(key) || ' ' IN ' ' || pg_temp.el_norm(co.name) || ' ') > 0
+      ORDER BY 2 DESC, 1 LIMIT 12) s;
     IF v_similar IS NOT NULL THEN
-      PERFORM pg_temp.el_log('company', 'similar', true, v_name, NULL, 'not merged, name contains it: ' || v_similar);
+      PERFORM pg_temp.el_log('company', 'similar', true, v_name, NULL, 'not merged, name contains one of its names: ' || v_similar);
+    END IF;
+    SELECT string_agg(format('%s (%s)', co.name, (SELECT count(*) FROM factories f WHERE f.company_id = co.id)), '; ' ORDER BY co.name) INTO v_similar
+      FROM companies co WHERE co.id <> k AND co.domain = NULLIF(c->>'domain', '') AND lower(co.name) <> ALL (v_guard);
+    IF v_similar IS NOT NULL THEN
+      PERFORM pg_temp.el_log('company', 'similar', true, v_name, NULL, 'not merged, same web domain: ' || v_similar);
     END IF;
   END IF;
   RETURN k;
@@ -337,8 +345,8 @@ BEGIN
   -- is the newer figure (then the larger).
   v_head := p->>'employees' IS NOT NULL AND (
     v_first OR f.workforce_size IS NULL
-    OR (COALESCE((p->>'employeesYear')::integer, 0), (p->>'employees')::integer, COALESCE(p->>'employeesSource', '') COLLATE "C")
-     > (COALESCE(f.workforce_year::integer, 0), f.workforce_size, COALESCE(f.workforce_source, '') COLLATE "C"));
+    OR (COALESCE((p->>'employeesYear')::integer, 0), (p->>'employees')::integer, COALESCE(p->>'employeesSource', '') COLLATE "C", COALESCE(p->>'employeesNote', '') COLLATE "C")
+     > (COALESCE(f.workforce_year::integer, 0), f.workforce_size, COALESCE(f.workforce_source, '') COLLATE "C", COALESCE(f.workforce_note, '') COLLATE "C"));
 
   UPDATE factories x SET
     company_id = COALESCE(move_to, x.company_id),
@@ -377,12 +385,43 @@ BEGIN
   UPDATE el_pos SET lat = n.latitude::float8, lng = n.longitude::float8 FROM factories n WHERE n.id = fid AND el_pos.id = fid;
 END $f$;
 
+-- The plants filed under a company's parent whose names begin with one of the
+-- company's own names are the company's ("BELL HELICOPTER TEXTRON PLANT 5"
+-- under Textron is Bell's; "MAZDA TOYOTA MANUFACTURING" is not Toyota
+-- Manufacturing's). They move to it.
+CREATE OR REPLACE FUNCTION pg_temp.el_sweep(k uuid, protect text[]) RETURNS void LANGUAGE plpgsql AS $f$
+DECLARE
+  v_name text;
+  v_par uuid;
+  v_keys text[];
+  v_swept integer;
+  v_sample text;
+BEGIN
+  SELECT name, parent_company_id INTO v_name, v_par FROM companies WHERE id = k;
+  IF v_par IS NULL THEN RETURN; END IF;
+  SELECT coalesce(array_agg(DISTINCT n), '{}') INTO v_keys
+  FROM (SELECT pg_temp.el_norm(a) AS n FROM unnest(ARRAY[v_name] || coalesce((SELECT aliases FROM companies WHERE id = k), '{}')) a) s
+  WHERE length(n) >= 3 AND n NOT IN (SELECT pg_temp.el_norm(x) FROM unnest(array_remove(protect, lower(v_name))) x);
+  IF cardinality(v_keys) = 0 THEN RETURN; END IF;
+  WITH moved AS (
+    UPDATE factories f SET company_id = k, updated_at = now()
+    WHERE f.company_id = v_par
+      AND EXISTS (SELECT 1 FROM unnest(v_keys) key WHERE left(pg_temp.el_norm(f.name) || ' ', length(key) + 1) = key || ' ')
+    RETURNING f.name, f.state)
+  SELECT count(*), string_agg(format('%s (%s)', name, state), '; ' ORDER BY state, name) INTO v_swept, v_sample FROM moved;
+  IF v_swept > 0 THEN
+    PERFORM pg_temp.el_log('plant', 'swept', true, v_name, NULL,
+      format('%s more plant%s named for it moved from its parent "%s": %s', v_swept, CASE WHEN v_swept = 1 THEN '' ELSE 's' END,
+             (SELECT name FROM companies WHERE id = v_par), v_sample));
+  END IF;
+END $f$;
+
 -- Places a company's plants: each onto the existing row that is that plant,
 -- or as a new row.
 --
 -- Candidates, best first:
 --   named        the existing plant the corrections name for it (sameAs, its
---                exact name), within 10 km, whoever it is filed under
+--                exact name), within 25 km, whoever it is filed under
 --   same name    a plant of this company (or its parent, or a company that is
 --                part of it) with the same name, within 5 km
 --   shared word  one whose name shares a telling word ("Giga", "Refinery"),
@@ -392,6 +431,8 @@ END $f$;
 --                different unit of the same site
 --   beside       a plant of any other company within 250 m whose name names
 --                this company or this site
+-- A plant the corrections mark as new (isNew) takes only a row that already
+-- has its name: the row it was given by an earlier load.
 --   only one     when the research has one plant of the company in a city:
 --                a bare plant of the company in that city within 3.5 km (a
 --                large site, placed apart by two sources)
@@ -406,7 +447,7 @@ DECLARE
   v_family uuid[];
   v_keys text[];      -- this company's names, normalised, three characters or more
   v_bare text[];      -- those names without legal endings
-  v_drop text[];      -- the words of those names
+  v_drop text[];      -- the words of the company's name
   r record;
   q record;
   v_fid uuid;
@@ -415,8 +456,6 @@ DECLARE
   v_d integer;
   v_own text;
   v_more integer;
-  v_swept integer;
-  v_sample text;
 BEGIN
   SELECT parent_company_id INTO v_par FROM companies WHERE id = k;
   -- This company, its parent, and the companies that are part of it.
@@ -426,10 +465,9 @@ BEGIN
   FROM (SELECT pg_temp.el_norm(a) AS n FROM unnest(ARRAY[v_name] || coalesce((SELECT aliases FROM companies WHERE id = k), '{}')) a) s
   WHERE length(n) >= 3 AND n NOT IN (SELECT pg_temp.el_norm(x) FROM unnest(array_remove(protect, lower(v_name))) x);
   SELECT coalesce(array_agg(DISTINCT pg_temp.el_bare(key)), '{}') INTO v_bare FROM unnest(v_keys) key;
-  SELECT coalesce(array_agg(DISTINCT w), '{}') INTO v_drop
-  FROM (SELECT regexp_split_to_table(pg_temp.el_norm(a), ' ') AS w
-        FROM unnest(ARRAY[v_name] || coalesce((SELECT aliases FROM companies WHERE id = k), '{}')) a) s
-  WHERE w <> '';
+  -- Only the name's own words are set aside when plant names are compared, so two files that describe the company
+  -- under different lists of other names read a plant's name the same way.
+  SELECT coalesce(array_agg(DISTINCT w), '{}') INTO v_drop FROM regexp_split_to_table(pg_temp.el_norm(v_name), ' ') w WHERE w <> '';
 
   TRUNCATE el_p;
   INSERT INTO el_p (i, p, lat, lng, nname, drop_words)
@@ -466,6 +504,7 @@ BEGIN
           -- Only rows that could be the plant are read: anyone's within 250 m, this company's and its family's within
           -- 10 km, and the one the corrections name.
           SELECT p.i, p.nname, p.words, p.drop_words, p.p->>'city' AS city, coalesce((p.p->>'alone')::boolean, false) AS alone,
+                 coalesce((p.p->>'isNew')::boolean, false) AS is_new,
                  f.id, f.name AS fname, f.city AS fcity, f.curated, f.company_id, oc.name AS cname,
                  CASE WHEN f.company_id = k THEN 0 WHEN oc.parent_company_id = k THEN 1 WHEN f.company_id = v_par THEN 2 ELSE 3 END AS rel,
                  pg_temp.el_metres(p.lat, p.lng, x.lat, x.lng) AS d,
@@ -482,15 +521,17 @@ BEGIN
           JOIN el_pos x ON x.id = near.id
           JOIN factories f ON f.id = near.id
           LEFT JOIN companies oc ON oc.id = f.company_id
-          WHERE pg_temp.el_metres(p.lat, p.lng, x.lat, x.lng) <= 10000
+          WHERE pg_temp.el_metres(p.lat, p.lng, x.lat, x.lng) <= CASE WHEN f.name = p.p->>'sameAs' THEN 25000 ELSE 10000 END
           OFFSET 0
         ) b
         CROSS JOIN LATERAL (SELECT pg_temp.el_words(b.fname, b.drop_words) AS words) fw
       ) s
     ) t
-    WHERE (same_as AND d <= 10000) OR usual
-       -- The company's only plant in the city, in the research and (as far as 3.5 km) in the data: one site, placed apart.
-       OR (rel IN (0, 1) AND NOT curated AND alone_in_city AND d <= 3500)
+    WHERE CASE WHEN is_new THEN usual AND class = 0 AND rel IN (0, 1) ELSE
+            same_as OR usual
+            -- The company's only plant in the city, in the research and (as far as 3.5 km) in the data: one site, placed apart.
+            OR (rel IN (0, 1) AND NOT curated AND alone_in_city AND d <= 3500)
+          END
     ORDER BY rank, rel, d, id
   LOOP
     CONTINUE WHEN EXISTS (SELECT 1 FROM el_p WHERE i = r.i AND fid IS NOT NULL) OR EXISTS (SELECT 1 FROM el_claimed WHERE id = r.id);
@@ -510,11 +551,11 @@ BEGIN
     PERFORM pg_temp.el_log('plant',
       CASE WHEN v_move IS NOT NULL AND r.rel <> 0 THEN 'moved' ELSE 'matched' END,
       -- Worth a look: a move, a row left with another company, a curated plant under another name, or an unrelated name far off.
-      r.rel <> 0 OR (r.curated AND r.class <> 0) OR (r.class = 3 AND r.d > 500) OR r.d > 1500 OR r.rank = 4,
+      r.rel <> 0 OR (r.curated AND r.class <> 0) OR (r.class = 3 AND NOT r.refers AND r.d > 500) OR r.d > 1500 OR r.rank = 4,
       v_name, q.p->>'name',
       format('%s "%s"%s at %s m%s%s',
         CASE WHEN r.rank = -1 THEN 'named in the corrections:' WHEN r.rank = 4 THEN 'its only plant in the city:'
-             WHEN r.class = 0 THEN 'same name:' WHEN r.class = 1 THEN 'shared word:' WHEN r.class = 2 THEN 'near:' ELSE 'near, unrelated name:' END,
+             WHEN r.class = 0 THEN 'same name:' WHEN r.class = 1 THEN 'shared word:' WHEN r.class = 2 OR r.refers THEN 'near:' ELSE 'near, unrelated name:' END,
         r.fname,
         CASE WHEN r.rel = 0 THEN ''
              WHEN v_move IS NOT NULL THEN format(', moved from "%s"', r.cname)
@@ -554,18 +595,7 @@ BEGIN
     PERFORM pg_temp.el_log('plant', 'not loaded', false, v_name, q.s, NULL);
   END LOOP;
 
-  -- The parent's remaining plants that carry this company's name are this company's.
-  IF v_par IS NOT NULL AND cardinality(v_keys) > 0 THEN
-    WITH moved AS (
-      UPDATE factories f SET company_id = k, updated_at = now()
-      WHERE f.company_id = v_par AND pg_temp.el_refers(f.name, v_keys) RETURNING f.name, f.state)
-    SELECT count(*), string_agg(format('%s (%s)', name, state), '; ' ORDER BY state, name) INTO v_swept, v_sample FROM moved;
-    IF v_swept > 0 THEN
-      PERFORM pg_temp.el_log('plant', 'swept', true, v_name, NULL,
-        format('%s more plant%s named for it moved from its parent "%s": %s', v_swept, CASE WHEN v_swept = 1 THEN '' ELSE 's' END,
-               (SELECT name FROM companies WHERE id = v_par), v_sample));
-    END IF;
-  END IF;
+  PERFORM pg_temp.el_sweep(k, protect);
 END $f$;
 
 -- Loads everything: `data` is what scripts/build-employers-sql.mjs wrote.
@@ -575,6 +605,7 @@ DECLARE
   c jsonb;
   k uuid;
   v_protect text[];
+  v_touched uuid[] := '{}';
 BEGIN
   -- "Table does not exist, skipping" is not news.
   PERFORM set_config('client_min_messages', 'warning', true);
@@ -602,8 +633,17 @@ BEGIN
     TRUNCATE el_claimed;
     FOR c IN SELECT x FROM jsonb_array_elements(file->'companies') x LOOP
       k := pg_temp.el_company(c, v_protect, coalesce((data->>'hints')::boolean, false));
+      v_touched := v_touched || k;
       PERFORM pg_temp.el_plants(k, c, v_protect, coalesce(data->'states', '{}'::jsonb));
     END LOOP;
+  END LOOP;
+  -- Once every company is as the files leave it: a company merged into a parent late may have brought plants that
+  -- are one of its companies'. Each company loaded here, and each company that is part of one, takes its own.
+  PERFORM set_config('el.load', (data->'files'->-1)->>'brief', true);
+  FOR k IN SELECT co.id FROM companies co
+           WHERE co.parent_company_id IS NOT NULL AND (co.id = ANY (v_touched) OR co.parent_company_id = ANY (v_touched))
+           ORDER BY co.name LOOP
+    PERFORM pg_temp.el_sweep(k, v_protect);
   END LOOP;
   DROP TABLE el_p;
   DROP TABLE el_claimed;

@@ -71,6 +71,24 @@ export function count(value: unknown): number | null | false {
   return Number.isInteger(number) && number >= 0 && number <= 10_000_000 ? number : false;
 }
 
+/** A year (when a headcount is for, when a plant opened): a whole number from `min` to next year, null when emptied, false when it is not one. */
+export function year(value: unknown, min = 1700): number | null | false {
+  if (value === null || value === '') return null;
+  const number = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+  return Number.isInteger(number) && number >= min && number <= new Date().getFullYear() + 1 ? number : false;
+}
+
+/** A web address where a fact is stated: http or https, up to 500 characters. Null when emptied, false when it is not one. */
+export function sourceUrl(value: unknown): string | null | false {
+  if (value === null) return null;
+  if (typeof value !== 'string') return false;
+  const text = value.trim();
+  if (text === '') return null;
+  return text.length <= 500 && /^https?:\/\/[^\s]+\.[^\s]+$/i.test(text) ? text : false;
+}
+
+export const FACTORY_STATUSES = ['operating', 'under construction'] as const;
+
 function pgCode(error: unknown): string | undefined {
   const own = (error as { code?: unknown } | null)?.code;
   if (typeof own === 'string') return own;

@@ -21,10 +21,6 @@ BEGIN
   END IF;
 END $$;
 
--- "Largest workforce": the few plants with a known headcount, largest first.
--- Partial, so it stays small however many plants there are.
-CREATE INDEX IF NOT EXISTS factories_workforce_idx ON factories (workforce_size DESC, id) WHERE workforce_size IS NOT NULL;
-
 -- A company: the company it is part of (Bell is part of Textron), and where
 -- its headquarters are. The older headquarters_lat / headquarters_lng stay.
 ALTER TABLE companies ADD COLUMN IF NOT EXISTS parent_company_id uuid REFERENCES companies(id) ON DELETE SET NULL;

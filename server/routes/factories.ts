@@ -8,6 +8,7 @@ import { packPins } from '../../shared/pins.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalText, requiredText, stateCode } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
+import { sourcesOf } from '../lib/sources.js';
 import { refuseDeleteWithJobs } from '../lib/writes.js';
 
 /** A company with this many factories nationwide counts as established. */
@@ -60,15 +61,17 @@ router.get('/', async (req: Request, res: Response) => {
     const total = countResult[0]?.count ?? 0;
 
     // Build order by clause
+    // The name as it is shown: without the registry number some rows carry
+    // in front ("105123 - Caterpillar"), and whatever its case.
+    const shownName = sql`lower(regexp_replace(${factories.name}, '^#?[0-9]+ +[-–] *', ''))`;
     let orderByClause;
     if (sort === 'workforceSize') {
+      // Plants with a known headcount first, largest first (or smallest
+      // first); the rest after them, by name.
       orderByClause = order === 'desc'
-        ? sql`${factories.workforceSize} DESC NULLS LAST, ${factories.name} ASC`
-        : sql`${factories.workforceSize} ASC NULLS LAST, ${factories.name} ASC`;
+        ? sql`${factories.workforceSize} DESC NULLS LAST, ${shownName} ASC, ${factories.id}`
+        : sql`${factories.workforceSize} ASC NULLS LAST, ${shownName} ASC, ${factories.id}`;
     } else {
-      // The name as it is shown: without the registry number some rows carry
-      // in front ("105123 - Caterpillar"), and whatever its case.
-      const shownName = sql`lower(regexp_replace(${factories.name}, '^#?[0-9]+ +[-–] *', ''))`;
       orderByClause = order === 'desc' ? sql`${shownName} DESC, ${factories.id}` : sql`${shownName} ASC, ${factories.id}`;
     }
 
@@ -88,6 +91,13 @@ router.get('/', async (req: Request, res: Response) => {
         longitude: factories.longitude,
         state: factories.state,
         workforceSize: factories.workforceSize,
+        workforceYear: factories.workforceYear,
+        workforceSource: factories.workforceSource,
+        workforceNote: factories.workforceNote,
+        products: factories.products,
+        openedYear: factories.openedYear,
+        status: factories.status,
+        curated: factories.curated,
         openPositions: factories.openPositions,
         createdAt: factories.createdAt,
         occupationCount: sql<number>`(SELECT COUNT(*)::int FROM factory_occupations WHERE factory_occupations.factory_id = factories.id)`,
@@ -214,6 +224,13 @@ router.get('/:id', async (req: Request, res: Response) => {
         state: factories.state,
         industry: factories.primaryNaicsDescription,
         workforceSize: factories.workforceSize,
+        workforceYear: factories.workforceYear,
+        workforceSource: factories.workforceSource,
+        workforceNote: factories.workforceNote,
+        products: factories.products,
+        openedYear: factories.openedYear,
+        status: factories.status,
+        curated: factories.curated,
         openPositions: factories.openPositions,
         createdAt: factories.createdAt,
       })
@@ -320,6 +337,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     res.json({
       ...factory,
       company,
+      // Where its facts came from, for the foot of the page.
+      sources: await sourcesOf('factories', id),
       nearby,
       typicalCareers,
       occupations: factoryOccupationsResult,

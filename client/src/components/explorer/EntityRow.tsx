@@ -101,7 +101,7 @@ function FactoryRow({ data, onMouseEnter }: Props<Factory>) {
       to={`/factories/${data.id}`}
       name={formatFactoryName(data.name)}
       factsLeading={company && data.companyDomain ? <CompanyLogo name={company} domain={data.companyDomain} size={20} className="rounded" /> : null}
-      facts={[company, place]}
+      facts={[company, place, data.workforceSize ? `${data.workforceSize.toLocaleString()} people` : null]}
       onMouseEnter={onMouseEnter}
     />
   );

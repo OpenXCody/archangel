@@ -273,7 +273,7 @@
         "Swift & Company",
         "JBS Foods"
       ],
-      "parent": "JBS",
+      "parent": null,
       "domain": "jbsfoodsgroup.com",
       "industry": "Beef Processing",
       "description": "Slaughters cattle and packs beef at its Cactus plant in the Texas Panhandle.",
@@ -1463,9 +1463,6 @@
     {
       "name": "Mars Wrigley",
       "alsoKnownAs": [
-        "Mars",
-        "Mars Inc",
-        "Mars Incorporated",
         "Mars Chocolate North America",
         "Mars Chocolate North America LLC",
         "Mars Wrigley Confectionery",
@@ -1789,9 +1786,7 @@
         "Oak Farms Dairy",
         "Oak Farms",
         "Southern Foods Group",
-        "Southern Foods Group LLC",
-        "Dean Foods",
-        "Schepps Dairy"
+        "Southern Foods Group LLC"
       ],
       "parent": null,
       "domain": "dfamilk.com",
@@ -2242,16 +2237,13 @@
     {
       "name": "Coca-Cola Southwest Beverages",
       "alsoKnownAs": [
-        "Coca-Cola",
-        "Coca Cola",
         "CCSWB",
         "Coca-Cola Southwest Beverages LLC",
         "Coca-Cola Bottling Co of North Texas",
         "Coca-Cola Bottling Company of North Texas",
         "Coca-Cola Bottling Co of the Southwest",
+        "Coca-Cola Bottling Co of Southwest",
         "Houston Coca-Cola Bottling Co",
-        "Coca-Cola Refreshments",
-        "Coca-Cola Enterprises",
         "Valley Coca-Cola Bottling Co",
         "Coca-Cola Bottling Co Magnolia"
       ],
@@ -3183,7 +3175,7 @@
           "employeesYear": null,
           "employeesSource": null,
           "employeesNote": null,
-          "opened": 1967,
+          "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110005154536",
@@ -3345,7 +3337,7 @@
           "employeesYear": null,
           "employeesSource": null,
           "employeesNote": null,
-          "opened": 1986,
+          "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110070288249",
@@ -3359,12 +3351,10 @@
       "name": "Hatco",
       "alsoKnownAs": [
         "Hatco Inc",
-        "Stetson",
         "Stetson Hats",
         "Resistol",
         "Resistol Hats",
-        "Byer-Rolnick",
-        "Arena Brands"
+        "Byer-Rolnick"
       ],
       "parent": null,
       "domain": "hatco.com",
@@ -3655,7 +3645,13 @@
       "plant": "Medtronic Powered Surgical Solutions (Midas Rex)",
       "city": "Fort Worth",
       "why": "4620 N Beach St: the geocoder returns only North Beach Street; the EPA record has no coordinate. Not confirmed as operating either"
+    },
+    {
+      "company": "Producer Owned Beef",
+      "plant": "Amarillo beef plant (under construction)",
+      "city": "Amarillo",
+      "why": "no street address: the EPA record gives only survey sections, and the geocoder returns a ZIP-code centre. The Dallas Fed's 2025 Amarillo profile says construction is under way on the $670 million plant; a stormwater permit in its name is effective to 2028"
     }
   ],
-  "notes": ""
+  "notes": "HOW THIS FILE WAS BUILT. Web search stopped working part-way through (the session's shared search limit was reached after about 35 searches), so the rest was done from pages fetched by address and from two government services: EPA's ECHO facility search and detailed facility reports (plant names, street addresses, NAICS codes, permit status, inspection dates) and the project geocoder. Every headcount in the file was read on the page cited. 21 of 101 plants have one; the others are null because no source could be searched for, not because none exists. COORDINATES. The geocoder's first result was used when it matched the house number in the right place. Where it returned only the street or the wrong place, the coordinate comes from the plant's EPA facility report (a permit record with a stated accuracy of 50 m or better), cross-checked against the geocoder's street: Tyson Center, Seguin, Dallas and North Richland Hills; JBS Cactus; Pilgrim's Mount Pleasant; Cargill Friona and the Fort Worth grind plant; both Caviness plants; STX Beef; Sadler's; Frito-Lay Rosenberg, San Antonio and Irving; Pepsi Houston and Arlington; Azteca Milling (both); Hilmar; Russell Stover; Oak Farms Dallas; Niagara Seguin and Lancaster; Alcon Fort Worth; Argon; James Avery Fredericksburg and Comfort; Anderson Bean; American Hat; Circle Y; Hexcel. Three are looser than the rest and worth a look on a map: Pepsi San Antonio (EPA accuracy 150 m), Coca-Cola San Antonio and Lucchese El Paso (geocoder gave the street, both short streets), and Caviness Amarillo (EPA point with no stated accuracy). LivaNova Houston is the OpenStreetMap position of Cyberonics Boulevard, a short street that ends at the plant. OPERATING STATUS. With no search, 'still operating' rests on the EPA record for most plants: an air permit marked operating, an effective stormwater permit in the current operator's name, a Toxics Release Inventory report for 2023 or 2024, or a state inspection in 2024 to 2026. Plants included on weaker evidence (an EPA record with no current-status field, plus general knowledge): Tyson Carthage (2026 job postings seen in search results), Sadler's Smokehouse (last TRI report 2020), Caviness Hereford (TRI 2022), Russell Stover Corsicana, Great Lakes Cheese Abilene, Cacique Amarillo (its stormwater permit shows as expired August 2026), the four Coca-Cola production centers (the company's site says it has 7 production plants but does not list them), Alcon Houston, Abbott Irving, Orthofix (the only EPA record is a construction-era one), ReadyOne, Lucchese, American Hat, Anderson Bean and Tito's. A reviewer with search should confirm these. Opening years for the four Wayne-Sanderson plants are from general knowledge, not from a page read in this session. JUDGMENT CALLS. (1) Tyson Amarillo carries 4,000 employees (Dallas Fed 2025; Tyson 2022) although the plant went to one shift in January 2026 with 1,761 jobs cut by WARN notice and Tyson said in August 2026 it would restore the shift; no later site figure was found, and the note says so. Set it to null if a stale figure is worse than none. (2) Campbell's Paris carries 680 (July 2024) though soup production has since ended and the workforce is smaller. (3) Tyson Seguin uses the Seguin EDC's undated top-employers list (about 830) rather than the EDC's 2021 release (546). (4) Cargill's figures are from its own careers pages, which are undated; the year given is the year read. (5) Pilgrim's figures are all from 2020 company releases. (6) Subsector follows what the plant makes, not the brief: Alcon Fort Worth is Chemical Manufacturing (ophthalmic medicines, NAICS 325412 in the EPA record); Abbott Irving and LivaNova Houston are Computer and Electronic Product Manufacturing (electromedical apparatus, 334510); PepsiCo's Arlington concentrate plant is Food Manufacturing (311930). (7) Ethicon and Mentor are entered as plants of Johnson & Johnson, which the database already lists. (8) Stryker Flower Mound is the Communications division's base; the headcount is the whole site, offices included. (9) Wayne-Sanderson Farms' state figure is Sanderson Farms' 2020 number and includes hatcheries and feed mills. (10) Hiland Dairy's Dallas plant is the former Borden plant on South Lamar (the EPA's 2024 TRI report is in Hiland's name); 'Borden' is deliberately not listed as another name for Hiland. LEFT OUT, AND WHY. Not confirmed as operating, or as manufacturing, without search: Pilgrim's Dallas (2411 Ferris St); Frito-Lay's Dallas baked-snacks plant on Duncanville Rd / Morse Dr and its Lubbock plant (last TRI report 2022); Mission Foods Dallas (the EPA record at 4000 Dan Morton Dr shows a terminated permit), San Antonio and El Paso; Bimbo's Lubbock and Rockwall plants; Oak Farms Houston; Borden Dairy (which Texas plants it still runs is unclear; Conroe is the likely one); Pepsi Conroe; Coca-Cola McAllen, Abilene and Nacogdoches; Mars Petcare Temple; Holmes Foods (Nixon); Eddy Packing (Yoakum); Continental Dairy Facilities (Littlefield); Riviana Foods (Freeport); Refresco (Waco, Fort Worth); Smith+Nephew Fort Worth (the EPA record is coded biological products, not devices); Essilor in Farmers Branch (headquarters and prescription laboratory; manufacturing not confirmed); Hatco's Longview site; Nokona ball gloves (no address found). From the brief's leads: Hershey, Nestle, Ventura Foods and Imperial Sugar have no Texas plant that could be confirmed (Imperial Sugar's Sugar Land refinery closed in 2003); Hormel is represented by Sadler's Smokehouse; Frito-Lay 'Mesquite' appears to be PepsiCo's Mesquite bottling plant; Williamson-Dickie, Levi Strauss, VF and Fruit of the Loom have offices or closed plants in the EPA lists but no Texas plant confirmed as operating; ADM and Dana were not researched (grain and automotive, outside these industries). SITES TO REVISIT WITH SEARCH. Headcounts likely to exist for: Tyson Sherman (older lists say about 1,400 to 1,800), Tyson Center (an undated city brochure says nearly 1,400), Wayne-Sanderson Palestine and Bryan, Caviness, H-E-B's manufacturing plants, the Frito-Lay plants, Molson Coors Fort Worth, Anheuser-Busch Houston, Alcon, Ethicon San Angelo, Hilmar, Leprino Lubbock (the Dallas Fed says it is expected to employ 600 when finished in 2026), Hatco (an old Garland list says 390), Justin Brands and Lucchese in El Paso, ReadyOne."
 }

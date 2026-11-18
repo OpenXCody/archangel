@@ -26,7 +26,9 @@ export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
   // Most sites first by default, so the big manufacturers come before the
   // long tail of single-site companies.
   companies: [{ value: 'factories-desc', label: 'Most sites', field: 'factoryCount', order: 'desc' }, ...BY_NAME],
-  factories: [...BY_NAME, { value: 'workforce-desc', label: 'Largest workforce', field: 'workforceSize', order: 'desc' }],
+  // Most people first by default: the plants whose size is known lead, the
+  // largest first, and the rest follow by name.
+  factories: [{ value: 'people-desc', label: 'Most people', field: 'workforceSize', order: 'desc' }, ...BY_NAME],
   occupations: BY_TITLE,
   skills: BY_NAME,
 };

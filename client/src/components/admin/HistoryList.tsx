@@ -54,8 +54,18 @@ const FIELD: Record<string, string> = {
   pathStatus: 'path',
   email: 'email',
   specialization: 'specialization',
-  workforceSize: 'workforce',
+  workforceSize: 'people',
   openPositions: 'open positions',
+  workforceYear: 'year of the people figure',
+  workforceSource: 'source of the people figure',
+  workforceNote: 'note on the people figure',
+  products: 'makes',
+  openedYear: 'opened',
+  status: 'status',
+  parent: 'part of',
+  headquartersCity: 'headquarters city',
+  headquartersState: 'headquarters state',
+  headquartersCountry: 'headquarters country',
 };
 
 /** What a count of attached things is called, one and many. */

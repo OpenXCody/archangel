@@ -1,0 +1,3615 @@
+{
+  "brief": "texas-metals-materials",
+  "retrieved": "2026-11-18",
+  "companies": [
+    {
+      "name": "Steel Dynamics",
+      "alsoKnownAs": [
+        "Steel Dynamics Inc",
+        "SDI",
+        "Steel Dynamics Southwest",
+        "Steel Dynamics Southwest LLC",
+        "Steel Dynamics Southwest - Sinton Division"
+      ],
+      "parent": null,
+      "domain": "steeldynamics.com",
+      "industry": "Steel",
+      "description": "Makes flat rolled steel coil from scrap at an electric arc furnace mill in Sinton.",
+      "headquarters": {
+        "city": "Fort Wayne",
+        "state": "IN",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071140318",
+        "https://www.kristv.com/news/local-news/steel-dynamics-ribbon-cutting-held-wednesday-thousands-of-jobs-headed-to-the-coastal-bend"
+      ],
+      "plants": [
+        {
+          "name": "Sinton Flat Roll Mill",
+          "city": "Sinton",
+          "state": "TX",
+          "address": "8534 Highway 89",
+          "zip": "78387",
+          "latitude": 28.05885,
+          "longitude": -97.49037,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331110",
+          "products": "Hot rolled, cold rolled and coated steel coil from an electric arc furnace mill",
+          "employees": 600,
+          "employeesYear": 2022,
+          "employeesSource": "https://www.kristv.com/news/local-news/steel-dynamics-ribbon-cutting-held-wednesday-thousands-of-jobs-headed-to-the-coastal-bend",
+          "employeesNote": "About 600 jobs, as stated by the San Patricio County judge at the ribbon cutting in February 2022. Not a company figure.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071140318",
+            "https://www.kristv.com/news/local-news/steel-dynamics-ribbon-cutting-held-wednesday-thousands-of-jobs-headed-to-the-coastal-bend",
+            "https://texans.pages.dev/san-patricio-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Nucor",
+      "alsoKnownAs": [
+        "Nucor Corporation",
+        "Nucor Steel",
+        "Nucor Steel Texas",
+        "Nucor Steel - Texas",
+        "Nucor Steel Jewett",
+        "Nucor Steel - Jewett Facility",
+        "Vulcraft",
+        "Nucor Vulcraft Group",
+        "Nucor Building Systems",
+        "Nucor Steel Longview",
+        "Nucor Steel Longview LLC"
+      ],
+      "parent": null,
+      "domain": "nucor.com",
+      "industry": "Steel",
+      "description": "Makes steel bar and shapes from scrap, plus steel joists, deck and metal building systems.",
+      "headquarters": {
+        "city": "Charlotte",
+        "state": "NC",
+        "country": "US"
+      },
+      "stateEmployees": {
+        "state": "TX",
+        "count": 2300,
+        "year": 2025,
+        "source": "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm",
+        "note": "\"Employs approximately 2,300 Texans at the plants\" of its six Texas divisions, per Texas House Resolution 699 (2025)."
+      },
+      "sources": [
+        "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm"
+      ],
+      "plants": [
+        {
+          "name": "Nucor Steel Texas",
+          "city": "Jewett",
+          "state": "TX",
+          "address": "8812 US Highway 79 W",
+          "zip": "75846",
+          "latitude": 31.35016,
+          "longitude": -96.16611,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331110",
+          "products": "Steel bar and merchant shapes melted from scrap in an electric arc furnace",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": 1975,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110008148575",
+            "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm"
+          ]
+        },
+        {
+          "name": "Vulcraft Texas",
+          "city": "Grapeland",
+          "state": "TX",
+          "address": "175 County Road 2345",
+          "zip": "75844",
+          "latitude": 31.50684,
+          "longitude": -95.48271,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332312",
+          "products": "Steel joists, joist girders and steel deck",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000598997",
+            "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm"
+          ]
+        },
+        {
+          "name": "Nucor Building Systems Texas",
+          "city": "Terrell",
+          "state": "TX",
+          "address": "600 Apache Trail",
+          "zip": "75160",
+          "latitude": 32.73451,
+          "longitude": -96.33341,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332311",
+          "products": "Pre-engineered metal building systems",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm"
+          ]
+        },
+        {
+          "name": "Nucor Steel Longview",
+          "city": "Longview",
+          "state": "TX",
+          "address": "5400 W Loop 281",
+          "zip": "75603",
+          "latitude": 32.46865,
+          "longitude": -94.7405,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331110",
+          "products": "Electric arc furnace steel mill; Nucor announced in 2023 that it would cease operations here",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "closed",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070050209",
+            "https://www.recyclingtoday.com/news/nucor-longview-texas-mill-closing-steel-recycling"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Commercial Metals",
+      "alsoKnownAs": [
+        "CMC",
+        "Commercial Metals Company",
+        "CMC Steel",
+        "CMC Steel Texas",
+        "Structural Metals",
+        "Structural Metals Inc",
+        "SMI Texas",
+        "CMC Recycling",
+        "CMC Metal Recycling",
+        "CMC Rebar"
+      ],
+      "parent": null,
+      "domain": "cmc.com",
+      "industry": "Steel",
+      "description": "Makes steel rebar and merchant bar from scrap; also runs scrap yards and rebar fabrication shops.",
+      "headquarters": {
+        "city": "Irving",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.seguinedc.com/site-selection/primary-employers/"
+      ],
+      "plants": [
+        {
+          "name": "CMC Steel Texas",
+          "city": "Seguin",
+          "state": "TX",
+          "address": "1 Steel Mill Dr",
+          "zip": "78155",
+          "latitude": 29.57909,
+          "longitude": -98.02783,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331110",
+          "products": "Rebar, merchant bar and other long steel products from an electric arc furnace mini mill",
+          "employees": 900,
+          "employeesYear": 2026,
+          "employeesSource": "https://www.seguinedc.com/site-selection/primary-employers/",
+          "employeesNote": "\"±900\" on the Seguin EDC's top-employer list (source given as the City of Seguin). The list is undated; it was read in November 2026. The state's Enterprise Zone record showed 500 jobs in March 2018.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000599745",
+            "https://www.seguinedc.com/site-selection/primary-employers/",
+            "https://texans.pages.dev/guadalupe-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Gerdau",
+      "alsoKnownAs": [
+        "Gerdau Ameristeel",
+        "Gerdau Ameristeel US",
+        "Gerdau Long Steel North America",
+        "Gerdau Midlothian",
+        "Gerdau Midlothian Plant",
+        "Chaparral Steel",
+        "Chaparral Steel Midlothian"
+      ],
+      "parent": null,
+      "domain": "gerdau.com",
+      "industry": "Steel",
+      "description": "Makes structural steel beams and merchant bar from scrap at its Midlothian mill.",
+      "headquarters": {
+        "city": "São Paulo",
+        "state": null,
+        "country": "BR"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000459183",
+        "https://en.wikipedia.org/wiki/Midlothian,_Texas"
+      ],
+      "plants": [
+        {
+          "name": "Gerdau Midlothian Mill",
+          "city": "Midlothian",
+          "state": "TX",
+          "address": "300 Ward Rd",
+          "zip": "76065",
+          "latitude": 32.45936,
+          "longitude": -97.03803,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331110",
+          "products": "Structural steel beams, piling and merchant bar from an electric arc furnace mill",
+          "employees": 1250,
+          "employeesYear": 2023,
+          "employeesSource": "https://en.wikipedia.org/wiki/Midlothian,_Texas",
+          "employeesNote": "City of Midlothian 2023 annual financial report as quoted on Wikipedia; the report itself was not checked. The city lists employers in size bands, so read this as 1,000 to 1,250.",
+          "opened": 1975,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000459183",
+            "https://en.wikipedia.org/wiki/Midlothian,_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tenaris",
+      "alsoKnownAs": [
+        "Tenaris Bay City",
+        "Tenaris Bay City Inc",
+        "Tenaris Conroe",
+        "Tenaris Baytown",
+        "Maverick Tube",
+        "Maverick Tube Corporation",
+        "IPSCO Tubulars",
+        "IPSCO Koppel Tubulars",
+        "IPSCO Baytown Works"
+      ],
+      "parent": null,
+      "domain": "tenaris.com",
+      "industry": "Steel Pipe",
+      "description": "Makes seamless and welded steel pipe for oil and gas wells.",
+      "headquarters": {
+        "city": "Luxembourg",
+        "state": null,
+        "country": "LU"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.tenaris.com/en/news/2023/tenaris-celebrates-10th-anniversary-of-seamless-mill-groundbreaking-in-bay-city-tx",
+        "https://www.tenaris.com/en/news/2021/tenaris-to-scale-up-industrial-activity-at-its-conroe-tx-plant",
+        "https://www.tenaris.com/en/news/2021/tenaris-us-ramps-up-with-restart-of-baytown-mill"
+      ],
+      "plants": [
+        {
+          "name": "Tenaris Bay City",
+          "city": "Bay City",
+          "state": "TX",
+          "address": "7960 State Highway 35 N",
+          "zip": "77414",
+          "latitude": 29.00806,
+          "longitude": -95.90037,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331210",
+          "products": "Seamless steel pipe for oil and gas wells",
+          "employees": 700,
+          "employeesYear": 2023,
+          "employeesSource": "https://www.tenaris.com/en/news/2023/tenaris-celebrates-10th-anniversary-of-seamless-mill-groundbreaking-in-bay-city-tx",
+          "employeesNote": "\"More than 700 employees work at the seamless plant\" (Tenaris, 2023).",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.tenaris.com/en/news/2023/tenaris-celebrates-10th-anniversary-of-seamless-mill-groundbreaking-in-bay-city-tx",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110069458054"
+          ]
+        },
+        {
+          "name": "Tenaris Conroe",
+          "city": "Conroe",
+          "state": "TX",
+          "address": "699 FM 3083",
+          "zip": "77301",
+          "latitude": 30.31575,
+          "longitude": -95.40853,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331210",
+          "products": "Welded steel pipe, with heat treatment and finishing lines",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.tenaris.com/en/news/2021/tenaris-to-scale-up-industrial-activity-at-its-conroe-tx-plant",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110035341868"
+          ]
+        },
+        {
+          "name": "Tenaris Baytown",
+          "city": "Baytown",
+          "state": "TX",
+          "address": "2600 Spur 55",
+          "zip": "77523",
+          "latitude": 29.71778,
+          "longitude": -94.92972,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331210",
+          "products": "Heat treatment and threading of steel pipe",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.tenaris.com/en/news/2021/tenaris-us-ramps-up-with-restart-of-baytown-mill",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110034081491"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "JSW Steel USA",
+      "alsoKnownAs": [
+        "JSW Steel",
+        "JSW Steel (USA) Inc",
+        "JSW Steel USA Inc",
+        "JSW Steel Holding (USA)",
+        "JSW Steel Corporation",
+        "Jindal United Steel",
+        "Saw Pipes USA"
+      ],
+      "parent": "JSW Steel",
+      "domain": "jswsteel.us",
+      "industry": "Steel Plate & Pipe",
+      "description": "Rolls steel plate and makes large-diameter welded pipe at its Baytown mill.",
+      "headquarters": {
+        "city": "Baytown",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.foxbusiness.com/markets/texas-steel-companys-indian-parent-invests-500m",
+        "https://www.fox26houston.com/news/steel-mill-expansion-expected-to-bring-500-new-jobs-to-baytown"
+      ],
+      "plants": [
+        {
+          "name": "JSW Steel USA Baytown",
+          "city": "Baytown",
+          "state": "TX",
+          "address": "5200 E McKinney Rd",
+          "zip": "77523",
+          "latitude": 29.6967,
+          "longitude": -94.90051,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": null,
+          "products": "Steel plate and large-diameter welded line pipe",
+          "employees": 500,
+          "employeesYear": 2018,
+          "employeesSource": "https://www.foxbusiness.com/markets/texas-steel-companys-indian-parent-invests-500m",
+          "employeesNote": "The chief executive told Fox Business in March 2018 that the company \"currently has 500 people on site\". Nothing newer was found; a later trade article says only that JSW Steel USA employs over 800 in the United States.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070334007",
+            "https://www.foxbusiness.com/markets/texas-steel-companys-indian-parent-invests-500m",
+            "https://www.fox26houston.com/news/steel-mill-expansion-expected-to-bring-500-new-jobs-to-baytown"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Optimus Steel",
+      "alsoKnownAs": [
+        "Optimus Steel LLC",
+        "Optimus Steel USA",
+        "Optimus Steel Beaumont Mill",
+        "Optimus Steel Mill - Beaumont Mill"
+      ],
+      "parent": null,
+      "domain": "optimus-steelusa.com",
+      "industry": "Steel",
+      "description": "Makes steel wire rod, coiled rebar and billets from scrap at the Beaumont mill.",
+      "headquarters": {
+        "city": "Beaumont",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.optimus-steelusa.com/"
+      ],
+      "plants": [
+        {
+          "name": "Beaumont Mill",
+          "city": "Vidor",
+          "state": "TX",
+          "address": "100 Old Highway 90 W",
+          "zip": "77662",
+          "latitude": 30.08421,
+          "longitude": -94.07487,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331110",
+          "products": "Wire rod, coiled rebar and billets",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070258973",
+            "https://www.optimus-steelusa.com/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Vinton Steel",
+      "alsoKnownAs": [
+        "Vinton Steel LLC",
+        "Border Steel",
+        "Border Steel Inc",
+        "Border Steel Mills"
+      ],
+      "parent": "Kyoei Steel",
+      "domain": "vintonsteel.com",
+      "industry": "Steel",
+      "description": "Makes steel rebar and other long products from scrap at a mini mill outside El Paso.",
+      "headquarters": {
+        "city": "Vinton",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://gov.texas.gov/news/post/governor-abbott-announces-jeti-expansion-project-in-el-paso-county",
+        "https://www.areadevelopment.com/newsItems/3-1-2025/vinton-steel-kyoei-steel-el-paso-texas.shtml"
+      ],
+      "plants": [
+        {
+          "name": "Vinton Steel",
+          "city": "Vinton",
+          "state": "TX",
+          "address": "8001 Border Steel Rd",
+          "zip": "79821",
+          "latitude": 31.95848,
+          "longitude": -106.58774,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331110",
+          "products": "Rebar and other long steel products recycled from scrap; a new melt shop on the site is planned to start in 2027",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://gov.texas.gov/news/post/governor-abbott-announces-jeti-expansion-project-in-el-paso-county",
+            "https://www.areadevelopment.com/newsItems/3-1-2025/vinton-steel-kyoei-steel-el-paso-texas.shtml",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070295526"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Howmet Aerospace",
+      "alsoKnownAs": [
+        "Howmet",
+        "Howmet Corporation",
+        "Howmet Corp",
+        "Howmet Castings & Services",
+        "Howmet Casting & Services Inc",
+        "Howmet Fastening Systems",
+        "Huck International"
+      ],
+      "parent": null,
+      "domain": "howmet.com",
+      "industry": "Aerospace Components",
+      "description": "Makes investment-cast turbine airfoils and aerospace fasteners for jet engines and airframes.",
+      "headquarters": {
+        "city": "Pittsburgh",
+        "state": "PA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.areadevelopment.com/newsItems/9-29-2026/howmet-aerospace-wichita-falls-texas.shtml"
+      ],
+      "plants": [
+        {
+          "name": "Howmet Wichita Falls Casting",
+          "city": "Wichita Falls",
+          "state": "TX",
+          "address": "6200 Central Fwy N",
+          "zip": "76305",
+          "latitude": 33.9943,
+          "longitude": -98.54798,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": null,
+          "products": "Investment-cast superalloy turbine blades and vanes",
+          "employees": 790,
+          "employeesYear": 2018,
+          "employeesSource": "https://texans.pages.dev/wichita-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (March 2018). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. An expansion announced in September 2026 is expected to add 230 jobs.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070296999",
+            "https://www.areadevelopment.com/newsItems/9-29-2026/howmet-aerospace-wichita-falls-texas.shtml",
+            "https://texans.pages.dev/wichita-county"
+          ]
+        },
+        {
+          "name": "Howmet Fastening Systems Waco",
+          "city": "Waco",
+          "state": "TX",
+          "address": "8001 Imperial Dr",
+          "zip": "76712",
+          "latitude": 31.4947,
+          "longitude": -97.20373,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332722",
+          "products": "Aerospace fasteners",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000495116"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tyler Pipe",
+      "alsoKnownAs": [
+        "Tyler Pipe Company",
+        "Tyler Pipe Co",
+        "Tyler Pipe & Coupling",
+        "Tyler Pipe Industries",
+        "Tyler Pipe-Plant 1"
+      ],
+      "parent": "McWane",
+      "domain": "tylerpipe.com",
+      "industry": "Cast Iron Pipe",
+      "description": "Casts iron soil pipe and fittings for plumbing drains.",
+      "headquarters": {
+        "city": "Tyler",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.tylerpipe.com/about-us/"
+      ],
+      "plants": [
+        {
+          "name": "Tyler Pipe Foundry",
+          "city": "Tyler",
+          "state": "TX",
+          "address": "11910 County Road 492",
+          "zip": "75706",
+          "latitude": 32.43702,
+          "longitude": -95.3639,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331511",
+          "products": "Cast iron soil pipe and fittings",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110052983429",
+            "https://www.tylerpipe.com/about-us/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hensley Industries",
+      "alsoKnownAs": [
+        "Hensley Industries Inc",
+        "G.H. Hensley",
+        "Hensley"
+      ],
+      "parent": "Komatsu",
+      "domain": "hensleyind.com",
+      "industry": "Steel Castings",
+      "description": "Casts steel teeth, adapters and other wear parts for excavator and loader buckets.",
+      "headquarters": {
+        "city": "Dallas",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.hensleyind.com/about"
+      ],
+      "plants": [
+        {
+          "name": "Hensley Industries Dallas",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "2108 Joe Field Rd",
+          "zip": "75229",
+          "latitude": 32.89177,
+          "longitude": -96.90633,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331513",
+          "products": "Steel castings for bucket teeth, adapters and other ground engaging tools",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000457470",
+            "https://www.hensleyind.com/about"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Western Extrusions",
+      "alsoKnownAs": [
+        "Western Extrusions Corp",
+        "Western Extrusions Corporation"
+      ],
+      "parent": null,
+      "domain": "westernextrusions.com",
+      "industry": "Aluminum Extrusions",
+      "description": "Extrudes, anodizes, paints and fabricates aluminum shapes.",
+      "headquarters": {
+        "city": "Carrollton",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Carrollton,_Texas"
+      ],
+      "plants": [
+        {
+          "name": "Western Extrusions Carrollton",
+          "city": "Carrollton",
+          "state": "TX",
+          "address": "1735 Sandy Lake Rd",
+          "zip": "75006",
+          "latitude": 32.9673,
+          "longitude": -96.92329,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331318",
+          "products": "Aluminum extrusions, with anodizing, painting and fabrication on site",
+          "employees": 850,
+          "employeesYear": 2019,
+          "employeesSource": "https://en.wikipedia.org/wiki/Carrollton,_Texas",
+          "employeesNote": "From the \"Top employers (2019)\" table in Wikipedia's Carrollton article; the city list behind it was not checked.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110001866856",
+            "https://en.wikipedia.org/wiki/Carrollton,_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Freeport-McMoRan",
+      "alsoKnownAs": [
+        "Freeport-McMoRan Inc",
+        "Freeport-McMoRan Copper & Gold",
+        "Freeport McMoRan El Paso",
+        "Phelps Dodge Refining",
+        "Phelps Dodge Copper Products",
+        "Phelps Dodge Copper Products Co"
+      ],
+      "parent": null,
+      "domain": "fcx.com",
+      "industry": "Copper",
+      "description": "Refines copper and casts copper rod at its El Paso refinery and rod mill.",
+      "headquarters": {
+        "city": "Phoenix",
+        "state": "AZ",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.fcx.com/operations/north-america"
+      ],
+      "plants": [
+        {
+          "name": "El Paso Refinery and Rod Mill",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "897 Hawkins Blvd",
+          "zip": "79915",
+          "latitude": 31.76359,
+          "longitude": -106.38059,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331410",
+          "products": "Refined copper cathode and continuous-cast copper rod",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.fcx.com/operations/north-america",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000466273"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ASARCO",
+      "alsoKnownAs": [
+        "Asarco LLC",
+        "ASARCO Inc",
+        "Asarco Incorporated",
+        "ASARCO LLC Amarillo Copper Refinery",
+        "American Smelting and Refining"
+      ],
+      "parent": "Grupo México",
+      "domain": "asarco.com",
+      "industry": "Copper",
+      "description": "Refines copper and casts copper rod and cake at its Amarillo refinery.",
+      "headquarters": {
+        "city": "Tucson",
+        "state": "AZ",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://m.usw.org/news/media-center/releases/2024/unions-announce-tentative-agreement-with-asarco",
+        "https://mix941kmxj.com/amarillo-refinery-workers-on-strike/"
+      ],
+      "plants": [
+        {
+          "name": "Amarillo Copper Refinery",
+          "city": "Amarillo",
+          "state": "TX",
+          "address": "7001 State Highway 136",
+          "zip": "79108",
+          "latitude": 35.28337,
+          "longitude": -101.72651,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331410",
+          "products": "Refined copper, copper rod and cake",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070834736",
+            "https://m.usw.org/news/media-center/releases/2024/unions-announce-tentative-agreement-with-asarco",
+            "https://mix941kmxj.com/amarillo-refinery-workers-on-strike/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wyman-Gordon",
+      "alsoKnownAs": [
+        "Wyman Gordon",
+        "Wyman-Gordon Forgings",
+        "Wyman-Gordon Forgings LP",
+        "Wyman Gordon Forgings"
+      ],
+      "parent": "Precision Castparts",
+      "domain": "wyman.com",
+      "industry": "Forgings",
+      "description": "Forges and extrudes large metal parts for jet engines, airframes and energy equipment.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.wyman.com/locations/wyman-gordon-houston.html"
+      ],
+      "plants": [
+        {
+          "name": "Wyman-Gordon Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "10825 Telge Rd",
+          "zip": "77095",
+          "latitude": 29.93301,
+          "longitude": -95.64954,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": null,
+          "products": "Large closed-die forgings and extrusions for aerospace and energy",
+          "employees": 669,
+          "employeesYear": 2026,
+          "employeesSource": "https://www.wyman.com/locations/wyman-gordon-houston.html",
+          "employeesNote": "\"669 Employees\" on the company's page for the plant. The page is undated; it was read in November 2026.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.wyman.com/locations/wyman-gordon-houston.html",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000462115"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Kiewit Offshore Services",
+      "alsoKnownAs": [
+        "Kiewit Offshore Services Ltd",
+        "Kiewit Offshore",
+        "KOS"
+      ],
+      "parent": "Kiewit",
+      "domain": "kiewit.com",
+      "industry": "Offshore Fabrication",
+      "description": "Fabricates steel jackets, topsides and modules for offshore energy projects.",
+      "headquarters": {
+        "city": "Ingleside",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070669713"
+      ],
+      "plants": [
+        {
+          "name": "Kiewit Offshore Services Ingleside Yard",
+          "city": "Ingleside",
+          "state": "TX",
+          "address": "2440 Kiewit Rd",
+          "zip": "78362",
+          "latitude": 27.8518,
+          "longitude": -97.22715,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": null,
+          "products": "Offshore platform jackets, topsides and industrial modules",
+          "employees": 1365,
+          "employeesYear": 2017,
+          "employeesSource": "https://texans.pages.dev/san-patricio-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2017). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. A fabrication yard: headcount moves with the projects under way.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070669713",
+            "https://texans.pages.dev/san-patricio-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sabre Industries",
+      "alsoKnownAs": [
+        "Sabre Communications",
+        "Sabre Communications Corporation",
+        "Sabre Tubular Structures",
+        "Sabre Galvanizing",
+        "Sabre Galvanizing Services",
+        "Sabre-FWT",
+        "FWT",
+        "FWT Inc",
+        "FWT LLC",
+        "Fort Worth Tower"
+      ],
+      "parent": null,
+      "domain": "sabreindustries.com",
+      "industry": "Utility & Telecom Structures",
+      "description": "Makes steel poles and towers for power lines and wireless networks, with its own galvanizing.",
+      "headquarters": {
+        "city": "Alvarado",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/johnson-county",
+        "https://texans.pages.dev/tarrant-county"
+      ],
+      "plants": [
+        {
+          "name": "Sabre Industries Alvarado",
+          "city": "Alvarado",
+          "state": "TX",
+          "address": "8653 E Highway 67",
+          "zip": "76009",
+          "latitude": 32.41613,
+          "longitude": -97.17474,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332312",
+          "products": "Tubular steel utility poles and structures; hot-dip galvanizing",
+          "employees": 527,
+          "employeesYear": 2020,
+          "employeesSource": "https://texans.pages.dev/johnson-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (September 2020). Read on a third-party copy of the state's programme records, not on the Governor's office's own page.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110037446172",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110042426906",
+            "https://texans.pages.dev/johnson-county"
+          ]
+        },
+        {
+          "name": "Sabre Kennedale (FWT)",
+          "city": "Kennedale",
+          "state": "TX",
+          "address": "5750 E Interstate 20",
+          "zip": "76119",
+          "latitude": 32.66746,
+          "longitude": -97.23767,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332312",
+          "products": "Steel towers and poles for utilities and wireless carriers",
+          "employees": 326,
+          "employeesYear": 2020,
+          "employeesSource": "https://texans.pages.dev/tarrant-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2020). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Kennedale's 2024 annual financial report, as quoted on Wikipedia, lists \"Sabre Industries/Fort Worth Tower\" at 450 to 500.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070288866",
+            "https://texans.pages.dev/tarrant-county",
+            "https://en.wikipedia.org/wiki/Kennedale,_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "W&W|AFCO Steel",
+      "alsoKnownAs": [
+        "W&W-AFCO Steel",
+        "W&W-AFCO Steel LLC",
+        "W&W AFCO Steel",
+        "W&W Steel",
+        "AFCO Steel",
+        "Hirschfeld Industries",
+        "Hirschfeld Industries LP",
+        "Hirschfeld Steel",
+        "Hirschfeld Steel Co",
+        "Hirschfeld Steel Company",
+        "Hirschfeld Energy Systems"
+      ],
+      "parent": "Alleghany Capital",
+      "domain": "wwafcosteel.com",
+      "industry": "Structural Steel",
+      "description": "Fabricates structural steel and bridge girders for large buildings, plants and highways.",
+      "headquarters": {
+        "city": "Oklahoma City",
+        "state": "OK",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/tom-green-county"
+      ],
+      "plants": [
+        {
+          "name": "Hirschfeld Division San Angelo",
+          "city": "San Angelo",
+          "state": "TX",
+          "address": "112 W 29th St",
+          "zip": "76903",
+          "latitude": 31.48778,
+          "longitude": -100.45692,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332312",
+          "products": "Fabricated structural steel and steel bridge girders",
+          "employees": 345,
+          "employeesYear": 2020,
+          "employeesSource": "https://texans.pages.dev/tom-green-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2020). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. The company has several shops in San Angelo (29th Street, Art Street, Old Ballinger Highway); the record does not say which the figure covers.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070306426",
+            "https://texans.pages.dev/tom-green-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mueller",
+      "alsoKnownAs": [
+        "Mueller Inc",
+        "Mueller, Inc.",
+        "Mueller Supply Company",
+        "Mueller Supply Co",
+        "Mueller Supply Company Incorporated",
+        "Mueller Metal Buildings"
+      ],
+      "parent": "Cornerstone Building Brands",
+      "domain": "muellerinc.com",
+      "industry": "Metal Buildings",
+      "description": "Makes steel buildings, metal roofing and components sold through its own branches.",
+      "headquarters": {
+        "city": "Ballinger",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.muellerinc.com/about-us"
+      ],
+      "plants": [
+        {
+          "name": "Mueller Ballinger",
+          "city": "Ballinger",
+          "state": "TX",
+          "address": "1913 Hutchins Ave",
+          "zip": "76821",
+          "latitude": 31.7249,
+          "longitude": -99.95899,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332311",
+          "products": "Steel building frames, metal roofing and wall panels",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110006172373",
+            "https://www.muellerinc.com/about-us"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Valmont Industries",
+      "alsoKnownAs": [
+        "Valmont",
+        "Valmont Industries Inc",
+        "Valmont/Texas",
+        "Valmont Utility",
+        "Valmont Newmark",
+        "Valmont Coatings"
+      ],
+      "parent": null,
+      "domain": "valmont.com",
+      "industry": "Poles & Structures",
+      "description": "Makes steel and concrete poles for lighting, traffic signals and power lines.",
+      "headquarters": {
+        "city": "Omaha",
+        "state": "NE",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://kwhi.com/?p=158744"
+      ],
+      "plants": [
+        {
+          "name": "Valmont Brenham",
+          "city": "Brenham",
+          "state": "TX",
+          "address": "2551 Valmont Dr",
+          "zip": "77833",
+          "latitude": 30.14245,
+          "longitude": -96.40487,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": null,
+          "products": "Steel poles for lighting, traffic signals and utility lines",
+          "employees": 250,
+          "employeesYear": 2019,
+          "employeesSource": "https://kwhi.com/?p=158744",
+          "employeesNote": "The plant manager told KWHI radio in 2019 that the plant was \"currently employing over 250 associates\". The state's Enterprise Zone record showed 195 in December 2016.",
+          "opened": 1974,
+          "status": "operating",
+          "sources": [
+            "https://kwhi.com/?p=158744",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000464355",
+            "https://texans.pages.dev/washington-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ball",
+      "alsoKnownAs": [
+        "Ball Corporation",
+        "Ball Metal Beverage Container",
+        "Ball Metal Beverage Container Corp",
+        "Ball Metal Beverage Packaging",
+        "Ball Metal Beverage"
+      ],
+      "parent": null,
+      "domain": "ball.com",
+      "industry": "Beverage Cans",
+      "description": "Makes aluminum beverage cans and ends.",
+      "headquarters": {
+        "city": "Westminster",
+        "state": "CO",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/tarrant-county"
+      ],
+      "plants": [
+        {
+          "name": "Ball Fort Worth",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "6600 Will Rogers Blvd",
+          "zip": "76140",
+          "latitude": 32.64892,
+          "longitude": -97.31432,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332431",
+          "products": "Aluminum beverage cans",
+          "employees": 215,
+          "employeesYear": 2020,
+          "employeesSource": "https://texans.pages.dev/tarrant-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2020). Read on a third-party copy of the state's programme records, not on the Governor's office's own page.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000459815",
+            "https://texans.pages.dev/tarrant-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ellwood Texas Forge",
+      "alsoKnownAs": [
+        "Ellwood Texas Forge Houston",
+        "Ellwood Texas Forge Navasota"
+      ],
+      "parent": "Ellwood Group",
+      "domain": "ellwoodgroup.com",
+      "industry": "Forgings",
+      "description": "Forges steel and alloy parts for oilfield, aerospace and industrial equipment.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000461740"
+      ],
+      "plants": [
+        {
+          "name": "Ellwood Texas Forge Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "12500 Amelia Dr",
+          "zip": "77045",
+          "latitude": 29.63117,
+          "longitude": -95.40251,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332111",
+          "products": "Closed-die and open-die steel forgings",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000461740"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Simpson Strong-Tie",
+      "alsoKnownAs": [
+        "Simpson Strong Tie",
+        "Simpson Strong-Tie Company",
+        "Simpson Strong Tie McKinney Facility"
+      ],
+      "parent": "Simpson Manufacturing",
+      "domain": "strongtie.com",
+      "industry": "Building Connectors",
+      "description": "Stamps steel connectors, anchors and fasteners for wood and concrete construction.",
+      "headquarters": {
+        "city": "Pleasanton",
+        "state": "CA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110034883785"
+      ],
+      "plants": [
+        {
+          "name": "Simpson Strong-Tie McKinney",
+          "city": "McKinney",
+          "state": "TX",
+          "address": "2221 Country Ln",
+          "zip": "75069",
+          "latitude": 33.16637,
+          "longitude": -96.59879,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": null,
+          "products": "Steel structural connectors for construction",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110034883785"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Martin Marietta",
+      "alsoKnownAs": [
+        "Martin Marietta Materials",
+        "Martin Marietta Materials Inc",
+        "Martin Marietta Midlothian Facility",
+        "TXI",
+        "Txi",
+        "Texas Industries",
+        "Texas Industries Inc",
+        "TXI Operations",
+        "TXI Operations LP"
+      ],
+      "parent": null,
+      "domain": "martinmarietta.com",
+      "industry": "Cement & Aggregates",
+      "description": "Makes cement at Midlothian and supplies aggregates and ready-mix concrete across Texas.",
+      "headquarters": {
+        "city": "Raleigh",
+        "state": "NC",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Martin Marietta Midlothian Cement Plant",
+          "city": "Midlothian",
+          "state": "TX",
+          "address": "245 Ward Rd",
+          "zip": "76065",
+          "latitude": 32.46299,
+          "longitude": -97.02681,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327310",
+          "products": "Portland cement",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000459209",
+            "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf",
+            "https://en.wikipedia.org/wiki/Midlothian,_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Amrize",
+      "alsoKnownAs": [
+        "Holcim",
+        "Holcim US",
+        "Holcim (US) Inc",
+        "Holcim Texas",
+        "Holcim (Texas) Limited Partnership",
+        "LafargeHolcim",
+        "Lafarge Holcim Texas"
+      ],
+      "parent": null,
+      "domain": "amrize.com",
+      "industry": "Cement",
+      "description": "Makes cement at Midlothian; this was Holcim's North American business until it became Amrize in 2025.",
+      "headquarters": {
+        "city": "Chicago",
+        "state": "IL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf",
+        "https://www.holcim.us/sites/us/files/2022-03/MIDLOTHIAN_Fact_Sheet_March2022_HR.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Amrize Midlothian Cement Plant",
+          "city": "Midlothian",
+          "state": "TX",
+          "address": "1800 Dove Ln",
+          "zip": "76065",
+          "latitude": 32.51156,
+          "longitude": -96.97246,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327310",
+          "products": "Portland cement",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110001867114",
+            "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf",
+            "https://en.wikipedia.org/wiki/Midlothian,_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ash Grove",
+      "alsoKnownAs": [
+        "Ash Grove Cement",
+        "Ash Grove Cement Company",
+        "Ash Grove Texas",
+        "Ash Grove Texas LP",
+        "Ash Grove Texas Cement",
+        "Ash Grove - Hunter Cement Plant",
+        "Hunter Cement"
+      ],
+      "parent": "CRH",
+      "domain": "ashgrove.com",
+      "industry": "Cement",
+      "description": "Makes cement at Midlothian and at the Hunter plant near New Braunfels.",
+      "headquarters": {
+        "city": "Overland Park",
+        "state": "KS",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Ash Grove Midlothian Cement Plant",
+          "city": "Midlothian",
+          "state": "TX",
+          "address": "900 Gifco Rd",
+          "zip": "76065",
+          "latitude": 32.5198,
+          "longitude": -97.00684,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327310",
+          "products": "Portland cement",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000459192",
+            "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf",
+            "https://en.wikipedia.org/wiki/Midlothian,_Texas"
+          ]
+        },
+        {
+          "name": "Hunter Cement Plant",
+          "city": "New Braunfels",
+          "state": "TX",
+          "address": "7781 FM 1102",
+          "zip": "78132",
+          "latitude": 29.80377,
+          "longitude": -98.03997,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327310",
+          "products": "Portland cement",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000874572",
+            "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cemex",
+      "alsoKnownAs": [
+        "Cemex USA",
+        "Cemex Inc",
+        "CEMEX Construction Materials South",
+        "CEMEX Construction Materials South LLC",
+        "Cemex Cement",
+        "Cemex Balcones Cement Plant"
+      ],
+      "parent": null,
+      "domain": "cemexusa.com",
+      "industry": "Cement & Concrete",
+      "description": "Makes cement at the Balcones plant in New Braunfels and ready-mix concrete across Texas.",
+      "headquarters": {
+        "city": "Monterrey",
+        "state": null,
+        "country": "MX"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Balcones Cement Plant",
+          "city": "New Braunfels",
+          "state": "TX",
+          "address": "2580 Wald Rd",
+          "zip": "78132",
+          "latitude": 29.67285,
+          "longitude": -98.18203,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327310",
+          "products": "Portland cement",
+          "employees": 248,
+          "employeesYear": 2017,
+          "employeesSource": "https://texans.pages.dev/comal-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2017). Read on a third-party copy of the state's programme records, not on the Governor's office's own page.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070754634",
+            "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf",
+            "https://texans.pages.dev/comal-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Buzzi Unicem USA",
+      "alsoKnownAs": [
+        "Buzzi Unicem",
+        "Buzzi Unicem USA Inc",
+        "Lone Star Industries",
+        "Lone Star Industries Inc",
+        "Alamo Cement",
+        "Alamo Cement Company",
+        "Alamo Cement Co",
+        "Alamo Cement Company II"
+      ],
+      "parent": "Buzzi",
+      "domain": "buzziunicemusa.com",
+      "industry": "Cement",
+      "description": "Makes cement at Maryneal and San Antonio.",
+      "headquarters": {
+        "city": "Bethlehem",
+        "state": "PA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Maryneal Cement Plant",
+          "city": "Maryneal",
+          "state": "TX",
+          "address": "202 County Road 306",
+          "zip": "79535",
+          "latitude": 32.24511,
+          "longitude": -100.45756,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327310",
+          "products": "Portland cement",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110008149672",
+            "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+          ]
+        },
+        {
+          "name": "San Antonio Cement Plant",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "6055 W Green Mountain Rd",
+          "zip": "78266",
+          "latitude": 29.61081,
+          "longitude": -98.36725,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327310",
+          "products": "Portland cement (the former Alamo Cement plant)",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110052766583",
+            "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Capitol Aggregates",
+      "alsoKnownAs": [
+        "Capitol Aggregates Inc",
+        "Capitol Aggregates Ltd",
+        "Capitol Cement",
+        "Capitol Cement Plant"
+      ],
+      "parent": null,
+      "domain": "capitolaggregates.com",
+      "industry": "Cement & Aggregates",
+      "description": "Makes cement in San Antonio and supplies aggregates in Central and South Texas.",
+      "headquarters": {
+        "city": "San Antonio",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Capitol Cement Plant",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "11551 Nacogdoches Rd",
+          "zip": "78217",
+          "latitude": 29.54473,
+          "longitude": -98.42075,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327310",
+          "products": "Portland cement",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000464710",
+            "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "GCC",
+      "alsoKnownAs": [
+        "GCC of America",
+        "GCC Permian",
+        "GCC Permian LLC",
+        "Grupo Cementos de Chihuahua"
+      ],
+      "parent": null,
+      "domain": "gcc.com",
+      "industry": "Cement",
+      "description": "Makes cement at Odessa for West Texas and the Permian Basin.",
+      "headquarters": {
+        "city": "Chihuahua",
+        "state": null,
+        "country": "MX"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Odessa Cement Plant",
+          "city": "Odessa",
+          "state": "TX",
+          "address": "16501 W Murphy St",
+          "zip": "79766",
+          "latitude": 31.74083,
+          "longitude": -102.55095,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327310",
+          "products": "Portland cement and oil well cement",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071159193",
+            "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Texas Lehigh Cement",
+      "alsoKnownAs": [
+        "Texas Lehigh Cement Company",
+        "Texas Lehigh Cement Company LP",
+        "Texas-Lehigh Cement",
+        "Texas Lehigh"
+      ],
+      "parent": "Eagle Materials",
+      "domain": "texaslehigh.com",
+      "industry": "Cement",
+      "description": "Makes cement at Buda, between Austin and San Antonio.",
+      "headquarters": {
+        "city": "Buda",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Buda Cement Plant",
+          "city": "Buda",
+          "state": "TX",
+          "address": "701 Cement Plant Rd",
+          "zip": "78610",
+          "latitude": 30.05745,
+          "longitude": -97.8567,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327310",
+          "products": "Portland cement",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000465274",
+            "https://www.cement.org/wp-content/uploads/2025/06/ACA_Texas_One-Sheet_05-29-25_v1.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Vitro Architectural Glass",
+      "alsoKnownAs": [
+        "Vitro",
+        "Vitro Flat Glass",
+        "Vitro Flat Glass LLC",
+        "Vitro Glass"
+      ],
+      "parent": "Vitro",
+      "domain": "vitroglazings.com",
+      "industry": "Flat Glass",
+      "description": "Makes float glass and coated architectural glass.",
+      "headquarters": {
+        "city": "Cheswick",
+        "state": "PA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/wichita-county"
+      ],
+      "plants": [
+        {
+          "name": "Wichita Falls Glass Plant",
+          "city": "Wichita Falls",
+          "state": "TX",
+          "address": "7400 Central Fwy N",
+          "zip": "76305",
+          "latitude": 34.00226,
+          "longitude": -98.55379,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327211",
+          "products": "Float glass and coated architectural glass",
+          "employees": 330,
+          "employeesYear": 2018,
+          "employeesSource": "https://texans.pages.dev/wichita-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2018). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. An undated Wichita Falls Chamber list quoted on Wikipedia shows 934; the state figure is used because it is dated.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://texans.pages.dev/wichita-county",
+            "https://en.wikipedia.org/wiki/Wichita_Falls,_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Guardian Glass",
+      "alsoKnownAs": [
+        "Guardian",
+        "Guardian Industries",
+        "Guardian Industries LLC",
+        "Guardian Industries Corp",
+        "Guardian Industries - Corsicana"
+      ],
+      "parent": "Koch Industries",
+      "domain": "guardianglass.com",
+      "industry": "Flat Glass",
+      "description": "Makes float glass and coated glass for buildings.",
+      "headquarters": {
+        "city": "Auburn Hills",
+        "state": "MI",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/navarro-county"
+      ],
+      "plants": [
+        {
+          "name": "Guardian Glass Corsicana",
+          "city": "Corsicana",
+          "state": "TX",
+          "address": "3801 S US Highway 287",
+          "zip": "75109",
+          "latitude": 32.06583,
+          "longitude": -96.43222,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327211",
+          "products": "Float glass and coated glass",
+          "employees": 300,
+          "employeesYear": 2018,
+          "employeesSource": "https://texans.pages.dev/navarro-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (September 2018). Read on a third-party copy of the state's programme records, not on the Governor's office's own page.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070347876",
+            "https://texans.pages.dev/navarro-county",
+            "https://en.wikipedia.org/wiki/Corsicana,_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Owens Corning",
+      "alsoKnownAs": [
+        "Owens Corning Insulating Systems",
+        "Owens Corning Insulating Systems LLC",
+        "Owens Corning LLC",
+        "Owens-Corning Fiberglas",
+        "Owens Corning Fiberglass Corp",
+        "Owens-Corning Fiberglass Corp"
+      ],
+      "parent": null,
+      "domain": "owenscorning.com",
+      "industry": "Insulation",
+      "description": "Makes fiberglass building insulation at Waxahachie.",
+      "headquarters": {
+        "city": "Toledo",
+        "state": "OH",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/ellis-county"
+      ],
+      "plants": [
+        {
+          "name": "Owens Corning Waxahachie",
+          "city": "Waxahachie",
+          "state": "TX",
+          "address": "3700 N Interstate 35E",
+          "zip": "75165",
+          "latitude": 32.44166,
+          "longitude": -96.84756,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327993",
+          "products": "Fiberglass building insulation",
+          "employees": 343,
+          "employeesYear": 2017,
+          "employeesSource": "https://texans.pages.dev/ellis-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (March 2017). Read on a third-party copy of the state's programme records, not on the Governor's office's own page.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070834798",
+            "https://texans.pages.dev/ellis-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Johns Manville",
+      "alsoKnownAs": [
+        "Johns Manville Corporation",
+        "Johns Manville Corp",
+        "Johns-Manville",
+        "Johns Manville - Cleburne"
+      ],
+      "parent": "Berkshire Hathaway",
+      "domain": "jm.com",
+      "industry": "Insulation",
+      "description": "Makes fiberglass building insulation at Cleburne.",
+      "headquarters": {
+        "city": "Denver",
+        "state": "CO",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/johnson-county"
+      ],
+      "plants": [
+        {
+          "name": "Johns Manville Cleburne",
+          "city": "Cleburne",
+          "state": "TX",
+          "address": "200 W Industrial Blvd",
+          "zip": "76033",
+          "latitude": 32.38593,
+          "longitude": -97.39259,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327993",
+          "products": "Fiberglass building insulation",
+          "employees": 327,
+          "employeesYear": 2019,
+          "employeesSource": "https://texans.pages.dev/johnson-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (March 2019). Read on a third-party copy of the state's programme records, not on the Governor's office's own page.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000458996",
+            "https://texans.pages.dev/johnson-county",
+            "https://en.wikipedia.org/wiki/Cleburne,_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "James Hardie",
+      "alsoKnownAs": [
+        "James Hardie Building Products",
+        "James Hardie Building Products Inc",
+        "James Hardie Industries"
+      ],
+      "parent": null,
+      "domain": "jameshardie.com",
+      "industry": "Fiber Cement Siding",
+      "description": "Makes fiber cement siding and backer board.",
+      "headquarters": {
+        "city": "Chicago",
+        "state": "IL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/ellis-county"
+      ],
+      "plants": [
+        {
+          "name": "James Hardie Cleburne",
+          "city": "Cleburne",
+          "state": "TX",
+          "address": "820 Sparks Dr",
+          "zip": "76033",
+          "latitude": 32.40349,
+          "longitude": -97.40692,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327390",
+          "products": "Fiber cement siding and trim",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110021017914",
+            "https://en.wikipedia.org/wiki/Cleburne,_Texas"
+          ]
+        },
+        {
+          "name": "James Hardie Waxahachie",
+          "city": "Waxahachie",
+          "state": "TX",
+          "address": "2425 N Highway 77",
+          "zip": "75165",
+          "latitude": 32.44583,
+          "longitude": -96.84016,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327390",
+          "products": "Fiber cement siding",
+          "employees": 169,
+          "employeesYear": 2017,
+          "employeesSource": "https://texans.pages.dev/ellis-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (June 2017). Read on a third-party copy of the state's programme records, not on the Governor's office's own page.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110033749585",
+            "https://texans.pages.dev/ellis-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Acme Brick",
+      "alsoKnownAs": [
+        "Acme Brick Company",
+        "Acme Brick Co",
+        "Acme Brick Co - Denton Plant",
+        "Acme Brick - Texas Clay Plants",
+        "Texas Clay"
+      ],
+      "parent": "Berkshire Hathaway",
+      "domain": "brick.com",
+      "industry": "Brick",
+      "description": "Makes clay face brick at plants in Texas, Arkansas, Oklahoma and Alabama.",
+      "headquarters": {
+        "city": "Fort Worth",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Acme_Brick"
+      ],
+      "plants": [
+        {
+          "name": "Denton Plant",
+          "city": "Denton",
+          "state": "TX",
+          "address": "220 E Daniels St",
+          "zip": "76205",
+          "latitude": 33.18121,
+          "longitude": -97.13419,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327120",
+          "products": "Clay face brick",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000459968",
+            "https://en.wikipedia.org/wiki/Acme_Brick"
+          ]
+        },
+        {
+          "name": "Elgin Plant",
+          "city": "Elgin",
+          "state": "TX",
+          "address": "1776 Old McDade Rd",
+          "zip": "78621",
+          "latitude": 30.32301,
+          "longitude": -97.29561,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327120",
+          "products": "Clay face brick (two plants on the site)",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110007180709",
+            "https://en.wikipedia.org/wiki/Acme_Brick"
+          ]
+        },
+        {
+          "name": "Texas Clay Plants",
+          "city": "Malakoff",
+          "state": "TX",
+          "address": "402 Bartlett Ave",
+          "zip": "75148",
+          "latitude": 32.16663,
+          "longitude": -96.0173,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327120",
+          "products": "Clay face brick (two plants on the site)",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110067543849",
+            "https://en.wikipedia.org/wiki/Acme_Brick"
+          ]
+        },
+        {
+          "name": "San Felipe Plant",
+          "city": "Sealy",
+          "state": "TX",
+          "address": "6005 Peters San Felipe Rd",
+          "zip": "77474",
+          "latitude": 29.82483,
+          "longitude": -96.13719,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327120",
+          "products": "Clay face brick",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110017424027",
+            "https://en.wikipedia.org/wiki/Acme_Brick"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Kohler",
+      "alsoKnownAs": [
+        "Kohler Co",
+        "Kohler Co.",
+        "Kohler Company",
+        "Kohler Co. - Brownwood - Main Plant",
+        "Kohler Brownwood Tank Plant"
+      ],
+      "parent": null,
+      "domain": "kohler.com",
+      "industry": "Plumbing Fixtures",
+      "description": "Makes vitreous china toilets, tanks and sinks at Brownwood.",
+      "headquarters": {
+        "city": "Kohler",
+        "state": "WI",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/brown-county"
+      ],
+      "plants": [
+        {
+          "name": "Kohler Brownwood",
+          "city": "Brownwood",
+          "state": "TX",
+          "address": "4601 Highway 377 S",
+          "zip": "76801",
+          "latitude": 31.66551,
+          "longitude": -98.99789,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327110",
+          "products": "Vitreous china toilets, tanks and lavatories",
+          "employees": 900,
+          "employeesYear": 2019,
+          "employeesSource": "https://texans.pages.dev/brown-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (March 2019). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Kohler also has a tank plant on Milam Drive in Brownwood; the record does not say whether the figure covers both.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110006125674",
+            "https://texans.pages.dev/brown-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "USG",
+      "alsoKnownAs": [
+        "United States Gypsum",
+        "United States Gypsum Company",
+        "United States Gypsum Company of Sweetwater",
+        "US Gypsum",
+        "U.S. Gypsum",
+        "USG Corporation"
+      ],
+      "parent": "Knauf",
+      "domain": "usg.com",
+      "industry": "Gypsum Wallboard",
+      "description": "Makes gypsum wallboard and plaster products.",
+      "headquarters": {
+        "city": "Chicago",
+        "state": "IL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110063119352",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110001867588"
+      ],
+      "plants": [
+        {
+          "name": "USG Sweetwater",
+          "city": "Sweetwater",
+          "state": "TX",
+          "address": "1 USG Rd",
+          "zip": "79556",
+          "latitude": 32.4915,
+          "longitude": -100.36147,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327420",
+          "products": "Gypsum wallboard and plaster",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110063119352"
+          ]
+        },
+        {
+          "name": "USG Galena Park",
+          "city": "Galena Park",
+          "state": "TX",
+          "address": "1201 Mayo Shell Rd",
+          "zip": "77547",
+          "latitude": 29.7231,
+          "longitude": -95.24406,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327420",
+          "products": "Gypsum wallboard",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110001867588"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "National Gypsum",
+      "alsoKnownAs": [
+        "National Gypsum Company",
+        "National Gypsum Co",
+        "New NGC Inc",
+        "National Gypsum - Rotan Plant"
+      ],
+      "parent": null,
+      "domain": "nationalgypsum.com",
+      "industry": "Gypsum Wallboard",
+      "description": "Makes gypsum wallboard.",
+      "headquarters": {
+        "city": "Charlotte",
+        "state": "NC",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070358152"
+      ],
+      "plants": [
+        {
+          "name": "National Gypsum Rotan",
+          "city": "Rotan",
+          "state": "TX",
+          "address": "832 County Road 311",
+          "zip": "79546",
+          "latitude": 32.83733,
+          "longitude": -100.45282,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327420",
+          "products": "Gypsum wallboard",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070358152"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "O-I Glass",
+      "alsoKnownAs": [
+        "O-I",
+        "Owens-Illinois",
+        "Owens-Illinois Inc",
+        "Owens-Brockway Glass Container",
+        "Owens-Brockway Glass Container Inc",
+        "Owens Brockway"
+      ],
+      "parent": null,
+      "domain": "o-i.com",
+      "industry": "Glass Containers",
+      "description": "Makes glass bottles and jars.",
+      "headquarters": {
+        "city": "Perrysburg",
+        "state": "OH",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071159661"
+      ],
+      "plants": [
+        {
+          "name": "O-I Waco",
+          "city": "Waco",
+          "state": "TX",
+          "address": "5200 Beverly Dr",
+          "zip": "76711",
+          "latitude": 31.5122,
+          "longitude": -97.17059,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327213",
+          "products": "Glass bottles",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071159661",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070309768"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Georgia-Pacific",
+      "alsoKnownAs": [
+        "Georgia Pacific",
+        "Georgia-Pacific LLC",
+        "Georgia-Pacific Corp",
+        "Georgia-Pacific Wood Products",
+        "Georgia-Pacific Wood Products LLC",
+        "Georgia-Pacific Wood Products South LLC",
+        "Georgia-Pacific Gypsum",
+        "Georgia-Pacific Gypsum LLC",
+        "Georgia-Pacific Panel Products",
+        "GP"
+      ],
+      "parent": "Koch Industries",
+      "domain": "gp.com",
+      "industry": "Wood & Building Products",
+      "description": "Makes lumber, plywood and gypsum wallboard in Texas, along with packaging.",
+      "headquarters": {
+        "city": "Atlanta",
+        "state": "GA",
+        "country": "US"
+      },
+      "stateEmployees": {
+        "state": "TX",
+        "count": 2250,
+        "year": 2026,
+        "source": "https://www.gp.com/about-us/locations/texas",
+        "note": "\"2,250 Direct Employees\" at 9 Texas facilities on the company's Texas page. The page is undated (read November 2026) and covers every Georgia-Pacific site in the state, not only the plants listed here."
+      },
+      "sources": [
+        "https://www.gp.com/about-us/locations/texas"
+      ],
+      "plants": [
+        {
+          "name": "Diboll Lumber",
+          "city": "Diboll",
+          "state": "TX",
+          "address": "100 Martin Luther King Jr St",
+          "zip": "75941",
+          "latitude": 31.19025,
+          "longitude": -94.78885,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321113",
+          "products": "Southern pine lumber",
+          "employees": 377,
+          "employeesYear": 2020,
+          "employeesSource": "https://texans.pages.dev/angelina-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (September 2020). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Filed by Georgia-Pacific Wood Products for Diboll; it may include other Georgia-Pacific operations in the town.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070828019",
+            "https://texans.pages.dev/angelina-county"
+          ]
+        },
+        {
+          "name": "Camden Plywood and Lumber",
+          "city": "Camden",
+          "state": "TX",
+          "address": null,
+          "zip": null,
+          "latitude": 30.9122,
+          "longitude": -94.73224,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321212",
+          "products": "Southern pine plywood and lumber",
+          "employees": 577,
+          "employeesYear": 2020,
+          "employeesSource": "https://texans.pages.dev/polk-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (September 2020). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. The record gives the location only as Polk County; Camden is Georgia-Pacific's complex there.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://texans.pages.dev/polk-county"
+          ]
+        },
+        {
+          "name": "Pineland Lumber",
+          "city": "Pineland",
+          "state": "TX",
+          "address": "105 Yellowpine Hwy",
+          "zip": "75968",
+          "latitude": 31.245,
+          "longitude": -93.96539,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321113",
+          "products": "Southern pine lumber",
+          "employees": 274,
+          "employeesYear": 2016,
+          "employeesSource": "https://texans.pages.dev/sabine-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2016). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Older than the rebuilding of the mill; nothing newer was found.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000458825",
+            "https://texans.pages.dev/sabine-county"
+          ]
+        },
+        {
+          "name": "Sweetwater Gypsum Plant",
+          "city": "Sweetwater",
+          "state": "TX",
+          "address": "FM 1856 at Interstate 20",
+          "zip": "79556",
+          "latitude": 32.48242,
+          "longitude": -100.33693,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327420",
+          "products": "Gypsum wallboard",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110002470022"
+          ]
+        },
+        {
+          "name": "Acme Wallboard Plant",
+          "city": "Quanah",
+          "state": "TX",
+          "address": null,
+          "zip": "79252",
+          "latitude": 34.32394,
+          "longitude": -99.81819,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327420",
+          "products": "Gypsum wallboard",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110007177722"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "West Fraser",
+      "alsoKnownAs": [
+        "West Fraser Inc",
+        "West Fraser Timber",
+        "West Fraser US EWP",
+        "West Fraser Angelina",
+        "Angelina Forest Products",
+        "Norbord",
+        "Norbord Texas",
+        "Norbord Texas Jefferson OSB",
+        "Norbord Texas Nacogdoches Inc"
+      ],
+      "parent": null,
+      "domain": "westfraser.com",
+      "industry": "Lumber & OSB",
+      "description": "Saws southern pine lumber and presses oriented strand board in East Texas.",
+      "headquarters": {
+        "city": "Vancouver",
+        "state": null,
+        "country": "CA"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110062089868",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071546486"
+      ],
+      "plants": [
+        {
+          "name": "Henderson Sawmill",
+          "city": "Henderson",
+          "state": "TX",
+          "address": "609 Industrial Dr",
+          "zip": "75652",
+          "latitude": 32.17665,
+          "longitude": -94.80484,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321113",
+          "products": "Southern pine lumber",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110062089868"
+          ]
+        },
+        {
+          "name": "New Boston Sawmill",
+          "city": "New Boston",
+          "state": "TX",
+          "address": "1345 US Highway 82 E",
+          "zip": "75570",
+          "latitude": 33.46096,
+          "longitude": -94.38771,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321113",
+          "products": "Southern pine lumber",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070282058"
+          ]
+        },
+        {
+          "name": "Lufkin (Angelina) Sawmill",
+          "city": "Lufkin",
+          "state": "TX",
+          "address": "3935 FM 326",
+          "zip": "75901",
+          "latitude": 31.2926,
+          "longitude": -94.62713,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321113",
+          "products": "Southern pine lumber",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070373355"
+          ]
+        },
+        {
+          "name": "Jefferson OSB Mill",
+          "city": "Jefferson",
+          "state": "TX",
+          "address": "500 Nexfor Blvd",
+          "zip": "75657",
+          "latitude": 32.7773,
+          "longitude": -94.3693,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321219",
+          "products": "Oriented strand board",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071546486"
+          ]
+        },
+        {
+          "name": "Nacogdoches OSB Mill",
+          "city": "Nacogdoches",
+          "state": "TX",
+          "address": "2301 SE Stallings Dr",
+          "zip": "75961",
+          "latitude": 31.58051,
+          "longitude": -94.65001,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321219",
+          "products": "Oriented strand board",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071545425"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LP Building Solutions",
+      "alsoKnownAs": [
+        "LP",
+        "Louisiana-Pacific",
+        "Louisiana Pacific",
+        "Louisiana-Pacific Corporation",
+        "Louisiana Pacific Corp",
+        "Louisiana Pacific Corporation",
+        "La Pacific Corporation"
+      ],
+      "parent": null,
+      "domain": "lpcorp.com",
+      "industry": "Engineered Wood",
+      "description": "Presses oriented strand board and engineered wood panels.",
+      "headquarters": {
+        "city": "Nashville",
+        "state": "TN",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000598862",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070082346"
+      ],
+      "plants": [
+        {
+          "name": "Carthage OSB Mill",
+          "city": "Carthage",
+          "state": "TX",
+          "address": "1199 County Road 201",
+          "zip": "75633",
+          "latitude": 32.18158,
+          "longitude": -94.35685,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321219",
+          "products": "Oriented strand board",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000598862"
+          ]
+        },
+        {
+          "name": "Jasper OSB Mill",
+          "city": "Jasper",
+          "state": "TX",
+          "address": "5110 US Highway 190 E",
+          "zip": "75951",
+          "latitude": 30.90791,
+          "longitude": -93.92086,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321219",
+          "products": "Oriented strand board",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070082346"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Clayton Homes",
+      "alsoKnownAs": [
+        "Clayton",
+        "Clayton Homes Inc",
+        "Clayton Homes Manufacturing",
+        "CMH Manufacturing",
+        "CMH Manufacturing Inc",
+        "CMH Manufacturing West",
+        "Clayton Home Building Group",
+        "Clayton Mobile Homes"
+      ],
+      "parent": "Berkshire Hathaway",
+      "domain": "claytonhomes.com",
+      "industry": "Manufactured Homes",
+      "description": "Builds manufactured and modular homes in factories.",
+      "headquarters": {
+        "city": "Maryville",
+        "state": "TN",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Sulphur_Springs,_Texas"
+      ],
+      "plants": [
+        {
+          "name": "Clayton Sulphur Springs",
+          "city": "Sulphur Springs",
+          "state": "TX",
+          "address": "2600 Main St",
+          "zip": "75482",
+          "latitude": 33.12167,
+          "longitude": -95.655,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321991",
+          "products": "Manufactured homes",
+          "employees": 293,
+          "employeesYear": 2024,
+          "employeesSource": "https://en.wikipedia.org/wiki/Sulphur_Springs,_Texas",
+          "employeesNote": "Listed as \"CMH Manufacturing\" in the city's 2024 annual financial report, as quoted on Wikipedia; the report itself was not checked.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000458022",
+            "https://en.wikipedia.org/wiki/Sulphur_Springs,_Texas"
+          ]
+        },
+        {
+          "name": "Clayton Bonham",
+          "city": "Bonham",
+          "state": "TX",
+          "address": "333 Austin St",
+          "zip": "75418",
+          "latitude": 33.56864,
+          "longitude": -96.19618,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321991",
+          "products": "Manufactured homes",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000457915"
+          ]
+        },
+        {
+          "name": "Clayton Waco 1",
+          "city": "Waco",
+          "state": "TX",
+          "address": "6800 Imperial Dr",
+          "zip": "76712",
+          "latitude": 31.50074,
+          "longitude": -97.18841,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321991",
+          "products": "Manufactured homes",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000460572"
+          ]
+        },
+        {
+          "name": "Clayton Waco 2",
+          "city": "Waco",
+          "state": "TX",
+          "address": "7001 Imperial Dr",
+          "zip": "76712",
+          "latitude": 31.50093,
+          "longitude": -97.19198,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321991",
+          "products": "Manufactured homes",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000460581"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Champion Homes",
+      "alsoKnownAs": [
+        "Champion Home Builders",
+        "Champion Home Builders Co",
+        "Champion Home Builders Inc",
+        "Champion Buildings Mfg",
+        "Skyline Champion",
+        "Champion Home Builders Burleson Plant"
+      ],
+      "parent": null,
+      "domain": "championhomes.com",
+      "industry": "Manufactured Homes",
+      "description": "Builds manufactured and modular homes in factories.",
+      "headquarters": {
+        "city": "Troy",
+        "state": "MI",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Burleson,_Texas"
+      ],
+      "plants": [
+        {
+          "name": "Champion Homes Burleson",
+          "city": "Burleson",
+          "state": "TX",
+          "address": "501 S Burleson Blvd",
+          "zip": "76028",
+          "latitude": 32.53499,
+          "longitude": -97.31011,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321991",
+          "products": "Manufactured homes",
+          "employees": 300,
+          "employeesYear": 2023,
+          "employeesSource": "https://en.wikipedia.org/wiki/Burleson,_Texas",
+          "employeesNote": "Listed as \"Champion Buildings Mfg\" in the city's 2023 annual financial report, as quoted on Wikipedia; the report itself was not checked.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070370019",
+            "https://en.wikipedia.org/wiki/Burleson,_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cavco Industries",
+      "alsoKnownAs": [
+        "Cavco",
+        "Cavco Industries Inc",
+        "Cavco Homes of Texas",
+        "Cavco - Lancaster",
+        "Cavco - Lake Arlington",
+        "Oak Creek Homes",
+        "American Homestar",
+        "American Homestar Corporation",
+        "American Homestar of Lancaster",
+        "Palm Harbor Homes",
+        "Fleetwood Homes",
+        "Fleetwood Homes of Texas"
+      ],
+      "parent": null,
+      "domain": "cavco.com",
+      "industry": "Manufactured Homes",
+      "description": "Builds manufactured homes under the Cavco, Palm Harbor, Fleetwood and Oak Creek names.",
+      "headquarters": {
+        "city": "Phoenix",
+        "state": "AZ",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071296639",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110072083868"
+      ],
+      "plants": [
+        {
+          "name": "Cavco Homes of Texas",
+          "city": "Seguin",
+          "state": "TX",
+          "address": "2301 N State Highway 46",
+          "zip": "78155",
+          "latitude": 29.59398,
+          "longitude": -97.99919,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321991",
+          "products": "Manufactured homes",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071296639"
+          ]
+        },
+        {
+          "name": "Oak Creek Homes Fort Worth",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "4805 E Loop 820 S",
+          "zip": "76119",
+          "latitude": 32.69218,
+          "longitude": -97.2367,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321991",
+          "products": "Manufactured homes",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110072083868",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110005073776"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Legacy Housing",
+      "alsoKnownAs": [
+        "Legacy Housing Corporation",
+        "Legacy Housing Corp",
+        "Legacy Housing Ltd"
+      ],
+      "parent": null,
+      "domain": "legacyhousingcorp.com",
+      "industry": "Manufactured Homes",
+      "description": "Builds manufactured homes and tiny houses and finances their sale.",
+      "headquarters": {
+        "city": "Bedford",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110033956985",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070346754"
+      ],
+      "plants": [
+        {
+          "name": "Legacy Housing Fort Worth",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "4801 Mark IV Pkwy",
+          "zip": "76106",
+          "latitude": 32.8297,
+          "longitude": -97.32253,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321991",
+          "products": "Manufactured homes",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110033956985"
+          ]
+        },
+        {
+          "name": "Legacy Housing Commerce",
+          "city": "Commerce",
+          "state": "TX",
+          "address": "103 N Neal St",
+          "zip": "75428",
+          "latitude": 33.25538,
+          "longitude": -95.88463,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321991",
+          "products": "Manufactured homes",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070346754"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Graphic Packaging International",
+      "alsoKnownAs": [
+        "Graphic Packaging",
+        "Graphic Packaging International LLC",
+        "Graphic Packaging International Paper LLC",
+        "Graphic Packaging Holding",
+        "Graphic Packaging International - Waco Mill"
+      ],
+      "parent": null,
+      "domain": "graphicpkg.com",
+      "industry": "Paperboard Packaging",
+      "description": "Makes bleached and recycled paperboard for cups and folding cartons.",
+      "headquarters": {
+        "city": "Atlanta",
+        "state": "GA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texamericascenter.com/site-search-consultants-and-location-advisors/major-employers",
+        "https://en.wikipedia.org/wiki/Texarkana,_Texas"
+      ],
+      "plants": [
+        {
+          "name": "Texarkana Mill",
+          "city": "Queen City",
+          "state": "TX",
+          "address": "9978 FM 3129",
+          "zip": "75572",
+          "latitude": 33.25596,
+          "longitude": -94.06985,
+          "subsector": "Paper Manufacturing",
+          "naics": "322130",
+          "products": "Bleached paperboard for cups and folding cartons, from an integrated pulp mill; formerly International Paper's Texarkana mill",
+          "employees": 829,
+          "employeesYear": 2021,
+          "employeesSource": "https://en.wikipedia.org/wiki/Texarkana,_Texas",
+          "employeesNote": "City of Texarkana 2021 annual financial report, as quoted on Wikipedia; the report itself was not checked. The regional developer's undated list shows 800.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110008148496",
+            "https://en.wikipedia.org/wiki/Texarkana,_Texas",
+            "https://texamericascenter.com/site-search-consultants-and-location-advisors/major-employers"
+          ]
+        },
+        {
+          "name": "Waco Mill",
+          "city": "Waco",
+          "state": "TX",
+          "address": "301 Sheehy Pkwy",
+          "zip": "76712",
+          "latitude": 31.48039,
+          "longitude": -97.19168,
+          "subsector": "Paper Manufacturing",
+          "naics": "322130",
+          "products": "Recycled paperboard",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110072089270"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Smurfit Westrock",
+      "alsoKnownAs": [
+        "WestRock",
+        "Westrock",
+        "WestRock Company",
+        "WestRock Texas",
+        "WestRock Texas LP",
+        "WestRock Converting",
+        "MeadWestvaco Texas",
+        "MeadWestvaco Texas LP",
+        "RockTenn",
+        "Rock-Tenn",
+        "Smurfit Kappa"
+      ],
+      "parent": null,
+      "domain": "smurfitwestrock.com",
+      "industry": "Paper Packaging",
+      "description": "Makes paperboard at the Evadale mill and corrugated boxes at plants across Texas.",
+      "headquarters": {
+        "city": "Dublin",
+        "state": null,
+        "country": "IE"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/jasper-county"
+      ],
+      "plants": [
+        {
+          "name": "Evadale Mill",
+          "city": "Evadale",
+          "state": "TX",
+          "address": "1913 FM 105",
+          "zip": "77615",
+          "latitude": 30.34318,
+          "longitude": -94.06649,
+          "subsector": "Paper Manufacturing",
+          "naics": "322130",
+          "products": "Bleached paperboard from an integrated pulp mill",
+          "employees": 718,
+          "employeesYear": 2015,
+          "employeesSource": "https://texans.pages.dev/jasper-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (June 2015). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Old, and from before the Smurfit merger; nothing newer was found.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070835123",
+            "https://texans.pages.dev/jasper-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Kimberly-Clark",
+      "alsoKnownAs": [
+        "Kimberly Clark",
+        "Kimberly-Clark Corporation",
+        "Kimberly-Clark Corp",
+        "Kimberly Clark Corp",
+        "Kimberly-Clark Paris Plant"
+      ],
+      "parent": null,
+      "domain": "kimberly-clark.com",
+      "industry": "Personal Care Products",
+      "description": "Makes disposable diapers and training pants at its Paris plant.",
+      "headquarters": {
+        "city": "Irving",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/lamar-county"
+      ],
+      "plants": [
+        {
+          "name": "Kimberly-Clark Paris",
+          "city": "Paris",
+          "state": "TX",
+          "address": "2466 FM 137",
+          "zip": "75460",
+          "latitude": 33.64097,
+          "longitude": -95.59262,
+          "subsector": "Paper Manufacturing",
+          "naics": "322291",
+          "products": "Disposable diapers and training pants",
+          "employees": 646,
+          "employeesYear": 2016,
+          "employeesSource": "https://texans.pages.dev/lamar-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2016). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Counts company employees only; a 2019 KETR report notes that contractors also work in the plant.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110062248820",
+            "https://texans.pages.dev/lamar-county",
+            "https://www.ketr.org/post/paris-plant-job-losses-are-third-party-employees"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Huhtamaki",
+      "alsoKnownAs": [
+        "Huhtamaki Inc",
+        "Huhtamaki Americas",
+        "Huhtamaki Paris Facility"
+      ],
+      "parent": null,
+      "domain": "huhtamaki.com",
+      "industry": "Foodservice Packaging",
+      "description": "Makes paper cups, plates and cartons for foodservice and retail.",
+      "headquarters": {
+        "city": "Espoo",
+        "state": null,
+        "country": "FI"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texasedc.org/news/member-news/2026-06-07/huhtamaki-goes-big-in-texas-cutting-the-ribbon-on-a-400000-square-foot-expansion"
+      ],
+      "plants": [
+        {
+          "name": "Huhtamaki Paris",
+          "city": "Paris",
+          "state": "TX",
+          "address": "800 W Center St",
+          "zip": "75460",
+          "latitude": 33.67808,
+          "longitude": -95.56438,
+          "subsector": "Paper Manufacturing",
+          "naics": null,
+          "products": "Paperboard cups, containers and cartons",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000857555",
+            "https://texasedc.org/news/member-news/2026-06-07/huhtamaki-goes-big-in-texas-cutting-the-ribbon-on-a-400000-square-foot-expansion"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "International Paper",
+      "alsoKnownAs": [
+        "International Paper Company",
+        "International Paper Co",
+        "IP",
+        "International Paper - Linerboard Mill"
+      ],
+      "parent": null,
+      "domain": "internationalpaper.com",
+      "industry": "Containerboard & Boxes",
+      "description": "Makes containerboard and corrugated boxes.",
+      "headquarters": {
+        "city": "Memphis",
+        "state": "TN",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/orange-county"
+      ],
+      "plants": [
+        {
+          "name": "Orange Mill",
+          "city": "Orange",
+          "state": "TX",
+          "address": "1750 Inland Rd",
+          "zip": "77632",
+          "latitude": 30.2175,
+          "longitude": -93.73861,
+          "subsector": "Paper Manufacturing",
+          "naics": "322130",
+          "products": "Containerboard mill, now closed",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "closed",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110037526442",
+            "https://texans.pages.dev/orange-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ennis",
+      "alsoKnownAs": [
+        "Ennis Inc",
+        "Ennis, Inc.",
+        "Ennis Business Forms",
+        "Ennis Business Forms Inc",
+        "Printegra",
+        "Royal Business Forms",
+        "Tri-C Business Forms",
+        "CFC Print & Mail",
+        "360 Custom Labels"
+      ],
+      "parent": null,
+      "domain": "ennis.com",
+      "industry": "Business Forms & Labels",
+      "description": "Prints business forms, checks, labels, tags and envelopes sold through distributors.",
+      "headquarters": {
+        "city": "Midlothian",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.ennis.com/about-us",
+        "https://www.ennis.com/locations"
+      ],
+      "plants": []
+    },
+    {
+      "name": "Bureau of Engraving and Printing",
+      "alsoKnownAs": [
+        "Bureau of Engraving & Printing",
+        "BEP",
+        "Western Currency Facility",
+        "Bureau of Engraving & Printing Western Currency Facility"
+      ],
+      "parent": "U.S. Department of the Treasury",
+      "domain": "bep.gov",
+      "industry": "Currency Printing",
+      "description": "Federal agency that prints US paper currency in Washington and Fort Worth.",
+      "headquarters": {
+        "city": "Washington",
+        "state": "DC",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Bureau_of_Engraving_and_Printing"
+      ],
+      "plants": [
+        {
+          "name": "Western Currency Facility",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "9000 Blue Mound Rd",
+          "zip": "76131",
+          "latitude": 32.90141,
+          "longitude": -97.34798,
+          "subsector": "Printing and Related Support Activities",
+          "naics": "323111",
+          "products": "US paper currency",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000495090",
+            "https://en.wikipedia.org/wiki/Bureau_of_Engraving_and_Printing"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Madix",
+      "alsoKnownAs": [
+        "Madix Inc",
+        "Madix, Inc.",
+        "Madix Store Fixtures",
+        "Madix Skyline Facility"
+      ],
+      "parent": null,
+      "domain": "madixinc.com",
+      "industry": "Store Fixtures",
+      "description": "Makes steel shelving and store fixtures for retailers.",
+      "headquarters": {
+        "city": "Terrell",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://texans.pages.dev/kaufman-county"
+      ],
+      "plants": [
+        {
+          "name": "Madix Terrell",
+          "city": "Terrell",
+          "state": "TX",
+          "address": "500 Airport Rd",
+          "zip": "75160",
+          "latitude": 32.72276,
+          "longitude": -96.27427,
+          "subsector": "Furniture and Related Product Manufacturing",
+          "naics": "337215",
+          "products": "Steel store shelving and display fixtures",
+          "employees": 811,
+          "employeesYear": 2019,
+          "employeesSource": "https://texans.pages.dev/kaufman-county",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2019). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Madix also has a plant on Skyline Drive in Terrell; the record does not say whether the figure covers both.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110005032856",
+            "https://texans.pages.dev/kaufman-county"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Artcobell",
+      "alsoKnownAs": [
+        "Artco-Bell",
+        "Artco Bell",
+        "Artco-Bell Corporation",
+        "Artco Bell Corp",
+        "Artco Bell Corporation"
+      ],
+      "parent": null,
+      "domain": "artcobell.com",
+      "industry": "School Furniture",
+      "description": "Makes desks, chairs and tables for K-12 classrooms.",
+      "headquarters": {
+        "city": "Temple",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": {
+        "state": "TX",
+        "count": 250,
+        "year": 2026,
+        "source": "https://www.artcobell.com/",
+        "note": "The company's own site gives \"numberOfEmployees: 250\" in its page data, undated (read November 2026). It is a whole-company figure; the company is based at its Temple plant."
+      },
+      "sources": [
+        "https://www.artcobell.com/"
+      ],
+      "plants": [
+        {
+          "name": "Artcobell Temple",
+          "city": "Temple",
+          "state": "TX",
+          "address": "1302 Industrial Blvd",
+          "zip": "76504",
+          "latitude": 31.12876,
+          "longitude": -97.34577,
+          "subsector": "Furniture and Related Product Manufacturing",
+          "naics": "337127",
+          "products": "School desks, chairs and tables",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.artcobell.com/",
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000460331"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Kent Moore Cabinets",
+      "alsoKnownAs": [
+        "Kent Moore Cabinets Ltd",
+        "Kent Moore Cabinets Ltd.",
+        "Kent Moore Cabinets Inc"
+      ],
+      "parent": null,
+      "domain": "kentmoorecabinets.com",
+      "industry": "Cabinets",
+      "description": "Builds wood kitchen and bath cabinets for homebuilders.",
+      "headquarters": {
+        "city": "Bryan",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.kentmoorecabinets.com/"
+      ],
+      "plants": [
+        {
+          "name": "Kent Moore Cabinets Bryan",
+          "city": "Bryan",
+          "state": "TX",
+          "address": "501 Industrial Blvd",
+          "zip": "77803",
+          "latitude": 30.65342,
+          "longitude": -96.40352,
+          "subsector": "Furniture and Related Product Manufacturing",
+          "naics": "337110",
+          "products": "Wood kitchen and bath cabinets",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070285056",
+            "https://www.kentmoorecabinets.com/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Leedo Cabinetry",
+      "alsoKnownAs": [
+        "Leedo",
+        "Leedo Manufacturing",
+        "Leedo Manufacturing Co",
+        "Leedo Manufacturing Co LLP",
+        "Leedo Cabinets",
+        "Leedo Cabinets LLC",
+        "Leedo Cabinetry Inc"
+      ],
+      "parent": null,
+      "domain": "leedo.com",
+      "industry": "Cabinets",
+      "description": "Builds kitchen and bath cabinets for apartments and homes.",
+      "headquarters": {
+        "city": "East Bernard",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.leedo.com/"
+      ],
+      "plants": [
+        {
+          "name": "Leedo East Bernard",
+          "city": "East Bernard",
+          "state": "TX",
+          "address": "16856 Cabinet Rd",
+          "zip": "77435",
+          "latitude": 29.53232,
+          "longitude": -96.08786,
+          "subsector": "Furniture and Related Product Manufacturing",
+          "naics": "337110",
+          "products": "Kitchen and bath cabinets",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110061551743",
+            "https://www.leedo.com/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tempur Sealy",
+      "alsoKnownAs": [
+        "Tempur Sealy International",
+        "Sealy",
+        "Sealy Mattress",
+        "Sealy Mattress Company",
+        "Sealy Texas Management",
+        "Tempur-Sealy"
+      ],
+      "parent": "Somnigroup International",
+      "domain": "tempursealy.com",
+      "industry": "Mattresses",
+      "description": "Makes Sealy and Tempur-Pedic mattresses.",
+      "headquarters": {
+        "city": "Lexington",
+        "state": "KY",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://kwhi.com/2023/10/05/mattress-mack-visits-employees-at-brenham-tempur-sealy-plant/"
+      ],
+      "plants": [
+        {
+          "name": "Sealy Brenham",
+          "city": "Brenham",
+          "state": "TX",
+          "address": "1201 US Highway 290 W",
+          "zip": "77833",
+          "latitude": 30.14692,
+          "longitude": -96.40879,
+          "subsector": "Furniture and Related Product Manufacturing",
+          "naics": "337910",
+          "products": "Mattresses and foundations",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://kwhi.com/2023/10/05/mattress-mack-visits-employees-at-brenham-tempur-sealy-plant/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "American Leather",
+      "alsoKnownAs": [
+        "American Leather Inc",
+        "American Leather Operations",
+        "American Leather Mountain Creek"
+      ],
+      "parent": null,
+      "domain": "americanleather.com",
+      "industry": "Upholstered Furniture",
+      "description": "Makes custom leather and fabric sofas, chairs and sleepers.",
+      "headquarters": {
+        "city": "Dallas",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070275947"
+      ],
+      "plants": [
+        {
+          "name": "American Leather Dallas",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "4501 Mountain Creek Pkwy",
+          "zip": "75236",
+          "latitude": 32.68753,
+          "longitude": -96.96519,
+          "subsector": "Furniture and Related Product Manufacturing",
+          "naics": "337121",
+          "products": "Upholstered sofas, chairs and sleeper sofas",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070275947"
+          ]
+        }
+      ]
+    }
+  ],
+  "unplaced": [
+    {
+      "company": "RoyOMartin",
+      "plant": "Corrigan OSB",
+      "city": "Corrigan",
+      "why": "no street address confirmed; the two EPA registry points for it are 1.5 km apart"
+    },
+    {
+      "company": "Cavco Industries",
+      "plant": "Oak Creek Homes Lancaster",
+      "city": "Lancaster",
+      "why": "800 N Beckley St, but the EPA registry points for it are 2 km apart and no map match was found. The city's 2024 annual report (via Wikipedia) lists \"Oak Creek Homes / American Homestar\" at 295 employees."
+    },
+    {
+      "company": "Acme Brick",
+      "plant": "Bennett Plant",
+      "city": "Millsap",
+      "why": "no street address found"
+    },
+    {
+      "company": "Ennis",
+      "plant": "Ennis plant",
+      "city": "Ennis",
+      "why": "the company's locations page lists the town without a street address"
+    },
+    {
+      "company": "Ennis",
+      "plant": "Printegra and Royal Business Forms",
+      "city": "Arlington",
+      "why": "listed by the company without street addresses"
+    },
+    {
+      "company": "Ennis",
+      "plant": "CFC Print & Mail",
+      "city": "Grand Prairie",
+      "why": "listed by the company without a street address"
+    },
+    {
+      "company": "Ennis",
+      "plant": "360 Custom Labels",
+      "city": "Wolfe City",
+      "why": "listed by the company without a street address"
+    },
+    {
+      "company": "Ennis",
+      "plant": "Tri-C Business Forms",
+      "city": "Houston",
+      "why": "listed by the company without a street address"
+    }
+  ],
+  "notes": "HOW THIS FILE WAS BUILT. Web search stopped partway through (the shared search allowance ran out), so most of the work was done by reading pages directly: company pages, state and local economic development pages, the EPA Facility Registry Service (FRS), and Wikipedia city articles that quote city annual financial reports. Printing and furniture are thin for that reason, and several leads could not be followed. Nothing was estimated.\n\nCOORDINATES. Each point is one of: the contract's geocode helper when it matched the house number in the right city; an OpenStreetMap feature carrying the plant's name; or the EPA FRS record for the plant. The helper's street-only matches were not used: on long highways they were kilometres out (Nucor Jewett, Optimus Steel, Sabre Alvarado). Points taken from FRS alone, without a second match: Steel Dynamics Sinton, Tenaris Bay City, Tenaris Baytown, Wyman-Gordon Houston, Hunter Cement, Acme Brick Denton and Malakoff, Georgia-Pacific Diboll, Pineland, Sweetwater and Quanah, West Fraser New Boston, LP Carthage, Clayton Bonham, Cavco Seguin, Graphic Packaging Waco, International Paper Orange, Nucor Longview.\n\nHEADCOUNTS. 30 of the 89 plants carry a figure (two more are whole-state or whole-company figures on the company). Three kinds need a reviewer's eye. (1) \"Texas Enterprise Zone\" figures (Howmet Wichita Falls, Kiewit, Sabre, W&W|AFCO, Ball, Cemex, Vitro, Guardian, Owens Corning, Johns Manville, James Hardie Waxahachie, Kohler, Georgia-Pacific, Smurfit Westrock, Kimberly-Clark, Madix) are the jobs on site when the state approved the project, 2015 to 2020, read on texans.pages.dev, a third-party copy of the state's records; the Governor's office record was not opened. (2) Figures from city annual financial reports were read on Wikipedia, not in the reports (Gerdau, Graphic Packaging Texarkana, Clayton Sulphur Springs, Champion Burleson, Western Extrusions). (3) Undated company or EDC pages are given the year they were read, 2026 (CMC Seguin, Wyman-Gordon, and the state totals for Georgia-Pacific and Artcobell).\n\nCONFLICTS. CMC Seguin: 900 (EDC list) against 500 (state record, 2018) and \"approximately 1,000 direct jobs\" in press coverage not opened. Vitro Wichita Falls: 330 (state, 2018) against 934 (Chamber list, undated). Gerdau Midlothian: the city lists 1,250 as the top of a band; a Gerdau job posting seen only in a search summary said about 1,030 for the mill and its downstream sites. Kiewit Ingleside: a Kiewit job posting seen only in a search summary describes about 300 staff and 1,400 craft workers.\n\nOPERATING STATUS NOT RE-CONFIRMED ONLINE. These are listed as operating on the strength of a current EPA registry record and general knowledge, not a page read this session: Howmet Fastening Systems Waco, Ellwood Texas Forge Houston, Simpson Strong-Tie McKinney, USG Sweetwater and Galena Park, National Gypsum Rotan, O-I Waco, Georgia-Pacific Sweetwater and Quanah gypsum, the five West Fraser mills, LP Carthage and Jasper, Clayton Bonham and Waco, Cavco Seguin and Fort Worth, Legacy Housing Fort Worth and Commerce, Graphic Packaging Waco (a new mill planned to start in late 2025), Johns Manville and James Hardie Cleburne, American Leather Dallas, Mueller Ballinger, Hensley Dallas. The Acme Brick plant list is from an unsourced section of Wikipedia's Acme Brick article, which marks Bridgeport, Garrison and McQueeney as closed.\n\nJUDGMENT CALLS. Kiewit Offshore Services is a steel fabrication yard and is filed under Fabricated Metal. Howmet's Wichita Falls casting plant is filed under Primary Metal (foundry) and its Waco fastener plant under Fabricated Metal. Kimberly-Clark Paris (diapers) is Paper Manufacturing by NAICS. The Bureau of Engraving and Printing is a federal agency, included because its Fort Worth plant is the largest printing site found. ASARCO Amarillo is listed as operating because a 2024 union agreement covers its workers, but reports that year spoke of restarting the refinery, so part of it may be idle; a local radio report from the 2019 strike gave 244 hourly and 94 salaried workers. Cavco is shown as the owner of the Oak Creek Homes (American Homestar) plants because the EPA registry now carries them as \"Cavco - Lancaster\" and \"Cavco - Lake Arlington\"; the purchase itself was not read on a page. Amrize is Holcim's former North American business (holcim.us now opens as Amrize); the cement association's May 2025 sheet still says Holcim. Ash Grove's Hunter plant was Martin Marietta's (TXI) until 2024. Georgia-Pacific's two gypsum plants are under Georgia-Pacific with the Nonmetallic Mineral subsector.\n\nNAMES ALREADY IN THE DATABASE. \"Txi\" is Texas Industries, part of Martin Marietta since 2014: cement at Midlothian plus ready-mix and aggregates sites (the Hunter cement plant went to Ash Grove/CRH). \"Campbell Soup\" under minerals is most likely Campbell Concrete & Materials, a Houston ready-mix concrete firm that became part of Cemex, and has nothing to do with the food company; this was not confirmed on a page, so it is not in Cemex's alsoKnownAs. \"Lattimore Materials\" is a North Texas ready-mix and aggregates firm bought by Holcim's Aggregate Industries in 2011 (now Amrize), also unconfirmed here and left out of alsoKnownAs. Ready-mix plants are small (a handful of people each) and none are listed. \"Alcoa\": its Point Comfort and Rockdale operations are shut; no operating Alcoa plant was found in Texas. \"Trinity Industries\": its Texas plants build rail cars (Transportation Equipment); the tank, tower and highway-product businesses once filed under fabricated metal were spun off as Arcosa in 2018, and no Arcosa fabricating plant in Texas was confirmed. \"Oldcastle\" is CRH: concrete products (Oldcastle APG, Oldcastle Infrastructure) and glass (Oldcastle BuildingEnvelope), not wood. \"Louisiana-Pacific\" has many old sawmill and panel sites in East Texas in government lists (Silsbee, Cleveland, Corrigan, Bon Wier, New Waverly); only Carthage and Jasper are listed here. \"International Paper\": the Orange containerboard mill is marked closed (announced in late 2023) and the Texarkana mill is now Graphic Packaging's; both facts are from the researcher's own knowledge plus the registry names, not from a page read this session, and the same goes for the closure year of Nucor Longview, which rests on a search summary of a Recycling Today report and a June 2023 layoff notice; its many box plants, and Packaging Corporation of America's, were not researched. \"Leggett & Platt\" has EPA registry records in Ennis, Fort Worth and Brenham that were not confirmed. The loader should not merge \"Lone Star Industries\" rows blindly into Buzzi Unicem: some old records under that name are closed terminals.\n\nLEFT OUT, WITH WHAT IS KNOWN. Not confirmed as operating or not researched for lack of search: U.S. Steel Lone Star Tubular Operations (6866 US 259 S, Lone Star; idled, status unknown), TPCO America (5431 Highway 35, Gregory; its own site still describes a ramp-up), Borusan pipe mill (4949 Borusan Rd, Baytown), Vallourec Star (8603 Sheldon Rd, Houston), Kaiser Aluminum (Sherman), Texarkana Aluminum (300 Alumax Rd), Ball Conroe (1001 N FM 3083 Rd E), Hudson Products (Chart Industries; 9660 Grunwald Rd, Beasley), Valmont Newmark (Bellville), Flowserve Sulphur Springs (below the city's top-ten cut of 183 employees in 2024), Owens Corning Amarillo (1701 Hollywood Rd; a glass reinforcements plant, a business Owens Corning was selling), Dal-Tile (El Paso, Sunnyvale, Dallas), Knauf Insulation (McGregor), Lehigh White Cement (Woodway), Georgia-Pacific Diboll particleboard and Corrigan plywood (the state recorded 374 jobs at Corrigan in December 2015), Clayton Athens, Champion Athens, Palm Harbor (Austin, Fort Worth), Fleetwood Waco, Republic Elite (Marshall), Corsicana Mattress, Ashley Furniture (Mesquite), Harland Clarke (San Antonio), RR Donnelley and Quad sites. Weyerhaeuser: no Texas mill was found. Encore Wire (McKinney), Emerson and Cameron valve plants, General Dynamics ordnance plants (Garland, Mesquite) and Priefert (Mount Pleasant) sit on the border of these industries and were left to the electrical, machinery and defence briefs."
+}

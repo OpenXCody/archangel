@@ -8,6 +8,7 @@ import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 import { isUuid, refuseDeleteWithJobs } from '../lib/writes.js';
+import { sourcesOf } from '../lib/sources.js';
 
 const router = Router();
 // A company is addressed by its id, or, for reading, by its slug
@@ -145,12 +146,42 @@ router.get('/:id', async (req: Request, res: Response) => {
         city: factories.city,
         state: factories.state,
         workforceSize: factories.workforceSize,
+        workforceYear: factories.workforceYear,
+        products: factories.products,
+        status: factories.status,
         openPositions: factories.openPositions,
         latitude: factories.latitude,
         longitude: factories.longitude,
       })
       .from(factories)
       .where(and(eq(factories.companyId, id), factoryInScope()));
+
+    // The company it is part of, and the companies that are part of it.
+    const [parent] = company.parentCompanyId
+      ? await db
+          .select({ id: companies.id, name: companies.name, slug: companies.slug, domain: companies.domain })
+          .from(companies)
+          .where(eq(companies.id, company.parentCompanyId))
+      : [];
+    const subsidiaries = await db
+      .select({
+        id: companies.id,
+        name: companies.name,
+        slug: companies.slug,
+        domain: companies.domain,
+        industry: companies.industry,
+        factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()})`,
+      })
+      .from(companies)
+      .where(eq(companies.parentCompanyId, id))
+      .orderBy(sql`6 DESC`, companies.name);
+
+    // People in a state, where a source says how many.
+    const peopleByState = Array.from(
+      (await db.execute(sql`
+        SELECT state, people, year, source, note FROM company_state_headcounts WHERE company_id = ${id} ORDER BY people DESC, state ASC
+      `)) as Iterable<{ state: string; people: number; year: number | null; source: string | null; note: string | null }>
+    );
 
     // Occupations across all of this company's in-scope factories, with how many of
     // its factories employ each — what the explorer's "N occupations" tag
@@ -169,6 +200,13 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     res.json({
       ...company,
+      parent: parent ?? null,
+      subsidiaries,
+      headquarters: company.headquartersCity
+        ? { city: company.headquartersCity, state: company.headquartersState, country: company.headquartersCountry }
+        : null,
+      peopleByState,
+      sources: await sourcesOf('companies', id),
       factories: companyFactories,
       jobs: await listOpenJobs(eq(jobs.companyId, id)),
       occupations: Array.from(companyOccupations as Iterable<Record<string, unknown>>),
