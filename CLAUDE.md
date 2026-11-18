@@ -59,6 +59,8 @@ There are no spec documents: the code and this file say how things are. `README.
 
 ## Coverage and focus areas
 
+**What counts as manufacturing.** A plant makes a product in a factory. Construction does not count, nor does material mixed or cast for a building site: ready-mix concrete, concrete block, pipe and precast (NAICS 3273), and asphalt paving mixtures (NAICS 324121) are left out (`0038_remove_construction_materials.sql` removed them) and must not be loaded again. Cement, lime, gypsum, glass, brick and roofing plants are in. Puerto Rico is out (`0029`).
+
 Two separate ideas (`shared/scope.ts`):
 - **Coverage** is which rows the public API returns: the whole country (`SCOPE.stateCode` is `null`, so the helpers in `server/lib/scope.ts` are no-ops). Every public GET still builds its conditions from those helpers, so narrowing later is one setting.
 - **Focus areas** (`FOCUS_AREAS`) are regions being filled out in depth. The first is Austin, TX, bounded by its five metro counties (`client/public/data/areas/austin.geojson`). The map draws each as a geofence; `/api/map/areas/:id/overview` gives it the same panel data a state has.
