@@ -17,6 +17,7 @@ import {
 } from '../lib/account';
 import { useApplicantList, useDeleteJob, useExtendJob } from '../lib/employerJobs';
 import { useMarkSkill } from '../lib/seeker';
+import { useViewer } from '../lib/viewer';
 import { employmentLabel, formatAgo, formatDate, formatPay, formatPlace } from '../lib/jobFormat';
 import {
   ApplicationStatusBadge,
@@ -48,6 +49,7 @@ export default function JobDetail() {
   const account = useAccount();
   const job = useJob(id);
   const signedIn = Boolean(account.data?.user);
+  const viewer = useViewer();
   // A person who manages the job sees it as its company does, until they
   // choose to apply to it themselves.
   const [applyAsManager, setApplyAsManager] = useState(false);
@@ -115,11 +117,16 @@ export default function JobDetail() {
 
   const justClosed = job.isError && gone;
   const data = justClosed ? { ...job.data, job: { ...job.data.job, isOpen: false } } : job.data;
-  const manages = data.canManage;
+  // Whether the company's view is drawn: the server says who can manage the job; an admin
+  // looking at the product as someone else sees it as that person would.
+  const manages = data.canManage && viewer.manages(data.job.companyId);
   // Back to the list as it was filtered, when the job was opened from it.
   const cameFrom = (location.state as { from?: unknown } | null)?.from;
   const jobsList = typeof cameFrom === 'string' && cameFrom.startsWith('/jobs?') ? cameFrom : null;
-  const applying = !manages || applyAsManager || Boolean(data.myApplication);
+  // Applying is a seeker's, and a visitor's way in. Someone here to hire reads the listing
+  // without it, unless they have an application of their own on this job.
+  const applying =
+    Boolean(data.myApplication) || (manages ? applyAsManager : !signedIn || viewer.seeker);
   // Skills are marked against the reader's own only when they are here to apply.
   const marksHeld = signedIn && applying;
   const requiredSkills = data.skills.filter((skill) => skill.required);
@@ -192,7 +199,7 @@ export default function JobDetail() {
         <>
           {!data.job.isOpen && <ClosedNotice job={data.job} justClosed={justClosed} />}
           <PageSection>{terms}</PageSection>
-          {!applyAfterSkills && apply}
+          {applying && !applyAfterSkills && apply}
         </>
       )}
 
@@ -250,6 +257,8 @@ export default function JobDetail() {
           apply
         ) : (
           data.job.isOpen &&
+          // Offered to someone whose account is for finding work and who also manages this job.
+          viewer.seeker &&
           !data.job.applyUrl && (
             <button type="button" onClick={() => setApplyAsManager(true)} className={textButtonClass}>
               Apply to this job myself

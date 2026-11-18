@@ -117,3 +117,37 @@ test('global search opens and is usable', async ({ page }) => {
   await page.waitForTimeout(1200);
   await assertHealthyLayout(page, '/explore#search');
 });
+
+test('a seeker and an employer are given different tools', async ({ page, baseURL }) => {
+  // The one check here that writes: it makes two accounts and deletes them. Never against a deployed copy.
+  test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
+  const password = 'correct horse battery';
+  const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
+  const tools: Record<string, { menu: string[]; jobs: string | null }> = {};
+
+  for (const purpose of ['work', 'hire'] as const) {
+    const made = await page.request.post(`${API}/auth/sign-up`, {
+      data: { email: `tools-${purpose}-${stamp}@device.test`, name: `Tools ${purpose}`, password, purpose },
+    });
+    expect(made.status(), `${purpose}: account made`).toBe(201);
+    try {
+      await page.goto('/settings', { waitUntil: 'domcontentloaded' });
+      await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+      await assertHealthyLayout(page, `/settings:${purpose}`);
+      // The header's third item: the open jobs for a seeker, their own jobs for an employer.
+      const jobs = await page.locator('header nav a').nth(2).getAttribute('href');
+      await page.getByRole('button', { name: /Account menu/ }).click();
+      const menu = (await page.getByRole('menuitem').allInnerTexts()).map((text) => text.trim());
+      await page.keyboard.press('Escape');
+      tools[purpose] = { menu, jobs };
+    } finally {
+      const gone = await page.request.delete(`${API}/me`, { data: { password } });
+      expect(gone.ok(), `${purpose}: account removed`).toBe(true);
+    }
+  }
+
+  expect(tools.work.menu, 'a seeker is led to their own page').toEqual(['Profile', 'Settings', 'Sign out']);
+  expect(tools.hire.menu, 'an employer is led to their jobs').toEqual(['Your jobs', 'Settings', 'Sign out']);
+  expect(tools.work.jobs).toBe('/jobs');
+  expect(tools.hire.jobs).toBe('/employer');
+});

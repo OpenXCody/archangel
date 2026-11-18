@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { signInPath, useAccount, useMySkills, useRemoveSkill, useSetSkillStatus, type SkillStatus } from '../../lib/account';
 import { onGroupArrowKeys } from '../../lib/roving';
+import { useSeekerTools } from '../../lib/viewer';
 import { ErrorNote, outlineButtonClass } from './parts';
 
 type Choice = SkillStatus | 'none';
@@ -127,6 +128,7 @@ interface SkillStatusButtonProps {
 /**
  * Set a skill as learning, held or not held for the signed-in person.
  * Signed out, it is a link to sign in that returns to this page.
+ * Someone here to hire keeps no skills: for them it draws nothing.
  */
 export default function SkillStatusButton({ skillId, className }: SkillStatusButtonProps) {
   const location = useLocation();
@@ -135,6 +137,9 @@ export default function SkillStatusButton({ skillId, className }: SkillStatusBut
   const skills = useMySkills(signedIn);
   const setStatus = useSetSkillStatus();
   const removeSkill = useRemoveSkill();
+  const seekerTools = useSeekerTools();
+
+  if (!seekerTools) return null;
 
   if (account.isPending) {
     // Hold the control's place until we know who is signed in.

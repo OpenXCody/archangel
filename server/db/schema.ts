@@ -309,6 +309,8 @@ export const users = pgTable(
     accessSeenAt: timestamp('access_seen_at', { withTimezone: true }),
     // Migration 0025. When the person became an admin; the longest-standing admin is the first admin.
     adminSince: timestamp('admin_since', { withTimezone: true }),
+    // Migration 0034. What the person said the account is for: 'work' or 'hire'; null when they have not said (server/lib/purpose.ts).
+    purpose: text('purpose'),
   },
   (table) => ({
     emailIdx: uniqueIndex('users_email_idx').on(table.email),

@@ -6,6 +6,7 @@ import SkillStatusButton, { SkillHeldToggle } from '../components/account/SkillS
 import { ErrorNote } from '../components/account/parts';
 import { signInPath, useAccount, useMySkills, type SkillStatus } from '../lib/account';
 import { useMarkSkill, type SkillMark } from '../lib/seeker';
+import { usePostJobLink, useSeekerTools, useViewer } from '../lib/viewer';
 import { editPath, type RecordKind } from '../lib/records';
 import { formatPay } from '../lib/jobFormat';
 import {
@@ -562,6 +563,8 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
 
 /** Open jobs at a company, a factory or for a career, with a way in for employers when there are none. */
 function OpenJobsSection({ jobs, empty, showCareer = false }: { jobs: CareerJob[]; empty: string; showCareer?: boolean }) {
+  // Offered to a visitor and to someone here to hire, never to a seeker.
+  const postJob = usePostJobLink();
   return (
     <Section id="jobs" title="Open jobs">
       {jobs.length > 0 ? (
@@ -590,10 +593,14 @@ function OpenJobsSection({ jobs, empty, showCareer = false }: { jobs: CareerJob[
           <Link to="/jobs" className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
             See all open jobs
           </Link>
-          {' · '}
-          <Link to="/employer" className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
-            Hiring? Post a job
-          </Link>
+          {postJob && (
+            <>
+              {' · '}
+              <Link to={postJob.to} className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
+                {postJob.visitor ? 'Hiring? Post a job' : 'Post a job'}
+              </Link>
+            </>
+          )}
         </p>
       )}
     </Section>
@@ -660,7 +667,9 @@ function PathSkill({
 // Career (occupation) detail: the path of skills by stage, open jobs, and who employs it.
 function OccupationDetailView({ data }: { data: OccupationDetail }) {
   const { data: account } = useAccount();
-  const signedIn = Boolean(account?.user);
+  // Marks and "You have N of M" are a seeker's: someone here to hire reads the path as a visitor does.
+  const seekerTools = useSeekerTools();
+  const signedIn = Boolean(account?.user) && seekerTools;
   const { data: mySkills, isPending: skillsPending } = useMySkills(signedIn);
   const statusBySkill = new Map((mySkills ?? []).map((s) => [s.skillId, s.status]));
   const markSkill = useMarkSkill();
@@ -685,7 +694,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
 
   return (
     <>
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+      <div className="mt-5 flex flex-wrap items-center gap-3 empty:hidden">
         <GoalButton occupationId={data.id} />
         {signedIn && skills.length > 0 && (
           <span className="text-sm text-fg-muted" data-held-count>
@@ -846,7 +855,7 @@ function WhereWorkIsDone({ data }: { data: OccupationDetail }) {
 function SkillDetailView({ data }: { data: SkillDetail }) {
   return (
     <>
-      <div className="mt-5">
+      <div className="mt-5 empty:hidden">
         <SkillStatusButton skillId={data.id} />
       </div>
       {/* Category badge - clicking filters Skills tab by category */}
@@ -973,7 +982,9 @@ export default function EntityDetail() {
   const Icon = config.icon;
   // An admin corrects a record from its own page: Edit opens it in Admin Tools.
   const { data: viewer } = useAccount();
-  const canEdit = Boolean(viewer?.user?.isAdmin);
+  // Not while the admin is looking at the product as someone else.
+  const adminView = useViewer().admin;
+  const canEdit = adminView && Boolean(viewer?.user?.isAdmin);
 
   if (isLoading) {
     return (

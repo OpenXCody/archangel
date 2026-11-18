@@ -12,6 +12,7 @@ import {
   useEmployer,
   useJob,
   useRequestMembership,
+  useUpdateProfile,
   type AccountUser,
   type EmployerCompany,
   type EmployerJob,
@@ -27,6 +28,7 @@ import {
 } from '../lib/employerCompanies';
 import { formatFactoryName } from '@shared/displayName';
 import { latestDraftCompany } from '../lib/jobDraft';
+import { useViewer } from '../lib/viewer';
 import { formatAgo, formatDate, isExpired } from '../lib/jobFormat';
 import CompanyRequestForm from '../components/account/CompanyRequestForm';
 import JobForm, { selectContentClass, selectTriggerClass, type JobFormCompany } from '../components/account/JobForm';
@@ -85,6 +87,7 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
   const refused = requests.filter((request) => request.status === 'declined');
   const [joiningAnother, setJoiningAnother] = useState(false);
   const hasJobs = active.some((company) => company.jobs.length > 0);
+  const viewer = useViewer();
 
   if (posting && active.length > 0) {
     return (
@@ -115,6 +118,9 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
         }
       />
 
+      {/* Reached by its address from an account that is for finding a career: the page works, and says how to keep it. */}
+      {viewer.seeker && !viewer.viewingAs && <HiringSwitch />}
+
       {employer.isPending ? (
         <RowsSkeleton rows={3} />
       ) : employer.isError ? (
@@ -137,7 +143,13 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
           {active.length === 0 ? (
             <PageSection
               title="Company"
-              description={user.isAdmin ? 'Admins join at once.' : 'Find your company and request access. An admin approves each request.'}
+              description={
+                viewer.viewingAs === 'employer'
+                  ? "Join a company to see its employer's page. Admins join at once."
+                  : user.isAdmin
+                    ? 'Admins join at once.'
+                    : 'Find your company and request access. An admin approves each request.'
+              }
             >
               <CompanySearch memberships={companies} instant={user.isAdmin} />
             </PageSection>
@@ -152,9 +164,51 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
               )}
             </PageSection>
           )}
+
+          {/* For someone here to hire, "Jobs" in the header is this page: the open list is one link away. */}
+          {viewer.employer && (
+            <p className="mt-8 text-sm text-fg-muted" data-all-jobs>
+              <Link to="/jobs" className="underline underline-offset-4 hover:text-fg-default">
+                All open jobs
+              </Link>
+            </p>
+          )}
         </>
       )}
     </PageContainer>
+  );
+}
+
+/**
+ * One line for a person whose account is for finding a career and who has
+ * opened the employer page: one press makes the account one for hiring, so
+ * the header and the menu lead here. Nothing of theirs is removed, and
+ * settings changes it back.
+ */
+function HiringSwitch() {
+  const update = useUpdateProfile();
+  return (
+    <div className={cn(cardClass, 'mb-6 flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-hiring-switch>
+      <div className="min-w-0 flex-1 basis-56">
+        <p className="text-sm font-medium text-fg-default">This account is set to find a career.</p>
+        <p className="mt-0.5 text-sm text-fg-muted">Set it to hire and this page leads your menu. Nothing is removed.</p>
+        <ErrorNote error={update.error} className="mt-2" />
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        aria-busy={update.isPending}
+        aria-disabled={update.isPending}
+        onClick={() => {
+          if (!update.isPending) update.mutate({ purpose: 'hire' });
+        }}
+        className={cn('h-9', outlineButtonClass, busyButtonClass)}
+      >
+        {update.isPending && <Loader2 className="animate-spin" />}
+        Set to hire
+      </Button>
+    </div>
   );
 }
 

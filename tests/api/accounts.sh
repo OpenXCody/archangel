@@ -84,6 +84,23 @@ check "bad skill status"              400 "$(req s PUT /me/skills/$SK '{"status"
 check "add goal"                      200 "$(req s PUT /me/goals/$OCC)"
 check "goals show 1 held"             200 "$(req s GET /me/goals)" '"heldSkills":1'
 
+# --- What an account is for (`purpose`: 'work' or 'hire') ---------------------
+# It decides which tools the interface draws, never what the server allows.
+check "an account that did not say is for work" 200 "$(req s GET /auth/me)" '"purpose":"work"'
+check "as Vercel's rewrite sends it"  200 "$(req s GET '/auth/me?path=auth/me')" '"purpose":"work"'
+check "sign-up refuses a purpose it does not know" 400 "$(req h POST /auth/sign-up '{"email":"hirer-'"$RUN"'@e2e.test","name":"Hana Hirer","password":"correct horse","purpose":"boss"}')" 'purpose'
+expect "and makes no account"         0 "$(sql "SELECT COUNT(*) FROM users WHERE email='hirer-$RUN@e2e.test'")"
+check "sign-up to hire"               201 "$(req h POST /auth/sign-up '{"email":"hirer-'"$RUN"'@e2e.test","name":"Hana Hirer","password":"correct horse","purpose":"hire"}')" '"purpose":"hire"'
+check "kept on the account"           200 "$(req h2 POST /auth/sign-in '{"email":"hirer-'"$RUN"'@e2e.test","password":"correct horse"}')" '"purpose":"hire"'
+check "hiring is not a permission"    403 "$(req h POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\",\"payMin\":2400,\"payMax\":2900}")"
+check "nor does it stop a goal"       200 "$(req h PUT /me/goals/$OCC)"
+check "changed in settings"           200 "$(req h PATCH /me '{"purpose":"work"}')" '"purpose":"work"'
+check "the change is kept"            200 "$(req h GET /auth/me)" '"purpose":"work"'
+check "nothing is lost by it"         200 "$(req h GET /me/goals)" "\"occupationId\":\"$OCC\""
+check "an unknown purpose is refused" 400 "$(req h PATCH /me '{"purpose":"admin"}')" 'purpose'
+check "a profile change leaves it alone" 200 "$(req h PATCH /me '{"homeZip":"78702"}')" '"purpose":"work"'
+check "purpose needs sign-in"         401 "$(req anon PATCH /me '{"purpose":"hire"}')"
+
 check "sign-up employer"              201 "$(req e POST /auth/sign-up '{"email":"emp-'"$RUN"'@e2e.test","name":"Erin Employer","password":"correct horse"}')"
 check "sign-up admin"                 201 "$(req a POST /auth/sign-up '{"email":"admin-'"$RUN"'@e2e.test","name":"Ada Admin","password":"correct horse"}')"
 # There is one way to be an admin: the account. No route grants the role to
@@ -99,12 +116,20 @@ expect "make-admin makes the admin"   0 "$?"
 expect "and only that account"        1 "$(sql "SELECT COUNT(*) FROM users WHERE is_admin AND email LIKE '%-$RUN@e2e.test'")"
 check "admin overview as admin"       200 "$(req a GET /admin/overview)" '"users":'
 check "employer posts before joining" 403 "$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\",\"payMin\":2400,\"payMax\":2900}")"
+check "before asking, for work"       200 "$(req e GET /auth/me)" '"purpose":"work"'
 check "request membership"            201 "$(req e POST /employer/memberships "{\"companyId\":\"$TXC\"}")" '"status":"requested"'
+# Never said what the account is for: a request to join a company says it.
+check "asking to join a company is hiring" 200 "$(req e GET /auth/me)" '"purpose":"hire"'
+check "and a profile change says the same" 200 "$(req e PATCH /me '{"about":""}')" '"purpose":"hire"'
 check "still cannot post (requested)" 403 "$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\",\"payMin\":2400,\"payMax\":2900}")"
 EID=$(psql "$DB" -tAc "SELECT id FROM users WHERE email='emp-$RUN@e2e.test'")
 check "admin sees request"            200 "$(req a GET '/admin/memberships?status=requested')" 'emp-'"$RUN"'@e2e.test'
 check "admin approves"                200 "$(req a PATCH /admin/memberships "{\"companyId\":\"$TXC\",\"userId\":\"$EID\",\"decision\":\"approve\"}")" '"status":"active"'
 check "me now employer"               200 "$(req e GET /auth/me)" '"isEmployer":true'
+# A member who chooses the seeker's tools keeps the membership: the jobs below are posted by them.
+check "a member can choose work"      200 "$(req e PATCH /me '{"purpose":"work"}')" '"purpose":"work"'
+check "what they chose stands over the membership" 200 "$(req e GET /auth/me)" '"purpose":"work"'
+check "and they are still an employer" 200 "$(req e GET /auth/me)" '"isEmployer":true'
 check "post without pay"              400 "$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\"}")"
 check "post with wrong factory"       400 "$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$CAF\",\"occupationId\":\"$OCC\",\"payMin\":2400,\"payMax\":2900}")"
 OUT=$(req e POST /jobs "{\"companyId\":\"$TXC\",\"factoryId\":\"$TXF\",\"occupationId\":\"$OCC\",\"payMin\":2400,\"payMax\":2900,\"shift\":\"2nd\"}")

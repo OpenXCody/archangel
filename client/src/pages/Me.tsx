@@ -1,29 +1,20 @@
-import { Fragment, useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, Loader2, LogOut, Search, X } from 'lucide-react';
+import { Check, Loader2, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { exploreApi, skillsApi } from '../lib/api';
 import {
-  ApiError,
   isFinished,
   useAddGoal,
-  useChangeEmail,
-  useDeleteAccount,
   useMyApplications,
   useMyGoals,
   useMySkills,
   useRemoveGoal,
-  useChangePassword,
-  useEmailOn,
   useMarkSeen,
-  useSignOut,
   useUpdateApplication,
-  useUpdateProfile,
   accountRoles,
-  type AccountUser,
   type MyApplication,
   type MyGoal,
   type MySkill,
@@ -41,13 +32,13 @@ import {
   type NextSkill,
   type SkillMark,
 } from '../lib/seeker';
+import { useViewer } from '../lib/viewer';
 import {
   AccountGate,
   ApplicationStatusBadge,
   CardNote,
   ENTITY,
   ErrorNote,
-  Field,
   HeldMeter,
   LoadError,
   RowsSkeleton,
@@ -70,17 +61,20 @@ export default function Me() {
 const linkClass = 'font-medium text-fg-default underline underline-offset-4 hover:no-underline';
 
 /**
- * The person's own page. What they are working toward comes first; the
- * account fields come last. Nothing here asks for more than a tap: careers
- * and skills are picked from the catalogue, never typed out.
+ * The seeker's own page: what they are working toward (goals), what they can
+ * do (skills) and where they have applied. Nothing here asks for more than a
+ * tap: careers and skills are picked from the catalogue, never typed out.
+ * The account itself (name, sign-in, notices) is in settings.
  *
  * With nothing on it yet (no goal, no skill, no application) the page is one
  * question, which career, in place of three empty lists. Choosing one fills
- * the page: the goal, and its skills to mark off.
+ * the page: the goal, and its skills to mark off. That question is a
+ * seeker's: someone here to hire who opens this page with nothing on it is
+ * sent to their own.
  */
 function MyPage({ account }: { account: SignedInAccount }) {
   const { user } = account;
-  const signOut = useSignOut();
+  const viewer = useViewer();
   const goals = useMyGoals();
   const skills = useMySkills();
   const applications = useMyApplications();
@@ -99,30 +93,15 @@ function MyPage({ account }: { account: SignedInAccount }) {
     document.querySelector<HTMLElement>('[data-goal-link]')?.focus();
   }, [firstRun]);
 
+  if (firstRun && !viewer.seeker) return <Navigate to="/employer" replace />;
+
   return (
     <PageContainer size="narrow">
       <PageHeader
-        eyebrow={roles.length > 0 ? roles.join(' · ') : undefined}
+        // While an admin views as a user the page reads as a user's does.
+        eyebrow={roles.length > 0 && !viewer.viewingAs ? roles.join(' · ') : undefined}
         title={user.name}
-        description={user.email}
-        actions={
-          <div className="flex flex-col items-start gap-1.5 sm:items-end">
-            <Button
-              type="button"
-              variant="outline"
-              aria-busy={signOut.isPending}
-              aria-disabled={signOut.isPending}
-              onClick={() => {
-                if (!signOut.isPending) signOut.mutate();
-              }}
-              className={cn('h-10', outlineButtonClass, busyButtonClass)}
-            >
-              {signOut.isPending ? <Loader2 className="animate-spin" /> : <LogOut />}
-              Sign out
-            </Button>
-            <ErrorNote error={signOut.error} />
-          </div>
-        }
+        description="Goals, skills and applications."
       />
       {loading ? (
         <div className="mb-8">
@@ -137,7 +116,6 @@ function MyPage({ account }: { account: SignedInAccount }) {
           <ApplicationsSection email={user.email} />
         </>
       )}
-      <ProfileSection account={account} />
     </PageContainer>
   );
 }
@@ -222,497 +200,6 @@ function Starter({ onStart }: { onStart: () => void }) {
         </p>
       </div>
     </PageSection>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Account
-// ---------------------------------------------------------------------------
-
-function ProfileSection({ account }: { account: SignedInAccount }) {
-  const { user } = account;
-  const update = useUpdateProfile();
-  const [name, setName] = useState(user.name);
-  const [homeZip, setHomeZip] = useState(user.homeZip ?? '');
-
-  const dirty = name !== user.name || homeZip !== (user.homeZip ?? '');
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (update.isPending || !dirty) return;
-    update.mutate(
-      { name, homeZip },
-      {
-        // The server trims what it stores; show exactly that.
-        onSuccess: ({ user: saved }) => {
-          setName(saved.name);
-          setHomeZip(saved.homeZip ?? '');
-        },
-      }
-    );
-  };
-
-  return (
-    <PageSection title="Account" description="Name, email and ZIP code are shown to a company on application.">
-      <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4 p-4 sm:p-6')}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_160px]">
-          <Field label="Name" htmlFor="profile-name">
-            <input
-              id="profile-name"
-              type="text"
-              autoComplete="name"
-              maxLength={80}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={fieldClass}
-            />
-          </Field>
-          <Field label="ZIP code" htmlFor="profile-zip">
-            <input
-              id="profile-zip"
-              type="text"
-              inputMode="numeric"
-              autoComplete="postal-code"
-              maxLength={10}
-              value={homeZip}
-              onChange={(e) => setHomeZip(e.target.value)}
-              className={fieldClass}
-            />
-          </Field>
-        </div>
-        <ErrorNote error={update.error} />
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            type="submit"
-            disabled={!dirty && !update.isPending}
-            aria-busy={update.isPending}
-            aria-disabled={update.isPending}
-            className={cn('h-10 rounded-lg', busyButtonClass)}
-          >
-            {update.isPending && <Loader2 className="animate-spin" />}
-            Save
-          </Button>
-          {update.isSuccess && !dirty && <Done>Saved</Done>}
-        </div>
-      </form>
-      <NoticeSwitch user={user} />
-      <AccountActions account={account} />
-    </PageSection>
-  );
-}
-
-function Done({ children }: { children: string }) {
-  return (
-    <span role="status" className="inline-flex items-center gap-1.5 text-sm text-success">
-      <Check className="h-4 w-4" />
-      {children}
-    </span>
-  );
-}
-
-/**
- * Emails about applications and company access, on or off. Only there when
- * the app can send mail. Sign-in emails (a reset link) are not affected.
- */
-function NoticeSwitch({ user }: { user: AccountUser }) {
-  const emailOn = useEmailOn();
-  const update = useUpdateProfile();
-  if (!emailOn) return null;
-  // While saving, show what was chosen; if it fails, fall back to what is stored.
-  const checked = update.isPending ? update.variables?.emailNotices === true : user.emailNotices;
-
-  return (
-    <div className={cn(cardClass, 'mt-3 px-4 py-3 sm:px-6')} data-email-notices>
-      <div className="flex items-center gap-4">
-        <label htmlFor="email-notices" className="min-w-0 flex-1 cursor-pointer">
-          <span className="block text-sm font-medium text-fg-default">Email me about applications and access</span>
-          <span className="mt-0.5 block break-all text-xs text-fg-muted">{user.email}</span>
-        </label>
-        {/* A button, so the label, Space and Enter all work; marked busy while saving, never disabled. */}
-        <button
-          type="button"
-          role="switch"
-          id="email-notices"
-          aria-checked={checked}
-          aria-busy={update.isPending}
-          onClick={() => {
-            if (!update.isPending) update.mutate({ emailNotices: !checked });
-          }}
-          className={cn(
-            'relative h-6 w-11 shrink-0 rounded-full transition-colors',
-            checked ? 'bg-fg-default' : 'bg-border-strong'
-          )}
-        >
-          <span
-            aria-hidden="true"
-            className={cn(
-              'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-bg-surface shadow-sm transition-transform',
-              checked && 'translate-x-5'
-            )}
-          />
-        </button>
-      </div>
-      <ErrorNote error={update.error} className="mt-2" />
-    </div>
-  );
-}
-
-type AccountAction = 'email' | 'password' | 'delete';
-
-/**
- * The rest of the account stays out of the way: one quiet line under the
- * card (change email, change password, delete account), each opening only
- * what it needs. Every one is confirmed by the current password.
- */
-function AccountActions({ account }: { account: SignedInAccount }) {
-  const [open, setOpen] = useState<AccountAction | null>(null);
-  const [done, setDone] = useState<string | null>(null);
-  const triggers = useRef<Partial<Record<AccountAction, HTMLButtonElement | null>>>({});
-
-  // A form that closes hands the focus back to the line that opened it.
-  const close = (action: AccountAction, message?: string) => {
-    setOpen(null);
-    setDone(message ?? null);
-    window.setTimeout(() => triggers.current[action]?.focus(), 0);
-  };
-  const trigger = (action: AccountAction, label: string) => (
-    <button
-      key={action}
-      type="button"
-      ref={(element) => {
-        triggers.current[action] = element;
-      }}
-      onClick={() => {
-        setDone(null);
-        setOpen(action);
-      }}
-      className={textButtonClass}
-    >
-      {label}
-    </button>
-  );
-
-  return (
-    <>
-      {open === 'email' && <EmailChange email={account.user.email} onClose={(changed) => close('email', changed ? 'Email changed.' : undefined)} />}
-      {open === 'password' && (
-        <PasswordChange email={account.user.email} onClose={(changed) => close('password', changed ? 'Password changed.' : undefined)} />
-      )}
-      {(open === null || open === 'delete') && (
-        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 px-1" data-account-actions>
-          {trigger('email', 'Change email')}
-          {trigger('password', 'Change password')}
-          {trigger('delete', 'Delete account')}
-          {done && <Done>{done}</Done>}
-        </div>
-      )}
-      <DeleteAccount account={account} open={open === 'delete'} onCancel={() => close('delete')} />
-    </>
-  );
-}
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-/** Which field a refusal is about, when the server says. */
-function fieldOf(error: unknown): string | null {
-  const payload = error instanceof ApiError ? error.payload : null;
-  const field = payload && typeof payload === 'object' && 'field' in payload ? (payload as { field: unknown }).field : null;
-  return typeof field === 'string' ? field : null;
-}
-
-/** The address the person signs in with. Their other devices are signed out by the change; this one stays signed in. */
-function EmailChange({ email, onClose }: { email: string; onClose: (changed: boolean) => void }) {
-  const change = useChangeEmail();
-  const [next, setNext] = useState('');
-  const [password, setPassword] = useState('');
-  const [problems, setProblems] = useState<{ email?: string; password?: string }>({});
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (change.isPending) return;
-    change.reset();
-    const found: { email?: string; password?: string } = {};
-    const typed = next.trim();
-    if (!EMAIL_RE.test(typed)) found.email = 'Enter a valid email address.';
-    else if (typed.toLowerCase() === email) found.email = 'That is already your email address.';
-    if (!password) found.password = 'Enter your current password.';
-    setProblems(found);
-    if (found.email || found.password) {
-      (found.email ? emailRef : passwordRef).current?.focus();
-      return;
-    }
-    change.mutate(
-      { email: typed, password },
-      {
-        onSuccess: () => onClose(true),
-        onError: (error) => (fieldOf(error) === 'password' ? passwordRef : emailRef).current?.focus(),
-      }
-    );
-  };
-
-  // What the server refused goes beside the field it is about.
-  const refusedField = change.error ? fieldOf(change.error) : null;
-  const emailProblem = problems.email ?? (refusedField === 'email' ? change.error : null);
-  const passwordProblem = problems.password ?? (refusedField === 'password' ? change.error : null);
-
-  return (
-    <form onSubmit={submit} noValidate className={cn(cardClass, 'mt-3 space-y-4 p-4 sm:p-6')} data-email-form>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="New email" htmlFor="email-next">
-          <input
-            ref={emailRef}
-            id="email-next"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            autoCapitalize="none"
-            spellCheck={false}
-            autoFocus
-            maxLength={254}
-            aria-invalid={emailProblem ? true : undefined}
-            aria-describedby={emailProblem ? 'email-next-problem' : undefined}
-            value={next}
-            onChange={(e) => {
-              setNext(e.target.value);
-              setProblems((current) => ({ ...current, email: undefined }));
-            }}
-            className={fieldClass}
-          />
-          <div id="email-next-problem">
-            <ErrorNote error={emailProblem} className="mt-2" />
-          </div>
-        </Field>
-        <Field label="Current password" htmlFor="email-password">
-          <input
-            ref={passwordRef}
-            id="email-password"
-            type="password"
-            autoComplete="current-password"
-            maxLength={200}
-            aria-invalid={passwordProblem ? true : undefined}
-            aria-describedby={passwordProblem ? 'email-password-problem' : undefined}
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setProblems((current) => ({ ...current, password: undefined }));
-            }}
-            className={fieldClass}
-          />
-          <div id="email-password-problem">
-            <ErrorNote error={passwordProblem} className="mt-2" />
-          </div>
-        </Field>
-      </div>
-      {!refusedField && <ErrorNote error={change.error} />}
-      <div className="flex flex-wrap items-center gap-4">
-        <Button type="submit" aria-busy={change.isPending} aria-disabled={change.isPending} className={cn('h-10 rounded-lg', busyButtonClass)}>
-          {change.isPending && <Loader2 className="animate-spin" />}
-          Change email
-        </Button>
-        <button
-          type="button"
-          onClick={() => {
-            if (!change.isPending) onClose(false);
-          }}
-          className={textButtonClass}
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-}
-
-/** Two fields. Other devices are signed out by the change; this one stays signed in. */
-function PasswordChange({ email, onClose }: { email: string; onClose: (changed: boolean) => void }) {
-  const change = useChangePassword();
-  const [current, setCurrent] = useState('');
-  const [next, setNext] = useState('');
-  const [problems, setProblems] = useState<{ current?: string; next?: string }>({});
-  const currentRef = useRef<HTMLInputElement>(null);
-  const nextRef = useRef<HTMLInputElement>(null);
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (change.isPending) return;
-    change.reset();
-    const found: { current?: string; next?: string } = {};
-    if (!current) found.current = 'Enter your current password.';
-    if (next.length < 8) found.next = 'Use a password of at least 8 characters.';
-    setProblems(found);
-    if (found.current || found.next) {
-      (found.current ? currentRef : nextRef).current?.focus();
-      return;
-    }
-    change.mutate({ current, next }, { onSuccess: () => onClose(true), onError: () => currentRef.current?.focus() });
-  };
-
-  return (
-    <form onSubmit={submit} noValidate className={cn(cardClass, 'mt-3 space-y-4 p-4 sm:p-6')} data-password-form>
-      {/* Not shown: it tells a password manager which account the new password belongs to. */}
-      <input type="email" name="email" autoComplete="username" value={email} readOnly hidden />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Current password" htmlFor="password-current">
-          <input
-            ref={currentRef}
-            id="password-current"
-            type="password"
-            autoComplete="current-password"
-            autoFocus
-            maxLength={200}
-            aria-invalid={problems.current ? true : undefined}
-            aria-describedby={problems.current ? 'password-current-problem' : undefined}
-            value={current}
-            onChange={(e) => {
-              setCurrent(e.target.value);
-              setProblems((found) => ({ ...found, current: undefined }));
-            }}
-            className={fieldClass}
-          />
-          <div id="password-current-problem">
-            <ErrorNote error={problems.current} className="mt-2" />
-          </div>
-        </Field>
-        <Field label="New password" htmlFor="password-next" hint={problems.next ? undefined : 'At least 8 characters.'}>
-          <input
-            ref={nextRef}
-            id="password-next"
-            type="password"
-            autoComplete="new-password"
-            maxLength={200}
-            aria-invalid={problems.next ? true : undefined}
-            aria-describedby={problems.next ? 'password-next-problem' : undefined}
-            value={next}
-            onChange={(e) => {
-              setNext(e.target.value);
-              setProblems((found) => ({ ...found, next: undefined }));
-            }}
-            className={fieldClass}
-          />
-          <div id="password-next-problem">
-            <ErrorNote error={problems.next} className="mt-2" />
-          </div>
-        </Field>
-      </div>
-      <ErrorNote error={change.error} />
-      <div className="flex flex-wrap items-center gap-4">
-        <Button type="submit" aria-busy={change.isPending} aria-disabled={change.isPending} className={cn('h-10 rounded-lg', busyButtonClass)}>
-          {change.isPending && <Loader2 className="animate-spin" />}
-          Change password
-        </Button>
-        <button
-          type="button"
-          onClick={() => {
-            if (!change.isPending) onClose(false);
-          }}
-          className={textButtonClass}
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-}
-
-/**
- * Deleting the account: the one step here that cannot be taken back, so it
- * says what goes and asks for the password. Escape and Cancel leave
- * everything as it was. Afterwards nobody is signed in and the map opens.
- */
-function DeleteAccount({ account, open, onCancel }: { account: SignedInAccount; open: boolean; onCancel: () => void }) {
-  const remove = useDeleteAccount();
-  const [password, setPassword] = useState('');
-  const [problem, setProblem] = useState<string | null>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const companies = account.memberships.filter((membership) => membership.status === 'active').map((membership) => membership.companyName);
-
-  const cancel = () => {
-    if (remove.isPending) return;
-    remove.reset();
-    setPassword('');
-    setProblem(null);
-    onCancel();
-  };
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (remove.isPending) return;
-    remove.reset();
-    if (!password) {
-      setProblem('Enter your password.');
-      passwordRef.current?.focus();
-      return;
-    }
-    setProblem(null);
-    remove.mutate(password, { onError: () => passwordRef.current?.focus() });
-  };
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) cancel();
-      }}
-    >
-      <DialogContent
-        role="alertdialog"
-        className="w-[calc(100%-2rem)] max-w-md gap-5 rounded-xl border-border-strong bg-bg-surface p-5 text-fg-default sm:rounded-xl [&>button]:hidden"
-      >
-        <form onSubmit={submit} noValidate className="grid gap-5" data-delete-account>
-          <DialogHeader className="space-y-2 text-left">
-            <DialogTitle className="text-base font-semibold leading-snug">Delete your account?</DialogTitle>
-            <DialogDescription asChild>
-              <div className="space-y-2 break-words text-sm text-fg-muted">
-                <p>Your skills, goals and applications are removed. Companies you applied to no longer see them.</p>
-                {companies.length > 0 && (
-                  <p>
-                    Your access to {companies.join(', ')} ends. Jobs you posted stay with the company.
-                  </p>
-                )}
-                <p>This cannot be undone.</p>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <Field label="Password" htmlFor="delete-password">
-            <input
-              ref={passwordRef}
-              id="delete-password"
-              type="password"
-              autoComplete="current-password"
-              maxLength={200}
-              aria-invalid={problem || remove.error ? true : undefined}
-              aria-describedby={problem || remove.error ? 'delete-password-problem' : undefined}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setProblem(null);
-              }}
-              className={fieldClass}
-            />
-            <div id="delete-password-problem">
-              <ErrorNote error={problem ?? remove.error} className="mt-2" />
-            </div>
-          </Field>
-          <DialogFooter className="flex-row justify-end gap-2 space-x-0 sm:space-x-0">
-            <Button type="button" variant="outline" onClick={cancel} className={cn('h-10', outlineButtonClass)}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="destructive"
-              aria-busy={remove.isPending}
-              aria-disabled={remove.isPending}
-              className={cn('h-10', busyButtonClass)}
-            >
-              {remove.isPending && <Loader2 className="animate-spin" />}
-              Delete account
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
   );
 }
 
