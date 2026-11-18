@@ -245,8 +245,15 @@ export function normaliseFile(raw, states, label = raw?.brief ?? 'file') {
           opened,
           status,
           sources: urls(p.sources),
+          // The existing plant this one is, by its exact name, when the corrections say so.
+          sameAs: text(p.sameAs, 300),
         })
       );
+    }
+    // The company's only plant in its city, whatever its status: the loader may then look further for it.
+    const cities = (Array.isArray(c.plants) ? c.plants : []).map((p) => `${plain(p?.city)}|${String(p?.state ?? '').toUpperCase()}`);
+    for (const p of plants) {
+      if (cities.filter((key) => key === `${plain(p.city)}|${p.state}`).length === 1) p.alone = true;
     }
 
     companies.push(
@@ -280,7 +287,8 @@ export function normaliseFile(raw, states, label = raw?.brief ?? 'file') {
  *                     has one of this company's names; it is renamed
  *   set               company fields to replace (parent, domain, ...)
  *   dropPlants        plants to leave out, by name
- *   plants            { "<plant name>": { field: value } }: plant fields to replace
+ *   plants            { "<plant name>": { field: value } }: plant fields to replace;
+ *                     `sameAs` names the existing plant this one is, by its exact name
  * Every entry carries `why`.
  */
 export function applyCorrections(raw, corrections) {

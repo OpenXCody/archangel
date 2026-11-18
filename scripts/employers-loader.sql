@@ -124,6 +124,7 @@ DECLARE
   v_akas text[];      -- alsoKnownAs as written, without protected names
   v_names text[];     -- every name to look under, lower case
   v_states text[];    -- the states this file has its plants in
+  v_found uuid[];
   v_unused text;
   v_guard text[] := array_remove(protect, lower(btrim(c->>'name')));
   r record;
@@ -165,6 +166,9 @@ BEGIN
     END IF;
   END LOOP;
 
+  -- The rows it is found under, first; then each is read.
+  SELECT coalesce(array_agg(co.id), '{}') INTO v_found FROM companies co
+    WHERE lower(co.name) = ANY (v_names) OR EXISTS (SELECT 1 FROM unnest(co.aliases) a WHERE lower(a) = ANY (v_names));
   FOR r IN
     SELECT co.id, co.name, lower(co.name) = ANY (v_names) AS by_name,
            (SELECT count(*) FROM factories f WHERE f.company_id = co.id) AS plants,
@@ -177,9 +181,11 @@ BEGIN
              AND co.domain IS DISTINCT FROM NULLIF(c->>'domain', '') AS name_only,
            (SELECT string_agg(a, '; ') FROM unnest(co.aliases) a WHERE lower(a) = ANY (v_names)) AS via
     FROM companies co
-    WHERE lower(co.name) = ANY (v_names)
-       OR EXISTS (SELECT 1 FROM unnest(co.aliases) a WHERE lower(a) = ANY (v_names))
-    ORDER BY (lower(co.name) = lower(v_name)) DESC, (lower(co.name) = ANY (v_names)) DESC, co.featured DESC, (co.slug IS NOT NULL) DESC,
+    WHERE co.id = ANY (v_found)
+    -- The row that is kept: the one already named as the file names it, then one known by that name, then the one with
+    -- a profile, people or the most plants.
+    ORDER BY (lower(co.name) = lower(v_name)) DESC, EXISTS (SELECT 1 FROM unnest(co.aliases) a WHERE lower(a) = lower(v_name)) DESC,
+             co.featured DESC, (co.slug IS NOT NULL) DESC,
              (SELECT count(*) FROM company_members m WHERE m.company_id = co.id) DESC, 4 DESC, co.created_at, co.id
   LOOP
     IF NOT r.by_name AND lower(r.name) = ANY (v_guard) THEN
@@ -375,6 +381,8 @@ END $f$;
 -- or as a new row.
 --
 -- Candidates, best first:
+--   named        the existing plant the corrections name for it (sameAs, its
+--                exact name), within 10 km, whoever it is filed under
 --   same name    a plant of this company (or its parent, or a company that is
 --                part of it) with the same name, within 5 km
 --   shared word  one whose name shares a telling word ("Giga", "Refinery"),
@@ -384,6 +392,9 @@ END $f$;
 --                different unit of the same site
 --   beside       a plant of any other company within 250 m whose name names
 --                this company or this site
+--   only one     when the research has one plant of the company in a city:
+--                a bare plant of the company in that city within 3.5 km (a
+--                large site, placed apart by two sources)
 -- A row is taken by one plant per file. A plant found under the parent, or
 -- under an unrelated company, moves to this company; one found under a
 -- company that is part of this one, under another company the research
@@ -392,7 +403,9 @@ CREATE OR REPLACE FUNCTION pg_temp.el_plants(k uuid, c jsonb, protect text[], st
 DECLARE
   v_name text := btrim(c->>'name');
   v_par uuid;
+  v_family uuid[];
   v_keys text[];      -- this company's names, normalised, three characters or more
+  v_bare text[];      -- those names without legal endings
   v_drop text[];      -- the words of those names
   r record;
   q record;
@@ -406,54 +419,88 @@ DECLARE
   v_sample text;
 BEGIN
   SELECT parent_company_id INTO v_par FROM companies WHERE id = k;
+  -- This company, its parent, and the companies that are part of it.
+  SELECT array_agg(id) INTO v_family FROM (
+    SELECT k AS id UNION SELECT v_par WHERE v_par IS NOT NULL UNION SELECT id FROM companies WHERE parent_company_id = k) s;
   SELECT coalesce(array_agg(DISTINCT n), '{}') INTO v_keys
   FROM (SELECT pg_temp.el_norm(a) AS n FROM unnest(ARRAY[v_name] || coalesce((SELECT aliases FROM companies WHERE id = k), '{}')) a) s
   WHERE length(n) >= 3 AND n NOT IN (SELECT pg_temp.el_norm(x) FROM unnest(array_remove(protect, lower(v_name))) x);
+  SELECT coalesce(array_agg(DISTINCT pg_temp.el_bare(key)), '{}') INTO v_bare FROM unnest(v_keys) key;
   SELECT coalesce(array_agg(DISTINCT w), '{}') INTO v_drop
   FROM (SELECT regexp_split_to_table(pg_temp.el_norm(a), ' ') AS w
         FROM unnest(ARRAY[v_name] || coalesce((SELECT aliases FROM companies WHERE id = k), '{}')) a) s
   WHERE w <> '';
 
-  DROP TABLE IF EXISTS el_p;
-  CREATE TEMP TABLE el_p ON COMMIT DROP AS
-    SELECT ord::integer AS i, p, (p->>'latitude')::float8 AS lat, (p->>'longitude')::float8 AS lng,
-           pg_temp.el_bare(p->>'name') AS nname,
-           v_drop || regexp_split_to_array(pg_temp.el_norm(coalesce(p->>'city', '') || ' ' || coalesce(p->>'state', '') || ' ' || coalesce(states->>(p->>'state'), '')), ' ') AS drop_words,
-           NULL::text[] AS words, NULL::uuid AS fid
+  TRUNCATE el_p;
+  INSERT INTO el_p (i, p, lat, lng, nname, drop_words)
+    SELECT ord::integer, p, (p->>'latitude')::float8, (p->>'longitude')::float8, pg_temp.el_bare(p->>'name'),
+           v_drop || regexp_split_to_array(pg_temp.el_norm(coalesce(p->>'city', '') || ' ' || coalesce(p->>'state', '') || ' ' || coalesce(states->>(p->>'state'), '')), ' ')
     FROM jsonb_array_elements(coalesce(c->'plants', '[]'::jsonb)) WITH ORDINALITY t(p, ord);
   UPDATE el_p SET words = pg_temp.el_words(p->>'name', drop_words);
 
   FOR r IN
-    SELECT * FROM (
-      SELECT p.i, f.id, f.name AS fname, f.curated, f.company_id, oc.name AS cname,
-             CASE WHEN f.company_id = k THEN 0 WHEN oc.parent_company_id = k THEN 1 WHEN f.company_id = v_par THEN 2 ELSE 3 END AS rel,
-             pg_temp.el_metres(p.lat, p.lng, x.lat, x.lng) AS d,
-             CASE WHEN pg_temp.el_bare(f.name) = p.nname THEN 0
-                  WHEN pg_temp.el_share(p.words, fw.words) THEN 1
-                  WHEN cardinality(p.words) = 0 OR cardinality(fw.words) = 0 THEN 2
-                  ELSE 3 END AS class,
-             pg_temp.el_refers(f.name, v_keys) OR pg_temp.el_refers(oc.name, v_keys) AS refers,
-             cardinality(p.words) >= 2 AND p.words <@ fw.words AS same_site
-      FROM el_p p
-      JOIN el_pos x ON x.lat BETWEEN p.lat - 0.05 AND p.lat + 0.05 AND x.lng BETWEEN p.lng - 0.08 AND p.lng + 0.08
-      JOIN factories f ON f.id = x.id
-      LEFT JOIN companies oc ON oc.id = f.company_id
-      CROSS JOIN LATERAL (SELECT pg_temp.el_words(f.name, p.drop_words) AS words) fw
-    ) s
-    WHERE CASE
-      WHEN rel IN (0, 1) THEN d <= CASE class WHEN 0 THEN 5000 WHEN 1 THEN 3000 ELSE 1500 END AND NOT (class = 3 AND curated)
-      WHEN rel = 2 THEN (class = 0 AND d <= 5000) OR (class = 1 AND d <= 1500) OR (refers AND d <= CASE class WHEN 1 THEN 3000 ELSE 1500 END)
-      ELSE d <= 250 AND (class = 0 OR refers OR same_site)
-    END
-    ORDER BY class, rel, d, id
+    SELECT *, CASE WHEN same_as THEN -1 WHEN usual THEN class ELSE 4 END AS rank FROM (
+      SELECT *,
+             CASE
+               WHEN rel IN (0, 1) THEN d <= CASE class WHEN 0 THEN 5000 WHEN 1 THEN 3000 ELSE 1500 END AND NOT (class = 3 AND curated)
+               WHEN rel = 2 THEN (class = 0 AND d <= 5000) OR (class = 1 AND d <= 1500) OR (refers AND d <= CASE class WHEN 1 THEN 3000 ELSE 1500 END)
+               ELSE d <= 250 AND (class = 0 OR names_us OR same_site)
+             END AS usual
+      FROM (
+        SELECT b.*,
+               CASE WHEN pg_temp.el_bare(b.fname) = b.nname THEN 0
+                    WHEN pg_temp.el_share(b.words, fw.words) THEN 1
+                    WHEN cardinality(b.words) = 0 OR cardinality(fw.words) = 0 THEN 2
+                    ELSE 3 END AS class,
+               pg_temp.el_refers(b.fname, v_keys) AS refers,
+               -- A stranger's plant names this company when its name carries one of this company's names and does not
+               -- spell out a longer name of the company it is filed under ("CHEVRON PHILLIPS CHEMICAL ..." filed under
+               -- Chevron is Chevron Phillips Chemical's; the reverse is not Chevron's), or when that company is this one
+               -- but for a legal ending.
+               coalesce((SELECT max(length(key)) FROM unnest(v_keys) key WHERE position(' ' || key || ' ' IN ' ' || pg_temp.el_norm(b.fname) || ' ') > 0), 0)
+                 > CASE WHEN position(' ' || pg_temp.el_bare(b.cname) || ' ' IN ' ' || pg_temp.el_norm(b.fname) || ' ') > 0 THEN length(pg_temp.el_bare(b.cname)) ELSE 0 END
+                 OR pg_temp.el_bare(b.cname) = ANY (v_bare) AS names_us,
+               cardinality(b.words) >= 2 AND b.words <@ fw.words AS same_site,
+               b.alone AND pg_temp.el_norm(b.fcity) = pg_temp.el_norm(b.city) AS alone_in_city
+        FROM (
+          -- Only rows that could be the plant are read: anyone's within 250 m, this company's and its family's within
+          -- 10 km, and the one the corrections name.
+          SELECT p.i, p.nname, p.words, p.drop_words, p.p->>'city' AS city, coalesce((p.p->>'alone')::boolean, false) AS alone,
+                 f.id, f.name AS fname, f.city AS fcity, f.curated, f.company_id, oc.name AS cname,
+                 CASE WHEN f.company_id = k THEN 0 WHEN oc.parent_company_id = k THEN 1 WHEN f.company_id = v_par THEN 2 ELSE 3 END AS rel,
+                 pg_temp.el_metres(p.lat, p.lng, x.lat, x.lng) AS d,
+                 coalesce(f.name = p.p->>'sameAs', false) AS same_as
+          FROM el_p p
+          CROSS JOIN LATERAL (
+            SELECT x.id FROM el_pos x
+              WHERE x.lat BETWEEN p.lat - 0.003 AND p.lat + 0.003 AND x.lng BETWEEN p.lng - 0.004 AND p.lng + 0.004
+            UNION
+            SELECT f2.id FROM factories f2 WHERE f2.company_id = ANY (v_family)
+            UNION
+            SELECT f3.id FROM factories f3 WHERE f3.name = p.p->>'sameAs'
+          ) near
+          JOIN el_pos x ON x.id = near.id
+          JOIN factories f ON f.id = near.id
+          LEFT JOIN companies oc ON oc.id = f.company_id
+          WHERE pg_temp.el_metres(p.lat, p.lng, x.lat, x.lng) <= 10000
+          OFFSET 0
+        ) b
+        CROSS JOIN LATERAL (SELECT pg_temp.el_words(b.fname, b.drop_words) AS words) fw
+      ) s
+    ) t
+    WHERE (same_as AND d <= 10000) OR usual
+       -- The company's only plant in the city, in the research and (as far as 3.5 km) in the data: one site, placed apart.
+       OR (rel IN (0, 1) AND NOT curated AND alone_in_city AND d <= 3500)
+    ORDER BY rank, rel, d, id
   LOOP
     CONTINUE WHEN EXISTS (SELECT 1 FROM el_p WHERE i = r.i AND fid IS NOT NULL) OR EXISTS (SELECT 1 FROM el_claimed WHERE id = r.id);
     UPDATE el_p SET fid = r.id WHERE i = r.i;
     INSERT INTO el_claimed VALUES (r.id);
     SELECT p INTO q FROM el_p WHERE i = r.i;
     -- Moves to this company: from the parent, or from an unrelated company the research does not name, when the row is bare.
+    -- but not from another company the research names, unless the plant's own name says whose it is.
     v_move := CASE WHEN r.rel = 2 THEN k
-                   WHEN r.rel = 3 AND NOT r.curated AND lower(coalesce(r.cname, '')) <> ALL (protect) THEN k END;
+                   WHEN r.rel = 3 AND NOT r.curated AND (r.same_as OR r.names_us OR lower(coalesce(r.cname, '')) <> ALL (protect)) THEN k END;
     SELECT count(*) INTO v_more FROM el_pos x JOIN factories f ON f.id = x.id
       WHERE f.company_id = k AND f.id <> r.id AND NOT f.curated
         AND x.lat BETWEEN (q.p->>'latitude')::float8 - 0.02 AND (q.p->>'latitude')::float8 + 0.02
@@ -463,10 +510,11 @@ BEGIN
     PERFORM pg_temp.el_log('plant',
       CASE WHEN v_move IS NOT NULL AND r.rel <> 0 THEN 'moved' ELSE 'matched' END,
       -- Worth a look: a move, a row left with another company, a curated plant under another name, or an unrelated name far off.
-      r.rel <> 0 OR (r.curated AND r.class <> 0) OR (r.class = 3 AND r.d > 500) OR r.d > 1500,
+      r.rel <> 0 OR (r.curated AND r.class <> 0) OR (r.class = 3 AND r.d > 500) OR r.d > 1500 OR r.rank = 4,
       v_name, q.p->>'name',
       format('%s "%s"%s at %s m%s%s',
-        CASE r.class WHEN 0 THEN 'same name:' WHEN 1 THEN 'shared word:' WHEN 2 THEN 'near:' ELSE 'near, unrelated name:' END,
+        CASE WHEN r.rank = -1 THEN 'named in the corrections:' WHEN r.rank = 4 THEN 'its only plant in the city:'
+             WHEN r.class = 0 THEN 'same name:' WHEN r.class = 1 THEN 'shared word:' WHEN r.class = 2 THEN 'near:' ELSE 'near, unrelated name:' END,
         r.fname,
         CASE WHEN r.rel = 0 THEN ''
              WHEN v_move IS NOT NULL THEN format(', moved from "%s"', r.cname)
@@ -518,7 +566,6 @@ BEGIN
                (SELECT name FROM companies WHERE id = v_par), v_sample));
     END IF;
   END IF;
-  DROP TABLE el_p;
 END $f$;
 
 -- Loads everything: `data` is what scripts/build-employers-sql.mjs wrote.
@@ -531,6 +578,8 @@ DECLARE
 BEGIN
   -- "Table does not exist, skipping" is not news.
   PERFORM set_config('client_min_messages', 'warning', true);
+  -- The statements here are long and their tables small: compiling them (JIT) costs far more than running them.
+  PERFORM set_config('jit', 'off', true);
   SELECT coalesce(array_agg(lower(x)), '{}') INTO v_protect FROM jsonb_array_elements_text(coalesce(data->'protect', '[]'::jsonb)) x;
   -- Where every plant is, as numbers (coordinates are stored as text; only well-formed ones are read).
   DROP TABLE IF EXISTS el_pos;
@@ -542,6 +591,10 @@ BEGIN
   ANALYZE el_pos;
   DROP TABLE IF EXISTS el_claimed;
   CREATE TEMP TABLE el_claimed (id uuid PRIMARY KEY) ON COMMIT DROP;
+  -- The plants of the company being placed: its row in the file, where it is, its name for comparing, the words to
+  -- ignore in a name, the words that tell it apart, and the row it was placed on.
+  DROP TABLE IF EXISTS el_p;
+  CREATE TEMP TABLE el_p (i integer, p jsonb, lat float8, lng float8, nname text, drop_words text[], words text[], fid uuid) ON COMMIT DROP;
 
   FOR file IN SELECT f FROM jsonb_array_elements(data->'files') f LOOP
     PERFORM set_config('el.load', file->>'brief', true);
@@ -552,6 +605,7 @@ BEGIN
       PERFORM pg_temp.el_plants(k, c, v_protect, coalesce(data->'states', '{}'::jsonb));
     END LOOP;
   END LOOP;
+  DROP TABLE el_p;
   DROP TABLE el_claimed;
   DROP TABLE el_pos;
 END $f$;
