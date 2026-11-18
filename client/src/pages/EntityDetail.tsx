@@ -6,6 +6,7 @@ import SkillStatusButton, { SkillHeldToggle } from '../components/account/SkillS
 import { ErrorNote } from '../components/account/parts';
 import { signInPath, useAccount, useMySkills, type SkillStatus } from '../lib/account';
 import { useMarkSkill, type SkillMark } from '../lib/seeker';
+import { usePostJobLink, useSeekerTools, useViewer } from '../lib/viewer';
 import { editPath, type RecordKind } from '../lib/records';
 import { formatPay } from '../lib/jobFormat';
 import {
@@ -31,7 +32,7 @@ import {
   type SkillDetail,
 } from '../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
-import { industryLabel } from '@shared/industry';
+import { industryByName, industryLabel, industryPath } from '@shared/industry';
 import CompanyLogo from '../components/CompanyLogo';
 import FootprintMap from '../components/FootprintMap';
 import { useMapStore } from '../stores/mapStore';
@@ -247,7 +248,18 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
   );
   const shownSites = showAllSites ? sortedSites : sortedSites.slice(0, SITES_SHOWN);
 
-  const industries = data.industry ? [data.industry] : [];
+  // The industry most of the company's sites are classified in is a page of
+  // its own; where the sites are all in one state, that state's page of it.
+  const leadingIndustry = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const site of sites) if (industryByName(site.industry)) counts.set(site.industry as string, (counts.get(site.industry as string) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? null;
+  }, [sites]);
+  const industryPage = industryPath(leadingIndustry, { state: byState.length === 1 ? byState[0].code : null });
+  // The company's own words for what it makes; where it has none (or only the
+  // import's "Manufacturing"), the industry its sites are in.
+  const ownIndustry = data.industry && data.industry.trim().toLowerCase() !== 'manufacturing' ? data.industry : null;
+  const industries = ownIndustry ? [ownIndustry] : leadingIndustry ? [industryLabel(leadingIndustry)] : data.industry ? [data.industry] : [];
   const facts = [
     sites.length > 0 ? `${sites.length.toLocaleString()} ${sites.length === 1 ? 'site' : 'sites'}` : null,
     byState.length > 1 ? `${byState.length} states` : byState.length === 1 ? byState[0].name : null,
@@ -275,7 +287,7 @@ function CompanyDetailView({ data }: { data: CompanyDetail }) {
             <span key={industry}>
               {index > 0 && ', '}
               <Link
-                to={`/explore?tab=companies&industry=${encodeURIComponent(industry)}`}
+                to={industryPage ?? `/explore?tab=companies&industry=${encodeURIComponent(industry)}`}
                 className="underline-offset-4 hover:text-fg-default hover:underline"
               >
                 {industry}
@@ -401,6 +413,8 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
     .filter(Boolean)
     .join(', ');
   const industry = data.industry ? industryLabel(data.industry) : data.specialization;
+  // The plant's industry is a page of its own, for the plant's state.
+  const industryPage = industryPath(data.industry, { state: data.state });
   const jobs = data.jobs ?? [];
   const nearby = useMemo(() => data.nearby ?? [], [data.nearby]);
   const latitude = parseFloat(data.latitude);
@@ -428,7 +442,19 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
 
   return (
     <>
-      {(place || industry) && <p className="mt-4 text-sm text-fg-muted">{[place, industry].filter(Boolean).join(' · ')}</p>}
+      {(place || industry) && (
+        <p className="mt-4 text-sm text-fg-muted">
+          {place}
+          {place && industry ? ' · ' : ''}
+          {industry && industryPage ? (
+            <Link to={industryPage} className="underline-offset-4 hover:text-fg-default hover:underline">
+              {industry}
+            </Link>
+          ) : (
+            industry
+          )}
+        </p>
+      )}
 
       {/* Where it is */}
       {located && (
@@ -537,6 +563,8 @@ function FactoryDetailView({ data }: { data: FactoryDetail }) {
 
 /** Open jobs at a company, a factory or for a career, with a way in for employers when there are none. */
 function OpenJobsSection({ jobs, empty, showCareer = false }: { jobs: CareerJob[]; empty: string; showCareer?: boolean }) {
+  // Offered to a visitor and to someone here to hire, never to a seeker.
+  const postJob = usePostJobLink();
   return (
     <Section id="jobs" title="Open jobs">
       {jobs.length > 0 ? (
@@ -565,10 +593,14 @@ function OpenJobsSection({ jobs, empty, showCareer = false }: { jobs: CareerJob[
           <Link to="/jobs" className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
             See all open jobs
           </Link>
-          {' · '}
-          <Link to="/employer" className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
-            Hiring? Post a job
-          </Link>
+          {postJob && (
+            <>
+              {' · '}
+              <Link to={postJob.to} className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
+                {postJob.visitor ? 'Hiring? Post a job' : 'Post a job'}
+              </Link>
+            </>
+          )}
         </p>
       )}
     </Section>
@@ -635,7 +667,9 @@ function PathSkill({
 // Career (occupation) detail: the path of skills by stage, open jobs, and who employs it.
 function OccupationDetailView({ data }: { data: OccupationDetail }) {
   const { data: account } = useAccount();
-  const signedIn = Boolean(account?.user);
+  // Marks and "You have N of M" are a seeker's: someone here to hire reads the path as a visitor does.
+  const seekerTools = useSeekerTools();
+  const signedIn = Boolean(account?.user) && seekerTools;
   const { data: mySkills, isPending: skillsPending } = useMySkills(signedIn);
   const statusBySkill = new Map((mySkills ?? []).map((s) => [s.skillId, s.status]));
   const markSkill = useMarkSkill();
@@ -660,7 +694,7 @@ function OccupationDetailView({ data }: { data: OccupationDetail }) {
 
   return (
     <>
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+      <div className="mt-5 flex flex-wrap items-center gap-3 empty:hidden">
         <GoalButton occupationId={data.id} />
         {signedIn && skills.length > 0 && (
           <span className="text-sm text-fg-muted" data-held-count>
@@ -782,7 +816,7 @@ function WhereWorkIsDone({ data }: { data: OccupationDetail }) {
               {industries.map((industry) => (
                 <li key={industry.name}>
                   <Link
-                    to={`/explore?tab=factories&industry=${encodeURIComponent(industry.name)}`}
+                    to={industryPath(industry.name) ?? `/explore?tab=factories&industry=${encodeURIComponent(industry.name)}`}
                     className="flex items-baseline justify-between gap-4 py-2.5 text-sm transition-colors hover:text-fg-default"
                   >
                     <span className="min-w-0 text-fg-default">{industryLabel(industry.name)}</span>
@@ -817,14 +851,64 @@ function WhereWorkIsDone({ data }: { data: OccupationDetail }) {
   );
 }
 
-// Skill Detail View
+/** Where a skill sits on the careers that use it, in the order it is met. */
+const SKILL_STAGES: { stage: 1 | 2 | 3; label: string; hint: string }[] = [
+  { stage: 1, label: 'Introduction', hint: 'Learned first' },
+  { stage: 2, label: 'Fundamentals', hint: 'Core of the work' },
+  { stage: 3, label: 'Advanced', hint: 'Learned later' },
+];
+
+/** One stage's careers on a skill's page: the first few, and the rest on request. */
+function SkillCareers({ label, hint, careers }: { label?: string; hint?: string; careers: SkillDetail['occupations'] }) {
+  const [showAll, setShowAll] = useState(false);
+  const shown = showAll ? careers : careers.slice(0, CAREERS_SHOWN);
+  return (
+    <div className="min-w-0" data-skill-stage={label ?? 'none'}>
+      {label && (
+        <p className="mb-2 flex flex-wrap items-baseline gap-x-2 text-sm">
+          <span className="font-medium text-fg-default">{label}</span>
+          {hint && <span className="text-fg-soft">{hint}</span>}
+        </p>
+      )}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {shown.map((career) => (
+          <RelatedCard key={career.id} to={`/occupations/${career.id}`} icon={Briefcase} iconClass="text-fg-muted" title={career.title} />
+        ))}
+      </div>
+      {careers.length > CAREERS_SHOWN && (
+        <button
+          type="button"
+          onClick={() => setShowAll((value) => !value)}
+          className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-fg-default underline underline-offset-4 hover:no-underline sm:min-h-0"
+        >
+          {showAll ? 'Show fewer' : `Show all ${careers.length.toLocaleString()}`}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A skill's page: what it is (the header), how it is learned, what it is done
+ * with, the careers that use it by where it comes on their paths, the
+ * industries those careers work in, the skills that go with it, and open jobs
+ * that ask for it. A part with nothing to say is not drawn.
+ */
 function SkillDetailView({ data }: { data: SkillDetail }) {
+  const careers = data.occupations ?? [];
+  const staged = SKILL_STAGES.map((def) => ({ ...def, careers: careers.filter((career) => career.stage === def.stage) })).filter(
+    (group) => group.careers.length > 0
+  );
+  const unstaged = careers.filter((career) => !career.stage);
+  const tools = data.tools ?? [];
+  const industries = data.industries ?? [];
+  const jobs = data.jobs ?? [];
   return (
     <>
-      <div className="mt-5">
+      <div className="mt-5 empty:hidden">
         <SkillStatusButton skillId={data.id} />
       </div>
-      {/* Category badge - clicking filters Skills tab by category */}
+      {/* The category opens the skills list filtered to it. */}
       {data.category && (
         <div className="mt-4">
           <FilterPill to={`/explore?tab=skills&category=${encodeURIComponent(data.category)}`}>
@@ -833,27 +917,63 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
         </div>
       )}
 
-      {/* Occupations - no importance badges */}
-      {data.occupations?.length > 0 && (
-        <Section id="occupations" title="Careers requiring this skill">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {data.occupations.map((occ) => (
-              <RelatedCard
-                key={occ.id}
-                to={`/occupations/${occ.id}`}
-                icon={Briefcase}
-                iconClass="text-fg-muted"
-                title={occ.title}
-              />
+      {(data.howLearned || tools.length > 0) && (
+        <div className="grid grid-cols-1 gap-x-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+          {data.howLearned && (
+            <Section id="learned" title="How it is learned">
+              <p className="text-fg-muted leading-relaxed" data-skill-learned>
+                {data.howLearned}
+              </p>
+            </Section>
+          )}
+          {tools.length > 0 && (
+            <Section id="tools" title="Done with">
+              <ul className="space-y-1.5 text-fg-muted" data-skill-tools>
+                {tools.map((tool) => (
+                  <li key={tool} className="leading-snug">
+                    {tool}
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+        </div>
+      )}
+
+      {careers.length > 0 && (
+        <Section id="occupations" title="Careers that use it">
+          <div className="space-y-6">
+            {staged.map((group) => (
+              <SkillCareers key={group.stage} label={group.label} hint={group.hint} careers={group.careers} />
             ))}
+            {unstaged.length > 0 && <SkillCareers label={staged.length > 0 ? 'Other careers' : undefined} careers={unstaged} />}
           </div>
         </Section>
       )}
 
-      {/* Related Skills (same category) */}
+      {(industries.length > 0 || data.everywhere) && (
+        <Section id="industries" title="Where those careers work">
+          {industries.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {industries.map((industry) => (
+                <Link
+                  key={industry.name}
+                  to={industryPath(industry.name) ?? `/explore?tab=factories&industry=${encodeURIComponent(industry.name)}`}
+                  className="inline-flex min-h-11 items-center rounded-md border border-border-strong px-3 text-sm text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default sm:min-h-9"
+                >
+                  {industryLabel(industry.name)}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-fg-muted">Plants of every industry.</p>
+          )}
+        </Section>
+      )}
+
       {data.relatedSkills?.length > 0 && (
-        <Section title="Related skills">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <Section id="related" title="Skills that go with it">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.relatedSkills.map((skill) => (
               <RelatedCard
                 key={skill.id}
@@ -861,11 +981,16 @@ function SkillDetailView({ data }: { data: SkillDetail }) {
                 icon={Wrench}
                 iconClass="text-fg-muted"
                 title={skill.name}
+                // Its category is said only when it is another one: a row of the same words says nothing.
+                subtitle={skill.category !== data.category ? skill.category : null}
               />
             ))}
           </div>
         </Section>
       )}
+
+      {/* Like the other pages: a section only when there is a job to show. */}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} empty="" />}
     </>
   );
 }
@@ -948,7 +1073,9 @@ export default function EntityDetail() {
   const Icon = config.icon;
   // An admin corrects a record from its own page: Edit opens it in Admin Tools.
   const { data: viewer } = useAccount();
-  const canEdit = Boolean(viewer?.user?.isAdmin);
+  // Not while the admin is looking at the product as someone else.
+  const adminView = useViewer().admin;
+  const canEdit = adminView && Boolean(viewer?.user?.isAdmin);
 
   if (isLoading) {
     return (

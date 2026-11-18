@@ -35,7 +35,7 @@ async function assertHealthyLayout(page: Page, label: string): Promise<void> {
   expect(metrics.bodyText > 20 || metrics.interactive >= 3, `${label}: page rendered nothing`).toBe(true);
   await expect(page.getByText('This page could not be shown'), `${label}: ErrorBoundary tripped`).toHaveCount(0);
   // Evidence, not an assertion: a slow tile or font server must not fail a layout check.
-  const file = `test-results/screens/${test.info().project.name}${label.replace(/[/#:]/g, '_')}.png`;
+  const file = `test-results/screens/${test.info().project.name}${label.replace(/[^A-Za-z0-9._-]/g, '_')}.png`;
   await page.screenshot({ path: file, fullPage: false, timeout: 10_000 }).catch(() => undefined);
 }
 
@@ -78,6 +78,36 @@ test('a career page shows its path, a company page its sites', async ({ page, re
   await expect(page.locator('#skills')).toHaveCount(0);
 });
 
+test('industry pages render without overflow', async ({ page, request }) => {
+  await page.goto('/industries', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-industries-view] [data-figure-list] a').first(), 'the list of industries is drawn').toBeVisible();
+  await assertHealthyLayout(page, '/industries');
+
+  // The industry with the most plants in the sample's fullest state: a page with every part.
+  const res = await request.get(`${API}/industries?state=TX`);
+  expect(res.ok(), 'the API lists industries for a state').toBe(true);
+  const list = (await res.json()) as { industries: { slug: string; plants: number }[] };
+  const fullest = [...list.industries].sort((a, b) => b.plants - a.plants)[0];
+  expect(fullest?.plants ?? 0, 'the sample has plants with an industry in Texas').toBeGreaterThan(0);
+  await page.goto(`/industries/${fullest.slug}?state=TX`, { waitUntil: 'domcontentloaded' });
+  const view = page.locator('[data-industry-view]');
+  await expect(view.locator('[data-figures]'), 'the figures are drawn').toBeVisible();
+  await expect(page.locator('[data-place-choice]'), 'the place can be changed').toBeVisible();
+  await expect(view.locator('[data-open-map]'), 'the way to the map is there').toHaveAttribute('href', /^\/map\?industry=.+&state=TX$/);
+  expect(await view.locator('section').count(), 'the page has its parts').toBeGreaterThan(0);
+  await expect(page).toHaveTitle(/ in Texas · Archangel$/);
+  await assertHealthyLayout(page, '/industries/:slug?state=TX');
+
+  // The same industry for the country: the states it is largest in, each a link to that state's page.
+  await page.goto(`/industries/${fullest.slug}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#where a[href*="?state="]').first(), 'the states are listed').toBeVisible();
+  await assertHealthyLayout(page, '/industries/:slug');
+
+  // An address that names no industry says so and offers the list.
+  await page.goto('/industries/not-an-industry', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByText('This industry is not listed')).toBeVisible();
+});
+
 test('global search opens and is usable', async ({ page }) => {
   await page.goto('/explore', { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: /search/i }).first().click();
@@ -86,4 +116,38 @@ test('global search opens and is usable', async ({ page }) => {
   await input.fill('steel');
   await page.waitForTimeout(1200);
   await assertHealthyLayout(page, '/explore#search');
+});
+
+test('a seeker and an employer are given different tools', async ({ page, baseURL }) => {
+  // The one check here that writes: it makes two accounts and deletes them. Never against a deployed copy.
+  test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
+  const password = 'correct horse battery';
+  const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
+  const tools: Record<string, { menu: string[]; jobs: string | null }> = {};
+
+  for (const purpose of ['work', 'hire'] as const) {
+    const made = await page.request.post(`${API}/auth/sign-up`, {
+      data: { email: `tools-${purpose}-${stamp}@device.test`, name: `Tools ${purpose}`, password, purpose },
+    });
+    expect(made.status(), `${purpose}: account made`).toBe(201);
+    try {
+      await page.goto('/settings', { waitUntil: 'domcontentloaded' });
+      await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+      await assertHealthyLayout(page, `/settings:${purpose}`);
+      // The header's third item: the open jobs for a seeker, their own jobs for an employer.
+      const jobs = await page.locator('header nav a').nth(2).getAttribute('href');
+      await page.getByRole('button', { name: /Account menu/ }).click();
+      const menu = (await page.getByRole('menuitem').allInnerTexts()).map((text) => text.trim());
+      await page.keyboard.press('Escape');
+      tools[purpose] = { menu, jobs };
+    } finally {
+      const gone = await page.request.delete(`${API}/me`, { data: { password } });
+      expect(gone.ok(), `${purpose}: account removed`).toBe(true);
+    }
+  }
+
+  expect(tools.work.menu, 'a seeker is led to their own page').toEqual(['Profile', 'Settings', 'Sign out']);
+  expect(tools.hire.menu, 'an employer is led to their jobs').toEqual(['Your jobs', 'Settings', 'Sign out']);
+  expect(tools.work.jobs).toBe('/jobs');
+  expect(tools.hire.jobs).toBe('/employer');
 });

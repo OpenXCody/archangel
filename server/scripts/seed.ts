@@ -14,6 +14,33 @@ import {
 // COMPANIES DATA (20 fictional companies; the first industry listed is the company's)
 // ============================================
 
+
+/**
+ * The NAICS subsector a sample plant belongs to, from its specialization, so
+ * the sample has an industry on every plant as production's data does.
+ */
+function subsectorFor(specialization: string): string {
+  const text = specialization.toLowerCase();
+  const rules: Array<[RegExp, string]> = [
+    [/semiconductor|electronic|computer|chip|sensor|avionic|telecom|instrument/, 'Computer and Electronic Product Manufacturing'],
+    [/batter|electrical|motor|transformer|solar|wind|lighting|appliance/, 'Electrical Equipment, Appliance, and Component Manufacturing'],
+    [/auto|aero|aircraft|vehicle|truck|rail|ship|engine|rv |powertrain|transmission|space|defense|missile/, 'Transportation Equipment Manufacturing'],
+    [/pharma|chemical|polymer|petrochem|coating|paint|plastic resin|fertil|biotech/, 'Chemical Manufacturing'],
+    [/refin|petroleum|lubric/, 'Petroleum and Coal Products Manufacturing'],
+    [/plastic|rubber|tire/, 'Plastics and Rubber Products Manufacturing'],
+    [/food|bever|dairy|meat|agricultur|brew|bak/, 'Food Manufacturing'],
+    [/steel prod|steel proc|alumin|foundr|casting|smelt|primary metal/, 'Primary Metal Manufacturing'],
+    [/machine|equipment|turbine|robot|tool|hvac|pump|oilfield/, 'Machinery Manufacturing'],
+    [/glass|cement|ceramic|brick/, 'Nonmetallic Mineral Product Manufacturing'],
+    [/paper|packag|pulp/, 'Paper Manufacturing'],
+    [/wood|lumber|timber/, 'Wood Product Manufacturing'],
+    [/furniture/, 'Furniture and Related Product Manufacturing'],
+    [/textile|apparel|fabric/, 'Textile Mills'],
+    [/medical|device|prototyp|r&d|research/, 'Miscellaneous Manufacturing'],
+  ];
+  return rules.find(([pattern]) => pattern.test(text))?.[1] ?? 'Fabricated Metal Product Manufacturing';
+}
+
 const COMPANIES_DATA = [
   { name: 'Apex Manufacturing Corp', description: 'Leading manufacturer of precision industrial machinery', industries: ['Industrial Machinery'] },
   { name: 'Midwest Steel Industries', description: 'Integrated steel producer serving automotive and construction', industries: ['Metals & Fabrication', 'Automotive'] },
@@ -4524,6 +4551,7 @@ async function seed() {
       longitude: string;
       city: string;
       state: string;
+      primaryNaicsDescription: string;
       workforceSize: number;
       openPositions: number;
     }> = [];
@@ -4578,6 +4606,7 @@ async function seed() {
           name: `${shortName} ${loc.city} Plant${factoryNum}`,
           specialization: loc.specialization,
           description: `${loc.specialization} facility located in ${loc.city}, ${loc.state}`,
+          primaryNaicsDescription: subsectorFor(loc.specialization),
           latitude: loc.lat.toString(),
           longitude: loc.lng.toString(),
           city: loc.city,

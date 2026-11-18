@@ -10,6 +10,7 @@ import CompanyLogo from '../components/CompanyLogo';
 import JobPlaceFilter, { DEFAULT_WITHIN, WITHIN_CHOICES, jobPlaceLabel, type JobPlace } from '../components/account/JobPlaceFilter';
 import { occupationsApi } from '../lib/api';
 import { useAccount, useJobs, type JobSummary } from '../lib/account';
+import { usePostJobLink } from '../lib/viewer';
 import { employmentLabel, formatAgo, formatPay, formatPlace } from '../lib/jobFormat';
 import { ENTITY, LoadError, cardClass, fieldClass, outlineButtonClass, useDebouncedValue } from '../components/account/parts';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
@@ -45,6 +46,8 @@ export default function Jobs() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const homeZip = useAccount().data?.user?.homeZip ?? null;
+  // "Post a job" is offered to a visitor and to someone here to hire, never to a seeker.
+  const postJob = usePostJobLink();
   const q = searchParams.get('q')?.trim() ?? '';
   const careerParam = searchParams.get('career') ?? '';
   const career = UUID_RE.test(careerParam) ? careerParam : '';
@@ -244,19 +247,28 @@ export default function Jobs() {
             title="No open jobs"
             description="Jobs posted by employers appear here."
             action={
-              <div className="flex flex-col items-center gap-4">
-                <div className="flex flex-wrap justify-center gap-2">
-                  <Button asChild className="h-10 rounded-lg">
-                    <Link to="/explore?tab=occupations">Browse careers</Link>
-                  </Button>
-                  <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
-                    <Link to="/map">Open the map</Link>
-                  </Button>
+              postJob && !postJob.visitor ? (
+                // Someone here to hire: the one thing to do about an empty list is theirs.
+                <Button asChild className="h-10 rounded-lg" data-post-a-job>
+                  <Link to={postJob.to}>Post a job</Link>
+                </Button>
+              ) : (
+                <div className="flex flex-col items-center gap-4">
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button asChild className="h-10 rounded-lg">
+                      <Link to="/explore?tab=occupations">Browse careers</Link>
+                    </Button>
+                    <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
+                      <Link to="/map">Open the map</Link>
+                    </Button>
+                  </div>
+                  {postJob && (
+                    <Link to={postJob.to} className="text-sm text-fg-muted underline underline-offset-4 hover:text-fg-default" data-post-a-job>
+                      Post a job
+                    </Link>
+                  )}
                 </div>
-                <Link to="/employer" className="text-sm text-fg-muted underline underline-offset-4 hover:text-fg-default">
-                  Post a job
-                </Link>
-              </div>
+              )
             }
           />
         )
@@ -280,13 +292,15 @@ export default function Jobs() {
               </li>
             ))}
           </ul>
-          {/* The one place a visiting employer learns they can list a job here. */}
-          <p className="mt-8 text-sm text-fg-muted" data-post-a-job>
-            Hiring?{' '}
-            <Link to="/employer" className="underline underline-offset-4 hover:text-fg-default">
-              Post a job
-            </Link>
-          </p>
+          {/* The one place a visiting employer learns they can list a job here. A seeker is not asked. */}
+          {postJob && (
+            <p className="mt-8 text-sm text-fg-muted" data-post-a-job>
+              {postJob.visitor && 'Hiring? '}
+              <Link to={postJob.to} className="underline underline-offset-4 hover:text-fg-default">
+                Post a job
+              </Link>
+            </p>
+          )}
         </>
       )}
     </PageContainer>

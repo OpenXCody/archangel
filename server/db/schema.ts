@@ -133,7 +133,12 @@ export const skills = pgTable(
     name: text('name').notNull(),
     // The skill's group as shown and filtered on ("Welding & Fabrication").
     category: text('category'),
+    // What the skill is and what a person who has it can do.
     description: text('description'),
+    // How it is usually learned or shown (on the job, a course, a named credential).
+    howLearned: text('how_learned'),
+    // The tools, machines or software it is done with: a short list.
+    tools: text('tools').array(),
     // Skill tree: self-referential parent for adjacency list pattern
     parentSkillId: uuid('parent_skill_id'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -309,6 +314,8 @@ export const users = pgTable(
     accessSeenAt: timestamp('access_seen_at', { withTimezone: true }),
     // Migration 0025. When the person became an admin; the longest-standing admin is the first admin.
     adminSince: timestamp('admin_since', { withTimezone: true }),
+    // Migration 0034. What the person said the account is for: 'work' or 'hire'; null when they have not said (server/lib/purpose.ts).
+    purpose: text('purpose'),
   },
   (table) => ({
     emailIdx: uniqueIndex('users_email_idx').on(table.email),
@@ -643,5 +650,47 @@ export const auditLog = pgTable(
   (table) => ({
     atIdx: index('audit_log_at_idx').on(table.at),
     recordIdx: index('audit_log_record_idx').on(table.kind, table.recordId, table.at),
+  })
+);
+
+// ============================================
+// INDUSTRIES (migrations 0035, 0036)
+// ============================================
+
+// What each of the 21 manufacturing industries makes, in one sentence.
+// Curated in data/industries/industries.json. `name` is the title a plant
+// carries in factories.primary_naics_description; the page address (slug)
+// lives with the list in shared/industry.ts.
+export const industryProfiles = pgTable(
+  'industry_profiles',
+  {
+    code: text('code').primaryKey(),
+    name: text('name').notNull(),
+    summary: text('summary').notNull(),
+  },
+  (table) => ({
+    nameKey: uniqueIndex('industry_profiles_name_key').on(table.name),
+  })
+);
+
+// Official statistics by industry and place (scripts/ingest/qcew.mjs), one
+// row per year. `state` is 'US' for the nation or a two-letter code;
+// `industryCode` is a NAICS subsector, or '31-33' for manufacturing as a
+// whole. A figure the source withheld is null, never zero.
+export const industryStats = pgTable(
+  'industry_stats',
+  {
+    state: text('state').notNull(),
+    industryCode: text('industry_code').notNull(),
+    year: integer('year').notNull(),
+    establishments: integer('establishments'),
+    employment: integer('employment'),
+    avgAnnualPay: integer('avg_annual_pay'),
+    source: text('source').notNull(),
+    sourceUrl: text('source_url'),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.state, table.industryCode, table.year] }),
+    industryIdx: index('industry_stats_industry_idx').on(table.industryCode, table.year),
   })
 );

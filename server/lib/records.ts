@@ -88,6 +88,29 @@ function cleanAliases(value: unknown, ownName: string): string[] | null {
   return list.length <= MAX_ALIASES ? list : null;
 }
 
+export const MAX_TOOLS = 12;
+/**
+ * What a skill is done with: a short list of tools, machines or software.
+ * Undefined when left out, an empty list when cleared, false when it is not a
+ * list of short names.
+ */
+export function toolList(value: unknown): string[] | undefined | false {
+  if (value === undefined) return undefined;
+  if (value === null) return [];
+  if (!Array.isArray(value) || value.length > 50) return false;
+  const seen = new Set<string>();
+  const list: string[] = [];
+  for (const item of value) {
+    if (typeof item !== 'string') return false;
+    const text = item.replace(/\s+/g, ' ').trim();
+    if (text.length > 120) return false;
+    if (!text || seen.has(text.toLowerCase())) continue;
+    seen.add(text.toLowerCase());
+    list.push(text);
+  }
+  return list.length <= MAX_TOOLS ? list : false;
+}
+
 /** One line of text: spaces collapsed, null when emptied, false when not text or too long. */
 function oneLine(value: unknown, max: number): string | null | undefined | false {
   if (value === undefined) return undefined;
@@ -159,6 +182,8 @@ export interface RecordView {
   industries?: string[];
   /** Careers: the skills on the path with the stage of each, read fresh (the public career page is cached). */
   path?: { id: string; name: string; category: string | null; stage: number | null }[];
+  /** Skills: the tools, machines or software it is done with. */
+  tools?: string[];
 }
 
 async function aliasesOf(executor: Executor, kind: 'career' | 'skill', id: string): Promise<string[]> {
@@ -251,7 +276,8 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
     id,
     name: row.name,
     href: `/skills/${id}`,
-    fields: { name: row.name, category: row.category, description: row.description },
+    fields: { name: row.name, category: row.category, description: row.description, howLearned: row.howLearned },
+    tools: row.tools ?? [],
     aliases: await aliasesOf(db, 'skill', id),
     attached,
   };
@@ -504,6 +530,10 @@ async function changeSkill(id: string, body: Body, actor: Actor): Promise<SavedR
   if (category === false) refuse('category', 'A category is text of up to 80 characters.');
   const description = optionalText(body.description, 2000);
   if (description === false) refuse('description', 'A description is text of up to 2,000 characters.');
+  const howLearned = optionalText(body.howLearned, 1000);
+  if (howLearned === false) refuse('howLearned', 'How it is learned is text of up to 1,000 characters.');
+  const tools = toolList(body.tools);
+  if (tools === false) refuse('tools', `What it is done with is a list of up to ${MAX_TOOLS} short names.`);
 
   return db.transaction(async (tx) => {
     const [before] = await tx.select().from(skills).where(eq(skills.id, id)).limit(1).for('update');
@@ -512,6 +542,8 @@ async function changeSkill(id: string, body: Body, actor: Actor): Promise<SavedR
       name: name ?? before.name,
       category: category === undefined ? before.category : category,
       description: description === undefined ? before.description : description,
+      howLearned: howLearned === undefined ? before.howLearned : howLearned,
+      tools: tools === undefined ? before.tools : tools.length > 0 ? tools : null,
     };
     if (after.name.toLowerCase() !== before.name.toLowerCase()) {
       const [taken] = await tx
@@ -528,7 +560,11 @@ async function changeSkill(id: string, body: Body, actor: Actor): Promise<SavedR
       if (!aliases) refuse('aliases', `Other names are a list of up to ${MAX_ALIASES} names.`);
       aliasesAfter = [...aliases].sort((a, b) => a.localeCompare(b));
     }
-    const changes = changedFields({ ...before, aliases: aliasesBefore }, { ...after, aliases: aliasesAfter }, ['name', 'category', 'description', 'aliases']);
+    const changes = changedFields(
+      { ...before, tools: before.tools ?? [], aliases: aliasesBefore },
+      { ...after, tools: after.tools ?? [], aliases: aliasesAfter },
+      ['name', 'category', 'description', 'howLearned', 'tools', 'aliases']
+    );
     if (!changes) return before;
     if (changes.aliases) await setAliases(tx, 'skill', id, aliasesAfter);
     const [saved] = await tx.update(skills).set(after).where(eq(skills.id, id)).returning();

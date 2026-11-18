@@ -249,6 +249,51 @@ expect "a closed job is not counted"  1 "$(req anon GET "/map/bounds/overview?$B
 expect "nor listed near a place"      "Home" "$(req anon GET "/jobs?$NEAR" | jobTitles)"
 expect "no jobs, no list"             "0" "$(req anon GET '/map/bounds/overview?west=-100.1&south=48.9&east=-99.9&north=49.0' | j "jobs.concat([o.openJobs]).join(' ')")"
 
+# --- Skills: the page's one answer, the list, other names ----------------------
+# With the fixtures above, S03 is on A[2], Short[2] and Unstaged; the skills
+# that share those paths are S04 (the same three careers), S02 (four careers,
+# three shared), S05 and S06 (two careers, both shared) and S01 (twelve careers).
+OUT=$(req anon GET /skills/$S03)
+check "a skill's page in one answer"  200 "$OUT"
+expect "it carries what the page shows" "true" "$(printf '%s' "$OUT" | j "name&&['description','howLearned','tools','occupations','industries','everywhere','relatedSkills','jobs'].every(k=>k in o)")"
+expect "its careers, by stage then title" "A:2|Short:2|Unstaged:null" "$(printf '%s' "$OUT" | j "occupations.map(c=>c.title.replace('$P ','')+':'+c.stage).join('|')")"
+expect "skills that go with it, the closest companions first" "S04 S02 S05 S06 S01" "$(printf '%s' "$OUT" | j "relatedSkills.map(r=>r.name.replace('$P ','')).join(' ')")"
+expect "no industries when its careers have none" "0 false" "$(printf '%s' "$OUT" | j "industries.length+' '+o.everywhere")"
+expect "no jobs until one asks for it" 0 "$(printf '%s' "$OUT" | j jobs.length)"
+sql "INSERT INTO job_skills (job_id, skill_id) SELECT id, '$S03' FROM jobs WHERE title IN ('$P Fitter Home', '$P Fitter Town')" >/dev/null
+expect "open jobs that ask for it, not the closed one" "$P Fitter Home" "$(req anon GET /skills/$S03 | j "jobs.map(x=>x.title).join('|')")"
+sql "INSERT INTO industry_occupations (industry, occupation_id, rank, common) VALUES ('$P Industry', '$A', 1, false), ('$P Industry', '$SHORT', 2, false), ('$P Other Industry', '$A', 1, false), ('$P Everywhere', '$UNSTAGED', 9, true)" >/dev/null
+expect "the industries its careers work in, most careers first" "$P Industry:2|$P Other Industry:1" "$(req anon GET /skills/$S03 | j "industries.map(i=>i.name+':'+i.careerCount).join('|')")"
+expect "a skill only on careers found everywhere says so" "0 true" "$(sql "INSERT INTO skills (name) VALUES ('$P Common')" >/dev/null; sql "INSERT INTO occupation_skills (occupation_id, skill_id) SELECT '$UNSTAGED', id FROM skills WHERE name='$P Common'" >/dev/null; req anon GET /skills/$(sql "SELECT id FROM skills WHERE name='$P Common'") | j "industries.length+' '+o.everywhere")"
+sql "DELETE FROM industry_occupations WHERE industry LIKE '$P %'" >/dev/null
+check "a skill that is not there"     404 "$(req anon GET /skills/00000000-0000-4000-8000-000000000000)"
+
+# The list: skills a career uses, the ones most careers use first.
+ENC=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$P")
+sql "INSERT INTO skills (name, category) VALUES ('$P Lone', '$P Cat')" >/dev/null
+sql "UPDATE skills SET category='$P Cat' WHERE name IN ('$P S01', '$P S02')" >/dev/null
+names() { j "data.map(x=>x.name.replace('$P ','')).join('|')"; }
+OUT=$(req anon GET "/skills?category=$ENC%20Cat")
+expect "most careers first, a skill on no career left out" "S01|S02" "$(printf '%s' "$OUT" | names)"
+expect "the total counts what is listed" 2 "$(printf '%s' "$OUT" | j total)"
+expect "a row says how many careers use it" "12|4" "$(printf '%s' "$OUT" | j "data.map(x=>x.occupationCount).join('|')")"
+expect "by name when asked"           "S02|S01" "$(req anon GET "/skills?category=$ENC%20Cat&sort=name&order=desc" | names)"
+expect "the list opens on the skill most careers use" true "$(req anon GET '/skills?limit=3' | j "data.every((x,i,a)=>i===0||a[i-1].occupationCount>=x.occupationCount)")"
+expect "nothing listed is on no career" 0 "$(req anon GET '/skills?limit=100' | j "data.filter(x=>!x.occupationCount).length")"
+expect "the parameter Vercel's rewrite adds changes nothing" "S01|S02" "$(req anon GET "/skills?category=$ENC%20Cat&path=skills" | names)"
+# Search: by name, by another name, by a tool; a skill on no career can still be found and picked.
+expect "a search finds a skill no career uses yet" "Lone" "$(req anon GET "/skills?search=$ENC%20Lone" | names)"
+expect "a search puts the most used of equal matches first" "S01|S08|S09" "$(req anon GET "/skills?search=$ENC%20S&limit=3" | names)"
+expect "and an exact name before a longer one" "S01" "$(sql "INSERT INTO skills (name) VALUES ('$P S01 Extra')" >/dev/null; req anon GET "/skills?search=$ENC%20S01&limit=1" | names)"
+sql "INSERT INTO skill_aliases (alias_text, canonical_skill_id) VALUES ('Oldname$RUN Welding', '$S05')" >/dev/null
+sql "UPDATE skills SET tools = ARRAY['Wrench$RUN set', 'calipers'] WHERE id='$S06'" >/dev/null
+expect "another name finds the skill" "S05" "$(req anon GET "/skills?search=oldname$RUN" | names)"
+expect "from the start of a word, not the middle" "" "$(req anon GET "/skills?search=ldname$RUN" | names)"
+expect "a tool finds the skill"       "S06" "$(req anon GET "/skills?search=wrench$RUN" | names)"
+expect "a percent sign is only a character" 0 "$(req anon GET '/skills?search=%25%25%25' | j total)"
+expect "the site search finds it by its other name and says so" "$P S05|Also called Oldname$RUN Welding" "$(req anon GET "/search?q=oldname$RUN&types=skills" | j "results.skills.items.map(x=>x.name+'|'+x.subtitle).join()")"
+expect "and by a tool"                "$P S06" "$(req anon GET "/search?q=wrench$RUN&types=skills" | j "results.skills.items.map(x=>x.name).join()")"
+
 # --- Changing my email --------------------------------------------------------
 E1="mail-$RUN@seeker.test"; E2="moved-$RUN@seeker.test"
 check "email change requires sign-in" 401 "$(req anon POST /auth/email '{"email":"'"$E2"'","password":"correct horse"}')"
@@ -279,6 +324,12 @@ DID=$(req d GET /auth/me | j user.id)
 check "a skill"                       200 "$(req d PUT /me/skills/$S01 '{"status":"held"}')"
 check "a goal"                        200 "$(req d PUT /me/goals/$A)"
 check "an application"                201 "$(req d POST /jobs/$JOB/apply '{"note":"hello"}')"
+# What the account is for changes the tools drawn, and nothing the person has.
+expect "a new account is for work"    work "$(req d GET /auth/me | j user.purpose)"
+check "set to hire"                   200 "$(req d PATCH /me '{"purpose":"hire"}')" '"purpose":"hire"'
+expect "skill, goal and application are all still there" "1 1 1" "$(echo "$(req d GET /me/skills | j skills.length) $(req d GET /me/goals | j goals.length) $(req d GET /me/applications | j applications.length)")"
+check "a seeker's routes still answer" 200 "$(req d GET /me/careers/reach)"
+check "set back to work"              200 "$(req d PATCH /me '{"purpose":"work"}')" '"purpose":"work"'
 sql "INSERT INTO company_members (company_id, user_id, role, status) SELECT id, '$DID', 'member', 'active' FROM companies WHERE name='$P Works'" >/dev/null
 check "deletion requires sign-in"     401 "$(req anon DELETE /me '{"password":"correct horse"}')"
 check "deletion needs the password"   400 "$(req d DELETE /me '{}')" 'Enter your password'

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Building2, ChevronDown, Loader2, LogIn, LogOut, Moon, ShieldCheck, Sun, UserRound } from 'lucide-react';
+import { BriefcaseBusiness, ChevronDown, Loader2, LogIn, LogOut, Settings, ShieldCheck, UserRound } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +22,7 @@ import {
   useSignOut,
   type News,
 } from '../../lib/account';
-import { setTheme, useTheme } from '../../lib/theme';
+import { useViewer } from '../../lib/viewer';
 
 /**
  * Titles for the account pages, for the browser tab. Null for any other path.
@@ -32,6 +32,7 @@ export function accountPageTitle(pathname: string, isAdmin: boolean): string | n
   if (pathname === '/sign-in') return 'Sign in';
   if (pathname === '/me') return 'Profile';
   if (pathname === '/employer') return 'Employer';
+  if (pathname === '/settings') return 'Settings';
   if (pathname === '/admin') return isAdmin ? 'Admin Tools' : null;
   return null;
 }
@@ -67,13 +68,18 @@ function useSeenOnVisit(news: News | undefined): void {
  * The account control at the end of the header nav: "Sign in" when signed
  * out; signed in, the person's name opening a small menu. Below `lg` it
  * collapses to an icon, as the nav items do.
+ *
+ * The menu leads with the person's own place: a seeker's page, an employer's
+ * jobs, and Admin Tools for an admin. Then settings and signing out, the same
+ * for everyone. The other side's page is listed only when something new is
+ * waiting there, so the dot always leads somewhere.
  */
 export default function AccountMenu() {
   const location = useLocation();
   const { data, isPending } = useAccount();
   const signOut = useSignOut();
   const [open, setOpen] = useState(false);
-  const theme = useTheme();
+  const viewer = useViewer();
   const news = useNews().data;
   useSessionExpiryWatch();
   useSeenOnVisit(news);
@@ -105,10 +111,14 @@ export default function AccountMenu() {
 
   const initial = user.name.trim().charAt(0).toUpperCase() || '?';
   const roles = data ? accountRoles(data) : [];
-  // Anyone with a company, approved, waiting or declined, has an employer page.
-  const hasCompany = (data?.memberships.length ?? 0) > 0;
+  // Each person's own page; the other one only while it has news. An admin viewing as
+  // someone else sees exactly that person's menu.
+  const showsPage = viewer.seeker || Boolean(news?.applications && !viewer.viewingAs);
+  const showsJobs = viewer.employer || Boolean(news?.applicants && !viewer.viewingAs);
   // One dot, never a count. In the menu the page with the news stays bright and the others step back.
-  const hasNews = Boolean(news && (news.applications || news.applicants || (news.access && user.isAdmin)));
+  const hasNews = Boolean(
+    news && ((news.applications && showsPage) || (news.applicants && showsJobs) || (news.access && viewer.admin))
+  );
   const pageItemClass = (lit: boolean | undefined) => cn(itemClass, hasNews && (lit ? 'font-medium' : 'text-fg-muted'));
   const restItemClass = cn(itemClass, hasNews && 'text-fg-muted');
   const pageIconClass = (lit: boolean | undefined) => (hasNews && lit ? 'text-fg-default' : 'text-fg-muted');
@@ -143,28 +153,36 @@ export default function AccountMenu() {
           <span className="block truncate text-sm font-semibold text-fg-default">{user.name}</span>
           <span className="block truncate text-xs text-fg-muted">{user.email}</span>
           {/* A plain account has no label: only a role is worth naming. */}
-          {roles.length > 0 && (
-            <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
-              {roles.join(' · ')}
+          {viewer.viewingAs ? (
+            <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-info">
+              Viewing as {viewer.viewingAs}
             </span>
+          ) : (
+            roles.length > 0 && (
+              <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
+                {roles.join(' · ')}
+              </span>
+            )
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-[color:var(--color-border-subtle)]" />
-        <DropdownMenuItem asChild className={pageItemClass(news?.applications)}>
-          <Link to="/me" data-has-news={news?.applications || undefined}>
-            <UserRound className={pageIconClass(news?.applications)} />
-            Profile
-          </Link>
-        </DropdownMenuItem>
-        {hasCompany && (
-          <DropdownMenuItem asChild className={pageItemClass(news?.applicants)}>
-            <Link to="/employer" data-has-news={news?.applicants || undefined}>
-              <Building2 className={pageIconClass(news?.applicants)} />
-              Employer
+        {showsPage && (
+          <DropdownMenuItem asChild className={pageItemClass(news?.applications)}>
+            <Link to="/me" data-has-news={news?.applications || undefined}>
+              <UserRound className={pageIconClass(news?.applications)} />
+              Profile
             </Link>
           </DropdownMenuItem>
         )}
-        {user.isAdmin && (
+        {showsJobs && (
+          <DropdownMenuItem asChild className={pageItemClass(news?.applicants)}>
+            <Link to="/employer" data-has-news={news?.applicants || undefined}>
+              <BriefcaseBusiness className={pageIconClass(news?.applicants)} />
+              Your jobs
+            </Link>
+          </DropdownMenuItem>
+        )}
+        {viewer.admin && (
           <DropdownMenuItem asChild className={pageItemClass(news?.access)}>
             {/* With a request waiting, straight to the requests. */}
             <Link to={news?.access ? '/admin?tab=access' : '/admin'} data-has-news={news?.access || undefined}>
@@ -174,24 +192,12 @@ export default function AccountMenu() {
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator className="bg-[color:var(--color-border-subtle)]" />
-        {!hasCompany && (
-          <DropdownMenuItem asChild className={cn(itemClass, 'text-fg-muted')}>
-            <Link to="/employer">
-              <Building2 className="text-fg-muted" />
-              Hire for a company
-            </Link>
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuItem
-          className={restItemClass}
-          onSelect={(event) => {
-            // Stay open: the change is visible behind the menu, and easy to undo.
-            event.preventDefault();
-            setTheme(theme === 'light' ? 'dark' : 'light');
-          }}
-        >
-          {theme === 'light' ? <Moon className="text-fg-muted" /> : <Sun className="text-fg-muted" />}
-          {theme === 'light' ? 'Dark mode' : 'Light mode'}
+        {/* The account itself, the theme, what the account is for and, for an admin, "View as". */}
+        <DropdownMenuItem asChild className={restItemClass}>
+          <Link to="/settings">
+            <Settings className="text-fg-muted" />
+            Settings
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem
           className={restItemClass}

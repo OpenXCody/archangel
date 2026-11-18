@@ -10,7 +10,7 @@
 #      (scripts/create-db.mjs --sample: migrations 0000-0009, the runner's
 #      migrations, the seed, then the runner's migrations a second time);
 #   2. builds the app and serves the built page and the API;
-#   3. runs the five API suites (accounts, jobs, seeker, admin, email);
+#   3. runs the six API suites (accounts, jobs, seeker, admin, email, industries);
 #   4. runs the Playwright device suite against the built page.
 # Every suite runs even if an earlier one fails; the exit code is non-zero if
 # any did. The servers it started are stopped on the way out.
@@ -115,6 +115,7 @@ run_suite jobs bash tests/api/jobs.sh
 run_suite seeker env OUTBOX="$OUTBOX" bash tests/api/seeker.sh
 run_suite admin bash tests/api/admin.sh
 run_suite email env OUTBOX="$OUTBOX" APP_URL="$WEB_URL" bash tests/api/email.sh
+run_suite industries bash tests/api/industries.sh
 
 step "Device suite"
 if BASE_URL=$WEB_URL npx playwright test --trace off > "$LOGS/devices.log" 2>&1; then

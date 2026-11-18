@@ -7,12 +7,14 @@ import {
   type ExploreArea,
   type ExploreCareer,
   type ExploreEmployer,
+  type ExploreIndustry,
   type ExploreOverview as Overview,
   type ExploreSkillGroup,
   type ExploreState,
 } from '../../lib/api';
 import { formatCompanyName } from '@shared/displayName';
 import { FOCUS_AREAS } from '@shared/scope';
+import { industryLabel } from '@shared/industry';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState, PageSection } from '../layout/Page';
@@ -124,6 +126,44 @@ function Employers({ employers }: { employers: ExploreEmployer[] }) {
           <EmployerTile key={employer.id} employer={employer} />
         ))}
       </div>
+    </PageSection>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Industries
+// ---------------------------------------------------------------------------
+
+/**
+ * The largest industries, each to its own page: by people employed where
+ * the official figure is published, else by the plants listed.
+ */
+function Industries({ industries, year }: { industries: ExploreIndustry[]; year: number | null }) {
+  if (industries.length === 0) return null;
+  const byPeople = industries.every((industry) => industry.employment !== null);
+  const rows = Math.ceil(industries.length / 2);
+  return (
+    <PageSection title={heading('Industries')} actions={<TextLink to="/industries">All industries</TextLink>} className={SECTION}>
+      <h3 className={cn(EYEBROW, 'mb-1 border-b border-border-subtle pb-2.5 sm:mb-2')}>
+        {byPeople ? `People employed${year ? `, ${year}` : ''}` : 'Plants'}
+      </h3>
+      {/* One column on a phone; from there, ranked down the first column, then down the second. */}
+      <ul
+        className="grid grid-cols-1 gap-x-12 sm:grid-flow-col sm:grid-cols-2"
+        style={{ gridTemplateRows: `repeat(${rows}, auto)` }}
+      >
+        {industries.map((industry, i) => (
+          // A phone lists the first six.
+          <li key={industry.slug} className={cn('min-w-0', i >= 6 && 'hidden sm:block')}>
+            <Link to={`/industries/${industry.slug}`} className={LIST_ROW}>
+              <span className="min-w-0 truncate text-fg-default underline-offset-4 group-hover:underline">{industryLabel(industry.name)}</span>
+              <span className="shrink-0 text-sm tabular-nums text-fg-soft">
+                {(byPeople ? (industry.employment ?? 0) : industry.plants).toLocaleString()}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </PageSection>
   );
 }
@@ -462,6 +502,7 @@ export default function ExploreOverview() {
       ) : data ? (
         <>
           <Employers employers={data.employers} />
+          <Industries industries={data.industries ?? []} year={data.industriesYear ?? null} />
           <Careers careers={data.careers} />
           <Skills groups={data.skillGroups} />
           <Places areas={data.areas} states={data.states} />
