@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Outlet, Link, NavLink, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import GlobalSearch from '../search/GlobalSearch';
 import AccountMenu, { accountPageTitle } from '../account/AccountMenu';
@@ -97,18 +97,18 @@ export default function Layout() {
               middle column holds nothing, unless an admin is viewing as someone else. */}
           <div className="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-4">
             {/* Left: Navigation */}
-            <nav aria-label="Main" className="-ml-2 flex min-w-0 items-center sm:ml-0 sm:gap-1">
+            <nav aria-label="Main" className="-ml-2 flex min-w-0 items-center max-[339px]:-ml-1.5 sm:ml-0 sm:gap-1">
               {shownNav.map(({ to, label, also }) => {
                 const isActive = [to, ...(also ?? [])].some((path) => isAt(location.pathname, path));
 
                 return (
-                  <NavLink
+                  <Link
                     key={to}
                     to={to}
-                    // Lit for everything the item stands for, not only its own address.
+                    // Lit, and said to be current, for everything the item stands for, not only its own address.
                     aria-current={isActive ? 'page' : undefined}
                     className={`
-                      flex min-h-11 items-center whitespace-nowrap rounded-full px-2 text-sm font-medium xs:px-3
+                      flex min-h-11 items-center whitespace-nowrap rounded-full px-2 text-sm font-medium max-[339px]:px-1.5 xs:px-3
                       transition-colors lg:min-h-0 lg:px-4 lg:py-2
                       ${isActive
                         ? 'bg-bg-elevated text-fg-default'
@@ -117,7 +117,7 @@ export default function Layout() {
                     `}
                   >
                     {label}
-                  </NavLink>
+                  </Link>
                 );
               })}
             </nav>
@@ -144,10 +144,11 @@ export default function Layout() {
                 onClick={() => setIsSearchOpen(true)}
                 aria-label="Search"
                 title={`Search (${SEARCH_SHORTCUT})`}
-                className="flex h-11 min-w-11 items-center justify-center gap-2 px-3 rounded-full sm:h-10
+                // The narrowest phones (320 px) have room for the view-as sign or for this, not both: the sign stays.
+                className={`flex ${viewer.viewingAs ? 'max-[339px]:hidden' : ''} h-11 min-w-11 items-center justify-center gap-2 px-3 rounded-full sm:h-10
                   bg-bg-elevated border border-border-subtle
                   text-sm text-fg-muted hover:text-fg-default
-                  transition-colors flex-shrink-0"
+                  transition-colors flex-shrink-0`}
               >
                 <Search className="w-4 h-4" />
                 <span className="hidden sm:inline">Search</span>
