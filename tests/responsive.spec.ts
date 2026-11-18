@@ -35,7 +35,7 @@ async function assertHealthyLayout(page: Page, label: string): Promise<void> {
   expect(metrics.bodyText > 20 || metrics.interactive >= 3, `${label}: page rendered nothing`).toBe(true);
   await expect(page.getByText('This page could not be shown'), `${label}: ErrorBoundary tripped`).toHaveCount(0);
   // Evidence, not an assertion: a slow tile or font server must not fail a layout check.
-  const file = `test-results/screens/${test.info().project.name}${label.replace(/[/#:]/g, '_')}.png`;
+  const file = `test-results/screens/${test.info().project.name}${label.replace(/[^A-Za-z0-9._-]/g, '_')}.png`;
   await page.screenshot({ path: file, fullPage: false, timeout: 10_000 }).catch(() => undefined);
 }
 
