@@ -1,4 +1,4 @@
-// The states the app knows: the 50, the District of Columbia and Puerto Rico.
+// The states the app knows: the 50 and the District of Columbia.
 export const US_STATES = [
   { code: 'AL', name: 'Alabama' },
   { code: 'AK', name: 'Alaska' },
@@ -51,7 +51,6 @@ export const US_STATES = [
   { code: 'WI', name: 'Wisconsin' },
   { code: 'WY', name: 'Wyoming' },
   { code: 'DC', name: 'District of Columbia' },
-  { code: 'PR', name: 'Puerto Rico' },
 ] as const;
 
 export type StateCode = typeof US_STATES[number]['code'];
