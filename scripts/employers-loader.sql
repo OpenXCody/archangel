@@ -254,8 +254,8 @@ BEGIN
 
   UPDATE companies co SET
     name = v_name,
-    -- Other names: what it had, the name it gives up, then the file's, 30 at most.
-    aliases = (SELECT array_agg(a ORDER BY ord) FROM (
+    -- Other names: what it had, the name it gives up, then the file's, 30 at most, in alphabetical order.
+    aliases = (SELECT array_agg(a ORDER BY lower(a) COLLATE "C", a COLLATE "C") FROM (
                  SELECT DISTINCT ON (lower(a)) a, ord FROM unnest(
                    COALESCE(co.aliases, '{}') || CASE WHEN lower(co.name) <> lower(v_name) THEN ARRAY[co.name] ELSE '{}'::text[] END || v_akas
                  ) WITH ORDINALITY u(a, ord)
