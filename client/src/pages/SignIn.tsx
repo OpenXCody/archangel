@@ -4,7 +4,6 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
-  ApiError,
   inviteRoleLabel,
   safeNextPath,
   useAccount,
@@ -17,6 +16,7 @@ import {
   useSignOut,
   useSignUp,
 } from '../lib/account';
+import { ApiError } from '../lib/http';
 import {
   ErrorNote,
   Field,
@@ -29,13 +29,14 @@ import {
 } from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 import { onGroupArrowKeys } from '../lib/roving';
+import { EMAIL_RE } from '../lib/validation';
 
 type Mode = 'sign-in' | 'create';
 /**
  * What a new account is for, as the address says it (`?as=`). It is kept on the
  * account ('work' or 'hire') and decides which tools the person is shown.
  */
-type Purpose = 'careers' | 'employer';
+type SignUpAs = 'careers' | 'employer';
 
 const MODES: { value: Mode; label: string }[] = [
   { value: 'sign-in', label: 'Sign in' },
@@ -44,10 +45,7 @@ const MODES: { value: Mode; label: string }[] = [
 
 type FieldName = 'name' | 'email' | 'password';
 
-/** The same rule the server applies to an address. */
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
+const PURPOSES: { value: SignUpAs; label: string; detail: string }[] = [
   { value: 'careers', label: 'Find a career', detail: 'Explore careers, track skills, apply.' },
   { value: 'employer', label: 'Hire', detail: 'Post jobs, review applicants.' },
 ];
@@ -102,7 +100,7 @@ export default function SignIn() {
   const invited = mode === 'create' ? invite : null;
   const next = safeNextPath(searchParams.get('next'));
   // Arriving from the employer page says what the account is for.
-  const purpose: Purpose =
+  const purpose: SignUpAs =
     searchParams.get('as') === 'employer' || (searchParams.get('as') === null && next?.startsWith('/employer'))
       ? 'employer'
       : 'careers';
@@ -182,7 +180,7 @@ export default function SignIn() {
     setSearchParams(params, { replace: true });
   };
 
-  const setPurpose = (value: Purpose) => {
+  const setPurpose = (value: SignUpAs) => {
     const params = new URLSearchParams(searchParams);
     params.set('as', value);
     setSearchParams(params, { replace: true });

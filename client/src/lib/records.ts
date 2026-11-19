@@ -1,5 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { ApiError, request } from './account';
+import type { EntityType } from './api';
+import { ApiError, queryString, request, retryUnlessClientError } from './http';
+import { accountKeys, publicKeys } from './queryKeys';
 
 /**
  * Keeping records by hand, from Admin Tools: adding, correcting, merging and
@@ -19,12 +21,20 @@ export const RECORD_KINDS: { kind: RecordKind; label: string }[] = [
   { kind: 'skill', label: 'Skill' },
 ];
 
-/** Where each kind is posted and browsed. A career is the occupation entity. */
+/** Each kind as the API and the pages name it. A career is the occupation entity. */
+const ENTITY: Record<RecordKind, EntityType> = {
+  company: 'companies',
+  factory: 'factories',
+  career: 'occupations',
+  skill: 'skills',
+};
+
+/** Where each kind is posted and browsed. */
 const PATH: Record<RecordKind, string> = {
-  company: '/companies',
-  factory: '/factories',
-  career: '/occupations',
-  skill: '/skills',
+  company: `/${ENTITY.company}`,
+  factory: `/${ENTITY.factory}`,
+  career: `/${ENTITY.career}`,
+  skill: `/${ENTITY.skill}`,
 };
 
 export type NewRecord =
@@ -84,24 +94,24 @@ export function refusedField(error: unknown): string | null {
 
 /** A record was added, changed, merged or deleted: everything that lists or shows records of its kind is stale. */
 function recordsChanged(queryClient: QueryClient, kind: RecordKind, goneId?: string): void {
-  const entity = PATH[kind].slice(1);
+  const entity = ENTITY[kind];
   const stale: (readonly unknown[])[] = [
-    ['entity-counts'],
-    ['explore-overview'],
-    ['explore-facets'],
-    [`explore-${entity}`],
-    [entity],
-    ['picker'],
-    ['search'],
-    ['map-search'],
-    ['admin', 'records'],
-    ['admin', 'audit'],
-    ['admin', 'overview'],
+    publicKeys.counts,
+    publicKeys.exploreOverview,
+    publicKeys.exploreFacets,
+    publicKeys.exploreLists(entity),
+    publicKeys.records(entity),
+    publicKeys.pickers,
+    publicKeys.search,
+    publicKeys.mapSearch,
+    accountKeys.adminRecords,
+    accountKeys.adminAudit,
+    accountKeys.adminOverview,
   ];
-  if (kind === 'company') stale.push(['admin', 'companies'], ['factories'], ['jobs'], ['employer']);
-  if (kind === 'company' || kind === 'factory') stale.push(['factory-pins'], ['state-counts'], ['state-overview'], ['area-overview']);
-  if (kind === 'career') stale.push(['admin', 'paths'], ['me']);
-  if (kind === 'skill') stale.push(['occupations'], ['me']);
+  if (kind === 'company') stale.push(accountKeys.adminCompanies, publicKeys.records('factories'), accountKeys.jobs, accountKeys.employer);
+  if (kind === 'company' || kind === 'factory') stale.push(publicKeys.pins, publicKeys.stateCounts, publicKeys.stateOverviews, publicKeys.areaOverviews);
+  if (kind === 'career') stale.push(accountKeys.adminPaths, accountKeys.me);
+  if (kind === 'skill') stale.push(publicKeys.records('occupations'), accountKeys.me);
   for (const queryKey of stale) {
     // A record that was just deleted or merged away is not asked for again: its editor is about to close.
     void queryClient.invalidateQueries({ queryKey, predicate: (query) => !(goneId && query.queryKey[2] === 'one' && query.queryKey[4] === goneId) });
@@ -195,22 +205,13 @@ export const AUDIT_KINDS: { kind: string; label: string }[] = [
   { kind: 'invite', label: 'Invites' },
 ];
 
-function query(params: Record<string, string | number | undefined>): string {
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== '') search.set(key, String(value));
-  }
-  const text = search.toString();
-  return text ? `?${text}` : '';
-}
-
 const HISTORY_PAGE = 30;
 
-export const recordsApi = {
+const recordsApi = {
   search: (kind: RecordKind, q: string) =>
-    request<{ records: FoundRecord[] }>(`/admin/records/${kind}${query({ q })}`).then((r) => r.records),
+    request<{ records: FoundRecord[] }>(`/admin/records/${kind}${queryString({ q })}`).then((r) => r.records),
   similar: (kind: RecordKind, params: { name: string; exclude?: string; company?: string; lat?: number; lng?: number }) =>
-    request<{ records: FoundRecord[] }>(`/admin/records/${kind}/similar${query(params)}`).then((r) => r.records),
+    request<{ records: FoundRecord[] }>(`/admin/records/${kind}/similar${queryString(params)}`).then((r) => r.records),
   get: (kind: RecordKind, id: string) => request<RecordView>(`/admin/records/${kind}/${id}`),
   change: (kind: RecordKind, id: string, body: Record<string, unknown>) =>
     request<SavedRecord>(`${PATH[kind]}/${id}`, { method: 'PUT', body }),
@@ -218,24 +219,20 @@ export const recordsApi = {
   merge: (kind: RecordKind, id: string, into: string) =>
     request<MergeResult>(`/admin/records/${kind}/${id}/merge`, { method: 'POST', body: { into } }),
   audit: (params: { kind?: string; record?: string; offset?: number; limit?: number }) =>
-    request<{ entries: AuditEntry[]; hasMore: boolean }>(`/admin/audit${query(params)}`),
+    request<{ entries: AuditEntry[]; hasMore: boolean }>(`/admin/audit${queryString(params)}`),
   /** Sets a career's skills and stages as a whole, and optionally the state of the path. */
   savePath: (occupationId: string, body: { skills: { skillId: string; stage: number | null }[]; replace?: boolean; status?: 'draft' | 'approved' }) =>
     request<{ occupationId: string }>(`/occupations/${occupationId}/path`, { method: 'PUT', body }),
 };
 
-function notClientError(failureCount: number, error: unknown): boolean {
-  return !(error instanceof ApiError && error.status >= 400 && error.status < 500) && failureCount < 1;
-}
-
 /** Records of one kind by name, from two letters. */
 export function useRecordSearch(kind: RecordKind, q: string) {
   return useQuery({
-    queryKey: ['admin', 'records', 'search', kind, q],
+    queryKey: accountKeys.adminRecordSearch(kind, q),
     queryFn: () => recordsApi.search(kind, q),
     enabled: q.length >= 2,
     staleTime: 0,
-    retry: notClientError,
+    retry: retryUnlessClientError,
   });
 }
 
@@ -243,22 +240,22 @@ export function useRecordSearch(kind: RecordKind, q: string) {
 export function useSimilarRecords(kind: RecordKind, params: { name: string; exclude?: string; company?: string; lat?: number; lng?: number }, enabled = true) {
   const ready = kind === 'factory' ? Boolean((params.company && params.name.length >= 3) || (params.lat !== undefined && params.lng !== undefined)) : params.name.length >= 3;
   return useQuery({
-    queryKey: ['admin', 'records', 'similar', kind, params],
+    queryKey: accountKeys.adminRecordSimilar(kind, params),
     queryFn: () => recordsApi.similar(kind, params),
     enabled: enabled && ready,
     staleTime: 30_000,
     placeholderData: keepPreviousData,
-    retry: notClientError,
+    retry: retryUnlessClientError,
   });
 }
 
 /** One record with what hangs from it, for its editor. */
 export function useRecord(kind: RecordKind, id: string) {
   return useQuery({
-    queryKey: ['admin', 'records', 'one', kind, id],
+    queryKey: accountKeys.adminRecord(kind, id),
     queryFn: () => recordsApi.get(kind, id),
     staleTime: 0,
-    retry: notClientError,
+    retry: retryUnlessClientError,
   });
 }
 
@@ -297,10 +294,10 @@ export function useSavePath(occupationId: string) {
 /** What admins changed, newest first; `kind` narrows it to one kind of record, `record` to one. */
 export function useAudit(filter: { kind?: string; record?: string }, pages = 1) {
   return useQuery({
-    queryKey: ['admin', 'audit', filter, pages],
+    queryKey: accountKeys.adminAuditFor(filter, pages),
     queryFn: () => recordsApi.audit({ ...filter, limit: HISTORY_PAGE * pages }),
     staleTime: 0,
     placeholderData: keepPreviousData,
-    retry: notClientError,
+    retry: retryUnlessClientError,
   });
 }

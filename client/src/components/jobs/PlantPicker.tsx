@@ -1,11 +1,11 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Search } from 'lucide-react';
 import { formatFactoryName } from '@shared/displayName';
-import { US_STATES } from '@shared/states';
+import { stateName } from '../../lib/places';
 import { cn } from '@/lib/utils';
-import type { EmployerFactory } from '../../lib/account';
+import type { EmployerFactory } from '../../lib/employer';
 import { formatPlace } from '../../lib/jobFormat';
-import { ENTITY, fieldClass } from './parts';
+import { KIND_ICON, fieldClass } from '../account/parts';
 
 /** A plant's name as it reads everywhere else: not the raw upper-case record. */
 export function plantName(factory: Pick<EmployerFactory, 'name'>): string {
@@ -21,12 +21,11 @@ export function plantWhere(factory: Pick<EmployerFactory, 'address' | 'city' | '
   return [street, formatPlace(city, factory.state)].filter(Boolean).join(' · ');
 }
 
-const STATE_NAMES = new Map<string, string>(US_STATES.map((state) => [state.code, state.name]));
-
 /** Everything a plant can be found by, lower case. */
 function searchText(factory: EmployerFactory): string {
-  const stateName = factory.state ? (STATE_NAMES.get(factory.state.toUpperCase()) ?? '') : '';
-  return [factory.name, factory.address, factory.city, factory.state, stateName].filter(Boolean).join(' ').toLowerCase();
+  // A code that is not a state comes back as itself, which the text already holds.
+  const state = factory.state ? stateName(factory.state.toUpperCase()) : '';
+  return [factory.name, factory.address, factory.city, factory.state, state].filter(Boolean).join(' ').toLowerCase();
 }
 
 interface PlantPickerProps {
@@ -65,7 +64,7 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
     [factories]
   );
   const picked = factories.find((factory) => factory.id === value) ?? null;
-  const FactoryIcon = ENTITY.factory.icon;
+  const FactoryIcon = KIND_ICON.factory;
 
   const words = term.toLowerCase().split(/\s+/).filter(Boolean);
   const options = words.length === 0 ? sorted : sorted.filter((factory) => words.every((word) => searchText(factory).includes(word)));
@@ -109,7 +108,7 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
   if (picked) {
     return (
       <div className={cn(fieldClass, 'flex min-h-[42px] items-center gap-2.5')}>
-        <FactoryIcon className={cn('h-4 w-4 shrink-0', ENTITY.factory.text)} />
+        <FactoryIcon className="h-4 w-4 shrink-0 text-fg-muted" />
         <span className="min-w-0 flex-1" data-picked-factory={picked.id}>
           <span className="block break-words text-fg-default">{plantName(picked)}</span>
           {plantWhere(picked) && <span className="block break-words text-xs text-fg-muted">{plantWhere(picked)}</span>}
@@ -181,7 +180,7 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
                 onMouseEnter={() => setActiveIndex(index)}
                 className={cn('flex cursor-pointer items-start gap-2.5 rounded-md px-2.5 py-2 text-sm text-fg-default', index === activeIndex && 'bg-bg-elevated')}
               >
-                <FactoryIcon className={cn('mt-0.5 h-4 w-4 shrink-0', ENTITY.factory.text)} />
+                <FactoryIcon className="mt-0.5 h-4 w-4 shrink-0 text-fg-muted" />
                 <span className="min-w-0">
                   <span className="block break-words">{plantName(factory)}</span>
                   {plantWhere(factory) && <span className="block break-words text-xs text-fg-muted">{plantWhere(factory)}</span>}

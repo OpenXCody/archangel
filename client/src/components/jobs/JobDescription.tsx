@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { textButtonClass } from './parts';
+import { textButtonClass } from '../account/parts';
 
 /** Web addresses (with or without https://) and email addresses in running text. */
 const LINKS = /(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+\.[a-z]{2,}[^\s<>"]*|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})/g;

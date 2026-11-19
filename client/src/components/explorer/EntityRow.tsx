@@ -2,12 +2,14 @@ import { memo, useCallback, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Company, Factory, Occupation, Skill } from '../../lib/api';
-import { companiesApi, factoriesApi, occupationsApi, skillsApi } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { shownIndustry } from '@shared/industry';
 import { Skeleton } from '@/components/ui/skeleton';
 import CompanyLogo from '../CompanyLogo';
 import type { BrowseTab } from './ExploreNav';
+import { focusRing, plural } from '@/lib/utils';
+import { STAGE_LABEL, type Stage } from '../../lib/stages';
+import { recordQuery } from '../../lib/queries';
 
 /**
  * One row of a browse list. Every type reads the same way:
@@ -26,13 +28,12 @@ export type BrowseEntity = Company | Factory | Occupation | Skill;
 const JUNK_CATEGORIES = new Set(['', 'subcategory', 'category', 'skill', 'root']);
 
 /** A skill category worth showing, or null. */
-export function skillCategoryLabel(category: string | null | undefined): string | null {
+function skillCategoryLabel(category: string | null | undefined): string | null {
   const value = category?.trim() ?? '';
   return JUNK_CATEGORIES.has(value.toLowerCase()) ? null : value;
 }
 
-const count = (n: number | null | undefined, one: string, many: string): string | null =>
-  n ? `${n.toLocaleString()} ${n === 1 ? one : many}` : null;
+const count = (n: number | null | undefined, one: string, many: string): string | null => (n ? plural(n, one, many) : null);
 
 type Part = string | null | undefined | false;
 const joined = (parts: Part[]): string => parts.filter((p): p is string => typeof p === 'string' && p.trim().length > 0).join(' · ');
@@ -59,7 +60,7 @@ function Row({ to, name, summary, facts, leading, factsLeading, factsEnd, onMous
     <Link
       to={to}
       onMouseEnter={onMouseEnter}
-      className="group flex h-full min-h-[4.25rem] min-w-0 items-center gap-4 border-b border-border-subtle py-3.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary"
+      className={`group flex h-full min-h-[4.25rem] min-w-0 items-center gap-4 border-b border-border-subtle py-3.5 ${focusRing}`}
     >
       {leading}
       <div className="min-w-0 flex-1">
@@ -114,10 +115,8 @@ function FactoryRow({ data, onMouseEnter }: Props<Factory>) {
   );
 }
 
-const STAGE_NAMES = ['Introduction', 'Fundamentals', 'Advanced'];
-
 function OccupationRow({ data, onMouseEnter }: Props<Occupation>) {
-  const stages = data.pathStatus && data.stageCounts ? data.stageCounts.map((n, i) => (n ? `${STAGE_NAMES[i]} ${n}` : null)) : [];
+  const stages = data.pathStatus && data.stageCounts ? data.stageCounts.map((n, i) => (n ? `${STAGE_LABEL[(i + 1) as Stage]} ${n}` : null)) : [];
   return (
     <Row
       to={`/occupations/${data.id}`}
@@ -142,18 +141,11 @@ function SkillRow({ data, onMouseEnter }: Props<Skill>) {
   );
 }
 
-// Detail pages read queryKey [type, id]: warm it on hover so the page opens filled.
-const FETCHERS: Record<BrowseTab, (id: string) => Promise<unknown>> = {
-  companies: companiesApi.get,
-  factories: factoriesApi.get,
-  occupations: occupationsApi.get,
-  skills: skillsApi.get,
-};
-
 function EntityRowInner({ type, data }: { type: BrowseTab; data: BrowseEntity }) {
   const queryClient = useQueryClient();
   const prefetch = useCallback(() => {
-    void queryClient.prefetchQuery({ queryKey: [type, data.id], queryFn: () => FETCHERS[type](data.id), staleTime: 60_000 });
+    // The record's page reads the same query: warmed on hover, it opens filled.
+    void queryClient.prefetchQuery({ ...recordQuery(type, data.id), staleTime: 60_000 });
   }, [queryClient, type, data.id]);
 
   switch (type) {

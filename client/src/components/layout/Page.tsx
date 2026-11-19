@@ -1,7 +1,7 @@
 import type { ReactNode, ElementType } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, focusRing } from '@/lib/utils';
 
 /**
  * Page shell primitives. Every routed page composes these so width, gutters,
@@ -140,9 +140,7 @@ export function PageHeader({ title, description, eyebrow, icon: Icon, iconClassN
 // ─── The detail page ───────────────────────────────────────────────────────
 
 const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
-const FOCUS_RING =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary';
-const BACK = cn('-ml-0.5 inline-flex min-h-11 items-center gap-2 pr-2 text-sm text-fg-muted transition-colors hover:text-fg-default', FOCUS_RING);
+const BACK = cn('-ml-0.5 inline-flex min-h-11 items-center gap-2 pr-2 text-sm text-fg-muted transition-colors hover:text-fg-default', focusRing);
 
 /**
  * The way back at the top of a page. With `to` it is a link to a named place
@@ -171,7 +169,7 @@ export function BackLink({ to, label = 'Back', fallback = '/explore' }: { to?: s
 /** The look of a detail page's one action when it is a plain button or link. */
 export const detailActionClass = cn(
   'inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border-strong px-4 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated sm:h-10',
-  FOCUS_RING
+  focusRing
 );
 
 interface DetailHeaderProps {
@@ -261,7 +259,7 @@ export function DetailSection({ id, title, note, column, action, description, cl
 }
 
 /** A link at the right of a section's heading. */
-export const sectionLinkClass = cn('shrink-0 text-sm text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default', FOCUS_RING);
+export const sectionLinkClass = cn('shrink-0 text-sm text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default', focusRing);
 
 /** The card a list of records sits in. */
 export const recordListClass = 'overflow-hidden rounded-xl border border-border-subtle bg-bg-surface';
@@ -345,7 +343,7 @@ export function ShowAll({ open, total, onToggle }: { open: boolean; total: numbe
       type="button"
       onClick={onToggle}
       aria-expanded={open}
-      className={cn('mt-1 inline-flex min-h-11 items-center text-sm font-medium text-fg-default underline underline-offset-4 hover:no-underline', FOCUS_RING)}
+      className={cn('mt-1 inline-flex min-h-11 items-center text-sm font-medium text-fg-default underline underline-offset-4 hover:no-underline', focusRing)}
     >
       {open ? 'Show fewer' : `Show all ${total.toLocaleString()}`}
     </button>

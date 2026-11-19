@@ -6,36 +6,35 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { factoriesApi, occupationsApi } from '../../lib/api';
-import {
-  EMPLOYMENT_TYPES,
-  useAccount,
-  useCreateJob,
-  type EmployerFactory,
-  type EmploymentType,
-  type JobDetailResponse,
-  type PayPeriod,
-} from '../../lib/account';
+import { useAccount } from '../../lib/account';
+import { EMPLOYMENT_TYPES, useCreateJob, type EmploymentType, type JobDetailResponse, type PayPeriod } from '../../lib/jobs';
+import type { EmployerFactory } from '../../lib/employer';
 import { DESCRIPTION_MAX, DESCRIPTION_WARN, checkPay, normalizeLink, payInputText, useEditJob } from '../../lib/employerJobs';
 import { clearDraft, draftKey, draftWhen, readDraft, writeDraft, type JobDraft, type JobDraftFields } from '../../lib/jobDraft';
 import { employmentLabel } from '../../lib/jobFormat';
-import CareerPicker, { type CareerOption } from './CareerPicker';
+import CareerPicker, { type CareerOption } from '../account/CareerPicker';
 import JobSkillTags, { type JobSkillTag } from './JobSkillTags';
 import PlantPicker, { plantName, plantWhere } from './PlantPicker';
 import {
   ErrorNote,
   Field,
   LoadError,
-  arrowKeyChoice,
   busyButtonClass,
   fieldClass,
   outlineButtonClass,
   selectContentClass,
   selectTriggerClass,
   textButtonClass,
-} from './parts';
+  FieldError,
+  SegmentedChoice,
+} from '../account/parts';
+import { arrowKeyChoice } from '../../lib/roving';
+import { publicKeys } from '../../lib/queryKeys';
 
-// These three live with the other shared form pieces; exported from here too for the files that import them from the job form.
-export { busyButtonClass, selectContentClass, selectTriggerClass };
+const PAY_PERIODS: readonly { value: PayPeriod; label: string }[] = [
+  { value: 'hour', label: 'Per hour' },
+  { value: 'year', label: 'Per year' },
+];
 
 /** The company a job is posted for, and where it can be. */
 export interface JobFormCompany {
@@ -166,7 +165,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
   // Careers already recorded at the chosen factory are the likeliest picks;
   // where none are, the careers typical of its industry.
   const factoryCareers = useQuery({
-    queryKey: ['picker', 'factory-careers', factoryId],
+    queryKey: publicKeys.picker('factory-careers', factoryId),
     queryFn: () => factoriesApi.get(factoryId),
     enabled: Boolean(factoryId) && !editing,
     staleTime: 5 * 60_000,
@@ -179,7 +178,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
   // The career's own skills are the default tags: stage 3 optional, the rest required.
   const careerId = career?.id ?? '';
   const careerSkills = useQuery({
-    queryKey: ['picker', 'career-skills', careerId],
+    queryKey: publicKeys.picker('career-skills', careerId),
     queryFn: () => occupationsApi.get(careerId),
     enabled: Boolean(careerId),
     staleTime: 5 * 60_000,
@@ -417,29 +416,13 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
             placeholder={payPeriod === 'hour' ? '29.00' : '60,000'}
             invalid={Boolean(attempted ? (pay.maxError ?? pay.rangeError) : pay.rangeError)}
           />
-          <div
-            role="radiogroup"
-            aria-label="Pay is per"
-            onKeyDown={arrowKeyChoice(['hour', 'year'] as const, payPeriod, setPayPeriod)}
-            className="grid h-[42px] grid-cols-2 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1 xs:col-span-2 sm:col-span-1 sm:w-48"
-          >
-            {(['hour', 'year'] as const).map((period) => (
-              <button
-                key={period}
-                type="button"
-                role="radio"
-                aria-checked={payPeriod === period}
-                tabIndex={payPeriod === period ? 0 : -1}
-                onClick={() => setPayPeriod(period)}
-                className={cn(
-                  'rounded-md text-sm font-medium transition-colors',
-                  payPeriod === period ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
-                )}
-              >
-                Per {period}
-              </button>
-            ))}
-          </div>
+          <SegmentedChoice
+            label="Pay is per"
+            options={PAY_PERIODS}
+            value={payPeriod}
+            onChange={setPayPeriod}
+            className="grid-cols-2 xs:col-span-2 sm:col-span-1 sm:w-48"
+          />
         </div>
         <FieldError id="job-pay-error" message={payProblem ?? undefined} />
         {!payProblem && !payQuestion && <p className="mt-1.5 text-xs text-fg-muted">Every job shows its pay.</p>}
@@ -599,15 +582,6 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
 }
 
 /** A problem with one field, said beside it. */
-function FieldError({ id, message }: { id: string; message: string | undefined }) {
-  if (!message) return null;
-  return (
-    <p id={id} role="alert" className="mt-1.5 text-xs text-danger">
-      {message}
-    </p>
-  );
-}
-
 /** A value that cannot be changed here, set out like the fields around it. */
 function Fixed({ label, children }: { label: string; children: ReactNode }) {
   return (

@@ -5,7 +5,8 @@
  * an embedded view): then even naming `localStorage` throws. Here a read
  * answers "nothing stored" and a write is dropped, so the page works and
  * simply does not remember. Every read and write in the client goes through
- * these.
+ * these; the one exception is the theme script in client/index.html, which
+ * runs before any module and so cannot import them.
  */
 type Area = 'local' | 'session';
 
@@ -21,11 +22,14 @@ export function readStored(key: string, kind: Area = 'local'): string | null {
   }
 }
 
-export function writeStored(key: string, value: string, kind: Area = 'local'): void {
+/** Whether the value was stored. Most callers do not need to know. */
+export function writeStored(key: string, value: string, kind: Area = 'local'): boolean {
   try {
     area(kind).setItem(key, value);
+    return true;
   } catch {
     // Not remembered beyond this page.
+    return false;
   }
 }
 

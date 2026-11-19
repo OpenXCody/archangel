@@ -4,8 +4,8 @@ import { Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useEmailOn, type AccountUser } from '../../lib/account';
 import {
-  ApiError,
   RESET_HOURS,
   personRoles,
   useAddMembership,
@@ -14,14 +14,13 @@ import {
   useCreateResetLink,
   useDecideMembership,
   useDeleteUser,
-  useEmailOn,
   useSetAdmin,
   useSignOutUser,
-  type AccountUser,
   type AdminCompany,
   type AdminUser,
   type PeopleRole,
-} from '../../lib/account';
+} from '../../lib/admin';
+import { ApiError } from '../../lib/http';
 import {
   CardNote,
   ErrorNote,
@@ -30,18 +29,18 @@ import {
   busyButtonClass,
   cardClass,
   fieldClass,
-  formatDay,
   outlineButtonClass,
   rowClass,
   selectContentClass,
   selectTriggerClass,
   textButtonClass,
-  useDebouncedValue,
 } from '../account/parts';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
+import { formatDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 import CompanyPicker from './CompanyPicker';
-import ConfirmDialog from './ConfirmDialog';
+import ConfirmDialog from '../layout/ConfirmDialog';
 import CopyLinkField from './CopyLinkField';
 
 const ROLES: { value: PeopleRole; label: string }[] = [

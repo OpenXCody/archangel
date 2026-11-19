@@ -1,14 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { US_STATES } from '@shared/states';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
-import type { AdminCompany } from '../../lib/account';
-import { exploreApi } from '../../lib/api';
+import type { AdminCompany } from '../../lib/admin';
 import {
   editPath,
   existingRecord,
@@ -30,9 +28,11 @@ import {
   outlineButtonClass,
   selectContentClass,
   selectTriggerClass,
-  useDebouncedValue,
+  FieldError,
 } from '../account/parts';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import CompanyPicker from './CompanyPicker';
+import { useExploreFacets } from '../../lib/queries';
 
 type FieldName =
   | 'company'
@@ -210,12 +210,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   const [attempted, setAttempted] = useState(false);
 
   // Industries and categories already in use, offered as the field is typed in.
-  const facets = useQuery({
-    queryKey: ['explore-facets'],
-    queryFn: exploreApi.facets,
-    staleTime: 1000 * 60 * 10,
-    enabled: kind === 'company' || kind === 'skill',
-  });
+  const facets = useExploreFacets(kind === 'company' || kind === 'skill');
 
   const lat = coordinate(latitude, 90);
   const lng = coordinate(longitude, 180);
@@ -758,14 +753,4 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
 function existingId(error: unknown): string | null {
   const existing = (error as { payload?: { existing?: { id?: unknown } } } | null)?.payload?.existing;
   return typeof existing?.id === 'string' ? existing.id : null;
-}
-
-/** A problem with one field, said beside it. */
-function FieldError({ id, message }: { id: string; message: string | undefined }) {
-  if (!message) return null;
-  return (
-    <p id={id} role="alert" className="mt-1.5 text-xs text-danger">
-      {message}
-    </p>
-  );
 }

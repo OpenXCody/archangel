@@ -1,19 +1,61 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { API_BASE } from './api';
-import { ApiError, accountKeys, meApi, type MyGoal, type MySkill, type SkillStatus } from './account';
+import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { ApiError, SERVER_FAILED, request, retryUnlessClientError } from './http';
+import type { ApplicationStatus, JobStatus } from './jobs';
+import { accountKeys, invalidate } from './queryKeys';
 
 /**
- * What a career seeker's skills turn into: marking a skill where it is
- * listed, and the careers those skills already point at.
- *
- * Everything here reads and writes the same records as `account.ts` (the
- * person's skills and goals); it adds an optimistic way to set one, and the
- * list that is worked out from them.
+ * A career seeker's own records and what they turn into: their skills
+ * (learning or held), their goals and their applications; marking a skill
+ * where it is listed, optimistically; the careers those skills already point
+ * at, and the skills worth picking up next.
  */
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+
+export type SkillStatus = 'learning' | 'held';
+
+export interface MySkill {
+  skillId: string;
+  name: string;
+  status: SkillStatus;
+  updatedAt: string;
+}
+
+export interface MyGoal {
+  occupationId: string;
+  title: string;
+  createdAt: string;
+  totalSkills: number;
+  heldSkills: number;
+}
+
+/** One step in an application's history: the stage it reached, and when. */
+export interface ApplicationEvent {
+  status: ApplicationStatus;
+  at: string;
+}
+
+export interface MyApplication {
+  id: string;
+  status: ApplicationStatus;
+  note: string | null;
+  createdAt: string;
+  statusChangedAt: string;
+  /** The company moved it since the person last opened their page. */
+  changed: boolean;
+  /** Its history, oldest first. */
+  events: ApplicationEvent[];
+  jobId: string;
+  jobSerial: number;
+  jobTitle: string;
+  jobStatus: JobStatus;
+  companyId: string;
+  companyName: string;
+  city: string | null;
+  state: string | null;
+}
 
 /** A skill on a career's path that the person does not hold yet. */
 export interface NextSkill {
@@ -38,27 +80,90 @@ export interface ReachCareer {
 export type SkillMark = SkillStatus | 'none';
 
 // ---------------------------------------------------------------------------
+// API functions
+// ---------------------------------------------------------------------------
+
+const seekerApi = {
+  skills: () => request<{ skills: MySkill[] }>('/me/skills').then((r) => r.skills),
+  setSkill: (skillId: string, status: SkillStatus) =>
+    request<{ skillId: string; status: SkillStatus }>(`/me/skills/${skillId}`, { method: 'PUT', body: { status } }),
+  removeSkill: (skillId: string) => request<{ ok: true }>(`/me/skills/${skillId}`, { method: 'DELETE' }),
+  goals: () => request<{ goals: MyGoal[] }>('/me/goals').then((r) => r.goals),
+  addGoal: (occupationId: string) =>
+    request<{ occupationId: string }>(`/me/goals/${occupationId}`, { method: 'PUT' }),
+  removeGoal: (occupationId: string) => request<{ ok: true }>(`/me/goals/${occupationId}`, { method: 'DELETE' }),
+  applications: () => request<{ applications: MyApplication[] }>('/me/applications').then((r) => r.applications),
+};
+
+// ---------------------------------------------------------------------------
+// My skills, goals and applications
+// ---------------------------------------------------------------------------
+
+export function useMySkills(enabled = true) {
+  return useQuery({ queryKey: accountKeys.skills, queryFn: seekerApi.skills, enabled, retry: retryUnlessClientError });
+}
+
+/** Which skills count as held changes goal progress and the marks on job pages. */
+function skillsChanged(queryClient: QueryClient): Promise<void> {
+  return invalidate(queryClient, accountKeys.skills, accountKeys.goals, accountKeys.jobDetails, accountKeys.jobApplicants);
+}
+
+export function useSetSkillStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ skillId, status }: { skillId: string; status: SkillStatus }) => seekerApi.setSkill(skillId, status),
+    onSuccess: () => skillsChanged(queryClient),
+  });
+}
+
+export function useRemoveSkill() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (skillId: string) => seekerApi.removeSkill(skillId),
+    onSuccess: () => skillsChanged(queryClient),
+  });
+}
+
+export function useMyGoals(enabled = true) {
+  return useQuery({ queryKey: accountKeys.goals, queryFn: seekerApi.goals, enabled, retry: retryUnlessClientError });
+}
+
+export function useAddGoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (occupationId: string) => seekerApi.addGoal(occupationId),
+    onSuccess: () => invalidate(queryClient, accountKeys.goals),
+  });
+}
+
+export function useRemoveGoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (occupationId: string) => seekerApi.removeGoal(occupationId),
+    onSuccess: () => invalidate(queryClient, accountKeys.goals),
+  });
+}
+
+export function useMyApplications(enabled = true) {
+  return useQuery({
+    queryKey: accountKeys.applications,
+    queryFn: seekerApi.applications,
+    enabled,
+    // Stages move on the company's side, so do not sit on an old answer.
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    retry: retryUnlessClientError,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Careers within reach
 // ---------------------------------------------------------------------------
 
-/**
- * Under the skills key on purpose: whatever changes the person's skills
- * (here or in `account.ts`) refreshes this list with them.
- */
-export const reachKey = [...accountKeys.skills, 'reach'] as const;
-
 async function fetchReach(): Promise<ReachCareer[]> {
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE}/me/careers/reach`, { credentials: 'same-origin' });
-  } catch {
-    throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
-  }
-  const payload = (await response.json().catch(() => null)) as { careers?: ReachCareer[]; error?: unknown } | null;
-  if (!response.ok || !payload?.careers) {
-    const message = response.status < 500 && typeof payload?.error === 'string' ? payload.error : '';
-    throw new ApiError(message || 'Something went wrong on our side. Please try again.', response.status);
-  }
+  // A 401 in the server's words, as this list has always shown it.
+  const payload = await request<{ careers?: ReachCareer[] } | null>('/me/careers/reach', { plain401: true });
+  if (!payload?.careers) throw new ApiError(SERVER_FAILED, 200);
   return payload.careers;
 }
 
@@ -68,12 +173,12 @@ async function fetchReach(): Promise<ReachCareer[]> {
  */
 export function useCareersInReach(enabled = true) {
   return useQuery({
-    queryKey: reachKey,
+    queryKey: accountKeys.reach,
     queryFn: fetchReach,
     enabled,
     // Keep the list on screen while it is worked out again after a change.
     placeholderData: keepPreviousData,
-    retry: (failureCount, error) => !(error instanceof ApiError && error.status >= 400 && error.status < 500) && failureCount < 1,
+    retry: retryUnlessClientError,
   });
 }
 
@@ -103,39 +208,30 @@ export interface SuggestedSkill {
   careers: number;
 }
 
-/**
- * Not under the skills key, on purpose: marking a suggestion must not reshuffle
- * the list under the finger. It is read when the page opens, when the person's
- * goals change (`refreshSuggestedSkills`), and when they ask for more.
- */
-export const suggestedSkillsKey = [...accountKeys.me, 'suggested-skills'] as const;
-
 async function fetchSuggestedSkills(): Promise<SuggestedSkill[]> {
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE}/me/skills/suggested`, { credentials: 'same-origin' });
-  } catch {
-    throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
-  }
-  const payload = (await response.json().catch(() => null)) as { skills?: SuggestedSkill[] } | null;
-  if (!response.ok || !payload?.skills) throw new ApiError('Something went wrong on our side. Please try again.', response.status);
+  const payload = await request<{ skills?: SuggestedSkill[] } | null>('/me/skills/suggested');
+  if (!payload?.skills) throw new ApiError(SERVER_FAILED, 200);
   return payload.skills;
 }
 
 /**
  * Skills of the person's goal careers, then of the careers within reach, none
  * of them on their list yet. Empty for a person with no goal and no held skill.
+ *
+ * Its key is not under the skills key, on purpose: marking a suggestion must
+ * not reshuffle the list under the finger. It is read when the page opens,
+ * when the person's goals change, and when they ask for more.
  */
 export function useSuggestedSkills(enabled = true) {
   return useQuery({
-    queryKey: suggestedSkillsKey,
+    queryKey: accountKeys.suggestedSkills,
     queryFn: fetchSuggestedSkills,
     enabled,
     staleTime: Infinity,
     // A fresh list each time the page is opened.
     refetchOnMount: 'always',
     placeholderData: keepPreviousData,
-    retry: (failureCount, error) => !(error instanceof ApiError && error.status >= 400 && error.status < 500) && failureCount < 1,
+    retry: retryUnlessClientError,
   });
 }
 
@@ -172,7 +268,7 @@ export function useMarkSkill() {
   return useMutation({
     mutationKey: markKey,
     mutationFn: ({ skillId, mark }: MarkInput): Promise<unknown> =>
-      mark === 'none' ? meApi.removeSkill(skillId) : meApi.setSkill(skillId, mark),
+      mark === 'none' ? seekerApi.removeSkill(skillId) : seekerApi.setSkill(skillId, mark),
     onMutate: async ({ skillId, name, mark }) => {
       // A read already on its way would put the old answer back.
       await queryClient.cancelQueries({ queryKey: accountKeys.skills, exact: true });
@@ -188,7 +284,7 @@ export function useMarkSkill() {
     onSettled: () => {
       // This mutation still counts as running here: 1 means it is the last.
       if (queryClient.isMutating({ mutationKey: markKey }) > 1) return;
-      // The same things `account.ts` refreshes when a skill changes; the reach list sits under skills.
+      // The same things `skillsChanged` refreshes; the reach list sits under skills.
       for (const queryKey of [accountKeys.skills, accountKeys.goals, accountKeys.jobDetails, accountKeys.jobApplicants]) {
         void queryClient.invalidateQueries({ queryKey });
       }

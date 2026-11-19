@@ -3,11 +3,11 @@ import { ChevronDown } from 'lucide-react';
 import { US_STATES, type StateCode } from '@shared/states';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
 import { industryLabel } from '@shared/industry';
-import { cn } from '@/lib/utils';
+import { cn, focusRing } from '@/lib/utils';
 import type { BrowseTab } from './ExploreNav';
 
 // Sort options per list
-export type SortOption = {
+type SortOption = {
   value: string;
   label: string;
   field: string;
@@ -44,7 +44,7 @@ export interface FilterState {
   category?: string;
 }
 
-export interface FilterBarProps {
+interface FilterBarProps {
   activeTab: BrowseTab;
   sortValue: string;
   onSortChange: (value: string) => void;
@@ -57,9 +57,7 @@ export interface FilterBarProps {
 
 const ALL = '__all__';
 
-const TRIGGER =
-  'inline-flex h-11 min-w-0 items-center gap-1.5 text-sm transition-colors sm:h-9 ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary';
+const TRIGGER = `inline-flex h-11 min-w-0 items-center gap-1.5 text-sm transition-colors sm:h-9 ${focusRing}`;
 
 /** A choice shown as text: the current value and a chevron. No box. */
 function Choice({

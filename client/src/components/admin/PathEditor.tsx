@@ -3,17 +3,18 @@ import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useAdminPaths } from '../../lib/account';
+import { useAdminPaths } from '../../lib/admin';
 import { editPath, useSavePath, type FoundRecord, type PathSkill, type RecordView } from '../../lib/records';
 import { ErrorNote, busyButtonClass, cardClass, outlineButtonClass, textButtonClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
-import { RecordPicker } from './CompanyPicker';
+import RecordPicker from './RecordPicker';
+import { STAGE_LABEL } from '../../lib/stages';
 
 const STAGES: { stage: number | null; label: string }[] = [
-  { stage: 1, label: 'Introduction' },
-  { stage: 2, label: 'Fundamentals' },
-  { stage: 3, label: 'Advanced' },
+  { stage: 1, label: STAGE_LABEL[1] },
+  { stage: 2, label: STAGE_LABEL[2] },
+  { stage: 3, label: STAGE_LABEL[3] },
   { stage: null, label: 'No stage' },
 ];
 

@@ -1,23 +1,23 @@
-import { useEffect, useState, type ElementType, type KeyboardEvent, type ReactNode } from 'react';
+import type { ElementType, ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { AlertCircle, Briefcase, Building2, Factory, Loader2, RotateCw, Wrench } from 'lucide-react';
+import { AlertCircle, Briefcase, Building2, Factory, Loader2, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { errorMessage, justLeft, signInPath, useAccount, type SignedInAccount } from '../../lib/account';
+import { justLeft, signInPath, useAccount, type SignedInAccount } from '../../lib/account';
+import { errorMessage } from '../../lib/http';
 import { applicationStatusLabel } from '../../lib/jobFormat';
-import { PageContainer } from '../layout/Page';
 import { onGroupArrowKeys } from '../../lib/roving';
+import { PageContainer } from '../layout/Page';
 
 /** Small shared pieces for the account, jobs, employer and admin pages. */
 
-/** Icons for the kinds of record. The app is monochrome: kinds differ by icon, not hue. A career is the occupation entity. */
-export const ENTITY: Record<'company' | 'factory' | 'career' | 'skill', { icon: ElementType; text: string; badge: string }> = {
-  company: { icon: Building2, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
-  factory: { icon: Factory, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
-  career: { icon: Briefcase, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
-  skill: { icon: Wrench, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
+/** The icon a picker shows beside a company, a plant or a career. The app is monochrome: an icon is never coloured by kind. */
+export const KIND_ICON: Record<'company' | 'factory' | 'career', ElementType> = {
+  company: Building2,
+  factory: Factory,
+  career: Briefcase,
 };
 
 /**
@@ -72,6 +72,72 @@ export function Field({ label, htmlFor, hint, optional, className, children }: F
       {children}
       {hint && <p className="mt-1.5 text-xs text-fg-muted">{hint}</p>}
     </div>
+  );
+}
+
+interface SegmentedChoiceProps<T extends string> {
+  options: readonly { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+  /** The group's name for a screen reader: the words, or the id of the element that says them. */
+  label?: string;
+  labelledBy?: string;
+  /** The group is a grid: its columns and width. */
+  className?: string;
+  /** Added to each choice: its padding, whether it truncates. */
+  optionClassName?: string;
+}
+
+/**
+ * A few choices side by side in one control the height of a field. Tab
+ * reaches it once; the arrow keys move between the choices.
+ */
+export function SegmentedChoice<T extends string>({ options, value, onChange, label, labelledBy, className, optionClassName }: SegmentedChoiceProps<T>) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={label}
+      aria-labelledby={labelledBy}
+      onKeyDown={(event) => onGroupArrowKeys(event, options.map((option) => option.value), value, onChange)}
+      className={cn('grid h-[42px] gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1', className)}
+    >
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          role="radio"
+          aria-checked={value === option.value}
+          tabIndex={value === option.value ? 0 : -1}
+          onClick={() => onChange(option.value)}
+          className={cn(
+            'rounded-md text-sm font-medium transition-colors',
+            optionClassName,
+            value === option.value ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** A problem with one field, said beside it. */
+export function FieldError({ id, message }: { id: string; message: string | undefined }) {
+  if (!message) return null;
+  return (
+    <p id={id} role="alert" className="mt-1.5 text-xs text-danger">
+      {message}
+    </p>
+  );
+}
+
+/** The dot between two facts on one line. */
+export function Dot() {
+  return (
+    <span className="mx-1.5" aria-hidden="true">
+      ·
+    </span>
   );
 }
 
@@ -218,51 +284,4 @@ export function AccountGate({ children }: { children: (account: SignedInAccount)
     return <Navigate to={justLeft(data) ? '/map' : signInPath(`${location.pathname}${location.search}`)} replace />;
   }
   return <>{children(data as SignedInAccount)}</>;
-}
-
-/**
- * The one way a day is written on these pages: "today", "yesterday", then
- * "Nov 18", with the year only once it is not this one. (The time of day is
- * given in History alone.)
- */
-export function formatDay(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  const days = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86_400_000);
-  if (days === 0) return 'today';
-  if (days === 1) return 'yesterday';
-  const sameYear = date.getFullYear() === new Date().getFullYear();
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' });
-}
-
-/** The same, after a verb: "declined today", "declined on Nov 18". */
-export function formatOnDay(iso: string): string {
-  const day = formatDay(iso);
-  return day === 'today' || day === 'yesterday' || !day ? day : `on ${day}`;
-}
-
-/** The same, to stand at the start of a line: "Today". */
-export function formatDayCapital(iso: string): string {
-  const day = formatDay(iso);
-  return day.charAt(0).toUpperCase() + day.slice(1);
-}
-
-/** The value, a beat after it stops changing. For search-as-you-type. */
-export function useDebouncedValue<T>(value: T, delayMs = 250): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-  return debounced;
-}
-
-/**
- * Arrow keys for a group of buttons that act as radios or tabs: the next or
- * previous one is chosen and takes focus. Goes on the group; each button in
- * it takes `tabIndex={selected ? 0 : -1}`, so the group is one tab stop.
- */
-export function arrowKeyChoice<T extends string>(values: readonly T[], current: T, onChange: (value: T) => void) {
-  return (event: KeyboardEvent<HTMLElement>) => onGroupArrowKeys(event, values, current, onChange);
 }

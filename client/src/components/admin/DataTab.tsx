@@ -1,15 +1,13 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useAdminPaths } from '../../lib/account';
-import { onGroupArrowKeys } from '../../lib/roving';
+import { useAdminPaths } from '../../lib/admin';
 import { RECORD_KINDS, editPath, type RecordKind } from '../../lib/records';
-import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass } from '../account/parts';
+import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass, SegmentedChoice } from '../account/parts';
 import { PageSection } from '../layout/Page';
-import Records from './AddRecord';
+import Records from './Records';
 import RecordEditor from './RecordEditor';
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid } from '../../lib/validation';
 
 /**
  * Data upkeep. With a record in the address (`kind` and `id`) the tab is that
@@ -21,7 +19,7 @@ export default function DataTab() {
   const [searchParams] = useSearchParams();
   const kind = RECORD_KINDS.find((option) => option.kind === searchParams.get('kind'))?.kind;
   const id = searchParams.get('id');
-  if (kind && id && UUID.test(id)) return <RecordEditor key={`${kind}:${id}`} kind={kind} id={id} />;
+  if (kind && id && isUuid(id)) return <RecordEditor key={`${kind}:${id}`} kind={kind} id={id} />;
   return (
     <>
       <Records />
@@ -32,7 +30,10 @@ export default function DataTab() {
 
 const PATHS_SHOWN = 12;
 type PathState = 'draft' | 'approved';
-const PATH_STATES: readonly PathState[] = ['draft', 'approved'];
+const PATH_STATES: readonly { value: PathState; label: string }[] = [
+  { value: 'draft', label: 'Drafts' },
+  { value: 'approved', label: 'Approved' },
+];
 
 /**
  * Career paths by state. A draft opens in the career's editor, where its
@@ -64,29 +65,7 @@ function PathsSection() {
       }
     >
       <div className="mb-3 flex flex-wrap items-center gap-3">
-        <div
-          role="radiogroup"
-          aria-label="Paths shown"
-          onKeyDown={(event) => onGroupArrowKeys(event, PATH_STATES, state, choose)}
-          className="grid h-[42px] grid-cols-2 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1"
-        >
-          {PATH_STATES.map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="radio"
-              aria-checked={state === option}
-              tabIndex={state === option ? 0 : -1}
-              onClick={() => choose(option)}
-              className={cn(
-                'rounded-md px-4 text-sm font-medium transition-colors',
-                state === option ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
-              )}
-            >
-              {option === 'draft' ? 'Drafts' : 'Approved'}
-            </button>
-          ))}
-        </div>
+        <SegmentedChoice label="Paths shown" options={PATH_STATES} value={state} onChange={choose} className="grid-cols-2" optionClassName="px-4" />
         {total > PATHS_SHOWN && (
           <input
             type="search"

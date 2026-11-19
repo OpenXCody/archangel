@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
+import { readStored, writeStored } from '../../lib/storage';
 
 interface Props {
   children: ReactNode;
@@ -32,14 +33,11 @@ export default class ErrorBoundary extends Component<Props, State> {
     // knows by name are gone. Loading the app again gets the new ones. Once
     // only (per ten minutes), so a real outage does not reload for ever.
     if (/dynamically imported module|Importing a module script failed|Failed to load module script/i.test(error.message)) {
-      try {
-        const last = Number(window.sessionStorage.getItem(RELOADED_AT) ?? 0);
-        if (Date.now() - last > 10 * 60 * 1000) {
-          window.sessionStorage.setItem(RELOADED_AT, String(Date.now()));
-          window.location.reload();
-        }
-      } catch {
-        // No session storage: leave the choice to the person (Reload, below).
+      const last = Number(readStored(RELOADED_AT, 'session') ?? 0);
+      // Only when the reload can be remembered. With no session storage it
+      // would repeat for ever: leave the choice to the person (Reload, below).
+      if (Date.now() - last > 10 * 60 * 1000 && writeStored(RELOADED_AT, String(Date.now()), 'session')) {
+        window.location.reload();
       }
     }
   }

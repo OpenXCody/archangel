@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { useStatesOutline } from '../../lib/queries';
 
 /**
  * Where a company's plants are: the lower 48 states drawn faintly, one dot per
@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
  * caller lists every plant beside it.
  */
 
-export interface FootprintPoint {
+interface FootprintPoint {
   id: string;
   latitude: number;
   longitude: number;
@@ -27,7 +27,6 @@ interface FootprintMapProps {
   className?: string;
 }
 
-const STATES_URL = '/data/us-states.geojson';
 const NOT_DRAWN = new Set(['Alaska', 'Hawaii']);
 
 // Albers equal-area conic, the standard for a US map: parallels 29.5° and
@@ -100,16 +99,8 @@ function statesPath(collection: GeoJSON.FeatureCollection): string {
 }
 
 export default function FootprintMap({ points, emphasis, className }: FootprintMapProps) {
-  // The same file the map page loads; cached by the browser and by the query.
-  const { data: states } = useQuery({
-    queryKey: ['us-states-geojson'],
-    queryFn: async (): Promise<GeoJSON.FeatureCollection> => {
-      const response = await fetch(STATES_URL);
-      if (!response.ok) throw new Error(`States outline failed to load (${response.status})`);
-      return (await response.json()) as GeoJSON.FeatureCollection;
-    },
-    staleTime: Infinity,
-  });
+  // The same file the map page loads, under the same query: fetched once for both.
+  const { data: states } = useStatesOutline();
 
   const outline = useMemo(() => (states ? statesPath(states) : ''), [states]);
   const dots = useMemo(

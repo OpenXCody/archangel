@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { formatCompanyName } from '@shared/displayName';
-import { STATE_CODE_TO_NAME, type StateCode } from '@shared/states';
-import type { CompanyDetail, FactoryDetail, RecordSource } from '../lib/api';
-import CompanyLogo from './CompanyLogo';
-import { RecordList, RecordRow } from './layout/Page';
+import { stateName } from '../../lib/places';
+import type { CompanyDetail, FactoryDetail, RecordSource } from '../../lib/api';
+import CompanyLogo from '../CompanyLogo';
+import { RecordList, RecordRow } from '../layout/Page';
 
 /**
  * The deeper facts a plant or a company has when its record was written from
@@ -100,7 +100,7 @@ export function SourceList({ sources }: { sources: RecordSource[] | undefined })
 
 /** "Fort Worth, Texas", or "Geneva, Switzerland" for a headquarters outside the country. */
 function placeOf(headquarters: NonNullable<CompanyDetail['headquarters']>): string {
-  const state = headquarters.state ? (STATE_CODE_TO_NAME[headquarters.state as StateCode] ?? headquarters.state) : null;
+  const state = headquarters.state ? stateName(headquarters.state) : null;
   const country = headquarters.country && !/^(us|usa|united states)$/i.test(headquarters.country) ? headquarters.country : null;
   return [headquarters.city, state ?? country].filter(Boolean).join(', ');
 }
@@ -128,7 +128,7 @@ export function CompanyStanding({ data }: { data: CompanyDetail }) {
   }
   if (headquarters) parts.push(<span key="hq">Headquarters in {placeOf(headquarters)}</span>);
   for (const entry of people.slice(0, 3)) {
-    const where = STATE_CODE_TO_NAME[entry.state as StateCode] ?? entry.state;
+    const where = stateName(entry.state);
     parts.push(
       <span key={entry.state}>
         {entry.source ? (
