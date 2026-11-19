@@ -40,10 +40,18 @@ import {
  * beside it (`AtlasPanel`), which is also what the keyboard uses.
  */
 
-/** The plate's radius in the drawing's own units, and how much wider than the plate the frame is. */
+/** The plate's radius in the drawing's own units. */
 const S = 500;
-const VIEW = 1.02;
-const BOX = S * VIEW;
+
+/**
+ * How much wider than the plate the frame is: half the frame, in plate radii.
+ * The domains' names take two rows outside the ring, and a row is as tall on
+ * a small phone as on a large one, so a narrow frame leaves the plate a
+ * little less of itself.
+ */
+function frameFor(width: number, ring: number): number {
+  return Math.max(1.02, ring / (1 - 54 / Math.max(width, 200)));
+}
 
 /** What a press or the pointer lands on. */
 export interface AtlasTarget {
@@ -361,13 +369,13 @@ interface Zoom {
   skillPitchPx: number;
 }
 
-function zoomFor(layout: AtlasLayout, radiusPx: number): Zoom {
+function zoomFor(layout: AtlasLayout, radiusPx: number, frame: number): Zoom {
   const phone = radiusPx < 240;
   // A phone shows the open domain from its groups' arcs outward; a wider frame from the domain's own arc.
   const innermost = phone ? layout.geometry.group - 0.02 : layout.geometry.domain - 0.05;
   const labelRoomPx = phone ? 172 : Math.min(250, radiusPx * 0.72);
-  const anchorX = VIEW - labelRoomPx / radiusPx;
-  const scale = (anchorX + VIEW) / (layout.geometry.ring - innermost);
+  const anchorX = frame - labelRoomPx / radiusPx;
+  const scale = (anchorX + frame) / (layout.geometry.ring - innermost);
   return {
     scale,
     anchorX,
@@ -428,6 +436,7 @@ function Labels({ layout, labels, zoom, radiusPx, leaf, preview, overlay }: Labe
             <text
               className="atlas-label"
               data-atlas-label={label.kind}
+              data-far={label.far || undefined}
               data-on={chosen || pointed || undefined}
               data-lit={(chosen || (skill && lit(label.index))) || undefined}
               data-quiet={quiet || undefined}
@@ -476,24 +485,39 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const radiusPx = width / (2 * VIEW);
-  const zoom = useMemo(() => zoomFor(layout, radiusPx), [layout, radiusPx]);
+  const frame = frameFor(width, layout.geometry.ring);
+  const box = S * frame;
+  const radiusPx = width / (2 * frame);
+  const zoom = useMemo(() => zoomFor(layout, radiusPx, frame), [layout, radiusPx, frame]);
 
-  // The camera: the whole plate, or the open domain turned to three o'clock and enlarged.
-  const turned = useRef(0);
-  const camera: AtlasCamera = useMemo(() => {
-    const next = domain ? cameraOn(domain.angle, zoom.scale, layout.geometry.ring, zoom.anchorX, turned.current) : cameraWhole(turned.current);
-    turned.current = next.rotate;
-    return next;
-  }, [domain, zoom, layout]);
-
+  // As far round the rim as the frame shows, from its middle to its top or bottom edge.
+  const inSight = Math.asin(Math.min(1, frame / (zoom.labelRadius * zoom.scale)));
+  const labelRadiusPx = zoom.labelRadius * radiusPx * zoom.scale;
   const labels = useMemo(() => {
     if (!domain) return [];
-    const labelRadiusPx = zoom.labelRadius * radiusPx * zoom.scale;
-    // As far round the rim as the frame shows.
-    const reach = Math.asin(Math.min(1, VIEW / (zoom.labelRadius * zoom.scale)));
-    return placeLabels(layout, domain, group, { group: zoom.groupPitchPx / labelRadiusPx, skill: zoom.skillPitchPx / labelRadiusPx }, reach);
-  }, [layout, domain, group, zoom, radiusPx]);
+    // Named a little past the frame's edge, so a small turn of the plate does not run out of names.
+    return placeLabels(layout, domain, group, { group: zoom.groupPitchPx / labelRadiusPx, skill: zoom.skillPitchPx / labelRadiusPx }, inSight * 1.5);
+  }, [layout, domain, group, zoom, labelRadiusPx, inSight]);
+
+  // The camera: the whole plate, or the open domain turned to three o'clock and
+  // enlarged. An open group at the edge of a wide domain would name its skills
+  // past the frame: the plate then turns just far enough to bring them in.
+  const lean = useMemo(() => {
+    if (!domain || !group) return 0;
+    const named = labels.filter((label) => label.kind === 'skill');
+    if (named.length === 0) return 0;
+    // A name near the top or bottom of the frame runs out of it as it goes: the names are kept to the middle half.
+    const edge = inSight * 0.5;
+    const first = between(named[0].angle, domain.angle);
+    const last = between(named[named.length - 1].angle, domain.angle);
+    return first < -edge ? first + edge : last > edge ? last - edge : 0;
+  }, [domain, group, labels, inSight]);
+  const turned = useRef(0);
+  const camera: AtlasCamera = useMemo(() => {
+    const next = domain ? cameraOn(domain.angle + lean, zoom.scale, layout.geometry.ring, zoom.anchorX, turned.current) : cameraWhole(turned.current);
+    turned.current = next.rotate;
+    return next;
+  }, [domain, lean, zoom, layout]);
 
   /** What is at a point of the screen. */
   const targetAt = (clientX: number, clientY: number, fine: boolean): AtlasTarget | null => {
@@ -501,8 +525,8 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
     if (!svg) return null;
     const rect = svg.getBoundingClientRect();
     if (rect.width === 0) return null;
-    const x = (((clientX - rect.left) / rect.width) * 2 - 1) * VIEW;
-    const y = (((clientY - rect.top) / rect.height) * 2 - 1) * VIEW;
+    const x = (((clientX - rect.left) / rect.width) * 2 - 1) * frame;
+    const y = (((clientY - rect.top) / rect.height) * 2 - 1) * frame;
     const where = unproject(camera, x, y);
     const g = layout.geometry;
     if (!domain) {
@@ -581,7 +605,7 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
       ref={svgRef}
       role="img"
       aria-label={label}
-      viewBox={`${-BOX} ${-BOX} ${2 * BOX} ${2 * BOX}`}
+      viewBox={`${fixed(-box)} ${fixed(-box)} ${fixed(2 * box)} ${fixed(2 * box)}`}
       className={`atlas-plate ${className ?? ''}`}
       data-still={still || undefined}
       data-atlas-view={leaf ? 'skill' : group ? 'group' : domain ? 'domain' : 'whole'}
@@ -596,7 +620,7 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
         </g>
         {pointed && <path className="atlas-hover" d={sectorPath(g.root, g.ring - 0.012, pointed.from, pointed.to, S)} />}
         {/* Everything but the open domain, veiled. */}
-        {domain && <path className="atlas-veil" d={sectorPath(0.0001, 3, domain.a1 + half, domain.a0 - half + TAU, S)} />}
+        {domain && <path key={`veil-${domain.slug}`} className="atlas-veil" d={sectorPath(0.0001, 3, domain.a1 + half, domain.a0 - half + TAU, S)} />}
         {overlay && <Overlay layout={layout} overlay={overlay} />}
         {marks && marks.size > 0 && <Marks layout={layout} marks={marks} overlay={overlay} />}
         {pointedGroup && (

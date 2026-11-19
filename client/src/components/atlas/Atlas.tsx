@@ -7,7 +7,7 @@ import type { OccupationDetail } from '../../lib/api';
 import { recordQuery, useTaxonomy } from '../../lib/queries';
 import { useMySkills } from '../../lib/seeker';
 import { useViewer } from '../../lib/viewer';
-import { errorMessage } from '../../lib/http';
+import { ApiError, errorMessage } from '../../lib/http';
 import CareerPicker from '../account/CareerPicker';
 import { LoadError } from '../account/parts';
 import SkillsViewSwitch from '../explorer/SkillsViewSwitch';
@@ -66,7 +66,10 @@ function CareerLine({ sign, id, career, facts, removeTo }: CareerLineProps) {
       <LitSign kind={sign} />
       <p className="min-w-0 flex-1 leading-snug text-fg-muted">
         {career.isError ? (
-          <span role="alert">{errorMessage(career.error)}</span>
+          // A link to a career that is gone, or was mistyped: said in the product's own word.
+          <span role="alert">
+            {career.error instanceof ApiError && career.error.status >= 400 && career.error.status < 500 ? 'That career is not in the catalogue.' : errorMessage(career.error)}
+          </span>
         ) : title ? (
           <>
             <Link to={`/occupations/${id}`} className={cn('font-medium text-fg-default underline-offset-4 hover:underline', focusRing)}>

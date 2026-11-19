@@ -63,14 +63,16 @@ export function usePins() {
  * (`recordsChanged` in lib/records.ts).
  */
 export function useTaxonomy(enabled = true) {
-  return useQuery({
-    queryKey: publicKeys.taxonomy,
-    queryFn: skillsApi.taxonomy,
-    staleTime: 60 * 60_000,
-    gcTime: Infinity,
-    enabled,
-  });
+  return useQuery({ ...taxonomyQuery, enabled });
 }
+
+/** The taxonomy's read, for `prefetchQuery`: the Atlas asks for it before its own code has arrived (App.tsx). */
+export const taxonomyQuery = {
+  queryKey: publicKeys.taxonomy,
+  queryFn: skillsApi.taxonomy,
+  staleTime: 60 * 60_000,
+  gcTime: Infinity,
+};
 
 /** The industries, and the skill domains and groups, in use: what the browse lists filter by. */
 export function useExploreFacets(enabled = true) {

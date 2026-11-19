@@ -199,7 +199,17 @@ function Careers({ careers }: { careers: ExploreCareer[] }) {
 function Skills({ domains }: { domains: ExploreSkillDomain[] }) {
   if (domains.length === 0) return null;
   return (
-    <PageSection title="Skills" actions={<TextLink to={exploreHref('skills')}>All skills</TextLink>} className={SECTION}>
+    <PageSection
+      title="Skills"
+      // Every skill as a list, and as one drawing: the Atlas.
+      actions={
+        <span className="flex items-center gap-x-5">
+          <TextLink to={exploreHref('atlas')}>Atlas</TextLink>
+          <TextLink to={exploreHref('skills')}>All skills</TextLink>
+        </span>
+      }
+      className={SECTION}
+    >
       <div className="grid grid-cols-1 gap-x-12 gap-y-8 pt-1 sm:grid-cols-2 sm:gap-y-10 sm:pt-2 lg:grid-cols-3">
         {domains.map((domain, d) => (
           // A phone lists the first four domains.

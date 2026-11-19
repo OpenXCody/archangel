@@ -512,6 +512,10 @@ input {
   fill: var(--color-bg-base);
   fill-opacity: 0.62;
   pointer-events: none;
+  animation: atlas-arrive 0.45s ease 0.25s both;
+}
+.atlas-plate[data-still] .atlas-veil {
+  animation: none;
 }
 .atlas-name {
   fill: var(--color-fg-muted);
@@ -656,7 +660,8 @@ input {
   .atlas-name {
     transition: none;
   }
-  .atlas-labels {
+  .atlas-labels,
+  .atlas-veil {
     animation: none;
   }
 }
