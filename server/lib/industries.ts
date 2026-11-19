@@ -157,6 +157,38 @@ export async function listIndustries(place: Place) {
   };
 }
 
+/**
+ * The county a plant stands in, with the official figures for manufacturing
+ * as a whole there (industry_county_stats, the latest year). The county is
+ * the one the plant's coordinates fall in (factories.county_fips, written by
+ * scripts/geo/assign-keys.mjs). `county` is null for a plant that has not
+ * been placed; `manufacturing` is null where nothing is published for the
+ * county. Undefined when there is no such plant. These are figures about the
+ * county, never about the plant.
+ */
+export async function plantCounty(factoryId: string) {
+  const [row] = rowsOf(
+    await db.execute(sql`
+      SELECT c.fips, c.name, c.state, m.code AS metro_code, m.name AS metro_name, m.kind AS metro_kind,
+             s.year, s.establishments, s.employment, s.avg_annual_pay, s.source, s.source_url
+      FROM factories f
+      LEFT JOIN counties c ON c.fips = f.county_fips
+      LEFT JOIN metros m ON m.code = c.cbsa_code
+      LEFT JOIN industry_county_stats s
+        ON s.county_fips = c.fips AND s.industry_code = ${MANUFACTURING_CODE}
+       AND s.year = (SELECT MAX(year) FROM industry_county_stats WHERE county_fips = c.fips AND industry_code = ${MANUFACTURING_CODE})
+      WHERE f.id = ${factoryId} AND ${factoryInScope('f')}
+    `)
+  );
+  if (!row) return undefined;
+  if (!text(row.fips)) return { county: null, metro: null, manufacturing: null };
+  return {
+    county: { fips: String(row.fips), name: String(row.name), state: String(row.state) },
+    metro: text(row.metro_code) ? { code: String(row.metro_code), name: String(row.metro_name), kind: String(row.metro_kind) } : null,
+    manufacturing: row.year === null || row.year === undefined ? null : statsOf(row),
+  };
+}
+
 /** Words in an industry's sentence that say nothing about which industry it is. */
 const PLAIN_WORDS = new Set(['plants', 'plant', 'make', 'makes', 'that', 'turn', 'into', 'other', 'products', 'goods', 'from', 'them', 'work', 'shops', 'mills', 'parts']);
 

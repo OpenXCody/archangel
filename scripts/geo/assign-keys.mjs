@@ -25,6 +25,8 @@
 //   - they fall outside every county (in the sea, or in another country);
 //   - they fall in a county of a state other than the plant's own: one of the
 //     two is wrong, and a key is only worth having when the evidence agrees.
+// A plant filed under no state is placed by its coordinates alone, and listed:
+// its county says which state it is in.
 // The clean NAICS code needs no file: it is one statement over the reference
 // tables, the same one migration 0044 runs.
 //
@@ -131,6 +133,8 @@ export async function assignKeys(sql, { areas, index, apply = false, nearKm = 2,
   const changes = [];
   const unplaced = [];
   const near = [];
+  // Placed by coordinates alone, because the plant is filed under no state: the county says which it is.
+  const stateless = [];
   let plants = 0;
   let placed = 0;
   let already = 0;
@@ -155,6 +159,9 @@ export async function assignKeys(sql, { areas, index, apply = false, nearKm = 2,
         });
       } else if (place.nearKm) {
         near.push({ ...label, county: place.county, countyName: counties.get(place.county).name, km: place.nearKm });
+      }
+      if (place.county && !(plant.state ?? '').trim()) {
+        stateless.push({ ...label, county: place.county, countyName: `${counties.get(place.county).name}, ${counties.get(place.county).state}` });
       }
       if (place.county === plant.county_fips && place.cbsa === plant.cbsa_code) already++;
       else changes.push({ id: plant.id, lat: plant.lat, lng: plant.lng, county: place.county, cbsa: place.cbsa });
@@ -217,12 +224,13 @@ export async function assignKeys(sql, { areas, index, apply = false, nearKm = 2,
     outsideEveryCounty: why('outside every county').length,
     notCovered: why('in a county the product does not cover').length,
     stateMismatch: why(MISMATCH).length,
+    placedWithNoStoredState: stateless.length,
     alreadyRight: already,
     toWrite: changes.length,
     written,
     naics: { stored: codes.stored, clean: codes.exact + codes.shorter + codes.earlier, exact: codes.exact, fromShorter: codes.shorter, fromEarlierEdition: codes.earlier, notClean: codes.stored - codes.exact - codes.shorter - codes.earlier, changed: naicsChanged },
     ms: { locate: locateMs, write: writeMs, total: Date.now() - started },
-    lists: { unplaced, near, uncleanCodes: unclean.map((row) => ({ code: row.code, plants: row.plants, title: row.title })) },
+    lists: { unplaced, near, noStoredState: stateless, uncleanCodes: unclean.map((row) => ({ code: row.code, plants: row.plants, title: row.title })) },
   };
 
   const count = (value) => value.toLocaleString('en-US');
@@ -250,6 +258,7 @@ export async function assignKeys(sql, { areas, index, apply = false, nearKm = 2,
     (row) => `${plantLine(row)}  -> ${row.foundName ?? row.foundCounty}  (${row.kmToStoredState === null ? 'more than 25' : row.kmToStoredState} km from ${row.state})`
   );
   show('Outside every county', why('outside every county'), plantLine);
+  show('Filed under no state, placed by coordinates alone (the county says which state)', stateless, (row) => `${plantLine(row)}  -> ${row.countyName}`);
   show('In a county the product does not cover', why('in a county the product does not cover'), (row) => `${plantLine(row)}  -> ${row.foundName ?? row.foundCounty}`);
   show('No usable coordinates', why('no usable coordinates'), plantLine);
   show('Stored codes that are not one 2022 national industry', report.lists.uncleanCodes, (row) => `${row.code}  ${count(row.plants)} ${row.plants === 1 ? 'plant' : 'plants'}${row.title ? `  (${row.title}: more than one national industry)` : ''}`);

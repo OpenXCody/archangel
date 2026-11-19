@@ -9,6 +9,7 @@ import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../../CompanyLogo';
 import { shownIndustry } from '@shared/industry';
 import { usePins } from '../../../lib/queries';
+import CountyLine from '../../entity/CountyLine';
 import { Heading, Section, JobRows, MORE_LINK, CareerRows, More, RowList, NodeRow, PageLink, Figures } from './parts';
 
 /** How far "nearby" reaches, and how many plants it lists. */
@@ -217,6 +218,8 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
           </RowList>
         </Section>
       )}
+      {/* The county it stands in: official figures for manufacturing there, never the plant's own. */}
+      <CountyLine factoryId={factory.id} className="mb-6" />
       <PageLink to={`/factories/${factory.id}`}>Plant page</PageLink>
     </>
   );

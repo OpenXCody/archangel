@@ -59,6 +59,7 @@ export const accountKeys = {
   adminRecordSimilar: (kind: string, params: object) => ['admin', 'records', 'similar', kind, params] as const,
   /** `recordsChanged` in records.ts reads this key's shape: 'one' third, the id fifth. */
   adminRecord: (kind: string, id: string) => ['admin', 'records', 'one', kind, id] as const,
+  adminQuality: ['admin', 'quality'] as const,
   adminAudit: ['admin', 'audit'] as const,
   adminAuditFor: (filter: object, pages: number) => ['admin', 'audit', filter, pages] as const,
 };
@@ -98,6 +99,8 @@ export const publicKeys = {
   areaOverviews: ['area-overview'] as const,
   areaOverview: (id: string | null) => ['area-overview', id] as const,
   boundsOverview: (id: string | null) => ['bounds-overview', id] as const,
+  /** The county a plant stands in and its official figures. */
+  plantCounty: (factoryId: string) => ['plant-county', factoryId] as const,
   /** Static files: the states' outline and the focus areas' boundaries. */
   statesOutline: ['states-geojson'] as const,
   areaBoundaries: ['focus-area-boundaries'] as const,

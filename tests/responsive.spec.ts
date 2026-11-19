@@ -308,6 +308,7 @@ test("an admin's change reaches the map's panel", async ({ page, request }) => {
   await page.route('**/api/admin/**', (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/overview')) return route.fulfill({ json: { users: 1, pendingMemberships: 0, openJobs: 0, applications: 0, draftPaths: 0 } });
+    if (path.endsWith('/quality')) return route.fulfill({ json: { total: { state: null, plants: 0, industry: 0, code: 0, county: 0, people: 0, address: 0, outsideId: 0, onePlantCompanies: 0, duplicates: 0, duplicateGroups: 0, companies: 0 }, states: [] } });
     return route.fulfill({ json: { users: [], total: 0, memberships: [], requests: [], paths: [], records: [], entries: [], hasMore: false } });
   });
   await page.route('**/api/companies', (route) => {
@@ -339,4 +340,109 @@ test("an admin's change reaches the map's panel", async ({ page, request }) => {
   for (let step = 0; step < 4 && !/\/map\?/.test(page.url()); step++) await page.goBack();
   expect(page.url(), 'back on the map').toContain(`/map?factory=${plant}`);
   await expect(page).toHaveTitle('Renamed Works · Archangel');
+});
+
+test("a plant's page says its county, with the official figures and who counted them", async ({ page, request }) => {
+  // The county is worked out from coordinates by a script, outside the app: its answer is stood in for here.
+  const plant = await firstId(request, '/factories');
+  expect(plant, 'the API returned a plant to open').toBeTruthy();
+  let answer: unknown = {
+    county: { fips: '48453', name: 'Travis County', state: 'TX' },
+    metro: { code: '12420', name: 'Austin-Round Rock-San Marcos, TX', kind: 'metropolitan' },
+    manufacturing: { year: 2025, establishments: 1354, employment: 60968, avgAnnualPay: 136250, source: 'U.S. Bureau of Labor Statistics, Quarterly Census of Employment and Wages', sourceUrl: 'https://www.bls.gov/cew/' },
+  };
+  await page.route('**/api/map/factories/*/county', (route) => route.fulfill({ json: answer }));
+
+  await page.goto(`/factories/${plant}`, { waitUntil: 'domcontentloaded' });
+  const line = page.locator('[data-entity-view="factories"] [data-county-line]');
+  await expect(line).toHaveText(
+    'Travis County: 60,968 people work in manufacturing, at 1,354 establishments. Average pay $136,250 a year. U.S. Bureau of Labor Statistics, Quarterly Census of Employment and Wages, 2025.'
+  );
+  await expect(line.getByRole('link')).toHaveAttribute('href', 'https://www.bls.gov/cew/');
+  await assertHealthyLayout(page, '/factories/:id:county');
+
+  // The same line in the plant's panel on the map.
+  await page.goto(`/map?factory=${plant}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-county-line="48453"]').first()).toContainText('Travis County: 60,968 people work in manufacturing');
+
+  // A figure the source withheld is left out, never shown as 0.
+  answer = { county: { fips: '01011', name: 'Bullock County', state: 'AL' }, metro: null, manufacturing: { year: 2025, establishments: 6, employment: null, avgAnnualPay: null, source: 'U.S. Bureau of Labor Statistics', sourceUrl: null } };
+  await page.goto(`/factories/${plant}`, { waitUntil: 'domcontentloaded' });
+  await expect(line).toHaveText('Bullock County: 6 establishments in manufacturing. U.S. Bureau of Labor Statistics, 2025.');
+
+  // A plant with no county, or a county with nothing published, says nothing.
+  for (const none of [{ county: null, metro: null, manufacturing: null }, { county: { fips: '15005', name: 'Kalawao County', state: 'HI' }, metro: null, manufacturing: null }]) {
+    answer = none;
+    await page.goto(`/factories/${plant}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-entity-view="factories"] [data-detail-kind]')).toHaveText('Plant');
+    await page.waitForTimeout(600);
+    await expect(line).toHaveCount(0);
+  }
+});
+
+test('the data quality table fits the screen, and says what it counts', async ({ page }) => {
+  // Nothing is written and no account is made: the admin and the counts are stood in for here.
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({
+      json: {
+        user: { id: '00000000-0000-4000-8000-000000000001', email: 'admin@device.test', name: 'Device Admin', isAdmin: true, homeZip: null, about: null, emailNotices: true, purpose: 'work' },
+        memberships: [],
+        isEmployer: false,
+      },
+    })
+  );
+  await page.route('**/api/me/news', (route) => route.fulfill({ json: { applications: false, applicants: false, access: false } }));
+  // Fifty-one states' worth of counts, shaped like production's: Texas largest, most plants without a headcount.
+  const codes = 'TX CA OH IL PA MI NY IN WI NC GA FL TN MN MO NJ MA AL SC KY VA WA IA LA OR AR OK KS MS AZ CO CT MD UT NE WV NH ME ID NV NM DE SD RI ND MT VT AK HI WY DC'.split(' ');
+  const states = codes.map((state, i) => {
+    const plants = Math.round(4300 / (1 + i * 0.35)) + 3;
+    return {
+      state, plants,
+      industry: Math.round(plants * 0.62), code: Math.round(plants * 0.55), county: plants - (i % 7 === 0 ? 2 : 0), people: i === 0 ? 540 : i % 5 === 0 ? 3 : 0,
+      address: Math.round(plants * 0.97), outsideId: Math.round(plants * 0.98), onePlantCompanies: Math.round(plants * 0.5), duplicates: i % 4 === 0 ? 6 : 0, duplicateGroups: i % 4 === 0 ? 3 : 0,
+    };
+  });
+  const sum = (key: 'plants' | 'industry' | 'code' | 'county' | 'people' | 'address' | 'outsideId' | 'onePlantCompanies' | 'duplicates' | 'duplicateGroups') => states.reduce((n, s) => n + s[key], 0);
+  const total = { state: null, plants: sum('plants'), industry: sum('industry'), code: sum('code'), county: sum('county'), people: sum('people'), address: sum('address'), outsideId: sum('outsideId'), onePlantCompanies: sum('onePlantCompanies'), duplicates: sum('duplicates'), duplicateGroups: sum('duplicateGroups'), companies: 28082 };
+  await page.route('**/api/admin/**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/quality')) return route.fulfill({ json: { total, states } });
+    if (path.endsWith('/overview')) return route.fulfill({ json: { users: 1, pendingMemberships: 0, openJobs: 0, applications: 0, draftPaths: 0 } });
+    return route.fulfill({ json: { users: [], total: 0, memberships: [], requests: [], paths: [], records: [], entries: [], hasMore: false } });
+  });
+
+  await page.goto('/admin?tab=data', { waitUntil: 'domcontentloaded' });
+  const table = page.locator('[data-quality-table]');
+  await expect(table).toBeVisible();
+  await table.scrollIntoViewIfNeeded();
+  // The table may be wider than a phone: it scrolls inside its own card, never the page.
+  await assertHealthyLayout(page, '/admin?tab=data:quality');
+  await expect(table.locator('tbody tr')).toHaveCount(states.length + 1);
+  const cells = table.locator('[data-quality-total] td');
+  const count = (n: number) => n.toLocaleString('en-US');
+  // Shares first: a part of the plants as a percentage; plants and the two tallies stay counts.
+  await expect(cells.nth(0)).toHaveText(count(total.plants));
+  await expect(cells.nth(1)).toHaveText(`${((total.industry / total.plants) * 100).toFixed(1)}%`);
+  await expect(cells.nth(7)).toHaveText(count(total.onePlantCompanies));
+  await expect(cells.nth(8)).toHaveText(count(total.duplicates));
+  // "100%" only when it is every plant: Texas is two short of it.
+  const texas = table.locator('[data-quality-row="TX"] td');
+  await expect(texas.nth(3)).not.toHaveText('100%');
+  await expect(table.locator('[data-quality-row="CA"] td').nth(3)).toHaveText('100%');
+  // Counts: the exact numbers behind the shares.
+  await page.getByRole('radio', { name: 'Counts' }).click();
+  await expect(cells.nth(1)).toHaveText(count(total.industry));
+  await expect(texas.nth(3)).toHaveText(count(states[0].plants - 2));
+  // A column's heading orders the states by it; the state column stays put while the rest scrolls.
+  await page.getByRole('button', { name: 'People' }).click();
+  await expect(table.locator('tbody tr').nth(1)).toHaveAttribute('data-quality-row', 'TX');
+  await page.getByRole('button', { name: 'State', exact: true }).click();
+  await expect(table.locator('tbody tr').nth(1)).toHaveAttribute('data-quality-row', 'AL');
+  await expect(table.locator('thead th').first()).toHaveAttribute('aria-sort', 'ascending');
+  // What each column counts is written under the table, with the two figures the table cannot show.
+  const definitions = page.locator('[data-quality-definitions]');
+  await expect(definitions).toContainText(`${count(total.onePlantCompanies)} of ${count(total.companies)} companies`);
+  await expect(definitions).toContainText(`${count(total.duplicates)} plants at ${count(total.duplicateGroups)} spots`);
+  await definitions.scrollIntoViewIfNeeded();
+  await assertHealthyLayout(page, '/admin?tab=data:quality-definitions');
 });

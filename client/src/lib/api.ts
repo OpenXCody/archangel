@@ -557,7 +557,21 @@ export const mapApi = {
   /** Panel data for any box: [[west, south], [east, north]]. */
   boundsOverview: ([[west, south], [east, north]]: [[number, number], [number, number]]) =>
     apiFetch<BoundsOverview>(`/map/bounds/overview${queryString({ west, south, east, north })}`),
+  /** The county a plant stands in, with the official figures for manufacturing there. */
+  plantCounty: (factoryId: string) =>
+    apiFetch<PlantCounty>(`/map/factories/${encodeURIComponent(factoryId)}/county`),
 };
+
+/**
+ * The county a plant's coordinates fall in, its metro area, and the official
+ * figures for manufacturing as a whole in that county. `county` is null for a
+ * plant not yet placed; `manufacturing` where nothing is published.
+ */
+export interface PlantCounty {
+  county: { fips: string; name: string; state: string } | null;
+  metro: { code: string; name: string; kind: string } | null;
+  manufacturing: IndustryStats | null;
+}
 
 // Explore overview: what /explore opens on, in one response.
 
