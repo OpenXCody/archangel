@@ -10,6 +10,7 @@ import { readCompanyTerm, searchCompanies } from '../lib/companySearch.js';
 import { pageLimit } from '../lib/paging.js';
 import { companyRequestsRouter } from './companyRequests.js';
 import { recordAudit } from '../lib/audit.js';
+import { jobIsOpen } from '../lib/openJobs.js';
 
 /**
  * The employer area. An employer is a signed-in person with an active
@@ -24,7 +25,9 @@ router.param('companyId', uuidParam);
 router.use('/company-requests', companyRequestsRouter);
 
 // GET /api/employer - the person's companies, each with its factories in the
-// region and its jobs with applicant counts.
+// region and the jobs its members posted, with applicant counts. Jobs that came
+// from the company's own careers site are kept in step with it and are not
+// managed here: each company carries how many of those are open (`listedJobs`).
 router.get(
   '/',
   handle(async (req, res) => {
@@ -76,8 +79,15 @@ router.get(
           })
           .from(jobs)
           .innerJoin(factories, eq(factories.id, jobs.factoryId))
-          .where(inArray(jobs.companyId, activeIds))
+          .where(and(inArray(jobs.companyId, activeIds), sql`${jobs.source} IS NULL`))
           .orderBy(sql`${jobs.postedAt} DESC`)
+      : [];
+    const listed = activeIds.length
+      ? await db
+          .select({ companyId: jobs.companyId, open: sql<number>`COUNT(*)::int` })
+          .from(jobs)
+          .where(and(inArray(jobs.companyId, activeIds), sql`${jobs.source} IS NOT NULL`, jobIsOpen()))
+          .groupBy(jobs.companyId)
       : [];
 
     res.json({
@@ -87,6 +97,7 @@ router.get(
         askAgainAt: m.status === 'declined' && m.decidedAt ? askAgainAt(m.decidedAt) : null,
         factories: factoryRows.filter((f) => f.companyId === m.companyId),
         jobs: jobRows.filter((j) => j.companyId === m.companyId),
+        listedJobs: listed.find((row) => row.companyId === m.companyId)?.open ?? 0,
       })),
     });
   })

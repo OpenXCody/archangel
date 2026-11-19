@@ -4,6 +4,8 @@ import {
   db,
   jobs,
   jobSkills,
+  jobMakes,
+  skillMakes,
   applications,
   companies,
   factories,
@@ -14,7 +16,7 @@ import {
 import { canManageCompany, cleanText, getSessionUser, handle, requireUser } from '../lib/auth.js';
 import { isUuid } from '../lib/writes.js';
 import { rowsOf } from '../lib/rows.js';
-import { pageLimit } from '../lib/paging.js';
+import { pageLimit, pageOffset } from '../lib/paging.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { SCOPE } from '../../shared/scope.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
@@ -74,15 +76,19 @@ const jobSummary = {
   occupationTitle: occupations.title,
 };
 
+/** What is said when someone tries to change a job that came from the company's own careers site. */
+const FROM_SOURCE = 'This job comes from the company\'s careers site and is kept in step with it. It is changed there.';
+
 /** Whole cents, zero or more. Accepts numbers only. */
 function cents(value: unknown): number | null {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 100_000_000 ? value : null;
 }
 
-// GET /api/jobs?occupationId=&companyId=&factoryId=&q=&state=&near=<lat>,<lng>&within=<miles>&limit=
+// GET /api/jobs?occupationId=&companyId=&factoryId=&q=&state=&near=<lat>,<lng>&within=<miles>&limit=&offset=
 // `q`: every word typed must be in the job's title, company, career, shift or
 // place. `near`: only jobs whose factory is within `within` miles (50 unless
 // said) of the point, nearest first, each with its distance as `miles`.
+// A page of the list, newest first, with `total`: how many jobs match in all.
 router.get(
   '/',
   handle(async (req, res) => {
@@ -101,17 +107,48 @@ router.get(
     const miles = near ? milesFromFactory(near) : null;
     if (near && miles) filters.push(sql`${miles} <= ${near.within}`);
     const limit = pageLimit(req.query.limit, 100, 500);
+    const offset = pageOffset(req.query.offset);
 
-    const rows = await db
-      .select(miles ? { ...jobSummary, miles } : jobSummary)
+    const [rows, [counted]] = await Promise.all([
+      db
+        .select(miles ? { ...jobSummary, miles } : jobSummary)
+        .from(jobs)
+        .innerJoin(companies, eq(companies.id, jobs.companyId))
+        .innerJoin(factories, eq(factories.id, jobs.factoryId))
+        .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
+        .where(and(...filters))
+        // The id settles jobs posted at the same moment, so a page never repeats or skips one.
+        .orderBy(...(miles ? [sql`${miles} ASC`] : []), sql`${jobs.postedAt} DESC`, jobs.id)
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ total: sql<number>`COUNT(*)::int` })
+        .from(jobs)
+        .innerJoin(companies, eq(companies.id, jobs.companyId))
+        .innerJoin(factories, eq(factories.id, jobs.factoryId))
+        .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
+        .where(and(...filters)),
+    ]);
+    res.json({ jobs: rows, total: counted?.total ?? 0, limit, offset });
+  })
+);
+
+// GET /api/jobs/summary - what the Jobs page needs before anything is typed:
+// how many jobs are open, and the states that have some, most jobs first.
+router.get(
+  '/summary',
+  handle(async (_req, res) => {
+    const states = await db
+      .select({ state: factories.state, jobs: sql<number>`COUNT(*)::int` })
       .from(jobs)
-      .innerJoin(companies, eq(companies.id, jobs.companyId))
       .innerJoin(factories, eq(factories.id, jobs.factoryId))
-      .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
-      .where(and(...filters))
-      .orderBy(...(miles ? [sql`${miles} ASC`] : []), sql`${jobs.postedAt} DESC`)
-      .limit(limit);
-    res.json({ jobs: rows });
+      .where(isOpenInScope)
+      .groupBy(factories.state)
+      .orderBy(sql`COUNT(*) DESC`, factories.state);
+    res.json({
+      total: states.reduce((sum, row) => sum + row.jobs, 0),
+      states: states.filter((row): row is { state: string; jobs: number } => Boolean(row.state)),
+    });
   })
 );
 
@@ -129,6 +166,13 @@ router.get(
         closedReason: jobs.closedReason,
         // The company has its own version of the job's career: the page links it.
         hasVersion: hasVersionOf(sql`${jobs.companyId}`, sql`${jobs.occupationId}`),
+        // A job that came from the company's own careers site (migration 0054): kept in step with
+        // it by the intake runner, read-only here. Its level, and what it asks for as facts.
+        fromSource: sql<boolean>`${jobs.source} IS NOT NULL`,
+        levelWord: jobs.levelWord,
+        levelRank: jobs.levelRank,
+        requirements: jobs.requirements,
+        lastSeenAt: jobs.lastSeenAt,
       })
       .from(jobs)
       .innerJoin(companies, eq(companies.id, jobs.companyId))
@@ -168,8 +212,21 @@ router.get(
       .innerJoin(skills, eq(skills.id, jobSkills.skillId))
       .where(eq(jobSkills.jobId, job.id))
       .orderBy(sql`${jobSkills.required} DESC`, skills.name);
+    // The makes the job names, under the skill each is a make of.
+    const makeRows = await db
+      .select({ skillId: jobMakes.skillId, id: skillMakes.id, name: skillMakes.name })
+      .from(jobMakes)
+      .innerJoin(skillMakes, eq(skillMakes.id, jobMakes.makeId))
+      .where(eq(jobMakes.jobId, job.id))
+      .orderBy(skillMakes.position, skillMakes.name);
+    const makesOf = (skillId: string) => makeRows.filter((make) => make.skillId === skillId).map(({ id, name }) => ({ id, name }));
 
-    res.json({ job: { ...job, isOpen }, skills: skillRows, myApplication, canManage });
+    res.json({
+      job: { ...job, isOpen },
+      skills: skillRows.map((skill) => ({ ...skill, makes: makesOf(skill.id) })),
+      myApplication,
+      canManage,
+    });
   })
 );
 
@@ -412,9 +469,10 @@ router.patch(
   '/:id',
   requireUser,
   handle(async (req, res) => {
-    const [job] = await db.select({ id: jobs.id, companyId: jobs.companyId }).from(jobs).where(eq(jobs.id, req.params.id)).limit(1);
+    const [job] = await db.select({ id: jobs.id, companyId: jobs.companyId, source: jobs.source }).from(jobs).where(eq(jobs.id, req.params.id)).limit(1);
     if (!job) return res.status(404).json({ error: 'Job not found' });
     if (!(await canManageCompany(req.user!, job.companyId))) return res.status(403).json({ error: 'Not your job to change.' });
+    if (job.source) return res.status(409).json({ error: FROM_SOURCE });
 
     const parsed = readJobFields(req.body, false);
     if ('error' in parsed) return res.status(400).json({ error: parsed.error });
@@ -462,9 +520,10 @@ router.delete(
   '/:id',
   requireUser,
   handle(async (req, res) => {
-    const [job] = await db.select({ id: jobs.id, companyId: jobs.companyId }).from(jobs).where(eq(jobs.id, req.params.id)).limit(1);
+    const [job] = await db.select({ id: jobs.id, companyId: jobs.companyId, source: jobs.source }).from(jobs).where(eq(jobs.id, req.params.id)).limit(1);
     if (!job) return res.status(404).json({ error: 'Job not found' });
     if (!(await canManageCompany(req.user!, job.companyId))) return res.status(403).json({ error: 'Not your job to delete.' });
+    if (job.source) return res.status(409).json({ error: FROM_SOURCE });
     // One statement, so an application arriving at the same moment is not lost.
     const [deleted] = await db
       .delete(jobs)

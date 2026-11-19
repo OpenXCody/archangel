@@ -9,11 +9,11 @@ import CompanyLogo from '../components/CompanyLogo';
 import JobPlaceFilter, { DEFAULT_WITHIN, WITHIN_CHOICES, jobPlaceLabel, type JobPlace } from '../components/jobs/JobPlaceFilter';
 import { occupationsApi } from '../lib/api';
 import { useAccount } from '../lib/account';
-import { useJobs, type JobSummary } from '../lib/jobs';
+import { useJobs, useJobsSummary, type JobSummary } from '../lib/jobs';
 import { usePostJobLink } from '../lib/viewer';
 import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
 import { formatAgo } from '../lib/dates';
-import { LoadError, cardClass, fieldClass, outlineButtonClass } from '../components/account/parts';
+import { LoadError, busyButtonClass, cardClass, fieldClass, outlineButtonClass } from '../components/account/parts';
 import { useDebouncedValue } from '../lib/useDebouncedValue';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
 import { isUuid } from '../lib/validation';
@@ -116,37 +116,40 @@ export default function Jobs() {
     near: point ? `${point.lat},${point.lng}` : undefined,
     within: point ? within : undefined,
   });
-  // Every open job, unfiltered: whether there is anything to filter, and the states on offer.
-  const allJobs = useJobs({});
+  // What is open anywhere: whether there is anything to filter, and the states on offer.
+  const allJobs = useJobsSummary();
 
   // The states that have open jobs.
-  const jobStates = useMemo(() => [...new Set((allJobs.data ?? []).map((job) => job.state).filter((code): code is string => Boolean(code)))], [allJobs.data]);
+  const jobStates = useMemo(() => (allJobs.data?.states ?? []).map((row) => row.state), [allJobs.data]);
 
   // The career a link narrowed the list to, by name: from a job that has it, else looked up
   // (a career linked to from its page may have no open job).
-  const careerInList = career ? (allJobs.data ?? []).find((job) => job.occupationId === career)?.occupationTitle : undefined;
+  const careerInList = career ? (jobs.jobs ?? []).find((job) => job.occupationId === career)?.occupationTitle : undefined;
   const linkedCareer = useQuery({
     queryKey: publicKeys.picker('occupation', career),
     queryFn: () => occupationsApi.get(career),
-    enabled: Boolean(career) && allJobs.isSuccess && !careerInList,
+    enabled: Boolean(career) && jobs.isSuccess && !careerInList,
     staleTime: 5 * 60_000,
   });
   const careerTitle = careerInList ?? linkedCareer.data?.title ?? null;
 
   const filtered = Boolean(q || career || place);
-  const count = jobs.data?.length ?? 0;
+  // How many match in all, not how many are on screen: the list shows a page at a time.
+  const count = jobs.total;
+  const shown = jobs.jobs ?? [];
   const placeName = jobPlaceLabel(place);
   // Nothing is open anywhere: no fields over an empty list.
-  const nothingOpen = !filtered && allJobs.isSuccess && allJobs.data.length === 0;
+  const nothingOpen = !filtered && allJobs.isSuccess && allJobs.data.total === 0;
   const jobWord = (n: number) => (n === 1 ? 'job' : 'jobs');
   const where = place?.kind === 'near' ? ` within ${within} miles of ${placeName}` : place ? ` in ${placeName}` : '';
   // What the list is, in one line: how many, and what narrowed it.
+  const counted = count.toLocaleString('en-US');
   const summary =
     career && careerTitle && !q
-      ? `${count} open ${jobWord(count)} for ${careerTitle}${where}`
+      ? `${counted} open ${jobWord(count)} for ${careerTitle}${where}`
       : place?.kind === 'near'
-        ? `${count} ${jobWord(count)} within ${within} miles of ${placeName}`
-        : `${count} ${filtered ? (count === 1 ? 'job matches' : 'jobs match') : `open ${jobWord(count)}`}`;
+        ? `${counted} ${jobWord(count)} within ${within} miles of ${placeName}`
+        : `${counted} ${filtered ? (count === 1 ? 'job matches' : 'jobs match') : `open ${jobWord(count)}`}`;
   // Where a job opened from this list comes back to.
   const here = `${location.pathname}${location.search}`;
 
@@ -259,7 +262,7 @@ export default function Jobs() {
         <>
           <p className="mb-3 flex items-center gap-2 text-sm text-fg-muted" role="status">
             {summary}
-            {jobs.isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Updating" />}
+            {jobs.isFetching && !jobs.isFetchingNextPage && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Updating" />}
             {filtered && (
               <button type="button" onClick={clearFilters} className="shrink-0 whitespace-nowrap font-medium text-fg-default underline underline-offset-4 hover:no-underline">
                 Clear filters
@@ -267,12 +270,34 @@ export default function Jobs() {
             )}
           </p>
           <ul className={cn('grid grid-cols-1 gap-3 lg:grid-cols-2', jobs.isPlaceholderData && 'opacity-60')}>
-            {jobs.data.map((job) => (
+            {shown.map((job) => (
               <li key={job.id} className="min-w-0">
                 <JobCard job={job} from={filtered ? here : undefined} />
               </li>
             ))}
           </ul>
+          {jobs.hasNextPage && (
+            // The list is a page at a time: the next page is asked for, never the whole of a long list.
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                aria-disabled={jobs.isFetchingNextPage}
+                aria-busy={jobs.isFetchingNextPage}
+                onClick={() => {
+                  if (!jobs.isFetchingNextPage) void jobs.fetchNextPage();
+                }}
+                className={cn('h-11 rounded-lg', outlineButtonClass, busyButtonClass)}
+                data-more-jobs
+              >
+                {jobs.isFetchingNextPage && <Loader2 className="animate-spin" />}
+                Show more
+              </Button>
+              <p className="text-sm text-fg-muted" data-jobs-shown>
+                {shown.length.toLocaleString('en-US')} of {counted}
+              </p>
+            </div>
+          )}
           {/* The one place a visiting employer learns they can list a job here. A seeker is not asked. */}
           {postJob && (
             <p className="mt-6 text-sm text-fg-muted" data-post-a-job>
@@ -315,9 +340,12 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
           </span>
         )}
       </div>
-      <p className="mt-3 text-sm font-semibold text-fg-default">{formatPay(job.payMin, job.payMax, job.payPeriod)}</p>
+      {/* A job from a company's careers site that states no pay says nothing about pay. */}
+      {(job.payMin !== null || job.payMax !== null) && (
+        <p className="mt-3 text-sm font-semibold text-fg-default">{formatPay(job.payMin, job.payMax, job.payPeriod)}</p>
+      )}
       <div className="mt-2.5 flex flex-wrap gap-1.5">
-        <Chip>{employmentLabel(job.employmentType)}</Chip>
+        {job.employmentType && <Chip>{employmentLabel(job.employmentType)}</Chip>}
         {job.shift && (
           <Chip>
             <Clock className="h-3 w-3" />

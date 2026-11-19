@@ -466,7 +466,7 @@ DECLARE
   v_ref text;
   v_gone constant text := 'No longer on the company''s careers site';
   v_ttl constant interval := interval '7 days';
-  d record;
+  it record;
   v_job uuid;
   v_before jsonb;
   v_ref_id uuid;
@@ -496,7 +496,7 @@ BEGIN
     WHERE d.factory_id IS NOT NULL AND d.occupation_id IS NOT NULL;
   CREATE INDEX ON posting_plan (job_id);
 
-  FOR d IN
+  FOR it IN
     SELECT p.*, co.name AS company_name, f.name AS factory_name, f.workforce_size
     FROM posting_plan p
     JOIN factories f ON f.id = (p.want->>'factory_id')::uuid
@@ -504,53 +504,53 @@ BEGIN
     WHERE p.job_id IS NULL OR posting_job_snapshot(p.job_id) IS DISTINCT FROM p.want
     ORDER BY p.source_id, p.place_key
   LOOP
-    IF d.job_id IS NULL THEN
+    IF it.job_id IS NULL THEN
       INSERT INTO jobs (company_id, factory_id, occupation_id, title, employment_type, pay_period, status,
                         posted_at, expires_at, source, source_id, last_seen_at)
-        VALUES ((d.want->>'company_id')::uuid, (d.want->>'factory_id')::uuid, (d.want->>'occupation_id')::uuid, d.want->>'title', NULL, 'hour', 'open',
-                coalesce((d.want->>'posted_at')::timestamp, now() AT TIME ZONE 'UTC'), (now() AT TIME ZONE 'UTC') + v_ttl, p_source, d.source_id, now())
+        VALUES ((it.want->>'company_id')::uuid, (it.want->>'factory_id')::uuid, (it.want->>'occupation_id')::uuid, it.want->>'title', NULL, 'hour', 'open',
+                coalesce((it.want->>'posted_at')::timestamp, now() AT TIME ZONE 'UTC'), (now() AT TIME ZONE 'UTC') + v_ttl, p_source, it.source_id, now())
         RETURNING id INTO v_job;
-      PERFORM posting_job_write(v_job, d.want);
+      PERFORM posting_job_write(v_job, it.want);
       INSERT INTO external_references (entity_type, entity_id, source, external_id, url, run_id)
-        VALUES ('jobs', v_job, v_ref, d.ext, d.want->>'apply_url', p_run) RETURNING id INTO v_ref_id;
-      UPDATE posting_plan SET job_id = v_job WHERE ext = d.ext;
+        VALUES ('jobs', v_job, v_ref, it.ext, it.want->>'apply_url', p_run) RETURNING id INTO v_ref_id;
+      UPDATE posting_plan SET job_id = v_job WHERE ext = it.ext;
       INSERT INTO intake_changes (run_id, op, entity_id, fact, after) VALUES (p_run, 'job', v_job, 'added', posting_job_snapshot(v_job));
       INSERT INTO intake_changes (run_id, op, entity_id, after) VALUES (p_run, 'id', v_job, jsonb_build_object('ref', v_ref_id));
       INSERT INTO load_log (load, kind, action, look, company, plant, detail, metres, run_id, source_id, entity_id, evidence)
         VALUES (p_source, 'job', 'added',
-                d.how = 'near' OR (d.how = 'largest' AND d.workforce_size IS NULL), d.company_name, d.factory_name,
-                format('%s, at %s, %s: %s', d.want->>'title', d.city, d.state,
-                       CASE d.how WHEN 'city' THEN 'the company''s one plant there'
-                                  WHEN 'address' THEN format('of %s plants there, the one at the posting''s address', d.options)
-                                  WHEN 'name' THEN format('of %s plants there, the one the posting names', d.options)
-                                  WHEN 'largest' THEN format('of %s plants there, the largest%s', d.options,
-                                                             CASE WHEN d.workforce_size IS NULL THEN ' (no headcount on record: the first listed)' ELSE '' END)
-                                  WHEN 'near' THEN format('no plant in that city: the nearest, %s km from its centre', round(d.metres / 1000.0, 1))
+                it.how = 'near' OR (it.how = 'largest' AND it.workforce_size IS NULL), it.company_name, it.factory_name,
+                format('%s, at %s, %s: %s', it.want->>'title', it.city, it.state,
+                       CASE it.how WHEN 'city' THEN 'the company''s one plant there'
+                                  WHEN 'address' THEN format('of %s plants there, the one at the posting''s address', it.options)
+                                  WHEN 'name' THEN format('of %s plants there, the one the posting names', it.options)
+                                  WHEN 'largest' THEN format('of %s plants there, the largest%s', it.options,
+                                                             CASE WHEN it.workforce_size IS NULL THEN ' (no headcount on record: the first listed)' ELSE '' END)
+                                  WHEN 'near' THEN format('no plant in that city: the nearest, %s km from its centre', round(it.metres / 1000.0, 1))
                                   ELSE 'the plant an admin pointed the place at' END),
-                d.metres, p_run, d.source_id, v_job,
-                jsonb_build_object('how', d.how, 'options', d.options, 'career', d.facts->'reading'->'career'));
+                it.metres, p_run, it.source_id, v_job,
+                jsonb_build_object('how', it.how, 'options', it.options, 'career', it.facts->'reading'->'career'));
       n_added := n_added + 1;
     ELSE
-      v_before := posting_job_snapshot(d.job_id);
+      v_before := posting_job_snapshot(it.job_id);
       IF v_before IS NULL THEN CONTINUE; END IF;
       -- Closed by anyone but a run: it stays as it was left.
       IF v_before->>'status' <> 'open' AND v_before->>'closed_reason' IS DISTINCT FROM v_gone THEN CONTINUE; END IF;
       INSERT INTO intake_changes (run_id, op, entity_id, fact, before)
         SELECT p_run, 'job', j.id, CASE WHEN j.status = 'open' THEN 'changed' ELSE 'reopened' END,
                v_before || jsonb_build_object('seen', jsonb_build_array(j.last_seen_at, j.expires_at))
-        FROM jobs j WHERE j.id = d.job_id;
-      PERFORM posting_job_write(d.job_id, d.want);
-      UPDATE jobs SET last_seen_at = now(), expires_at = (now() AT TIME ZONE 'UTC') + v_ttl WHERE id = d.job_id;
-      UPDATE intake_changes SET after = posting_job_snapshot(d.job_id)
-        WHERE run_id = p_run AND op = 'job' AND entity_id = d.job_id AND after IS NULL;
+        FROM jobs j WHERE j.id = it.job_id;
+      PERFORM posting_job_write(it.job_id, it.want);
+      UPDATE jobs SET last_seen_at = now(), expires_at = (now() AT TIME ZONE 'UTC') + v_ttl WHERE id = it.job_id;
+      UPDATE intake_changes SET after = posting_job_snapshot(it.job_id)
+        WHERE run_id = p_run AND op = 'job' AND entity_id = it.job_id AND after IS NULL;
       INSERT INTO load_log (load, kind, action, look, company, plant, detail, run_id, source_id, entity_id, evidence)
-        VALUES (p_source, 'job', CASE WHEN v_before->>'status' = 'open' THEN 'changed' ELSE 'reopened' END, false, d.company_name, d.factory_name,
-                format('%s, at %s, %s: %s', d.want->>'title', d.city, d.state,
+        VALUES (p_source, 'job', CASE WHEN v_before->>'status' = 'open' THEN 'changed' ELSE 'reopened' END, false, it.company_name, it.factory_name,
+                format('%s, at %s, %s: %s', it.want->>'title', it.city, it.state,
                        CASE WHEN v_before->>'status' = 'open'
-                            THEN 'the posting changed: ' || coalesce((SELECT string_agg(k, ', ' ORDER BY k) FROM jsonb_object_keys(d.want) k
-                                                                      WHERE v_before->k IS DISTINCT FROM d.want->k), 'nothing we keep')
+                            THEN 'the posting changed: ' || coalesce((SELECT string_agg(k, ', ' ORDER BY k) FROM jsonb_object_keys(it.want) k
+                                                                      WHERE v_before->k IS DISTINCT FROM it.want->k), 'nothing we keep')
                             ELSE 'the posting is on the company''s site again' END),
-                p_run, d.source_id, d.job_id, NULL);
+                p_run, it.source_id, it.job_id, NULL);
       IF v_before->>'status' = 'open' THEN n_changed := n_changed + 1; ELSE n_reopened := n_reopened + 1; END IF;
     END IF;
   END LOOP;
@@ -558,7 +558,7 @@ BEGIN
   IF p_place IS NULL THEN
     -- The open jobs of the source that no posting stands behind any more. One whose posting
     -- went missing in this very run waits for the next: a board can drop a posting for a day.
-    FOR d IN
+    FOR it IN
       SELECT j.id, j.title, j.source_id, j.last_seen_at, j.expires_at, co.name AS company_name, f.name AS factory_name,
              r.gone_run_id IS NOT NULL AS left_site
       FROM jobs j
@@ -571,14 +571,14 @@ BEGIN
       ORDER BY j.id
     LOOP
       INSERT INTO intake_changes (run_id, op, entity_id, fact, before)
-        VALUES (p_run, 'job', d.id, 'closed', posting_job_snapshot(d.id) || jsonb_build_object('seen', jsonb_build_array(d.last_seen_at, d.expires_at)));
-      UPDATE jobs SET status = 'closed', closed_reason = v_gone, updated_at = now() WHERE id = d.id;
-      UPDATE intake_changes SET after = posting_job_snapshot(d.id) WHERE run_id = p_run AND op = 'job' AND entity_id = d.id AND after IS NULL;
+        VALUES (p_run, 'job', it.id, 'closed', posting_job_snapshot(it.id) || jsonb_build_object('seen', jsonb_build_array(it.last_seen_at, it.expires_at)));
+      UPDATE jobs SET status = 'closed', closed_reason = v_gone, updated_at = now() WHERE id = it.id;
+      UPDATE intake_changes SET after = posting_job_snapshot(it.id) WHERE run_id = p_run AND op = 'job' AND entity_id = it.id AND after IS NULL;
       INSERT INTO load_log (load, kind, action, look, company, plant, detail, run_id, source_id, entity_id)
-        VALUES (p_source, 'job', 'closed', false, d.company_name, d.factory_name,
-                format('%s: %s', d.title, CASE WHEN d.left_site THEN 'gone from the company''s site for two runs'
+        VALUES (p_source, 'job', 'closed', false, it.company_name, it.factory_name,
+                format('%s: %s', it.title, CASE WHEN it.left_site THEN 'gone from the company''s site for two runs'
                                                ELSE 'the posting no longer names this place, or its plant or career is gone' END),
-                p_run, d.source_id, d.id);
+                p_run, it.source_id, it.id);
       n_closed := n_closed + 1;
     END LOOP;
   END IF;
