@@ -152,7 +152,7 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
         {mustKeep ? 'The row written from sources is the one kept. ' : ''}
         {taken ? `It takes from the other: ${taken}.` : 'It takes nothing from the other: it has every fact the other has.'}
         {/* Under two companies the row kept decides which the plant is filed under. */}
-        {kept.companyId !== gone.companyId && kept.company ? ` It stays under ${kept.company}.` : ''}
+        {kept.companyId !== gone.companyId && kept.company ? ` It stays under ${kept.company.replace(/\.$/, '')}.` : ''}
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button

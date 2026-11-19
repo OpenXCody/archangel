@@ -175,19 +175,21 @@ export interface NearPlant {
 }
 
 /**
- * Plants a plant could be merged with: the ones of its company, and anyone's
- * within two kilometres. With a term, those whose name contains it; with
- * none, the likeliest first: a row that carries the same outside id, then the
- * nearest.
+ * Plants a plant could be merged with. With a term: the ones of its company,
+ * and anyone's within two kilometres, whose name contains it. With none, only
+ * the likely ones: a row that carries the same outside id, then the ones
+ * within two kilometres, nearest first.
  */
 export async function plantsNear(id: string, term: string, limit = 8): Promise<NearPlant[]> {
   const q = term.trim();
-  const named = q.length >= 2 ? sql`AND o.name ILIKE ${containing(q)}` : sql``;
+  const shares = sql`EXISTS (SELECT 1 FROM external_references x JOIN external_references y ON y.entity_type = 'factories' AND y.source = x.source AND y.external_id = x.external_id
+                     WHERE x.entity_type = 'factories' AND x.source <> 'CURATED' AND x.entity_id = f.id AND y.entity_id = o.id)`;
+  // Unasked, only rows that could be this plant: one carrying its id, or one close by. The company's other plants are found by name.
+  const named = q.length >= 2 ? sql`AND o.name ILIKE ${containing(q)}` : sql`AND (d.metres <= 2000 OR ${shares})`;
   const rows = rowsOf<{ id: string; name: string; company: string | null; city: string | null; state: string | null; metres: number | null; shares: boolean }>(
     await db.execute(sql`
       SELECT o.id, o.name, (SELECT c.name FROM companies c WHERE c.id = o.company_id) AS company, o.city, o.state, d.metres,
-             EXISTS (SELECT 1 FROM external_references x JOIN external_references y ON y.entity_type = 'factories' AND y.source = x.source AND y.external_id = x.external_id
-                     WHERE x.entity_type = 'factories' AND x.source <> 'CURATED' AND x.entity_id = f.id AND y.entity_id = o.id) AS shares
+             ${shares} AS shares
       FROM factories f
       JOIN factories o ON o.id <> f.id
       CROSS JOIN LATERAL (
