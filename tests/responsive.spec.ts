@@ -73,6 +73,16 @@ test('a career page shows its path, a company page its plants', async ({ page, r
   await page.goto(`/occupations/${career}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-entity-view="occupations"]')).toHaveCount(1);
   await expect(page.locator('#skills')).toBeVisible();
+  // The list opens on a career with a path: its skills under the three levels, by their names.
+  await expect(page.locator('#skills')).toContainText(/Fundamentals[\s\S]*Intermediate[\s\S]*Advanced/);
+
+  // A skill's page says where the skill sits: its domain and group, each a link into the Skills list, and its level.
+  const skill = await firstId(request, '/skills');
+  expect(skill, 'the API returned a skill to open').toBeTruthy();
+  await page.goto(`/skills/${skill}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-skill-domain]')).toHaveAttribute('href', /^\/explore\?tab=skills&domain=[a-z0-9-]+$/);
+  await expect(page.locator('[data-skill-group]')).toHaveAttribute('href', /^\/explore\?tab=skills&domain=[a-z0-9-]+&group=[a-z0-9-]+$/);
+  await expect(page.locator('[data-skill-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
 
   const company = await firstId(request, '/companies');
   expect(company, 'the API returned a company to open').toBeTruthy();
@@ -169,6 +179,21 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   });
   expect(seen, 'the current tab is in sight').toBe(true);
   await assertHealthyLayout(page, '/explore?tab=skills');
+
+  // The Skills list narrows by domain, then by one of its groups; a row's grey line is its group and level.
+  await expect(page.getByRole('button', { name: 'Domain: All domains' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Group:/ })).toHaveCount(0);
+  const facets = (await (await request.get(`${API}/explore/facets`)).json()) as {
+    skillDomains: { slug: string; name: string; groups: { slug: string; name: string }[] }[];
+  };
+  const domain = facets.skillDomains[0];
+  const group = domain.groups[0];
+  const narrowed = `/explore?tab=skills&domain=${domain.slug}&group=${group.slug}`;
+  await page.goto(narrowed, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('button', { name: `Domain: ${domain.name}` })).toBeVisible();
+  await expect(page.getByRole('button', { name: `Group: ${group.name}` })).toBeVisible();
+  await expect(page.locator('main a[href^="/skills/"]').first()).toContainText(new RegExp(`${group.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} · (Fundamentals|Intermediate|Advanced)`));
+  await assertHealthyLayout(page, narrowed);
 
   // The plants list says plants, and a list's own count follows its filters.
   await page.goto('/explore?tab=factories&state=TX', { waitUntil: 'domcontentloaded' });

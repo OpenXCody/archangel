@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { and, eq, inArray, notInArray, sql } from 'drizzle-orm';
-import { db, occupations, occupationSkills, skills, factoryOccupations, factories, jobs } from '../db/index.js';
+import { db, occupations, occupationSkills, skills, skillDomains, skillGroups, factoryOccupations, factories, jobs } from '../db/index.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
@@ -10,6 +10,7 @@ import { careerMatch, careerNearMiss, readCareerTerm, withoutLevel, type CareerM
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 import { recordAudit } from '../lib/audit.js';
 import { rowsOf } from '../lib/rows.js';
+import { placeColumns, placeOf } from '../lib/taxonomy.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -87,8 +88,8 @@ router.get('/', async (req: Request, res: Response) => {
         pathStatus: occupations.pathStatus,
         createdAt: occupations.createdAt,
         skillCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.occupation_id = occupations.id)`,
-        // Skills at each stage of the path; null when the career has no staged skills.
-        stageCounts: sql<[number, number, number] | null>`(
+        // Skills at each level (Fundamentals, Intermediate, Advanced); null when the career has no skills.
+        levelCounts: sql<[number, number, number] | null>`(
           SELECT CASE WHEN COUNT(*) FILTER (WHERE os.stage IN (1, 2, 3)) = 0 THEN NULL ELSE json_build_array(
             COUNT(*) FILTER (WHERE os.stage = 1), COUNT(*) FILTER (WHERE os.stage = 2), COUNT(*) FILTER (WHERE os.stage = 3)) END
           FROM occupation_skills os WHERE os.occupation_id = occupations.id)`,
@@ -130,20 +131,33 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     const occupation = occupationResult[0];
 
-    // Get required skills with importance level
-    const occupationSkillsResult = await db
-      .select({
-        id: skills.id,
-        name: skills.name,
-        category: skills.category,
-        importance: occupationSkills.importance,
-        // 1 Introduction, 2 Fundamentals, 3 Advanced; null until someone sets it.
-        stage: occupationSkills.stage,
-      })
-      .from(occupationSkills)
-      .innerJoin(skills, eq(occupationSkills.skillId, skills.id))
-      .where(eq(occupationSkills.occupationId, id))
-      .orderBy(sql`${occupationSkills.stage} ASC NULLS LAST`, skills.name);
+    // The career's path: its skills, each with its level, group and domain,
+    // in the order a path is laid out: by level, and within a level by domain
+    // and group as the taxonomy orders them.
+    const occupationSkillsResult = (
+      await db
+        .select({
+          id: skills.id,
+          name: skills.name,
+          importance: occupationSkills.importance,
+          ...placeColumns,
+        })
+        .from(occupationSkills)
+        .innerJoin(skills, eq(occupationSkills.skillId, skills.id))
+        .leftJoin(skillGroups, eq(skillGroups.slug, skills.groupSlug))
+        .leftJoin(skillDomains, eq(skillDomains.slug, skillGroups.domainSlug))
+        .where(eq(occupationSkills.occupationId, id))
+        .orderBy(
+          sql`${skills.level} ASC NULLS LAST`,
+          sql`${skillDomains.position} ASC NULLS LAST`,
+          sql`${skillGroups.position} ASC NULLS LAST`,
+          sql`${skills.groupPosition} ASC NULLS LAST`,
+          skills.name
+        )
+    ).map(({ level, groupSlug, groupName, domainSlug, domainName, ...skill }) => ({
+      ...skill,
+      ...placeOf({ level, groupSlug, groupName, domainSlug, domainName }),
+    }));
 
     // Industries where this work is typically done, with how many in-scope
     // factories each has and the states with the most of them.
@@ -214,27 +228,28 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/occupations/:id/path - set which skills a career needs and the
-// stage of each (1 Introduction, 2 Fundamentals, 3 Advanced, or null).
-// Body: { skills: [{ skillId, stage }], replace?: boolean, status?: 'draft' | 'approved' }.
+// PUT /api/occupations/:id/path - set which skills a career needs.
+// Body: { skills: [{ skillId }], replace?: boolean, status?: 'draft' | 'approved' }.
 // With `replace`, skills not listed are removed from the career. `status` records
 // whether a person has reviewed the path. Admin-only (a write).
+// A path has no stages of its own: each skill sits at its own level, and the
+// database writes that level to occupation_skills.stage on every write
+// (migration 0042). A `stage` sent with a skill is not read.
 router.put('/:id/path', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const items: unknown = req.body?.skills;
     if (!Array.isArray(items) || items.length > 500) {
-      res.status(400).json({ error: 'skills must be a list of { skillId, stage }.' });
+      res.status(400).json({ error: 'skills must be a list of { skillId }.' });
       return;
     }
-    const rows: { occupationId: string; skillId: string; stage: number | null }[] = [];
-    for (const item of items as { skillId?: unknown; stage?: unknown }[]) {
-      const stage = item?.stage ?? null;
-      if (!isUuid(item?.skillId) || ![null, 1, 2, 3].includes(stage as number | null)) {
-        res.status(400).json({ error: 'Each entry needs a skillId and a stage of 1, 2, 3 or null.' });
+    const rows: { occupationId: string; skillId: string }[] = [];
+    for (const item of items as { skillId?: unknown }[]) {
+      if (!isUuid(item?.skillId)) {
+        res.status(400).json({ error: 'Each entry needs a skillId.' });
         return;
       }
-      rows.push({ occupationId: id, skillId: item.skillId, stage: stage as number | null });
+      rows.push({ occupationId: id, skillId: item.skillId });
     }
     const [occupation] = await db
       .select({ id: occupations.id, title: occupations.title, pathStatus: occupations.pathStatus })
@@ -260,7 +275,7 @@ router.put('/:id/path', async (req: Request, res: Response) => {
     await db.transaction(async (tx) => {
       const pathNow = () =>
         tx
-          .select({ skillId: occupationSkills.skillId, name: skills.name, stage: occupationSkills.stage })
+          .select({ skillId: occupationSkills.skillId, name: skills.name })
           .from(occupationSkills)
           .innerJoin(skills, eq(skills.id, occupationSkills.skillId))
           .where(eq(occupationSkills.occupationId, id));
@@ -274,24 +289,16 @@ router.put('/:id/path', async (req: Request, res: Response) => {
           .delete(occupationSkills)
           .where(wanted.length > 0 ? and(eq(occupationSkills.occupationId, id), notInArray(occupationSkills.skillId, wanted)) : eq(occupationSkills.occupationId, id));
       }
-      for (const row of rows) {
-        await tx
-          .insert(occupationSkills)
-          .values(row)
-          .onConflictDoUpdate({
-            target: [occupationSkills.occupationId, occupationSkills.skillId],
-            set: { stage: row.stage },
-          });
-      }
-      // The line in the audit log: which skills came, went or changed stage, and the path's state.
+      // A skill already on the path stays as it is.
+      if (rows.length > 0) await tx.insert(occupationSkills).values(rows).onConflictDoNothing();
+      // The line in the audit log: which skills came or went, and the path's state.
       const after = await pathNow();
       const was = new Map(before.map((row) => [row.skillId, row]));
       const is = new Map(after.map((row) => [row.skillId, row]));
       const added = after.filter((row) => !was.has(row.skillId)).map((row) => row.name);
       const removed = before.filter((row) => !is.has(row.skillId)).map((row) => row.name);
-      const restaged = after.filter((row) => was.has(row.skillId) && was.get(row.skillId)!.stage !== row.stage).map((row) => row.name);
       const statusChanged = status !== undefined && status !== occupation.pathStatus;
-      if (statusChanged || added.length > 0 || removed.length > 0 || restaged.length > 0) {
+      if (statusChanged || added.length > 0 || removed.length > 0) {
         await recordAudit(tx, {
           actor: req.user!,
           kind: 'career',
@@ -303,7 +310,6 @@ router.put('/:id/path', async (req: Request, res: Response) => {
             ...(statusChanged ? { changes: { pathStatus: [occupation.pathStatus, status] } } : {}),
             ...(added.length > 0 ? { skillsAdded: added.slice(0, 40) } : {}),
             ...(removed.length > 0 ? { skillsRemoved: removed.slice(0, 40) } : {}),
-            ...(restaged.length > 0 ? { skillsMoved: restaged.slice(0, 40) } : {}),
           },
         });
       }

@@ -31,7 +31,8 @@ type ListParams = {
   order: 'asc' | 'desc';
   state?: string;
   industry?: string;
-  category?: string;
+  domain?: string;
+  group?: string;
 };
 
 const LIST: Record<BrowseTab, (params: ListParams) => Promise<PaginatedResponse<BrowseEntity>>> = {
@@ -180,8 +181,8 @@ function VirtualRows({
 
 /**
  * A browse list behind the overview: every company, plant, career or
- * skill, filtered and sorted from the address (?state=, ?industry=, ?category=,
- * ?sort=), so a filtered list can be linked to and survives Back. Between the
+ * skill, filtered and sorted from the address (?state=, ?industry=, ?domain=,
+ * ?group=, ?sort=), so a filtered list can be linked to and survives Back. Between the
  * filters and the rows is one line: how many the list holds, filters applied.
  */
 export default function BrowseList({ tab }: { tab: BrowseTab }) {
@@ -189,7 +190,8 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
 
   const stateParam = searchParams.get('state');
   const industryParam = searchParams.get('industry');
-  const categoryParam = searchParams.get('category');
+  const domainParam = searchParams.get('domain');
+  const groupParam = searchParams.get('group');
   // An industry is one of the 21, by the name a plant carries or by its page's slug.
   // Anything else in the address (an old link's free text) is no filter at all.
   const industry = (industryByName(industryParam) ?? industryBySlug(industryParam))?.name;
@@ -197,11 +199,12 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     () => ({
       state: tab === 'factories' && isStateCode(stateParam) ? stateParam : undefined,
       industry: tab === 'companies' || tab === 'factories' ? industry : undefined,
-      category: tab === 'skills' && categoryParam ? categoryParam : undefined,
+      domain: tab === 'skills' && domainParam ? domainParam : undefined,
+      group: tab === 'skills' && groupParam ? groupParam : undefined,
     }),
-    [tab, stateParam, industry, categoryParam]
+    [tab, stateParam, industry, domainParam, groupParam]
   );
-  const filtered = Boolean(filters.state || filters.industry || filters.category);
+  const filtered = Boolean(filters.state || filters.industry || filters.domain || filters.group);
 
   const sortOptions = SORT_OPTIONS[tab];
   const sort = sortOptions.find((o) => o.value === searchParams.get('sort')) ?? sortOptions[0];
@@ -224,7 +227,8 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
       order: sort.order,
       ...(filters.state && { state: filters.state }),
       ...(filters.industry && { industry: filters.industry }),
-      ...(filters.category && { category: filters.category }),
+      ...(filters.domain && { domain: filters.domain }),
+      ...(filters.group && { group: filters.group }),
     }),
     [sort, filters]
   );
@@ -237,12 +241,12 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     staleTime: 5 * 60_000,
   });
 
-  // Choices for the industry and category filters: every value in use, not
-  // just those on the first page of a list.
+  // Choices for the industry, domain and group filters: every value in use,
+  // not just those on the first page of a list.
   const facets = useExploreFacets(tab === 'companies' || tab === 'factories' || tab === 'skills');
   // Of the 21: those some plant carries, or those that are some company's industry.
   const industries = tab === 'factories' ? facets.data?.factoryIndustries : (facets.data?.industries?.companies ?? facets.data?.factoryIndustries);
-  const categories = facets.data?.skillCategories;
+  const domains = facets.data?.skillDomains;
 
   const items = useMemo(() => list.data?.pages.flatMap((page) => page.data) ?? [], [list.data]);
   const total = list.data?.pages[0]?.total;
@@ -252,7 +256,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const clearFilters = () => setParam({ state: undefined, industry: undefined, category: undefined });
+  const clearFilters = () => setParam({ state: undefined, industry: undefined, domain: undefined, group: undefined });
   const industryPage = tab === 'factories' ? industryPath(filters.industry, { state: filters.state }) : null;
 
   return (
@@ -262,9 +266,9 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
         sortValue={sort.value}
         onSortChange={(value) => setParam({ sort: value === sortOptions[0].value ? undefined : value })}
         filters={filters}
-        onFilterChange={(next) => setParam({ state: next.state, industry: next.industry, category: next.category })}
+        onFilterChange={(next) => setParam({ state: next.state, industry: next.industry, domain: next.domain, group: next.group })}
         industries={industries}
-        categories={categories}
+        domains={domains}
       />
 
       {/* How many, with the filters applied; the line holds its place while the answer is on its way. */}

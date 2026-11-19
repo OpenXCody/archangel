@@ -136,9 +136,13 @@ R=$(get /explore/facets)
 check "the lists' filters"                    200 "$R" '"industries":{"plants":\['
 expect "companies are offered the 21 only"    true "$(printf '%s' "$R" | j "o.industries.companies.includes('$IND') && !o.industries.companies.includes('Robots & Lasers') && o.industries.companies.length<=21 && o.industries.plants.length<=21")"
 expect "plants too, under the older name"     true "$(printf '%s' "$R" | j 'o.factoryIndustries.join()===o.industries.plants.join()')"
-# The skills list filters by category: every category some skill carries, each once, in name order.
-expect "the skill categories in use"          "$(sql "SELECT COUNT(DISTINCT btrim(category)) FROM skills WHERE category IS NOT NULL AND lower(btrim(category)) NOT IN ('', 'subcategory', 'category', 'skill', 'root')")" "$(printf '%s' "$R" | j 'o.skillCategories.length')"
-expect "each once, trimmed, in name order"    true "$(printf '%s' "$R" | j 'o.skillCategories.length>0 && o.skillCategories.every((c,i,a)=>c===c.trim() && c!=="" && (i===0||a[i-1].localeCompare(c)<0))')"
+# The skills list filters by domain, then group: the domains with a skill some career uses, each with such groups, in the taxonomy's order.
+IN_USE="FROM skill_groups g WHERE EXISTS (SELECT 1 FROM skills s JOIN occupation_skills os ON os.skill_id=s.id WHERE s.group_slug=g.slug)"
+expect "the skill domains in use"             "$(sql "SELECT COUNT(DISTINCT g.domain_slug) $IN_USE")" "$(printf '%s' "$R" | j 'o.skillDomains.length')"
+expect "each with its groups in use"          "$(sql "SELECT COUNT(*) $IN_USE")" "$(printf '%s' "$R" | j 'o.skillDomains.reduce((n,d)=>n+d.groups.length,0)')"
+expect "in the taxonomy's order"              "$(sql "SELECT string_agg(slug, ',' ORDER BY position) FROM skill_domains d WHERE EXISTS (SELECT 1 $IN_USE AND g.domain_slug=d.slug)")" "$(printf '%s' "$R" | j 'o.skillDomains.map(d=>d.slug).join()')"
+expect "a domain and a group are a slug and a name" true "$(printf '%s' "$R" | j 'o.skillDomains.length>0 && o.skillDomains.every(d=>d.slug&&d.name&&d.groups.length>0&&d.groups.every(g=>g.slug&&g.name&&Object.keys(g).sort().join()==="name,slug"))')"
+expect "categories are no longer given"       undefined "$(printf '%s' "$R" | j 'String(o.skillCategories)')"
 R=$(get '/search?q=E2E%20Industry&types=companies,factories&limit=20')
 expect "search shows it by its short name"    Chemicals "$(printf '%s' "$R" | j "o.results.companies.items.find(c=>c.name==='E2E Industry Three').subtitle")"
 expect "and nothing for free text"            undefined "$(printf '%s' "$R" | j "String(o.results.companies.items.find(c=>c.name==='E2E Industry Five').subtitle)")"
@@ -149,6 +153,7 @@ expect "the overview's companies carry one of the 21, or none" true "$(get /expl
 # ── The careers list: something to follow first ─────────────────────────────
 R=$(get '/occupations?limit=100')
 expect "careers with a path, then the most skills" ok "$(printf '%s' "$R" | j "o.data.every((c,i,a)=>i===0||(!a[i-1].pathStatus)<(!c.pathStatus)||((!a[i-1].pathStatus)===(!c.pathStatus)&&a[i-1].skillCount>=c.skillCount))?'ok':'out of order'")"
+expect "a career with a path counts its skills at each level" true "$(printf '%s' "$R" | j "o.data.some(c=>c.pathStatus) && o.data.filter(c=>c.pathStatus).every(c=>Array.isArray(c.levelCounts)&&c.levelCounts.length===3&&c.levelCounts.reduce((a,b)=>a+b,0)===c.skillCount)")"
 expect "the last page is the careers with no skills" 0 "$(get "/occupations?limit=1&offset=$(( $(sql 'SELECT COUNT(*) FROM occupations') - 1 ))" | j 'o.data[0].skillCount')"
 expect "sort=name is the plain name order"    "$(sql "SELECT title FROM occupations ORDER BY lower(title), id LIMIT 1")" "$(get '/occupations?sort=name&limit=1' | j 'o.data[0].title')"
 expect "and backwards"                        "$(sql "SELECT title FROM occupations ORDER BY lower(title) DESC, id LIMIT 1")" "$(get '/occupations?sort=name&order=desc&limit=1' | j 'o.data[0].title')"

@@ -9,40 +9,26 @@ import { ErrorNote, busyButtonClass, cardClass, outlineButtonClass, textButtonCl
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 import RecordPicker from './RecordPicker';
-import { STAGE_LABEL } from '../../lib/stages';
+import { LEVELS } from '../../lib/stages';
 
-const STAGES: { stage: number | null; label: string }[] = [
-  { stage: 1, label: STAGE_LABEL[1] },
-  { stage: 2, label: STAGE_LABEL[2] },
-  { stage: 3, label: STAGE_LABEL[3] },
-  { stage: null, label: 'No stage' },
-];
-
-const stageSelectClass =
-  'h-9 min-w-0 rounded-md border border-solid border-border-strong bg-bg-elevated px-2 text-sm text-fg-default focus:border-[color:var(--color-fg-muted)] focus:outline-none';
-
-/** The quiet control on each row that moves a skill to another stage. */
-const moveSelectClass =
-  'h-9 w-[4.75rem] shrink-0 rounded-md border border-solid border-border-subtle bg-transparent px-1.5 text-sm text-fg-muted ' +
-  'hover:text-fg-default focus:border-[color:var(--color-fg-muted)] focus:outline-none';
-
-function stageOf(value: string): number | null {
-  return value === '' || value === 'none' ? null : Number(value);
-}
+/** The columns of a path: the three levels, then skills that have none (a database no taxonomy was loaded into). */
+const COLUMNS: { level: number | null; label: string }[] = [...LEVELS.map(({ id, name }) => ({ level: id, label: name })), { level: null, label: 'Not yet placed' }];
 
 function samePath(a: PathSkill[], b: PathSkill[]): boolean {
   const key = (list: PathSkill[]) =>
     list
-      .map((skill) => `${skill.id}:${skill.stage ?? ''}`)
+      .map((skill) => skill.id)
       .sort()
       .join('|');
   return key(a) === key(b);
 }
 
 /**
- * A career's path, where it is reviewed: its skills in their stages, each
- * movable to another stage or removable, a skill added by name, then Save
- * and Approve. Approving says so with an Undo, and offers the next draft.
+ * A career's path, where it is reviewed: its skills, each under its own
+ * level, removable; a skill added by name; then Save and Approve. A skill's
+ * level is the skill's, the same in every career: it is changed on the
+ * skill's record, not here. Approving says so with an Undo, and offers the
+ * next draft.
  */
 export default function PathEditor({ record, onChanged }: { record: RecordView; onChanged: () => Promise<unknown> }) {
   const notice = useAdminNotice();
@@ -52,7 +38,6 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
   const status = typeof record.fields.pathStatus === 'string' ? record.fields.pathStatus : null;
   const [skills, setSkills] = useState<PathSkill[]>(saved);
   const [adding, setAdding] = useState<FoundRecord | null>(null);
-  const [addStage, setAddStage] = useState<number | null>(1);
   const dirty = !samePath(skills, saved);
 
   // The draft after this one by title, or the first of the others.
@@ -63,7 +48,7 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
     if (save.isPending) return;
     save.mutate(
       {
-        skills: skills.map((skill) => ({ skillId: skill.id, stage: skill.stage })),
+        skills: skills.map((skill) => ({ skillId: skill.id })),
         replace: true,
         // A path written here for a career that had none starts as a draft.
         status: nextStatus ?? (status === null && skills.length > 0 ? 'draft' : undefined),
@@ -83,16 +68,20 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
   const add = () => {
     if (!adding) return;
     if (!skills.some((skill) => skill.id === adding.id)) {
-      setSkills([...skills, { id: adding.id, name: adding.name, category: adding.detail, stage: addStage }]);
+      // It goes where it will sit once saved: under its own level.
+      setSkills([...skills, { id: adding.id, name: adding.name, level: adding.level ?? null, group: null }]);
     }
     setAdding(null);
     window.setTimeout(() => document.getElementById('path-add')?.focus(), 0);
   };
 
-  const groups = STAGES.map((group) => ({
+  // A skill's level is read from the saved path where it is there: it may have changed on the skill's record.
+  const savedLevel = new Map(saved.map((skill) => [skill.id, skill.level]));
+  const levelOf = (skill: PathSkill) => (savedLevel.has(skill.id) ? savedLevel.get(skill.id) : skill.level) ?? null;
+  const groups = COLUMNS.map((group) => ({
     ...group,
-    items: skills.filter((skill) => (skill.stage ?? null) === group.stage).sort((a, b) => a.name.localeCompare(b.name)),
-  })).filter((group) => group.stage !== null || group.items.length > 0);
+    items: skills.filter((skill) => levelOf(skill) === group.level).sort((a, b) => a.name.localeCompare(b.name)),
+  })).filter((group) => group.level !== null || group.items.length > 0);
 
   const total = skills.length;
   const statusWord = status === 'approved' ? 'Approved' : status === 'draft' ? 'Draft, not yet reviewed' : 'No path yet';
@@ -100,13 +89,13 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
   return (
     <PageSection
       title="Path"
-      description={`${statusWord}. ${total.toLocaleString('en-US')} ${total === 1 ? 'skill' : 'skills'}.`}
+      description={`${statusWord}. ${total.toLocaleString('en-US')} ${total === 1 ? 'skill' : 'skills'}, each under its own level.`}
       className="scroll-mt-20"
     >
       <div id="path" className={cn(cardClass, 'p-4 sm:p-5')} data-path-editor data-path-status={status ?? 'none'}>
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-3">
           {groups.map((group) => (
-            <div key={group.label} className={cn('min-w-0', group.stage === null && 'lg:col-span-3')} data-path-stage={group.stage ?? 'none'}>
+            <div key={group.label} className={cn('min-w-0', group.level === null && 'lg:col-span-3')} data-path-level={group.level ?? 'none'}>
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
                 {group.label} <span className="tabular-nums">{group.items.length}</span>
               </p>
@@ -117,24 +106,6 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
                   {group.items.map((skill) => (
                     <li key={skill.id} className="flex items-center gap-2 border-t border-border-subtle py-1.5 first:border-t-0" data-path-skill={skill.id}>
                       <span className="min-w-0 flex-1 break-words text-sm text-fg-default">{skill.name}</span>
-                      {/* Reads "Move": choosing a stage moves the skill there at once. */}
-                      <select
-                        aria-label={`Move ${skill.name} to another stage`}
-                        value=""
-                        onChange={(event) =>
-                          setSkills(skills.map((item) => (item.id === skill.id ? { ...item, stage: stageOf(event.target.value) } : item)))
-                        }
-                        className={moveSelectClass}
-                      >
-                        <option value="" disabled hidden>
-                          Move
-                        </option>
-                        {STAGES.filter((option) => option.stage !== (skill.stage ?? null)).map((option) => (
-                          <option key={option.label} value={option.stage ?? 'none'}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
                       <button
                         type="button"
                         onClick={() => setSkills(skills.filter((item) => item.id !== skill.id))}
@@ -155,20 +126,8 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
           <label htmlFor="path-add" className="mb-1.5 block text-sm font-medium text-fg-muted">
             Add a skill
           </label>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,24rem)_10rem_auto]">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,24rem)_auto]">
             <RecordPicker id="path-add" kind="skill" value={adding} onChange={setAdding} />
-            <select
-              aria-label="Stage for the skill being added"
-              value={addStage ?? 'none'}
-              onChange={(event) => setAddStage(stageOf(event.target.value))}
-              className={cn(stageSelectClass, 'h-[42px]')}
-            >
-              {STAGES.map((option) => (
-                <option key={option.label} value={option.stage ?? 'none'}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
             <Button type="button" variant="outline" aria-disabled={!adding} onClick={add} className={cn('h-[42px] justify-self-start', outlineButtonClass, busyButtonClass)}>
               Add
             </Button>

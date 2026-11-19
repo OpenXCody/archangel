@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import CompanyLogo from '../CompanyLogo';
 import type { BrowseTab } from './ExploreNav';
 import { focusRing, plural } from '@/lib/utils';
-import { STAGE_LABEL, type Stage } from '../../lib/stages';
+import { LEVEL_NAME, levelName, type SkillLevel } from '../../lib/stages';
 import { recordQuery } from '../../lib/queries';
 
 /**
@@ -23,15 +23,6 @@ import { recordQuery } from '../../lib/queries';
  */
 
 export type BrowseEntity = Company | Factory | Occupation | Skill;
-
-/** Leftovers of the skill tree import in the category column; they say nothing. */
-const JUNK_CATEGORIES = new Set(['', 'subcategory', 'category', 'skill', 'root']);
-
-/** A skill category worth showing, or null. */
-function skillCategoryLabel(category: string | null | undefined): string | null {
-  const value = category?.trim() ?? '';
-  return JUNK_CATEGORIES.has(value.toLowerCase()) ? null : value;
-}
 
 const count = (n: number | null | undefined, one: string, many: string): string | null => (n ? plural(n, one, many) : null);
 
@@ -116,26 +107,28 @@ function FactoryRow({ data, onMouseEnter }: Props<Factory>) {
 }
 
 function OccupationRow({ data, onMouseEnter }: Props<Occupation>) {
-  const stages = data.pathStatus && data.stageCounts ? data.stageCounts.map((n, i) => (n ? `${STAGE_LABEL[(i + 1) as Stage]} ${n}` : null)) : [];
+  // "17 skills · Fundamentals 4 · Intermediate 8 · Advanced 5": how many of its skills are at each level.
+  const levels = data.pathStatus && data.levelCounts ? data.levelCounts.map((n, i) => (n ? `${LEVEL_NAME[(i + 1) as SkillLevel]} ${n}` : null)) : [];
   return (
     <Row
       to={`/occupations/${data.id}`}
       name={data.title}
       summary={data.description}
-      facts={[count(data.skillCount, 'skill', 'skills'), ...stages]}
+      facts={[count(data.skillCount, 'skill', 'skills'), ...levels]}
       onMouseEnter={onMouseEnter}
     />
   );
 }
 
 function SkillRow({ data, onMouseEnter }: Props<Skill>) {
-  const careers = count(data.occupationCount, 'career', 'careers');
+  // "Hand measurement tools · Fundamentals", then how many careers use it.
   return (
     <Row
       to={`/skills/${data.id}`}
       name={data.name}
       summary={data.description}
-      facts={[skillCategoryLabel(data.category), careers && `in ${careers}`]}
+      facts={[data.group?.name, levelName(data.level)]}
+      factsEnd={count(data.occupationCount, 'career', 'careers')}
       onMouseEnter={onMouseEnter}
     />
   );

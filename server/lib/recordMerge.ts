@@ -125,8 +125,10 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
       await tx.execute(sql`UPDATE skills SET parent_skill_id = NULL WHERE id = ${k} AND parent_skill_id = ${m}`);
       await tx.execute(sql`UPDATE skill_aliases SET canonical_skill_id = ${k} WHERE canonical_skill_id = ${m}`);
       await tx.execute(sql`INSERT INTO skill_aliases (alias_text, canonical_skill_id) VALUES (${from.name}, ${k}) ON CONFLICT (alias_text) DO NOTHING`);
+      // The kept skill keeps its own group and level. Path rows that moved to it
+      // take its level: the database sets occupation_skills.stage on every write
+      // (migration 0042).
       await tx.execute(sql`UPDATE skills s SET
-          category = COALESCE(NULLIF(btrim(s.category), ''), (SELECT category FROM skills WHERE id = ${m})),
           description = COALESCE(NULLIF(btrim(s.description), ''), (SELECT description FROM skills WHERE id = ${m}))
         WHERE s.id = ${k}`);
       await tx.delete(skills).where(eq(skills.id, m));

@@ -8,33 +8,20 @@ import { STATE_CODE_TO_NAME } from '../../shared/states.js';
 import { INDUSTRY_NAME_LIST, companyIndustries, listIndustries } from '../lib/industries.js';
 import { industryByName, industryLabel } from '../../shared/industry.js';
 import { int, rowsOf, text } from '../lib/rows.js';
+import { SKILL_LEVELS } from '../../shared/skillLevels.js';
 
 const router = Router();
 
 const EMPLOYER_COUNT = 12;
 const CAREER_COUNT = 9;
-const SKILL_GROUP_COUNT = 6;
-const SKILLS_PER_GROUP = 6;
-const STAGE_SKILL_NAMES = 3;
+const SKILL_DOMAIN_COUNT = 6;
+const SKILLS_PER_DOMAIN = 6;
+const LEVEL_SKILL_NAMES = 3;
 const FULL_PATH_SKILLS = 10;
-const SUPPORT_CATEGORIES = new Set(['material handling']);
 const STATE_COUNT = 10;
 const INDUSTRY_COUNT = 10;
-const OTHER = 'Other';
-
-/**
- * A skill's category as the overview shows it. The column holds leftovers from
- * the skill tree import ("Subcategory", "Category", "Skill", "Root", blanks):
- * those fold into "Other". "Welding" and "Welding & Fabrication" are one group.
- */
-function skillCategory(skillTable: string): SQL {
-  const category = sql`${sql.identifier(skillTable)}.category`;
-  return sql`CASE
-    WHEN ${category} IS NULL OR lower(btrim(${category})) IN ('', 'subcategory', 'category', 'skill', 'root') THEN ${OTHER}
-    WHEN lower(btrim(${category})) = 'welding' THEN 'Welding & Fabrication'
-    ELSE btrim(${category})
-  END`;
-}
+/** The kind of a career whose skills have no domain (a database no taxonomy was loaded into). */
+const UNPLACED = '';
 
 /** FNV-1a: a stable order for a given day, with no state to keep. */
 function hash(value: string): number {
@@ -50,41 +37,42 @@ interface CareerCandidate {
   id: string;
   title: string;
   description: string | null;
-  category: string;
-  stageCount: number;
+  /** The domain most of its path's skills are in, by slug. */
+  domain: string;
+  levelCount: number;
   /** The path has enough skills to be worth showing first. */
   full: boolean;
 }
 
 /**
  * Careers for the overview: one from each kind of work in turn (a career's
- * kind is the category most of its path's skills fall in), so the set spans
+ * kind is the domain most of its path's skills fall in), so the set spans
  * the trades instead of repeating the largest one. Which career stands for a
  * kind, and which kind leads, changes with the day and with nothing else.
  */
 function pickCareers(candidates: CareerCandidate[], day: string, count: number): CareerCandidate[] {
-  const byCategory = new Map<string, CareerCandidate[]>();
+  const byDomain = new Map<string, CareerCandidate[]>();
   for (const career of candidates) {
-    const list = byCategory.get(career.category);
+    const list = byDomain.get(career.domain);
     if (list) list.push(career);
-    else byCategory.set(career.category, [career]);
+    else byDomain.set(career.domain, [career]);
   }
-  for (const list of byCategory.values()) {
-    // Paths with all three stages filled first, the fuller ones ahead of thin
+  for (const list of byDomain.values()) {
+    // Paths with all three levels filled first, the fuller ones ahead of thin
     // ones (a path of a dozen skills says more than one of six), then the day's order.
     list.sort(
       (a, b) =>
-        b.stageCount - a.stageCount || Number(b.full) - Number(a.full) || hash(`${day}:${a.id}`) - hash(`${day}:${b.id}`)
+        b.levelCount - a.levelCount || Number(b.full) - Number(a.full) || hash(`${day}:${a.id}`) - hash(`${day}:${b.id}`)
     );
   }
-  const categories = [...byCategory.keys()].sort(
-    (a, b) => Number(a === OTHER) - Number(b === OTHER) || hash(`${day}:${a}`) - hash(`${day}:${b}`)
+  const domains = [...byDomain.keys()].sort(
+    (a, b) => Number(a === UNPLACED) - Number(b === UNPLACED) || hash(`${day}:${a}`) - hash(`${day}:${b}`)
   );
   const picked: CareerCandidate[] = [];
   for (let round = 0; picked.length < count; round++) {
     let took = false;
-    for (const category of categories) {
-      const career = byCategory.get(category)?.[round];
+    for (const domain of domains) {
+      const career = byDomain.get(domain)?.[round];
       if (!career) continue;
       picked.push(career);
       took = true;
@@ -127,12 +115,13 @@ async function loadCareers(day: string) {
   const candidates = rowsOf(
     await db.execute(sql`
       SELECT o.id, o.title, o.description,
-             mode() WITHIN GROUP (ORDER BY ${skillCategory('s')}) AS category,
-             COUNT(DISTINCT os.stage)::int AS stage_count,
+             mode() WITHIN GROUP (ORDER BY COALESCE(sg.domain_slug, ${UNPLACED})) AS domain,
+             COUNT(DISTINCT s.level)::int AS level_count,
              COUNT(*)::int AS skill_total
       FROM occupations o
-      INNER JOIN occupation_skills os ON os.occupation_id = o.id AND os.stage IN (1, 2, 3)
-      INNER JOIN skills s ON s.id = os.skill_id
+      INNER JOIN occupation_skills os ON os.occupation_id = o.id
+      INNER JOIN skills s ON s.id = os.skill_id AND s.level IS NOT NULL
+      LEFT JOIN skill_groups sg ON sg.slug = s.group_slug
       WHERE o.path_status IS NOT NULL
       GROUP BY o.id
     `)
@@ -140,31 +129,27 @@ async function loadCareers(day: string) {
     id: String(r.id),
     title: String(r.title),
     description: text(r.description),
-    category: text(r.category) ?? OTHER,
-    stageCount: int(r.stage_count),
+    domain: text(r.domain) ?? UNPLACED,
+    levelCount: int(r.level_count),
     full: int(r.skill_total) >= FULL_PATH_SKILLS,
   }));
 
-  // The overview leads with the technical trades. Careers whose paths are
-  // mostly material handling stay in the lists but are not picked here,
-  // unless there is nothing else to show.
-  const technical = candidates.filter((career) => !SUPPORT_CATEGORIES.has(career.category.toLowerCase()));
-  const picked = pickCareers(technical.length >= CAREER_COUNT ? technical : candidates, day, CAREER_COUNT);
+  const picked = pickCareers(candidates, day, CAREER_COUNT);
   if (picked.length === 0) return [];
 
   const ids = sql.join(picked.map((career) => sql`${career.id}::uuid`), sql`, `);
-  const staged = rowsOf(
+  const byLevel = rowsOf(
     await db.execute(sql`
-      SELECT os.occupation_id, os.stage, s.name
+      SELECT os.occupation_id, s.level, s.name
       FROM occupation_skills os
       INNER JOIN skills s ON s.id = os.skill_id
-      WHERE os.occupation_id IN (${ids}) AND os.stage IN (1, 2, 3)
-      ORDER BY os.occupation_id, os.stage, s.name
+      WHERE os.occupation_id IN (${ids}) AND s.level IS NOT NULL
+      ORDER BY os.occupation_id, s.level, s.name
     `)
   );
   const names = new Map<string, string[]>();
-  for (const r of staged) {
-    const key = `${String(r.occupation_id)}:${int(r.stage)}`;
+  for (const r of byLevel) {
+    const key = `${String(r.occupation_id)}:${int(r.level)}`;
     const list = names.get(key);
     if (list) list.push(String(r.name));
     else names.set(key, [String(r.name)]);
@@ -174,48 +159,74 @@ async function loadCareers(day: string) {
     id: career.id,
     title: career.title,
     description: career.description,
-    stages: ([1, 2, 3] as const).map((stage) => {
-      const all = names.get(`${career.id}:${stage}`) ?? [];
-      return { stage, count: all.length, skills: all.slice(0, STAGE_SKILL_NAMES) };
+    levels: SKILL_LEVELS.map(({ id: level }) => {
+      const all = names.get(`${career.id}:${level}`) ?? [];
+      return { level, count: all.length, skills: all.slice(0, LEVEL_SKILL_NAMES) };
     }),
   }));
 }
 
-// The skills the most careers call for, in the largest categories.
-async function loadSkillGroups() {
+// The skills the most careers call for, in the domains careers draw on most.
+async function loadSkillDomains() {
   const result = await db.execute(sql`
     WITH linked AS (
-      SELECT s.id, s.name, ${skillCategory('s')} AS category, COUNT(*)::int AS career_count
+      SELECT s.id, s.name, sd.slug, sd.name AS domain, COUNT(*)::int AS career_count
       FROM occupation_skills os
       INNER JOIN skills s ON s.id = os.skill_id
-      GROUP BY s.id
+      INNER JOIN skill_groups sg ON sg.slug = s.group_slug
+      INNER JOIN skill_domains sd ON sd.slug = sg.domain_slug
+      GROUP BY s.id, sd.slug
     ), ranked AS (
       SELECT linked.*,
-             ROW_NUMBER() OVER (PARTITION BY category ORDER BY career_count DESC, name ASC) AS rank,
-             SUM(career_count) OVER (PARTITION BY category)::int AS category_total
+             ROW_NUMBER() OVER (PARTITION BY slug ORDER BY career_count DESC, name ASC) AS rank,
+             SUM(career_count) OVER (PARTITION BY slug)::int AS domain_total
       FROM linked
     )
-    SELECT id, name, category, career_count, category_total
+    SELECT id, name, slug, domain, career_count, domain_total
     FROM ranked
-    WHERE rank <= ${SKILLS_PER_GROUP}
-    ORDER BY category_total DESC, category ASC, rank ASC
+    WHERE rank <= ${SKILLS_PER_DOMAIN}
+    ORDER BY domain_total DESC, domain ASC, rank ASC
   `);
 
-  const groups: { category: string; skills: { id: string; name: string; careerCount: number }[] }[] = [];
+  const domains: { slug: string; name: string; skills: { id: string; name: string; careerCount: number }[] }[] = [];
   for (const r of rowsOf(result)) {
-    const category = String(r.category);
-    let group = groups[groups.length - 1];
-    if (!group || group.category !== category) {
-      group = { category, skills: [] };
-      groups.push(group);
+    const slug = String(r.slug);
+    let domain = domains[domains.length - 1];
+    if (!domain || domain.slug !== slug) {
+      domain = { slug, name: String(r.domain), skills: [] };
+      domains.push(domain);
     }
-    group.skills.push({ id: String(r.id), name: String(r.name), careerCount: int(r.career_count) });
+    domain.skills.push({ id: String(r.id), name: String(r.name), careerCount: int(r.career_count) });
   }
+  return domains.slice(0, SKILL_DOMAIN_COUNT);
+}
 
-  // "Other" is whatever had no usable category: it only fills a gap, last.
-  const named = groups.filter((g) => g.category !== OTHER).slice(0, SKILL_GROUP_COUNT);
-  const other = groups.find((g) => g.category === OTHER);
-  return other && named.length < SKILL_GROUP_COUNT ? [...named, other] : named;
+/**
+ * The domains and groups the Skills list can be narrowed to: those with a
+ * skill some career uses, in the taxonomy's order.
+ */
+async function loadSkillFacets() {
+  const rows = rowsOf(
+    await db.execute(sql`
+      SELECT sd.slug AS domain_slug, sd.name AS domain_name, sg.slug, sg.name
+      FROM skill_groups sg
+      INNER JOIN skill_domains sd ON sd.slug = sg.domain_slug
+      WHERE EXISTS (
+        SELECT 1 FROM skills s INNER JOIN occupation_skills os ON os.skill_id = s.id WHERE s.group_slug = sg.slug
+      )
+      ORDER BY sd.position, sd.slug, sg.position, sg.slug
+    `)
+  );
+  const domains: { slug: string; name: string; groups: { slug: string; name: string }[] }[] = [];
+  for (const r of rows) {
+    let domain = domains[domains.length - 1];
+    if (!domain || domain.slug !== String(r.domain_slug)) {
+      domain = { slug: String(r.domain_slug), name: String(r.domain_name), groups: [] };
+      domains.push(domain);
+    }
+    domain.groups.push({ slug: String(r.slug), name: String(r.name) });
+  }
+  return domains;
 }
 
 // Factories per state and per focus area, counted in one pass over the table.
@@ -271,14 +282,14 @@ async function loadIndustries() {
 router.get('/overview', async (_req: Request, res: Response) => {
   try {
     const day = new Date().toISOString().slice(0, 10);
-    const [employers, careers, skillGroups, places, byIndustry] = await Promise.all([
+    const [employers, careers, skillDomains, places, byIndustry] = await Promise.all([
       loadEmployers(),
       loadCareers(day),
-      loadSkillGroups(),
+      loadSkillDomains(),
       loadPlaces(),
       loadIndustries(),
     ]);
-    res.json({ employers, careers, skillGroups, areas: places.areas, states: places.states, ...byIndustry });
+    res.json({ employers, careers, skillDomains, areas: places.areas, states: places.states, ...byIndustry });
   } catch (error) {
     console.error('Error fetching explore overview:', error);
     res.status(500).json({ error: 'Failed to fetch explore overview' });
@@ -290,23 +301,20 @@ router.get('/overview', async (_req: Request, res: Response) => {
 // - `industries`: of the 21, those some plant carries (`plants`) and those
 //   that are some company's industry (`companies`: the one most of its plants
 //   are in), each by the name a plant carries, in the order of their short names;
-// - `skillCategories`: the skill categories in use;
+// - `skillDomains`: the domains with a skill some career uses, each
+//   `{ slug, name, groups: [{ slug, name }] }`, in the taxonomy's order;
 // `factoryIndustries` is the same list as `industries.plants`, kept under its
 // old name for the map's filter and for pages loaded before this.
 router.get('/facets', async (_req: Request, res: Response) => {
   try {
-    const [factoryRows, categoryRows, companyIndustryRows] = await Promise.all([
+    const [factoryRows, skillDomains, companyIndustryRows] = await Promise.all([
       db.execute(sql`
         SELECT f.primary_naics_description AS value
         FROM factories f
         WHERE ${factoryInScope('f')} AND f.primary_naics_description IN (${INDUSTRY_NAME_LIST})
         GROUP BY 1
       `),
-      db.execute(sql`
-        SELECT btrim(category) AS value, COUNT(*)::int AS n FROM skills
-        WHERE category IS NOT NULL AND lower(btrim(category)) NOT IN ('', 'subcategory', 'category', 'skill', 'root')
-        GROUP BY 1 ORDER BY value ASC
-      `),
+      loadSkillFacets(),
       db.execute(sql`SELECT DISTINCT ci.industry AS value FROM (${companyIndustries()}) ci`),
     ]);
     const values = (result: unknown) =>
@@ -323,7 +331,7 @@ router.get('/facets', async (_req: Request, res: Response) => {
     res.json({
       industries: { plants: plantIndustries, companies: industries(companyIndustryRows) },
       factoryIndustries: plantIndustries,
-      skillCategories: values(categoryRows),
+      skillDomains,
     });
   } catch (error) {
     console.error('Error fetching explore facets:', error);

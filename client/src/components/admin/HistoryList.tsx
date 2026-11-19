@@ -50,7 +50,11 @@ const FIELD: Record<string, string> = {
   city: 'city',
   address: 'address',
   onetCode: 'O*NET code',
+  // `category` is in lines written before skills had groups.
   category: 'category',
+  // A skill's group and level; its domain reads under `domain` above.
+  group: 'group',
+  level: 'level',
   pathStatus: 'path',
   email: 'email',
   specialization: 'specialization',
@@ -126,7 +130,8 @@ function detailWords(entry: AuditEntry): string | null {
   }
   if (names(detail.skillsAdded)) parts.push(`added ${names(detail.skillsAdded)}`);
   if (names(detail.skillsRemoved)) parts.push(`removed ${names(detail.skillsRemoved)}`);
-  if (names(detail.skillsMoved)) parts.push(`moved stage: ${names(detail.skillsMoved)}`);
+  // Written before a skill had one level everywhere, when a path placed each skill itself.
+  if (names(detail.skillsMoved)) parts.push(`moved: ${names(detail.skillsMoved)}`);
   if (typeof detail.role === 'string') parts.push(`as ${detail.role}${typeof detail.company === 'string' ? ` of ${detail.company}` : ''}`);
   if (detail.replacedEarlier === true) parts.push('replaced an earlier invite');
   if (typeof detail.ended === 'number') parts.push(`${detail.ended} ${detail.ended === 1 ? 'session' : 'sessions'}`);

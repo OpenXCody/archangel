@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { ApiError, SERVER_FAILED, request, retryUnlessClientError } from './http';
+import type { SkillLevel } from './api';
 import type { ApplicationStatus, JobStatus } from './jobs';
 import { accountKeys, invalidate } from './queryKeys';
 
@@ -61,8 +62,8 @@ export interface MyApplication {
 export interface NextSkill {
   id: string;
   name: string;
-  /** 1 Introduction, 2 Fundamentals, 3 Advanced; null when not placed on the path. */
-  stage: 1 | 2 | 3 | null;
+  /** The skill's level: 1 Fundamentals, 2 Intermediate, 3 Advanced. */
+  level: SkillLevel | null;
 }
 
 /** A career the person's held skills already cover part of. */
@@ -72,7 +73,7 @@ export interface ReachCareer {
   /** Skills of the career the person holds. Learning does not count. */
   held: number;
   total: number;
-  /** Up to three skills not yet held, earliest stage first. */
+  /** Up to three skills not yet held, lowest level first. */
   next: NextSkill[];
 }
 
@@ -201,7 +202,7 @@ export function nextSkillNames(next: NextSkill[]): string {
 export interface SuggestedSkill {
   id: string;
   name: string;
-  stage: 1 | 2 | 3 | null;
+  level: SkillLevel | null;
   /** One career it is for: a goal first, else the closest career within reach. */
   career: string;
   /** How many of those careers call for it. */
