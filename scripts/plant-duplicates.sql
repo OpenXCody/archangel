@@ -438,6 +438,7 @@ DECLARE
   v_s uuid;
   v_kept uuid;
   v_done boolean;
+  v_named boolean;
   v_plants_before integer;
   v_companies_before integer;
   v_shared_before integer;
@@ -546,6 +547,7 @@ BEGIN
       v_kept := g.plants[1];
       FOREACH v_id IN ARRAY g.plants LOOP v_kept := plant_keeps(v_kept, v_id); END LOOP;
       v_survivors := ARRAY[v_kept];
+      v_named := false;
       FOR v_id IN SELECT p FROM unnest(g.plants) p WHERE p <> v_kept ORDER BY p LOOP
         v_done := false;
         FOREACH v_s IN ARRAY v_survivors LOOP
@@ -559,20 +561,22 @@ BEGIN
             v_survivors := array_replace(v_survivors, v_s, v_kept);
             v_done := true;
             EXIT;
-          ELSIF v->>'decision' = 'review' AND v->>'reason' <> 'different names' THEN
+          ELSIF v->>'decision' = 'review' AND v->>'reason' = 'different names' THEN
+            v_named := true;
+          ELSIF v->>'decision' = 'review' THEN
             -- The same name on one spot, and still not certain: a person should look.
             PERFORM pg_temp.pd_leave(v_s, v_id, v, p_load, NULL, NULL);
           END IF;
         END LOOP;
         IF NOT v_done THEN v_survivors := v_survivors || v_id; END IF;
       END LOOP;
-      -- Rows that stand side by side are two rows on purpose (two buildings of one site), or wait for a person above: said once.
-      IF cardinality(v_survivors) > 1 AND NOT EXISTS (
+      -- Rows that stand side by side under different names are two rows on purpose (two buildings of one site): said once.
+      IF v_named AND NOT EXISTS (
            SELECT 1 FROM load_log l WHERE l.load = p_load AND l.action = 'left apart' AND l.entity_id = v_survivors[1]
              AND l.evidence->'plants' = to_jsonb(v_survivors)) THEN
         INSERT INTO load_log (load, kind, action, look, company, plant, detail, entity_id, evidence)
           SELECT p_load, 'plant', 'left apart', false, (SELECT c.name FROM companies c WHERE c.id = k.company_id), k.name,
-                 format('%s rows of the company stand on this spot and stay separate rows: %s',
+                 format('%s rows of the company stand on this spot under different names and stay separate rows: %s',
                         cardinality(v_survivors), (SELECT string_agg('"' || f.name || '"', '; ' ORDER BY f.name) FROM factories f WHERE f.id = ANY (v_survivors))),
                  k.id, jsonb_build_object('plants', to_jsonb(v_survivors), 'by', 'spot')
           FROM factories k WHERE k.id = v_survivors[1];

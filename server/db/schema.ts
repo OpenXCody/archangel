@@ -561,6 +561,26 @@ export const recordMerges = pgTable(
   })
 );
 
+// Two plants an admin said are two plants (migration 0051): not offered as
+// one again, by the cleanup or by Admin Tools. `aId` is the lower id.
+export const plantsApart = pgTable(
+  'plants_apart',
+  {
+    aId: uuid('a_id')
+      .notNull()
+      .references(() => factories.id, { onDelete: 'cascade' }),
+    bId: uuid('b_id')
+      .notNull()
+      .references(() => factories.id, { onDelete: 'cascade' }),
+    decidedBy: uuid('decided_by').references(() => users.id, { onDelete: 'set null' }),
+    decidedAt: timestamp('decided_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.aId, table.bId] }),
+    bIdx: index('plants_apart_b_idx').on(table.bId),
+  })
+);
+
 export const factSources = pgTable(
   'fact_sources',
   {
