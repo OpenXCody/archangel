@@ -215,12 +215,32 @@ test('the places the work is at, from the field as each feed writes it', () => {
 
 // --- Skills and makes ------------------------------------------------------------
 
+test('an other name that names a subject wider than its skill needs a neighbour', () => {
+  // "Injection Molding" is another name of Injection Molding Machine Operation: right for a person's
+  // search, and in a designer's list of processes not the running of the machine.
+  const designer = read('Mechanical Engineer', 'Requirements:\n- Experience with machining, sheet metal, injection molding and brazing\n- Understands electrical design and machine safety');
+  for (const name of ['Injection Molding Machine Operation', 'Torch Brazing', 'Electrical Controls Design', 'Machine Safety Circuit Design']) assert.ok(!names(designer).includes(name), name);
+  // On the career's own path the same words are the skill.
+  const operator = read('Injection Molding Operator', 'Requirements:\n- Two years of injection molding');
+  assert.ok(names(operator).includes('Injection Molding Machine Operation'));
+  // So are they beside a make of the skill.
+  const maker = read('Mechanical Engineer', 'Requirements:\n- Injection molding on Engel and Arburg presses');
+  assert.ok(names(maker).includes('Injection Molding Machine Operation'));
+  // A name that leaves out only the doing, or one side of an "and", is the skill anywhere.
+  const plain = read('Quality Engineer', 'Requirements:\n- 3D CAD and scripting\n- Data acquisition');
+  for (const name of ['3D CAD Modeling', 'Data Analysis and Scripting', 'Data Acquisition Setup']) assert.ok(names(plain).includes(name), name);
+});
+
 test('a skill is found by its name, its other names and its short forms, with their edges respected', () => {
   const r = read('Welder', 'Requirements:\n- MIG welding and GMAW of carbon steel on 5-axis positioners\n- Lock-out / tag-out and preventative maintenance of the cell\n- Read blueprints and weld symbols');
   assert.deepEqual(names(r).sort(), ['5-Axis Machining', 'Blueprint Reading', 'Lockout Tagout', 'MIG Welding', 'Preventive Maintenance', 'Weld Symbol Interpretation']);
   // Every match says what it matched on.
   assert.equal(r.skills.find((s) => s.name === 'Lockout Tagout')?.on, 'Lock-out / tag-out');
   assert.equal(r.skills.find((s) => s.name === 'MIG Welding')?.on, 'MIG welding');
+
+  // The names the catalogue gained from the postings' own words (migration 0057).
+  const gained = read('Quality Control Inspector', 'Requirements:\n- Reads technical drawings and wiring diagrams; checks threads with thread gages and continuity with a DMM\n- Keeps the cell to 6S and writes the RCCA');
+  for (const name of ['Blueprint Reading', 'Electrical Schematic Reading', 'Thread Measurement', 'Multimeter Testing', '5S Workplace Organization', 'Root Cause Analysis']) assert.ok(names(gained).includes(name), name);
 
   // Never by a fragment, nor in a part number.
   const none = read('Welder', 'Requirements:\n- Express interest in press releases at all times\n- Part number SPC-1234 and item MES-22 are indicated on the traveler\n- Standards and work measurement are someone else\'s job');
