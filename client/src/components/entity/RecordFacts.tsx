@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { formatCompanyName } from '@shared/displayName';
-import { stateName } from '../lib/places';
-import type { CompanyDetail, FactoryDetail, RecordSource } from '../lib/api';
-import CompanyLogo from './CompanyLogo';
-import { RecordList, RecordRow } from './layout/Page';
+import { stateName } from '../../lib/places';
+import type { CompanyDetail, FactoryDetail, RecordSource } from '../../lib/api';
+import CompanyLogo from '../CompanyLogo';
+import { RecordList, RecordRow } from '../layout/Page';
 
 /**
  * The deeper facts a plant or a company has when its record was written from

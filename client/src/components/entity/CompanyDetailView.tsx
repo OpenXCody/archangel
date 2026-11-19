@@ -1,0 +1,252 @@
+import { useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { type CompanyDetail } from '../../lib/api';
+import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import { industryByName, industryLabel, industryPath } from '@shared/industry';
+import CompanyLogo from '../CompanyLogo';
+import { CompanyFamily, CompanyStanding, PlantFacts, SourceList, peopleCount } from './RecordFacts';
+import { useMapStore } from '../../stores/mapStore';
+import { cityState, stateName } from '../../lib/places';
+import {
+  DetailFacts,
+  DetailHeader,
+  DetailSection,
+  RecordList,
+  RecordRow,
+  ShowAll,
+  detailActionClass,
+} from '../layout/Page';
+import { plural } from '@/lib/utils';
+import { type Head, streetAddress, factLinkClass, Footprint, OpenJobsSection, CAREERS_SHOWN, TypicalCareers } from './parts';
+
+/** How many plants are listed before "Show all". */
+const PLANTS_SHOWN = 12;
+
+/**
+ * A company's page. Who it is, where it is, whether it is hiring, its plants
+ * and the careers at them. About seven companies in ten have one plant: for
+ * those the page leads with that plant's own facts and address, in place of
+ * counting to one and listing one row.
+ */
+export default function CompanyDetailView({ data, head }: { data: CompanyDetail; head: Head }) {
+  const navigate = useNavigate();
+  const [showAllPlants, setShowAllPlants] = useState(false);
+  const [showAllCareers, setShowAllCareers] = useState(false);
+  const name = formatCompanyName(data.name);
+  const plants = useMemo(() => data.factories ?? [], [data.factories]);
+  const jobs = data.jobs ?? [];
+  const only = plants.length === 1 ? plants[0] : null;
+
+  // Plants that can be placed, for the footprint and for framing them on the map.
+  const placed = useMemo(
+    () =>
+      plants
+        .map((plant) => ({ plant, latitude: parseFloat(plant.latitude ?? ''), longitude: parseFloat(plant.longitude ?? '') }))
+        .filter((entry) => Number.isFinite(entry.latitude) && Number.isFinite(entry.longitude)),
+    [plants]
+  );
+
+  // Plants per state, most first: "Texas 6 · California 2".
+  const byState = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const plant of plants) if (plant.state) counts.set(plant.state, (counts.get(plant.state) ?? 0) + 1);
+    return [...counts.entries()]
+      .map(([code, count]) => ({ code, count, name: stateName(code) }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [plants]);
+
+  // Plants whose size is known come first, the largest first; the rest by state and name.
+  const sortedPlants = useMemo(
+    () =>
+      [...plants].sort(
+        (a, b) =>
+          (b.workforceSize ?? 0) - (a.workforceSize ?? 0) ||
+          (a.state ?? 'ZZ').localeCompare(b.state ?? 'ZZ') ||
+          formatFactoryName(a.name).localeCompare(formatFactoryName(b.name))
+      ),
+    [plants]
+  );
+  // People are counted at the plants that state a figure, and said so when that is not all of them.
+  const sized = plants.filter((plant) => (plant.workforceSize ?? 0) > 0).length;
+  const shownPlants = showAllPlants ? sortedPlants : sortedPlants.slice(0, PLANTS_SHOWN);
+
+  // A company's industries are the ones its plants are in (the 21), the one
+  // with most of its plants first. Each is a page of its own; where the plants
+  // are all in one state, that state's page of it.
+  const industries = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const plant of plants) {
+      const industry = industryByName(plant.industry);
+      if (industry) counts.set(industry.name, (counts.get(industry.name) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([industry]) => industry);
+  }, [plants]);
+  const oneState = byState.length === 1 ? byState[0].code : null;
+
+  const facts = only
+    ? [cityState(only.city, only.state), only.status === 'under construction' ? 'Under construction' : null].filter(Boolean)
+    : [
+        plants.length > 0 ? plural(plants.length, 'plant', 'plants') : null,
+        byState.length > 1 ? `${byState.length} states` : byState.length === 1 ? byState[0].name : null,
+        (data.totalWorkforce ?? 0) > 0
+          ? `${peopleCount(data.totalWorkforce ?? 0)}${sized > 0 && sized < plants.length ? ` at ${plural(sized, 'plant', 'plants')}` : ''}`
+          : null,
+      ].filter(Boolean);
+
+  // Show only this company's plants on the map, framed. The map reads both
+  // from its store when it mounts.
+  const openOnMap = () => {
+    const store = useMapStore.getState();
+    store.setFilters({ company: data.id, companyName: name, states: [] });
+    if (placed.length > 0) {
+      store.flyTo({ kind: 'points', points: placed.map((entry): [number, number] => [entry.longitude, entry.latitude]) });
+    }
+    navigate('/map');
+  };
+
+  const careers = data.occupations ?? [];
+  const typical = careers.length === 0 ? (data.typicalCareers ?? []) : [];
+  const onlyName = only ? formatFactoryName(only.name) : '';
+  const onlyStreet = only ? streetAddress(only) : null;
+
+  return (
+    <>
+      <DetailHeader
+        {...head}
+        kind="Company"
+        title={name}
+        mark={<CompanyLogo name={name} domain={data.domain} size={44} className="rounded-lg" />}
+        description={data.description}
+        action={
+          placed.length > 0 ? (
+            <button type="button" onClick={openOnMap} className={detailActionClass} data-open-map>
+              Open on the map
+            </button>
+          ) : undefined
+        }
+      >
+        {(facts.length > 0 || industries.length > 0) && (
+          <DetailFacts>
+            {facts.join(' · ')}
+            {industries.slice(0, 2).map((industry, index) => (
+              <span key={industry}>
+                {index > 0 || facts.length > 0 ? ' · ' : ''}
+                <Link to={industryPath(industry, { state: oneState }) ?? '/industries'} className={factLinkClass}>
+                  {industryLabel(industry)}
+                </Link>
+              </span>
+            ))}
+          </DetailFacts>
+        )}
+        <CompanyStanding data={data} />
+      </DetailHeader>
+
+      {/* One plant: its own facts stand where a list of one would. */}
+      {only && <PlantFacts factory={only} />}
+
+      {/* Where: the footprint, and how many plants in each state (or the one plant, leading to its page) */}
+      {placed.length > 0 && (
+        <Footprint
+          points={placed.map((entry) => ({
+            id: entry.plant.id,
+            latitude: entry.latitude,
+            longitude: entry.longitude,
+            label: formatFactoryName(entry.plant.name),
+          }))}
+        >
+          {only ? (
+            <ul className="border-t border-border-subtle" data-only-plant>
+              <RecordRow
+                to={`/factories/${only.id}`}
+                label="Plant"
+                // A plant that carries the company's own name is told by its address.
+                title={onlyName.toLowerCase() === name.toLowerCase() ? (onlyStreet ?? onlyName) : onlyName}
+                subtitle={onlyName.toLowerCase() === name.toLowerCase() ? null : onlyStreet}
+              />
+            </ul>
+          ) : (
+            <p className="border-t border-border-subtle px-4 py-3 text-sm text-fg-muted sm:px-6">
+              {byState.slice(0, 6).map((state, index) => (
+                <span key={state.code}>
+                  {index > 0 && ' · '}
+                  <span className="text-fg-default">{state.name}</span> {state.count}
+                </span>
+              ))}
+              {byState.length > 6 && ` · ${byState.length - 6} more`}
+            </p>
+          )}
+        </Footprint>
+      )}
+      {only && placed.length === 0 && (
+        <RecordList className="mt-6" data-only-plant="">
+          <RecordRow to={`/factories/${only.id}`} label="Plant" title={onlyName} subtitle={onlyStreet} />
+        </RecordList>
+      )}
+
+      {/* Open jobs: said only when there are some */}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} showCareer />}
+
+      {/* The companies that are part of this one */}
+      {(data.subsidiaries?.length ?? 0) > 0 && (
+        <DetailSection id="companies" title="Companies">
+          <CompanyFamily companies={data.subsidiaries ?? []} />
+        </DetailSection>
+      )}
+
+      {/* Every plant: where it is and what it makes */}
+      {plants.length > 1 && (
+        <DetailSection id="factories" title="Plants">
+          <RecordList>
+            {shownPlants.map((plant) => (
+              <RecordRow
+                key={plant.id}
+                to={`/factories/${plant.id}`}
+                title={formatFactoryName(plant.name)}
+                subtitle={
+                  [
+                    cityState(plant.city, plant.state),
+                    plant.status === 'under construction' ? 'Under construction' : null,
+                    plant.workforceSize ? peopleCount(plant.workforceSize) : null,
+                    plant.products || (plant.industry ? industryLabel(plant.industry) : plant.specialization),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ') || null
+                }
+              />
+            ))}
+          </RecordList>
+          {sortedPlants.length > PLANTS_SHOWN && (
+            <ShowAll open={showAllPlants} total={sortedPlants.length} onToggle={() => setShowAllPlants((value) => !value)} />
+          )}
+        </DetailSection>
+      )}
+
+      {/* Careers recorded across this company's plants */}
+      {careers.length > 0 && (
+        <DetailSection id="occupations" title="Careers">
+          <RecordList>
+            {(showAllCareers ? careers : careers.slice(0, CAREERS_SHOWN)).map((career) => (
+              <RecordRow
+                key={career.id}
+                to={`/occupations/${career.id}`}
+                title={career.title}
+                subtitle={
+                  [only ? null : plural(career.factoryCount, 'plant', 'plants'), career.headcount ? peopleCount(career.headcount) : null]
+                    .filter(Boolean)
+                    .join(' · ') || null
+                }
+              />
+            ))}
+          </RecordList>
+          {careers.length > CAREERS_SHOWN && (
+            <ShowAll open={showAllCareers} total={careers.length} onToggle={() => setShowAllCareers((value) => !value)} />
+          )}
+        </DetailSection>
+      )}
+      {/* With none recorded, the one plant's industry says what kind of work there is. */}
+      {typical.length > 0 && <TypicalCareers careers={typical} />}
+
+      <SourceList sources={data.sources} />
+    </>
+  );
+}

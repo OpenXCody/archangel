@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { useStatesOutline } from '../lib/queries';
+import { useStatesOutline } from '../../lib/queries';
 
 /**
  * Where a company's plants are: the lower 48 states drawn faintly, one dot per
