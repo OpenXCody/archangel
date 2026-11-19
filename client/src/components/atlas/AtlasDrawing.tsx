@@ -24,6 +24,7 @@ import {
   type AtlasLayout,
   type AtlasLeaf,
 } from './layout';
+import { routePath, shareDash, walkOf } from './walk';
 
 /**
  * The Atlas as a drawing: one SVG, drawn from the layout's arithmetic.
@@ -69,6 +70,12 @@ export interface AtlasOverlay {
 
 export type AtlasMarks = ReadonlyMap<number, 'held' | 'learning'>;
 
+/** The leaf a person has just marked held, by its position in `layout.leaves`. */
+export interface AtlasFresh {
+  index: number;
+  tick: number;
+}
+
 interface AtlasDrawingProps {
   layout: AtlasLayout;
   /** What is open: nothing (the whole atlas), a domain, one of its groups, one of that group's skills. */
@@ -77,6 +84,14 @@ interface AtlasDrawingProps {
   leaf: AtlasLeaf | null;
   overlay: AtlasOverlay | null;
   marks: AtlasMarks | null;
+  /**
+   * A seeker is filling the one career laid over the atlas in: its skills
+   * still ahead are open marks, the way to each held one is drawn bright from
+   * the centre, and the centre is the ring of how much is held.
+   */
+  walk?: boolean;
+  /** The skill just marked held (`tick` changes with every mark): its way is drawn in once, and its leaf answers. */
+  fresh?: AtlasFresh | null;
   /** What the pointer, or the keyboard in the panel, is on. */
   preview: AtlasTarget | null;
   onPreview: (target: AtlasTarget | null) => void;
@@ -149,7 +164,7 @@ const Plate = memo(function Plate({ layout }: { layout: AtlasLayout }) {
 // A career laid over it, and a person's own marks
 // ---------------------------------------------------------------------------
 
-const Overlay = memo(function Overlay({ layout, overlay }: { layout: AtlasLayout; overlay: AtlasOverlay }) {
+const Overlay = memo(function Overlay({ layout, overlay, ahead }: { layout: AtlasLayout; overlay: AtlasOverlay; ahead: boolean }) {
   const parts = useMemo(() => {
     const shared: number[] = [];
     const firstOnly: number[] = [];
@@ -173,13 +188,14 @@ const Overlay = memo(function Overlay({ layout, overlay }: { layout: AtlasLayout
     return (
       <g key={leaf.id} data-atlas-lit={kind}>
         {kind === 'shared' && <circle className="atlas-lit-halo" cx={fixed(x * S)} cy={fixed(y * S)} r={fixed((r + 0.007) * S)} />}
-        <circle className="atlas-lit-dot" data-second={kind === 'second' || undefined} cx={fixed(x * S)} cy={fixed(y * S)} r={fixed(r * S)} />
+        {/* While a person fills the career in, a skill of it is an open mark until it is held: the Marks layer fills it. */}
+        <circle className="atlas-lit-dot" data-second={kind === 'second' || undefined} data-ahead={ahead || undefined} cx={fixed(x * S)} cy={fixed(y * S)} r={fixed(r * S)} />
       </g>
     );
   };
 
   return (
-    <g>
+    <g data-atlas-ahead={ahead || undefined}>
       {parts.second && <path className="atlas-lit" data-second d={parts.second} />}
       <path className="atlas-lit" d={parts.first} />
       {parts.both && <path className="atlas-lit" data-shared d={parts.both} />}
@@ -190,7 +206,18 @@ const Overlay = memo(function Overlay({ layout, overlay }: { layout: AtlasLayout
   );
 });
 
-const Marks = memo(function Marks({ layout, marks, overlay }: { layout: AtlasLayout; marks: AtlasMarks; overlay: AtlasOverlay | null }) {
+const Marks = memo(function Marks({
+  layout,
+  marks,
+  overlay,
+  fresh,
+}: {
+  layout: AtlasLayout;
+  marks: AtlasMarks;
+  overlay: AtlasOverlay | null;
+  /** The leaf just marked, whose mark arrives when its way has been drawn. */
+  fresh: number | null;
+}) {
   return (
     <g>
       {[...marks].map(([index, status]) => {
@@ -203,13 +230,71 @@ const Marks = memo(function Marks({ layout, marks, overlay }: { layout: AtlasLay
         const cx = fixed(x * S);
         const cy = fixed(y * S);
         return (
-          <g key={leaf.id} data-atlas-mark={status}>
+          <g key={leaf.id} className="atlas-mark-at" data-atlas-mark={status} data-atlas-mark-of={leaf.id} data-fresh={fresh === index || undefined}>
             <circle className="atlas-mark" data-status={status} data-lit={lit || undefined} cx={cx} cy={cy} r={fixed(r)} />
             {/* Learning: the same half-filled ring the skill carries in every list. */}
             {status === 'learning' && <path className="atlas-mark-half" d={`M${cx} ${fixed(cy - r)}A${fixed(r)} ${fixed(r)} 0 0 0 ${cx} ${fixed(cy + r)}Z`} />}
           </g>
         );
       })}
+    </g>
+  );
+});
+
+/**
+ * A career, part walked. The way from the centre out to each skill of it the
+ * person holds, drawn bright over the career's own branches; and at the
+ * centre, where every trunk leaves from, the ring of how much is held: the
+ * one the career's page carries, which closes when the career is whole.
+ *
+ * A mark changing adds or removes one line here and moves the ring; the plate
+ * under it is not drawn again.
+ */
+const Walk = memo(function Walk({
+  layout,
+  career,
+  marks,
+  fresh,
+  unit,
+}: {
+  layout: AtlasLayout;
+  career: ReadonlySet<number>;
+  marks: AtlasMarks | null;
+  fresh: AtlasFresh | null;
+  /** One CSS pixel in the drawing's units, as the plate is enlarged now. */
+  unit: number;
+}) {
+  const walk = useMemo(() => walkOf(career, (index) => marks?.get(index)), [career, marks]);
+  const r = layout.geometry.root * S;
+  const ring = shareDash(walk, r);
+  const arriving = fresh && marks?.get(fresh.index) === 'held' && career.has(fresh.index) ? layout.leaves[fresh.index] : null;
+  return (
+    <g data-atlas-walk data-atlas-whole-career={walk.whole || undefined}>
+      {walk.heldLeaves.map((index) => {
+        const leaf = layout.leaves[index];
+        return <path key={leaf.id} className="atlas-walked" data-atlas-walked={leaf.id} data-fresh={arriving?.index === index || undefined} d={routePath(layout, leaf, S)} />;
+      })}
+      {/* The way to the skill just marked, drawn in from the centre: one line for a moment, then the one above has taken its place. */}
+      {arriving && fresh && (
+        <path key={fresh.tick} className="atlas-walk-in" pathLength={1} strokeWidth={fixed(1.5 * unit, 3)} d={routePath(layout, arriving, S)} />
+      )}
+      <circle className="atlas-share-bed" r={fixed(r * 1.34)} />
+      <circle className="atlas-share-track" r={fixed(r)} strokeWidth={fixed(r * 0.2, 3)} />
+      <circle
+        className="atlas-share"
+        data-atlas-share={`${walk.held}/${walk.total}`}
+        r={fixed(r)}
+        strokeWidth={fixed(r * 0.34, 3)}
+        strokeDasharray={ring.dash}
+        transform="rotate(-90)"
+        opacity={walk.held > 0 ? 1 : 0}
+      />
+      {walk.whole && (
+        <g className="atlas-share-whole">
+          <circle r={fixed(r * 1.1)} />
+          <path d={`M${fixed(-0.48 * r)} ${fixed(0.04 * r)}L${fixed(-0.16 * r)} ${fixed(0.36 * r)}L${fixed(0.48 * r)} ${fixed(-0.32 * r)}`} strokeWidth={fixed(r * 0.25, 3)} />
+        </g>
+      )}
     </g>
   );
 });
@@ -271,7 +356,7 @@ interface NamesProps {
  * (a short domain with a long name, on a phone) it moves to a second row
  * outside the first, so sixteen names fit a circle 358 pixels wide.
  */
-function Names({ layout, radiusPx, away, on, reached }: NamesProps) {
+const Names = memo(function Names({ layout, radiusPx, away, on, reached }: NamesProps) {
   const id = useId().replace(/:/g, '');
   const fonts = useFontsLoaded();
   const fontPx = radiusPx < 240 ? 9 : radiusPx < 330 ? 10.5 : 11.5;
@@ -350,7 +435,7 @@ function Names({ layout, radiusPx, away, on, reached }: NamesProps) {
       ))}
     </g>
   );
-}
+});
 
 // ---------------------------------------------------------------------------
 // The labels of the open domain
@@ -397,7 +482,7 @@ interface LabelsProps {
   overlay: AtlasOverlay | null;
 }
 
-function Labels({ layout, labels, zoom, radiusPx, leaf, preview, overlay }: LabelsProps) {
+const Labels = memo(function Labels({ layout, labels, zoom, radiusPx, leaf, preview, overlay }: LabelsProps) {
   const g = layout.geometry;
   const fonts = useFontsLoaded();
   const texts = useMemo(
@@ -452,7 +537,7 @@ function Labels({ layout, labels, zoom, radiusPx, leaf, preview, overlay }: Labe
       })}
     </g>
   );
-}
+});
 
 const at = (angle: number, radius: number) => {
   const [x, y] = point(angle, radius);
@@ -463,7 +548,7 @@ const at = (angle: number, radius: number) => {
 // The drawing
 // ---------------------------------------------------------------------------
 
-export default function AtlasDrawing({ layout, domain, group, leaf, overlay, marks, preview, onPreview, onChoose, label, className }: AtlasDrawingProps) {
+export default function AtlasDrawing({ layout, domain, group, leaf, overlay, marks, walk, fresh, preview, onPreview, onChoose, label, className }: AtlasDrawingProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   // The frame's width in CSS pixels. Guessed from the window until it is measured, before the first paint.
   const [width, setWidth] = useState(() => (typeof window === 'undefined' ? 358 : Math.min(window.innerWidth - 32, 720)));
@@ -596,6 +681,9 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
   const cameraStyle: CSSProperties = {
     transform: `translate(${fixed(camera.x * S)}px, ${fixed(camera.y * S)}px) scale(${fixed(camera.scale, 4)}) rotate(${fixed(deg(camera.rotate), 4)}deg)`,
   };
+  // One career, and a person filling it in. Two careers are compared, not walked.
+  const walking = Boolean(walk && overlay && !overlay.second);
+  const freshLeaf = fresh ? layout.leaves[fresh.index] : null;
   const pointed = preview && (!domain || preview.domain.index !== domain.index) ? preview.domain : null;
   const pointedGroup = domain && preview?.group && preview.domain.index === domain.index && !preview.leaf ? preview.group : null;
   const ringed = preview?.leaf ?? leaf;
@@ -611,6 +699,7 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
       data-still={still || undefined}
       data-atlas-view={leaf ? 'skill' : group ? 'group' : domain ? 'domain' : 'whole'}
       data-atlas-over={overlay ? true : undefined}
+      data-atlas-walking={walking || undefined}
       style={{ cursor: preview ? 'pointer' : undefined }}
       onPointerMove={onPointerMove}
       onPointerLeave={() => preview && onPreview(null)}
@@ -623,8 +712,19 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
         {pointed && <path className="atlas-hover" d={sectorPath(g.root, g.ring - 0.012, pointed.from, pointed.to, S)} />}
         {/* Everything but the open domain, veiled. */}
         {domain && <path key={`veil-${domain.slug}`} className="atlas-veil" d={sectorPath(0.0001, 3, domain.a1 + half, domain.a0 - half + TAU, S)} />}
-        {overlay && <Overlay layout={layout} overlay={overlay} />}
-        {marks && marks.size > 0 && <Marks layout={layout} marks={marks} overlay={overlay} />}
+        {overlay && <Overlay layout={layout} overlay={overlay} ahead={walking} />}
+        {walking && overlay && <Walk layout={layout} career={overlay.first} marks={marks} fresh={fresh ?? null} unit={S / (radiusPx * camera.scale)} />}
+        {marks && marks.size > 0 && <Marks layout={layout} marks={marks} overlay={overlay} fresh={fresh?.index ?? null} />}
+        {/* The leaf just marked answers once: a ring that opens and is gone. */}
+        {fresh && freshLeaf && marks?.get(fresh.index) === 'held' && (
+          <circle
+            key={fresh.tick}
+            className="atlas-pulse"
+            cx={fixed(point(freshLeaf.angle, freshLeaf.radius)[0] * S)}
+            cy={fixed(point(freshLeaf.angle, freshLeaf.radius)[1] * S)}
+            r={fixed((dotRadius(layout, freshLeaf) + 0.012) * S)}
+          />
+        )}
         {pointedGroup && (
           <path className="atlas-hover" d={sectorPath(g.group, g.ring - 0.012, pointedGroup.a0 - 0.5 * layout.step, pointedGroup.a1 + 0.5 * layout.step, S)} />
         )}

@@ -13,7 +13,9 @@ import { LoadError } from '../account/parts';
 import SkillsViewSwitch from '../explorer/SkillsViewSwitch';
 import AtlasDrawing, { type AtlasMarks, type AtlasOverlay, type AtlasTarget } from './AtlasDrawing';
 import AtlasPanel, { LitSign } from './AtlasPanel';
-import { layoutAtlas, type AtlasLayout } from './layout';
+import type { AtlasLayout } from './layout';
+import PlateSkeleton from './PlateSkeleton';
+import { atlasLayoutOf } from './useAtlasLayout';
 import { atlasHref, readAtlasState } from './state';
 
 /**
@@ -93,21 +95,12 @@ function CareerLine({ sign, id, career, facts, removeTo }: CareerLineProps) {
   );
 }
 
-/** The plate's place while the taxonomy is on its way: the same square, one quiet ring. */
-function PlateSkeleton({ className }: { className?: string }) {
-  return (
-    <div aria-busy="true" aria-label="Loading" className={cn('flex aspect-square w-full items-center justify-center', className)}>
-      <div className="h-[84%] w-[84%] animate-pulse rounded-full border-2 border-border-subtle" />
-    </div>
-  );
-}
-
 export default function Atlas() {
   const taxonomy = useTaxonomy();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const state = useMemo(() => readAtlasState(params), [params]);
-  const layout = useMemo(() => (taxonomy.data ? layoutAtlas(taxonomy.data) : null), [taxonomy.data]);
+  const layout = taxonomy.data ? atlasLayoutOf(taxonomy.data) : null;
 
   // What is open, from the address: a skill opens its group, a group its domain.
   const leaf = (layout && state.skill && layout.leafById.get(state.skill)) || null;

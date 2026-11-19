@@ -1,5 +1,5 @@
+import { lazy, Suspense } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 import GoalButton from '../account/GoalButton';
 import { ErrorNote } from '../account/parts';
 import { signInPath } from '../../lib/account';
@@ -12,14 +12,18 @@ import {
   DetailSection,
   RecordList,
   RecordRow,
-  sectionLinkClass,
 } from '../layout/Page';
+import PathViewSwitch, { usePathView } from '../atlas/PathViewSwitch';
+import PlateSkeleton from '../atlas/PlateSkeleton';
 import { ShareRing } from '../path/HeldShare';
 import { LadderAlone, PathFlow } from '../path/PathFlow';
 import { SkillGroupBox } from '../path/SkillGroupBox';
 import { buildPath, shareOf } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
 import { type Head, UNPLACED, OpenJobsSection, IndustryRows, factLinkClass } from './parts';
+
+// The path on the Atlas arrives with the Atlas's own code, only when that view is asked for.
+const CareerAtlas = lazy(() => import('../atlas/CareerAtlas'));
 
 /**
  * Career (occupation) detail: the path of skills drawn as a flow, where the
@@ -45,6 +49,8 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   const hasPath = path.levels.some((level) => level.groups.length > 0);
   const whole = marks && skills.length > 0 ? shareOf(skills, marks) : null;
   const onLadder = (data.comesFrom?.length ?? 0) + (data.leadsTo?.length ?? 0) > 0;
+  // The path as a flow, or on the Atlas: from the address, else as last shown in this visit.
+  const pathView = usePathView();
 
   return (
     <>
@@ -107,15 +113,18 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           }
           action={
             hasPath ? (
-              // The same skills among all the others: the atlas opens with this career drawn on it.
-              <Link to={`/atlas?career=${data.id}`} className={cn(sectionLinkClass, '-my-3 py-3')} data-atlas-link>
-                See on the atlas
-              </Link>
+              // Two views of one path: the flow, and the same skills on the Atlas among all the others.
+              <PathViewSwitch current={pathView} />
             ) : undefined
           }
         >
           {marks && <ErrorNote error={markError} className="mb-3" />}
-          {hasPath && <PathFlow path={path} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} />}
+          {hasPath && pathView === 'flow' && <PathFlow path={path} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} />}
+          {hasPath && pathView === 'atlas' && (
+            <Suspense fallback={<PlateSkeleton className="mx-auto max-w-md" />}>
+              <CareerAtlas career={data} path={path} marks={marks} />
+            </Suspense>
+          )}
           {path.unplaced.length > 0 && <SkillGroupBox name={UNPLACED} skills={path.unplaced} marks={marks} className={hasPath ? 'mt-4' : undefined} />}
           {canSignIn && (
             <p className="mt-4 text-sm text-fg-soft">

@@ -94,8 +94,10 @@ test('a career page shows its path, a company page its plants', async ({ page, r
     expect(box.left, 'a tag starts inside the diagram').toBeGreaterThanOrEqual((diagram?.x ?? 0) - 1);
     expect(box.right, 'a tag ends inside the diagram').toBeLessThanOrEqual((diagram?.x ?? 0) + (diagram?.width ?? 0) + 1);
   }
-  // The same skills among all the others.
-  await expect(page.locator('[data-atlas-link]')).toHaveAttribute('href', `/atlas?career=${career}`);
+  // The same skills among all the others: one switch away, on the Atlas.
+  const pathViews = page.getByRole('navigation', { name: 'Path as' });
+  await expect(pathViews.locator('[aria-current="page"]')).toHaveText('Flow');
+  await expect(pathViews.getByRole('link', { name: 'Atlas' })).toHaveAttribute('href', `/occupations/${career}?path=atlas`);
   await assertHealthyLayout(page, '/occupations/:id path');
 
   // A skill's page says where the skill sits: its domain and group, each a link into the Skills list, and its level.
