@@ -249,8 +249,9 @@ $f$;
 -- One company (`company`): the same row, or pd_same_company; or `named for`:
 -- two companies nothing ties together, where the plant is certain by an
 -- address or a name and both rows' names begin with the name of one of the
--- two and not the other's. Then the plant is that company's (`to`), and the
--- other company row is left as it is. Any other rows under two companies
+-- two and not the other's, unless the other has a profile and the named one
+-- has none. Then the plant is that company's (`to`), and the other company
+-- row is left as it is. Any other rows under two companies
 -- that nothing ties together are left for a person even when the plant is
 -- plainly one: which company it belongs to is not guessed.
 CREATE OR REPLACE FUNCTION pg_temp.pd_verdict(p_a uuid, p_b uuid) RETURNS jsonb LANGUAGE plpgsql STABLE AS $f$
@@ -269,6 +270,7 @@ DECLARE
   v_rel text;
   v_reason text;
   v_to uuid;
+  v_left uuid;
 BEGIN
   IF EXISTS (SELECT 1 FROM plants_apart WHERE a_id = least(p_a, p_b) AND b_id = greatest(p_a, p_b)) THEN
     RETURN jsonb_build_object('decision', 'apart');
@@ -305,8 +307,9 @@ BEGIN
   -- Named for: nothing on record ties the two companies, but both rows' names begin with the name of one of them
   -- and not the other's ("AMSTED RAIL CO INC" under Amsted Rail and under Amsted Industries). The plant is that
   -- company's (the loader's own rule for a stranger's row that names a company). Only when the plant is certain by
-  -- an address or a name, never when both companies have a profile, and never when a row written from sources
-  -- stands under the other company. A recorded parent is decided above, by the parent rule.
+  -- an address or a name, never when both companies have a profile or only the company that would be left has one,
+  -- and never when a row written from sources stands under the other company. A recorded parent is decided above,
+  -- by the parent rule.
   IF v_rel IS NULL AND v_rule IN ('same address', 'same name', 'placed apart') AND a.company_id IS NOT NULL AND b.company_id IS NOT NULL
      AND NOT (pg_temp.pd_profile(a.company_id) AND pg_temp.pd_profile(b.company_id)) THEN
     v_to := CASE
@@ -315,7 +318,11 @@ BEGIN
       WHEN pg_temp.pd_named_for(a.name, v_cb) AND pg_temp.pd_named_for(b.name, v_cb)
            AND NOT pg_temp.pd_named_for(a.name, v_ca) AND NOT pg_temp.pd_named_for(b.name, v_ca) THEN b.company_id
     END;
-    IF v_to IS NOT NULL AND NOT (a.curated AND a.company_id <> v_to) AND NOT (b.curated AND b.company_id <> v_to) THEN
+    -- Never off the page of a company with a profile onto one without: a named row that is only a fragment of the
+    -- plant's name ("Becton-dickinson and" beside BD) or an unprofiled part of a profiled company stays for a person.
+    v_left := CASE WHEN v_to = a.company_id THEN b.company_id ELSE a.company_id END;
+    IF v_to IS NOT NULL AND NOT (a.curated AND a.company_id <> v_to) AND NOT (b.curated AND b.company_id <> v_to)
+       AND NOT (pg_temp.pd_profile(v_left) AND NOT pg_temp.pd_profile(v_to)) THEN
       RETURN jsonb_build_object('decision', 'merge', 'rule', v_rule, 'company', 'named for', 'to', v_to, 'metres', d);
     END IF;
   END IF;

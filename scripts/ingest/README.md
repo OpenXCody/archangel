@@ -263,7 +263,9 @@ nearness or a shared spot alone), and both rows' names begin with the name of
 one of the two companies and not the other's ("AMSTED RAIL CO INC" under
 Amsted Rail and under Amsted Industries). The plant is filed under the
 company it is named for, which is the loader's own rule for a stranger's row
-that names a company. Never when both companies have a profile, and never
+that names a company. Never when both companies have a profile; never when
+the company that would be left has a profile and the named one has none (a
+plant is not taken off a profiled company's page onto a bare row); and never
 when a row written from sources stands under the other company. Every such
 merge is marked for a look (`evidence.company = 'named for'`), and the other
 company row is left exactly as it is, said so when it is left without plants.

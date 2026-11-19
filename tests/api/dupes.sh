@@ -149,7 +149,8 @@ INSERT INTO companies (name, domain, parent_company_id) VALUES
   ('E2E Dupes Namesake', NULL, NULL), ('E2E Dupes Holding', NULL, NULL),
   ('E2E Dupes Maker', 'maker.dupes.test', NULL), ('E2E Dupes Owner', 'owner.dupes.test', NULL),
   ('E2E Dupes Smith', NULL, NULL), ('E2E Dupes Capital', NULL, NULL),
-  ('E2E Dupes Nearby', NULL, NULL), ('E2E Dupes Fund', NULL, NULL);
+  ('E2E Dupes Nearby', NULL, NULL), ('E2E Dupes Fund', NULL, NULL),
+  ('E2E Dupes Brandname', NULL, NULL), ('E2E Dupes Parentco', 'parentco.dupes.test', NULL);
 CREATE TEMP TABLE e2e (n text, co text, name text, lat text, lng text, addr text, st text, extra jsonb, id_ text, dup boolean) ON COMMIT DROP;
 INSERT INTO e2e VALUES
   -- a: one company, one street address, 300 m apart
@@ -188,6 +189,9 @@ INSERT INTO e2e VALUES
   -- r: named for one of two companies, but one plant only by standing on one spot: no address, not one name
   ('r1', 'E2E Dupes Nearby', 'E2E DUPES NEARBY', '39.2500', '-116.3000', NULL, 'NV', '{"naics": "332999"}', 'C-R', false),
   ('r2', 'E2E Dupes Fund', 'E2E DUPES NEARBY PLANT', '39.2504', '-116.3000', NULL, 'NV', '{}', 'C-R', true),
+  -- v: named for one of two companies, but the other has a profile and the named one has none
+  ('v1', 'E2E Dupes Brandname', 'E2E DUPES BRANDNAME INC', '39.2500', '-116.1000', '14 Brand St', 'NV', '{"naics": "332999"}', 'C-V', false),
+  ('v2', 'E2E Dupes Parentco', 'E2E DUPES BRANDNAME', '39.2505', '-116.1000', '14 BRAND STREET', 'NV', '{}', 'C-V', true),
   -- k: a pair an admin said are two plants
   ('k1', 'E2E Dupes Acme', 'E2E DUPES ACME LINE 1', '39.4000', '-116.3000', '6 Line Rd', 'NV', '{}', 'C-K', false),
   ('k2', 'E2E Dupes Acme', 'E2E DUPES ACME LINE 1 INC', '39.4000', '-116.3000', '6 Line Rd', 'NV', '{}', 'C-K', true),
@@ -254,15 +258,15 @@ expect "the migration applies twice to rows shaped like production's" 0 "$?"
 got() { grep "^$1|" "$D/out.txt" | cut -d'|' -f2-; }
 
 expect "what is left: one row for each plant it was sure of, both rows where it was not" \
-  'E2E DUPES ACME ANNEX [E2E Dupes Acme]; E2E DUPES ACME ANNEX INC [E2E Dupes Acme]; E2E DUPES ACME BORDER [E2E Dupes Acme]; E2E DUPES ACME BORDER [E2E Dupes Acme]; E2E DUPES ACME BUILDING ONE [E2E Dupes Acme]; E2E DUPES ACME BUILDING TWO [E2E Dupes Acme]; E2E DUPES ACME FOUNDRY [E2E Dupes Acme]; E2E DUPES ACME LINE 1 [E2E Dupes Acme]; E2E DUPES ACME LINE 1 INC [E2E Dupes Acme]; E2E DUPES ACME NORTH WORKS [E2E Dupes Acme]; E2E DUPES ACME PRESS SHOP [E2E Dupes Acme]; E2E DUPES ACME SOUTH YARD [E2E Dupes Acme]; E2E DUPES ACME SPOT CO [E2E Dupes Acme]; E2E DUPES GADGET COATINGS [E2E Dupes Gadget]; E2E DUPES LANDLORD PARK [E2E Dupes Landlord]; E2E DUPES MAKER [E2E Dupes Owner]; E2E DUPES MAKER CORP [E2E Dupes Maker]; E2E DUPES NAMESAKE INC [E2E Dupes Namesake]; E2E DUPES NEARBY [E2E Dupes Nearby]; E2E DUPES NEARBY PLANT [E2E Dupes Fund]; E2E DUPES SMITH WORKS [E2E Dupes Smith]; E2E DUPES TENANT MOULDING [E2E Dupes Tenant]; E2E DUPES WIDGET PLANT 2 [E2E Dupes Widget Products]; E2E DUPES WIDGET PRODUCTS [E2E Dupes Widget Products]; E2E Dupes Acme Works [E2E Dupes Acme]; E2E Dupes Smith Works [E2E Dupes Capital]' \
+  'E2E DUPES ACME ANNEX [E2E Dupes Acme]; E2E DUPES ACME ANNEX INC [E2E Dupes Acme]; E2E DUPES ACME BORDER [E2E Dupes Acme]; E2E DUPES ACME BORDER [E2E Dupes Acme]; E2E DUPES ACME BUILDING ONE [E2E Dupes Acme]; E2E DUPES ACME BUILDING TWO [E2E Dupes Acme]; E2E DUPES ACME FOUNDRY [E2E Dupes Acme]; E2E DUPES ACME LINE 1 [E2E Dupes Acme]; E2E DUPES ACME LINE 1 INC [E2E Dupes Acme]; E2E DUPES ACME NORTH WORKS [E2E Dupes Acme]; E2E DUPES ACME PRESS SHOP [E2E Dupes Acme]; E2E DUPES ACME SOUTH YARD [E2E Dupes Acme]; E2E DUPES ACME SPOT CO [E2E Dupes Acme]; E2E DUPES BRANDNAME [E2E Dupes Parentco]; E2E DUPES BRANDNAME INC [E2E Dupes Brandname]; E2E DUPES GADGET COATINGS [E2E Dupes Gadget]; E2E DUPES LANDLORD PARK [E2E Dupes Landlord]; E2E DUPES MAKER [E2E Dupes Owner]; E2E DUPES MAKER CORP [E2E Dupes Maker]; E2E DUPES NAMESAKE INC [E2E Dupes Namesake]; E2E DUPES NEARBY [E2E Dupes Nearby]; E2E DUPES NEARBY PLANT [E2E Dupes Fund]; E2E DUPES SMITH WORKS [E2E Dupes Smith]; E2E DUPES TENANT MOULDING [E2E Dupes Tenant]; E2E DUPES WIDGET PLANT 2 [E2E Dupes Widget Products]; E2E DUPES WIDGET PRODUCTS [E2E Dupes Widget Products]; E2E Dupes Acme Works [E2E Dupes Acme]; E2E Dupes Smith Works [E2E Dupes Capital]' \
   "$(got 'first plants')"
 expect "merged, each by its rule; a pair placed apart and a tie between companies by more than a legal ending are marked for a look" \
   'E2E DUPES ACME FOUNDRY <same address/one company/false>; E2E DUPES ACME PRESS SHOP <placed apart/one company/true>; E2E DUPES ACME SPOT CO <same spot and name/one company/false>; E2E DUPES GADGET COATINGS <same address/family/true>; E2E DUPES NAMESAKE INC <same address/named for/true>; E2E DUPES WIDGET PRODUCTS <same address/same name, written differently/true>; E2E Dupes Acme Works <same address/one company/false>' \
   "$(got 'first merged')"
-# (Among them the three the named-for rule holds back: both companies have a profile; a row written from sources stands
-# under the other company; one plant only by standing on one spot.)
+# (Among them the four the named-for rule holds back: both companies have a profile; only the company that would be
+# left has one; a row written from sources stands under the other company; one plant only by standing on one spot.)
 expect "left for a person, each with its reason" \
-  'E2E DUPES ACME ANNEX <same name, different street addresses>; E2E DUPES ACME BORDER <two states>; E2E DUPES ACME NORTH WORKS <far apart>; E2E DUPES LANDLORD PARK <two companies>; E2E DUPES MAKER CORP <two companies>; E2E DUPES NEARBY <two companies>; E2E Dupes Smith Works <two companies>' \
+  'E2E DUPES ACME ANNEX <same name, different street addresses>; E2E DUPES ACME BORDER <two states>; E2E DUPES ACME NORTH WORKS <far apart>; E2E DUPES BRANDNAME INC <two companies>; E2E DUPES LANDLORD PARK <two companies>; E2E DUPES MAKER CORP <two companies>; E2E DUPES NEARBY <two companies>; E2E Dupes Smith Works <two companies>' \
   "$(got 'first review')"
 expect "a company row that is the same name and has nothing left is merged in; one of another name is left and said" \
   'left without plants E2E Dupes Gadget Coatings; left without plants E2E Dupes Holding; merged E2E Dupes Widget Products' "$(got 'first companies')"
@@ -275,7 +279,7 @@ expect "two buildings on one spot stay two rows, said once, and nothing else is"
 expect "a reference to a plant that is gone is removed; one whose plant was merged follows it" 'removed C-GONE; moved C-MOVED' "$(got 'first references')"
 expect "the reference that followed is on the plant kept" 'E2E DUPES ACME BUILDING ONE' "$(got 'first moved reference')"
 expect "a row merged on its spot carries both ids" 'C-S1,C-S2' "$(got 'first two ids on one row')"
-expect "no id is on two live rows but the pairs left for a person and the pair kept apart" 'C-C,C-E,C-G,C-K,C-P,C-Q,C-R' "$(got 'first ids on two live rows')"
+expect "no id is on two live rows but the pairs left for a person and the pair kept apart" 'C-C,C-E,C-G,C-K,C-P,C-Q,C-R,C-V' "$(got 'first ids on two live rows')"
 expect "no reference points at a plant that is not there" '0' "$(got 'first dangling')"
 expect "the pair an admin keeps apart is not touched and not said" '' "$(got 'first review' | grep -o 'LINE 1')"
 expect "the first run writes its summary"     '1' "$(got 'first summary lines')"
