@@ -5,7 +5,7 @@ import { stateName } from '../../../lib/places';
 import { formatFactoryName } from '@shared/displayName';
 import { shownIndustry } from '@shared/industry';
 import { LEVEL_NAME } from '../../../lib/stages';
-import { Heading, Section, RowList, NodeRow, More, JobRows, PageLink } from './parts';
+import { Heading, Section, RowList, NodeRow, More, JobRows, PageLink, CHIP } from './parts';
 
 export default function OccupationView({ occupation }: { occupation: OccupationDetail }) {
   const { selectState, selectEntity, selectFactory, flyTo, setHoveredFactory } = useMapStore();
@@ -27,26 +27,26 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
       {(industries.length > 0 || occupation.everywhere) && (
         <Section title="Where this work is done" column={occupation.everywhere ? undefined : 'Plants'}>
           {occupation.everywhere ? (
-            <p className="text-sm text-fg-muted">Plants of every industry.</p>
+            <p className="text-[15px] text-text-2">Plants of every industry.</p>
           ) : (
-            <div>
+            <RowList>
               {industries.map((industry) => (
-                <div key={industry.name} className="flex items-baseline justify-between gap-3 py-1 text-sm">
-                  <span className="min-w-0 truncate text-fg-default">{shownIndustry(industry.name) ?? industry.name}</span>
+                <div key={industry.name} className="-mx-4 flex items-baseline justify-between gap-3 border-b border-line px-4 py-1.5 last:border-b-0">
+                  <span className="min-w-0 truncate text-[15px] text-text-1">{shownIndustry(industry.name) ?? industry.name}</span>
                   {industry.factoryCount > 0 && (
-                    <span className="shrink-0 text-xs tabular-nums text-fg-muted">{industry.factoryCount.toLocaleString()}</span>
+                    <span className="shrink-0 text-[13px] tabular-nums text-text-3">{industry.factoryCount.toLocaleString()}</span>
                   )}
                 </div>
               ))}
-            </div>
+            </RowList>
           )}
-          {occupation.elsewhereToo && <p className="mt-1 text-xs text-fg-soft">And plants of every other industry.</p>}
+          {occupation.elsewhereToo && <p className="mt-2 text-[13px] text-text-3">And plants of every other industry.</p>}
           {!occupation.everywhere && industries.length > 0 && (
-            <p className="mt-2 text-xs text-fg-soft">Plants in these industries are lit on the map.</p>
+            <p className="mt-2 text-[13px] text-text-3">Plants in these industries are lit on the map.</p>
           )}
           {states.length > 0 && (
-            <div className="mt-3">
-              <p className="mb-1.5 text-xs text-fg-muted">States with the most of these plants</p>
+            <div className="mt-4">
+              <p className="mb-1.5 text-[13px] text-text-2">States with the most of these plants</p>
               <div className="flex flex-wrap gap-1.5">
                 {states.map((state) => (
                   <button
@@ -54,7 +54,7 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
                     type="button"
                     onClick={() => selectState(state.code)}
                     title={`${state.factoryCount.toLocaleString()} plants in these industries`}
-                    className="map-row inline-flex items-center rounded-md border border-border-strong px-2.5 text-xs font-medium text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default"
+                    className={`${CHIP} font-medium`}
                   >
                     {stateName(state.code)}
                   </button>
@@ -104,7 +104,7 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
       {skills.length > 0 && (
         <Section title="Skills">
           {hasLevels && (
-            <p className="mb-2 text-xs tabular-nums text-fg-muted">
+            <p className="mb-2 text-[13px] tabular-nums text-text-3">
               {`${LEVEL_NAME[1]} `}
               {levels[0]}
               {` · ${LEVEL_NAME[2]} `}
