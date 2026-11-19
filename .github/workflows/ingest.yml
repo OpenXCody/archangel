@@ -1,0 +1,88 @@
+# Runs the intake runner (scripts/ingest/run.mjs) against the production
+# database, without anyone's laptop. It starts only by hand: Actions, "Ingest",
+# "Run workflow". It never runs on a push.
+#
+# One repository secret is needed, and nothing else:
+#   INGEST_DATABASE_URL   the production database's connection string
+#   (GitHub: Settings, Secrets and variables, Actions, New repository secret.)
+#
+# mode "rehearse" does the whole load inside one transaction, writes the
+# report and rolls everything back: production is as it was. mode "apply"
+# stages, resolves and applies the source; `undo` takes a run back, by its
+# number in the report. Either way the report is kept as the run's artifact.
+name: Ingest
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: The source to run (an adapter in scripts/ingest/sources/)
+        required: true
+        type: choice
+        options:
+          - epa-echo
+      mode:
+        description: rehearse changes nothing; apply writes; undo takes a run back
+        required: true
+        default: rehearse
+        type: choice
+        options:
+          - rehearse
+          - apply
+          - undo
+      run:
+        description: 'For undo: the number of the run to take back'
+        required: false
+        type: string
+
+# One at a time: two runs of a source would stage over each other.
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DATABASE_URL: ${{ secrets.INGEST_DATABASE_URL }}
+      SOURCE: ${{ inputs.source }}
+      MODE: ${{ inputs.mode }}
+      RUN_NUMBER: ${{ inputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - name: The database is named
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "The repository secret INGEST_DATABASE_URL is not set (Settings, Secrets and variables, Actions)."
+            exit 1
+          fi
+          # The host is what --yes-this-database must name. It is masked in the log like the secret it came from.
+          HOST=$(node -e "console.log(new URL(process.env.DATABASE_URL).hostname)")
+          echo "::add-mask::$HOST"
+          echo "DATABASE_HOST=$HOST" >> "$GITHUB_ENV"
+      - name: Fetch the source's file
+        if: inputs.mode != 'undo'
+        run: |
+          node scripts/ingest/run.mjs fetch "$SOURCE" --to "$RUNNER_TEMP/ingest/$SOURCE" | tee fetch.log
+          echo "SOURCE_FILE=$(sed -n 's/^fetched: //p' fetch.log)" >> "$GITHUB_ENV"
+      - name: Rehearse
+        if: inputs.mode == 'rehearse'
+        run: node scripts/ingest/run.mjs rehearse "$SOURCE" "$SOURCE_FILE" --yes-this-database "$DATABASE_HOST" --report ingest-report.txt
+      - name: Apply
+        if: inputs.mode == 'apply'
+        run: node scripts/ingest/run.mjs load "$SOURCE" "$SOURCE_FILE" --yes-this-database "$DATABASE_HOST" --report ingest-report.txt
+      - name: Undo
+        if: inputs.mode == 'undo'
+        run: node scripts/ingest/run.mjs undo "$RUN_NUMBER" --yes-this-database "$DATABASE_HOST" --report ingest-report.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ingest-${{ inputs.source }}-${{ inputs.mode }}-${{ github.run_number }}
+          path: ingest-report.txt
+          if-no-files-found: warn

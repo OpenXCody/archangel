@@ -21,6 +21,8 @@ export interface AdminOverview {
   applications: number;
   /** Career paths not yet reviewed. */
   draftPaths: number;
+  /** Matches a source's run was not sure of, waiting for a person. */
+  waitingMatches: number;
 }
 
 export interface AdminMembership {

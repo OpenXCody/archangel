@@ -57,8 +57,9 @@ export default function Admin() {
 const waitingLinkClass = 'font-medium text-fg-default underline underline-offset-4 hover:no-underline';
 
 /**
- * What a person is waiting on an admin for, above the tabs: requests to join
- * a company, and requests to add a company or a plant. Each links to where
+ * What is waiting on an admin, above the tabs: requests to join a company,
+ * requests to add a company or a plant, and matches a source's run was not
+ * sure of. Each links to where
  * it is answered. Nothing is drawn when nobody waits, or before the counts
  * are known, so the line means something when it is there. (Draft career
  * paths are work, not someone waiting: they are counted where they are
@@ -76,7 +77,9 @@ function Waiting() {
   const requests = overview.data?.pendingMemberships ?? 0;
   // Companies and plants people asked to have added: answered on the Access tab too.
   const toAdd = useAdminCompanyRequests().data?.length ?? 0;
-  if (requests === 0 && toAdd === 0) return null;
+  // Matches a source's run was not sure of: decided under Data.
+  const matches = overview.data?.waitingMatches ?? 0;
+  if (requests === 0 && toAdd === 0 && matches === 0) return null;
   return (
     <div className="mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-sm sm:mb-8" data-admin-waiting>
       <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Waiting</span>
@@ -88,6 +91,11 @@ function Waiting() {
       {toAdd > 0 && (
         <Link to="/admin?tab=access" className={waitingLinkClass} data-waiting-to-add>
           {toAdd.toLocaleString('en-US')} {toAdd === 1 ? 'request' : 'requests'} to add a company or plant
+        </Link>
+      )}
+      {matches > 0 && (
+        <Link to="/admin?tab=data#matches" className={waitingLinkClass} data-waiting-matches>
+          {matches.toLocaleString('en-US')} {matches === 1 ? 'match' : 'matches'} to review
         </Link>
       )}
     </div>

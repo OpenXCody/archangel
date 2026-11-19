@@ -3,6 +3,7 @@ import { db, companies, occupations, skills } from '../db/index.js';
 import { recordAudit, type Actor } from './audit.js';
 import { NOT_FOUND, RecordRefusal, attachedTo, type Attached, type RecordKind } from './records.js';
 import { rowsOf } from './rows.js';
+import { recordMerged } from './provenance.js';
 
 /**
  * Merging one record into another of its kind: a company, a career or a
@@ -134,6 +135,8 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
       await tx.delete(skills).where(eq(skills.id, m));
     }
 
+    // The history: an id that pointed at the record that is gone still leads to this one.
+    await recordMerged(tx, { kind, fromId, intoId, fromName: from.name, actorId: actor.id });
     await recordAudit(tx, {
       actor,
       kind,

@@ -1,5 +1,7 @@
 import { pgTable, uuid, text, integer, timestamp, pgEnum, index, uniqueIndex, primaryKey, varchar, jsonb, boolean, serial, smallint, doublePrecision, type AnyPgColumn } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
+// The column types only the intake tables use (migration 0043), on a line of their own.
+import { bigint, bigserial, date } from 'drizzle-orm/pg-core';
 
 // ============================================
 // ENUMS
@@ -341,8 +343,17 @@ export const externalReferences = pgTable(
     externalId: text('external_id').notNull(), // e.g., "51-4011.00", "332911"
     url: text('url'), // Optional URL to the source
     createdAt: timestamp('created_at').defaultNow().notNull(),
+    // Migration 0043. A source's id names one record of a kind: a second row
+    // found carrying an id is marked a duplicate and stands outside that rule.
+    // `runId` is the intake run that wrote the id, when one did.
+    duplicate: boolean('duplicate').default(false).notNull(),
+    runId: bigint('run_id', { mode: 'number' }),
   },
   (table) => ({
+    // The crosswalk's rule and its lookup by (source, id). Rows with source 'CURATED' are citations, not ids.
+    identityKey: uniqueIndex('external_refs_identity_key')
+      .on(table.source, table.entityType, table.externalId)
+      .where(sql`${table.source} <> 'CURATED' AND NOT ${table.duplicate}`),
     entityIdx: index('external_refs_entity_idx').on(table.entityType, table.entityId),
     sourceIdx: index('external_refs_source_idx').on(table.source),
     externalIdIdx: index('external_refs_external_id_idx').on(table.externalId),
@@ -384,7 +395,213 @@ export const loadLog = pgTable('load_log', {
   plant: text('plant'),
   detail: text('detail'),
   metres: integer('metres'),
+  // Migration 0043: an intake run's lines carry the run, the source's record, our record and the evidence.
+  runId: bigint('run_id', { mode: 'number' }),
+  sourceId: text('source_id'),
+  entityId: uuid('entity_id'),
+  evidence: jsonb('evidence'),
 });
+
+// ============================================
+// INTAKE (migration 0043; scripts/ingest/README.md)
+// Sources that come in outside the deploy: a source, its runs, what it said
+// (staging), the review queue, what a run changed, where a plant's facts came
+// from, and which record was merged into which. The runner
+// (scripts/ingest/run.mjs) and the functions in the migration write them;
+// the server reads them for Admin Tools and decides queue items.
+// ============================================
+
+export const intakeSources = pgTable('intake_sources', {
+  slug: text('slug').primaryKey(),
+  name: text('name').notNull(),
+  publisher: text('publisher'),
+  url: text('url'),
+  terms: text('terms'),
+  howFetched: text('how_fetched'),
+  kind: text('kind').default('factory').notNull(),
+  // The name the source's ids are kept under in external_references.source.
+  refSource: text('ref_source').notNull().unique(),
+  // 'known' | 'all'; 'hold' | 'add'; 'empty' | 'ranked'
+  scope: text('scope').default('known').notNull(),
+  unmatched: text('unmatched').default('hold').notNull(),
+  fill: text('fill').default('empty').notNull(),
+  rank: smallint('rank').default(50).notNull(),
+  ranks: jsonb('ranks').default({}).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const intakeRuns = pgTable(
+  'intake_runs',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    source: text('source')
+      .notNull()
+      .references(() => intakeSources.slug, { onDelete: 'cascade' }),
+    // 'staging' | 'staged' | 'resolved' | 'applying' | 'applied' | 'undone' | 'failed'
+    state: text('state').default('staging').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
+    endedAt: timestamp('ended_at', { withTimezone: true }),
+    input: text('input'),
+    inputSha256: text('input_sha256'),
+    inputBytes: bigint('input_bytes', { mode: 'number' }),
+    counts: jsonb('counts').default({}).notNull(),
+    timings: jsonb('timings').default({}).notNull(),
+    startedBy: text('started_by'),
+    note: text('note'),
+  },
+  (table) => ({
+    sourceIdx: index('intake_runs_source_idx').on(table.source, table.id),
+  })
+);
+
+export const intakeRecords = pgTable(
+  'intake_records',
+  {
+    source: text('source')
+      .notNull()
+      .references(() => intakeSources.slug, { onDelete: 'cascade' }),
+    sourceId: text('source_id').notNull(),
+    // The run that first saw it, the run that last saw it new or changed, the run that found it gone.
+    firstRunId: bigint('first_run_id', { mode: 'number' }).notNull(),
+    changedRunId: bigint('changed_run_id', { mode: 'number' }).notNull(),
+    goneRunId: bigint('gone_run_id', { mode: 'number' }),
+    // As the source said it, and the adapter's reading of it in our words.
+    payload: jsonb('payload').notNull(),
+    facts: jsonb('facts').notNull(),
+    hash: text('hash').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.source, table.sourceId] }),
+    changedIdx: index('intake_records_changed_idx').on(table.changedRunId),
+  })
+);
+
+// Which of our records each staged record is: a short row beside it, so
+// resolving and applying never rewrite what the source said. The database's
+// view intake_staged reads the two as one.
+export const intakeLinks = pgTable(
+  'intake_links',
+  {
+    source: text('source').notNull(),
+    sourceId: text('source_id').notNull(),
+    entityId: uuid('entity_id'),
+    // 'id' | 'matched' | 'added' | 'review' | 'held' | 'new'
+    resolution: text('resolution'),
+    resolvedRunId: bigint('resolved_run_id', { mode: 'number' }),
+    notIds: uuid('not_ids').array().default([]).notNull(),
+    appliedHash: text('applied_hash'),
+    appliedRunId: bigint('applied_run_id', { mode: 'number' }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.source, table.sourceId] }),
+    entityIdx: index('intake_links_entity_idx').on(table.entityId).where(sql`${table.entityId} IS NOT NULL`),
+  })
+);
+
+export const intakeLoad = pgTable(
+  'intake_load',
+  {
+    runId: bigint('run_id', { mode: 'number' }).notNull(),
+    seq: integer('seq').notNull(),
+    sourceId: text('source_id').notNull(),
+    payload: jsonb('payload').notNull(),
+    facts: jsonb('facts').notNull(),
+    hash: text('hash').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.runId, table.seq] }),
+  })
+);
+
+export const recordMerges = pgTable(
+  'record_merges',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    // 'company' | 'factory' | 'career' | 'skill'
+    kind: text('kind').notNull(),
+    fromId: uuid('from_id').notNull(),
+    intoId: uuid('into_id').notNull(),
+    fromName: text('from_name'),
+    mergedAt: timestamp('merged_at', { withTimezone: true }).defaultNow().notNull(),
+    // 'admin' | 'loader' | 'run'
+    via: text('via').notNull(),
+    runId: bigint('run_id', { mode: 'number' }),
+    actorId: uuid('actor_id'),
+    note: text('note'),
+  },
+  (table) => ({
+    fromKey: uniqueIndex('record_merges_from_key').on(table.kind, table.fromId),
+    intoIdx: index('record_merges_into_idx').on(table.kind, table.intoId),
+  })
+);
+
+export const factSources = pgTable(
+  'fact_sources',
+  {
+    factoryId: uuid('factory_id')
+      .notNull()
+      .references(() => factories.id, { onDelete: 'cascade' }),
+    // 'industry' | 'address' | 'city' | 'zip' | 'coordinates' | 'headcount' | 'products' | 'opened' | 'status'
+    fact: text('fact').notNull(),
+    // An intake source's slug, 'admin', or 'curated'.
+    source: text('source').notNull(),
+    rank: smallint('rank').notNull(),
+    asOf: date('as_of'),
+    runId: bigint('run_id', { mode: 'number' }),
+    sourceId: text('source_id'),
+    setBy: uuid('set_by'),
+    setAt: timestamp('set_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.factoryId, table.fact] }),
+    runIdx: index('fact_sources_run_idx').on(table.runId).where(sql`${table.runId} IS NOT NULL`),
+  })
+);
+
+export const intakeChanges = pgTable(
+  'intake_changes',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    runId: bigint('run_id', { mode: 'number' }).notNull(),
+    reviewId: bigint('review_id', { mode: 'number' }),
+    // 'fact' | 'id' | 'plant' | 'company'
+    op: text('op').notNull(),
+    entityId: uuid('entity_id').notNull(),
+    fact: text('fact'),
+    before: jsonb('before'),
+    after: jsonb('after'),
+    beforeSource: jsonb('before_source'),
+    at: timestamp('at', { withTimezone: true }).defaultNow().notNull(),
+    undoneAt: timestamp('undone_at', { withTimezone: true }),
+  },
+  (table) => ({
+    runIdx: index('intake_changes_run_idx').on(table.runId, table.id),
+    entityIdx: index('intake_changes_entity_idx').on(table.entityId, table.id),
+  })
+);
+
+export const intakeReview = pgTable(
+  'intake_review',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    source: text('source').notNull(),
+    sourceId: text('source_id').notNull(),
+    runId: bigint('run_id', { mode: 'number' }).notNull(),
+    reason: text('reason').notNull(),
+    candidates: jsonb('candidates').default([]).notNull(),
+    // 'waiting' | 'same' | 'different' | 'withdrawn'
+    status: text('status').default('waiting').notNull(),
+    entityId: uuid('entity_id'),
+    skippedAt: timestamp('skipped_at', { withTimezone: true }),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    decidedBy: uuid('decided_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    waitingKey: uniqueIndex('intake_review_waiting_key').on(table.source, table.sourceId).where(sql`${table.status} = 'waiting'`),
+  })
+);
 
 // ============================================
 // FACTORY_REVIEW (written by scripts/enrich-naics.mjs)
