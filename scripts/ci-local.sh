@@ -123,6 +123,7 @@ run_suite loader bash tests/api/loader.sh
 run_suite careers bash tests/api/careers.sh
 run_suite catalogue bash tests/api/catalogue.sh
 run_suite intake bash tests/api/intake.sh
+run_suite dupes bash tests/api/dupes.sh
 
 step "Device suite"
 if BASE_URL=$WEB_URL npx playwright test --trace off > "$LOGS/devices.log" 2>&1; then

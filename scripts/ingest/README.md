@@ -39,8 +39,9 @@ runner and Admin Tools cannot disagree.
 | `intake_records` | Raw staging, keyed by (source, the source's own id): `payload` (the source's own columns, as it said them), `facts` (the adapter's reading, in the words below), a hash, and the run that first saw it, last saw it change, and found it gone. Written only by `stage`. |
 | `intake_links` | One short row beside each staged record: our record, how it was found (`id`, `matched`, `added`; `review`, `held` and `new` have none yet), the run that decided, the plants an admin said it is not, and the version of the record last applied. The view `intake_staged` reads the two as one. |
 | `external_references` | **The crosswalk.** A source's id names at most one of our records of a kind: `external_refs_identity_key` is unique on (source, entity_type, external_id), which is also the index a lookup by (source, id) uses. A record can carry many sources' ids. Rows with source `CURATED` are citations, not ids, and stand outside the rule. A second row found carrying an id when the rule was made is marked `duplicate`: two of our rows for one outside thing. |
-| `record_merges` | Merge history: which record was merged into which, when, by an admin, a research file or a run. `record_now(kind, id)` follows it, so an id that pointed at a merged record still resolves. |
-| `fact_sources` | For each plant and fact (`industry`, `address`, `city`, `zip`, `coordinates`, `headcount`, `products`, `opened`, `status`): who says so (a source's slug, `admin`, `curated`), their rank, the day the value is for, the run and the source record that set it. A fact with no row was there before intake. `workforce_source` and `workforce_year` stay what a plant's page shows. |
+| `record_merges` | Merge history: which record was merged into which, when, by an admin, a research file, a cleanup migration or a run (`via`: `admin`, `loader`, `cleanup`, `run`). `record_now(kind, id)` follows it, so an id that pointed at a merged record still resolves; `GET /api/factories/<old id>` answers with a redirect to the plant kept. |
+| `fact_sources` | For each plant and fact (`industry`, `address`, `city`, `zip`, `coordinates`, `headcount`, `products`, `opened`, `status`): who says so (a source's slug, `admin`, `curated`, or `merged` for a fact taken from a row merged into this one that had no origin on record), their rank, the day the value is for, the run and the source record that set it. A fact with no row was there before intake. `workforce_source` and `workforce_year` stay what a plant's page shows. |
+| `plants_apart` | Pairs of plants an admin said are two plants: never offered as one again, by the cleanup or by Admin Tools. |
 | `intake_changes` | What a run changed, one row per change with the values before and after. It is how `undo` works and the history behind `fact_sources`. |
 | `intake_review` | A record that may be one of our plants, waiting for a person: the reason, and up to three candidates with the rule that found each and the distance. |
 | `load_log` | Still the one home for decisions. A run's lines carry `run_id`, `source_id`, `entity_id` and `evidence`; the employer loader's lines have none of those. |
@@ -198,6 +199,99 @@ does nothing on a push. Rehearse first and read the report.
 database, compares every table before and after, and decides its queue
 through the API.
 
+### One row for one plant
+
+Two rows can turn out to be one plant: two spellings of one registry
+record, a plant a source and a research file both described. Merging them is
+the database's own work (`scripts/plant-merge.sql`, in migration 0051), so a
+migration, Admin Tools and a run do it by one rule.
+
+- `plant_keeps(a, b)` says which row stays: the one written from sources
+  (`curated`); else the one with a headcount; else the one placed in a county
+  (its coordinates agree with its state); else the one with more facts filled
+  in; else the older; else the lower id. Its name is the name that stays.
+- `plant_merge(keep, gone, via, actor, load, why, look, run, evidence)` folds
+  one row into the other. The kept row keeps its name, company, place and
+  every fact it has, and takes the other's where its own are empty: address
+  (also over a post office box, unless the kept row is curated), city, ZIP,
+  industry name and code, people with their year, source and note, what it
+  makes, year opened (`plant_merge_takes` lists them). Never a fact an admin
+  emptied, and never the status: every row has one. It is curated if either
+  was. Each fact's `fact_sources` row follows the fact. Jobs, careers recorded
+  at the plant, citations, outside ids, staged records, matches waiting in the
+  queue and what an admin said the plant is not all move; an id both rows
+  carried is held once and is no longer marked `duplicate`. It writes
+  `record_merges` and one `load_log` line (which row was kept and why, what was
+  taken, what moved). It refuses a curated plant merged into one that is not
+  (`PM409`): that merge is made the other way round. A request to add a plant
+  names a company and a place, never a plant row, so there is nothing of
+  theirs to move.
+- A run does not merge plants yet: `undo` has no way to bring a merged row
+  back. When it does, it calls this function with `via => 'run'`.
+
+**The cleanup** (`migrations/0051_plant_duplicates.sql`, load
+`plant-duplicates`) is generated by `scripts/build-duplicates-sql.mjs` from
+`plant-merge.sql`, the employer loader and `scripts/plant-duplicates.sql`. It
+names no id: it finds every outside id more than one live plant carries and
+decides pair by pair, in SQL, on the database it runs on. A pair is merged
+when it is certainly one plant *and* certainly one company; anything else is
+left for a person, with the reason.
+
+*One plant*, in this order: within 5 km and the street addresses agree; within
+5 km and the names are one name; within 100 m; within 1.5 km when one name
+says only the company and the place; further than 5 km (one row's coordinates
+are wrong) only when the street addresses agree exactly and the names do not
+disagree, and that merge is marked for a look. Never rows filed under two
+states, and never two rows both written from sources.
+
+*One company*: the same row; or two rows whose names are the same but for
+legal endings, one being known by the other's name, or the same words but for
+abbreviation, plural, spacing and punctuation ("A & L Labs", "A & L
+Laboratories"); or one recorded as part of the other; or one whose name begins
+with the other's ("Bunge", "Bunge Oils") unless both have a profile of their
+own. The merged plant is filed under the company a curated row was written
+under, else the part before its parent, else the one with a profile, else the
+one with more plants. A company row of the same name left with nothing (no
+plants, people, jobs, requests, domain, featured flag, description,
+headquarters, headcounts, citations, parts) is merged in by the loader's
+company merge, its name kept as another name; any other row left without
+plants is said so and left. Rows under two companies that nothing on record
+ties together (a predecessor and a successor, a joint venture and a parent, a
+landlord and a tenant) are never merged, however plainly the plant is one:
+which company it belongs to is for a person.
+
+Then plants of one company on one spot (coordinates equal to three decimal
+places) with no id in common: merged only when the names are the same plant by
+the loader's own rule (`el_bare`) and the street addresses do not disagree.
+Two buildings of one site stay two rows. References to a plant that no longer
+exists are removed (one whose plant was merged follows it). The two steps
+repeat until a pass merges nothing, so a second application changes nothing
+and writes nothing.
+
+Reading it: `SELECT * FROM load_log WHERE load = 'plant-duplicates' AND look`
+(merges across two company rows or placed far apart, company rows merged or
+left without plants, every pair left for review, the summary). The pairs left
+are listed in Admin Tools, Data, "Plants listed twice"
+(`GET /api/admin/plants/pairs?list=id`): Merge, with the row to keep chosen
+there, or Two plants. The quality table's Duplicates count opens the plants
+of one company on one spot the same way (`list=spot&state=TX`).
+
+Rehearse it on a copy of production before it ships, and again whenever the
+rules change:
+
+```bash
+node scripts/build-duplicates-sql.mjs --rehearse --out rehearsal.sql   # --all for every line
+```
+
+Run `rehearsal.sql` all at once on one connection. It does the whole cleanup,
+returns the summary and the lines marked for a look, and undoes everything
+before it returns. Changing a rule is a change to `scripts/plant-duplicates.sql`
+and, once 0051 has been applied to production, a new generated migration
+(`--out migrations/00NN_....sql`): the cleanup is safe to run again.
+`tests/api/dupes.sh` checks the merge, the cleanup on rows shaped like
+production's, and the Admin Tools routes; `tests/unit/dupes.unit.ts` that the
+migration is what the three files build.
+
 ### The research files through this pipeline
 
 `data/employers/*.json` would be a source like any other: an adapter whose
@@ -210,7 +304,7 @@ Semiconductor/Samsung Austin Semiconductor`), `scope: 'all'`,
   by state): `intake_apply_record` writes plant facts only;
 - the loader's company merge and its move of a plant between companies, as
   decisions a run can make and undo (`record_merges` and `intake_changes`
-  are ready for them);
+  are ready for them; two plant rows are merged by `plant_merge`, above);
 - `corrections.json` (`sameAs`, `isNew`, `setAside`) read by the adapter, so
   a correction becomes a fact on the record instead of an edit to the SQL;
 - `curated = true` and the `CURATED` citations, set when a record's source is

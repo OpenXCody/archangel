@@ -12,7 +12,7 @@ import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 
 /** The facts a source fills, in the words the pages use for them. */
-const FACT_WORD: Record<string, string> = {
+export const FACT_WORD: Record<string, string> = {
   industry: 'industry',
   address: 'address',
   city: 'city',
@@ -27,7 +27,7 @@ const FACT_WORD: Record<string, string> = {
 const labelClass = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
 
 /** One side of the comparison: the name, then the lines that tell one plant from another. */
-function PlantFacts({ plant, name }: { plant: ReviewPlant; name: React.ReactNode }) {
+export function PlantFacts({ plant, name }: { plant: ReviewPlant; name: React.ReactNode }) {
   const place = [plant.address, [cityState(plant.city, plant.state), plant.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
   const industry = plant.industry ? shownIndustry(plant.industry) ?? plant.industry : null;
   return (

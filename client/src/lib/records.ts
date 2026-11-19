@@ -191,6 +191,8 @@ export interface MergeResult {
   kept: { id: string; name: string; href: string };
   merged: { id: string; name: string };
   moved: Attached;
+  /** Plants: the facts the kept row took from the other. */
+  took?: string[];
 }
 
 /** One line of the record of what admins changed. */

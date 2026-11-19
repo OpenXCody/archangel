@@ -31,6 +31,8 @@ const ACTION: Record<string, string> = {
   'plant request declined': 'Plant request declined',
   'plant request marked added': 'Plant request marked added',
   'company request answered, access given': 'Company added, access given',
+  'kept apart': 'Kept as a separate plant:',
+  'no longer kept apart': 'No longer kept as a separate plant:',
 };
 
 const FIELD: Record<string, string> = {
@@ -90,6 +92,22 @@ const ATTACHED: Record<string, [string, string]> = {
   links: ['link on its ladder', 'links on its ladder'],
   people: ['person who marked it', 'people who marked it'],
   memberships: ['company membership', 'company memberships'],
+  // What a plant merge gathers on the kept plant.
+  citations: ['source', 'sources'],
+  ids: ['outside id', 'outside ids'],
+  sharedIds: ['id both carried', 'ids both carried'],
+  records: ['staged record', 'staged records'],
+};
+
+/** The facts a kept plant takes in a merge, as the audit line names them. */
+const FACT: Record<string, string> = {
+  address: 'address',
+  city: 'city',
+  zip: 'ZIP code',
+  industry: 'industry',
+  headcount: 'people',
+  products: 'what it makes',
+  opened: 'year opened',
 };
 
 /** "12 plants, 3 jobs": what hangs from a record, in words. Empty when nothing does. */
@@ -126,6 +144,10 @@ function detailWords(entry: AuditEntry): string | null {
       parts.push(`${FIELD[field] ?? field}: ${value(pair[0])} → ${value(pair[1])}`);
     }
   }
+  // A plant merge: what the kept row took from the other. Kept apart: the plant it is not.
+  if (Array.isArray(detail.took) && detail.took.length > 0) parts.push(`took ${detail.took.map((fact) => FACT[String(fact)] ?? String(fact)).join(', ')}`);
+  const other = (detail.other as { name?: unknown } | undefined)?.name;
+  if (typeof other === 'string') parts.push(`from ${other}`);
   const moved = attachedWords(detail.moved as Record<string, number> | undefined);
   if (moved) parts.push(`moved ${moved}`);
   if (detail.removed && typeof detail.removed === 'object') {

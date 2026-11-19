@@ -795,3 +795,106 @@ test('the data quality table fits the screen, and says what it counts', async ({
   await definitions.scrollIntoViewIfNeeded();
   await assertHealthyLayout(page, '/admin?tab=data:quality-definitions');
 });
+
+test('two rows that may be one plant are set side by side, and merged or kept apart', async ({ page }) => {
+  // Nothing is written and no account is made: the admin, the pairs and the answers are stood in for here.
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({
+      json: {
+        user: { id: '00000000-0000-4000-8000-000000000001', email: 'admin@device.test', name: 'Device Admin', isAdmin: true, homeZip: null, about: null, emailNotices: true, purpose: 'work' },
+        memberships: [],
+        isEmployer: false,
+      },
+    })
+  );
+  await page.route('**/api/me/news', (route) => route.fulfill({ json: { applications: false, applicants: false, access: false } }));
+  const side = (id: string, name: string, company: string, more: Record<string, unknown> = {}) => ({
+    id, name, company, companyId: `c-${company}`, address: '2825 W WASHINGTON ST', city: 'STEPHENVILLE', state: 'TX', zip: '76401',
+    industry: null, people: null, products: null, openedYear: null, curated: false, jobs: 0, ids: ['EPA_ECHO 110000460466'], takes: [], ...more,
+  });
+  const A = '00000000-0000-4000-8000-0000000000a1';
+  const B = '00000000-0000-4000-8000-0000000000b1';
+  const C = '00000000-0000-4000-8000-0000000000c1';
+  const E = '00000000-0000-4000-8000-0000000000e1';
+  const pairs = [
+    // Under two companies, names as long as the registry writes them.
+    {
+      a: side(A, 'ATLANTIC INERTIAL SYSTEMS INC. PART OF UTC AEROSPACE SYSTEMS - CHESHIRE MANUFACTURING FACILITY', 'United Technologies', { takes: ['industry', 'zip'] }),
+      b: side(B, 'ATLANTIC INERTIAL SYSTEMS', 'Atlantic Inertial Systems', { industry: 'Computer and Electronic Product Manufacturing', takes: ['address'] }),
+      keep: B, metres: 159, by: 'id', shared: 'EPA_ECHO 110000460466', reason: 'two companies', apart: false,
+    },
+    // One written from sources: it is the one kept.
+    {
+      a: side(C, 'FMC TECHNOLOGIES INC', 'Fmc'),
+      b: side(E, 'TechnipFMC Stephenville', 'TechnipFMC', { curated: true, people: 1200, industry: 'Machinery Manufacturing' }),
+      keep: E, metres: 12400, by: 'id', shared: 'EPA_ECHO 110000485975', reason: 'far apart', apart: false,
+    },
+  ];
+  let merged: unknown = null;
+  let apart: unknown = null;
+  await page.route('**/api/admin/**', (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (path.endsWith('/plants/pairs')) return route.fulfill({ json: { pairs, total: 991 } });
+    if (path.endsWith('/plants/apart')) {
+      apart = request.postDataJSON();
+      return route.fulfill({ json: { apart: true } });
+    }
+    if (path.endsWith(`/records/factory/${A}/merge`)) {
+      merged = request.postDataJSON();
+      return route.fulfill({ json: { kept: { id: B, name: pairs[0].b.name, href: `/factories/${B}` }, merged: { id: A, name: pairs[0].a.name }, moved: {}, took: ['address'] } });
+    }
+    if (path.endsWith('/quality')) return route.fulfill({ json: { total: { state: null, plants: 10, industry: 5, code: 5, county: 10, people: 0, address: 10, outsideId: 10, onePlantCompanies: 2, duplicates: 4, duplicateGroups: 2, companies: 6 }, states: [{ state: 'TX', plants: 10, industry: 5, code: 5, county: 10, people: 0, address: 10, outsideId: 10, onePlantCompanies: 2, duplicates: 4, duplicateGroups: 2 }] } });
+    if (path.endsWith('/overview')) return route.fulfill({ json: { users: 1, pendingMemberships: 0, openJobs: 0, applications: 0, draftPaths: 0 } });
+    return route.fulfill({ json: { users: [], total: 0, memberships: [], requests: [], paths: [], records: [], entries: [], hasMore: false } });
+  });
+
+  // The Data tab says some wait, and leads to them; the quality table's count leads to the ones on one spot.
+  await page.goto('/admin?tab=data', { waitUntil: 'domcontentloaded' });
+  const way = page.locator('[data-pairs-waiting]');
+  await expect(way).toContainText('991 pairs');
+  await expect(page.locator('[data-quality-duplicates="TX"]')).toHaveAttribute('href', '/admin?tab=data&pairs=spot&state=TX');
+  await way.click();
+  await expect(page).toHaveURL(/pairs=id/);
+
+  const card = page.locator(`[data-pair="${A}:${B}"]`);
+  await expect(card).toBeVisible();
+  await expect(card.locator('[data-pair-reason]')).toContainText('EPA registry id 110000460466');
+  await expect(card.locator('[data-pair-reason]')).toContainText('One plant under two companies');
+  await assertHealthyLayout(page, '/admin?tab=data&pairs=id');
+  // The two rows stand side by side on a wide screen and one above the other on a phone, never past the edge.
+  const edges = await card.locator('[data-pair-side]').evaluateAll((sides) => sides.map((el) => el.getBoundingClientRect().right));
+  for (const right of edges) expect(right, 'a row of the pair runs past the screen').toBeLessThanOrEqual(page.viewportSize()!.width);
+
+  // The rule's choice is kept to begin with; choosing the other row changes what is taken and whose company it stays under.
+  const sideA = card.locator(`[data-pair-side="${A}"]`);
+  const sideB = card.locator(`[data-pair-side="${B}"]`);
+  await expect(sideB).toHaveAttribute('aria-checked', 'true');
+  await expect(card.locator('[data-pair-takes]')).toContainText('It takes from the other: address. It stays under Atlantic Inertial Systems.');
+  await sideA.click({ position: { x: 8, y: 8 } });
+  await expect(sideA).toHaveAttribute('aria-checked', 'true');
+  await expect(card.locator('[data-pair-takes]')).toContainText('industry, ZIP code. It stays under United Technologies.');
+  await sideB.click({ position: { x: 8, y: 8 } });
+
+  // A row written from sources cannot be the one that goes.
+  const locked = page.locator(`[data-pair="${C}:${E}"]`);
+  // (Pressed all the same: the row is marked aria-disabled, which the test runner would otherwise wait out.)
+  await locked.locator(`[data-pair-side="${C}"]`).click({ position: { x: 8, y: 8 }, force: true });
+  await expect(locked.locator(`[data-pair-side="${E}"]`)).toHaveAttribute('aria-checked', 'true');
+  await expect(locked.locator('[data-pair-takes]')).toContainText('The row written from sources is the one kept.');
+
+  // Two plants: said in one press, with a way back.
+  await locked.locator('[data-pair-apart]').click();
+  await expect.poll(() => apart).toEqual({ a: C, b: E, apart: true });
+  await expect(page.getByText('Kept FMC TECHNOLOGIES INC and TechnipFMC Stephenville as two plants.')).toBeVisible();
+
+  // Merge asks first, naming both rows; then says what it did.
+  await card.locator('[data-pair-merge]').click();
+  const dialog = page.getByRole('alertdialog');
+  await expect(dialog).toContainText('ATLANTIC INERTIAL SYSTEMS INC. PART OF UTC AEROSPACE SYSTEMS');
+  await expect(dialog).toContainText('Cannot be undone.');
+  await assertHealthyLayout(page, '/admin?tab=data&pairs=id:confirm');
+  await dialog.getByRole('button', { name: 'Merge' }).click();
+  await expect.poll(() => merged).toEqual({ into: B });
+  await expect(page.getByText(/^Merged ATLANTIC INERTIAL SYSTEMS INC\. PART OF UTC/)).toBeVisible();
+});
