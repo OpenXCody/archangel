@@ -2,7 +2,7 @@ import type { Response } from 'express';
 import { and, eq, ne, sql, type SQL } from 'drizzle-orm';
 import { db, companies, factories, occupations, occupationSkills, skills, occupationAliases, skillAliases } from '../db/index.js';
 import { changedFields, recordAudit, type Actor, type Executor } from './audit.js';
-import { answerWriteError, coordinate, count, FACTORY_STATUSES, isUuid, optionalName, optionalText, sourceUrl, stateCode, year } from './writes.js';
+import { answerWriteError, coordinate, count, FACTORY_STATUSES, HOSTNAME, isUuid, optionalName, optionalText, sourceUrl, stateCode, year } from './writes.js';
 import { rowsOf } from './rows.js';
 
 /**
@@ -47,9 +47,6 @@ export const NOT_FOUND: Record<RecordKind, string> = {
 // ---------------------------------------------------------------------------
 // Values
 // ---------------------------------------------------------------------------
-
-/** A bare hostname: labels of letters, digits and hyphens, then a letters-only ending. */
-const HOSTNAME = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 
 /**
  * A web domain as it is stored: what a person pastes ("https://www.Tesla.com/about")

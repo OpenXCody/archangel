@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { and, desc, eq, gt, or, sql } from 'drizzle-orm';
 import { db, users, companies, companyMembers, companyRequests } from '../db/index.js';
 import { canManageCompany, cleanText, handle } from '../lib/auth.js';
-import { isUuid } from '../lib/writes.js';
+import { HOSTNAME, isUuid } from '../lib/writes.js';
 import { accessDecided, companyAddRequested, companyRequestAnswered } from '../lib/notices.js';
 import { recordAudit } from '../lib/audit.js';
 import { uuidParam } from '../middleware/validateUuid.js';
@@ -26,9 +26,6 @@ import { uuidParam } from '../middleware/validateUuid.js';
 const MAX_WAITING = 5;
 /** How long an answered request stays on the person's page. */
 const ANSWERED_DAYS = 30;
-
-/** A bare hostname: labels of letters, digits and hyphens, then a letters-only ending. */
-const HOSTNAME = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 
 /**
  * A website as it is kept: the bare domain. "https://www.Example.com/about"
