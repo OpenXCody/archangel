@@ -26,7 +26,7 @@ export const LEAVES_IT = new Set(['general', 'production', 'manufacturing', 'ind
 
 // "Associate" is a level before a job ("Associate Engineer") and a job after one
 // ("Production Associate"), so it is not in the table above.
-const SHIFT_WORDS = /\b((1st|2nd|3rd|first|second|third|day|night|swing|weekend|evening|graveyard|rotating|multiple|all|[a-d]|alternate|back half|front half)[- ]?shifts?|shift [a-d1-4]|nights|days|weekends|\d{1,2}[- ]hour shifts?|multiple shifts)\b/gi;
+const SHIFT_WORDS = /\b((1st|2nd|3rd|first|second|third|day|night|swing|weekend|evening|afternoon|graveyard|rotating|multiple|all|[a-d]|alternate|back half|front half)[- ]?shifts?|shift [a-d1-4]|nights|days|weekends|\d{1,2}[- ]hour shifts?|multiple shifts)\b/gi;
 const SET_ASIDE = /\b(temporary|temp|contract|contractor|contingent|cw|part[- ]time|full[- ]time|pt|ft|onsite|on[- ]site|remote|hybrid|hourly|salaried|non[- ]exempt|exempt|relocation|sign[- ]on bonus|active clearance|(top )?secret clearance|ts\/sci|w\/ ?clearance|with clearance|clearance required|us citizenship required|new college graduate|new grads?( \d{4})?|early careers?|recent graduates?|college graduate|associates? degree|bachelors? degree|\d{4} (start|grad\w*)|(spring|summer|fall|winter) \d{4}|pipeline|evergreen|multiple (openings|positions|locations)|open rank|all levels|various levels|multiple levels|m\/w\/d|m\/f\/d|f\/m\/d|h\/f|w\/m\/d|m\/f\/x)\b/gi;
 
 /**
@@ -51,7 +51,7 @@ export function readTitle(title) {
   // A level is said as a word ("Senior") or a numeral ("II"). Where a title has both
   // ("Senior Engineer II") the word is the level; where it offers two ("2/3",
   // "Engineer II / Senior Engineer") the lower is.
-  const said = { word: null, numeral: null, either: false };
+  const said = { word: null, numeral: null, either: false, span: false };
   const lv = (word, n, numeral = true) => {
     const slot = numeral ? 'numeral' : 'word';
     if (!said[slot] || n < said[slot].n) said[slot] = { word, n };
@@ -97,7 +97,13 @@ export function readTitle(title) {
       if (w === 'team' && (next === 'lead' || next === 'leader' || next === 'member')) { if (next !== 'member') found.refused = found.refused ?? '"team lead" in the title'; }
       // A code with digits in it is a requisition or a grade, never the work: "N0309", "R10260434".
       if (/\d/.test(w) && !/^(3d|2d|5s|8d|[1-5])$/.test(w)) continue;
-      if ((w === 'or' || w === 'to') && (LEVEL_WORD[raw[i - 1]] || LEVEL_WORD[next] || ROMAN[raw[i - 1]] || ROMAN[next])) continue;
+      if ((w === 'or' || w === 'to') && (LEVEL_WORD[raw[i - 1]] || LEVEL_WORD[next] || ROMAN[raw[i - 1]] || ROMAN[next])) {
+        // "Associate to Principal": every level from one to the other, so none in particular.
+        const from = raw[i - 1] === 'associate' ? 1 : LEVEL_WORD[raw[i - 1]]?.[1];
+        const upTo = LEVEL_WORD[next]?.[1];
+        if (w === 'to' && from && upTo && upTo - from >= 2) said.span = true;
+        continue;
+      }
       // A grade letter after the job ("Assembler C") is the employer's own scale.
       if (/^[a-d]$/.test(w) && i > 0 && i === raw.length - 1) continue;
       if (/^\d{3,}$/.test(w)) continue;
@@ -109,7 +115,9 @@ export function readTitle(title) {
         const lastWord = i === raw.length - 1;
         if (w === 'lead' && ((lastWord && words.length > 0) || ['team', 'group', 'shift', 'crew', 'cell', 'line', 'area', 'production', 'technical'].includes(raw[i - 1]))) { found.refused = found.refused ?? '"lead" as the job'; continue; }
         if ((w === 'staff' || w === 'principal' || w === 'master' || w === 'expert' || w === 'consultant' || w === 'fellow') && lastWord && raw.length > 1) { words.push(w); continue; }
-        lv(named[0], named[1], false);
+        // Two level words side by side are one level, the second: "Sr. Principal", "Senior Staff".
+        if (LEVEL_WORD[raw[i - 1]] && named[1] > LEVEL_WORD[raw[i - 1]][1] && said.word?.word === LEVEL_WORD[raw[i - 1]][0]) said.word = { word: named[0], n: named[1] };
+        else lv(named[0], named[1], false);
         continue;
       }
       if (w === 'associate' && !(i === raw.length - 1 && words.length > 0)) { lv('Associate', 1, false); continue; }
@@ -118,7 +126,8 @@ export function readTitle(title) {
     if (words.length) { words.joins = joins; segments.push(words); }
   }
   const pick = said.either && said.word && said.numeral ? (said.numeral.n <= said.word.n ? said.numeral : said.word) : said.word ?? said.numeral;
-  if (pick) found.level = { word: pick.word, rank: rankOf(pick.n) };
+  if (said.span) found.level = null;
+  else if (pick) found.level = { word: pick.word, rank: rankOf(pick.n) };
   else if (found.entry) found.level = { word: 'Entry', rank: 1 };
   return { segments, ...found };
 }
@@ -126,7 +135,7 @@ export function readTitle(title) {
 function shiftOf(text) {
   const s = text.toLowerCase();
   if (/1st|first|\bday|days|\ba shift/.test(s)) return 'day';
-  if (/2nd|second|swing|evening/.test(s)) return 'swing';
+  if (/2nd|second|swing|evening|afternoon/.test(s)) return 'swing';
   if (/3rd|third|night|graveyard/.test(s)) return 'night';
   if (/weekend/.test(s)) return 'weekend';
   if (/rotating|multiple|all/.test(s)) return 'rotating';
