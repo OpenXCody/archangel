@@ -1001,6 +1001,16 @@ test("a company's version of a career, as a visitor: the same page, its changes 
   await expect(career).toContainText(occupation.title);
   await expect(career.locator('a')).toHaveAttribute('href', new RegExp(`/occupations/${occupation.id}\\?at=`));
 
+  // The Atlas takes the version: the company's skills laid over every skill there is, named as the version is.
+  await page.goto(address, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-atlas-link]')).toHaveAttribute('href', `/atlas?career=${occupation.id}&at=${company.slug ?? company.id}`);
+  await page.locator('[data-atlas-link]').click();
+  const laid = page.locator(`[data-atlas-career="${occupation.id}"]`);
+  await expect(laid.locator('a').first()).toHaveText(version!.title);
+  await expect(laid.locator('a').first()).toHaveAttribute('href', new RegExp(`/occupations/${occupation.id}\\?at=`));
+  await expect(laid.locator('[data-atlas-career-facts]')).toContainText(`${skills.length} ${skills.length === 1 ? 'skill' : 'skills'} across`);
+  await assertHealthyLayout(page, '/atlas?career&at');
+
   // A company with no version of the career says so, and leads back to the standard.
   const other = (await (await request.get(`${API}/companies?limit=5`)).json()) as { data: { id: string }[] };
   const none = other.data.find((each) => each.id !== company.id);
