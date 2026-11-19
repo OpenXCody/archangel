@@ -125,6 +125,7 @@ expect "the career lists the company"              "$CA 1 1" "$(req anon GET /oc
 expect "so does the career's own answer"           "$REC Alpha Corp" "$(req anon GET /occupations/$O | j 'versions[0].company.name')"
 expect "and the company's own answer its careers"  "$REC Operator" "$(req anon GET /companies/$CA | j 'versions[0].occupation.title')"
 expect "the standard path is as it was"            "01,02,03,04" "$(req anon GET /occupations/$O | names skills)"
+expect "an admin's editor counts it for the company, the career and the skill" "1 1 1" "$(req a GET /admin/records/company/$CA | j attached.versions) $(req a GET /admin/records/career/$O | j attached.versions) $(req a GET /admin/records/skill/$S5 | j attached.versions)"
 expect "what is stored is the difference, not the path" "01:left_out,05:added" "$(stored $CA $O)"
 
 check "a change that says nothing"                 400 "$(req m PUT $V/$O '{}')" 'Nothing to change'

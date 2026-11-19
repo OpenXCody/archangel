@@ -105,6 +105,8 @@ const ATTACHED: Record<string, [string, string]> = {
   links: ['link on its ladder', 'links on its ladder'],
   people: ['person who marked it', 'people who marked it'],
   makes: ['make', 'makes'],
+  // Companies' versions of careers: a company's own, a career's, or the ones that add or leave out a skill.
+  versions: ['version of a career', 'versions of careers'],
   memberships: ['company membership', 'company memberships'],
 };
 
