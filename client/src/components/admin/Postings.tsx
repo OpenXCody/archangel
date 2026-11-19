@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { formatFactoryName } from '@shared/displayName';
@@ -99,35 +100,76 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
   );
 }
 
+/** Where the list of places that wait lives: the Data tab, taken over by it. */
+export const PLACES_PATH = '/admin?tab=data&postings=places';
+
 /**
- * The places employers' postings name where we list no plant of theirs, the
- * ones most postings name first. Drawn only while some wait: it is also the
- * best report of plants the data is missing.
+ * The way into the places employers' postings name where we list no plant of
+ * theirs. Drawn only while some wait, and as one line: a first run leaves
+ * dozens, and the tab is for more than them.
  */
 export function PlacesWaiting() {
   const places = useWaitingPlaces();
-  if (!places.data || places.data.total === 0) return null;
-  const { places: rows, total } = places.data;
+  const total = places.data?.total ?? 0;
+  if (total === 0) return null;
   return (
-    <PageSection
-      title="Postings with no plant"
-      description="Employers' postings that name a place where we list no plant of theirs. Point the place at a plant, and every posting naming it becomes a job there."
-    >
-      <ul className={cardClass} data-posting-places>
-        {rows.map((place, index) => (
-          <PlaceRow
-            key={`${place.source}:${place.placeKey}`}
-            place={place}
-            nextFocus={rows[index + 1] ? `[data-posting-place="${rows[index + 1].placeKey}"] select, [data-posting-place="${rows[index + 1].placeKey}"] button` : undefined}
-          />
-        ))}
-      </ul>
-      {total > rows.length && (
-        <p className="mt-2 text-xs text-fg-muted">
-          {n(rows.length)} of {n(total)} places, the ones most postings name.
-        </p>
-      )}
+    <PageSection title="Postings with no plant" description="Places employers' postings name where we list no plant of theirs.">
+      <Link
+        to={PLACES_PATH}
+        className={cn(cardClass, 'flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-bg-elevated')}
+        data-posting-places-waiting
+      >
+        <span className="min-w-0 text-sm font-medium text-fg-default">Open the list</span>
+        <span className="shrink-0 text-xs tabular-nums text-fg-muted">
+          {n(total)} {total === 1 ? 'place' : 'places'}
+        </span>
+      </Link>
     </PageSection>
+  );
+}
+
+/**
+ * The places themselves, the ones most postings name first: it is also the
+ * best report of plants the data is missing.
+ */
+export function PlacesView() {
+  const places = useWaitingPlaces();
+  const rows = places.data?.places ?? [];
+  const total = places.data?.total ?? 0;
+  return (
+    <>
+      <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-fg-muted transition-colors hover:text-fg-default">
+        <ArrowLeft className="h-4 w-4" />
+        Back
+      </Link>
+      <PageSection
+        title="Postings with no plant"
+        description="Employers' postings that name a place where we list no plant of theirs. Point the place at a plant, and every posting naming it becomes a job there."
+      >
+        {places.isLoading ? (
+          <RowsSkeleton />
+        ) : places.isError ? (
+          <LoadError error={places.error} onRetry={() => void places.refetch()} retrying={places.isFetching} />
+        ) : rows.length === 0 ? (
+          <p className={cn(cardClass, 'px-4 py-6 text-center text-sm text-fg-muted')}>None yet.</p>
+        ) : (
+          <ul className={cardClass} data-posting-places>
+            {rows.map((place, index) => (
+              <PlaceRow
+                key={`${place.source}:${place.placeKey}`}
+                place={place}
+                nextFocus={rows[index + 1] ? `[data-posting-place="${rows[index + 1].placeKey}"] select, [data-posting-place="${rows[index + 1].placeKey}"] button` : undefined}
+              />
+            ))}
+          </ul>
+        )}
+        {total > rows.length && (
+          <p className="mt-2 text-xs text-fg-muted">
+            {n(rows.length)} of {n(total)} places, the ones most postings name.
+          </p>
+        )}
+      </PageSection>
+    </>
   );
 }
 

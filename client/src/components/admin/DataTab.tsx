@@ -11,7 +11,7 @@ import QualityTable from './QualityTable';
 import IntakeSources from './IntakeSources';
 import MatchReview from './MatchReview';
 import { PairsView, PairsWaiting } from './PlantPairs';
-import { PlacesWaiting, PostingRuns } from './Postings';
+import { PlacesView, PlacesWaiting, PostingRuns } from './Postings';
 import { isUuid } from '../../lib/validation';
 
 /**
@@ -31,13 +31,15 @@ export default function DataTab() {
   // Rows that may be one plant, worked through as a list: `pairs=id` (one registry id) or `pairs=spot` (one company, one spot).
   const pairs = searchParams.get('pairs');
   if (pairs === 'id' || pairs === 'spot') return <PairsView key={`${pairs}:${searchParams.get('state') ?? ''}`} list={pairs} />;
+  // The places employers' postings name where we list no plant of theirs, worked through as a list.
+  if (searchParams.get('postings') === 'places') return <PlacesView />;
   return (
     <>
       {/* Matches a source's run was not sure of come first, and only when some wait: someone's load is held up on them. */}
       <MatchReview />
       {/* Then rows that carry one registry id and may be one plant: again only while some wait. */}
       <PairsWaiting />
-      {/* Places employers' postings name where we list no plant of theirs: only while some wait. */}
+      {/* The way into the places employers' postings name where we list no plant of theirs: only while some wait. */}
       <PlacesWaiting />
       <Records />
       <PathsSection />
