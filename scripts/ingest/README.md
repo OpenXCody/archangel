@@ -371,8 +371,15 @@ only, and says what was missing.
 5. none: the posting waits, and its place goes on the list an admin sees. A
    plant is never added and a state is never guessed.
 
-A posting at several places is a job at each place that has a plant. One
-outside id is one job: `<posting id>@<place key>`.
+A posting at several places is a job at each place that has a plant, and one
+job at a plant: where two of its places come to the same plant (the plant's
+own city and a town beside it, or a place an admin pointed there), the place
+that is the plant's by rule stands and the other makes nothing. One outside
+id is one job: `<posting id>@<place key>`.
+
+Pay is kept as the posting states it, a band across an employer's levels
+included. A band whose top is more than four times its bottom is a misprint
+in the posting (one read "$30 - $389hour") and no pay is said.
 
 ### A listing read to its end
 
