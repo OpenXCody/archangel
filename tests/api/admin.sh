@@ -12,30 +12,11 @@
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/admin.sh
 # Needs a running dev API, and psql, curl and node on the PATH.
 set -u
-API=${API:-http://localhost:3000/api}
-DB=${DB:-postgresql://postgres:postgres@127.0.0.1:5432/archangel}
-case "$API" in http://localhost:*|http://127.0.0.1:*) ;; *) echo "Refusing to run against $API: local only."; exit 2;; esac
+. "$(dirname "$0")/lib.sh"
 D=$(mktemp -d)
 RUN=$(date +%s)
-fail=0
-req() { # jar method path [json]  -> prints "body\nstatus"
-  local jar=$1 m=$2 p=$3 d=${4:-}
-  if [ -n "$d" ]; then curl -s -b "$D/$jar" -c "$D/$jar" -X "$m" -H 'Content-Type: application/json' -d "$d" -w '\n%{http_code}' "$API$p"
-  else curl -s -b "$D/$jar" -c "$D/$jar" -X "$m" -w '\n%{http_code}' "$API$p"; fi
-}
-check() { # name expected-status actual-output [grep-pattern]
-  local name=$1 want=$2 out=$3 pat=${4:-}
-  local code; code=$(printf '%s' "$out" | tail -n1)
-  local body; body=$(printf '%s' "$out" | sed '$d')
-  if [ "$code" != "$want" ] || { [ -n "$pat" ] && ! printf '%s' "$body" | grep -q "$pat"; }; then
-    echo "FAIL  $name: wanted $want ${pat:+matching /$pat/ }got $code $(printf '%s' "$body" | head -c 240)"; fail=1
-  else echo "ok    $name"; fi
-}
-expect() { # name wanted got
-  if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "FAIL  $1: wanted $2 got $3"; fail=1; fi
-}
-sql() { psql "$DB" -qtAc "$1"; }
-j() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s.split('\n').slice(0,-1).join('\n'));console.log(eval('o.'+process.argv[1]))})" "$1"; }
+# This suite's refusals run long: a failed check prints more of the body.
+CHECK_SHOWS=240
 
 REC="E2E Admin $RUN"
 cleanup() {
@@ -339,5 +320,4 @@ case "$HDR" in *no-store*) echo "ok    the log is not cacheable";; *) echo "FAIL
 
 cleanup
 expect "nothing of this run is left behind" '0 0 0 0 0' "$(sql "SELECT (SELECT COUNT(*) FROM users WHERE email LIKE '%@admin.test') || ' ' || (SELECT COUNT(*) FROM invites WHERE email LIKE '%@admin.test') || ' ' || (SELECT COUNT(*) FROM companies WHERE name LIKE 'E2E Admin %') || ' ' || (SELECT COUNT(*) FROM skills WHERE name LIKE 'E2E Admin %') || ' ' || (SELECT COUNT(*) FROM audit_log WHERE record_name LIKE 'E2E Admin %' OR record_name LIKE '%@admin.test%')")"
-[ $fail -eq 0 ] && echo "ALL PASSED" || echo "SOME FAILED"
-exit $fail
+finish

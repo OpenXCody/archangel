@@ -10,15 +10,15 @@
 #   DB=postgresql://... bash tests/api/loader.sh
 # Needs psql and node on the PATH.
 set -u
-DB=${DB:-postgresql://postgres:postgres@127.0.0.1:5432/archangel}
+LIB_NO_API=1
+. "$(dirname "$0")/lib.sh"
 case "$DB" in *@localhost[:/]*|*@127.0.0.1[:/]*) ;; *) echo "Refusing to run against that database: local only."; exit 2;; esac
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 D=$(mktemp -d)
-fail=0
+# This suite's expect puts each value in brackets: many of its values are lists, or empty.
 expect() { # name wanted got
   if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "FAIL  $1: wanted [$2] got [$3]"; fail=1; fi
 }
-sql() { psql "$DB" -qtAc "$1"; }
 IN_AREA="latitude::float8 BETWEEN 39.3 AND 39.7 AND longitude::float8 BETWEEN -117.1 AND -116.7"
 
 cleanup() {

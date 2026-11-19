@@ -10,34 +10,13 @@
 # moment, and it edits one company's domain and featured flag; both are put
 # back on exit, however the script ends. Never point it at production.
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/accounts.sh
-# Needs a running dev API, seeded data that includes Texas and non-Texas
-# factories, and psql, curl and node on the PATH.
+# Needs a running dev API, seeded data with a plant in Texas and one in
+# California (two companies to act for), and psql, curl and node on the PATH.
 set -u
-API=${API:-http://localhost:3000/api}
-DB=${DB:-postgresql://postgres:postgres@127.0.0.1:5432/archangel}
-case "$API" in http://localhost:*|http://127.0.0.1:*) ;; *) echo "Refusing to run against $API: local only."; exit 2;; esac
+. "$(dirname "$0")/lib.sh"
 D=$(mktemp -d)
 # A fresh address per run, so repeat runs do not trip the sign-in throttle.
 RUN=$(date +%s)
-fail=0
-req() { # jar method path [json]  -> prints "status body"
-  local jar=$1 m=$2 p=$3 d=${4:-}
-  if [ -n "$d" ]; then curl -s -b "$D/$jar" -c "$D/$jar" -X "$m" -H 'Content-Type: application/json' -d "$d" -w '\n%{http_code}' "$API$p"
-  else curl -s -b "$D/$jar" -c "$D/$jar" -X "$m" -w '\n%{http_code}' "$API$p"; fi
-}
-check() { # name expected-status actual-output [grep-pattern]
-  local name=$1 want=$2 out=$3 pat=${4:-}
-  local code; code=$(printf '%s' "$out" | tail -n1)
-  local body; body=$(printf '%s' "$out" | sed '$d')
-  if [ "$code" != "$want" ] || { [ -n "$pat" ] && ! printf '%s' "$body" | grep -q "$pat"; }; then
-    echo "FAIL  $name: wanted $want ${pat:+matching /$pat/ }got $code $(printf '%s' "$body" | head -c 200)"; fail=1
-  else echo "ok    $name"; fi
-}
-expect() { # name wanted got
-  if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "FAIL  $1: wanted $2 got $3"; fail=1; fi
-}
-sql() { psql "$DB" -qtAc "$1"; }
-j() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s.split('\n').slice(0,-1).join('\n'));console.log(eval('o.'+process.argv[1]))})" "$1"; }
 
 psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHERE email LIKE '%@e2e.test'); DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'" >/dev/null
 # Whatever this run borrows from the local database goes back on exit.
@@ -456,5 +435,4 @@ case "$HDR" in *no-store*) echo "ok    auth responses are not cacheable";; *) ec
 CK=$(grep -c HttpOnly "$D/e" || true); [ "$CK" -ge 1 ] && echo "ok    session cookie is HttpOnly" || { echo "FAIL  cookie not HttpOnly"; fail=1; }
 psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHERE email LIKE '%@e2e.test'); DELETE FROM users WHERE email LIKE '%@e2e.test'; DELETE FROM invites WHERE email LIKE '%@e2e.test'; DELETE FROM companies WHERE name LIKE 'E2E Records %'; DELETE FROM occupations WHERE title LIKE 'E2E Records %'; DELETE FROM skills WHERE name LIKE 'E2E Records %'" >/dev/null
 rm -rf "$D"
-[ $fail -eq 0 ] && echo "ALL PASSED" || echo "SOME FAILED"
-exit $fail
+finish
