@@ -31,10 +31,12 @@ export interface PostingSource {
   run: {
     id: number;
     startedAt: string;
-    /** 'read', 'refused', 'unreachable', 'failed' or 'not listed'; null while a run is under way. */
+    /** 'read', 'refused', 'unreachable', 'cut', 'failed' or 'not listed'; null while a run is under way. */
     outcome: string | null;
-    /** Why a run that was refused, got no answer, failed or found no company stopped. */
+    /** Why a run that was refused, got no answer, was cut by a budget, failed or found no company stopped. */
     why: string | null;
+    /** Whether the board's listing was read to its end; null for a run that listed nothing. Only a complete listing says a posting is gone. */
+    complete: boolean | null;
     undone: boolean;
     read: number | null;
     kept: number | null;
@@ -92,6 +94,7 @@ export async function postingSources(): Promise<PostingSource[]> {
               startedAt: new Date(row.started_at).toISOString(),
               outcome: typeof counts.outcome === 'string' ? counts.outcome : null,
               why: row.note,
+              complete: typeof counts.complete === 'boolean' ? counts.complete : null,
               undone: row.state === 'undone',
               read: figure(counts, 'read'),
               kept: figure(counts, 'kept'),

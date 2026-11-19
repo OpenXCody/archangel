@@ -17,7 +17,7 @@ function field(item, tag) {
   return unescapeHtml(cdata ? cdata[1] : inner);
 }
 
-export async function list(board, { get }) {
+export async function* pages(board, { get }) {
   const url = feed(board);
   const { text: xml } = await get(url, { accept: 'xml' });
   shape(/<rss[\s>]/.test(xml.slice(0, 2000)) && xml.includes('<channel>'), 'not an RSS feed', url);
@@ -49,5 +49,6 @@ export async function list(board, { get }) {
       hints: {},
     });
   }
-  return out;
+  // The whole feed is one answer: the listing is complete or it is nothing.
+  yield { postings: out, next: null };
 }

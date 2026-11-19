@@ -8,11 +8,11 @@ export const pace = 1000;
 
 export const feed = (board) => `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(board)}/jobs?content=true`;
 
-export async function list(board, { get }) {
+export async function* pages(board, { get }) {
   const url = feed(board);
   const { json } = await get(url);
   shape(Array.isArray(json?.jobs), 'no list of jobs', url);
-  return json.jobs.map((job) => {
+  const postings = json.jobs.map((job) => {
     shape(job && job.id !== undefined && typeof job.title === 'string', 'a job with no id or title', url);
     // A posting at several places names them in one line, with semicolons between.
     const places = distinct(String(job.location?.name ?? '').split(';'));
@@ -34,4 +34,6 @@ export async function list(board, { get }) {
       hints: {},
     };
   });
+  // The whole board is one answer: the listing is complete or it is nothing.
+  yield { postings, next: null };
 }

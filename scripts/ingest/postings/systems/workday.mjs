@@ -9,12 +9,20 @@ import { distinct, isoTime, shape, webAddress, words } from './shared.mjs';
 
 export const name = 'Workday';
 export const how = 'One request per 20 postings for the list, then one per kept posting that is new or changed.';
-// A board's tenants share one platform, and it turns a busy robot away: three seconds apart, and no more
-// than fifty texts for one employer in one run (the rest are read on the runs that follow).
-export const pace = 3000;
-export const textsPerRun = 50;
+// Every Workday board is a tenant of one platform, and the platform turns a busy robot away (it reset the
+// scout after about 870 requests in an hour, and answered 429 the same day). So the platform has a budget
+// for the whole run, across every board on it: 300 requests, four seconds apart, about twenty minutes. It
+// is spent on the boards whose complete listing is oldest first; a listing the budget cuts is taken up at
+// the next run where it stopped, with every text up to the cut already read.
+export const pace = 4000;
+export const budget = { platform: 'myworkdayjobs.com', requests: 300 };
+export const resumes = true;
+// A text here is dear: one that was read is read again after sixty days, not thirty, unless its listing changed.
+export const rereadDays = 60;
 
 const PAGE = 20;
+/** How far before the point a listing was cut it is taken up again: two pages. */
+const BACK_UP = 2 * PAGE;
 /** 20,000 postings: a count that never ends is a changed feed, not a large board. */
 const MOST_PAGES = 1000;
 /** Workday's own id for the United States, the same on every board. */
@@ -56,28 +64,38 @@ function idOf(job) {
   return tail ? tail[1] : words(job.bulletFields?.[0]) ?? job.externalPath;
 }
 
-export async function list(board, { post, today }) {
+/**
+ * The listing, twenty postings to a request. `from` is where an earlier run
+ * was cut: { offset, facet, total }. A listing taken up again starts two
+ * pages before that point, so that postings which left the board since (and
+ * moved the rest up) do not hide the ones that followed them.
+ */
+export async function* pages(board, { post, today }, from = null) {
   const url = feed(board);
   const { host, pathname } = new URL(url);
   const site = pathname.split('/').filter(Boolean).slice(-2, -1)[0];
   const ask = (offset, appliedFacets) => post(url, { appliedFacets, limit: PAGE, offset, searchText: '' });
 
-  let { json } = await ask(0, {});
-  shape(Array.isArray(json?.jobPostings), 'no list of postings', url);
-  const facet = countryFacet(json.facets) ?? {};
-  if (Object.keys(facet).length > 0) {
-    ({ json } = await ask(0, facet));
+  let facet = from?.facet ?? null;
+  let total = from?.total ?? 0;
+  let offset = from ? Math.max(0, Number(from.offset ?? 0) - BACK_UP) : 0;
+  let json = null;
+  if (!from) {
+    ({ json } = await ask(0, {}));
     shape(Array.isArray(json?.jobPostings), 'no list of postings', url);
+    facet = countryFacet(json.facets) ?? {};
+    // With the filter the first page is asked for again; without it, this is the first page.
+    if (Object.keys(facet).length > 0) json = null;
   }
-  // Later pages do not repeat the count.
-  const total = Number(json.total ?? 0);
-  const out = [];
   const seen = new Set();
   for (let page = 0; page < MOST_PAGES; page += 1) {
-    if (page > 0) {
-      ({ json } = await ask(page * PAGE, facet));
+    if (json === null) {
+      ({ json } = await ask(offset, facet));
       shape(Array.isArray(json?.jobPostings), 'no list of postings', url);
     }
+    // Later pages do not repeat the count.
+    if (offset === 0 && Number(json.total) > 0) total = Number(json.total);
+    const postings = [];
     for (const job of json.jobPostings) {
       // A row with no path is a posting the board has withdrawn and not yet dropped.
       if (!job?.externalPath || typeof job.title !== 'string') continue;
@@ -87,7 +105,7 @@ export async function list(board, { post, today }) {
       const place = words(job.locationsText);
       // "2 Locations": the places are in the posting itself.
       const several = place !== null && /^\d+ locations$/i.test(place);
-      out.push({
+      postings.push({
         id,
         title: job.title.trim(),
         location: several ? null : place,
@@ -103,10 +121,15 @@ export async function list(board, { post, today }) {
         path: job.externalPath,
       });
     }
-    if (json.jobPostings.length === 0 || (page + 1) * PAGE >= total) return out;
+    const count = json.jobPostings.length;
+    json = null;
+    offset += PAGE;
+    // The end: a page that is not full, or the count the first page gave.
+    const last = count < PAGE || (total > 0 && offset >= total);
+    yield { postings, next: last ? null : { offset, facet, total } };
+    if (last) return;
   }
   shape(false, `more than ${MOST_PAGES} pages`, url);
-  return out;
 }
 
 export async function text(board, listed, { get }) {

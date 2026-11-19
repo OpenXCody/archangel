@@ -8,11 +8,11 @@ export const pace = 1000;
 
 export const feed = (board) => `https://api.lever.co/v0/postings/${encodeURIComponent(board)}?mode=json`;
 
-export async function list(board, { get }) {
+export async function* pages(board, { get }) {
   const url = feed(board);
   const { json } = await get(url);
   shape(Array.isArray(json), 'no list of postings', url);
-  return json.map((job) => {
+  const postings = json.map((job) => {
     shape(job && typeof job.id === 'string' && typeof job.text === 'string', 'a posting with no id or title', url);
     const c = job.categories ?? {};
     const locations = distinct([c.location, ...(Array.isArray(c.allLocations) ? c.allLocations : [])]);
@@ -33,4 +33,6 @@ export async function list(board, { get }) {
       hints: { ...(pay ? { pay } : {}), ...(words(c.commitment) ? { employmentType: words(c.commitment) } : {}) },
     };
   });
+  // The whole board is one answer: the listing is complete or it is nothing.
+  yield { postings, next: null };
 }

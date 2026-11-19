@@ -13,20 +13,21 @@ const MOST_PAGES = 100;
 
 export const feed = (board, page = 1) => `https://${board}/api/jobs?page=${page}&limit=${PAGE}`;
 
-export async function list(board, { get }) {
-  const out = [];
+export async function* pages(board, { get }) {
   const seen = new Set();
+  let listed = 0;
   for (let page = 1; page <= MOST_PAGES; page += 1) {
     const url = feed(board, page);
     const { json } = await get(url);
     shape(Array.isArray(json?.jobs), 'no list of jobs', url);
+    const postings = [];
     for (const { data: job } of json.jobs) {
       shape(job && (job.req_id ?? job.slug) !== undefined && typeof job.title === 'string', 'a job with no id or title', url);
       const id = String(job.req_id ?? job.slug);
       if (seen.has(id)) continue;
       seen.add(id);
       const place = [words(job.city), words(job.state)].filter(Boolean).join(', ') || words(job.full_location) || words(job.location_name);
-      out.push({
+      postings.push({
         id,
         title: job.title.trim(),
         location: place || null,
@@ -44,9 +45,11 @@ export async function list(board, { get }) {
           : {},
       });
     }
+    listed += json.jobs.length;
     const total = Number(json.totalCount ?? json.count ?? 0);
-    if (json.jobs.length === 0 || out.length >= total) return out;
+    const last = json.jobs.length === 0 || listed >= total;
+    yield { postings, next: last ? null : page + 1 };
+    if (last) return;
   }
   shape(false, `more than ${MOST_PAGES} pages`, feed(board));
-  return out;
 }

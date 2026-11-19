@@ -25,22 +25,23 @@ export function feed(board, offset = 0) {
     `&finder=findReqs;siteNumber=${site},limit=${PAGE},offset=${offset},sortBy=POSTING_DATES_DESC`;
 }
 
-export async function list(board, { get }) {
+export async function* pages(board, { get }) {
   const { host, site } = parts(board);
-  const out = [];
   const seen = new Set();
+  let listed = 0;
   for (let page = 0; page < MOST_PAGES; page += 1) {
     const url = feed(board, page * PAGE);
     const { json } = await get(url);
     const search = json?.items?.[0];
     shape(search && Array.isArray(search.requisitionList), 'no list of requisitions', url);
+    const postings = [];
     for (const job of search.requisitionList) {
       shape(job && job.Id !== undefined && typeof job.Title === 'string', 'a requisition with no id or title', url);
       const id = String(job.Id);
       if (seen.has(id)) continue;
       seen.add(id);
       const locations = distinct([job.PrimaryLocation, ...(job.secondaryLocations ?? []).map((place) => place?.Name)]);
-      out.push({
+      postings.push({
         id,
         title: job.Title.trim(),
         location: locations[0] ?? null,
@@ -55,11 +56,13 @@ export async function list(board, { get }) {
         hints: words(job.JobShift) ? { shift: words(job.JobShift) } : {},
       });
     }
+    listed += search.requisitionList.length;
     const total = Number(search.TotalJobsCount ?? 0);
-    if (search.requisitionList.length === 0 || out.length >= total) return out;
+    const last = search.requisitionList.length === 0 || listed >= total;
+    yield { postings, next: last ? null : (page + 1) * PAGE };
+    if (last) return;
   }
   shape(false, `more than ${MOST_PAGES} pages`, feed(board));
-  return out;
 }
 
 export async function text(board, listed, { get }) {

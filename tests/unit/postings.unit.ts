@@ -13,15 +13,15 @@ import { after, before, test } from 'node:test';
 // @ts-expect-error a plain script, no types
 import { checkRegistry, loadRegistry, sourceOf } from '../../scripts/ingest/postings/registry.mjs';
 // @ts-expect-error a plain script, no types
-import { CeilingReached, FeedError, Refusal, USER_AGENT, createFetcher, parseRobots, platformOf, rewriteTo } from '../../scripts/ingest/postings/fetch.mjs';
+import { BudgetSpent, CeilingReached, FeedError, Refusal, USER_AGENT, createFetcher, parseRobots, platformOf, rewriteTo } from '../../scripts/ingest/postings/fetch.mjs';
 // @ts-expect-error a plain script, no types
 import { SYSTEMS } from '../../scripts/ingest/postings/systems/index.mjs';
 // @ts-expect-error a plain script, no types
 import { countryFacet, postedDay } from '../../scripts/ingest/postings/systems/workday.mjs';
 // @ts-expect-error a plain script, no types
-import { unescapeHtml, webAddress } from '../../scripts/ingest/postings/systems/shared.mjs';
+import { listAll, unescapeHtml, webAddress } from '../../scripts/ingest/postings/systems/shared.mjs';
 // @ts-expect-error a plain script, no types
-import { collect } from '../../scripts/ingest/postings/jobs.mjs';
+import { beforeText, collect } from '../../scripts/ingest/postings/jobs.mjs';
 // @ts-expect-error a plain script, no types
 import * as reader from '../../scripts/ingest/postings/read/index.mjs';
 // @ts-expect-error a plain script, no types
@@ -259,7 +259,7 @@ after(async () => {
 async function read(system: string, boardOf: string) {
   const session: Session = createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session(system, { pace: 0 });
   const tools = { get: session.get, post: session.post, today: '2026-11-19' };
-  const listed: Listed[] = await SYSTEMS[system].list(boardOf, tools);
+  const listed: Listed[] = await listAll(SYSTEMS[system], boardOf, tools);
   return { listed, session, tools };
 }
 
@@ -384,7 +384,7 @@ test('a feed whose shape changed fails for that employer and says what was missi
   put('greenhouse/changed.json', JSON.stringify({ postings: [] }));
   const session: Session = fetcherHere().session('changed');
   await assert.rejects(
-    SYSTEMS.greenhouse.list('changed', { get: session.get, post: session.post, today: '2026-11-19' }),
+    listAll(SYSTEMS.greenhouse, 'changed', { get: session.get, post: session.post, today: '2026-11-19' }),
     (error: FeedError & { shape?: boolean }) => error instanceof FeedError && error.shape === true && /shape changed: no list of jobs/.test(error.message)
   );
 });
@@ -401,14 +401,22 @@ test('small readings: escaped HTML, and what counts as a web address', () => {
 
 const noRows = Object.assign(async () => [], { json: (value: unknown) => value });
 
-test('the stand-in reader keeps a posting whose title is a career, and reads a plain place', () => {
+test('before a text is asked for: a title that is a career, one that could be, and one that is not', () => {
   const vocab = reader.loadVocabulary(ROOT);
-  const reading = reader.readPosting({ employer: 'Acme', title: 'welder', location: 'Franklin, LA', text: '' }, vocab);
-  assert.deepEqual(reading.career, { title: 'Welder', how: 'title', matched: 'welder' });
-  assert.deepEqual(reading.places, [{ city: 'Franklin', state: 'LA' }]);
-  assert.equal(reader.readPosting({ employer: 'Acme', title: 'Deputy Program Manager', location: 'Austin, Texas, United States', text: '' }, vocab).career, null);
-  assert.deepEqual(reader.readPosting({ employer: 'Acme', title: 'Welder', location: 'USA - Berkeley, MO', text: '' }, vocab).places, [{ city: 'Berkeley', state: 'MO' }]);
-  assert.deepEqual(reader.readPosting({ employer: 'Acme', title: 'Welder', location: 'Melbourne, Victoria, Australia', text: '' }, vocab).places, []);
+  const ask = (title: string, location: string | null) =>
+    beforeText(reader, { title, location, locations: location ? [location] : [] }, { employer: 'Acme', title }, vocab);
+  // The title says it.
+  assert.deepEqual(ask('Welder', 'Franklin, LA'), { could: true, places: [{ city: 'Franklin', state: 'LA' }] });
+  // The title could be one of ours and the text has to bear it out: the reader reached for the text, so it is worth the request.
+  assert.equal(reader.readPosting({ employer: 'Acme', title: 'Manufacturing Technician', location: 'Franklin, LA', text: '' }, vocab).career, null);
+  assert.equal(ask('Manufacturing Technician', 'Franklin, LA').could, true);
+  // A title the reader refuses outright is never asked about.
+  assert.equal(ask('Deputy Program Manager', 'Austin, Texas, United States').could, false);
+  assert.equal(ask('Accountant', 'Franklin, LA').could, false);
+  // A listing that says where, and it is nowhere in the United States; and one that gives no line to read.
+  assert.deepEqual(ask('Welder', 'Melbourne, Victoria, Australia').places, []);
+  assert.equal(ask('Welder', null).places, null, 'no line: the places are in the posting itself');
+  assert.equal(ask('Welder', null).could, true);
 });
 
 test('only postings that are one of our careers at a US place are kept, as facts and a link: never the text', async () => {
@@ -418,7 +426,7 @@ test('only postings that are one of our careers at a US place are kept, as facts
   const countries: unknown[] = [];
   const watching = { ...reader, readPosting: (posting: { country?: string; text: string }, vocab: unknown) => { if (posting.text) countries.push(posting.country); return reader.readPosting(posting, vocab); } };
   await collect(noRows, entry, { session: createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session('saronic', { pace: 0 }), reader: watching, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' });
-  assert.deepEqual(countries, ['United States', 'United States', 'United States']);
+  assert.deepEqual(countries, ['United States', 'United States', 'United States', 'United States'], 'each posting is read once, with its country');
   const collected = await collect(noRows, entry, { session, reader, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' });
   assert.deepEqual(collected.counts, { read: 4, abroad: 0, notCareer: 1, noPlace: 0, noAddress: 0, vanished: 0, texts: 0, kept: 3 });
   const welder = [...collected.kept.values()].find((record: { facts: { title: string } }) => record.facts.title === 'Welder');
@@ -442,7 +450,7 @@ test('where the text costs a request it is asked for only postings whose title i
     readPosting: (posting: { title: string; location: string; text: string }) => ({
       career: /machinist/i.test(posting.title) ? { title: 'CNC Machinist', how: 'close', matched: posting.title } : null,
       level: null,
-      places: /Auburn/.test(posting.location) ? [{ city: 'Auburn', state: 'WA' }] : /Algona/.test(posting.location) ? [{ city: 'Algona', state: 'WA' }] : [],
+      places: ['Auburn', 'Algona'].filter((city) => posting.location.includes(city)).map((city) => ({ city, state: 'WA' })),
       skills: [], makes: [], requirements: {}, pay: null, unknown: [],
     }),
   };
@@ -471,5 +479,100 @@ test('where the text costs a request it is asked for only postings whose title i
   const third = await run([], { ceiling: 3 });
   assert.equal(third.collected.kept.size, 0);
   assert.deepEqual([...third.collected.deferred], ['JR2026516085-1']);
-  assert.equal(third.collected.stopped, null);
+  assert.equal(third.collected.stopped.outcome, 'cut');
+  assert.equal(third.collected.complete, true, 'the listing itself was read to its end');
+  assert.deepEqual([...third.collected.present], ['JR2026516085-1'], 'listed, so not gone');
+});
+
+// --- A platform's budget, and a listing that is cut -------------------------------------
+
+test('a platform has a budget of requests for the whole run, across every employer on it', async () => {
+  const fetcher = fetcherHere({ budgets: { 'budget.test': 3 } });
+  const first: Session = fetcher.session('one');
+  const second: Session = fetcher.session('two');
+  await first.get(feed('a.budget.test'));
+  assert.equal(fetcher.budgetLeft('budget.test'), 1, 'the robots file and the feed are two requests to the platform');
+  await second.get('https://b.budget.test/robots.txt').catch(() => undefined);
+  await assert.rejects(second.get(feed('b.budget.test')), (error: Error) => error instanceof BudgetSpent && /budget of 3 requests to budget\.test is spent/.test(error.message));
+  await assert.rejects(first.get(feed('a.budget.test')), BudgetSpent);
+  assert.equal(fetcher.totals.platforms['budget.test'], 3);
+  assert.equal(asked('a.budget.test').length + asked('b.budget.test').length, 3, 'nothing was asked past the budget');
+  assert.equal(first.stopped, null, 'a spent budget is not a refusal');
+  assert.equal(fetcher.budgetLeft('elsewhere.test'), Infinity);
+  // Another platform is not held back.
+  await fetcher.session('three').get(feed('open.test'));
+});
+
+/** A Workday board of `count` postings in the folder the local server reads: every fifth a welder, with its text. */
+function longBoard(tenant: string, count: number, without: number[] = []) {
+  const jobPostings = [];
+  for (let n = 1; n <= count; n += 1) {
+    if (without.includes(n)) continue;
+    const title = n % 5 === 1 ? 'Welder' : 'Payroll Analyst';
+    const row = { title, externalPath: `/job/Reno-NV/${title.replace(/ /g, '-')}_W${n}`, locationsText: 'Reno, NV', postedOn: 'Posted Today', bulletFields: [`W${n}`] };
+    jobPostings.push(row);
+    if (title === 'Welder') {
+      put(`workday/${tenant}/detail/${row.externalPath.replace(/[^A-Za-z0-9]+/g, '_')}.json`, JSON.stringify({ jobPostingInfo: {
+        title, jobDescription: '<p>Weld frames.</p><h3>Basic Qualifications</h3><ul><li>Experience in MIG welding</li></ul>', location: 'Reno, NV', additionalLocations: [],
+        startDate: '2026-11-18', timeType: 'Full time', externalUrl: `https://${tenant}.wd1.myworkdayjobs.com/Careers${row.externalPath}` } }));
+    }
+  }
+  put(`workday/${tenant}/list.json`, JSON.stringify({ jobPostings, facets: [] }));
+}
+
+test('a listing cut by the budget has read everything up to the cut, and the next run takes it up there', async () => {
+  longBoard('cut', 85);
+  const vocab = reader.loadVocabulary(ROOT);
+  const entry = { slug: 'cut', employer: 'Cut', company: 'Cut', system: 'workday', board: 'https://cut.wd1.myworkdayjobs.com/wday/cxs/cut/Careers' };
+  const host = 'cut.wd1.myworkdayjobs.com';
+  const offsets = (from: number) => asked(host).slice(from).filter((request) => request.method === 'POST').map((request) => JSON.parse(request.body).offset);
+  const run = async (budget: number, rows: unknown[]) => {
+    const fetcher = fetcherHere({ budgets: { 'myworkdayjobs.com': budget } });
+    const db = Object.assign(async () => rows, { json: (value: unknown) => value });
+    const before = asked(host).length;
+    const collected = await collect(db, entry, { session: fetcher.session('cut', { pace: 0 }), reader, vocab, today: '2026-11-19' });
+    return { collected, before };
+  };
+
+  // Robots, then pages and the texts of each page's welders as it goes: 1 + (1 + 4) + (1 + 4) + 1 = 12, and the thirteenth is refused by the budget.
+  const first = await run(12, []);
+  assert.deepEqual(offsets(first.before), [0, 20, 40]);
+  assert.equal(first.collected.complete, false);
+  assert.equal(first.collected.stopped.outcome, 'cut');
+  assert.match(first.collected.stopped.why, /budget of 12 requests to myworkdayjobs\.com is spent/);
+  assert.equal(first.collected.counts.read, 60);
+  assert.deepEqual([...first.collected.kept.keys()], ['W1', 'W6', 'W11', 'W16', 'W21', 'W26', 'W31', 'W36'], 'the first two pages were read whole');
+  assert.deepEqual([...first.collected.deferred], ['W41', 'W46', 'W51', 'W56'], 'the page the budget cut at: listed, not read, and listed again next run');
+  assert.deepEqual(first.collected.resume.next, { offset: 60, facet: {}, total: 85 });
+  assert.equal(first.collected.resume.seen.length, 12);
+
+  // The next run: what the last run's row says is where it starts, two pages back from the cut.
+  const staged = [...first.collected.kept].map(([id, record]) => ({ source_id: id, hash: (record as { hash: string }).hash, payload: (record as { payload: unknown }).payload, facts: (record as { facts: unknown }).facts }));
+  const second = await run(300, [{ counts: { resume: first.collected.resume }, ...staged[0] }, ...staged.slice(1)]);
+  assert.deepEqual(offsets(second.before), [20, 40, 60, 80], 'no first page, no filter request: straight to where it stopped, less two pages');
+  assert.equal(second.collected.complete, true);
+  assert.equal(second.collected.resumed, true);
+  assert.equal(second.collected.resume, null);
+  assert.equal(second.collected.counts.texts, 9, 'the page that was cut and the ones after it; what was read before the cut is not asked for again');
+  assert.equal(second.collected.present.size, 17, 'every welder of the board, over the two runs');
+  assert.ok(second.collected.present.has('W1'), 'one the first run saw and the second did not list is not gone');
+});
+
+test('a listing that is refused part way keeps what it listed and says it did not reach the end', async () => {
+  put('jibe/careers.partway.test.json', JSON.stringify({ jobs: Array.from({ length: 120 }, (_, n) => ({ data: {
+    req_id: String(n + 1), title: n % 50 === 3 ? 'Welder' : 'Payroll Analyst', city: 'Reno', state: 'Nevada', country_code: 'US',
+    description: '<p>Weld frames.</p><ul><li>Experience in MIG welding</li></ul>', meta_data: { canonical_url: `https://careers.partway.test/jobs/${n + 1}` } } })) }));
+  put('refuse/careers.partway.test', '403 after 2');
+  const entry = { slug: 'partway', employer: 'Partway', company: 'Partway', system: 'jibe', board: 'careers.partway.test' };
+  const session: Session = fetcherHere().session('partway', { pace: 0 });
+  const collected = await collect(noRows, entry, { session, reader, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' });
+  assert.equal(collected.counts.read, 100);
+  assert.deepEqual([...collected.kept.keys()], ['4', '54']);
+  assert.equal(collected.complete, false);
+  assert.equal(collected.stopped.outcome, 'refused');
+  assert.equal(collected.resume, null, 'this system cannot be taken up part way: the next run starts it again');
+  assert.ok(session.stopped instanceof Refusal);
+  // Refused before anything was listed: there is nothing to stage, and the run fails as a refusal.
+  put('refuse/careers.partway.test', '403 after 1');
+  await assert.rejects(collect(noRows, entry, { session: fetcherHere().session('partway', { pace: 0 }), reader, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' }), Refusal);
 });

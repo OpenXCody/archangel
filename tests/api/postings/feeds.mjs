@@ -14,10 +14,12 @@
 //   oracle/<host>/list.json                   the requisitions, served 100 at a time; detail-<id>.json each
 //   workday/<tenant>/list.json                { jobPostings, facets }, served 20 at a time; detail/<path>.json each
 //   successfactors/<host>.xml                 the feed
-//   refuse/<host>                             a file holding 403, 429, challenge or reset: every request to that host gets it
+//   refuse/<host>                             a file holding 403, 429, challenge or reset: every request to that host gets it.
+//                                             "403 after 2" answers the first two requests made since the file was written
+//                                             (the robots file and a first page, say) and refuses from the third
 // `requests` (GET /_requests) is every request it has answered, for a test to count.
 import { createServer } from 'node:http';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -25,6 +27,7 @@ const CHALLENGE = '<!DOCTYPE html><html><head><title>Just a moment...</title></h
 
 export function feedServer(dir) {
   const requests = [];
+  const times = [];
   const file = (...parts) => path.join(dir, ...parts);
   const json = (res, status, body) => {
     res.writeHead(status, { 'Content-Type': 'application/json' });
@@ -46,15 +49,20 @@ export function feedServer(dir) {
       const route = `/${rest.join('/')}`;
       const body = chunks.length > 0 ? Buffer.concat(chunks).toString('utf8') : '';
       requests.push({ method: req.method, host, path: route, query: url.search, agent: req.headers['user-agent'] ?? '', body });
+      times.push({ host, at: Date.now() });
 
-      // A host told to refuse does so to everything, its robots file included.
-      const refusal = existsSync(file('refuse', host)) ? readFileSync(file('refuse', host), 'utf8').trim() : null;
-      if (refusal === 'reset') return req.socket.destroy();
-      if (refusal === 'challenge') {
+      // A host told to refuse does so to everything, its robots file included; "after N" lets N requests through first.
+      const rule = existsSync(file('refuse', host)) ? readFileSync(file('refuse', host), 'utf8').trim() : null;
+      const [refusal, , after] = rule ? rule.split(/\s+/) : [null];
+      const since = rule ? statSync(file('refuse', host)).mtimeMs : 0;
+      const answered = times.filter((asked) => asked.host === host && asked.at >= since).length - 1;
+      const refuse = refusal !== null && (after === undefined || answered >= Number(after));
+      if (refuse && refusal === 'reset') return req.socket.destroy();
+      if (refuse && refusal === 'challenge') {
         res.writeHead(200, { 'Content-Type': 'text/html' });
         return res.end(CHALLENGE);
       }
-      if (refusal) return json(res, Number(refusal), { error: 'refused' });
+      if (refuse) return json(res, Number(refusal), { error: 'refused' });
 
       if (route === '/robots.txt') return send(res, file('robots', `${host}.txt`), 'text/plain');
 

@@ -6,7 +6,7 @@ import { focusArea } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
 import { INDUSTRY_NAME_LIST, plantCounty } from '../lib/industries.js';
 import { isUuid } from '../lib/writes.js';
-import { jobIsOpen } from '../lib/openJobs.js';
+import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
 import { rowsOf } from '../lib/rows.js';
 
 const router = Router();
@@ -115,7 +115,7 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
     INNER JOIN factories f ON f.id = j.factory_id
     INNER JOIN companies c ON c.id = j.company_id
     WHERE ${jobIsOpen('j')} AND ${inSet('f')} AND ${factoryInScope('f')}
-    ORDER BY j.posted_at DESC
+    ORDER BY ${jobsInOrder('j')}
     LIMIT ${REGION_JOB_LIMIT}
   `);
   const jobRows = rowsOf(openJobs);

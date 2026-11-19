@@ -22,7 +22,7 @@ import { SCOPE } from '../../shared/scope.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
 import { applicationReceived, applicationStatusChanged } from '../lib/notices.js';
 import { jobTextFilter, milesFromFactory, readNear } from '../lib/jobSearch.js';
-import { jobIsOpen } from '../lib/openJobs.js';
+import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
 import { hasVersionOf, versionPathSkills } from '../lib/versions.js';
 
 /**
@@ -121,8 +121,8 @@ router.get(
         .innerJoin(factories, eq(factories.id, jobs.factoryId))
         .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
         .where(and(...filters))
-        // The id settles jobs posted at the same moment, so a page never repeats or skips one.
-        .orderBy(...(miles ? [sql`${miles} ASC`] : []), sql`${jobs.postedAt} DESC`, jobs.id)
+        // Nearest first where a place was given; then the newest day, the companies of a day in turn (jobsInOrder).
+        .orderBy(...(miles ? [sql`${miles} ASC`] : []), jobsInOrder())
         .limit(limit)
         .offset(offset),
       db

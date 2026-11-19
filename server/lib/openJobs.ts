@@ -12,6 +12,20 @@ export function jobIsOpen(jobTable = 'jobs'): SQL {
   return sql`(${job}.status = 'open' AND ${job}.expires_at > now())`;
 }
 
+/**
+ * The order a list of jobs is shown in, wherever one is listed: the newest
+ * day first, and within a day one job of each company in turn (each
+ * company's newest first), then the next of each. `posted_at` is the day the
+ * employer's feed says, or the moment a job was first seen where the feed
+ * says none, so a board that came in at once would otherwise stand as one
+ * company's block. The order is a function of the rows alone (the id settles
+ * what is left), so a page never repeats or skips a job.
+ */
+export function jobsInOrder(jobTable = 'jobs'): SQL {
+  const job = sql.identifier(jobTable);
+  return sql`(${job}.posted_at)::date DESC, row_number() OVER (PARTITION BY (${job}.posted_at)::date, ${job}.company_id ORDER BY ${job}.posted_at DESC, ${job}.id), ${job}.posted_at DESC, ${job}.id`;
+}
+
 /** How many open jobs a company's, a plant's or a career's page lists: the newest. The rest are a link away, on Jobs. */
 export const OPEN_JOBS_SHOWN = 12;
 
@@ -49,6 +63,6 @@ export async function listOpenJobs(where: SQL, limit = 50) {
     .innerJoin(factories, eq(jobs.factoryId, factories.id))
     .innerJoin(occupations, eq(jobs.occupationId, occupations.id))
     .where(and(where, jobIsOpen(), factoryInScope()))
-    .orderBy(sql`${jobs.postedAt} DESC`)
+    .orderBy(jobsInOrder())
     .limit(limit);
 }

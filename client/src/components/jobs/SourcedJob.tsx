@@ -30,34 +30,47 @@ function years(min?: number, max?: number): string | null {
   return null;
 }
 
+/** The schooling a posting asks for, as the reader names it, in the words a person reads. Anything else is shown as it is. */
+const EDUCATION: Record<string, string> = {
+  'high school': 'High school diploma',
+  certificate: 'Technical certificate',
+  associate: 'Associate degree',
+  bachelor: "Bachelor's degree",
+  master: "Master's degree",
+  doctorate: 'Doctorate',
+};
+
+/** "Secret" is a clearance: said so. */
+const clearance = (level: string) => (/clearance|trust/i.test(level) ? level : `${level} clearance`);
+
 /** What a posting asks for, as at most two quiet lines: experience and schooling, then papers. */
 export function requirementLines(requirements: JobRequirements | null | undefined): string[] {
   if (!requirements) return [];
-  const first = [years(requirements.yearsMin, requirements.yearsMax), requirements.education].filter(Boolean);
-  const second = [...(requirements.certifications ?? []), requirements.clearance, requirements.citizenship].filter(Boolean);
+  const schooling = requirements.education ? EDUCATION[requirements.education.toLowerCase()] ?? requirements.education : null;
+  const first = [years(requirements.yearsMin, requirements.yearsMax), schooling].filter(Boolean);
+  const second = [...(requirements.certifications ?? []), requirements.clearance ? clearance(requirements.clearance) : null, requirements.citizenship].filter(Boolean);
   return [first.join(' · '), second.join(' · ')].filter(Boolean);
 }
 
-function hostOf(url: string): string | null {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return null;
-  }
+/** "SpaceX's careers site", "Lucid Motors' careers site": whose page Apply opens, by the name the company is shown under. */
+export function careersSite(companyName: string): string {
+  const company = formatCompanyName(companyName).replace(/\.$/, '');
+  return `${company}${/s$/i.test(company) ? "'" : "'s"} careers site`;
 }
 
-/** The page's one action: Apply, on the company's own site, in a new tab. */
+/** The page's one action: Apply, on the company's own site, in a new tab, and whose site that is. */
 export function SourcedApply({ job }: { job: JobDetail }) {
   if (!job.applyUrl || !job.isOpen) return null;
-  const host = hostOf(job.applyUrl);
   return (
     <>
       <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className={cn(detailActionClass, 'border-transparent bg-fg-default text-bg-base hover:bg-fg-default/90')} data-apply-on-site>
         Apply
         <ExternalLink className="h-4 w-4" aria-hidden="true" />
-        <span className="sr-only">on the company's site, in a new tab</span>
+        <span className="sr-only">, in a new tab</span>
       </a>
-      {host && <span className="min-w-0 break-all text-sm text-fg-muted">{host}</span>}
+      <span className="min-w-0 break-words text-sm text-fg-muted" data-apply-where>
+        On {careersSite(job.companyName)}
+      </span>
     </>
   );
 }
@@ -83,13 +96,12 @@ export default function SourcedJob({ job, skills, manages }: SourcedJobProps) {
   const asksFor = requirementLines(job.requirements);
   const paid = job.payMin !== null || job.payMax !== null;
   const held = marks ? skills.filter((skill) => marks.statusOf(skill.id) === 'held').length : 0;
-  const company = formatCompanyName(job.companyName);
 
   return (
     <>
       {manages && (
         <p className={cn(cardClass, 'mt-6 p-4 text-sm text-fg-default')} role="note" data-job-from-source>
-          This job comes from {company.replace(/\.$/, '')}'s careers site and is kept in step with it.
+          This job comes from {careersSite(job.companyName)} and is kept in step with it.
           <span className="text-fg-muted">{job.isOpen ? ' It is changed there.' : ' It is no longer listed there.'}</span>
         </p>
       )}
@@ -113,7 +125,7 @@ export default function SourcedJob({ job, skills, manages }: SourcedJobProps) {
           )}
         </dl>
         <ul className="border-t border-border-subtle">
-          <RecordRow to={`/companies/${job.companyId}`} label="Company" title={company} />
+          <RecordRow to={`/companies/${job.companyId}`} label="Company" title={formatCompanyName(job.companyName)} />
           <RecordRow to={`/factories/${job.factoryId}`} label="Plant" title={formatFactoryName(job.factoryName)} />
           {job.hasVersion ? (
             <RecordRow to={versionPath(job.occupationId, { id: job.companyId })} label="Career" title={versionTitle(job.companyName, job.occupationTitle)} data-job-version="" />

@@ -63,8 +63,11 @@ ALTER TABLE jobs ADD COLUMN IF NOT EXISTS level_rank smallint;
 -- requirements->'certifications' ? 'AWS D17.1'. Shift and employment type have
 -- their own columns already.
 ALTER TABLE jobs ADD COLUMN IF NOT EXISTS requirements jsonb;
--- When the employer's site last listed it. A job from a source expires 7 days
--- after that (posting_apply), so it leaves the lists by itself if runs stop.
+-- When a listing of the employer's board that was read to its end last
+-- included it. A job from a source expires 14 days after that (posting_apply),
+-- so it leaves the lists by itself if runs stop. Fourteen days because the
+-- boards of a platform that is asked sparingly are each listed in full only
+-- every few days (a week while they are first read in): twice the slowest cycle.
 ALTER TABLE jobs ADD COLUMN IF NOT EXISTS last_seen_at timestamptz;
 -- A posting that does not say full-time or part-time is not called either.
 ALTER TABLE jobs ALTER COLUMN employment_type DROP NOT NULL;
@@ -177,7 +180,10 @@ $f$;
 --   city     the company's one plant in that city and state
 --   address  of several there, the one whose street address the posting's words carry
 --   name     ... or whose name they carry (the words of the plant's name that are not the company's, the city's or generic)
---   largest  ... else the one with the most people, then the one written from sources, then the oldest
+--   largest  ... else the one with the most people
+--   keeps    ... none of them with a headcount: the one the plant merge would keep of them (plant_keeps' order:
+--            written from sources, then placed in a county, then more facts filled in, then the older, then the
+--            lower id). The same plant every run; marked for a look
 --   near     none in the city: the company's nearest plant in the state within 10 km of the city's centre,
 --            the centre being the middle of every plant we list in that city (no outside geocoder)
 -- "The company" is posting_companies. The posting's words are what staging
@@ -207,6 +213,12 @@ LANGUAGE sql STABLE AS $f$
     ORDER BY rec.source_id, k.place_key
   ), ours AS (
     SELECT f.id, f.company_id, f.state, posting_city_key(f.city) AS city_key, f.workforce_size, f.curated, f.created_at, f.lat, f.lng,
+           (f.county_fips IS NOT NULL) AS in_county,
+           -- How many facts are filled in, counted as plant_keeps counts them.
+           ((NULLIF(btrim(f.address), '') IS NOT NULL)::int + (NULLIF(btrim(f.city), '') IS NOT NULL)::int
+            + (NULLIF(btrim(f.zip_code), '') IS NOT NULL)::int + (f.primary_naics IS NOT NULL)::int
+            + (f.primary_naics_description IS NOT NULL)::int + (NULLIF(btrim(f.products), '') IS NOT NULL)::int
+            + (f.opened_year IS NOT NULL)::int) AS facts,
            -- The street number and the first word of the street: "12100 samsung".
            (regexp_match(posting_words(f.address), '^ ([0-9]{2,6}) ([a-z0-9]+) '))[1:2] AS street,
            -- The words of its name that tell it from the company's other plants.
@@ -225,14 +237,16 @@ LANGUAGE sql STABLE AS $f$
     FROM posting_places pp JOIN factories f ON f.id = record_now('factory', pp.factory_id)
     WHERE pp.source = p_source AND pp.status = 'pointed' AND pp.factory_id IS NOT NULL
   ), incity AS (
-    SELECT rp.source_id, rp.place_key, o.id, o.company_id, o.workforce_size, o.curated, o.created_at,
+    SELECT rp.source_id, rp.place_key, o.id, o.company_id, o.workforce_size, o.curated, o.created_at, o.in_county, o.facts,
            CASE WHEN o.street IS NOT NULL AND position(' ' || o.street[1] || ' ' || o.street[2] || ' ' IN rp.words) > 0 THEN 100 ELSE 0 END
              + (SELECT count(*) FROM unnest(o.telling) w WHERE position(' ' || w || ' ' IN rp.words) > 0)::integer AS fit
     FROM rp JOIN ours o ON o.state = rp.state AND o.city_key = rp.city_key
     WHERE NOT EXISTS (SELECT 1 FROM pointed a WHERE a.place_key = rp.place_key)
   ), ranked AS (
     SELECT c.*, count(*) OVER w AS options,
-           row_number() OVER (w ORDER BY c.fit DESC, c.workforce_size DESC NULLS LAST, c.curated DESC, c.created_at, c.id) AS pick,
+           -- The posting's words first, then the most people; where neither chooses, the plant merge's own order.
+           row_number() OVER (w ORDER BY c.fit DESC, c.workforce_size DESC NULLS LAST,
+                                         c.curated DESC, c.in_county DESC, c.facts DESC, c.created_at, c.id) AS pick,
            count(*) FILTER (WHERE c.fit = m.best) OVER w AS at_best, m.best
     FROM incity c
     JOIN (SELECT source_id, place_key, max(fit) AS best FROM incity GROUP BY 1, 2) m ON m.source_id = c.source_id AND m.place_key = c.place_key
@@ -263,7 +277,8 @@ LANGUAGE sql STABLE AS $f$
               WHEN r.id IS NOT NULL THEN CASE WHEN r.options = 1 THEN 'city'
                                               WHEN r.best >= 100 AND r.at_best = 1 THEN 'address'
                                               WHEN r.best > 0 AND r.at_best = 1 THEN 'name'
-                                              ELSE 'largest' END
+                                              WHEN r.workforce_size IS NOT NULL THEN 'largest'
+                                              ELSE 'keeps' END
               WHEN n.id IS NOT NULL THEN 'near' END,
          n.metres,
          coalesce(r.options, n.options, 0)::integer
@@ -301,7 +316,10 @@ RETURNS jsonb LANGUAGE sql STABLE AS $f$
     'title', left(btrim(p_facts->>'title'), 200),
     'employment_type', (SELECT t FROM (SELECT regexp_replace(lower(btrim(rd->'requirements'->>'employmentType')), '[ _]+', '-', 'g') AS t) e
                         WHERE t IN ('full-time', 'part-time', 'contract', 'apprenticeship')),
-    'shift', NULLIF(left(btrim(rd->'requirements'->>'shift'), 40), ''),
+    -- The reader's word for a shift (day, swing, night, weekend, rotating) as it is shown; anything else as it was read.
+    'shift', (SELECT CASE lower(w) WHEN 'day' THEN 'Day shift' WHEN 'swing' THEN 'Swing shift' WHEN 'night' THEN 'Night shift'
+                                   WHEN 'weekend' THEN 'Weekend shift' WHEN 'rotating' THEN 'Rotating shifts' ELSE w END
+              FROM (SELECT NULLIF(left(btrim(rd->'requirements'->>'shift'), 40), '') AS w) said),
     'pay_min', CASE WHEN pay.ok THEN round((rd->'pay'->>'min')::numeric * 100)::integer END,
     'pay_max', CASE WHEN pay.ok THEN round((rd->'pay'->>'max')::numeric * 100)::integer END,
     'pay_period', CASE WHEN pay.ok THEN rd->'pay'->>'period' ELSE 'hour' END,
@@ -455,18 +473,24 @@ END $f$;
 --     (its outside id, "<posting id>@<place key>", is written to the crosswalk);
 --   a job whose posting changed, or whose plant was decided otherwise, is corrected;
 --   a job closed because its posting had left is opened again when the posting is back;
---   a job whose posting has been missing from the employer's site for two runs
---     running, or no longer names the place, is closed. A job is never deleted.
+--   a job whose posting has been missing from two listings running that were
+--     each read to their end, or no longer names the place, is closed. A listing
+--     that was cut short (a refusal, a site that stopped answering, the platform's
+--     budget for the run) is no evidence that a posting is gone: the run that read
+--     it (`complete` false in its counts) closes nothing for that reason and moves
+--     no job's last-seen day. A job is never deleted.
 -- Every change is journalled (intake_changes) and said in load_log. A job
--- that is as it should be is not written, except for the day it was last
--- seen, which moves once a day (and its expiry with it, 7 days on).
+-- that is as it should be is not written, except for the day a complete
+-- listing last included it, which moves once a day (and its expiry with it,
+-- 14 days on).
 -- `p_place` limits it to the postings naming one place and closes nothing:
 -- what Admin Tools calls when a place is pointed at a plant.
 CREATE OR REPLACE FUNCTION posting_apply(p_source text, p_run bigint, p_place text DEFAULT NULL) RETURNS jsonb LANGUAGE plpgsql AS $f$
 DECLARE
   v_ref text;
   v_gone constant text := 'No longer on the company''s careers site';
-  v_ttl constant interval := interval '7 days';
+  v_ttl constant interval := interval '14 days';
+  v_complete boolean;
   it record;
   v_job uuid;
   v_before jsonb;
@@ -479,6 +503,9 @@ DECLARE
 BEGIN
   SELECT ref_source INTO v_ref FROM intake_sources WHERE slug = p_source AND kind = 'job';
   IF v_ref IS NULL THEN RAISE EXCEPTION '% is not a source of job postings.', p_source; END IF;
+  -- Whether the run's listing was read to its end (a run from before this was recorded counts as complete).
+  SELECT coalesce((counts->>'complete')::boolean, true) INTO v_complete FROM intake_runs WHERE id = p_run;
+  v_complete := coalesce(v_complete, true);
 
   -- An id whose job is gone (its plant or company was deleted) names nothing.
   DELETE FROM external_references x
@@ -519,13 +546,13 @@ BEGIN
       INSERT INTO intake_changes (run_id, op, entity_id, after) VALUES (p_run, 'id', v_job, jsonb_build_object('ref', v_ref_id));
       INSERT INTO load_log (load, kind, action, look, company, plant, detail, metres, run_id, source_id, entity_id, evidence)
         VALUES (p_source, 'job', 'added',
-                it.how = 'near' OR (it.how = 'largest' AND it.workforce_size IS NULL), it.company_name, it.factory_name,
+                it.how IN ('near', 'keeps'), it.company_name, it.factory_name,
                 format('%s, at %s, %s: %s', it.want->>'title', it.city, it.state,
                        CASE it.how WHEN 'city' THEN 'the company''s one plant there'
                                   WHEN 'address' THEN format('of %s plants there, the one at the posting''s address', it.options)
                                   WHEN 'name' THEN format('of %s plants there, the one the posting names', it.options)
-                                  WHEN 'largest' THEN format('of %s plants there, the largest%s', it.options,
-                                                             CASE WHEN it.workforce_size IS NULL THEN ' (no headcount on record: the first listed)' ELSE '' END)
+                                  WHEN 'largest' THEN format('of %s plants there, the largest', it.options)
+                                  WHEN 'keeps' THEN format('of %s plants there, none with a headcount: the one the plant merge would keep (written from sources, then placed in a county, then more facts, then older)', it.options)
                                   WHEN 'near' THEN format('no plant in that city: the nearest, %s km from its centre', round(it.metres / 1000.0, 1))
                                   ELSE 'the plant an admin pointed the place at' END),
                 it.metres, p_run, it.source_id, v_job,
@@ -558,7 +585,9 @@ BEGIN
 
   IF p_place IS NULL THEN
     -- The open jobs of the source that no posting stands behind any more. One whose posting
-    -- went missing in this very run waits for the next: a board can drop a posting for a day.
+    -- went missing in this very run waits for the next complete listing: a board can drop a
+    -- posting for a day. A posting is only ever marked missing by a complete listing, and a job
+    -- is closed for it only by a later complete one.
     FOR it IN
       SELECT j.id, j.title, j.source_id, j.last_seen_at, j.expires_at, co.name AS company_name, f.name AS factory_name,
              r.gone_run_id IS NOT NULL AS left_site
@@ -568,7 +597,7 @@ BEGIN
       LEFT JOIN intake_records r ON r.source = p_source AND r.source_id = j.source_id
       WHERE j.source = p_source AND j.status = 'open'
         AND NOT EXISTS (SELECT 1 FROM posting_plan p WHERE p.job_id = j.id)
-        AND (r.gone_run_id IS NULL OR r.gone_run_id < p_run)
+        AND (r.gone_run_id IS NULL OR (v_complete AND r.gone_run_id < p_run))
       ORDER BY j.id
     LOOP
       INSERT INTO intake_changes (run_id, op, entity_id, fact, before)
@@ -577,18 +606,20 @@ BEGIN
       UPDATE intake_changes SET after = posting_job_snapshot(it.id) WHERE run_id = p_run AND op = 'job' AND entity_id = it.id AND after IS NULL;
       INSERT INTO load_log (load, kind, action, look, company, plant, detail, run_id, source_id, entity_id)
         VALUES (p_source, 'job', 'closed', false, it.company_name, it.factory_name,
-                format('%s: %s', it.title, CASE WHEN it.left_site THEN 'gone from the company''s site for two runs'
+                format('%s: %s', it.title, CASE WHEN it.left_site THEN 'gone from two complete listings of the company''s site running'
                                                ELSE 'the posting no longer names this place, or its plant or career is gone' END),
                 p_run, it.source_id, it.id);
       n_closed := n_closed + 1;
     END LOOP;
   END IF;
 
-  -- Seen: once a day, for the jobs that are as they should be.
-  UPDATE jobs j SET last_seen_at = now(), expires_at = (now() AT TIME ZONE 'UTC') + v_ttl
-    FROM posting_plan p
-    WHERE j.id = p.job_id AND j.status = 'open' AND (j.last_seen_at IS NULL OR j.last_seen_at < now() - interval '12 hours');
-  GET DIAGNOSTICS n_seen = ROW_COUNT;
+  -- Seen: once a day, for the jobs that are as they should be, and only by a listing read to its end.
+  IF v_complete AND p_place IS NULL THEN
+    UPDATE jobs j SET last_seen_at = now(), expires_at = (now() AT TIME ZONE 'UTC') + v_ttl
+      FROM posting_plan p
+      WHERE j.id = p.job_id AND j.status = 'open' AND (j.last_seen_at IS NULL OR j.last_seen_at < now() - interval '12 hours');
+    GET DIAGNOSTICS n_seen = ROW_COUNT;
+  END IF;
 
   RETURN jsonb_build_object('added', n_added, 'changed', n_changed, 'reopened', n_reopened, 'closed', n_closed, 'seen', n_seen,
                             'open', (SELECT count(*) FROM jobs WHERE source = p_source AND status = 'open'));

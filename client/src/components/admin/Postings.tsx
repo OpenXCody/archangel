@@ -149,7 +149,9 @@ function RunLine({ source }: { source: PostingSource }) {
     run.closed ? `${n(run.closed)} closed` : null,
     run.waiting ? `${n(run.waiting)} waiting` : null,
   ].filter((figure): figure is string => figure !== null);
-  const stopped = run.outcome === 'refused' ? 'Refused' : run.outcome === 'unreachable' ? 'Did not answer' : run.outcome === 'failed' ? 'Failed' : null;
+  // A listing that stopped short is said even when what stopped it is ordinary (the day's budget for the platform).
+  const stopped =
+    run.outcome === 'refused' ? 'Refused' : run.outcome === 'unreachable' ? 'Did not answer' : run.outcome === 'failed' ? 'Failed' : run.outcome === 'cut' ? 'Listed in part' : null;
   return (
     <>
       {stopped && (

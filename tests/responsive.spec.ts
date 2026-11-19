@@ -1659,6 +1659,9 @@ test("a job from a company's careers site, as a visitor: facts, tags and one way
   await expect(apply).toHaveAttribute('target', '_blank');
   await expect(apply).toHaveAttribute('rel', /noopener/);
   expect((await apply.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(40);
+  // Beside it, whose page that is, by the company's name: never the hiring system's host.
+  await expect(page.locator('[data-apply-where]')).toHaveText(/^On .+ careers site$/);
+  await expect(page.locator('main')).not.toContainText('boards.greenhouse.io');
   // The terms that were stated, and what it asks for as two quiet lines.
   const terms = page.locator('[data-job-terms]');
   await expect(terms).toContainText('$28–$42 an hour');

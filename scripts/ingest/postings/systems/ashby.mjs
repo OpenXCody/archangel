@@ -10,11 +10,11 @@ export const feed = (board) => `https://api.ashbyhq.com/posting-api/job-board/${
 
 const TYPES = { FullTime: 'full-time', PartTime: 'part-time', Contract: 'contract', Intern: null, Temporary: null };
 
-export async function list(board, { get }) {
+export async function* pages(board, { get }) {
   const url = feed(board);
   const { json } = await get(url);
   shape(Array.isArray(json?.jobs), 'no list of jobs', url);
-  return json.jobs
+  const postings = json.jobs
     // A posting the company keeps off its own board is not public.
     .filter((job) => job?.isListed !== false)
     .map((job) => {
@@ -39,4 +39,6 @@ export async function list(board, { get }) {
         hints: { ...(pay ? { pay } : {}), ...(type ? { employmentType: type } : {}) },
       };
     });
+  // The whole board is one answer: the listing is complete or it is nothing.
+  yield { postings, next: null };
 }

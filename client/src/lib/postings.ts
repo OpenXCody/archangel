@@ -12,9 +12,11 @@ import { recordsChanged } from './records';
 export interface PostingRun {
   id: number;
   startedAt: string;
-  /** 'read', 'refused', 'unreachable', 'failed' or 'not listed'; null while a run is under way. */
+  /** 'read', 'refused', 'unreachable', 'cut', 'failed' or 'not listed'; null while a run is under way. */
   outcome: string | null;
   why: string | null;
+  /** Whether the listing was read to its end; null for a run that listed nothing. */
+  complete: boolean | null;
   undone: boolean;
   read: number | null;
   kept: number | null;

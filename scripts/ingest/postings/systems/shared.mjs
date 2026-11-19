@@ -6,9 +6,16 @@
 //   how        one line: how many requests a board costs
 //   pace       the least milliseconds between two requests to its host
 //   feed(board)                 the address of the board's first request (what the registry's check and a person read)
-//   async list(board, { get, post, today })   every posting the board lists
+//   async *pages(board, { get, post, today }, from)   the board's listing, a request at a time: each page is
+//                                             { postings, next }, `next` being where the listing carries on from
+//                                             (null after the last page). `from` is a `next` an earlier run was
+//                                             cut at, for a system whose listing can be taken up again; else null
 //   async text(board, listed, { get })        optional: the text of one listed posting, where the list has none
 //   textsPerRun                               optional: the most texts asked of one employer in one run
+//   rereadDays                                optional: after how many days a text is read again though its listing is the same (30)
+//   budget                                    optional: { platform, requests }: the most requests to the system's
+//                                             platform in one run, across every employer on it
+//   resumes                                   optional: true when a listing cut short is taken up where it stopped
 //
 // A listed posting is
 //   { id, title, location, locations, address, department, url, postedAt, updatedAt, country, text, hints }
@@ -25,6 +32,13 @@ import { FeedError } from '../fetch.mjs';
 /** Whether a country, as a feed writes it, is the United States. */
 export function isUnitedStates(country) {
   return /^(us|usa|u\.s\.a?\.?|united states|united states of america)$/i.test(String(country ?? '').trim());
+}
+
+/** A board's whole listing, read to its end: every page's postings. For a check or a test; a run reads the pages itself. */
+export async function listAll(adapter, board, tools) {
+  const out = [];
+  for await (const page of adapter.pages(board, tools, null)) out.push(...page.postings);
+  return out;
 }
 
 /** A feed whose answer is not the shape the adapter reads: the run fails for that employer and says what was missing. */

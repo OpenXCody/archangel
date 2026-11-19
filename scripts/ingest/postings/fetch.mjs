@@ -52,6 +52,16 @@ export class CeilingReached extends Error {
   }
 }
 
+/** A platform's requests for this run are spent: its boards carry on at the next run, the oldest listing first. */
+export class BudgetSpent extends Error {
+  constructor(platform, budget) {
+    super(`the run's budget of ${budget} requests to ${platform} is spent`);
+    this.name = 'BudgetSpent';
+    this.platform = platform;
+    this.budget = budget;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // robots.txt (RFC 9309)
 // ---------------------------------------------------------------------------
@@ -164,29 +174,35 @@ export function platformOf(host) {
  * One fetcher per run. Options (all optional; tests set the last four):
  *   pace       the least milliseconds between two requests to one host
  *   ceiling    the most requests for one employer in one run
+ *   budgets    { '<platform>': n }: the most requests to a platform (platformOf a host) in the whole run, across employers
  *   timeout    milliseconds to wait for an answer
  *   rewrite    (url) => url: sends requests elsewhere (a local server standing in for the feeds)
  *   unpaced    no waiting between requests: only ever with `rewrite`, where there is nobody to be polite to
  *   fetchImpl, sleep, now
  */
 export function createFetcher({
-  userAgent = USER_AGENT, pace = DEFAULT_PACE, ceiling = DEFAULT_CEILING, timeout = DEFAULT_TIMEOUT,
+  userAgent = USER_AGENT, pace = DEFAULT_PACE, ceiling = DEFAULT_CEILING, timeout = DEFAULT_TIMEOUT, budgets = {},
   rewrite = null, unpaced = false, fetchImpl = globalThis.fetch, sleep = (ms) => new Promise((done) => setTimeout(done, ms)), now = Date.now,
 } = {}) {
   const robots = new Map();      // host -> Promise of rules
   const lastAt = new Map();      // host -> when the last request to it was sent
   const turnedAway = new Map();  // platform -> the refusal that stopped it
-  const totals = { requests: 0, bytes: 0, refusals: 0 };
+  const totals = { requests: 0, bytes: 0, refusals: 0, platforms: {} };
+  /** How many requests a platform has left in this run; Infinity for one with no budget. */
+  const budgetLeft = (platform) => (platform in budgets ? Math.max(0, budgets[platform] - (totals.platforms[platform] ?? 0)) : Infinity);
 
   /** One request, paced, with no judgement on the answer. */
   async function send(session, url, { method = 'GET', body = null, accept = 'json' } = {}, wait = session.pace) {
     const host = new URL(url).host;
+    const platform = platformOf(host);
+    if (budgetLeft(platform) <= 0) throw new BudgetSpent(platform, budgets[platform]);
     if (session.requests >= session.ceiling) throw new CeilingReached(session.ceiling);
     const since = now() - (lastAt.get(host) ?? -Infinity);
     if (since < wait && !(unpaced && rewrite)) await sleep(wait - since);
     lastAt.set(host, now());
     session.requests += 1;
     totals.requests += 1;
+    totals.platforms[platform] = (totals.platforms[platform] ?? 0) + 1;
     const headers = {
       'User-Agent': userAgent,
       Accept: accept === 'json' ? 'application/json' : accept === 'xml' ? 'application/xml, text/xml;q=0.9, */*;q=0.1' : 'text/plain, */*;q=0.1',
@@ -273,7 +289,7 @@ export function createFetcher({
         } catch (error) {
           // A posting that is gone between the list and its text is not the end of the board.
           if (error instanceof FeedError && (error.status === 404 || error.status === 410) && opts.missingIsFine) throw error;
-          if (error instanceof CeilingReached) throw error;
+          if (error instanceof CeilingReached || error instanceof BudgetSpent) throw error;
           self.stopped = error;
           if (error instanceof Refusal) {
             totals.refusals += 1;
@@ -289,7 +305,7 @@ export function createFetcher({
     return self;
   }
 
-  return { session, totals, userAgent };
+  return { session, totals, userAgent, budgetLeft, budgets };
 }
 
 /**

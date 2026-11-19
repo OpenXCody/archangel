@@ -4,7 +4,9 @@
     { "slug": "e2e-acme", "employer": "E2E Postings Acme", "company": "E2E Postings Acme Corp", "system": "ashby", "board": "e2e-acme" },
     { "slug": "e2e-works", "employer": "E2E Postings Works", "company": "E2E Postings Works", "system": "workday", "board": "https://e2e.wd1.myworkdayjobs.com/wday/cxs/e2e/Careers" },
     { "slug": "e2e-ghost", "employer": "E2E Postings Ghost", "company": "E2E Postings Nobody", "system": "greenhouse", "board": "e2e-ghost" },
-    { "slug": "e2e-refused", "employer": "E2E Postings Refused", "company": "E2E Postings Works", "system": "lever", "board": "e2e-refused" }
+    { "slug": "e2e-refused", "employer": "E2E Postings Refused", "company": "E2E Postings Works", "system": "lever", "board": "e2e-refused" },
+    { "slug": "e2e-long", "employer": "E2E Postings Long", "company": "E2E Postings Works", "system": "workday", "board": "https://e2elong.wd1.myworkdayjobs.com/wday/cxs/e2elong/Careers" },
+    { "slug": "e2e-pages", "employer": "E2E Postings Pages", "company": "E2E Postings Works", "system": "jibe", "board": "careers.e2e-pages.test" }
   ],
   "leftOut": []
 }
