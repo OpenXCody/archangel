@@ -122,6 +122,7 @@ run_suite industries bash tests/api/industries.sh
 run_suite loader bash tests/api/loader.sh
 run_suite careers bash tests/api/careers.sh
 run_suite catalogue bash tests/api/catalogue.sh
+run_suite paths bash tests/api/paths.sh
 run_suite intake bash tests/api/intake.sh
 
 step "Device suite"

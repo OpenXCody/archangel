@@ -20,7 +20,7 @@
 //     Fundamentals and at Intermediate, and at least one from the career's
 //     home domain (a path pasted under the wrong title fails this);
 //   - no skill is on more than half of all paths (a foundation pasted
-//     everywhere is not one);
+//     everywhere is not one; asked of a file of twenty paths or more);
 //   - every entry says where it was read from (`basis`), a `why` is a
 //     sentence, and `lacks` names nothing the catalogue already has;
 //   - across every ladder link of the careers catalogue at least a third of
@@ -60,6 +60,8 @@ export const PATH_MIN = 8;
 export const PATH_MAX = 24;
 /** The fewest skills a path has at Fundamentals, and at Intermediate. */
 export const LEVEL_MIN = 2;
+/** From this many paths on, no skill may be on more than half of them (a handful of careers can honestly share everything). */
+export const SHARED_FROM = 20;
 /** The share of the lower career's skills that the upper career of a ladder link keeps, below which the link must be acknowledged. */
 export const LINK_FLOOR = 1 / 3;
 
@@ -169,8 +171,10 @@ export function pathProblems(paths, careers, skills, taxonomy) {
   const byTitle = pathsOf(paths);
   const uses = new Map();
   for (const list of byTitle.values()) for (const name of new Set(list)) uses.set(name, (uses.get(name) ?? 0) + 1);
-  for (const [name, count] of uses) {
-    if (count * 2 > byTitle.size) problems.push(`"${name}" is on ${count} of ${byTitle.size} paths: more than half`);
+  if (byTitle.size >= SHARED_FROM) {
+    for (const [name, count] of uses) {
+      if (count * 2 > byTitle.size) problems.push(`"${name}" is on ${count} of ${byTitle.size} paths: more than half`);
+    }
   }
 
   // The ladders: a link either shows in the skills or is acknowledged.
