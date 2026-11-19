@@ -21,6 +21,7 @@
 //                                                 store nothing: put every mark each source offers for
 //                                                 these domains in the folder, as it would be stored, and
 //                                                 show them all on the sheet, to choose one for --place
+//                                                 (--quick asks the site and the icon services only)
 //   node scripts/fetch-logos.mjs --show a.com,b.com --sheet out.html
 //                                                 fetch nothing: a sheet of the marks stored for these domains
 //
@@ -260,7 +261,7 @@ function cleanSvg(source) {
 }
 
 /** { kind: 'svg', text, w, h } or { kind: 'raster', px, side, w, h, crop, frame } for a downloaded file, or null. */
-async function inspect(file) {
+async function inspect(file, { byHand = false } = {}) {
   const head = readFileSync(file).subarray(0, 4000).toString('utf8').replace(/^﻿/, '').trimStart().toLowerCase();
   if (head.startsWith('<svg') || (/^<(\?xml|!--|!doctype svg)/.test(head) && head.includes('<svg'))) {
     const text = cleanSvg(readFileSync(file, 'utf8'));
@@ -287,7 +288,9 @@ async function inspect(file) {
     if (!(w > best.w * 0.08 && h > best.h * 0.08)) return null;
     // `px` is the picture's size as it came, for the 48 px floor; a mark that
     // fills less than three quarters of that floor is too coarse to enlarge.
-    if (Math.max(w, h) < MIN_PX * 0.75) return null;
+    // (A person placing a mark may go down to a site's own 32 px icon: soft
+    // when enlarged, but the company's, and better than a letter.)
+    if (Math.max(w, h) < (byHand ? 24 : MIN_PX * 0.75)) return null;
     return { kind: 'raster', px: Math.min(best.w, best.h), side: Math.max(w, h), w, h, crop: `${w}x${h}+${Math.max(x - 1, 0)}+${Math.max(y - 1, 0)}`, frame: best.frame };
   } catch {
     return null;
@@ -544,7 +547,7 @@ if (placed.length > 0 || refused.length > 0) {
   if (!note) throw new Error('say where the mark is from, or why there is none, with --note "..."');
   for (const [domain, file] of placed) {
     if (!domain || !existsSync(file)) throw new Error(`--place takes domain=file; "${domain}=${file}" is not one`);
-    const info = await inspect(file);
+    const info = await inspect(file, { byHand: true });
     if (!info) throw new Error(`${file}: not an image this can store (an SVG must be self-contained and under ${MAX_SVG_BYTES} bytes)`);
     const ext = await store(domain, file, info);
     for (const other of ['png', 'svg']) if (other !== ext) rmSync(path.join(OUT, `${domain}.${other}`), { force: true });
@@ -596,7 +599,8 @@ if (look.length > 0) {
     const said = {};
     const reach = { failed: false };
     const sources = (await siteMarks(domain, tmp, { all: true, said })).map((url) => [url, url.startsWith('file://') ? 'drawn into the front page' : url]);
-    const wiki = (await wikidataFile(domain, tmp, reach)) ?? (await commonsFile(domains.get(domain) ?? [], tmp, reach));
+    // --quick leaves Wikimedia out: it answers slowly when asked often, and a small firm is rarely there.
+    const wiki = flag('--quick') ? null : (await wikidataFile(domain, tmp, reach)) ?? (await commonsFile(domains.get(domain) ?? [], tmp, reach));
     if (wiki) for (const url of await commonsUrls(wiki.title, tmp, reach)) sources.push([url, `${wiki.title} (${wiki.via})`]);
     sources.push([`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`, 'google'], [`https://icons.duckduckgo.com/ip3/${domain}.ico`, 'duckduckgo'], [`https://icon.horse/icon/${domain}`, 'icon.horse']);
     console.log(`${domain}: ${said.words ? `${said.base} says "${said.words}"` : 'its front page did not answer this request'}`);

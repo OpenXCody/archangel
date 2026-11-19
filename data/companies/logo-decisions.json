@@ -3,22 +3,36 @@
  "none": {
   "alamoconcrete.com": "its icon is the mark of its owner, Buzzi, not its own",
   "allieduniversal.com": "its icon is its logo cut off at both sides",
+  "aztecamilling.com": "aztecamilling.com does not answer automated requests, and the icon services hold no icon for it",
   "baf.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
+  "berkshirehathaway.com": "its only mark is a one-line wordmark, 13 to 1 (Commons File:Berkshire-Hathaway-Logo.svg); its site has no icon",
+  "bhtonline.com": "its front page carries only trade associations' badges, and its own icon is 16 px",
+  "brandenburg.com": "its logo is a one-line wordmark, 7.5 to 1, and its site names no icon",
+  "burnco.com": "its front page offers a photograph and a 20 px icon, nothing that can be stored",
   "burndy.com": "its icon is the mark of its owner, Hubbell; its own logo is a wide wordmark",
+  "cavco.com": "cavco.com forwards to cavcohomes.com, which refuses automated requests; Wikimedia has no logo for Cavco and the icon services hold none",
+  "corning.com": "its logo is a thin one-line wordmark, 6.8 to 1 (Commons File:Corning Incorporated Logo.svg); corning.com refuses automated requests and the icon services hold nothing for it",
   "crjackson.com": "its marks are white, drawn for a dark page",
   "epiroc.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
+  "flowserve.com": "its logo is a nine-letter wordmark, 4.5 to 1; its icon, a white wave on red, is 16 px and is not a part of the logo that can be cut out",
+  "hatco.com": "hatco.com does not answer automated requests, and the icon services hold no icon for it",
   "hmhw.com": "its icon is the default of the software its site runs on, not its own mark",
   "justinbrands.com": "its icon is the initials of its holding company, not its own mark",
-  "lucidmotors.com": "A thin wordmark on black that cannot be read at 28 px.",
-  "obe.com": "The fetched mark is the Angular framework's default icon, not Oldcastle BuildingEnvelope's.",
+  "kraftheinzcompany.com": "its logo is a ten-letter wordmark, 4.4 to 1, and its site serves no icon",
+  "milliken.com": "the logo in its header is drawn in white for a dark page, its icon is 16 px, and the other logos on the page are its brands'",
   "oxychem.com": "its icon is a generic picture of a flask, not its mark",
-  "pentair.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
+  "phillyshipyard.com": "phillyshipyard.com does not answer automated requests, and the icon services hold no icon for it",
   "russellstover.com": "its icon is the default of the software its site runs on, not its own mark",
   "schwanscompany.com": "The site's icon is its owner's (CJ) logo, not Schwan's.",
+  "tecowestinghouse.com": "its logo is a one-line wordmark, 8 to 1, and its site serves no icon",
   "thecampbellscompany.com": "its icon is a campaign badge, not the company's mark",
   "vintonsteel.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px"
  },
  "kept": {
+  "4frontes.com": {
+   "ext": "png",
+   "from": "the icon of 4frontes.com (32 px, so soft when enlarged): its orange star tile"
+  },
   "agilent.com": {
    "ext": "png",
    "from": "the spark symbol from Agilent's logo (Commons File:Agilent Technologies-Logo.svg); the wordmark is left out"
@@ -35,6 +49,10 @@
    "ext": "png",
    "from": "the arrow symbol from AMD's logo (Commons File:AMD Logo.svg, the logo of the Wikidata entry for amd.com); the wordmark is left out"
   },
+  "americanleather.com": {
+   "ext": "png",
+   "from": "the icon of americanleather.com (32 px, so soft when enlarged): its AL monogram; the logo in its header is white and the other logos on the page are magazines'"
+  },
   "americanseafoods.com": {
    "ext": "png",
    "from": "American Seafoods' seal (Commons File:ASC Logo (RGB - Web).png, the logo of the Wikidata entry for americanseafoods.com); the site's own icon is its web builder's"
@@ -42,6 +60,10 @@
   "ametek.com": {
    "ext": "svg",
    "from": "the A of Ametek's wordmark with its red foot (Commons File:Ametek-Logo.svg, the logo of the Wikidata entry for ametek.com), the letter its own favicon shows; the wordmark is 5.5 to 1"
+  },
+  "anchorfabrication.com": {
+   "ext": "png",
+   "from": "the stacked logo on anchorfabrication.com: its symbol over six bold letters"
   },
   "apextoolgroup.com": {
    "ext": "png",
@@ -83,13 +105,25 @@
    "ext": "png",
    "from": "the triangle from the header logo on bench.com, the same one its favicon shows"
   },
+  "bep.gov": {
+   "ext": "png",
+   "from": "the Bureau's seal (Commons File:Seal of the United States Bureau of Engraving and Printing.svg); bep.gov names no icon"
+  },
   "berridge.com": {
    "ext": "png",
    "from": "the logo in the header of berridge.com"
   },
+  "bijurdelimon.com": {
+   "ext": "png",
+   "from": "the icon of bijurdelimon.com as Google's favicon service holds it (32 px, so soft when enlarged): its B under a blue arc; its logo is a wordmark, 3.4 to 1"
+  },
   "bimbobakeriesusa.com": {
    "ext": "png",
    "from": "the logo in the header of bimbobakeriesusa.com"
+  },
+  "bldr.com": {
+   "ext": "png",
+   "from": "the icon of bldr.com (32 px, so soft when enlarged): the red tile from its logo"
   },
   "bms.com": {
    "ext": "png",
@@ -98,6 +132,10 @@
   "boeing.com": {
    "ext": "svg",
    "from": "the symbol from the header logo on boeing.com, the same one its favicon shows"
+  },
+  "braskem.com": {
+   "ext": "png",
+   "from": "the symbol from the header of braskem.com (braskem_off); the wordmark is left out"
   },
   "bray.com": {
    "ext": "png",
@@ -111,9 +149,17 @@
    "ext": "png",
    "from": "the logo in the header of broxindustries.com"
   },
+  "bunge.com": {
+   "ext": "png",
+   "from": "Bunge's logo (Commons File:Bunge Limited Logo.svg, the logo of the Wikidata entry for bunge.com): five bold letters, 4.3 to 1, and it reads at 28 px; bunge.com refuses automated requests"
+  },
   "butterball.com": {
    "ext": "png",
    "from": "the oval logo in the header of butterball.com: a compact boxed logo, wider than the limit, and its shape reads at 28 px (the site's square icon is the same oval on blue, but only 48 px)"
+  },
+  "buzzballz.com": {
+   "ext": "png",
+   "from": "the icon of buzzballz.com as Google's favicon service holds it (48 px, the ball about 32): the site answers automated requests with \"too many requests\""
   },
   "cabinetworksgroup.com": {
    "ext": "png",
@@ -159,6 +205,10 @@
    "ext": "png",
    "from": "the leaping deer emblem from the header logo on deere.com, the same one its favicon shows; the wordmark is left out"
   },
+  "denso.com": {
+   "ext": "svg",
+   "from": "Denso's logo (Commons File:Denso logo.svg): five heavy letters, 5 to 1, and it reads at 28 px; denso.com refuses automated requests"
+  },
   "doverfuelingsolutions.com": {
    "ext": "png",
    "from": "the icon of doverfuelingsolutions.com as Google's favicon service holds it (48 px): a compact boxed logo that reads at 28 px; the site refuses automated requests"
@@ -166,6 +216,10 @@
   "dupont.com": {
    "ext": "svg",
    "from": "DuPont's oval (Commons File:DuPont logo.svg, the logo of the Wikidata entry for dupont.com): six heavy letters in one shape, 3.3 to 1, and it reads at 28 px"
+  },
+  "eaton.com": {
+   "ext": "png",
+   "from": "Eaton's logo (Commons File:Eaton Corporation Logo.svg, used by the article \"Eaton\"): four heavy letters over a line of small print, 3.1 to 1, and the letters read at 28 px; eaton.com does not answer automated requests"
   },
   "exxonmobil.com": {
    "ext": "png",
@@ -178,6 +232,10 @@
   "fhr.com": {
    "ext": "svg",
    "from": "the fh monogram drawn into the header of fhr.com; the wordmark is left out"
+  },
+  "firstsolar.com": {
+   "ext": "png",
+   "from": "the stacked logo on firstsolar.com: its sun over the name"
   },
   "fpcusa.com": {
    "ext": "svg",
@@ -203,6 +261,14 @@
    "ext": "svg",
    "from": "the square symbol from Gerdau's logo (Commons File:Gerdau logo (2011).svg); the wordmark is left out"
   },
+  "hidglobal.com": {
+   "ext": "png",
+   "from": "HID's boxed logo (Commons File:HID Global logo.svg), the same its favicon shows; hidglobal.com refuses automated requests"
+  },
+  "hmmausa.com": {
+   "ext": "png",
+   "from": "the icon of hmmausa.com: the Hyundai emblem, the brand Hyundai Motor Manufacturing Alabama builds and trades under"
+  },
   "honda.com": {
    "ext": "svg",
    "from": "Honda's H emblem (Commons File:Honda.svg); the wordmark, which is what honda.com's own icon shows, is 7 to 1, and honda.com refuses automated requests"
@@ -210,6 +276,10 @@
   "hsmsolutions.com": {
    "ext": "png",
    "from": "the icon of hsmsolutions.com: three letters, a little wider than the limit, and it reads at 28 px"
+  },
+  "huhtamaki.com": {
+   "ext": "png",
+   "from": "the icon of huhtamaki.com as Google's favicon service holds it (32 px, so soft when enlarged): its H tile; its logo is a nine-letter wordmark, 4.9 to 1"
   },
   "igloocoolers.com": {
    "ext": "svg",
@@ -243,13 +313,37 @@
    "ext": "png",
    "from": "the symbol from the header logo on johnsoncontrols.com; the wordmark is left out"
   },
+  "kiageorgia.com": {
+   "ext": "svg",
+   "from": "Kia's logo (Commons File:KIA logo3.svg): Kia Georgia builds and trades under the Kia brand, and its own site names no icon"
+  },
   "kohler.com": {
    "ext": "svg",
    "from": "the K of Kohler's wordmark (Commons File:Kohler logo.svg), the letter its own favicon shows; the wordmark is 4.6 to 1 and kohler.com refuses automated requests"
   },
+  "komatsu.com": {
+   "ext": "png",
+   "from": "the boxed logo komatsu.com gives as its icon"
+  },
+  "kubotausa.com": {
+   "ext": "png",
+   "from": "the icon of kubotausa.com as Google's favicon service holds it (48 px): its emblem over the name on orange"
+  },
   "lasko.com": {
    "ext": "png",
    "from": "the logo in the header of lasko.com: five bold letters, wider than the limit, and it reads at 28 px"
+  },
+  "lonza.com": {
+   "ext": "png",
+   "from": "the icon of lonza.com as Google's favicon service holds it (48 px): its L tile; lonza.com refuses automated requests"
+  },
+  "lubrizol.com": {
+   "ext": "png",
+   "from": "the icon of lubrizol.com as Google's favicon service holds it: the wordmark the company itself shows small, thin at 28 px; lubrizol.com refuses automated requests"
+  },
+  "lucidmotors.com": {
+   "ext": "png",
+   "from": "the icon of lucidmotors.com: the L of its wordmark on black"
   },
   "lyconinc.com": {
    "ext": "png",
@@ -275,6 +369,10 @@
    "ext": "png",
    "from": "the red symbol from the header logo on mohawkind.com, the same one its favicon shows; the wordmark is left out"
   },
+  "moog.com": {
+   "ext": "png",
+   "from": "the icon of moog.com as Google's favicon service holds it (48 px): its M tile"
+  },
   "moorecoinc.com": {
    "ext": "png",
    "from": "the logo mark of moorecoinc.com (mooreco_logo-mark): the yellow cube that stands beside its name in the header"
@@ -287,9 +385,21 @@
    "ext": "png",
    "from": "the symbol from the header logo on nailor.com, the same one its favicon shows; the wordmark is left out"
   },
+  "nexteer.com": {
+   "ext": "png",
+   "from": "the logo in the header of nexteer.com: seven heavy italic letters, 4.7 to 1, at the limit of what reads at 28 px; its favicon is the x alone, at 16 px"
+  },
+  "obe.com": {
+   "ext": "png",
+   "from": "the icon of obe.com as Google's favicon service holds it (32 px, so soft when enlarged): the green O of Oldcastle BuildingEnvelope's logo, which has replaced the framework's default icon the site had before"
+  },
   "pactivevergreen.com": {
    "ext": "png",
    "from": "the touch icon of pactivevergreen.com: Novolex, the name Pactiv Evergreen has traded under since the two combined in 2025"
+  },
+  "pentair.com": {
+   "ext": "svg",
+   "from": "the symbol from the header logo on pentair.com; the wordmark is left out"
   },
   "perrigo.com": {
    "ext": "svg",
@@ -298,6 +408,14 @@
   "peterbilt.com": {
    "ext": "svg",
    "from": "the oval in the header of peterbilt.com: a little wider than the limit, and its shape reads at 28 px"
+  },
+  "poly-america.com": {
+   "ext": "png",
+   "from": "the icon of poly-america.com as Google's favicon service holds it (32 px, so soft when enlarged): PA in its red italics; its logo is a one-line wordmark, 6.9 to 1"
+  },
+  "prysmian.com": {
+   "ext": "png",
+   "from": "the P symbol from the logo prysmian.com gives for sharing (57 px), the same one its favicon shows; the wordmark is left out"
   },
   "rpminc.com": {
    "ext": "svg",
@@ -319,6 +437,10 @@
    "ext": "png",
    "from": "the square logo of sandc.com"
   },
+  "schreiberfoods.com": {
+   "ext": "png",
+   "from": "the arrows from the header logo on schreiberfoods.com, the same ones its favicon shows; the wordmark is left out"
+  },
   "schusterconcrete.com": {
    "ext": "png",
    "from": "the logo in the header of schusterconcrete.com"
@@ -339,6 +461,10 @@
    "ext": "svg",
    "from": "the wave symbol from Steris's logo (Commons File:Steris logo.svg, the logo of the Wikidata entry for steris.com), the same one its favicon shows; the wordmark is left out"
   },
+  "subaru-sia.com": {
+   "ext": "png",
+   "from": "the SIA logo on subaru-sia.com: three heavy letters over a line of small print"
+  },
   "syensqo.com": {
    "ext": "png",
    "from": "the sunburst from Syensqo's logo (Commons File:Syensqo Logo 2023.svg, the logo of the Wikidata entry for syensqo.com), the same one its favicon shows; the wordmark is left out"
@@ -346,6 +472,14 @@
   "t1energy.com": {
    "ext": "png",
    "from": "the icon of t1energy.com"
+  },
+  "technimark.com": {
+   "ext": "png",
+   "from": "the icon of technimark.com: its Tm"
+  },
+  "tenaris.com": {
+   "ext": "svg",
+   "from": "the three-colour bars from Tenaris's logo (Commons File:Tenaris Logo.svg, the logo of the Wikidata entry for tenaris.com), the same ones its favicon shows; the wordmark is left out"
   },
   "textron.com": {
    "ext": "svg",
@@ -371,6 +505,10 @@
    "ext": "png",
    "from": "the touch icon of tysonfoods.com, fetched in a browser (the site refuses curl)"
   },
+  "usa.austal.com": {
+   "ext": "png",
+   "from": "the icon of usa.austal.com as Google's favicon service holds it (32 px, so soft when enlarged): the A and wave of Austal's logo"
+  },
   "valmont.com": {
    "ext": "svg",
    "from": "the logo in the header of valmont.com: seven bold letters and its symbol, wider than the limit, and it reads at 28 px"
@@ -382,6 +520,10 @@
   "wilsonart.com": {
    "ext": "png",
    "from": "the icon of wilsonart.com: its red W"
+  },
+  "wyman.com": {
+   "ext": "png",
+   "from": "the logo in the header of wyman.com: two short bold lines beside its symbol (the other marks on the page are its owner's, PCC)"
   },
   "zildjian.com": {
    "ext": "png",
