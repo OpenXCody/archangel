@@ -5,18 +5,9 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import {
-  useCancelMembership,
-  useEmailOn,
-  useEmployer,
-  useJob,
-  useRequestMembership,
-  useUpdateProfile,
-  type AccountUser,
-  type EmployerCompany,
-  type EmployerJob,
-  type JobDetailResponse,
-} from '../lib/account';
+import { useEmailOn, useUpdateProfile, type AccountUser } from '../lib/account';
+import { useCancelMembership, useEmployer, useRequestMembership, type EmployerCompany, type EmployerJob } from '../lib/employer';
+import { useJob, type JobDetailResponse } from '../lib/jobs';
 import { ApiError } from '../lib/http';
 import { useDeleteJob } from '../lib/employerJobs';
 import {

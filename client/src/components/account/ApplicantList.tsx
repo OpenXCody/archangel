@@ -3,7 +3,7 @@ import { ChevronDown, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { EMPLOYER_STATUSES, useUpdateApplication, useUpdateJob, type ApplicationStatus } from '../../lib/account';
+import { EMPLOYER_STATUSES, useUpdateApplication, useUpdateJob, type ApplicationStatus } from '../../lib/jobs';
 import { applicantsCsv, saveTextFile, type ApplicantSkill, type JobApplicants, type RankedApplicant } from '../../lib/employerJobs';
 import { applicationStatusLabel } from '../../lib/jobFormat';
 import { busyButtonClass } from './JobForm';

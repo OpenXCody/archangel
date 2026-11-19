@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { accountKeys } from './account';
+import { accountKeys } from './queryKeys';
 import { ApiError, request } from './http';
 
 /**

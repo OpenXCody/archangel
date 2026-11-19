@@ -1,4 +1,4 @@
-import type { ApplicationStatus, EmploymentType, PayPeriod } from './account';
+import type { ApplicationStatus, EmploymentType, PayPeriod } from './jobs';
 
 /** Display helpers for jobs and applications. Money is integer cents throughout. */
 

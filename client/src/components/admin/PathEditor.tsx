@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useAdminPaths } from '../../lib/account';
+import { useAdminPaths } from '../../lib/admin';
 import { editPath, useSavePath, type FoundRecord, type PathSkill, type RecordView } from '../../lib/records';
 import { ErrorNote, busyButtonClass, cardClass, outlineButtonClass, textButtonClass } from '../account/parts';
 import { PageSection } from '../layout/Page';

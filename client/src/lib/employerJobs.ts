@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { request, retryUnlessClientError } from './http';
-import { accountKeys, type Applicant, type EmploymentType, type PayPeriod } from './account';
+import { accountKeys } from './queryKeys';
+import type { Applicant, EmploymentType, PayPeriod } from './jobs';
 import { parseDollars } from './jobFormat';
 
 /**

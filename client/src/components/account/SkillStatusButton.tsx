@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { signInPath, useAccount, useMySkills, useRemoveSkill, useSetSkillStatus, type SkillStatus } from '../../lib/account';
+import { signInPath, useAccount } from '../../lib/account';
+import { useMySkills, useRemoveSkill, useSetSkillStatus, type SkillStatus } from '../../lib/seeker';
 import { onGroupArrowKeys } from '../../lib/roving';
 import { useSeekerTools } from '../../lib/viewer';
 import { ErrorNote, outlineButtonClass } from './parts';

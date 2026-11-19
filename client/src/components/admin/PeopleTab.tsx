@@ -4,6 +4,7 @@ import { Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useEmailOn, type AccountUser } from '../../lib/account';
 import {
   RESET_HOURS,
   personRoles,
@@ -13,14 +14,12 @@ import {
   useCreateResetLink,
   useDecideMembership,
   useDeleteUser,
-  useEmailOn,
   useSetAdmin,
   useSignOutUser,
-  type AccountUser,
   type AdminCompany,
   type AdminUser,
   type PeopleRole,
-} from '../../lib/account';
+} from '../../lib/admin';
 import { ApiError } from '../../lib/http';
 import {
   CardNote,

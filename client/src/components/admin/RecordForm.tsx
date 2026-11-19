@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
-import type { AdminCompany } from '../../lib/account';
+import type { AdminCompany } from '../../lib/admin';
 import { exploreApi } from '../../lib/api';
 import {
   editPath,

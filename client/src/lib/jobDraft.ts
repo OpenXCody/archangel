@@ -1,4 +1,4 @@
-import type { EmploymentType, PayPeriod } from './account';
+import type { EmploymentType, PayPeriod } from './jobs';
 
 /**
  * What a person has typed into the job form, kept in this browser so that a

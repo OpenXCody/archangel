@@ -2,8 +2,19 @@ import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useAdminMemberships, useDecideMembership, type AdminMembership, type MembershipDecision } from '../../lib/account';
-import { CardNote, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, formatDay, formatOnDay, outlineButtonClass, rowClass } from '../account/parts';
+import { useAdminMemberships, useDecideMembership, type AdminMembership, type MembershipDecision } from '../../lib/admin';
+import {
+  CardNote,
+  ErrorNote,
+  LoadError,
+  RowsSkeleton,
+  busyButtonClass,
+  cardClass,
+  formatDay,
+  formatOnDay,
+  outlineButtonClass,
+  rowClass,
+} from '../account/parts';
 import { PageSection } from '../layout/Page';
 import CompanyRequests from './CompanyRequests';
 import { useAdminNotice } from './AdminNotice';

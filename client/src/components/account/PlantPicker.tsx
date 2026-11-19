@@ -3,7 +3,7 @@ import { Search } from 'lucide-react';
 import { formatFactoryName } from '@shared/displayName';
 import { US_STATES } from '@shared/states';
 import { cn } from '@/lib/utils';
-import type { EmployerFactory } from '../../lib/account';
+import type { EmployerFactory } from '../../lib/employer';
 import { formatPlace } from '../../lib/jobFormat';
 import { ENTITY, fieldClass } from './parts';
 

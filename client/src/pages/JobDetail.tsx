@@ -3,20 +3,11 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ExternalLink, Loader2, Lock, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import {
-  signInPath,
-  useAccount,
-  useApply,
-  useJob,
-  useMySkills,
-  useUpdateJob,
-  type JobDetail as JobDetailData,
-  type JobDetailResponse,
-  type JobSkill,
-} from '../lib/account';
+import { signInPath, useAccount } from '../lib/account';
+import { useApply, useJob, useUpdateJob, type JobDetail as JobDetailData, type JobDetailResponse, type JobSkill } from '../lib/jobs';
 import { ApiError } from '../lib/http';
 import { useApplicantList, useDeleteJob, useExtendJob } from '../lib/employerJobs';
-import { useMarkSkill } from '../lib/seeker';
+import { useMarkSkill, useMySkills } from '../lib/seeker';
 import { useViewer } from '../lib/viewer';
 import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
@@ -41,7 +32,16 @@ import JobDescription from '../components/account/JobDescription';
 import { SkillHeldToggle } from '../components/account/SkillStatusButton';
 import { busyButtonClass } from '../components/account/JobForm';
 import ConfirmDialog from '../components/admin/ConfirmDialog';
-import { DetailFacts, DetailHeader, DetailSection, EmptyState, PageContainer, RecordList, RecordRow, recordListClass } from '../components/layout/Page';
+import {
+  DetailFacts,
+  DetailHeader,
+  DetailSection,
+  EmptyState,
+  PageContainer,
+  RecordList,
+  RecordRow,
+  recordListClass,
+} from '../components/layout/Page';
 import CompanyLogo from '../components/CompanyLogo';
 
 export default function JobDetail() {

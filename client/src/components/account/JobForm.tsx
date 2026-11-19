@@ -6,15 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { factoriesApi, occupationsApi } from '../../lib/api';
-import {
-  EMPLOYMENT_TYPES,
-  useAccount,
-  useCreateJob,
-  type EmployerFactory,
-  type EmploymentType,
-  type JobDetailResponse,
-  type PayPeriod,
-} from '../../lib/account';
+import { useAccount } from '../../lib/account';
+import { EMPLOYMENT_TYPES, useCreateJob, type EmploymentType, type JobDetailResponse, type PayPeriod } from '../../lib/jobs';
+import type { EmployerFactory } from '../../lib/employer';
 import { DESCRIPTION_MAX, DESCRIPTION_WARN, checkPay, normalizeLink, payInputText, useEditJob } from '../../lib/employerJobs';
 import { clearDraft, draftKey, draftWhen, readDraft, writeDraft, type JobDraft, type JobDraftFields } from '../../lib/jobDraft';
 import { employmentLabel } from '../../lib/jobFormat';

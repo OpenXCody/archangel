@@ -1,4 +1,4 @@
-import { useAdminCompanies, type AdminCompany } from '../../lib/account';
+import { useAdminCompanies, type AdminCompany } from '../../lib/admin';
 import { useRecordSearch, type FoundRecord, type RecordKind } from '../../lib/records';
 import Picker from './Picker';
 

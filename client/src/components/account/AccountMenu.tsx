@@ -14,13 +14,13 @@ import {
   accountRoles,
   signInPath,
   useAccount,
-  useJob,
   useMarkSeen,
   useNews,
   useSessionExpiryWatch,
   useSignOut,
   type News,
 } from '../../lib/account';
+import { useJob } from '../../lib/jobs';
 import { errorMessage } from '../../lib/http';
 import { useViewer } from '../../lib/viewer';
 

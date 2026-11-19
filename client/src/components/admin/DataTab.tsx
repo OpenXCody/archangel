@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useAdminPaths } from '../../lib/account';
+import { useAdminPaths } from '../../lib/admin';
 import { onGroupArrowKeys } from '../../lib/roving';
 import { RECORD_KINDS, editPath, type RecordKind } from '../../lib/records';
 import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass } from '../account/parts';

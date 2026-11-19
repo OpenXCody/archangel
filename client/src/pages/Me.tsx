@@ -5,21 +5,8 @@ import { Check, Loader2, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { exploreApi, skillsApi } from '../lib/api';
-import {
-  isFinished,
-  useAddGoal,
-  useMyApplications,
-  useMyGoals,
-  useMySkills,
-  useRemoveGoal,
-  useMarkSeen,
-  useUpdateApplication,
-  type MyApplication,
-  type MyGoal,
-  type MySkill,
-  type SignedInAccount,
-  type SkillStatus,
-} from '../lib/account';
+import { useMarkSeen, type SignedInAccount } from '../lib/account';
+import { isFinished, useUpdateApplication } from '../lib/jobs';
 import { applicationStatusLabel, formatPlace } from '../lib/jobFormat';
 import {
   goalNextSkills,
@@ -30,6 +17,15 @@ import {
   useSuggestedSkills,
   type NextSkill,
   type SkillMark,
+  useAddGoal,
+  useMyApplications,
+  useMyGoals,
+  useMySkills,
+  useRemoveGoal,
+  type MyApplication,
+  type MyGoal,
+  type MySkill,
+  type SkillStatus,
 } from '../lib/seeker';
 import { useViewer } from '../lib/viewer';
 import {
