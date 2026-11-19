@@ -1,8 +1,8 @@
 # Bringing in data in bulk
 
 How a mass source becomes companies and plants in the database, with where
-each fact came from. There are two paths today, and the second is where
-everything is headed:
+each fact came from, and how employers' public postings become jobs. There
+are two paths for plants today, and the second is where everything is headed:
 
 - **Research files** (a few hundred curated employers and plants): the
   contract and the employer loader, below. They ship as generated migrations
@@ -10,6 +10,8 @@ everything is headed:
 - **Large sources** (tens of thousands of records and up): the intake
   pipeline, next. It runs outside the deploy, keeps what each source said,
   and can be rehearsed and undone.
+- **Employers' job postings** come in through the same runner, as sources of
+  jobs: "Employers' job postings", below.
 
 ## Large sources: the intake pipeline
 
@@ -198,6 +200,275 @@ does nothing on a push. Rehearse first and read the report.
 `tests/api/intake.sh` runs a made-up source through all of it on a local
 database, compares every table before and after, and decides its queue
 through the API.
+
+## Employers' job postings
+
+Jobs come in from employers' own public postings through the same runner, as
+sources of kind `job`, one per employer, every day.
+
+```
+data/employers/boards.json          one line per employer: company, system, board
+        │
+scripts/ingest/postings/systems/<system>.mjs   an adapter per hiring system: a board becomes postings
+        │      scripts/ingest/postings/fetch.mjs   the one way anything is asked of an employer's site
+scripts/ingest/postings/read/                  the reading of a posting (career, level, places, skills, makes, requirements, pay)
+        │
+scripts/ingest/postings/jobs.mjs    stage ──► intake_records   a kept posting: its id, a hash, what was read from it
+                                    resolve ► posting_places    the places that wait for a plant (posting_decide)
+                                    apply ──► jobs, job_skills, job_makes, external_references   (posting_apply)
+                                              intake_changes, load_log
+```
+
+Migration `0054_job_postings.sql` holds the tables and the functions, as 0043
+does for plants: the runner orchestrates, the database decides, and Admin
+Tools calls the same functions.
+
+### What is kept
+
+- **Only what is ours.** A posting is kept when the reader
+  (`postings/read/`, below) says it is one of our careers and it names a US
+  city and state. Everything else is counted and let go: it is never a row,
+  staged or otherwise. Where the text comes with the listing every posting is
+  read once, whole. Where a text costs a request the reader is first asked
+  about the title alone (`beforeText` in `jobs.mjs`): a title it keeps, or one
+  it reaches for the text of (another name for a career, two careers the same
+  words spell), is worth the request; a title it refuses outright is never
+  asked about, and neither is one whose line in the listing names a place and
+  none in the United States. The reader is given every location line the feed
+  has, as one line, and the country as the feed writes it where it gives one.
+- **Facts and a link.** For a kept posting staging holds its outside id, a
+  hash, and what was read: the title, the location line, the department, the
+  address to apply at, when it was posted, and the reading (the career and how
+  it was matched, the level, the places, the skills and makes with the
+  catalogue's term each was matched on, the requirements, the pay). The
+  description's text is in the runner's memory while it is read and nowhere
+  else: `payload.text` is a hash of it.
+- **What the catalogue lacks.** The reader also gives the tool, machine and
+  method words a posting asks for that no skill or make matched. A run counts
+  them and keeps the thirty commonest, each with how many postings named it,
+  in its own row (`intake_runs.counts.unknown`) and its report, by employer.
+  They are staged nowhere and are on no job: it is how the catalogue learns,
+  not the employer's wording in bulk.
+- **Read and not kept.** A posting whose text was asked for and which was
+  then not kept (not ours once read, or at no US place) is noted in
+  `posting_passes`: its id, a hash of its line in the listing and the day.
+  Its text is not asked for again while that line stands, until the reading
+  changes or the adapter's days have passed.
+- **A posting is a job**: a row of `jobs` with `source` (the intake source's
+  slug) and `source_id` (the posting's id there), `apply_url` the employer's
+  page, `created_by` null, no description. `level_word` and `level_rank`,
+  `requirements` (one `jsonb` in the reader's words: `yearsMin`, `yearsMax`,
+  `education`, `certifications`, `clearance`, `citizenship`, only the keys
+  that were said), `last_seen_at`; its skills in `job_skills`, its makes in
+  `job_makes`. A shift is stored as it is shown ("Swing shift"). It expires 14
+  days after the last complete listing that included it (see "A listing read
+  to its end"), so jobs leave the lists by themselves if runs stop. The API
+  refuses to edit or delete one (409), and it is not among the jobs a member
+  manages.
+
+### The registry
+
+`data/employers/boards.json`: `employers` (a `slug`, the `employer` as its
+board calls itself, the `company` exactly as our data names it, `also` for
+other companies we list under their own names whose plants the same board
+hires for, the `system`, the `board`'s token or address, optionally a
+`ceiling` of requests and a `note`) and `leftOut` (the `employer`, `why`:
+`refused`, `not verified` or `no adapter`, `what` refused or is missing, and
+`when`). Adding an employer is a line.
+
+```bash
+node scripts/ingest/postings/registry.mjs --check     # or: node scripts/ingest/run.mjs postings --check
+```
+
+holds the file to its shape and fails on a system no adapter reads. An
+employer's source is `postings-<slug>`; its ids are kept under
+`POSTINGS_<SLUG>` in `external_references`.
+
+### The adapters
+
+One per hiring system. Each gives the board's listing a request at a time
+(`async *pages(board, tools, from)`: a page is `{ postings, next }`, `next`
+being where the listing carries on, null after the last page) and, where the
+list has no text, `text(board, posting)`:
+
+| System | A board is | Requests for a run |
+|--------|------------|--------------------|
+| `greenhouse`, `lever`, `ashby` | its token | 1: the whole board with text |
+| `successfactors` | the address of its feed | 1: every posting with text (John Deere) |
+| `jibe` (iCIMS career sites) | the career site's host | 1 per 100 postings, text included |
+| `oracle` | `<host>/<site number>` | 1 per 100 postings, then 1 per posting that could be ours and is new or changed |
+| `workday` | its address under `/wday/cxs` | 1 per 20 postings (narrowed to the United States where the board offers that filter), then 1 per posting that could be ours and is new or changed |
+
+Plus one request per host per run for its robots file. A run reads each
+page's postings, texts included, before it asks for the next page. A posting
+whose text costs a request is asked for only when its title could be ours and
+its line in the listing (title, places, path) is new or has changed, or its
+reading is 30 days old (60 for Workday: `rereadDays`); `--again` reads every
+one again (after the reader changed). An adapter decides nothing: a field the
+feed states on its own (Lever's and Ashby's pay, a shift, full-time) is
+passed as a hint and used where the text says nothing.
+
+### The fetcher's manners
+
+One user agent that says what it is
+(`ArchangelPostings/1.0 (+https://www.o-10.com; …)`), no browser imitation,
+nothing private. Each host's robots file is read once per run and obeyed (the
+group naming us, else `*`; the longest rule wins; a `Crawl-delay` up to 30
+seconds is kept, a longer one leaves the employer for a person). A host with
+no robots file (any answer but 200, 403, 429 or a server error) is taken to
+allow. Requests to one host are at least a second apart: 1.5 for Oracle, two
+for Jibe (five where its robots file asks, as Rivian's and Panasonic's do),
+four for Workday. An employer has a ceiling of 400 requests a run, and Oracle
+of 60 texts a board a run: postings past either wait for the next run, staged
+as they were.
+
+**A platform's budget.** Every Workday board is a tenant of one platform, and
+the platform turns a busy robot away (it reset the scout after about 870
+requests in an hour, and answered 429 to a first request the same day). So
+the platform has a budget for the whole run, across all of its boards: 300
+requests (`budget` in `systems/workday.mjs`; `--budget <n>` for another
+number), four seconds apart, twenty minutes. The boards without a budget are
+read first, in the registry's order. Then the budget is spent where it is
+most needed (`inTurn` in `jobs.mjs`): a listing an earlier run left cut first,
+then a board never listed to its end, then the board whose last complete
+listing is oldest; the registry's order settles a tie. A board the budget did
+not reach has no run that day and is said in the summary. Listing all twelve
+Workday boards is about 930 requests, so in the steady state each is listed
+in full every three to four days; while they are first read in, the texts
+(about one posting in five could be ours) take most of the budget, and the
+first pass over all of them takes about two weeks.
+
+**The stop rule.** A 401, 403 or 429, a challenge page, or a connection reset
+ends that employer for the run. It is written to the run (`refused`, with what
+refused) and nothing is asked again, with these headers or any others. A 429
+or a reset also ends every other employer on that platform for the run. A
+site that does not answer, or answers a server error, is `unreachable`: tried
+again the next run. A feed whose shape changed is `failed`, for that employer
+only, and says what was missing.
+
+### Which plant
+
+`posting_decide`, for each kept posting at each place it names:
+
+1. the place an admin pointed at a plant (`posting_places`);
+2. the company's plant in that city and state. "The company" is the registry's
+   company and `also`, found by exact name or other name in any letter case,
+   and the companies recorded as parts of them; the job is filed under the
+   company the plant is filed under;
+3. of several there: the one whose street address the posting's words carry,
+   else the one whose name they carry (the words of the plant's name that are
+   not the company's, the city's or generic), else the one with the most
+   people. With none of those to choose by, the order the plant merge keeps a
+   row in (`plant_keeps`): the plant written from sources, then the one placed
+   in a county, then the one with more facts, then the older (the id settles
+   what is left), so the choice is the same every run. That last case is
+   marked for a look, and its `load_log` line says how the plant was chosen.
+   The posting's words are what staging keeps: its title, location line,
+   street address and department;
+4. none in that city: the company's nearest plant in the state within 10 km of
+   the city's centre, the centre being the middle of every plant we list there
+   (no outside geocoder). Marked for a look;
+5. none: the posting waits, and its place goes on the list an admin sees. A
+   plant is never added and a state is never guessed.
+
+A posting at several places is a job at each place that has a plant, and one
+job at a plant: where two of its places come to the same plant (the plant's
+own city and a town beside it, or a place an admin pointed there), the place
+that is the plant's by rule stands and the other makes nothing. One outside
+id is one job: `<posting id>@<place key>`.
+
+Pay is kept as the posting states it, a band across an employer's levels
+included. A band whose top is more than four times its bottom is a misprint
+in the posting (one read "$30 - $389hour") and no pay is said.
+
+### A listing read to its end
+
+A posting is gone only against a listing that was read to its end
+(`counts.complete` on the run). A listing that was refused part way, that
+stopped answering, or that the budget or a ceiling cut is no evidence of what
+it did not list: what it did list is staged and its jobs are added and
+corrected, but nothing is marked gone, no job is closed, and no job's last
+sighting is moved. This holds for every system (`tests/api/postings.sh`
+refuses a two-page board on its second page, twice, and nothing closes). A
+run that listed nothing at all is `refused`, `unreachable` or `failed` and
+stages nothing.
+
+Where the system allows it (Workday: an offset), a listing that was cut is
+taken up at the next run where it stopped, two pages back, so that postings
+which left since do not hide the ones that followed them. Where it stopped
+and the ids of ours it had shown are kept on the cut run
+(`counts.resume = { next, seen }`); the run that reaches the end counts as
+present everything the listing showed over all of its runs. Any other system
+starts its listing again.
+
+A job from a source expires 14 days after the last complete listing that
+included it. Fourteen because a board on a budgeted platform is listed in
+full every three to four days once it is read in, and about every two weeks
+while all of them are first read in: an expiry shorter than the slowest cycle
+would take a job off the lists between two listings that both had it. The
+other boards are listed in full daily, so for them 14 days is how long jobs
+stay if runs stop altogether.
+
+### The life of a posting
+
+A posting that changed is read again and its job corrected. One that is
+missing from a complete listing is marked; when the next complete listing
+still does not have it, its job is closed (`closed_reason`: "No longer on the
+company's careers site"); if it returns, the job reopens. A posting that no
+longer names a place closes the job there at once. A job is never deleted by
+a run. A job that is as it should be is not written, except for the day it
+was last seen, which a complete listing moves once a day.
+
+`undo <run>` takes a run back, newest first: a job it added is removed (closed
+instead, if anyone applied), a job it changed, closed or reopened is put back
+as it was, staging, the notes of postings read and not kept, and the waiting
+list are put back as they stood. With every run undone and the source
+forgotten, every table is as it was (`tests/api/postings.sh` compares them
+all).
+
+### Running it
+
+```bash
+node scripts/ingest/run.mjs postings --check                  # the registry alone
+node scripts/ingest/run.mjs fetch postings-spacex             # read one board and count; no database
+node scripts/ingest/run.mjs rehearse postings-spacex          # everything, rolled back
+node scripts/ingest/run.mjs postings --rehearse               # every employer, rolled back
+node scripts/ingest/run.mjs postings [--only spacex,boeing]   # every employer, one run each
+node scripts/ingest/run.mjs report 31 --all
+node scripts/ingest/run.mjs undo 31
+```
+
+Behind a proxy, Node's fetch needs `NODE_USE_ENV_PROXY=1`. `--feeds
+http://127.0.0.1:<port>` sends every request to a local server standing in for
+the feeds (`tests/api/postings/feeds.mjs --dir <folder>`), for the suite and
+for runs over saved boards; `--registry <file.json>` is another registry,
+`--budget <n>` another budget for a platform that has one.
+
+`postings` ends with what the run did as a whole: its requests by platform
+(against the budget where there is one), the boards listed in full, the ones
+cut short and why (and whether each is taken up there or started again), and
+the ones the budget did not reach; then a line per employer and each run's
+report. A day's run of every employer is under half an hour: twenty minutes
+of it is Workday's budget, about four are Oracle's texts while those boards
+are first read in, a minute and a half the two Jibe sites, and the rest
+seconds.
+
+**On production** the workflow `.github/workflows/postings.yml` runs every
+employer daily (09:23 UTC) and by hand, against `INGEST_DATABASE_URL`, and
+keeps the report as an artifact. Without the secret it says so and ends
+green. A refusal or a site that does not answer is recorded and is not a red
+run; a changed feed is. Admin Tools, Data shows each employer's latest run
+(read, kept, new, changed, closed, waiting; what refused; a listing read in
+part) and "Postings
+with no plant": point a place at a plant and every posting naming it becomes a
+job there at once, or leave it.
+
+`tests/unit/postings.unit.ts` checks the registry, the fetcher against a
+local server that plays each refusal, a platform's budget, a listing cut and
+taken up again, and every adapter against a reduced copy of what its system
+answered (`tests/fixtures/postings/`); `tests/api/postings.sh` runs made-up
+boards, written as an employer writes a posting, through all of it with the
+reader that ships.
 
 ### One row for one plant
 

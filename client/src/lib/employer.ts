@@ -45,7 +45,10 @@ export interface EmployerCompany extends Membership {
   /** For a declined request: when the person can ask again. */
   askAgainAt: string | null;
   factories: EmployerFactory[];
+  /** The jobs the company's members posted here. */
   jobs: EmployerJob[];
+  /** Open jobs that come from the company's own careers site: kept in step with it, not managed here. */
+  listedJobs?: number;
 }
 
 // ---------------------------------------------------------------------------

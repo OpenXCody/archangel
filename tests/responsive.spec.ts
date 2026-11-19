@@ -1558,3 +1558,181 @@ test('a seeker fills a career in on the Atlas, on its page, on /atlas and from P
     }
   }
 });
+
+// ---------------------------------------------------------------------------
+// Jobs that come from employers' own postings. Nothing is written and no
+// account is made: the list, the job and the reader are stood in for here, at
+// the size a real board gives (thousands of jobs, long titles).
+// ---------------------------------------------------------------------------
+
+const POSTED_JOB = '00000000-0000-4000-8000-00000000a0b1';
+const SKILL = (n: number) => `00000000-0000-4000-8000-0000000005${String(n).padStart(2, '0')}`;
+
+function postedJobs(offset: number, limit: number) {
+  const titles = [
+    'CNC Machinist, Tool & Die - Level 4/5', 'Senior Manufacturing Engineer, Injection Molding (Starlink)', 'Welder', 'Quality Inspector, 1st Shift',
+    'Maintenance Technician II (2nd Shift) - Composite Structures Fabrication and Assembly', 'Production Operator',
+  ];
+  return Array.from({ length: limit }, (_, i) => {
+    const n = offset + i;
+    return {
+      id: n === 0 ? POSTED_JOB : `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`,
+      serial: 1000 + n, title: titles[n % titles.length],
+      // What a posting does not state is not said: pay on some, the type on some.
+      employmentType: n % 3 === 0 ? 'full-time' : null, shift: n % 4 === 0 ? '2nd shift' : null,
+      payMin: n % 2 === 0 ? 2800 : null, payMax: n % 2 === 0 ? 4200 : null, payPeriod: 'hour', status: 'open',
+      postedAt: new Date(Date.now() - n * 3_600_000).toISOString(), expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+      companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', companyDomain: null,
+      factoryId: '00000000-0000-4000-8000-0000000000f1', factoryName: 'SPACE EXPLORATION TECHNOLOGIES BASTROP', city: 'BASTROP', state: 'TX',
+      latitude: '30.1', longitude: '-97.3', occupationId: '00000000-0000-4000-8000-0000000000d1', occupationTitle: 'CNC Machinist',
+    };
+  });
+}
+
+async function standInForPostedJobs(page: Page, options: { total?: number; canManage?: boolean } = {}) {
+  const total = options.total ?? 4812;
+  await page.route('**/api/jobs/summary', (route) => route.fulfill({ json: { total, states: [{ state: 'TX', jobs: 2100 }, { state: 'CA', jobs: 1900 }, { state: 'WA', jobs: 812 }] } }));
+  await page.route(/\/api\/jobs\?/, (route) => {
+    const query = new URL(route.request().url()).searchParams;
+    const offset = Number(query.get('offset') ?? 0);
+    const limit = Number(query.get('limit') ?? 40);
+    return route.fulfill({ json: { jobs: postedJobs(offset, Math.min(limit, total - offset)), total, limit, offset } });
+  });
+  await page.route(`**/api/jobs/${POSTED_JOB}`, (route) =>
+    route.fulfill({
+      json: {
+        job: {
+          ...postedJobs(0, 1)[0], description: null, applyUrl: 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002', closedReason: null, isOpen: true,
+          hasVersion: false, fromSource: true, levelWord: 'Senior', levelRank: 3, lastSeenAt: new Date().toISOString(),
+          requirements: { yearsMin: 5, education: 'High school diploma or equivalent', certifications: ['NIMS Machining Level I', 'AWS D17.1'], clearance: 'Secret clearance', citizenship: 'US person (ITAR)' },
+        },
+        skills: [
+          { id: SKILL(1), name: 'CNC Control Operation', required: true, held: false, makes: [{ id: 'm1', name: 'Mazak' }, { id: 'm2', name: 'Okuma' }, { id: 'm3', name: 'Heidenhain' }] },
+          { id: SKILL(2), name: 'Blueprint Reading', required: true, held: false, makes: [] },
+          { id: SKILL(3), name: 'Coordinate Measuring Machine Operation and Programming', required: true, held: false, makes: [] },
+          { id: SKILL(4), name: 'GD&T Interpretation', required: true, held: false, makes: [] },
+        ],
+        myApplication: null,
+        canManage: Boolean(options.canManage),
+      },
+    })
+  );
+}
+
+test('the Jobs list at volume: two fields, how many match in all, and a page at a time', async ({ page }) => {
+  await standInForPostedJobs(page);
+  await page.goto('/jobs', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('status').filter({ hasText: 'open jobs' })).toHaveText(/4,812 open jobs/);
+  // Two fields and a list, whatever the list's length.
+  await expect(page.getByRole('searchbox', { name: 'Job, company or career' })).toBeVisible();
+  const cards = page.locator('a[href^="/jobs/"]');
+  await expect(cards).toHaveCount(40);
+  // A posting that states no pay says nothing about pay; a city stored in capitals is read as a name.
+  await expect(cards.nth(1)).not.toContainText(/Pay not listed|an hour/);
+  await expect(cards.nth(0)).toContainText('$28–$42 an hour');
+  await expect(cards.nth(0)).toContainText('Bastrop, TX');
+  await assertHealthyLayout(page, '/jobs at volume');
+  // The next page is asked for, never the whole of a long list.
+  const more = page.locator('[data-more-jobs]');
+  await more.scrollIntoViewIfNeeded();
+  await expect(page.locator('[data-jobs-shown]')).toHaveText('40 of 4,812');
+  const box = await more.boundingBox();
+  expect(box?.height ?? 0, 'Show more is a full finger tall').toBeGreaterThanOrEqual(40);
+  await more.click();
+  await expect(cards).toHaveCount(80);
+  await expect(page.locator('[data-jobs-shown]')).toHaveText('80 of 4,812');
+  await assertHealthyLayout(page, '/jobs at volume, a second page');
+  // What is typed is counted over everything that matches, not over what is on screen.
+  await page.getByRole('searchbox', { name: 'Job, company or career' }).fill('machinist');
+  await expect(page.getByRole('status').filter({ hasText: 'match' })).toHaveText(/4,812 jobs match/);
+});
+
+test("a job from a company's careers site, as a visitor: facts, tags and one way to apply", async ({ page }) => {
+  await standInForPostedJobs(page);
+  await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('CNC Machinist, Tool & Die - Level 4/5');
+  // The one action: Apply, on the company's own page, in a new tab.
+  const apply = page.locator('[data-apply-on-site]');
+  await expect(apply).toHaveCount(1);
+  await expect(apply).toHaveAttribute('href', 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002');
+  await expect(apply).toHaveAttribute('target', '_blank');
+  await expect(apply).toHaveAttribute('rel', /noopener/);
+  expect((await apply.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(40);
+  // Beside it, whose page that is, by the company's name: never the hiring system's host.
+  await expect(page.locator('[data-apply-where]')).toHaveText(/^On .+ careers site$/);
+  await expect(page.locator('main')).not.toContainText('boards.greenhouse.io');
+  // The terms that were stated, and what it asks for as two quiet lines.
+  const terms = page.locator('[data-job-terms]');
+  await expect(terms).toContainText('$28–$42 an hour');
+  await expect(terms).toContainText('Senior');
+  const asks = page.locator('[data-job-requirements] dd');
+  await expect(asks).toHaveText(['5 years or more · High school diploma or equivalent', 'NIMS Machining Level I · AWS D17.1 · Secret clearance · US person (ITAR)']);
+  await expect(terms.getByRole('link', { name: /Career/ })).toHaveAttribute('href', /\/occupations\//);
+  // Its skills are the tags a path uses; a make the posting names is the tag's second line. No marks for a visitor.
+  const tags = page.locator('[data-skill-tag]');
+  await expect(tags).toHaveCount(4);
+  await expect(tags.first()).toContainText('Mazak, Okuma, Heidenhain');
+  await expect(tags.first().locator('button')).toHaveCount(0);
+  // Nothing of a job posted here: no description, no form, nothing to manage.
+  await expect(page.getByText('About the job')).toHaveCount(0);
+  await expect(page.locator('#apply, #applicants, #manage-job')).toHaveCount(0);
+  await expect(page.getByText(/Post another like this|Sign in to apply/)).toHaveCount(0);
+  await assertHealthyLayout(page, '/jobs/:id from a posting');
+});
+
+test("a job from a company's careers site, as a seeker and as the company: marks and a count for one, a line and nothing to edit for the other", async ({ page }) => {
+  const person = (purpose: 'work' | 'hire', memberships: unknown[] = []) => ({
+    user: { id: '00000000-0000-4000-8000-000000000002', email: 'person@device.test', name: 'Device Person', isAdmin: false, homeZip: null, about: null, emailNotices: true, purpose },
+    memberships, isEmployer: memberships.length > 0,
+  });
+  await page.route('**/api/me/news', (route) => route.fulfill({ json: { applications: false, applicants: false, access: false } }));
+  await page.route('**/api/me/skills', (route) =>
+    route.fulfill({ json: { skills: [
+      { skillId: SKILL(1), name: 'CNC Control Operation', status: 'held', updatedAt: new Date().toISOString(), makes: [{ id: 'm1', name: 'Mazak' }] },
+      { skillId: SKILL(2), name: 'Blueprint Reading', status: 'learning', updatedAt: new Date().toISOString(), makes: [] },
+    ] } })
+  );
+  // A seeker: which of the job's skills they hold, and the count; a make they have run is brighter.
+  await page.route('**/api/auth/me', (route) => route.fulfill({ json: person('work') }));
+  await standInForPostedJobs(page);
+  await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByText('1 of 4 skills held')).toBeVisible();
+  await expect(page.locator(`[data-skill-tag="${SKILL(1)}"]`)).toHaveAttribute('data-status', 'held');
+  await expect(page.locator(`[data-skill-tag="${SKILL(2)}"]`)).toHaveAttribute('data-status', 'learning');
+  await expect(page.locator(`[data-skill-tag="${SKILL(1)}"] [data-tag-make="lit"]`)).toHaveText('Mazak');
+  await expect(page.locator('[data-apply-on-site]')).toHaveCount(1);
+  await assertHealthyLayout(page, '/jobs/:id from a posting, a seeker');
+
+  // Someone who manages the company's jobs: told where it comes from, with nothing to change and nothing to apply to.
+  await page.unroute('**/api/auth/me');
+  await page.unroute(`**/api/jobs/${POSTED_JOB}`);
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({ json: person('hire', [{ companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', role: 'member', status: 'active' }]) })
+  );
+  await standInForPostedJobs(page, { canManage: true });
+  await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-job-from-source]')).toContainText("careers site and is kept in step with it");
+  await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
+  await expect(page.locator('[data-apply-on-site], #applicants, #manage-job')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /^Edit$|Post another like this/ })).toHaveCount(0);
+  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
+  await assertHealthyLayout(page, '/jobs/:id from a posting, the company');
+
+  // Your jobs, for a member who has posted nothing: what is already listed from the company's site is said before the form.
+  await page.route('**/api/employer', (route) =>
+    route.fulfill({
+      json: {
+        companies: [
+          { companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', role: 'member', status: 'active', decidedAt: null, askAgainAt: null, factories: [], jobs: [], listedJobs: 485 },
+        ],
+      },
+    })
+  );
+  await page.route('**/api/employer/company-requests', (route) => route.fulfill({ json: { requests: [] } }));
+  await page.route('**/api/companies/*/careers', (route) => route.fulfill({ json: { versions: [] } }));
+  await page.goto('/employer', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-listed-jobs]')).toContainText("485 open jobs come from the company's careers site and are kept in step with it.");
+  await expect(page.getByRole('heading', { name: 'Post a job' })).toBeVisible();
+  await assertHealthyLayout(page, '/employer with listed jobs and none posted');
+});

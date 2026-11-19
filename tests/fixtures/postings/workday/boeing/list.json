@@ -1,0 +1,100 @@
+{
+ "total": 4,
+ "jobPostings": [
+  {
+   "title": "General Machinist - N0309 South",
+   "externalPath": "/job/USA---Auburn-WA/General-Machinist---N0309_JR2026516085-1",
+   "locationsText": "2 Locations",
+   "postedOn": "Posted 6 Days Ago",
+   "bulletFields": [
+    "JR2026516085"
+   ]
+  },
+  {
+   "title": "Safety Specialist (Associate or Mid-Level)",
+   "externalPath": "/job/USA---Berkeley-MO/Safety-Specialist--Associate-or-Mid-Level-_JR2026525838-1",
+   "locationsText": "USA - Berkeley, MO",
+   "postedOn": "Posted Today",
+   "remoteType": "Onsite Job",
+   "bulletFields": [
+    "JR2026525838"
+   ]
+  },
+  {
+   "title": "Lead Supplier Program Management Specialist",
+   "externalPath": "/job/USA---Berkeley-MO/Lead-Supplier-Program-Management-Specialist_JR2026522998-1",
+   "locationsText": "USA - Berkeley, MO",
+   "postedOn": "Posted Yesterday",
+   "remoteType": "Onsite Job",
+   "bulletFields": [
+    "JR2026522998"
+   ]
+  },
+  {
+   "title": "Procurement Agent (Procurement Agent-General)",
+   "externalPath": "/job/USA---Hazelwood-MO/Procurement-Agent--Procurement-Agent-General-_JR2026527641-1",
+   "locationsText": "USA - Hazelwood, MO",
+   "postedOn": "Posted Yesterday",
+   "remoteType": "Onsite Job",
+   "bulletFields": [
+    "JR2026527641"
+   ]
+  }
+ ],
+ "facets": [
+  {
+   "facetParameter": "jobFamilyGroup",
+   "descriptor": "Job Category",
+   "values": [
+    {
+     "descriptor": "Electronic & Electrical Engineering (6B)",
+     "id": "8b618a30e00f0162e6d16be8143f7925",
+     "count": 104
+    },
+    {
+     "descriptor": "Software Engineering (6J)",
+     "id": "8b618a30e00f01c7277572e8143f8b25",
+     "count": 98
+    },
+    {
+     "descriptor": "Systems Engineering (6K)",
+     "id": "8b618a30e00f01585ff870e8143f8725",
+     "count": 92
+    }
+   ]
+  },
+  {
+   "facetParameter": "locationMainGroup",
+   "values": [
+    {
+     "facetParameter": "locationCountry",
+     "descriptor": "Location Country",
+     "values": [
+      {
+       "descriptor": "United States of America",
+       "id": "bc33aa3152ec42d4995f4791a106ed09",
+       "count": 737
+      },
+      {
+       "descriptor": "Australia",
+       "id": "d903bb3fedad45039383f6de334ad4db",
+       "count": 1
+      }
+     ]
+    },
+    {
+     "facetParameter": "locations",
+     "descriptor": "Locations",
+     "values": [
+      {
+       "descriptor": "ARE - Dubai, United Arab Emirates",
+       "id": "8b618a30e00f012c62cc8c2d1a3fa07e",
+       "count": 1
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "userAuthenticated": false
+}

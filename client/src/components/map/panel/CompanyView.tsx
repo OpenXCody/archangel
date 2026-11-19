@@ -13,6 +13,8 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
   const plants = company.factories ?? [];
   const states = new Set(plants.map((f) => f.state).filter(Boolean));
   const jobs = company.jobs ?? [];
+  // The record lists the first few open jobs and says how many there are in all.
+  const openJobs = company.openJobCount ?? jobs.length;
   const points = plants
     .filter((f) => f.latitude && f.longitude)
     .map((f): [number, number] => [parseFloat(f.longitude as string), parseFloat(f.latitude as string)])
@@ -31,7 +33,7 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
         items={[
           ...(plants.length > 0 ? [{ label: 'Plants', value: plants.length }] : []),
           ...(states.size > 1 ? [{ label: 'States', value: states.size }] : []),
-          ...(jobs.length > 0 ? [{ label: 'Open jobs', value: jobs.length }] : []),
+          ...(openJobs > 0 ? [{ label: 'Open jobs', value: openJobs }] : []),
         ]}
       />
       {company.description && (
@@ -45,7 +47,7 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
       {jobs.length > 0 && (
         <Section title="Open jobs">
           <JobRows jobs={jobs} limit={4} />
-          <More shown={Math.min(4, jobs.length)} total={jobs.length} noun="on the company's page" />
+          <More shown={Math.min(4, jobs.length)} total={openJobs} noun="on the company's page" />
         </Section>
       )}
 

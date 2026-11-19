@@ -7,8 +7,10 @@ const n = (value) => Number(value ?? 0).toLocaleString('en-US');
 const LINES_PER_ACTION = 40;
 
 export async function report(db, runId, { everything = false, rehearsal = false } = {}) {
-  const [run] = await db`SELECT r.*, s.name AS source_name, s.ref_source, s.scope, s.unmatched, s.fill FROM intake_runs r JOIN intake_sources s ON s.slug = r.source WHERE r.id = ${runId}`;
+  const [run] = await db`SELECT r.*, s.name AS source_name, s.ref_source, s.scope, s.unmatched, s.fill, s.kind FROM intake_runs r JOIN intake_sources s ON s.slug = r.source WHERE r.id = ${runId}`;
   if (!run) throw new Error(`There is no run ${runId}.`);
+  // A run of an employer's postings counts other things: its own report (postings/jobs.mjs).
+  if (run.kind === 'job') return (await import('../postings/jobs.mjs')).report(db, runId, { everything, rehearsal });
   const c = run.counts ?? {};
   const t = run.timings ?? {};
   const out = [];

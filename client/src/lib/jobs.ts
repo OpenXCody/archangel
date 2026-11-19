@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryString, request, retryUnlessClientError } from './http';
 import { accountKeys, invalidate } from './queryKeys';
 
@@ -40,9 +40,10 @@ export interface JobSummary {
   id: string;
   serial: number;
   title: string;
-  employmentType: EmploymentType;
+  /** Null only on a job from a company's careers site that does not say. */
+  employmentType: EmploymentType | null;
   shift: string | null;
-  /** Integer cents. */
+  /** Integer cents. Null where a job from a company's careers site states no pay. */
   payMin: number | null;
   /** Integer cents. */
   payMax: number | null;
@@ -75,6 +76,26 @@ export interface JobDetail extends JobSummary {
   isOpen: boolean;
   /** The company has its own version of the job's career. */
   hasVersion?: boolean;
+  /**
+   * The job came from the company's own careers site and is kept in step with
+   * it: people apply there (`applyUrl`), and nobody edits it here.
+   */
+  fromSource?: boolean;
+  /** The level the title states ("II", "Senior"), where it states one. */
+  levelWord?: string | null;
+  levelRank?: number | null;
+  /** What the posting asks for, as facts: only the keys that were said. */
+  requirements?: JobRequirements | null;
+  lastSeenAt?: string | null;
+}
+
+export interface JobRequirements {
+  yearsMin?: number;
+  yearsMax?: number;
+  education?: string;
+  certifications?: string[];
+  clearance?: string;
+  citizenship?: string;
 }
 
 export interface JobSkill {
@@ -83,6 +104,8 @@ export interface JobSkill {
   required: boolean;
   /** True when the signed-in person holds it; always false when signed out. */
   held: boolean;
+  /** The makes of the skill the job names (the machines or software it is run on). */
+  makes?: { id: string; name: string }[];
 }
 
 export interface JobDetailResponse {
@@ -99,11 +122,28 @@ export interface JobFilters {
   occupationId?: string;
   companyId?: string;
   factoryId?: string;
+  /** The jobs that ask for a skill. */
+  skillId?: string;
   /** "latitude,longitude": only jobs within `within` miles of the point, nearest first. */
   near?: string;
   /** Miles; 50 when left out. */
   within?: number;
   limit?: number;
+  offset?: number;
+}
+
+/** A page of the jobs list, and how many jobs match in all. */
+export interface JobPage {
+  jobs: JobSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+/** How many jobs are open, and the states that have some. */
+export interface JobsSummary {
+  total: number;
+  states: { state: string; jobs: number }[];
 }
 
 export interface NewJob {
@@ -152,8 +192,8 @@ export interface ApplicationPatch {
 // ---------------------------------------------------------------------------
 
 const jobsApi = {
-  list: (filters: JobFilters = {}) =>
-    request<{ jobs: JobSummary[] }>(`/jobs${queryString({ ...filters })}`).then((r) => r.jobs),
+  page: (filters: JobFilters = {}) => request<JobPage>(`/jobs${queryString({ ...filters })}`),
+  summary: () => request<JobsSummary>('/jobs/summary'),
   get: (id: string) => request<JobDetailResponse>(`/jobs/${id}`),
   create: (job: NewJob) => request<{ id: string; serial: number }>('/jobs', { method: 'POST', body: job }),
   update: (id: string, patch: JobPatch) => request<{ ok: true }>(`/jobs/${id}`, { method: 'PATCH', body: patch }),
@@ -170,14 +210,37 @@ const jobsApi = {
 // Hooks
 // ---------------------------------------------------------------------------
 
+/** How many jobs the list shows at first, and adds each time more are asked for. */
+export const JOBS_PAGE = 40;
+
+/**
+ * The open jobs that match, a page at a time: `jobs` is every page fetched so
+ * far, `total` how many match in all. Asking for more adds a page.
+ */
 export function useJobs(filters: JobFilters = {}) {
-  return useQuery({
+  const query = useInfiniteQuery({
     queryKey: accountKeys.jobList(filters),
-    queryFn: () => jobsApi.list(filters),
+    queryFn: ({ pageParam }) => jobsApi.page({ ...filters, limit: JOBS_PAGE, offset: pageParam }),
+    initialPageParam: 0,
+    getNextPageParam: (last, pages) => {
+      const fetched = pages.reduce((sum, page) => sum + page.jobs.length, 0);
+      return last.jobs.length > 0 && fetched < last.total ? fetched : undefined;
+    },
     staleTime: 30_000,
     placeholderData: (previous) => previous,
     retry: retryUnlessClientError,
   });
+  const pages = query.data?.pages;
+  return {
+    ...query,
+    jobs: pages?.flatMap((page) => page.jobs),
+    total: pages?.[0]?.total ?? 0,
+  };
+}
+
+/** How many jobs are open anywhere, and where: whether there is anything to filter, and the states on offer. */
+export function useJobsSummary() {
+  return useQuery({ queryKey: accountKeys.jobsSummary, queryFn: jobsApi.summary, staleTime: 60_000, retry: retryUnlessClientError });
 }
 
 export function useJob(id: string | undefined) {

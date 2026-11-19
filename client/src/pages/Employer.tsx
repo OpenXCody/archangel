@@ -142,6 +142,14 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
           {(declined.length > 0 || refused.length > 0) && <DeclinedRequests companies={declined} requests={refused} />}
 
           {/* With nothing posted yet the form is the page; after that it is one press away, above the list. */}
+          {/* What is already listed from each company's own careers site is said first: the page is not empty of jobs. */}
+          {!hasJobs && active.some((company) => (company.listedJobs ?? 0) > 0) && (
+            <div className="mb-8 mt-6">
+              {active.map((company) => (
+                <ListedJobs key={company.companyId} company={company} named={active.length > 1} />
+              ))}
+            </div>
+          )}
           {active.length > 0 && !hasJobs && (
             <PageSection title="Post a job" description="Listed at once. Open for 60 days.">
               <PostJob user={user} companies={active} />
@@ -675,6 +683,24 @@ function plantAndTown(job: EmployerJob): string {
 
 const menuItemClass = 'cursor-pointer px-2.5 py-2.5 text-sm text-fg-default focus:bg-bg-elevated';
 
+/**
+ * The open jobs a company has here that came from its own careers site: one line, with the way to them. They are
+ * not managed on this page, and a member who has posted nothing still sees that their company is already listed.
+ */
+function ListedJobs({ company, named = false }: { company: EmployerCompany; named?: boolean }) {
+  const listed = company.listedJobs ?? 0;
+  if (listed === 0) return null;
+  return (
+    <p className="mt-3 text-sm text-fg-muted" data-listed-jobs>
+      {named && <span className="text-fg-default">{company.companyName}: </span>}
+      <Link to={`/companies/${company.companyId}`} className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+        {listed.toLocaleString('en-US')} open {listed === 1 ? 'job' : 'jobs'}
+      </Link>{' '}
+      {listed === 1 ? 'comes' : 'come'} from the company's careers site and {listed === 1 ? 'is' : 'are'} kept in step with it.
+    </p>
+  );
+}
+
 function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; showCompanyName: boolean }) {
   const navigate = useNavigate();
   const remove = useDeleteJob();
@@ -683,10 +709,14 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
     .map((job) => ({ job, state: jobState(job) }))
     .sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state]);
 
+  // Jobs that come from the company's own careers site are not managed here: one line says they are listed.
+  const fromSite = <ListedJobs company={company} />;
+
   if (jobs.length === 0) {
     return (
       <PageSection title={company.companyName}>
         <CardNote>None yet.</CardNote>
+        {fromSite}
       </PageSection>
     );
   }
@@ -747,6 +777,7 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
           </li>
         ))}
       </ul>
+      {fromSite}
 
       <ConfirmDialog
         open={deleting !== null}

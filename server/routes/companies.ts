@@ -3,7 +3,7 @@ import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, companies, factories, jobs } from '../db/index.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
-import { listOpenJobs } from '../lib/openJobs.js';
+import { OPEN_JOBS_SHOWN, countOpenJobs, listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, isUuid, optionalText, refuseDeleteWithJobs, requiredText } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
@@ -242,7 +242,9 @@ router.get('/:id', async (req: Request, res: Response) => {
       peopleByState,
       sources: await sourcesOf('companies', id),
       factories: companyFactories,
-      jobs: await listOpenJobs(eq(jobs.companyId, id)),
+      jobs: await listOpenJobs(eq(jobs.companyId, id), OPEN_JOBS_SHOWN),
+      // How many are open in all: the page lists the newest few and links to the rest.
+      openJobCount: await countOpenJobs(eq(jobs.companyId, id)),
       occupations: occupationRows,
       typicalCareers,
       // The careers the company has its own version of.

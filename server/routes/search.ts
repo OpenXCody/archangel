@@ -5,7 +5,7 @@ import { ilike, or, and, count, eq, sql, type AnyColumn } from 'drizzle-orm';
 import { jobTextFilter } from '../lib/jobSearch.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
-import { jobIsOpen } from '../lib/openJobs.js';
+import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
 import { US_STATES } from '../../shared/states.js';
 import { pageLimit } from '../lib/paging.js';
 import { likeLiteral } from '../lib/like.js';
@@ -374,7 +374,7 @@ router.get('/', async (req: Request, res: Response) => {
           .innerJoin(factories, eq(factories.id, jobs.factoryId))
           .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
           .where(open)
-          .orderBy(sql`${jobs.postedAt} DESC`)
+          .orderBy(jobsInOrder())
           .limit(maxLimit),
         db
           .select({ count: count() })

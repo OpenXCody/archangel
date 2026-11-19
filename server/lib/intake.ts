@@ -60,7 +60,11 @@ function counted(counts: Record<string, unknown>, ...keys: string[]): number | n
   return total;
 }
 
-/** Every source that has been staged, with its latest runs, newest first. */
+/**
+ * Every source of plants that has been staged, with its latest runs, newest
+ * first. Employers' job postings are sources too (kind 'job'), one per
+ * employer: they are listed on their own (`postingSources` in postings.ts).
+ */
 export async function intakeSources(): Promise<IntakeSource[]> {
   const sources = rowsOf<{
     slug: string;
@@ -78,12 +82,13 @@ export async function intakeSources(): Promise<IntakeSource[]> {
       SELECT s.slug, s.name, s.publisher, s.url, s.terms, s.how_fetched, s.unmatched, s.fill,
              (SELECT count(*)::int FROM intake_records r WHERE r.source = s.slug AND r.gone_run_id IS NULL) AS staged,
              (SELECT count(*)::int FROM intake_review q WHERE q.source = s.slug AND q.status = 'waiting') AS waiting
-      FROM intake_sources s ORDER BY s.name`)
+      FROM intake_sources s WHERE s.kind <> 'job' ORDER BY s.name`)
   );
   const runs = rowsOf<{ id: number | string; source: string; state: string; started_at: string | Date; ended_at: string | Date | null; input: string | null; counts: Record<string, unknown> | null }>(
     await db.execute(sql`
       SELECT id, source, state, started_at, ended_at, input, counts FROM (
         SELECT r.*, row_number() OVER (PARTITION BY r.source ORDER BY r.id DESC) AS n FROM intake_runs r
+        WHERE r.source IN (SELECT slug FROM intake_sources WHERE kind <> 'job')
       ) t WHERE n <= ${RUNS_SHOWN} ORDER BY id DESC`)
   );
   const iso = (value: string | Date) => new Date(value).toISOString();

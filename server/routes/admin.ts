@@ -17,6 +17,7 @@ import { rowsOf } from '../lib/rows.js';
 import { containing, likeLiteral } from '../lib/like.js';
 import { dataQuality } from '../lib/quality.js';
 import { decideReview, intakeSources, reviewQueue, waitingMatches } from '../lib/intake.js';
+import { decidePlace, postingSources, waitingPlaceCount, waitingPlaces } from '../lib/postings.js';
 import { pairList, plantPair, plantsNear, setApart } from '../lib/plantPairs.js';
 import { stateCode } from '../lib/writes.js';
 
@@ -41,8 +42,9 @@ router.get(
         draftPaths: sql<number>`(SELECT COUNT(*)::int FROM occupations WHERE path_status = 'draft')`,
       })
       .from(sql`(SELECT 1) AS one`);
-    // Matches a source's run was not sure of: waiting for a person, under Data.
-    res.json({ ...row, waitingMatches: await waitingMatches() });
+    // Matches a source's run was not sure of, and places employers' postings name where we list
+    // no plant of theirs: waiting for a person, under Data.
+    res.json({ ...row, waitingMatches: await waitingMatches(), waitingPlaces: await waitingPlaceCount() });
   })
 );
 
@@ -737,6 +739,55 @@ router.post(
     if (decision === 'same' && !isUuid(plantId)) return res.status(400).json({ error: 'Choose one of the plants shown.' });
     try {
       res.json(await decideReview(Number(req.params.match), decision, decision === 'same' ? plantId : null, req.user!));
+    } catch (error) {
+      if (error instanceof RecordRefusal) return res.status(error.status).json({ error: error.message, ...error.extra });
+      throw error;
+    }
+  })
+);
+
+// ---------------------------------------------------------------------------
+// Employers' job postings: each employer's latest run, and the places their
+// postings name where we list no plant of theirs
+// ---------------------------------------------------------------------------
+
+// GET /api/admin/postings - every employer whose board has been run, with its
+// latest run: postings read and kept, jobs added, changed and closed, postings
+// waiting for a plant, or why the run stopped (refused, failed, not listed).
+router.get(
+  '/postings',
+  handle(async (_req, res) => {
+    res.json({ sources: await postingSources() });
+  })
+);
+
+// GET /api/admin/postings/places?limit= - the places that wait: the employer,
+// the place, how many postings name it and their commonest titles, and the
+// company's plants in that state to choose from.
+router.get(
+  '/postings/places',
+  handle(async (req, res) => {
+    res.json(await waitingPlaces(pageLimit(req.query.limit, 50, 200)));
+  })
+);
+
+// POST /api/admin/postings/places { source, placeKey, decision: 'point' | 'leave' | 'wait', plantId? }
+// - point: the place is the plant `plantId`; every posting naming it becomes a job there, now.
+// - leave: it is not a plant we list; it is not asked about again.
+// - wait: takes either back.
+router.post(
+  '/postings/places',
+  handle(async (req, res) => {
+    const { source, placeKey, decision, plantId } = req.body ?? {};
+    if (typeof source !== 'string' || typeof placeKey !== 'string' || !source || !placeKey) {
+      return res.status(400).json({ error: 'Name the employer and the place.' });
+    }
+    if (decision !== 'point' && decision !== 'leave' && decision !== 'wait') {
+      return res.status(400).json({ error: 'decision is point, leave or wait.' });
+    }
+    if (decision === 'point' && !isUuid(plantId)) return res.status(400).json({ error: 'Choose a plant.', field: 'plantId' });
+    try {
+      res.json(await decidePlace(source, placeKey, decision, decision === 'point' ? plantId : null, req.user!));
     } catch (error) {
       if (error instanceof RecordRefusal) return res.status(error.status).json({ error: error.message, ...error.extra });
       throw error;

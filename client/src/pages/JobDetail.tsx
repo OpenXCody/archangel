@@ -29,6 +29,7 @@ import {
 import { DAY_MS, formatDay, formatDayCapital } from '../lib/dates';
 import ApplicantList from '../components/jobs/ApplicantList';
 import JobDescription from '../components/jobs/JobDescription';
+import SourcedJob, { SourcedApply } from '../components/jobs/SourcedJob';
 import { SkillHeldToggle } from '../components/account/SkillStatusButton';
 import ConfirmDialog from '../components/layout/ConfirmDialog';
 import {
@@ -134,7 +135,7 @@ export default function JobDetail() {
   const optionalSkills = data.skills.filter((skill) => !skill.required);
   // Not every plant has a city on record; its name places it well enough.
   const place = data.job.city
-    ? formatPlace(data.job.city, data.job.state)
+    ? formatPlace(formatFactoryName(data.job.city), data.job.state)
     : [formatFactoryName(data.job.factoryName), data.job.state].filter(Boolean).join(', ');
   const companyName = formatCompanyName(data.job.companyName);
 
@@ -162,9 +163,12 @@ export default function JobDetail() {
               : { to: '/jobs', label: 'All jobs' }
         }
         // The number is the company's own count of its jobs: said to the people who manage it.
-        kind={manages ? `Job #${data.job.serial}` : 'Job'}
+        // (A job from the company's careers site is not one of the jobs it posted here: no number.)
+        kind={manages && !data.job.fromSource ? `Job #${data.job.serial}` : 'Job'}
         title={data.job.title}
         mark={<CompanyLogo name={companyName} domain={data.job.companyDomain} size={44} className="rounded-lg" />}
+        // A job from the company's careers site has one action, and it is the page's: Apply, there.
+        action={data.job.fromSource && (manages ? false : !signedIn || viewer.seeker) ? <SourcedApply job={data.job} /> : undefined}
       >
         <DetailFacts>{[companyName, place].filter(Boolean).join(' · ')}</DetailFacts>
       </DetailHeader>
@@ -185,7 +189,13 @@ export default function JobDetail() {
         </p>
       )}
 
-      {manages ? (
+      {data.job.fromSource ? (
+        // What the posting says, as facts: nothing to manage, nobody to apply to here.
+        <>
+          {!data.job.isOpen && !manages && <ClosedNotice job={data.job} justClosed={justClosed} />}
+          <SourcedJob job={data.job} skills={data.skills} manages={manages} />
+        </>
+      ) : manages ? (
         // The company's view comes first: the job's state, then who applied.
         <>
           <ManageSection job={data.job} />
@@ -201,7 +211,7 @@ export default function JobDetail() {
         </>
       )}
 
-      {data.job.description && (
+      {!data.job.fromSource && data.job.description && (
         <DetailSection title="About the job">
           <div className={cn(cardClass, 'p-4 text-sm leading-relaxed text-fg-default sm:p-6')}>
             <JobDescription text={data.job.description} />
@@ -209,48 +219,51 @@ export default function JobDetail() {
         </DetailSection>
       )}
 
-      <DetailSection
-        title="Required skills"
-        description={requiredSkills.length > 0 && marksHeld ? 'Mark the ones you have. The company sees how many you hold.' : undefined}
-      >
-        {requiredSkills.length === 0 ? (
-          <CardNote>No required skills are listed for this job.</CardNote>
-        ) : (
-          <>
-            {marksHeld ? (
-              <HeldMeter
-                held={requiredSkills.filter((skill) => skill.held).length}
-                total={requiredSkills.length}
-                noun="required skills held"
-                className="mb-3"
-              />
-            ) : (
-              !signedIn && (
-                <p className="mb-3 text-sm text-fg-muted">
-                  <Link
-                    to={signInPath(`/jobs/${data.job.id}`)}
-                    className="font-medium text-fg-default underline underline-offset-4 hover:no-underline"
-                  >
-                    Sign in
-                  </Link>{' '}
-                  to see which of these you already hold.
-                </p>
-              )
-            )}
-            <SkillList skills={requiredSkills} marksHeld={marksHeld} />
-          </>
-        )}
-      </DetailSection>
+      {!data.job.fromSource && (
+        <DetailSection
+          title="Required skills"
+          description={requiredSkills.length > 0 && marksHeld ? 'Mark the ones you have. The company sees how many you hold.' : undefined}
+        >
+          {requiredSkills.length === 0 ? (
+            <CardNote>No required skills are listed for this job.</CardNote>
+          ) : (
+            <>
+              {marksHeld ? (
+                <HeldMeter
+                  held={requiredSkills.filter((skill) => skill.held).length}
+                  total={requiredSkills.length}
+                  noun="required skills held"
+                  className="mb-3"
+                />
+              ) : (
+                !signedIn && (
+                  <p className="mb-3 text-sm text-fg-muted">
+                    <Link
+                      to={signInPath(`/jobs/${data.job.id}`)}
+                      className="font-medium text-fg-default underline underline-offset-4 hover:no-underline"
+                    >
+                      Sign in
+                    </Link>{' '}
+                    to see which of these you already hold.
+                  </p>
+                )
+              )}
+              <SkillList skills={requiredSkills} marksHeld={marksHeld} />
+            </>
+          )}
+        </DetailSection>
+      )}
 
-      {optionalSkills.length > 0 && (
+      {!data.job.fromSource && optionalSkills.length > 0 && (
         <DetailSection title="Optional skills" description="Good to have, not needed to apply.">
           <SkillList skills={optionalSkills} marksHeld={marksHeld} />
         </DetailSection>
       )}
 
-      {applyAfterSkills && apply}
+      {!data.job.fromSource && applyAfterSkills && apply}
 
       {manages &&
+        !data.job.fromSource &&
         (applying ? (
           apply
         ) : (
@@ -307,7 +320,7 @@ function TermsCard({ job, showApplications }: { job: JobDetailData; showApplicat
     <div className={recordListClass} data-job-terms>
       <dl className="grid grid-cols-1 gap-4 p-4 xs:grid-cols-2 sm:grid-cols-4 sm:p-6">
         <Term label="Pay">{formatPay(job.payMin, job.payMax, job.payPeriod)}</Term>
-        <Term label="Type">{employmentLabel(job.employmentType)}</Term>
+        <Term label="Type">{job.employmentType ? employmentLabel(job.employmentType) : 'Not stated'}</Term>
         <Term label="Shift">{job.shift || 'Not stated'}</Term>
         <Term label="Posted">{formatDayCapital(job.postedAt)}</Term>
         {/* Applicants meet this as the Apply panel; the company has none. */}

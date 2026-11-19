@@ -6,7 +6,7 @@ import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
 import { addSkillMake, answerRefusal, changeRecord, orderSkillMakes, recordAdded, removeRecord, removeSkillMake, renameSkillMake, toolList } from '../lib/records.js';
 import { makesOf } from '../lib/makes.js';
-import { listOpenJobs } from '../lib/openJobs.js';
+import { countOpenJobs, listOpenJobs } from '../lib/openJobs.js';
 import { rowsOf } from '../lib/rows.js';
 import { containing } from '../lib/like.js';
 import { findGroup, placeColumns, placeOf, placeSql, readLevel, readTaxonomy } from '../lib/taxonomy.js';
@@ -255,6 +255,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         return { id: String(r.id), name: String(r.name), level: place.level, group: place.group };
       }),
       jobs: openJobs,
+      // How many open jobs ask for it in all: the page lists the newest few and links to the rest.
+      openJobCount: await countOpenJobs(sql`EXISTS (SELECT 1 FROM job_skills js WHERE js.job_id = ${jobs.id} AND js.skill_id = ${id})`),
     });
   } catch (error) {
     console.error('Error fetching skill:', error);

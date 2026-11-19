@@ -11,6 +11,7 @@ import QualityTable from './QualityTable';
 import IntakeSources from './IntakeSources';
 import MatchReview from './MatchReview';
 import { PairsView, PairsWaiting } from './PlantPairs';
+import { PlacesWaiting, PostingRuns } from './Postings';
 import { isUuid } from '../../lib/validation';
 
 /**
@@ -36,9 +37,13 @@ export default function DataTab() {
       <MatchReview />
       {/* Then rows that carry one registry id and may be one plant: again only while some wait. */}
       <PairsWaiting />
+      {/* Places employers' postings name where we list no plant of theirs: only while some wait. */}
+      <PlacesWaiting />
       <Records />
       <PathsSection />
       <IntakeSources />
+      {/* Each employer whose postings come in as jobs, with its latest run: once there has been one. */}
+      <PostingRuns />
       <QualityTable />
     </>
   );
