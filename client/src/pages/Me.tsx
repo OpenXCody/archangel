@@ -129,7 +129,7 @@ function Starter({ onStart }: { onStart: () => void }) {
                   <div className="min-w-0 flex-1">
                     <Link
                       to={`/occupations/${career.id}`}
-                      className="block break-words text-sm font-medium text-text-1 underline-offset-4 hover:underline"
+                      className="block break-words text-sm font-medium text-text-1 hover:underline"
                     >
                       {career.title}
                     </Link>

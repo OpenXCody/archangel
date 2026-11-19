@@ -3,7 +3,7 @@ import { rowClass, textButtonClass } from '../account/parts';
 
 /* What the sections of the profile page share. */
 
-export const linkClass = 'font-medium text-text-1 underline underline-offset-4 hover:no-underline';
+export const linkClass = 'font-medium text-text-1 underline hover:no-underline';
 
 /** "Removed X." with the way back, in the place the row was. */
 export function RemovedRow({ name, onUndo, busy }: { name: string; onUndo: () => void; busy?: boolean }) {

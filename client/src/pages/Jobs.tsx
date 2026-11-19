@@ -278,7 +278,7 @@ export default function Jobs() {
                   {postJob && (
                     <p className="text-sm text-text-2" data-post-a-job>
                       Hiring?{' '}
-                      <Link to={postJob.to} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-text-1">
+                      <Link to={postJob.to} className="inline-flex min-h-11 items-center underline hover:text-text-1">
                         Post a job
                       </Link>
                     </p>
@@ -294,7 +294,7 @@ export default function Jobs() {
             {summary}
             {jobs.isFetching && !jobs.isFetchingNextPage && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Updating" />}
             {filtered && (
-              <button type="button" onClick={clearFilters} className="shrink-0 whitespace-nowrap font-medium text-text-1 underline underline-offset-4 hover:no-underline">
+              <button type="button" onClick={clearFilters} className="shrink-0 whitespace-nowrap font-medium text-text-1 underline hover:no-underline">
                 Clear filters
               </button>
             )}
@@ -333,7 +333,7 @@ export default function Jobs() {
           {postJob && (
             <p className="mt-6 text-sm text-text-2" data-post-a-job>
               {postJob.visitor && 'Hiring? '}
-              <Link to={postJob.to} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-text-1">
+              <Link to={postJob.to} className="inline-flex min-h-11 items-center underline hover:text-text-1">
                 Post a job
               </Link>
             </p>
@@ -357,8 +357,8 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
       className={cn(rowHoverClass, 'flex h-full flex-col py-4')}
     >
       <div className="flex items-start justify-between gap-3">
-        <h2 className="min-w-0 break-words text-base font-medium text-text-1">{job.title}</h2>
-        <span className="shrink-0 whitespace-nowrap pt-0.5 text-xs text-text-2">{job.undated ? 'Listed' : 'Posted'} {formatAgo(job.postedAt)}</span>
+        <h2 className="min-w-0 break-words text-sm text-text-1">{job.title}</h2>
+        <span className="shrink-0 whitespace-nowrap pt-0.5 text-xs text-text-3">{job.undated ? 'Listed' : 'Posted'} {formatAgo(job.postedAt)}</span>
       </div>
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-2">
         <span className="inline-flex min-w-0 items-center gap-1.5">
@@ -374,7 +374,7 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
       </div>
       {/* A job from a company's careers site that states no pay says nothing about pay. */}
       {(job.payMin !== null || job.payMax !== null) && (
-        <p className="mt-3 text-sm font-semibold text-text-1">{formatPay(job.payMin, job.payMax, job.payPeriod)}</p>
+        <p className="mt-2 text-sm text-text-1">{formatPay(job.payMin, job.payMax, job.payPeriod)}</p>
       )}
       {(job.employmentType || job.shift || job.occupationTitle !== job.title) && (
         // The job's terms as one quiet line: words, not chips.

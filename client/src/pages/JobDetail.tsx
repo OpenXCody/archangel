@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ExternalLink, Loader2, Lock, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, labelClass } from '@/lib/utils';
 import { signInPath, useAccount } from '../lib/account';
 import { useApply, useJob, useUpdateJob, type JobDetail as JobDetailData, type JobDetailResponse, type JobSkill } from '../lib/jobs';
 import { ApiError } from '../lib/http';
@@ -153,6 +153,7 @@ export default function JobDetail() {
   return (
     <PageContainer size="narrow">
       <DetailHeader
+        longTitle
         back={
           // "Your jobs" is a place only for someone drawn as an employer: an admin who manages
           // every job without belonging to the company came from the open list, and goes back to it.
@@ -180,7 +181,7 @@ export default function JobDetail() {
           ) : (
             <>
               You are signed out.{' '}
-              <Link to={signInPath(`/jobs/${data.job.id}`)} className="font-medium underline underline-offset-4 hover:no-underline">
+              <Link to={signInPath(`/jobs/${data.job.id}`)} className="font-medium underline hover:no-underline">
                 Sign in
               </Link>{' '}
               to manage this job.
@@ -240,7 +241,7 @@ export default function JobDetail() {
                   <p className="mb-3 text-sm text-text-2">
                     <Link
                       to={signInPath(`/jobs/${data.job.id}`)}
-                      className="font-medium text-text-1 underline underline-offset-4 hover:no-underline"
+                      className="font-medium text-text-1 underline hover:no-underline"
                     >
                       Sign in
                     </Link>{' '}
@@ -304,8 +305,8 @@ function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClo
 function Term({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-text-2">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-medium text-text-1">{children}</dd>
+      <dt className={labelClass}>{label}</dt>
+      <dd className="mt-1 break-words text-sm text-text-1">{children}</dd>
     </div>
   );
 }
@@ -328,7 +329,7 @@ function TermsCard({ job, showApplications }: { job: JobDetailData; showApplicat
           <div className="min-w-0 xs:col-span-2 sm:col-span-4">
             <Term label="Applications">
               {job.applyUrl ? (
-                <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className="break-all underline underline-offset-4 hover:no-underline">
+                <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className="break-all underline hover:no-underline">
                   {host ?? job.applyUrl}
                 </a>
               ) : (
@@ -418,12 +419,12 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
     return (
       <div className={cn(cardClass, 'flex flex-wrap items-center gap-x-4 gap-y-2')}>
         <div className="min-w-0 flex-1 basis-48">
-          <p className="text-sm font-medium text-text-1">
+          <p className="text-sm text-text-1">
             {myApplication.status === 'withdrawn' ? 'You withdrew this application.' : `You applied ${formatDay(myApplication.createdAt)}.`}
           </p>
           <p className="mt-0.5 text-sm text-text-2">
             Follow it on{' '}
-            <Link to="/me" className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
+            <Link to="/me" className="font-medium text-text-1 underline hover:no-underline">
               your profile
             </Link>
             .
@@ -466,7 +467,7 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
           </Button>
           <Link
             to={signInPath(here, 'create')}
-            className="text-sm font-medium text-text-1 underline underline-offset-4 hover:no-underline"
+            className="text-sm font-medium text-text-1 underline hover:no-underline"
           >
             Create an account
           </Link>
@@ -582,7 +583,7 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
 
   return (
     <div className={cardClass}>
-      <p className="text-sm font-medium text-text-1" data-job-state={closed ? 'closed' : job.isOpen ? 'open' : 'expired'}>
+      <p className="text-sm text-text-1" data-job-state={closed ? 'closed' : job.isOpen ? 'open' : 'expired'}>
         {closed ? 'Closed' : job.isOpen ? 'Open' : 'Expired'}
         <span className="font-normal text-text-2">
           {closed

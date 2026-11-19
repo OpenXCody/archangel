@@ -141,9 +141,9 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
             className={cn(fieldClass, (shown('email') || existing) && 'border-danger/60')}
           />
           {existing ? (
-            <p id="invite-email-error" role="alert" className="mt-1.5 text-xs text-text-2" data-invite-existing>
+            <p id="invite-email-error" role="alert" className="mt-1.5 text-xs text-text-3" data-invite-existing>
               That address has an account:{' '}
-              <Link to={`/admin?q=${encodeURIComponent(email.trim())}&open=${existing.id}`} className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
+              <Link to={`/admin?q=${encodeURIComponent(email.trim())}&open=${existing.id}`} className="font-medium text-text-1 underline hover:no-underline">
                 {existing.name || email.trim()}
               </Link>
               . Its roles are changed under People.
@@ -265,8 +265,8 @@ function PendingInvites({ onRevoked }: { onRevoked: (inviteId: string) => void }
                   data-invite-email={invite.email}
                 >
                   <div className="min-w-0">
-                    <p className="break-all text-sm font-medium text-text-1">{invite.email}</p>
-                    <p className="mt-0.5 break-words text-xs text-text-2">
+                    <p className="break-all text-sm text-text-1">{invite.email}</p>
+                    <p className="mt-0.5 break-words text-xs text-text-3">
                       {inviteRoleLabel(invite.role, invite.companyName)}
                       <Dot />
                       Invited {formatDay(invite.createdAt)}
@@ -316,7 +316,7 @@ function EarlierInvites() {
         {past.data.map((invite) => (
           <li key={invite.id} className={cn(rowClass, 'py-3')} data-earlier-invite={invite.state}>
             <p className="break-all text-sm text-text-1">{invite.email}</p>
-            <p className="mt-0.5 break-words text-xs text-text-2">
+            <p className="mt-0.5 break-words text-xs text-text-3">
               {invite.state === 'accepted' && invite.acceptedAt ? `Accepted ${formatDay(invite.acceptedAt)}` : `Expired ${formatDay(invite.expiresAt)}`}
               <Dot />
               {inviteRoleLabel(invite.role, invite.companyName)}

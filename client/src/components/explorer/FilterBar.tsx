@@ -206,7 +206,7 @@ export default function FilterBar({
           />
         )}
         {filtered && (
-          <button type="button" onClick={() => onFilterChange({})} className={cn(TRIGGER, 'text-text-2 underline underline-offset-4 hover:text-text-1')}>
+          <button type="button" onClick={() => onFilterChange({})} className={cn(TRIGGER, 'text-text-1 underline')}>
             Clear
           </button>
         )}

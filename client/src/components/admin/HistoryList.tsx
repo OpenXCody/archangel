@@ -244,7 +244,7 @@ export default function HistoryList({ filter = {}, ownRecord = false, empty = 'N
                   <>
                     {' '}
                     {linked ? (
-                      <Link to={editPath(entry.kind as RecordKind, entry.recordId as string)} className="font-medium text-text-1 underline-offset-4 hover:underline">
+                      <Link to={editPath(entry.kind as RecordKind, entry.recordId as string)} className="font-medium text-text-1 hover:underline">
                         {entry.recordName}
                       </Link>
                     ) : (
@@ -253,7 +253,7 @@ export default function HistoryList({ filter = {}, ownRecord = false, empty = 'N
                   </>
                 )}
               </p>
-              {words && <p className="mt-0.5 break-words text-xs text-text-2">{words}</p>}
+              {words && <p className="mt-0.5 break-words text-xs text-text-3">{words}</p>}
               <p className="mt-0.5 break-words text-xs text-text-3">
                 {!ownRecord && `${KIND_WORD[entry.kind] ?? entry.kind} · `}
                 {entry.actorName} · {when(entry.at)}

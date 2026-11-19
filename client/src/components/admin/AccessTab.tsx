@@ -33,7 +33,7 @@ function DecisionHelp({ request }: { request: AdminMembership }) {
       ? 'Nobody has access yet'
       : `${request.activeMembers.toLocaleString('en-US')} ${request.activeMembers === 1 ? 'person has' : 'people have'} access`;
   return (
-    <p className="mt-1 break-words text-xs text-text-2" data-decision-help>
+    <p className="mt-1 break-words text-xs text-text-3" data-decision-help>
       {request.domainMatches === true ? (
         <span className="text-text-1" data-domain-match>
           Address at the company's domain, {request.companyDomain}
@@ -117,10 +117,10 @@ export default function AccessTab() {
                 data-request-row={`${request.companyId}:${request.userId}`}
               >
                 <div className="min-w-0 flex-1 basis-64">
-                  <p className="break-words text-sm font-medium text-text-1">{request.userName}</p>
+                  <p className="break-words text-sm text-text-1">{request.userName}</p>
                   <p className="break-all text-sm text-text-2">{request.userEmail}</p>
-                  <p className="mt-1 break-words text-xs text-text-2">
-                    <Link to={`/companies/${request.companyId}`} className="font-medium text-text-1 underline-offset-4 hover:underline">
+                  <p className="mt-1 break-words text-xs text-text-3">
+                    <Link to={`/companies/${request.companyId}`} className="font-medium text-text-1 hover:underline">
                       {request.companyName}
                     </Link>
                     <Dot />
@@ -177,10 +177,10 @@ export default function AccessTab() {
                 data-request-row={`${request.companyId}:${request.userId}`}
               >
                 <div className="min-w-0 flex-1 basis-64">
-                  <p className="break-words text-sm font-medium text-text-1">{request.userName}</p>
+                  <p className="break-words text-sm text-text-1">{request.userName}</p>
                   <p className="break-all text-sm text-text-2">{request.userEmail}</p>
-                  <p className="mt-1 break-words text-xs text-text-2">
-                    <Link to={`/companies/${request.companyId}`} className="font-medium text-text-1 underline-offset-4 hover:underline">
+                  <p className="mt-1 break-words text-xs text-text-3">
+                    <Link to={`/companies/${request.companyId}`} className="font-medium text-text-1 hover:underline">
                       {request.companyName}
                     </Link>
                     {request.decidedAt && (

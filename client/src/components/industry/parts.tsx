@@ -206,7 +206,7 @@ export function FigureList({ rows, state: navState }: { rows: FigureRow[]; state
   const columns = cn('grid items-baseline gap-x-3', withPeople && withPlants ? 'grid-cols-[minmax(0,1fr)_5.75rem_3.5rem]' : 'grid-cols-[minmax(0,1fr)_5.75rem]');
   return (
     <div data-figure-list>
-      <div aria-hidden="true" className={cn(columns, 'border-b border-line pb-2 text-right text-[11px] uppercase tracking-wider text-text-3')}>
+      <div aria-hidden="true" className={cn(columns, 'border-b border-line pb-2 text-right text-[11px] font-medium uppercase tracking-[0.08em] text-text-2')}>
         <span />
         {withPeople && <span>People</span>}
         {withPlants && <span>Plants</span>}
@@ -215,7 +215,7 @@ export function FigureList({ rows, state: navState }: { rows: FigureRow[]; state
         {rows.map((row) => (
           <li key={row.key} className="border-b border-line">
             <Link to={row.to} state={navState} className={cn(columns, 'group min-h-11 py-3 text-[15px] leading-snug sm:py-2.5', focusRing)}>
-              <span className="min-w-0 text-text-1 underline-offset-4 group-hover:underline">{row.label}</span>
+              <span className="min-w-0 text-text-1 group-hover:underline">{row.label}</span>
               {withPeople && (
                 <span className="text-right text-sm tabular-nums text-text-1">
                   {row.people != null && (

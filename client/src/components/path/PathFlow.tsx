@@ -134,9 +134,9 @@ function Ladder({ label, careers, place }: { label: string; careers: LadderCaree
           <li key={career.id}>
             <Link
               to={`/occupations/${career.id}`}
-              className={cn('group inline-flex min-h-11 max-w-full items-center text-sm text-text-2 transition-colors hover:text-text-1', focusRing)}
+              className={cn('group inline-flex min-h-11 max-w-full items-center text-sm text-text-1', focusRing)}
             >
-              <span className="min-w-0 break-words underline decoration-line-strong underline-offset-4 group-hover:decoration-text-2">{career.title}</span>
+              <span className="min-w-0 break-words underline">{career.title}</span>
             </Link>
           </li>
         ))}

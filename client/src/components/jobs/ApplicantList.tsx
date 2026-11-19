@@ -121,7 +121,7 @@ export default function ApplicantList({ data, job }: { data: JobApplicants; job?
 
       <div className={cardClass}>
         <div
-          className={cn('hidden items-center gap-x-4 border-b border-line py-2 text-xs text-text-2 sm:grid', COLUMNS)}
+          className={cn('hidden items-center gap-x-4 border-b border-line py-2 text-xs text-text-3 sm:grid', COLUMNS)}
           aria-hidden="true"
         >
           <span>Applicant</span>
@@ -200,7 +200,7 @@ function ApplicantRow({ applicant, skills, hasRequired, job, open, onToggle }: A
           COLUMNS
         )}
       >
-        <span className={cn('min-w-0 truncate text-sm font-medium', quiet ? 'text-text-2' : 'text-text-1')}>
+        <span className={cn('min-w-0 truncate text-sm', quiet ? 'text-text-2' : 'text-text-1')}>
           {applicant.applicant.name}
         </span>
         <span className="hidden items-center gap-2.5 sm:flex">
@@ -227,7 +227,7 @@ function ApplicantRow({ applicant, skills, hasRequired, job, open, onToggle }: A
         </span>
         <span className="hidden text-sm text-text-2 sm:block">{appliedWhen(applicant.createdAt)}</span>
         <ChevronDown className={cn('hidden h-4 w-4 text-text-2 transition-transform sm:block', open && 'rotate-180')} aria-hidden="true" />
-        <span className="col-span-2 text-xs text-text-2 sm:hidden">
+        <span className="col-span-2 text-xs text-text-3 sm:hidden">
           {held ? `${held} required skills · ` : ''}
           {appliedWhen(applicant.createdAt)}
         </span>
@@ -306,12 +306,12 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
           {/* The email opens with the job as its subject, so the applicant knows what it is about. */}
           <a
             href={`mailto:${person.email}${job ? `?subject=${encodeURIComponent(`${job.title} at ${job.companyName}`)}` : ''}`}
-            className="break-all text-sm text-text-1 underline underline-offset-4 hover:no-underline"
+            className="break-all text-sm text-text-1 underline hover:no-underline"
           >
             {person.email}
           </a>
           {/* When they applied is in the row above, once. */}
-          {person.homeZip && <p className="mt-0.5 text-xs text-text-2">ZIP {person.homeZip}</p>}
+          {person.homeZip && <p className="mt-0.5 text-xs text-text-3">ZIP {person.homeZip}</p>}
         </div>
         <div className="w-full shrink-0 sm:w-44">
           {status === 'withdrawn' ? (
@@ -409,7 +409,7 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
 
       {applicant.note && (
         <div>
-          <p className="text-xs font-medium text-text-2">Note from {person.name}</p>
+          <p className="text-xs font-medium text-text-3">Note from {person.name}</p>
           <p className="mt-1 whitespace-pre-line break-words text-sm text-text-1">{applicant.note}</p>
         </div>
       )}
@@ -446,7 +446,7 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
             Save note
           </Button>
           {saveNote.isSuccess && !noteDirty && (
-            <span role="status" className="text-xs text-text-2">
+            <span role="status" className="text-xs text-text-3">
               Saved
             </span>
           )}
@@ -476,7 +476,7 @@ function SkillStanding({ title, skills, held, learning }: SkillStandingProps) {
   ];
   return (
     <div className="min-w-0" data-skill-standing={title.split(' ')[0].toLowerCase()}>
-      <p className="text-xs font-medium text-text-2">{title}</p>
+      <p className="text-xs font-medium text-text-3">{title}</p>
       <dl className="mt-1.5 space-y-2">
         {groups.map(
           ({ label, mark, tone, skills: group }) =>

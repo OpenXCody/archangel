@@ -54,7 +54,7 @@ export default function Admin() {
   );
 }
 
-const waitingLinkClass = 'font-medium text-text-1 underline underline-offset-4 hover:no-underline';
+const waitingLinkClass = 'font-medium text-text-1 underline hover:no-underline';
 
 /**
  * What is waiting on an admin, above the tabs: requests to join a company,
@@ -82,7 +82,7 @@ function Waiting() {
   if (requests === 0 && toAdd === 0 && matches === 0) return null;
   return (
     <div className="mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-sm sm:mb-8" data-admin-waiting>
-      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">Waiting</span>
+      <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">Waiting</span>
       {requests > 0 && (
         <Link to="/admin?tab=access" className={waitingLinkClass}>
           {requests.toLocaleString('en-US')} access {requests === 1 ? 'request' : 'requests'}

@@ -22,11 +22,11 @@ export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
           className="border-t border-line pb-8 pt-6 first:border-t-0 first:pt-3 [contain-intrinsic-size:auto_60rem] [content-visibility:auto] sm:pb-10"
         >
           <div className="flex flex-wrap items-baseline justify-between gap-x-6">
-            <h2 className="text-lg font-semibold text-text-1 sm:text-xl">{domain.name}</h2>
+            <h2 className="text-xl font-semibold text-text-1">{domain.name}</h2>
             <Link
               to={`/atlas?domain=${encodeURIComponent(domain.slug)}`}
               className={cn(
-                'inline-flex min-h-11 items-center gap-1 text-sm text-text-2 underline-offset-4 transition-colors hover:text-text-1 hover:underline sm:min-h-0',
+                'inline-flex min-h-11 items-center gap-1 text-sm text-text-2 transition-colors hover:text-text-1 hover:underline sm:min-h-0',
                 focusRing
               )}
             >
@@ -38,7 +38,7 @@ export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
           <div className="mt-5 grid grid-cols-1 gap-x-12 gap-y-7 lg:grid-cols-2">
             {domain.groups.map((group) => (
               <div key={group.slug} data-skill-group={group.slug} className="min-w-0">
-                <h3 className="border-b border-line pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">{group.name}</h3>
+                <h3 className="border-b border-line pb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">{group.name}</h3>
                 <ul>
                   {group.skills.map((skill) => (
                     <li key={skill.id} className="border-b border-line">
@@ -46,7 +46,7 @@ export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
                         to={`/skills/${skill.id}`}
                         className={cn('group flex min-h-11 items-baseline justify-between gap-4 py-2.5 text-[15px] leading-snug sm:min-h-0 sm:py-2', focusRing)}
                       >
-                        <span className="min-w-0 text-text-1 underline-offset-4 group-hover:underline">{skill.name}</span>
+                        <span className="min-w-0 text-text-1 group-hover:underline">{skill.name}</span>
                         <span className="shrink-0 whitespace-nowrap text-sm text-text-3">
                           <span data-skill-level>{LEVEL_NAME[skill.level]}</span>
                           {/* How many careers use it: on a phone the level alone fits. */}

@@ -167,7 +167,7 @@ function VirtualRows({
                   <button
                     type="button"
                     onClick={onLoadMore}
-                    className="inline-flex min-h-11 items-center text-sm text-text-2 underline underline-offset-4 transition-colors hover:text-text-1"
+                    className="inline-flex min-h-11 items-center text-sm text-text-1 underline transition-colors"
                   >
                     Show more
                   </button>
@@ -312,7 +312,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
           </p>
           {/* Plants filtered to one industry: that industry has a page of its own, for the same state. */}
           {industryPage && filters.industry && (
-            <Link to={industryPage} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-text-1 sm:min-h-0">
+            <Link to={industryPage} className="inline-flex min-h-11 items-center underline hover:text-text-1 sm:min-h-0">
               About {industryLabel(filters.industry)}
               {filters.state ? ` in ${stateName(filters.state)}` : ''}
             </Link>

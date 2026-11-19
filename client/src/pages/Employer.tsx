@@ -193,7 +193,7 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
           {/* For someone here to hire, the header's jobs item is this page: the open list is one link away. */}
           {viewer.employer && (
             <p className="mt-8 text-sm text-text-2" data-all-jobs>
-              <Link to="/jobs" className="underline underline-offset-4 hover:text-text-1">
+              <Link to="/jobs" className="underline hover:text-text-1">
                 All open jobs
               </Link>
             </p>
@@ -215,7 +215,7 @@ function HiringSwitch() {
   return (
     <div className={cn(cardClass, 'mb-6 flex flex-wrap items-center gap-x-4 gap-y-3')} data-hiring-switch>
       <div className="min-w-0 flex-1 basis-56">
-        <p className="text-sm font-medium text-text-1">This account is set to find a career.</p>
+        <p className="text-sm text-text-1">This account is set to find a career.</p>
         <p className="mt-0.5 text-sm text-text-2">Set it to hire and this page leads your menu. Nothing is removed.</p>
         <ErrorNote error={update.error} className="mt-2" />
       </div>
@@ -375,7 +375,7 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
           return (
             <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-pending-company={company.companyId}>
               <div className="min-w-0 flex-1 basis-56">
-                <p className="break-words text-sm font-medium text-text-1">{company.companyName}</p>
+                <p className="break-words text-sm text-text-1">{company.companyName}</p>
                 <p className="mt-0.5 text-sm text-text-2">Posting opens once approved.</p>
               </div>
               <Button
@@ -400,7 +400,7 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
           return (
             <li key={request.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-company-request-row={request.id}>
               <div className="min-w-0 flex-1 basis-56">
-                <p className="break-words text-sm font-medium text-text-1">{requestSubject(request)}</p>
+                <p className="break-words text-sm text-text-1">{requestSubject(request)}</p>
                 <p className="mt-0.5 text-sm text-text-2">
                   {request.companyId
                     ? `Asked ${formatOnDay(request.createdAt)} for this plant to be added.`
@@ -450,7 +450,7 @@ function DeclinedRequests({ companies, requests }: { companies: EmployerCompany[
           return (
             <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-declined-company={company.companyId}>
               <div className="min-w-0 flex-1 basis-56">
-                <p className="break-words text-sm font-medium text-text-1">{company.companyName}</p>
+                <p className="break-words text-sm text-text-1">{company.companyName}</p>
                 <p className="mt-0.5 text-sm text-text-2">
                   An admin declined this request{company.decidedAt && ` ${formatOnDay(company.decidedAt)}`}.
                   {!again && company.askAgainAt && ` It can be made again from ${formatDay(company.askAgainAt)}.`}
@@ -477,7 +477,7 @@ function DeclinedRequests({ companies, requests }: { companies: EmployerCompany[
         })}
         {requests.map((asked) => (
           <li key={asked.id} className={cn(rowClass, 'py-4')} data-company-request-row={asked.id}>
-            <p className="break-words text-sm font-medium text-text-1">{requestSubject(asked)}</p>
+            <p className="break-words text-sm text-text-1">{requestSubject(asked)}</p>
             <p className="mt-0.5 text-sm text-text-2">
               An admin declined the request to add this {asked.companyId ? 'plant' : 'company'}
               {asked.decidedAt && ` ${formatOnDay(asked.decidedAt)}`}.
@@ -593,11 +593,11 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                             href={`/companies/${company.slug ?? company.id}`}
                             target="_blank"
                             rel="noopener"
-                            className="break-words text-sm font-medium text-text-1 underline-offset-4 hover:underline"
+                            className="break-words text-sm font-medium text-text-1 hover:underline"
                           >
                             {company.name}
                           </a>
-                          <p className="mt-0.5 break-words text-xs text-text-2">
+                          <p className="mt-0.5 break-words text-xs text-text-3">
                             {[
                               `${company.factoryCount} ${company.factoryCount === 1 ? 'plant' : 'plants'}`,
                               company.where,
@@ -608,7 +608,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                         </div>
                       </div>
                       {membership && !(membership.status === 'declined' && canAskAgain(membership)) ? (
-                        <span className="shrink-0 text-xs text-text-2">
+                        <span className="shrink-0 text-xs text-text-3">
                           {membership.status === 'active' ? 'Member' : membership.status === 'declined' ? 'Declined' : 'Waiting for approval'}
                         </span>
                       ) : (
@@ -694,7 +694,7 @@ function ListedJobs({ company, named = false }: { company: EmployerCompany; name
   return (
     <p className="mt-3 text-sm text-text-2" data-listed-jobs>
       {named && <span className="text-text-1">{company.companyName}: </span>}
-      <Link to={`/companies/${company.companyId}`} className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
+      <Link to={`/companies/${company.companyId}`} className="font-medium text-text-1 underline hover:no-underline">
         {listed.toLocaleString('en-US')} open {listed === 1 ? 'job' : 'jobs'}
       </Link>{' '}
       {listed === 1 ? 'comes' : 'come'} from the company's careers site and {listed === 1 ? 'is' : 'are'} kept in step with it.
@@ -733,7 +733,7 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
               className={cn(rowHoverClass, 'grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center')}
             >
               <div className="min-w-0">
-                <p className={cn('break-words text-sm font-medium', state === 'Open' ? 'text-text-1' : 'text-text-2')}>{job.title}</p>
+                <p className={cn('break-words text-sm', state === 'Open' ? 'text-text-1' : 'text-text-2')}>{job.title}</p>
                 <p className="mt-0.5 break-words text-sm text-text-2">
                   <span className={cn(state === 'Open' && 'text-text-1')} data-job-state={state.toLowerCase()}>
                     {state === 'Open' ? openUntil(job.expiresAt) : state}

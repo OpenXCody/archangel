@@ -13,7 +13,7 @@ import { RecordList, RecordRow } from '../layout/Page';
  * and an admin sees it in the editor); the page states the fact and no more.
  */
 
-const quietLink = 'underline decoration-line-strong underline-offset-4 transition-colors hover:text-text-1 hover:decoration-text-2';
+const quietLink = 'underline transition-colors hover:text-text-1';
 
 /** "4,500 people". */
 export function peopleCount(people: number): string {

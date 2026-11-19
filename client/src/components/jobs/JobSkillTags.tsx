@@ -108,7 +108,7 @@ export default function JobSkillTags({ id, value, onChange, emptyNote, disabled 
           <button
             type="button"
             onClick={undoRemove}
-            className="text-sm font-medium text-text-2 underline underline-offset-4 transition-colors hover:text-text-1"
+            className="text-sm font-medium text-text-1 underline transition-colors"
           >
             Undo
           </button>
@@ -141,7 +141,7 @@ function TagGroup({ label, skills, onMove, onRemove, disabled }: TagGroupProps) 
 
   return (
     <div className="min-w-0" data-skill-group={label.toLowerCase()}>
-      <p id={headingId} className="mb-1.5 text-xs font-medium text-text-2">
+      <p id={headingId} className="mb-1.5 text-xs font-medium text-text-3">
         {label}
       </p>
       {skills.length === 0 ? (
@@ -313,7 +313,7 @@ export function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderP
                 )}
               >
                 <span className="min-w-0 break-words">{option.name}</span>
-                {option.group && <span className="min-w-0 truncate text-xs text-text-2">{option.group.name}</span>}
+                {option.group && <span className="min-w-0 truncate text-xs text-text-3">{option.group.name}</span>}
               </li>
             ))}
           </ul>

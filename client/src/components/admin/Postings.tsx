@@ -48,8 +48,8 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
 
   return (
     <li className={cn(rowClass, 'py-4')} data-posting-place={place.placeKey}>
-      <p className="break-words text-sm font-medium text-text-1">{where}</p>
-      <p className="mt-0.5 break-words text-xs text-text-2">
+      <p className="break-words text-sm text-text-1">{where}</p>
+      <p className="mt-0.5 break-words text-xs text-text-3">
         {place.employer}
         <Dot />
         {n(place.postings)} {place.postings === 1 ? 'posting' : 'postings'}
@@ -87,7 +87,7 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
             </Button>
           </>
         ) : (
-          <p className="min-w-0 basis-full text-xs text-text-2">
+          <p className="min-w-0 basis-full text-xs text-text-3">
             The company has no plant in {place.state} in our data. Add the plant, and the next run places these postings.
           </p>
         )}
@@ -119,8 +119,8 @@ export function PlacesWaiting() {
         className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}
         data-posting-places-waiting
       >
-        <span className="min-w-0 text-sm font-medium text-text-1">Open the list</span>
-        <span className="shrink-0 text-xs tabular-nums text-text-2">
+        <span className="min-w-0 text-sm text-text-1">Open the list</span>
+        <span className="shrink-0 text-xs tabular-nums text-text-3">
           {n(total)} {total === 1 ? 'place' : 'places'}
         </span>
       </Link>
@@ -164,7 +164,7 @@ export function PlacesView() {
           </ul>
         )}
         {total > rows.length && (
-          <p className="mt-2 text-xs text-text-2">
+          <p className="mt-2 text-xs text-text-3">
             {n(rows.length)} of {n(total)} places, the ones most postings name.
           </p>
         )}
@@ -249,8 +249,8 @@ export function PostingRuns() {
           {sources.data.map((source) => (
             <li key={source.slug} className={cn(rowClass, 'py-3')} data-posting-source={source.slug}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
-                <p className="min-w-0 break-words text-sm font-medium text-text-1">{source.employer}</p>
-                <p className="shrink-0 text-xs tabular-nums text-text-2">
+                <p className="min-w-0 break-words text-sm text-text-1">{source.employer}</p>
+                <p className="shrink-0 text-xs tabular-nums text-text-3">
                   {source.run ? formatDayCapital(source.run.startedAt) : ''}
                   {source.openJobs > 0 && (
                     <>
@@ -260,7 +260,7 @@ export function PostingRuns() {
                   )}
                 </p>
               </div>
-              <p className="mt-0.5 break-words text-xs text-text-2">
+              <p className="mt-0.5 break-words text-xs text-text-3">
                 <RunLine source={source} />
               </p>
             </li>

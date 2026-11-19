@@ -469,7 +469,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
               <SelectContent className={cn(selectContentClass, 'max-h-72')}>
                 {(taxonomy.data?.domains ?? []).map((domain) => (
                   <SelectGroup key={domain.slug}>
-                    <SelectLabel className="pt-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">{domain.name}</SelectLabel>
+                    <SelectLabel className="pt-3 text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">{domain.name}</SelectLabel>
                     {domain.groups.map((item) => (
                       <SelectItem key={item.slug} value={item.slug} className="py-2.5">
                         {item.name}
@@ -563,7 +563,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
           {near.map((item, index) => (
             <span key={item.id}>
               {index > 0 && ', '}
-              <Link to={editPath(kind, item.id)} className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
+              <Link to={editPath(kind, item.id)} className="font-medium text-text-1 underline hover:no-underline">
                 {item.name}
               </Link>
               {item.detail && <span> ({item.detail})</span>}
@@ -836,7 +836,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
       {existing ? (
         <p role="alert" className="text-sm text-text-2" data-record-exists>
           Already listed:{' '}
-          <Link to={editing ? editPath(kind, existingId(saving.error) ?? '') : existing.href} className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
+          <Link to={editing ? editPath(kind, existingId(saving.error) ?? '') : existing.href} className="font-medium text-text-1 underline hover:no-underline">
             {existing.name}
           </Link>
           . {editing ? 'Nothing was changed. To make them one record, merge this one into it.' : 'Nothing was added.'}

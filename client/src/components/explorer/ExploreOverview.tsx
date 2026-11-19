@@ -29,7 +29,7 @@ const TILE = cn(
   focusRing
 );
 const SECTION = 'mb-12 sm:mb-16';
-const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3';
+const EYEBROW = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 /** A row in a typographic list: a full-width link, tall enough to tap. */
 const LIST_ROW = cn(
   'group flex min-h-11 items-baseline justify-between gap-4 py-2.5 text-[15px] leading-snug sm:min-h-0 sm:py-1.5',
@@ -41,7 +41,7 @@ function TextLink({ to, children }: { to: string; children: ReactNode }) {
     <Link
       to={to}
       className={cn(
-        '-my-3 inline-flex min-h-11 items-center text-sm text-text-2 underline-offset-4 transition-colors hover:text-text-1 hover:underline',
+        '-my-3 inline-flex min-h-11 items-center text-sm text-text-2 transition-colors hover:text-text-1 hover:underline',
         focusRing
       )}
     >
@@ -118,7 +118,7 @@ function Industries({ industries, year }: { industries: ExploreIndustry[]; year:
           // A phone lists the first six.
           <li key={industry.slug} className={cn('min-w-0', i >= 6 && 'hidden sm:block')}>
             <Link to={`/industries/${industry.slug}`} className={LIST_ROW}>
-              <span className="min-w-0 truncate text-text-1 underline-offset-4 group-hover:underline">{industryLabel(industry.name)}</span>
+              <span className="min-w-0 truncate text-text-1 group-hover:underline">{industryLabel(industry.name)}</span>
               <span className="shrink-0 text-sm tabular-nums text-text-3">
                 {(byPeople ? (industry.employment ?? 0) : industry.plants).toLocaleString()}
               </span>
@@ -220,7 +220,7 @@ function Skills({ domains }: { domains: ExploreSkillDomain[] }) {
                 // A phone lists the first four of each domain.
                 <li key={skill.id} className={i >= 4 ? 'hidden sm:block' : undefined}>
                   <Link to={`/skills/${skill.id}`} className={LIST_ROW}>
-                    <span className="min-w-0 truncate text-text-1 underline-offset-4 group-hover:underline">{skill.name}</span>
+                    <span className="min-w-0 truncate text-text-1 group-hover:underline">{skill.name}</span>
                     <span className="shrink-0 text-sm tabular-nums text-text-3">
                       in {plural(skill.careerCount, 'career', 'careers')}
                     </span>
@@ -365,7 +365,7 @@ function Plants({ areas, states }: { areas: ExploreArea[]; states: ExploreState[
               {states.map((state) => (
                 <li key={state.code} className="min-w-0">
                   <Link to={`/map?state=${encodeURIComponent(state.code)}`} className={LIST_ROW}>
-                    <span className="min-w-0 truncate text-text-1 underline-offset-4 group-hover:underline">{state.name}</span>
+                    <span className="min-w-0 truncate text-text-1 group-hover:underline">{state.name}</span>
                     <span className="shrink-0 text-sm tabular-nums text-text-3">{state.factoryCount.toLocaleString()}</span>
                   </Link>
                 </li>

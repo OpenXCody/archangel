@@ -112,7 +112,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
             setOpen(true);
             window.setTimeout(() => inputRef.current?.focus(), 0);
           }}
-          className="shrink-0 text-sm font-medium text-text-2 underline underline-offset-4 hover:text-text-1"
+          className="shrink-0 text-sm font-medium text-text-1 underline"
         >
           Change
         </button>
@@ -159,7 +159,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
           className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-line-strong bg-surface p-1"
         >
           {!searching && suggestionsLabel && options.length > 0 && (
-            <p className="px-2.5 pb-1 pt-1.5 text-xs text-text-2">{suggestionsLabel}</p>
+            <p className="px-2.5 pb-1 pt-1.5 text-xs text-text-3">{suggestionsLabel}</p>
           )}
           {searching && waiting ? (
             <p className="px-2.5 py-2.5 text-sm text-text-2">Searching careers</p>
@@ -195,7 +195,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
                     {option.title}
                     {/* A career found by a name it is also known by says which: the title alone would look like a wrong answer. */}
                     {option.alsoCalled && (
-                      <span className="block text-xs text-text-2" data-career-also>
+                      <span className="block text-xs text-text-3" data-career-also>
                         Also called {option.alsoCalled}
                       </span>
                     )}
@@ -204,7 +204,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
               ))}
           </ul>
           {searching && !waiting && total > options.length && options.length > 0 && (
-            <p className="px-2.5 pb-1.5 pt-2 text-xs text-text-2" data-career-more>
+            <p className="px-2.5 pb-1.5 pt-2 text-xs text-text-3" data-career-more>
               {options.length} of {total.toLocaleString('en-US')}. Type more to narrow the list.
             </p>
           )}

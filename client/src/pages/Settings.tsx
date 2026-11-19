@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { cn, optionDetailClass, optionTileClass, optionTitleClass } from '@/lib/utils';
+import { cn, labelClass, optionDetailClass, optionTileClass, optionTitleClass } from '@/lib/utils';
 import {
   useChangeEmail,
   justLeft,
@@ -201,8 +201,8 @@ function SignInSection({ account }: { account: SignedInAccount }) {
   const row = (action: SignInAction, label: string, value: ReactNode, changed: string) => (
     <li className={cn(rowClass, 'flex items-center gap-3 py-3')}>
       <div className="min-w-0 flex-1">
-        <p className="text-xs text-text-2">{label}</p>
-        <p className="mt-0.5 break-all text-sm font-medium text-text-1">{value}</p>
+        <p className={labelClass}>{label}</p>
+        <p className="mt-1 break-all text-sm text-text-1">{value}</p>
         {done === action && (
           <p className="mt-1">
             <Done>{changed}</Done>
@@ -492,8 +492,8 @@ function NoticeSection({ user }: { user: AccountUser }) {
       <div className={cn(cardClass, 'py-3')} data-email-notices>
         <div className="flex items-center gap-4">
           <label htmlFor="email-notices" className="min-w-0 flex-1 cursor-pointer">
-            <span className="block text-sm font-medium text-text-1">Email me about applications and access</span>
-            <span className="mt-0.5 block text-xs text-text-2">Sign-in emails are always sent.</span>
+            <span className="block text-sm text-text-1">Email me about applications and access</span>
+            <span className="mt-0.5 block text-xs text-text-3">Sign-in emails are always sent.</span>
           </label>
           {/* A button, so the label, Space and Enter all work; marked busy while saving, never disabled. */}
           <button

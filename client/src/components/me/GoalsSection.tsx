@@ -109,7 +109,7 @@ export default function GoalsSection() {
                   <Link
                     to={`/occupations/${goal.occupationId}`}
                     data-goal-link
-                    className="block truncate text-sm font-medium text-text-1 underline-offset-4 hover:underline"
+                    className="block truncate text-sm font-medium text-text-1 hover:underline"
                   >
                     {goal.title}
                   </Link>
@@ -224,7 +224,7 @@ function CareersInReach() {
             <div className="flex items-baseline gap-3">
               <Link
                 to={`/occupations/${career.id}`}
-                className="min-w-0 flex-1 break-words text-sm font-medium text-text-1 underline-offset-4 hover:underline"
+                className="min-w-0 flex-1 break-words text-sm font-medium text-text-1 hover:underline"
               >
                 {career.title}
               </Link>

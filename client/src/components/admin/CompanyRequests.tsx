@@ -29,7 +29,7 @@ export default function CompanyRequests() {
       description={
         <>
           Asked for by people who could not find them. Add the record under{' '}
-          <Link to="/admin?tab=data" className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
+          <Link to="/admin?tab=data" className="font-medium text-text-1 underline hover:no-underline">
             Data
           </Link>
           , then answer the request here.
@@ -60,11 +60,11 @@ function RequestRow({ request }: { request: AdminCompanyRequest }) {
   return (
     <li className={cn(rowClass, 'space-y-3 py-4')} data-company-request-email={request.userEmail}>
       <div className="min-w-0">
-        <p className="break-words text-sm font-medium text-text-1">
+        <p className="break-words text-sm text-text-1">
           {plant ? (
             <>
               Plant for{' '}
-              <Link to={`/companies/${request.companyId}`} className="underline-offset-4 hover:underline">
+              <Link to={`/companies/${request.companyId}`} className="hover:underline">
                 {request.companyName ?? request.name}
               </Link>
             </>
@@ -77,13 +77,13 @@ function RequestRow({ request }: { request: AdminCompanyRequest }) {
           {request.website && (
             <>
               <Dot />
-              <a href={`https://${request.website}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:no-underline">
+              <a href={`https://${request.website}`} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
                 {request.website}
               </a>
             </>
           )}
         </p>
-        <p className="mt-1 break-words text-xs text-text-2">
+        <p className="mt-1 break-words text-xs text-text-3">
           {request.userName}
           <Dot />
           <span className="break-all">{request.userEmail}</span>

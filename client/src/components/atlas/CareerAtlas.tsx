@@ -37,7 +37,7 @@ interface CareerAtlasProps {
   marks: SkillMarks | null;
 }
 
-const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3';
+const EYEBROW = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 
 export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
   const { layout, taxonomy } = useAtlasLayout();
@@ -121,7 +121,7 @@ export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
     .map((level) => ({ ...level, groups: domain ? level.groups.filter((group) => group.domain?.slug === domain.slug) : level.groups }))
     .filter((level) => level.groups.length > 0);
   const label = `${career.title} on the Atlas of Manufacturing: ${plural(overlay?.first.size ?? 0, 'skill', 'skills')} across ${plural(reached.length, 'domain', 'domains')}. The skills follow as a list.`;
-  const crumb = cn('inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-text-1 hover:underline sm:min-h-8', focusRing);
+  const crumb = cn('inline-flex min-h-11 items-center transition-colors hover:text-text-1 hover:underline sm:min-h-8', focusRing);
 
   return (
     <div className="career-atlas" data-career-atlas data-career-atlas-domain={domain?.slug}>
@@ -217,7 +217,7 @@ export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
           <Link
             to={`/atlas?career=${career.id}`}
             data-atlas-link
-            className={cn('inline-flex min-h-11 items-center text-sm text-text-2 underline underline-offset-4 transition-colors hover:text-text-1', focusRing)}
+            className={cn('inline-flex min-h-11 items-center text-sm text-text-1 underline transition-colors', focusRing)}
           >
             Open in the atlas
           </Link>

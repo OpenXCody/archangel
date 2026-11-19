@@ -104,7 +104,7 @@ function ApplicationRow({ application, email }: { application: MyApplication; em
           <Link
             ref={jobRef}
             to={`/jobs/${application.jobId}`}
-            className="block break-words text-sm font-medium text-text-1 underline-offset-4 hover:underline"
+            className="block break-words text-sm font-medium text-text-1 hover:underline"
           >
             {application.jobTitle}
           </Link>
@@ -113,7 +113,7 @@ function ApplicationRow({ application, email }: { application: MyApplication; em
             {place && ` · ${place}`}
           </p>
           {/* Its history in one line; the stage it is at now is the bright one. */}
-          <p className="mt-1.5 break-words text-xs text-text-2" data-application-history>
+          <p className="mt-1.5 break-words text-xs text-text-3" data-application-history>
             {application.events.map((event, index) => (
               <Fragment key={`${event.at}:${event.status}`}>
                 {index > 0 && ' · '}

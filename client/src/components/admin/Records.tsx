@@ -71,7 +71,7 @@ export default function Records() {
           {added && (
             <p role="status" className="mt-3 text-sm text-text-2" data-record-added={added.kind}>
               Added{' '}
-              <Link to={added.href} className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
+              <Link to={added.href} className="font-medium text-text-1 underline hover:no-underline">
                 {added.name}
               </Link>
               .

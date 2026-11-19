@@ -32,7 +32,7 @@ export interface Head {
 export const CAREERS_SHOWN = 8;
 
 /** A link inside a line of facts. The padding gives a finger room without moving the line. */
-export const factLinkClass = 'py-[15px] underline decoration-line-strong underline-offset-4 transition-colors hover:text-text-1 hover:decoration-text-2';
+export const factLinkClass = 'py-[15px] text-text-1 underline';
 
 /** A plant's street address as written: a curated plant's was typed by a person ("1530 FM 973") and is left as it is. */
 export function streetAddress(plant: { address?: string | null; curated?: boolean }): string | null {

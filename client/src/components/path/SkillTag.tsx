@@ -49,7 +49,7 @@ export function SkillTag({ skill, marks, current, className }: { skill: PathSkil
           {name}
         </span>
       ) : (
-        <Link to={`/skills/${skill.id}`} className={cn(nameClass, 'rounded-lg underline-offset-4 hover:underline focus-visible:[outline-offset:-2px]')}>
+        <Link to={`/skills/${skill.id}`} className={cn(nameClass, 'rounded-lg hover:underline focus-visible:[outline-offset:-2px]')}>
           {name}
         </Link>
       )}

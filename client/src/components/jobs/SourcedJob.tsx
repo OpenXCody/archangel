@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ExternalLink } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, labelClass } from '@/lib/utils';
 import type { JobDetail, JobRequirements, JobSkill } from '../../lib/jobs';
 import { employmentLabel, formatPay } from '../../lib/jobFormat';
 import { formatDayCapital } from '../../lib/dates';
@@ -78,8 +78,8 @@ export function SourcedApply({ job }: { job: JobDetail }) {
 function Term({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-text-2">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-medium text-text-1">{children}</dd>
+      <dt className={labelClass}>{label}</dt>
+      <dd className="mt-1 break-words text-sm text-text-1">{children}</dd>
     </div>
   );
 }
@@ -115,7 +115,7 @@ export default function SourcedJob({ job, skills, manages }: SourcedJobProps) {
           <Term label={job.undated ? 'Listed' : 'Posted'}>{formatDayCapital(job.postedAt)}</Term>
           {asksFor.length > 0 && (
             <div className="min-w-0 xs:col-span-2 sm:col-span-4" data-job-requirements>
-              <dt className="text-xs text-text-2">Asks for</dt>
+              <dt className={labelClass}>Asks for</dt>
               {asksFor.map((line) => (
                 <dd key={line} className="mt-0.5 break-words text-sm text-text-1">
                   {line}

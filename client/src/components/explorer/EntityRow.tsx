@@ -55,11 +55,11 @@ function Row({ to, name, summary, facts, leading, factsLeading, factsEnd, onMous
     >
       {leading}
       <div className="min-w-0 flex-1">
-        <h3 className="truncate text-base font-medium leading-6 text-text-1 underline-offset-4 group-hover:underline">{name}</h3>
+        <h3 className="truncate text-sm leading-6 text-text-1 group-hover:underline">{name}</h3>
         {/* A phone has room for eight words a line: there the description gets two. */}
         {summary && <p className="line-clamp-2 text-sm leading-6 text-text-2 sm:line-clamp-1">{summary}</p>}
         {(factsText || factsLeading || factsEnd) && (
-          <p className="flex min-w-0 items-center gap-2 text-sm leading-6 text-text-3">
+          <p className="flex min-w-0 items-center gap-2 text-xs leading-6 text-text-3">
             {factsLeading}
             <span className="min-w-0 truncate">{factsText}</span>
             {factsEnd && <span className="-ml-1 shrink-0 whitespace-nowrap">{factsText ? `· ${factsEnd}` : factsEnd}</span>}

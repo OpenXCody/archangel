@@ -34,7 +34,7 @@ interface AtlasPanelProps {
   className?: string;
 }
 
-const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3';
+const EYEBROW = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 const ROW = cn(
   'group flex min-h-11 items-baseline justify-between gap-3 py-2.5 text-[15px] leading-snug sm:min-h-0 sm:py-[7px]',
   focusRing
@@ -105,7 +105,7 @@ function Row({ to, name, figure, quiet, onPreview, data }: RowProps) {
         onBlur={() => onPreview(false)}
         {...data}
       >
-        <span className={cn('min-w-0 underline-offset-4 group-hover:underline', quiet ? 'text-text-3' : 'text-text-1')}>{name}</span>
+        <span className={cn('min-w-0 group-hover:underline', quiet ? 'text-text-3' : 'text-text-1')}>{name}</span>
         {!quiet && <span className="shrink-0 text-sm tabular-nums text-text-3">{figure}</span>}
       </Link>
     </li>
@@ -167,7 +167,7 @@ function SkillTag({
         onFocus={() => onPreview(true)}
         onBlur={() => onPreview(false)}
         className={cn(
-          'flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg py-1.5 pr-3 text-sm leading-snug underline-offset-4 hover:underline focus-visible:[outline-offset:-2px]',
+          'flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg py-1.5 pr-3 text-sm leading-snug hover:underline focus-visible:[outline-offset:-2px]',
           marking ? 'pl-0' : 'pl-3',
           focusRing
         )}
@@ -185,7 +185,7 @@ function SkillTag({
 
 function Crumbs({ domain, group, leaf, state }: { domain: AtlasDomain; group: AtlasGroup | null; leaf: AtlasLeaf | null; state: AtlasState }) {
   const base = { career: state.career, with: state.with, at: state.at };
-  const crumb = cn('inline-flex min-h-11 items-center text-text-2 underline-offset-4 hover:text-text-1 hover:underline sm:min-h-8', focusRing);
+  const crumb = cn('inline-flex min-h-11 items-center text-text-2 hover:text-text-1 hover:underline sm:min-h-8', focusRing);
   const here = 'inline-flex min-h-11 items-center text-text-1 sm:min-h-8';
   const divider = <ChevronRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-text-3" />;
   return (
@@ -379,7 +379,7 @@ function ListLink({ to, children }: { to: string; children: ReactNode }) {
     <p className="mt-4">
       <Link
         to={to}
-        className={cn('inline-flex min-h-11 items-center text-sm text-text-2 underline underline-offset-4 transition-colors hover:text-text-1', focusRing)}
+        className={cn('inline-flex min-h-11 items-center text-sm text-text-1 underline transition-colors', focusRing)}
       >
         {children}
       </Link>

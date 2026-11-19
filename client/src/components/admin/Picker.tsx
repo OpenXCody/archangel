@@ -105,7 +105,7 @@ export default function Picker<T extends { id: string; name: string }>({
             setOpen(true);
             window.setTimeout(() => inputRef.current?.focus(), 0);
           }}
-          className="shrink-0 text-sm font-medium text-text-2 underline underline-offset-4 hover:text-text-1 aria-disabled:cursor-not-allowed aria-disabled:opacity-40"
+          className="shrink-0 text-sm font-medium text-text-1 underline aria-disabled:cursor-not-allowed aria-disabled:opacity-40"
         >
           Change
         </button>
@@ -179,7 +179,7 @@ export default function Picker<T extends { id: string; name: string }>({
                   className={cn('cursor-pointer rounded-md px-2.5 py-2 text-sm text-text-1', index === activeIndex && 'bg-surface-hover')}
                 >
                   <span className="block break-words">{option.name}</span>
-                  {more && <span className="block break-words text-xs text-text-2">{more}</span>}
+                  {more && <span className="block break-words text-xs text-text-3">{more}</span>}
                 </li>
               );
             })}

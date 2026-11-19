@@ -265,7 +265,7 @@ function PlaceCombobox({ value, onChange, within, onWithinChange, states, homeZi
                     )}
                   >
                     <span className="min-w-0 break-words">{option.title}</span>
-                    {option.detail && <span className="shrink-0 text-xs text-text-2">{option.detail}</span>}
+                    {option.detail && <span className="shrink-0 text-xs text-text-3">{option.detail}</span>}
                   </li>
                 ))}
               </ul>

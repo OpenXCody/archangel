@@ -111,7 +111,7 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
         <FactoryIcon className="h-4 w-4 shrink-0 text-text-2" />
         <span className="min-w-0 flex-1" data-picked-factory={picked.id}>
           <span className="block break-words text-text-1">{plantName(picked)}</span>
-          {plantWhere(picked) && <span className="block break-words text-xs text-text-2">{plantWhere(picked)}</span>}
+          {plantWhere(picked) && <span className="block break-words text-xs text-text-3">{plantWhere(picked)}</span>}
         </span>
         {factories.length > 1 && (
           <button
@@ -122,7 +122,7 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
               setOpen(true);
               window.setTimeout(() => inputRef.current?.focus(), 0);
             }}
-            className="shrink-0 text-sm font-medium text-text-2 underline underline-offset-4 hover:text-text-1"
+            className="shrink-0 text-sm font-medium text-text-1 underline"
           >
             Change
           </button>
@@ -183,7 +183,7 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
                 <FactoryIcon className="mt-0.5 h-4 w-4 shrink-0 text-text-2" />
                 <span className="min-w-0">
                   <span className="block break-words">{plantName(factory)}</span>
-                  {plantWhere(factory) && <span className="block break-words text-xs text-text-2">{plantWhere(factory)}</span>}
+                  {plantWhere(factory) && <span className="block break-words text-xs text-text-3">{plantWhere(factory)}</span>}
                 </span>
               </li>
             ))}

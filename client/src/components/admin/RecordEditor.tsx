@@ -81,9 +81,9 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
     <div data-record-editor={kind}>
       {back}
       <div className="mb-6 min-w-0">
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">Correct a {KIND_WORD[kind]}</p>
+        <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">Correct a {KIND_WORD[kind]}</p>
         <h2 className="break-words text-xl font-semibold text-text-1">{data.name}</h2>
-        <Link to={data.href} className="mt-1 inline-block text-sm text-text-2 underline underline-offset-4 hover:text-text-1">
+        <Link to={data.href} className="mt-1 inline-block text-sm text-text-1 underline">
           {PAGE_WORD[kind]}
         </Link>
       </div>
@@ -224,7 +224,7 @@ function PlantMergeSection({ record }: { record: RecordView }) {
             excludeId={record.id}
           />
         </div>
-        <p className="mt-1.5 text-xs text-text-2">Plants of the same company, and any within two kilometres.</p>
+        <p className="mt-1.5 text-xs text-text-3">Plants of the same company, and any within two kilometres.</p>
         {!other && offered.length > 0 && (
           <ul className="mt-3 max-w-[28rem]" aria-label="Likely rows" data-plant-merge-likely>
             {offered.map((option) => (
@@ -235,7 +235,7 @@ function PlantMergeSection({ record }: { record: RecordView }) {
                   className={cn(rowHoverClass, 'block w-[calc(100%+1.5rem)] py-2 text-left')}
                 >
                   <span className="block break-words text-sm text-text-1">{option.name}</span>
-                  {option.detail && <span className="block break-words text-xs text-text-2">{option.detail}</span>}
+                  {option.detail && <span className="block break-words text-xs text-text-3">{option.detail}</span>}
                 </button>
               </li>
             ))}

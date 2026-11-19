@@ -24,7 +24,7 @@ export const FACT_WORD: Record<string, string> = {
   status: 'status',
 };
 
-const labelClass = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3';
+const labelClass = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 
 /** One side of the comparison: the name, then the lines that tell one plant from another. */
 export function PlantFacts({ plant, name }: { plant: ReviewPlant; name: React.ReactNode }) {
@@ -32,11 +32,11 @@ export function PlantFacts({ plant, name }: { plant: ReviewPlant; name: React.Re
   const industry = plant.industry ? shownIndustry(plant.industry) ?? plant.industry : null;
   return (
     <>
-      <p className="break-words text-sm font-medium text-text-1">{name}</p>
+      <p className="break-words text-sm text-text-1">{name}</p>
       {plant.company && <p className="break-words text-sm text-text-2">{plant.company}</p>}
-      {place && <p className="mt-1 break-words text-xs text-text-2">{place}</p>}
+      {place && <p className="mt-1 break-words text-xs text-text-3">{place}</p>}
       {(industry || plant.people !== null) && (
-        <p className="break-words text-xs text-text-2">
+        <p className="break-words text-xs text-text-3">
           {industry}
           {industry && plant.people !== null && <Dot />}
           {plant.people !== null && `${plant.people.toLocaleString('en-US')} people`}
@@ -91,7 +91,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
 
   return (
     <li className={cardClass} data-match={item.id} data-match-record={recordName}>
-      <p className="break-words text-xs text-text-2" data-match-reason>
+      <p className="break-words text-xs text-text-3" data-match-reason>
         {item.sourceName}
         <Dot />
         <span className="text-text-1">{item.reason.charAt(0).toUpperCase() + item.reason.slice(1)}</span>
@@ -103,7 +103,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
             plant={item.record}
             name={
               item.sourceUrl ? (
-                <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline-offset-4 hover:underline">
+                <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
                   {recordName}
                 </a>
               ) : (
@@ -188,7 +188,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
           {doing('skip') && <Loader2 className="animate-spin" />}
           Skip
         </Button>
-        <p className="min-w-0 basis-full text-xs text-text-2 sm:ml-2 sm:basis-auto">
+        <p className="min-w-0 basis-full text-xs text-text-3 sm:ml-2 sm:basis-auto">
           {item.ifDifferent === 'add' ? 'Different adds it as a new plant.' : 'Different keeps it out: this source adds no plants.'}
         </p>
       </div>
@@ -199,7 +199,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
 
 function PlantLink({ candidate }: { candidate: ReviewCandidate }) {
   return (
-    <Link to={`/factories/${candidate.id}`} className="underline-offset-4 hover:underline">
+    <Link to={`/factories/${candidate.id}`} className="hover:underline">
       {candidate.name}
     </Link>
   );
@@ -242,7 +242,7 @@ export default function MatchReview() {
           </ul>
         )}
         {total > items.length && (
-          <p className="mt-3 text-xs tabular-nums text-text-2" data-matches-more>
+          <p className="mt-3 text-xs tabular-nums text-text-3" data-matches-more>
             The first {Math.min(REVIEW_PAGE, items.length)} of {total.toLocaleString('en-US')}. The next come up as these are decided.
           </p>
         )}

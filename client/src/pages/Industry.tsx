@@ -95,7 +95,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
           {data.place.kind !== 'country' && (
             <>
               {' '}
-              <Link to={`/industries/${industry.slug}`} className={cn('text-text-1 underline underline-offset-4 hover:no-underline', focusRing)}>
+              <Link to={`/industries/${industry.slug}`} className={cn('text-text-1 underline hover:no-underline', focusRing)}>
                 See it everywhere
               </Link>
             </>

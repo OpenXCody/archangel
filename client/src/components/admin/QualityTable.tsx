@@ -88,7 +88,7 @@ export default function QualityTable() {
         type="button"
         onClick={() => choose(key)}
         className={cn(
-          'flex min-h-11 w-full items-end whitespace-normal px-2.5 pb-2 pt-3 text-[11px] uppercase leading-tight tracking-wider transition-colors hover:text-text-1 sm:min-h-9 sm:whitespace-nowrap',
+          'flex min-h-11 w-full items-end whitespace-normal px-2.5 pb-2 pt-3 text-[11px] font-medium uppercase leading-tight tracking-[0.08em] transition-colors hover:text-text-1 sm:min-h-9 sm:whitespace-nowrap',
           key === 'state' ? 'justify-start text-left' : 'justify-end text-right',
           sort.key === key ? 'text-text-1' : 'text-text-2',
           focusRing
@@ -130,7 +130,7 @@ export default function QualityTable() {
                   {COLUMNS.map((column) => (
                     <td key={column.key} className="px-2.5 py-2.5 text-right" data-quality={column.key}>
                       {column.key === 'duplicates' && total.duplicates > 0 ? (
-                        <Link to={pairsPath('spot')} className={cn('underline underline-offset-4', focusRing)} aria-label="Plants on one spot, every state">
+                        <Link to={pairsPath('spot')} className={cn('underline', focusRing)} aria-label="Plants on one spot, every state">
                           {cellText(total, column, shown)}
                         </Link>
                       ) : (
@@ -161,7 +161,7 @@ export default function QualityTable() {
                           {column.key === 'duplicates' && value > 0 ? (
                             <Link
                               to={pairsPath('spot', row.state ?? 'none')}
-                              className={cn('underline underline-offset-4 hover:text-text-1', focusRing)}
+                              className={cn('underline hover:text-text-1', focusRing)}
                               aria-label={`Plants on one spot in ${row.state ? stateName(row.state) : 'no state'}`}
                               data-quality-duplicates={row.state ?? ''}
                             >
@@ -178,7 +178,7 @@ export default function QualityTable() {
               </tbody>
             </table>
           </div>
-          <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-2 text-xs leading-relaxed text-text-2 sm:grid-cols-2" data-quality-definitions>
+          <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-2 text-xs leading-relaxed text-text-3 sm:grid-cols-2" data-quality-definitions>
             {definitions(total).map(([term, meaning]) => (
               <div key={term} className="min-w-0">
                 <dt className="inline text-text-1">{term}: </dt>

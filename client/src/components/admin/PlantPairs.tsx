@@ -91,7 +91,7 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
 
   return (
     <div className={cardClass} data-pair={`${pair.a.id}:${pair.b.id}`}>
-      <p className="break-words text-xs text-text-2" data-pair-reason>
+      <p className="break-words text-xs text-text-3" data-pair-reason>
         {head.map((part, index) => (
           <span key={part} className={index === 1 && pair.reason ? 'text-text-1' : undefined}>
             {index > 0 && <Dot />}
@@ -134,11 +134,11 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
               )}
               data-pair-side={side.id}
             >
-              <p className={cn('mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em]', on ? 'text-text-1' : 'text-text-3')}>{on ? 'Kept' : 'Merged into it'}</p>
+              <p className={cn('mb-1.5 text-[11px] font-medium uppercase tracking-[0.08em]', on ? 'text-text-1' : 'text-text-3')}>{on ? 'Kept' : 'Merged into it'}</p>
               <PlantFacts
                 plant={side}
                 name={
-                  <Link to={`/factories/${side.id}`} className="underline-offset-4 hover:underline" onClick={(event) => event.stopPropagation()}>
+                  <Link to={`/factories/${side.id}`} className="hover:underline" onClick={(event) => event.stopPropagation()}>
                     {side.name}
                   </Link>
                 }
@@ -148,7 +148,7 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
           );
         })}
       </div>
-      <p className="mt-3 break-words text-xs text-text-2" data-pair-takes>
+      <p className="mt-3 break-words text-xs text-text-3" data-pair-takes>
         {mustKeep ? 'The row written from sources is the one kept. ' : ''}
         {taken ? `It takes from the other: ${taken}.` : 'It takes nothing from the other: it has every fact the other has.'}
         {/* Under two companies the row kept decides which the plant is filed under. */}
@@ -184,7 +184,7 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
           {apart.isPending && <Loader2 className="animate-spin" />}
           {pair.apart ? 'Not two plants' : 'Two plants'}
         </Button>
-        {pair.apart && <p className="min-w-0 basis-full text-xs text-text-2 sm:ml-2 sm:basis-auto">An admin said these are two plants.</p>}
+        {pair.apart && <p className="min-w-0 basis-full text-xs text-text-3 sm:ml-2 sm:basis-auto">An admin said these are two plants.</p>}
       </div>
       <ErrorNote error={apart.error} className="mt-2" />
       <ConfirmDialog
@@ -275,7 +275,7 @@ export function PairsView({ list }: { list: PairList }) {
           <CardNote>{words.none}</CardNote>
         ) : (
           <>
-            <p className="mb-3 text-xs tabular-nums text-text-2" data-pairs-count>
+            <p className="mb-3 text-xs tabular-nums text-text-3" data-pairs-count>
               {pairs.length === 0
                 ? `${total.toLocaleString('en-US')} in all.`
                 : `${(at + 1).toLocaleString('en-US')} to ${(at + pairs.length).toLocaleString('en-US')} of ${total.toLocaleString('en-US')}`}
@@ -330,8 +330,8 @@ export function PairsWaiting() {
         className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}
         data-pairs-waiting
       >
-        <span className="min-w-0 text-sm font-medium text-text-1">Open the list</span>
-        <span className="shrink-0 text-xs tabular-nums text-text-2">
+        <span className="min-w-0 text-sm text-text-1">Open the list</span>
+        <span className="shrink-0 text-xs tabular-nums text-text-3">
           {total.toLocaleString('en-US')} {total === 1 ? 'pair' : 'pairs'}
         </span>
       </Link>

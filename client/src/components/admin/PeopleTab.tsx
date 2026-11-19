@@ -137,7 +137,7 @@ export default function PeopleTab({ me }: { me: AccountUser }) {
             ))}
           </ul>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs tabular-nums text-text-2">
+            <p className="text-xs tabular-nums text-text-3">
               {rows.length.toLocaleString('en-US')} of {total.toLocaleString('en-US')}
             </p>
             {people.hasNextPage && (
@@ -176,9 +176,9 @@ function PersonRow({ person, isSelf, open, onToggle }: PersonRowProps) {
     <li className={rowClass} data-person-email={person.email}>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 py-3">
         <div className="min-w-0">
-          <p className="break-words text-sm font-medium text-text-1">{person.name}</p>
+          <p className="break-words text-sm text-text-1">{person.name}</p>
           <p className="break-all text-sm text-text-2">{person.email}</p>
-          <p className="mt-1 break-words text-xs text-text-2">
+          <p className="mt-1 break-words text-xs text-text-3">
             {/* A plain account has no role label: only when it joined. */}
             {roles.length > 0 && (
               <>
@@ -211,7 +211,7 @@ function PersonRow({ person, isSelf, open, onToggle }: PersonRowProps) {
   );
 }
 
-const panelLabelClass = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3';
+const panelLabelClass = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 
 /** What a confirmation asks, and what runs when it is given. */
 interface Asking {
@@ -340,11 +340,11 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
             </Button>
           )}
           {isSelf ? (
-            <p className="text-xs text-text-2">Signed-in account. Its admin role and deletion are locked.</p>
+            <p className="text-xs text-text-3">Signed-in account. Its admin role and deletion are locked.</p>
           ) : (
             person.isAdmin &&
             person.isFirstAdmin && (
-              <p className="text-xs text-text-2" data-first-admin>
+              <p className="text-xs text-text-3" data-first-admin>
                 First admin. Another admin cannot remove this role or delete the account.
               </p>
             )
@@ -361,8 +361,8 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
             {person.memberships.map((membership) => (
               <li key={membership.companyId} className="flex flex-wrap items-center gap-x-3" data-membership={membership.companyId}>
                 <span className="min-w-0 break-words text-sm text-text-1">{membership.companyName}</span>
-                {membership.status === 'requested' && <span className="text-xs text-text-2">Waiting for approval</span>}
-                {membership.status === 'declined' && <span className="text-xs text-text-2">Declined</span>}
+                {membership.status === 'requested' && <span className="text-xs text-text-3">Waiting for approval</span>}
+                {membership.status === 'declined' && <span className="text-xs text-text-3">Declined</span>}
                 {membership.status !== 'active' && (
                   <button
                     type="button"
@@ -501,7 +501,7 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
             {isSelf ? 'Sign out my other sessions' : 'Sign out everywhere'}
           </Button>
         </div>
-        <p className="mt-2 text-xs text-text-2">
+        <p className="mt-2 text-xs text-text-3">
           {emailOn ? 'A reset link is emailed to the person, and shown here once.' : 'No email is sent. A reset link is passed on by hand.'}{' '}
           {isSelf ? '' : 'Signing out ends every session; the password stays.'}
         </p>

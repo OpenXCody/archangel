@@ -365,7 +365,7 @@ export default function SignIn() {
               // The address has an account: one press goes to signing in, with what was typed kept.
               <p role="alert" className="text-sm text-danger" data-account-exists>
                 An account with that email already exists.{' '}
-                <button type="button" onClick={() => switchMode('sign-in')} className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
+                <button type="button" onClick={() => switchMode('sign-in')} className="font-medium text-text-1 underline hover:no-underline">
                   Sign in instead
                 </button>
               </p>
@@ -583,7 +583,7 @@ function InviteForAnother({ inviteEmail, signedInAs }: { inviteEmail: string; si
             >
               Sign out to use it
             </Button>
-            <Link to="/map" className="text-sm font-medium text-text-2 underline underline-offset-4 hover:text-text-1">
+            <Link to="/map" className="text-sm font-medium text-text-1 underline">
               Stay signed in
             </Link>
           </div>

@@ -186,7 +186,7 @@ export default function MakesEditor({ record, onChanged }: { record: RecordView;
               Add
             </Button>
           </div>
-          {makes.length >= MAKES_MAX && <p className="mt-1.5 text-xs text-text-2">A skill has at most {MAKES_MAX} makes.</p>}
+          {makes.length >= MAKES_MAX && <p className="mt-1.5 text-xs text-text-3">A skill has at most {MAKES_MAX} makes.</p>}
         </form>
         {/* While the question is open the refusal is shown in it. */}
         {!removing && <ErrorNote error={change.error} className="mt-3" />}

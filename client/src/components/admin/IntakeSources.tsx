@@ -42,18 +42,18 @@ function SourceRow({ source }: { source: IntakeSource }) {
   return (
     <li className={cn(rowClass, 'py-4')} data-intake-source={source.slug}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <p className="min-w-0 break-words text-sm font-medium text-text-1">
+        <p className="min-w-0 break-words text-sm text-text-1">
           {source.url ? (
-            <a href={source.url} target="_blank" rel="noopener noreferrer" className="underline-offset-4 hover:underline">
+            <a href={source.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
               {source.name}
             </a>
           ) : (
             source.name
           )}
         </p>
-        <p className="shrink-0 text-xs tabular-nums text-text-2">{count(source.staged, 'record', 'records')}</p>
+        <p className="shrink-0 text-xs tabular-nums text-text-3">{count(source.staged, 'record', 'records')}</p>
       </div>
-      <p className="mt-0.5 break-words text-xs text-text-2">
+      <p className="mt-0.5 break-words text-xs text-text-3">
         {source.publisher}
         {source.publisher && <Dot />}
         {source.fill === 'empty' ? 'Fills only what a plant lacks' : 'Replaces older and lower-ranked values'}

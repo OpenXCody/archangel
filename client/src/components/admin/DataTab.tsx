@@ -100,7 +100,7 @@ function PathsSection() {
           />
         )}
         {paths.data && (
-          <p className="text-xs tabular-nums text-text-2" data-path-count>
+          <p className="text-xs tabular-nums text-text-3" data-path-count>
             {total.toLocaleString('en-US')}
           </p>
         )}
@@ -122,8 +122,8 @@ function PathsSection() {
                   to={`${editPath('career' as RecordKind, path.id)}#path`}
                   className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}
                 >
-                  <span className="min-w-0 break-words text-sm font-medium text-text-1">{path.title}</span>
-                  <span className="shrink-0 text-xs tabular-nums text-text-2">
+                  <span className="min-w-0 break-words text-sm text-text-1">{path.title}</span>
+                  <span className="shrink-0 text-xs tabular-nums text-text-3">
                     {path.skillCount} {path.skillCount === 1 ? 'skill' : 'skills'}
                   </span>
                 </Link>
@@ -134,7 +134,7 @@ function PathsSection() {
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="mt-3 flex min-h-9 items-center text-sm font-medium text-text-2 underline underline-offset-4 hover:text-text-1"
+              className="mt-3 flex min-h-9 items-center text-sm font-medium text-text-1 underline"
             >
               Show all {matching.length.toLocaleString('en-US')}
             </button>

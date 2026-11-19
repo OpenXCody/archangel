@@ -327,7 +327,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
             <Fixed label="Plant">{[plantName({ name: from.factoryName }), plantWhere({ city: from.city, state: from.state })].filter(Boolean).join(' · ')}</Fixed>
             <Fixed label="Career">{from.occupationTitle}</Fixed>
           </dl>
-          <p className="mt-1.5 text-xs text-text-2">Fixed once posted. For another plant or career, post another like this.</p>
+          <p className="mt-1.5 text-xs text-text-3">Fixed once posted. For another plant or career, post another like this.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -381,7 +381,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
                 }
               />
               {skills.length > 0 && (
-                <p className="text-xs text-text-2">
+                <p className="text-xs text-text-3">
                   {/* Said only where it is so: the list began as the company's own version, not the standard. */}
                   {fromVersion && seeded && !draft && career && <span data-skills-from-version>Started from your version of {career.title}. </span>}
                   Applicants are ranked by required skills held.
@@ -437,7 +437,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
           />
         </div>
         <FieldError id="job-pay-error" message={payProblem ?? undefined} />
-        {!payProblem && !payQuestion && <p className="mt-1.5 text-xs text-text-2">Every job shows its pay.</p>}
+        {!payProblem && !payQuestion && <p className="mt-1.5 text-xs text-text-3">Every job shows its pay.</p>}
         {!payProblem && payQuestion && (
           <div
             role="group"
@@ -633,7 +633,7 @@ function DollarInput({ id, label, value, onChange, placeholder, invalid }: Dolla
           className={cn(fieldClass, 'pl-7', invalid && 'border-danger/60')}
         />
       </div>
-      <span className="mt-1 block text-xs text-text-2">{label}</span>
+      <span className="mt-1 block text-xs text-text-3">{label}</span>
     </div>
   );
 }

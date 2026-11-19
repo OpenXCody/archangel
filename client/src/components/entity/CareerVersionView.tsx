@@ -118,7 +118,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
           canEdit ? (
             <Link
               to={versionEditorPath(company.id, data.id)}
-              className="inline-flex min-h-11 items-center text-sm font-medium text-text-2 underline underline-offset-4 hover:text-text-1"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline"
               data-version-edit
             >
               Edit
@@ -174,7 +174,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         {/* What the company leaves out of the standard is not drawn: one line says how many, and opens them. */}
         {leftOut.length > 0 && (
           <details className="group mt-4" data-left-out>
-            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-sm text-text-2 underline decoration-line-strong underline-offset-4 hover:text-text-1 [&::-webkit-details-marker]:hidden">
+            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-sm text-text-1 underline [&::-webkit-details-marker]:hidden">
               {plural(leftOut.length, 'skill', 'skills')} of the standard path left out
             </summary>
             <SkillTags className="mt-1">
@@ -191,7 +191,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         )}
         {canSignIn && (
           <p className="mt-4 text-sm text-text-3">
-            <Link to={signInPath(`${pathname}${search}`)} className="text-text-2 underline underline-offset-2 hover:text-text-1">
+            <Link to={signInPath(`${pathname}${search}`)} className="text-text-1 underline">
               Sign in
             </Link>{' '}
             to mark the skills you have.

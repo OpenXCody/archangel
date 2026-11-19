@@ -50,7 +50,7 @@ function leavesOf(layout: AtlasLayout, career: Pick<OccupationDetail, 'skills'> 
 const domainsOf = (layout: AtlasLayout, leaves: ReadonlySet<number>) => new Set([...leaves].map((index) => layout.leaves[index].domain)).size;
 
 const TEXT_BUTTON = cn(
-  'inline-flex min-h-11 items-center text-sm text-text-2 underline underline-offset-4 transition-colors hover:text-text-1 sm:min-h-9',
+  'inline-flex min-h-11 items-center text-sm text-text-1 underline transition-colors sm:min-h-9',
   focusRing
 );
 
@@ -82,7 +82,7 @@ function CareerLine({ sign, id, career, to, missing = 'That career is not in the
           </span>
         ) : title ? (
           <>
-            <Link to={to ?? `/occupations/${id}`} className={cn('font-medium text-text-1 underline-offset-4 hover:underline', focusRing)}>
+            <Link to={to ?? `/occupations/${id}`} className={cn('font-medium text-text-1 hover:underline', focusRing)}>
               {title}
             </Link>
             {facts && <span data-atlas-career-facts>{` · ${facts}`}</span>}

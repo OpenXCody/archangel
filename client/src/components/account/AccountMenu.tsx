@@ -154,7 +154,7 @@ export default function AccountMenu() {
       <DropdownMenuContent align="end" className="w-60 rounded-xl border-line-strong bg-surface p-1.5">
         <DropdownMenuLabel className="px-2.5 py-2 font-normal">
           <span className="block truncate text-sm font-semibold text-text-1">{user.name}</span>
-          <span className="block truncate text-xs text-text-2">{user.email}</span>
+          <span className="block truncate text-xs text-text-3">{user.email}</span>
           {/* A plain account has no label: only a role is worth naming. */}
           {viewer.viewingAs ? (
             <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-accent">
@@ -162,7 +162,7 @@ export default function AccountMenu() {
             </span>
           ) : (
             roles.length > 0 && (
-              <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
+              <span className="mt-1.5 block truncate text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">
                 {roles.join(' · ')}
               </span>
             )

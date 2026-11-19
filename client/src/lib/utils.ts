@@ -15,6 +15,23 @@ export const focusRing =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
 
 /*
+ * Type (the hierarchy pass, step 5). A page title is 40px / 600, a section
+ * heading 20px / 600, body and values 15px / 400 (`text-sm`) in full or
+ * secondary ink, meta 13px / 400 (`text-xs`) in the quietest. Numbers are
+ * tabular and a text link is underlined in its own ink, 1px, 3px below the
+ * words: both are the page's rules (globals.css).
+ */
+
+/** A label: a field's name, the word above a page's name, a column's heading. Small capitals in secondary ink. */
+export const labelClass = 'text-[12px] font-medium uppercase leading-4 tracking-[0.08em] text-text-2';
+
+/** A page's title. */
+export const pageTitleClass = 'text-[40px] font-semibold leading-[1.1] tracking-tight text-text-1';
+
+/** A section's heading, on the pages a person works in. */
+export const sectionHeadingClass = 'text-xl font-semibold text-text-1';
+
+/*
  * States (the hierarchy pass, step 4). A state is carried by ink, a mark or a
  * line, never by a darker grey fill.
  */

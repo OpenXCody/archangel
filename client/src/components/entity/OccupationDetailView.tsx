@@ -111,7 +111,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
             hasPath && data.pathStatus === 'draft' ? (
               // Honest without undermining the page: one quiet word, with the sentence for anyone who asks.
               <details className="group text-xs text-text-3" data-draft-path>
-                <summary className="inline-flex min-h-6 cursor-pointer list-none items-center underline decoration-dotted underline-offset-4 hover:text-text-2 [&::-webkit-details-marker]:hidden">
+                <summary className="inline-flex min-h-6 cursor-pointer list-none items-center underline decoration-dotted [&::-webkit-details-marker]:hidden">
                   Draft
                 </summary>
                 <p className="mt-1 max-w-prose text-sm text-text-2">A starting point that has not been reviewed by a person yet.</p>
@@ -135,7 +135,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           {path.unplaced.length > 0 && <SkillGroupBox name={UNPLACED} skills={path.unplaced} marks={marks} className={hasPath ? 'mt-4' : undefined} />}
           {canSignIn && (
             <p className="mt-4 text-sm text-text-3">
-              <Link to={signInPath(`${pathname}${search}`)} className="text-text-2 underline underline-offset-2 hover:text-text-1">
+              <Link to={signInPath(`${pathname}${search}`)} className="text-text-1 underline">
                 Sign in
               </Link>{' '}
               to mark the skills you have.

@@ -162,7 +162,7 @@ export default function EntityDetail() {
     edit: canEdit ? (
       <Link
         to={editPath(RECORD_KIND[entityType], data.id)}
-        className="inline-flex min-h-11 items-center text-sm font-medium text-text-2 underline underline-offset-4 hover:text-text-1"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline"
         data-admin-edit
       >
         Edit

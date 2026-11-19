@@ -4,7 +4,7 @@ import { AlertCircle, Briefcase, Building2, Factory, Loader2, RotateCw } from 'l
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn, segmentClass } from '@/lib/utils';
+import { cn, labelClass, segmentClass } from '@/lib/utils';
 import { justLeft, signInPath, useAccount, type SignedInAccount } from '../../lib/account';
 import { errorMessage } from '../../lib/http';
 import { applicationStatusLabel } from '../../lib/jobFormat';
@@ -59,7 +59,7 @@ export const outlineButtonClass = 'border-line-strong bg-transparent text-text-1
  * confirmation, not the button, carries the weight.
  */
 export const textButtonClass =
-  'text-sm font-medium text-text-2 underline underline-offset-4 transition-colors hover:text-text-1 ' +
+  'text-sm font-medium text-text-1 underline transition-colors ' +
   'disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40';
 
 interface FieldProps {
@@ -74,12 +74,12 @@ interface FieldProps {
 export function Field({ label, htmlFor, hint, optional, className, children }: FieldProps) {
   return (
     <div className={cn('min-w-0', className)}>
-      <Label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-text-2">
+      <Label htmlFor={htmlFor} className={cn(labelClass, 'mb-2 block')}>
         {label}
-        {optional && <span className="ml-1.5 font-normal text-text-3">optional</span>}
+        {optional && <span className="ml-1.5 font-normal normal-case tracking-normal text-text-3">optional</span>}
       </Label>
       {children}
-      {hint && <p className="mt-1.5 text-xs text-text-2">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-text-3">{hint}</p>}
     </div>
   );
 }

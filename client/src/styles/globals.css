@@ -105,6 +105,9 @@
 /* Global styles */
 * {
   border-color: var(--line);
+  /* An underlined link is underlined in its own ink: a 1px line, 3px under the words. */
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 body {
@@ -112,6 +115,8 @@ body {
   color: var(--text-1);
   font-family: 'Oxanium Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
+  /* Figures keep their columns wherever they are listed. */
+  font-variant-numeric: tabular-nums;
   /* No double-tap zoom (taps stay instant); pinch zoom stays for people who need it. */
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
@@ -529,13 +534,13 @@ input {
   }
   .path-level-head > [data-level-count] {
     margin-left: auto;
-    font-size: 0.8125rem;
+    font-size: 13px;
   }
   .path-level-line {
     display: none;
   }
   .path-level-gloss {
-    font-size: 0.75rem;
+    font-size: 13px;
     color: var(--text-3);
   }
   .path-node {
@@ -574,11 +579,11 @@ input {
     align-items: center;
     padding-bottom: 4px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.08em;
     line-height: 16px;
     text-transform: uppercase;
-    color: var(--text-3);
+    color: var(--text-2);
   }
   /* The trunk beside a branch: past it when more follows, turning into the last one where it ends. */
   .path-branch[data-pos='before']::before,
@@ -619,8 +624,8 @@ input {
   .path-empty {
     padding-top: 4px;
     padding-bottom: 2px;
-    font-size: 0.875rem;
-    color: var(--text-3);
+    font-size: 15px;
+    color: var(--text-2);
   }
 
   /* The ladder: the careers before and after this one, on the same trunk. */

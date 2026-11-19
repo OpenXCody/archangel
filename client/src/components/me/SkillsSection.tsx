@@ -127,7 +127,7 @@ function MySkillGroups({ skills, taxonomy, marks }: { skills: MySkill[]; taxonom
     <div className="gap-x-10 lg:columns-2" data-my-skills>
       {domains.map((domain) => (
         <section key={domain.slug} aria-label={domain.name} data-my-domain={domain.slug} className="mb-6 break-inside-avoid">
-          <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">{domain.name}</h3>
+          <h3 className="mb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">{domain.name}</h3>
           <SkillGroups
             groups={domain.groups.map((each) => each.group)}
             marks={marks}
@@ -175,12 +175,12 @@ function SuggestedSkills({ mySkills, onMark }: { mySkills: MySkill[]; onMark: (s
             <SkillHeldToggle value={statusOf.get(skill.id) ?? 'none'} label={skill.name} onChange={(mark) => onMark(skill.id, skill.name, mark)} className="-ml-3" />
             <Link
               to={`/skills/${skill.id}`}
-              className={cn('min-w-0 flex-1 break-words py-2 text-sm underline-offset-4 hover:underline', statusOf.has(skill.id) ? 'text-text-1' : 'text-text-2')}
+              className={cn('min-w-0 flex-1 break-words py-2 text-sm hover:underline', statusOf.has(skill.id) ? 'text-text-1' : 'text-text-2')}
             >
               {skill.name}
             </Link>
             {severalCareers && (
-              <span className="hidden max-w-[45%] shrink-0 truncate pl-2 text-xs text-text-2 xs:block">
+              <span className="hidden max-w-[45%] shrink-0 truncate pl-2 text-xs text-text-3 xs:block">
                 {skill.career}
                 {skill.careers > 1 && ` and ${skill.careers - 1} more`}
               </span>
@@ -288,11 +288,11 @@ function SkillSearch({ mySkills, onAdd, disabled }: SkillSearchProps) {
                 return (
                   <li key={skill.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-3 gap-y-2 py-3')}>
                     <div className="min-w-0 flex-1 basis-40">
-                      <p className="break-words text-sm font-medium text-text-1">{skill.name}</p>
-                      {skill.group && <p className="truncate text-xs text-text-2">{skill.group.name}</p>}
+                      <p className="break-words text-sm text-text-1">{skill.name}</p>
+                      {skill.group && <p className="truncate text-xs text-text-3">{skill.group.name}</p>}
                     </div>
                     {status ? (
-                      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-text-2">
+                      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-text-3">
                         <Check className="h-3.5 w-3.5" />
                         On your list
                       </span>

@@ -1,7 +1,7 @@
 import type { ReactNode, ElementType } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
-import { cn, focusRing } from '@/lib/utils';
+import { cn, focusRing, labelClass, pageTitleClass, sectionHeadingClass } from '@/lib/utils';
 
 /**
  * Page shell primitives. Every routed page composes these so width, gutters,
@@ -119,12 +119,10 @@ export function PageHeader({ title, description, eyebrow, icon: Icon, iconClassN
           {Icon && <Icon className={cn('mt-1.5 h-5 w-5 shrink-0', iconClassName ?? 'text-text-2')} />}
           <div className="min-w-0">
             {eyebrow && (
-              <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">{eyebrow}</div>
+              <div className={cn(labelClass, 'mb-1.5')}>{eyebrow}</div>
             )}
-            <h1 className="text-2xl font-semibold tracking-tight text-text-1 sm:text-3xl [text-wrap:balance]">
-              {title}
-            </h1>
-            {description && <p className="mt-2 max-w-prose text-sm text-text-2 sm:text-base">{description}</p>}
+            <h1 className={cn(pageTitleClass, '[text-wrap:balance]')}>{title}</h1>
+            {description && <p className="mt-2 max-w-prose text-sm text-text-2">{description}</p>}
           </div>
         </div>
         {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
@@ -135,7 +133,7 @@ export function PageHeader({ title, description, eyebrow, icon: Icon, iconClassN
 
 // ─── The detail page ───────────────────────────────────────────────────────
 
-const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3';
+const EYEBROW = labelClass;
 const BACK = cn('-ml-0.5 inline-flex min-h-11 items-center gap-2 pr-2 text-sm text-text-2 transition-colors hover:text-text-1', focusRing);
 
 /**
@@ -184,13 +182,18 @@ interface DetailHeaderProps {
   action?: ReactNode;
   /** An admin's way to the record's editor, at the end of the first line. */
   edit?: ReactNode;
+  /**
+   * A name that is a sentence more often than not (a job's title): on a phone
+   * it keeps the smaller size, where 40px would run to four lines and more.
+   */
+  longTitle?: boolean;
   /** Quiet lines of facts under the description. */
   children?: ReactNode;
   className?: string;
 }
 
 /** The heading block of a detail page. See the template at the top of this file. */
-export function DetailHeader({ back, kind, title, mark, qualifier, description, action, edit, children, className }: DetailHeaderProps) {
+export function DetailHeader({ back, kind, title, mark, qualifier, description, action, edit, longTitle, children, className }: DetailHeaderProps) {
   return (
     <header className={cn('min-w-0', className)} data-detail-header>
       <div className="-mt-2 mb-1 flex items-center justify-between gap-3">
@@ -202,7 +205,7 @@ export function DetailHeader({ back, kind, title, mark, qualifier, description, 
       </p>
       <div className="flex min-w-0 items-center gap-3">
         {mark}
-        <h1 className="min-w-0 break-words text-2xl font-semibold tracking-tight text-text-1 sm:text-3xl [text-wrap:balance]">{title}</h1>
+        <h1 className={cn(pageTitleClass, 'min-w-0 break-words [text-wrap:balance]', longTitle && 'max-sm:text-2xl max-sm:leading-8')}>{title}</h1>
       </div>
       {qualifier}
       {description && <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-text-2">{description}</p>}
@@ -243,10 +246,10 @@ export function DetailSection({ id, title, note, column, action, description, cl
     <section id={id} className={cn('mt-12 scroll-mt-20', className)}>
       <div className={cn('flex items-baseline justify-between gap-3', description ? 'mb-1' : 'mb-3')}>
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-text-3">{title}</h2>
+          <h2 className={labelClass}>{title}</h2>
           {note}
         </div>
-        {column ? <span className="shrink-0 pr-4 text-[11px] uppercase tracking-wider text-text-3">{column}</span> : action}
+        {column ? <span className={cn(labelClass, 'shrink-0')}>{column}</span> : action}
       </div>
       {description && <p className="mb-3 text-sm text-text-2">{description}</p>}
       {children}
@@ -255,7 +258,7 @@ export function DetailSection({ id, title, note, column, action, description, cl
 }
 
 /** A link at the right of a section's heading. */
-export const sectionLinkClass = cn('shrink-0 text-sm text-text-2 underline underline-offset-4 transition-colors hover:text-text-1', focusRing);
+export const sectionLinkClass = cn('shrink-0 text-sm text-text-1 underline transition-colors', focusRing);
 
 /**
  * A list of records: rows with a hairline between them and no box around
@@ -330,9 +333,9 @@ export function RecordRow({
       >
         {lead}
         <span className="min-w-0 flex-1">
-          {label && <span className="block text-xs text-text-3">{label}</span>}
-          <span className={cn('block break-words text-sm font-medium leading-snug', quiet ? 'text-text-2' : 'text-text-1')}>{title}</span>
-          {subtitle && <span className="mt-0.5 line-clamp-2 break-words text-xs text-text-2">{subtitle}</span>}
+          {label && <span className={cn(labelClass, 'mb-0.5 block text-[11px]')}>{label}</span>}
+          <span className={cn('block break-words text-sm leading-snug', quiet ? 'text-text-2' : 'text-text-1')}>{title}</span>
+          {subtitle && <span className="mt-0.5 line-clamp-2 break-words text-xs text-text-3">{subtitle}</span>}
         </span>
         {figure != null ? (
           <span className="shrink-0 text-sm tabular-nums text-text-1">
@@ -354,7 +357,7 @@ export function ShowAll({ open, total, onToggle }: { open: boolean; total: numbe
       type="button"
       onClick={onToggle}
       aria-expanded={open}
-      className={cn('mt-1 inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline underline-offset-4 hover:no-underline', focusRing)}
+      className={cn('mt-1 inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline hover:no-underline', focusRing)}
     >
       {open ? 'Show fewer' : `Show all ${total.toLocaleString()}`}
     </button>
@@ -377,7 +380,7 @@ export function PageSection({ title, description, actions, className, children }
       {(title || actions) && (
         <div className="mb-3 flex items-end justify-between gap-3">
           <div className="min-w-0">
-            {title && <h2 className="text-base font-semibold text-text-1 sm:text-lg">{title}</h2>}
+            {title && <h2 className={sectionHeadingClass}>{title}</h2>}
             {description && <p className="mt-0.5 text-sm text-text-2">{description}</p>}
           </div>
           {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
@@ -404,7 +407,7 @@ export function EmptyState({ icon: Icon, title, description, action, className }
   return (
     <div className={cn('flex flex-col items-center justify-center px-4 py-16 text-center sm:py-20', className)}>
       {Icon && <Icon className="mb-4 h-7 w-7 text-text-3" />}
-      <h2 className="text-lg font-semibold text-text-1">{title}</h2>
+      <h2 className={sectionHeadingClass}>{title}</h2>
       {description && <p className="mt-2 max-w-md text-sm text-text-2">{description}</p>}
       {action && <div className="mt-6">{action}</div>}
     </div>
