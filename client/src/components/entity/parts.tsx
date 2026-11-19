@@ -40,11 +40,11 @@ export function streetAddress(plant: { address?: string | null; curated?: boolea
   return plant.curated ? plant.address : titleCase(plant.address);
 }
 
-/** The footprint card: the map, and under it whatever places it. */
+/** The footprint: the map, and under it whatever places it. */
 export function Footprint({ children, ...map }: React.ComponentProps<typeof FootprintMap> & { children?: React.ReactNode }) {
   return (
     <div className={`${recordListClass} mt-6`} data-footprint>
-      <div className="px-3 py-4 sm:px-6 sm:py-6">
+      <div className="py-4">
         <FootprintMap {...map} className="mx-auto max-w-2xl" />
       </div>
       {children}

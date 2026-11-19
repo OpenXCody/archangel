@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { EMPLOYER_STATUSES, useUpdateApplication, useUpdateJob, type ApplicationStatus } from '../../lib/jobs';
 import { applicantsCsv, saveTextFile, type ApplicantSkill, type JobApplicants, type RankedApplicant } from '../../lib/employerJobs';
 import { applicationStatusLabel } from '../../lib/jobFormat';
-import { ErrorNote, Field, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass, busyButtonClass } from '../account/parts';
+import { ErrorNote, Field, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass, busyButtonClass, rowHoverClass } from '../account/parts';
 import { formatDayCapital } from '../../lib/dates';
 import { SkillMark } from '../account/SkillStatusButton';
 
@@ -119,9 +119,9 @@ export default function ApplicantList({ data, job }: { data: JobApplicants; job?
         </div>
       </div>
 
-      <div className={cn(cardClass, 'overflow-hidden')}>
+      <div className={cardClass}>
         <div
-          className={cn('hidden items-center gap-x-4 border-b border-line px-4 py-2 text-xs text-text-2 sm:grid', COLUMNS)}
+          className={cn('hidden items-center gap-x-4 border-b border-line py-2 text-xs text-text-2 sm:grid', COLUMNS)}
           aria-hidden="true"
         >
           <span>Applicant</span>
@@ -131,7 +131,7 @@ export default function ApplicantList({ data, job }: { data: JobApplicants; job?
           <span />
         </div>
         {visible.length === 0 ? (
-          <p className="px-4 py-6 text-center text-sm text-text-2" role="status" data-applicants-none>
+          <p className="py-4 text-sm text-text-2" role="status" data-applicants-none>
             No applicant{active === 'all' ? '' : ` at ${applicationStatusLabel(active).toLowerCase()}`} matches “{term.trim()}”.
           </p>
         ) : (
@@ -195,9 +195,9 @@ function ApplicantRow({ applicant, skills, hasRequired, job, open, onToggle }: A
         aria-controls={panelId}
         onClick={onToggle}
         className={cn(
-          'grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 px-4 py-3 text-left transition-colors hover:bg-surface-hover',
-          COLUMNS,
-          open && 'bg-surface'
+          'grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 py-3 text-left',
+          rowHoverClass,
+          COLUMNS
         )}
       >
         <span className={cn('min-w-0 truncate text-sm font-medium', quiet ? 'text-text-2' : 'text-text-1')}>
@@ -300,7 +300,7 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
   const optional = skills.filter((skill) => !skill.required);
 
   return (
-    <div id={id} className="space-y-4 border-t border-line px-4 pb-4 pt-3.5" data-applicant-panel>
+    <div id={id} className="space-y-4 pb-5 pt-1" data-applicant-panel>
       <div className="flex flex-wrap items-start gap-x-4 gap-y-3">
         <div className="min-w-0 flex-1 basis-56">
           {/* The email opens with the job as its subject, so the applicant knows what it is about. */}
@@ -340,7 +340,7 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
       </div>
 
       {pending && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-line-strong p-3" role="group" aria-label="Confirm stage">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2" role="group" aria-label="Confirm stage">
           <p className="min-w-0 flex-1 basis-48 text-sm text-text-1">
             Mark {person.name} as {applicationStatusLabel(pending).toLowerCase()}? They see it at once.
           </p>

@@ -124,7 +124,7 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
   };
 
   return (
-    <form onSubmit={submit} noValidate className={cn(cardClass, 'p-4 sm:p-5')}>
+    <form onSubmit={submit} noValidate className={cardClass}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
         <Field label="Email" htmlFor="invite-email">
           <input
@@ -205,7 +205,7 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
 function InviteLink({ created }: { created: CreatedInvite }) {
   const emailOn = useEmailOn();
   return (
-    <div className={cn(cardClass, 'mt-3 p-4 sm:p-5')} data-invite-link>
+    <div className={cn(cardClass, 'mt-3')} data-invite-link>
       <CopyLinkField
         id="invite-link"
         label={`Invite link for ${created.invite.email}`}
@@ -261,7 +261,7 @@ function PendingInvites({ onRevoked }: { onRevoked: (inviteId: string) => void }
               {shown.map((invite, index) => (
                 <li
                   key={invite.id}
-                  className={cn(rowClass, 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 px-4 py-3')}
+                  className={cn(rowClass, 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-3')}
                   data-invite-email={invite.email}
                 >
                   <div className="min-w-0">
@@ -314,7 +314,7 @@ function EarlierInvites() {
     <PageSection title="Earlier" description="Accepted, or expired without being used. Revoked invites are under History.">
       <ul className={cardClass} data-earlier-invites>
         {past.data.map((invite) => (
-          <li key={invite.id} className={cn(rowClass, 'px-4 py-3')} data-earlier-invite={invite.state}>
+          <li key={invite.id} className={cn(rowClass, 'py-3')} data-earlier-invite={invite.state}>
             <p className="break-all text-sm text-text-1">{invite.email}</p>
             <p className="mt-0.5 break-words text-xs text-text-2">
               {invite.state === 'accepted' && invite.acceptedAt ? `Accepted ${formatDay(invite.acceptedAt)}` : `Expired ${formatDay(invite.expiresAt)}`}

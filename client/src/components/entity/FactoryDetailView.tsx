@@ -97,9 +97,9 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
       {/* Where it is. The town is in the heading; the street is said here, once. */}
       {located && (
         <Footprint points={points} emphasis={data.id}>
-          {street && <p className="border-t border-line px-4 py-3 text-sm text-text-2 sm:px-6">{street}</p>}
+          {street && <p className="border-t border-line py-3 text-sm text-text-2">{street}</p>}
           {/* The county it stands in, and manufacturing there: official figures, about the county. */}
-          <CountyLine factoryId={data.id} className="border-t border-line px-4 py-3 sm:px-6" />
+          <CountyLine factoryId={data.id} className="border-t border-line py-3" />
         </Footprint>
       )}
 

@@ -129,7 +129,7 @@ function ProfileSection({ user }: { user: AccountUser }) {
       // A ZIP code is for finding work near home: someone here to hire is not asked for one.
       description={seeker ? 'Name, email and ZIP code are shown to a company on application.' : undefined}
     >
-      <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-profile-form>
+      <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4')} data-profile-form>
         <div className={cn('grid grid-cols-1 gap-4', seeker && 'sm:grid-cols-[minmax(0,1fr)_160px]')}>
           <Field label="Name" htmlFor="profile-name">
             <input
@@ -199,7 +199,7 @@ function SignInSection({ account }: { account: SignedInAccount }) {
     window.setTimeout(() => triggers.current[action]?.focus(), 0);
   };
   const row = (action: SignInAction, label: string, value: ReactNode, changed: string) => (
-    <li className={cn(rowClass, 'flex items-center gap-3 px-4 py-3 sm:px-6')}>
+    <li className={cn(rowClass, 'flex items-center gap-3 py-3')}>
       <div className="min-w-0 flex-1">
         <p className="text-xs text-text-2">{label}</p>
         <p className="mt-0.5 break-all text-sm font-medium text-text-1">{value}</p>
@@ -300,7 +300,7 @@ function EmailChange({ email, onClose }: { email: string; onClose: (changed: boo
         if (event.key === 'Escape' && !change.isPending) onClose(false);
       }}
       noValidate
-      className="space-y-4 p-4 sm:p-6"
+      className="space-y-4 py-4"
       data-email-form
     >
       <p className="break-all text-sm text-text-2">
@@ -404,7 +404,7 @@ function PasswordChange({ email, onClose }: { email: string; onClose: (changed: 
         if (event.key === 'Escape' && !change.isPending) onClose(false);
       }}
       noValidate
-      className="space-y-4 p-4 sm:p-6"
+      className="space-y-4 py-4"
       data-password-form
     >
       {/* Not shown: it tells a password manager which account the new password belongs to. */}
@@ -489,7 +489,7 @@ function NoticeSection({ user }: { user: AccountUser }) {
 
   return (
     <PageSection title="Email notices">
-      <div className={cn(cardClass, 'px-4 py-3 sm:px-6')} data-email-notices>
+      <div className={cn(cardClass, 'py-3')} data-email-notices>
         <div className="flex items-center gap-4">
           <label htmlFor="email-notices" className="min-w-0 flex-1 cursor-pointer">
             <span className="block text-sm font-medium text-text-1">Email me about applications and access</span>

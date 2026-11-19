@@ -131,7 +131,7 @@ interface TagGroupProps {
 }
 
 const tagButtonClass =
-  'flex w-9 shrink-0 items-center justify-center border-l border-line text-text-2 transition-colors ' +
+  'flex w-9 shrink-0 items-center justify-center text-text-2 transition-colors ' +
   'hover:bg-surface-hover hover:text-text-1 disabled:pointer-events-none disabled:opacity-60';
 
 function TagGroup({ label, skills, onMove, onRemove, disabled }: TagGroupProps) {

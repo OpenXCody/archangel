@@ -90,7 +90,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
   };
 
   return (
-    <li className={cn(cardClass, 'p-4')} data-match={item.id} data-match-record={recordName}>
+    <li className={cardClass} data-match={item.id} data-match-record={recordName}>
       <p className="break-words text-xs text-text-2" data-match-reason>
         {item.sourceName}
         <Dot />

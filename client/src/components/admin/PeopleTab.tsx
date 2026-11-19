@@ -174,7 +174,7 @@ function PersonRow({ person, isSelf, open, onToggle }: PersonRowProps) {
   const roles = personRoles(person);
   return (
     <li className={rowClass} data-person-email={person.email}>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 py-3">
         <div className="min-w-0">
           <p className="break-words text-sm font-medium text-text-1">{person.name}</p>
           <p className="break-all text-sm text-text-2">{person.email}</p>
@@ -269,7 +269,7 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
   ].filter(Boolean);
 
   return (
-    <div id={id} className="space-y-5 border-t border-line bg-bg px-4 py-4" data-person-panel>
+    <div id={id} className="space-y-5 border-t border-line py-4" data-person-panel>
       <CorrectPerson person={person} />
 
       <div>

@@ -119,29 +119,36 @@ interface Figure {
   unit?: string;
 }
 
-/** Labelled figures, two across on a phone. Give it only figures that have something to say. */
+/**
+ * Labelled figures in one row, two across on a phone, with a hairline between
+ * neighbours and no box around any. Give it only figures that have something
+ * to say.
+ */
 export function Figures({ items }: { items: Figure[] }) {
   if (items.length === 0) return null;
   return (
-    <dl
-      className={cn(
-        'mt-6 grid gap-2 sm:gap-3',
-        items.length === 1 ? 'grid-cols-1 sm:max-w-xs' : 'grid-cols-2',
-        items.length === 3 && 'sm:grid-cols-3',
-        items.length >= 4 && 'sm:grid-cols-4'
-      )}
-      data-figures
-    >
-      {items.map((item) => (
-        <div key={item.label} className="min-w-0 rounded-xl border border-line px-4 py-3">
-          <dt className="truncate text-[11px] uppercase tracking-wider text-text-2">{item.label}</dt>
-          <dd className="mt-1 truncate text-xl font-semibold tabular-nums tracking-tight text-text-1">
-            {item.value}
-            {item.unit && <span className="ml-1 text-xs font-normal tracking-normal text-text-3">{item.unit}</span>}
-          </dd>
-        </div>
-      ))}
-    </dl>
+    // Every figure carries a hairline on its left; the row is drawn a gutter to the left and clipped, so a row's first shows none.
+    <div className="mt-6 overflow-hidden">
+      <dl
+        className={cn(
+          '-ml-4 grid gap-y-5 sm:-ml-5',
+          items.length === 1 ? 'grid-cols-1 sm:max-w-xs' : 'grid-cols-2',
+          items.length === 3 && 'sm:grid-cols-3',
+          items.length >= 4 && 'sm:grid-cols-4'
+        )}
+        data-figures
+      >
+        {items.map((item) => (
+          <div key={item.label} className="min-w-0 border-l border-line pl-4 sm:pl-5">
+            <dt className="truncate text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">{item.label}</dt>
+            <dd className="mt-1 truncate text-[28px] font-semibold leading-9 tabular-nums tracking-tight text-text-1">
+              {item.value}
+              {item.unit && <span className="ml-1 text-xs font-normal tracking-normal text-text-3">{item.unit}</span>}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   );
 }
 

@@ -100,14 +100,14 @@ export default function SourcedJob({ job, skills, manages }: SourcedJobProps) {
   return (
     <>
       {manages && (
-        <p className={cn(cardClass, 'mt-6 p-4 text-sm text-text-1')} role="note" data-job-from-source>
+        <p className={cn(cardClass, 'mt-6 text-sm text-text-1')} role="note" data-job-from-source>
           This job comes from {careersSite(job.companyName)} and is kept in step with it.
           <span className="text-text-2">{job.isOpen ? ' It is changed there.' : ' It is no longer listed there.'}</span>
         </p>
       )}
 
       <div className={cn(recordListClass, 'mt-6')} data-job-terms>
-        <dl className="grid grid-cols-1 gap-4 p-4 xs:grid-cols-2 sm:grid-cols-4 sm:p-6">
+        <dl className="grid grid-cols-1 gap-4 pb-5 xs:grid-cols-2 sm:grid-cols-4">
           {paid && <Term label="Pay">{formatPay(job.payMin, job.payMax, job.payPeriod)}</Term>}
           {job.levelWord && <Term label="Level">{job.levelWord}</Term>}
           {job.employmentType && <Term label="Type">{employmentLabel(job.employmentType)}</Term>}

@@ -112,7 +112,7 @@ export default function AccessTab() {
             {requests.data.map((request) => (
               <li
                 key={`${request.companyId}:${request.userId}`}
-                className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')}
+                className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')}
                 data-request-email={request.userEmail}
                 data-request-row={`${request.companyId}:${request.userId}`}
               >
@@ -172,7 +172,7 @@ export default function AccessTab() {
             {declined.data.map((request) => (
               <li
                 key={`${request.companyId}:${request.userId}`}
-                className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')}
+                className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')}
                 data-declined-email={request.userEmail}
                 data-request-row={`${request.companyId}:${request.userId}`}
               >

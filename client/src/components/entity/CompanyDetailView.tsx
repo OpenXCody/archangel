@@ -181,7 +181,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
               />
             </ul>
           ) : (
-            <p className="border-t border-line px-4 py-3 text-sm text-text-2 sm:px-6">
+            <p className="border-t border-line py-3 text-sm text-text-2">
               {byState.slice(0, 6).map((state, index) => (
                 <span key={state.code}>
                   {index > 0 && ' · '}

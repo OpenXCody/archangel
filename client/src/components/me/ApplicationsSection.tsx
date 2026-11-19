@@ -98,7 +98,7 @@ function ApplicationRow({ application, email }: { application: MyApplication; em
   };
 
   return (
-    <li className={cn(rowClass, 'p-4')} data-application={application.id}>
+    <li className={cn(rowClass, 'py-4')} data-application={application.id}>
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <Link

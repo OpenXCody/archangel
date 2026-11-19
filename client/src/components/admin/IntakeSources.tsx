@@ -40,7 +40,7 @@ function RunFigures({ run }: { run: IntakeRun }) {
 
 function SourceRow({ source }: { source: IntakeSource }) {
   return (
-    <li className={cn(rowClass, 'p-4')} data-intake-source={source.slug}>
+    <li className={cn(rowClass, 'py-4')} data-intake-source={source.slug}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="min-w-0 break-words text-sm font-medium text-text-1">
           {source.url ? (

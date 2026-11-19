@@ -219,7 +219,7 @@ export default function SignIn() {
           title={mode === 'create' ? 'Create account' : 'Sign in'}
         />
 
-        <div className={cn(cardClass, 'p-4 sm:p-6')}>
+        <div className={cardClass}>
           <div
             role="tablist"
             aria-label="Sign in or create an account"
@@ -456,13 +456,13 @@ function ForgotPassword({ initialEmail, onBack }: { initialEmail: string; onBack
       <div className="mx-auto w-full max-w-md">
         <PageHeader title="Reset password" />
         {forgot.isSuccess ? (
-          <div className={cn(cardClass, 'p-4 sm:p-6')} role="status" data-forgot-sent>
+          <div className={cardClass} role="status" data-forgot-sent>
             <p className="text-sm text-text-1">If that address has an account, a reset link is on its way.</p>
             <p className="mt-1.5 break-all text-sm text-text-2">{forgot.variables}</p>
             <p className="mt-1.5 text-sm text-text-2">The link works once and lasts 24 hours.</p>
           </div>
         ) : (
-          <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-forgot-form>
+          <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4')} data-forgot-form>
             <Field label="Email" htmlFor="forgot-email">
               <input
                 ref={fieldRef}
@@ -525,7 +525,7 @@ function ChoosePassword({ email, busy, error, onSubmit }: ChoosePasswordProps) {
     <PageContainer size="narrow">
       <div className="mx-auto w-full max-w-md">
         <PageHeader title="Choose a new password" description={email} />
-        <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-reset-form>
+        <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4')} data-reset-form>
           {/* Not shown: it tells a password manager which account the new password belongs to. */}
           <input type="email" name="email" autoComplete="username" value={email} readOnly hidden />
           <Field label="New password" htmlFor="reset-password" hint="At least 8 characters.">
@@ -567,7 +567,7 @@ function InviteForAnother({ inviteEmail, signedInAs }: { inviteEmail: string; si
     <PageContainer size="narrow">
       <div className="mx-auto w-full max-w-md">
         <PageHeader title="Invite" />
-        <div className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-invite-other>
+        <div className={cn(cardClass, 'space-y-4')} data-invite-other>
           <p className="break-words text-sm text-text-2">
             This invite is for <span className="font-medium text-text-1">{inviteEmail}</span>. You are signed in as{' '}
             <span className="font-medium text-text-1">{signedInAs}</span>.

@@ -174,7 +174,7 @@ export default function JobDetail() {
       </DetailHeader>
 
       {lostAccess && !manages && (
-        <p role="status" className={cn(cardClass, 'mt-6 p-4 text-sm text-text-1')} data-lost-access>
+        <p role="status" className={cn(cardClass, 'mt-6 text-sm text-text-1')} data-lost-access>
           {signedIn ? (
             `You no longer manage jobs for ${data.job.companyName.replace(/\.$/, '')}.`
           ) : (
@@ -213,7 +213,7 @@ export default function JobDetail() {
 
       {!data.job.fromSource && data.job.description && (
         <DetailSection title="About the job">
-          <div className={cn(cardClass, 'p-4 text-sm leading-relaxed text-text-1 sm:p-6')}>
+          <div className={cn(cardClass, 'text-sm leading-relaxed text-text-1')}>
             <JobDescription text={data.job.description} />
           </div>
         </DetailSection>
@@ -287,7 +287,7 @@ export default function JobDetail() {
 function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClosed?: boolean }) {
   const closed = job.status === 'closed';
   return (
-    <div className={cn(cardClass, 'mt-6 flex items-start gap-3 p-4')} role="status" data-job-closed>
+    <div className={cn(cardClass, 'mt-6 flex items-start gap-3')} role="status" data-job-closed>
       <Lock className="mt-0.5 h-4 w-4 shrink-0 text-text-2" />
       <p className="min-w-0 break-words text-sm text-text-1">
         {justClosed
@@ -311,14 +311,14 @@ function Term({ label, children }: { label: string; children: ReactNode }) {
 }
 
 /**
- * What the job is, in one card: its terms, then the company, the plant and
+ * What the job is, in one block: its terms, then the company, the plant and
  * the career it belongs to, each leading to its own page.
  */
 function TermsCard({ job, showApplications }: { job: JobDetailData; showApplications: boolean }) {
   const host = job.applyUrl ? hostOf(job.applyUrl) : null;
   return (
     <div className={recordListClass} data-job-terms>
-      <dl className="grid grid-cols-1 gap-4 p-4 xs:grid-cols-2 sm:grid-cols-4 sm:p-6">
+      <dl className="grid grid-cols-1 gap-4 pb-5 xs:grid-cols-2 sm:grid-cols-4">
         <Term label="Pay">{formatPay(job.payMin, job.payMax, job.payPeriod)}</Term>
         <Term label="Type">{job.employmentType ? employmentLabel(job.employmentType) : 'Not stated'}</Term>
         <Term label="Shift">{job.shift || 'Not stated'}</Term>
@@ -415,7 +415,7 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   const canReapply = myApplication?.status === 'withdrawn' && job.isOpen && !job.applyUrl;
   if (myApplication && !canReapply) {
     return (
-      <div className={cn(cardClass, 'flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-6')}>
+      <div className={cn(cardClass, 'flex flex-wrap items-center gap-x-4 gap-y-2')}>
         <div className="min-w-0 flex-1 basis-48">
           <p className="text-sm font-medium text-text-1">
             {myApplication.status === 'withdrawn' ? 'You withdrew this application.' : `You applied ${formatDay(myApplication.createdAt)}.`}
@@ -440,7 +440,7 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   if (job.applyUrl) {
     const host = hostOf(job.applyUrl);
     return (
-      <div className={cn(cardClass, 'p-4 sm:p-6')}>
+      <div className={cardClass}>
         <p className="mb-3 text-sm text-text-2">
           {job.companyName} takes applications for this job on its own website{host ? ` (${host})` : ''}.
         </p>
@@ -457,7 +457,7 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   if (!signedIn) {
     const here = `/jobs/${job.id}`;
     return (
-      <div className={cn(cardClass, 'p-4 sm:p-6')}>
+      <div className={cardClass}>
         <p className="mb-3 text-sm text-text-2">Apply here with your name, email and the skills on your profile.</p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <Button asChild className="h-11 w-full rounded-lg sm:w-auto">
@@ -480,7 +480,7 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   };
 
   return (
-    <form onSubmit={submit} className={cn(cardClass, 'space-y-4 p-4 sm:p-6')}>
+    <form onSubmit={submit} className={cn(cardClass, 'space-y-4')}>
       <Field
         label="Note to the company"
         htmlFor="apply-note"
@@ -580,7 +580,7 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
   };
 
   return (
-    <div className={cn(cardClass, 'p-4 sm:p-6')}>
+    <div className={cardClass}>
       <p className="text-sm font-medium text-text-1" data-job-state={closed ? 'closed' : job.isOpen ? 'open' : 'expired'}>
         {closed ? 'Closed' : job.isOpen ? 'Open' : 'Expired'}
         <span className="font-normal text-text-2">

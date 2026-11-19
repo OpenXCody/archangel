@@ -156,7 +156,7 @@ function Editor({ companyId, occupationId, source, onReload }: { companyId: stri
 
       {/* A save that was refused stays in view until it is put right. */}
       {save.isError && (
-        <div className="sticky bottom-3 z-20 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-line-strong bg-bg p-3" data-version-error>
+        <div className="sticky bottom-3 z-20 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-line-strong bg-surface p-3" data-version-error>
           <ErrorNote error={save.error} className="min-w-0 flex-1 basis-56" />
           <button
             type="button"

@@ -58,7 +58,7 @@ function RequestRow({ request }: { request: AdminCompanyRequest }) {
   };
 
   return (
-    <li className={cn(rowClass, 'space-y-3 p-4')} data-company-request-email={request.userEmail}>
+    <li className={cn(rowClass, 'space-y-3 py-4')} data-company-request-email={request.userEmail}>
       <div className="min-w-0">
         <p className="break-words text-sm font-medium text-text-1">
           {plant ? (

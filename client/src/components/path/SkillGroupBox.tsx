@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { ShareCount, ShareRing } from './HeldShare';
+import { ShareCount } from './HeldShare';
 import { shareOf, type PathGroup, type PathSkillItem, type Share, type SkillMarks } from './model';
 import { SkillTag, SkillTags } from './SkillTag';
 
@@ -31,26 +31,21 @@ interface SkillGroupBoxProps {
 }
 
 /**
- * A skill group as a box: a thin frame with the group's name set into its top
- * edge (a fieldset and its legend, so the frame opens for the name on any
- * surface), how much of the group the person holds, and the skills as tags.
- * It knows nothing of the page it is on.
+ * A skill group: one small line with the group's name and how much of it the
+ * person holds ("Workplace safety · 1 of 5"), and the skills as tags directly
+ * under it. There is no frame around it. It is still a fieldset and its
+ * legend, so the name labels the skills for a screen reader. It knows nothing
+ * of the page it is on.
  */
 export function SkillGroupBox({ name, skills, marks, share: given, currentId, parts, renderSkill, className }: SkillGroupBoxProps) {
   const share = marks ? given ?? shareOf(skills, marks) : null;
   return (
     <fieldset className={cn('skill-group', className)} data-group-box data-complete={(share && share.total > 0 && share.held === share.total) || undefined}>
       <legend className="skill-group-name">
-        <span className="flex min-w-0 items-center gap-1.5">
-          <span className="min-w-0 break-words">{name}</span>
-          {share && (
-            <>
-              <ShareRing share={share} className="h-3.5 w-3.5" />
-              {/* One skill says how much is held by its own mark; the figure is for a group of several. */}
-              <ShareCount share={share} data-group-count className={share.total > 1 ? undefined : 'sr-only'} />
-            </>
-          )}
-        </span>
+        <span className="min-w-0 break-words">{name}</span>
+        {/* One skill says how much is held by its own mark; the figure is for a group of several. */}
+        {share && share.total > 1 && <span aria-hidden="true"> · </span>}
+        {share && <ShareCount share={share} data-group-count className={share.total > 1 ? 'text-text-2' : 'sr-only'} />}
       </legend>
       {(parts ?? [{ label: '', skills }]).map((part) => (
         <div key={part.label} className="skill-group-part">

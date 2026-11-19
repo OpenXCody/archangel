@@ -65,7 +65,7 @@ export default function MakesEditor({ record, onChanged }: { record: RecordView;
 
   return (
     <PageSection title="Makes" description="The named equipment and software this skill is run on, in the order they are shown. A person who has the skill marks the ones they have run.">
-      <div className={cn(cardClass, 'p-4 sm:p-5')} data-makes-editor>
+      <div className={cardClass} data-makes-editor>
         {makes.length === 0 ? (
           <p className="text-sm text-text-2">None yet.</p>
         ) : (

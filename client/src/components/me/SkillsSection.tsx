@@ -124,9 +124,9 @@ function MySkillGroups({ skills, taxonomy, marks }: { skills: MySkill[]; taxonom
 
   return (
     // Domains fill two columns where there is room, each kept whole.
-    <div className="gap-x-4 lg:columns-2" data-my-skills>
+    <div className="gap-x-10 lg:columns-2" data-my-skills>
       {domains.map((domain) => (
-        <section key={domain.slug} aria-label={domain.name} data-my-domain={domain.slug} className="mb-4 break-inside-avoid">
+        <section key={domain.slug} aria-label={domain.name} data-my-domain={domain.slug} className="mb-6 break-inside-avoid">
           <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">{domain.name}</h3>
           <SkillGroups
             groups={domain.groups.map((each) => each.group)}
@@ -167,11 +167,11 @@ function SuggestedSkills({ mySkills, onMark }: { mySkills: MySkill[]; onMark: (s
   const hasMore = list.length > shown.length || marked;
 
   return (
-    <div className="mt-5" data-suggested-skills>
+    <div className="mt-8" data-suggested-skills>
       <h3 className="mb-2 text-sm font-medium text-text-2">Suggested</h3>
       <ul className={cn(cardClass, suggested.isPlaceholderData && 'opacity-60')}>
         {shown.map((skill) => (
-          <li key={skill.id} className={cn(rowClass, 'flex items-center gap-1 py-0.5 pl-1 pr-4')}>
+          <li key={skill.id} className={cn(rowClass, '-ml-3 flex items-center gap-1 py-0.5')}>
             <SkillHeldToggle value={statusOf.get(skill.id) ?? 'none'} label={skill.name} onChange={(mark) => onMark(skill.id, skill.name, mark)} />
             <Link
               to={`/skills/${skill.id}`}
@@ -199,7 +199,7 @@ function SuggestedSkills({ mySkills, onMark }: { mySkills: MySkill[]; onMark: (s
               void suggested.refetch();
             }
           }}
-          className={cn(textButtonClass, 'mt-3 px-1')}
+          className={cn(textButtonClass, 'mt-3')}
         >
           More
         </button>
@@ -273,20 +273,20 @@ function SkillSearch({ mySkills, onAdd, disabled }: SkillSearchProps) {
       {showResults && (
         <div className={cn(cardClass, 'mt-2')} aria-live="polite">
           {results.isPending ? (
-            <p className="flex items-center gap-2 p-4 text-sm text-text-2">
+            <p className="flex items-center gap-2 py-3 text-sm text-text-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               Searching skills
             </p>
           ) : results.isError ? (
-            <ErrorNote error={results.error} className="p-4" />
+            <ErrorNote error={results.error} className="py-3" />
           ) : results.data.data.length === 0 ? (
-            <p className="p-4 text-sm text-text-2">No skills match “{query}”. Try a shorter or different word.</p>
+            <p className="py-3 text-sm text-text-2">No skills match “{query}”. Try a shorter or different word.</p>
           ) : (
             <ul>
               {results.data.data.map((skill) => {
                 const status = statusOf(skill.id);
                 return (
-                  <li key={skill.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3')}>
+                  <li key={skill.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-3 gap-y-2 py-3')}>
                     <div className="min-w-0 flex-1 basis-40">
                       <p className="break-words text-sm font-medium text-text-1">{skill.name}</p>
                       {skill.group && <p className="truncate text-xs text-text-2">{skill.group.name}</p>}

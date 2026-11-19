@@ -125,7 +125,7 @@ function Starter({ onStart }: { onStart: () => void }) {
               const busy = addGoal.isPending && addGoal.variables === career.id;
               const count = (career.levels ?? []).reduce((sum, level) => sum + level.count, 0);
               return (
-                <li key={career.id} className={cn(rowClass, 'flex items-center gap-3 px-4 py-3')}>
+                <li key={career.id} className={cn(rowClass, 'flex items-center gap-3 py-3')}>
                   <div className="min-w-0 flex-1">
                     <Link
                       to={`/occupations/${career.id}`}
@@ -156,7 +156,7 @@ function Starter({ onStart }: { onStart: () => void }) {
           </ul>
         )}
         <ErrorNote error={addGoal.error} className="mt-2" />
-        <p className="mt-3 px-1 text-sm text-text-2">
+        <p className="mt-3 text-sm text-text-2">
           <Link to="/explore?tab=occupations" className={linkClass}>
             All careers
           </Link>

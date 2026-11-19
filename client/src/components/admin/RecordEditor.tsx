@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ApiError } from '../../lib/http';
 import { editPath, useDeleteRecord, useMergeRecord, useRecord, type FoundRecord, type RecordKind, type RecordView } from '../../lib/records';
-import { CardNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, textButtonClass } from '../account/parts';
+import { CardNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, textButtonClass, rowHoverClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 import RecordPicker from './RecordPicker';
@@ -89,7 +89,7 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
       </div>
 
       <PageSection>
-        <div className={cn(cardClass, 'p-4 sm:p-5')}>
+        <div className={cardClass}>
           <RecordForm
             key={round}
             kind={kind}
@@ -129,7 +129,7 @@ function MergeSection({ record }: { record: RecordView }) {
 
   return (
     <PageSection title="Merge" description={`When this is the same ${word} as another. Everything here moves to the other, and this name is kept as another name for it.`}>
-      <div className={cn(cardClass, 'p-4 sm:p-5')}>
+      <div className={cardClass}>
         <label htmlFor="merge-into" className="mb-1.5 block text-sm font-medium text-text-2">
           Merge into
         </label>
@@ -208,7 +208,7 @@ function PlantMergeSection({ record }: { record: RecordView }) {
       title="Merge"
       description="When this is the same plant as another row. One row is kept: it takes the facts it lacks from the other, and everything attached moves to it."
     >
-      <div className={cn(cardClass, 'p-4 sm:p-5')} data-plant-merge>
+      <div className={cardClass} data-plant-merge>
         <label htmlFor="merge-with" className="mb-1.5 block text-sm font-medium text-text-2">
           The other row
         </label>
@@ -226,13 +226,13 @@ function PlantMergeSection({ record }: { record: RecordView }) {
         </div>
         <p className="mt-1.5 text-xs text-text-2">Plants of the same company, and any within two kilometres.</p>
         {!other && offered.length > 0 && (
-          <ul className="mt-3 max-w-[28rem] rounded-lg border border-line" aria-label="Likely rows" data-plant-merge-likely>
+          <ul className="mt-3 max-w-[28rem]" aria-label="Likely rows" data-plant-merge-likely>
             {offered.map((option) => (
               <li key={option.id} className="border-t border-line first:border-t-0">
                 <button
                   type="button"
                   onClick={() => setOther(option)}
-                  className="block w-full rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface-hover"
+                  className={cn(rowHoverClass, 'block w-[calc(100%+1.5rem)] py-2 text-left')}
                 >
                   <span className="block break-words text-sm text-text-1">{option.name}</span>
                   {option.detail && <span className="block break-words text-xs text-text-2">{option.detail}</span>}

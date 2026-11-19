@@ -442,7 +442,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
           <div
             role="group"
             aria-labelledby="job-pay-question"
-            className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-line-strong px-3 py-2.5"
+            className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2"
             data-pay-question
           >
             <p id="job-pay-question" role={attempted ? 'alert' : 'status'} className="min-w-0 flex-1 basis-48 text-sm text-text-1">

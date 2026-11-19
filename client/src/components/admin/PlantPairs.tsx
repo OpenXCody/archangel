@@ -7,7 +7,7 @@ import { distance } from '../../lib/intake';
 import { PAIRS_PAGE, useKeepApart, useMergePlants, usePairList, type PairList, type PlantPair, type PlantSide } from '../../lib/plantPairs';
 import { stateName } from '../../lib/places';
 import { onGroupArrowKeys } from '../../lib/roving';
-import { CardNote, Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass } from '../account/parts';
+import { CardNote, Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, rowHoverClass } from '../account/parts';
 import ConfirmDialog from '../layout/ConfirmDialog';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
@@ -90,7 +90,7 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
   };
 
   return (
-    <div className={cn(cardClass, 'p-4')} data-pair={`${pair.a.id}:${pair.b.id}`}>
+    <div className={cardClass} data-pair={`${pair.a.id}:${pair.b.id}`}>
       <p className="break-words text-xs text-text-2" data-pair-reason>
         {head.map((part, index) => (
           <span key={part} className={index === 1 && pair.reason ? 'text-text-1' : undefined}>
@@ -327,7 +327,7 @@ export function PairsWaiting() {
     <PageSection title={LISTS.id.title} description="Two rows that carry one registry id, which the cleanup was not sure are one plant.">
       <Link
         to={pairsPath('id')}
-        className={cn(cardClass, 'flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-surface-hover')}
+        className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}
         data-pairs-waiting
       >
         <span className="min-w-0 text-sm font-medium text-text-1">Open the list</span>

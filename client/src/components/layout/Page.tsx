@@ -41,9 +41,9 @@ import { cn, focusRing } from '@/lib/utils';
  *      d. the records it leads to, in the product's own order (the order
  *         of Explore's tabs): companies, plants, careers, skills;
  *      (Where a fact was read is not shown on the page.)
- *   3. Every list of records is a `RecordList` of `RecordRow`s: one card,
- *      hairlines between rows, the name, at most one grey line under it, and
- *      a chevron (or the row's figure) at the right. No icon per row: a list
+ *   3. Every list of records is a `RecordList` of `RecordRow`s: rows with a
+ *      hairline between them and no box around them, the name, at most one
+ *      grey line under it, and a chevron (or the row's figure) at the right. No icon per row: a list
  *      under the heading CAREERS does not need a briefcase on every line. A
  *      company's mark may lead its row, and a skill's row may carry the mark
  *      that says whether the person has it. A list longer than its cut ends
@@ -116,11 +116,7 @@ export function PageHeader({ title, description, eyebrow, icon: Icon, iconClassN
       )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
-          {Icon && (
-            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface">
-              <Icon className={cn('h-5 w-5', iconClassName ?? 'text-text-2')} />
-            </div>
-          )}
+          {Icon && <Icon className={cn('mt-1.5 h-5 w-5 shrink-0', iconClassName ?? 'text-text-2')} />}
           <div className="min-w-0">
             {eyebrow && (
               <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">{eyebrow}</div>
@@ -244,7 +240,7 @@ interface DetailSectionProps {
 /** A titled part of a detail page: small grey capitals, the same on all six. */
 export function DetailSection({ id, title, note, column, action, description, className, children }: DetailSectionProps) {
   return (
-    <section id={id} className={cn('mt-8 scroll-mt-20', className)}>
+    <section id={id} className={cn('mt-12 scroll-mt-20', className)}>
       <div className={cn('flex items-baseline justify-between gap-3', description ? 'mb-1' : 'mb-3')}>
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
           <h2 className="text-sm font-medium uppercase tracking-wider text-text-3">{title}</h2>
@@ -261,8 +257,19 @@ export function DetailSection({ id, title, note, column, action, description, cl
 /** A link at the right of a section's heading. */
 export const sectionLinkClass = cn('shrink-0 text-sm text-text-2 underline underline-offset-4 transition-colors hover:text-text-1', focusRing);
 
-/** The card a list of records sits in. */
-export const recordListClass = 'overflow-hidden rounded-xl border border-line';
+/**
+ * A list of records: rows with a hairline between them and no box around
+ * them. The rows carry the lines (`RecordRow`, or `rowClass`); the list itself
+ * has no fill, border or padding.
+ */
+export const recordListClass = '';
+
+/**
+ * A row that is one link or button, under the pointer: the fill reaches a
+ * little past the words on both sides, so they keep their place on the page's
+ * left edge and the hairlines stay the width of the column.
+ */
+export const rowHoverClass = '-mx-3 rounded-lg px-3 transition-colors hover:bg-surface-hover';
 
 export function RecordList({ children, className, ...rest }: { children: ReactNode; className?: string } & Record<`data-${string}`, string | undefined>) {
   return (
@@ -307,14 +314,15 @@ export function RecordRow({
   ...rest
 }: RecordRowProps & Record<`data-${string}`, string | undefined>) {
   return (
-    <li className={cn('flex items-stretch border-b border-line last:border-b-0', className)} {...rest}>
-      {control && <span className="flex shrink-0 items-center">{control}</span>}
+    <li className={cn('flex items-stretch border-t border-line first:border-t-0', className)} {...rest}>
+      {/* A mark stands 12px inside its button: the button is drawn that far left, so the mark sits on the page's edge. */}
+      {control && <span className="-ml-3 flex shrink-0 items-center">{control}</span>}
       <Link
         to={to}
         state={state}
         className={cn(
-          'group flex min-h-[52px] min-w-0 flex-1 items-center gap-3 py-2.5 pr-4 transition-colors hover:bg-surface-hover focus-visible:bg-surface-hover focus-visible:-outline-offset-2',
-          control ? 'pl-0' : 'pl-4'
+          'group flex min-h-[52px] min-w-0 flex-1 items-center gap-3 rounded-lg py-2.5 transition-colors hover:bg-surface-hover focus-visible:-outline-offset-2',
+          control ? '-mr-3 pr-3' : '-mx-3 px-3'
         )}
       >
         {lead}
@@ -362,7 +370,7 @@ interface PageSectionProps {
 
 export function PageSection({ title, description, actions, className, children }: PageSectionProps) {
   return (
-    <section className={cn('mb-8 last:mb-0', className)}>
+    <section className={cn('mb-12 last:mb-0', className)}>
       {(title || actions) && (
         <div className="mb-3 flex items-end justify-between gap-3">
           <div className="min-w-0">
@@ -385,14 +393,14 @@ interface EmptyStateProps {
   className?: string;
 }
 
+/**
+ * A page that has nothing to show: the thing asked for is not here. (A list
+ * with nothing in it is one line of secondary text: `CardNote`.)
+ */
 export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
   return (
     <div className={cn('flex flex-col items-center justify-center px-4 py-16 text-center sm:py-20', className)}>
-      {Icon && (
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface">
-          <Icon className="h-7 w-7 text-text-3" />
-        </div>
-      )}
+      {Icon && <Icon className="mb-4 h-7 w-7 text-text-3" />}
       <h2 className="text-lg font-semibold text-text-1">{title}</h2>
       {description && <p className="mt-2 max-w-md text-sm text-text-2">{description}</p>}
       {action && <div className="mt-6">{action}</div>}

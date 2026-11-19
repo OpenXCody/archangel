@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { formatFactoryName } from '@shared/displayName';
 import { useDecidePlace, usePostingSources, useWaitingPlaces, type PostingSource, type WaitingPlace } from '../../lib/postings';
 import { formatDayCapital } from '../../lib/dates';
-import { Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass } from '../account/parts';
+import { Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass, rowHoverClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 
@@ -47,7 +47,7 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
   };
 
   return (
-    <li className={cn(rowClass, 'p-4')} data-posting-place={place.placeKey}>
+    <li className={cn(rowClass, 'py-4')} data-posting-place={place.placeKey}>
       <p className="break-words text-sm font-medium text-text-1">{where}</p>
       <p className="mt-0.5 break-words text-xs text-text-2">
         {place.employer}
@@ -116,7 +116,7 @@ export function PlacesWaiting() {
     <PageSection title="Postings with no plant" description="Places employers' postings name where we list no plant of theirs.">
       <Link
         to={PLACES_PATH}
-        className={cn(cardClass, 'flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-surface-hover')}
+        className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}
         data-posting-places-waiting
       >
         <span className="min-w-0 text-sm font-medium text-text-1">Open the list</span>
@@ -151,7 +151,7 @@ export function PlacesView() {
         ) : places.isError ? (
           <LoadError error={places.error} onRetry={() => void places.refetch()} retrying={places.isFetching} />
         ) : rows.length === 0 ? (
-          <p className={cn(cardClass, 'px-4 py-6 text-center text-sm text-text-2')}>None yet.</p>
+          <p className={cn(cardClass, 'py-6 text-center text-sm text-text-2')}>None yet.</p>
         ) : (
           <ul className={cardClass} data-posting-places>
             {rows.map((place, index) => (
@@ -247,7 +247,7 @@ export function PostingRuns() {
       ) : (
         <ul className={cardClass} data-posting-sources>
           {sources.data.map((source) => (
-            <li key={source.slug} className={cn(rowClass, 'px-4 py-3')} data-posting-source={source.slug}>
+            <li key={source.slug} className={cn(rowClass, 'py-3')} data-posting-source={source.slug}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
                 <p className="min-w-0 break-words text-sm font-medium text-text-1">{source.employer}</p>
                 <p className="shrink-0 text-xs tabular-nums text-text-2">

@@ -441,53 +441,41 @@ input {
     color: var(--text-1);
     font-weight: 600;
   }
+  /* Tags in a row that wraps. A tag's mark (or its name) stands 12px inside it: the row is drawn that far left, so marks and names line up with the heading above them. */
   .skill-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 0 6px;
+    margin-left: -12px;
   }
 
   /*
-   * A skill group: a thin frame that holds the group's tags, with its name
-   * set into the top edge. One skill in a frame costs little more than the
-   * skill alone.
+   * A skill group: its name as one small line (with how much of it is held),
+   * and its skills directly under it. There is no frame: a group is set
+   * apart by its line and the space above it.
    */
   .skill-group {
     min-width: 0;
     margin: 0;
-    padding: 2px 6px 6px;
-    border-radius: 0.75rem;
-    border: 1px solid var(--line);
-  }
-  .skill-group:hover,
-  .skill-group:focus-within {
-    transition: border-color 0.15s ease;
+    padding: 0;
+    border: 0;
   }
   .skill-group-name {
-    max-width: calc(100% - 12px);
-    margin-left: 2px;
-    padding: 0 6px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    line-height: 1rem;
+    max-width: 100%;
+    padding: 0;
+    font-size: 13px;
+    line-height: 18px;
     color: var(--text-2);
   }
-  /* A caption inside a frame, where its skills are shown by level. */
+  /* A caption inside a group, where its skills are shown by level. */
   .skill-group-part-label {
-    padding: 8px 6px 4px;
+    padding: 10px 0 2px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.08em;
     line-height: 16px;
     text-transform: uppercase;
-    color: var(--text-3);
-  }
-  .skill-group-part:first-of-type > .skill-group-part-label {
-    padding-top: 2px;
-  }
-  /* Every skill in it held: the frame itself is lit. */
-  .skill-group[data-complete] {
-    border-color: color-mix(in srgb, var(--text-3) 60%, var(--line));
+    color: var(--text-2);
   }
 
   /*
@@ -738,8 +726,7 @@ input {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .skill-tag,
-    .skill-group {
+    .skill-tag {
       transition: none;
     }
   }

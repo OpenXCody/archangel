@@ -94,7 +94,7 @@ export default function CompanyRequestForm({ company, initialName = '', onDone, 
   );
 
   return (
-    <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-company-request={company ? 'plant' : 'company'}>
+    <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4')} data-company-request={company ? 'plant' : 'company'}>
       <div>
         <p className="text-sm font-medium text-text-1">{company ? `Ask for a plant of ${company.name} to be added` : 'Ask for a company to be added'}</p>
         <p className="mt-0.5 text-sm text-text-2">

@@ -14,7 +14,7 @@ import { usePostJobLink } from '../lib/viewer';
 import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
 import { formatAgo } from '../lib/dates';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
-import { LoadError, busyButtonClass, cardClass, fieldClass, outlineButtonClass } from '../components/account/parts';
+import { LoadError, busyButtonClass, fieldClass, outlineButtonClass, rowHoverClass } from '../components/account/parts';
 import { useDebouncedValue } from '../lib/useDebouncedValue';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
 import { isUuid } from '../lib/validation';
@@ -299,9 +299,10 @@ export default function Jobs() {
               </button>
             )}
           </p>
-          <ul className={cn('grid grid-cols-1 gap-3 lg:grid-cols-2', jobs.isPlaceholderData && 'opacity-60')}>
+          {/* Hairline rows, two columns of them on a wide screen: no box around a job or around the list. */}
+          <ul className={cn('grid grid-cols-1 border-t border-line lg:grid-cols-2 lg:gap-x-12', jobs.isPlaceholderData && 'opacity-60')}>
             {shown.map((job) => (
-              <li key={job.id} className="min-w-0">
+              <li key={job.id} className="min-w-0 border-b border-line">
                 <JobCard job={job} from={filtered ? here : undefined} />
               </li>
             ))}
@@ -353,7 +354,7 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
     <Link
       to={`/jobs/${job.id}`}
       state={from ? { from } : undefined}
-      className={cn(cardClass, 'flex h-full flex-col p-4 transition-colors hover:border-line-strong hover:bg-surface-hover')}
+      className={cn(rowHoverClass, 'flex h-full flex-col py-4')}
     >
       <div className="flex items-start justify-between gap-3">
         <h2 className="min-w-0 break-words text-base font-medium text-text-1">{job.title}</h2>
@@ -376,47 +377,36 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
         <p className="mt-3 text-sm font-semibold text-text-1">{formatPay(job.payMin, job.payMax, job.payPeriod)}</p>
       )}
       {(job.employmentType || job.shift || job.occupationTitle !== job.title) && (
-        <div className="mt-2.5 flex flex-wrap gap-1.5">
-          {job.employmentType && <Chip>{employmentLabel(job.employmentType)}</Chip>}
-          {job.shift && (
-            <Chip>
-              <Clock className="h-3 w-3" />
-              <span className="sr-only">Shift: </span>
-              {job.shift}
-            </Chip>
-          )}
-          {job.occupationTitle !== job.title && <Chip className="border-transparent bg-surface text-text-2">{job.occupationTitle}</Chip>}
-        </div>
+        // The job's terms as one quiet line: words, not chips.
+        <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-text-3">
+          {[
+            job.employmentType ? <span key="type">{employmentLabel(job.employmentType)}</span> : null,
+            job.shift ? (
+              <span key="shift" className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span className="sr-only">Shift: </span>
+                {job.shift}
+              </span>
+            ) : null,
+            job.occupationTitle !== job.title ? <span key="career">{job.occupationTitle}</span> : null,
+          ]
+            .filter((part) => part !== null)
+            .flatMap((part, index) => (index > 0 ? [<span key={`dot-${index}`} aria-hidden="true">·</span>, part] : [part]))}
+        </p>
       )}
     </Link>
   );
 }
 
-function Chip({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex max-w-full items-center gap-1 rounded-full border border-line-strong px-2.5 py-0.5 text-xs text-text-2',
-        className
-      )}
-    >
-      <span className="inline-flex min-w-0 items-center gap-1 truncate">{children}</span>
-    </span>
-  );
-}
-
 function JobCardsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2" aria-busy="true" aria-label="Loading jobs">
+    <div className="grid grid-cols-1 border-t border-line lg:grid-cols-2 lg:gap-x-12" aria-busy="true" aria-label="Loading jobs">
       {Array.from({ length: 4 }, (_, i) => (
-        <div key={i} className={cn(cardClass, 'space-y-3 p-4')}>
+        <div key={i} className="space-y-3 border-b border-line py-4">
           <Skeleton className="h-5 w-3/5" />
           <Skeleton className="h-4 w-2/5" />
           <Skeleton className="h-4 w-1/3" />
-          <div className="flex gap-2">
-            <Skeleton className="h-5 w-20 rounded-full" />
-            <Skeleton className="h-5 w-16 rounded-full" />
-          </div>
+          <Skeleton className="h-4 w-1/4" />
         </div>
       ))}
     </div>

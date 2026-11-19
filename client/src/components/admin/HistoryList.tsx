@@ -235,7 +235,7 @@ export default function HistoryList({ filter = {}, ownRecord = false, empty = 'N
           // A record that still exists links to where it is corrected. One deleted since simply will not open.
           const linked = !ownRecord && entry.recordId && isRecordKind(entry.kind) && entry.action !== 'deleted';
           return (
-            <li key={entry.id} className={cn(rowClass, 'px-4 py-3')} data-history-action={entry.action}>
+            <li key={entry.id} className={cn(rowClass, 'py-3')} data-history-action={entry.action}>
               <p className="break-words text-sm text-text-2">
                 {ACTION[entry.action] ?? entry.action}
                 {typeof merged === 'string' && <span className="text-text-1"> {merged}</span>}

@@ -41,6 +41,7 @@ import {
   fieldClass,
   outlineButtonClass,
   rowClass,
+  rowHoverClass,
   textButtonClass,
 } from '../components/account/parts';
 import ConfirmDialog from '../components/layout/ConfirmDialog';
@@ -212,7 +213,7 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
 function HiringSwitch() {
   const update = useUpdateProfile();
   return (
-    <div className={cn(cardClass, 'mb-6 flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-hiring-switch>
+    <div className={cn(cardClass, 'mb-6 flex flex-wrap items-center gap-x-4 gap-y-3')} data-hiring-switch>
       <div className="min-w-0 flex-1 basis-56">
         <p className="text-sm font-medium text-text-1">This account is set to find a career.</p>
         <p className="mt-0.5 text-sm text-text-2">Set it to hire and this page leads your menu. Nothing is removed.</p>
@@ -336,7 +337,7 @@ function JobFormPage({ mode, jobId, fromJob }: { mode: 'edit' | 'copy'; jobId: s
             : `Copied from job #${from.serial}, ${from.title}. Posted as a new job, open for 60 days.`
         }
       />
-      <div className={cn(cardClass, 'p-4 sm:p-6')}>
+      <div className={cardClass}>
         <JobForm company={company} mode={mode} source={source} onCancel={() => navigate(back.to)} />
       </div>
     </PageContainer>
@@ -372,7 +373,7 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
         {companies.map((company) => {
           const cancelling = cancel.isPending && cancel.variables === company.companyId;
           return (
-            <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-pending-company={company.companyId}>
+            <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-pending-company={company.companyId}>
               <div className="min-w-0 flex-1 basis-56">
                 <p className="break-words text-sm font-medium text-text-1">{company.companyName}</p>
                 <p className="mt-0.5 text-sm text-text-2">Posting opens once approved.</p>
@@ -397,7 +398,7 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
         {requests.map((request) => {
           const withdrawing = withdraw.isPending && withdraw.variables === request.id;
           return (
-            <li key={request.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-company-request-row={request.id}>
+            <li key={request.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-company-request-row={request.id}>
               <div className="min-w-0 flex-1 basis-56">
                 <p className="break-words text-sm font-medium text-text-1">{requestSubject(request)}</p>
                 <p className="mt-0.5 text-sm text-text-2">
@@ -447,7 +448,7 @@ function DeclinedRequests({ companies, requests }: { companies: EmployerCompany[
           const again = canAskAgain(company);
           const asking = request.isPending && request.variables === company.companyId;
           return (
-            <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-declined-company={company.companyId}>
+            <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-declined-company={company.companyId}>
               <div className="min-w-0 flex-1 basis-56">
                 <p className="break-words text-sm font-medium text-text-1">{company.companyName}</p>
                 <p className="mt-0.5 text-sm text-text-2">
@@ -475,7 +476,7 @@ function DeclinedRequests({ companies, requests }: { companies: EmployerCompany[
           );
         })}
         {requests.map((asked) => (
-          <li key={asked.id} className={cn(rowClass, 'p-4')} data-company-request-row={asked.id}>
+          <li key={asked.id} className={cn(rowClass, 'py-4')} data-company-request-row={asked.id}>
             <p className="break-words text-sm font-medium text-text-1">{requestSubject(asked)}</p>
             <p className="mt-0.5 text-sm text-text-2">
               An admin declined the request to add this {asked.companyId ? 'plant' : 'company'}
@@ -566,14 +567,14 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
           )}
           <div className={cn(cardClass, 'mt-2')}>
             {results.isPending ? (
-              <p className="flex items-center gap-2 p-4 text-sm text-text-2">
+              <p className="flex items-center gap-2 py-3 text-sm text-text-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Searching companies
               </p>
             ) : results.isError ? (
-              <ErrorNote error={results.error} className="p-4" />
+              <ErrorNote error={results.error} className="py-3" />
             ) : !found || found.companies.length === 0 ? (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4" data-company-none>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3" data-company-none>
                 <p className="min-w-0 flex-1 basis-48 break-words text-sm text-text-2">No company matches “{query}”.</p>
                 {askToAdd}
               </div>
@@ -583,7 +584,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                   const membership = memberships.find((m) => m.companyId === company.id);
                   const busy = request.isPending && request.variables === company.id;
                   return (
-                    <li key={company.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-company-result={company.id}>
+                    <li key={company.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-company-result={company.id}>
                       <div className="flex min-w-0 flex-1 basis-48 items-start gap-3">
                         <CompanyIcon className="mt-0.5 h-4 w-4 shrink-0 text-text-2" />
                         <div className="min-w-0">
@@ -729,7 +730,7 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
           <li key={job.id} className={cn(rowClass, 'flex items-stretch')} data-job-row={job.id}>
             <Link
               to={`/jobs/${job.id}`}
-              className="grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 py-3 pl-4 pr-2 transition-colors hover:bg-surface-hover sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+              className={cn(rowHoverClass, 'grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center')}
             >
               <div className="min-w-0">
                 <p className={cn('break-words text-sm font-medium', state === 'Open' ? 'text-text-1' : 'text-text-2')}>{job.title}</p>
@@ -817,7 +818,7 @@ function PostJob({ user, companies, onCancel }: { user: AccountUser; companies: 
 
   return (
     <>
-      <div className={cn(cardClass, 'p-4 sm:p-6')}>
+      <div className={cardClass}>
         {companies.length > 1 && (
           <Field label="Company" htmlFor="job-company" className="mb-4">
             <Select value={company.companyId} onValueChange={setCompanyId}>

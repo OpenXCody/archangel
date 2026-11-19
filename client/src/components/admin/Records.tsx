@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 import { RECORD_KINDS, editPath, type RecordKind, type RecordLink } from '../../lib/records';
 import { Field, SegmentedChoice, cardClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
@@ -41,7 +40,7 @@ export default function Records() {
 
   return (
     <PageSection title="Records">
-      <div className={cn(cardClass, 'p-4 sm:p-5')}>
+      <div className={cardClass}>
         <SegmentedChoice
           label="Kind of record"
           options={KIND_OPTIONS}

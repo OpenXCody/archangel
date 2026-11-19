@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAdminPaths } from '../../lib/admin';
 import { RECORD_KINDS, editPath, type RecordKind } from '../../lib/records';
-import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass, SegmentedChoice } from '../account/parts';
+import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass, SegmentedChoice, rowHoverClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import Records from './Records';
 import RecordEditor from './RecordEditor';
@@ -120,7 +120,7 @@ function PathsSection() {
               <li key={path.id} className={rowClass} data-path-row={path.id}>
                 <Link
                   to={`${editPath('career' as RecordKind, path.id)}#path`}
-                  className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-surface-hover"
+                  className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}
                 >
                   <span className="min-w-0 break-words text-sm font-medium text-text-1">{path.title}</span>
                   <span className="shrink-0 text-xs tabular-nums text-text-2">

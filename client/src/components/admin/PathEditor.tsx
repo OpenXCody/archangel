@@ -92,7 +92,7 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
       description={`${statusWord}. ${total.toLocaleString('en-US')} ${total === 1 ? 'skill' : 'skills'}, each under its own level.`}
       className="scroll-mt-20"
     >
-      <div id="path" className={cn(cardClass, 'p-4 sm:p-5')} data-path-editor data-path-status={status ?? 'none'}>
+      <div id="path" className={cardClass} data-path-editor data-path-status={status ?? 'none'}>
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-3">
           {groups.map((group) => (
             <div key={group.label} className={cn('min-w-0', group.level === null && 'lg:col-span-3')} data-path-level={group.level ?? 'none'}>

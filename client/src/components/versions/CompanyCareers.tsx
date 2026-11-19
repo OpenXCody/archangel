@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { ApiError } from '../../lib/http';
 import { useAddVersion, useCompanyVersions, versionLine } from '../../lib/versions';
 import CareerPicker from '../account/CareerPicker';
-import { CardNote, ErrorNote, LoadError, RowsSkeleton, cardClass, outlineButtonClass, rowClass, textButtonClass } from '../account/parts';
+import { CardNote, ErrorNote, LoadError, RowsSkeleton, cardClass, outlineButtonClass, rowClass, textButtonClass, rowHoverClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import { versionEditorPath } from '../entity/CareerVersionView';
 
@@ -53,7 +53,7 @@ export default function CompanyCareers({ company, showCompanyName }: { company: 
               <li key={version.occupation.id} className={rowClass} data-version-row={version.occupation.id}>
                 <Link
                   to={versionEditorPath(company.companyId, version.occupation.id)}
-                  className="group flex min-h-[52px] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-surface-hover"
+                  className={cn(rowHoverClass, 'group flex min-h-[52px] items-center gap-3 py-2.5')}
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block break-words text-sm font-medium text-text-1">{version.occupation.title}</span>

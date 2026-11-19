@@ -36,14 +36,22 @@ export const selectTriggerClass =
 export const selectContentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-line-strong bg-surface';
 
 /** A button that is busy keeps focus: it is marked, not disabled. */
-export const busyButtonClass = 'aria-disabled:pointer-events-none aria-disabled:opacity-60';
+export const busyButtonClass = 'aria-disabled:cursor-not-allowed aria-disabled:opacity-40';
 
-export const cardClass = 'rounded-xl border border-line';
+/**
+ * What used to be a card. A section of content is not a card: it has no fill
+ * and no border, and stands apart by the space around it and its heading. The
+ * name is kept so every block that was one says so; it adds nothing.
+ */
+export const cardClass = '';
 
-/** A row inside a card: a hairline between rows, none above the first. */
+/** A row of a list: a hairline between rows, none above the first, and no box around the list. */
 export const rowClass = 'border-t border-line first:border-t-0';
 
-/** Outline buttons need a border that shows on the dark surface. */
+/** The fill a row that is one link or button takes under the pointer (`components/layout/Page.tsx`). */
+export { rowHoverClass } from '../layout/Page';
+
+/** A secondary button: a hairline on nothing. The same as the button's `outline` variant; kept for the places that name it. */
 export const outlineButtonClass = 'border-line-strong bg-transparent text-text-1 hover:bg-surface-hover';
 
 /**
@@ -156,7 +164,7 @@ export function ErrorNote({ error, className }: { error: unknown; className?: st
 /** A list or section that failed to load, with a way to try again. */
 export function LoadError({ error, onRetry, retrying, className }: { error: unknown; onRetry?: () => void; retrying?: boolean; className?: string }) {
   return (
-    <div role="alert" className={cn(cardClass, 'flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:justify-between', className)}>
+    <div role="alert" className={cn(cardClass, 'flex flex-col items-start gap-3 py-2 sm:flex-row sm:items-center sm:justify-between', className)}>
       <p className="flex min-w-0 items-start gap-2 text-sm text-text-2">
         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
         <span className="min-w-0 break-words">{errorMessage(error)}</span>
@@ -186,7 +194,7 @@ export function RowsSkeleton({ rows = 3, className }: { rows?: number; className
   return (
     <div className={cardClass} aria-busy="true" aria-label="Loading">
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className={cn(rowClass, 'flex items-center gap-3 p-4', className)}>
+        <div key={i} className={cn(rowClass, 'flex items-center gap-3 py-4', className)}>
           <div className="min-w-0 flex-1 space-y-2">
             <Skeleton className="h-4 w-2/5" />
             <Skeleton className="h-3 w-3/5" />
@@ -206,34 +214,30 @@ export function PageLoading({ label = 'Loading' }: { label?: string }) {
   );
 }
 
-/** A quiet message inside a card: an empty list, or a short notice. */
+/** An empty list, or a short notice in a list's place: one line of secondary text, with no box. */
 export function CardNote({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn(cardClass, 'px-4 py-6 text-center text-sm text-text-2', className)}>{children}</div>;
+  return <p className={cn('text-sm text-text-2', className)}>{children}</p>;
 }
 
 /**
- * A stage reads by brightness, not hue: the further along, the brighter, and
- * a finished application that went nowhere steps back.
+ * A stage is a word, read by its ink and never by a fill: the further along,
+ * the brighter, and a finished application that went nowhere steps back.
  */
 const STATUS_STYLE: Record<string, string> = {
-  applied: 'border-line-strong text-text-2',
-  reviewing: 'border-line-strong bg-surface text-text-2',
-  interview: 'border-line-strong bg-surface text-text-1',
-  offer: 'border-text-2 bg-surface text-text-1',
-  hired: 'border-text-1 bg-text-1 text-inverse-text',
-  declined: 'border-line text-text-3',
-  withdrawn: 'border-line text-text-3',
+  applied: 'text-text-2',
+  reviewing: 'text-text-2',
+  interview: 'text-text-1',
+  offer: 'text-text-1',
+  hired: 'font-semibold text-text-1',
+  declined: 'text-text-3',
+  withdrawn: 'text-text-3',
 };
 
 export function ApplicationStatusBadge({ status, className }: { status: string; className?: string }) {
   return (
     <span
       data-status={status}
-      className={cn(
-        'inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium',
-        STATUS_STYLE[status] ?? STATUS_STYLE.applied,
-        className
-      )}
+      className={cn('inline-flex shrink-0 items-center whitespace-nowrap text-xs font-medium', STATUS_STYLE[status] ?? STATUS_STYLE.applied, className)}
     >
       {applicationStatusLabel(status)}
     </span>
