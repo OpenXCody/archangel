@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { justLeft, signInPath, useAccount, type SignedInAccount } from '../../lib/account';
 import { errorMessage } from '../../lib/http';
 import { applicationStatusLabel } from '../../lib/jobFormat';
+import { onGroupArrowKeys } from '../../lib/roving';
 import { PageContainer } from '../layout/Page';
 
 /** Small shared pieces for the account, jobs, employer and admin pages. */
@@ -70,6 +71,53 @@ export function Field({ label, htmlFor, hint, optional, className, children }: F
       </Label>
       {children}
       {hint && <p className="mt-1.5 text-xs text-fg-muted">{hint}</p>}
+    </div>
+  );
+}
+
+interface SegmentedChoiceProps<T extends string> {
+  options: readonly { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+  /** The group's name for a screen reader: the words, or the id of the element that says them. */
+  label?: string;
+  labelledBy?: string;
+  /** The group is a grid: its columns and width. */
+  className?: string;
+  /** Added to each choice: its padding, whether it truncates. */
+  optionClassName?: string;
+}
+
+/**
+ * A few choices side by side in one control the height of a field. Tab
+ * reaches it once; the arrow keys move between the choices.
+ */
+export function SegmentedChoice<T extends string>({ options, value, onChange, label, labelledBy, className, optionClassName }: SegmentedChoiceProps<T>) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={label}
+      aria-labelledby={labelledBy}
+      onKeyDown={(event) => onGroupArrowKeys(event, options.map((option) => option.value), value, onChange)}
+      className={cn('grid h-[42px] gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1', className)}
+    >
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          role="radio"
+          aria-checked={value === option.value}
+          tabIndex={value === option.value ? 0 : -1}
+          onClick={() => onChange(option.value)}
+          className={cn(
+            'rounded-md text-sm font-medium transition-colors',
+            optionClassName,
+            value === option.value ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }

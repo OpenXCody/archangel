@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { onGroupArrowKeys } from '../../lib/roving';
 import { RECORD_KINDS, editPath, type RecordKind, type RecordLink } from '../../lib/records';
-import { Field, cardClass } from '../account/parts';
+import { Field, SegmentedChoice, cardClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import RecordPicker from './RecordPicker';
 import RecordForm from './RecordForm';
+
+const KIND_OPTIONS = RECORD_KINDS.map((option) => ({ value: option.kind, label: option.label }));
 
 const FIND_LABEL: Record<RecordKind, string> = {
   company: 'Find a company to correct',
@@ -41,29 +42,14 @@ export default function Records() {
   return (
     <PageSection title="Records">
       <div className={cn(cardClass, 'p-4 sm:p-5')}>
-        <div
-          role="radiogroup"
-          aria-label="Kind of record"
-          onKeyDown={(event) => onGroupArrowKeys(event, RECORD_KINDS.map((option) => option.kind), kind, chooseKind)}
-          className="grid h-[42px] grid-cols-4 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1 sm:max-w-md"
-        >
-          {RECORD_KINDS.map((option) => (
-            <button
-              key={option.kind}
-              type="button"
-              role="radio"
-              aria-checked={kind === option.kind}
-              tabIndex={kind === option.kind ? 0 : -1}
-              onClick={() => chooseKind(option.kind)}
-              className={cn(
-                'min-w-0 truncate rounded-md px-1 text-sm font-medium transition-colors',
-                kind === option.kind ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedChoice
+          label="Kind of record"
+          options={KIND_OPTIONS}
+          value={kind}
+          onChange={chooseKind}
+          className="grid-cols-4 sm:max-w-md"
+          optionClassName="min-w-0 truncate px-1"
+        />
 
         <Field label={FIND_LABEL[kind]} htmlFor="record-find" className="mt-4">
           <RecordPicker id="record-find" kind={kind} value={null} onChange={(found) => found && navigate(editPath(kind, found.id))} />

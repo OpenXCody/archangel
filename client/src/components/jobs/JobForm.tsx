@@ -26,9 +26,15 @@ import {
   selectTriggerClass,
   textButtonClass,
   FieldError,
+  SegmentedChoice,
 } from '../account/parts';
 import { arrowKeyChoice } from '../../lib/roving';
 import { publicKeys } from '../../lib/queryKeys';
+
+const PAY_PERIODS: readonly { value: PayPeriod; label: string }[] = [
+  { value: 'hour', label: 'Per hour' },
+  { value: 'year', label: 'Per year' },
+];
 
 /** The company a job is posted for, and where it can be. */
 export interface JobFormCompany {
@@ -410,29 +416,13 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
             placeholder={payPeriod === 'hour' ? '29.00' : '60,000'}
             invalid={Boolean(attempted ? (pay.maxError ?? pay.rangeError) : pay.rangeError)}
           />
-          <div
-            role="radiogroup"
-            aria-label="Pay is per"
-            onKeyDown={arrowKeyChoice(['hour', 'year'] as const, payPeriod, setPayPeriod)}
-            className="grid h-[42px] grid-cols-2 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1 xs:col-span-2 sm:col-span-1 sm:w-48"
-          >
-            {(['hour', 'year'] as const).map((period) => (
-              <button
-                key={period}
-                type="button"
-                role="radio"
-                aria-checked={payPeriod === period}
-                tabIndex={payPeriod === period ? 0 : -1}
-                onClick={() => setPayPeriod(period)}
-                className={cn(
-                  'rounded-md text-sm font-medium transition-colors',
-                  payPeriod === period ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
-                )}
-              >
-                Per {period}
-              </button>
-            ))}
-          </div>
+          <SegmentedChoice
+            label="Pay is per"
+            options={PAY_PERIODS}
+            value={payPeriod}
+            onChange={setPayPeriod}
+            className="grid-cols-2 xs:col-span-2 sm:col-span-1 sm:w-48"
+          />
         </div>
         <FieldError id="job-pay-error" message={payProblem ?? undefined} />
         {!payProblem && !payQuestion && <p className="mt-1.5 text-xs text-fg-muted">Every job shows its pay.</p>}
