@@ -350,6 +350,29 @@ export const skillAliases = pgTable(
   })
 );
 
+/**
+ * A skill's makes: the named equipment and software it is run on ("Haas",
+ * "Studio 5000"), in the order they are shown (migration 0050, loaded from
+ * data/skills/makes.json). One name per skill in any letter case. A make is a
+ * leaf beyond the skill and never replaces it.
+ */
+export const skillMakes = pgTable(
+  'skill_makes',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    skillId: uuid('skill_id')
+      .notNull()
+      .references(() => skills.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    position: integer('position').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    // In the database the index is on lower(name); (skill_id, id) is unique too, for user_skill_makes.
+    nameIdx: uniqueIndex('skill_makes_name_idx').on(table.skillId, sql`lower(${table.name})`),
+  })
+);
+
 // ============================================
 // EXTERNAL REFERENCES (Flexible Key-Value)
 // Where a record came from. A plant from the EPA's registry has source
@@ -831,6 +854,28 @@ export const userSkills = pgTable(
   (table) => ({
     pk: primaryKey({ columns: [table.userId, table.skillId] }),
     skillIdx: index('user_skills_skill_idx').on(table.skillId),
+  })
+);
+
+/**
+ * The makes a person marked for a skill on their list (migration 0050). The
+ * database ties each row to the person's holding of the skill, (user_id,
+ * skill_id) in user_skills, and to a make of that skill, (skill_id, make_id)
+ * in skill_makes, both ON DELETE CASCADE: taking the skill off the list takes
+ * its makes with it, and a mark can only be for one of that skill's makes.
+ */
+export const userSkillMakes = pgTable(
+  'user_skill_makes',
+  {
+    userId: uuid('user_id').notNull(),
+    skillId: uuid('skill_id').notNull(),
+    makeId: uuid('make_id').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.makeId] }),
+    holdingIdx: index('user_skill_makes_holding_idx').on(table.userId, table.skillId),
+    makeIdx: index('user_skill_makes_make_idx').on(table.skillId, table.makeId),
   })
 );
 

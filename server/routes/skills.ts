@@ -4,7 +4,8 @@ import { db, skills, skillDomains, skillGroups, occupationSkills, occupations, j
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
-import { answerRefusal, changeRecord, recordAdded, removeRecord, toolList } from '../lib/records.js';
+import { addSkillMake, answerRefusal, changeRecord, orderSkillMakes, recordAdded, removeRecord, removeSkillMake, renameSkillMake, toolList } from '../lib/records.js';
+import { makesOf } from '../lib/makes.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { rowsOf } from '../lib/rows.js';
 import { containing } from '../lib/like.js';
@@ -12,6 +13,7 @@ import { findGroup, placeColumns, placeOf, placeSql, readLevel, readTaxonomy } f
 
 const router = Router();
 router.param('id', uuidParam);
+router.param('makeId', uuidParam);
 router.use(uuidQuery('parent'));
 
 // These name the table outright: in a select list a column reference is
@@ -22,7 +24,8 @@ const onACareer = sql`EXISTS (SELECT 1 FROM occupation_skills WHERE occupation_s
 
 // GET /api/skills/taxonomy - The whole taxonomy in one answer: the three
 // levels, and every domain with its groups and their skills, in the order
-// they are shown. A skill carries its level and how many careers use it.
+// they are shown. A skill carries its level, how many careers use it and the
+// names of its makes (`makes`, empty for most).
 // Declared before the routes that take an id.
 router.get('/taxonomy', async (_req: Request, res: Response) => {
   try {
@@ -37,7 +40,8 @@ router.get('/taxonomy', async (_req: Request, res: Response) => {
 //   Browsing (no `search`): only skills a career uses, the ones most careers
 //   use first; `sort=name` puts them in name order (`order=desc` reverses it).
 //   Searching (`search`): by name, by another name it is known by
-//   (skill_aliases) and by the tools it is done with; the closest names first.
+//   (skill_aliases), by the tools it is done with and by a make it is run on
+//   (skill_makes); the closest names first.
 //   A search also finds a skill no career uses yet, so one just added can be
 //   picked for a job or a person's list.
 //   Narrowed by `domain=` and `group=` (slugs) and `level=` (1, 2 or 3). Each
@@ -60,7 +64,8 @@ router.get('/', async (req: Request, res: Response) => {
       const midWord = `% ${starts}`;
       const alias = sql`EXISTS (SELECT 1 FROM skill_aliases a WHERE a.canonical_skill_id = skills.id AND (a.alias_text ILIKE ${starts} OR a.alias_text ILIKE ${midWord}))`;
       const tool = sql`EXISTS (SELECT 1 FROM unnest(skills.tools) AS tool WHERE tool ILIKE ${starts} OR tool ILIKE ${midWord})`;
-      conditions.push(or(ilike(skills.name, pattern), alias, tool));
+      const make = sql`EXISTS (SELECT 1 FROM skill_makes mk WHERE mk.skill_id = skills.id AND (mk.name ILIKE ${starts} OR mk.name ILIKE ${midWord}))`;
+      conditions.push(or(ilike(skills.name, pattern), alias, tool, make));
       orderByClause = sql`CASE
           WHEN lower(${skills.name}) = lower(${search}) THEN 0
           WHEN ${skills.name} ILIKE ${starts} THEN 1
@@ -147,10 +152,11 @@ const RELATED_SHOWN = 8;
 const JOBS_SHOWN = 12;
 
 // GET /api/skills/:id - Everything the skill's page shows, in one answer:
-// what it is, its level, group and domain, the other skills of its group, how
-// it is learned, what it is done with, the careers that use it, the industries
-// those careers work in, the skills that most often share a path with it, and
-// the open jobs that ask for it.
+// what it is, its level, group and domain, the other skills of its group, its
+// makes (`makes: [{ id, name }]`, the named equipment and software it is run
+// on, in the order they are shown), how it is learned, what it is done with,
+// the careers that use it, the industries those careers work in, the skills
+// that most often share a path with it, and the open jobs that ask for it.
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -176,7 +182,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     const { level, groupSlug, groupName, domainSlug, domainName, ...details } = skill;
     const related = placeSql('s');
 
-    const [careers, groupSkills, industryRows, relatedRows, openJobs] = await Promise.all([
+    const [careers, groupSkills, industryRows, relatedRows, openJobs, makes] = await Promise.all([
       // Every career gives a skill the same level, so they are one list, by title.
       db
         .select({
@@ -229,6 +235,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         LIMIT ${RELATED_SHOWN}
       `),
       listOpenJobs(sql`EXISTS (SELECT 1 FROM job_skills js WHERE js.job_id = ${jobs.id} AND js.skill_id = ${id})`, JOBS_SHOWN),
+      makesOf(db, id),
     ]);
 
     const industries = rowsOf(industryRows);
@@ -238,6 +245,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       ...details,
       ...placeOf({ level, groupSlug, groupName, domainSlug, domainName }),
       groupSkills,
+      makes,
       occupations: careers,
       industries: own.slice(0, INDUSTRIES_SHOWN).map((r) => ({ name: String(r.industry), careerCount: Number(r.career_count) || 0 })),
       // Used only by careers found in plants of every industry.
@@ -329,6 +337,48 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     res.json(await changeRecord('skill', req.params.id, req.body, req.user!));
+  } catch (error) {
+    answerRefusal(res, error, 'skill');
+  }
+});
+
+// A skill's makes, corrected one act at a time (signed-in admin, like every
+// write here). Each writes its own line in the log.
+
+// POST /api/skills/:id/makes { name } - Add a make, after the ones it has.
+// 409 when the skill already has it, in any letter case.
+router.post('/:id/makes', async (req: Request, res: Response) => {
+  try {
+    res.status(201).json(await addSkillMake(req.params.id, req.body?.name, req.user!));
+  } catch (error) {
+    answerRefusal(res, error, 'skill');
+  }
+});
+
+// PUT /api/skills/:id/makes { order: [make id, …] } - Put the makes in a new
+// order: every one of the skill's make ids, once each (409 otherwise).
+router.put('/:id/makes', async (req: Request, res: Response) => {
+  try {
+    res.json({ makes: await orderSkillMakes(req.params.id, req.body?.order, req.user!) });
+  } catch (error) {
+    answerRefusal(res, error, 'skill');
+  }
+});
+
+// PATCH /api/skills/:id/makes/:makeId { name } - Rename a make. People's marks stay on it.
+router.patch('/:id/makes/:makeId', async (req: Request, res: Response) => {
+  try {
+    res.json(await renameSkillMake(req.params.id, req.params.makeId, req.body?.name, req.user!));
+  } catch (error) {
+    answerRefusal(res, error, 'skill');
+  }
+});
+
+// DELETE /api/skills/:id/makes/:makeId - Remove a make, and with it the marks
+// people put on it; `people` says how many had.
+router.delete('/:id/makes/:makeId', async (req: Request, res: Response) => {
+  try {
+    res.json(await removeSkillMake(req.params.id, req.params.makeId, req.user!));
   } catch (error) {
     answerRefusal(res, error, 'skill');
   }

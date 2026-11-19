@@ -1,0 +1,1144 @@
+{
+  "note": "The makes of a skill: the named equipment and software it is run on, in the order they are shown. A maker's name where that is how people say it (\"Haas\"), a product where that is (\"Studio 5000\"). Only makes that are real, current and widely met in US plants. It says what makes exist for a skill, never what a company runs. A skill's name is exactly its name in catalogue.json. scripts/build-makes-sql.mjs turns this file into a migration.",
+  "skills": [
+    {
+      "skill": "Manufacturing Execution System Use",
+      "makes": [
+        "Opcenter",
+        "Plex",
+        "SAP Digital Manufacturing",
+        "DELMIA Apriso",
+        "Solumina"
+      ]
+    },
+    {
+      "skill": "CNC Control Operation",
+      "makes": [
+        "Fanuc",
+        "Haas",
+        "Siemens",
+        "Mazak",
+        "Okuma",
+        "Heidenhain",
+        "Mitsubishi"
+      ]
+    },
+    {
+      "skill": "Cutting Tool Presetting",
+      "makes": [
+        "Zoller",
+        "Haimer",
+        "Speroni",
+        "Parlec"
+      ]
+    },
+    {
+      "skill": "On-Machine Probing",
+      "makes": [
+        "Renishaw",
+        "Blum",
+        "Marposs",
+        "Heidenhain"
+      ]
+    },
+    {
+      "skill": "CNC Milling",
+      "makes": [
+        "Haas",
+        "Mazak",
+        "Okuma",
+        "DMG Mori",
+        "Makino",
+        "DN Solutions",
+        "Hurco"
+      ]
+    },
+    {
+      "skill": "CNC Turning",
+      "makes": [
+        "Haas",
+        "Mazak",
+        "Okuma",
+        "DMG Mori",
+        "DN Solutions"
+      ]
+    },
+    {
+      "skill": "Swiss-Type Machining",
+      "makes": [
+        "Citizen",
+        "Star",
+        "Tsugami",
+        "Tornos"
+      ]
+    },
+    {
+      "skill": "Multi-Axis Turning",
+      "makes": [
+        "Mazak",
+        "Okuma",
+        "DMG Mori",
+        "Nakamura-Tome",
+        "DN Solutions"
+      ]
+    },
+    {
+      "skill": "5-Axis Machining",
+      "makes": [
+        "DMG Mori",
+        "Hermle",
+        "Mazak",
+        "Okuma",
+        "Makino",
+        "GROB",
+        "Haas"
+      ]
+    },
+    {
+      "skill": "Wire EDM",
+      "makes": [
+        "Sodick",
+        "Makino",
+        "Mitsubishi",
+        "AgieCharmilles",
+        "Fanuc"
+      ]
+    },
+    {
+      "skill": "Sinker EDM",
+      "makes": [
+        "Sodick",
+        "Makino",
+        "Mitsubishi",
+        "AgieCharmilles"
+      ]
+    },
+    {
+      "skill": "CAM Programming",
+      "makes": [
+        "Mastercam",
+        "NX CAM",
+        "Autodesk Fusion",
+        "GibbsCAM",
+        "ESPRIT",
+        "hyperMILL",
+        "PowerMill"
+      ]
+    },
+    {
+      "skill": "CNC Program Verification",
+      "makes": [
+        "Vericut",
+        "NCSIMUL",
+        "CAMplete"
+      ]
+    },
+    {
+      "skill": "Robotic Arc Welding",
+      "makes": [
+        "Fanuc",
+        "Yaskawa Motoman",
+        "ABB",
+        "Panasonic",
+        "OTC Daihen",
+        "KUKA"
+      ]
+    },
+    {
+      "skill": "Orbital Welding",
+      "makes": [
+        "AMI",
+        "Swagelok",
+        "Magnatech",
+        "Polysoude",
+        "Orbitalum"
+      ]
+    },
+    {
+      "skill": "Robotic Spot Welding",
+      "makes": [
+        "Fanuc",
+        "KUKA",
+        "ABB",
+        "Yaskawa Motoman",
+        "Kawasaki"
+      ]
+    },
+    {
+      "skill": "Laser Welding",
+      "makes": [
+        "Trumpf",
+        "IPG",
+        "Coherent"
+      ]
+    },
+    {
+      "skill": "Laser Cutting",
+      "makes": [
+        "Trumpf",
+        "Amada",
+        "Bystronic",
+        "Mazak",
+        "Cincinnati",
+        "Mitsubishi"
+      ]
+    },
+    {
+      "skill": "Abrasive Waterjet Cutting",
+      "makes": [
+        "Flow",
+        "OMAX"
+      ]
+    },
+    {
+      "skill": "Press Brake Operation",
+      "makes": [
+        "Amada",
+        "Trumpf",
+        "Bystronic",
+        "Cincinnati",
+        "Accurpress"
+      ]
+    },
+    {
+      "skill": "Die Casting Machine Operation",
+      "makes": [
+        "Bühler",
+        "Idra",
+        "Shibaura",
+        "UBE",
+        "LK"
+      ]
+    },
+    {
+      "skill": "Injection Molding Machine Operation",
+      "makes": [
+        "Engel",
+        "Arburg",
+        "Milacron",
+        "KraussMaffei",
+        "Husky",
+        "Sumitomo Demag",
+        "Nissei",
+        "Haitian"
+      ]
+    },
+    {
+      "skill": "Blow Molding",
+      "makes": [
+        "Sidel",
+        "Krones",
+        "Nissei ASB",
+        "Bekum",
+        "Uniloy"
+      ]
+    },
+    {
+      "skill": "Polymer 3D Printing",
+      "makes": [
+        "Stratasys",
+        "HP",
+        "Formlabs",
+        "Markforged",
+        "EOS",
+        "3D Systems",
+        "Carbon"
+      ]
+    },
+    {
+      "skill": "Metal 3D Printing",
+      "makes": [
+        "EOS",
+        "Nikon SLM Solutions",
+        "Velo3D",
+        "Colibrium Additive",
+        "Renishaw",
+        "3D Systems"
+      ]
+    },
+    {
+      "skill": "Additive Build Preparation",
+      "makes": [
+        "Magics",
+        "Netfabb"
+      ]
+    },
+    {
+      "skill": "Tensile Testing",
+      "makes": [
+        "Instron",
+        "MTS",
+        "ZwickRoell",
+        "Tinius Olsen"
+      ]
+    },
+    {
+      "skill": "Positive Material Identification",
+      "makes": [
+        "Niton",
+        "Vanta",
+        "Bruker",
+        "SciAps"
+      ]
+    },
+    {
+      "skill": "Robotic Paint Application",
+      "makes": [
+        "Fanuc",
+        "ABB",
+        "Dürr",
+        "Kawasaki"
+      ]
+    },
+    {
+      "skill": "Powder Coating",
+      "makes": [
+        "Nordson",
+        "Gema",
+        "Wagner"
+      ]
+    },
+    {
+      "skill": "Color Matching",
+      "makes": [
+        "X-Rite",
+        "BYK",
+        "Datacolor"
+      ]
+    },
+    {
+      "skill": "Coating Thickness Measurement",
+      "makes": [
+        "PosiTector",
+        "Elcometer",
+        "Fischer"
+      ]
+    },
+    {
+      "skill": "Paint Appearance Measurement",
+      "makes": [
+        "BYK",
+        "X-Rite"
+      ]
+    },
+    {
+      "skill": "Ply Cutting and Kitting",
+      "makes": [
+        "Gerber",
+        "Eastman",
+        "Zünd"
+      ]
+    },
+    {
+      "skill": "Automated Fiber Placement",
+      "makes": [
+        "Electroimpact",
+        "Fives",
+        "Ingersoll",
+        "MTorres",
+        "Coriolis"
+      ]
+    },
+    {
+      "skill": "Tube Fitting Make-Up",
+      "makes": [
+        "Swagelok",
+        "Parker"
+      ]
+    },
+    {
+      "skill": "Solder Paste Printing",
+      "makes": [
+        "DEK",
+        "MPM",
+        "Ekra"
+      ]
+    },
+    {
+      "skill": "Solder Paste Inspection Setup",
+      "makes": [
+        "Koh Young",
+        "CyberOptics",
+        "Parmi",
+        "Saki"
+      ]
+    },
+    {
+      "skill": "X-Ray Inspection of Solder Joints",
+      "makes": [
+        "Nordson Dage",
+        "Nikon",
+        "Comet Yxlon"
+      ]
+    },
+    {
+      "skill": "Pick and Place Programming",
+      "makes": [
+        "Fuji",
+        "Panasonic",
+        "ASMPT",
+        "Juki",
+        "Yamaha",
+        "Mycronic",
+        "Universal Instruments"
+      ]
+    },
+    {
+      "skill": "Reflow Profiling",
+      "makes": [
+        "Heller",
+        "BTU",
+        "Rehm",
+        "Vitronics Soltec"
+      ]
+    },
+    {
+      "skill": "Automated Optical Inspection Programming",
+      "makes": [
+        "Koh Young",
+        "Omron",
+        "Mirtec",
+        "Saki",
+        "Viscom"
+      ]
+    },
+    {
+      "skill": "Wire Crimping and Termination",
+      "makes": [
+        "Komax",
+        "Schleuniger",
+        "DMC",
+        "TE Connectivity"
+      ]
+    },
+    {
+      "skill": "Photolithography",
+      "makes": [
+        "ASML",
+        "Nikon",
+        "Canon"
+      ]
+    },
+    {
+      "skill": "Photoresist Coating",
+      "makes": [
+        "TEL",
+        "SCREEN"
+      ]
+    },
+    {
+      "skill": "Chemical Vapor Deposition",
+      "makes": [
+        "Applied Materials",
+        "Lam Research",
+        "TEL",
+        "ASM"
+      ]
+    },
+    {
+      "skill": "PVD Sputtering",
+      "makes": [
+        "Applied Materials",
+        "ULVAC",
+        "Evatec"
+      ]
+    },
+    {
+      "skill": "Epitaxial Growth",
+      "makes": [
+        "ASM",
+        "Applied Materials",
+        "Aixtron",
+        "Veeco"
+      ]
+    },
+    {
+      "skill": "Atomic Layer Deposition",
+      "makes": [
+        "ASM",
+        "Applied Materials",
+        "Lam Research",
+        "TEL"
+      ]
+    },
+    {
+      "skill": "Plasma Etching",
+      "makes": [
+        "Lam Research",
+        "Applied Materials",
+        "TEL"
+      ]
+    },
+    {
+      "skill": "Chemical Mechanical Planarization",
+      "makes": [
+        "Applied Materials",
+        "Ebara"
+      ]
+    },
+    {
+      "skill": "Thermal Oxidation",
+      "makes": [
+        "TEL",
+        "Kokusai Electric"
+      ]
+    },
+    {
+      "skill": "Rapid Thermal Processing",
+      "makes": [
+        "Applied Materials",
+        "Mattson"
+      ]
+    },
+    {
+      "skill": "Ion Implantation",
+      "makes": [
+        "Applied Materials",
+        "Axcelis"
+      ]
+    },
+    {
+      "skill": "Overlay Measurement",
+      "makes": [
+        "KLA",
+        "ASML"
+      ]
+    },
+    {
+      "skill": "Ellipsometry",
+      "makes": [
+        "KLA",
+        "Onto Innovation",
+        "J.A. Woollam",
+        "Nova"
+      ]
+    },
+    {
+      "skill": "CD-SEM Operation",
+      "makes": [
+        "Hitachi High-Tech",
+        "Applied Materials"
+      ]
+    },
+    {
+      "skill": "Wafer Defect Inspection",
+      "makes": [
+        "KLA",
+        "Applied Materials",
+        "Hitachi High-Tech",
+        "Onto Innovation"
+      ]
+    },
+    {
+      "skill": "Wafer Dicing",
+      "makes": [
+        "Disco",
+        "Accretech"
+      ]
+    },
+    {
+      "skill": "Die Attach",
+      "makes": [
+        "ASMPT",
+        "Besi",
+        "Palomar",
+        "MRSI"
+      ]
+    },
+    {
+      "skill": "Wire Bonding",
+      "makes": [
+        "Kulicke & Soffa",
+        "ASMPT",
+        "Hesse"
+      ]
+    },
+    {
+      "skill": "Wafer Probe Testing",
+      "makes": [
+        "TEL",
+        "Accretech",
+        "FormFactor"
+      ]
+    },
+    {
+      "skill": "Semiconductor Final Test",
+      "makes": [
+        "Teradyne",
+        "Advantest",
+        "Cohu"
+      ]
+    },
+    {
+      "skill": "FIB Cross-Sectioning",
+      "makes": [
+        "Thermo Fisher",
+        "Zeiss",
+        "Hitachi High-Tech",
+        "Tescan"
+      ]
+    },
+    {
+      "skill": "Bottle and Can Filling",
+      "makes": [
+        "Krones",
+        "KHS",
+        "Sidel"
+      ]
+    },
+    {
+      "skill": "Can Seaming",
+      "makes": [
+        "Angelus",
+        "Ferrum"
+      ]
+    },
+    {
+      "skill": "Tablet Compression",
+      "makes": [
+        "Fette",
+        "Korsch"
+      ]
+    },
+    {
+      "skill": "HPLC Analysis",
+      "makes": [
+        "Agilent",
+        "Waters",
+        "Shimadzu",
+        "Thermo Fisher",
+        "Empower",
+        "Chromeleon"
+      ]
+    },
+    {
+      "skill": "Gas Chromatography",
+      "makes": [
+        "Agilent",
+        "Shimadzu",
+        "PerkinElmer",
+        "Thermo Fisher"
+      ]
+    },
+    {
+      "skill": "Distributed Control System Operation",
+      "makes": [
+        "DeltaV",
+        "Honeywell Experion",
+        "Yokogawa CENTUM",
+        "ABB 800xA",
+        "Foxboro",
+        "Siemens PCS 7"
+      ]
+    },
+    {
+      "skill": "Surface Roughness Measurement",
+      "makes": [
+        "Mitutoyo",
+        "Mahr",
+        "Taylor Hobson"
+      ]
+    },
+    {
+      "skill": "CMM Operation",
+      "makes": [
+        "PC-DMIS",
+        "Calypso",
+        "MCOSMOS",
+        "MODUS"
+      ]
+    },
+    {
+      "skill": "3D Scanning",
+      "makes": [
+        "Faro",
+        "Creaform",
+        "ATOS",
+        "Hexagon",
+        "Keyence"
+      ]
+    },
+    {
+      "skill": "CMM Programming",
+      "makes": [
+        "PC-DMIS",
+        "Calypso",
+        "MCOSMOS",
+        "MODUS",
+        "Verisurf",
+        "CMM-Manager"
+      ]
+    },
+    {
+      "skill": "Scan Data Processing",
+      "makes": [
+        "PolyWorks",
+        "Geomagic Control X",
+        "ZEISS Inspect",
+        "Verisurf"
+      ]
+    },
+    {
+      "skill": "Laser Tracker Metrology",
+      "makes": [
+        "Leica",
+        "Faro",
+        "API",
+        "SpatialAnalyzer",
+        "Verisurf",
+        "PolyWorks"
+      ]
+    },
+    {
+      "skill": "Statistical Process Control",
+      "makes": [
+        "Minitab",
+        "JMP",
+        "InfinityQS"
+      ]
+    },
+    {
+      "skill": "Process Capability Analysis",
+      "makes": [
+        "Minitab",
+        "JMP"
+      ]
+    },
+    {
+      "skill": "Gauge R&R Studies",
+      "makes": [
+        "Minitab",
+        "JMP"
+      ]
+    },
+    {
+      "skill": "Design of Experiments",
+      "makes": [
+        "JMP",
+        "Minitab",
+        "Design-Expert"
+      ]
+    },
+    {
+      "skill": "Phased Array UT",
+      "makes": [
+        "OmniScan",
+        "Zetec",
+        "Eddyfi",
+        "Sonatest"
+      ]
+    },
+    {
+      "skill": "Industrial CT Scanning",
+      "makes": [
+        "Nikon",
+        "Waygate",
+        "ZEISS",
+        "Comet Yxlon",
+        "North Star Imaging",
+        "VGSTUDIO MAX"
+      ]
+    },
+    {
+      "skill": "Eddy Current Testing",
+      "makes": [
+        "Nortec",
+        "Zetec",
+        "UniWest",
+        "Eddyfi"
+      ]
+    },
+    {
+      "skill": "Boundary Scan Testing",
+      "makes": [
+        "JTAG Technologies",
+        "XJTAG",
+        "Corelis",
+        "Göpel"
+      ]
+    },
+    {
+      "skill": "In-Circuit Test Development",
+      "makes": [
+        "Keysight",
+        "Teradyne",
+        "SPEA"
+      ]
+    },
+    {
+      "skill": "Data Acquisition Setup",
+      "makes": [
+        "NI",
+        "HBK",
+        "Dewesoft",
+        "Keysight"
+      ]
+    },
+    {
+      "skill": "Test Automation Programming",
+      "makes": [
+        "LabVIEW",
+        "TestStand",
+        "Python"
+      ]
+    },
+    {
+      "skill": "Hardware-in-the-Loop Testing",
+      "makes": [
+        "dSPACE",
+        "NI VeriStand",
+        "Speedgoat",
+        "Vector CANoe",
+        "Typhoon HIL"
+      ]
+    },
+    {
+      "skill": "CAN Bus Diagnostics",
+      "makes": [
+        "Vector CANalyzer",
+        "PCAN",
+        "Kvaser",
+        "Vehicle Spy"
+      ]
+    },
+    {
+      "skill": "Spectrum Analyzer Measurement",
+      "makes": [
+        "Keysight",
+        "Rohde & Schwarz",
+        "Anritsu"
+      ]
+    },
+    {
+      "skill": "Vector Network Analyzer Measurement",
+      "makes": [
+        "Keysight",
+        "Rohde & Schwarz",
+        "Anritsu"
+      ]
+    },
+    {
+      "skill": "Dynamometer Testing",
+      "makes": [
+        "AVL",
+        "Horiba"
+      ]
+    },
+    {
+      "skill": "CMMS Use",
+      "makes": [
+        "Maximo",
+        "SAP PM",
+        "Fiix",
+        "eMaint",
+        "Limble",
+        "MaintainX",
+        "UpKeep"
+      ]
+    },
+    {
+      "skill": "Shaft Alignment",
+      "makes": [
+        "Prüftechnik",
+        "Acoem",
+        "Easy-Laser",
+        "SKF"
+      ]
+    },
+    {
+      "skill": "Laser Optics Maintenance",
+      "makes": [
+        "Trumpf",
+        "IPG",
+        "Coherent",
+        "nLIGHT"
+      ]
+    },
+    {
+      "skill": "Infrared Thermography",
+      "makes": [
+        "FLIR",
+        "Fluke"
+      ]
+    },
+    {
+      "skill": "Vibration Analysis",
+      "makes": [
+        "Emerson AMS",
+        "SKF",
+        "Bently Nevada",
+        "Fluke"
+      ]
+    },
+    {
+      "skill": "Vacuum System Operation",
+      "makes": [
+        "Edwards",
+        "Pfeiffer",
+        "Leybold",
+        "Ebara"
+      ]
+    },
+    {
+      "skill": "Helium Leak Detection",
+      "makes": [
+        "Inficon",
+        "Leybold",
+        "Pfeiffer",
+        "Agilent"
+      ]
+    },
+    {
+      "skill": "Residual Gas Analysis",
+      "makes": [
+        "Inficon",
+        "MKS",
+        "SRS",
+        "Pfeiffer"
+      ]
+    },
+    {
+      "skill": "Instrumentation Calibration",
+      "makes": [
+        "Fluke",
+        "Beamex",
+        "Druck"
+      ]
+    },
+    {
+      "skill": "PLC Programming",
+      "makes": [
+        "Studio 5000",
+        "TIA Portal",
+        "TwinCAT",
+        "CODESYS",
+        "GX Works",
+        "Sysmac Studio"
+      ]
+    },
+    {
+      "skill": "PLC Troubleshooting",
+      "makes": [
+        "Studio 5000",
+        "RSLogix 500",
+        "TIA Portal",
+        "STEP 7",
+        "TwinCAT"
+      ]
+    },
+    {
+      "skill": "HMI Development",
+      "makes": [
+        "FactoryTalk View",
+        "WinCC",
+        "Ignition",
+        "InTouch"
+      ]
+    },
+    {
+      "skill": "Structured Text Programming",
+      "makes": [
+        "TwinCAT",
+        "CODESYS",
+        "Studio 5000",
+        "TIA Portal"
+      ]
+    },
+    {
+      "skill": "Variable Frequency Drive Setup",
+      "makes": [
+        "PowerFlex",
+        "SINAMICS",
+        "ABB",
+        "Yaskawa",
+        "Danfoss",
+        "SEW-Eurodrive"
+      ]
+    },
+    {
+      "skill": "Servo Drive Configuration",
+      "makes": [
+        "Kinetix",
+        "SINAMICS",
+        "Beckhoff",
+        "Yaskawa",
+        "Bosch Rexroth",
+        "Kollmorgen"
+      ]
+    },
+    {
+      "skill": "SCADA Development",
+      "makes": [
+        "Ignition",
+        "AVEVA System Platform",
+        "FactoryTalk View SE",
+        "WinCC",
+        "iFIX"
+      ]
+    },
+    {
+      "skill": "Robot Teach Pendant Operation",
+      "makes": [
+        "Fanuc",
+        "ABB",
+        "KUKA",
+        "Yaskawa Motoman",
+        "Universal Robots",
+        "Kawasaki"
+      ]
+    },
+    {
+      "skill": "Robot Programming",
+      "makes": [
+        "Fanuc",
+        "ABB",
+        "KUKA",
+        "Yaskawa Motoman",
+        "Universal Robots",
+        "Kawasaki",
+        "Stäubli"
+      ]
+    },
+    {
+      "skill": "Robot Mastering and Maintenance",
+      "makes": [
+        "Fanuc",
+        "ABB",
+        "KUKA",
+        "Yaskawa Motoman",
+        "Kawasaki"
+      ]
+    },
+    {
+      "skill": "Offline Robot Programming and Simulation",
+      "makes": [
+        "ROBOGUIDE",
+        "RobotStudio",
+        "KUKA.Sim",
+        "Process Simulate",
+        "DELMIA",
+        "RoboDK"
+      ]
+    },
+    {
+      "skill": "Machine Safety Circuit Design",
+      "makes": [
+        "Pilz",
+        "GuardLogix",
+        "SICK",
+        "Banner",
+        "Keyence"
+      ]
+    },
+    {
+      "skill": "Machine Vision Setup",
+      "makes": [
+        "Cognex",
+        "Keyence",
+        "SICK",
+        "Omron"
+      ]
+    },
+    {
+      "skill": "Machine Vision Programming",
+      "makes": [
+        "VisionPro",
+        "In-Sight",
+        "HALCON",
+        "OpenCV"
+      ]
+    },
+    {
+      "skill": "PDM and PLM Use",
+      "makes": [
+        "Teamcenter",
+        "Windchill",
+        "3DEXPERIENCE",
+        "SolidWorks PDM",
+        "Arena"
+      ]
+    },
+    {
+      "skill": "2D CAD Drafting",
+      "makes": [
+        "AutoCAD",
+        "DraftSight"
+      ]
+    },
+    {
+      "skill": "3D CAD Modeling",
+      "makes": [
+        "SolidWorks",
+        "CATIA",
+        "NX",
+        "Creo",
+        "Inventor",
+        "Autodesk Fusion",
+        "Solid Edge",
+        "Onshape"
+      ]
+    },
+    {
+      "skill": "Tolerance Stack-Up Analysis",
+      "makes": [
+        "3DCS",
+        "CETOL 6σ"
+      ]
+    },
+    {
+      "skill": "Finite Element Analysis",
+      "makes": [
+        "Ansys",
+        "Abaqus",
+        "Nastran",
+        "LS-DYNA"
+      ]
+    },
+    {
+      "skill": "Circuit Design and Schematic Capture",
+      "makes": [
+        "Altium",
+        "OrCAD",
+        "KiCad",
+        "LTspice"
+      ]
+    },
+    {
+      "skill": "PCB Layout",
+      "makes": [
+        "Altium",
+        "Cadence Allegro",
+        "OrCAD",
+        "Xpedition",
+        "PADS",
+        "KiCad"
+      ]
+    },
+    {
+      "skill": "Electrical Controls Design",
+      "makes": [
+        "EPLAN",
+        "AutoCAD Electrical",
+        "SolidWorks Electrical"
+      ]
+    },
+    {
+      "skill": "Data Analysis and Scripting",
+      "makes": [
+        "Python",
+        "SQL",
+        "MATLAB",
+        "Power BI",
+        "Tableau"
+      ]
+    },
+    {
+      "skill": "Requirements Management",
+      "makes": [
+        "DOORS",
+        "Jama Connect",
+        "Polarion"
+      ]
+    }
+  ]
+}
