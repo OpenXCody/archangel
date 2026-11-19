@@ -24,7 +24,7 @@ interface NavItem {
 // account menu.
 const navItems: NavItem[] = [
   { to: '/map', label: 'Map' },
-  { to: '/explore', label: 'Explore', also: ['/industries', '/companies', '/factories', '/occupations', '/skills'] },
+  { to: '/explore', label: 'Explore', also: ['/industries', '/atlas', '/companies', '/factories', '/occupations', '/skills'] },
   { to: '/jobs', label: 'Jobs' },
 ];
 const employerJobs: NavItem = { to: '/employer', label: 'Your jobs', also: ['/jobs'] };
@@ -51,7 +51,7 @@ export default function Layout() {
   const isDetail = /^\/(companies|factories|occupations|skills)\/[^/]+$/.test(location.pathname);
   // The industry pages name themselves too: the industry, and the place.
   // So does a page that is not there ("Not found"), which has no section.
-  const namesItself = isDetail || /^\/industries(\/[^/]+)?$/.test(location.pathname);
+  const namesItself = isDetail || /^\/(industries(\/[^/]+)?|atlas)$/.test(location.pathname);
   const title = namesItself || !section ? null : `${section} · Archangel`;
   // Set on arrival, and again only if the title itself changes (an admin's
   // account loading), so a page that names itself afterwards keeps its title.

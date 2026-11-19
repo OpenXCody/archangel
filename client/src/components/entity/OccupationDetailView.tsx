@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import GoalButton from '../account/GoalButton';
 import { ErrorNote } from '../account/parts';
 import { signInPath } from '../../lib/account';
@@ -10,6 +11,7 @@ import {
   DetailSection,
   RecordList,
   RecordRow,
+  sectionLinkClass,
 } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
 import { PathFlow } from '../path/PathFlow';
@@ -83,6 +85,14 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
                 </summary>
                 <p className="mt-1 max-w-prose text-sm text-fg-muted">A starting point that has not been reviewed by a person yet.</p>
               </details>
+            ) : undefined
+          }
+          action={
+            hasPath ? (
+              // The same skills among all the others: the atlas opens with this career drawn on it.
+              <Link to={`/atlas?career=${data.id}`} className={cn(sectionLinkClass, '-my-3 py-3')} data-atlas-link>
+                See on the atlas
+              </Link>
             ) : undefined
           }
         >

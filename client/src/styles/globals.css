@@ -776,3 +776,253 @@ input {
     }
   }
 }
+
+/*
+ * The Atlas of Manufacturing (components/atlas/): every skill in one radial
+ * tree. The drawing is monochrome; the one accent marks a career laid over it
+ * and the thing selected. Lines keep their width however far the plate is
+ * enlarged (non-scaling strokes); the camera's move is one transform on one
+ * group, so turning and enlarging re-renders nothing.
+ */
+.atlas-plate {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.atlas-plate path,
+.atlas-plate circle,
+.atlas-plate line {
+  vector-effect: non-scaling-stroke;
+}
+.atlas-camera {
+  transition: transform 0.7s cubic-bezier(0.3, 0.1, 0.2, 1);
+}
+.atlas-plate[data-still] .atlas-camera {
+  transition: none;
+}
+.atlas-wash {
+  fill: rgb(var(--tint) / 0.035);
+}
+.atlas-trunk {
+  fill: none;
+  stroke: var(--color-fg-muted);
+  stroke-opacity: 0.8;
+  stroke-width: 1px;
+}
+.atlas-root {
+  fill: var(--color-bg-base);
+  stroke: var(--color-fg-muted);
+  stroke-opacity: 0.8;
+  stroke-width: 1px;
+}
+.atlas-fan {
+  fill: none;
+  stroke: var(--color-fg-soft);
+  stroke-opacity: 0.45;
+  stroke-width: 0.5px;
+}
+.atlas-leaf {
+  fill: var(--color-fg-default);
+}
+.atlas-ring {
+  fill: none;
+  stroke: var(--color-fg-soft);
+  stroke-width: 2.5px;
+}
+.atlas-group-ring {
+  fill: none;
+  stroke: var(--color-fg-soft);
+  stroke-opacity: 0.7;
+  stroke-width: 1px;
+}
+.atlas-base {
+  transition: opacity 0.3s ease;
+}
+/* A career is laid over the atlas: everything else steps back. */
+.atlas-base[data-dim] {
+  opacity: 0.38;
+}
+/* Enlarged, the open domain's own leaves have to stay readable under a career. */
+.atlas-plate:not([data-atlas-view='whole']) .atlas-base[data-dim] {
+  opacity: 0.6;
+}
+/* A person's own marks are the bright ones: the plate under them is a little quieter. */
+.atlas-base[data-marked]:not([data-dim]) {
+  opacity: 0.72;
+}
+/* A domain is open: the rest of the plate is veiled, in one shape. */
+.atlas-veil {
+  fill: var(--color-bg-base);
+  fill-opacity: 0.62;
+  pointer-events: none;
+  animation: atlas-arrive 0.45s ease 0.25s both;
+}
+.atlas-plate[data-still] .atlas-veil {
+  animation: none;
+}
+.atlas-name {
+  fill: var(--color-fg-muted);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: opacity 0.25s ease;
+}
+.atlas-name[data-on] {
+  fill: var(--color-fg-default);
+}
+.atlas-names[data-away] {
+  opacity: 0;
+}
+.atlas-names {
+  transition: opacity 0.3s ease;
+}
+.atlas-hover {
+  fill: rgb(var(--tint) / 0.06);
+  pointer-events: none;
+}
+.atlas-label {
+  fill: var(--color-fg-muted);
+}
+.atlas-label[data-atlas-label='skill'] {
+  fill: var(--color-fg-default);
+}
+/* A career is laid over the atlas: its skills are the bright ones, the group's others plain. */
+.atlas-plate[data-atlas-over] .atlas-label[data-atlas-label='skill']:not([data-lit]):not([data-on]) {
+  fill: var(--color-fg-muted);
+}
+.atlas-label[data-step] {
+  fill: var(--color-fg-soft);
+}
+.atlas-label[data-quiet] {
+  fill: var(--color-fg-soft);
+  fill-opacity: 0.75;
+}
+.atlas-leader[data-quiet] {
+  stroke-opacity: 0.35;
+}
+/* Enlarged, the plate runs past the frame: its edges fade out instead of being cut. */
+.atlas-plate:not([data-atlas-view='whole']) {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 1.75rem), linear-gradient(to bottom, transparent, #000 1.75rem, #000 calc(100% - 1.75rem), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 1.75rem), linear-gradient(to bottom, transparent, #000 1.75rem, #000 calc(100% - 1.75rem), transparent);
+  mask-composite: intersect;
+}
+.atlas-label[data-on] {
+  fill: var(--color-fg-default);
+  font-weight: 600;
+}
+.atlas-label[data-lit] {
+  fill: rgb(var(--info));
+}
+.atlas-leader {
+  fill: none;
+  stroke: var(--color-fg-soft);
+  stroke-opacity: 0.7;
+  stroke-width: 0.75px;
+}
+.atlas-leader[data-dotted] {
+  stroke-dasharray: 1 3;
+  stroke-linecap: round;
+}
+.atlas-leader[data-on] {
+  stroke: rgb(var(--info));
+  stroke-opacity: 1;
+}
+.atlas-labels {
+  animation: atlas-arrive 0.3s ease 0.45s both;
+}
+.atlas-plate[data-still] .atlas-labels {
+  animation: none;
+}
+@keyframes atlas-arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* A career laid over the atlas: its branches and its skills, in the accent. */
+.atlas-lit {
+  fill: none;
+  stroke: rgb(var(--info));
+  stroke-width: 1.25px;
+  stroke-linecap: round;
+}
+.atlas-lit[data-second] {
+  stroke-dasharray: 2.5 2.5;
+  stroke-linecap: butt;
+}
+.atlas-lit[data-shared] {
+  stroke-width: 2px;
+}
+.atlas-lit-dot {
+  fill: rgb(var(--info));
+  stroke: var(--color-bg-base);
+  stroke-width: 0.75px;
+}
+/* The second career's own skills: the same accent, as an open ring. */
+.atlas-lit-dot[data-second] {
+  fill: var(--color-bg-base);
+  stroke: rgb(var(--info));
+  stroke-width: 1.5px;
+}
+/* What both careers share: the disc inside the ring. */
+.atlas-lit-halo {
+  fill: none;
+  stroke: rgb(var(--info));
+  stroke-width: 1.25px;
+}
+/* A person's own skills: the product's mark, held filled and bright, learning half. */
+.atlas-mark {
+  fill: var(--color-fg-default);
+  stroke: var(--color-bg-base);
+  stroke-width: 1px;
+}
+.atlas-mark[data-status='learning'] {
+  fill: var(--color-bg-base);
+  stroke: var(--color-fg-default);
+  stroke-width: 1.25px;
+}
+.atlas-mark[data-lit] {
+  stroke: rgb(var(--info));
+  stroke-width: 1.75px;
+}
+.atlas-mark-half {
+  fill: var(--color-fg-default);
+}
+.atlas-chosen {
+  fill: none;
+  stroke: rgb(var(--info));
+  stroke-width: 1.5px;
+}
+.atlas-chosen-arc {
+  fill: none;
+  stroke: rgb(var(--info));
+  stroke-width: 2.5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .atlas-camera,
+  .atlas-base,
+  .atlas-names,
+  .atlas-name {
+    transition: none;
+  }
+  .atlas-labels,
+  .atlas-veil {
+    animation: none;
+  }
+}
+/* The drawing is the full width on a phone. On a wide screen it is as large as fits the window with the page's heading above it. */
+.atlas-frame {
+  width: 100%;
+}
+@media (min-width: 1024px) {
+  .atlas-frame {
+    max-width: max(30rem, calc(100dvh - 16.5rem));
+  }
+}

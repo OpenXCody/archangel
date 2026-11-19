@@ -1,8 +1,10 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import Layout from './components/layout/Layout';
 import ErrorBoundary, { PageBoundary } from './components/layout/ErrorBoundary';
+import { taxonomyQuery } from './lib/queries';
 
 // Lazy load pages for code splitting
 const MapView = lazy(() => import('./pages/MapView'));
@@ -27,7 +29,22 @@ function PageLoader() {
   );
 }
 
+/**
+ * The Atlas draws from one answer, the skill taxonomy. A visit that lands on
+ * /atlas asks for it here, at once, so it travels while the page's code is
+ * still being fetched instead of after it.
+ */
+function useTaxonomyAhead() {
+  const queryClient = useQueryClient();
+  const asked = useRef(false);
+  if (!asked.current && window.location.pathname === '/atlas') {
+    asked.current = true;
+    void queryClient.prefetchQuery(taxonomyQuery);
+  }
+}
+
 function App() {
+  useTaxonomyAhead();
   return (
     <ErrorBoundary>
       <BrowserRouter>
@@ -48,6 +65,8 @@ function App() {
               {/* The industries are a tab of Explore, at their own address. */}
               <Route path="/industries" element={<PageBoundary><Explore /></PageBoundary>} />
               <Route path="/industries/:slug" element={<PageBoundary><Industry /></PageBoundary>} />
+              {/* The Atlas of Manufacturing: the Skills tab of Explore as a drawing, at its own address. */}
+              <Route path="/atlas" element={<PageBoundary><Explore /></PageBoundary>} />
               <Route path="/sign-in" element={<PageBoundary><SignIn /></PageBoundary>} />
               <Route path="/me" element={<PageBoundary><Me /></PageBoundary>} />
               <Route path="/jobs" element={<PageBoundary><Jobs /></PageBoundary>} />

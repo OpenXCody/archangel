@@ -94,6 +94,8 @@ test('a career page shows its path, a company page its plants', async ({ page, r
     expect(box.left, 'a tag starts inside the diagram').toBeGreaterThanOrEqual((diagram?.x ?? 0) - 1);
     expect(box.right, 'a tag ends inside the diagram').toBeLessThanOrEqual((diagram?.x ?? 0) + (diagram?.width ?? 0) + 1);
   }
+  // The same skills among all the others.
+  await expect(page.locator('[data-atlas-link]')).toHaveAttribute('href', `/atlas?career=${career}`);
   await assertHealthyLayout(page, '/occupations/:id path');
 
   // A skill's page says where the skill sits: its domain and group, each a link into the Skills list, and its level.
@@ -227,8 +229,24 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   await page.goto(narrowed, { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('button', { name: `Domain: ${domain.name}` })).toBeVisible();
   await expect(page.getByRole('button', { name: `Group: ${group.name}` })).toBeVisible();
-  await expect(page.locator('main a[href^="/skills/"]').first()).toContainText(new RegExp(`${group.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} · (Fundamentals|Intermediate|Advanced)`));
+  // The list opens in the taxonomy's order: the domain's heading, the group's over its skills, each skill with its level.
+  await expect(page.getByRole('button', { name: 'Sort: By domain' })).toBeVisible();
+  await expect(page.locator(`[data-skill-domain="${domain.slug}"] h2`)).toHaveText(domain.name);
+  await expect(page.locator('[data-skill-group]')).toHaveCount(1);
+  await expect(page.locator(`[data-skill-group="${group.slug}"] h3`)).toHaveText(group.name);
+  const rows = page.locator(`[data-skill-group="${group.slug}"] a[href^="/skills/"]`);
+  await expect(rows.first().locator('[data-skill-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
+  await expect(page.locator('[data-explore-count]')).toHaveText(new RegExp(`^${await rows.count()} skills?$`));
+  // One switch leads to the same group on the Atlas, and the domain's heading to the domain there.
+  const views = page.getByRole('navigation', { name: 'Skills as' });
+  await expect(views.locator('[aria-current="page"]')).toHaveText('List');
+  await expect(views.getByRole('link', { name: 'Atlas' })).toHaveAttribute('href', `/atlas?group=${group.slug}`);
+  await expect(page.locator(`[data-skill-domain="${domain.slug}"] a[href^="/atlas"]`)).toHaveAttribute('href', `/atlas?domain=${domain.slug}`);
   await assertHealthyLayout(page, narrowed);
+  // Sorted another way it is a plain list again; a row's grey line is its group and level.
+  await page.goto(`${narrowed}&sort=careers-desc`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('main a[href^="/skills/"]').first()).toContainText(new RegExp(`${group.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} · (Fundamentals|Intermediate|Advanced)`));
+  await expect(page.locator('[data-skill-tree]')).toHaveCount(0);
 
   // The plants list says plants, and a list's own count follows its filters.
   await page.goto('/explore?tab=factories&state=TX', { waitUntil: 'domcontentloaded' });
@@ -241,6 +259,118 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   await expect(main.locator('[aria-current="page"]')).toHaveText('Explore');
   const wordmark = page.getByRole('link', { name: 'Archangel: the map' });
   if (await wordmark.isVisible()) await expect(wordmark).toHaveAttribute('href', '/map');
+});
+
+interface AtlasTaxonomy {
+  domains: { slug: string; name: string; groups: { slug: string; name: string; skills: { id: string; name: string; level: number }[] }[] }[];
+}
+
+test('the Atlas draws every skill, opens a domain and a group, and takes a career laid over it', async ({ page, request }) => {
+  const taxonomy = (await (await request.get(`${API}/skills/taxonomy`)).json()) as AtlasTaxonomy;
+  const skills = taxonomy.domains.flatMap((domain) => domain.groups.flatMap((group) => group.skills));
+  expect(skills.length, 'the API returned the taxonomy').toBeGreaterThan(0);
+  const placed = new Set(skills.map((skill) => skill.id));
+
+  // The whole atlas: one leaf per skill, every domain named, the plate as wide as the page lets it be and square.
+  await page.goto('/atlas', { waitUntil: 'domcontentloaded' });
+  const plate = page.locator('.atlas-plate');
+  await expect(plate).toHaveAttribute('data-atlas-view', 'whole');
+  await expect(plate.locator('.atlas-leaf')).toHaveCount(skills.length);
+  await expect(plate.locator('.atlas-name')).toHaveText(taxonomy.domains.map((domain) => domain.name));
+  await expect(plate.locator('.atlas-name').first()).toBeVisible();
+  const box = await plate.boundingBox();
+  const width = page.viewportSize()?.width ?? 0;
+  expect(box && Math.abs(box.width - box.height) <= 1, 'the plate is square').toBe(true);
+  expect(box && box.x >= 0 && box.x + box.width <= width + 1, 'the plate is inside the page').toBe(true);
+  if (width < 600) expect(box && box.width >= width - 40, 'on a phone the plate is the full width').toBe(true);
+  await assertHealthyLayout(page, '/atlas');
+  // It lives under Explore's heading and the Skills tab, with the one switch back to the list.
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Explore');
+  await expect(page.getByRole('navigation', { name: 'Explore' }).locator('[aria-current="page"]')).toHaveAccessibleName('Skills');
+  await expect(page.getByRole('navigation', { name: 'Main' }).locator('[aria-current="page"]')).toHaveText('Explore');
+  const views = page.getByRole('navigation', { name: 'Skills as' });
+  await expect(views.locator('[aria-current="page"]')).toHaveText('Atlas');
+  await expect(views.getByRole('link', { name: 'List' })).toHaveAttribute('href', '/explore?tab=skills');
+  // The same tree as a list of links: every domain.
+  const panel = page.locator('[data-atlas-panel]');
+  await expect(panel.locator('[data-atlas-row]')).toHaveCount(taxonomy.domains.length);
+
+  // Pressing the drawing opens the domain under the finger; Back returns to the whole.
+  if (box) await page.mouse.click(box.x + box.width * 0.24, box.y + box.height * 0.5);
+  await expect(page).toHaveURL(/\/atlas\?domain=[a-z0-9-]+$/);
+  await expect(plate).toHaveAttribute('data-atlas-view', 'domain');
+  await page.goBack();
+  await expect(page).toHaveURL(/\/atlas$/);
+  await expect(plate).toHaveAttribute('data-atlas-view', 'whole');
+
+  // Choosing a domain in the list turns to it and names its groups, in the drawing and in the list.
+  const domain = taxonomy.domains[Math.min(4, taxonomy.domains.length - 1)];
+  await panel.locator(`[data-atlas-row="${domain.slug}"]`).click();
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?domain=${domain.slug}$`));
+  await expect(plate).toHaveAttribute('data-atlas-view', 'domain');
+  await expect(plate.locator('[data-atlas-label="group"]:not([data-far])')).toHaveCount(domain.groups.length);
+  await expect(panel.locator('[data-atlas-heading]')).toHaveText(domain.name);
+  await expect(panel.locator('[data-atlas-row]')).toHaveCount(domain.groups.length);
+  await expect(views.getByRole('link', { name: 'List' })).toHaveAttribute('href', `/explore?tab=skills&domain=${domain.slug}`);
+  await assertHealthyLayout(page, '/atlas?domain');
+
+  // A group: its skills are named on the drawing and are tags in the list, under their levels.
+  const group = domain.groups[0];
+  await panel.locator(`[data-atlas-row="${group.slug}"]`).click();
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?group=${group.slug}$`));
+  await expect(plate.locator('[data-atlas-label="skill"]')).toHaveCount(group.skills.length);
+  await expect(panel.locator('[data-atlas-tag]')).toHaveCount(group.skills.length);
+  await expect(panel.locator('[data-atlas-level-block] h4').first()).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
+  await assertHealthyLayout(page, '/atlas?group');
+
+  // A skill: its level, how many careers use it, and the way to its page. The crumbs lead back up.
+  const skill = group.skills[0];
+  await panel.locator(`[data-atlas-tag="${skill.id}"]`).click();
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?skill=${skill.id}$`));
+  await expect(plate.locator('[data-atlas-chosen]')).toHaveAttribute('data-atlas-chosen', skill.id);
+  await expect(panel.locator('[data-atlas-skill] [data-atlas-heading]')).toHaveText(skill.name);
+  await expect(panel.locator('[data-atlas-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
+  await expect(panel.locator('[data-atlas-open]')).toHaveAttribute('href', `/skills/${skill.id}`);
+  await expect(page.locator('[data-atlas-crumbs] a')).toHaveText(['Atlas', domain.name, group.name]);
+  await assertHealthyLayout(page, '/atlas?skill');
+  await page.locator('[data-atlas-whole]').click();
+  await expect(page).toHaveURL(/\/atlas$/);
+
+  // A career laid over the atlas lights its skills, and one line says what is shown.
+  const list = (await (await request.get(`${API}/occupations?limit=2`)).json()) as { data: { id: string; title: string }[] };
+  expect(list.data.length, 'the API returned two careers').toBe(2);
+  const paths = await Promise.all(
+    list.data.map(async (career) => {
+      const detail = (await (await request.get(`${API}/occupations/${career.id}`)).json()) as { skills: { id: string; domain: { slug: string } | null }[] };
+      return detail.skills.filter((s) => placed.has(s.id));
+    })
+  );
+  const [first, second] = paths;
+  expect(first.length, 'the first career in the list has a path').toBeGreaterThan(0);
+  const domains = new Set(first.map((s) => s.domain?.slug)).size;
+  await page.goto(`/atlas?career=${list.data[0].id}`, { waitUntil: 'domcontentloaded' });
+  await expect(plate.locator('[data-atlas-lit]')).toHaveCount(first.length);
+  await expect(page.locator(`[data-atlas-career="${list.data[0].id}"]`)).toContainText(
+    `${list.data[0].title} · ${first.length} ${first.length === 1 ? 'skill' : 'skills'} across ${domains} ${domains === 1 ? 'domain' : 'domains'}`
+  );
+  await expect(plate.locator('.atlas-base')).toHaveAttribute('data-dim', 'true');
+  await assertHealthyLayout(page, '/atlas?career');
+
+  // A second career over the first: what they share is told apart from what is each one's own.
+  const shared = second.filter((s) => first.some((f) => f.id === s.id)).length;
+  await page.goto(`/atlas?career=${list.data[0].id}&with=${list.data[1].id}`, { waitUntil: 'domcontentloaded' });
+  await expect(plate.locator('[data-atlas-lit]')).toHaveCount(first.length + second.length - shared);
+  await expect(plate.locator('[data-atlas-lit="shared"]')).toHaveCount(shared);
+  await expect(plate.locator('[data-atlas-lit="second"]')).toHaveCount(second.length - shared);
+  await expect(page.locator('[data-atlas-shared]')).toContainText(`${first.length - shared} and ${second.length - shared} of their own`);
+  await assertHealthyLayout(page, '/atlas?career&with');
+  // Taking the first off leaves the second, alone.
+  await page.locator(`[data-atlas-career="${list.data[0].id}"] a[aria-label^="Take"]`).click();
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?career=${list.data[1].id}$`));
+
+  // The Explore overview leads here from its Skills section.
+  await page.goto('/explore', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('main a[href="/atlas"]')).toHaveText('Atlas');
 });
 
 test('a seeker and an employer are given different tools', async ({ page, baseURL }) => {
@@ -267,6 +397,12 @@ test('a seeker and an employer are given different tools', async ({ page, baseUR
       const menu = (await page.getByRole('menuitem').allInnerTexts()).map((text) => text.trim());
       await page.keyboard.press('Escape');
       tools[purpose] = { menu, jobs, word };
+      // On the Atlas a seeker's own skills carry the product's mark; someone here to hire has none drawn.
+      const skill = ((await (await page.request.get(`${API}/skills?limit=1`)).json()) as { data: { id: string }[] }).data[0];
+      expect((await page.request.put(`${API}/me/skills/${skill.id}`, { data: { status: 'held' } })).ok(), `${purpose}: a skill marked held`).toBe(true);
+      await page.goto('/atlas', { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('.atlas-plate .atlas-leaf').first()).toBeAttached();
+      await expect(page.locator('.atlas-plate [data-atlas-mark="held"]'), `${purpose}: marks on the atlas`).toHaveCount(purpose === 'work' ? 1 : 0);
     } finally {
       const gone = await page.request.delete(`${API}/me`, { data: { password } });
       expect(gone.ok(), `${purpose}: account removed`).toBe(true);
