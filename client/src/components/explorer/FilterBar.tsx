@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { US_STATES, type StateCode } from '@shared/states';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
@@ -23,6 +23,9 @@ const BY_TITLE: SortOption[] = [
   { value: 'name-desc', label: 'Name Z-A', field: 'title', order: 'desc' },
 ];
 
+/** The Skills list's first order: not a sort of rows but the taxonomy's tree. */
+export const SKILLS_BY_DOMAIN = 'domain';
+
 export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
   // Most plants first by default, so the big manufacturers come before the
   // long tail of one-plant companies.
@@ -33,9 +36,14 @@ export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
   // Careers with a path first, the fullest first: the list opens on the ones
   // with something to follow, and a career that is only a title comes last.
   occupations: [{ value: 'skills-desc', label: 'Most skills', field: 'skillCount', order: 'desc' }, ...BY_TITLE],
-  // The skills most careers use first: the list opens on what matters most,
-  // not on the alphabet.
-  skills: [{ value: 'careers-desc', label: 'Most careers', field: 'occupationCount', order: 'desc' }, ...BY_NAME],
+  // By domain first: the taxonomy's own order, domain by domain and group by
+  // group, which is the Atlas as a list (SkillTree). Then the skills most
+  // careers use, and the alphabet.
+  skills: [
+    { value: SKILLS_BY_DOMAIN, label: 'By domain', field: 'domain', order: 'asc' },
+    { value: 'careers-desc', label: 'Most careers', field: 'occupationCount', order: 'desc' },
+    ...BY_NAME,
+  ],
 };
 
 export interface FilterState {
@@ -63,6 +71,8 @@ interface FilterBarProps {
   industries?: string[];
   /** Skills: the domains to offer, each with its groups. */
   domains?: DomainChoice[];
+  /** Leads the bar (the Skills list's switch to the Atlas). On a phone it shares the first line with the sort, and the filters follow. */
+  leading?: ReactNode;
 }
 
 const ALL = '__all__';
@@ -130,6 +140,7 @@ export default function FilterBar({
   onFilterChange,
   industries = [],
   domains = [],
+  leading,
 }: FilterBarProps) {
   const sortOptions = SORT_OPTIONS[activeTab];
   const stateOptions = useMemo(() => US_STATES.map((s) => ({ value: s.code as string, label: s.name as string })), []);
@@ -155,7 +166,8 @@ export default function FilterBar({
 
   return (
     <div className="mt-2 flex flex-wrap items-center justify-between gap-x-6 sm:mt-4">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-6">
+      {leading}
+      <div className={cn('flex min-w-0 flex-wrap items-center gap-x-6', leading && 'order-3 w-full sm:order-none sm:w-auto sm:flex-1')}>
         {showState && (
           <Choice
             label="State"

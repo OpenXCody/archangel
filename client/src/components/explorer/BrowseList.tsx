@@ -15,11 +15,13 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '../layout/Page';
 import { LoadError, outlineButtonClass } from '../account/parts';
 import EntityRow, { EntityRowSkeleton, type BrowseEntity } from './EntityRow';
-import FilterBar, { SORT_OPTIONS, type FilterState } from './FilterBar';
+import FilterBar, { SKILLS_BY_DOMAIN, SORT_OPTIONS, type FilterState } from './FilterBar';
+import SkillTree from './SkillTree';
+import SkillsViewSwitch from './SkillsViewSwitch';
 import type { BrowseTab } from './ExploreNav';
 import { stateName } from '../../lib/places';
 import { publicKeys } from '../../lib/queryKeys';
-import { useExploreFacets } from '../../lib/queries';
+import { useExploreFacets, useTaxonomy } from '../../lib/queries';
 
 const PAGE_SIZE = 20;
 
@@ -184,6 +186,8 @@ function VirtualRows({
  * skill, filtered and sorted from the address (?state=, ?industry=, ?domain=,
  * ?group=, ?sort=), so a filtered list can be linked to and survives Back. Between the
  * filters and the rows is one line: how many the list holds, filters applied.
+ * The Skills list opens as the taxonomy's tree (`SkillTree`): the Atlas as a
+ * list, with the one switch between the two.
  */
 export default function BrowseList({ tab }: { tab: BrowseTab }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -233,12 +237,30 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     [sort, filters]
   );
 
+  // The Skills list opens in the taxonomy's own order, which is not a sort of
+  // rows but the tree itself: every domain, its groups, their skills, from the
+  // one answer the Atlas draws.
+  const tree = tab === 'skills' && sort.value === SKILLS_BY_DOMAIN;
+  const taxonomy = useTaxonomy(tree);
+  const treeDomains = useMemo(() => {
+    if (!tree || !taxonomy.data) return undefined;
+    return taxonomy.data.domains
+      .filter((domain) => !filters.domain || domain.slug === filters.domain)
+      .map((domain) => ({
+        ...domain,
+        groups: domain.groups.filter((group) => group.skills.length > 0 && (!filters.group || group.slug === filters.group)),
+      }))
+      .filter((domain) => domain.groups.length > 0);
+  }, [tree, taxonomy.data, filters.domain, filters.group]);
+  const treeTotal = treeDomains?.reduce((sum, domain) => sum + domain.groups.reduce((n, group) => n + group.skills.length, 0), 0);
+
   const list = useInfiniteQuery({
     queryKey: publicKeys.exploreList(tab, params),
     queryFn: ({ pageParam }) => LIST[tab]({ offset: pageParam, limit: PAGE_SIZE, ...params }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined),
     staleTime: 5 * 60_000,
+    enabled: !tree,
   });
 
   // Choices for the industry, domain and group filters: every value in use,
@@ -249,7 +271,8 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
   const domains = facets.data?.skillDomains;
 
   const items = useMemo(() => list.data?.pages.flatMap((page) => page.data) ?? [], [list.data]);
-  const total = list.data?.pages[0]?.total;
+  const total = tree ? treeTotal : list.data?.pages[0]?.total;
+  const failed = tree ? taxonomy.isError && !taxonomy.data : list.isError && items.length === 0;
   // Said under the page's heading, by the page.
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = list;
   const loadMore = useCallback(() => {
@@ -269,10 +292,11 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
         onFilterChange={(next) => setParam({ state: next.state, industry: next.industry, domain: next.domain, group: next.group })}
         industries={industries}
         domains={domains}
+        leading={tab === 'skills' ? <SkillsViewSwitch current="list" domain={filters.domain} group={filters.group} /> : undefined}
       />
 
       {/* How many, with the filters applied; the line holds its place while the answer is on its way. */}
-      {!(list.isError && items.length === 0) && (
+      {!failed && (
         <div className="mb-1 flex min-h-11 flex-wrap items-center justify-between gap-x-6 text-sm text-fg-muted sm:mb-2 sm:min-h-9">
           <p role="status" className="tabular-nums" data-explore-count>
             {total === undefined ? (
@@ -291,7 +315,31 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
         </div>
       )}
 
-      {list.isLoading ? (
+      {tree ? (
+        taxonomy.isError && !taxonomy.data ? (
+          <LoadError error={taxonomy.error} onRetry={() => void taxonomy.refetch()} retrying={taxonomy.isFetching} />
+        ) : !treeDomains ? (
+          <div className={GRID} aria-busy="true" aria-label="Loading">
+            {Array.from({ length: 12 }, (_, i) => (
+              <EntityRowSkeleton key={i} type="companies" index={i} />
+            ))}
+          </div>
+        ) : treeDomains.length === 0 ? (
+          <EmptyState
+            title="No skills"
+            description={filtered ? 'Nothing matches these filters.' : undefined}
+            action={
+              filtered ? (
+                <Button type="button" variant="outline" onClick={clearFilters} className={`h-10 rounded-lg ${outlineButtonClass}`}>
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <SkillTree domains={treeDomains} />
+        )
+      ) : list.isLoading ? (
         <div className={GRID} aria-busy="true" aria-label="Loading">
           {Array.from({ length: 12 }, (_, i) => (
             <EntityRowSkeleton key={i} type={tab} index={i} />
