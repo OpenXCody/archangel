@@ -95,7 +95,17 @@ export function LoadError({ error, onRetry, retrying, className }: { error: unkn
         <span className="min-w-0 break-words">{errorMessage(error)}</span>
       </p>
       {onRetry && (
-        <Button type="button" variant="outline" size="sm" onClick={onRetry} disabled={retrying} className={cn('h-9 shrink-0', outlineButtonClass)}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          aria-busy={retrying || undefined}
+          aria-disabled={retrying || undefined}
+          onClick={() => {
+            if (!retrying) onRetry();
+          }}
+          className={cn('h-9 shrink-0', outlineButtonClass, busyButtonClass)}
+        >
           <RotateCw className={cn(retrying && 'animate-spin')} />
           Try again
         </Button>
@@ -175,8 +185,9 @@ export function HeldMeter({ held, total, noun, className }: { held: number; tota
         {noun}
       </p>
       {total > 0 && (
-        <div className="mt-1.5 h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-bg-elevated" aria-hidden="true">
-          <div className="h-full rounded-full bg-success" style={{ width: `${percent}%` }} />
+        // Monochrome: the held share is the bright part of a quiet track.
+        <div className="mt-1.5 h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-tint/10" aria-hidden="true">
+          <div className="h-full rounded-full bg-fg-default" style={{ width: `${percent}%` }} />
         </div>
       )}
     </div>
@@ -207,6 +218,34 @@ export function AccountGate({ children }: { children: (account: SignedInAccount)
     return <Navigate to={justLeft(data) ? '/map' : signInPath(`${location.pathname}${location.search}`)} replace />;
   }
   return <>{children(data as SignedInAccount)}</>;
+}
+
+/**
+ * The one way a day is written on these pages: "today", "yesterday", then
+ * "Nov 18", with the year only once it is not this one. (The time of day is
+ * given in History alone.)
+ */
+export function formatDay(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const days = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86_400_000);
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' });
+}
+
+/** The same, after a verb: "declined today", "declined on Nov 18". */
+export function formatOnDay(iso: string): string {
+  const day = formatDay(iso);
+  return day === 'today' || day === 'yesterday' || !day ? day : `on ${day}`;
+}
+
+/** The same, to stand at the start of a line: "Today". */
+export function formatDayCapital(iso: string): string {
+  const day = formatDay(iso);
+  return day.charAt(0).toUpperCase() + day.slice(1);
 }
 
 /** The value, a beat after it stops changing. For search-as-you-type. */

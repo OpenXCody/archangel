@@ -1,0 +1,1536 @@
+{
+ "_about": "Web domains for the companies a visitor meets first: the 300 with the most plants nationwide, the 150 with the most in Texas, and those the map's state panels and Explore's overview list, as the public API showed them on 2026-11-18. `name` must match companies.name exactly. Each domain is the company's own and its front page was opened and read (or, where the site refuses automated requests, its logo was matched to the company by eye); `note` says where the match took judgment. `skipped` lists the companies of those lists left without a domain, and why: most are former names, cut-off names or rows that mix several companies, which need merging or renaming rather than a logo. Regenerate the SQL with: node scripts/build-domains-sql.mjs data/companies/domains.json migrations/0037_company_domains.sql, then fetch the marks with: node scripts/fetch-logos.mjs",
+ "companies": [
+  {
+   "name": "Berkshire Hathaway",
+   "domain": "berkshirehathaway.com"
+  },
+  {
+   "name": "Associated Milk Producers",
+   "domain": "ampi.com"
+  },
+  {
+   "name": "Anderson Columbia",
+   "domain": "andersoncolumbia.com"
+  },
+  {
+   "name": "Barnhill Contracting",
+   "domain": "barnhillcontracting.com",
+   "note": "Now trades as Barnhill; the domain forwards to barnhillbuilt.com."
+  },
+  {
+   "name": "Ardagh Group",
+   "domain": "ardaghgroup.com"
+  },
+  {
+   "name": "Bodycote Thermal Processing",
+   "domain": "bodycote.com",
+   "note": "A Bodycote business; trades as Bodycote."
+  },
+  {
+   "name": "Akzo Nobel Coatings",
+   "domain": "akzonobel.com",
+   "note": "AkzoNobel's coatings company in the US; trades as AkzoNobel."
+  },
+  {
+   "name": "Bridgestone",
+   "domain": "bridgestoneamericas.com"
+  },
+  {
+   "name": "Anchor Glass Container",
+   "domain": "anchorglass.com"
+  },
+  {
+   "name": "Thomas Concrete",
+   "domain": "thomasconcrete.com"
+  },
+  {
+   "name": "Adams Construction",
+   "domain": "adamspaving.com",
+   "note": "Adams Construction Company of Roanoke, Virginia."
+  },
+  {
+   "name": "Benjamin Moore &",
+   "domain": "benjaminmoore.com"
+  },
+  {
+   "name": "Ag Processing",
+   "domain": "agp.com"
+  },
+  {
+   "name": "Arkema Delaware",
+   "domain": "arkema.com",
+   "note": "Arkema's US operating company; trades as Arkema."
+  },
+  {
+   "name": "Crown Cork & Seal",
+   "domain": "crowncork.com",
+   "note": "The operating company of Crown Holdings."
+  },
+  {
+   "name": "Altium Packaging",
+   "domain": "altiumpkg.com"
+  },
+  {
+   "name": "Armstrong World Industries",
+   "domain": "armstrongworldindustries.com",
+   "note": "The domain forwards to armstrong.com."
+  },
+  {
+   "name": "Hickory Springs Manufacturing",
+   "domain": "hsmsolutions.com",
+   "note": "Renamed HSM in 2013."
+  },
+  {
+   "name": "Philips Electronics Na",
+   "domain": "philips.com",
+   "note": "Philips in North America."
+  },
+  {
+   "name": "RPM International",
+   "domain": "rpminc.com"
+  },
+  {
+   "name": "Building Materials Manufacturing",
+   "domain": "gaf.com",
+   "note": "Building Materials Manufacturing Corporation is GAF's manufacturing company; its plants are GAF's."
+  },
+  {
+   "name": "Bunge",
+   "domain": "bunge.com"
+  },
+  {
+   "name": "ITT",
+   "domain": "itt.com"
+  },
+  {
+   "name": "BP America",
+   "domain": "bp.com",
+   "note": "BP's US company."
+  },
+  {
+   "name": "Grupo Bimbo",
+   "domain": "grupobimbo.com"
+  },
+  {
+   "name": "Koch",
+   "domain": "kochinc.com",
+   "note": "The plants listed are Georgia-Pacific and Flint Hills Resources sites: Koch Industries, now Koch, Inc."
+  },
+  {
+   "name": "Koch Industries",
+   "domain": "kochinc.com",
+   "note": "Now Koch, Inc."
+  },
+  {
+   "name": "Milliken &",
+   "domain": "milliken.com"
+  },
+  {
+   "name": "Alltech",
+   "domain": "alltech.com"
+  },
+  {
+   "name": "Barrett Paving",
+   "domain": "barrettpaving.com",
+   "note": "Barrett Paving Materials."
+  },
+  {
+   "name": "Barrett Paving Materials",
+   "domain": "barrettpaving.com"
+  },
+  {
+   "name": "Branscome",
+   "domain": "branscome.com"
+  },
+  {
+   "name": "Avient",
+   "domain": "avient.com"
+  },
+  {
+   "name": "Polyone",
+   "domain": "avient.com",
+   "note": "Renamed Avient in 2020."
+  },
+  {
+   "name": "Beckman Coulter",
+   "domain": "beckmancoulter.com"
+  },
+  {
+   "name": "BorgWarner",
+   "domain": "borgwarner.com"
+  },
+  {
+   "name": "Deluxe",
+   "domain": "deluxe.com",
+   "note": "The check printer Deluxe Corporation (plants are Deluxe Check Printers)."
+  },
+  {
+   "name": "Ecolab",
+   "domain": "ecolab.com"
+  },
+  {
+   "name": "Flint Ink",
+   "domain": "flintgrp.com",
+   "note": "Became Flint Group in 2005."
+  },
+  {
+   "name": "H B Fuller",
+   "domain": "hbfuller.com"
+  },
+  {
+   "name": "Valmont Industries",
+   "domain": "valmont.com"
+  },
+  {
+   "name": "Albemarle",
+   "domain": "albemarle.com"
+  },
+  {
+   "name": "Arctic Glacier",
+   "domain": "arcticglacier.com"
+  },
+  {
+   "name": "Astro Pak",
+   "domain": "astropak.com"
+  },
+  {
+   "name": "Belden",
+   "domain": "belden.com"
+  },
+  {
+   "name": "Bostik",
+   "domain": "bostik.com"
+  },
+  {
+   "name": "Carpenter",
+   "domain": "carpenter.com",
+   "note": "Carpenter Co., the foam maker of Richmond, Virginia (not Carpenter Technology)."
+  },
+  {
+   "name": "Goodyear Tire & Rubber",
+   "domain": "goodyear.com"
+  },
+  {
+   "name": "Ingersoll-rand",
+   "domain": "irco.com",
+   "note": "Today's Ingersoll Rand. Several listed plants (Trane, Thermo King, Schlage) went to other companies when the old Ingersoll-Rand split."
+  },
+  {
+   "name": "Minerals Technologies",
+   "domain": "mineralstech.com"
+  },
+  {
+   "name": "Mohawk Industries",
+   "domain": "mohawkind.com"
+  },
+  {
+   "name": "Oldcastle Precast",
+   "domain": "oldcastleinfrastructure.com",
+   "note": "Renamed Oldcastle Infrastructure in 2018."
+  },
+  {
+   "name": "Smithfield Foods",
+   "domain": "smithfieldfoods.com"
+  },
+  {
+   "name": "Valero",
+   "domain": "valero.com"
+  },
+  {
+   "name": "Weyerhaeuser",
+   "domain": "weyerhaeuser.com"
+  },
+  {
+   "name": "48forty Solutions",
+   "domain": "48forty.com"
+  },
+  {
+   "name": "American Trim",
+   "domain": "amtrim.com"
+  },
+  {
+   "name": "Arconic",
+   "domain": "arconic.com"
+  },
+  {
+   "name": "Briggs & Stratton",
+   "domain": "briggsandstratton.com"
+  },
+  {
+   "name": "C&d Technologies",
+   "domain": "cdtechno.com"
+  },
+  {
+   "name": "Cummins",
+   "domain": "cummins.com"
+  },
+  {
+   "name": "Louisiana-pacific",
+   "domain": "lpcorp.com"
+  },
+  {
+   "name": "Marathon Petroleum",
+   "domain": "marathonpetroleum.com"
+  },
+  {
+   "name": "Modine Manufacturing",
+   "domain": "modine.com"
+  },
+  {
+   "name": "Ozinga Ready-mix Concrete",
+   "domain": "ozinga.com"
+  },
+  {
+   "name": "Schneider Electric",
+   "domain": "se.com"
+  },
+  {
+   "name": "Ajax Paving Industries of Florida",
+   "domain": "ajaxpaving.com"
+  },
+  {
+   "name": "Ajax Paving Industries",
+   "domain": "ajaxpaving.com"
+  },
+  {
+   "name": "Ajax Materials",
+   "domain": "ajaxpaving.com",
+   "note": "Ajax Materials Corporation is Ajax Paving's asphalt company in Michigan."
+  },
+  {
+   "name": "Allied Universal",
+   "domain": "allieduniversal.com",
+   "note": "Allied Universal Corporation, the water-treatment chemical maker of Miami (not the security company)."
+  },
+  {
+   "name": "American Bath Group",
+   "domain": "americanbathgroup.com"
+  },
+  {
+   "name": "American Crystal Sugar",
+   "domain": "crystalsugar.com"
+  },
+  {
+   "name": "Anduril Industries",
+   "domain": "anduril.com"
+  },
+  {
+   "name": "Apex Tool Group",
+   "domain": "apextoolgroup.com"
+  },
+  {
+   "name": "B and B Concrete",
+   "domain": "bbconcrete.com"
+  },
+  {
+   "name": "Cemex Construction Materials South",
+   "domain": "cemex.com",
+   "note": "A Cemex operating company; trades as Cemex."
+  },
+  {
+   "name": "Cemex Construction Materials Houston",
+   "domain": "cemex.com",
+   "note": "A Cemex operating company; trades as Cemex."
+  },
+  {
+   "name": "Cemex Construction Materials",
+   "domain": "cemex.com",
+   "note": "A Cemex operating company; trades as Cemex."
+  },
+  {
+   "name": "Darling International",
+   "domain": "darlingii.com",
+   "note": "Renamed Darling Ingredients in 2014."
+  },
+  {
+   "name": "Flowserve",
+   "domain": "flowserve.com"
+  },
+  {
+   "name": "Henkel",
+   "domain": "henkel.com"
+  },
+  {
+   "name": "Johnson Controls",
+   "domain": "johnsoncontrols.com"
+  },
+  {
+   "name": "Kroger",
+   "domain": "kroger.com",
+   "note": "Kroger's own dairies, bakeries and beverage plants."
+  },
+  {
+   "name": "Pfizer",
+   "domain": "pfizer.com"
+  },
+  {
+   "name": "Procter & Gamble",
+   "domain": "pg.com"
+  },
+  {
+   "name": "Stanley Works",
+   "domain": "stanleyblackanddecker.com",
+   "note": "The Stanley Works became Stanley Black & Decker in 2010."
+  },
+  {
+   "name": "Unisys",
+   "domain": "unisys.com"
+  },
+  {
+   "name": "Vf",
+   "domain": "vfc.com",
+   "note": "VF Corporation."
+  },
+  {
+   "name": "Vulcan Materials",
+   "domain": "vulcanmaterials.com"
+  },
+  {
+   "name": "Abbvie",
+   "domain": "abbvie.com"
+  },
+  {
+   "name": "Advanced Drainage Systems",
+   "domain": "adspipe.com"
+  },
+  {
+   "name": "American Axle & Manufacturing",
+   "domain": "aam.com"
+  },
+  {
+   "name": "Andrew",
+   "domain": "andrew.com",
+   "note": "Andrew Corporation, the antenna maker; the name is used today by Amphenol's Andrew business."
+  },
+  {
+   "name": "Bassett Furniture Industries",
+   "domain": "bassettfurniture.com"
+  },
+  {
+   "name": "Belgioioso Cheese",
+   "domain": "belgioioso.com"
+  },
+  {
+   "name": "Bourns",
+   "domain": "bourns.com"
+  },
+  {
+   "name": "Brown-wilbert Vault",
+   "domain": "brownwilbert.com"
+  },
+  {
+   "name": "Calgon Carbon",
+   "domain": "calgoncarbon.com"
+  },
+  {
+   "name": "Cardinal Glass",
+   "domain": "cardinalcorp.com"
+  },
+  {
+   "name": "Danaher",
+   "domain": "danaher.com"
+  },
+  {
+   "name": "Dyno Nobel",
+   "domain": "dynonobel.com"
+  },
+  {
+   "name": "John Deere",
+   "domain": "deere.com"
+  },
+  {
+   "name": "Johns Manville",
+   "domain": "jm.com"
+  },
+  {
+   "name": "Lippert Components",
+   "domain": "lippert.com"
+  },
+  {
+   "name": "Pentair",
+   "domain": "pentair.com"
+  },
+  {
+   "name": "Wr Grace &",
+   "domain": "grace.com"
+  },
+  {
+   "name": "Angelus Block",
+   "domain": "angelusblock.com"
+  },
+  {
+   "name": "Archer Aviation",
+   "domain": "archer.com"
+  },
+  {
+   "name": "Bekaert",
+   "domain": "bekaert.com"
+  },
+  {
+   "name": "Brandenburg Industrial Service",
+   "domain": "brandenburg.com"
+  },
+  {
+   "name": "Brentwood Industries",
+   "domain": "brentwoodindustries.com"
+  },
+  {
+   "name": "Halliburton Energy Services",
+   "domain": "halliburton.com",
+   "note": "Halliburton's operating company."
+  },
+  {
+   "name": "Levi Strauss &",
+   "domain": "levistrauss.com"
+  },
+  {
+   "name": "Pilgrim's Pride",
+   "domain": "pilgrims.com"
+  },
+  {
+   "name": "Aer Manufacturing",
+   "domain": "aermanufacturing.com"
+  },
+  {
+   "name": "Borden Dairy Products",
+   "domain": "bordendairy.com"
+  },
+  {
+   "name": "Oldcastle Architectural West",
+   "domain": "oldcastleapg.com",
+   "note": "Oldcastle Architectural became Oldcastle APG."
+  },
+  {
+   "name": "Celanese",
+   "domain": "celanese.com"
+  },
+  {
+   "name": "Hexion",
+   "domain": "hexion.com"
+  },
+  {
+   "name": "Martin Sprocket & Gear",
+   "domain": "martinsprocket.com"
+  },
+  {
+   "name": "Berridge Manufacturing",
+   "domain": "berridge.com"
+  },
+  {
+   "name": "Chemours",
+   "domain": "chemours.com"
+  },
+  {
+   "name": "Ergon Asphalt & Emulsions",
+   "domain": "ergonasphalt.com"
+  },
+  {
+   "name": "Forged Components",
+   "domain": "forgedcomponents.com"
+  },
+  {
+   "name": "Fritz Industries",
+   "domain": "fritzind.com"
+  },
+  {
+   "name": "Kimberly-clark",
+   "domain": "kimberly-clark.com"
+  },
+  {
+   "name": "Monument Chemical",
+   "domain": "monumentchemical.com"
+  },
+  {
+   "name": "Nch",
+   "domain": "nch.com",
+   "note": "NCH Corporation of Irving, Texas."
+  },
+  {
+   "name": "Niagara Bottling",
+   "domain": "niagarawater.com"
+  },
+  {
+   "name": "PACCAR Inc.",
+   "domain": "paccar.com"
+  },
+  {
+   "name": "Polynt Composites USA",
+   "domain": "polynt.com"
+  },
+  {
+   "name": "Sika",
+   "domain": "sika.com"
+  },
+  {
+   "name": "Wilbur-ellis",
+   "domain": "wilburellis.com"
+  },
+  {
+   "name": "Beauty Manufacturing Solutions",
+   "domain": "beautymanufacture.com"
+  },
+  {
+   "name": "Trident Seafoods",
+   "domain": "tridentseafoods.com"
+  },
+  {
+   "name": "Alaskan Brewing",
+   "domain": "alaskanbeer.com"
+  },
+  {
+   "name": "Alyeschem",
+   "domain": "alyeschem.com"
+  },
+  {
+   "name": "American Seafoods",
+   "domain": "americanseafoods.com"
+  },
+  {
+   "name": "Arctic Slope Regional",
+   "domain": "asrc.com"
+  },
+  {
+   "name": "Birmingham Hide and Tallow",
+   "domain": "bhtonline.com",
+   "note": "Now trades as BHT ReSources."
+  },
+  {
+   "name": "Anthony Timberlands",
+   "domain": "anthonytimberlands.com"
+  },
+  {
+   "name": "Anchor Packaging",
+   "domain": "anchorpackaging.com"
+  },
+  {
+   "name": "Axon",
+   "domain": "axon.com"
+  },
+  {
+   "name": "Burnco Colorado",
+   "domain": "burnco.com",
+   "note": "Burnco's Colorado company."
+  },
+  {
+   "name": "Asphalt Specialties",
+   "domain": "asphaltspecialties.com"
+  },
+  {
+   "name": "Brannan Sand & Gravel",
+   "domain": "brannan1.com"
+  },
+  {
+   "name": "Brannan Ready Mix",
+   "domain": "brannan1.com",
+   "note": "Part of Brannan Companies with Brannan Sand & Gravel."
+  },
+  {
+   "name": "Boulder Scientific",
+   "domain": "bouldersci.com"
+  },
+  {
+   "name": "Bead Industries",
+   "domain": "beadindustries.com"
+  },
+  {
+   "name": "Tilcon Connecticut",
+   "domain": "tilconct.com"
+  },
+  {
+   "name": "Burndy",
+   "domain": "burndy.com",
+   "note": "A Hubbell brand that keeps its own name; the domain forwards to a Burndy page on hubbell.com."
+  },
+  {
+   "name": "O&g Industries",
+   "domain": "ogind.com"
+  },
+  {
+   "name": "C.w. Roberts Contracting",
+   "domain": "cwrcontracting.com"
+  },
+  {
+   "name": "C.w. Matthews Contracting",
+   "domain": "cwmatthews.com"
+  },
+  {
+   "name": "Fieldale Farms",
+   "domain": "fieldale.com"
+  },
+  {
+   "name": "Alexander & Baldwin",
+   "domain": "alexanderbaldwin.com"
+  },
+  {
+   "name": "Aloha Shoyu",
+   "domain": "alohashoyu.com"
+  },
+  {
+   "name": "Bard Materials",
+   "domain": "bardmaterials.com"
+  },
+  {
+   "name": "Arnold Motor Supply",
+   "domain": "arnoldmotorsupply.com"
+  },
+  {
+   "name": "Amalgamated Sugar",
+   "domain": "amalgamatedsugar.com"
+  },
+  {
+   "name": "Arnold Machinery",
+   "domain": "arnoldmachinery.com"
+  },
+  {
+   "name": "Basic American Foods",
+   "domain": "baf.com"
+  },
+  {
+   "name": "Brooks Construction",
+   "domain": "brooks1st.com"
+  },
+  {
+   "name": "Irving Materials",
+   "domain": "irvmat.com",
+   "note": "Trades as imi."
+  },
+  {
+   "name": "Bg Products",
+   "domain": "bgprod.com"
+  },
+  {
+   "name": "American Greetings",
+   "domain": "americangreetings.com"
+  },
+  {
+   "name": "Bollinger Shipyards",
+   "domain": "bollingershipyards.com"
+  },
+  {
+   "name": "Allan Myers Md",
+   "domain": "allanmyers.com",
+   "note": "Allan Myers' Maryland company."
+  },
+  {
+   "name": "Schuster Concrete Ready Mix",
+   "domain": "schusterconcrete.com"
+  },
+  {
+   "name": "Avedis Zildjian",
+   "domain": "zildjian.com"
+  },
+  {
+   "name": "Mccain USA",
+   "domain": "mccain.com",
+   "note": "McCain Foods in the US."
+  },
+  {
+   "name": "Magna International",
+   "domain": "magna.com"
+  },
+  {
+   "name": "Cemstone",
+   "domain": "cemstone.com"
+  },
+  {
+   "name": "Breckenridge Material",
+   "domain": "breckenridgematerial.com",
+   "note": "A BMC Enterprises company; the domain forwards to bmcenterprises.com."
+  },
+  {
+   "name": "Mmc Materials",
+   "domain": "mmcmaterials.com"
+  },
+  {
+   "name": "Ashley Furniture Industries",
+   "domain": "ashleyfurniture.com"
+  },
+  {
+   "name": "Stimson Lumber",
+   "domain": "stimsonlumber.com"
+  },
+  {
+   "name": "Bernhardt Furniture",
+   "domain": "bernhardt.com"
+  },
+  {
+   "name": "Blythe Construction",
+   "domain": "blytheconstruction.com"
+  },
+  {
+   "name": "Bobcat",
+   "domain": "bobcat.com"
+  },
+  {
+   "name": "Cretex",
+   "domain": "cretex.com",
+   "note": "Cretex Companies; the plants are its North Dakota and South Dakota Concrete Products companies."
+  },
+  {
+   "name": "Alien Technology",
+   "domain": "alientechnology.com"
+  },
+  {
+   "name": "Behlen Manufacturing",
+   "domain": "behlenmfg.com"
+  },
+  {
+   "name": "Michael Foods",
+   "domain": "michaelfoods.com"
+  },
+  {
+   "name": "Gerhold Concrete",
+   "domain": "gerholdconcrete.com"
+  },
+  {
+   "name": "Brox Industries",
+   "domain": "broxindustries.com"
+  },
+  {
+   "name": "Sig Sauer",
+   "domain": "sigsauer.com"
+  },
+  {
+   "name": "Watts Regulator",
+   "domain": "watts.com",
+   "note": "Watts Water Technologies."
+  },
+  {
+   "name": "American Gypsum",
+   "domain": "americangypsum.com"
+  },
+  {
+   "name": "3d Glass Solutions",
+   "domain": "3dgsinc.com"
+  },
+  {
+   "name": "Las Vegas Paving",
+   "domain": "lasvegaspaving.com"
+  },
+  {
+   "name": "Basalite Concrete Products",
+   "domain": "basalite.com"
+  },
+  {
+   "name": "Alstom",
+   "domain": "alstom.com"
+  },
+  {
+   "name": "Belden Brick",
+   "domain": "beldenbrick.com"
+  },
+  {
+   "name": "Baker Hughes Oilfield Operations",
+   "domain": "bakerhughes.com",
+   "note": "A Baker Hughes operating company."
+  },
+  {
+   "name": "Bar-s Foods",
+   "domain": "bar-s.com"
+  },
+  {
+   "name": "Bakelite US Hold",
+   "domain": "bakelite.com",
+   "note": "Bakelite Synthetics."
+  },
+  {
+   "name": "Beltservice",
+   "domain": "beltservice.com"
+  },
+  {
+   "name": "Mendocino Forest Products",
+   "domain": "mfp.com"
+  },
+  {
+   "name": "Leviton Manufacturing",
+   "domain": "leviton.com"
+  },
+  {
+   "name": "Amtrol",
+   "domain": "amtrol.com"
+  },
+  {
+   "name": "Aim Products",
+   "domain": "aimsolder.com",
+   "note": "AIM Products trades as AIM Solder."
+  },
+  {
+   "name": "C R Jackson",
+   "domain": "crjackson.com"
+  },
+  {
+   "name": "Terex",
+   "domain": "terex.com"
+  },
+  {
+   "name": "American Foods Group",
+   "domain": "americanfoodsgroup.com"
+  },
+  {
+   "name": "Astec Industries",
+   "domain": "astecindustries.com"
+  },
+  {
+   "name": "Autoliv Asp",
+   "domain": "autoliv.com",
+   "note": "Autoliv's US company."
+  },
+  {
+   "name": "Amrize Mid-atlantic",
+   "domain": "amrize.com",
+   "note": "An Amrize operating company."
+  },
+  {
+   "name": "Beta Technologies",
+   "domain": "beta.team"
+  },
+  {
+   "name": "Agri-mark",
+   "domain": "agrimark.coop"
+  },
+  {
+   "name": "Bodycote Surface Technology",
+   "domain": "bodycote.com",
+   "note": "A Bodycote business; trades as Bodycote."
+  },
+  {
+   "name": "HP Hood",
+   "domain": "hood.com"
+  },
+  {
+   "name": "Autumn Harp",
+   "domain": "autumnharp.com"
+  },
+  {
+   "name": "G S Precision",
+   "domain": "gsprecision.com",
+   "note": "G.S. Precision of Brattleboro, Vermont, which now trades as Global Precision."
+  },
+  {
+   "name": "Cabot Hosiery Mills",
+   "domain": "darntough.com",
+   "note": "Cabot Hosiery Mills makes and sells its socks as Darn Tough Vermont."
+  },
+  {
+   "name": "Foremost Farms USA Cooperative",
+   "domain": "foremostfarms.com"
+  },
+  {
+   "name": "Saputo Cheese USA",
+   "domain": "saputo.com",
+   "note": "Saputo's US cheese company."
+  },
+  {
+   "name": "Lycon",
+   "domain": "lyconinc.com"
+  },
+  {
+   "name": "Best Block",
+   "domain": "bestblock.com"
+  },
+  {
+   "name": "Bijur Lubricating",
+   "domain": "bijurdelimon.com",
+   "note": "Now Bijur Delimon International."
+  },
+  {
+   "name": "Alamo Concrete Products",
+   "domain": "alamoconcrete.com"
+  }
+ ],
+ "skipped": [
+  {
+   "name": "Apac",
+   "why": "Former Ashland paving business, now regional CRH companies with no one site. The same for Apac Atlantic, Apac Mississippi, Apac Central, Apac-alabama, Apac-texas, Apac-florida, Apac Oklahoma, Apac Tennessee and \"Apac Atlantic, Inc. Harrison Division\"."
+  },
+  {
+   "name": "Borden",
+   "why": "The rows mix Borden Inc. and Borden Chemical plants; Borden's dairy, foods and chemical businesses are separate companies today."
+  },
+  {
+   "name": "Argos USA",
+   "why": "Combined with Summit Materials in 2024 (Quikrete since 2025); argos-us.com now forwards to another site that refuses requests. The same for Argos Ready Mix."
+  },
+  {
+   "name": "Aggregate Industries",
+   "why": "The US business became Holcim US and then Amrize; its own site no longer answers. aggregate.com is the British company. The same for Aggregate Industries Wcr."
+  },
+  {
+   "name": "Allied-signal",
+   "why": "Merged into Honeywell in 1999: a row to merge, not to brand."
+  },
+  {
+   "name": "American National Can",
+   "why": "Bought by Rexam in 2000, now part of Ball."
+  },
+  {
+   "name": "Lafarge",
+   "why": "The US business is now Amrize."
+  },
+  {
+   "name": "American Concrete Products",
+   "why": "Several unrelated companies use this name."
+  },
+  {
+   "name": "Boc Group",
+   "why": "Bought by Linde in 2006."
+  },
+  {
+   "name": "United Technologies",
+   "why": "Became RTX in 2020; the Raytheon row already carries rtx.com."
+  },
+  {
+   "name": "Agway",
+   "why": "The cooperative's manufacturing ended in its 2002 bankruptcy; the name survives only on farm stores."
+  },
+  {
+   "name": "Bemis",
+   "why": "Bemis Company became part of Amcor in 2019; Bemis Manufacturing of Wisconsin is a different company with the same name."
+  },
+  {
+   "name": "Sara Lee",
+   "why": "Split up in 2012; the name now belongs to brands of several owners."
+  },
+  {
+   "name": "Txi",
+   "why": "Texas Industries was bought by Martin Marietta in 2014: a row to merge. The same for Txi Operations."
+  },
+  {
+   "name": "Brown Group",
+   "why": "Became Brown Shoe and then Caleres; the plants are long closed."
+  },
+  {
+   "name": "Amp",
+   "why": "AMP Incorporated is now part of TE Connectivity."
+  },
+  {
+   "name": "Hars",
+   "why": "A cut-off name: the plants are Harsco's (now Enviri)."
+  },
+  {
+   "name": "Dean Foods",
+   "why": "Bankrupt in 2020; most plants went to Dairy Farmers of America. The same for Southern Foods Group."
+  },
+  {
+   "name": "Ty",
+   "why": "A cut-off name: the plants are Tyco's."
+  },
+  {
+   "name": "C & H Gravel",
+   "why": "A small local firm."
+  },
+  {
+   "name": "Cooper Industries",
+   "why": "Bought by Eaton in 2012."
+  },
+  {
+   "name": "Mas",
+   "why": "A cut-off name: the plants are Masco's."
+  },
+  {
+   "name": "Beazer East",
+   "why": "A holding company for old Koppers sites, not an employer."
+  },
+  {
+   "name": "Bway",
+   "why": "Now part of Mauser Packaging Solutions."
+  },
+  {
+   "name": "C. B. Asphalt",
+   "why": "A small local firm."
+  },
+  {
+   "name": "Cookson America",
+   "why": "No longer exists under this name."
+  },
+  {
+   "name": "Philip Morris Cos",
+   "why": "Became Altria in 2003; the rows include plants of companies it has since sold."
+  },
+  {
+   "name": "Praxair",
+   "why": "Became Linde in 2019; the Linde row is the company today."
+  },
+  {
+   "name": "Lattimore Materials",
+   "why": "Bought by Aggregate Industries in 2011."
+  },
+  {
+   "name": "Advanced Asphalt",
+   "why": "A small local firm; no site could be confirmed."
+  },
+  {
+   "name": "Ag",
+   "why": "A cut-off name: the plants are AGCO's."
+  },
+  {
+   "name": "Allegheny Wood Products",
+   "why": "Closed in 2024."
+  },
+  {
+   "name": "Black & Decker",
+   "why": "Merged into Stanley Black & Decker in 2010; blackanddecker.com is a product brand's shop."
+  },
+  {
+   "name": "Echlin",
+   "why": "Bought by Dana in 1998."
+  },
+  {
+   "name": "Mascotech",
+   "why": "Became Metaldyne."
+  },
+  {
+   "name": "Alliant Techsystems",
+   "why": "Became Orbital ATK, now part of Northrop Grumman."
+  },
+  {
+   "name": "Allied",
+   "why": "The rows mix Allied Corporation plants and others."
+  },
+  {
+   "name": "Burlington Industries",
+   "why": "Closed; only the fabric brand remains."
+  },
+  {
+   "name": "Concrete Supply",
+   "why": "The rows mix Concrete Supply Co. of the Carolinas with an Omaha company of the same name."
+  },
+  {
+   "name": "Dawkins On-site",
+   "why": "Could not be identified."
+  },
+  {
+   "name": "Foamex",
+   "why": "Bankrupt in 2009; its successor FXI is a different company."
+  },
+  {
+   "name": "Forterra Concrete Products",
+   "why": "Forterra's US pipe business became Rinker Materials in 2022. The same for Forterra, Hanson Pipe & Products and Hanson Pipe & Precast."
+  },
+  {
+   "name": "Txm",
+   "why": "Could not be identified from the name; the plants are ready-mix sites around Austin and San Antonio."
+  },
+  {
+   "name": "Westinghouse Electric",
+   "why": "The rows are plants of the old Westinghouse; today's Westinghouse Electric Company is its nuclear business only."
+  },
+  {
+   "name": "Atlas Asphalt",
+   "why": "A small local firm; no site could be confirmed."
+  },
+  {
+   "name": "Bethlehem Steel",
+   "why": "Closed in 2003."
+  },
+  {
+   "name": "Borden Chemical",
+   "why": "Became Hexion in 2005."
+  },
+  {
+   "name": "Southern Concrete",
+   "why": "A cut-off name: the plants are Southern Concrete Materials' of Asheville."
+  },
+  {
+   "name": "Stormwater",
+   "why": "Not a company: rows taken from a Kansas permit list. The same for Air."
+  },
+  {
+   "name": "Aeroquip",
+   "why": "Part of Eaton since 1999."
+  },
+  {
+   "name": "Asphalt Products",
+   "why": "Several unrelated companies use this name. The same for Asphalt and Concrete."
+  },
+  {
+   "name": "Handy & Harman",
+   "why": "Now part of Steel Partners, with no site of its own."
+  },
+  {
+   "name": "Outboard Marine",
+   "why": "Bankrupt in 2000."
+  },
+  {
+   "name": "Valspar",
+   "why": "Bought by Sherwin-Williams in 2017; valspar.com is a paint brand's site."
+  },
+  {
+   "name": "Allied Concrete",
+   "why": "Mostly the Charlottesville company, but one plant belongs to a New Jersey firm of the same name."
+  },
+  {
+   "name": "American Demolition",
+   "why": "A local demolition contractor, not a manufacturer. The same for Alpine Demolition Services."
+  },
+  {
+   "name": "Ashland Chemical",
+   "why": "A former division of Ashland, since sold in parts."
+  },
+  {
+   "name": "Baldor Electric",
+   "why": "Part of ABB since 2011. The same for Thomas & Betts."
+  },
+  {
+   "name": "Berry Plastics",
+   "why": "Became Berry Global, which merged into Amcor in 2025; berryglobal.com now forwards to Amcor."
+  },
+  {
+   "name": "Bestway Concrete",
+   "why": "Bought by Burnco in 2019."
+  },
+  {
+   "name": "Builders Supply",
+   "why": "Several unrelated companies use this name."
+  },
+  {
+   "name": "Ferro",
+   "why": "Became part of Vibrantz Technologies in 2022."
+  },
+  {
+   "name": "White Consolidated Ind",
+   "why": "Part of Electrolux since 1986."
+  },
+  {
+   "name": "A & a Concrete Supply",
+   "why": "A small local firm."
+  },
+  {
+   "name": "A Materials Group",
+   "why": "Its site does not answer."
+  },
+  {
+   "name": "Alcan Aluminum",
+   "why": "Split between Rio Tinto and Novelis."
+  },
+  {
+   "name": "Allegheny Teledyne",
+   "why": "Split in 1999 into ATI and Teledyne."
+  },
+  {
+   "name": "Allen Group",
+   "why": "Could not be identified."
+  },
+  {
+   "name": "American Home Products",
+   "why": "Became Wyeth, now part of Pfizer."
+  },
+  {
+   "name": "Asc",
+   "why": "American Specialty Cars closed in 2017."
+  },
+  {
+   "name": "Automotive Components Holdings",
+   "why": "A temporary Ford company for former Visteon plants, since wound up."
+  },
+  {
+   "name": "Barnes Group",
+   "why": "Taken private in 2025; its sites did not answer, so the domain could not be confirmed."
+  },
+  {
+   "name": "Bay Valley Foods",
+   "why": "TreeHouse Foods' operating company, with no site of its own."
+  },
+  {
+   "name": "Brower Construction",
+   "why": "A small local firm."
+  },
+  {
+   "name": "Portrait Innovations",
+   "why": "A portrait studio chain that closed in 2019; not a manufacturer."
+  },
+  {
+   "name": "Mm",
+   "why": "A cut-off name: the plants are Martin Marietta's."
+  },
+  {
+   "name": "Centex Materials",
+   "why": "Could not be confirmed."
+  },
+  {
+   "name": "Hixson Lumber",
+   "why": "Could not be confirmed."
+  },
+  {
+   "name": "Tuboscope Vetco International",
+   "why": "Part of NOV."
+  },
+  {
+   "name": "Union Carbide",
+   "why": "A Dow subsidiary; unioncarbide.com is served by Dow."
+  },
+  {
+   "name": "Antelope Oil Tool and Manufacturing",
+   "why": "Bought by Innovex in 2016."
+  },
+  {
+   "name": "Atrium Companies",
+   "why": "Now part of Cornerstone Building Brands."
+  },
+  {
+   "name": "Austin Foam Plastics",
+   "why": "Its old domain is for sale."
+  },
+  {
+   "name": "Clif Mock",
+   "why": "Its site does not answer."
+  },
+  {
+   "name": "Dragon Products",
+   "why": "The Texas company's site was unavailable, and a Maine cement maker has the same name."
+  },
+  {
+   "name": "Equistar Chemicals",
+   "why": "LyondellBasell's operating company: a row to merge."
+  },
+  {
+   "name": "Gleco Plating",
+   "why": "A small local firm."
+  },
+  {
+   "name": "Justin Industries",
+   "why": "Bought by Berkshire Hathaway in 2000 and split into Justin Brands and Acme Brick."
+  },
+  {
+   "name": "Royal Baths Manufacturing",
+   "why": "Its old domain forwards to a differently named company."
+  },
+  {
+   "name": "Age Industries",
+   "why": "Its domain is for sale."
+  },
+  {
+   "name": "Agrilink Foods",
+   "why": "Became Birds Eye Foods in 2003."
+  },
+  {
+   "name": "American Desk Manufacturing",
+   "why": "Closed."
+  },
+  {
+   "name": "Aquatic Industries",
+   "why": "Now part of American Bath Group."
+  },
+  {
+   "name": "Alaska Pulp",
+   "why": "Closed in 1993."
+  },
+  {
+   "name": "Agrium US",
+   "why": "Became Nutrien in 2018."
+  },
+  {
+   "name": "Alaska Wild Seafood Partners",
+   "why": "Could not be identified."
+  },
+  {
+   "name": "Anchorage Tank and Welding",
+   "why": "A small local firm."
+  },
+  {
+   "name": "Ready Mix USA",
+   "why": "Now part of Cemex."
+  },
+  {
+   "name": "Abc Block & Brick",
+   "why": "A small local firm."
+  },
+  {
+   "name": "Hanson Aggregates Arizona",
+   "why": "Hanson's US business is now Heidelberg Materials."
+  },
+  {
+   "name": "Aluminum Finishing",
+   "why": "Several unrelated companies use this name. The same for American Printing."
+  },
+  {
+   "name": "Bayou Concrete",
+   "why": "The site with this name belongs to a New Orleans contractor, not the Mobile ready-mix company."
+  },
+  {
+   "name": "Baumgarten",
+   "why": "Small or closed firms in the District of Columbia: Baumgarten, Art Display, Baldwin Graphics, Ballauf, Best Printer, British Embassy Print Services, Embassy Dairy, Fort Totten Ready Mix Concrete."
+  },
+  {
+   "name": "Hma Concrete",
+   "why": "Small local firms in Delaware: Hma Concrete, Bear Materials, Atlantic Concrete (the site of that name is a Pennsylvania company's)."
+  },
+  {
+   "name": "C Brewer &",
+   "why": "Closed. The same for Amfac/jmb Hawaii."
+  },
+  {
+   "name": "Bonded Materials",
+   "why": "Small local firms in Hawaii: Bonded Materials, Bei Hawaii, C & S Services."
+  },
+  {
+   "name": "Ideal Ready Mix",
+   "why": "Its site does not answer."
+  },
+  {
+   "name": "Allied Construction",
+   "why": "Several unrelated companies use this name."
+  },
+  {
+   "name": "Bandag",
+   "why": "Part of Bridgestone since 2007."
+  },
+  {
+   "name": "Anodizers",
+   "why": "Small local firms in Idaho: Anodizers, A. H. Schade, Black Pine Cabinets, Dairymen's Creamery Association, Kinetic."
+  },
+  {
+   "name": "Builders Asphalt",
+   "why": "Its site does not answer."
+  },
+  {
+   "name": "Century Manufacturing",
+   "why": "Small local firms in Kansas: Century Manufacturing, Abram Ready Mix, Bert & Wetta Sales, Builders Concrete & Supply."
+  },
+  {
+   "name": "Bundy",
+   "why": "Now TI Fluid Systems."
+  },
+  {
+   "name": "Angelle Concrete Group",
+   "why": "Its site does not answer."
+  },
+  {
+   "name": "Arundel",
+   "why": "The Arundel Corporation no longer exists."
+  },
+  {
+   "name": "Aai",
+   "why": "AAI Corporation is now Textron Systems."
+  },
+  {
+   "name": "C & D Concrete",
+   "why": "A small local firm."
+  },
+  {
+   "name": "Auburn Asphalt",
+   "why": "Small local firms in Maine: Auburn Asphalt, Auburn Concrete, A. C. Electric, Fiberglass Plus Recreational Industries, Maine Rubber."
+  },
+  {
+   "name": "American Tissue",
+   "why": "Bankrupt in 2001."
+  },
+  {
+   "name": "Barber Foods",
+   "why": "Now a Tyson brand; barberfoods.com forwards to Tyson."
+  },
+  {
+   "name": "Taylor",
+   "why": "The rows mix Taylor Corporation's printing plants with Taylor Machine Works."
+  },
+  {
+   "name": "Bleigh Ready Mix",
+   "why": "Its site does not answer."
+  },
+  {
+   "name": "Ballard Contractors",
+   "why": "A small local firm."
+  },
+  {
+   "name": "Furniture Brands International",
+   "why": "Bankrupt in 2013. The same for Ladd Furniture."
+  },
+  {
+   "name": "Alchem",
+   "why": "The rows are unrelated companies named Alchem."
+  },
+  {
+   "name": "Agricultural Services",
+   "why": "Small local firms in Nebraska: Agricultural Services, Arps Red-e-mix, American Ethanol, Aurora."
+  },
+  {
+   "name": "Atrium Medical",
+   "why": "Part of Getinge."
+  },
+  {
+   "name": "Axsys Technologies",
+   "why": "Part of General Dynamics."
+  },
+  {
+   "name": "Beede Electrical Instrument",
+   "why": "Closed."
+  },
+  {
+   "name": "C and E Concrete",
+   "why": "Small local firms in New Mexico: C and E Concrete, Btu Block and Concrete."
+  },
+  {
+   "name": "Bj Services",
+   "why": "Bankrupt in 2020."
+  },
+  {
+   "name": "Advent Solar",
+   "why": "Closed."
+  },
+  {
+   "name": "3d Concrete",
+   "why": "Small local firms in Nevada: 3d Concrete, American Ready Mix, A-1 Plating, Service Rock Products."
+  },
+  {
+   "name": "A G Equipment",
+   "why": "Small local firms in Oklahoma: A G Equipment, Bcm Oklahoma."
+  },
+  {
+   "name": "Srm",
+   "why": "SRM Inc. of Oklahoma City; the well-known SRM Concrete is a different, Tennessee company."
+  },
+  {
+   "name": "Bohemia",
+   "why": "Closed."
+  },
+  {
+   "name": "Antaya Technologies",
+   "why": "Part of Aptiv."
+  },
+  {
+   "name": "Atp Manufacturing",
+   "why": "Small local firms in Rhode Island: Atp Manufacturing, Advanced Chemical, Accent Plating."
+  },
+  {
+   "name": "Cranston Print Works",
+   "why": "Its old domain is for sale."
+  },
+  {
+   "name": "Avondale Mills",
+   "why": "Closed in 2006."
+  },
+  {
+   "name": "Anza",
+   "why": "The plants are Midcom's; Anza could not be identified."
+  },
+  {
+   "name": "Atlas Hydraulics",
+   "why": "Small local firms in South Dakota: Atlas Hydraulics, Dakota Mfg."
+  },
+  {
+   "name": "Atlantic Soft Drink",
+   "why": "A small local firm."
+  },
+  {
+   "name": "Accra Fab",
+   "why": "Small local firms in Washington: Accra Fab, Ampac Enterprises."
+  },
+  {
+   "name": "Alliance Industries",
+   "why": "Could not be identified."
+  },
+  {
+   "name": "Coastal Lumber",
+   "why": "Closed."
+  },
+  {
+   "name": "Ac&s",
+   "why": "Small local firms in West Virginia: Ac&s, Appalachian Paving & Aggregate, Appalachian Timber Services."
+  },
+  {
+   "name": "Amo",
+   "why": "A cut-off name: the plants are Amoco's, now BP."
+  }
+ ]
+}

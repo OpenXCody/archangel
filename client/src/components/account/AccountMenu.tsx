@@ -31,7 +31,7 @@ import { useViewer } from '../../lib/viewer';
 export function accountPageTitle(pathname: string, isAdmin: boolean): string | null {
   if (pathname === '/sign-in') return 'Sign in';
   if (pathname === '/me') return 'Profile';
-  if (pathname === '/employer') return 'Employer';
+  if (pathname === '/employer') return 'Your jobs';
   if (pathname === '/settings') return 'Settings';
   if (pathname === '/admin') return isAdmin ? 'Admin Tools' : null;
   return null;
@@ -69,10 +69,12 @@ function useSeenOnVisit(news: News | undefined): void {
  * out; signed in, the person's name opening a small menu. Below `lg` it
  * collapses to an icon, as the nav items do.
  *
- * The menu leads with the person's own place: a seeker's page, an employer's
- * jobs, and Admin Tools for an admin. Then settings and signing out, the same
- * for everyone. The other side's page is listed only when something new is
- * waiting there, so the dot always leads somewhere.
+ * The menu leads with the person's own place: a seeker's profile, and Admin
+ * Tools for an admin. Then settings and signing out, the same for everyone.
+ * An employer's jobs are in the header ("Your jobs"), so the menu does not
+ * say them again; it lists them only while applicants are waiting there, as
+ * it lists a profile for someone here to hire only while an application has
+ * news, so the dot always leads somewhere.
  */
 export default function AccountMenu() {
   const location = useLocation();
@@ -111,10 +113,11 @@ export default function AccountMenu() {
 
   const initial = user.name.trim().charAt(0).toUpperCase() || '?';
   const roles = data ? accountRoles(data) : [];
-  // Each person's own page; the other one only while it has news. An admin viewing as
-  // someone else sees exactly that person's menu.
+  // A seeker's profile; for anyone else only while it has news. Jobs only while applicants
+  // are waiting: an employer's header already leads there. An admin viewing as someone
+  // else sees exactly that person's menu.
   const showsPage = viewer.seeker || Boolean(news?.applications && !viewer.viewingAs);
-  const showsJobs = viewer.employer || Boolean(news?.applicants && !viewer.viewingAs);
+  const showsJobs = Boolean(news?.applicants) && (viewer.employer || !viewer.viewingAs);
   // One dot, never a count. In the menu the page with the news stays bright and the others step back.
   const hasNews = Boolean(
     news && ((news.applications && showsPage) || (news.applicants && showsJobs) || (news.access && viewer.admin))
@@ -191,7 +194,7 @@ export default function AccountMenu() {
             </Link>
           </DropdownMenuItem>
         )}
-        <DropdownMenuSeparator className="bg-[color:var(--color-border-subtle)]" />
+        {(showsPage || showsJobs || viewer.admin) && <DropdownMenuSeparator className="bg-[color:var(--color-border-subtle)]" />}
         {/* The account itself, the theme, what the account is for and, for an admin, "View as". */}
         <DropdownMenuItem asChild className={restItemClass}>
           <Link to="/settings">
@@ -201,10 +204,12 @@ export default function AccountMenu() {
         </DropdownMenuItem>
         <DropdownMenuItem
           className={restItemClass}
-          disabled={signOut.isPending}
+          // Busy, not disabled: a disabled item would drop the keyboard's place in the menu.
+          aria-busy={signOut.isPending || undefined}
           onSelect={(event) => {
             // Keep the menu open until the session has really ended, so a failure can be shown here.
             event.preventDefault();
+            if (signOut.isPending) return;
             signOut.mutate(undefined, { onSuccess: () => setOpen(false) });
           }}
         >

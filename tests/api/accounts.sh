@@ -67,6 +67,46 @@ expect "API does not name its framework"  0 "$(printf '%s' "$HDRS" | grep -c '^x
 check "pins with a made-up parameter"     400 "$(req anon GET '/factories/pins?_=1')" 'Unknown query parameter'
 # Vercel's rewrite adds the matched path to the query of every API request.
 check "pins as Vercel's rewrite sends them" 200 "$(req anon GET '/factories/pins?path=factories/pins')"
+
+# --- A company with one plant ---------------------------------------------------
+# Its page leads with that plant's own facts, so the company's answer carries the plant's
+# address and, with no careers recorded there, the careers typical of the plant's industry.
+ONE=$(psql "$DB" -tAc "SELECT f.company_id FROM factories f WHERE f.primary_naics_description IN (SELECT industry FROM industry_occupations) AND f.address IS NOT NULL AND NOT EXISTS (SELECT 1 FROM factory_occupations fo WHERE fo.factory_id = f.id) AND (SELECT COUNT(*) FROM factories g WHERE g.company_id = f.company_id) = 1 ORDER BY f.id LIMIT 1")
+if [ -n "$ONE" ]; then
+  OUT=$(req anon GET "/companies/$ONE")
+  check "a one-plant company carries the plant's address" 200 "$OUT" '"factories":\[{[^]]*"address":"'
+  check "and the careers of the plant's industry"          200 "$OUT" '"typicalCareers":\[{"id":"'
+else
+  echo "ok    (no one-plant company with an address and an industry in this database: skipped)"
+fi
+MANY=$(psql "$DB" -tAc "SELECT company_id FROM factories WHERE company_id IS NOT NULL GROUP BY 1 HAVING COUNT(*) > 1 ORDER BY 1 LIMIT 1")
+[ -n "$MANY" ] && check "a company with several plants lists no typical careers" 200 "$(req anon GET "/companies/$MANY")" '"typicalCareers":\[\]'
+# A career's plants say which town they are in.
+WITH_PLANTS=$(psql "$DB" -tAc "SELECT occupation_id FROM factory_occupations ORDER BY 1 LIMIT 1")
+[ -n "$WITH_PLANTS" ] && check "a career's plants carry their town" 200 "$(req anon GET "/occupations/$WITH_PLANTS")" '"factories":\[{"id":"[^"]*","name":"[^"]*","city":'
+
+# --- Factories by people -------------------------------------------------------
+# Plants whose headcount is known come first, the largest first; the rest follow by name.
+KNOWN=$(psql "$DB" -tAc "SELECT COUNT(*) FROM factories WHERE workforce_size IS NOT NULL")
+ordered() { # prints ok when known headcounts lead, largest first
+  node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const rows=JSON.parse(s.split('\n').slice(0,-1).join('\n')).data;let bad='';
+    for(let i=1;i<rows.length;i++){const [a,b]=[rows[i-1],rows[i]];
+      if(a.workforceSize===null&&b.workforceSize!==null)bad='a known headcount after an unknown one';
+      else if(a.workforceSize!==null&&b.workforceSize!==null&&a.workforceSize<b.workforceSize)bad='a larger plant after a smaller one';}
+    console.log(bad||(rows.length>1?'ok':'too few rows'))})"
+}
+ids() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s.split('\n').slice(0,-1).join('\n')).data.map(r=>r.id).join(',')))"; }
+OUT=$(req anon GET '/factories?sort=workforceSize&order=desc&limit=50')
+check "factories by people"              200 "$OUT" '"workforceSize":'
+expect "the largest plants lead"         ok "$(printf '%s' "$OUT" | ordered)"
+check "a row says what year the figure is for" 200 "$OUT" '"workforceYear":'
+EDGE=$(( KNOWN > 5 ? KNOWN - 5 : 0 ))
+OUT=$(req anon GET "/factories?sort=workforceSize&order=desc&limit=40&offset=$EDGE")
+expect "where known ends, the unknown follow" ok "$(printf '%s' "$OUT" | ordered)"
+# By name as the database orders names (its collation decides), the registry number some names carry set aside.
+expect "by name"                         "$(psql "$DB" -tAc "SELECT string_agg(id::text, ',') FROM (SELECT id FROM factories ORDER BY workforce_size DESC NULLS LAST, lower(regexp_replace(name, '^#?[0-9]+ +[-–] *', '')) ASC, id LIMIT 40 OFFSET $EDGE) s")" "$(printf '%s' "$OUT" | ids)"
+expect "and the same within a state"     ok "$(req anon GET '/factories?sort=workforceSize&order=desc&limit=40&state=TX' | ordered)"
+check "the list as Vercel's rewrite sends it" 200 "$(req anon GET '/factories?sort=workforceSize&order=desc&limit=2&path=factories')" '"limit":2'
 check "state counts as the rewrite sends them" 200 "$(req anon GET '/map/state-counts?path=map/state-counts')"
 check "state counts with one"             400 "$(req anon GET '/map/state-counts?x=1')" 'Unknown query parameter'
 check "state counts as the map asks"      200 "$(req anon GET /map/state-counts)"

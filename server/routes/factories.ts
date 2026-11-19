@@ -8,6 +8,7 @@ import { packPins } from '../../shared/pins.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalText, requiredText, stateCode } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
+import { sourcesOf } from '../lib/sources.js';
 import { refuseDeleteWithJobs } from '../lib/writes.js';
 
 /** A company with this many factories nationwide counts as established. */
@@ -60,15 +61,17 @@ router.get('/', async (req: Request, res: Response) => {
     const total = countResult[0]?.count ?? 0;
 
     // Build order by clause
+    // The name as it is shown: without the registry number some rows carry
+    // in front ("105123 - Caterpillar"), and whatever its case.
+    const shownName = sql`lower(regexp_replace(${factories.name}, '^#?[0-9]+ +[-–] *', ''))`;
     let orderByClause;
     if (sort === 'workforceSize') {
+      // Plants with a known headcount first, largest first (or smallest
+      // first); the rest after them, by name.
       orderByClause = order === 'desc'
-        ? sql`${factories.workforceSize} DESC NULLS LAST, ${factories.name} ASC`
-        : sql`${factories.workforceSize} ASC NULLS LAST, ${factories.name} ASC`;
+        ? sql`${factories.workforceSize} DESC NULLS LAST, ${shownName} ASC, ${factories.id}`
+        : sql`${factories.workforceSize} ASC NULLS LAST, ${shownName} ASC, ${factories.id}`;
     } else {
-      // The name as it is shown: without the registry number some rows carry
-      // in front ("105123 - Caterpillar"), and whatever its case.
-      const shownName = sql`lower(regexp_replace(${factories.name}, '^#?[0-9]+ +[-–] *', ''))`;
       orderByClause = order === 'desc' ? sql`${shownName} DESC, ${factories.id}` : sql`${shownName} ASC, ${factories.id}`;
     }
 
@@ -88,6 +91,13 @@ router.get('/', async (req: Request, res: Response) => {
         longitude: factories.longitude,
         state: factories.state,
         workforceSize: factories.workforceSize,
+        workforceYear: factories.workforceYear,
+        workforceSource: factories.workforceSource,
+        workforceNote: factories.workforceNote,
+        products: factories.products,
+        openedYear: factories.openedYear,
+        status: factories.status,
+        curated: factories.curated,
         openPositions: factories.openPositions,
         createdAt: factories.createdAt,
         occupationCount: sql<number>`(SELECT COUNT(*)::int FROM factory_occupations WHERE factory_occupations.factory_id = factories.id)`,
@@ -214,6 +224,13 @@ router.get('/:id', async (req: Request, res: Response) => {
         state: factories.state,
         industry: factories.primaryNaicsDescription,
         workforceSize: factories.workforceSize,
+        workforceYear: factories.workforceYear,
+        workforceSource: factories.workforceSource,
+        workforceNote: factories.workforceNote,
+        products: factories.products,
+        openedYear: factories.openedYear,
+        status: factories.status,
+        curated: factories.curated,
         openPositions: factories.openPositions,
         createdAt: factories.createdAt,
       })
@@ -221,7 +238,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       .where(and(eq(factories.id, id), factoryInScope()));
 
     if (factoryResult.length === 0) {
-      res.status(404).json({ error: 'Factory not found' });
+      res.status(404).json({ error: 'Plant not found' });
       return;
     }
 
@@ -320,6 +337,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     res.json({
       ...factory,
       company,
+      // Where its facts came from, for the foot of the page.
+      sources: await sourcesOf('factories', id),
       nearby,
       typicalCareers,
       occupations: factoryOccupationsResult,
@@ -332,7 +351,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 const FACTORY_NEEDS =
-  'A factory needs a company, a name, a state, a latitude from -90 to 90 and a longitude from -180 to 180.';
+  'A plant needs a company, a name, a state, a latitude from -90 to 90 and a longitude from -180 to 180.';
 
 // POST /api/factories - Create factory
 router.post('/', async (req: Request, res: Response) => {
@@ -367,7 +386,7 @@ router.post('/', async (req: Request, res: Response) => {
       .where(and(eq(factories.companyId, companyId), eq(factories.state, state), sql`lower(${factories.name}) = lower(${cleanName})`))
       .limit(1);
     if (existing) {
-      answerDuplicate(res, 'factory', existing, 'That company already has a factory with that name in that state.');
+      answerDuplicate(res, 'factory', existing, 'That company already has a plant with that name in that state.');
       return;
     }
 
@@ -411,10 +430,10 @@ router.delete('/:id', async (req: Request, res: Response) => {
     if (await refuseDeleteWithJobs(res, 'factory', req.params.id)) return;
     const gone = await removeRecord('factory', req.params.id, req.user!);
     if (!gone) {
-      res.status(404).json({ error: 'Factory not found' });
+      res.status(404).json({ error: 'Plant not found' });
       return;
     }
-    res.json({ message: 'Factory deleted', id: gone.id, removed: gone.removed });
+    res.json({ message: 'Plant deleted', id: gone.id, removed: gone.removed });
   } catch (error) {
     console.error('Error deleting factory:', error);
     res.status(500).json({ error: 'Failed to delete factory' });

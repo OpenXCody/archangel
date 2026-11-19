@@ -23,9 +23,29 @@ export interface RelatedFactory {
   city?: string | null;
   state: string | null;
   workforceSize: number | null;
+  /** The year the headcount is for. */
+  workforceYear?: number | null;
+  /** One line on what is made there. */
+  products?: string | null;
+  status?: FactoryStatus;
   openPositions: number | null;
   latitude?: string | null;
   longitude?: string | null;
+  /** On a company's page: the street address, where the people figure was read, and the year production started. */
+  address?: string | null;
+  workforceSource?: string | null;
+  workforceNote?: string | null;
+  openedYear?: number | null;
+  curated?: boolean;
+}
+
+/** Whether a plant is running yet. */
+export type FactoryStatus = 'operating' | 'under construction';
+
+/** Where a record's facts came from: a site's name and the page. */
+export interface RecordSource {
+  label: string;
+  url: string;
 }
 
 export interface RelatedCompany {
@@ -79,6 +99,7 @@ export interface CareerJob {
 export interface RelatedFactoryWithHeadcount {
   id: string;
   name: string;
+  city?: string | null;
   state: string | null;
   companyId: string | null;
   companyName: string | null;
@@ -124,6 +145,16 @@ export interface CompanyDetail extends Company {
   jobs?: CareerJob[];
   factories: RelatedFactory[];
   occupations?: CompanyOccupation[];
+  /** The company this one is part of. */
+  parent?: { id: string; name: string; slug: string | null; domain: string | null } | null;
+  /** The companies that are part of this one, the one with the most sites first. */
+  subsidiaries?: { id: string; name: string; slug: string | null; domain: string | null; industry: string | null; factoryCount: number }[];
+  headquarters?: { city: string; state: string | null; country: string | null } | null;
+  /** People in a state, where a source says how many. */
+  peopleByState?: { state: string; people: number; year: number | null; source: string | null; note: string | null }[];
+  sources?: RecordSource[];
+  /** For a company with one plant and no careers recorded there: the careers typical of that plant's industry. */
+  typicalCareers?: { id: string; title: string }[];
 }
 
 export interface Factory {
@@ -140,7 +171,19 @@ export interface Factory {
   state: string | null;
   /** What the site makes, from its industry classification. */
   industry?: string | null;
+  /** People working at the site, when a source says how many. */
   workforceSize: number | null;
+  /** The year that figure is for, where it is stated, and anything to know about it. */
+  workforceYear?: number | null;
+  workforceSource?: string | null;
+  workforceNote?: string | null;
+  /** One line on what is made there. */
+  products?: string | null;
+  /** The year production started. */
+  openedYear?: number | null;
+  status?: FactoryStatus;
+  /** Its facts were written from sources, not only a facility list. */
+  curated?: boolean;
   openPositions: number | null;
   createdAt: string;
   occupationCount?: number;
@@ -179,6 +222,8 @@ export interface FactoryDetail extends Factory {
   /** Careers typical of this plant's industry, when none are recorded for the plant itself. */
   typicalCareers?: { id: string; title: string }[];
   occupations: RelatedOccupation[];
+  /** Where the plant's facts came from. */
+  sources?: RecordSource[];
 }
 
 export interface Occupation {
@@ -559,7 +604,13 @@ export interface ExploreOverview {
 
 /** What the browse lists can be filtered by, from every row. */
 export interface ExploreFacets {
-  companyIndustries: string[];
+  /**
+   * Of the 21 industries, those some plant carries and those that are some
+   * company's industry (the one most of its plants are in), by the name a
+   * plant carries. Absent from an answer cached before this field existed.
+   */
+  industries?: { plants: string[]; companies: string[] };
+  /** The same list as `industries.plants`, under its older name. */
   factoryIndustries: string[];
   skillCategories: string[];
 }

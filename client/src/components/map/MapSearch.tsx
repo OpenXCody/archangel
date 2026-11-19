@@ -9,29 +9,28 @@ import {
   type KeyboardEvent,
   type ElementType,
 } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Search,
-  X,
-  Building2,
-  Factory,
-  Briefcase,
-  Wrench,
-  MapPin,
-  MapPinned,
-  Navigation,
-  Loader2,
-  Filter,
-  Check,
-} from 'lucide-react';
-import { exploreApi, searchApi, type SearchResultItem } from '../../lib/api';
+import { Search, X, Building2, Briefcase, Loader2, Filter, Check } from 'lucide-react';
+import { exploreApi, searchApi, type SearchEntityType } from '../../lib/api';
 import { placeSearchAvailable, searchPlaces, type Place } from '../../lib/geocode';
 import { useMapStore, type MapPlace } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
-import { FOCUS_AREAS, type Bounds, type FocusArea } from '@shared/scope';
-import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import { FOCUS_AREAS, type Bounds } from '@shared/scope';
 import { industryLabel } from '@shared/industry';
 import { readStored, writeStored } from '../../lib/storage';
+import CompanyLogo from '../CompanyLogo';
+import {
+  groupHeading,
+  groupRows,
+  matchScore,
+  noResults,
+  recordRows,
+  regionRows,
+  ROWS_PER_GROUP,
+  type SearchGroup,
+  type SearchRow,
+} from '../search/results';
 
 /** The sentence a first visit is given, once. */
 // client/index.html carries the same sentence as the page's description.
@@ -50,51 +49,10 @@ function markSeen(): void {
   writeStored(SEEN_KEY, '1');
 }
 
-type GroupId = 'regions' | 'companies' | 'occupations' | 'factories' | 'skills' | 'places';
-
-const GROUPS: Record<GroupId, { icon: ElementType; heading: string }> = {
-  regions: { icon: MapPin, heading: 'States and areas' },
-  companies: { icon: Building2, heading: 'Companies' },
-  occupations: { icon: Briefcase, heading: 'Careers' },
-  factories: { icon: Factory, heading: 'Plants' },
-  skills: { icon: Wrench, heading: 'Skills' },
-  places: { icon: Navigation, heading: 'Places' },
-};
-
-/**
- * The order groups fall back to when their best matches are equally good.
- * What we hold comes first, in the order a person is likeliest to mean it;
- * places from the geocoder always come last, whatever they match.
- */
-const OWN_GROUPS: Exclude<GroupId, 'places'>[] = ['regions', 'companies', 'occupations', 'factories', 'skills'];
-
-/** One row of the results. */
-type ResultRow = { key: string; title: string; subtitle?: string; score: number } & (
-  | { kind: 'area'; area: FocusArea }
-  | { kind: 'state'; code: string }
-  | { kind: 'company' | 'occupation' | 'factory' | 'skill'; id: string }
-  | { kind: 'place'; place: Place }
-);
+/** What the API is asked for: the kinds the map can show. States, focus areas and places come from elsewhere. */
+const ASKED: SearchEntityType[] = ['companies', 'factories', 'occupations', 'skills'];
 
 const STATE_NAME: Record<string, string> = Object.fromEntries(US_STATES.map((s) => [s.code, s.name]));
-
-/** A name as it is said: "Tesla Inc." is "tesla", "Austin, TX" is "austin". */
-function spoken(name: string): string {
-  return name
-    .replace(/,.*$/, '')
-    .replace(/\s+(inc|incorporated|corp|corporation|co|company|llc|ltd|lp|plc)\.?$/i, '')
-    .trim();
-}
-
-/** How well a name answers what was typed: 4 it is the name, 3 it starts it, 2 it starts a word, 1 it is inside. */
-function matchScore(name: string, query: string): number {
-  const n = name.toLowerCase();
-  if (n === query || spoken(n) === query) return 4;
-  if (n.startsWith(query)) return 3;
-  if (n.split(/[\s,./&()-]+/).some((word) => word.startsWith(query))) return 2;
-  if (n.includes(query)) return 1;
-  return 0;
-}
 
 /** A box about three miles across around a point, for a place that is only a point (a street address). */
 function boxAround([lng, lat]: [number, number]): Bounds {
@@ -355,17 +313,28 @@ export default function MapSearch() {
   const setNotice = useMapStore((s) => s.setNotice);
   const filtersActive = useMapStore((s) => s.filters.industry !== null || s.filters.states.length > 0);
 
+  // The introduction is for the country with nothing chosen. A first visit
+  // that arrives on a state, a company or a plant (a shared link) has a panel
+  // saying what it is looking at; the sentence waits for the bare map. The
+  // address is read as well as the store, which takes it up a moment after
+  // the first paint.
+  const { search: address } = useLocation();
+  const nothingChosen = useMapStore(
+    (s) => s.selectedEntityType === null && !s.filters.company && !s.filters.career && s.filters.industry === null && s.filters.states.length === 0
+  );
+  const bare = nothingChosen && !/[?&](factory|state|area|skill|place|company|career|industry)=/.test(address);
+
   // The introduction and any notice are said until the person does something.
   // Whatever they do first (a tap on the map, a key, the wheel) ends the
   // introduction for good in this browser.
-  const caption = notice ?? (introduce ? INTRODUCTION : null);
+  const caption = notice ?? (introduce && bare ? INTRODUCTION : null);
   useEffect(() => {
     if (!caption) return;
     // A notice raised by this very click or key press must outlive it.
     const armedAt = performance.now();
     const dismiss = () => {
       if (performance.now() - armedAt < 400) return;
-      if (introduce) {
+      if (introduce && bare) {
         markSeen();
         setIntroduce(false);
       }
@@ -376,7 +345,7 @@ export default function MapSearch() {
     return () => {
       for (const name of events) window.removeEventListener(name, dismiss, { capture: true });
     };
-  }, [caption, introduce, notice, setNotice]);
+  }, [caption, introduce, bare, notice, setNotice]);
 
   // Debounce the query: briefly for our own API, longer for the geocoder,
   // which is a metered third-party service.
@@ -395,7 +364,7 @@ export default function MapSearch() {
   // are short fixed lists the client already has, so they need no request.
   const { data: searchResults, isFetching: searching } = useQuery({
     queryKey: ['map-search', debouncedQuery],
-    queryFn: () => searchApi.search(debouncedQuery, { limit: 5, types: ['companies', 'factories', 'occupations', 'skills'] }),
+    queryFn: () => searchApi.search(debouncedQuery, { limit: ROWS_PER_GROUP, types: ASKED }),
     enabled: hasQuery,
     staleTime: 30000,
   });
@@ -422,57 +391,18 @@ export default function MapSearch() {
     setPlacesMayLead(!listTouched.current);
   }, [places]);
 
-  // Results by group. What we hold is ranked by how well it answers what was
-  // typed, the best-matching group first. Places from the geocoder come
-  // last, with the one exception above. Keyboard navigation walks the same
-  // order, so the first row is what Enter takes.
-  const groups = useMemo(() => {
+  // Results by group, in the words and the order every search here uses
+  // (../search/results.ts). Places from the geocoder come last, with the one
+  // exception above. Keyboard navigation walks the same order, so the first
+  // row is what Enter takes.
+  const groups = useMemo((): SearchGroup[] => {
     if (!hasQuery) return [];
     const q = debouncedQuery.toLowerCase();
-    const own: Record<Exclude<GroupId, 'places'>, ResultRow[]> = {
-      regions: [],
-      companies: [],
-      occupations: [],
-      factories: [],
-      skills: [],
-    };
-
-    for (const area of FOCUS_AREAS) {
-      const score = matchScore(area.name, q);
-      if (score > 0) own.regions.push({ kind: 'area', key: `area-${area.id}`, area, title: area.name, subtitle: `Focus area · ${area.description}`, score });
-    }
-    for (const state of US_STATES) {
-      const score = state.code.toLowerCase() === q ? 4 : state.name.toLowerCase().startsWith(q) ? matchScore(state.name, q) : 0;
-      if (score > 0) own.regions.push({ kind: 'state', key: `state-${state.code}`, code: state.code, title: state.name, subtitle: 'State', score });
-    }
-
-    const add = (group: 'companies' | 'occupations' | 'factories' | 'skills', item: SearchResultItem) => {
-      const title =
-        group === 'factories' ? formatFactoryName(item.name) : group === 'companies' ? formatCompanyName(item.name) : item.name;
-      // A plant's row says where it is; the others carry their own line.
-      const subtitle =
-        group === 'factories'
-          ? [item.subtitle, item.meta ? (STATE_NAME[item.meta] ?? item.meta) : undefined].filter(Boolean).join(' · ') || undefined
-          : item.subtitle || undefined;
-      const kind = group === 'companies' ? 'company' : group === 'occupations' ? 'occupation' : group === 'factories' ? 'factory' : 'skill';
-      own[group].push({ kind, key: `${kind}-${item.id}`, id: item.id, title, subtitle, score: matchScore(title, q) });
-    };
-    for (const group of ['companies', 'occupations', 'factories', 'skills'] as const) {
-      for (const item of searchResults?.results[group]?.items ?? []) add(group, item);
-    }
-
-    const ranked = OWN_GROUPS.map((id, order) => {
-      // Stable: rows that match equally keep the order the server ranked them in.
-      const rows = own[id].map((row, i) => ({ row, i })).sort((a, b) => b.row.score - a.row.score || a.i - b.i).map(({ row }) => row);
-      return { id, rows: rows.slice(0, 5), best: rows[0]?.score ?? 0, order };
-    })
-      .filter((group) => group.rows.length > 0)
-      .sort((a, b) => b.best - a.best || a.order - b.order)
-      .map(({ id, rows }): { id: GroupId; rows: ResultRow[] } => ({ id, rows }));
+    const own = groupRows({ regions: regionRows(q), ...recordRows(searchResults, q) });
 
     // Only places looked up for exactly what is typed now.
     const current = placesEnabled && placeQuery === debouncedQuery ? (places ?? []) : [];
-    const placeRows: ResultRow[] = current.map((place) => ({
+    const placeRows: SearchRow[] = current.map((place) => ({
       kind: 'place',
       key: `place-${place.id}`,
       place,
@@ -480,11 +410,11 @@ export default function MapSearch() {
       subtitle: place.context || undefined,
       score: matchScore(place.name, q),
     }));
-    if (placeRows.length === 0) return ranked;
-    const placeGroup = { id: 'places' as GroupId, rows: placeRows };
-    const ownBest = Math.max(0, ...ranked.flatMap((group) => group.rows.map((row) => row.score)));
+    if (placeRows.length === 0) return own;
+    const placeGroup: SearchGroup = { id: 'places', rows: placeRows };
+    const ownBest = Math.max(0, ...own.flatMap((group) => group.rows.map((row) => row.score)));
     const namedExactly = placeRows[0].score === 4 && ownBest < 4;
-    return namedExactly && placesMayLead ? [placeGroup, ...ranked] : [...ranked, placeGroup];
+    return namedExactly && placesMayLead ? [placeGroup, ...own] : [...own, placeGroup];
   }, [hasQuery, debouncedQuery, searchResults, places, placesEnabled, placeQuery, placesMayLead]);
   const rows = useMemo(() => groups.flatMap((group) => group.rows), [groups]);
 
@@ -497,7 +427,7 @@ export default function MapSearch() {
 
   // Act on a result. Everything stays on the map.
   const chooseRow = useCallback(
-    (row: ResultRow) => {
+    (row: SearchRow) => {
       close();
       switch (row.kind) {
         case 'area':
@@ -525,6 +455,10 @@ export default function MapSearch() {
         case 'skill':
           selectEntity('skill', row.id);
           return;
+        case 'industry':
+        case 'job':
+          // Not asked for here: the map has no panel for either.
+          return;
       }
     },
     [close, selectArea, selectEntity, selectFactory, selectPlace, selectState]
@@ -533,7 +467,7 @@ export default function MapSearch() {
   const listOpen = isFocused && hasQuery;
   const stillSearching = searching || (placesEnabled && placesLoading);
   const activeRow = listOpen ? rows[selectedIndex] : undefined;
-  const optionId = (row: ResultRow) => `${baseId}-${row.key}`;
+  const optionId = (row: SearchRow) => `${baseId}-${row.key}`;
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
@@ -628,7 +562,8 @@ export default function MapSearch() {
             onFocus={() => setIsFocused(true)}
             onKeyDown={onKeyDown}
             placeholder="Place, company or career"
-            aria-label="Search places, companies, plants, careers and skills"
+            // Heard as it is read.
+            aria-label="Place, company or career"
             className="map-field min-w-0 flex-1 text-ellipsis bg-transparent text-fg-default placeholder:text-fg-muted"
             style={{ outline: 'none', border: 'none', boxShadow: 'none', WebkitAppearance: 'none' }}
           />
@@ -685,18 +620,15 @@ export default function MapSearch() {
           {listOpen && rows.length > 0 && (
             <div className="py-1.5">
               {groups.map((group) => {
-                const config = GROUPS[group.id];
-                const Icon = config.icon;
                 const headingId = `${baseId}-group-${group.id}`;
                 return (
                   <div key={group.id} role="group" aria-labelledby={headingId} className="px-2 py-1.5">
                     <div id={headingId} role="presentation" className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                      {config.heading}
+                      {groupHeading(group.id)}
                     </div>
                     {group.rows.map((row) => {
                       const index = rows.indexOf(row);
                       const active = index === selectedIndex;
-                      const RowIcon = row.kind === 'area' ? MapPinned : Icon;
                       return (
                         <div
                           key={row.key}
@@ -712,7 +644,8 @@ export default function MapSearch() {
                           }}
                           className={`map-row flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 ${active ? 'bg-tint/10' : ''}`}
                         >
-                          <RowIcon className="h-4 w-4 shrink-0 text-fg-muted" aria-hidden="true" />
+                          {/* A company by its logo; every other row by the group it is in. */}
+                          {row.kind === 'company' && <CompanyLogo name={row.title} domain={row.domain} size={24} className="rounded" />}
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm text-fg-default">{row.title}</span>
                             {row.subtitle && <span className="block truncate text-xs text-fg-muted">{row.subtitle}</span>}
@@ -728,7 +661,7 @@ export default function MapSearch() {
         </div>
         {/* Said, not only shown: a screen reader hears how the search came out. */}
         <p role="status" className={listOpen && rows.length === 0 && !stillSearching ? 'border-t border-border-strong px-4 py-3 text-sm text-fg-muted' : 'sr-only'}>
-          {!listOpen ? '' : stillSearching && rows.length === 0 ? '' : rows.length === 0 ? `No results for “${debouncedQuery}”.` : `${rows.length} ${rows.length === 1 ? 'result' : 'results'}.`}
+          {!listOpen ? '' : stillSearching && rows.length === 0 ? '' : rows.length === 0 ? noResults(debouncedQuery) : `${rows.length} ${rows.length === 1 ? 'result' : 'results'}.`}
         </p>
       </div>
 

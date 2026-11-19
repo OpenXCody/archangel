@@ -18,7 +18,8 @@ jobs:
           VITE_MAP_TOKEN: ci-placeholder
 
   # The suites that need a database: the schema built from nothing, sample
-  # data, the five API suites and the device suite, against the built app.
+  # data, the suites in tests/api/ (the API suites and the employer loader's)
+  # and the device suite, against the built app.
   # Everything happens in scripts/ci-local.sh, so the same run can be made on
   # a developer's machine; this job only provides Postgres and a browser.
   suites:

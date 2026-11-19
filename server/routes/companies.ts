@@ -8,6 +8,9 @@ import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 import { isUuid, refuseDeleteWithJobs } from '../lib/writes.js';
+import { sourcesOf } from '../lib/sources.js';
+import { companyIndustries, companyIndustry } from '../lib/industries.js';
+import { industryByName, industryBySlug } from '../../shared/industry.js';
 
 const router = Router();
 // A company is addressed by its id, or, for reading, by its slug
@@ -50,14 +53,20 @@ router.get('/', async (req: Request, res: Response) => {
       const searchTerm = `%${search}%`;
       const searchCondition = or(
         ilike(companies.name, searchTerm),
-        ilike(companies.industry, searchTerm),
         ilike(companies.description, searchTerm)
       );
       if (searchCondition) conditions.push(searchCondition);
     }
 
-    if (industry) {
-      conditions.push(eq(companies.industry, industry as string));
+    // An industry is one of the 21, named as a plant carries it or by its page's slug.
+    // A company is listed under the industry most of its plants are in.
+    if (typeof industry === 'string' && industry) {
+      const asked = industryByName(industry) ?? industryBySlug(industry);
+      conditions.push(
+        asked
+          ? sql`${companies.id} IN (SELECT ci.company_id FROM (${companyIndustries()}) ci WHERE ci.industry = ${asked.name})`
+          : sql`FALSE`
+      );
     }
 
     // Get total count
@@ -87,7 +96,8 @@ router.get('/', async (req: Request, res: Response) => {
       .select({
         id: companies.id,
         name: companies.name,
-        industry: companies.industry,
+        // The industry most of its plants are in (one of the 21, or null), not the free text on the row.
+        industry: companyIndustry(sql`${companies.id}`),
         description: companies.description,
         domain: companies.domain,
         featured: companies.featured,
@@ -145,12 +155,48 @@ router.get('/:id', async (req: Request, res: Response) => {
         city: factories.city,
         state: factories.state,
         workforceSize: factories.workforceSize,
+        workforceYear: factories.workforceYear,
+        products: factories.products,
+        status: factories.status,
         openPositions: factories.openPositions,
         latitude: factories.latitude,
         longitude: factories.longitude,
+        // For the page of a company with one plant, which leads with that plant's own facts.
+        address: factories.address,
+        workforceSource: factories.workforceSource,
+        workforceNote: factories.workforceNote,
+        openedYear: factories.openedYear,
+        curated: factories.curated,
       })
       .from(factories)
       .where(and(eq(factories.companyId, id), factoryInScope()));
+
+    // The company it is part of, and the companies that are part of it.
+    const [parent] = company.parentCompanyId
+      ? await db
+          .select({ id: companies.id, name: companies.name, slug: companies.slug, domain: companies.domain })
+          .from(companies)
+          .where(eq(companies.id, company.parentCompanyId))
+      : [];
+    const subsidiaries = await db
+      .select({
+        id: companies.id,
+        name: companies.name,
+        slug: companies.slug,
+        domain: companies.domain,
+        industry: companies.industry,
+        factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()})`,
+      })
+      .from(companies)
+      .where(eq(companies.parentCompanyId, id))
+      .orderBy(sql`6 DESC`, companies.name);
+
+    // People in a state, where a source says how many.
+    const peopleByState = Array.from(
+      (await db.execute(sql`
+        SELECT state, people, year, source, note FROM company_state_headcounts WHERE company_id = ${id} ORDER BY people DESC, state ASC
+      `)) as Iterable<{ state: string; people: number; year: number | null; source: string | null; note: string | null }>
+    );
 
     // Occupations across all of this company's in-scope factories, with how many of
     // its factories employ each — what the explorer's "N occupations" tag
@@ -167,13 +213,39 @@ router.get('/:id', async (req: Request, res: Response) => {
       ORDER BY "factoryCount" DESC, o.title ASC
     `);
 
+    const occupationRows = Array.from(companyOccupations as Iterable<Record<string, unknown>>);
+    // A company with one plant and no careers recorded there: the careers
+    // typical of that plant's industry, as the plant's own page lists them.
+    const onlyIndustry = companyFactories.length === 1 ? companyFactories[0].industry : null;
+    const typicalCareers =
+      occupationRows.length === 0 && onlyIndustry
+        ? Array.from(
+            (await db.execute(sql`
+              SELECT o.id, o.title
+              FROM industry_occupations io
+              INNER JOIN occupations o ON o.id = io.occupation_id
+              WHERE io.industry = ${onlyIndustry}
+              ORDER BY io.rank ASC
+              LIMIT 10
+            `)) as Iterable<Record<string, unknown>>
+          ).map((r) => ({ id: String(r.id), title: String(r.title) }))
+        : [];
+
     res.json({
       ...company,
+      parent: parent ?? null,
+      subsidiaries,
+      headquarters: company.headquartersCity
+        ? { city: company.headquartersCity, state: company.headquartersState, country: company.headquartersCountry }
+        : null,
+      peopleByState,
+      sources: await sourcesOf('companies', id),
       factories: companyFactories,
       jobs: await listOpenJobs(eq(jobs.companyId, id)),
-      occupations: Array.from(companyOccupations as Iterable<Record<string, unknown>>),
+      occupations: occupationRows,
+      typicalCareers,
       factoryCount: companyFactories.length,
-      occupationCount: (companyOccupations as unknown as { length?: number }).length ?? Array.from(companyOccupations as Iterable<unknown>).length,
+      occupationCount: occupationRows.length,
       totalWorkforce: companyFactories.reduce((sum, f) => sum + (f.workforceSize || 0), 0),
     });
   } catch (error) {

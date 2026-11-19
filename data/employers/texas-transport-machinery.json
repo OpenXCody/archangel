@@ -1,0 +1,2844 @@
+{
+  "brief": "texas-transport-machinery",
+  "retrieved": "2026-11-18",
+  "companies": [
+    {
+      "name": "Lockheed Martin",
+      "alsoKnownAs": [
+        "Lockheed Martin Corp",
+        "Lockheed Martin Corporation",
+        "Lockheed Martin Aeronautics",
+        "Lockheed Martin Aeronautics Company",
+        "Lockheed Martin Aeronautics Co",
+        "Lockheed Martin Missiles and Fire Control",
+        "Lockheed Martin Missiles & Fire Control",
+        "Lockheed Martin Tactical Aircraft Systems"
+      ],
+      "parent": null,
+      "domain": "lockheedmartin.com",
+      "industry": "Aerospace & Defense",
+      "description": "Builds the F-35 fighter in Fort Worth and missiles, rocket artillery and fire-control systems in Grand Prairie and Lufkin.",
+      "headquarters": {
+        "city": "Bethesda",
+        "state": "MD",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://lockheedmartin.com/en-us/careers/locations/texas.html",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Fort Worth Air Force Plant 4",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "1 Lockheed Blvd",
+          "zip": "76108",
+          "latitude": 32.7717,
+          "longitude": -97.44976,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "F-35 Lightning II final assembly; headquarters of Lockheed Martin Aeronautics",
+          "employees": 17118,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Lockheed Martin Corporation US TX Fort Worth Lockheed Blvd\"). Tarrant County's employer list gives 18,700 for 2023.",
+          "opened": 1942,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.tarrantcountytx.gov/en/administration/staff/economic-development/financial-status/labor-force-and-economic-base.html",
+            "https://en.wikipedia.org/wiki/Air_Force_Plant_4",
+            "https://lockheedmartin.com/en-us/careers/locations/texas.html"
+          ]
+        },
+        {
+          "name": "Lockheed Martin Missiles and Fire Control Grand Prairie",
+          "city": "Grand Prairie",
+          "state": "TX",
+          "address": "1701 W Marshall Dr",
+          "zip": "75051",
+          "latitude": 32.71744,
+          "longitude": -97.02893,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336414",
+          "products": "Missile, rocket and fire-control systems; headquarters of Lockheed Martin Missiles and Fire Control",
+          "employees": 3901,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Lockheed Martin Corporation Grand Prairie Campus\"). The city's 2020 financial report listed 4,000.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://lockheedmartin.com/en-us/careers/locations/texas.html",
+            "https://dallasnews.com/news/2021/05/18/these-10-companies-in-grand-prairie-employ-more-than-17000-people"
+          ]
+        },
+        {
+          "name": "Lufkin Operations",
+          "city": "Lufkin",
+          "state": "TX",
+          "address": "1008 N John Redditt Dr",
+          "zip": "75904",
+          "latitude": 31.34229,
+          "longitude": -94.76196,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336414",
+          "products": "Electronics and sub-assemblies for PAC-3, THAAD, GMLRS, ATACMS and JASSM/LRASM missiles",
+          "employees": 485,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Lockheed Martin Corporation Lufkin\"). The company's own page says \"more than 450 employees\".",
+          "opened": 1995,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.lockheedmartin.com/en-us/careers/life-at-lm/2025/30-years-of-innovation.html",
+            "https://news.lockheedmartin.com/2009-04-16-Lockheed-Martin-to-Break-Ground-on-New-Lufkin-Operations-Plant-Expansion"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bell",
+      "alsoKnownAs": [
+        "Bell Textron",
+        "Bell Textron Inc",
+        "Bell Textron Inc.",
+        "Bell Helicopter",
+        "Bell Helicopter Textron",
+        "Bell Helicopter Textron Inc",
+        "Bell Helicopter-Textron",
+        "Bell Flight"
+      ],
+      "parent": "Textron",
+      "domain": "bellflight.com",
+      "industry": "Helicopters & Tiltrotors",
+      "description": "Makes military and commercial helicopters and tiltrotors, including the V-22 Osprey and the Army MV-75.",
+      "headquarters": {
+        "city": "Fort Worth",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://news.bellflight.com/en-US/253090-bell-accelerates-mv-75-program-for-army-invests-large-sums-across-dfw/",
+        "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
+      ],
+      "plants": [
+        {
+          "name": "Bell Fort Worth (Plant 1)",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "3255 Bell Flight Blvd",
+          "zip": "76118",
+          "latitude": 32.80704,
+          "longitude": -97.16049,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "Headquarters and main plant: engineering, parts and sub-assemblies for Bell helicopters and tiltrotors",
+          "employees": 3265,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2024 (filed as \"Bell Plant 1\"). Bell says about 4,000 of its 8,000 people work in Fort Worth, which also counts its smaller buildings nearby.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+            "https://news.bellflight.com/en-US/253090-bell-accelerates-mv-75-program-for-army-invests-large-sums-across-dfw/"
+          ]
+        },
+        {
+          "name": "Bell Amarillo Assembly Center",
+          "city": "Amarillo",
+          "state": "TX",
+          "address": "401 Tiltrotor Dr",
+          "zip": "79111",
+          "latitude": 35.21037,
+          "longitude": -101.71354,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "Final assembly of Bell military aircraft, including the V-22 Osprey; chosen for MV-75 assembly",
+          "employees": 578,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2024 (filed as \"Bell - Amarillo\"). The Federal Reserve Bank of Dallas metro profile gives 900.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+            "https://www.dallasfed.org/research/heart/amarillo",
+            "https://news.bellflight.com/en-US/253090-bell-accelerates-mv-75-program-for-army-invests-large-sums-across-dfw/"
+          ]
+        },
+        {
+          "name": "Bell Grand Prairie (Plant 5)",
+          "city": "Grand Prairie",
+          "state": "TX",
+          "address": "1700 N Highway 360",
+          "zip": "75050",
+          "latitude": 32.77419,
+          "longitude": -97.06154,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "Drive systems: gears and transmissions for Bell aircraft",
+          "employees": 564,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2024 (filed as \"Bell - Plant 5\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+            "https://news.bellflight.com/en-US/253090-bell-accelerates-mv-75-program-for-army-invests-large-sums-across-dfw/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "General Motors",
+      "alsoKnownAs": [
+        "General Motors LLC",
+        "General Motors Corp",
+        "General Motors Corporation",
+        "General Motors Company",
+        "GM",
+        "General Motors Arlington Assembly",
+        "GM Arlington Assembly",
+        "GM Arlington Assembly Plant"
+      ],
+      "parent": null,
+      "domain": "gm.com",
+      "industry": "Motor Vehicles",
+      "description": "Builds its full-size SUVs (Tahoe, Suburban, Yukon, Escalade) at one assembly plant in Arlington.",
+      "headquarters": {
+        "city": "Detroit",
+        "state": "MI",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.gm.com/company/facilities/arlington",
+        "https://www.arlingtontx.com/blog/general-motors-70-years-of-economic-impact-in-arlington/"
+      ],
+      "plants": [
+        {
+          "name": "Arlington Assembly",
+          "city": "Arlington",
+          "state": "TX",
+          "address": "2525 E Abram St",
+          "zip": "76010",
+          "latitude": 32.73833,
+          "longitude": -97.07361,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336110",
+          "products": "Chevrolet Tahoe and Suburban, GMC Yukon and Yukon XL, Cadillac Escalade",
+          "employees": 5000,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Arlington Assembly\"). GM said \"over 5,400\" in August 2024; its OSHA figure for 2024 was 5,077.",
+          "opened": 1954,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.gm.com/company/facilities/arlington",
+            "https://www.arlingtontx.com/blog/general-motors-70-years-of-economic-impact-in-arlington/",
+            "https://en.wikipedia.org/wiki/Arlington_Assembly"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Toyota Motor Manufacturing Texas",
+      "alsoKnownAs": [
+        "Toyota",
+        "Toyota Motor Manufacturing Texas Inc",
+        "Toyota Motor Manufacturing, Texas, Inc.",
+        "Toyota Motor Mfg. Texas, Inc.",
+        "Toyota Manufacturing",
+        "Toyota Texas",
+        "TMMTX"
+      ],
+      "parent": "Toyota",
+      "domain": "toyota.com",
+      "industry": "Motor Vehicles",
+      "description": "Builds Toyota Tundra pickups and Sequoia SUVs in San Antonio.",
+      "headquarters": {
+        "city": "San Antonio",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://pressroom.toyota.com/facility/toyota-motor-manufacturing-texas-tmmtx/"
+      ],
+      "plants": [
+        {
+          "name": "Toyota Motor Manufacturing Texas",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "1 Lone Star Pass",
+          "zip": "78264",
+          "latitude": 29.26285,
+          "longitude": -98.54046,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336110",
+          "products": "Tundra pickups and Sequoia SUVs (stamping, body weld, paint, assembly); rear axles",
+          "employees": 4000,
+          "employeesYear": 2025,
+          "employeesSource": "https://pressroom.toyota.com/facility/toyota-motor-manufacturing-texas-tmmtx/",
+          "employeesNote": "Toyota's own count; its OSHA figure for 2025 is 4,158. More than 20 suppliers on the same site employ a further 5,600 people.",
+          "opened": 2006,
+          "status": "operating",
+          "sources": [
+            "https://pressroom.toyota.com/facility/toyota-motor-manufacturing-texas-tmmtx/",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.dallasfed.org/research/heart/sanantonio"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tesla",
+      "alsoKnownAs": [
+        "Tesla Inc",
+        "Tesla, Inc.",
+        "Tesla Motors",
+        "Tesla Motors Inc",
+        "Tesla Gigafactory Texas",
+        "Gigafactory Texas"
+      ],
+      "parent": null,
+      "domain": "tesla.com",
+      "industry": "Electric Vehicles",
+      "description": "Builds the Model Y and Cybertruck, and is starting the Cybercab, at Giga Texas east of Austin.",
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.statesman.com/business/article/tesla-gigafactory-texas-employment-austin-musk-22162199.php"
+      ],
+      "plants": [
+        {
+          "name": "Giga Texas",
+          "city": "Austin",
+          "state": "TX",
+          "address": "1 Tesla Road",
+          "zip": "78725",
+          "latitude": 30.22087,
+          "longitude": -97.61865,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336110",
+          "products": "Model Y, Cybertruck and Cybercab; company headquarters",
+          "employees": 16506,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.statesman.com/business/article/tesla-gigafactory-texas-employment-austin-musk-22162199.php",
+          "employeesNote": "Year-end 2025 count from Tesla's compliance report to Travis County, as reported by the Austin American-Statesman (21,191 a year earlier). Tesla's OSHA figure for the factory, an annual average, is 13,620 for 2025.",
+          "opened": 2022,
+          "status": "operating",
+          "sources": [
+            "https://www.statesman.com/business/article/tesla-gigafactory-texas-employment-austin-musk-22162199.php",
+            "https://techcrunch.com/2026/04/03/teslas-texas-factory-workforce-reportedly-shrunk-22-in-2025/",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://en.wikipedia.org/wiki/Gigafactory_Texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Peterbilt",
+      "alsoKnownAs": [
+        "Peterbilt Motors",
+        "Peterbilt Motors Company",
+        "Peterbilt Motors Co",
+        "Peterbilt Motors Co.",
+        "Peterbilt Paccar"
+      ],
+      "parent": "PACCAR",
+      "domain": "peterbilt.com",
+      "industry": "Heavy Trucks",
+      "description": "Builds Peterbilt heavy trucks at its headquarters plant in Denton.",
+      "headquarters": {
+        "city": "Denton",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.dentonedp.com/workforce/major-employers"
+      ],
+      "plants": [
+        {
+          "name": "Peterbilt Denton",
+          "city": "Denton",
+          "state": "TX",
+          "address": "3200 Airport Rd",
+          "zip": "76207",
+          "latitude": 33.20242,
+          "longitude": -97.17548,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336120",
+          "products": "Class 8 highway and vocational trucks",
+          "employees": 2265,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Peterbilt Paccar\"). The Denton Economic Development Partnership list (2021) gives 2,000.",
+          "opened": 1980,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.dentonedp.com/workforce/major-employers"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "International Motors",
+      "alsoKnownAs": [
+        "Navistar",
+        "Navistar Inc",
+        "Navistar, Inc.",
+        "Navistar International",
+        "Navistar San Antonio Manufacturing",
+        "Navistar San Antonio Manufacturing, LLC",
+        "International Truck",
+        "International Trucks",
+        "International Truck and Engine"
+      ],
+      "parent": "Traton",
+      "domain": "international.com",
+      "industry": "Heavy Trucks",
+      "description": "Builds International medium and heavy trucks, diesel and electric, at a plant opened in San Antonio in 2022.",
+      "headquarters": {
+        "city": "Lisle",
+        "state": "IL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.international.com/our-company/locations/production-plants"
+      ],
+      "plants": [
+        {
+          "name": "San Antonio Manufacturing Plant",
+          "city": "San Antonio",
+          "state": "TX",
+          "address": "14607 S US Highway 281",
+          "zip": "78221",
+          "latitude": 29.27473,
+          "longitude": -98.47272,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336120",
+          "products": "Class 6 to 8 diesel and electric trucks (body shop, paint, assembly)",
+          "employees": 1089,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Navistar San Antonio Manufacturing, LLC\").",
+          "opened": 2022,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.international.com/our-company/locations/production-plants",
+            "https://news.international.com/2022-03-23-Navistar-Celebrates-Grand-Opening-of-its-Benchmark-San-Antonio-Manufacturing-Plant"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SpaceX",
+      "alsoKnownAs": [
+        "Space Exploration Technologies",
+        "Space Exploration Technologies Corp",
+        "Space Exploration Technologies Corp.",
+        "SpaceX Starbase",
+        "Starlink"
+      ],
+      "parent": null,
+      "domain": "spacex.com",
+      "industry": "Rockets & Spacecraft",
+      "description": "Builds and launches Starship at Starbase, tests rocket engines at McGregor and makes Starlink terminals in Bastrop.",
+      "headquarters": {
+        "city": "Starbase",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://fortune.com/2025/02/13/musks-spacex-moves-closer-starbase-city-texas-county-approves-vote/",
+        "https://dallasnews.com/business/2024/04/02/elon-musk-boosts-headcount-by-86-at-biggest-site-of-his-texas-empire",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Starbase",
+          "city": "Starbase",
+          "state": "TX",
+          "address": "1 Rocket Rd",
+          "zip": "78521",
+          "latitude": 25.98803,
+          "longitude": -97.18702,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336414",
+          "products": "Starship and Super Heavy production, testing and launch",
+          "employees": 3528,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Starbase, TX\"). A Cameron County study in 2024 counted more than 3,400 full-time employees and contractors.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://fortune.com/2025/02/13/musks-spacex-moves-closer-starbase-city-texas-county-approves-vote/",
+            "https://en.wikipedia.org/wiki/SpaceX_Starbase"
+          ]
+        },
+        {
+          "name": "SpaceX McGregor Rocket Development and Test Facility",
+          "city": "McGregor",
+          "state": "TX",
+          "address": "1 Rocket Rd",
+          "zip": "76657",
+          "latitude": 31.40368,
+          "longitude": -97.46176,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336415",
+          "products": "Test firing of SpaceX rocket engines and stages",
+          "employees": 638,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"McGregor, TX\"). Waco economic development officials gave 600 in 2024.",
+          "opened": 2003,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://dallasnews.com/business/2024/04/02/elon-musk-boosts-headcount-by-86-at-biggest-site-of-his-texas-empire",
+            "https://en.wikipedia.org/wiki/SpaceX_Rocket_Development_and_Test_Facility"
+          ]
+        },
+        {
+          "name": "SpaceX Bastrop",
+          "city": "Bastrop",
+          "state": "TX",
+          "address": "858 FM 1209",
+          "zip": "78602",
+          "latitude": 30.15633,
+          "longitude": -97.40742,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334220",
+          "products": "Starlink satellite internet terminals",
+          "employees": 1486,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Bastrop, TX\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://dallasnews.com/business/2024/04/02/elon-musk-boosts-headcount-by-86-at-biggest-site-of-his-texas-empire"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L3Harris",
+      "alsoKnownAs": [
+        "L3Harris Technologies",
+        "L3Harris Technologies, Integrated Systems L.P.",
+        "L3 Technologies",
+        "L-3 Communications",
+        "L-3 Communications Integrated Systems",
+        "L3 Communications",
+        "L3 Platform Integration",
+        "L-3 Platform Integration"
+      ],
+      "parent": null,
+      "domain": "l3harris.com",
+      "industry": "Aircraft Modification",
+      "description": "Converts and equips military and special-mission aircraft at large hangar complexes in Greenville and Waco.",
+      "headquarters": {
+        "city": "Melbourne",
+        "state": "FL",
+        "country": "US"
+      },
+      "stateEmployees": {
+        "state": "TX",
+        "count": 6750,
+        "year": 2026,
+        "source": "https://www.l3harris.com/sites/default/files/2026-09/L3Harris-Texas-State-Fact-Sheet.pdf",
+        "note": "All L3Harris employees in Texas across 15 locations, not only the two aircraft sites."
+      },
+      "sources": [
+        "https://www.l3harris.com/sites/default/files/2026-09/L3Harris-Texas-State-Fact-Sheet.pdf"
+      ],
+      "plants": [
+        {
+          "name": "L3Harris Greenville",
+          "city": "Greenville",
+          "state": "TX",
+          "address": "10001 Jack Finney Blvd",
+          "zip": "75402",
+          "latitude": 33.07399,
+          "longitude": -96.07533,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "Design, modification and testing of intelligence, surveillance and special-mission aircraft",
+          "employees": 4798,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"L3Harris Technologies, Integrated Systems L.P. (Greenville)\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.l3harris.com/sites/default/files/2026-09/L3Harris-Texas-State-Fact-Sheet.pdf"
+          ]
+        },
+        {
+          "name": "L3Harris Waco",
+          "city": "Waco",
+          "state": "TX",
+          "address": "7500 Maehr Rd",
+          "zip": "76705",
+          "latitude": 31.6305,
+          "longitude": -97.06402,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "Aircraft modification and depot maintenance (C-130, P-8A); OA-1K Skyraider II production",
+          "employees": 1400,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"L3Harris AS IAS Waco\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.l3harris.com/sites/default/files/2026-09/L3Harris-Texas-State-Fact-Sheet.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Kiewit Offshore Services",
+      "alsoKnownAs": [
+        "Kiewit Offshore Services Ltd",
+        "Kiewit Offshore Services, Ltd.",
+        "Kiewit Offshore",
+        "Kiewit Offshore Services Ltd."
+      ],
+      "parent": "Kiewit",
+      "domain": "kiewit.com",
+      "industry": "Offshore Fabrication",
+      "description": "Fabricates offshore oil and gas platforms and large industrial process modules at a yard on Corpus Christi Bay.",
+      "headquarters": {
+        "city": "Ingleside",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+        "https://kiewitcareers.kiewit.com/job/Ingleside-Estimating-CO-OP-Kiewit-Offshore-Services-%28Fall-2026%29-TX/1425010100/"
+      ],
+      "plants": [
+        {
+          "name": "Kiewit Offshore Services Ingleside Yard",
+          "city": "Ingleside",
+          "state": "TX",
+          "address": "2440 Kiewit Rd",
+          "zip": "78362",
+          "latitude": 27.8518,
+          "longitude": -97.22715,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336611",
+          "products": "Offshore platform topsides and structures; industrial and LNG process modules",
+          "employees": 2172,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Kiewit Offshore Services, Ltd._2440 Kiewit Road\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Airbus Helicopters",
+      "alsoKnownAs": [
+        "Airbus Helicopters Inc",
+        "Airbus Helicopters, Inc.",
+        "Airbus Helicopters Inc.",
+        "American Eurocopter",
+        "American Eurocopter Corp",
+        "American Eurocopter Corporation",
+        "Eurocopter"
+      ],
+      "parent": "Airbus",
+      "domain": "airbus.com",
+      "industry": "Helicopters",
+      "description": "Completes, customises, repairs and supports Airbus helicopters for North America from its Grand Prairie headquarters.",
+      "headquarters": {
+        "city": "Grand Prairie",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Airbus_Helicopters,_Inc."
+      ],
+      "plants": [
+        {
+          "name": "Airbus Helicopters Grand Prairie",
+          "city": "Grand Prairie",
+          "state": "TX",
+          "address": "2701 N Forum Dr",
+          "zip": "75052",
+          "latitude": 32.7012,
+          "longitude": -97.05299,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": null,
+          "products": "Helicopter completion and customisation, component repair and overhaul, training; North American headquarters",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://en.wikipedia.org/wiki/Airbus_Helicopters,_Inc.",
+            "https://www.dallaschamber.org/wp-content/uploads/2026/03/EDG2026_Industry-Aviation-1.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Safran",
+      "alsoKnownAs": [
+        "Safran USA",
+        "Safran Seats USA",
+        "Safran Seats, USA",
+        "Safran Seats USA LLC",
+        "Zodiac Seats US",
+        "Zodiac Seats US LLC",
+        "Weber Aircraft",
+        "Weber Aircraft LLC",
+        "Safran Electrical & Power",
+        "Safran Electrical & Power Denton",
+        "Safran Electrical and Power",
+        "Labinal",
+        "Labinal Power Systems",
+        "Safran Helicopter Engines USA",
+        "Turbomeca USA",
+        "Turbomeca Engine Corporation"
+      ],
+      "parent": null,
+      "domain": "safran-group.com",
+      "industry": "Aircraft Equipment",
+      "description": "Makes airline seats in Gainesville and aircraft wiring in Denton, and assembles and repairs helicopter engines in Grand Prairie.",
+      "headquarters": {
+        "city": "Paris",
+        "state": null,
+        "country": "FR"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+        "https://www.dentonedp.com/workforce/major-employers"
+      ],
+      "plants": [
+        {
+          "name": "Safran Seats USA",
+          "city": "Gainesville",
+          "state": "TX",
+          "address": "2000 Weber Dr",
+          "zip": "76240",
+          "latitude": 33.64521,
+          "longitude": -97.20348,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336413",
+          "products": "Aircraft passenger seats",
+          "employees": 1127,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Safran Seats, USA\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        },
+        {
+          "name": "Safran Electrical & Power Denton",
+          "city": "Denton",
+          "state": "TX",
+          "address": "3790 Russell Newman Blvd",
+          "zip": "76208",
+          "latitude": 33.21902,
+          "longitude": -97.0879,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336413",
+          "products": "Aircraft electrical wiring systems",
+          "employees": 555,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Safran Electrical & Power\"). The Denton Economic Development Partnership list gives 571.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.dentonedp.com/workforce/major-employers"
+          ]
+        },
+        {
+          "name": "Safran Helicopter Engines USA",
+          "city": "Grand Prairie",
+          "state": "TX",
+          "address": "2709 N Forum Dr",
+          "zip": "75052",
+          "latitude": 32.69975,
+          "longitude": -97.05243,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": null,
+          "products": "Assembly, repair and overhaul of helicopter turbine engines",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.dallaschamber.org/wp-content/uploads/2026/03/EDG2026_Industry-Manufacturing.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Trinity Industries",
+      "alsoKnownAs": [
+        "Trinity Industries Inc",
+        "Trinity Industries, Inc.",
+        "TrinityRail",
+        "Trinity Rail",
+        "Trinty Rail",
+        "Trinity Tank Car",
+        "Trinity Tank Car Inc",
+        "Trinity Tank Car, Inc.",
+        "Trinity Rail Group",
+        "Trinity North American Freight Car"
+      ],
+      "parent": null,
+      "domain": "trin.net",
+      "industry": "Rail Cars",
+      "description": "Builds and leases railroad freight and tank cars; its remaining Texas car plant is the tank car works in Longview.",
+      "headquarters": {
+        "city": "Dallas",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://news-journal.com/?p=2027",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Trinity Tank Car Plant 19",
+          "city": "Longview",
+          "state": "TX",
+          "address": "140 Shady Brook Ln",
+          "zip": "75602",
+          "latitude": 32.50299,
+          "longitude": -94.63968,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336510",
+          "products": "Railroad tank cars",
+          "employees": 345,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Trinity Tank Car, Inc. Plant 1019\"). The Longview News-Journal put it at close to 300 after Plant 200 on Jordan Valley Road closed in 2025.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://news-journal.com/?p=2027"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wabtec",
+      "alsoKnownAs": [
+        "Wabtec Corporation",
+        "Wabtec Corp",
+        "Westinghouse Air Brake Technologies",
+        "Wabtec Manufacturing Solutions",
+        "GE Transportation",
+        "GE Manufacturing Solutions"
+      ],
+      "parent": null,
+      "domain": "wabteccorp.com",
+      "industry": "Locomotives",
+      "description": "Builds and modernises freight locomotives, and makes drive wheels for mining trucks, at a plant north of Fort Worth.",
+      "headquarters": {
+        "city": "Pittsburgh",
+        "state": "PA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Wabtec Fort Worth",
+          "city": "Fort Worth",
+          "state": "TX",
+          "address": "16201 Three Wide Dr",
+          "zip": "76177",
+          "latitude": 33.03281,
+          "longitude": -97.30522,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336510",
+          "products": "Freight locomotive assembly and modernisation",
+          "employees": 859,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Wabtec Manufacturing Solutions TXL\"). The mining-wheel plant next door at 16301 Three Wide Dr files separately: 246 (NAICS 333131).",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bombardier",
+      "alsoKnownAs": [
+        "Bombardier US Aerostructures",
+        "Bombardier U.S. Aerostructures",
+        "Bombardier Aerospace",
+        "Bombardier Aerospace Corp",
+        "Bombardier Inc"
+      ],
+      "parent": null,
+      "domain": "bombardier.com",
+      "industry": "Business Jets",
+      "description": "Builds the wings of its Global 7500 business jet in Red Oak.",
+      "headquarters": {
+        "city": "Montreal",
+        "state": null,
+        "country": "CA"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://businessaircraft.bombardier.com/en/news/bombardier-celebrates-completion-100th-global-7500-business-jet-wing-manufactured-texas"
+      ],
+      "plants": [
+        {
+          "name": "Bombardier Red Oak",
+          "city": "Red Oak",
+          "state": "TX",
+          "address": "295 Austin Blvd",
+          "zip": "75154",
+          "latitude": 32.52661,
+          "longitude": -96.80037,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "Wings for the Global 7500 business jet",
+          "employees": 412,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Bombardier US Aerostructures\"). Bombardier counted 600-plus employees here in 2021.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://businessaircraft.bombardier.com/en/news/bombardier-celebrates-completion-100th-global-7500-business-jet-wing-manufactured-texas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Qarbon Aerospace",
+      "alsoKnownAs": [
+        "Qarbon Aerospace Inc",
+        "Qarbon Aerospace, Inc.",
+        "Qarbon Aerospace (Foundation) LLC"
+      ],
+      "parent": null,
+      "domain": "qarbonaerospace.com",
+      "industry": "Aerostructures",
+      "description": "Makes composite and metal aircraft structures and assemblies for military and commercial aircraft.",
+      "headquarters": {
+        "city": "Red Oak",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.qarbonaerospace.com/"
+      ],
+      "plants": [
+        {
+          "name": "Qarbon Aerospace Red Oak",
+          "city": "Red Oak",
+          "state": "TX",
+          "address": "300 Austin Blvd",
+          "zip": "75154",
+          "latitude": 32.53062,
+          "longitude": -96.79982,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336413",
+          "products": "Composite and metal aerostructures and assemblies",
+          "employees": 491,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Qarbon Aerospace\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.qarbonaerospace.com/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Schaeffler",
+      "alsoKnownAs": [
+        "Vitesco Technologies",
+        "Vitesco Technologies USA",
+        "Vitesco Technologies USA LLC",
+        "Vitesco Technologies USA, LLC",
+        "Schaeffler Group USA"
+      ],
+      "parent": null,
+      "domain": "schaeffler.com",
+      "industry": "Vehicle Electronics",
+      "description": "Makes powertrain electronics for cars and trucks at the former Vitesco (earlier Continental) plant in Seguin.",
+      "headquarters": {
+        "city": "Herzogenaurach",
+        "state": null,
+        "country": "DE"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.seguinedc.com/media/userfiles/subsite_89/files/Downloads/seguin_brochure_25_design_pages_layout.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Schaeffler Seguin",
+          "city": "Seguin",
+          "state": "TX",
+          "address": "3740 N Austin St",
+          "zip": "78155",
+          "latitude": 29.61664,
+          "longitude": -97.9694,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336320",
+          "products": "Powertrain control electronics and modules for vehicles",
+          "employees": 1264,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Vitesco Technologies USA LLC\"). The Seguin Economic Development Corporation's 2025 brochure lists Schaeffler at about 1,550.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.seguinedc.com/media/userfiles/subsite_89/files/Downloads/seguin_brochure_25_design_pages_layout.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Aisin Texas",
+      "alsoKnownAs": [
+        "Aisin Texas Corporation",
+        "Aisin Texas Corp",
+        "AW Texas",
+        "AW Texas Inc",
+        "AW Texas, Inc.",
+        "Aisin AW"
+      ],
+      "parent": "Aisin",
+      "domain": "aisin.com",
+      "industry": "Vehicle Transmissions",
+      "description": "Makes automatic transmissions for the Toyota trucks built in San Antonio.",
+      "headquarters": {
+        "city": "Cibolo",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://gov.texas.gov/uploads/files/business/Automotive.pdf"
+      ],
+      "plants": [
+        {
+          "name": "Aisin Texas",
+          "city": "Cibolo",
+          "state": "TX",
+          "address": "565 Bolton Rd",
+          "zip": "78124",
+          "latitude": 29.52249,
+          "longitude": -98.1486,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336350",
+          "products": "Automatic transmissions for Toyota trucks and hybrids",
+          "employees": 998,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Aisin Texas Corporation\").",
+          "opened": 2021,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://gov.texas.gov/uploads/files/business/Automotive.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Flex-N-Gate",
+      "alsoKnownAs": [
+        "Flex-N-Gate Texas",
+        "Flex-N-Gate Texas LLC",
+        "Flex-N-Gate Texas, LLC",
+        "Flex-N-Gates Texas 1",
+        "Flex N Gate",
+        "Flex-N-Gate Corporation"
+      ],
+      "parent": null,
+      "domain": "flex-n-gate.com",
+      "industry": "Vehicle Parts",
+      "description": "Makes bumpers and other metal and plastic vehicle parts; its Grand Prairie plant is among the largest parts plants in Texas.",
+      "headquarters": {
+        "city": "Urbana",
+        "state": "IL",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Flex-N-Gate Texas",
+          "city": "Grand Prairie",
+          "state": "TX",
+          "address": "2150 W Bardin Rd",
+          "zip": "75052",
+          "latitude": 32.67122,
+          "longitude": -97.03309,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336390",
+          "products": "Bumpers and other metal and plastic vehicle parts",
+          "employees": 1405,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Flex-N-Gates Texas 1\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CFAN",
+      "alsoKnownAs": [
+        "CFAN Company",
+        "C-FAN",
+        "CFAN Co"
+      ],
+      "parent": null,
+      "domain": "c-fan.com",
+      "industry": "Jet Engine Parts",
+      "description": "Joint venture of GE Aerospace and Safran that makes composite fan blades for large jet engines.",
+      "headquarters": {
+        "city": "San Marcos",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+        "https://www.c-fan.com/"
+      ],
+      "plants": [
+        {
+          "name": "CFAN San Marcos",
+          "city": "San Marcos",
+          "state": "TX",
+          "address": "1000 Technology Way",
+          "zip": "78666",
+          "latitude": 29.93378,
+          "longitude": -97.88406,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336413",
+          "products": "Composite fan blades for GE jet engines",
+          "employees": 573,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Integrated Manufacturing CFAN San Marcos TX\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Air Tractor",
+      "alsoKnownAs": [
+        "Air Tractor Inc",
+        "Air Tractor, Inc."
+      ],
+      "parent": null,
+      "domain": "airtractor.com",
+      "industry": "Aircraft",
+      "description": "Builds agricultural spray planes and firefighting aircraft; employee-owned.",
+      "headquarters": {
+        "city": "Olney",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://airtractor.com/news/2025/12/air-tractor-charts-steady-course-amid-global-challenges/"
+      ],
+      "plants": [
+        {
+          "name": "Air Tractor Olney",
+          "city": "Olney",
+          "state": "TX",
+          "address": "1524 Leland Snow Way",
+          "zip": "76374",
+          "latitude": 33.35156,
+          "longitude": -98.81597,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "Agricultural and firefighting aircraft",
+          "employees": 434,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Air Tractor, Inc.\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://airtractor.com/news/2025/12/air-tractor-charts-steady-course-amid-global-challenges/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Firefly Aerospace",
+      "alsoKnownAs": [
+        "Firefly Aerospace Inc",
+        "Firefly Aerospace, Inc.",
+        "Firefly Space Systems"
+      ],
+      "parent": null,
+      "domain": "fireflyspace.com",
+      "industry": "Rockets & Spacecraft",
+      "description": "Builds and tests Alpha rockets at its Rocket Ranch in Briggs and lunar landers at its Cedar Park headquarters.",
+      "headquarters": {
+        "city": "Cedar Park",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.dailytrib.com/?p=104064",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Firefly Rocket Ranch",
+          "city": "Briggs",
+          "state": "TX",
+          "address": "281 County Road 210",
+          "zip": null,
+          "latitude": 30.87854,
+          "longitude": -97.92582,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336415",
+          "products": "Rocket and rocket engine manufacturing and testing",
+          "employees": 379,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Firefly Aerospace Briggs\"). A February 2024 local report gave about 300.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.dailytrib.com/?p=104064"
+          ]
+        },
+        {
+          "name": "Firefly Aerospace Cedar Park",
+          "city": "Cedar Park",
+          "state": "TX",
+          "address": "1320 Arrow Point Dr",
+          "zip": "78613",
+          "latitude": 30.53451,
+          "longitude": -97.79987,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336415",
+          "products": "Headquarters, engineering and spacecraft assembly",
+          "employees": 207,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Firefly Aerospace Cedar Park\"). A third Firefly building in Leander files separately (170).",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.dailytrib.com/?p=104064"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Diamond C Trailers",
+      "alsoKnownAs": [
+        "Diamond C Trailer Manufacturing",
+        "Diamond C Trailer Mfg",
+        "Diamond C Trailer Mfg Inc",
+        "Roadclipper Enterprise",
+        "Roadclipper Enterprise Inc",
+        "Roadclipper Enterprise Inc.",
+        "Roadclipper Enterprises"
+      ],
+      "parent": null,
+      "domain": "diamondc.com",
+      "industry": "Trailers",
+      "description": "Family-owned maker of custom utility, dump and equipment trailers.",
+      "headquarters": {
+        "city": "Mount Pleasant",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.mpedc.org/major-employers"
+      ],
+      "plants": [
+        {
+          "name": "Diamond C Trailers Mount Pleasant",
+          "city": "Mount Pleasant",
+          "state": "TX",
+          "address": "4006 FM 3417",
+          "zip": "75455",
+          "latitude": 33.09665,
+          "longitude": -94.97397,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336212",
+          "products": "Utility, dump and equipment trailers",
+          "employees": 668,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Roadclipper Enterprise Inc.\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.mpedc.org/major-employers"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Big Tex Trailers",
+      "alsoKnownAs": [
+        "Big Tex Trailer Manufacturing",
+        "Big Tex Trailer Mfg",
+        "Big Tex Trailer Mfg Inc",
+        "Big Tex Trailer Mfg. Inc.",
+        "Big Tex Trailer Manufacturing Inc",
+        "Big Tex Trailer World"
+      ],
+      "parent": "American Trailer World",
+      "domain": "bigtextrailers.com",
+      "industry": "Trailers",
+      "description": "One of the largest US makers of utility, dump and equipment trailers.",
+      "headquarters": {
+        "city": "Mount Pleasant",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.mpedc.org/major-employers"
+      ],
+      "plants": [
+        {
+          "name": "Big Tex Trailers Mount Pleasant",
+          "city": "Mount Pleasant",
+          "state": "TX",
+          "address": "950 I-30 E",
+          "zip": "75455",
+          "latitude": 33.1912,
+          "longitude": -94.92937,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336212",
+          "products": "Utility, dump and equipment trailers",
+          "employees": 332,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Big Tex Mt Pleasant\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.mpedc.org/major-employers"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Saronic",
+      "alsoKnownAs": [
+        "Saronic Technologies",
+        "Saronic Technologies Inc",
+        "Saronic Technologies, Inc."
+      ],
+      "parent": null,
+      "domain": "saronic.com",
+      "industry": "Autonomous Vessels",
+      "description": "Designs and builds autonomous naval vessels; headquartered in Austin, with a shipyard planned at the Port of Brownsville.",
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.saronic.com/",
+        "https://www.maritime-executive.com/article/saronic-agrees-to-build-giant-shipyard-at-port-of-brownsville"
+      ],
+      "plants": [
+        {
+          "name": "Saronic Austin",
+          "city": "Austin",
+          "state": "TX",
+          "address": "400 Industrial Blvd",
+          "zip": "78745",
+          "latitude": 30.21853,
+          "longitude": -97.76109,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336612",
+          "products": "Small autonomous surface vessels; headquarters and engineering",
+          "employees": 879,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Saronic - HQ\"). Headquarters establishment, so the figure includes engineers and office staff as well as production; it was 152 for 2024.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.saronic.com/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Southwest Shipyard",
+      "alsoKnownAs": [
+        "Southwest Shipyard LP",
+        "Southwest Shipyard, L.P.",
+        "Southwest Shipyard L.P."
+      ],
+      "parent": null,
+      "domain": "swslp.com",
+      "industry": "Shipbuilding & Repair",
+      "description": "Builds and repairs commercial vessels at two yards on the Houston Ship Channel.",
+      "headquarters": {
+        "city": "Channelview",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.swslp.com/"
+      ],
+      "plants": [
+        {
+          "name": "Southwest Shipyard Brady Island",
+          "city": "Houston",
+          "state": "TX",
+          "address": "8502 Cypress St",
+          "zip": "77012",
+          "latitude": 29.72291,
+          "longitude": -95.27404,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336611",
+          "products": "Vessel repair and new construction",
+          "employees": 450,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2024 (filed as \"SOUTHWEST SHIPYARD BRADY ISLAND\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+            "https://www.swslp.com/"
+          ]
+        },
+        {
+          "name": "Southwest Shipyard Channelview",
+          "city": "Channelview",
+          "state": "TX",
+          "address": "18310 Market St",
+          "zip": "77530",
+          "latitude": 29.78949,
+          "longitude": -95.06738,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336611",
+          "products": "Vessel repair and new construction",
+          "employees": 200,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2024 (filed as \"SOUTHWEST SHIPYARD CHANNELVIEW\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+            "https://www.swslp.com/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Daikin",
+      "alsoKnownAs": [
+        "Daikin Comfort Technologies",
+        "Daikin Comfort Technologies North America",
+        "Daikin Comfort Technologies Manufacturing",
+        "Daikin Comfort Technologies Manufacturing LP",
+        "Daikin Texas Technology Park",
+        "Daikin North America",
+        "Daikin North America LLC",
+        "Goodman Manufacturing",
+        "Goodman Manufacturing Company",
+        "Goodman Manufacturing Co",
+        "Goodman Manufacturing Company LP",
+        "Goodman Global"
+      ],
+      "parent": "Daikin Industries",
+      "domain": "daikincomfort.com",
+      "industry": "Heating & Air Conditioning",
+      "description": "Makes Daikin, Goodman and Amana home air conditioners, heat pumps and furnaces at one very large plant near Waller.",
+      "headquarters": {
+        "city": "Waller",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://daikinac.com/about-daikin/news-media/news-detail/2025/05/20/daikin-powers-north-american-headquarters-with-solar-to-advance-net-zero-goal",
+        "https://www.reportingtexas.com/fields-farms-and-factories-how-a-foreign-company-is-changing-a-rural-county-near-houston"
+      ],
+      "plants": [
+        {
+          "name": "Daikin Texas Technology Park",
+          "city": "Waller",
+          "state": "TX",
+          "address": "19001 Kermier Rd",
+          "zip": "77484",
+          "latitude": 30.05047,
+          "longitude": -95.86383,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333415",
+          "products": "Residential and light commercial air conditioners, heat pumps, furnaces and air handlers",
+          "employees": 7000,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Daikin Texas Technology Park\"). A round figure, the same as filed for 2024. Daikin says it has employed approximately 10,000 people in the region since building the campus; Reporting Texas gave \"over 9,000\" in December 2024.",
+          "opened": 2017,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://daikinac.com/about-daikin/news-media/news-detail/2025/05/20/daikin-powers-north-american-headquarters-with-solar-to-advance-net-zero-goal",
+            "https://www.reportingtexas.com/fields-farms-and-factories-how-a-foreign-company-is-changing-a-rural-county-near-houston",
+            "https://en.wikipedia.org/wiki/Daikin_Texas_Technology_Park"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Applied Materials",
+      "alsoKnownAs": [
+        "Applied Materials Inc",
+        "Applied Materials, Inc.",
+        "Applied Materials Inc."
+      ],
+      "parent": null,
+      "domain": "appliedmaterials.com",
+      "industry": "Chipmaking Equipment",
+      "description": "Builds the machines that chip factories use to make semiconductors; Austin is its main manufacturing site.",
+      "headquarters": {
+        "city": "Santa Clara",
+        "state": "CA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.dallasfed.org/research/heart/austin",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Applied Materials Austin",
+          "city": "Austin",
+          "state": "TX",
+          "address": "9700 US Highway 290 E",
+          "zip": "78724",
+          "latitude": 30.33735,
+          "longitude": -97.61759,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333242",
+          "products": "Semiconductor manufacturing equipment",
+          "employees": 4325,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"North America Region Austin Harris Branch\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.dallasfed.org/research/heart/austin"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Trane Technologies",
+      "alsoKnownAs": [
+        "Trane",
+        "Trane US Inc",
+        "Trane U.S. Inc.",
+        "Trane US Inc.",
+        "Trane Co",
+        "Trane Company",
+        "The Trane Company",
+        "Trane Residential Systems",
+        "American Standard Heating and Air Conditioning"
+      ],
+      "parent": null,
+      "domain": "tranetechnologies.com",
+      "industry": "Heating & Air Conditioning",
+      "description": "Makes Trane and American Standard home air conditioners and heat pumps in Tyler.",
+      "headquarters": {
+        "city": "Davidson",
+        "state": "NC",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.dallasfed.org/research/heart/tyler",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Trane Tyler",
+          "city": "Tyler",
+          "state": "TX",
+          "address": "6200 Troup Hwy",
+          "zip": "75707",
+          "latitude": 32.29171,
+          "longitude": -95.2541,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333415",
+          "products": "Residential air conditioners, heat pumps and air handlers",
+          "employees": 2470,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Residential HVAC - Americas : MFG-Tyler,TX-USA\"). The Federal Reserve Bank of Dallas profile gives 2,500.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.dallasfed.org/research/heart/tyler"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Caterpillar",
+      "alsoKnownAs": [
+        "Caterpillar Inc",
+        "Caterpillar Inc.",
+        "Caterpillar Incorporated",
+        "Caterpillar Seguin",
+        "Caterpillar Global Mining"
+      ],
+      "parent": null,
+      "domain": "caterpillar.com",
+      "industry": "Engines & Heavy Equipment",
+      "description": "Makes engines in Seguin and hydraulic excavators in Victoria; headquartered in Irving.",
+      "headquarters": {
+        "city": "Irving",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.seguinedc.com/media/userfiles/subsite_89/files/Downloads/seguin_brochure_25_design_pages_layout.pdf",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Caterpillar Seguin Engine Center",
+          "city": "Seguin",
+          "state": "TX",
+          "address": "1720 W Kingsbury St",
+          "zip": "78155",
+          "latitude": 29.57512,
+          "longitude": -97.99708,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333618",
+          "products": "Diesel and gas engines for machines, industry and power generation",
+          "employees": 1420,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Seguin Engine Center\"). It filed 1,761 for 2024; the Seguin Economic Development Corporation's 2025 brochure lists about 1,650.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.seguinedc.com/media/userfiles/subsite_89/files/Downloads/seguin_brochure_25_design_pages_layout.pdf"
+          ]
+        },
+        {
+          "name": "Caterpillar Victoria Hydraulic Excavator Facility",
+          "city": "Victoria",
+          "state": "TX",
+          "address": "7300 Lone Tree Rd",
+          "zip": "77905",
+          "latitude": 28.81949,
+          "longitude": -96.93764,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333120",
+          "products": "Hydraulic excavators",
+          "employees": 393,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"NA Hydraulic Excavator Facility\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Solar Turbines",
+      "alsoKnownAs": [
+        "Solar Turbines Inc",
+        "Solar Turbines Inc.",
+        "Solar Turbines Incorporated",
+        "Solar Turbines, Inc."
+      ],
+      "parent": "Caterpillar",
+      "domain": "solarturbines.com",
+      "industry": "Gas Turbines",
+      "description": "Makes industrial gas turbines and compressor sets; its Texas sites overhaul turbines in DeSoto and package them in Mabank.",
+      "headquarters": {
+        "city": "San Diego",
+        "state": "CA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Solar Turbines Dallas Overhaul Center",
+          "city": "DeSoto",
+          "state": "TX",
+          "address": "215 E Centre Park Blvd",
+          "zip": "75115",
+          "latitude": 32.6254,
+          "longitude": -96.85146,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333611",
+          "products": "Overhaul and remanufacture of industrial gas turbines",
+          "employees": 543,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Dallas Overhaul Center\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AAON",
+      "alsoKnownAs": [
+        "AAON Inc",
+        "AAON, Inc.",
+        "AAON Inc.",
+        "AAON Coil Products",
+        "AAON Coil Products Inc",
+        "AAON Coil Products, Inc."
+      ],
+      "parent": null,
+      "domain": "aaon.com",
+      "industry": "Heating & Air Conditioning",
+      "description": "Makes commercial rooftop air-conditioning units and the coils that go in them at its Longview plant.",
+      "headquarters": {
+        "city": "Tulsa",
+        "state": "OK",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.dallasfed.org/research/heart/tyler",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "AAON Coil Products",
+          "city": "Longview",
+          "state": "TX",
+          "address": "203 Gum Springs Rd",
+          "zip": "75602",
+          "latitude": 32.48879,
+          "longitude": -94.7141,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333415",
+          "products": "Heating and cooling coils and commercial air-conditioning units",
+          "employees": 1229,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"AAON Coil Products\"). Up from 722 filed for 2024, after an expansion; the Federal Reserve Bank of Dallas profile says \"more than 600\".",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.dallasfed.org/research/heart/tyler"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Enerflex",
+      "alsoKnownAs": [
+        "Enerflex Energy Systems",
+        "Enerflex Energy Systems Inc",
+        "Enerflex Energy Systems, Inc",
+        "Enerflex Ltd"
+      ],
+      "parent": null,
+      "domain": "enerflex.com",
+      "industry": "Gas Compression Equipment",
+      "description": "Builds natural gas compression and processing equipment packages.",
+      "headquarters": {
+        "city": "Calgary",
+        "state": null,
+        "country": "CA"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+        "https://www.enerflex.com/"
+      ],
+      "plants": [
+        {
+          "name": "Enerflex Houston (Telge Road)",
+          "city": "Houston",
+          "state": "TX",
+          "address": "10815 Telge Rd",
+          "zip": "77095",
+          "latitude": 29.92912,
+          "longitude": -95.64777,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333912",
+          "products": "Natural gas compression and processing packages",
+          "employees": 1103,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Telge Road 10815\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mitsubishi Logisnext Americas",
+      "alsoKnownAs": [
+        "Mitsubishi Caterpillar Forklift America",
+        "Mitsubishi Caterpillar Forklift America Inc",
+        "Mitsubishi Caterpillar Forklift America Inc.",
+        "MCFA",
+        "Mitsubishi Logisnext Americas Inc",
+        "Mitsubishi Logisnext Americas (Houston)",
+        "Mitsubishi Logisnext Americas (Houston) Inc.",
+        "Mitsubishi LogisnextAmericas (Houston)"
+      ],
+      "parent": "Mitsubishi Logisnext",
+      "domain": "logisnextamericas.com",
+      "industry": "Forklifts",
+      "description": "Makes forklift trucks at its Americas headquarters in Houston.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.logisnextamericas.com/en/logisnext/about-us/locations",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Mitsubishi Logisnext Americas Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "2121 W Sam Houston Pkwy N",
+          "zip": "77043",
+          "latitude": 29.81058,
+          "longitude": -95.56514,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333924",
+          "products": "Forklift trucks",
+          "employees": 971,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"MITSUBISHI LOGISNEXTAMERICAS (HOUSTON)\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Baker Hughes",
+      "alsoKnownAs": [
+        "Baker Hughes Company",
+        "Baker Hughes Co",
+        "Baker Hughes Inc",
+        "Baker Hughes Incorporated",
+        "Baker Hughes, a GE company",
+        "BHGE",
+        "Baker Hughes Oilfield Operations",
+        "Baker Hughes Oilfield Operations LLC",
+        "Baker Hughes Oilfield Operations Inc",
+        "Hughes Christensen",
+        "Hughes Christensen Company",
+        "Baker Oil Tools",
+        "Baker Hughes INTEQ"
+      ],
+      "parent": null,
+      "domain": "bakerhughes.com",
+      "industry": "Oilfield Equipment",
+      "description": "Makes drill bits and downhole drilling and completion tools at plants around Houston.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+        "https://www.dallasfed.org/research/heart/houston"
+      ],
+      "plants": [
+        {
+          "name": "Baker Hughes Rankin Road",
+          "city": "Houston",
+          "state": "TX",
+          "address": "2001 Rankin Rd",
+          "zip": "77073",
+          "latitude": 29.96709,
+          "longitude": -95.36812,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Oil and gas field equipment (the company's largest Texas manufacturing and technology campus)",
+          "employees": 964,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"2001 Rankin Road\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        },
+        {
+          "name": "Baker Hughes Woodlands Drill Bits",
+          "city": "The Woodlands",
+          "state": "TX",
+          "address": "9110 Grogans Mill Rd",
+          "zip": "77380",
+          "latitude": 30.17404,
+          "longitude": -95.46424,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Oil and gas drill bits",
+          "employees": 441,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Baker Hughes Woodlands Drill Bits\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        },
+        {
+          "name": "Baker Hughes Emmott Road",
+          "city": "Houston",
+          "state": "TX",
+          "address": "9100 Emmott Rd",
+          "zip": "77040",
+          "latitude": 29.87535,
+          "longitude": -95.53586,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Oil and gas field equipment (downhole tools)",
+          "employees": 311,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Baker Hughes - Emmott\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Komatsu",
+      "alsoKnownAs": [
+        "Komatsu Mining",
+        "Komatsu Mining Corp",
+        "Komatsu Mining Corp.",
+        "Komatsu America",
+        "Komatsu America Corp",
+        "Joy Global",
+        "Joy Global Longview Operations",
+        "Joy Global Longview Operations LLC",
+        "LeTourneau Technologies",
+        "LeTourneau Inc",
+        "Marathon LeTourneau"
+      ],
+      "parent": null,
+      "domain": "komatsu.com",
+      "industry": "Mining Equipment",
+      "description": "Builds large wheel loaders for surface mines, and the motors that drive them, at the former LeTourneau works in Longview.",
+      "headquarters": {
+        "city": "Tokyo",
+        "state": null,
+        "country": "JP"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.dallasfed.org/research/heart/tyler",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Komatsu Longview",
+          "city": "Longview",
+          "state": "TX",
+          "address": "5410 W Loop 281",
+          "zip": "75602",
+          "latitude": 32.45721,
+          "longitude": -94.7354,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333131",
+          "products": "Large mining wheel loaders; electric drive motors",
+          "employees": 717,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Joy Global Longview Operations LLC\"). The Federal Reserve Bank of Dallas profile says \"more than 600\".",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.dallasfed.org/research/heart/tyler"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SLB",
+      "alsoKnownAs": [
+        "Schlumberger",
+        "Schlumberger Technology Corporation",
+        "Schlumberger Technology Corp",
+        "Schlumberger Technology Corp.",
+        "Schlumberger LLC",
+        "Schlumberger Ltd",
+        "Schlumberger Limited",
+        "Schlumberger Well Services",
+        "Cameron International",
+        "Cameron International Corporation",
+        "Cameron International Corp",
+        "Cameron, A Schlumberger Company"
+      ],
+      "parent": null,
+      "domain": "slb.com",
+      "industry": "Oilfield Equipment",
+      "description": "Oilfield services company that makes its own well completion, perforating and pressure-control equipment.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "SLB Rosharon Campus",
+          "city": "Rosharon",
+          "state": "TX",
+          "address": "14910 Airline Rd",
+          "zip": "77583",
+          "latitude": 29.36862,
+          "longitude": -95.44285,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Oil and gas field equipment (perforating systems and well completion tools)",
+          "employees": 404,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Schlumberger Rosharon Campus\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Halliburton",
+      "alsoKnownAs": [
+        "Halliburton Energy Services",
+        "Halliburton Energy Services Inc",
+        "Halliburton Energy Services Inc.",
+        "Halliburton Energy Services, Inc.",
+        "Halliburton Co",
+        "Halliburton Company"
+      ],
+      "parent": null,
+      "domain": "halliburton.com",
+      "industry": "Oilfield Equipment",
+      "description": "Oilfield services company that makes its own completion tools in Carrollton and drilling tools at its Houston campus.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+        "https://www.dallasfed.org/research/heart/houston"
+      ],
+      "plants": [
+        {
+          "name": "Halliburton Carrollton Manufacturing and Technology",
+          "city": "Carrollton",
+          "state": "TX",
+          "address": "2601 E Belt Line Rd",
+          "zip": "75006",
+          "latitude": 32.95665,
+          "longitude": -96.87075,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Well completion tools",
+          "employees": 510,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Carrollton Manufacturing and Technology\"). Filed for 2025 from the campus's other entrance, 2550 Country Club Road; the 2024 filing, at 2601 E. Belt Line Road, was 571.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
+          ]
+        },
+        {
+          "name": "Halliburton North Belt Campus",
+          "city": "Houston",
+          "state": "TX",
+          "address": "3000 N Sam Houston Pkwy E",
+          "zip": "77032",
+          "latitude": 29.93602,
+          "longitude": -95.34064,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Drilling tool manufacturing and repair (Sperry); technology centre and headquarters campus",
+          "employees": 216,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Halliburton North Belt (0169) Houston North Belt Sperry Manufacturing/R&M\"). Manufacturing unit only. The technology centre on the same campus files separately as a testing laboratory: 524.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "NOV",
+      "alsoKnownAs": [
+        "National Oilwell Varco",
+        "National Oilwell Varco LP",
+        "National Oilwell Varco, L.P.",
+        "National Oilwell Varco(NOV)",
+        "NOV Inc",
+        "NOV Inc.",
+        "National Oilwell",
+        "National-Oilwell",
+        "Grant Prideco",
+        "NOV Breen"
+      ],
+      "parent": null,
+      "domain": "nov.com",
+      "industry": "Oilfield Equipment",
+      "description": "Makes drilling rig equipment, pressure-control systems, drill pipe and downhole tools at many plants around Houston.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "NOV Breen Road",
+          "city": "Houston",
+          "state": "TX",
+          "address": "8017 Breen Rd",
+          "zip": "77064",
+          "latitude": 29.89715,
+          "longitude": -95.5092,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Oil and gas field equipment",
+          "employees": 317,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"NOV Breen\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        },
+        {
+          "name": "NOV West Little York",
+          "city": "Houston",
+          "state": "TX",
+          "address": "12950 W Little York Rd",
+          "zip": "77041",
+          "latitude": 29.8633,
+          "longitude": -95.60351,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Drilling rig equipment and rig pressure-control equipment",
+          "employees": 260,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Houston Rig Pressure Control WLY, Rig Equipment\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        },
+        {
+          "name": "NOV FM 529",
+          "city": "Houston",
+          "state": "TX",
+          "address": "11919 FM 529",
+          "zip": "77041",
+          "latitude": 29.87604,
+          "longitude": -95.5898,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Drilling rig equipment",
+          "employees": 212,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Rig FM529\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        },
+        {
+          "name": "NOV Conroe",
+          "city": "Conroe",
+          "state": "TX",
+          "address": "500 Conroe Park West Dr",
+          "zip": "77303",
+          "latitude": 30.35612,
+          "longitude": -95.45574,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Oil and gas field equipment",
+          "employees": 174,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"NOV Conroe 500 W\"). It filed 400 for 2024.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TechnipFMC",
+      "alsoKnownAs": [
+        "TechnipFMC plc",
+        "FMC Technologies",
+        "FMC Technologies Inc",
+        "FMC Technologies, Inc.",
+        "FMC Energy Systems",
+        "FMC Fluid Control",
+        "TechnipFMC USA"
+      ],
+      "parent": null,
+      "domain": "technipfmc.com",
+      "industry": "Oilfield Equipment",
+      "description": "Makes subsea and surface wellhead systems in Houston and flowline equipment for well servicing in Stephenville.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "TechnipFMC Houston Campus",
+          "city": "Houston",
+          "state": "TX",
+          "address": "13460 Lockwood Rd",
+          "zip": "77044",
+          "latitude": 29.91502,
+          "longitude": -95.20863,
+          "subsector": "Machinery Manufacturing",
+          "naics": null,
+          "products": "Subsea and surface wellhead equipment assembly and testing; main US campus",
+          "employees": 1662,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"TechnipFMC\"). Whole campus, offices and engineering included; the company files it under oilfield services (NAICS 213112), not manufacturing.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        },
+        {
+          "name": "TechnipFMC Stephenville",
+          "city": "Stephenville",
+          "state": "TX",
+          "address": "2825 W Washington St",
+          "zip": "76401",
+          "latitude": 32.20512,
+          "longitude": -98.24211,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Flowline and fluid-control equipment for well servicing",
+          "employees": 321,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Stephenville Manufacturing Plant\"). It filed 413 for 2024.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HMH",
+      "alsoKnownAs": [
+        "HMH Holding",
+        "HMH Holding Inc",
+        "Hydril USA",
+        "Hydril USA Distribution LLC",
+        "Hydril Pressure Control"
+      ],
+      "parent": null,
+      "domain": "hmhw.com",
+      "industry": "Drilling Equipment",
+      "description": "Makes blowout preventers and other drilling equipment; formed from Baker Hughes's Hydril pressure-control business and MHWirth.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.hmhw.com/",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "HMH Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "3300 N Sam Houston Pkwy E",
+          "zip": "77032",
+          "latitude": 29.93692,
+          "longitude": -95.33622,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Blowout preventers and drilling pressure-control equipment",
+          "employees": 516,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"HMH - JFK\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Epiroc",
+      "alsoKnownAs": [
+        "Epiroc Drilling Solutions",
+        "Epiroc Drilling Solutions LLC",
+        "Epiroc Drilling Solutions, LLC",
+        "Epiroc USA",
+        "Atlas Copco Drilling Solutions",
+        "Atlas Copco Drilling Solutions LLC"
+      ],
+      "parent": null,
+      "domain": "epiroc.com",
+      "industry": "Mining Equipment",
+      "description": "Builds rotary blasthole drilling rigs for mines and quarries in Garland.",
+      "headquarters": {
+        "city": "Stockholm",
+        "state": null,
+        "country": "SE"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Epiroc Drilling Solutions",
+          "city": "Garland",
+          "state": "TX",
+          "address": "2100 N 1st St",
+          "zip": "75040",
+          "latitude": 32.93309,
+          "longitude": -96.6284,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333120",
+          "products": "Rotary blasthole drilling rigs",
+          "employees": 455,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Epiroc Drilling Solutions LLC\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dover Fueling Solutions",
+      "alsoKnownAs": [
+        "Wayne Fueling Systems",
+        "Wayne Fueling Systems LLC",
+        "Wayne Fueling Systems, LLC",
+        "Dresser Wayne"
+      ],
+      "parent": "Dover",
+      "domain": "doverfuelingsolutions.com",
+      "industry": "Fuel Dispensers",
+      "description": "Makes Wayne fuel dispensers and other filling-station equipment in north Austin.",
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Dover Fueling Solutions Austin (Wayne)",
+          "city": "Austin",
+          "state": "TX",
+          "address": "3814 Jarrett Way",
+          "zip": "78728",
+          "latitude": 30.47461,
+          "longitude": -97.67746,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333914",
+          "products": "Fuel dispensers and filling-station equipment",
+          "employees": 770,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Wayne Fueling Systems, LLC\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "First Co.",
+      "alsoKnownAs": [
+        "First Company",
+        "First Co",
+        "The First Company"
+      ],
+      "parent": null,
+      "domain": "firstco.com",
+      "industry": "Heating & Air Conditioning",
+      "description": "Makes fan coils, air handlers and water-source heat pumps for apartments, hotels and homes.",
+      "headquarters": {
+        "city": "Dallas",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.firstco.com/"
+      ],
+      "plants": [
+        {
+          "name": "First Co. Dallas",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "8273 Moberly Ln",
+          "zip": "75227",
+          "latitude": 32.78122,
+          "longitude": -96.68038,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333415",
+          "products": "Fan coils, air handlers and water-source heat pumps",
+          "employees": 571,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"First Co. Dallas\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.firstco.com/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cooper Machinery Services",
+      "alsoKnownAs": [
+        "Cooper Machinery Services LLC",
+        "Cooper Machinery Services, LLC"
+      ],
+      "parent": null,
+      "domain": "coopermachineryservices.com",
+      "industry": "Engines & Compressors",
+      "description": "Makes parts for, repairs and rebuilds the large gas engines and compressors used on pipelines.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
+      ],
+      "plants": [
+        {
+          "name": "Cooper Machinery Services Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "16250 Port Northwest Dr",
+          "zip": "77041",
+          "latitude": 29.87799,
+          "longitude": -95.57275,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333912",
+          "products": "Parts, repair and remanufacture of large gas engines and compressors",
+          "employees": 639,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2024 (filed as \"Cooper Machinery Services\"). No 2025 filing was in the file as of 31 August 2026.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Martin Sprocket & Gear",
+      "alsoKnownAs": [
+        "Martin Sprocket & Gear Inc",
+        "Martin Sprocket & Gear, Inc.",
+        "Martin Sprocket and Gear",
+        "Martin Sprocket & Gear INC.",
+        "Martin Sprocket"
+      ],
+      "parent": null,
+      "domain": "martinsprocket.com",
+      "industry": "Power Transmission Parts",
+      "description": "Makes sprockets, gears, conveyor parts and other power-transmission components; headquartered in Arlington.",
+      "headquarters": {
+        "city": "Arlington",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.martinsprocket.com/",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Martin Sprocket & Gear Arlington",
+          "city": "Arlington",
+          "state": "TX",
+          "address": "3100 Sprocket Dr",
+          "zip": "76015",
+          "latitude": 32.69664,
+          "longitude": -97.14196,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333613",
+          "products": "Sprockets, gears and power-transmission components",
+          "employees": 467,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Martin Sprocket & Gear Arlington\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ESAB",
+      "alsoKnownAs": [
+        "ESAB Welding & Cutting",
+        "ESAB Welding and Cutting",
+        "ESAB Welding & Cutting Products",
+        "ESAB Corporation",
+        "Victor Technologies",
+        "Victor Equipment",
+        "Victor Equipment Company",
+        "Thermadyne",
+        "Thermadyne Industries"
+      ],
+      "parent": null,
+      "domain": "esab.com",
+      "industry": "Welding Equipment",
+      "description": "Makes Victor gas welding and cutting equipment in Denton.",
+      "headquarters": {
+        "city": "North Bethesda",
+        "state": "MD",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.dentonedp.com/workforce/major-employers",
+        "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
+      ],
+      "plants": [
+        {
+          "name": "ESAB Denton",
+          "city": "Denton",
+          "state": "TX",
+          "address": "2800 Airport Rd",
+          "zip": "76207",
+          "latitude": 33.20319,
+          "longitude": -97.16756,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333992",
+          "products": "Gas welding and cutting equipment",
+          "employees": 384,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2024 (filed as \"ESAB Denton\"). The Denton Economic Development Partnership list gives 405.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+            "https://www.dentonedp.com/workforce/major-employers"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Alamo Group",
+      "alsoKnownAs": [
+        "Alamo Group Inc",
+        "Alamo Group Inc.",
+        "Alamo Group Texas",
+        "Alamo Group (TX) Inc",
+        "Alamo Industrial"
+      ],
+      "parent": null,
+      "domain": "alamo-group.com",
+      "industry": "Mowing Equipment",
+      "description": "Makes tractor-mounted mowers and roadside vegetation equipment; headquartered in Seguin.",
+      "headquarters": {
+        "city": "Seguin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.seguinedc.com/media/userfiles/subsite_89/files/Downloads/seguin_brochure_25_design_pages_layout.pdf",
+        "https://www.alamo-group.com/locations"
+      ],
+      "plants": [
+        {
+          "name": "Alamo Group Seguin",
+          "city": "Seguin",
+          "state": "TX",
+          "address": "1502 E Walnut St",
+          "zip": "78155",
+          "latitude": 29.57252,
+          "longitude": -97.94013,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333111",
+          "products": "Tractor-mounted mowers and roadside vegetation equipment",
+          "employees": 185,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average employees reported to OSHA on Form 300A for 2025 (filed as \"Alamo Group Texas\").",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.seguinedc.com/media/userfiles/subsite_89/files/Downloads/seguin_brochure_25_design_pages_layout.pdf"
+          ]
+        }
+      ]
+    }
+  ],
+  "unplaced": [
+    {
+      "company": "Boeing",
+      "plant": "Boeing San Antonio (Building 375, Kelly Field)",
+      "city": "San Antonio",
+      "why": "Address is 375 Airlift Drive, Port San Antonio, 78226, but neither geocoder resolves it to a building. 3,793 employees in the 2025 OSHA file (NAICS 336411); Port San Antonio says over 5,000. Heavy maintenance and modification of C-17, F/A-18, 787 and executive-fleet aircraft; site opened 1998."
+    },
+    {
+      "company": "Bell",
+      "plant": "Bell Advanced Manufacturing Center (AllianceTexas)",
+      "city": "Fort Worth",
+      "why": "Being fitted out at 15100 N Beach St for MV-75 transmissions and rotor blades (state filing gives completion in February 2027); the geocoder returns only the street, not the building."
+    },
+    {
+      "company": "Toyoda Gosei Texas",
+      "plant": "Toyoda Gosei Texas",
+      "city": "San Antonio",
+      "why": "Supplier building inside the Toyota campus (1 Lone Star Pass, Building 31); the building itself could not be located. 1,426 employees in the 2025 OSHA file (NAICS 336390)."
+    },
+    {
+      "company": "Avanzar Interior Technologies",
+      "plant": "Avanzar Interior Technologies",
+      "city": "San Antonio",
+      "why": "Supplier building inside the Toyota campus (1 Lone Star Pass, Building 41); the building itself could not be located. 1,100 employees in the 2025 OSHA file (vehicle seating and interiors, NAICS 336360)."
+    },
+    {
+      "company": "Lear",
+      "plant": "Lear Grand Prairie",
+      "city": "Grand Prairie",
+      "why": "3120 N Great Southwest Pkwy resolves only to the street. 955 employees in the 2025 OSHA file (vehicle seating, NAICS 336360)."
+    },
+    {
+      "company": "Solar Turbines",
+      "plant": "Mabank Packaging and Service Center",
+      "city": "Mabank",
+      "why": "Filed at \"904 Solar Turbines Way\"; no geocoder knows the street. 365 employees in the 2025 OSHA file (NAICS 333611)."
+    },
+    {
+      "company": "SPM Oil & Gas (Caterpillar)",
+      "plant": "SPM Oil & Gas Fort Worth",
+      "city": "Fort Worth",
+      "why": "601 Weir Way (filed as 601 Herbert Drive), 76108, resolves only to the street. 491 employees in the 2025 OSHA file (well-service pumps and flow equipment, NAICS 333132)."
+    },
+    {
+      "company": "SLB",
+      "plant": "SLB Katy manufacturing centre",
+      "city": "Katy",
+      "why": "Filed at \"23000 and 24000 Colonial Pkwy\", which resolves only to the street. 509 employees in the 2025 OSHA file (NAICS 333132)."
+    },
+    {
+      "company": "Halliburton",
+      "plant": "Halliburton Jet Research Center",
+      "city": "Alvarado",
+      "why": "8432 S Interstate 35W resolves only to the highway. 324 employees in the 2025 OSHA file (perforating charges and guns, NAICS 333132)."
+    },
+    {
+      "company": "NOV",
+      "plant": "NOV Eldridge Rig Pressure Control",
+      "city": "Houston",
+      "why": "6390 N Eldridge Pkwy resolves only to the street. 400 employees in the 2025 OSHA file (NAICS 333132)."
+    },
+    {
+      "company": "NOV",
+      "plant": "Grant Prideco Navasota",
+      "city": "Navasota",
+      "why": "Filed at \"FM 1227 Industrial Park 1\" with no street number. 336 employees in the 2025 OSHA file (drill pipe; filed under NAICS 332996, fabricated pipe)."
+    },
+    {
+      "company": "JCB",
+      "plant": "JCB San Antonio factory",
+      "city": "San Antonio",
+      "why": "Under construction; no street address or coordinates could be confirmed, and web search was exhausted before it was researched."
+    }
+  ],
+  "notes": "HEADCOUNTS: most site figures are the \"annual average employees\" each establishment reported to OSHA on Form 300A, read from OSHA's published establishment files (2025 file, submissions through 31 August 2026; 2024 file where the 2025 one has no row). They are the employer's own count for that street address, exclude contractors, and are cited by the file URL; the establishment name as filed is given in each employeesNote. Where a company page or economic-development source gives a different figure it is quoted in the note. Bell: \"Textron\" is deliberately not listed as an alias of Bell (Textron has other subsidiaries: Textron Aviation service centres, Kautex, Textron Systems); existing \"Textron\" rows around Fort Worth and Amarillo are very likely Bell sites and should be reviewed by hand. Bell has not yet filed for 2025, so its figures are 2024. Smaller Bell buildings left out: Plant 2 Hurst (323), Commercial Business Center (331), Plant 6 Arlington flight research (223), Plant 3 (139), Manufacturing Technology Center (96). General Motors: GM says it employs over 9,000 in Texas, but that includes GM Financial and the Austin technical centre, so no state manufacturing figure is given. Tarrant County's list shows 10,512 for the Arlington plant, which matches nothing GM reports and was not used. Tesla: the Megapack factory near Brookshire and the lithium refinery near Robstown belong to other industries and are left to other briefs. SpaceX: McGregor is a test site rather than a factory but is one of the company's three large Texas sites; the Bastrop Starlink plant is filed under Computer and Electronic Product Manufacturing, as SpaceX reports it. Boeing is the one large plant that could not be placed (see unplaced); its site is real and current. Boeing was not written as a company entry because a company with no plant would load nothing. Safran: three separate Safran businesses are grouped under one company entry because the database is likely to hold them under Safran or their former names (Zodiac, Weber Aircraft, Labinal, Turbomeca). No headcount was found for the Grand Prairie engine site. Red Oak: Bombardier and Qarbon Aerospace occupy the two halves of the former Triumph (Vought) aerostructures campus on Austin Blvd; existing \"Triumph Aerostructures\" rows there belong to one or the other and were not listed as an alias of either. Schaeffler: the Seguin plant still files as Vitesco Technologies USA LLC; \"Continental\" is not listed as an alias because Continental still operates other Texas sites under its own name. Airbus Helicopters: final assembly is in Mississippi; Grand Prairie is the headquarters, completion and repair site. It is kept because it is on every state and regional list of aerospace plants; no site headcount could be read on an open page (about 500 to 600 is commonly reported). Trinity Industries: only the Longview tank car plant is listed. Its Saginaw sites (about 280 people each in the OSHA file) are railcar maintenance shops, and Plant 200 in Longview closed in 2025. Seatrium AmFELS (Brownsville shipyard) is left out: the yard was sold to Karpowership in January 2026 after its last projects were delivered, and its 2025 OSHA average had fallen to 180. Gulf Copper's Galveston and Port Arthur yards (now Davie Defense, about 180 each) and Sterling Shipyard in Port Neches (265) are below the size cut and were not researched further. Left out on purpose: Blue Origin at Van Horn (587, a launch and engine test site), Gulfstream Dallas (561, a completion and service centre), StandardAero and Dallas Airmotive (engine overhaul), Vutex (1,034, parts sequencing at Toyota), Avancez in Arlington (909, module assembly for GM), Toyotetsu Texas (540, inside the Toyota campus), Recaro Aircraft Seating in Fort Worth (484), Dynacraft in McKinney (464, a PACCAR parts plant), US Farathane in Austin (568, plastics, another brief's industry). Applied Materials (Austin, NAICS 333242) is semiconductor machinery and so falls in Machinery Manufacturing; an electronics brief may also carry it under the same name. Oilfield equipment: Baker Hughes, SLB, Halliburton, NOV and TechnipFMC run many mid-sized Texas plants rather than one large one. Only plants that file with OSHA under machinery manufacturing (or, for TechnipFMC Houston, a campus known for it) and could be placed are listed; what each makes is taken from the establishment's filed name and industry code, and where those say nothing specific the products line says only \"Oil and gas field equipment\". The Federal Reserve Bank of Dallas puts Baker Hughes at 7,000 and Halliburton at 7,500 people in the Houston area, but those are all staff, not manufacturing, so no state figure is given. Left out, machinery: Weatherford (its Houston and Huntsville sites file as oilfield services and what they make could not be confirmed); Siemens Energy (its Texas sites file as repair and warehousing, plus 326 at 10730 Telge Rd, Houston); Kubota (Grapevine is a headquarters and distribution site: no Texas factory); Lennox (Richardson headquarters and distribution only: no Texas factory); Innovex, formerly Dril-Quip (400 at 6401 N Eldridge Pkwy for 2024, no 2025 filing); Stewart & Stevenson (206); Oil States Industries Arlington (213); LUFKIN Industries (no OSHA row; headquarters now Missouri City); TAS Energy in Houston (three sites of 256 to 699); CECO Environmental (a headquarters office); Johnson Controls chillers in San Antonio (300). Caterpillar: the company says it has about 6,600 employees in Texas at 17 sites including the Irving headquarters, but the page stating it could not be opened, so no state figure is given. Its Denison, Schertz and Waco sites have no OSHA manufacturing row and are not listed. Komatsu Longview files from 5410 W Loop 281; the map point is the plant itself on S MacArthur Blvd. RESEARCH LIMITS: the research environment could not open pages through the page-fetch tool and web search ran out part-way through, so later facts come from pages fetched directly (company, government and economic-development sites) and from OSHA's establishment files. Product descriptions for plants whose only fetched source is the OSHA file rest on the establishment's filed name and industry code plus general knowledge of the company, and should be treated as less firmly sourced than the headcounts. Opening years are given only where a fetched page states them. COORDINATES: taken from the supplied geocoder when it returned the exact street number (some results name the county rather than the city, with the right ZIP: Giga Texas, Trinity Longview, Diamond C, several Houston-area plants), otherwise from the plant's own OpenStreetMap feature or its Wikipedia article. Plants that resolved only to a street or a town are in unplaced, each with its filed address and OSHA headcount so it can be placed by hand. ALSO KNOWN AS lists include the names the plants file under with OSHA, since government lists tend to share them. Ford and Aer Manufacturing (named in the brief as present in the database): no Ford vehicle or parts plant in Texas turned up in the OSHA files or any list read, so Ford is not entered; Aer Manufacturing was not researched.\n\nV2, OSHA PASS (18 November 2026). Headcounts that were missing have been filled from OSHA's Form 300A establishment data (https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data): the files for reporting year 2025 and, where an establishment has no 2025 row, 2024, read from the copies on disk. The figure is the establishment's own 'annual average number of employees': that employer's people at that address, offices on the site included, contractors not included. A row was taken only when it had the same street address in the same city, or the same ZIP code and a name that is plainly this plant; each employeesNote names the row. Contractors' filings from the same address (maintenance, scaffolding, catering, security) were never used. Nothing else was changed except as listed here. Web search was not available, so nothing in this pass was checked against a company page. SCOPE RULE (construction is not manufacturing: no ready-mix, concrete block, pipe or precast, NAICS 3273, and no asphalt paving mixtures, 324121): no plant in this file is one of those, so none was removed. COUNTS: 0 plants filled (0 from the 2025 file, 0 from 2024); 2 still without a figure; 0 existing figures annotated with a differing OSHA figure; 65 of 67 plants now carry a headcount. FILLED: none. The two plants without a figure have no filing in either year: Airbus Helicopters Grand Prairie and Safran Helicopter Engines USA (a janitorial contractor's 2025 filing at 2709 N Forum Dr names Turbomeca, which shows the building is occupied but gives no headcount). Toyota Texas (4,000 against OSHA 4,158) and Giga Texas (16,506 against OSHA 13,620) differ from OSHA by less than a fifth and were left alone. Of the plants this file lists as unplaced, three could be placed with the Census geocoder and are now in texas-osha-additions.json (Lear Grand Prairie, SPM Oil & Gas Fort Worth, Halliburton Jet Research Center); Toyoda Gosei, Avanzar and Solar Turbines Mabank are in that file's unplaced list; Boeing San Antonio (3,793) was left out there as a maintenance and modification site rather than a factory. "
+}

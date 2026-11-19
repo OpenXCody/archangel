@@ -2,7 +2,7 @@ import type { Response } from 'express';
 import { and, eq, ne, sql, type SQL } from 'drizzle-orm';
 import { db, companies, factories, occupations, occupationSkills, skills, occupationAliases, skillAliases } from '../db/index.js';
 import { changedFields, recordAudit, type Actor, type Executor } from './audit.js';
-import { answerWriteError, coordinate, count, isUuid, optionalName, optionalText, stateCode } from './writes.js';
+import { answerWriteError, coordinate, count, FACTORY_STATUSES, isUuid, optionalName, optionalText, sourceUrl, stateCode, year } from './writes.js';
 
 /**
  * Correcting the four kinds of record an admin keeps: companies, factories,
@@ -38,7 +38,7 @@ export function answerRefusal(res: Response, error: unknown, what: string): void
 
 const NOT_FOUND: Record<RecordKind, string> = {
   company: 'Company not found',
-  factory: 'Factory not found',
+  factory: 'Plant not found',
   career: 'Occupation not found',
   skill: 'Skill not found',
 };
@@ -225,6 +225,13 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
         featured: row.featured,
         headquartersLat: row.headquartersLat,
         headquartersLng: row.headquartersLng,
+        headquartersCity: row.headquartersCity,
+        headquartersState: row.headquartersState,
+        headquartersCountry: row.headquartersCountry,
+        parentCompanyId: row.parentCompanyId,
+        parentName: row.parentCompanyId
+          ? ((await db.select({ name: companies.name }).from(companies).where(eq(companies.id, row.parentCompanyId)).limit(1))[0]?.name ?? null)
+          : null,
       },
       aliases: row.aliases ?? [],
       attached,
@@ -242,6 +249,13 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
         latitude: factories.latitude,
         longitude: factories.longitude,
         industry: factories.primaryNaicsDescription,
+        workforceSize: factories.workforceSize,
+        workforceYear: factories.workforceYear,
+        workforceSource: factories.workforceSource,
+        workforceNote: factories.workforceNote,
+        products: factories.products,
+        openedYear: factories.openedYear,
+        status: factories.status,
       })
       .from(factories)
       .leftJoin(companies, eq(companies.id, factories.companyId))
@@ -312,6 +326,16 @@ async function changeCompany(id: string, body: Body, actor: Actor): Promise<Save
   };
   const headquartersLat = point('headquartersLat', 'latitude');
   const headquartersLng = point('headquartersLng', 'longitude');
+  const headquartersCity = oneLine(body.headquartersCity, 120);
+  if (headquartersCity === false) refuse('headquartersCity', 'A city is text of up to 120 characters.');
+  const headquartersCountry = oneLine(body.headquartersCountry, 60);
+  if (headquartersCountry === false) refuse('headquartersCountry', 'A country is text of up to 60 characters.');
+  const headquartersState = body.headquartersState === undefined ? undefined : body.headquartersState === null || body.headquartersState === '' ? null : stateCode(body.headquartersState);
+  if (body.headquartersState !== undefined && body.headquartersState !== null && body.headquartersState !== '' && headquartersState === null) {
+    refuse('headquartersState', 'Choose a state, or none for a headquarters outside the United States.');
+  }
+  if (body.parentCompanyId !== undefined && body.parentCompanyId !== null && !isUuid(body.parentCompanyId)) refuse('parent', 'Choose the company it is part of.');
+  const parentCompanyId = body.parentCompanyId as string | null | undefined;
 
   return db.transaction(async (tx) => {
     const [before] = await tx.select().from(companies).where(eq(companies.id, id)).limit(1).for('update');
@@ -325,8 +349,26 @@ async function changeCompany(id: string, body: Body, actor: Actor): Promise<Save
       featured: featured ?? before.featured,
       headquartersLat: headquartersLat === undefined ? before.headquartersLat : headquartersLat,
       headquartersLng: headquartersLng === undefined ? before.headquartersLng : headquartersLng,
+      headquartersCity: headquartersCity === undefined ? before.headquartersCity : headquartersCity,
+      headquartersState: headquartersState === undefined ? before.headquartersState : headquartersState,
+      headquartersCountry: headquartersCountry === undefined ? before.headquartersCountry : headquartersCountry,
+      parentCompanyId: parentCompanyId === undefined ? before.parentCompanyId : parentCompanyId,
       aliases: before.aliases,
     };
+    // "Part of": a company that exists, is not this one, and is not itself part of this one (followed a few steps up).
+    let parent: [string | null, string | null] | null = null;
+    if (after.parentCompanyId !== before.parentCompanyId) {
+      const nameOf = async (company: string | null) =>
+        company ? ((await tx.select({ name: companies.name }).from(companies).where(eq(companies.id, company)).limit(1))[0]?.name ?? null) : null;
+      let above = after.parentCompanyId;
+      for (let step = 0; above && step < 8; step += 1) {
+        if (above === id) refuse('parent', 'A company cannot be part of itself, or of a company that is part of it.');
+        const [row] = await tx.select({ parent: companies.parentCompanyId }).from(companies).where(eq(companies.id, above)).limit(1);
+        if (!row) refuse('parent', 'That company does not exist.');
+        above = row.parent;
+      }
+      parent = [await nameOf(before.parentCompanyId), await nameOf(after.parentCompanyId)];
+    }
     if ((after.headquartersLat === null) !== (after.headquartersLng === null)) {
       refuse(after.headquartersLat === null ? 'headquartersLat' : 'headquartersLng', 'Headquarters take both a latitude and a longitude, or neither.');
     }
@@ -347,18 +389,25 @@ async function changeCompany(id: string, body: Body, actor: Actor): Promise<Save
     const changes = changedFields(
       { ...before, aliases: before.aliases ?? [] },
       { ...after, aliases: after.aliases ?? [] },
-      ['name', 'industry', 'description', 'domain', 'featured', 'aliases', 'headquartersLat', 'headquartersLng']
+      ['name', 'industry', 'description', 'domain', 'featured', 'aliases', 'headquartersLat', 'headquartersLng', 'headquartersCity', 'headquartersState', 'headquartersCountry']
     );
-    if (!changes) return before;
+    if (!changes && !parent) return before;
     const [saved] = await tx.update(companies).set({ ...after, updatedAt: new Date() }).where(eq(companies.id, id)).returning();
-    await recordAudit(tx, { actor, kind: 'company', recordId: id, recordName: saved.name, action: 'edited', detail: { changes } });
+    await recordAudit(tx, {
+      actor,
+      kind: 'company',
+      recordId: id,
+      recordName: saved.name,
+      action: 'edited',
+      detail: { changes: { ...(parent ? { parent } : {}), ...(changes ?? {}) } },
+    });
     return saved;
   });
 }
 
 async function changeFactory(id: string, body: Body, actor: Actor): Promise<SavedRow> {
   const name = optionalName(body.name, 300);
-  if (name === false) refuse('name', 'A factory needs a name of up to 300 characters.');
+  if (name === false) refuse('name', 'A plant needs a name of up to 300 characters.');
   if (body.companyId !== undefined && !isUuid(body.companyId)) refuse('company', 'Choose the company that runs it.');
   const companyId = body.companyId as string | undefined;
   const state = body.state === undefined ? undefined : stateCode(body.state);
@@ -378,7 +427,19 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
   if (specialization === false || description === false) refuse('description', 'A specialization is text of up to 300 characters and a description of up to 2,000.');
   const workforceSize = body.workforceSize === undefined ? undefined : count(body.workforceSize);
   const openPositions = body.openPositions === undefined ? undefined : count(body.openPositions);
-  if (workforceSize === false || openPositions === false) refuse('workforceSize', 'Workforce and open positions are whole numbers from 0 up.');
+  if (workforceSize === false || openPositions === false) refuse('workforceSize', 'People and open positions are whole numbers from 0 up.');
+  const workforceYear = body.workforceYear === undefined ? undefined : year(body.workforceYear, 1900);
+  if (workforceYear === false) refuse('workforceYear', 'The year the figure is for, such as 2024.');
+  const workforceSource = body.workforceSource === undefined ? undefined : sourceUrl(body.workforceSource);
+  if (workforceSource === false) refuse('workforceSource', 'A web address that starts with http:// or https://.');
+  const workforceNote = oneLine(body.workforceNote, 300);
+  if (workforceNote === false) refuse('workforceNote', 'A note is text of up to 300 characters.');
+  const products = oneLine(body.products, 300);
+  if (products === false) refuse('products', 'What it makes is one line of up to 300 characters.');
+  const openedYear = body.openedYear === undefined ? undefined : year(body.openedYear);
+  if (openedYear === false) refuse('openedYear', 'The year it opened, such as 1997.');
+  if (body.status !== undefined && !(FACTORY_STATUSES as readonly unknown[]).includes(body.status)) refuse('status', 'Choose operating or under construction.');
+  const status = body.status as string | undefined;
 
   return db.transaction(async (tx) => {
     const [before] = await tx.select().from(factories).where(eq(factories.id, id)).limit(1).for('update');
@@ -404,7 +465,22 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
       description: description === undefined ? before.description : description,
       workforceSize: workforceSize === undefined ? before.workforceSize : workforceSize,
       openPositions: openPositions === undefined ? before.openPositions : openPositions,
+      workforceYear: workforceYear === undefined ? before.workforceYear : workforceYear,
+      workforceSource: workforceSource === undefined ? before.workforceSource : workforceSource,
+      workforceNote: workforceNote === undefined ? before.workforceNote : workforceNote,
+      products: products === undefined ? before.products : products,
+      openedYear: openedYear === undefined ? before.openedYear : openedYear,
+      status: status ?? before.status,
+      curated: before.curated,
     };
+    // A year, a source and a note belong to a headcount: with no figure there is nothing for them to describe.
+    if (after.workforceSize === null) {
+      after.workforceYear = null;
+      after.workforceSource = null;
+      after.workforceNote = null;
+    }
+    // A plant an admin has described is a described plant.
+    if (after.workforceSize !== null || after.products !== null || after.openedYear !== null) after.curated = true;
 
     let company: [string | null, string | null] | null = null;
     if (after.companyId !== before.companyId) {
@@ -423,7 +499,7 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
         .from(factories)
         .where(and(eq(factories.companyId, after.companyId), eq(factories.state, after.state), sql`lower(${factories.name}) = lower(${after.name})`, ne(factories.id, id)))
         .limit(1);
-      if (taken) throw new RecordRefusal(409, 'That company already has a factory with that name in that state.', { field: 'name', existing: taken });
+      if (taken) throw new RecordRefusal(409, 'That company already has a plant with that name in that state.', { field: 'name', existing: taken });
     }
 
     const changes = changedFields({ ...before, industry: before.primaryNaicsDescription }, { ...after, industry: after.primaryNaicsDescription }, [
@@ -438,6 +514,12 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
       'description',
       'workforceSize',
       'openPositions',
+      'workforceYear',
+      'workforceSource',
+      'workforceNote',
+      'products',
+      'openedYear',
+      'status',
     ]);
     if (!changes && !company) return before;
     const [saved] = await tx.update(factories).set({ ...after, updatedAt: new Date() }).where(eq(factories.id, id)).returning();
@@ -611,6 +693,12 @@ export async function removeRecord(kind: RecordKind, id: string, actor: Actor): 
             ? await tx.delete(occupations).where(eq(occupations.id, id)).returning({ name: occupations.title })
             : await tx.delete(skills).where(eq(skills.id, id)).returning({ name: skills.name });
     if (!gone) return null;
+    // Where the record came from is not tied to it by the database: it goes with it here.
+    if (kind === 'company') {
+      await tx.execute(sql`DELETE FROM external_references WHERE entity_type = 'companies' AND entity_id = ${id}`);
+    } else if (kind === 'factory') {
+      await tx.execute(sql`DELETE FROM external_references WHERE entity_type = 'factories' AND entity_id = ${id}`);
+    }
     await recordAudit(tx, {
       actor,
       kind,
@@ -671,6 +759,17 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
       await tx.execute(sql`
         UPDATE company_members x SET company_id = ${intoId} WHERE company_id = ${fromId}
           AND NOT EXISTS (SELECT 1 FROM company_members y WHERE y.company_id = ${intoId} AND y.user_id = x.user_id)`);
+      // Requests for a plant of the company, the companies that are part of it, its people by state and its sources.
+      await tx.execute(sql`UPDATE company_requests SET company_id = ${intoId} WHERE company_id = ${fromId}`);
+      await tx.execute(sql`UPDATE company_requests SET added_company_id = ${intoId} WHERE added_company_id = ${fromId}`);
+      await tx.execute(sql`UPDATE companies SET parent_company_id = ${intoId} WHERE parent_company_id = ${fromId} AND id <> ${intoId}`);
+      await tx.execute(sql`
+        UPDATE company_state_headcounts x SET company_id = ${intoId} WHERE company_id = ${fromId}
+          AND NOT EXISTS (SELECT 1 FROM company_state_headcounts y WHERE y.company_id = ${intoId} AND y.state = x.state)`);
+      await tx.execute(sql`
+        DELETE FROM external_references x WHERE x.entity_type = 'companies' AND x.entity_id = ${fromId} AND x.source = 'CURATED'
+          AND EXISTS (SELECT 1 FROM external_references y WHERE y.entity_type = 'companies' AND y.entity_id = ${intoId} AND y.source = 'CURATED' AND y.url = x.url)`);
+      await tx.execute(sql`UPDATE external_references SET entity_id = ${intoId} WHERE entity_type = 'companies' AND entity_id = ${fromId}`);
       // The slug is unique: the row that is going gives it up before the kept row can take it.
       await tx.delete(companies).where(eq(companies.id, fromId));
       // The kept company takes whatever profile it lacks, and remembers the old name.
@@ -682,6 +781,10 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
             industry = CASE WHEN c.industry IS NULL OR lower(btrim(c.industry)) IN ('', 'manufacturing') THEN COALESCE(${gone.industry}, c.industry) ELSE c.industry END,
             featured = c.featured OR ${gone.featured},
             slug = COALESCE(c.slug, ${gone.slug}),
+            parent_company_id = COALESCE(c.parent_company_id, NULLIF(${gone.parentCompanyId}::uuid, c.id)),
+            headquarters_state = CASE WHEN c.headquarters_city IS NULL THEN ${gone.headquartersState} ELSE c.headquarters_state END,
+            headquarters_country = CASE WHEN c.headquarters_city IS NULL THEN ${gone.headquartersCountry} ELSE c.headquarters_country END,
+            headquarters_city = COALESCE(c.headquarters_city, ${gone.headquartersCity}),
             aliases = (
               SELECT array_agg(DISTINCT a) FROM unnest(COALESCE(c.aliases, '{}') || ${sql.param(gone.aliases ?? [], companies.aliases)}::text[] || ARRAY[${gone.name}]::text[]) AS a
               WHERE lower(a) <> lower(c.name)

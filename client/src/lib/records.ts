@@ -13,7 +13,8 @@ export type RecordKind = 'company' | 'factory' | 'career' | 'skill';
 
 export const RECORD_KINDS: { kind: RecordKind; label: string }[] = [
   { kind: 'company', label: 'Company' },
-  { kind: 'factory', label: 'Factory' },
+  // On screen a factory is a plant; the kind, the route and the audit line keep `factory`.
+  { kind: 'factory', label: 'Plant' },
   { kind: 'career', label: 'Career' },
   { kind: 'skill', label: 'Skill' },
 ];
@@ -186,7 +187,7 @@ export interface AuditEntry {
 
 export const AUDIT_KINDS: { kind: string; label: string }[] = [
   { kind: 'company', label: 'Companies' },
-  { kind: 'factory', label: 'Factories' },
+  { kind: 'factory', label: 'Plants' },
   { kind: 'career', label: 'Careers' },
   { kind: 'skill', label: 'Skills' },
   { kind: 'person', label: 'People' },

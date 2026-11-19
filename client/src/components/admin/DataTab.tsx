@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { useAdminOverview, useAdminPaths } from '../../lib/account';
+import { useAdminPaths } from '../../lib/account';
+import { onGroupArrowKeys } from '../../lib/roving';
 import { RECORD_KINDS, editPath, type RecordKind } from '../../lib/records';
 import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
@@ -13,8 +13,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Data upkeep. With a record in the address (`kind` and `id`) the tab is that
- * record's editor; otherwise counts, finding or adding a record, and the
- * career paths waiting for review.
+ * record's editor; otherwise finding or adding a record, and the career paths
+ * waiting for review. (Counts of people, requests, jobs and applications are
+ * not data upkeep and are not here: People and Access are a tab away.)
  */
 export default function DataTab() {
   const [searchParams] = useSearchParams();
@@ -23,55 +24,15 @@ export default function DataTab() {
   if (kind && id && UUID.test(id)) return <RecordEditor key={`${kind}:${id}`} kind={kind} id={id} />;
   return (
     <>
-      <CountsSection />
       <Records />
       <PathsSection />
     </>
   );
 }
 
-function CountsSection() {
-  const overview = useAdminOverview();
-  // A count leads to where its things are; applications have no list of their own.
-  const tiles: { label: string; value: number | undefined; to?: string }[] = [
-    { label: 'People', value: overview.data?.users, to: '/admin' },
-    { label: 'Access requests', value: overview.data?.pendingMemberships, to: '/admin?tab=access' },
-    { label: 'Open jobs', value: overview.data?.openJobs, to: '/jobs' },
-    { label: 'Applications', value: overview.data?.applications },
-  ];
-  return (
-    <PageSection title="Counts">
-      {overview.isError ? (
-        <LoadError error={overview.error} onRetry={() => void overview.refetch()} retrying={overview.isFetching} />
-      ) : (
-        <dl className="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
-          {tiles.map((tile) => {
-            const body = (
-              <>
-                <dt className="truncate text-sm text-fg-muted">{tile.label}</dt>
-                <dd className="mt-1 text-2xl font-semibold tabular-nums text-fg-default">
-                  {tile.value === undefined ? <Skeleton className="h-8 w-12" /> : tile.value.toLocaleString('en-US')}
-                </dd>
-              </>
-            );
-            return tile.to ? (
-              <Link key={tile.label} to={tile.to} className={cn(cardClass, 'block min-w-0 p-4 transition-colors hover:border-border-strong')}>
-                {body}
-              </Link>
-            ) : (
-              <div key={tile.label} className={cn(cardClass, 'min-w-0 p-4')}>
-                {body}
-              </div>
-            );
-          })}
-        </dl>
-      )}
-    </PageSection>
-  );
-}
-
 const PATHS_SHOWN = 12;
 type PathState = 'draft' | 'approved';
+const PATH_STATES: readonly PathState[] = ['draft', 'approved'];
 
 /**
  * Career paths by state. A draft opens in the career's editor, where its
@@ -83,6 +44,10 @@ function PathsSection() {
   const paths = useAdminPaths(state);
   const [filter, setFilter] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const choose = (next: PathState) => {
+    setState(next);
+    setShowAll(false);
+  };
 
   const wanted = filter.trim().toLowerCase();
   const matching = (paths.data ?? []).filter((path) => !wanted || path.title.toLowerCase().includes(wanted));
@@ -99,17 +64,20 @@ function PathsSection() {
       }
     >
       <div className="mb-3 flex flex-wrap items-center gap-3">
-        <div role="radiogroup" aria-label="Paths shown" className="grid h-[42px] grid-cols-2 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1">
-          {(['draft', 'approved'] as const).map((option) => (
+        <div
+          role="radiogroup"
+          aria-label="Paths shown"
+          onKeyDown={(event) => onGroupArrowKeys(event, PATH_STATES, state, choose)}
+          className="grid h-[42px] grid-cols-2 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1"
+        >
+          {PATH_STATES.map((option) => (
             <button
               key={option}
               type="button"
               role="radio"
               aria-checked={state === option}
-              onClick={() => {
-                setState(option);
-                setShowAll(false);
-              }}
+              tabIndex={state === option ? 0 : -1}
+              onClick={() => choose(option)}
               className={cn(
                 'rounded-md px-4 text-sm font-medium transition-colors',
                 state === option ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
@@ -126,7 +94,7 @@ function PathsSection() {
             onChange={(e) => setFilter(e.target.value)}
             placeholder="Filter by career"
             aria-label="Filter paths by career"
-            className={cn(fieldClass, 'w-auto min-w-0 flex-1 sm:max-w-xs')}
+            className={cn(fieldClass, 'w-auto min-w-[9rem] flex-1 sm:max-w-xs')}
           />
         )}
         {paths.data && (
@@ -140,7 +108,7 @@ function PathsSection() {
       ) : paths.isError ? (
         <LoadError error={paths.error} onRetry={() => void paths.refetch()} retrying={paths.isFetching} />
       ) : total === 0 ? (
-        <CardNote>None.</CardNote>
+        <CardNote>None yet.</CardNote>
       ) : matching.length === 0 ? (
         <CardNote>No match.</CardNote>
       ) : (

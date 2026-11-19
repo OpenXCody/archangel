@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -7,6 +7,9 @@ import { cn } from '@/lib/utils';
 import {
   ApiError,
   useChangeEmail,
+  justLeft,
+  signInPath,
+  useAccount,
   useChangePassword,
   useDeleteAccount,
   useEmailOn,
@@ -32,7 +35,30 @@ import {
 import { PageContainer, PageHeader, PageSection } from '../components/layout/Page';
 
 export default function Settings() {
+  const { data } = useAccount();
+  // How the app looks is kept in the browser, not on an account: it is offered to a visitor too.
+  if (data && !data.user) return justLeft(data) ? <Navigate to="/map" replace /> : <VisitorSettings />;
   return <AccountGate>{(account) => <SettingsPage account={account} />}</AccountGate>;
+}
+
+/** Settings with nobody signed in: the one setting that needs no account, then the way to the rest. */
+function VisitorSettings() {
+  return (
+    <PageContainer size="narrow">
+      <PageHeader title="Settings" />
+      <AppearanceSection />
+      <PageSection title="Account" description="Your name, sign-in and what the account is for are here once you are signed in.">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3" data-settings-sign-in>
+          <Button asChild className="h-10 rounded-lg px-5">
+            <Link to={signInPath('/settings')}>Sign in</Link>
+          </Button>
+          <Link to={signInPath('/settings', 'create')} className={textButtonClass}>
+            Create an account
+          </Link>
+        </div>
+      </PageSection>
+    </PageContainer>
+  );
 }
 
 /**
@@ -48,7 +74,7 @@ function SettingsPage({ account }: { account: SignedInAccount }) {
   const { user } = account;
   return (
     <PageContainer size="narrow">
-      <PageHeader title="Settings" description={user.email} />
+      <PageHeader title="Settings" />
       <ProfileSection user={user} />
       <SignInSection account={account} />
       <NoticeSection user={user} />
@@ -132,11 +158,11 @@ function ProfileSection({ user }: { user: AccountUser }) {
         </div>
         <ErrorNote error={update.error} />
         <div className="flex flex-wrap items-center gap-3">
+          {/* Marked, never disabled: with nothing changed or while it saves, the button keeps the focus. */}
           <Button
             type="submit"
-            disabled={!dirty && !update.isPending}
             aria-busy={update.isPending}
-            aria-disabled={update.isPending}
+            aria-disabled={!dirty || update.isPending}
             className={cn('h-10 rounded-lg', busyButtonClass)}
           >
             {update.isPending && <Loader2 className="animate-spin" />}
@@ -582,8 +608,9 @@ function AppearanceSection() {
 }
 
 const PURPOSES: Choice<Purpose>[] = [
-  { value: 'work', label: 'Find a career', detail: 'Goals, skills, applications.' },
-  { value: 'hire', label: 'Hire', detail: 'Your company, jobs, applicants.' },
+  // The words a new account is asked the same question in.
+  { value: 'work', label: 'Find a career', detail: 'Explore careers, track skills, apply.' },
+  { value: 'hire', label: 'Hire', detail: 'Post jobs, review applicants.' },
 ];
 
 /**
@@ -613,7 +640,7 @@ function PurposeSection({ user }: { user: AccountUser }) {
         <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 px-1" data-purpose-changed>
           <Done>Saved</Done>
           <Link to={user.purpose === 'hire' ? '/employer' : '/me'} className={textButtonClass}>
-            {user.purpose === 'hire' ? 'Your jobs' : 'Your page'}
+            {user.purpose === 'hire' ? 'Your jobs' : 'Profile'}
           </Link>
         </p>
       )}
@@ -623,8 +650,9 @@ function PurposeSection({ user }: { user: AccountUser }) {
 
 const VIEW_LABEL: Record<ViewAs, Choice<ViewAs>> = {
   admin: { value: 'admin', label: 'Admin', detail: 'Your own view.' },
-  employer: { value: 'employer', label: 'Employer', detail: 'Company, jobs, applicants.' },
-  user: { value: 'user', label: 'User', detail: 'Goals, skills, applications.' },
+  // Each view is one of the two kinds of account, in the words that describe it above.
+  employer: { value: 'employer', label: 'Employer', detail: PURPOSES[1].detail },
+  user: { value: 'user', label: 'User', detail: PURPOSES[0].detail },
 };
 
 /**

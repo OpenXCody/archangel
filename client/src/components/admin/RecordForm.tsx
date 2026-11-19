@@ -51,7 +51,17 @@ type FieldName =
   | 'category'
   | 'onetCode'
   | 'howLearned'
-  | 'tools';
+  | 'tools'
+  | 'workforceSize'
+  | 'workforceYear'
+  | 'workforceSource'
+  | 'workforceNote'
+  | 'products'
+  | 'openedYear'
+  | 'parent'
+  | 'headquartersCity'
+  | 'headquartersState'
+  | 'headquartersCountry';
 
 /** The control to put focus on for each field with a problem, in form order. */
 const FIELD_FOCUS: [FieldName, string][] = [
@@ -64,12 +74,22 @@ const FIELD_FOCUS: [FieldName, string][] = [
   ['longitude', 'record-longitude'],
   ['city', 'record-city'],
   ['address', 'record-address'],
+  ['workforceSize', 'record-people'],
+  ['workforceYear', 'record-people-year'],
+  ['workforceSource', 'record-people-source'],
+  ['workforceNote', 'record-people-note'],
+  ['products', 'record-products'],
+  ['openedYear', 'record-opened'],
   ['description', 'record-description'],
   ['howLearned', 'record-how-learned'],
   ['tools', 'record-tools'],
   ['onetCode', 'record-onet'],
   ['domain', 'record-domain'],
   ['aliases', 'record-aliases'],
+  ['parent', 'record-parent'],
+  ['headquartersCity', 'record-hq-city'],
+  ['headquartersState', 'record-hq-state'],
+  ['headquartersCountry', 'record-hq-country'],
   ['headquartersLat', 'record-hq-latitude'],
   ['headquartersLng', 'record-hq-longitude'],
 ];
@@ -77,7 +97,7 @@ const FIELD_FOCUS: [FieldName, string][] = [
 const NAME_LABEL: Record<RecordKind, string> = { company: 'Name', factory: 'Name', career: 'Title', skill: 'Name' };
 const NAME_PROBLEM: Record<RecordKind, string> = {
   company: 'Enter the company’s name.',
-  factory: 'Enter the factory’s name.',
+  factory: 'Enter the plant’s name.',
   career: 'Enter the career’s title.',
   skill: 'Enter the skill’s name.',
 };
@@ -89,6 +109,25 @@ function coordinate(text: string, limit: number): number | null {
   const number = Number(value);
   return Math.abs(number) <= limit ? number : null;
 }
+
+/** A year typed as four digits, from `min` to next year, or null. */
+function yearOf(text: string, min: number): number | null {
+  const value = text.trim();
+  if (!/^\d{4}$/.test(value)) return null;
+  const number = Number(value);
+  return number >= min && number <= new Date().getFullYear() + 1 ? number : null;
+}
+
+/** A count of people typed as a whole number, commas allowed, or null. */
+function peopleOf(text: string): number | null {
+  const value = text.trim().replace(/,/g, '');
+  return /^\d{1,8}$/.test(value) ? Number(value) : null;
+}
+
+const STATUSES = [
+  { value: 'operating', label: 'Operating' },
+  { value: 'under construction', label: 'Under construction' },
+];
 
 const HOSTNAME = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 
@@ -119,7 +158,7 @@ interface RecordFormProps {
 }
 
 /**
- * The one form for a company, a factory, a career or a skill: adding one
+ * The one form for a company, a plant, a career or a skill: adding one
  * asks for the few fields that make it; correcting one shows all it has.
  * Each problem is said beside its field, the first takes focus, and a name
  * close to one already listed says so before anything is saved.
@@ -153,6 +192,21 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   const [onetCode, setOnetCode] = useState(text(fields.onetCode));
   const [hqLatitude, setHqLatitude] = useState(text(fields.headquartersLat));
   const [hqLongitude, setHqLongitude] = useState(text(fields.headquartersLng));
+  const [hqCity, setHqCity] = useState(text(fields.headquartersCity));
+  const [hqState, setHqState] = useState(text(fields.headquartersState));
+  const [hqCountry, setHqCountry] = useState(text(fields.headquartersCountry));
+  const [parent, setParent] = useState<AdminCompany | null>(
+    typeof fields.parentCompanyId === 'string'
+      ? { id: fields.parentCompanyId, name: text(fields.parentName), slug: null, domain: null, featured: false, industry: null, description: null }
+      : null
+  );
+  const [people, setPeople] = useState(text(fields.workforceSize));
+  const [peopleYear, setPeopleYear] = useState(text(fields.workforceYear));
+  const [peopleSource, setPeopleSource] = useState(text(fields.workforceSource));
+  const [peopleNote, setPeopleNote] = useState(text(fields.workforceNote));
+  const [products, setProducts] = useState(text(fields.products));
+  const [openedYear, setOpenedYear] = useState(text(fields.openedYear));
+  const [status, setStatus] = useState(text(fields.status) || 'operating');
   const [attempted, setAttempted] = useState(false);
 
   // Industries and categories already in use, offered as the field is typed in.
@@ -179,6 +233,14 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
     if (!state) problems.state = 'Choose a state.';
     if (lat === null) problems.latitude = 'A number from -90 to 90.';
     if (lng === null) problems.longitude = 'A number from -180 to 180.';
+    if (editing) {
+      // A year, a source and a note describe a headcount: they need one.
+      const about = Boolean(peopleYear.trim() || peopleSource.trim() || peopleNote.trim());
+      if (people.trim() ? peopleOf(people) === null : about) problems.workforceSize = people.trim() ? 'A whole number.' : 'Enter how many people the year, source and note are about.';
+      if (peopleYear.trim() && yearOf(peopleYear, 1900) === null) problems.workforceYear = 'A year, such as 2024.';
+      if (peopleSource.trim() && !/^https?:\/\/\S+\.\S+$/i.test(peopleSource.trim())) problems.workforceSource = 'A web address that starts with https://.';
+      if (openedYear.trim() && yearOf(openedYear, 1700) === null) problems.openedYear = 'A year, such as 1997.';
+    }
   }
   if (kind === 'company' && editing) {
     if (domain.trim() && !cleanedDomain) problems.domain = 'Enter a domain such as tesla.com.';
@@ -208,7 +270,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
 
   /** What adding sends: an optional field left empty is left out. */
   const newRecord = (): NewRecord | null => {
-    if (kind === 'company') return { kind, name: name.trim(), industry: given(industry) };
+    if (kind === 'company') return { kind, name: name.trim() };
     if (kind === 'career') return { kind, title: name.trim(), description: given(description) };
     if (kind === 'skill') return { kind, name: name.trim(), category: given(category), description: given(description) };
     if (!company || lat === null || lng === null) return null;
@@ -220,13 +282,17 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
     if (kind === 'company') {
       return {
         name: name.trim(),
-        industry: orNull(industry),
+        // A company's industries are read from its plants; its own free-text label is no longer shown or edited.
         description: orNull(description),
         domain: cleanedDomain,
         featured,
         aliases: aliasList,
         headquartersLat: hqLat,
         headquartersLng: hqLng,
+        parentCompanyId: parent?.id ?? null,
+        headquartersCity: orNull(hqCity),
+        headquartersState: hqState || null,
+        headquartersCountry: orNull(hqCountry),
       };
     }
     if (kind === 'career') return { title: name.trim(), description: orNull(description), onetCode: orNull(onetCode), aliases: aliasList };
@@ -242,6 +308,13 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
       city: orNull(city),
       address: orNull(address),
       industry: orNull(industry),
+      workforceSize: peopleOf(people),
+      workforceYear: yearOf(peopleYear, 1900),
+      workforceSource: orNull(peopleSource),
+      workforceNote: orNull(peopleNote),
+      products: orNull(products),
+      openedYear: yearOf(openedYear, 1700),
+      status,
     };
   };
 
@@ -304,7 +377,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
     value: string,
     onChange: (value: string) => void,
     field?: FieldName,
-    extra?: { maxLength?: number; list?: string; inputMode?: 'decimal' | 'url'; autoCapitalize?: 'none'; spellCheck?: boolean }
+    extra?: { maxLength?: number; list?: string; inputMode?: 'decimal' | 'url' | 'numeric'; autoCapitalize?: 'none'; spellCheck?: boolean }
   ) => (
     <input
       id={id}
@@ -355,17 +428,6 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
           <FieldError id="record-name-error" message={shown('name')} />
         </Field>
 
-        {kind === 'company' && (
-          <Field label="Industry" htmlFor="record-industry" optional>
-            {input('record-industry', industry, setIndustry, 'industry', { maxLength: 80, list: 'record-industries' })}
-            <datalist id="record-industries">
-              {(facets.data?.companyIndustries ?? []).map((value) => (
-                <option key={value} value={value} />
-              ))}
-            </datalist>
-            <FieldError id="record-industry-error" message={shown('industry')} />
-          </Field>
-        )}
 
         {kind === 'skill' && (
           <Field label="Category" htmlFor="record-category" optional>
@@ -465,6 +527,52 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
               <FieldError id="record-industry-error" message={shown('industry')} />
             </Field>
           )}
+          {editing && (
+            <>
+              <div className="grid grid-cols-1 gap-4 xs:grid-cols-2">
+                <Field label="People" htmlFor="record-people" optional hint={shown('workforceSize') ? undefined : 'Working at this plant.'}>
+                  {input('record-people', people, setPeople, 'workforceSize', { inputMode: 'numeric', maxLength: 10 })}
+                  <FieldError id="record-people-error" message={shown('workforceSize')} />
+                </Field>
+                <Field label="Year" htmlFor="record-people-year" optional hint={shown('workforceYear') ? undefined : 'The year that figure is for.'}>
+                  {input('record-people-year', peopleYear, setPeopleYear, 'workforceYear', { inputMode: 'numeric', maxLength: 4 })}
+                  <FieldError id="record-people-year-error" message={shown('workforceYear')} />
+                </Field>
+              </div>
+              <Field label="Source" htmlFor="record-people-source" optional hint={shown('workforceSource') ? undefined : 'The page that states the figure.'}>
+                {input('record-people-source', peopleSource, setPeopleSource, 'workforceSource', { maxLength: 500, inputMode: 'url', autoCapitalize: 'none', spellCheck: false })}
+                <FieldError id="record-people-source-error" message={shown('workforceSource')} />
+              </Field>
+              <Field label="Note" htmlFor="record-people-note" optional hint={shown('workforceNote') ? undefined : 'Anything to know about the figure, such as “includes contractors”.'}>
+                {input('record-people-note', peopleNote, setPeopleNote, 'workforceNote', { maxLength: 300 })}
+                <FieldError id="record-people-note-error" message={shown('workforceNote')} />
+              </Field>
+              <Field label="Makes" htmlFor="record-products" optional hint={shown('products') ? undefined : 'One line on what is made there.'}>
+                {input('record-products', products, setProducts, 'products', { maxLength: 300 })}
+                <FieldError id="record-products-error" message={shown('products')} />
+              </Field>
+              <div className="grid grid-cols-1 gap-4 xs:grid-cols-2">
+                <Field label="Opened" htmlFor="record-opened" optional hint={shown('openedYear') ? undefined : 'The year production started.'}>
+                  {input('record-opened', openedYear, setOpenedYear, 'openedYear', { inputMode: 'numeric', maxLength: 4 })}
+                  <FieldError id="record-opened-error" message={shown('openedYear')} />
+                </Field>
+                <Field label="Status" htmlFor="record-status">
+                  <Select value={status} onValueChange={setStatus}>
+                    <SelectTrigger id="record-status" className={cn(selectTriggerClass, 'w-full')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className={selectContentClass}>
+                      {STATUSES.map((option) => (
+                        <SelectItem key={option.value} value={option.value} className="py-2.5">
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+            </>
+          )}
         </>
       )}
 
@@ -522,6 +630,49 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
             </div>
           </div>
           {otherNames}
+          <Field label="Part of" htmlFor="record-parent" optional hint={shown('parent') ? undefined : 'The company that owns it.'}>
+            <CompanyPicker
+              id="record-parent"
+              value={parent}
+              onChange={setParent}
+              invalid={Boolean(shown('parent'))}
+              describedBy={shown('parent') ? 'record-parent-error' : undefined}
+            />
+            <FieldError id="record-parent-error" message={shown('parent')} />
+          </Field>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Field label="Headquarters city" htmlFor="record-hq-city" optional>
+              {input('record-hq-city', hqCity, setHqCity, 'headquartersCity', { maxLength: 120 })}
+              <FieldError id="record-hq-city-error" message={shown('headquartersCity')} />
+            </Field>
+            <Field label="State" htmlFor="record-hq-state" optional>
+              <Select value={hqState || 'none'} onValueChange={(value) => setHqState(value === 'none' ? '' : value)}>
+                <SelectTrigger
+                  id="record-hq-state"
+                  aria-invalid={shown('headquartersState') ? true : undefined}
+                  aria-describedby={shown('headquartersState') ? 'record-hq-state-error' : undefined}
+                  className={cn(selectTriggerClass, 'w-full', shown('headquartersState') && 'border-danger/60')}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className={cn(selectContentClass, 'max-h-72')}>
+                  <SelectItem value="none" className="py-2.5">
+                    None
+                  </SelectItem>
+                  {US_STATES.map((option) => (
+                    <SelectItem key={option.code} value={option.code} className="py-2.5">
+                      {option.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldError id="record-hq-state-error" message={shown('headquartersState')} />
+            </Field>
+            <Field label="Country" htmlFor="record-hq-country" optional>
+              {input('record-hq-country', hqCountry, setHqCountry, 'headquartersCountry', { maxLength: 60 })}
+              <FieldError id="record-hq-country-error" message={shown('headquartersCountry')} />
+            </Field>
+          </div>
           <div className="grid grid-cols-1 gap-4 xs:grid-cols-2">
             <Field label="Headquarters latitude" htmlFor="record-hq-latitude" optional>
               {input('record-hq-latitude', hqLatitude, setHqLatitude, 'headquartersLat', { inputMode: 'decimal', maxLength: 20 })}

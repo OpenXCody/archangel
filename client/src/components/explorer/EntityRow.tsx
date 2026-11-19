@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { Company, Factory, Occupation, Skill } from '../../lib/api';
 import { companiesApi, factoriesApi, occupationsApi, skillsApi } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import { shownIndustry } from '@shared/industry';
 import { Skeleton } from '@/components/ui/skeleton';
 import CompanyLogo from '../CompanyLogo';
 import type { BrowseTab } from './ExploreNav';
@@ -21,8 +22,6 @@ import type { BrowseTab } from './ExploreNav';
 
 export type BrowseEntity = Company | Factory | Occupation | Skill;
 
-/** Industry value the bulk import stamped on nearly every company; not worth a line. */
-const GENERIC_INDUSTRY = 'manufacturing';
 /** Leftovers of the skill tree import in the category column; they say nothing. */
 const JUNK_CATEGORIES = new Set(['', 'subcategory', 'category', 'skill', 'root']);
 
@@ -47,12 +46,14 @@ interface RowProps {
   facts?: Part[];
   /** Leads the row (a company's logo). */
   leading?: ReactNode;
-  /** Leads the facts line (a factory's company logo). */
+  /** Leads the facts line (a plant's company logo). */
   factsLeading?: ReactNode;
+  /** Ends the facts line and is never cut short (a plant's people). */
+  factsEnd?: string | null;
   onMouseEnter?: () => void;
 }
 
-function Row({ to, name, summary, facts, leading, factsLeading, onMouseEnter }: RowProps) {
+function Row({ to, name, summary, facts, leading, factsLeading, factsEnd, onMouseEnter }: RowProps) {
   const factsText = joined(facts ?? []);
   return (
     <Link
@@ -63,11 +64,13 @@ function Row({ to, name, summary, facts, leading, factsLeading, onMouseEnter }: 
       {leading}
       <div className="min-w-0 flex-1">
         <h3 className="truncate text-base font-medium leading-6 text-fg-default underline-offset-4 group-hover:underline">{name}</h3>
-        {summary && <p className="truncate text-sm leading-6 text-fg-muted">{summary}</p>}
-        {(factsText || factsLeading) && (
+        {/* A phone has room for eight words a line: there the description gets two. */}
+        {summary && <p className="line-clamp-2 text-sm leading-6 text-fg-muted sm:line-clamp-1">{summary}</p>}
+        {(factsText || factsLeading || factsEnd) && (
           <p className="flex min-w-0 items-center gap-2 text-sm leading-6 text-fg-soft">
             {factsLeading}
             <span className="min-w-0 truncate">{factsText}</span>
+            {factsEnd && <span className="-ml-1 shrink-0 whitespace-nowrap">{factsText ? `· ${factsEnd}` : factsEnd}</span>}
           </p>
         )}
       </div>
@@ -79,29 +82,33 @@ type Props<T> = { data: T; onMouseEnter?: () => void };
 
 function CompanyRow({ data, onMouseEnter }: Props<Company>) {
   const name = formatCompanyName(data.name);
-  const industry = data.industry && data.industry.trim().toLowerCase() !== GENERIC_INDUSTRY ? data.industry : null;
   return (
     <Row
       to={`/companies/${data.slug ?? data.id}`}
       name={name}
       leading={<CompanyLogo name={name} domain={data.domain} size={40} className="rounded-lg" />}
-      facts={[count(data.factoryCount, 'site', 'sites'), industry]}
+      // The industry most of its plants are in, when they carry one.
+      facts={[count(data.factoryCount, 'plant', 'plants'), shownIndustry(data.industry)]}
       onMouseEnter={onMouseEnter}
     />
   );
 }
 
 function FactoryRow({ data, onMouseEnter }: Props<Factory>) {
+  const name = formatFactoryName(data.name);
   const company = data.companyName ? formatCompanyName(data.companyName) : null;
+  // Most plants are named after their company ("10 Star Coatings, LLC" of 10 Star Coatings): the line does not say it twice.
+  const named = company !== null && name.toLowerCase().startsWith(company.toLowerCase());
   // Cities arrive in capitals ("ROUND ROCK").
   const city = data.city ? formatCompanyName(data.city) : null;
   const place = city && data.state ? `${city}, ${data.state}` : city || data.state;
   return (
     <Row
       to={`/factories/${data.id}`}
-      name={formatFactoryName(data.name)}
+      name={name}
       factsLeading={company && data.companyDomain ? <CompanyLogo name={company} domain={data.companyDomain} size={20} className="rounded" /> : null}
-      facts={[company, place]}
+      facts={[named ? null : company, place]}
+      factsEnd={data.workforceSize ? `${data.workforceSize.toLocaleString()} people` : null}
       onMouseEnter={onMouseEnter}
     />
   );

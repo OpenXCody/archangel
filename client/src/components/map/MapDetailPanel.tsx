@@ -35,7 +35,7 @@ import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../CompanyLogo';
 import { formatPay } from '../../lib/jobFormat';
 import { PANEL_WIDTH_PX, SHEET_BAR_PX, SHEET_FULL_VH, sheetPeekPx } from './camera';
-import { industryLabel, industryPath } from '@shared/industry';
+import { industryPath, leadingIndustry, shownIndustry } from '@shared/industry';
 import { isNotFound, useSelection } from './selection';
 
 /*
@@ -43,6 +43,8 @@ import { isNotFound, useSelection } from './selection';
  *   plant   a factory, wherever the panel speaks about a place of work
  *   people  how many work somewhere (never "workforce", "workers", "headcount", "positions")
  *   career  an occupation
+ *   industry  one of the 21, by its short name (`shownIndustry`); a company's is the
+ *             one most of its plants are in, never the free text on its record
  * Every number sits under or beside a label, and a section with nothing to
  * say is left out rather than shown as "0".
  *
@@ -204,6 +206,10 @@ function jobsNear(lat: number, lng: number, name: string): string {
   return `/jobs?${new URLSearchParams({ near: `${lat.toFixed(4)},${lng.toFixed(4)}`, place: name })}`;
 }
 
+/** The link under a list to the rest of it. Text-sized for a mouse, tall enough for a finger. */
+const MORE_LINK =
+  'mt-2 inline-flex items-center text-xs text-fg-muted underline-offset-4 hover:underline [@media(pointer:coarse)]:mt-0 [@media(pointer:coarse)]:min-h-11';
+
 /** "and 12 more", when a list was cut short. */
 function More({ shown, total, noun }: { shown: number; total: number; noun: string }) {
   if (total <= shown) return null;
@@ -248,7 +254,7 @@ function RegionBody({
         <Section title="Open jobs">
           <JobRows jobs={jobs} limit={REGION_JOBS_SHOWN} company />
           {openJobs > REGION_JOBS_SHOWN && (
-            <Link to={jobsLink} className="mt-2 block text-xs text-fg-muted underline-offset-4 hover:underline">
+            <Link to={jobsLink} className={MORE_LINK}>
               All {openJobs.toLocaleString()} open jobs
             </Link>
           )}
@@ -257,7 +263,7 @@ function RegionBody({
 
       {/* Who is here */}
       {data.topCompanies.length > 0 && (
-        <Section title="Companies" column="Plants here">
+        <Section title="Companies" column="Plants">
           <div>
             {data.topCompanies.slice(0, 8).map((c) => {
               const name = formatCompanyName(c.name);
@@ -285,26 +291,18 @@ function RegionBody({
         <Section title="Industries" column="Plants">
           <div>
             {data.topIndustries.map((industry) => {
-              const row = (
-                <>
-                  <span className="min-w-0 truncate text-fg-default">{industryLabel(industry.label)}</span>
-                  <span className="shrink-0 text-xs tabular-nums text-fg-muted">{industry.count.toLocaleString()}</span>
-                </>
-              );
-              // Each industry opens its page for this place; a label that is not one of the 21 stays text.
+              // Each industry opens its page for this place. Only the 21 are industries.
               const page = industryPath(industry.label, industryIn);
-              return page ? (
+              if (!page) return null;
+              return (
                 <Link
                   key={industry.label}
                   to={page}
                   className="map-row -mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded-md px-2 py-1 text-sm transition-colors hover:bg-tint/5"
                 >
-                  {row}
+                  <span className="min-w-0 truncate text-fg-default">{shownIndustry(industry.label)}</span>
+                  <span className="shrink-0 text-xs tabular-nums text-fg-muted">{industry.count.toLocaleString()}</span>
                 </Link>
-              ) : (
-                <div key={industry.label} className="flex items-baseline justify-between gap-3 py-1 text-sm">
-                  {row}
-                </div>
               );
             })}
           </div>
@@ -312,7 +310,7 @@ function RegionBody({
           {industryIn && data.topIndustries.length >= 8 && (
             <Link
               to={`/industries?${new URLSearchParams(industryIn.area ? { area: industryIn.area } : { state: industryIn.state ?? '' })}`}
-              className="mt-2 block text-xs text-fg-muted underline-offset-4 hover:underline"
+              className={MORE_LINK}
             >
               All industries
             </Link>
@@ -455,11 +453,13 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
   const factoryName = formatFactoryName(factory.name);
   const companyName = company ? formatCompanyName(company.name) : null;
   const place = cityAndState(factory.city, factory.state);
-  const industry = factory.industry
-    ? industryLabel(factory.industry)
-    : factory.specialization || (company && company.industry !== 'Manufacturing' ? company.industry : null);
-  const address = factory.address && factory.address.trim().toLowerCase() !== (factory.city ?? '').trim().toLowerCase() ? titleCase(factory.address.trim()) : null;
+  // What the plant makes: its industry, else what its own record says it does. Never the company's free text.
+  const industry = shownIndustry(factory.industry) ?? (factory.specialization || null);
+  // A curated plant's address was written by a person ("1530 FM 973") and is left as it is.
+  const street = factory.address?.trim() ?? '';
+  const address = street && street.toLowerCase() !== (factory.city ?? '').trim().toLowerCase() ? (factory.curated ? street : titleCase(street)) : null;
   const jobs = factory.jobs ?? [];
+  const underConstruction = factory.status === 'under construction';
   const nearby = factory.nearby ?? [];
   const siteCount = company?.siteCount ?? 0;
   const stateCount = company?.stateCount ?? 0;
@@ -480,7 +480,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
         subtitle={
           (place || industry || address) && (
             <>
-              {(place || industry) && <p>{[place, industry].filter(Boolean).join(' · ')}</p>}
+              {(place || industry || underConstruction) && <p>{[place, industry, underConstruction ? 'Under construction' : null].filter(Boolean).join(' · ')}</p>}
               {address && <p className="mt-0.5 text-xs text-fg-soft">{address}</p>}
             </>
           )
@@ -489,9 +489,15 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
       <Figures
         items={[
           ...(jobs.length > 0 ? [{ label: 'Open jobs', value: jobs.length }] : []),
-          ...(factory.workforceSize ? [{ label: 'People', value: factory.workforceSize }] : []),
+          // The year says how current the figure is.
+          ...(factory.workforceSize ? [{ label: factory.workforceYear ? `People, ${factory.workforceYear}` : 'People', value: factory.workforceSize }] : []),
         ]}
       />
+      {factory.products && (
+        <Section title="Makes">
+          <p className="text-sm leading-relaxed text-fg-default">{factory.products}</p>
+        </Section>
+      )}
       {factory.description && (
         <Section title="About this plant">
           <p className="text-sm leading-relaxed text-fg-muted">{factory.description}</p>
@@ -513,7 +519,6 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
                   <span className="block text-xs text-fg-muted">
                     {siteCount.toLocaleString()} {siteCount === 1 ? 'plant' : 'plants'}
                     {stateCount > 1 ? ` in ${stateCount} states` : ''}
-                    {company.industry && company.industry !== 'Manufacturing' ? ` · ${company.industry}` : ''}
                   </span>
                 )}
               </span>
@@ -531,7 +536,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
         <Section title="Open jobs">
           <JobRows jobs={jobs} limit={4} />
           {jobs.length > 4 && (
-            <Link to={`/factories/${factory.id}`} className="mt-2 block text-xs text-fg-muted underline-offset-4 hover:underline">
+            <Link to={`/factories/${factory.id}`} className={MORE_LINK}>
               All {jobs.length} open jobs
             </Link>
           )}
@@ -625,7 +630,8 @@ function CompanyView({ company }: { company: CompanyDetail }) {
       <Heading
         title={name}
         logo={<CompanyLogo name={name} domain={company.domain} size={44} className="rounded-lg" />}
-        subtitle={company.industry && company.industry !== 'Manufacturing' ? company.industry : undefined}
+        // The industry most of its plants are in.
+        subtitle={shownIndustry(leadingIndustry(plants.map((plant) => plant.industry))) ?? undefined}
       />
       <Figures
         items={[
@@ -658,7 +664,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
                 key={plant.id}
                 icon={Factory}
                 title={formatFactoryName(plant.name)}
-                subtitle={[cityAndState(plant.city, plant.state), plant.industry ? industryLabel(plant.industry) : null].filter(Boolean).join(' · ') || undefined}
+                subtitle={[cityAndState(plant.city, plant.state), shownIndustry(plant.industry)].filter(Boolean).join(' · ') || undefined}
                 onPress={() => {
                   selectFactory(plant.id);
                   if (plant.latitude && plant.longitude) {
@@ -713,7 +719,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
             <div>
               {industries.map((industry) => (
                 <div key={industry.name} className="flex items-baseline justify-between gap-3 py-1 text-sm">
-                  <span className="min-w-0 truncate text-fg-default">{industryLabel(industry.name)}</span>
+                  <span className="min-w-0 truncate text-fg-default">{shownIndustry(industry.name) ?? industry.name}</span>
                   {industry.factoryCount > 0 && (
                     <span className="shrink-0 text-xs tabular-nums text-fg-muted">{industry.factoryCount.toLocaleString()}</span>
                   )}
