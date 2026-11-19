@@ -36,7 +36,6 @@
     --secondary-foreground: 0 0% 88%;
     --muted: 0 0% 16%;
     --muted-foreground: 0 0% 70%;
-    --accent: 0 0% 20%;
     --accent-foreground: 0 0% 93%;
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 96%;
@@ -45,6 +44,24 @@
     --input: 0 0% 40%;
     --ring: 0 0% 75%;
     --radius: 0.5rem;
+
+    /*
+     * The hierarchy pass's tokens (hand-set per theme, never one inverted from the other):
+     * two surface levels only (--bg, --surface), one ink in three strengths, hairlines,
+     * one accent, and the inverse pair for primary buttons and selected segments.
+     * --text-3 is the spec's value moved the least that reaches 4.5:1 on --surface.
+     */
+    --bg: #0e0e0f;
+    --surface: #18181a;
+    --surface-hover: #202023;
+    --line: #262628;
+    --line-strong: #3a3a3d;
+    --text-1: #f5f5f5;
+    --text-2: #a1a1a6;
+    --text-3: #808085;
+    --accent: #5b8cff;
+    --inverse-bg: #f5f5f5;
+    --inverse-text: #0e0e0f;
 
     --color-bg-base: #0f0f0f;
     --color-bg-surface: #161616;
@@ -87,13 +104,24 @@
     --secondary-foreground: 210 12% 14%;
     --muted: 210 12% 93%;
     --muted-foreground: 210 7% 36%;
-    --accent: 210 12% 92%;
     --accent-foreground: 210 12% 10%;
     --destructive: 0 72% 42%;
     --destructive-foreground: 0 0% 98%;
     --border: 210 10% 82%;
     --input: 213 7% 57%;
     --ring: 210 12% 30%;
+
+    --bg: #ffffff;
+    --surface: #f4f4f4;
+    --surface-hover: #ebebeb;
+    --line: #e5e5e5;
+    --line-strong: #cfcfcf;
+    --text-1: #171a20;
+    --text-2: #5c5e62;
+    --text-3: #6d7075;
+    --accent: #3e6ae1;
+    --inverse-bg: #171a20;
+    --inverse-text: #ffffff;
 
     --color-bg-base: #f6f7f8;
     --color-bg-surface: #ffffff;

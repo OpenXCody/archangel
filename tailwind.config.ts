@@ -26,7 +26,28 @@ export default {
       colors: {
         // The app's own tokens: surfaces, text, lines. Class names read
         // bg-bg-surface, text-fg-muted, border-border-subtle.
+        // The hierarchy pass's tokens (globals.css): bg-bg, bg-surface, bg-surface-hover,
+        // border-line, border-line-strong, text-text-1 / -2 / -3, bg-inverse-bg, text-inverse-text,
+        // and the one accent (outline-accent, border-accent, bg-accent/[0.06]).
+        surface: {
+          DEFAULT: token("--surface"),
+          hover: token("--surface-hover"),
+        },
+        line: {
+          DEFAULT: token("--line"),
+          strong: token("--line-strong"),
+        },
+        text: {
+          1: token("--text-1"),
+          2: token("--text-2"),
+          3: token("--text-3"),
+        },
+        inverse: {
+          bg: token("--inverse-bg"),
+          text: token("--inverse-text"),
+        },
         bg: {
+          DEFAULT: token("--bg"),
           base: token("--color-bg-base"),
           surface: token("--color-bg-surface"),
           elevated: token("--color-bg-elevated"),
@@ -59,7 +80,7 @@ export default {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          DEFAULT: token("--accent"),
           foreground: "hsl(var(--accent-foreground))",
           primary: token("--color-accent-primary"),
         },
