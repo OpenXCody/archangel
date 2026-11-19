@@ -4,7 +4,9 @@ import { db, users, companies, companyMembers, invites, occupations, passwordRes
 import { cleanText, currentSessionHash, handle, newToken, hashToken, normalizeEmail } from '../lib/auth.js';
 import { changedFields, isAuditKind, recordAudit, type Executor } from '../lib/audit.js';
 import { inviteDays, invitePath, isInviteRole } from '../lib/invites.js';
-import { RecordRefusal, changeRecord, isRecordKind, mergeRecords, readRecord, searchRecords, similarRecords } from '../lib/records.js';
+import { RecordRefusal, changeRecord, isRecordKind, readRecord } from '../lib/records.js';
+import { mergeRecords } from '../lib/recordMerge.js';
+import { searchRecords, similarRecords } from '../lib/recordSearch.js';
 import { RESET_HOURS, resetPath } from '../lib/passwordResets.js';
 import { accessDecided, emailAtDomain, sendAdminResetLink, sendInvite } from '../lib/notices.js';
 import { uuidParam } from '../middleware/validateUuid.js';
