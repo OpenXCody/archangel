@@ -2,7 +2,7 @@
 
 A workforce map of US manufacturing, live at [o-10.com](https://www.o-10.com).
 
-People explore **Industries → Companies → Plants → Jobs → Careers → Skills** on a map and through pages for each. Every skill sits in a group inside a domain and has one level: Fundamentals, Intermediate or Advanced. A career's path is its skills laid out by those levels. Someone looking for work marks the skills they have, sees which careers are within reach, and applies to jobs. A company's people post jobs and read applicants. Admins look after accounts and data. The whole country is covered; Austin, TX is the first area being filled out in depth.
+People explore **Industries → Companies → Plants → Jobs → Careers → Skills** on a map and through pages for each. Every skill sits in a group inside a domain and has one level: Fundamentals, Intermediate or Advanced. A career's path is its skills laid out by those levels. All of the skills are drawn as one radial tree, the Atlas of Manufacturing (`/atlas`), which a career can be laid over. Someone looking for work marks the skills they have, sees which careers are within reach, and applies to jobs. A company's people post jobs and read applicants. Admins look after accounts and data. The whole country is covered; Austin, TX is the first area being filled out in depth.
 
 React, TypeScript, Vite and Tailwind in `client/`; Express and Drizzle in `server/`; PostgreSQL. `CLAUDE.md` describes how the code is laid out and the rules it follows.
 

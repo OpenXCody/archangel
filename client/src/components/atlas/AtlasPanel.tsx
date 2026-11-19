@@ -119,7 +119,7 @@ function RowsHeading({ left, overlay }: { left: string; overlay: AtlasOverlay | 
   );
 }
 
-/** A skill as a tag. It can carry a second, quieter line (the make of a machine) without changing shape. */
+/** A skill as a tag, drawn like the tags of a career's path. It can carry a second, quieter line (the make of a machine). */
 function SkillTag({
   to,
   leaf,
@@ -138,7 +138,8 @@ function SkillTag({
   onPreview: (on: boolean) => void;
 }) {
   return (
-    <li className="min-w-0 max-w-full">
+    // The same tag a career's path uses (`.skill-tag`), here a link that opens the skill on the atlas.
+    <li className={cn('skill-tag', chosen && 'ring-1 ring-inset ring-info')} data-status={mark ?? undefined}>
       <Link
         to={to}
         aria-current={chosen ? 'true' : undefined}
@@ -148,18 +149,15 @@ function SkillTag({
         onFocus={() => onPreview(true)}
         onBlur={() => onPreview(false)}
         className={cn(
-          'inline-flex min-h-11 max-w-full items-center gap-2 rounded-lg border px-3 py-1.5 text-sm leading-snug transition-colors sm:min-h-9',
-          chosen
-            ? 'border-info bg-info/10 text-fg-default'
-            : 'border-border-strong text-fg-muted hover:border-[color:var(--color-fg-soft)] hover:text-fg-default',
+          'flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-1.5 text-sm leading-snug underline-offset-4 hover:underline focus-visible:[outline-offset:-2px]',
           focusRing
         )}
       >
         {mark && <SkillMark status={mark} className="h-4 w-4" />}
         {lit && <LitSign kind={lit} />}
         <span className="flex min-w-0 flex-col">
-          <span className="min-w-0 break-words">{leaf.name}</span>
-          {detail && <span className="min-w-0 break-words text-xs text-fg-soft">{detail}</span>}
+          <span className="min-w-0 [overflow-wrap:anywhere]">{leaf.name}</span>
+          {detail && <span className="min-w-0 text-xs text-fg-soft [overflow-wrap:anywhere]">{detail}</span>}
         </span>
       </Link>
     </li>
@@ -326,7 +324,7 @@ export default function AtlasPanel({ layout, domain, group, leaf, state, overlay
           return (
             <div key={level.id} className="mt-5" data-atlas-level-block={level.id}>
               <h4 className={cn(EYEBROW, 'mb-2')}>{level.name}</h4>
-              <ul className="flex flex-wrap gap-2">
+              <ul className="skill-tags">
                 {atLevel.map((l) => (
                   <SkillTag
                     key={l.id}

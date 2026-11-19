@@ -774,7 +774,10 @@ input {
     .skill-group {
       transition: none;
     }
+  }
+}
 
+/*
  * The Atlas of Manufacturing (components/atlas/): every skill in one radial
  * tree. The drawing is monochrome; the one accent marks a career laid over it
  * and the thing selected. Lines keep their width however far the plate is
