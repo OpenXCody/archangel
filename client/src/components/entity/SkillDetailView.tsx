@@ -10,15 +10,15 @@ import {
   RecordRow,
   ShowAll,
 } from '../layout/Page';
-import { CAREERS_SHOWN, StageHeading, type Head, STAGES, factLinkClass, IndustryRows, OpenJobsSection, UNSTAGED } from './parts';
+import { levelName } from '../../lib/stages';
+import { CAREERS_SHOWN, type Head, factLinkClass, IndustryRows, OpenJobsSection } from './parts';
 
-/** One stage's careers on a skill's page: the first few, and the rest on request. */
-function SkillCareers({ label, hint, careers }: { label?: string; hint?: string; careers: SkillDetail['occupations'] }) {
+/** The careers that use a skill: the first few, and the rest on request. A skill sits at its own level in each. */
+function SkillCareers({ careers }: { careers: SkillDetail['occupations'] }) {
   const [showAll, setShowAll] = useState(false);
   const shown = showAll ? careers : careers.slice(0, CAREERS_SHOWN);
   return (
-    <div className="min-w-0" data-skill-stage={label ?? 'none'}>
-      {label && <StageHeading label={label} hint={hint} />}
+    <div className="min-w-0" data-skill-careers>
       <RecordList>
         {shown.map((career) => (
           <RecordRow key={career.id} to={`/occupations/${career.id}`} title={career.title} />
@@ -30,29 +30,35 @@ function SkillCareers({ label, hint, careers }: { label?: string; hint?: string;
 }
 
 /**
- * A skill's page: what it is (the heading), how it is learned and what it is
- * done with, the industries it is used in, open jobs that ask for it, the
- * careers that use it by where it comes on their paths, and the skills that
- * go with it. A part with nothing to say is not drawn.
+ * A skill's page: what it is (the heading, with its domain, group and level),
+ * how it is learned and what it is done with, the industries it is used in,
+ * open jobs that ask for it, the careers that use it, and the skills that go
+ * with it. A part with nothing to say is not drawn.
  */
 export default function SkillDetailView({ data, head }: { data: SkillDetail; head: Head }) {
   const careers = data.occupations ?? [];
-  const staged = STAGES.map((def) => ({ ...def, careers: careers.filter((career) => career.stage === def.stage) })).filter(
-    (group) => group.careers.length > 0
-  );
-  const unstaged = careers.filter((career) => !career.stage);
   const tools = data.tools ?? [];
   const industries = data.industries ?? [];
   const jobs = data.jobs ?? [];
   return (
     <>
       <DetailHeader {...head} kind="Skill" title={data.name} description={data.description} action={<SkillStatusButton skillId={data.id} />}>
-        {/* The category opens the skills list filtered to it. */}
-        {data.category && (
+        {/* The domain and the group each open the skills list narrowed to it; the level is the skill's own. */}
+        {data.group && data.domain && (
           <DetailFacts>
-            <Link to={`/explore?tab=skills&category=${encodeURIComponent(data.category)}`} className={factLinkClass} data-skill-category>
-              {data.category}
+            <Link to={`/explore?tab=skills&domain=${data.domain.slug}`} className={factLinkClass} data-skill-domain>
+              {data.domain.name}
             </Link>
+            {' · '}
+            <Link to={`/explore?tab=skills&domain=${data.domain.slug}&group=${data.group.slug}`} className={factLinkClass} data-skill-group>
+              {data.group.name}
+            </Link>
+            {levelName(data.level) && (
+              <>
+                {' · '}
+                <span data-skill-level>{levelName(data.level)}</span>
+              </>
+            )}
           </DetailFacts>
         )}
       </DetailHeader>
@@ -92,12 +98,7 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
 
       {careers.length > 0 && (
         <DetailSection id="occupations" title="Careers that use it">
-          <div className="space-y-6">
-            {staged.map((group) => (
-              <SkillCareers key={group.stage} label={group.label} hint={group.hint} careers={group.careers} />
-            ))}
-            {unstaged.length > 0 && <SkillCareers label={staged.length > 0 ? UNSTAGED : undefined} careers={unstaged} />}
-          </div>
+          <SkillCareers careers={careers} />
         </DetailSection>
       )}
 
@@ -109,8 +110,8 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
                 key={skill.id}
                 to={`/skills/${skill.id}`}
                 title={skill.name}
-                // Its category is said only when it is another one: a row of the same words says nothing.
-                subtitle={skill.category !== data.category ? skill.category : null}
+                // Its group is said only when it is another one: a row of the same words says nothing.
+                subtitle={skill.group && skill.group.slug !== data.group?.slug ? skill.group.name : null}
               />
             ))}
           </RecordList>

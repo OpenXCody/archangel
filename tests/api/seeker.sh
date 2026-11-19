@@ -10,8 +10,8 @@
 #
 # LOCAL ONLY: it creates and deletes users (emails ending @seeker.test) and,
 # so the ranking can be checked exactly, its own careers, skills, company,
-# factories and jobs (named "Seeker Test ..."), written straight to the
-# database. All of it is removed on exit, however the script ends. Never point
+# factories and jobs (named "Seeker Test ..."), and a skill domain with two
+# groups (slugs starting "seeker-test-"), written straight to the database. All of it is removed on exit, however the script ends. Never point
 # it at production.
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/seeker.sh
 # Needs a running dev API, and psql, curl and node on the PATH.
@@ -25,57 +25,77 @@ cleanup() {
   psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@seeker.test';
     DELETE FROM companies WHERE name LIKE 'Seeker Test %';
     DELETE FROM occupations WHERE title LIKE 'Seeker Test %';
-    DELETE FROM skills WHERE name LIKE 'Seeker Test %'" >/dev/null
+    DELETE FROM skills WHERE name LIKE 'Seeker Test %';
+    DELETE FROM skill_groups WHERE slug LIKE 'seeker-test-%';
+    DELETE FROM skill_domains WHERE slug LIKE 'seeker-test-%'" >/dev/null
   rm -rf "$D"
 }
 trap cleanup EXIT
 psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@seeker.test';
   DELETE FROM companies WHERE name LIKE 'Seeker Test %';
   DELETE FROM occupations WHERE title LIKE 'Seeker Test %';
-  DELETE FROM skills WHERE name LIKE 'Seeker Test %'" >/dev/null
+  DELETE FROM skills WHERE name LIKE 'Seeker Test %';
+  DELETE FROM skill_groups WHERE slug LIKE 'seeker-test-%';
+  DELETE FROM skill_domains WHERE slug LIKE 'seeker-test-%'" >/dev/null
 
 # --- Careers and skills of our own -------------------------------------------
-# Twelve skills, S01..S12, and these careers (stage in brackets):
+# Twelve skills, S01..S12, each with one level (in brackets), the same in
+# every career, and these careers:
 #   A         S01[1] S02[1] S03[2] S04[2] S05[3] S06[3]
 #   B         S01[1] S02[1] S07[2] S08[2] S09[3] S10[3]
-#   Short     S01[1] S02[1] S03[2] S04[3]              four skills: too short a path
-#   Unstaged  S01    S02    S03    S04    S05    S06   no stages: not a path
+#   Short     S01[1] S02[1] S03[2] S04[2]              four skills: too short a path
+#   Unwritten S01    S02    S03    S04    S05    S06   no path written (path_status is null)
 #   Filler 1..8   S01[1] S11[1] S12[2] S08[2] S09[3] S10[3]
 # Nobody else holds these skills and they are on no other career, so the list
-# for a person who holds only these is exactly known.
+# for a person who holds only these is exactly known. A domain of our own
+# (TD) has two groups: "one" holds S01 and S02, "two" holds S03, S04 and S05.
+# The rows are written with stages that are wrong on purpose (every one 3, or
+# none): the database makes a path row's stage its skill's level.
 P="Seeker Test $RUN"
+TD="seeker-test-$RUN"
 psql "$DB" -q >/dev/null <<SQL
-INSERT INTO skills (name) SELECT '$P S' || to_char(n, 'FM00') FROM generate_series(1, 12) n;
-INSERT INTO occupations (title, path_status) VALUES ('$P A', 'draft'), ('$P B', 'draft'), ('$P Short', 'draft'), ('$P Unstaged', NULL);
+INSERT INTO skill_domains (slug, name, description, position) VALUES ('$TD', '$P Domain', 'A domain for the seeker suite.', 9001);
+INSERT INTO skill_groups (slug, domain_slug, name, description, position) VALUES
+  ('$TD-one', '$TD', '$P Group One', 'The first group of the seeker suite.', 9001),
+  ('$TD-two', '$TD', '$P Group Two', 'The second group of the seeker suite.', 9002);
+INSERT INTO skills (name, level, group_slug, group_position)
+SELECT '$P S' || to_char(n, 'FM00'),
+       CASE WHEN n IN (1, 2, 11) THEN 1 WHEN n IN (3, 4, 7, 8, 12) THEN 2 ELSE 3 END,
+       CASE WHEN n IN (1, 2) THEN '$TD-one' WHEN n IN (3, 4, 5) THEN '$TD-two' END,
+       -- Within group two the file's order is S04 before S03: position, not name, decides among equals.
+       CASE n WHEN 4 THEN 1 WHEN 3 THEN 2 END
+FROM generate_series(1, 12) n;
+INSERT INTO occupations (title, path_status) VALUES ('$P A', 'draft'), ('$P B', 'draft'), ('$P Short', 'draft'), ('$P Unwritten', NULL);
 INSERT INTO occupations (title, path_status) SELECT '$P Filler ' || n, 'draft' FROM generate_series(1, 8) n;
 INSERT INTO occupation_skills (occupation_id, skill_id, stage)
 SELECT o.id, s.id, p.stage
 FROM (VALUES
-  ('A', 1, 1), ('A', 2, 1), ('A', 3, 2), ('A', 4, 2), ('A', 5, 3), ('A', 6, 3),
-  ('B', 1, 1), ('B', 2, 1), ('B', 7, 2), ('B', 8, 2), ('B', 9, 3), ('B', 10, 3),
-  ('Short', 1, 1), ('Short', 2, 1), ('Short', 3, 2), ('Short', 4, 3),
-  ('Unstaged', 1, NULL), ('Unstaged', 2, NULL), ('Unstaged', 3, NULL), ('Unstaged', 4, NULL), ('Unstaged', 5, NULL), ('Unstaged', 6, NULL)
+  ('A', 1, 3), ('A', 2, 3), ('A', 3, 3), ('A', 4, 3), ('A', 5, 3), ('A', 6, 3),
+  ('B', 1, 3), ('B', 2, 3), ('B', 7, 3), ('B', 8, 3), ('B', 9, 3), ('B', 10, 3),
+  ('Short', 1, 3), ('Short', 2, 3), ('Short', 3, 3), ('Short', 4, 3),
+  ('Unwritten', 1, NULL), ('Unwritten', 2, NULL), ('Unwritten', 3, NULL), ('Unwritten', 4, NULL), ('Unwritten', 5, NULL), ('Unwritten', 6, NULL)
 ) AS p(career, n, stage)
 JOIN occupations o ON o.title = '$P ' || p.career
 JOIN skills s ON s.name = '$P S' || to_char(p.n, 'FM00');
-INSERT INTO occupation_skills (occupation_id, skill_id, stage)
-SELECT o.id, s.id, p.stage
+INSERT INTO occupation_skills (occupation_id, skill_id)
+SELECT o.id, s.id
 FROM occupations o
-CROSS JOIN (VALUES (1, 1), (11, 1), (12, 2), (8, 2), (9, 3), (10, 3)) AS p(n, stage)
+CROSS JOIN (VALUES (1), (11), (12), (8), (9), (10)) AS p(n)
 JOIN skills s ON s.name = '$P S' || to_char(p.n, 'FM00')
 WHERE o.title LIKE '$P Filler %';
 SQL
 skill() { sql "SELECT id FROM skills WHERE name='$P S$1'"; }
 career() { sql "SELECT id FROM occupations WHERE title='$P $1'"; }
 for n in 01 02 03 04 05 06 07 08 09 10 11 12; do eval "S$n=$(skill $n)"; done
-A=$(career A); B=$(career B); SHORT=$(career Short); UNSTAGED=$(career Unstaged)
+A=$(career A); B=$(career B); SHORT=$(career Short); UNWRITTEN=$(career Unwritten)
 expect "fixtures: twelve skills"     12 "$(sql "SELECT COUNT(*) FROM skills WHERE name LIKE '$P S%'")"
 expect "fixtures: twelve careers"    12 "$(sql "SELECT COUNT(*) FROM occupations WHERE title LIKE '$P %'")"
+expect "fixtures: every path row's stage is its skill's level, whatever was written" "70 0" "$(sql "SELECT COUNT(*) || ' ' || COUNT(*) FILTER (WHERE os.stage IS DISTINCT FROM s.level) FROM occupation_skills os JOIN skills s ON s.id=os.skill_id WHERE s.name LIKE '$P S%'")"
 
 # What the list holds, as short strings to compare.
 titles() { j "careers.map(c=>c.title.replace('$P ','')).join('|')"; }        # career order
 figures() { j "careers.map(c=>c.held+'/'+c.total).join(' ')"; }              # held/total, in order
-nextOf() { j "careers.find(c=>c.id==='$1').next.map(n=>n.name.replace('$P ','')+':'+n.stage).join(' ')"; }
+nextOf() { j "careers.find(c=>c.id==='$1').next.map(n=>n.name.replace('$P ','')+':'+n.level).join(' ')"; }
 
 # --- Signed out, and with nothing held ---------------------------------------
 check "reach requires sign-in"        401 "$(req anon GET /me/careers/reach)"
@@ -95,9 +115,9 @@ expect "at most eight"                8 "$(printf '%s' "$OUT" | j careers.length
 expect "ranked by share, then title"  "A|B|Filler 1|Filler 2|Filler 3|Filler 4|Filler 5|Filler 6" "$(printf '%s' "$OUT" | titles)"
 expect "held of total"                "2/6 2/6 1/6 1/6 1/6 1/6 1/6 1/6" "$(printf '%s' "$OUT" | figures)"
 expect "short path left out"          false "$(printf '%s' "$OUT" | j "careers.some(c=>c.id==='$SHORT')")"
-expect "unstaged career left out"     false "$(printf '%s' "$OUT" | j "careers.some(c=>c.id==='$UNSTAGED')")"
-expect "next skills, earliest stage first" "S03:2 S04:2 S05:3" "$(printf '%s' "$OUT" | nextOf $A)"
-expect "next skills carry id, name, stage" "id,name,stage" "$(printf '%s' "$OUT" | j "careers[0].next.map(n=>Object.keys(n).sort().join(','))[0]")"
+expect "a career with no path left out" false "$(printf '%s' "$OUT" | j "careers.some(c=>c.id==='$UNWRITTEN')")"
+expect "next skills, lowest level first" "S03:2 S04:2 S05:3" "$(printf '%s' "$OUT" | nextOf $A)"
+expect "next skills carry id, name, level" "id,level,name" "$(printf '%s' "$OUT" | j "careers[0].next.map(n=>Object.keys(n).sort().join(','))[0]")"
 expect "career carries only what is shown" "held,id,next,title,total" "$(printf '%s' "$OUT" | j "careers.map(c=>Object.keys(c).sort().join(','))[0]")"
 expect "the figure is the held skills on record" 2 "$(sql "SELECT COUNT(*) FROM occupation_skills os JOIN user_skills us ON us.skill_id=os.skill_id AND us.status='held' JOIN users u ON u.id=us.user_id WHERE os.occupation_id='$A' AND u.email='reach-$RUN@seeker.test'")"
 check "another person's list is their own" 200 "$(req o GET /me/careers/reach)" '"careers":\[\]'
@@ -107,7 +127,7 @@ check "learning S08"                  200 "$(req s PUT /me/skills/$S08 '{"status
 OUT=$(req s GET /me/careers/reach)
 expect "learning lifts a career"      "B|A|Filler 1|Filler 2|Filler 3|Filler 4|Filler 5|Filler 6" "$(printf '%s' "$OUT" | titles)"
 expect "learning is not held"         "2/6 2/6 1/6 1/6 1/6 1/6 1/6 1/6" "$(printf '%s' "$OUT" | figures)"
-expect "a skill being learned comes first in its stage" "S08:2 S07:2 S09:3" "$(printf '%s' "$OUT" | nextOf $B)"
+expect "a skill being learned comes first in its level" "S08:2 S07:2 S09:3" "$(printf '%s' "$OUT" | nextOf $B)"
 check "hold S03"                      200 "$(req s PUT /me/skills/$S03 '{"status":"held"}')"
 OUT=$(req s GET /me/careers/reach)
 expect "a held skill outranks one being learned" "A|B" "$(printf '%s' "$OUT" | j "careers.slice(0,2).map(c=>c.title.replace('$P ','')).join('|')")"
@@ -120,9 +140,9 @@ expect "a chosen career is not suggested" false "$(printf '%s' "$OUT" | j "caree
 expect "the list fills up behind it"  "B|Filler 1|Filler 2|Filler 3|Filler 4|Filler 5|Filler 6|Filler 7" "$(printf '%s' "$OUT" | titles)"
 OUT=$(req s GET /me/goals)
 check "goal shows held skills"        200 "$OUT" '"heldSkills":3'
-expect "goal shows its next skills"   "S04:2 S05:3 S06:3" "$(printf '%s' "$OUT" | j "goals.find(g=>g.occupationId==='$A').next.map(n=>n.name.replace('$P ','')+':'+n.stage).join(' ')")"
-check "aim at Unstaged"               200 "$(req s PUT /me/goals/$UNSTAGED)"
-expect "a goal without stages still lists next skills" "S04:null S05:null S06:null" "$(req s GET /me/goals | j "goals.find(g=>g.occupationId==='$UNSTAGED').next.map(n=>n.name.replace('$P ','')+':'+n.stage).join(' ')")"
+expect "goal shows its next skills"   "S04:2 S05:3 S06:3" "$(printf '%s' "$OUT" | j "goals.find(g=>g.occupationId==='$A').next.map(n=>n.name.replace('$P ','')+':'+n.level).join(' ')")"
+check "aim at Unwritten"              200 "$(req s PUT /me/goals/$UNWRITTEN)"
+expect "a goal with no path written still lists next skills, by level" "S04:2 S05:3 S06:3" "$(req s GET /me/goals | j "goals.find(g=>g.occupationId==='$UNWRITTEN').next.map(n=>n.name.replace('$P ','')+':'+n.level).join(' ')")"
 check "stop aiming at A"              200 "$(req s DELETE /me/goals/$A)"
 expect "an unchosen career is suggested again" true "$(req s GET /me/careers/reach | j "careers.some(c=>c.id==='$A')")"
 
@@ -139,7 +159,7 @@ case "$HDR" in *no-store*) echo "ok    reach is not cacheable";; *) echo "FAIL  
 
 # --- Suggested skills ---------------------------------------------------------
 # A third person, starting from nothing. Suggestions are the skills of their
-# goals (earliest stage first), then of the careers within reach (the ones most
+# goals (lowest level first), then of the careers within reach (the ones most
 # of those careers share first), none of them on the person's list.
 suggested() { j "skills.map(s=>s.name.replace('$P ','')).join(' ')"; }
 check "suggested requires sign-in"    401 "$(req anon GET /me/skills/suggested)"
@@ -147,8 +167,8 @@ check "sign-up third seeker"          201 "$(req g POST /auth/sign-up '{"email":
 check "nothing to go on, nothing suggested" 200 "$(req g GET /me/skills/suggested)" '"skills":\[\]'
 check "aim at A"                      200 "$(req g PUT /me/goals/$A)"
 OUT=$(req g GET /me/skills/suggested)
-expect "a goal's skills, earliest stage first" "S01 S02 S03 S04 S05 S06" "$(printf '%s' "$OUT" | suggested)"
-expect "a suggestion carries what is shown" "career,careers,id,name,stage" "$(printf '%s' "$OUT" | j "skills.map(s=>Object.keys(s).sort().join(','))[0]")"
+expect "a goal's skills, lowest level first" "S01 S02 S03 S04 S05 S06" "$(printf '%s' "$OUT" | suggested)"
+expect "a suggestion carries what is shown" "career,careers,id,level,name" "$(printf '%s' "$OUT" | j "skills.map(s=>Object.keys(s).sort().join(','))[0]")"
 expect "a suggestion names its career" "$P A" "$(printf '%s' "$OUT" | j "skills[0].career")"
 check "hold S01"                      200 "$(req g PUT /me/skills/$S01 '{"status":"held"}')"
 OUT=$(req g GET /me/skills/suggested)
@@ -232,37 +252,72 @@ expect "nor listed near a place"      "Home" "$(req anon GET "/jobs?$NEAR" | job
 expect "no jobs, no list"             "0" "$(req anon GET '/map/bounds/overview?west=-100.1&south=48.9&east=-99.9&north=49.0' | j "jobs.concat([o.openJobs]).join(' ')")"
 
 # --- Skills: the page's one answer, the list, other names ----------------------
-# With the fixtures above, S03 is on A[2], Short[2] and Unstaged; the skills
-# that share those paths are S04 (the same three careers), S02 (four careers,
-# three shared), S05 and S06 (two careers, both shared) and S01 (twelve careers).
+# With the fixtures above, S03 is on A, Short and Unwritten; the skills that
+# share those paths are S04 (the same three careers), S02 (four careers, three
+# shared), S05 and S06 (two careers, both shared) and S01 (twelve careers).
 OUT=$(req anon GET /skills/$S03)
 check "a skill's page in one answer"  200 "$OUT"
-expect "it carries what the page shows" "true" "$(printf '%s' "$OUT" | j "name&&['description','howLearned','tools','occupations','industries','everywhere','relatedSkills','jobs'].every(k=>k in o)")"
-expect "its careers, by stage then title" "A:2|Short:2|Unstaged:null" "$(printf '%s' "$OUT" | j "occupations.map(c=>c.title.replace('$P ','')+':'+c.stage).join('|')")"
+expect "it carries what the page shows" "true" "$(printf '%s' "$OUT" | j "name&&['description','howLearned','tools','level','group','domain','groupSkills','occupations','industries','everywhere','relatedSkills','jobs'].every(k=>k in o)")"
+expect "its level, group and domain"  "2|$TD-two|$P Group Two|$TD|$P Domain" "$(printf '%s' "$OUT" | j "level+'|'+[o.group.slug, o.group.name, o.domain.slug, o.domain.name].join('|')")"
+expect "the other skills of its group, by level and then the group's order" "S04:2 S05:3" "$(printf '%s' "$OUT" | j "groupSkills.map(g=>g.name.replace('$P ','')+':'+g.level).join(' ')")"
+expect "each as id, name and level"   "id,level,name" "$(printf '%s' "$OUT" | j "groupSkills.map(g=>Object.keys(g).sort().join())[0]")"
+expect "no category any more"         false "$(printf '%s' "$OUT" | j "hasOwnProperty('category')")"
+expect "its careers, by title; none gives it a stage of its own" "A|Short|Unwritten" "$(printf '%s' "$OUT" | j "occupations.map(c=>c.title.replace('$P ','')+('stage' in c?':stage':'')).join('|')")"
 expect "skills that go with it, the closest companions first" "S04 S02 S05 S06 S01" "$(printf '%s' "$OUT" | j "relatedSkills.map(r=>r.name.replace('$P ','')).join(' ')")"
+expect "each with its level and group" "2:$TD-two 1:$TD-one 3:$TD-two 3:null 1:$TD-one" "$(printf '%s' "$OUT" | j "relatedSkills.map(r=>r.level+':'+(r.group&&r.group.slug)).join(' ')")"
+# A career's page: every skill of its path with its level, group and domain, in path order.
+OUT=$(req anon GET /occupations/$A)
+expect "a career's path, by level and then by group as the taxonomy orders them" "S01:1 S02:1 S04:2 S03:2 S05:3 S06:3" "$(printf '%s' "$OUT" | j "skills.map(s=>s.name.replace('$P ','')+':'+s.level).join(' ')")"
+expect "each skill carries its group and domain" "$TD-one|$P Group One|$TD|$P Domain" "$(printf '%s' "$OUT" | j "skills.slice(0,1).map(s=>[s.group.slug, s.group.name, s.domain.slug, s.domain.name].join('|'))[0]")"
+expect "a skill no group holds says so with nulls" "S06:3:null:null" "$(printf '%s' "$OUT" | j "skills.filter(s=>!s.group).map(s=>[s.name.replace('$P ',''), s.level, String(s.group), String(s.domain)].join(':')).join()")"
+expect "the careers list counts the skills at each level" "2,2,2" "$(req anon GET "/occupations?search=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$P A")&limit=1" | j "data[0].levelCounts.join()")"
+
+# The taxonomy: every domain, group and skill in one answer.
+OUT=$(req anon GET /skills/taxonomy)
+check "the taxonomy in one answer"    200 "$OUT" '"levels":\[{"id":1,"name":"Fundamentals"},{"id":2,"name":"Intermediate"},{"id":3,"name":"Advanced"}\]'
+expect "every domain, in the taxonomy's order" "$(sql "SELECT string_agg(slug, ',' ORDER BY position, slug) FROM skill_domains")" "$(printf '%s' "$OUT" | j "domains.map(d=>d.slug).join()")"
+expect "every group"                  "$(sql "SELECT COUNT(*) FROM skill_groups")" "$(printf '%s' "$OUT" | j "domains.reduce((n,d)=>n+d.groups.length,0)")"
+expect "every placed skill, once"     "$(sql "SELECT COUNT(DISTINCT id) || ' ' || COUNT(*) FROM skills WHERE group_slug IS NOT NULL AND level IS NOT NULL")" "$(printf '%s' "$OUT" | j "domains.flatMap(d=>d.groups.flatMap(g=>g.skills.map(s=>s.id))).reduce((seen,id)=>seen.add(id),new Set()).size+' '+o.domains.flatMap(d=>d.groups.flatMap(g=>g.skills)).length")"
+expect "a domain carries what is drawn" "description,groups,name,slug|description,name,skills,slug|careers,id,level,name" "$(printf '%s' "$OUT" | j "domains.filter(d=>d.slug==='$TD').flatMap(d=>[d, d.groups[0], d.groups[0].skills[0]]).map(x=>Object.keys(x).sort().join()).join('|')")"
+expect "our domain: its groups, their skills by level then order, each with how many careers use it" "$TD-one=S01:1:12 S02:1:4|$TD-two=S04:2:3 S03:2:3 S05:3:2" "$(printf '%s' "$OUT" | j "domains.find(d=>d.slug==='$TD').groups.map(g=>g.slug+'='+g.skills.map(s=>[s.name.replace('$P ',''),s.level,s.careers].join(':')).join(' ')).join('|')")"
+expect "every skill's level is 1, 2 or 3" true "$(printf '%s' "$OUT" | j "domains.every(d=>d.groups.every(g=>g.skills.every(s=>[1,2,3].includes(s.level)&&Number.isInteger(s.careers))))")"
+expect "the parameter Vercel's rewrite adds changes nothing" "$(printf '%s' "$OUT" | sed '$d' | wc -c)" "$(req anon GET '/skills/taxonomy?path=skills/taxonomy' | sed '$d' | wc -c)"
+HDR=$(curl -s -D - -o /dev/null "$API/skills/taxonomy" | tr -d '\r' | grep -i '^cache-control')
+case "$HDR" in *public*s-maxage=*) echo "ok    the taxonomy is cached like the other public reads";; *) echo "FAIL  taxonomy cache header: $HDR"; fail=1;; esac
+OUT=$(req anon GET /skills/$S03)
 expect "no industries when its careers have none" "0 false" "$(printf '%s' "$OUT" | j "industries.length+' '+o.everywhere")"
 expect "no jobs until one asks for it" 0 "$(printf '%s' "$OUT" | j jobs.length)"
 sql "INSERT INTO job_skills (job_id, skill_id) SELECT id, '$S03' FROM jobs WHERE title IN ('$P Fitter Home', '$P Fitter Town')" >/dev/null
 expect "open jobs that ask for it, not the closed one" "$P Fitter Home" "$(req anon GET /skills/$S03 | j "jobs.map(x=>x.title).join('|')")"
-sql "INSERT INTO industry_occupations (industry, occupation_id, rank, common) VALUES ('$P Industry', '$A', 1, false), ('$P Industry', '$SHORT', 2, false), ('$P Other Industry', '$A', 1, false), ('$P Everywhere', '$UNSTAGED', 9, true)" >/dev/null
+sql "INSERT INTO industry_occupations (industry, occupation_id, rank, common) VALUES ('$P Industry', '$A', 1, false), ('$P Industry', '$SHORT', 2, false), ('$P Other Industry', '$A', 1, false), ('$P Everywhere', '$UNWRITTEN', 9, true)" >/dev/null
 expect "the industries its careers work in, most careers first" "$P Industry:2|$P Other Industry:1" "$(req anon GET /skills/$S03 | j "industries.map(i=>i.name+':'+i.careerCount).join('|')")"
-expect "a skill only on careers found everywhere says so" "0 true" "$(sql "INSERT INTO skills (name) VALUES ('$P Common')" >/dev/null; sql "INSERT INTO occupation_skills (occupation_id, skill_id) SELECT '$UNSTAGED', id FROM skills WHERE name='$P Common'" >/dev/null; req anon GET /skills/$(sql "SELECT id FROM skills WHERE name='$P Common'") | j "industries.length+' '+o.everywhere")"
+expect "a skill only on careers found everywhere says so" "0 true" "$(sql "INSERT INTO skills (name) VALUES ('$P Common')" >/dev/null; sql "INSERT INTO occupation_skills (occupation_id, skill_id) SELECT '$UNWRITTEN', id FROM skills WHERE name='$P Common'" >/dev/null; req anon GET /skills/$(sql "SELECT id FROM skills WHERE name='$P Common'") | j "industries.length+' '+o.everywhere")"
 sql "DELETE FROM industry_occupations WHERE industry LIKE '$P %'" >/dev/null
 check "a skill that is not there"     404 "$(req anon GET /skills/00000000-0000-4000-8000-000000000000)"
 
 # The list: skills a career uses, the ones most careers use first.
 ENC=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$P")
-sql "INSERT INTO skills (name, category) VALUES ('$P Lone', '$P Cat')" >/dev/null
-sql "UPDATE skills SET category='$P Cat' WHERE name IN ('$P S01', '$P S02')" >/dev/null
+# Narrowed by group, by domain and by level. "Lone" is in group one and on no career.
+sql "INSERT INTO skills (name, group_slug, level) VALUES ('$P Lone', '$TD-one', 2)" >/dev/null
 names() { j "data.map(x=>x.name.replace('$P ','')).join('|')"; }
-OUT=$(req anon GET "/skills?category=$ENC%20Cat")
+OUT=$(req anon GET "/skills?group=$TD-one")
 expect "most careers first, a skill on no career left out" "S01|S02" "$(printf '%s' "$OUT" | names)"
 expect "the total counts what is listed" 2 "$(printf '%s' "$OUT" | j total)"
 expect "a row says how many careers use it" "12|4" "$(printf '%s' "$OUT" | j "data.map(x=>x.occupationCount).join('|')")"
-expect "by name when asked"           "S02|S01" "$(req anon GET "/skills?category=$ENC%20Cat&sort=name&order=desc" | names)"
+expect "a row carries its level, group and domain" "1|$TD-one|$P Group One|$TD|$P Domain" "$(printf '%s' "$OUT" | j "data.map(x=>[x.level, x.group.slug, x.group.name, x.domain.slug, x.domain.name].join('|'))[0]")"
+expect "and no category"              false "$(printf '%s' "$OUT" | j "data[0].hasOwnProperty('category')")"
+expect "by name when asked"           "S02|S01" "$(req anon GET "/skills?group=$TD-one&sort=name&order=desc" | names)"
+expect "a domain is all its groups"   "S01|S02|S03|S04|S05" "$(req anon GET "/skills?domain=$TD&sort=name" | names)"
+expect "a domain and a level"         "S03|S04" "$(req anon GET "/skills?domain=$TD&level=2&sort=name" | names)"
+expect "a group and a level"          "S05" "$(req anon GET "/skills?domain=$TD&group=$TD-two&level=3" | names)"
+expect "a level alone"                true "$(req anon GET '/skills?level=3&limit=100' | j "data.length>0&&o.data.every(x=>x.level===3)")"
+expect "a group of another domain matches nothing" 0 "$(req anon GET "/skills?domain=$TD&group=no-such-group" | j total)"
+expect "a domain that is not one matches nothing" 0 "$(req anon GET '/skills?domain=no-such-domain' | j total)"
+check "a level that is not one"       400 "$(req anon GET '/skills?level=4')"
+expect "the old category filter is not read" "$(req anon GET '/skills?limit=1' | j total)" "$(req anon GET '/skills?category=Machining&limit=1' | j total)"
 expect "the list opens on the skill most careers use" true "$(req anon GET '/skills?limit=3' | j "data.every((x,i,a)=>i===0||a[i-1].occupationCount>=x.occupationCount)")"
 expect "nothing listed is on no career" 0 "$(req anon GET '/skills?limit=100' | j "data.filter(x=>!x.occupationCount).length")"
-expect "the parameter Vercel's rewrite adds changes nothing" "S01|S02" "$(req anon GET "/skills?category=$ENC%20Cat&path=skills" | names)"
+expect "the parameter Vercel's rewrite adds changes nothing" "S01|S02" "$(req anon GET "/skills?group=$TD-one&path=skills" | names)"
 # Search: by name, by another name, by a tool; a skill on no career can still be found and picked.
 expect "a search finds a skill no career uses yet" "Lone" "$(req anon GET "/skills?search=$ENC%20Lone" | names)"
 expect "a search puts the most used of equal matches first" "S01|S08|S09" "$(req anon GET "/skills?search=$ENC%20S&limit=3" | names)"
@@ -275,6 +330,8 @@ expect "a tool finds the skill"       "S06" "$(req anon GET "/skills?search=wren
 expect "a percent sign is only a character" 0 "$(req anon GET '/skills?search=%25%25%25' | j total)"
 expect "the site search finds it by its other name and says so" "$P S05|Also called Oldname$RUN Welding" "$(req anon GET "/search?q=oldname$RUN&types=skills" | j "results.skills.items.map(x=>x.name+'|'+x.subtitle).join()")"
 expect "and by a tool"                "$P S06" "$(req anon GET "/search?q=wrench$RUN&types=skills" | j "results.skills.items.map(x=>x.name).join()")"
+expect "a skill found by its name says its group" "$P S01|$P Group One" "$(req anon GET "/search?q=$ENC%20S01&types=skills&limit=1" | j "results.skills.items.map(x=>x.name+'|'+x.subtitle).join()")"
+expect "a group's name finds its skills" "Lone S01 S02" "$(req anon GET "/search?q=$ENC%20Group%20One&types=skills" | j "results.skills.items.map(x=>x.name.replace('$P ','')).sort().join(' ')")"
 
 # --- Changing my email --------------------------------------------------------
 E1="mail-$RUN@seeker.test"; E2="moved-$RUN@seeker.test"

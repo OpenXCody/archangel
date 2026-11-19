@@ -2,7 +2,7 @@
 
 A workforce map of US manufacturing, live at [o-10.com](https://www.o-10.com).
 
-People explore **Industries → Companies → Plants → Jobs → Careers → Skills** on a map and through pages for each. A career has a path of skills in three stages. Someone looking for work marks the skills they have, sees which careers are within reach, and applies to jobs. A company's people post jobs and read applicants. Admins look after accounts and data. The whole country is covered; Austin, TX is the first area being filled out in depth.
+People explore **Industries → Companies → Plants → Jobs → Careers → Skills** on a map and through pages for each. Every skill sits in a group inside a domain and has one level: Fundamentals, Intermediate or Advanced. A career's path is its skills laid out by those levels. Someone looking for work marks the skills they have, sees which careers are within reach, and applies to jobs. A company's people post jobs and read applicants. Admins look after accounts and data. The whole country is covered; Austin, TX is the first area being filled out in depth.
 
 React, TypeScript, Vite and Tailwind in `client/`; Express and Drizzle in `server/`; PostgreSQL. `CLAUDE.md` describes how the code is laid out and the rules it follows.
 
@@ -27,7 +27,7 @@ You need Node 20 or later (`.nvmrc`) and PostgreSQL 14 or later, with `psql` on 
    npm run db:create -- --sample
    ```
 
-   `db:create` builds the schema from nothing: migrations 0000 to 0009 (they predate the migration runner), then the runner's. With `--sample` it then loads the sample data and applies the runner's migrations a second time, because the curated lists in them (career paths, company profiles, the careers typical of an industry) match records by name. It refuses a database that already has tables, and `--sample` refuses one that is not on localhost. Without `--sample` you get the empty schema.
+   `db:create` builds the schema from nothing: migrations 0000 to 0009 (they predate the migration runner), then the runner's. With `--sample` it then loads the sample data and applies the runner's migrations a second time, because the curated lists in them (career paths, company profiles, the careers typical of an industry, the skill taxonomy) match records by name. It refuses a database that already has tables, and `--sample` refuses one that is not on localhost. Without `--sample` you get the empty schema.
 
 3. Later, to bring the database up to date with new migrations: `npm run db:migrate`. A build does not do this for you (see Deploying).
 
@@ -52,7 +52,7 @@ Four kinds. Run all of them before merging.
 | Check | Command | What it covers |
 |---|---|---|
 | Static | `npm run typecheck` and `npm run lint` | Types; ESLint with no `any`; `.js` endings on server imports; colours from theme tokens only; the page's inline scripts against the Content-Security-Policy |
-| Unit | `npm run test:unit` | The pure functions: pins packed and unpacked, names, industries and a company's industry, paging, LIKE escaping and reading rows, account purpose and View as, when a build migrates, the statistics adapter, the employer loader's generator. Also that the migration list is in order, and that the skills catalogue, the company domains and the stored logos agree with what was generated from them |
+| Unit | `npm run test:unit` | The pure functions: pins packed and unpacked, names, industries and a company's industry, paging, LIKE escaping and reading rows, account purpose and View as, when a build migrates, the statistics adapter, the employer loader's generator, the skill taxonomy's check. Also that the migration list is in order, and that the skills catalogue, the skill taxonomy, the company domains and the stored logos agree with what was generated from them |
 | API | `bash tests/api/accounts.sh`, `jobs.sh`, `seeker.sh`, `admin.sh`, `email.sh`, `industries.sh`, `loader.sh` | Accounts, roles, invites, records, jobs, applications, reach, the industry pages, and the email and notices people get, end to end over HTTP, including every refusal; and the employer loader, research files in, companies and plants out |
 | Pages | `npm run test:ui` | Playwright: the map, Explore and its tabs, the header, jobs, sign-in, settings signed out, each kind of record's page, the industry pages, search, the tools a seeker and an employer are each given, a read that gets no answer giving up, and an admin's change reaching the map's panel, on seven device sizes, with no sideways scroll and no crash |
 
@@ -111,6 +111,7 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   | Careers typical of each industry | `data/careers/industries.json` | `build-industry-careers-sql.mjs` |
   | Everyday names for careers | `data/careers/aliases.json` | `build-career-aliases-sql.mjs` |
   | The skills catalogue | `data/skills/catalogue.json` | `build-skills-sql.mjs` |
+  | The skill taxonomy: domains, groups, each skill's group and level | `data/skills/taxonomy.json` | `build-taxonomy-sql.mjs` |
   | Cleanups: records deleted, merged, renamed | `data/cleanup/*.json` | `build-cleanup-sql.mjs` |
 
   ```bash
@@ -119,6 +120,19 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
 
   The path, profile and domain migrations match records by exact name, create no companies or careers, and never overwrite a value set by hand or a path a person has approved. A migration that has been applied is not edited: a later change is a change to the JSON and a new generated migration.
 
+  The skill taxonomy puts every skill of the catalogue in one group, every group in one domain, and gives every skill one level (1 Fundamentals, 2 Intermediate, 3 Advanced). Edit `data/skills/taxonomy.json`, check it, then regenerate its migration:
+
+  ```bash
+  node scripts/build-taxonomy-sql.mjs --check    # validates the file against the catalogue; writes nothing
+  node scripts/build-taxonomy-sql.mjs            # rewrites migrations/0042_skill_taxonomy.sql
+  ```
+
+  The check fails unless every skill of the catalogue is placed exactly once, in a group of 2 to 12 skills, at a level of 1, 2 or 3. When it is applied the migration stops, changing nothing, if the skills in the database are not exactly the ones the file places: a skill an admin has added, renamed, merged or deleted is first brought into the catalogue and the taxonomy. A taxonomy change after 0042 has reached production is a new numbered migration: give the builder its output as the third argument, add the file to the list in `scripts/migrate.mjs`, and point `tests/unit/taxonomy.unit.ts` at it.
+
+  ```bash
+  node scripts/build-taxonomy-sql.mjs data/skills/taxonomy.json data/skills/catalogue.json migrations/00NN_skill_taxonomy.sql
+  ```
+
 - **Industries and their official statistics.** The 21 industries and a sentence for each are in `data/industries/industries.json`. People employed, establishments and average pay, for the nation and each state, come from the Bureau of Labor Statistics' QCEW: `scripts/ingest/qcew.mjs` downloads a year and writes `data/industries/qcew-<year>.json`, and `scripts/build-industry-stats-sql.mjs` turns both files into a migration. Another year is a new JSON file and a new migration.
 
   ```bash
@@ -126,7 +140,7 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   node scripts/build-industry-stats-sql.mjs data/industries/industries.json data/industries/qcew-2025.json migrations/00NN_industry_stats.sql
   ```
 
-- **One record at a time**, by an admin: Admin Tools → Data → Records finds a company, plant, career or skill to correct, or adds one. The record's editor sets a company's logo domain, featured flag, description, parent and headquarters, and a plant's people, products and opening year; the same tab approves draft career paths.
+- **One record at a time**, by an admin: Admin Tools → Data → Records finds a company, plant, career or skill to correct, or adds one (a skill into a group, at a level). The record's editor sets a company's logo domain, featured flag, description, parent and headquarters, and a plant's people, products and opening year; the same tab approves draft career paths.
 
 ## Logos
 

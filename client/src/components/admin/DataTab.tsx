@@ -37,7 +37,7 @@ const PATH_STATES: readonly { value: PathState; label: string }[] = [
 
 /**
  * Career paths by state. A draft opens in the career's editor, where its
- * skills are read stage by stage, corrected, and approved; the approved ones
+ * skills are read level by level, corrected, and approved; the approved ones
  * are listed too, so one approved by mistake can be found and returned.
  */
 function PathsSection() {
@@ -60,7 +60,7 @@ function PathsSection() {
       title="Career paths"
       description={
         state === 'draft'
-          ? 'Drafts are written but not yet reviewed. Open one to read its skills by stage, correct it and approve it.'
+          ? 'Drafts are written but not yet reviewed. Open one to read its skills by level, correct it and approve it.'
           : 'Paths a person has reviewed.'
       }
     >

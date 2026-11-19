@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import type { EntityType } from './api';
+import type { EntityType, SkillLevel, TaxonomyRef } from './api';
 import { ApiError, queryString, request, retryUnlessClientError } from './http';
 import { accountKeys, publicKeys } from './queryKeys';
 
@@ -50,7 +50,7 @@ export type NewRecord =
       address?: string;
     }
   | { kind: 'career'; title: string; description?: string }
-  | { kind: 'skill'; name: string; category?: string; description?: string; howLearned?: string; tools?: string[] };
+  | { kind: 'skill'; name: string; /** The slug of its skill group, which fixes its domain. */ group: string; level: SkillLevel; description?: string; howLearned?: string; tools?: string[] };
 
 /** A record as the page that links to it needs it. */
 export interface RecordLink {
@@ -110,8 +110,10 @@ function recordsChanged(queryClient: QueryClient, kind: RecordKind, goneId?: str
   ];
   if (kind === 'company') stale.push(accountKeys.adminCompanies, publicKeys.records('factories'), accountKeys.jobs, accountKeys.employer);
   if (kind === 'company' || kind === 'factory') stale.push(publicKeys.pins, publicKeys.stateCounts, publicKeys.stateOverviews, publicKeys.areaOverviews);
-  if (kind === 'career') stale.push(accountKeys.adminPaths, accountKeys.me);
-  if (kind === 'skill') stale.push(publicKeys.records('occupations'), accountKeys.me);
+  // A path that gained or lost a skill changes how many careers use it, which the taxonomy says.
+  if (kind === 'career') stale.push(accountKeys.adminPaths, accountKeys.me, publicKeys.taxonomy);
+  // A skill's name, group or level shows in every path it is on and in the taxonomy.
+  if (kind === 'skill') stale.push(publicKeys.records('occupations'), publicKeys.exploreLists('occupations'), publicKeys.taxonomy, accountKeys.me);
   for (const queryKey of stale) {
     // A record that was just deleted or merged away is not asked for again: its editor is about to close.
     void queryClient.invalidateQueries({ queryKey, predicate: (query) => !(goneId && query.queryKey[2] === 'one' && query.queryKey[4] === goneId) });
@@ -144,6 +146,8 @@ export interface FoundRecord {
   /** One line that tells it from its neighbours. */
   detail: string | null;
   href: string;
+  /** Skills: its level, so the path editor can show a skill it adds where it will sit. */
+  level?: SkillLevel | null;
 }
 
 /** Counts of what points at a record: what a merge moves and a deletion takes. Zeroes are left out. */
@@ -162,18 +166,23 @@ export interface RecordView {
   attached: Attached;
   /** Factories: the industries a plant can be filed under. */
   industries?: string[];
-  /** Careers: the skills on the path with the stage of each. */
+  /** Careers: the skills on the path, each with its own level and group. */
   path?: PathSkill[];
   /** Skills: the tools, machines or software it is done with. */
   tools?: string[];
 }
 
-/** One skill on a career's path. Stage 1 Introduction, 2 Fundamentals, 3 Advanced, or none. */
+/**
+ * One skill on a career's path, as the path editor reads it. It sits at its
+ * own level; a path sets none. (Level and group are null only for a skill no
+ * migration has placed: see `SkillPlace` in lib/api.ts.)
+ */
 export interface PathSkill {
   id: string;
   name: string;
-  category: string | null;
-  stage: number | null;
+  level: SkillLevel | null;
+  group: TaxonomyRef | null;
+  domain?: TaxonomyRef | null;
 }
 
 export interface MergeResult {
@@ -220,8 +229,8 @@ const recordsApi = {
     request<MergeResult>(`/admin/records/${kind}/${id}/merge`, { method: 'POST', body: { into } }),
   audit: (params: { kind?: string; record?: string; offset?: number; limit?: number }) =>
     request<{ entries: AuditEntry[]; hasMore: boolean }>(`/admin/audit${queryString(params)}`),
-  /** Sets a career's skills and stages as a whole, and optionally the state of the path. */
-  savePath: (occupationId: string, body: { skills: { skillId: string; stage: number | null }[]; replace?: boolean; status?: 'draft' | 'approved' }) =>
+  /** Sets a career's skills as a whole, and optionally the state of the path. Each skill sits at its own level. */
+  savePath: (occupationId: string, body: { skills: { skillId: string }[]; replace?: boolean; status?: 'draft' | 'approved' }) =>
     request<{ occupationId: string }>(`/occupations/${occupationId}/path`, { method: 'PUT', body }),
 };
 

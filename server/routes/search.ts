@@ -280,7 +280,8 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     // Search skills: by name, by another name a skill is known by (a merged
-    // or everyday name in skill_aliases), by what it is done with, or by category.
+    // or everyday name in skill_aliases), by what it is done with, or by the
+    // name of its group or domain. A result's grey line is its group.
     // The subqueries name the table outright: in a select list a column
     // reference is written bare, and "id" would then mean the alias's own.
     if (typeFilter.includes('skills')) {
@@ -295,19 +296,20 @@ router.get('/', async (req: Request, res: Response) => {
         ilike(skills.name, searchPattern),
         sql`EXISTS (SELECT 1 FROM skill_aliases a WHERE a.canonical_skill_id = skills.id AND ${wordStart('a.alias_text')})`,
         sql`EXISTS (SELECT 1 FROM unnest(skills.tools) AS tool WHERE ${wordStart('tool')})`,
-        ilike(skills.category, searchPattern)
+        sql`EXISTS (SELECT 1 FROM skill_groups sg INNER JOIN skill_domains sd ON sd.slug = sg.domain_slug
+          WHERE sg.slug = skills.group_slug AND (sg.name ILIKE ${searchPattern} OR sd.name ILIKE ${searchPattern}))`
       );
       const [skillResults, skillCount] = await Promise.all([
         db
           .select({
             id: skills.id,
             name: skills.name,
-            category: skills.category,
+            groupName: sql<string | null>`(SELECT sg.name FROM skill_groups sg WHERE sg.slug = skills.group_slug)`,
             otherName,
           })
           .from(skills)
           .where(skillMatches)
-          // A name that matches comes before one found by its other name, its tools or its category.
+          // A name that matches comes before one found by its other name, its tools, its group or its domain.
           .orderBy(sql`CASE WHEN ${skills.name} ILIKE ${searchPattern} THEN 0 WHEN ${otherName} IS NOT NULL THEN 1 ELSE 2 END`, byRelevance(skills.name))
           .limit(maxLimit),
         db.select({ count: count() }).from(skills).where(skillMatches),
@@ -319,7 +321,7 @@ router.get('/', async (req: Request, res: Response) => {
         name: s.name,
         type: 'skills' as const,
         // Found by another name: say which, so the result explains itself.
-        subtitle: !named(s.name) && s.otherName ? `Also called ${s.otherName}` : s.category || undefined,
+        subtitle: !named(s.name) && s.otherName ? `Also called ${s.otherName}` : s.groupName || undefined,
         found: named(s.name) ? 0 : s.otherName ? 1 : 2,
       }));
 

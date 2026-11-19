@@ -1,9 +1,11 @@
 import type { Response } from 'express';
 import { and, eq, ne, sql, type SQL } from 'drizzle-orm';
-import { db, companies, factories, occupations, occupationSkills, skills, occupationAliases, skillAliases } from '../db/index.js';
+import { db, companies, factories, occupations, occupationSkills, skills, skillDomains, skillGroups, occupationAliases, skillAliases } from '../db/index.js';
 import { changedFields, recordAudit, type Actor, type Executor } from './audit.js';
 import { answerWriteError, coordinate, count, FACTORY_STATUSES, HOSTNAME, isUuid, optionalName, optionalText, sourceUrl, stateCode, year } from './writes.js';
 import { rowsOf } from './rows.js';
+import { findGroup, placeColumns, placeOf, readLevel, type SkillPlace } from './taxonomy.js';
+import { skillLevelName } from '../../shared/skillLevels.js';
 
 /**
  * Correcting the four kinds of record an admin keeps: companies, factories,
@@ -174,8 +176,8 @@ export interface RecordView {
   attached: Attached;
   /** Factories: the industries a plant can be filed under. */
   industries?: string[];
-  /** Careers: the skills on the path with the stage of each, read fresh (the public career page is cached). */
-  path?: { id: string; name: string; category: string | null; stage: number | null }[];
+  /** Careers: the skills on the path, each with its level, group and domain, read fresh (the public career page is cached). */
+  path?: ({ id: string; name: string } & SkillPlace)[];
   /** Skills: the tools, machines or software it is done with. */
   tools?: string[];
 }
@@ -269,22 +271,33 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
       fields: { title: row.title, description: row.description, onetCode: row.onetCode, pathStatus: row.pathStatus },
       aliases: await aliasesOf(db, 'career', id),
       attached,
-      path: await db
-        .select({ id: skills.id, name: skills.name, category: skills.category, stage: occupationSkills.stage })
-        .from(occupationSkills)
-        .innerJoin(skills, eq(skills.id, occupationSkills.skillId))
-        .where(eq(occupationSkills.occupationId, id))
-        .orderBy(sql`${occupationSkills.stage} ASC NULLS LAST`, skills.name),
+      path: (
+        await db
+          .select({ id: skills.id, name: skills.name, ...placeColumns })
+          .from(occupationSkills)
+          .innerJoin(skills, eq(skills.id, occupationSkills.skillId))
+          .leftJoin(skillGroups, eq(skillGroups.slug, skills.groupSlug))
+          .leftJoin(skillDomains, eq(skillDomains.slug, skillGroups.domainSlug))
+          .where(eq(occupationSkills.occupationId, id))
+          .orderBy(sql`${skills.level} ASC NULLS LAST`, skills.name)
+      ).map((skill) => ({ id: skill.id, name: skill.name, ...placeOf(skill) })),
     };
   }
-  const [row] = await db.select().from(skills).where(eq(skills.id, id)).limit(1);
+  const [row] = await db
+    .select({ name: skills.name, description: skills.description, howLearned: skills.howLearned, tools: skills.tools, ...placeColumns })
+    .from(skills)
+    .leftJoin(skillGroups, eq(skillGroups.slug, skills.groupSlug))
+    .leftJoin(skillDomains, eq(skillDomains.slug, skillGroups.domainSlug))
+    .where(eq(skills.id, id))
+    .limit(1);
   if (!row) return null;
   return {
     kind,
     id,
     name: row.name,
     href: `/skills/${id}`,
-    fields: { name: row.name, category: row.category, description: row.description, howLearned: row.howLearned },
+    // `group` is the slug the form sends back; `groupName` and `domain` are for showing.
+    fields: { name: row.name, group: row.groupSlug, groupName: row.groupName, domain: row.domainName, level: row.level, description: row.description, howLearned: row.howLearned },
     tools: row.tools ?? [],
     aliases: await aliasesOf(db, 'skill', id),
     attached,
@@ -602,21 +615,32 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
 async function changeSkill(id: string, body: Body, actor: Actor): Promise<SavedRow> {
   const name = optionalName(body.name);
   if (name === false) refuse('name', 'A skill needs a name of up to 200 characters.');
-  const category = optionalText(body.category, 80);
-  if (category === false) refuse('category', 'A category is text of up to 80 characters.');
   const description = optionalText(body.description, 2000);
   if (description === false) refuse('description', 'A description is text of up to 2,000 characters.');
   const howLearned = optionalText(body.howLearned, 1000);
   if (howLearned === false) refuse('howLearned', 'How it is learned is text of up to 1,000 characters.');
   const tools = toolList(body.tools);
   if (tools === false) refuse('tools', `What it is done with is a list of up to ${MAX_TOOLS} short names.`);
+  // A skill always has a level: one can be changed, never cleared.
+  const level = body.level === undefined ? undefined : readLevel(body.level);
+  if (level === null) refuse('level', 'Choose a level: Fundamentals, Intermediate or Advanced.');
 
   return db.transaction(async (tx) => {
     const [before] = await tx.select().from(skills).where(eq(skills.id, id)).limit(1).for('update');
     if (!before) throw new RecordRefusal(404, NOT_FOUND.skill);
+    // A group is chosen by its slug and fixes the domain. Like the level, it is changed, never cleared.
+    const placeBefore = before.groupSlug ? await findGroup(tx, before.groupSlug) : null;
+    const placeAfter = body.group === undefined || body.group === before.groupSlug ? placeBefore : await findGroup(tx, body.group);
+    if (body.group !== undefined && !placeAfter) refuse('group', 'Choose the group the skill belongs to.');
+    const moved = placeAfter?.group.slug !== placeBefore?.group.slug;
     const after = {
       name: name ?? before.name,
-      category: category === undefined ? before.category : category,
+      groupSlug: placeAfter?.group.slug ?? null,
+      // Its place in a group is the taxonomy file's: a skill moved by hand goes after the ones the file placed.
+      groupPosition: moved ? null : before.groupPosition,
+      // The domain's name, as the taxonomy migration writes it; nothing reads it.
+      category: moved ? (placeAfter?.domain.name ?? null) : before.category,
+      level: level ?? before.level,
       description: description === undefined ? before.description : description,
       howLearned: howLearned === undefined ? before.howLearned : howLearned,
       tools: tools === undefined ? before.tools : tools.length > 0 ? tools : null,
@@ -636,16 +660,35 @@ async function changeSkill(id: string, body: Body, actor: Actor): Promise<SavedR
       if (!aliases) refuse('aliases', `Other names are a list of up to ${MAX_ALIASES} names.`);
       aliasesAfter = [...aliases].sort((a, b) => a.localeCompare(b));
     }
+    // The log names the group, the domain and the level as a person reads them.
+    const shown = (place: typeof placeBefore, level: number | null) => ({
+      group: place?.group.name ?? null,
+      domain: place?.domain.name ?? null,
+      level: skillLevelName(level),
+    });
     const changes = changedFields(
-      { ...before, tools: before.tools ?? [], aliases: aliasesBefore },
-      { ...after, tools: after.tools ?? [], aliases: aliasesAfter },
-      ['name', 'category', 'description', 'howLearned', 'tools', 'aliases']
+      { ...before, ...shown(placeBefore, before.level), tools: before.tools ?? [], aliases: aliasesBefore },
+      { ...after, ...shown(placeAfter, after.level), tools: after.tools ?? [], aliases: aliasesAfter },
+      ['name', 'group', 'domain', 'level', 'description', 'howLearned', 'tools', 'aliases']
     );
-    if (!changes) return before;
+    const answer = (row: typeof before): SavedRow => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      howLearned: row.howLearned,
+      tools: row.tools,
+      createdAt: row.createdAt,
+      level: row.level,
+      group: placeAfter?.group ?? null,
+      domain: placeAfter?.domain ?? null,
+    });
+    if (!changes) return answer(before);
     if (changes.aliases) await setAliases(tx, 'skill', id, aliasesAfter);
+    // A new level reaches every career path the skill is on: the database
+    // moves occupation_skills.stage with skills.level (migration 0042).
     const [saved] = await tx.update(skills).set(after).where(eq(skills.id, id)).returning();
     await recordAudit(tx, { actor, kind: 'skill', recordId: id, recordName: saved.name, action: 'edited', detail: { changes } });
-    return saved;
+    return answer(saved);
   });
 }
 

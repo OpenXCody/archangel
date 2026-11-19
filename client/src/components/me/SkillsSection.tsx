@@ -283,7 +283,7 @@ function SkillSearch({ mySkills, onAdd, disabled }: SkillSearchProps) {
                   <li key={skill.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3')}>
                     <div className="min-w-0 flex-1 basis-40">
                       <p className="break-words text-sm font-medium text-fg-default">{skill.name}</p>
-                      {skill.category && <p className="truncate text-xs text-fg-muted">{skill.category}</p>}
+                      {skill.group && <p className="truncate text-xs text-fg-muted">{skill.group.name}</p>}
                     </div>
                     {status ? (
                       <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-fg-muted">

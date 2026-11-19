@@ -40,7 +40,7 @@ import { cn, focusRing } from '@/lib/utils';
  *      c. open jobs;
  *      d. the records it leads to, in the product's own order (the order
  *         of Explore's tabs): companies, plants, careers, skills;
- *      e. sources, as one quiet line at the foot.
+ *      (Where a fact was read is not shown on the page.)
  *   3. Every list of records is a `RecordList` of `RecordRow`s: one card,
  *      hairlines between rows, the name, at most one grey line under it, and
  *      a chevron (or the row's figure) at the right. No icon per row: a list

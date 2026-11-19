@@ -4,7 +4,7 @@ import { type FactoryDetail } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { industryLabel, industryPath } from '@shared/industry';
 import CompanyLogo from '../CompanyLogo';
-import { PlantFacts, SourceList } from './RecordFacts';
+import { PlantFacts } from './RecordFacts';
 import { cityState } from '../../lib/places';
 import {
   DetailFacts,
@@ -150,7 +150,6 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
       )}
       {careers.length === 0 && (data.typicalCareers?.length ?? 0) > 0 && <TypicalCareers careers={data.typicalCareers ?? []} />}
 
-      <SourceList sources={data.sources} />
     </>
   );
 }

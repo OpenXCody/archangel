@@ -76,6 +76,11 @@ try {
     console.log(`create-db: applied ${name}`);
   }
 
+  // Said for this session only: a migration that holds the stored records to a
+  // curated file (0042, the skill taxonomy) has nothing to hold them to yet.
+  // The second pass below, over the sample data, runs in a new session and is
+  // checked like any other database.
+  await sql`SELECT set_config('archangel.from_nothing', 'on', false)`;
   await applyMigrations(sql);
 
   if (withSample) {

@@ -12,11 +12,11 @@ import {
   ShowAll,
   recordListClass,
 } from '../layout/Page';
-import { type Stage, STAGE_LABEL } from '../../lib/stages';
+import { LEVELS } from '../../lib/stages';
 
 /*
  * What the four record pages share: the heading block's inputs, the footprint
- * card, open jobs, careers typical of an industry, the stages of a path and
+ * card, open jobs, careers typical of an industry, the levels of a path and
  * industries as rows. Each page is its own file beside this one;
  * pages/EntityDetail.tsx picks which to draw from the address.
  */
@@ -90,20 +90,16 @@ export function OpenJobsSection({ jobs, showCareer = false }: { jobs: CareerJob[
 }
 
 /**
- * The three stages of a career's path, in the order they are learned, and
- * what each means. Said the same way on a career's page and on a skill's.
+ * The three levels a career's path is laid out by, in the order they are
+ * learned, each with its name and the few words under it (lib/stages.ts).
  */
-export const STAGES: { stage: Stage; label: string; hint: string }[] = [
-  { stage: 1, label: STAGE_LABEL[1], hint: 'Where to start' },
-  { stage: 2, label: STAGE_LABEL[2], hint: 'The core of the work' },
-  { stage: 3, label: STAGE_LABEL[3], hint: 'What sets you apart' },
-];
+export const PATH_LEVELS = LEVELS.map(({ id, name, gloss }) => ({ level: id, label: name, hint: gloss }));
 
-/** A skill a career uses that has no stage yet, in both pages' words. */
-export const UNSTAGED = 'Not yet placed';
+/** A skill with no level: only in a database no taxonomy was loaded into. */
+export const UNPLACED = 'Not yet placed';
 
-/** The line above one stage's rows: its number on a path, its name, what it means. */
-export function StageHeading({ number, label, hint }: { number?: number; label: string; hint?: string }) {
+/** The line above one level's rows: its number on a path, its name, what it means. */
+export function LevelHeading({ number, label, hint }: { number?: number; label: string; hint?: string }) {
   return (
     <h3 className="mb-2 flex flex-wrap items-baseline gap-x-2 text-sm">
       {number && <span className="text-xs font-medium tabular-nums text-fg-soft">{number}</span>}

@@ -175,7 +175,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
     .slice(0, 8)
     .map((o) => ({ id: o.id, title: o.title }));
 
-  // The career's own skills are the default tags: stage 3 optional, the rest required.
+  // The career's own skills are the default tags: Advanced optional, the rest required.
   const careerId = career?.id ?? '';
   const careerSkills = useQuery({
     queryKey: publicKeys.picker('career-skills', careerId),
@@ -188,7 +188,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
   const seeded = Boolean(careerId) && seededFor === careerId;
   if (careerId && careerSkills.data && !seeded) {
     // Set while rendering, so tags the client already has never flash a loader.
-    const defaults = careerSkills.data.skills.map((skill) => ({ id: skill.id, name: skill.name, required: skill.stage !== 3 }));
+    const defaults = careerSkills.data.skills.map((skill) => ({ id: skill.id, name: skill.name, required: skill.level !== 3 }));
     setSeededFor(careerId);
     // Tags edited for this career earlier in the form come back as they were;
     // otherwise the defaults, plus anything added while they were unavailable.

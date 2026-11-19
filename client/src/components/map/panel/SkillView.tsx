@@ -1,4 +1,5 @@
 import { type SkillDetail } from '../../../lib/api';
+import { levelName } from '../../../lib/stages';
 import { useMapStore } from '../../../stores/mapStore';
 import { Heading, Section, CareerRows, More, PageLink } from './parts';
 
@@ -8,7 +9,8 @@ export default function SkillView({ skill }: { skill: SkillDetail }) {
   const related = skill.relatedSkills ?? [];
   return (
     <>
-      <Heading title={skill.name} subtitle={skill.category || undefined} />
+      {/* "Hand measurement tools · Fundamentals" */}
+      <Heading title={skill.name} subtitle={[skill.group?.name, levelName(skill.level)].filter(Boolean).join(' · ') || undefined} />
       {skill.description && (
         <Section title="About">
           <p className="text-sm leading-relaxed text-fg-muted">{skill.description}</p>

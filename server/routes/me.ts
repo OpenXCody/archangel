@@ -31,7 +31,8 @@ const SKILL_STATUSES = new Set(['learning', 'held']);
 interface NextSkill {
   id: string;
   name: string;
-  stage: number | null;
+  /** The skill's level: 1 Fundamentals, 2 Intermediate, 3 Advanced. */
+  level: number | null;
 }
 
 /** How many careers "within reach" returns, and how many next skills each carries. */
@@ -42,12 +43,13 @@ const REACH_MIN_PATH = 5;
 
 /**
  * The first skills of a career the person does not hold yet, as a JSON array
- * of { id, name, stage }: earliest stage first, and within a stage the ones
- * they are already learning ahead of the rest.
+ * of { id, name, level }: the lowest level first, and within a level the ones
+ * they are already learning ahead of the rest. (A path row's stage is the
+ * skill's level.)
  */
 function nextSkillsSql(occupationId: SQL, userId: string): SQL<NextSkill[]> {
   return sql<NextSkill[]>`COALESCE((
-    SELECT json_agg(json_build_object('id', n.id, 'name', n.name, 'stage', n.stage) ORDER BY n.ord)
+    SELECT json_agg(json_build_object('id', n.id, 'name', n.name, 'level', n.stage) ORDER BY n.ord)
     FROM (
       SELECT s.id, s.name, os.stage,
              ROW_NUMBER() OVER (ORDER BY os.stage ASC NULLS LAST, (us.status IS NULL), s.name) AS ord
@@ -188,7 +190,7 @@ const SUGGESTED_SKILLS_MAX = 30;
 
 // GET /api/me/skills/suggested?limit= - skills the person is likely to have
 // or want, none of them on their list yet: first the skills of the careers
-// they chose as goals (earliest stage first), then those of the careers within
+// they chose as goals (lowest level first), then those of the careers within
 // reach (the ones most of those careers share first). Each names one career it
 // is for (`career`) and how many (`careers`). Empty for a person with no goal
 // and no held skill: there is nothing to go on.
@@ -223,8 +225,9 @@ router.get(
           AND NOT EXISTS (
                 SELECT 1 FROM user_goals g WHERE g.user_id = ${userId} AND g.occupation_id = os.occupation_id
               )
+          AND o.path_status IS NOT NULL
         GROUP BY os.occupation_id, o.title
-        HAVING COUNT(*) >= ${REACH_MIN_PATH} AND COUNT(os.stage) > 0
+        HAVING COUNT(*) >= ${REACH_MIN_PATH}
         ORDER BY share DESC, o.title ASC
         LIMIT ${REACH_LIMIT}
       ),
@@ -253,7 +256,7 @@ router.get(
     const suggested = rowsOf(rows).map((row) => ({
       id: String(row.id),
       name: String(row.name),
-      stage: row.stage === null ? null : Number(row.stage),
+      level: row.stage === null ? null : Number(row.stage),
       career: String(row.career),
       careers: Number(row.careers),
     }));
@@ -350,7 +353,8 @@ router.delete(
 
 // GET /api/me/careers/reach - careers the person's skills already point at.
 //
-// Only careers with a staged path of at least five skills, of which the person
+// Only careers with a path (written, draft or approved: `path_status`) of at
+// least five skills, of which the person
 // holds at least one, and which they have not already chosen as a goal (those
 // are in /goals). `held` counts held skills only, so it is the same figure as
 // the career page's "You have N of M". A skill being learned is not held: it
@@ -378,8 +382,9 @@ router.get(
           AND NOT EXISTS (
                 SELECT 1 FROM user_goals g WHERE g.user_id = ${userId} AND g.occupation_id = os.occupation_id
               )
+          AND o.path_status IS NOT NULL
         GROUP BY o.id, o.title
-        HAVING COUNT(*) >= ${REACH_MIN_PATH} AND COUNT(os.stage) > 0
+        HAVING COUNT(*) >= ${REACH_MIN_PATH}
         ORDER BY (COUNT(*) FILTER (WHERE m.status = 'held') + 0.5 * COUNT(*) FILTER (WHERE m.status = 'learning')) / COUNT(*) DESC,
                  COUNT(*) FILTER (WHERE m.status = 'held') DESC, o.title ASC
         LIMIT ${REACH_LIMIT}

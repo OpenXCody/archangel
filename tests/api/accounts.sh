@@ -416,11 +416,18 @@ check "add a career"                  201 "$OUT" '"description":"Checks records.
 check "its O*NET code is kept, trimmed" 201 "$OUT" '"onetCode":"51-4041.00"'
 ROC=$(printf '%s' "$OUT" | j id)
 check "same career again"             409 "$(req a POST /occupations "{\"title\":\"$REC CAREER\"}")" "\"existing\":{\"id\":\"$ROC\""
-OUT=$(req a POST /skills "{\"name\":\"$REC Skill\",\"category\":\"Machining\"}")
-check "add a skill"                   201 "$OUT" '"category":"Machining"'
+# A skill is added into a skill group (which fixes its domain) at a level: both are required.
+GRP=$(sql "SELECT slug FROM skill_groups ORDER BY position, slug LIMIT 1")
+OUT=$(req a POST /skills "{\"name\":\"$REC Skill\",\"group\":\"$GRP\",\"level\":2}")
+check "add a skill"                   201 "$OUT" "\"level\":2,\"group\":{\"slug\":\"$GRP\""
 RSK=$(printf '%s' "$OUT" | j id)
-check "same skill again"              409 "$(req a POST /skills "{\"name\":\"$REC skill\"}")" "\"existing\":{\"id\":\"$RSK\""
-check "skill category must be text"   400 "$(req a POST /skills "{\"name\":\"$REC Skill 2\",\"category\":5}")"
+expect "it is stored in its group, at its level, under its domain's name" "$GRP|2|$(sql "SELECT d.name FROM skill_groups g JOIN skill_domains d ON d.slug=g.domain_slug WHERE g.slug='$GRP'")" "$(sql "SELECT group_slug || '|' || level || '|' || category FROM skills WHERE id='$RSK'")"
+check "same skill again"              409 "$(req a POST /skills "{\"name\":\"$REC skill\",\"group\":\"$GRP\",\"level\":1}")" "\"existing\":{\"id\":\"$RSK\""
+check "a skill needs a group"         400 "$(req a POST /skills "{\"name\":\"$REC Skill 2\",\"level\":2}")" '"field":"group"'
+check "one that exists"               400 "$(req a POST /skills "{\"name\":\"$REC Skill 2\",\"group\":\"no-such-group\",\"level\":2}")" '"field":"group"'
+check "and a level"                   400 "$(req a POST /skills "{\"name\":\"$REC Skill 2\",\"group\":\"$GRP\"}")" '"field":"level"'
+check "of 1, 2 or 3"                  400 "$(req a POST /skills "{\"name\":\"$REC Skill 2\",\"group\":\"$GRP\",\"level\":4}")" '"field":"level"'
+expect "the refusals added nothing"   0 "$(sql "SELECT COUNT(*) FROM skills WHERE name='$REC Skill 2'")"
 check "counts leave out removed kinds" 200 "$(req anon GET /stats/counts)" '^{"companies":[0-9]*,"factories":[0-9]*,"occupations":[0-9]*,"skills":[0-9]*,"total":[0-9]*}$'
 for gone in refs schools programs persons import/status review/summary; do
   check "/$gone is gone"               404 "$(req a GET /$gone)"

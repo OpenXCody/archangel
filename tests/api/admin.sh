@@ -167,17 +167,33 @@ expect "the merge is on record"       "$REC Motors Inc" "$(req a GET "/admin/aud
 # --- Careers and skills: aliases, paths, merges ------------------------------
 OUT=$(req a POST /occupations "{\"title\":\"$REC Welder\"}"); OA=$(printf '%s' "$OUT" | j id)
 OUT=$(req a POST /occupations "{\"title\":\"$REC Welding Technician\",\"description\":\"Joins metal.\"}"); OB=$(printf '%s' "$OUT" | j id)
-OUT=$(req a POST /skills "{\"name\":\"$REC Plasma Etch\"}"); SA=$(printf '%s' "$OUT" | j id)
-OUT=$(req a POST /skills "{\"name\":\"$REC Plasma Etching\",\"category\":\"Machining\"}"); SB=$(printf '%s' "$OUT" | j id)
-OUT=$(req a POST /skills "{\"name\":\"$REC Blueprint Reading\"}"); SC=$(printf '%s' "$OUT" | j id)
+# Two skill groups in different domains: a skill is added into one, at a level, and can be moved to the other.
+GRP=$(sql "SELECT slug FROM skill_groups ORDER BY position, slug LIMIT 1")
+GRP2=$(sql "SELECT slug FROM skill_groups ORDER BY position DESC, slug DESC LIMIT 1")
+domainOf() { sql "SELECT d.name FROM skill_groups g JOIN skill_domains d ON d.slug=g.domain_slug WHERE g.slug='$1'"; }
+groupName() { sql "SELECT name FROM skill_groups WHERE slug='$1'"; }
+expect "two groups in two domains to work with" true "$([ -n "$GRP" ] && [ "$(domainOf "$GRP")" != "$(domainOf "$GRP2")" ] && echo true)"
+OUT=$(req a POST /skills "{\"name\":\"$REC Plasma Etch\",\"group\":\"$GRP\",\"level\":1}"); SA=$(printf '%s' "$OUT" | j id)
+OUT=$(req a POST /skills "{\"name\":\"$REC Plasma Etching\",\"group\":\"$GRP\",\"level\":1}"); SB=$(printf '%s' "$OUT" | j id)
+OUT=$(req a POST /skills "{\"name\":\"$REC Blueprint Reading\",\"group\":\"$GRP\",\"level\":2}"); SC=$(printf '%s' "$OUT" | j id)
 check "a skill close to another"      200 "$(req a GET "/admin/records/skill/similar?name=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$REC Plasma Etch")&exclude=$SA")" "\"id\":\"$SB\""
 check "other names for a career"      200 "$(req a PUT /occupations/$OA "{\"aliases\":[\"$REC Weldor\"]}")"
 expect "are kept in the alias table"  1 "$(sql "SELECT COUNT(*) FROM occupation_aliases WHERE canonical_occupation_id='$OA' AND alias_text='$REC Weldor'")"
 check "a name another career has"     409 "$(req a PUT /occupations/$OB "{\"aliases\":[\"$REC Weldor\"]}")" '"field":"aliases"'
 check "nor another career's title"    409 "$(req a PUT /occupations/$OB "{\"aliases\":[\"$REC WELDER\"]}")" '"field":"aliases"'
 check "a career with nothing to change" 400 "$(req a PUT /occupations/$OA '{}')"
-check "a skill's category and other names" 200 "$(req a PUT /skills/$SA "{\"category\":\"Semiconductor\",\"aliases\":[\"$REC Etch\"]}")" '"category":"Semiconductor"'
+OUT=$(req a PUT /skills/$SA "{\"group\":\"$GRP2\",\"level\":3,\"aliases\":[\"$REC Etch\"]}")
+check "a skill's group, level and other names" 200 "$OUT" "\"level\":3,\"group\":{\"slug\":\"$GRP2\""
+expect "the answer names its new domain" "$(domainOf "$GRP2")" "$(printf '%s' "$OUT" | j domain.name)"
+expect "the group fixes the domain's name on the row" "$GRP2|3|$(domainOf "$GRP2")" "$(sql "SELECT group_slug || '|' || level || '|' || category FROM skills WHERE id='$SA'")"
+expect "the change of group and level is on record, in words" "$(groupName "$GRP")>$(groupName "$GRP2")|$(domainOf "$GRP")>$(domainOf "$GRP2")|Fundamentals>Advanced" "$(req a GET "/admin/audit?kind=skill&record=$SA" | j "entries.map((e) => ((c) => c && c.group ? [c.group.join('>'), c.domain.join('>'), c.level.join('>')].join('|') : '')((e.detail || {}).changes))[0]")"
+check "a group that does not exist"   400 "$(req a PUT /skills/$SA '{"group":"no-such-group"}')" '"field":"group"'
+check "a level that is not one"       400 "$(req a PUT /skills/$SA '{"level":0}')" '"field":"level"'
+check "a level cannot be cleared"     400 "$(req a PUT /skills/$SA '{"level":null}')" '"field":"level"'
+expect "the refusals left it where it was" "$GRP2|3" "$(sql "SELECT group_slug || '|' || level FROM skills WHERE id='$SA'")"
 check "the editor reads them back"    200 "$(req a GET /admin/records/skill/$SA)" "\"aliases\":\[\"$REC Etch\"\]"
+expect "with the group's slug and the level" "$GRP2|3|$(domainOf "$GRP2")" "$(req a GET /admin/records/skill/$SA | j "fields.group + '|' + o.fields.level + '|' + o.fields.domain")"
+expect "a search for it says its group and level" "$(groupName "$GRP2") · Advanced|3" "$(req a GET "/admin/records/skill?q=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$REC Plasma Etch")" | j "records.filter((r) => r.id === '$SA').map((r) => r.detail + '|' + r.level)[0]")"
 check "how a skill is learned and what it is done with" 200 "$(req a PUT /skills/$SA "{\"howLearned\":\"  On the job.  \",\"tools\":[\"Etch tool\",\" etch tool \",\"Gas cabinet\",\"\"]}")" '"howLearned":"On the job."'
 expect "the tools are kept as a list, once each" "Etch tool|Gas cabinet" "$(sql "SELECT array_to_string(tools, '|') FROM skills WHERE id='$SA'")"
 check "the editor reads those back too" 200 "$(req a GET /admin/records/skill/$SA)" '"tools":\["Etch tool","Gas cabinet"\]'
@@ -188,14 +204,33 @@ expect "the refusals changed nothing" "On the job.|2" "$(sql "SELECT how_learned
 expect "the change is in the skill's history" "howLearned,tools" "$(req a GET "/admin/audit?kind=skill&record=$SA" | j 'entries.map((e) => Object.keys((e.detail || {}).changes || {}).sort().join(","))[0]')"
 check "clearing them"                 200 "$(req a PUT /skills/$SA '{"howLearned":"","tools":[]}')"
 expect "leaves both empty"            "true true" "$(sql "SELECT (how_learned IS NULL) || ' ' || (tools IS NULL) FROM skills WHERE id='$SA'")"
-check "a new skill can carry them"    201 "$(req a POST /skills "{\"name\":\"$REC Etch Endpoint\",\"howLearned\":\"A course.\",\"tools\":[\"Spectrometer\"]}")" '"tools":\["Spectrometer"\]'
+check "a new skill can carry them"    201 "$(req a POST /skills "{\"name\":\"$REC Etch Endpoint\",\"group\":\"$GRP\",\"level\":2,\"howLearned\":\"A course.\",\"tools\":[\"Spectrometer\"]}")" '"tools":\["Spectrometer"\]'
 
-check "write a path"                  200 "$(req a PUT /occupations/$OA/path "{\"skills\":[{\"skillId\":\"$SA\",\"stage\":1},{\"skillId\":\"$SC\",\"stage\":2}],\"status\":\"draft\"}")"
+# A path is a career's skills. Each sits at its own level (SA 3, SB 1, SC 2), whatever stage a request sends.
+stages() { sql "SELECT string_agg(s.name || ':' || COALESCE(os.stage::text, 'none'), ' ' ORDER BY s.name) FROM occupation_skills os JOIN skills s ON s.id=os.skill_id WHERE os.occupation_id='$1'" | sed "s/$REC //g"; }
+check "write a path"                  200 "$(req a PUT /occupations/$OA/path "{\"skills\":[{\"skillId\":\"$SA\",\"stage\":1},{\"skillId\":\"$SC\"}],\"status\":\"draft\"}")"
+expect "each skill is stored at its own level, not the stage sent" "Blueprint Reading:2 Plasma Etch:3" "$(stages $OA)"
 sql "UPDATE occupation_skills SET importance='preferred' WHERE occupation_id='$OA' AND skill_id='$SC'" >/dev/null
-check "replace it, keeping one skill" 200 "$(req a PUT /occupations/$OA/path "{\"skills\":[{\"skillId\":\"$SC\",\"stage\":3},{\"skillId\":\"$SB\",\"stage\":1}],\"replace\":true}")"
+check "replace it, keeping one skill" 200 "$(req a PUT /occupations/$OA/path "{\"skills\":[{\"skillId\":\"$SC\",\"stage\":3},{\"skillId\":\"$SB\",\"stage\":3}],\"replace\":true}")"
 expect "the skill left out is gone"   0 "$(sql "SELECT COUNT(*) FROM occupation_skills WHERE occupation_id='$OA' AND skill_id='$SA'")"
-expect "the one kept keeps what else is recorded" 'preferred 3' "$(sql "SELECT importance || ' ' || stage FROM occupation_skills WHERE occupation_id='$OA' AND skill_id='$SC'")"
+expect "the one kept keeps what else is recorded, at its level" 'preferred 2' "$(sql "SELECT importance || ' ' || stage FROM occupation_skills WHERE occupation_id='$OA' AND skill_id='$SC'")"
+expect "the one added is at its own level too" "Blueprint Reading:2 Plasma Etching:1" "$(stages $OA)"
+check "a path entry needs a skill"    400 "$(req a PUT /occupations/$OA/path '{"skills":[{"stage":1}]}')"
 check "the editor reads the path fresh" 200 "$(req a GET /admin/records/career/$OA)" "\"path\":\[{\"id\":\"$SB\""
+expect "each skill with its level and group" "1:$GRP 2:$GRP" "$(req a GET /admin/records/career/$OA | j "path.map((s) => s.level + ':' + s.group.slug).join(' ')")"
+# The career's page: every skill of the path carries its level, group and domain.
+OUT=$(req p GET /occupations/$OA)
+expect "a career's path carries level, group and domain" "$REC Plasma Etching|1|$GRP|$(groupName "$GRP")|$(domainOf "$GRP")" "$(printf '%s' "$OUT" | j "skills.map((s) => [s.name, s.level, s.group.slug, s.group.name, s.domain.name].join('|'))[0]")"
+expect "lowest level first"           "1 2" "$(printf '%s' "$OUT" | j "skills.map((s) => s.level).join(' ')")"
+expect "and no stage or category of its own" "domain,group,id,importance,level,name" "$(printf '%s' "$OUT" | j "skills.map((s) => Object.keys(s).sort().join())[0]")"
+# A skill's level is the skill's: changing it moves the skill in every path it is on.
+sql "INSERT INTO occupation_skills (occupation_id, skill_id) VALUES ('$OB', '$SC')" >/dev/null
+check "change a skill's level"        200 "$(req a PUT /skills/$SC '{"level":3}')" '"level":3'
+expect "it moved in every path it is on" "3 3" "$(sql "SELECT string_agg(stage::text, ' ') FROM occupation_skills WHERE skill_id='$SC'")"
+expect "and on the career's page"     "1 3" "$(req p GET /occupations/$OA | j "skills.map((s) => s.level).join(' ')")"
+expect "the change of level is on record" "Intermediate>Advanced" "$(req a GET "/admin/audit?kind=skill&record=$SC" | j "entries[0].detail.changes.level.join('>')")"
+expect "no stage anywhere differs from its skill's level" 0 "$(sql "SELECT COUNT(*) FROM occupation_skills os JOIN skills s ON s.id=os.skill_id WHERE os.stage IS DISTINCT FROM s.level")"
+sql "DELETE FROM occupation_skills WHERE occupation_id='$OB' AND skill_id='$SC'" >/dev/null
 check "approve the path"              200 "$(req a PUT /occupations/$OA/path '{"skills":[],"status":"approved"}')"
 check "approved paths are listed"     200 "$(req a GET '/admin/paths?status=approved')" "\"id\":\"$OA\""
 check "return it to draft"            200 "$(req a PUT /occupations/$OA/path '{"skills":[],"status":"draft"}')"
@@ -203,7 +238,11 @@ expect "the path's history, newest first" 'path returned to draft,path approved,
 expect "a path line names the skills" "$REC Plasma Etching" "$(req a GET "/admin/audit?kind=career&record=$OA" | j 'entries[2].detail.skillsAdded.join("|")')"
 
 # Skill A into B: a path, a job and people's marks follow; the stronger mark wins.
-sql "INSERT INTO occupation_skills (occupation_id, skill_id, stage) VALUES ('$OB', '$SA', 2), ('$OB', '$SB', 1)" >/dev/null
+# A third career lists only A: its row moves to B and takes B's level (A is at 3, B at 1).
+sql "INSERT INTO occupations (title) VALUES ('$REC Etcher')" >/dev/null
+OC=$(sql "SELECT id FROM occupations WHERE title='$REC Etcher'")
+sql "INSERT INTO occupation_skills (occupation_id, skill_id, stage) VALUES ('$OB', '$SA', 2), ('$OB', '$SB', 2), ('$OC', '$SA', 2)" >/dev/null
+expect "a row written straight to the table takes the skill's level too" "3 1 3" "$(sql "SELECT string_agg(os.stage::text, ' ' ORDER BY os.occupation_id = '$OC', s.name) FROM occupation_skills os JOIN skills s ON s.id=os.skill_id WHERE os.occupation_id IN ('$OB', '$OC')")"
 sql "INSERT INTO user_skills (user_id, skill_id, status) VALUES ('$PID', '$SA', 'held'), ('$PID', '$SB', 'learning'), ('$BID', '$SA', 'learning')" >/dev/null
 OUT=$(req a POST /admin/records/skill/$SA/merge "{\"into\":\"$SB\"}")
 check "merge one skill into another"  200 "$OUT" "\"merged\":{\"id\":\"$SA\""
@@ -212,7 +251,9 @@ expect "a path that listed both lists one" 1 "$(sql "SELECT COUNT(*) FROM occupa
 expect "the stronger mark wins"       held "$(sql "SELECT status FROM user_skills WHERE user_id='$PID' AND skill_id='$SB'")"
 expect "a mark on the merged skill moves" learning "$(sql "SELECT status FROM user_skills WHERE user_id='$BID' AND skill_id='$SB'")"
 expect "both old names are aliases"   2 "$(sql "SELECT COUNT(*) FROM skill_aliases WHERE canonical_skill_id='$SB' AND alias_text IN ('$REC Plasma Etch', '$REC Etch')")"
-expect "the kept skill keeps its own category" Machining "$(sql "SELECT category FROM skills WHERE id='$SB'")"
+expect "the kept skill keeps its own group and level" "$GRP|1" "$(sql "SELECT group_slug || '|' || level FROM skills WHERE id='$SB'")"
+expect "a path that listed only the merged skill lists the kept one, at its level" "Plasma Etching:1" "$(stages $OC)"
+sql "DELETE FROM occupations WHERE id='$OC'" >/dev/null
 
 # Career A into B: its path, goals and aliases follow.
 sql "INSERT INTO user_goals (user_id, occupation_id) VALUES ('$PID', '$OA')" >/dev/null

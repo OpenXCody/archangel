@@ -4,7 +4,7 @@ import { type CompanyDetail } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { industryByName, industryLabel, industryPath } from '@shared/industry';
 import CompanyLogo from '../CompanyLogo';
-import { CompanyFamily, CompanyStanding, PlantFacts, SourceList, peopleCount } from './RecordFacts';
+import { CompanyFamily, CompanyStanding, PlantFacts, peopleCount } from './RecordFacts';
 import { useMapStore } from '../../stores/mapStore';
 import { cityState, stateName } from '../../lib/places';
 import {
@@ -246,7 +246,6 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
       {/* With none recorded, the one plant's industry says what kind of work there is. */}
       {typical.length > 0 && <TypicalCareers careers={typical} />}
 
-      <SourceList sources={data.sources} />
     </>
   );
 }

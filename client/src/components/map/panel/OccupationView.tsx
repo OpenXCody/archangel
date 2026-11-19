@@ -4,14 +4,16 @@ import { useMapStore } from '../../../stores/mapStore';
 import { stateName } from '../../../lib/places';
 import { formatFactoryName } from '@shared/displayName';
 import { shownIndustry } from '@shared/industry';
-import { STAGE_LABEL } from '../../../lib/stages';
+import { LEVEL_NAME } from '../../../lib/stages';
 import { Heading, Section, RowList, NodeRow, More, JobRows, PageLink } from './parts';
 
 export default function OccupationView({ occupation }: { occupation: OccupationDetail }) {
   const { selectState, selectEntity, selectFactory, flyTo, setHoveredFactory } = useMapStore();
   const skills = occupation.skills ?? [];
-  const stages = [1, 2, 3].map((stage) => skills.filter((skill) => skill.stage === stage).length);
-  const staged = stages.some((n) => n > 0);
+  // How many of the career's skills are at each level.
+  const levels = [1, 2, 3].map((level) => skills.filter((skill) => skill.level === level).length);
+  // Said for a career that has a path, as its page lays one out.
+  const hasLevels = Boolean(occupation.pathStatus) && levels.some((n) => n > 0);
   const industries = occupation.industries ?? [];
   const states = occupation.topStates ?? [];
   const plants = occupation.factories ?? [];
@@ -101,14 +103,14 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
       )}
       {skills.length > 0 && (
         <Section title="Skills">
-          {staged && (
+          {hasLevels && (
             <p className="mb-2 text-xs tabular-nums text-fg-muted">
-              {`${STAGE_LABEL[1]} `}
-              {stages[0]}
-              {` · ${STAGE_LABEL[2]} `}
-              {stages[1]}
-              {` · ${STAGE_LABEL[3]} `}
-              {stages[2]}
+              {`${LEVEL_NAME[1]} `}
+              {levels[0]}
+              {` · ${LEVEL_NAME[2]} `}
+              {levels[1]}
+              {` · ${LEVEL_NAME[3]} `}
+              {levels[2]}
             </p>
           )}
           <RowList>
@@ -117,7 +119,7 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
                 key={skill.id}
                 icon={Wrench}
                 title={skill.name}
-                subtitle={skill.category || undefined}
+                subtitle={skill.group?.name}
                 onPress={() => selectEntity('skill', skill.id)}
               />
             ))}
