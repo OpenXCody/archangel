@@ -1188,6 +1188,27 @@ BEGIN
   RETURN NULL;
 END $f$;
 
+-- Whether a plant's name begins with a company's name: the company's words
+-- (pd_canon: no legal endings, abbreviations written out, plurals as
+-- singulars) are the plant's first words, however they are spaced ("A J
+-- Knott Tool" begins "AJ KNOTT TOOL & MFG CORP"). A name under three
+-- characters names nothing.
+CREATE OR REPLACE FUNCTION pg_temp.pd_named_for(plant text, company text) RETURNS boolean LANGUAGE plpgsql IMMUTABLE AS $f$
+DECLARE
+  cs text := array_to_string(pg_temp.pd_canon(company), '');
+  pw text[] := pg_temp.pd_canon(plant);
+  v_head text := '';
+  w text;
+BEGIN
+  IF length(cs) < 3 THEN RETURN false; END IF;
+  FOREACH w IN ARRAY pw LOOP
+    v_head := v_head || w;
+    IF v_head = cs THEN RETURN true; END IF;
+    EXIT WHEN length(v_head) >= length(cs);
+  END LOOP;
+  RETURN false;
+END $f$;
+
 -- The company a merged plant is filed under, of the two its rows had: the one
 -- a curated row was written under; else the part before its parent; else the
 -- one with a profile; else the one with more plants; else the kept row's own.
@@ -1236,9 +1257,13 @@ $f$;
 --                  the street addresses agree exactly and the names do not disagree
 -- Never: rows filed under two states (one is misfiled, and which is not known
 -- here), or two rows both written from sources.
--- One company (`company`): the same row, or pd_same_company. Rows under two
--- companies that nothing ties together are left for a person even when the
--- plant is plainly one: which company it belongs to is not guessed.
+-- One company (`company`): the same row, or pd_same_company; or `named for`:
+-- two companies nothing ties together, where the plant is certain by an
+-- address or a name and both rows' names begin with the name of one of the
+-- two and not the other's. Then the plant is that company's (`to`), and the
+-- other company row is left as it is. Any other rows under two companies
+-- that nothing ties together are left for a person even when the plant is
+-- plainly one: which company it belongs to is not guessed.
 CREATE OR REPLACE FUNCTION pg_temp.pd_verdict(p_a uuid, p_b uuid) RETURNS jsonb LANGUAGE plpgsql STABLE AS $f$
 DECLARE
   a factories%ROWTYPE;
@@ -1254,6 +1279,7 @@ DECLARE
   v_rule text;
   v_rel text;
   v_reason text;
+  v_to uuid;
 BEGIN
   IF EXISTS (SELECT 1 FROM plants_apart WHERE a_id = least(p_a, p_b) AND b_id = greatest(p_a, p_b)) THEN
     RETURN jsonb_build_object('decision', 'apart');
@@ -1286,6 +1312,24 @@ BEGIN
     WHEN (d IS NULL OR d > 5000) AND v_street = 2 AND v_class <= 2 THEN 'placed apart'
   END;
   v_rel := CASE WHEN a.company_id IS NOT DISTINCT FROM b.company_id THEN 'one company' ELSE pg_temp.pd_same_company(a.company_id, b.company_id) END;
+
+  -- Named for: nothing on record ties the two companies, but both rows' names begin with the name of one of them
+  -- and not the other's ("AMSTED RAIL CO INC" under Amsted Rail and under Amsted Industries). The plant is that
+  -- company's (the loader's own rule for a stranger's row that names a company). Only when the plant is certain by
+  -- an address or a name, never when both companies have a profile, and never when a row written from sources
+  -- stands under the other company. A recorded parent is decided above, by the parent rule.
+  IF v_rel IS NULL AND v_rule IN ('same address', 'same name', 'placed apart') AND a.company_id IS NOT NULL AND b.company_id IS NOT NULL
+     AND NOT (pg_temp.pd_profile(a.company_id) AND pg_temp.pd_profile(b.company_id)) THEN
+    v_to := CASE
+      WHEN pg_temp.pd_named_for(a.name, v_ca) AND pg_temp.pd_named_for(b.name, v_ca)
+           AND NOT pg_temp.pd_named_for(a.name, v_cb) AND NOT pg_temp.pd_named_for(b.name, v_cb) THEN a.company_id
+      WHEN pg_temp.pd_named_for(a.name, v_cb) AND pg_temp.pd_named_for(b.name, v_cb)
+           AND NOT pg_temp.pd_named_for(a.name, v_ca) AND NOT pg_temp.pd_named_for(b.name, v_ca) THEN b.company_id
+    END;
+    IF v_to IS NOT NULL AND NOT (a.curated AND a.company_id <> v_to) AND NOT (b.curated AND b.company_id <> v_to) THEN
+      RETURN jsonb_build_object('decision', 'merge', 'rule', v_rule, 'company', 'named for', 'to', v_to, 'metres', d);
+    END IF;
+  END IF;
 
   IF v_rule IS NOT NULL AND v_rel IS NOT NULL THEN
     RETURN jsonb_build_object('decision', 'merge', 'rule', v_rule, 'company', v_rel, 'metres', d);
@@ -1341,7 +1385,8 @@ $f$;
 
 -- Merges one pair the verdict was sure of. The row kept is plant_keeps'
 -- choice. Rows under two company rows that are one company end up under one
--- (pd_company_for); a company row that is the same name and is left with
+-- (pd_company_for), rows named for one of two companies under that one (the
+-- verdict's `to`); a company row that is the same name and is left with
 -- nothing is merged into it (the loader's company merge: its name becomes
 -- another name), any other left without plants is said so. Returns the id kept.
 CREATE OR REPLACE FUNCTION pg_temp.pd_merge(p_a uuid, p_b uuid, v jsonb, p_load text, p_evidence jsonb) RETURNS uuid LANGUAGE plpgsql AS $f$
@@ -1370,11 +1415,14 @@ BEGIN
   v_look := v->>'rule' = 'placed apart';
 
   IF v_kc IS DISTINCT FROM v_gc THEN
-    v_to := pg_temp.pd_company_for(v_keep, v_gone, v->>'company');
+    v_to := coalesce((v->>'to')::uuid, pg_temp.pd_company_for(v_keep, v_gone, v->>'company'));
     v_other := CASE WHEN v_to = v_kc THEN v_gc ELSE v_kc END;
     SELECT name INTO v_other_name FROM companies WHERE id = v_other;
-    v_why := v_why || format('; "%s" and "%s" are one company (%s)', (SELECT name FROM companies WHERE id = v_to), v_other_name,
-      CASE v->>'company' WHEN 'parent' THEN 'one is recorded as part of the other' WHEN 'family' THEN 'one name begins with the other' ELSE v->>'company' END);
+    v_why := v_why || CASE WHEN v->>'company' = 'named for'
+      THEN format('; both rows are named for "%s", so the plant is filed under it; nothing on record ties it to "%s", which is left as it is',
+                  (SELECT name FROM companies WHERE id = v_to), v_other_name)
+      ELSE format('; "%s" and "%s" are one company (%s)', (SELECT name FROM companies WHERE id = v_to), v_other_name,
+                  CASE v->>'company' WHEN 'parent' THEN 'one is recorded as part of the other' WHEN 'family' THEN 'one name begins with the other' ELSE v->>'company' END) END;
     -- Worth reading when the tie between the companies is more than a legal ending.
     v_look := v_look OR v->>'company' NOT IN ('same name', 'other name');
     IF v_to <> v_kc THEN
@@ -1398,7 +1446,7 @@ BEGIN
       INSERT INTO load_log (load, kind, action, look, company, detail, entity_id, evidence)
         VALUES (p_load, 'company', 'left without plants', true, v_other_name,
                 format('its last plant was merged into one of "%s". The row is left: %s', (SELECT name FROM companies WHERE id = v_to),
-                       CASE WHEN v->>'company' IN ('parent', 'family') THEN 'it is a different name. Merge or delete it in Admin Tools'
+                       CASE WHEN v->>'company' IN ('parent', 'family', 'named for') THEN 'it is a different name. Merge or delete it in Admin Tools'
                             ELSE 'it has a profile, people or requests of its own. Merge it in Admin Tools' END),
                 v_other, jsonb_build_object('into', v_to, 'company', v->>'company'));
     END IF;

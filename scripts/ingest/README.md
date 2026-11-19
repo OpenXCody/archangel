@@ -255,10 +255,23 @@ one with more plants. A company row of the same name left with nothing (no
 plants, people, jobs, requests, domain, featured flag, description,
 headquarters, headcounts, citations, parts) is merged in by the loader's
 company merge, its name kept as another name; any other row left without
-plants is said so and left. Rows under two companies that nothing on record
-ties together (a predecessor and a successor, a joint venture and a parent, a
-landlord and a tenant) are never merged, however plainly the plant is one:
-which company it belongs to is for a person.
+plants is said so and left.
+
+*Named for.* Two companies that nothing on record ties together are still
+settled in one case: the plant is certain by an address or a name (never by
+nearness or a shared spot alone), and both rows' names begin with the name of
+one of the two companies and not the other's ("AMSTED RAIL CO INC" under
+Amsted Rail and under Amsted Industries). The plant is filed under the
+company it is named for, which is the loader's own rule for a stranger's row
+that names a company. Never when both companies have a profile, and never
+when a row written from sources stands under the other company. Every such
+merge is marked for a look (`evidence.company = 'named for'`), and the other
+company row is left exactly as it is, said so when it is left without plants.
+
+Any other rows under two companies that nothing ties together (a predecessor
+and a successor, a joint venture and a parent, a landlord and a tenant) are
+never merged, however plainly the plant is one: which company it belongs to
+is for a person.
 
 Then plants of one company on one spot (coordinates equal to three decimal
 places) with no id in common: merged only when the names are the same plant by
