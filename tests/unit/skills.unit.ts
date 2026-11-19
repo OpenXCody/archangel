@@ -96,7 +96,8 @@ test('the migration knows every stored name before it changes anything, adds wha
   assert.ok(catalogue.skills.every((skill) => !('careers' in skill)), 'no skill carries "careers"');
   // A merge takes the merged skill's makes and the marks people put on them (migration 0050).
   at("IF to_regclass('public.skill_makes') IS NOT NULL THEN");
-  assert.match(readFileSync('scripts/migrate.mjs', 'utf8'), /'0042_skill_taxonomy\.sql', '0048_skills_catalogue_2\.sql', '0049_skill_taxonomy_2\.sql'/);
+  // Next to each other, the catalogue first: the taxonomy places exactly the skills this one leaves.
+  assert.match(readFileSync('scripts/migrate.mjs', 'utf8'), /'0048_skills_catalogue_2\.sql', '0049_skill_taxonomy_2\.sql'/);
 });
 
 test('the pass kept every name it folded or renamed, as an earlier name of the skill it became', () => {
