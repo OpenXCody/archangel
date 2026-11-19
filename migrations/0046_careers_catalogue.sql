@@ -16,7 +16,7 @@ CREATE INDEX IF NOT EXISTS occupations_home_domain_idx ON occupations (home_doma
 
 -- A ladder, one step at a time: the first career leads to the second. `position`
 -- orders the careers one career leads to. Nothing in the database stops a chain
--- of links from closing on itself; every write checks (server/lib/careerLinks.ts).
+-- of links from closing on itself; every write checks (server/lib/careers.ts).
 CREATE TABLE IF NOT EXISTS occupation_links (
   from_occupation_id uuid NOT NULL REFERENCES occupations (id) ON DELETE CASCADE,
   to_occupation_id uuid NOT NULL REFERENCES occupations (id) ON DELETE CASCADE,

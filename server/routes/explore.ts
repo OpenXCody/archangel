@@ -9,6 +9,7 @@ import { INDUSTRY_NAME_LIST, companyIndustries, listIndustries } from '../lib/in
 import { industryByName, industryLabel } from '../../shared/industry.js';
 import { int, rowsOf, text } from '../lib/rows.js';
 import { SKILL_LEVELS } from '../../shared/skillLevels.js';
+import { careerDomains } from '../lib/careers.js';
 
 const router = Router();
 
@@ -37,7 +38,7 @@ interface CareerCandidate {
   id: string;
   title: string;
   description: string | null;
-  /** The domain most of its path's skills are in, by slug. */
+  /** Its home domain, by slug; for a career with none, the domain most of its path's skills are in. */
   domain: string;
   levelCount: number;
   /** The path has enough skills to be worth showing first. */
@@ -46,7 +47,7 @@ interface CareerCandidate {
 
 /**
  * Careers for the overview: one from each kind of work in turn (a career's
- * kind is the domain most of its path's skills fall in), so the set spans
+ * kind is its home domain), so the set spans
  * the trades instead of repeating the largest one. Which career stands for a
  * kind, and which kind leads, changes with the day and with nothing else.
  */
@@ -115,7 +116,7 @@ async function loadCareers(day: string) {
   const candidates = rowsOf(
     await db.execute(sql`
       SELECT o.id, o.title, o.description,
-             mode() WITHIN GROUP (ORDER BY COALESCE(sg.domain_slug, ${UNPLACED})) AS domain,
+             COALESCE(o.home_domain, mode() WITHIN GROUP (ORDER BY COALESCE(sg.domain_slug, ${UNPLACED}))) AS domain,
              COUNT(DISTINCT s.level)::int AS level_count,
              COUNT(*)::int AS skill_total
       FROM occupations o
@@ -303,11 +304,13 @@ router.get('/overview', async (_req: Request, res: Response) => {
 //   are in), each by the name a plant carries, in the order of their short names;
 // - `skillDomains`: the domains with a skill some career uses, each
 //   `{ slug, name, groups: [{ slug, name }] }`, in the taxonomy's order;
+// - `careerDomains`: the domains that are some career's home, each
+//   `{ slug, name }`, in the same order;
 // `factoryIndustries` is the same list as `industries.plants`, kept under its
 // old name for the map's filter and for pages loaded before this.
 router.get('/facets', async (_req: Request, res: Response) => {
   try {
-    const [factoryRows, skillDomains, companyIndustryRows] = await Promise.all([
+    const [factoryRows, skillDomains, companyIndustryRows, homes] = await Promise.all([
       db.execute(sql`
         SELECT f.primary_naics_description AS value
         FROM factories f
@@ -316,6 +319,7 @@ router.get('/facets', async (_req: Request, res: Response) => {
       `),
       loadSkillFacets(),
       db.execute(sql`SELECT DISTINCT ci.industry AS value FROM (${companyIndustries()}) ci`),
+      careerDomains(),
     ]);
     const values = (result: unknown) =>
       rowsOf(result)
@@ -332,6 +336,7 @@ router.get('/facets', async (_req: Request, res: Response) => {
       industries: { plants: plantIndustries, companies: industries(companyIndustryRows) },
       factoryIndustries: plantIndustries,
       skillDomains,
+      careerDomains: homes,
     });
   } catch (error) {
     console.error('Error fetching explore facets:', error);

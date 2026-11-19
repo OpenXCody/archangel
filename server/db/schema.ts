@@ -148,7 +148,7 @@ export const occupations = pgTable(
 // A ladder, one step at a time: the first career leads to the second
 // ("CNC Machine Operator" to "CNC Machinist"). `position` orders the careers
 // one career leads to. No chain of links comes back to where it started:
-// the catalogue's builder and every write check (server/lib/careerLinks.ts).
+// the catalogue's builder and every write check (server/lib/careers.ts).
 export const occupationLinks = pgTable(
   'occupation_links',
   {
