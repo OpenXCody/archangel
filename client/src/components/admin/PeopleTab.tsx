@@ -40,7 +40,7 @@ import { formatDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 import CompanyPicker from './CompanyPicker';
-import ConfirmDialog from './ConfirmDialog';
+import ConfirmDialog from '../layout/ConfirmDialog';
 import CopyLinkField from './CopyLinkField';
 
 const ROLES: { value: PeopleRole; label: string }[] = [

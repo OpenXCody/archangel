@@ -26,11 +26,11 @@ import {
   textButtonClass,
 } from '../components/account/parts';
 import { DAY_MS, formatDay, formatDayCapital } from '../lib/dates';
-import ApplicantList from '../components/account/ApplicantList';
-import JobDescription from '../components/account/JobDescription';
+import ApplicantList from '../components/jobs/ApplicantList';
+import JobDescription from '../components/jobs/JobDescription';
 import { SkillHeldToggle } from '../components/account/SkillStatusButton';
-import { busyButtonClass } from '../components/account/JobForm';
-import ConfirmDialog from '../components/admin/ConfirmDialog';
+import { busyButtonClass } from '../components/jobs/JobForm';
+import ConfirmDialog from '../components/layout/ConfirmDialog';
 import {
   DetailFacts,
   DetailHeader,

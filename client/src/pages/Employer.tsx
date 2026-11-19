@@ -22,8 +22,8 @@ import { latestDraftCompany } from '../lib/jobDraft';
 import { useViewer } from '../lib/viewer';
 import { isExpired } from '../lib/jobFormat';
 import CompanyRequestForm from '../components/account/CompanyRequestForm';
-import JobForm, { selectContentClass, selectTriggerClass, type JobFormCompany } from '../components/account/JobForm';
-import ConfirmDialog from '../components/admin/ConfirmDialog';
+import JobForm, { selectContentClass, selectTriggerClass, type JobFormCompany } from '../components/jobs/JobForm';
+import ConfirmDialog from '../components/layout/ConfirmDialog';
 import {
   AccountGate,
   CardNote,

@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { readStored, writeStored } from '../lib/storage';
+import { readStored, writeStored } from '../../lib/storage';
 
 interface Props {
   children: ReactNode;

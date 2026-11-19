@@ -6,7 +6,7 @@ import { onGroupArrowKeys } from '../../lib/roving';
 import { RECORD_KINDS, editPath, type RecordKind } from '../../lib/records';
 import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
-import Records from './AddRecord';
+import Records from './Records';
 import RecordEditor from './RecordEditor';
 import { isUuid } from '../../lib/validation';
 

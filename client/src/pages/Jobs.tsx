@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import CompanyLogo from '../components/CompanyLogo';
-import JobPlaceFilter, { DEFAULT_WITHIN, WITHIN_CHOICES, jobPlaceLabel, type JobPlace } from '../components/account/JobPlaceFilter';
+import JobPlaceFilter, { DEFAULT_WITHIN, WITHIN_CHOICES, jobPlaceLabel, type JobPlace } from '../components/jobs/JobPlaceFilter';
 import { occupationsApi } from '../lib/api';
 import { useAccount } from '../lib/account';
 import { useJobs, type JobSummary } from '../lib/jobs';

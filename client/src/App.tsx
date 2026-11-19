@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import Layout from './components/layout/Layout';
-import ErrorBoundary, { PageBoundary } from './components/ErrorBoundary';
+import ErrorBoundary, { PageBoundary } from './components/layout/ErrorBoundary';
 
 // Lazy load pages for code splitting
 const MapView = lazy(() => import('./pages/MapView'));

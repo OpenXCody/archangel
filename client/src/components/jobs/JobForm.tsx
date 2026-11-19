@@ -12,7 +12,7 @@ import type { EmployerFactory } from '../../lib/employer';
 import { DESCRIPTION_MAX, DESCRIPTION_WARN, checkPay, normalizeLink, payInputText, useEditJob } from '../../lib/employerJobs';
 import { clearDraft, draftKey, draftWhen, readDraft, writeDraft, type JobDraft, type JobDraftFields } from '../../lib/jobDraft';
 import { employmentLabel } from '../../lib/jobFormat';
-import CareerPicker, { type CareerOption } from './CareerPicker';
+import CareerPicker, { type CareerOption } from '../account/CareerPicker';
 import JobSkillTags, { type JobSkillTag } from './JobSkillTags';
 import PlantPicker, { plantName, plantWhere } from './PlantPicker';
 import {
@@ -27,7 +27,7 @@ import {
   selectTriggerClass,
   textButtonClass,
   FieldError,
-} from './parts';
+} from '../account/parts';
 import { publicKeys } from '../../lib/queryKeys';
 
 // These three live with the other shared form pieces; exported from here too for the files that import them from the job form.

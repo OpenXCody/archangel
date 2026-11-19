@@ -9,7 +9,7 @@ import { CardNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineB
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 import { RecordPicker } from './CompanyPicker';
-import ConfirmDialog from './ConfirmDialog';
+import ConfirmDialog from '../layout/ConfirmDialog';
 import HistoryList, { attachedWords } from './HistoryList';
 import PathEditor from './PathEditor';
 import RecordForm from './RecordForm';

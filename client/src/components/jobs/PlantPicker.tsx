@@ -5,7 +5,7 @@ import { stateName } from '../../lib/places';
 import { cn } from '@/lib/utils';
 import type { EmployerFactory } from '../../lib/employer';
 import { formatPlace } from '../../lib/jobFormat';
-import { KIND_ICON, fieldClass } from './parts';
+import { KIND_ICON, fieldClass } from '../account/parts';
 
 /** A plant's name as it reads everywhere else: not the raw upper-case record. */
 export function plantName(factory: Pick<EmployerFactory, 'name'>): string {
