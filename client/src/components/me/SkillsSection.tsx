@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Check, Loader2, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { skillsApi } from '../../lib/api';
+import { skillsApi, type Taxonomy } from '../../lib/api';
 import {
   useMarkSkill,
   useSuggestedSkills,
@@ -25,40 +25,44 @@ import {
   textButtonClass,
 } from '../account/parts';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
-import { SkillHeldToggle, SkillStatusControl } from '../account/SkillStatusButton';
+import { SkillHeldToggle } from '../account/SkillStatusButton';
 import { PageSection } from '../layout/Page';
+import { SkillGroupBox, SkillGroups } from '../path/SkillGroupBox';
+import { shareOf, type SkillMarks } from '../path/model';
+import { useTaxonomy } from '../../lib/queries';
 import { publicKeys } from '../../lib/queryKeys';
-import { linkClass, RemovedRow } from './parts';
+import { linkClass } from './parts';
 
 export default function SkillsSection() {
   const skills = useMySkills();
   const markSkill = useMarkSkill();
-  // Skills removed while this page is open keep their place until it is left, with a way back.
+  // Where each skill sits: the person's list says only which skills, the taxonomy says in which group and domain.
+  const taxonomy = useTaxonomy();
+  // Skills taken off while this page is open keep their place until it is left: the tag goes quiet, and its mark puts it back.
   const [removed, setRemoved] = useState<MySkill[]>([]);
 
   const mine = skills.data ?? [];
   const heldCount = mine.filter((skill) => skill.status === 'held').length;
   const mark = (skillId: string, name: string, next: SkillMark) => {
-    // Marked again, by any route, it is no longer "removed".
-    if (next !== 'none') setRemoved((current) => current.filter((each) => each.skillId !== skillId));
-    markSkill.mutate({ skillId, name, mark: next });
-  };
-  const remove = (skill: MySkill) => {
-    setRemoved((current) => [...current.filter((each) => each.skillId !== skill.skillId), skill]);
+    const before = mine.find((skill) => skill.skillId === skillId);
+    if (next === 'none' && before) setRemoved((current) => [...current.filter((each) => each.skillId !== skillId), before]);
     markSkill.mutate(
-      { skillId: skill.skillId, name: skill.name, mark: 'none' },
-      // Refused: it is still on the list, so there is nothing to undo.
-      { onError: () => setRemoved((current) => current.filter((each) => each.skillId !== skill.skillId)) }
+      { skillId, name, mark: next },
+      // Refused: it is still on the list, so it has no place to keep.
+      next === 'none' ? { onError: () => setRemoved((current) => current.filter((each) => each.skillId !== skillId)) } : undefined
     );
   };
 
   const hasSuggestions = (useSuggestedSkills().data?.length ?? 0) > 0;
   const learningCount = mine.length - heldCount;
   const counts = [heldCount > 0 ? `${heldCount} held` : null, learningCount > 0 ? `${learningCount} learning` : null].filter(Boolean).join(', ');
-  const onList = new Set(mine.map((skill) => skill.skillId));
-  const gone = removed.filter((skill) => !onList.has(skill.skillId));
-  const goneIds = new Set(gone.map((skill) => skill.skillId));
-  const listed = [...mine, ...gone].sort((a, b) => a.name.localeCompare(b.name));
+  const onList = new Map(mine.map((skill) => [skill.skillId, skill.status]));
+  const listed = [...mine, ...removed.filter((skill) => !onList.has(skill.skillId))].sort((a, b) => a.name.localeCompare(b.name));
+  const marks: SkillMarks = {
+    statusOf: (skillId) => onList.get(skillId) ?? 'none',
+    mark: (skill, next) => mark(skill.id, skill.name, next),
+    pending: false,
+  };
 
   return (
     <PageSection
@@ -68,8 +72,8 @@ export default function SkillsSection() {
       <SkillSearch mySkills={mine} onAdd={mark} disabled={skills.isPending} />
 
       {/* The person's own list comes first and needs no name under "Skills"; what is suggested is named, below it. */}
-      <div className="mt-3">
-        {skills.isPending ? (
+      <div className="mt-4">
+        {skills.isPending || (listed.length > 0 && taxonomy.isPending) ? (
           <RowsSkeleton rows={3} />
         ) : skills.isError ? (
           <LoadError error={skills.error} onRetry={() => void skills.refetch()} retrying={skills.isFetching} />
@@ -81,20 +85,7 @@ export default function SkillsSection() {
             </Link>
           </CardNote>
         ) : (
-          <ul className={cardClass} data-my-skills>
-            {listed.map((skill) =>
-              goneIds.has(skill.skillId) ? (
-                <RemovedRow key={skill.skillId} name={skill.name} onUndo={() => mark(skill.skillId, skill.name, skill.status)} />
-              ) : (
-                <SkillRow
-                  key={skill.skillId}
-                  skill={skill}
-                  onChange={(status) => mark(skill.skillId, skill.name, status)}
-                  onRemove={() => remove(skill)}
-                />
-              )
-            )}
-          </ul>
+          <MySkillGroups skills={listed} taxonomy={taxonomy.data} marks={marks} />
         )}
       </div>
       <ErrorNote error={markSkill.error} className="mt-2" />
@@ -103,37 +94,47 @@ export default function SkillsSection() {
   );
 }
 
-function SkillRow({ skill, onChange, onRemove }: { skill: MySkill; onChange: (status: SkillStatus) => void; onRemove: () => void }) {
+/**
+ * The person's skills where they sit: under each domain, its skill groups as
+ * frames of tags, the same tags a career's path is made of. A group's figure
+ * is against the whole group ("2 of 8"), so the page says how far into each
+ * group the person is. A skill is taken off with its mark; learning or held
+ * is chosen on the skill's own page, or when it is added from the search.
+ */
+function MySkillGroups({ skills, taxonomy, marks }: { skills: MySkill[]; taxonomy: Taxonomy | undefined; marks: SkillMarks }) {
+  const mine = new Set(skills.map((skill) => skill.skillId));
+  const domains = (taxonomy?.domains ?? [])
+    .map((domain) => ({
+      slug: domain.slug,
+      name: domain.name,
+      groups: domain.groups
+        .map((group) => ({ whole: group.skills, group: { slug: group.slug, name: group.name, domain, skills: group.skills.filter((skill) => mine.has(skill.id)) } }))
+        .filter((each) => each.group.skills.length > 0),
+    }))
+    .filter((domain) => domain.groups.length > 0);
+  // A skill the taxonomy does not place (or the taxonomy itself not read) is still the person's: it is listed, under no domain.
+  const placed = new Set(domains.flatMap((domain) => domain.groups.flatMap((each) => each.group.skills.map((skill) => skill.id))));
+  const rest = skills.filter((skill) => !placed.has(skill.skillId)).map((skill) => ({ id: skill.skillId, name: skill.name }));
+  const wholeOf = new Map(domains.flatMap((domain) => domain.groups.map((each) => [each.group.slug, each.whole] as const)));
+
   return (
-    <li className={cn(rowClass, 'flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3')}>
-      <Link
-        to={`/skills/${skill.skillId}`}
-        className="min-w-0 flex-1 basis-28 break-words text-sm font-medium text-fg-default underline-offset-4 hover:underline"
-      >
-        {skill.name}
-      </Link>
-      <div className="flex shrink-0 items-center gap-1">
-        <SkillStatusControl
-          label={`Status of ${skill.name}`}
-          hideNone
-          value={skill.status}
-          onChange={(next) => {
-            if (next !== 'none') onChange(next);
-          }}
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={`Remove ${skill.name}`}
-          title="Remove"
-          onClick={onRemove}
-          className="h-11 w-11 shrink-0 text-fg-muted hover:bg-bg-elevated hover:text-fg-default"
-        >
-          <X />
-        </Button>
-      </div>
-    </li>
+    // Domains fill two columns where there is room, each kept whole.
+    <div className="gap-x-4 lg:columns-2" data-my-skills>
+      {domains.map((domain) => (
+        <section key={domain.slug} aria-label={domain.name} data-my-domain={domain.slug} className="mb-4 break-inside-avoid">
+          <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">{domain.name}</h3>
+          <SkillGroups
+            groups={domain.groups.map((each) => each.group)}
+            marks={marks}
+            shareOfGroup={(group) => shareOf(wholeOf.get(group.slug) ?? group.skills, marks)}
+            className="sm:grid-cols-1 lg:grid-cols-1"
+          />
+        </section>
+      ))}
+      {rest.length > 0 && (
+        <SkillGroupBox name={domains.length > 0 ? 'Other skills' : 'Your skills'} skills={rest} marks={marks} className="mb-4 break-inside-avoid" />
+      )}
+    </div>
   );
 }
 

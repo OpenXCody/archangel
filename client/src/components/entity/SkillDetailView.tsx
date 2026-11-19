@@ -10,7 +10,12 @@ import {
   RecordRow,
   ShowAll,
 } from '../layout/Page';
-import { levelName } from '../../lib/stages';
+import { LEVELS, levelName } from '../../lib/stages';
+import { SkillHeldToggle } from '../account/SkillStatusButton';
+import { ErrorNote } from '../account/parts';
+import { SkillGroupBox } from '../path/SkillGroupBox';
+import type { SkillMarks } from '../path/model';
+import { useSkillMarks } from '../path/useSkillMarks';
 import { CAREERS_SHOWN, type Head, factLinkClass, IndustryRows, OpenJobsSection } from './parts';
 
 /** The careers that use a skill: the first few, and the rest on request. A skill sits at its own level in each. */
@@ -30,16 +35,41 @@ function SkillCareers({ careers }: { careers: SkillDetail['occupations'] }) {
 }
 
 /**
- * A skill's page: what it is (the heading, with its domain, group and level),
- * how it is learned and what it is done with, the industries it is used in,
- * open jobs that ask for it, the careers that use it, and the skills that go
- * with it. A part with nothing to say is not drawn.
+ * A skill's group, with this skill among the others: the group's frame, its
+ * skills as tags under their levels, the person's marks on each and how much
+ * of the group they hold. This skill's tag is the one that is not a link.
+ */
+function SkillGroup({ data, marks }: { data: SkillDetail; marks: SkillMarks | null }) {
+  // The response lists the others; this skill takes its place at its own level.
+  const all = [...(data.groupSkills ?? []), { id: data.id, name: data.name, level: data.level }];
+  const parts = LEVELS.map((level) => ({ label: level.name, skills: all.filter((skill) => skill.level === level.id) })).filter(
+    (part) => part.skills.length > 0
+  );
+  return (
+    <SkillGroupBox
+      name={data.group.name}
+      skills={parts.flatMap((part) => part.skills)}
+      // One level says nothing the heading has not said.
+      parts={parts.length > 1 ? parts : undefined}
+      marks={marks}
+      currentId={data.id}
+    />
+  );
+}
+
+/**
+ * A skill's page: what it is (the heading, with its domain, group and level,
+ * then its group: the skills it stands among), how it is learned and what it
+ * is done with, the industries it is used in, open jobs that ask for it, the
+ * careers that use it, and the skills that go with it. A part with nothing
+ * to say is not drawn.
  */
 export default function SkillDetailView({ data, head }: { data: SkillDetail; head: Head }) {
   const careers = data.occupations ?? [];
   const tools = data.tools ?? [];
   const industries = data.industries ?? [];
   const jobs = data.jobs ?? [];
+  const { marks, error: markError } = useSkillMarks();
   return (
     <>
       <DetailHeader {...head} kind="Skill" title={data.name} description={data.description} action={<SkillStatusButton skillId={data.id} />}>
@@ -62,6 +92,14 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
           </DetailFacts>
         )}
       </DetailHeader>
+
+      {/* What it is, first of all: one of a group. Alone in its group there is nothing to show. */}
+      {data.group && (data.groupSkills?.length ?? 0) > 0 && (
+        <DetailSection id="group" title="Group">
+          {marks && <ErrorNote error={markError} className="mb-3" />}
+          <SkillGroup data={data} marks={marks} />
+        </DetailSection>
+      )}
 
       {(data.howLearned || tools.length > 0) && (
         <div className="grid grid-cols-1 gap-x-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
@@ -112,6 +150,11 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
                 title={skill.name}
                 // Its group is said only when it is another one: a row of the same words says nothing.
                 subtitle={skill.group && skill.group.slug !== data.group?.slug ? skill.group.name : null}
+                control={
+                  marks ? (
+                    <SkillHeldToggle label={skill.name} value={marks.statusOf(skill.id)} disabled={marks.pending} onChange={(next) => marks.mark(skill, next)} />
+                  ) : undefined
+                }
               />
             ))}
           </RecordList>
