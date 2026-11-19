@@ -29,12 +29,19 @@
 //     list (one an admin added) stays, after the file's.
 // It never deletes a make: one the file drops is removed in Admin Tools, which
 // says how many people marked it. Every step is a no-op once it has been done.
+// What a run did is in load_log (load 'skill-makes'): each make added, and, with
+// look = true, each make whose spelling the file put back and each skill whose
+// makes it put back in the file's order (a change made in Admin Tools that the
+// file does not have).
+//
+// 0050 was the first and is as it was applied; 0058 adds the makes employers'
+// postings name. Only the latest is what this script writes today.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
-const [input = 'data/skills/makes.json', catalogueFile = 'data/skills/catalogue.json', output = 'migrations/0050_skill_makes.sql'] = args.filter((arg) => arg !== '--check');
+const [input = 'data/skills/makes.json', catalogueFile = 'data/skills/catalogue.json', output = 'migrations/0058_skill_makes_2.sql'] = args.filter((arg) => arg !== '--check');
 
 export const MAKES_MAX = 12;
 export const MAKE_NAME_MAX = 60;
@@ -144,6 +151,10 @@ END $check$;`,
     '',
     '-- The makes ------------------------------------------------------------------------',
     '',
+    '-- The makes as they stand, so the log can say what this run did.',
+    'DROP TABLE IF EXISTS pg_temp.makes_before;',
+    'CREATE TEMP TABLE makes_before AS SELECT id, name, position FROM skill_makes;',
+    '',
     "-- A make already stored takes the file's spelling and place, and keeps its id.",
     'UPDATE skill_makes m SET name = f.name, position = f.position',
     '  FROM makes_file f INNER JOIN skills s ON s.name = f.skill',
@@ -161,6 +172,26 @@ END $check$;`,
     '  WHERE EXISTS (SELECT 1 FROM makes_file f WHERE f.skill = s.name)',
     '    AND NOT EXISTS (SELECT 1 FROM makes_file f WHERE f.skill = s.name AND lower(f.name) = lower(m.name))',
     ') placed WHERE placed.id = m.id AND m.position IS DISTINCT FROM placed.position;',
+    '',
+    '-- What this run did ----------------------------------------------------------------',
+    '',
+    'INSERT INTO load_log (load, kind, action, look, detail, entity_id)',
+    "SELECT 'skill-makes', 'skill', 'make added', false, format('%s is a make of %s', m.name, s.name), s.id",
+    '  FROM skill_makes m INNER JOIN skills s ON s.id = m.skill_id',
+    ' WHERE NOT EXISTS (SELECT 1 FROM makes_before b WHERE b.id = m.id)',
+    ' ORDER BY s.name, m.position;',
+    'INSERT INTO load_log (load, kind, action, look, detail, entity_id)',
+    "SELECT 'skill-makes', 'skill', 'make respelled', true, format('%s of %s was written \"%s\"', m.name, s.name, b.name), s.id",
+    '  FROM skill_makes m INNER JOIN makes_before b ON b.id = m.id INNER JOIN skills s ON s.id = m.skill_id',
+    ' WHERE b.name <> m.name',
+    ' ORDER BY s.name, m.position;',
+    'INSERT INTO load_log (load, kind, action, look, detail, entity_id)',
+    "SELECT 'skill-makes', 'skill', 'order restated', true, format('the makes of %s were put back in the file''s order', s.name), s.id",
+    '  FROM skills s',
+    ' WHERE EXISTS (SELECT 1 FROM skill_makes m INNER JOIN makes_before b ON b.id = m.id',
+    '                INNER JOIN makes_file f ON f.skill = s.name AND lower(f.name) = lower(m.name)',
+    '                WHERE m.skill_id = s.id AND b.position <> m.position)',
+    ' ORDER BY s.name;',
     '',
     'DROP TABLE pg_temp.makes_file;',
     '',

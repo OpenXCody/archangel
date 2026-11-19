@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { MIGRATIONS } from '../../scripts/migrate.mjs';
 
 interface CatalogueSkill {
   name: string;
@@ -23,8 +24,8 @@ interface Catalogue {
 }
 
 const catalogue = JSON.parse(readFileSync('data/skills/catalogue.json', 'utf8')) as Catalogue;
-// The catalogue's latest migration. 0033 was the first and is as it was applied.
-const MIGRATION = 'migrations/0048_skills_catalogue_2.sql';
+// The catalogue's latest migration. 0033 was the first and 0048 the second; each is as it was applied.
+const MIGRATION = 'migrations/0057_skills_catalogue_3.sql';
 
 test('the skills migration is what the catalogue generates', () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'skills-sql-'));
@@ -98,6 +99,24 @@ test('the migration knows every stored name before it changes anything, adds wha
   at("IF to_regclass('public.skill_makes') IS NOT NULL THEN");
   // Next to each other, the catalogue first: the taxonomy places exactly the skills this one leaves.
   assert.match(readFileSync('scripts/migrate.mjs', 'utf8'), /'0048_skills_catalogue_2\.sql', '0049_skill_taxonomy_2\.sql'/);
+  // The latest restates the catalogue after the paths: it adds other names and no skill, so no taxonomy follows it.
+  const list = MIGRATIONS as string[];
+  assert.ok(list.indexOf('0057_skills_catalogue_3.sql') > list.indexOf('0052_career_paths.sql'));
+});
+
+test('the latest migration adds other names only: every skill it keeps was kept by the one before', () => {
+  const before = readFileSync('migrations/0048_skills_catalogue_2.sql', 'utf8');
+  const after = readFileSync(MIGRATION, 'utf8');
+  const kept = (sql: string) => new Set([...sql.matchAll(/^INSERT INTO skills \(name, category\) SELECT '((?:[^']|'')+)',/gm)].map((m) => m[1]));
+  assert.deepEqual([...kept(after)].sort(), [...kept(before)].sort());
+  const lines = new Set(before.split('\n'));
+  const fresh = after.split('\n').filter((line) => !lines.has(line));
+  // What is new is other names, and the log of what a run did.
+  const names = fresh.filter((line) => line.startsWith('INSERT INTO skill_aliases (alias_text, canonical_skill_id) SELECT '));
+  assert.ok(names.length > 0 && names.length <= 40, `${names.length} other names added`);
+  for (const line of fresh) assert.ok(!/^(UPDATE skills SET|DELETE FROM skills|SELECT pg_temp\.rename_skill)/.test(line), `nothing but names is new: ${line}`);
+  // Said in the log: each name added, each one stored for another skill, and anything a restated catalogue put back.
+  for (const action of ['name added', 'name not added', 'details restated', 'renamed, merged or removed']) assert.ok(after.includes(`'skills-catalogue', 'skill', '${action}'`), action);
 });
 
 test('the pass kept every name it folded or renamed, as an earlier name of the skill it became', () => {

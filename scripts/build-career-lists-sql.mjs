@@ -15,7 +15,8 @@
 //   - no industry is listed twice, and no career twice in one industry;
 //   - an everyday name is listed once, in any letter case, and is not a
 //     career's title, a title folded into another career, or a name the
-//     catalogue says must not follow that career.
+//     catalogue says must not follow that career;
+//   - a name taken back from a career (`not`) is not also listed for it.
 //
 // The migration is applied after the catalogue's own (it matches careers by
 // exact title, and skips a title with no career). It:
@@ -24,8 +25,13 @@
 //     "everywhere" careers are stored once per industry with common = true,
 //     after the industry's own. A career the catalogue does not name keeps
 //     whatever links it has;
+//   - takes back each name the list says is not a career's after all (`not`):
+//     the alias is deleted from that career only, and a line in load_log (load
+//     'career-lists') says so. A name that is not stored is left in peace;
 //   - adds each everyday name that is not already another name for some
-//     career. It deletes no name.
+//     career, with a line in load_log, and says once which names it did not add
+//     because another career holds them. It deletes no other name. A second run
+//     changes nothing and writes nothing.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
@@ -35,7 +41,7 @@ const [
   catalogueFile = 'data/careers/catalogue.json',
   industriesFile = 'data/careers/industries.json',
   aliasesFile = 'data/careers/aliases.json',
-  output = 'migrations/0047_career_lists.sql',
+  output = 'migrations/0056_career_lists_2.sql',
 ] = args.filter((arg) => arg !== '--check');
 
 const text = (value) => typeof value === 'string' && value.trim().length > 0 && value === value.trim();
@@ -98,6 +104,19 @@ export function listProblems(catalogue, industries, aliases) {
       if (owner.has(key(alias))) problems.push(`"${alias}" is listed for both "${owner.get(key(alias))}" and "${row.title}"`);
       else owner.set(key(alias), row.title);
     }
+    // Names taken back.
+    if (row.not !== undefined && !Array.isArray(row.not)) problems.push(`"not" of "${row.title}" is not a list`);
+    const taken = new Set();
+    for (const name of Array.isArray(row.not) ? row.not : []) {
+      if (!text(name)) {
+        problems.push(`names taken back from "${row.title}": ${JSON.stringify(name)} is not a name`);
+        continue;
+      }
+      if (key(name) === key(row.title)) problems.push(`"${name}" is the title of "${row.title}" and cannot be taken back from it`);
+      if (taken.has(key(name))) problems.push(`"${name}" is taken back from "${row.title}" twice`);
+      taken.add(key(name));
+      if ((Array.isArray(row.aliases) ? row.aliases : []).some((alias) => key(alias) === key(name))) problems.push(`"${name}" is both listed for "${row.title}" and taken back from it`);
+    }
   }
   return problems;
 }
@@ -116,6 +135,7 @@ export function listSql(catalogue, industries, aliases, sources) {
       .forEach((title, i) => industryRows.push([q(industry), q(title), careers.length + i + 1, true]));
   }
   const aliasRows = aliases.careers.flatMap(({ title, aliases: list }) => list.map((alias) => [q(alias), q(title)]));
+  const notRows = aliases.careers.flatMap(({ title, not = [] }) => not.map((name) => [q(name), q(title)]));
   const titleRows = catalogue.careers.map((career) => [q(career.title)]);
 
   return [
@@ -125,10 +145,11 @@ export function listSql(catalogue, industries, aliases, sources) {
     '-- Idempotent. Applied after the careers catalogue, whose titles both lists name:',
     '-- careers are matched by exact title and a title with no career is skipped.',
     '',
-    'DROP TABLE IF EXISTS pg_temp.list_careers, pg_temp.list_industries, pg_temp.list_names;',
+    'DROP TABLE IF EXISTS pg_temp.list_careers, pg_temp.list_industries, pg_temp.list_names, pg_temp.list_not;',
     'CREATE TEMP TABLE list_careers (title text PRIMARY KEY);',
     'CREATE TEMP TABLE list_industries (industry text NOT NULL, title text NOT NULL, rank integer NOT NULL, common boolean NOT NULL, PRIMARY KEY (industry, title));',
     'CREATE TEMP TABLE list_names (alias text NOT NULL, title text NOT NULL);',
+    'CREATE TEMP TABLE list_not (alias text NOT NULL, title text NOT NULL);',
     '',
     "-- The catalogue's careers: the ones whose industry links this list decides.",
     'INSERT INTO list_careers (title) VALUES',
@@ -154,17 +175,48 @@ export function listSql(catalogue, industries, aliases, sources) {
     '  ON CONFLICT (industry, occupation_id) DO UPDATE SET rank = EXCLUDED.rank, common = EXCLUDED.common',
     '    WHERE (industry_occupations.rank, industry_occupations.common) IS DISTINCT FROM (EXCLUDED.rank, EXCLUDED.common);',
     '',
+    ...(notRows.length ? ['INSERT INTO list_not (alias, title) VALUES', ...values(notRows), ''] : []),
+    '-- Names taken back -----------------------------------------------------------------',
+    '-- A name the list says is not a career\'s after all is deleted from that career',
+    '-- only, in any letter case, and the log says so. A name that is not stored, or is',
+    '-- stored for another career, is left alone: a second run finds nothing to do.',
+    '',
+    'WITH gone AS (',
+    '  DELETE FROM occupation_aliases a USING list_not n, occupations o',
+    '    WHERE o.title = n.title AND a.canonical_occupation_id = o.id AND lower(a.alias_text) = lower(n.alias)',
+    '    RETURNING a.alias_text, o.id, o.title',
+    ')',
+    'INSERT INTO load_log (load, kind, action, look, detail, entity_id)',
+    "  SELECT 'career-lists', 'career', 'name removed', false, format('\"%s\" is no longer another name of %s', alias_text, title), id FROM gone;",
+    '',
     '-- Everyday names -----------------------------------------------------------------',
     "-- A name is left out when it is already another name for some career, or is a",
-    "-- career's own title, in any letter case. Nothing is changed or deleted.",
+    "-- career's own title, in any letter case: the log says once which, for a person",
+    '-- to read. Nothing else is changed or deleted.',
     '',
-    'INSERT INTO occupation_aliases (alias_text, canonical_occupation_id)',
-    '  SELECT n.alias, o.id FROM list_names n INNER JOIN occupations o ON o.title = n.title',
-    '  WHERE NOT EXISTS (SELECT 1 FROM occupations t WHERE lower(t.title) = lower(n.alias))',
-    '    AND NOT EXISTS (SELECT 1 FROM occupation_aliases a WHERE lower(a.alias_text) = lower(n.alias))',
-    '  ON CONFLICT (alias_text) DO NOTHING;',
+    'INSERT INTO load_log (load, kind, action, look, detail, entity_id)',
+    "  SELECT 'career-lists', 'career', 'name not added', true,",
+    "    format('\"%s\" was not added to %s: it is %s', n.alias, n.title,",
+    "      coalesce((SELECT format('the title of %s', t.title) FROM occupations t WHERE lower(t.title) = lower(n.alias) LIMIT 1),",
+    "               (SELECT format('another name of %s', h.title) FROM occupation_aliases a INNER JOIN occupations h ON h.id = a.canonical_occupation_id WHERE lower(a.alias_text) = lower(n.alias) LIMIT 1))), o.id",
+    '  FROM list_names n INNER JOIN occupations o ON o.title = n.title',
+    '  WHERE (EXISTS (SELECT 1 FROM occupations t WHERE lower(t.title) = lower(n.alias))',
+    '      OR EXISTS (SELECT 1 FROM occupation_aliases a WHERE lower(a.alias_text) = lower(n.alias) AND a.canonical_occupation_id <> o.id))',
+    "    AND NOT EXISTS (SELECT 1 FROM load_log l WHERE l.load = 'career-lists' AND l.action = 'name not added' AND l.entity_id = o.id AND starts_with(l.detail, format('\"%s\" was not added to ', n.alias)));",
     '',
-    'DROP TABLE pg_temp.list_careers, pg_temp.list_industries, pg_temp.list_names;',
+    'WITH added AS (',
+    '  INSERT INTO occupation_aliases (alias_text, canonical_occupation_id)',
+    '    SELECT n.alias, o.id FROM list_names n INNER JOIN occupations o ON o.title = n.title',
+    '    WHERE NOT EXISTS (SELECT 1 FROM occupations t WHERE lower(t.title) = lower(n.alias))',
+    '      AND NOT EXISTS (SELECT 1 FROM occupation_aliases a WHERE lower(a.alias_text) = lower(n.alias))',
+    '    ON CONFLICT (alias_text) DO NOTHING',
+    '    RETURNING alias_text, canonical_occupation_id',
+    ')',
+    'INSERT INTO load_log (load, kind, action, look, detail, entity_id)',
+    "  SELECT 'career-lists', 'career', 'name added', false, format('\"%s\" is another name of %s', d.alias_text, o.title), o.id",
+    '  FROM added d INNER JOIN occupations o ON o.id = d.canonical_occupation_id;',
+    '',
+    'DROP TABLE pg_temp.list_careers, pg_temp.list_industries, pg_temp.list_names, pg_temp.list_not;',
     '',
   ].join('\n');
 }
@@ -181,7 +233,8 @@ async function main() {
   }
   const links = industries.industries.reduce((sum, row) => sum + row.careers.length, 0);
   const names = aliases.careers.reduce((sum, row) => sum + row.aliases.length, 0);
-  const summary = `${industries.industries.length} industries with ${links} careers of their own and ${industries.everywhere.length} found everywhere; ${names} everyday names for ${aliases.careers.length} careers`;
+  const taken = aliases.careers.reduce((sum, row) => sum + (row.not ?? []).length, 0);
+  const summary = `${industries.industries.length} industries with ${links} careers of their own and ${industries.everywhere.length} found everywhere; ${names} everyday names for ${aliases.careers.filter((row) => row.aliases.length > 0).length} careers; ${taken} names taken back`;
   if (checkOnly) {
     console.log(`valid. ${summary}.`);
     return;
