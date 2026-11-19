@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { type CompanyDetail } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { industryByName, industryLabel, industryPath } from '@shared/industry';
+import { versionPath } from '@shared/versions';
+import { versionLine } from '../../lib/versions';
 import CompanyLogo from '../CompanyLogo';
 import { CompanyFamily, CompanyStanding, PlantFacts, peopleCount } from './RecordFacts';
 import { useMapStore } from '../../stores/mapStore';
@@ -104,7 +106,21 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
     navigate('/map');
   };
 
-  const careers = data.occupations ?? [];
+  // The careers the company has its own version of come first, each opening that version; then the
+  // careers on record at its plants that it has said nothing about.
+  const versions = data.versions ?? [];
+  const versioned = new Set(versions.map((version) => version.occupation.id));
+  const recorded = (data.occupations ?? []).filter((career) => !versioned.has(career.id));
+  const careers = [
+    ...versions.map((version) => ({ id: version.occupation.id, title: version.occupation.title, to: versionPath(version.occupation.id, data), line: versionLine(version), version: true })),
+    ...recorded.map((career) => ({
+      id: career.id,
+      title: career.title,
+      to: `/occupations/${career.id}`,
+      line: [only ? null : plural(career.factoryCount, 'plant', 'plants'), career.headcount ? peopleCount(career.headcount) : null].filter(Boolean).join(' · ') || null,
+      version: false,
+    })),
+  ];
   const typical = careers.length === 0 ? (data.typicalCareers ?? []) : [];
   const onlyName = only ? formatFactoryName(only.name) : '';
   const onlyStreet = only ? streetAddress(only) : null;
@@ -221,20 +237,17 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
         </DetailSection>
       )}
 
-      {/* Careers recorded across this company's plants */}
+      {/* Its careers: the ones it has its own version of, then those recorded across its plants */}
       {careers.length > 0 && (
         <DetailSection id="occupations" title="Careers">
           <RecordList>
             {(showAllCareers ? careers : careers.slice(0, CAREERS_SHOWN)).map((career) => (
               <RecordRow
                 key={career.id}
-                to={`/occupations/${career.id}`}
+                to={career.to}
                 title={career.title}
-                subtitle={
-                  [only ? null : plural(career.factoryCount, 'plant', 'plants'), career.headcount ? peopleCount(career.headcount) : null]
-                    .filter(Boolean)
-                    .join(' · ') || null
-                }
+                subtitle={career.line}
+                data-company-version={career.version ? career.id : undefined}
               />
             ))}
           </RecordList>

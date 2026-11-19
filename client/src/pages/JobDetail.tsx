@@ -42,6 +42,7 @@ import {
   recordListClass,
 } from '../components/layout/Page';
 import CompanyLogo from '../components/CompanyLogo';
+import { versionPath, versionTitle } from '@shared/versions';
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
@@ -327,7 +328,17 @@ function TermsCard({ job, showApplications }: { job: JobDetailData; showApplicat
       <ul className="border-t border-border-subtle">
         <RecordRow to={`/companies/${job.companyId}`} label="Company" title={formatCompanyName(job.companyName)} />
         <RecordRow to={`/factories/${job.factoryId}`} label="Plant" title={formatFactoryName(job.factoryName)} />
-        <RecordRow to={`/occupations/${job.occupationId}`} label="Career" title={job.occupationTitle} />
+        {/* Where the company has its own version of the career, the job leads to that. */}
+        {job.hasVersion ? (
+          <RecordRow
+            to={versionPath(job.occupationId, { id: job.companyId })}
+            label="Career"
+            title={versionTitle(job.companyName, job.occupationTitle)}
+            data-job-version=""
+          />
+        ) : (
+          <RecordRow to={`/occupations/${job.occupationId}`} label="Career" title={job.occupationTitle} />
+        )}
       </ul>
     </div>
   );

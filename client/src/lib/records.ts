@@ -112,6 +112,8 @@ export function recordsChanged(queryClient: QueryClient, kind: RecordKind, goneI
   if (kind === 'company' || kind === 'factory') stale.push(publicKeys.pins, publicKeys.stateCounts, publicKeys.stateOverviews, publicKeys.areaOverviews);
   // A path that gained or lost a skill changes how many careers use it, which the taxonomy says.
   if (kind === 'career') stale.push(accountKeys.adminPaths, accountKeys.me, publicKeys.taxonomy);
+  // A company's version of a career is read against the standard path, by the names of its company, career and skills.
+  if (kind !== 'factory') stale.push(publicKeys.versions);
   // A skill's name, group or level shows in every path it is on and in the taxonomy.
   if (kind === 'skill') stale.push(publicKeys.records('occupations'), publicKeys.exploreLists('occupations'), publicKeys.taxonomy, accountKeys.me);
   for (const queryKey of stale) {

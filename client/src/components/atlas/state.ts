@@ -8,6 +8,8 @@
  *   /atlas?skill=<id>           one skill, in its group
  *   …&career=<id>               a career laid over it
  *   …&career=<id>&with=<id>     and a second career over the first
+ *   …&career=<id>&at=<company>  the first career as that company's version of it
+ *                               (which can then be compared with the career itself)
  *
  * One of `domain`, `group` and `skill` is written, the most specific: a
  * skill's group and a group's domain are known from the taxonomy.
@@ -18,6 +20,8 @@ export interface AtlasState {
   skill?: string | null;
   career?: string | null;
   with?: string | null;
+  /** A company's id or slug: the first career is laid over as that company's version of it. */
+  at?: string | null;
 }
 
 export function readAtlasState(params: URLSearchParams): AtlasState {
@@ -27,6 +31,7 @@ export function readAtlasState(params: URLSearchParams): AtlasState {
     skill: params.get('skill'),
     career: params.get('career'),
     with: params.get('with'),
+    at: params.get('career') ? params.get('at') : null,
   };
 }
 
@@ -37,7 +42,9 @@ export function atlasHref(state: AtlasState): string {
   else if (state.domain) params.set('domain', state.domain);
   if (state.career) {
     params.set('career', state.career);
-    if (state.with && state.with !== state.career) params.set('with', state.with);
+    if (state.at) params.set('at', state.at);
+    // A company's version can be compared with the career it is a version of.
+    if (state.with && (state.with !== state.career || state.at)) params.set('with', state.with);
   } else if (state.with) {
     params.set('career', state.with);
   }

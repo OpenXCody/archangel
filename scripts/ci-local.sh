@@ -10,10 +10,10 @@
 #      (scripts/create-db.mjs --sample: migrations 0000-0009, the runner's
 #      migrations, the seed, then the runner's migrations a second time);
 #   2. builds the app and serves the built page and the API;
-#   3. runs the seven API suites (accounts, jobs, seeker, admin, email, industries,
-#      careers), the two that need only the database: the employer loader's
-#      (loader) and the careers catalogue's migration (catalogue), and intake's
-#      (intake), which drives the runner and then the API;
+#   3. runs the eight API suites (accounts, jobs, seeker, admin, email, industries,
+#      careers, versions), the two that need only the database: the employer
+#      loader's (loader) and the careers catalogue's migration (catalogue), and
+#      intake's (intake), which drives the runner and then the API;
 #   4. runs the Playwright device suite against the built page.
 # Every suite runs even if an earlier one fails; the exit code is non-zero if
 # any did. The servers it started are stopped on the way out.
@@ -123,6 +123,7 @@ run_suite loader bash tests/api/loader.sh
 run_suite careers bash tests/api/careers.sh
 run_suite catalogue bash tests/api/catalogue.sh
 run_suite intake bash tests/api/intake.sh
+run_suite versions bash tests/api/versions.sh
 
 step "Device suite"
 if BASE_URL=$WEB_URL npx playwright test --trace off > "$LOGS/devices.log" 2>&1; then

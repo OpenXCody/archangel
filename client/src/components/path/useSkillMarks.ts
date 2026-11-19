@@ -11,8 +11,11 @@ import type { MarkStatus, SkillMarks } from './model';
  *
  * `marks` is null for a visitor and for someone here to hire: the parts then
  * draw no marks and no progress. `canSignIn` says a visitor could have them.
+ * `ranMakes` is the makes the person has marked as run, by make id (empty for
+ * anyone without marks): a company's version of a career lights the ones it
+ * shares with them.
  */
-export function useSkillMarks(): { marks: SkillMarks | null; canSignIn: boolean; error: Error | null } {
+export function useSkillMarks(): { marks: SkillMarks | null; canSignIn: boolean; error: Error | null; ranMakes: ReadonlySet<string> } {
   const { data: account } = useAccount();
   const seekerTools = useSeekerTools();
   const signedIn = Boolean(account?.user) && seekerTools;
@@ -30,5 +33,10 @@ export function useSkillMarks(): { marks: SkillMarks | null; canSignIn: boolean;
     };
   }, [signedIn, mySkills, isPending, mutate]);
 
-  return { marks, canSignIn: Boolean(account) && !account?.user && seekerTools, error: markSkill.error };
+  const ranMakes = useMemo<ReadonlySet<string>>(
+    () => new Set(signedIn ? (mySkills ?? []).flatMap((skill) => (skill.makes ?? []).map((make) => make.id)) : []),
+    [signedIn, mySkills]
+  );
+
+  return { marks, canSignIn: Boolean(account) && !account?.user && seekerTools, error: markSkill.error, ranMakes };
 }

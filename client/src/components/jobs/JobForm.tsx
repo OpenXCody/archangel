@@ -30,6 +30,7 @@ import {
 } from '../account/parts';
 import { arrowKeyChoice } from '../../lib/roving';
 import { publicKeys } from '../../lib/queryKeys';
+import { useCompanyVersions, versionsApi } from '../../lib/versions';
 
 const PAY_PERIODS: readonly { value: PayPeriod; label: string }[] = [
   { value: 'hour', label: 'Per hour' },
@@ -175,12 +176,17 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
     .slice(0, 8)
     .map((o) => ({ id: o.id, title: o.title }));
 
-  // The career's own skills are the default tags: Advanced optional, the rest required.
+  // The career's own skills are the default tags: Advanced optional, the rest required. Where the
+  // company has its own version of the career, that version's skills are the start instead.
   const careerId = career?.id ?? '';
+  const versions = useCompanyVersions(company.companyId, !editing);
+  const fromVersion = Boolean(careerId) && (versions.data ?? []).some((version) => version.occupation.id === careerId);
   const careerSkills = useQuery({
-    queryKey: publicKeys.picker('career-skills', careerId),
-    queryFn: () => occupationsApi.get(careerId),
-    enabled: Boolean(careerId),
+    queryKey: publicKeys.picker(fromVersion ? 'version-skills' : 'career-skills', fromVersion ? `${company.companyId}:${careerId}` : careerId),
+    queryFn: (): Promise<{ skills: { id: string; name: string; level: number | null }[] }> =>
+      fromVersion ? versionsApi.get(company.companyId, careerId) : occupationsApi.get(careerId),
+    // Not before the company's versions are known: the tags are set once, from the right list.
+    enabled: Boolean(careerId) && (editing || !versions.isPending),
     staleTime: 5 * 60_000,
     // Asked even when the browser says it is offline, so the form says so rather than waiting.
     networkMode: 'always',
@@ -374,7 +380,13 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
                       : 'No skills tagged.'
                 }
               />
-              {skills.length > 0 && <p className="text-xs text-fg-muted">Applicants are ranked by required skills held.</p>}
+              {skills.length > 0 && (
+                <p className="text-xs text-fg-muted">
+                  {/* Said only where it is so: the list began as the company's own version, not the standard. */}
+                  {fromVersion && seeded && !draft && career && <span data-skills-from-version>Started from your version of {career.title}. </span>}
+                  Applicants are ranked by required skills held.
+                </p>
+              )}
             </div>
           )}
         </fieldset>

@@ -8,7 +8,10 @@ import type { PathSkillItem, SkillMarks } from './model';
  * seeker the mark before it, which sets the skill held or clears it in one
  * tap. Both are a full finger's size. A held skill's tag is lit; one being
  * learned is half lit; the rest are quiet. With no `marks` it is the name
- * alone. A second line (`note`) is where a make of equipment goes.
+ * alone. A second line is where a make of equipment goes: `note` as given, or
+ * on a company's version of a career the makes the company runs (`makes`),
+ * the ones the person has run themselves brighter, after the word "Added"
+ * for a skill the company adds to the standard.
  *
  * It is a list item: put it in a `ul` (`SkillTags`, or `SkillGroupBox`).
  */
@@ -17,7 +20,7 @@ export function SkillTag({ skill, marks, current, className }: { skill: PathSkil
   const name = (
     <>
       <span className="block">{skill.name}</span>
-      {skill.note && <span className="block text-xs font-normal text-fg-soft">{skill.note}</span>}
+      <SecondLine skill={skill} />
     </>
   );
   const nameClass = cn(
@@ -29,6 +32,7 @@ export function SkillTag({ skill, marks, current, className }: { skill: PathSkil
       data-skill-tag={skill.id}
       data-status={status}
       data-current={current || undefined}
+      data-added={skill.added || undefined}
       className={cn('skill-tag', className)}
     >
       {marks && (
@@ -50,6 +54,28 @@ export function SkillTag({ skill, marks, current, className }: { skill: PathSkil
         </Link>
       )}
     </li>
+  );
+}
+
+/** A tag's second line: what narrows the skill here. Nothing when there is nothing to say. */
+function SecondLine({ skill }: { skill: PathSkillItem }) {
+  const makes = skill.makes ?? [];
+  if (!skill.added && makes.length === 0) {
+    return skill.note ? <span className="block text-xs font-normal text-fg-soft">{skill.note}</span> : null;
+  }
+  return (
+    <span className="block text-xs font-normal text-fg-soft" data-tag-line>
+      {skill.added && <span data-tag-added>Added</span>}
+      {skill.added && makes.length > 0 && ' · '}
+      {makes.map((make, index) => (
+        <span key={make.name}>
+          {index > 0 && ', '}
+          <span data-tag-make={make.lit ? 'lit' : ''} className={make.lit ? 'font-medium text-fg-default' : undefined}>
+            {make.name}
+          </span>
+        </span>
+      ))}
+    </span>
   );
 }
 

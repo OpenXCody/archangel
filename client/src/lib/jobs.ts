@@ -73,6 +73,8 @@ export interface JobDetail extends JobSummary {
   closedReason: string | null;
   /** Open and not expired. */
   isOpen: boolean;
+  /** The company has its own version of the job's career. */
+  hasVersion?: boolean;
 }
 
 export interface JobSkill {

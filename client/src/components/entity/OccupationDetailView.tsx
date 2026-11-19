@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import GoalButton from '../account/GoalButton';
@@ -5,6 +6,9 @@ import { ErrorNote } from '../account/parts';
 import { signInPath } from '../../lib/account';
 import { type OccupationDetail } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
+import { versionPath } from '@shared/versions';
+import CompanyLogo from '../CompanyLogo';
+import { versionLine } from '../../lib/versions';
 import { cityState, stateName } from '../../lib/places';
 import {
   DetailFacts,
@@ -12,6 +16,7 @@ import {
   DetailSection,
   RecordList,
   RecordRow,
+  ShowAll,
   sectionLinkClass,
 } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
@@ -45,6 +50,9 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   const hasPath = path.levels.some((level) => level.groups.length > 0);
   const whole = marks && skills.length > 0 ? shareOf(skills, marks) : null;
   const onLadder = (data.comesFrom?.length ?? 0) + (data.leadsTo?.length ?? 0) > 0;
+  // Companies that say how this career is done with them: each row opens that company's version.
+  const versions = data.versions ?? [];
+  const [showAllVersions, setShowAllVersions] = useState(false);
 
   return (
     <>
@@ -133,6 +141,30 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       {/* Like the company and plant pages: a section only when there is a job to show. */}
       {jobs.length > 0 && <OpenJobsSection jobs={jobs} />}
 
+      {/* Companies with their own version of this career: the page stays the standard, and says where it differs. */}
+      {versions.length > 0 && (
+        <DetailSection id="companies" title="Companies" description="Each says how this career is done there.">
+          <RecordList data-career-versions="">
+            {(showAllVersions ? versions : versions.slice(0, VERSIONS_SHOWN)).map((version) => {
+              const company = formatCompanyName(version.company.name);
+              return (
+                <RecordRow
+                  key={version.company.id}
+                  to={versionPath(data.id, version.company)}
+                  lead={<CompanyLogo name={company} domain={version.company.domain} size={28} />}
+                  title={company}
+                  subtitle={versionLine(version)}
+                  data-career-version={version.company.id}
+                />
+              );
+            })}
+          </RecordList>
+          {versions.length > VERSIONS_SHOWN && (
+            <ShowAll open={showAllVersions} total={versions.length} onToggle={() => setShowAllVersions((value) => !value)} />
+          )}
+        </DetailSection>
+      )}
+
       {/* Plants where this career is on record */}
       {plants.length > 0 && (
         <DetailSection id="factories" title="Plants with this career" column={counted ? 'People' : undefined}>
@@ -162,6 +194,9 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
     </>
   );
 }
+
+/** How many companies with a version are listed before "Show all". */
+const VERSIONS_SHOWN = 8;
 
 /** A place that opens on the map: the one thing on these pages drawn as a chip. */
 const placeChipClass =

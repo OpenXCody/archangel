@@ -142,7 +142,8 @@ export async function attachedTo(executor: Executor, kind: RecordKind, id: strin
       (SELECT COUNT(*)::int FROM applications a INNER JOIN jobs j ON j.id = a.job_id WHERE j.company_id = ${id}) AS applications,
       (SELECT COUNT(*)::int FROM company_members WHERE company_id = ${id} AND status = 'active') AS members,
       (SELECT COUNT(*)::int FROM company_members WHERE company_id = ${id} AND status <> 'active') AS requests,
-      (SELECT COUNT(*)::int FROM invites WHERE company_id = ${id} AND accepted_at IS NULL AND expires_at > now()) AS invites`,
+      (SELECT COUNT(*)::int FROM invites WHERE company_id = ${id} AND accepted_at IS NULL AND expires_at > now()) AS invites,
+      (SELECT COUNT(*)::int FROM company_careers WHERE company_id = ${id}) AS versions`,
     factory: sql`SELECT
       (SELECT COUNT(*)::int FROM jobs WHERE factory_id = ${id}) AS jobs,
       (SELECT COUNT(*)::int FROM applications a INNER JOIN jobs j ON j.id = a.job_id WHERE j.factory_id = ${id}) AS applications,
@@ -154,12 +155,14 @@ export async function attachedTo(executor: Executor, kind: RecordKind, id: strin
       (SELECT COUNT(*)::int FROM user_goals WHERE occupation_id = ${id}) AS goals,
       (SELECT COUNT(*)::int FROM industry_occupations WHERE occupation_id = ${id}) AS industries,
       (SELECT COUNT(*)::int FROM factory_occupations WHERE occupation_id = ${id}) AS factories,
-      (SELECT COUNT(*)::int FROM occupation_links WHERE from_occupation_id = ${id} OR to_occupation_id = ${id}) AS links`,
+      (SELECT COUNT(*)::int FROM occupation_links WHERE from_occupation_id = ${id} OR to_occupation_id = ${id}) AS links,
+      (SELECT COUNT(*)::int FROM company_careers WHERE occupation_id = ${id}) AS versions`,
     skill: sql`SELECT
       (SELECT COUNT(*)::int FROM occupation_skills WHERE skill_id = ${id}) AS careers,
       (SELECT COUNT(*)::int FROM job_skills WHERE skill_id = ${id}) AS jobs,
       (SELECT COUNT(*)::int FROM user_skills WHERE skill_id = ${id}) AS people,
-      (SELECT COUNT(*)::int FROM skill_makes WHERE skill_id = ${id}) AS makes`,
+      (SELECT COUNT(*)::int FROM skill_makes WHERE skill_id = ${id}) AS makes,
+      (SELECT COUNT(DISTINCT company_career_id)::int FROM company_career_skills WHERE skill_id = ${id}) AS versions`,
   };
   const [row] = rowsOf<Record<string, number>>(await executor.execute(query[kind]));
   const attached: Attached = {};

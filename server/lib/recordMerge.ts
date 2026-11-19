@@ -6,6 +6,7 @@ import { LADDER_LOCK, MAX_LEADS_TO, ladderFrom } from './careers.js';
 import { rowsOf } from './rows.js';
 import { recordMerged } from './provenance.js';
 import { mergeMakes } from './makes.js';
+import { mergeVersionSkills, moveVersions } from './versions.js';
 
 /**
  * Merging one record into another of its kind: a company, a career or a
@@ -69,6 +70,8 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
         DELETE FROM external_references x WHERE x.entity_type = 'companies' AND x.entity_id = ${fromId} AND x.source = 'CURATED'
           AND EXISTS (SELECT 1 FROM external_references y WHERE y.entity_type = 'companies' AND y.entity_id = ${intoId} AND y.source = 'CURATED' AND y.url = x.url)`);
       await tx.execute(sql`UPDATE external_references SET entity_id = ${intoId} WHERE entity_type = 'companies' AND entity_id = ${fromId}`);
+      // Its versions of careers go to the kept company.
+      await moveVersions(tx, 'company', fromId, intoId);
       // The slug is unique: the row that is going gives it up before the kept row can take it.
       await tx.delete(companies).where(eq(companies.id, fromId));
       // The kept company takes whatever profile it lacks, and remembers the old name.
@@ -105,6 +108,8 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
       await tx.execute(sql`UPDATE factory_occupations x SET occupation_id = ${k} WHERE occupation_id = ${m}
         AND NOT EXISTS (SELECT 1 FROM factory_occupations y WHERE y.occupation_id = ${k} AND y.factory_id = x.factory_id)`);
       await tx.execute(sql`UPDATE jobs SET occupation_id = ${k} WHERE occupation_id = ${m}`);
+      // Companies' versions of the merged career become versions of the kept one.
+      await moveVersions(tx, 'career', m, k);
       // The ladder: the kept career leads where the merged one led, and is led to by what led to it.
       // A link between the two would point the career at itself, and one the kept career already has
       // would repeat it: both go with the merged row. So does one that would close a ladder on itself.
@@ -144,6 +149,8 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
     } else {
       const k = intoId;
       const m = fromId;
+      // Companies' versions: what they say of the merged skill, read against the paths as they still are.
+      const versions = await mergeVersionSkills(tx, m, k);
       await tx.execute(sql`UPDATE occupation_skills x SET skill_id = ${k} WHERE skill_id = ${m}
         AND NOT EXISTS (SELECT 1 FROM occupation_skills y WHERE y.skill_id = ${k} AND y.occupation_id = x.occupation_id)`);
       await tx.execute(sql`UPDATE job_skills x SET skill_id = ${k} WHERE skill_id = ${m}
@@ -157,6 +164,7 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
         AND NOT EXISTS (SELECT 1 FROM user_skills y WHERE y.skill_id = ${k} AND y.user_id = x.user_id)`);
       // A make the kept skill lacks moves to it; one it has keeps its own, and takes the marks.
       await makes.restore();
+      await versions.makes();
       await tx.execute(sql`UPDATE skills SET parent_skill_id = ${k} WHERE parent_skill_id = ${m} AND id <> ${k}`);
       await tx.execute(sql`UPDATE skills SET parent_skill_id = NULL WHERE id = ${k} AND parent_skill_id = ${m}`);
       await tx.execute(sql`UPDATE skill_aliases SET canonical_skill_id = ${k} WHERE canonical_skill_id = ${m}`);
