@@ -56,6 +56,9 @@ const FIELD: Record<string, string> = {
   group: 'group',
   level: 'level',
   pathStatus: 'path',
+  // A career's home domain, and the careers it leads to, by title.
+  home: 'home',
+  leadsTo: 'leads to',
   email: 'email',
   specialization: 'specialization',
   workforceSize: 'people',
@@ -84,6 +87,7 @@ const ATTACHED: Record<string, [string, string]> = {
   skills: ['skill on its path', 'skills on its path'],
   goals: ['person aiming at it', 'people aiming at it'],
   industries: ['industry', 'industries'],
+  links: ['link on its ladder', 'links on its ladder'],
   people: ['person who marked it', 'people who marked it'],
   memberships: ['company membership', 'company memberships'],
 };

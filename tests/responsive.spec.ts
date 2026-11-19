@@ -128,6 +128,117 @@ test('a career page shows its path, a company page its plants', async ({ page, r
   await expect(page.locator('#skills')).toHaveCount(0);
 });
 
+/** A career of the catalogue, by its exact title, with its ladder as the API gives it. */
+async function careerByTitle(request: APIRequestContext, title: string) {
+  const list = (await (await request.get(`${API}/occupations?search=${encodeURIComponent(title)}&limit=20`)).json()) as { data: Array<{ id: string; title: string }> };
+  const found = list.data.find((career) => career.title === title);
+  expect(found, `the catalogue has ${title}`).toBeTruthy();
+  return (await (await request.get(`${API}/occupations/${found!.id}`)).json()) as {
+    id: string;
+    title: string;
+    home: { slug: string; name: string } | null;
+    leadsTo: Array<{ id: string; title: string }>;
+    comesFrom: Array<{ id: string; title: string }>;
+    skills: unknown[];
+  };
+}
+
+test('a career stands on its ladder, and the Careers list narrows to a home', async ({ page, request }) => {
+  // Seven careers lead to this one and it leads to three: the widest ladder in the catalogue.
+  const wide = await careerByTitle(request, 'Maintenance Technician');
+  expect(wide.comesFrom.length, 'several careers lead to it').toBeGreaterThan(4);
+  await page.goto(`/occupations/${wide.id}`, { waitUntil: 'domcontentloaded' });
+  const flow = page.locator('[data-path-flow]');
+  const before = flow.locator('[data-path-ladder="before"]');
+  const after = flow.locator('[data-path-ladder="after"]');
+  await expect(before).toContainText('Comes from');
+  // Three are named and the rest wait behind one word, so the path itself is not pushed off the screen.
+  await expect(before.locator('a')).toHaveText(wide.comesFrom.slice(0, 3).map((career) => career.title));
+  await expect(before.locator('[data-ladder-more]')).toHaveText(`${wide.comesFrom.length - 3} more`);
+  await assertHealthyLayout(page, '/occupations/:id ladder');
+  await before.locator('[data-ladder-more]').click();
+  await expect(before.locator('a')).toHaveText(wide.comesFrom.map((career) => career.title));
+  await expect(before.locator('[data-ladder-more]')).toHaveCount(0);
+  // Where it leads, in the order the catalogue keeps, each to that career's page.
+  await expect(after).toContainText('Leads to');
+  await expect(after.locator('a')).toHaveText(wide.leadsTo.map((career) => career.title));
+  await expect(after.locator('a').first()).toHaveAttribute('href', `/occupations/${wide.leadsTo[0].id}`);
+  // Every rung is a full finger's height and stays inside the diagram, however long its title.
+  const diagram = await flow.boundingBox();
+  for (const box of await flow.locator('[data-path-ladder] a').evaluateAll((items) => items.map((item) => item.getBoundingClientRect().toJSON() as { left: number; right: number; height: number }))) {
+    expect(box.height, 'a rung is at least 44px tall').toBeGreaterThanOrEqual(44);
+    expect(box.left, 'a rung starts inside the diagram').toBeGreaterThanOrEqual((diagram?.x ?? 0) - 1);
+    expect(box.right, 'a rung ends inside the diagram').toBeLessThanOrEqual((diagram?.x ?? 0) + (diagram?.width ?? 0) + 1);
+  }
+  await assertHealthyLayout(page, '/occupations/:id ladder open');
+
+  // A first rung with three after it: nothing stands before the first level.
+  const first = await careerByTitle(request, 'Production Operator');
+  expect([first.comesFrom.length, first.leadsTo.length]).toEqual([0, 3]);
+  await page.goto(`/occupations/${first.id}`, { waitUntil: 'domcontentloaded' });
+  await expect(flow.locator('[data-path-level]')).toHaveCount(3);
+  await expect(flow.locator('[data-path-ladder="before"]')).toHaveCount(0);
+  await expect(flow.locator('[data-path-ladder="after"] a')).toHaveText(first.leadsTo.map((career) => career.title));
+  await assertHealthyLayout(page, '/occupations/:id first rung');
+
+  // A career on no ladder: the path alone.
+  const alone = await careerByTitle(request, 'Hydraulics Technician');
+  expect(alone.comesFrom.length + alone.leadsTo.length).toBe(0);
+  await page.goto(`/occupations/${alone.id}`, { waitUntil: 'domcontentloaded' });
+  await expect(flow.locator('[data-path-level]')).toHaveCount(3);
+  await expect(flow.locator('[data-path-ladder]')).toHaveCount(0);
+
+  // A career whose path is not written yet still stands between the careers around it.
+  const unwritten = await careerByTitle(request, 'Aircraft Engine Mechanic');
+  if (unwritten.skills.length === 0) {
+    await page.goto(`/occupations/${unwritten.id}`, { waitUntil: 'domcontentloaded' });
+    const bare = page.locator('[data-path-unwritten]');
+    await expect(bare).toContainText('Path not written yet.');
+    await expect(bare.locator('[data-path-ladder="before"] a')).toHaveText(unwritten.comesFrom.map((career) => career.title));
+    await expect(bare.locator('[data-path-ladder="after"] a')).toHaveText(unwritten.leadsTo.map((career) => career.title));
+    await assertHealthyLayout(page, '/occupations/:id unwritten');
+  }
+
+  // The home stands under the name and opens the Careers list narrowed to it.
+  await page.goto(`/occupations/${wide.id}`, { waitUntil: 'domcontentloaded' });
+  const home = page.locator('[data-career-home]');
+  await expect(home).toHaveText(wide.home!.name);
+  await home.click();
+  await expect(page).toHaveURL(new RegExp(`/explore\\?tab=occupations&domain=${wide.home!.slug}$`));
+  await expect(page.getByRole('button', { name: `Domain: ${wide.home!.name}` })).toBeVisible();
+  const inHome = (await (await request.get(`${API}/occupations?domain=${wide.home!.slug}&limit=1`)).json()) as { total: number };
+  await expect(page.locator('[data-explore-count]')).toHaveText(`${inHome.total} careers`);
+  // The rows are of that domain, and do not each repeat what the filter says.
+  const row = page.locator('main a[href^="/occupations/"]').first();
+  await expect(row).toBeVisible();
+  await expect(row).not.toContainText(`${wide.home!.name} ·`);
+  await assertHealthyLayout(page, '/explore?tab=occupations&domain');
+
+  // Another domain is chosen from the list of them, and written to the address; Clear puts the list back.
+  const facets = (await (await request.get(`${API}/explore/facets`)).json()) as { careerDomains: { slug: string; name: string }[] };
+  const other = facets.careerDomains.find((domain) => domain.slug !== wide.home!.slug)!;
+  await page.getByRole('button', { name: `Domain: ${wide.home!.name}` }).click();
+  await page.getByRole('menuitemradio', { name: other.name, exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`domain=${other.slug}(&|$)`));
+  await expect(page.getByRole('button', { name: `Domain: ${other.name}` })).toBeVisible();
+  await page.getByRole('button', { name: 'Clear', exact: true }).click();
+  await expect(page).not.toHaveURL(/domain=/);
+  const all = (await (await request.get(`${API}/occupations?limit=1`)).json()) as { total: number };
+  await expect(page.locator('[data-explore-count]')).toHaveText(`${all.total} careers`);
+  // With every domain in the list, a row says which is its career's home.
+  await expect(page.getByRole('button', { name: 'Domain: All domains' })).toBeVisible();
+  await expect(page.locator('main a[href^="/occupations/"]').first()).toContainText(/^[\s\S]*(Production|Machining|Fabrication|Materials|Assembly|Electronics|Semiconductor|Battery and electric drive|Process|Quality|Nondestructive testing|Test|Maintenance|Automation|Engineering) · \d+ skills/);
+
+  // A title that was folded into a career finds that career, which says the name it was found by.
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Search' });
+  await dialog.getByRole('combobox').fill('Cleanroom Technician');
+  const hit = dialog.getByRole('option', { name: /Wafer Fab Operator/ });
+  await expect(hit).toBeVisible();
+  await expect(hit).toContainText('Also called Cleanroom Technician');
+  await assertHealthyLayout(page, '/explore#search folded title');
+});
+
 test('industry pages render without overflow', async ({ page, request }) => {
   await page.goto('/industries', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-industries-view] [data-figure-list] a').first(), 'the list of industries is drawn').toBeVisible();

@@ -49,16 +49,16 @@ export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
 export interface FilterState {
   state?: StateCode;
   industry?: string;
-  /** Skills: a domain's slug, and the slug of one of its groups. */
+  /** Skills: a domain's slug, and the slug of one of its groups. Careers: the slug of their home domain. */
   domain?: string;
   group?: string;
 }
 
-/** A domain the Skills list can be narrowed to, with its groups, in the taxonomy's order. */
+/** A domain a list can be narrowed to, in the taxonomy's order: for Skills with its groups, for Careers alone. */
 export interface DomainChoice {
   slug: string;
   name: string;
-  groups: { slug: string; name: string }[];
+  groups?: { slug: string; name: string }[];
 }
 
 interface FilterBarProps {
@@ -69,7 +69,7 @@ interface FilterBarProps {
   onFilterChange: (filters: FilterState) => void;
   /** Industries to offer, by the name a plant carries; shown by their short names. */
   industries?: string[];
-  /** Skills: the domains to offer, each with its groups. */
+  /** Skills: the domains to offer, each with its groups. Careers: the domains that are some career's home. */
   domains?: DomainChoice[];
   /** Leads the bar (the Skills list's switch to the Atlas). On a phone it shares the first line with the sort, and the filters follow. */
   leading?: ReactNode;
@@ -160,8 +160,8 @@ export default function FilterBar({
 
   const showState = activeTab === 'factories';
   const showIndustry = (activeTab === 'companies' || activeTab === 'factories') && industryOptions.length > 0;
-  const showDomain = activeTab === 'skills' && domainOptions.length > 0;
-  const showGroup = showDomain && groupOptions.length > 0;
+  const showDomain = (activeTab === 'skills' || activeTab === 'occupations') && domainOptions.length > 0;
+  const showGroup = activeTab === 'skills' && showDomain && groupOptions.length > 0;
   const filtered = Boolean(filters.state || filters.industry || filters.domain || filters.group);
 
   return (

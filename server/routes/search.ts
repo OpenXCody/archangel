@@ -237,45 +237,56 @@ router.get('/', async (req: Request, res: Response) => {
       };
     }
 
-    // Search occupations
+    // Search careers: by title, by another name a career is known by (a title
+    // folded into it, or an everyday name, in occupation_aliases), or by what
+    // its description says. A career found by another name says which.
     if (typeFilter.includes('occupations')) {
+      // Another name matches from the start of a word: "weld" finds "weld tech", not "seam welder".
+      const nameStarts = sql`(a.alias_text ILIKE ${`${literal}%`} OR a.alias_text ILIKE ${`% ${literal}%`})`;
+      const otherName = sql<string | null>`(
+        SELECT a.alias_text FROM occupation_aliases a
+        WHERE a.canonical_occupation_id = occupations.id AND ${nameStarts}
+        ORDER BY (lower(a.alias_text) = ${query.toLowerCase()}) DESC, length(a.alias_text), a.alias_text LIMIT 1)`;
+      const careerMatches = or(
+        ilike(occupations.title, searchPattern),
+        sql`EXISTS (SELECT 1 FROM occupation_aliases a WHERE a.canonical_occupation_id = occupations.id AND ${nameStarts})`,
+        ilike(occupations.description, searchPattern)
+      );
       const [occupationResults, occupationCount] = await Promise.all([
         db
           .select({
             id: occupations.id,
             title: occupations.title,
             description: occupations.description,
+            otherName,
           })
           .from(occupations)
-          .where(
-            or(
-              ilike(occupations.title, searchPattern),
-              ilike(occupations.description, searchPattern)
-            )
+          .where(careerMatches)
+          // A title that matches comes before a career found by another name (the name itself first, then one
+          // that starts with the term), and that before one whose description mentions the term.
+          .orderBy(
+            sql`CASE WHEN ${occupations.title} ILIKE ${searchPattern} THEN 0 WHEN lower(${otherName}) = ${query.toLowerCase()} THEN 1 WHEN ${otherName} IS NOT NULL THEN 2 ELSE 3 END`,
+            byRelevance(occupations.title)
           )
-          .orderBy(byRelevance(occupations.title))
           .limit(maxLimit),
-        db
-          .select({ count: count() })
-          .from(occupations)
-          .where(
-            or(
-              ilike(occupations.title, searchPattern),
-              ilike(occupations.description, searchPattern)
-            )
-          ),
+        db.select({ count: count() }).from(occupations).where(careerMatches),
       ]);
 
+      const titled = (title: string) => title.toLowerCase().includes(query.toLowerCase());
       const occupationItems = occupationResults.map((o) => ({
         id: o.id,
         name: o.title,
         type: 'occupations' as const,
-        subtitle: o.description || undefined,
+        // Found by another name: say which, so the result explains itself.
+        subtitle: !titled(o.title) && o.otherName ? `Also called ${o.otherName}` : o.description || undefined,
+        found: titled(o.title) ? 0 : o.otherName ? (o.otherName.toLowerCase() === query.toLowerCase() ? 1 : 2) : 3,
       }));
 
       results.results.occupations = {
         count: occupationCount[0]?.count ?? 0,
-        items: sortByRelevance(occupationItems, query),
+        items: sortByRelevance(occupationItems.filter((item) => item.found === 0), query)
+          .concat(occupationItems.filter((item) => item.found !== 0).sort((x, y) => x.found - y.found))
+          .map(({ found: _found, ...item }) => item),
       };
     }
 

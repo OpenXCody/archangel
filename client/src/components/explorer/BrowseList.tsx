@@ -203,7 +203,8 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     () => ({
       state: tab === 'factories' && isStateCode(stateParam) ? stateParam : undefined,
       industry: tab === 'companies' || tab === 'factories' ? industry : undefined,
-      domain: tab === 'skills' && domainParam ? domainParam : undefined,
+      // Skills are narrowed to a domain and then a group; careers to the domain that is their home.
+      domain: (tab === 'skills' || tab === 'occupations') && domainParam ? domainParam : undefined,
       group: tab === 'skills' && groupParam ? groupParam : undefined,
     }),
     [tab, stateParam, industry, domainParam, groupParam]
@@ -265,12 +266,16 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
 
   // Choices for the industry, domain and group filters: every value in use,
   // not just those on the first page of a list.
-  const facets = useExploreFacets(tab === 'companies' || tab === 'factories' || tab === 'skills');
+  const facets = useExploreFacets();
   // Of the 21: those some plant carries, or those that are some company's industry.
   const industries = tab === 'factories' ? facets.data?.factoryIndustries : (facets.data?.industries?.companies ?? facets.data?.factoryIndustries);
-  const domains = facets.data?.skillDomains;
+  const domains = tab === 'occupations' ? facets.data?.careerDomains : facets.data?.skillDomains;
 
-  const items = useMemo(() => list.data?.pages.flatMap((page) => page.data) ?? [], [list.data]);
+  const items = useMemo(() => {
+    const rows = list.data?.pages.flatMap((page) => page.data) ?? [];
+    // Careers narrowed to one domain: every row's home is the filter above them, so the rows do not repeat it.
+    return tab === 'occupations' && filters.domain ? rows.map((row) => ({ ...row, home: null })) : rows;
+  }, [list.data, tab, filters.domain]);
   const total = tree ? treeTotal : list.data?.pages[0]?.total;
   const failed = tree ? taxonomy.isError && !taxonomy.data : list.isError && items.length === 0;
   // Said under the page's heading, by the page.

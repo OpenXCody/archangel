@@ -155,12 +155,37 @@ export const occupations = pgTable(
     // Whether the career's path of staged skills has been reviewed by a person:
     // null (no path yet), 'draft' (written, not reviewed) or 'approved'.
     pathStatus: text('path_status'),
+    // The career's home: the domain most of its work is in (a skill_domains slug).
+    // Curated in data/careers/catalogue.json; a career added by hand may have none.
+    homeDomain: text('home_domain').references(() => skillDomains.slug, { onUpdate: 'cascade', onDelete: 'set null' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => ({
     titleIdx: uniqueIndex('occupations_title_idx').on(table.title),
     onetIdx: index('occupations_onet_idx').on(table.onetCode),
     titleTrgmIdx: index('occupations_title_trgm_idx').using('gin', table.title.op('gin_trgm_ops')),
+    homeDomainIdx: index('occupations_home_domain_idx').on(table.homeDomain),
+  })
+);
+
+// A ladder, one step at a time: the first career leads to the second
+// ("CNC Machine Operator" to "CNC Machinist"). `position` orders the careers
+// one career leads to. No chain of links comes back to where it started:
+// the catalogue's builder and every write check (server/lib/careers.ts).
+export const occupationLinks = pgTable(
+  'occupation_links',
+  {
+    fromOccupationId: uuid('from_occupation_id')
+      .notNull()
+      .references(() => occupations.id, { onDelete: 'cascade' }),
+    toOccupationId: uuid('to_occupation_id')
+      .notNull()
+      .references(() => occupations.id, { onDelete: 'cascade' }),
+    position: integer('position').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.fromOccupationId, table.toOccupationId] }),
+    toIdx: index('occupation_links_to_idx').on(table.toOccupationId),
   })
 );
 

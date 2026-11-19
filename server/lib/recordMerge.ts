@@ -2,6 +2,7 @@ import { eq, sql } from 'drizzle-orm';
 import { db, companies, occupations, skills } from '../db/index.js';
 import { recordAudit, type Actor } from './audit.js';
 import { NOT_FOUND, RecordRefusal, attachedTo, type Attached, type RecordKind } from './records.js';
+import { LADDER_LOCK, MAX_LEADS_TO, ladderFrom } from './careers.js';
 import { rowsOf } from './rows.js';
 import { recordMerged } from './provenance.js';
 
@@ -103,11 +104,40 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
       await tx.execute(sql`UPDATE factory_occupations x SET occupation_id = ${k} WHERE occupation_id = ${m}
         AND NOT EXISTS (SELECT 1 FROM factory_occupations y WHERE y.occupation_id = ${k} AND y.factory_id = x.factory_id)`);
       await tx.execute(sql`UPDATE jobs SET occupation_id = ${k} WHERE occupation_id = ${m}`);
+      // The ladder: the kept career leads where the merged one led, and is led to by what led to it.
+      // A link between the two would point the career at itself, and one the kept career already has
+      // would repeat it: both go with the merged row. So does one that would close a ladder on itself.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${LADDER_LOCK})`);
+      const onward = rowsOf<{ id: string; position: number }>(
+        await tx.execute(sql`SELECT to_occupation_id AS id, position FROM occupation_links WHERE from_occupation_id = ${m} AND to_occupation_id <> ${k} ORDER BY position`)
+      );
+      const back = rowsOf<{ id: string; position: number }>(
+        await tx.execute(sql`SELECT from_occupation_id AS id, position FROM occupation_links WHERE to_occupation_id = ${m} AND from_occupation_id <> ${k} ORDER BY position`)
+      );
+      await tx.execute(sql`DELETE FROM occupation_links WHERE from_occupation_id = ${m} OR to_occupation_id = ${m}`);
+      for (const link of onward) {
+        // After the kept career's own, up to the most a career leads to.
+        if (await ladderFrom(tx, link.id, k)) continue;
+        await tx.execute(sql`
+          INSERT INTO occupation_links (from_occupation_id, to_occupation_id, position)
+          SELECT ${k}, ${link.id}, COALESCE((SELECT MAX(position) FROM occupation_links WHERE from_occupation_id = ${k}), 0) + 1
+          WHERE (SELECT COUNT(*) FROM occupation_links WHERE from_occupation_id = ${k}) < ${MAX_LEADS_TO}
+          ON CONFLICT DO NOTHING`);
+      }
+      for (const link of back) {
+        if (await ladderFrom(tx, k, link.id)) continue;
+        await tx.execute(sql`
+          INSERT INTO occupation_links (from_occupation_id, to_occupation_id, position)
+          SELECT ${link.id}, ${k}, ${link.position}
+          WHERE (SELECT COUNT(*) FROM occupation_links WHERE from_occupation_id = ${link.id}) < ${MAX_LEADS_TO}
+          ON CONFLICT DO NOTHING`);
+      }
       await tx.execute(sql`UPDATE occupation_aliases SET canonical_occupation_id = ${k} WHERE canonical_occupation_id = ${m}`);
       await tx.execute(sql`INSERT INTO occupation_aliases (alias_text, canonical_occupation_id) VALUES (${from.name}, ${k}) ON CONFLICT (alias_text) DO NOTHING`);
       await tx.execute(sql`UPDATE occupations o SET
           path_status = COALESCE(o.path_status, (SELECT path_status FROM occupations WHERE id = ${m})),
-          description = COALESCE(NULLIF(btrim(o.description), ''), (SELECT description FROM occupations WHERE id = ${m}))
+          description = COALESCE(NULLIF(btrim(o.description), ''), (SELECT description FROM occupations WHERE id = ${m})),
+          home_domain = COALESCE(o.home_domain, (SELECT home_domain FROM occupations WHERE id = ${m}))
         WHERE o.id = ${k}`);
       await tx.delete(occupations).where(eq(occupations.id, m));
     } else {

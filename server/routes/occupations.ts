@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { and, eq, inArray, notInArray, sql } from 'drizzle-orm';
 import { db, occupations, occupationSkills, skills, skillDomains, skillGroups, factoryOccupations, factories, jobs } from '../db/index.js';
+import { comesFrom, findDomain, homeColumns, homeOf, leadsTo } from '../lib/careers.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
@@ -18,9 +19,12 @@ router.param('id', uuidParam);
 // GET /api/occupations - List occupations with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { offset = '0', limit = '20', search, sort, order = 'asc' } = req.query;
+    const { offset = '0', limit = '20', search, sort, order = 'asc', domain } = req.query;
     const limitNum = pageLimit(limit, 20, 100);
     const offsetNum = pageOffset(offset);
+    // Narrowed to the careers whose home is one domain (a slug). A slug no
+    // domain has matches nothing, as on the skills list.
+    const inDomain = typeof domain === 'string' && domain ? eq(occupations.homeDomain, domain) : undefined;
 
     // Search reads titles and the other names careers go by, tolerant of
     // "&", punctuation, plurals and word order (see lib/careerSearch.ts). When
@@ -39,13 +43,13 @@ router.get('/', async (req: Request, res: Response) => {
     let match: CareerMatch | null = null;
     let total = 0;
     if (!term) {
-      const [row] = await db.select({ count: sql<number>`COUNT(*)::int` }).from(occupations);
+      const [row] = await db.select({ count: sql<number>`COUNT(*)::int` }).from(occupations).where(inDomain);
       total = row?.count ?? 0;
     }
     for (const [index, candidate] of tries.entries()) {
       let count = 0;
       try {
-        const [row] = await db.select({ count: sql<number>`COUNT(*)::int` }).from(occupations).where(candidate.where);
+        const [row] = await db.select({ count: sql<number>`COUNT(*)::int` }).from(occupations).where(and(candidate.where, inDomain));
         count = row?.count ?? 0;
       } catch (error) {
         // Only the closest titles (the last try) may fail: they need the
@@ -58,7 +62,7 @@ router.get('/', async (req: Request, res: Response) => {
       total = count;
       if (total > 0) break;
     }
-    const whereClause = match?.where;
+    const whereClause = match ? and(match.where, inDomain) : inDomain;
 
     // Build order by clause
     // The list opens on the careers with something to follow: those with a
@@ -87,6 +91,9 @@ router.get('/', async (req: Request, res: Response) => {
         onetCode: occupations.onetCode,
         pathStatus: occupations.pathStatus,
         createdAt: occupations.createdAt,
+        ...homeColumns,
+        // The other name a search found it by, when its title did not match.
+        alsoCalled: match ? match.otherName : sql<string | null>`NULL`,
         skillCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.occupation_id = occupations.id)`,
         // Skills at each level (Fundamentals, Intermediate, Advanced); null when the career has no skills.
         levelCounts: sql<[number, number, number] | null>`(
@@ -96,6 +103,7 @@ router.get('/', async (req: Request, res: Response) => {
         factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factory_occupations fo INNER JOIN factories f ON f.id = fo.factory_id WHERE fo.occupation_id = occupations.id AND ${factoryInScope('f')})`,
       })
       .from(occupations)
+      .leftJoin(skillDomains, eq(skillDomains.slug, occupations.homeDomain))
       .where(whereClause)
       .orderBy(orderByClause)
       .limit(limitNum)
@@ -104,7 +112,7 @@ router.get('/', async (req: Request, res: Response) => {
     const hasMore = offsetNum + result.length < total;
 
     res.json({
-      data: result,
+      data: result.map(({ homeSlug, homeName, ...row }) => ({ ...row, home: homeOf({ homeSlug, homeName }) })),
       total,
       offset: offsetNum,
       limit: limitNum,
@@ -129,7 +137,9 @@ router.get('/:id', async (req: Request, res: Response) => {
       return;
     }
 
-    const occupation = occupationResult[0];
+    const { homeDomain, ...occupation } = occupationResult[0];
+    // Its home domain, and its place on a ladder: where a person comes from and where it leads.
+    const [home, ladderOn, ladderBack] = await Promise.all([findDomain(db, homeDomain), leadsTo(db, id), comesFrom(db, id)]);
 
     // The career's path: its skills, each with its level, group and domain,
     // in the order a path is laid out: by level, and within a level by domain
@@ -212,6 +222,9 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     res.json({
       ...occupation,
+      home,
+      leadsTo: ladderOn,
+      comesFrom: ladderBack,
       skills: occupationSkillsResult,
       factories: factoriesResult,
       jobs: jobsResult,
@@ -340,6 +353,13 @@ router.post('/', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'An O*NET code is text of up to 20 characters.' });
       return;
     }
+    // A home is optional: a domain's slug when given.
+    const wantsHome = req.body?.home !== undefined && req.body?.home !== null && req.body?.home !== '';
+    const home = wantsHome ? await findDomain(db, req.body.home) : null;
+    if (wantsHome && !home) {
+      res.status(400).json({ error: 'Choose a domain, or none.', field: 'home' });
+      return;
+    }
 
     const [existing] = await db
       .select({ id: occupations.id, name: occupations.title })
@@ -355,16 +375,19 @@ router.post('/', async (req: Request, res: Response) => {
       title,
       description,
       onetCode,
+      homeDomain: home?.slug ?? null,
     }).returning();
 
     await recordAdded('career', { id: result[0].id, name: result[0].title }, req.user!);
-    res.status(201).json(result[0]);
+    const { homeDomain: _slug, ...added } = result[0];
+    res.status(201).json({ ...added, home });
   } catch (error) {
     answerWriteError(res, error, 'career');
   }
 });
 
-// PUT /api/occupations/:id - Change a career: title, description, onetCode, aliases.
+// PUT /api/occupations/:id - Change a career: title, description, onetCode, aliases,
+// `home` (a domain's slug, or null for none) and `leadsTo` (up to three career ids, in order).
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     res.json(await changeRecord('career', req.params.id, req.body, req.user!));
