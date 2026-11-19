@@ -17,8 +17,17 @@
 //     so the old name still finds it;
 //   - deletes the removed skills;
 //   - adds each kept skill that is not stored yet;
-//   - writes each kept skill's details where they differ.
+//   - says in load_log (load 'skills-catalogue', look = true) each stored skill
+//     it renamed, merged or removed;
+//   - writes each kept skill's details where they differ, and says in load_log
+//     (load 'skills-catalogue', look = true) which stored details it put back;
+//   - adds each other name that is not stored, and says each in load_log; one
+//     stored for another skill is left there and said once.
 // Every step is a no-op once it has been done.
+//
+// 0033 was the first, 0048 the pass that added the trades and folded the brand
+// names, 0057 the other names employers' postings use. Each is as it was applied;
+// only the latest is what this script writes today.
 //
 // It attaches no skill to a career: a path is written in data/paths/. (The
 // first catalogue migration, 0033, did; the file no longer carries "careers".)
@@ -26,7 +35,7 @@
 // whose migration follows this one and places every skill this one leaves.
 import { readFile, writeFile } from 'node:fs/promises';
 
-const [input = 'data/skills/catalogue.json', output = 'migrations/0048_skills_catalogue_2.sql'] = process.argv.slice(2);
+const [input = 'data/skills/catalogue.json', output = 'migrations/0057_skills_catalogue_3.sql'] = process.argv.slice(2);
 const q = (text) => `'${String(text).replace(/'/g, "''")}'`;
 const data = JSON.parse(await readFile(input, 'utf8'));
 
@@ -181,6 +190,14 @@ END $fn$ LANGUAGE plpgsql;`,
   ''
 );
 
+say(
+  '-- The skills as they stand, so the log can say which this run renamed, merged or',
+  '-- removed: on a database that already holds this catalogue that is none, unless a',
+  '-- skill was added by hand since under a name the file merges away or removes.',
+  'DROP TABLE IF EXISTS pg_temp.skill_names_before;',
+  'CREATE TEMP TABLE skill_names_before AS SELECT id, name FROM skills;',
+  ''
+);
 say('-- Renames and merges --------------------------------------------------------', '');
 for (const skill of data.skills) {
   for (const was of skill.was ?? []) say(`SELECT pg_temp.rename_skill(${q(was)}, ${q(skill.name)});`);
@@ -198,6 +215,15 @@ for (const group of data.removed) {
 }
 say('UPDATE skills SET parent_skill_id = NULL WHERE parent_skill_id IS NOT NULL AND parent_skill_id NOT IN (SELECT id FROM skills);', '');
 
+say(
+  "INSERT INTO load_log (load, kind, action, look, detail, entity_id)",
+  "SELECT 'skills-catalogue', 'skill', 'renamed, merged or removed', true,",
+  "       format('%s is no longer stored under that name', b.name), (SELECT s.id FROM skills s WHERE s.id = b.id)",
+  '  FROM skill_names_before b',
+  ' WHERE NOT EXISTS (SELECT 1 FROM skills s WHERE s.id = b.id AND s.name = b.name)',
+  ' ORDER BY b.name;',
+  ''
+);
 say('-- Kept skills that are not stored yet ------------------------------------------', '');
 say(
   '-- Added without a group or a level: the taxonomy migration that follows places',
@@ -210,7 +236,16 @@ for (const skill of data.skills) {
 }
 say('');
 
-say('-- What each kept skill is ---------------------------------------------------', '');
+say(
+  '-- What each kept skill is ---------------------------------------------------',
+  '',
+  '-- The details as they stand, so the log can say which were put back to the file\'s:',
+  '-- a description, a way of learning or a tools line corrected by hand since the',
+  '-- last catalogue migration is restated here, and somebody should know.',
+  'DROP TABLE IF EXISTS pg_temp.skills_before;',
+  'CREATE TEMP TABLE skills_before AS SELECT id, description, how_learned, tools FROM skills WHERE description IS NOT NULL;',
+  ''
+);
 for (const skill of data.skills) {
   const tools = skill.tools?.length ? `ARRAY[${skill.tools.map(q).join(', ')}]` : 'NULL';
   say(
@@ -220,11 +255,28 @@ for (const skill of data.skills) {
     `    AND (description, how_learned, tools) IS DISTINCT FROM (${q(skill.what)}, ${q(skill.learned)}, ${tools === 'NULL' ? 'NULL::text[]' : tools});`
   );
 }
-say('');
+say(
+  '',
+  "INSERT INTO load_log (load, kind, action, look, detail, entity_id)",
+  "SELECT 'skills-catalogue', 'skill', 'details restated', true,",
+  "       format('%s: what it is, how it is learned or its tools were put back to the catalogue''s', s.name), s.id",
+  '  FROM skills s JOIN skills_before b ON b.id = s.id',
+  ' WHERE (s.description, s.how_learned, s.tools) IS DISTINCT FROM (b.description, b.how_learned, b.tools);',
+  ''
+);
 
-say('-- Other names a skill is known by --------------------------------------------', '');
+say(
+  '-- Other names a skill is known by --------------------------------------------',
+  '',
+  '-- The names as they stand, so the log can say which this run added.',
+  'DROP TABLE IF EXISTS pg_temp.aliases_before;',
+  'CREATE TEMP TABLE aliases_before AS SELECT id FROM skill_aliases;',
+  ''
+);
+const otherNames = [];
 for (const skill of data.skills) {
   for (const alias of skill.aliases ?? []) {
+    otherNames.push([alias, skill.name]);
     say(
       `INSERT INTO skill_aliases (alias_text, canonical_skill_id) SELECT ${q(alias)}, id FROM skills WHERE name = ${q(skill.name)}`,
       `  AND NOT EXISTS (SELECT 1 FROM skills WHERE lower(name) = lower(${q(alias)})) ON CONFLICT (alias_text) DO NOTHING;`
@@ -235,9 +287,36 @@ say(
   '',
   "-- An other name that is now a skill's own name says nothing.",
   'DELETE FROM skill_aliases a USING skills s WHERE lower(a.alias_text) = lower(s.name);',
+  '',
+  '-- What this run did to the names: each one added, and each the file lists that',
+  '-- is stored for another skill (left where it is; said once, for a person to read).',
+  "INSERT INTO load_log (load, kind, action, look, detail, entity_id)",
+  "SELECT 'skills-catalogue', 'skill', 'name added', false, format('\"%s\" is another name of %s', a.alias_text, s.name), s.id",
+  '  FROM skill_aliases a JOIN skills s ON s.id = a.canonical_skill_id',
+  ' WHERE NOT EXISTS (SELECT 1 FROM aliases_before b WHERE b.id = a.id)',
+  ' ORDER BY s.name, a.alias_text;',
+  '',
+  'DROP TABLE IF EXISTS pg_temp.catalogue_aliases;',
+  'CREATE TEMP TABLE catalogue_aliases (alias text, skill text);'
+);
+for (let i = 0; i < otherNames.length; i += 4) {
+  say(`INSERT INTO catalogue_aliases (alias, skill) VALUES ${otherNames.slice(i, i + 4).map(([alias, name]) => `(${q(alias)}, ${q(name)})`).join(', ')};`);
+}
+say(
+  '',
+  "INSERT INTO load_log (load, kind, action, look, detail, entity_id)",
+  "SELECT 'skills-catalogue', 'skill', 'name not added', true,",
+  "       format('\"%s\" was not added to %s: it is stored as another name of %s', c.alias, c.skill, other.name), s.id",
+  '  FROM catalogue_aliases c',
+  '  JOIN skills s ON s.name = c.skill',
+  '  JOIN skill_aliases a ON lower(a.alias_text) = lower(c.alias) AND a.canonical_skill_id <> s.id',
+  '  JOIN skills other ON other.id = a.canonical_skill_id',
+  " WHERE NOT EXISTS (SELECT 1 FROM skill_aliases mine WHERE lower(mine.alias_text) = lower(c.alias) AND mine.canonical_skill_id = s.id)",
+  "   AND NOT EXISTS (SELECT 1 FROM load_log l WHERE l.load = 'skills-catalogue' AND l.action = 'name not added'",
+  "                      AND starts_with(l.detail, format('\"%s\" was not added to %s:', c.alias, c.skill)));",
   ''
 );
 
 await writeFile(output, out.join('\n'));
 const merged = [...sources.keys()].length;
-console.log(`${output}: ${out.length} lines. ${data.skills.length} skills kept (from ${merged} renamed or merged names), ${removed.size} removed.`);
+console.log(`${output}: ${out.length} lines. ${data.skills.length} skills kept (from ${merged} renamed or merged names), ${removed.size} removed, ${otherNames.length} other names.`);
