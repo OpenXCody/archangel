@@ -35,7 +35,7 @@ export default function MapHoverCard() {
   const factoryName = formatFactoryName(info.name);
   const companyName = info.companyName ? formatCompanyName(info.companyName) : null;
   const showCompany = companyName !== null && !factoryName.toLowerCase().startsWith(companyName.toLowerCase());
-  const arrow = 'absolute h-2.5 w-2.5 -translate-x-1/2 rotate-45 border-border-strong bg-bg-elevated';
+  const arrow = 'absolute h-2.5 w-2.5 -translate-x-1/2 rotate-45 border-line bg-surface';
 
   return (
     <div
@@ -45,13 +45,11 @@ export default function MapHoverCard() {
     >
       <div className="map-overlay rounded-lg p-3">
         <div className="flex items-start gap-2.5">
-          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-tint/[0.06]">
-            <Factory className="h-3.5 w-3.5 text-fg-muted" />
-          </span>
+          <Factory className="mt-1 h-4 w-4 shrink-0 text-text-2" aria-hidden="true" />
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold text-fg-default">{factoryName}</div>
+            <div className="truncate text-[15px] font-semibold text-text-1">{factoryName}</div>
             {showCompany && (
-              <div className="mt-0.5 flex items-center gap-1 text-xs text-fg-muted">
+              <div className="mt-0.5 flex items-center gap-1 text-[13px] text-text-2">
                 <Building2 className="h-3 w-3 shrink-0" />
                 <span className="truncate">{companyName}</span>
               </div>
@@ -59,10 +57,10 @@ export default function MapHoverCard() {
           </div>
         </div>
         {(info.industry || info.openJobs > 0) && (
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-text-3">
             {info.industry && <span className="min-w-0 truncate">{info.industry}</span>}
             {info.openJobs > 0 && (
-              <span className="inline-flex items-center gap-1 font-medium text-info">
+              <span className="inline-flex items-center gap-1 font-medium tabular-nums text-text-1">
                 <Briefcase className="h-3 w-3 shrink-0" />
                 {info.openJobs.toLocaleString()} open {info.openJobs === 1 ? 'job' : 'jobs'}
               </span>

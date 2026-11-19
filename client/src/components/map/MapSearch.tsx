@@ -31,6 +31,7 @@ import {
   type SearchGroup,
   type SearchRow,
 } from '../search/results';
+import { LABEL_SMALL } from './panel/parts';
 import { stateName } from '../../lib/places';
 import { useExploreFacets } from '../../lib/queries';
 import { publicKeys } from '../../lib/queryKeys';
@@ -201,9 +202,9 @@ function Filters({ id }: { id: string }) {
   };
 
   return (
-    <div id={id} className="border-t border-border-strong px-2 pb-2 pt-3">
+    <div id={id} className="border-t border-line px-2 pb-2 pt-3">
       <div role="group" aria-labelledby={`${id}-industry`}>
-        <h4 id={`${id}-industry`} className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+        <h4 id={`${id}-industry`} className={`px-2 pb-1 ${LABEL_SMALL}`}>
           Industry
         </h4>
         <div className="max-h-[min(304px,36vh)] overflow-y-auto">
@@ -215,8 +216,8 @@ function Filters({ id }: { id: string }) {
                 type="button"
                 aria-pressed={chosen}
                 onClick={() => setFilters({ industry: chosen ? null : industry })}
-                className={`map-row flex w-full items-center justify-between gap-3 rounded-lg px-2 text-left text-sm transition-colors hover:bg-tint/5 ${
-                  chosen ? 'text-fg-default' : 'text-fg-muted'
+                className={`map-row map-list-row flex w-full items-center justify-between gap-3 rounded-lg px-2 text-left text-[15px] transition-colors hover:bg-surface-hover ${
+                  chosen ? 'text-text-1' : 'text-text-2'
                 }`}
               >
                 <span className="min-w-0 truncate">{industryLabel(industry)}</span>
@@ -224,12 +225,12 @@ function Filters({ id }: { id: string }) {
               </button>
             );
           })}
-          {facets && industries.length === 0 && <p className="px-2 py-2 text-sm text-fg-muted">No industries listed.</p>}
+          {facets && industries.length === 0 && <p className="px-2 py-2 text-[15px] text-text-2">No industries listed.</p>}
         </div>
       </div>
 
-      <div role="group" aria-labelledby={`${id}-states`} className="mt-3 border-t border-border-subtle pt-3">
-        <h4 id={`${id}-states`} className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+      <div role="group" aria-labelledby={`${id}-states`} className="mt-3 border-t border-line pt-3">
+        <h4 id={`${id}-states`} className={`px-2 pb-1 ${LABEL_SMALL}`}>
           States
         </h4>
         <input
@@ -241,7 +242,7 @@ function Filters({ id }: { id: string }) {
           }}
           placeholder="Add a state"
           aria-label="Add a state to the filter"
-          className="map-field map-row w-full rounded-lg border border-border-strong bg-bg-base px-3 text-fg-default placeholder:text-fg-muted focus:outline-none focus-visible:border-fg-muted"
+          className="map-field map-row w-full rounded-lg border border-line-strong bg-bg px-3 text-text-1 placeholder:text-text-2"
         />
         {matchingStates.length > 0 && (
           <div className="mt-1">
@@ -253,8 +254,8 @@ function Filters({ id }: { id: string }) {
                   type="button"
                   aria-pressed={chosen}
                   onClick={() => toggleState(state.code)}
-                  className={`map-row flex w-full items-center justify-between gap-3 rounded-lg px-2 text-left text-sm transition-colors hover:bg-tint/5 ${
-                    chosen ? 'text-fg-default' : 'text-fg-muted'
+                  className={`map-row map-list-row flex w-full items-center justify-between gap-3 rounded-lg px-2 text-left text-[15px] transition-colors hover:bg-surface-hover ${
+                    chosen ? 'text-text-1' : 'text-text-2'
                   }`}
                 >
                   <span>{state.name}</span>
@@ -264,7 +265,7 @@ function Filters({ id }: { id: string }) {
             })}
           </div>
         )}
-        {q && matchingStates.length === 0 && <p className="px-2 pt-2 text-sm text-fg-muted">No state starts with “{stateQuery.trim()}”.</p>}
+        {q && matchingStates.length === 0 && <p className="px-2 pt-2 text-[15px] text-text-2">No state starts with “{stateQuery.trim()}”.</p>}
         {filters.states.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5 px-1">
             {filters.states.map((code) => (
@@ -273,7 +274,7 @@ function Filters({ id }: { id: string }) {
                 type="button"
                 onClick={() => toggleState(code)}
                 aria-label={`Remove ${stateName(code)}`}
-                className="map-row inline-flex items-center gap-1.5 rounded-full border border-border-strong px-3 text-xs text-fg-muted transition-colors hover:text-fg-default"
+                className="map-row inline-flex items-center gap-1.5 rounded-full border border-line-strong px-3 text-xs text-text-2 transition-colors hover:text-text-1"
               >
                 {stateName(code)}
                 <X className="h-3 w-3" aria-hidden="true" />
@@ -534,10 +535,10 @@ export default function MapSearch() {
 
   return (
     <div className="absolute left-4 right-4 top-4 z-40 sm:right-auto sm:w-[360px]" ref={rootRef}>
-      <div className={`map-overlay ${expanded ? 'rounded-2xl' : 'rounded-xl'} ${isFocused ? 'ring-1 ring-tint/20' : ''}`}>
+      <div className="map-overlay map-search-box rounded-lg">
         {/* The field */}
         <div className="flex items-center gap-1 py-[5px] pl-4 pr-1.5 [@media(pointer:coarse)]:py-[3px]">
-          <Search className="mr-2 h-5 w-5 shrink-0 text-fg-muted" aria-hidden="true" />
+          <Search className="mr-2 h-5 w-5 shrink-0 text-text-1" aria-hidden="true" />
           <input
             ref={inputRef}
             id="map-search-input"
@@ -561,10 +562,10 @@ export default function MapSearch() {
             placeholder="Place, company or career"
             // Heard as it is read.
             aria-label="Place, company or career"
-            className="map-field min-w-0 flex-1 text-ellipsis bg-transparent text-fg-default placeholder:text-fg-muted"
+            className="map-field map-search-input min-w-0 flex-1 text-ellipsis bg-transparent text-text-1 placeholder:text-text-2"
             style={{ outline: 'none', border: 'none', boxShadow: 'none', WebkitAppearance: 'none' }}
           />
-          {stillSearching && hasQuery && <Loader2 className="mx-1 h-4 w-4 shrink-0 animate-spin text-fg-muted" aria-hidden="true" />}
+          {stillSearching && hasQuery && <Loader2 className="mx-1 h-4 w-4 shrink-0 animate-spin text-text-2" aria-hidden="true" />}
           {query && (
             <button
               type="button"
@@ -573,7 +574,7 @@ export default function MapSearch() {
                 inputRef.current?.focus();
               }}
               aria-label="Clear search"
-              className="map-search-button flex shrink-0 items-center justify-center rounded-lg text-fg-muted transition-colors hover:text-fg-default"
+              className="map-search-button flex shrink-0 items-center justify-center rounded-lg text-text-1 transition-colors hover:bg-surface-hover"
             >
               <X className="h-4 w-4" />
             </button>
@@ -588,8 +589,9 @@ export default function MapSearch() {
             title="Filter"
             aria-expanded={showFilters}
             aria-controls={filtersId}
-            className={`map-search-button flex shrink-0 items-center justify-center rounded-lg transition-colors hover:text-fg-default ${
-              showFilters ? 'bg-tint/10 text-fg-default' : filtersActive ? 'text-fg-default' : 'text-fg-muted'
+            // The funnel is quiet until a filter is set: its state is its brightness.
+            className={`map-search-button flex shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-surface-hover hover:text-text-1 ${
+              showFilters ? 'bg-surface-hover text-text-1' : filtersActive ? 'text-text-1' : 'text-text-2'
             }`}
           >
             <Filter className="h-4 w-4" />
@@ -598,7 +600,7 @@ export default function MapSearch() {
 
         {/* One line, when there is one to say: what this is (a first visit), or what a link asked for that is not here. */}
         {caption && !expanded && (
-          <p role="status" className="-mt-1 px-4 pb-3 text-[13px] leading-snug text-fg-muted [text-wrap:balance]">
+          <p role="status" className="-mt-1 px-4 pb-3 text-[13px] leading-snug text-text-2 [text-wrap:balance]">
             {caption}
           </p>
         )}
@@ -612,7 +614,7 @@ export default function MapSearch() {
           role="listbox"
           aria-label="Search results"
           hidden={!listOpen || rows.length === 0}
-          className="max-h-[min(460px,58vh)] overflow-y-auto border-t border-border-strong"
+          className="max-h-[min(460px,58vh)] overflow-y-auto border-t border-line"
         >
           {listOpen && rows.length > 0 && (
             <div className="py-1.5">
@@ -620,7 +622,7 @@ export default function MapSearch() {
                 const headingId = `${baseId}-group-${group.id}`;
                 return (
                   <div key={group.id} role="group" aria-labelledby={headingId} className="px-2 py-1.5">
-                    <div id={headingId} role="presentation" className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                    <div id={headingId} role="presentation" className={`px-2 pb-1 ${LABEL_SMALL}`}>
                       {groupHeading(group.id)}
                     </div>
                     {group.rows.map((row) => {
@@ -639,13 +641,13 @@ export default function MapSearch() {
                             listTouched.current = true;
                             if (!active) setSelectedIndex(index);
                           }}
-                          className={`map-row flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 ${active ? 'bg-tint/10' : ''}`}
+                          className={`map-row flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 ${active ? 'bg-surface-hover' : ''}`}
                         >
                           {/* A company by its logo; every other row by the group it is in. */}
-                          {row.kind === 'company' && <CompanyLogo name={row.title} domain={row.domain} size={24} className="rounded" />}
+                          {row.kind === 'company' && <CompanyLogo name={row.title} domain={row.domain} size={32} />}
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm text-fg-default">{row.title}</span>
-                            {row.subtitle && <span className="block truncate text-xs text-fg-muted">{row.subtitle}</span>}
+                            <span className="block truncate text-[15px] text-text-1">{row.title}</span>
+                            {row.subtitle && <span className="block truncate text-[13px] text-text-3">{row.subtitle}</span>}
                           </span>
                         </div>
                       );
@@ -657,7 +659,7 @@ export default function MapSearch() {
           )}
         </div>
         {/* Said, not only shown: a screen reader hears how the search came out. */}
-        <p role="status" className={listOpen && rows.length === 0 && !stillSearching ? 'border-t border-border-strong px-4 py-3 text-sm text-fg-muted' : 'sr-only'}>
+        <p role="status" className={listOpen && rows.length === 0 && !stillSearching ? 'border-t border-line px-4 py-3 text-[15px] text-text-2' : 'sr-only'}>
           {!listOpen ? '' : stillSearching && rows.length === 0 ? '' : rows.length === 0 ? noResults(debouncedQuery) : `${rows.length} ${rows.length === 1 ? 'result' : 'results'}.`}
         </p>
       </div>

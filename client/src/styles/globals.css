@@ -63,6 +63,14 @@
     --inverse-bg: #f5f5f5;
     --inverse-text: #0e0e0f;
 
+    /* The map (components/map/layers.ts reads these when it is built): the country's land,
+       everyone else's, water, state lines and roads. Dark: lights on a dark land. */
+    --map-land: #080808;
+    --map-land-other: #080808;
+    --map-water: #050505;
+    --map-border: var(--line-strong);
+    --map-road: #333333;
+
     --color-bg-base: #0f0f0f;
     --color-bg-surface: #161616;
     --color-bg-elevated: #202020;
@@ -122,6 +130,13 @@
     --accent: #3e6ae1;
     --inverse-bg: #171a20;
     --inverse-text: #ffffff;
+
+    /* Light: ink on white paper. */
+    --map-land: #ffffff;
+    --map-land-other: #f4f4f4;
+    --map-water: #dfe4ea;
+    --map-border: #cfcfcf;
+    --map-road: #e5e5e5;
 
     --color-bg-base: #f6f7f8;
     --color-bg-surface: #ffffff;
@@ -225,39 +240,35 @@ input {
  * Map overlay surface.
  *
  * The ONE surface for anything that floats over the map: the hover card, the
- * search box and its dropdown, the context menu, the area chips and label,
- * the reset and zoom buttons. It is nearly opaque with a border and a shadow,
- * so what it says reads the same over dark land, a lit state or a field of
- * pins. Do not hand-roll translucent glass for a map overlay; use this.
+ * search box and its dropdown, the context menu, the area chips, the reset
+ * and zoom buttons. It is the raised fill (--surface) with a hairline, solid:
+ * no shadow and nothing showing through, so what it says reads the same over
+ * land, water or a field of pins in either theme. Do not hand-roll another.
  *
- * Text on it: --color-fg-default (15:1) or --color-fg-muted (7:1);
- * --color-fg-soft (5:1) only for asides.
+ * Text on it: --text-1 or --text-2; --text-3 only for meta.
  */
 @layer components {
   .map-overlay {
-    background-color: var(--color-bg-elevated);
-    background-color: color-mix(in srgb, var(--color-bg-elevated) 97%, transparent);
-    border: 1px solid var(--color-border-strong);
-    color: var(--color-fg-default);
-    box-shadow: var(--shadow-overlay);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--text-1);
   }
 
   /* A control on the surface (or the surface itself, when it is one button). */
   .map-overlay-button {
-    color: var(--color-fg-muted);
-    transition: color 0.15s ease;
+    color: var(--text-1);
+    transition: background-color 0.15s ease;
   }
   .map-overlay-button:hover:not(:disabled),
   .map-overlay-button[aria-pressed='true'] {
-    color: var(--color-fg-default);
-    /* A wash laid over the surface colour, so the surface stays opaque. */
-    background-image: linear-gradient(rgb(var(--tint) / 0.08), rgb(var(--tint) / 0.08));
+    background-color: var(--surface-hover);
   }
   .map-overlay-button:disabled {
-    color: var(--color-fg-soft);
-    cursor: default;
+    cursor: not-allowed;
+  }
+  /* The surface stays solid over the map; what is on it steps back. */
+  .map-overlay-button:disabled > * {
+    opacity: 0.4;
   }
 
   /*
@@ -275,7 +286,7 @@ input {
   }
   /* Type in the map's fields: under 16px, iOS zooms the whole page on focus. */
   .map-field {
-    font-size: 14px;
+    font-size: 15px;
     line-height: 20px;
   }
   .map-row {
@@ -300,19 +311,17 @@ input {
     inset: var(--chip-inset) 0;
     border-radius: 9999px;
     pointer-events: none;
-    /* The lighter of the two shadows: a chip is a control, not a card. */
-    box-shadow: var(--shadow-control);
   }
   .map-chip > button {
     position: relative;
     display: inline-flex;
     align-items: center;
-    color: var(--color-fg-muted);
+    color: var(--text-2);
     transition: color 0.15s ease;
   }
   .map-chip > button:hover,
   .map-chip > button[aria-pressed='true'] {
-    color: var(--color-fg-default);
+    color: var(--text-1);
   }
   .map-chip-close {
     justify-content: center;
@@ -320,17 +329,16 @@ input {
   }
   /*
    * The row of chips scrolls sideways, and a scrolling box clips whatever
-   * leaves it, shadows included: in the light theme that cut the chips'
-   * shadows off in a hard-edged grey rectangle. The row is padded so the
-   * shadows have room, pulled back by the same amount so nothing moves, and
-   * lets the pointer through to the map everywhere but on the chips.
+   * leaves it, a chip's focus ring included. The row is padded so the ring
+   * has room, pulled back by the same amount so nothing moves, and lets the
+   * pointer through to the map everywhere but on the chips.
    */
   .map-chip-row {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    margin: -4px -16px -20px;
-    padding: 12px 16px 20px;
+    margin: -4px -16px -6px;
+    padding: 12px 16px 6px;
     pointer-events: none;
     scrollbar-width: none;
   }
@@ -388,9 +396,10 @@ input {
 
 /*
  * MapLibre attribution. The basemap's terms require it, so it stays, but as
- * a quiet dark "i" that opens on click instead of a white pill. Scoped under
- * .archangel-map so it outranks maplibre-gl.css whichever loads first. The
- * container lifts with the phone sheet so the credit is never covered.
+ * a quiet "i" on the map's own surface that opens on click instead of a white
+ * pill. Scoped under .archangel-map so it outranks maplibre-gl.css whichever
+ * loads first. The container lifts with the phone sheet so the credit is
+ * never covered.
  */
 .archangel-map .maplibregl-ctrl-bottom-left {
   bottom: var(--map-covered-bottom, 0px);
@@ -398,29 +407,24 @@ input {
 }
 .archangel-map .maplibregl-ctrl-attrib.maplibregl-compact {
   margin: 0 0 14px 12px;
-  background-color: var(--color-bg-elevated);
-  border: 1px solid var(--color-border-strong);
-  color: var(--color-fg-muted);
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text-2);
   font-size: 11px;
   line-height: 20px;
-  box-shadow: var(--shadow-control);
 }
 .archangel-map .maplibregl-ctrl-attrib a {
-  color: var(--color-fg-muted);
+  color: var(--text-2);
 }
 .archangel-map .maplibregl-ctrl-attrib a:hover {
-  color: var(--color-fg-default);
+  color: var(--text-1);
 }
 .archangel-map .maplibregl-ctrl-attrib-button {
-  /* The same "i" MapLibre ships, as a mask so it takes --color-fg-muted in either theme. */
+  /* The same "i" MapLibre ships, as a mask so it takes --text-1 in either theme. */
   background-image: none;
-  background-color: var(--color-fg-muted);
+  background-color: var(--text-1);
   -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
   mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
-}
-.archangel-map .maplibregl-ctrl-attrib-button:hover,
-.archangel-map .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
-  background-color: var(--color-fg-default);
 }
 /* The "i" keeps its size; on a touch screen what takes the tap around it is thumb-sized. */
 @media (pointer: coarse) {
@@ -434,8 +438,28 @@ input {
 .archangel-map .maplibregl-ctrl-attrib-button:focus {
   box-shadow: none;
 }
-.archangel-map .maplibregl-ctrl-attrib-button:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-accent-primary);
+
+/*
+ * Focus on the map: every control takes the accent's ring, 2px and 2px off.
+ * Three things draw it elsewhere, because a ring outside them would be cut
+ * off: the search field shows it on the box that holds it, a row in a list
+ * that scrolls draws it just inside its own edge, and so does the map itself.
+ */
+.map-view :focus-visible,
+.map-view input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.map-view .map-search-input:focus-visible {
+  outline: none;
+}
+.map-search-box:has(.map-search-input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.map-view .map-list-row:focus-visible,
+.map-view .maplibregl-canvas:focus-visible {
+  outline-offset: -2px;
 }
 
 /* Scrollbar styling */
