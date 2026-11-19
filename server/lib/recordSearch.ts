@@ -3,6 +3,7 @@ import { db } from '../db/index.js';
 import type { RecordKind } from './records.js';
 import { rowsOf } from './rows.js';
 import { containing, likeLiteral } from './like.js';
+import { skillLevelName } from '../../shared/skillLevels.js';
 
 /**
  * Finding records for Admin Tools: by search, and the ones a name comes close
@@ -12,8 +13,10 @@ import { containing, likeLiteral } from './like.js';
 export interface FoundRecord {
   id: string;
   name: string;
-  /** One line that tells it from its neighbours: a domain and plant count, a place, a category. */
+  /** One line that tells it from its neighbours: a domain and plant count, a place, a skill's group and level. */
   detail: string | null;
+  /** Skills: its level, so a path editor can show a skill it adds where it will sit. */
+  level?: number | null;
   href: string;
 }
 
@@ -38,7 +41,8 @@ function found(kind: RecordKind, row: Record<string, unknown>): FoundRecord {
     const detail = skillsOnPath > 0 ? `${counted(skillsOnPath, 'skill', 'skills')}${text(row.path_status) ? `, ${text(row.path_status)}` : ''}` : 'No path';
     return { id, name: String(row.name), detail, href: `/occupations/${id}` };
   }
-  return { id, name: String(row.name), detail: text(row.category), href: `/skills/${id}` };
+  const level = row.level === null || row.level === undefined ? null : Number(row.level);
+  return { id, name: String(row.name), detail: [text(row.group_name), skillLevelName(level)].filter(Boolean).join(' · ') || null, level, href: `/skills/${id}` };
 }
 
 /** What each kind's search and near-match queries select, from the table aliased `r`. */
@@ -46,7 +50,7 @@ const FOUND_COLUMNS: Record<RecordKind, SQL> = {
   company: sql`r.id, r.name, r.slug, r.domain, (SELECT COUNT(*)::int FROM factories f WHERE f.company_id = r.id) AS plants`,
   factory: sql`r.id, r.name, r.city, r.state, (SELECT c.name FROM companies c WHERE c.id = r.company_id) AS company`,
   career: sql`r.id, r.title AS name, r.path_status, (SELECT COUNT(*)::int FROM occupation_skills os WHERE os.occupation_id = r.id) AS skills`,
-  skill: sql`r.id, r.name, r.category`,
+  skill: sql`r.id, r.name, r.level, (SELECT sg.name FROM skill_groups sg WHERE sg.slug = r.group_slug) AS group_name`,
 };
 const FOUND_TABLE: Record<RecordKind, SQL> = {
   company: sql`companies r`,

@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { eq, ilike, or, sql, and, isNull } from 'drizzle-orm';
-import { db, skills, occupationSkills, occupations, jobs } from '../db/index.js';
+import { db, skills, skillDomains, skillGroups, occupationSkills, occupations, jobs } from '../db/index.js';
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
@@ -8,6 +8,7 @@ import { answerRefusal, changeRecord, recordAdded, removeRecord, toolList } from
 import { listOpenJobs } from '../lib/openJobs.js';
 import { rowsOf } from '../lib/rows.js';
 import { containing } from '../lib/like.js';
+import { findGroup, placeColumns, placeOf, placeSql, readLevel, readTaxonomy } from '../lib/taxonomy.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -19,6 +20,19 @@ router.use(uuidQuery('parent'));
 const careerCount = sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.skill_id = skills.id)`;
 const onACareer = sql`EXISTS (SELECT 1 FROM occupation_skills WHERE occupation_skills.skill_id = skills.id)`;
 
+// GET /api/skills/taxonomy - The whole taxonomy in one answer: the three
+// levels, and every domain with its groups and their skills, in the order
+// they are shown. A skill carries its level and how many careers use it.
+// Declared before the routes that take an id.
+router.get('/taxonomy', async (_req: Request, res: Response) => {
+  try {
+    res.json(await readTaxonomy());
+  } catch (error) {
+    console.error('Error fetching the skill taxonomy:', error);
+    res.status(500).json({ error: 'Failed to fetch the skill taxonomy' });
+  }
+});
+
 // GET /api/skills - The skills list.
 //   Browsing (no `search`): only skills a career uses, the ones most careers
 //   use first; `sort=name` puts them in name order (`order=desc` reverses it).
@@ -26,9 +40,11 @@ const onACareer = sql`EXISTS (SELECT 1 FROM occupation_skills WHERE occupation_s
 //   (skill_aliases) and by the tools it is done with; the closest names first.
 //   A search also finds a skill no career uses yet, so one just added can be
 //   picked for a job or a person's list.
+//   Narrowed by `domain=` and `group=` (slugs) and `level=` (1, 2 or 3). Each
+//   row carries its `level`, `group` and `domain`.
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { offset = '0', limit = '20', category, sort, order = 'asc', parent, rootOnly } = req.query;
+    const { offset = '0', limit = '20', domain, group, sort, order = 'asc', parent, rootOnly } = req.query;
     const limitNum = pageLimit(limit, 20, 100);
     const offsetNum = pageOffset(offset);
     const search = typeof req.query.search === 'string' ? req.query.search.trim().slice(0, 100) : '';
@@ -59,8 +75,15 @@ router.get('/', async (req: Request, res: Response) => {
           : sql`${careerCount} DESC, ${skills.name} ASC`;
     }
 
-    if (category) {
-      conditions.push(eq(skills.category, category as string));
+    if (typeof domain === 'string' && domain) conditions.push(eq(skillGroups.domainSlug, domain));
+    if (typeof group === 'string' && group) conditions.push(eq(skills.groupSlug, group));
+    if (req.query.level !== undefined && req.query.level !== '') {
+      const level = readLevel(req.query.level);
+      if (!level) {
+        res.status(400).json({ error: 'A level is 1, 2 or 3.' });
+        return;
+      }
+      conditions.push(eq(skills.level, level));
     }
 
     // `parent` and `rootOnly` (and `parentSkillId` and `childCount` in each
@@ -78,6 +101,7 @@ router.get('/', async (req: Request, res: Response) => {
     const countResult = await db
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(skills)
+      .leftJoin(skillGroups, eq(skillGroups.slug, skills.groupSlug))
       .where(whereClause);
     const total = countResult[0]?.count ?? 0;
 
@@ -85,14 +109,16 @@ router.get('/', async (req: Request, res: Response) => {
       .select({
         id: skills.id,
         name: skills.name,
-        category: skills.category,
         description: skills.description,
         parentSkillId: skills.parentSkillId,
         createdAt: skills.createdAt,
         occupationCount: careerCount,
         childCount: sql<number>`(SELECT COUNT(*)::int FROM skills AS children WHERE children.parent_skill_id = skills.id)`,
+        ...placeColumns,
       })
       .from(skills)
+      .leftJoin(skillGroups, eq(skillGroups.slug, skills.groupSlug))
+      .leftJoin(skillDomains, eq(skillDomains.slug, skillGroups.domainSlug))
       .where(whereClause)
       .orderBy(orderByClause)
       .limit(limitNum)
@@ -101,7 +127,10 @@ router.get('/', async (req: Request, res: Response) => {
     const hasMore = offsetNum + result.length < total;
 
     res.json({
-      data: result,
+      data: result.map(({ level, groupSlug, groupName, domainSlug, domainName, ...row }) => ({
+        ...row,
+        ...placeOf({ level, groupSlug, groupName, domainSlug, domainName }),
+      })),
       total,
       offset: offsetNum,
       limit: limitNum,
@@ -118,32 +147,56 @@ const RELATED_SHOWN = 8;
 const JOBS_SHOWN = 12;
 
 // GET /api/skills/:id - Everything the skill's page shows, in one answer:
-// what it is, how it is learned, what it is done with, the careers that use
-// it with the stage of each, the industries those careers work in, the skills
-// that most often share a path with it, and the open jobs that ask for it.
+// what it is, its level, group and domain, the other skills of its group, how
+// it is learned, what it is done with, the careers that use it, the industries
+// those careers work in, the skills that most often share a path with it, and
+// the open jobs that ask for it.
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const [skill] = await db.select().from(skills).where(eq(skills.id, id));
+    const [skill] = await db
+      .select({
+        id: skills.id,
+        name: skills.name,
+        description: skills.description,
+        howLearned: skills.howLearned,
+        tools: skills.tools,
+        createdAt: skills.createdAt,
+        ...placeColumns,
+      })
+      .from(skills)
+      .leftJoin(skillGroups, eq(skillGroups.slug, skills.groupSlug))
+      .leftJoin(skillDomains, eq(skillDomains.slug, skillGroups.domainSlug))
+      .where(eq(skills.id, id));
     if (!skill) {
       res.status(404).json({ error: 'Skill not found' });
       return;
     }
+    const { level, groupSlug, groupName, domainSlug, domainName, ...details } = skill;
+    const related = placeSql('s');
 
-    const [careers, industryRows, relatedRows, openJobs] = await Promise.all([
+    const [careers, groupSkills, industryRows, relatedRows, openJobs] = await Promise.all([
+      // Every career gives a skill the same level, so they are one list, by title.
       db
         .select({
           id: occupations.id,
           title: occupations.title,
           onetCode: occupations.onetCode,
           importance: occupationSkills.importance,
-          stage: occupationSkills.stage,
         })
         .from(occupationSkills)
         .innerJoin(occupations, eq(occupationSkills.occupationId, occupations.id))
         .where(eq(occupationSkills.skillId, id))
-        .orderBy(sql`${occupationSkills.stage} ASC NULLS LAST`, occupations.title),
+        .orderBy(sql`lower(${occupations.title})`),
+      // The other skills of its group, in the group's order.
+      groupSlug
+        ? db
+            .select({ id: skills.id, name: skills.name, level: skills.level })
+            .from(skills)
+            .where(and(eq(skills.groupSlug, groupSlug), sql`${skills.id} <> ${id}`))
+            .orderBy(skills.level, sql`${skills.groupPosition} ASC NULLS LAST`, skills.name)
+        : [],
       // The industries its careers are typical of (industry_occupations),
       // the ones with most of its careers first. `common` careers are found
       // in plants of every industry and so point at none.
@@ -166,9 +219,10 @@ router.get('/:id', async (req: Request, res: Response) => {
           WHERE os.skill_id <> ${id}
           GROUP BY os.skill_id
         )
-        SELECT s.id, s.name, s.category, shared.together
+        SELECT s.id, s.name, ${related.columns}, shared.together
         FROM shared
         INNER JOIN skills s ON s.id = shared.skill_id
+        ${related.joins}
         CROSS JOIN LATERAL (SELECT COUNT(*)::int AS n FROM occupation_skills t WHERE t.skill_id = s.id) theirs
         ORDER BY shared.together::float / ((SELECT COUNT(*) FROM mine) + theirs.n - shared.together) DESC,
                  shared.together DESC, s.name ASC
@@ -181,12 +235,17 @@ router.get('/:id', async (req: Request, res: Response) => {
     const own = industries.filter((r) => !r.common);
 
     res.json({
-      ...skill,
+      ...details,
+      ...placeOf({ level, groupSlug, groupName, domainSlug, domainName }),
+      groupSkills,
       occupations: careers,
       industries: own.slice(0, INDUSTRIES_SHOWN).map((r) => ({ name: String(r.industry), careerCount: Number(r.career_count) || 0 })),
       // Used only by careers found in plants of every industry.
       everywhere: own.length === 0 && industries.length > 0,
-      relatedSkills: rowsOf(relatedRows).map((r) => ({ id: String(r.id), name: String(r.name), category: r.category === null ? null : String(r.category) })),
+      relatedSkills: rowsOf(relatedRows).map((r) => {
+        const place = placeOf(r);
+        return { id: String(r.id), name: String(r.name), level: place.level, group: place.group };
+      }),
       jobs: openJobs,
     });
   } catch (error) {
@@ -195,11 +254,11 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/skills - Create skill
+// POST /api/skills - Create skill. It needs a name, the slug of its skill
+// group (`group`, which fixes its domain) and a level of 1, 2 or 3.
 router.post('/', async (req: Request, res: Response) => {
   try {
     const name = requiredText(req.body?.name);
-    const category = optionalText(req.body?.category, 80);
     const description = optionalText(req.body?.description, 2000);
     const howLearned = optionalText(req.body?.howLearned, 1000);
     const tools = toolList(req.body?.tools);
@@ -207,8 +266,18 @@ router.post('/', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'A skill needs a name of up to 200 characters.' });
       return;
     }
-    if (category === false || description === false) {
-      res.status(400).json({ error: 'A category is text of up to 80 characters and a description of up to 2,000.' });
+    if (description === false) {
+      res.status(400).json({ error: 'A description is text of up to 2,000 characters.', field: 'description' });
+      return;
+    }
+    const place = await findGroup(db, req.body?.group);
+    if (!place) {
+      res.status(400).json({ error: 'Choose the group the skill belongs to.', field: 'group' });
+      return;
+    }
+    const level = readLevel(req.body?.level);
+    if (!level) {
+      res.status(400).json({ error: 'Choose a level: Fundamentals, Intermediate or Advanced.', field: 'level' });
       return;
     }
     if (howLearned === false || tools === false) {
@@ -226,23 +295,37 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await db.insert(skills).values({
-      name,
-      category,
-      description,
-      howLearned,
-      tools: tools && tools.length > 0 ? tools : null,
-    }).returning();
+    const [added] = await db
+      .insert(skills)
+      .values({
+        name,
+        // The domain's name, as the taxonomy migration writes it; nothing reads it.
+        category: place.domain.name,
+        groupSlug: place.group.slug,
+        level,
+        description,
+        howLearned,
+        tools: tools && tools.length > 0 ? tools : null,
+      })
+      .returning({
+        id: skills.id,
+        name: skills.name,
+        description: skills.description,
+        howLearned: skills.howLearned,
+        tools: skills.tools,
+        createdAt: skills.createdAt,
+      });
 
-    await recordAdded('skill', result[0], req.user!);
-    res.status(201).json(result[0]);
+    await recordAdded('skill', added, req.user!);
+    res.status(201).json({ ...added, level, group: place.group, domain: place.domain });
   } catch (error) {
     answerWriteError(res, error, 'skill');
   }
 });
 
-// PUT /api/skills/:id - Change a skill: name, category, description, how it is
-// learned, what it is done with, other names.
+// PUT /api/skills/:id - Change a skill: name, group, level, description, how
+// it is learned, what it is done with, other names. A new level moves the
+// skill in every career path it is on.
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     res.json(await changeRecord('skill', req.params.id, req.body, req.user!));
