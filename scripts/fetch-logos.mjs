@@ -27,6 +27,7 @@
 // Domains come from three places, and a domain named in any of them counts:
 //   data/companies/profiles.json    the curated profiles
 //   data/companies/domains.json     domains for the companies people meet first
+//   data/companies/domains-2.json   the same, a later pass (each file has its own migration)
 //   data/employers/*.json           researched employers, when the folder exists
 //                                   (and any folder given with --employers)
 //
@@ -134,8 +135,9 @@ function readDomains() {
     const data = JSON.parse(readFileSync(file, 'utf8'));
     return Array.isArray(data.companies) ? data.companies : [];
   };
-  for (const file of ['profiles.json', 'domains.json']) {
-    const full = path.join(ROOT, 'data', 'companies', file);
+  const curated = path.join(ROOT, 'data', 'companies');
+  for (const file of ['profiles.json', ...readdirSync(curated).filter((f) => /^domains(-\d+)?\.json$/.test(f)).sort()]) {
+    const full = path.join(curated, file);
     if (existsSync(full)) for (const c of companiesIn(full)) add(c.domain, c.name);
   }
   for (const folder of [path.join(ROOT, 'data', 'employers'), ...valuesOf('--employers').map((f) => path.resolve(f))]) {
@@ -608,6 +610,8 @@ if (look.length > 0) {
       if (!info) continue;
       n += 1;
       const ext = await storeAs(path.join(folder, String(n)), file, info);
+      // The file as it came, for cutting a symbol out of a larger logo by hand.
+      writeFileSync(path.join(folder, `${n}.as-it-came`), readFileSync(file));
       const shape = `${info.kind === 'raster' ? `${info.px} px, ` : ''}${aspect(info).toFixed(1)} to 1`;
       console.log(`  ${n}.${ext}  ${shape}  ${source}`);
       cells.push({ file: path.join(folder, `${n}.${ext}`), caption: `${n}.${ext} · ${shape}<br>${escapeHtml(source.slice(-90))}` });

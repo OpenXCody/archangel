@@ -14,7 +14,15 @@ const FOLDER = path.join(ROOT, 'client', 'public', 'logos');
 const read = (file: string): unknown => JSON.parse(readFileSync(path.join(ROOT, file), 'utf8'));
 
 const list = read('client/src/lib/logos.json') as Record<string, string | null>;
-const curated = read('data/companies/domains.json') as { companies: { name: string; domain: string }[]; skipped: { name: string; why: string }[] };
+interface CuratedDomains {
+  companies: { name: string; domain: string; note?: string }[];
+  skipped: { name: string; why: string }[];
+}
+/** Each curated file with the migration generated from it. A later pass is a new file and a new migration. */
+const CURATED: { file: string; migration: string }[] = [
+  { file: 'data/companies/domains.json', migration: '0037_company_domains.sql' },
+  { file: 'data/companies/domains-2.json', migration: '0045_company_domains_2.sql' },
+];
 const decisions = read('data/companies/logo-decisions.json') as { none: Record<string, string>; kept: Record<string, { ext: string; from: string }> };
 const BARE_DOMAIN = /^(?!www\.)[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
 
@@ -55,22 +63,43 @@ test('decisions made by hand hold in the list', () => {
   }
 });
 
-test('curated domains are bare, each company is decided once, and the migration matches the file', () => {
+test('curated domains are bare, each company is decided once, and each migration matches its file', () => {
   const names = new Set<string>();
-  for (const company of curated.companies) {
-    assert.match(company.domain, BARE_DOMAIN, company.name);
-    assert.ok(!names.has(company.name), `${company.name} is listed twice`);
-    names.add(company.name);
-  }
-  for (const skipped of curated.skipped) {
-    assert.ok(!names.has(skipped.name), `${skipped.name} has a domain and is also skipped`);
-    assert.ok(skipped.why.trim().length > 0, skipped.name);
-  }
+  const skippedNames = new Set<string>();
   const scratch = mkdtempSync(path.join(tmpdir(), 'domains-'));
   try {
-    execFileSync('node', ['scripts/build-domains-sql.mjs', 'data/companies/domains.json', path.join(scratch, 'out.sql')], { cwd: ROOT, stdio: 'ignore' });
-    assert.equal(readFileSync(path.join(scratch, 'out.sql'), 'utf8'), readFileSync(path.join(ROOT, 'migrations', '0037_company_domains.sql'), 'utf8'));
+    for (const { file, migration } of CURATED) {
+      const curated = read(file) as CuratedDomains;
+      for (const company of curated.companies) {
+        assert.match(company.domain, BARE_DOMAIN, company.name);
+        // One company, one domain, in one file: a migration only fills an empty domain, so a second entry would never apply.
+        assert.ok(!names.has(company.name), `${company.name} is listed twice`);
+        names.add(company.name);
+      }
+      for (const skipped of curated.skipped) {
+        assert.ok(!skippedNames.has(skipped.name), `${skipped.name} is skipped twice`);
+        skippedNames.add(skipped.name);
+        assert.ok(skipped.why.trim().length > 0, skipped.name);
+      }
+      const out = path.join(scratch, migration);
+      execFileSync('node', ['scripts/build-domains-sql.mjs', file, out], { cwd: ROOT, stdio: 'ignore' });
+      assert.equal(readFileSync(out, 'utf8'), readFileSync(path.join(ROOT, 'migrations', migration), 'utf8'), `${migration} is not what ${file} generates`);
+    }
+    // A company given a domain by a later pass may have been skipped by an earlier one, never the reverse within a file.
+    for (const { file } of CURATED) {
+      const curated = read(file) as CuratedDomains;
+      const own = new Set(curated.companies.map((c) => c.name));
+      for (const skipped of curated.skipped) assert.ok(!own.has(skipped.name), `${skipped.name} has a domain and is also skipped in ${file}`);
+    }
   } finally {
     rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('every curated domain has been looked at: it is in the list the page reads', () => {
+  for (const { file } of CURATED) {
+    for (const company of (read(file) as CuratedDomains).companies) {
+      assert.ok(company.domain in list, `${company.name}: ${company.domain} is in ${file} but scripts/fetch-logos.mjs has not settled it`);
+    }
   }
 });
