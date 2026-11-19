@@ -78,9 +78,10 @@ One JSON file per source or research brief, in `data/employers/`.
   `SUBSECTORS` (`scripts/build-employers-sql.mjs`). `status` is `operating`,
   `under construction`, `announced` or `closed`; the last two are not loaded.
 - Not loaded either, and logged as such: a plant in Puerto Rico, and
-  construction materials, which are not manufacturing here (NAICS 3273,
-  cement and concrete products, and 324121, asphalt paving mixtures:
-  `NOT_COVERED`). Both were taken off the map and do not come back through a
+  construction materials, which are not manufacturing here (NAICS 32732
+  ready-mix, 32733 concrete pipe, brick and block, 32739 other concrete
+  products, and 324121 asphalt paving mixtures: `NOT_COVERED`). A cement
+  plant (32731) is loaded. Both were taken off the map and do not come back through a
   file.
 - Anything else in a file (a `rank`, notes, `unplaced`) is for people and is
   left behind.

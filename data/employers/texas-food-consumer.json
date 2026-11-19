@@ -78,14 +78,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311612",
           "products": "Case-ready beef and pork, ground beef",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1541,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Sherman Case Rdy Plant', 4700 Hwy 75 South, annual average employees. The employer's own people at the site; contractors are not counted. A separate filing at the same address, 'Sherman Case Rdy Distribution' (304 people, a warehouse code), is not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110063866669"
+            "https://echo.epa.gov/detailed-facility-report?fid=110063866669",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -121,14 +122,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311615",
           "products": "Chicken slaughter and processing",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1486,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Center Processing Plant', 1019 Shelbyville St, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000458683"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000458683",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -142,14 +144,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311615",
           "products": "Chicken slaughter and processing",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 551,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Carthage Plant', 1484 NE Loop, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000756281"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000756281",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -186,14 +189,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311612",
           "products": "Processed and prepared meats",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 602,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Houston Portwall St Plant', 300 Portwall St, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110008973263"
+            "https://echo.epa.gov/detailed-facility-report?fid=110008973263",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -207,35 +211,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311612",
           "products": "Processed and prepared meats",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 197,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Dallas Plant', 4114 Mint Way, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000504133"
-          ]
-        },
-        {
-          "name": "Fort Worth Prepared Foods Plant",
-          "city": "Fort Worth",
-          "state": "TX",
-          "address": "7401 Will Rogers Blvd",
-          "zip": "76140",
-          "latitude": 32.64075,
-          "longitude": -97.31087,
-          "subsector": "Food Manufacturing",
-          "naics": "311612",
-          "products": "Processed and prepared meats",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
-          "opened": null,
-          "status": "operating",
-          "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110040859470"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000504133",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -249,14 +233,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311612",
           "products": "Cooked and prepared meats",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 346,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'North Richland Hills Plant', 6350 Browning Ct, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000459691"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000459691",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -415,12 +400,13 @@
           "employees": 500,
           "employeesYear": 2020,
           "employeesSource": "https://jbssa.com/about/news/2020/10-01",
-          "employeesNote": "Company release, 2020: more than 500.",
+          "employeesNote": "Company release, 2020: more than 500. OSHA Form 300A, 2025: 'Pilgrim's Pride Waco, TX', 2500 Lakeshore Drive: 674 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110002133147",
-            "https://jbssa.com/about/news/2020/10-01"
+            "https://jbssa.com/about/news/2020/10-01",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -467,12 +453,13 @@
           "employees": 2000,
           "employeesYear": 2026,
           "employeesSource": "https://careers.cargill.com/en/friona-tx",
-          "employeesNote": "Cargill careers page for the site, read November 2026: approximately 2,000 people.",
+          "employeesNote": "Cargill careers page for the site, read November 2026: approximately 2,000 people. OSHA Form 300A, 2025: 'Primary Beef-Friona Tx', 1530 US Hwy 60: 2,422 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110056965618",
-            "https://careers.cargill.com/en/friona-tx"
+            "https://careers.cargill.com/en/friona-tx",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -530,15 +517,16 @@
           "subsector": "Food Manufacturing",
           "naics": "311615",
           "products": "Ready-to-eat cooked protein products",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 626,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'USA TX WACO 2510 EAST LAKE SHORE DRIVE', 2510 E. Lakeshore Dr., annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1965,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110000460484",
-            "https://careers.cargill.com/en/waco-tx"
+            "https://careers.cargill.com/en/waco-tx",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -583,14 +571,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311615",
           "products": "Chicken slaughter and processing",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1108,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Sanderson Farms Palestine Processing', 320 Sanderson Farms Pkwy, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 2015,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110072085686"
+            "https://echo.epa.gov/detailed-facility-report?fid=110072085686",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -626,14 +615,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311615",
           "products": "Chicken slaughter and processing",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1608,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Sanderson Farms Brazos Processing', 2000 Shiloh Ave., annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1997,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110072083375"
+            "https://echo.epa.gov/detailed-facility-report?fid=110072083375",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -694,15 +684,16 @@
           "subsector": "Food Manufacturing",
           "naics": "311611",
           "products": "Beef slaughter and boxed beef",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1350,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Caviness Beef', 3255 West US HWY 60, Caviness Beef Packers, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110041623945",
-            "https://echo.epa.gov/detailed-facility-report?fid=110070342262"
+            "https://echo.epa.gov/detailed-facility-report?fid=110070342262",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -716,14 +707,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311612",
           "products": "Ground beef and further processing",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 139,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Caviness Beef Ltd.', 8501 FM 1541, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110071434513"
+            "https://echo.epa.gov/detailed-facility-report?fid=110071434513",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -762,14 +754,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311611",
           "products": "Beef slaughter and fabrication",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 703,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'STX Beef', 9001 Leopard Street, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110005095182"
+            "https://echo.epa.gov/detailed-facility-report?fid=110005095182",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -852,15 +845,16 @@
           "subsector": "Food Manufacturing",
           "naics": "311612",
           "products": "Pit-smoked beef, pork and poultry",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 470,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Sadlers Smokehouse', Henderson, 1206 N Frisco St, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110000502199",
-            "https://hormelfoods.com/newsroom/press-releases/hormel-foods-announces-acquisition-of-sadlers-smokehouse-business"
+            "https://hormelfoods.com/newsroom/press-releases/hormel-foods-announces-acquisition-of-sadlers-smokehouse-business",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -903,12 +897,13 @@
           "employees": 750,
           "employeesYear": 2021,
           "employeesSource": "https://www.pepsico.com/newsroom/press-releases/2021/frito-lay-to-create-160-jobs-with-rosenberg-texas-plant-expansion",
-          "employeesNote": "PepsiCo release, June 2021: more than 750 full-time plant and fleet associates, before an expansion due by 2023 that was to add 160 jobs.",
+          "employeesNote": "PepsiCo release, June 2021: more than 750 full-time plant and fleet associates, before an expansion due by 2023 that was to add 160 jobs. OSHA Form 300A, 2025: 'ROSENBERG PLANT', 3310 HIGHWAY 36 N: 1,157 annual average employees (the employer's own people; contractors are not counted).",
           "opened": 1982,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110070738254",
-            "https://www.pepsico.com/newsroom/press-releases/2021/frito-lay-to-create-160-jobs-with-rosenberg-texas-plant-expansion"
+            "https://www.pepsico.com/newsroom/press-releases/2021/frito-lay-to-create-160-jobs-with-rosenberg-texas-plant-expansion",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -922,14 +917,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311919",
           "products": "Salty snacks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 355,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'SAN ANTONIO PLANT', 4855 GREATLAND DRIVE, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000500627"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000500627",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -943,14 +939,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311919",
           "products": "Salty snacks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 814,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'IRVING PLANT', 701 N WILDWOOD DRIVE, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000456499"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000456499",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -990,15 +987,16 @@
           "subsector": "Food Manufacturing",
           "naics": null,
           "products": "Bread and baked goods, milk, cultured dairy, ice cream, meat and snacks for H-E-B stores",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1568,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: the site files in 5 parts, added together: '80648-34 Meat Plant-SA', 4710 N. Pan Am Expressway (753); '80645-34 Milk Plant-SA', 4710 N. Pan Am Expressway (283); '80620-34 Bakery-SA', 4710 N. Pan Am Expressway (219); '80640-34 Ice Cream Plant-SA', 4710 N. Pan Am Expressway (151); '80635-34 Salty Snack Plant-SA', 5311 Rittiman Rd (162). Annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110033869829",
-            "https://dairyfoods.com/articles/85148-aiming-high"
+            "https://dairyfoods.com/articles/85148-aiming-high",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1012,14 +1010,15 @@
           "subsector": "Food Manufacturing",
           "naics": null,
           "products": "Bread and milk for H-E-B stores",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 342,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: the site files in 2 parts, added together: '80617-39 Bakery-HOU', 4625 Windfern (184); '80745-39 Milk Plant-HOU', 4625 Windfern (158). Annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000462044"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000462044",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1109,14 +1108,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311812",
           "products": "Packaged bread and buns",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 165,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'FORT WORTH TX BAKERY', 7301 SOUTH FWY, annual average employees. The employer's own people at the site; contractors are not counted. A distribution centre files separately at the same address (95 people) and is not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110005153181"
+            "https://echo.epa.gov/detailed-facility-report?fid=110005153181",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1130,14 +1130,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311812",
           "products": "Packaged bread and buns",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 152,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'HOUSTON TX BAKERY', 6650 N HOUSTON ROSSLYN RD, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110001870495"
+            "https://echo.epa.gov/detailed-facility-report?fid=110001870495",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1173,14 +1174,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311919",
           "products": "Takis and other snack chips",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 779,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'BARCEL USA LLC', 301 Northpoint Dr. Suite 100, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110058217987"
+            "https://echo.epa.gov/detailed-facility-report?fid=110058217987",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1223,14 +1225,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311812",
           "products": "Packaged bread and buns",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 173,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Denton BKY', 4210 Edwards Road, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110070375585"
+            "https://echo.epa.gov/detailed-facility-report?fid=110070375585",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1244,14 +1247,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311812",
           "products": "Packaged bread and buns",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 156,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: '118 Houston Bakery Houston BKY', 3000 Washington Ave., annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110001870501"
+            "https://echo.epa.gov/detailed-facility-report?fid=110001870501",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1265,14 +1269,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311812",
           "products": "Packaged bread and buns",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 167,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: '126 Tyler Bakery Tyler BKY', 1200 West Erwin Street, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110001879209"
+            "https://echo.epa.gov/detailed-facility-report?fid=110001879209",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1286,14 +1291,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311812",
           "products": "Packaged bread and buns",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 189,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: '152 El Paso Bakery El Paso BKY', 301 DALLAS STREET, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110034673770"
+            "https://echo.epa.gov/detailed-facility-report?fid=110034673770",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1332,14 +1338,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311830",
           "products": "Tortillas and tortilla chips",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 230,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Mission Foods - Houston Plant', 12600 Wallasville Rd., annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110002133405"
+            "https://echo.epa.gov/detailed-facility-report?fid=110002133405",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1376,15 +1383,16 @@
           "subsector": "Food Manufacturing",
           "naics": "311211",
           "products": "Corn masa flour",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 274,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Azteca Milling, L.P.', 1388 COUNTY ROAD U, P. O. Box 620, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110070502574",
-            "https://echo.epa.gov/detailed-facility-report?fid=110007180610"
+            "https://echo.epa.gov/detailed-facility-report?fid=110007180610",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1398,14 +1406,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311211",
           "products": "Corn masa flour",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 186,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'AZTECA MILLING L.P.', 501 W. CHAPIN, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110013296405"
+            "https://echo.epa.gov/detailed-facility-report?fid=110013296405",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1450,12 +1459,13 @@
           "employees": 843,
           "employeesYear": 2019,
           "employeesSource": "https://www.areadevelopment.com/newsitems/12-19-2019/kraft-heinz-food-company-garland-texas.shtml",
-          "employeesNote": "December 2019, when a state-backed expansion was to add about 250 jobs to a workforce of 843.",
+          "employeesNote": "December 2019, when a state-backed expansion was to add about 250 jobs to a workforce of 843. OSHA Form 300A, 2025: 'KRAFT HEINZ COMPANY', 2340 Forest Lane, Garland 75042: 1,107 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110000456293",
-            "https://www.areadevelopment.com/newsitems/12-19-2019/kraft-heinz-food-company-garland-texas.shtml"
+            "https://www.areadevelopment.com/newsitems/12-19-2019/kraft-heinz-food-company-garland-texas.shtml",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1497,12 +1507,13 @@
           "employees": 695,
           "employeesYear": 2024,
           "employeesSource": "https://wacochamber.com/wp-content/uploads/sites/8/2024/12/LW-ED-Presentation-11_19_24.pdf",
-          "employeesNote": "Greater Waco Chamber presentation, November 2024.",
+          "employeesNote": "Greater Waco Chamber presentation, November 2024. OSHA Form 300A, 2025: 'WAC', 1001 Texas Central Pkwy: 850 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110000460616",
-            "https://wacochamber.com/wp-content/uploads/sites/8/2024/12/LW-ED-Presentation-11_19_24.pdf"
+            "https://wacochamber.com/wp-content/uploads/sites/8/2024/12/LW-ED-Presentation-11_19_24.pdf",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1588,14 +1599,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311513",
           "products": "Cheddar and American-style cheese, whey protein",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 558,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Hilmar Cheese Company, Inc', 12400 US HWY 385, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 2007,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110033809001"
+            "https://echo.epa.gov/detailed-facility-report?fid=110033809001",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1632,15 +1644,16 @@
           "subsector": "Food Manufacturing",
           "naics": "311513",
           "products": "Mozzarella cheese and dairy ingredients",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 540,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Leprino Foods', 4301 E 19th Street, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110071278417",
-            "https://www.dallasfed.org/research/heart/lubbock"
+            "https://www.dallasfed.org/research/heart/lubbock",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1677,14 +1690,15 @@
           "subsector": "Food Manufacturing",
           "naics": null,
           "products": "Hispanic-style cheeses and creams",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 185,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Cacique - Amarillo', 8501 South Georgia St, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110071824553"
+            "https://echo.epa.gov/detailed-facility-report?fid=110071824553",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1720,14 +1734,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311513",
           "products": "Packaged sliced, shredded and chunk cheese",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 304,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Great Lakes Cheese - Abilene', 2670 Great Lakes Drive, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110071536473"
+            "https://echo.epa.gov/detailed-facility-report?fid=110071536473",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1834,14 +1849,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311511",
           "products": "Milk and dairy drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 214,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'DFA FLUID - SAN ANTONIO TX', 1314 FREDERICKSBURG, annual average employees. The employer's own people at the site; contractors are not counted. A distribution filing at the same address (94 people) is not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000464603"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000464603",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1878,14 +1894,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311511",
           "products": "Milk",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 370,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Hiland Dairy Dallas', 5327 Botham Jean Blvd., annual average employees. The employer's own people at the site; contractors are not counted. South Lamar Street was renamed Botham Jean Boulevard; it is the same address.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000504874"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000504874",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1922,14 +1939,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311412",
           "products": "Frozen burritos, taquitos and rolled snacks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 980,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Ruiz Foods Product Inc.', 2410 Texoma Drive, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110034472540"
+            "https://echo.epa.gov/detailed-facility-report?fid=110034472540",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1967,15 +1985,16 @@
           "subsector": "Food Manufacturing",
           "naics": null,
           "products": "Boxed chocolates and chocolate candy",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 417,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Russell Stover Chocolates LLC Corsicana', 1997 Pecan Delight, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110002052901",
-            "https://en.wikipedia.org/wiki/Russell_Stover_Candies"
+            "https://en.wikipedia.org/wiki/Russell_Stover_Candies",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2015,14 +2034,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311211",
           "products": "Flour, baking mixes and gravy mixes",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 224,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Pioneer Flour Mills', 129 E Guenther St, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110011437748"
+            "https://echo.epa.gov/detailed-facility-report?fid=110011437748",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2068,15 +2088,16 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312111",
           "products": "Bottled and canned soft drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 860,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'MESQUITE TX', 4532 HIGHWAY 67, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110009500520",
-            "https://www.cityofmesquite.com/DocumentCenter/View/26041/2023-City-of-Mesquite-TX---Annual-Comprehensive-Financial-Report"
+            "https://www.cityofmesquite.com/DocumentCenter/View/26041/2023-City-of-Mesquite-TX---Annual-Comprehensive-Financial-Report",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2090,14 +2111,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312111",
           "products": "Bottled and canned soft drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 436,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'HOUSTON TX', 9300 LA PORTE FREEWAY, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000461125"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000461125",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2111,14 +2133,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312111",
           "products": "Bottled and canned soft drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 483,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'SAN ANTONIO TX', 6100 N E LOOP 410, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000464765"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000464765",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2132,14 +2155,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312111",
           "products": "Gatorade sports drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 261,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'DALLAS TX GATORADE', 2822 GLENFIELD AVE, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110002131666"
+            "https://echo.epa.gov/detailed-facility-report?fid=110002131666",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2153,14 +2177,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311930",
           "products": "Beverage concentrate and flavoring syrup",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 167,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'PGCS Arlington Manufacturing Plant', 1000 113th Street, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000458870"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000458870",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2201,14 +2226,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312111",
           "products": "Bottled and canned soft drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1033,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'TX - Irving - 2304 Century Center Blvd - The American Bottling Company', 2304 Century Center Blvd, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110005094423"
+            "https://echo.epa.gov/detailed-facility-report?fid=110005094423",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2222,14 +2248,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312111",
           "products": "Bottled and canned soft drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 389,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'TX - Houston - 2400 Holly Hall - The American Bottling Company', 2400 Holly Hall, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110071447178"
+            "https://echo.epa.gov/detailed-facility-report?fid=110071447178",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2272,15 +2299,16 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312111",
           "products": "Bottled and canned soft drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1074,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'NORTHPOINT DC-PC', 10475 DEER TRAIL DR, annual average employees. The employer's own people at the site; contractors are not counted. The filing covers the distribution centre and the production centre together. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110070674691",
-            "https://www.cocacolaswb.com/"
+            "https://www.cocacolaswb.com/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2294,15 +2322,16 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312111",
           "products": "Bottled and canned soft drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 922,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'FOSSIL CREEK DC-PC', 3400 FOSSIL CREEK BLVD, annual average employees. The employer's own people at the site; contractors are not counted. The filing covers the distribution centre and the production centre together. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110000459762",
-            "https://www.cocacolaswb.com/"
+            "https://www.cocacolaswb.com/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2316,15 +2345,16 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312111",
           "products": "Bottled and canned soft drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 827,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'SAN ANTONIO DC-PC', 1 COCA COLA PL, annual average employees. The employer's own people at the site; contractors are not counted. The filing covers the distribution centre and the production centre together. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110000464934",
-            "https://www.cocacolaswb.com/"
+            "https://www.cocacolaswb.com/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2338,15 +2368,16 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312111",
           "products": "Bottled and canned soft drinks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 435,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'EL PASO DC-PC', 11001 GATEWAY BLVD W, annual average employees. The employer's own people at the site; contractors are not counted. The filing covers the distribution centre and the production centre together. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110000466399",
-            "https://www.cocacolaswb.com/"
+            "https://www.cocacolaswb.com/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2386,14 +2417,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312120",
           "products": "Beer",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 550,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Anheuser Busch Houston Brewery', 775 Gellhorn Drive, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000461401"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000461401",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2480,14 +2512,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312112",
           "products": "Bottled water",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 130,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Niagara Bottling, LLC - San Antonio', 1730 8th Street, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110067420115"
+            "https://echo.epa.gov/detailed-facility-report?fid=110067420115",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2501,14 +2534,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312112",
           "products": "Bottled water",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 211,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Niagara Bottling, LLC - Dallas 1', 4851 Mountain Creek Pkwy, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110070123043"
+            "https://echo.epa.gov/detailed-facility-report?fid=110070123043",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2522,14 +2556,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312112",
           "products": "Bottled water",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 247,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Niagara Bottling LLC - Lancaster', 1535 E. Belt Line Rd., annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110072060095"
+            "https://echo.epa.gov/detailed-facility-report?fid=110072060095",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2543,14 +2578,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312112",
           "products": "Bottled water",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 124,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Niagara Bottling, LLC - Houston', 14810 Fairway Pines Drive, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110070124101"
+            "https://echo.epa.gov/detailed-facility-report?fid=110070124101",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2564,14 +2600,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312112",
           "products": "Bottled water",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 64,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Niagara Bottling, LLC - Baytown', 5711 E Grand PKWY S, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110072060096"
+            "https://echo.epa.gov/detailed-facility-report?fid=110072060096",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2609,15 +2646,16 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312120",
           "products": "Shiner beers",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 166,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Spoetzl Brewery Inc.', 603 E BREWERY ST, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1909,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110002054106",
-            "https://www.shiner.com/brewery/"
+            "https://www.shiner.com/brewery/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2656,15 +2694,16 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312140",
           "products": "Vodka",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 855,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'FIFTH GENERATION, INC.', 12101 MOORE ROAD, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110033784849",
-            "https://www.titosvodka.com/our-story"
+            "https://www.titosvodka.com/our-story",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2705,14 +2744,15 @@
           "subsector": "Beverage and Tobacco Product Manufacturing",
           "naics": "312112",
           "products": "Ozarka spring water",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 218,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Primo Brands - Hawkins Factory', 3265 South FM 2869, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110027364698"
+            "https://echo.epa.gov/detailed-facility-report?fid=110027364698",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2754,14 +2794,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325412",
           "products": "Sterile eye drops and ophthalmic medicines",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 3547,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Alcon Fort Worth', 6201 S. Freeway, annual average employees. The employer's own people at the site; contractors are not counted. The campus includes Alcon's US headquarters offices and laboratories as well as the plant. No 2025 filing was found.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110001138572"
+            "https://echo.epa.gov/detailed-facility-report?fid=110001138572",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2775,14 +2816,15 @@
           "subsector": "Miscellaneous Manufacturing",
           "naics": "339112",
           "products": "Products for eye surgery",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1339,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Alcon Manufacturing Houston', 9965 Buffalo Speedway, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2024 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110032661787"
+            "https://echo.epa.gov/detailed-facility-report?fid=110032661787",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2825,14 +2867,15 @@
           "subsector": "Computer and Electronic Product Manufacturing",
           "naics": "334510",
           "products": "Laboratory diagnostic analysers and reagents",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1146,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'CRLB TM Dallas', 1921 Hurd Drive, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110002130809"
+            "https://echo.epa.gov/detailed-facility-report?fid=110002130809",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2924,14 +2967,15 @@
           "subsector": "Miscellaneous Manufacturing",
           "naics": null,
           "products": "Surgical sutures and needles",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 838,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'US048 TX San Angelo', 3348 Pulliam St, annual average employees. The employer's own people at the site; contractors are not counted. The same filing reports 166,828 hours worked, which does not fit 838 people; treat the figure with care.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000460661"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000460661",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2945,14 +2989,15 @@
           "subsector": "Miscellaneous Manufacturing",
           "naics": "339112",
           "products": "Silicone breast implants",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 347,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'US163 TX Irving', 3041 Skyway Circle North, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110000456131"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000456131",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2990,14 +3035,15 @@
           "subsector": "Miscellaneous Manufacturing",
           "naics": null,
           "products": "Bone growth stimulators; spine and orthopedic devices",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 810,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Orthofix US LLC', 3451 Plano Parkway, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110038381658"
+            "https://echo.epa.gov/detailed-facility-report?fid=110038381658",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3034,14 +3080,15 @@
           "subsector": "Miscellaneous Manufacturing",
           "naics": "339112",
           "products": "Catheters, guidewires and biopsy needles",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 552,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Argon Medical Devices Inc.', 1445 Flat Creek Road, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110005088038"
+            "https://echo.epa.gov/detailed-facility-report?fid=110005088038",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3079,14 +3126,15 @@
           "subsector": "Computer and Electronic Product Manufacturing",
           "naics": "334510",
           "products": "VNS Therapy implantable nerve stimulators",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 378,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Liva Nova USA, Inc.', 100 Cyberonics Blvd., annual average employees. The employer's own people at the site; contractors are not counted. The establishment files under a wholesale code (423450), not a manufacturing one.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110034624636"
+            "https://echo.epa.gov/detailed-facility-report?fid=110034624636",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3126,14 +3174,15 @@
           "subsector": "Miscellaneous Manufacturing",
           "naics": "339113",
           "products": "Surgical procedure kits and packs",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 347,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'El Paso Texas Don Haskins Crossdock', 1320 Don Haskins Drive, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110043587829"
+            "https://echo.epa.gov/detailed-facility-report?fid=110043587829",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3214,14 +3263,15 @@
           "subsector": "Miscellaneous Manufacturing",
           "naics": "339910",
           "products": "Jewelry manufacturing",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 361,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Hondo', 1101 Castro Ave., annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110012182761"
+            "https://echo.epa.gov/detailed-facility-report?fid=110012182761",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -3235,14 +3285,15 @@
           "subsector": "Miscellaneous Manufacturing",
           "naics": "339910",
           "products": "Jewelry manufacturing",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 28,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Comfort 1 Manufacturing', 105 US HWY 87, annual average employees. The employer's own people at the site; contractors are not counted. A second building, 'Comfort 4 Manufacturing' at 29 US Hwy 87 (107 people in 2024), files separately and is not counted. No 2025 filing was found.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110008156299"
+            "https://echo.epa.gov/detailed-facility-report?fid=110008156299",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3326,23 +3377,24 @@
           "name": "Lucchese El Paso",
           "city": "El Paso",
           "state": "TX",
-          "address": "20 Zane Grey St",
+          "address": "40 Walter Jones Blvd",
           "zip": "79906",
-          "latitude": 31.81213,
-          "longitude": -106.39909,
+          "latitude": 31.81709,
+          "longitude": -106.38889,
           "subsector": "Leather and Allied Product Manufacturing",
           "naics": "316210",
           "products": "Handmade western boots",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 358,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Production Center', 40 Walter Jones, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110070288249",
             "https://www.lucchese.com/pages/our-story",
-            "https://en.wikipedia.org/wiki/Lucchese_Boot_Company"
+            "https://en.wikipedia.org/wiki/Lucchese_Boot_Company",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3381,15 +3433,16 @@
           "subsector": "Apparel Manufacturing",
           "naics": "315990",
           "products": "Felt and straw western hats",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 420,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'RHE HatCo Inc', 601 Marion Dr, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110022542818",
-            "https://en.wikipedia.org/wiki/Resistol"
+            "https://en.wikipedia.org/wiki/Resistol",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3428,15 +3481,16 @@
           "subsector": "Apparel Manufacturing",
           "naics": null,
           "products": "Military uniforms and apparel",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 630,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'ReadyOne Industries', 1414 Ability Dr, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://echo.epa.gov/detailed-facility-report?fid=110067076363",
-            "https://www.readyone.org/about-us/"
+            "https://www.readyone.org/about-us/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3475,14 +3529,15 @@
           "subsector": "Leather and Allied Product Manufacturing",
           "naics": "316210",
           "products": "Handmade western boots",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 249,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Western Leather Goods Inc', 1750 E. Expressway 83, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2024 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110070298607"
+            "https://echo.epa.gov/detailed-facility-report?fid=110070298607",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3519,14 +3574,15 @@
           "subsector": "Apparel Manufacturing",
           "naics": "315990",
           "products": "Felt and straw cowboy hats",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 97,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'AMERICAN HAT CO', 3091 HIGHWAY 81 NORTH, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2024 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110033542110"
+            "https://echo.epa.gov/detailed-facility-report?fid=110033542110",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3564,14 +3620,15 @@
           "subsector": "Leather and Allied Product Manufacturing",
           "naics": null,
           "products": "Western saddles and tack",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 132,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Welhausen Legacy- Circle Y', 1708 N South Street, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110005143040"
+            "https://echo.epa.gov/detailed-facility-report?fid=110005143040",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3608,14 +3665,15 @@
           "subsector": "Textile Mills",
           "naics": "313210",
           "products": "Woven carbon-fibre and glass reinforcement fabrics",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 230,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Hexcel Seguin', 1913 N. King St., annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110005049704"
+            "https://echo.epa.gov/detailed-facility-report?fid=110005049704",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3653,5 +3711,5 @@
       "why": "no street address: the EPA record gives only survey sections, and the geocoder returns a ZIP-code centre. The Dallas Fed's 2025 Amarillo profile says construction is under way on the $670 million plant; a stormwater permit in its name is effective to 2028"
     }
   ],
-  "notes": "HOW THIS FILE WAS BUILT. Web search stopped working part-way through (the session's shared search limit was reached after about 35 searches), so the rest was done from pages fetched by address and from two government services: EPA's ECHO facility search and detailed facility reports (plant names, street addresses, NAICS codes, permit status, inspection dates) and the project geocoder. Every headcount in the file was read on the page cited. 21 of 101 plants have one; the others are null because no source could be searched for, not because none exists. COORDINATES. The geocoder's first result was used when it matched the house number in the right place. Where it returned only the street or the wrong place, the coordinate comes from the plant's EPA facility report (a permit record with a stated accuracy of 50 m or better), cross-checked against the geocoder's street: Tyson Center, Seguin, Dallas and North Richland Hills; JBS Cactus; Pilgrim's Mount Pleasant; Cargill Friona and the Fort Worth grind plant; both Caviness plants; STX Beef; Sadler's; Frito-Lay Rosenberg, San Antonio and Irving; Pepsi Houston and Arlington; Azteca Milling (both); Hilmar; Russell Stover; Oak Farms Dallas; Niagara Seguin and Lancaster; Alcon Fort Worth; Argon; James Avery Fredericksburg and Comfort; Anderson Bean; American Hat; Circle Y; Hexcel. Three are looser than the rest and worth a look on a map: Pepsi San Antonio (EPA accuracy 150 m), Coca-Cola San Antonio and Lucchese El Paso (geocoder gave the street, both short streets), and Caviness Amarillo (EPA point with no stated accuracy). LivaNova Houston is the OpenStreetMap position of Cyberonics Boulevard, a short street that ends at the plant. OPERATING STATUS. With no search, 'still operating' rests on the EPA record for most plants: an air permit marked operating, an effective stormwater permit in the current operator's name, a Toxics Release Inventory report for 2023 or 2024, or a state inspection in 2024 to 2026. Plants included on weaker evidence (an EPA record with no current-status field, plus general knowledge): Tyson Carthage (2026 job postings seen in search results), Sadler's Smokehouse (last TRI report 2020), Caviness Hereford (TRI 2022), Russell Stover Corsicana, Great Lakes Cheese Abilene, Cacique Amarillo (its stormwater permit shows as expired August 2026), the four Coca-Cola production centers (the company's site says it has 7 production plants but does not list them), Alcon Houston, Abbott Irving, Orthofix (the only EPA record is a construction-era one), ReadyOne, Lucchese, American Hat, Anderson Bean and Tito's. A reviewer with search should confirm these. Opening years for the four Wayne-Sanderson plants are from general knowledge, not from a page read in this session. JUDGMENT CALLS. (1) Tyson Amarillo carries 4,000 employees (Dallas Fed 2025; Tyson 2022) although the plant went to one shift in January 2026 with 1,761 jobs cut by WARN notice and Tyson said in August 2026 it would restore the shift; no later site figure was found, and the note says so. Set it to null if a stale figure is worse than none. (2) Campbell's Paris carries 680 (July 2024) though soup production has since ended and the workforce is smaller. (3) Tyson Seguin uses the Seguin EDC's undated top-employers list (about 830) rather than the EDC's 2021 release (546). (4) Cargill's figures are from its own careers pages, which are undated; the year given is the year read. (5) Pilgrim's figures are all from 2020 company releases. (6) Subsector follows what the plant makes, not the brief: Alcon Fort Worth is Chemical Manufacturing (ophthalmic medicines, NAICS 325412 in the EPA record); Abbott Irving and LivaNova Houston are Computer and Electronic Product Manufacturing (electromedical apparatus, 334510); PepsiCo's Arlington concentrate plant is Food Manufacturing (311930). (7) Ethicon and Mentor are entered as plants of Johnson & Johnson, which the database already lists. (8) Stryker Flower Mound is the Communications division's base; the headcount is the whole site, offices included. (9) Wayne-Sanderson Farms' state figure is Sanderson Farms' 2020 number and includes hatcheries and feed mills. (10) Hiland Dairy's Dallas plant is the former Borden plant on South Lamar (the EPA's 2024 TRI report is in Hiland's name); 'Borden' is deliberately not listed as another name for Hiland. LEFT OUT, AND WHY. Not confirmed as operating, or as manufacturing, without search: Pilgrim's Dallas (2411 Ferris St); Frito-Lay's Dallas baked-snacks plant on Duncanville Rd / Morse Dr and its Lubbock plant (last TRI report 2022); Mission Foods Dallas (the EPA record at 4000 Dan Morton Dr shows a terminated permit), San Antonio and El Paso; Bimbo's Lubbock and Rockwall plants; Oak Farms Houston; Borden Dairy (which Texas plants it still runs is unclear; Conroe is the likely one); Pepsi Conroe; Coca-Cola McAllen, Abilene and Nacogdoches; Mars Petcare Temple; Holmes Foods (Nixon); Eddy Packing (Yoakum); Continental Dairy Facilities (Littlefield); Riviana Foods (Freeport); Refresco (Waco, Fort Worth); Smith+Nephew Fort Worth (the EPA record is coded biological products, not devices); Essilor in Farmers Branch (headquarters and prescription laboratory; manufacturing not confirmed); Hatco's Longview site; Nokona ball gloves (no address found). From the brief's leads: Hershey, Nestle, Ventura Foods and Imperial Sugar have no Texas plant that could be confirmed (Imperial Sugar's Sugar Land refinery closed in 2003); Hormel is represented by Sadler's Smokehouse; Frito-Lay 'Mesquite' appears to be PepsiCo's Mesquite bottling plant; Williamson-Dickie, Levi Strauss, VF and Fruit of the Loom have offices or closed plants in the EPA lists but no Texas plant confirmed as operating; ADM and Dana were not researched (grain and automotive, outside these industries). SITES TO REVISIT WITH SEARCH. Headcounts likely to exist for: Tyson Sherman (older lists say about 1,400 to 1,800), Tyson Center (an undated city brochure says nearly 1,400), Wayne-Sanderson Palestine and Bryan, Caviness, H-E-B's manufacturing plants, the Frito-Lay plants, Molson Coors Fort Worth, Anheuser-Busch Houston, Alcon, Ethicon San Angelo, Hilmar, Leprino Lubbock (the Dallas Fed says it is expected to employ 600 when finished in 2026), Hatco (an old Garland list says 390), Justin Brands and Lucchese in El Paso, ReadyOne."
+  "notes": "HOW THIS FILE WAS BUILT. Web search stopped working part-way through (the session's shared search limit was reached after about 35 searches), so the rest was done from pages fetched by address and from two government services: EPA's ECHO facility search and detailed facility reports (plant names, street addresses, NAICS codes, permit status, inspection dates) and the project geocoder. Every headcount in the file was read on the page cited. 21 of 101 plants have one; the others are null because no source could be searched for, not because none exists. COORDINATES. The geocoder's first result was used when it matched the house number in the right place. Where it returned only the street or the wrong place, the coordinate comes from the plant's EPA facility report (a permit record with a stated accuracy of 50 m or better), cross-checked against the geocoder's street: Tyson Center, Seguin, Dallas and North Richland Hills; JBS Cactus; Pilgrim's Mount Pleasant; Cargill Friona and the Fort Worth grind plant; both Caviness plants; STX Beef; Sadler's; Frito-Lay Rosenberg, San Antonio and Irving; Pepsi Houston and Arlington; Azteca Milling (both); Hilmar; Russell Stover; Oak Farms Dallas; Niagara Seguin and Lancaster; Alcon Fort Worth; Argon; James Avery Fredericksburg and Comfort; Anderson Bean; American Hat; Circle Y; Hexcel. Three are looser than the rest and worth a look on a map: Pepsi San Antonio (EPA accuracy 150 m), Coca-Cola San Antonio and Lucchese El Paso (geocoder gave the street, both short streets), and Caviness Amarillo (EPA point with no stated accuracy). LivaNova Houston is the OpenStreetMap position of Cyberonics Boulevard, a short street that ends at the plant. OPERATING STATUS. With no search, 'still operating' rests on the EPA record for most plants: an air permit marked operating, an effective stormwater permit in the current operator's name, a Toxics Release Inventory report for 2023 or 2024, or a state inspection in 2024 to 2026. Plants included on weaker evidence (an EPA record with no current-status field, plus general knowledge): Tyson Carthage (2026 job postings seen in search results), Sadler's Smokehouse (last TRI report 2020), Caviness Hereford (TRI 2022), Russell Stover Corsicana, Great Lakes Cheese Abilene, Cacique Amarillo (its stormwater permit shows as expired August 2026), the four Coca-Cola production centers (the company's site says it has 7 production plants but does not list them), Alcon Houston, Abbott Irving, Orthofix (the only EPA record is a construction-era one), ReadyOne, Lucchese, American Hat, Anderson Bean and Tito's. A reviewer with search should confirm these. Opening years for the four Wayne-Sanderson plants are from general knowledge, not from a page read in this session. JUDGMENT CALLS. (1) Tyson Amarillo carries 4,000 employees (Dallas Fed 2025; Tyson 2022) although the plant went to one shift in January 2026 with 1,761 jobs cut by WARN notice and Tyson said in August 2026 it would restore the shift; no later site figure was found, and the note says so. Set it to null if a stale figure is worse than none. (2) Campbell's Paris carries 680 (July 2024) though soup production has since ended and the workforce is smaller. (3) Tyson Seguin uses the Seguin EDC's undated top-employers list (about 830) rather than the EDC's 2021 release (546). (4) Cargill's figures are from its own careers pages, which are undated; the year given is the year read. (5) Pilgrim's figures are all from 2020 company releases. (6) Subsector follows what the plant makes, not the brief: Alcon Fort Worth is Chemical Manufacturing (ophthalmic medicines, NAICS 325412 in the EPA record); Abbott Irving and LivaNova Houston are Computer and Electronic Product Manufacturing (electromedical apparatus, 334510); PepsiCo's Arlington concentrate plant is Food Manufacturing (311930). (7) Ethicon and Mentor are entered as plants of Johnson & Johnson, which the database already lists. (8) Stryker Flower Mound is the Communications division's base; the headcount is the whole site, offices included. (9) Wayne-Sanderson Farms' state figure is Sanderson Farms' 2020 number and includes hatcheries and feed mills. (10) Hiland Dairy's Dallas plant is the former Borden plant on South Lamar (the EPA's 2024 TRI report is in Hiland's name); 'Borden' is deliberately not listed as another name for Hiland. LEFT OUT, AND WHY. Not confirmed as operating, or as manufacturing, without search: Pilgrim's Dallas (2411 Ferris St); Frito-Lay's Dallas baked-snacks plant on Duncanville Rd / Morse Dr and its Lubbock plant (last TRI report 2022); Mission Foods Dallas (the EPA record at 4000 Dan Morton Dr shows a terminated permit), San Antonio and El Paso; Bimbo's Lubbock and Rockwall plants; Oak Farms Houston; Borden Dairy (which Texas plants it still runs is unclear; Conroe is the likely one); Pepsi Conroe; Coca-Cola McAllen, Abilene and Nacogdoches; Mars Petcare Temple; Holmes Foods (Nixon); Eddy Packing (Yoakum); Continental Dairy Facilities (Littlefield); Riviana Foods (Freeport); Refresco (Waco, Fort Worth); Smith+Nephew Fort Worth (the EPA record is coded biological products, not devices); Essilor in Farmers Branch (headquarters and prescription laboratory; manufacturing not confirmed); Hatco's Longview site; Nokona ball gloves (no address found). From the brief's leads: Hershey, Nestle, Ventura Foods and Imperial Sugar have no Texas plant that could be confirmed (Imperial Sugar's Sugar Land refinery closed in 2003); Hormel is represented by Sadler's Smokehouse; Frito-Lay 'Mesquite' appears to be PepsiCo's Mesquite bottling plant; Williamson-Dickie, Levi Strauss, VF and Fruit of the Loom have offices or closed plants in the EPA lists but no Texas plant confirmed as operating; ADM and Dana were not researched (grain and automotive, outside these industries). SITES TO REVISIT WITH SEARCH. Headcounts likely to exist for: Tyson Sherman (older lists say about 1,400 to 1,800), Tyson Center (an undated city brochure says nearly 1,400), Wayne-Sanderson Palestine and Bryan, Caviness, H-E-B's manufacturing plants, the Frito-Lay plants, Molson Coors Fort Worth, Anheuser-Busch Houston, Alcon, Ethicon San Angelo, Hilmar, Leprino Lubbock (the Dallas Fed says it is expected to employ 600 when finished in 2026), Hatco (an old Garland list says 390), Justin Brands and Lucchese in El Paso, ReadyOne.\n\nV2, OSHA PASS (18 November 2026). Headcounts that were missing have been filled from OSHA's Form 300A establishment data (https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data): the files for reporting year 2025 and, where an establishment has no 2025 row, 2024, read from the copies on disk. The figure is the establishment's own 'annual average number of employees': that employer's people at that address, offices on the site included, contractors not included. A row was taken only when it had the same street address in the same city, or the same ZIP code and a name that is plainly this plant; each employeesNote names the row. Contractors' filings from the same address (maintenance, scaffolding, catering, security) were never used. Nothing else was changed except as listed here. Web search was not available, so nothing in this pass was checked against a company page. SCOPE RULE (construction is not manufacturing: no ready-mix, concrete block, pipe or precast, NAICS 3273, and no asphalt paving mixtures, 324121): no plant in this file is one of those, so none was removed. COUNTS: 74 plants filled (67 from the 2025 file, 7 from 2024); 5 still without a figure; 5 existing figures annotated with a differing OSHA figure; 95 of 100 plants now carry a headcount. OPERATING STATUS: for 18 plants that the earlier research could not confirm as operating, the note now says that a filing from the address is good evidence it was operating that year (OSHA's page is added to the plant's sources). CORRECTIONS. (1) Tyson 'Fort Worth Prepared Foods Plant' (7401 Will Rogers Blvd) was REMOVED: OSHA shows Kerry Inc. filing from that address in both 2024 and 2025 (238 and 242 people, food codes) and no Tyson plant in Fort Worth, only a Tyson distribution centre at 8200 Will Rogers Blvd. (2) Lucchese El Paso: the address was changed from 20 Zane Grey St, which Lucchese files as its distribution centre (45 people), to 40 Walter Jones Blvd, which it files as 'Production Center' (358), and the map point moved to match (project geocoder, house-number match). JUDGMENT CALLS. H-E-B San Antonio is the sum of five filings: the meat, milk, bakery and ice cream plants at 4710 N Pan Am Expressway and the snack plant at 5311 Rittiman Rd, which are one complex (1,568). H-E-B Houston is the bakery and the milk plant, which both file from 4625 Windfern (342); this file gives the address as 10010 Clay Rd, the cross street. Hiland Dairy Dallas files from 5327 Botham Jean Blvd, the new name of South Lamar Street. Coca-Cola Southwest Beverages' four production centers each file as 'DC-PC', a distribution centre and production centre together, so the figures include warehouse and delivery staff. Alcon Fort Worth (3,547, from 2024) is the whole campus, offices and laboratories included. James Avery Comfort carries the filing at its own address (28); a second building at 29 US Hwy 87 files 107. Great Lakes Cheese, LivaNova and American Hat file under wholesale codes although the sites are plants. Circle Y files as 'Welhausen Legacy- Circle Y' from 1708 N South Street, not the 602 Front St this file gives. NOT FOUND or not matched: Oak Farms Dairy Dallas (the DFA filing in Dallas is from 3114 S Haskell Ave, a different plant, now in texas-osha-additions.json), Molson Coors Fort Worth (only a yard logistics contractor files there), James Avery Kerrville (145 Avery Rd files as the corporate campus, 320 people; the Kerrville Craftsman Center at 5235 Hwy 27 files 462 and is in the additions file's unplaced list) and Fredericksburg, Justin Brands El Paso. COMPARISONS added to notes (figure left alone): Pilgrim's Waco, Cargill Friona, Frito-Lay Rosenberg (750 against 1,157), Kraft Heinz Garland (843 against 1,107), Mars Wrigley Waco. Tyson Amarillo's 2025 OSHA average is 3,752, within a fifth of the 4,000 here. JBS Cactus has no filing of its own. "
 }

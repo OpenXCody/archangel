@@ -40,13 +40,14 @@
           "employees": 600,
           "employeesYear": 2022,
           "employeesSource": "https://www.kristv.com/news/local-news/steel-dynamics-ribbon-cutting-held-wednesday-thousands-of-jobs-headed-to-the-coastal-bend",
-          "employeesNote": "About 600 jobs, as stated by the San Patricio County judge at the ribbon cutting in February 2022. Not a company figure.",
+          "employeesNote": "About 600 jobs, as stated by the San Patricio County judge at the ribbon cutting in February 2022. Not a company figure. OSHA Form 300A, 2025: 'Steel Dynamics, Inc. - Flat Roll Group - Sinton', 8534 Hwy 89: 973 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071140318",
             "https://www.kristv.com/news/local-news/steel-dynamics-ribbon-cutting-held-wednesday-thousands-of-jobs-headed-to-the-coastal-bend",
-            "https://texans.pages.dev/san-patricio-county"
+            "https://texans.pages.dev/san-patricio-county",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -97,15 +98,16 @@
           "subsector": "Primary Metal Manufacturing",
           "naics": "331110",
           "products": "Steel bar and merchant shapes melted from scrap in an electric arc furnace",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 458,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Nucor Steel Jewett TX', 8812 Hwy 79 West, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1975,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110008148575",
-            "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm"
+            "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -119,15 +121,16 @@
           "subsector": "Fabricated Metal Product Manufacturing",
           "naics": "332312",
           "products": "Steel joists, joist girders and steel deck",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 461,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Nucor Vulcraft Group Grapeland Division', 175 County Road 2345, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000598997",
-            "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm"
+            "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -141,14 +144,15 @@
           "subsector": "Fabricated Metal Product Manufacturing",
           "naics": "332311",
           "products": "Pre-engineered metal building systems",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 400,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Nucor Buildings Systems-Texas', 600 Apache Trail, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm"
+            "https://capitol.texas.gov/tlodocs/89R/billtext/html/HR00699F.htm",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -217,13 +221,14 @@
           "employees": 900,
           "employeesYear": 2026,
           "employeesSource": "https://www.seguinedc.com/site-selection/primary-employers/",
-          "employeesNote": "\"±900\" on the Seguin EDC's top-employer list (source given as the City of Seguin). The list is undated; it was read in November 2026. The state's Enterprise Zone record showed 500 jobs in March 2018.",
+          "employeesNote": "\"±900\" on the Seguin EDC's top-employer list (source given as the City of Seguin). The list is undated; it was read in November 2026. The state's Enterprise Zone record showed 500 jobs in March 2018. OSHA Form 300A, 2025: 'CMC Steel Texas', 1 Steel Mill Drive: 665 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000599745",
             "https://www.seguinedc.com/site-selection/primary-employers/",
-            "https://texans.pages.dev/guadalupe-county"
+            "https://texans.pages.dev/guadalupe-county",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -340,15 +345,16 @@
           "subsector": "Primary Metal Manufacturing",
           "naics": "331210",
           "products": "Welded steel pipe, with heat treatment and finishing lines",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 222,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Maverick Tube Corporation', 699 FM 3083 RD, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.tenaris.com/en/news/2021/tenaris-to-scale-up-industrial-activity-at-its-conroe-tx-plant",
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110035341868"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110035341868",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -362,15 +368,16 @@
           "subsector": "Primary Metal Manufacturing",
           "naics": "331210",
           "products": "Heat treatment and threading of steel pipe",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 264,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Tenaris Baytown', 2600 Grand Parkway, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.tenaris.com/en/news/2021/tenaris-us-ramps-up-with-restart-of-baytown-mill",
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110034081491"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110034081491",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -459,15 +466,16 @@
           "subsector": "Primary Metal Manufacturing",
           "naics": "331110",
           "products": "Wire rod, coiled rebar and billets",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 375,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Optimus Steel LLC', 100 Old Hwy 90 W, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070258973",
-            "https://www.optimus-steelusa.com/"
+            "https://www.optimus-steelusa.com/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -506,16 +514,17 @@
           "subsector": "Primary Metal Manufacturing",
           "naics": "331110",
           "products": "Rebar and other long steel products recycled from scrap; a new melt shop on the site is planned to start in 2027",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 420,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'KYOEI STEEL AMERICA, LLC', 8001 BORDER STEEL ROAD, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://gov.texas.gov/news/post/governor-abbott-announces-jeti-expansion-project-in-el-paso-county",
             "https://www.areadevelopment.com/newsItems/3-1-2025/vinton-steel-kyoei-steel-el-paso-texas.shtml",
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070295526"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070295526",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -579,14 +588,15 @@
           "subsector": "Fabricated Metal Product Manufacturing",
           "naics": "332722",
           "products": "Aerospace fasteners",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 450,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Howmet Fastening Systems', 8001 Imperial Dr, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000495116"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000495116",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -625,15 +635,16 @@
           "subsector": "Primary Metal Manufacturing",
           "naics": "331511",
           "products": "Cast iron soil pipe and fittings",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 498,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Tyler Pipe Company - Texas', 11910 County Road 492, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110052983429",
-            "https://www.tylerpipe.com/about-us/"
+            "https://www.tylerpipe.com/about-us/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -670,15 +681,16 @@
           "subsector": "Primary Metal Manufacturing",
           "naics": "331513",
           "products": "Steel castings for bucket teeth, adapters and other ground engaging tools",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 404,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Hensley Industries Dallas', 2108 Joe Field Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000457470",
-            "https://www.hensleyind.com/about"
+            "https://www.hensleyind.com/about",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -762,15 +774,16 @@
           "subsector": "Primary Metal Manufacturing",
           "naics": "331410",
           "products": "Refined copper cathode and continuous-cast copper rod",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 197,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Phelps Dodge Industries, Inc.', 897 Hawkins Blvd, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.fcx.com/operations/north-america",
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000466273"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000466273",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -860,12 +873,13 @@
           "employees": 669,
           "employeesYear": 2026,
           "employeesSource": "https://www.wyman.com/locations/wyman-gordon-houston.html",
-          "employeesNote": "\"669 Employees\" on the company's page for the plant. The page is undated; it was read in November 2026.",
+          "employeesNote": "\"669 Employees\" on the company's page for the plant. The page is undated; it was read in November 2026. OSHA Form 300A, 2025: 'Wyman Gordon Telge', 10825 Telge Rd: 263 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.wyman.com/locations/wyman-gordon-houston.html",
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000462115"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000462115",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -905,12 +919,13 @@
           "employees": 1365,
           "employeesYear": 2017,
           "employeesSource": "https://texans.pages.dev/san-patricio-county",
-          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2017). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. A fabrication yard: headcount moves with the projects under way.",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2017). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. A fabrication yard: headcount moves with the projects under way. OSHA Form 300A, 2025: 'Kiewit Offshore Services, Ltd._2440 Kiewit Road', 2440 Kiewit Road: 2,172 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070669713",
-            "https://texans.pages.dev/san-patricio-county"
+            "https://texans.pages.dev/san-patricio-county",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1080,15 +1095,16 @@
           "subsector": "Fabricated Metal Product Manufacturing",
           "naics": "332311",
           "products": "Steel building frames, metal roofing and wall panels",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 238,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Metal Solutions - Ballinger', 1913 Hutchings Ave, annual average employees. The employer's own people at the site; contractors are not counted. The 2024 filing, as 'Mueller Inc. Ballinger', gave 307. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110006172373",
-            "https://www.muellerinc.com/about-us"
+            "https://www.muellerinc.com/about-us",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1131,13 +1147,14 @@
           "employees": 250,
           "employeesYear": 2019,
           "employeesSource": "https://kwhi.com/?p=158744",
-          "employeesNote": "The plant manager told KWHI radio in 2019 that the plant was \"currently employing over 250 associates\". The state's Enterprise Zone record showed 195 in December 2016.",
+          "employeesNote": "The plant manager told KWHI radio in 2019 that the plant was \"currently employing over 250 associates\". The state's Enterprise Zone record showed 195 in December 2016. OSHA Form 300A, 2025: 'Brenham TX - Structures', 2551 Valmont Dr: 318 annual average employees (the employer's own people; contractors are not counted).",
           "opened": 1974,
           "status": "operating",
           "sources": [
             "https://kwhi.com/?p=158744",
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000464355",
-            "https://texans.pages.dev/washington-county"
+            "https://texans.pages.dev/washington-county",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1220,14 +1237,15 @@
           "subsector": "Fabricated Metal Product Manufacturing",
           "naics": "332111",
           "products": "Closed-die and open-die steel forgings",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 154,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Ellwood Texas Forge Houston', 12500 Amelia Drive, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000461740"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000461740",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1264,14 +1282,15 @@
           "subsector": "Fabricated Metal Product Manufacturing",
           "naics": null,
           "products": "Steel structural connectors for construction",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 675,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'SST-McKinney', 2151 Airport Drive, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110034883785"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110034883785",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1793,13 +1812,14 @@
           "employees": 300,
           "employeesYear": 2018,
           "employeesSource": "https://texans.pages.dev/navarro-county",
-          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (September 2018). Read on a third-party copy of the state's programme records, not on the Governor's office's own page.",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (September 2018). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. OSHA Form 300A, 2025: 'Guardian Corsicana', 3801 South US 287: 223 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070347876",
             "https://texans.pages.dev/navarro-county",
-            "https://en.wikipedia.org/wiki/Corsicana,_Texas"
+            "https://en.wikipedia.org/wiki/Corsicana,_Texas",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1888,13 +1908,14 @@
           "employees": 327,
           "employeesYear": 2019,
           "employeesSource": "https://texans.pages.dev/johnson-county",
-          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (March 2019). Read on a third-party copy of the state's programme records, not on the Governor's office's own page.",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (March 2019). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. OSHA Form 300A, 2025: 'Cleburne', 200 West Industrial Blvd.: 396 annual average employees (the employer's own people; contractors are not counted). A 2025 filing from this address is good evidence the plant was operating.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000458996",
             "https://texans.pages.dev/johnson-county",
-            "https://en.wikipedia.org/wiki/Cleburne,_Texas"
+            "https://en.wikipedia.org/wiki/Cleburne,_Texas",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1931,15 +1952,16 @@
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327390",
           "products": "Fiber cement siding and trim",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 416,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'James Hardie North America', 820 Sparks Drive, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110021017914",
-            "https://en.wikipedia.org/wiki/Cleburne,_Texas"
+            "https://en.wikipedia.org/wiki/Cleburne,_Texas",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1956,12 +1978,13 @@
           "employees": 169,
           "employeesYear": 2017,
           "employeesSource": "https://texans.pages.dev/ellis-county",
-          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (June 2017). Read on a third-party copy of the state's programme records, not on the Governor's office's own page.",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (June 2017). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. OSHA Form 300A, 2025: 'James Hardie Wax', 2425 N Highway 77: 213 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110033749585",
-            "https://texans.pages.dev/ellis-county"
+            "https://texans.pages.dev/ellis-county",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2000,15 +2023,16 @@
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327120",
           "products": "Clay face brick",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 175,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Denton Brick Plant', 220 East Daniels Street, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000459968",
-            "https://en.wikipedia.org/wiki/Acme_Brick"
+            "https://en.wikipedia.org/wiki/Acme_Brick",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2022,15 +2046,16 @@
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327120",
           "products": "Clay face brick (two plants on the site)",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 172,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Elgin Brick Plants', 1776 Old McDade Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110007180709",
-            "https://en.wikipedia.org/wiki/Acme_Brick"
+            "https://en.wikipedia.org/wiki/Acme_Brick",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2044,15 +2069,16 @@
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327120",
           "products": "Clay face brick (two plants on the site)",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 115,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Texas Clay Brick Plants', 402 West Bartlett Street, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110067543849",
-            "https://en.wikipedia.org/wiki/Acme_Brick"
+            "https://en.wikipedia.org/wiki/Acme_Brick",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2066,15 +2092,16 @@
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327120",
           "products": "Clay face brick",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 94,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'San Felipe Brick Plant', 6005 Peter San Felipe Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110017424027",
-            "https://en.wikipedia.org/wiki/Acme_Brick"
+            "https://en.wikipedia.org/wiki/Acme_Brick",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2116,12 +2143,13 @@
           "employees": 900,
           "employeesYear": 2019,
           "employeesSource": "https://texans.pages.dev/brown-county",
-          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (March 2019). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Kohler also has a tank plant on Milam Drive in Brownwood; the record does not say whether the figure covers both.",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (March 2019). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Kohler also has a tank plant on Milam Drive in Brownwood; the record does not say whether the figure covers both. OSHA Form 300A, 2025: 'BROWNWOOD PLASTICS', 4601 HWY 377 S (350) + 'BROWNWOOD VITREOUS', 4601 HWY 377 S (156) = 506 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110006125674",
-            "https://texans.pages.dev/brown-county"
+            "https://texans.pages.dev/brown-county",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2162,14 +2190,15 @@
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327420",
           "products": "Gypsum wallboard and plaster",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 254,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'US Gypsum Sweetwater', 1 USG Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110063119352"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110063119352",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2183,14 +2212,15 @@
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327420",
           "products": "Gypsum wallboard",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 197,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'US Gypsum Galena Park', 1201 Mayo Shell Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110001867588"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110001867588",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2228,14 +2258,15 @@
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327420",
           "products": "Gypsum wallboard",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 70,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Gold Bond Building Products', 832 Cr 311, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070358152"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070358152",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2379,12 +2410,13 @@
           "employees": 274,
           "employeesYear": 2016,
           "employeesSource": "https://texans.pages.dev/sabine-county",
-          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2016). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Older than the rebuilding of the mill; nothing newer was found.",
+          "employeesNote": "Jobs at the site when the state approved it as a Texas Enterprise Zone project (December 2016). Read on a third-party copy of the state's programme records, not on the Governor's office's own page. Older than the rebuilding of the mill; nothing newer was found. OSHA Form 300A, 2025: 'TX408 Pineland Lumber/ Log Studs', 105 Yellow Pine Highway: 365 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000458825",
-            "https://texans.pages.dev/sabine-county"
+            "https://texans.pages.dev/sabine-county",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2398,14 +2430,15 @@
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327420",
           "products": "Gypsum wallboard",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 255,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: the site files in 2 parts, added together: 'TX026 Sweetwater Gypsum EAST', 311 FM 1856 (148); 'TX255 Sweetwater Gypsum West', 310 FM 1856 (107). Annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110002470022"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110002470022",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2470,14 +2503,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321113",
           "products": "Southern pine lumber",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 123,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'West Fraser', 609 Industrial Dr, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110062089868"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110062089868",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2491,14 +2525,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321113",
           "products": "Southern pine lumber",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 156,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'West Fraser New Boston Mill', 1345 U.S. Highway 82 East, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070282058"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070282058",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2533,14 +2568,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321219",
           "products": "Oriented strand board",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 121,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'West Fraser Jefferson', 500 Nexfor Blvd, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071546486"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071546486",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2603,14 +2639,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321219",
           "products": "Oriented strand board",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 145,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Louisiana-Pacific Carthage', 1199 County Road 201, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000598862"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000598862",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2624,14 +2661,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321219",
           "products": "Oriented strand board",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 154,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Louisiana-Pacific Jasper', 5110 US HWY 190E, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070082346"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070082346",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2695,14 +2733,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321991",
           "products": "Manufactured homes",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 238,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: '935 - Bonham', 333 AUSTIN STREET, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000457915"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000457915",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2716,14 +2755,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321991",
           "products": "Manufactured homes",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 240,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: '931 - Waco 1', 6800 IMPERIAL DRIVE, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000460572"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000460572",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2737,14 +2777,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321991",
           "products": "Manufactured homes",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 311,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: '932 - Waco 2', 7001 IMPERIAL DRIVE, annual average employees. The employer's own people at the site; contractors are not counted. A second filing at the address, '916 - Waco Frame Parts' (26 people), is not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000460581"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000460581",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2787,12 +2828,13 @@
           "employees": 300,
           "employeesYear": 2023,
           "employeesSource": "https://en.wikipedia.org/wiki/Burleson,_Texas",
-          "employeesNote": "Listed as \"Champion Buildings Mfg\" in the city's 2023 annual financial report, as quoted on Wikipedia; the report itself was not checked.",
+          "employeesNote": "Listed as \"Champion Buildings Mfg\" in the city's 2023 annual financial report, as quoted on Wikipedia; the report itself was not checked. OSHA Form 300A, 2025: 'Champion Home Builders', 501 S Burleson Blvd.: 482 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070370019",
-            "https://en.wikipedia.org/wiki/Burleson,_Texas"
+            "https://en.wikipedia.org/wiki/Burleson,_Texas",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2839,14 +2881,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321991",
           "products": "Manufactured homes",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 187,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'SEGUIN', 2301 N HWY 46, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071296639"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071296639",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2860,15 +2903,16 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321991",
           "products": "Manufactured homes",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 288,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Cavco Lake Arlington', 4805 E Loop 820 South, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110072083868",
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110005073776"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110005073776",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2906,14 +2950,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321991",
           "products": "Manufactured homes",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 214,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: '01 Legacy Housing Corporation - FTW Housing Production Facility', 4801 Mark IV Parkway, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2024 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110033956985"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110033956985",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2927,14 +2972,15 @@
           "subsector": "Wood Product Manufacturing",
           "naics": "321991",
           "products": "Manufactured homes",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 126,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: '05 Legacy Housing Corporation - COM Housing Production Facility', 103 N. Neal Street, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2024 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070346754"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070346754",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3142,15 +3188,16 @@
           "subsector": "Paper Manufacturing",
           "naics": null,
           "products": "Paperboard cups, containers and cartons",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 220,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Huhtamaki Inc - Paris', 800 W. Center Street, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000857555",
-            "https://texasedc.org/news/member-news/2026-06-07/huhtamaki-goes-big-in-texas-cutting-the-ribbon-on-a-400000-square-foot-expansion"
+            "https://texasedc.org/news/member-news/2026-06-07/huhtamaki-goes-big-in-texas-cutting-the-ribbon-on-a-400000-square-foot-expansion",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3263,15 +3310,16 @@
           "subsector": "Printing and Related Support Activities",
           "naics": "323111",
           "products": "US paper currency",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 624,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Bureau of Engraving and Printing', 9000 Blue Mound Road, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000495090",
-            "https://en.wikipedia.org/wiki/Bureau_of_Engraving_and_Printing"
+            "https://en.wikipedia.org/wiki/Bureau_of_Engraving_and_Printing",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3362,15 +3410,16 @@
           "subsector": "Furniture and Related Product Manufacturing",
           "naics": "337127",
           "products": "School desks, chairs and tables",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 361,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Artcobell', 1302 Industrial Blvd, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.artcobell.com/",
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000460331"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000460331",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3504,14 +3553,15 @@
           "subsector": "Furniture and Related Product Manufacturing",
           "naics": "337910",
           "products": "Mattresses and foundations",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 158,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Brenham', 1201 Highway 290 West, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://kwhi.com/2023/10/05/mattress-mack-visits-employees-at-brenham-tempur-sealy-plant/"
+            "https://kwhi.com/2023/10/05/mattress-mack-visits-employees-at-brenham-tempur-sealy-plant/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3548,14 +3598,15 @@
           "subsector": "Furniture and Related Product Manufacturing",
           "naics": "337121",
           "products": "Upholstered sofas, chairs and sleeper sofas",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 650,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'American Leather Operations, LLC', 4501 Mountain Creek Parkway, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070275947"
+            "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070275947",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3611,5 +3662,5 @@
       "why": "listed by the company without a street address"
     }
   ],
-  "notes": "HOW THIS FILE WAS BUILT. Web search stopped partway through (the shared search allowance ran out), so most of the work was done by reading pages directly: company pages, state and local economic development pages, the EPA Facility Registry Service (FRS), and Wikipedia city articles that quote city annual financial reports. Printing and furniture are thin for that reason, and several leads could not be followed. Nothing was estimated.\n\nCOORDINATES. Each point is one of: the contract's geocode helper when it matched the house number in the right city; an OpenStreetMap feature carrying the plant's name; or the EPA FRS record for the plant. The helper's street-only matches were not used: on long highways they were kilometres out (Nucor Jewett, Optimus Steel, Sabre Alvarado). Points taken from FRS alone, without a second match: Steel Dynamics Sinton, Tenaris Bay City, Tenaris Baytown, Wyman-Gordon Houston, Hunter Cement, Acme Brick Denton and Malakoff, Georgia-Pacific Diboll, Pineland, Sweetwater and Quanah, West Fraser New Boston, LP Carthage, Clayton Bonham, Cavco Seguin, Graphic Packaging Waco, International Paper Orange, Nucor Longview.\n\nHEADCOUNTS. 30 of the 89 plants carry a figure (two more are whole-state or whole-company figures on the company). Three kinds need a reviewer's eye. (1) \"Texas Enterprise Zone\" figures (Howmet Wichita Falls, Kiewit, Sabre, W&W|AFCO, Ball, Cemex, Vitro, Guardian, Owens Corning, Johns Manville, James Hardie Waxahachie, Kohler, Georgia-Pacific, Smurfit Westrock, Kimberly-Clark, Madix) are the jobs on site when the state approved the project, 2015 to 2020, read on texans.pages.dev, a third-party copy of the state's records; the Governor's office record was not opened. (2) Figures from city annual financial reports were read on Wikipedia, not in the reports (Gerdau, Graphic Packaging Texarkana, Clayton Sulphur Springs, Champion Burleson, Western Extrusions). (3) Undated company or EDC pages are given the year they were read, 2026 (CMC Seguin, Wyman-Gordon, and the state totals for Georgia-Pacific and Artcobell).\n\nCONFLICTS. CMC Seguin: 900 (EDC list) against 500 (state record, 2018) and \"approximately 1,000 direct jobs\" in press coverage not opened. Vitro Wichita Falls: 330 (state, 2018) against 934 (Chamber list, undated). Gerdau Midlothian: the city lists 1,250 as the top of a band; a Gerdau job posting seen only in a search summary said about 1,030 for the mill and its downstream sites. Kiewit Ingleside: a Kiewit job posting seen only in a search summary describes about 300 staff and 1,400 craft workers.\n\nOPERATING STATUS NOT RE-CONFIRMED ONLINE. These are listed as operating on the strength of a current EPA registry record and general knowledge, not a page read this session: Howmet Fastening Systems Waco, Ellwood Texas Forge Houston, Simpson Strong-Tie McKinney, USG Sweetwater and Galena Park, National Gypsum Rotan, O-I Waco, Georgia-Pacific Sweetwater and Quanah gypsum, the five West Fraser mills, LP Carthage and Jasper, Clayton Bonham and Waco, Cavco Seguin and Fort Worth, Legacy Housing Fort Worth and Commerce, Graphic Packaging Waco (a new mill planned to start in late 2025), Johns Manville and James Hardie Cleburne, American Leather Dallas, Mueller Ballinger, Hensley Dallas. The Acme Brick plant list is from an unsourced section of Wikipedia's Acme Brick article, which marks Bridgeport, Garrison and McQueeney as closed.\n\nJUDGMENT CALLS. Kiewit Offshore Services is a steel fabrication yard and is filed under Fabricated Metal. Howmet's Wichita Falls casting plant is filed under Primary Metal (foundry) and its Waco fastener plant under Fabricated Metal. Kimberly-Clark Paris (diapers) is Paper Manufacturing by NAICS. The Bureau of Engraving and Printing is a federal agency, included because its Fort Worth plant is the largest printing site found. ASARCO Amarillo is listed as operating because a 2024 union agreement covers its workers, but reports that year spoke of restarting the refinery, so part of it may be idle; a local radio report from the 2019 strike gave 244 hourly and 94 salaried workers. Cavco is shown as the owner of the Oak Creek Homes (American Homestar) plants because the EPA registry now carries them as \"Cavco - Lancaster\" and \"Cavco - Lake Arlington\"; the purchase itself was not read on a page. Amrize is Holcim's former North American business (holcim.us now opens as Amrize); the cement association's May 2025 sheet still says Holcim. Ash Grove's Hunter plant was Martin Marietta's (TXI) until 2024. Georgia-Pacific's two gypsum plants are under Georgia-Pacific with the Nonmetallic Mineral subsector.\n\nNAMES ALREADY IN THE DATABASE. \"Txi\" is Texas Industries, part of Martin Marietta since 2014: cement at Midlothian plus ready-mix and aggregates sites (the Hunter cement plant went to Ash Grove/CRH). \"Campbell Soup\" under minerals is most likely Campbell Concrete & Materials, a Houston ready-mix concrete firm that became part of Cemex, and has nothing to do with the food company; this was not confirmed on a page, so it is not in Cemex's alsoKnownAs. \"Lattimore Materials\" is a North Texas ready-mix and aggregates firm bought by Holcim's Aggregate Industries in 2011 (now Amrize), also unconfirmed here and left out of alsoKnownAs. Ready-mix plants are small (a handful of people each) and none are listed. \"Alcoa\": its Point Comfort and Rockdale operations are shut; no operating Alcoa plant was found in Texas. \"Trinity Industries\": its Texas plants build rail cars (Transportation Equipment); the tank, tower and highway-product businesses once filed under fabricated metal were spun off as Arcosa in 2018, and no Arcosa fabricating plant in Texas was confirmed. \"Oldcastle\" is CRH: concrete products (Oldcastle APG, Oldcastle Infrastructure) and glass (Oldcastle BuildingEnvelope), not wood. \"Louisiana-Pacific\" has many old sawmill and panel sites in East Texas in government lists (Silsbee, Cleveland, Corrigan, Bon Wier, New Waverly); only Carthage and Jasper are listed here. \"International Paper\": the Orange containerboard mill is marked closed (announced in late 2023) and the Texarkana mill is now Graphic Packaging's; both facts are from the researcher's own knowledge plus the registry names, not from a page read this session, and the same goes for the closure year of Nucor Longview, which rests on a search summary of a Recycling Today report and a June 2023 layoff notice; its many box plants, and Packaging Corporation of America's, were not researched. \"Leggett & Platt\" has EPA registry records in Ennis, Fort Worth and Brenham that were not confirmed. The loader should not merge \"Lone Star Industries\" rows blindly into Buzzi Unicem: some old records under that name are closed terminals.\n\nLEFT OUT, WITH WHAT IS KNOWN. Not confirmed as operating or not researched for lack of search: U.S. Steel Lone Star Tubular Operations (6866 US 259 S, Lone Star; idled, status unknown), TPCO America (5431 Highway 35, Gregory; its own site still describes a ramp-up), Borusan pipe mill (4949 Borusan Rd, Baytown), Vallourec Star (8603 Sheldon Rd, Houston), Kaiser Aluminum (Sherman), Texarkana Aluminum (300 Alumax Rd), Ball Conroe (1001 N FM 3083 Rd E), Hudson Products (Chart Industries; 9660 Grunwald Rd, Beasley), Valmont Newmark (Bellville), Flowserve Sulphur Springs (below the city's top-ten cut of 183 employees in 2024), Owens Corning Amarillo (1701 Hollywood Rd; a glass reinforcements plant, a business Owens Corning was selling), Dal-Tile (El Paso, Sunnyvale, Dallas), Knauf Insulation (McGregor), Lehigh White Cement (Woodway), Georgia-Pacific Diboll particleboard and Corrigan plywood (the state recorded 374 jobs at Corrigan in December 2015), Clayton Athens, Champion Athens, Palm Harbor (Austin, Fort Worth), Fleetwood Waco, Republic Elite (Marshall), Corsicana Mattress, Ashley Furniture (Mesquite), Harland Clarke (San Antonio), RR Donnelley and Quad sites. Weyerhaeuser: no Texas mill was found. Encore Wire (McKinney), Emerson and Cameron valve plants, General Dynamics ordnance plants (Garland, Mesquite) and Priefert (Mount Pleasant) sit on the border of these industries and were left to the electrical, machinery and defence briefs."
+  "notes": "HOW THIS FILE WAS BUILT. Web search stopped partway through (the shared search allowance ran out), so most of the work was done by reading pages directly: company pages, state and local economic development pages, the EPA Facility Registry Service (FRS), and Wikipedia city articles that quote city annual financial reports. Printing and furniture are thin for that reason, and several leads could not be followed. Nothing was estimated.\n\nCOORDINATES. Each point is one of: the contract's geocode helper when it matched the house number in the right city; an OpenStreetMap feature carrying the plant's name; or the EPA FRS record for the plant. The helper's street-only matches were not used: on long highways they were kilometres out (Nucor Jewett, Optimus Steel, Sabre Alvarado). Points taken from FRS alone, without a second match: Steel Dynamics Sinton, Tenaris Bay City, Tenaris Baytown, Wyman-Gordon Houston, Hunter Cement, Acme Brick Denton and Malakoff, Georgia-Pacific Diboll, Pineland, Sweetwater and Quanah, West Fraser New Boston, LP Carthage, Clayton Bonham, Cavco Seguin, Graphic Packaging Waco, International Paper Orange, Nucor Longview.\n\nHEADCOUNTS. 30 of the 89 plants carry a figure (two more are whole-state or whole-company figures on the company). Three kinds need a reviewer's eye. (1) \"Texas Enterprise Zone\" figures (Howmet Wichita Falls, Kiewit, Sabre, W&W|AFCO, Ball, Cemex, Vitro, Guardian, Owens Corning, Johns Manville, James Hardie Waxahachie, Kohler, Georgia-Pacific, Smurfit Westrock, Kimberly-Clark, Madix) are the jobs on site when the state approved the project, 2015 to 2020, read on texans.pages.dev, a third-party copy of the state's records; the Governor's office record was not opened. (2) Figures from city annual financial reports were read on Wikipedia, not in the reports (Gerdau, Graphic Packaging Texarkana, Clayton Sulphur Springs, Champion Burleson, Western Extrusions). (3) Undated company or EDC pages are given the year they were read, 2026 (CMC Seguin, Wyman-Gordon, and the state totals for Georgia-Pacific and Artcobell).\n\nCONFLICTS. CMC Seguin: 900 (EDC list) against 500 (state record, 2018) and \"approximately 1,000 direct jobs\" in press coverage not opened. Vitro Wichita Falls: 330 (state, 2018) against 934 (Chamber list, undated). Gerdau Midlothian: the city lists 1,250 as the top of a band; a Gerdau job posting seen only in a search summary said about 1,030 for the mill and its downstream sites. Kiewit Ingleside: a Kiewit job posting seen only in a search summary describes about 300 staff and 1,400 craft workers.\n\nOPERATING STATUS NOT RE-CONFIRMED ONLINE. These are listed as operating on the strength of a current EPA registry record and general knowledge, not a page read this session: Howmet Fastening Systems Waco, Ellwood Texas Forge Houston, Simpson Strong-Tie McKinney, USG Sweetwater and Galena Park, National Gypsum Rotan, O-I Waco, Georgia-Pacific Sweetwater and Quanah gypsum, the five West Fraser mills, LP Carthage and Jasper, Clayton Bonham and Waco, Cavco Seguin and Fort Worth, Legacy Housing Fort Worth and Commerce, Graphic Packaging Waco (a new mill planned to start in late 2025), Johns Manville and James Hardie Cleburne, American Leather Dallas, Mueller Ballinger, Hensley Dallas. The Acme Brick plant list is from an unsourced section of Wikipedia's Acme Brick article, which marks Bridgeport, Garrison and McQueeney as closed.\n\nJUDGMENT CALLS. Kiewit Offshore Services is a steel fabrication yard and is filed under Fabricated Metal. Howmet's Wichita Falls casting plant is filed under Primary Metal (foundry) and its Waco fastener plant under Fabricated Metal. Kimberly-Clark Paris (diapers) is Paper Manufacturing by NAICS. The Bureau of Engraving and Printing is a federal agency, included because its Fort Worth plant is the largest printing site found. ASARCO Amarillo is listed as operating because a 2024 union agreement covers its workers, but reports that year spoke of restarting the refinery, so part of it may be idle; a local radio report from the 2019 strike gave 244 hourly and 94 salaried workers. Cavco is shown as the owner of the Oak Creek Homes (American Homestar) plants because the EPA registry now carries them as \"Cavco - Lancaster\" and \"Cavco - Lake Arlington\"; the purchase itself was not read on a page. Amrize is Holcim's former North American business (holcim.us now opens as Amrize); the cement association's May 2025 sheet still says Holcim. Ash Grove's Hunter plant was Martin Marietta's (TXI) until 2024. Georgia-Pacific's two gypsum plants are under Georgia-Pacific with the Nonmetallic Mineral subsector.\n\nNAMES ALREADY IN THE DATABASE. \"Txi\" is Texas Industries, part of Martin Marietta since 2014: cement at Midlothian plus ready-mix and aggregates sites (the Hunter cement plant went to Ash Grove/CRH). \"Campbell Soup\" under minerals is most likely Campbell Concrete & Materials, a Houston ready-mix concrete firm that became part of Cemex, and has nothing to do with the food company; this was not confirmed on a page, so it is not in Cemex's alsoKnownAs. \"Lattimore Materials\" is a North Texas ready-mix and aggregates firm bought by Holcim's Aggregate Industries in 2011 (now Amrize), also unconfirmed here and left out of alsoKnownAs. Ready-mix plants are small (a handful of people each) and none are listed. \"Alcoa\": its Point Comfort and Rockdale operations are shut; no operating Alcoa plant was found in Texas. \"Trinity Industries\": its Texas plants build rail cars (Transportation Equipment); the tank, tower and highway-product businesses once filed under fabricated metal were spun off as Arcosa in 2018, and no Arcosa fabricating plant in Texas was confirmed. \"Oldcastle\" is CRH: concrete products (Oldcastle APG, Oldcastle Infrastructure) and glass (Oldcastle BuildingEnvelope), not wood. \"Louisiana-Pacific\" has many old sawmill and panel sites in East Texas in government lists (Silsbee, Cleveland, Corrigan, Bon Wier, New Waverly); only Carthage and Jasper are listed here. \"International Paper\": the Orange containerboard mill is marked closed (announced in late 2023) and the Texarkana mill is now Graphic Packaging's; both facts are from the researcher's own knowledge plus the registry names, not from a page read this session, and the same goes for the closure year of Nucor Longview, which rests on a search summary of a Recycling Today report and a June 2023 layoff notice; its many box plants, and Packaging Corporation of America's, were not researched. \"Leggett & Platt\" has EPA registry records in Ennis, Fort Worth and Brenham that were not confirmed. The loader should not merge \"Lone Star Industries\" rows blindly into Buzzi Unicem: some old records under that name are closed terminals.\n\nLEFT OUT, WITH WHAT IS KNOWN. Not confirmed as operating or not researched for lack of search: U.S. Steel Lone Star Tubular Operations (6866 US 259 S, Lone Star; idled, status unknown), TPCO America (5431 Highway 35, Gregory; its own site still describes a ramp-up), Borusan pipe mill (4949 Borusan Rd, Baytown), Vallourec Star (8603 Sheldon Rd, Houston), Kaiser Aluminum (Sherman), Texarkana Aluminum (300 Alumax Rd), Ball Conroe (1001 N FM 3083 Rd E), Hudson Products (Chart Industries; 9660 Grunwald Rd, Beasley), Valmont Newmark (Bellville), Flowserve Sulphur Springs (below the city's top-ten cut of 183 employees in 2024), Owens Corning Amarillo (1701 Hollywood Rd; a glass reinforcements plant, a business Owens Corning was selling), Dal-Tile (El Paso, Sunnyvale, Dallas), Knauf Insulation (McGregor), Lehigh White Cement (Woodway), Georgia-Pacific Diboll particleboard and Corrigan plywood (the state recorded 374 jobs at Corrigan in December 2015), Clayton Athens, Champion Athens, Palm Harbor (Austin, Fort Worth), Fleetwood Waco, Republic Elite (Marshall), Corsicana Mattress, Ashley Furniture (Mesquite), Harland Clarke (San Antonio), RR Donnelley and Quad sites. Weyerhaeuser: no Texas mill was found. Encore Wire (McKinney), Emerson and Cameron valve plants, General Dynamics ordnance plants (Garland, Mesquite) and Priefert (Mount Pleasant) sit on the border of these industries and were left to the electrical, machinery and defence briefs.\n\nV2, OSHA PASS (18 November 2026). Headcounts that were missing have been filled from OSHA's Form 300A establishment data (https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data): the files for reporting year 2025 and, where an establishment has no 2025 row, 2024, read from the copies on disk. The figure is the establishment's own 'annual average number of employees': that employer's people at that address, offices on the site included, contractors not included. A row was taken only when it had the same street address in the same city, or the same ZIP code and a name that is plainly this plant; each employeesNote names the row. Contractors' filings from the same address (maintenance, scaffolding, catering, security) were never used. Nothing else was changed except as listed here. Web search was not available, so nothing in this pass was checked against a company page. SCOPE RULE (construction is not manufacturing: no ready-mix, concrete block, pipe or precast, NAICS 3273, and no asphalt paving mixtures, 324121): no plant in this file is one of those, so none was removed. COUNTS: 40 plants filled (38 from the 2025 file, 2 from 2024); 19 still without a figure; 11 existing figures annotated with a differing OSHA figure; 70 of 89 plants now carry a headcount. OPERATING STATUS: for 27 plants that the earlier research could not confirm as operating, the note now says that a filing from the address is good evidence it was operating that year (OSHA's page is added to the plant's sources). SCOPE JUDGMENT FOR THE OWNER. The ten cement plants (NAICS 327310: Martin Marietta, Amrize and Ash Grove at Midlothian, Ash Grove Hunter, Cemex Balcones, Buzzi Maryneal and San Antonio, Capitol, GCC Odessa, Texas Lehigh Buda) and the two James Hardie fiber-cement plants (327390) were KEPT. The rule names ready-mix, block, pipe and precast; cement kilns and siding factories are none of those, but their codes sit inside NAICS 3273, so if the owner meant the whole group these twelve are the ones to drop. CEMENT PLANTS HAVE NO OSHA FIGURE: quarries and cement plants report to the mine safety agency (MSHA), not OSHA, so the nine without a headcount stay without one. NOT FOUND: ASARCO Amarillo, O-I Waco (a 2024 row shows 24 people, which cannot be a working glass plant, and there is no 2025 row), Georgia-Pacific Acme Wallboard (Quanah), West Fraser Lufkin and Nacogdoches, Graphic Packaging Waco (the only filing at the address is a construction contractor's, 945 people in 2025, which fits a mill still being built), Leedo Cabinetry. KENT MOORE CABINETS: the listed address, 501 Industrial Blvd, files as the corporate office (62 people); the plants file from 1460 Fountain Ave (196) and 350 Stone City Dr (239), so no figure was put on the listed plant. JUDGMENT CALLS IN MATCHING: Georgia-Pacific Sweetwater is the sum of the east and west plants, which file separately from 311 and 310 FM 1856 (148 + 107); Georgia-Pacific files under site codes with no company name ('TX026 Sweetwater Gypsum EAST'). National Gypsum Rotan files as 'Gold Bond Building Products'. Acme Brick's plants file with the company name given as 'Production'. Mueller Ballinger's 2025 filing is 'Metal Solutions - Ballinger' at the same address (238; 307 as Mueller in 2024). Simpson Strong-Tie files from 2151 Airport Drive and Tenaris Baytown from 2600 Grand Parkway, the same sites under other street names. Freeport-McMoRan El Paso (197) files as Phelps Dodge Industries under a copper wire code and may be the rod mill only. COMPARISONS added to notes (figure left alone): Steel Dynamics Sinton (600 against 973), CMC Seguin (900 against 665), Wyman-Gordon (669 against 263), Kiewit Ingleside (1,365 against 2,172), Valmont Brenham, Guardian Corsicana, Johns Manville Cleburne, James Hardie Waxahachie, Kohler Brownwood (900 against 506 for its two filings), Georgia-Pacific Pineland, Champion Burleson. Vitro Wichita Falls, Kimberly-Clark Paris, Cemex and JSW (598, within a fifth) have no usable row or agree. "
 }

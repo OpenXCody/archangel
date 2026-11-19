@@ -602,6 +602,30 @@
           "isNew": true
         }
       }
+    },
+    "GE Aerospace": {
+      "why": "The existing company named General Electric holds fifty plants of every former GE business (lamps, healthcare, power, flow control), most of which are not GE Aerospace. It is left as it is; only the Evendale plant, which that company holds, moves.",
+      "dropAlsoKnownAs": [
+        "General Electric",
+        "General Electric Company"
+      ],
+      "plants": {
+        "GE Aerospace Evendale": {
+          "sameAs": "GE AEROSPACE EVENDALE PLANT"
+        }
+      }
+    },
+    "Siemens Mobility": {
+      "why": "Siemens Industry is Siemens' US industrial company (motors, switchgear, controls), not the rail business. Its plants stay with Siemens.",
+      "dropAlsoKnownAs": [
+        "Siemens Industry"
+      ]
+    },
+    "Merck": {
+      "why": "The existing company named Msd is MSD LLC of El Paso, TX, which could not be confirmed as Merck Sharp & Dohme.",
+      "dropAlsoKnownAs": [
+        "MSD"
+      ]
     }
   }
 }

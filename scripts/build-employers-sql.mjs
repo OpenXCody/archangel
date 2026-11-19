@@ -57,8 +57,12 @@ export const SUBSECTORS = [
 ];
 const SUBSECTOR_BY_KEY = new Map(SUBSECTORS.map((name) => [name.toLowerCase().replace(/[^a-z]+/g, ' ').trim(), name]));
 
-/** NAICS codes, by their leading digits, that the map does not cover: cement and concrete products (3273), asphalt paving mixtures (324121). */
-export const NOT_COVERED = ['3273', '324121'];
+/**
+ * NAICS codes, by their leading digits, that the map does not cover: material mixed or cast for a building site.
+ * Ready-mix concrete (32732), concrete pipe, brick and block (32733), other concrete products (32739) and asphalt
+ * paving mixtures (324121). Cement itself (32731) is made in a kiln plant and is covered.
+ */
+export const NOT_COVERED = ['32732', '32733', '32739', '324121'];
 
 const LOADED_STATUSES = ['operating', 'under construction'];
 const OTHER_STATUSES = ['announced', 'closed'];
@@ -181,13 +185,14 @@ export function normaliseFile(raw, states, label = raw?.brief ?? 'file') {
         continue;
       }
       const state = text(p.state, 2)?.toUpperCase();
-      if (!state || !states[state]) {
-        say(where, `state "${p.state}" is not a state code; left out`);
-        continue;
-      }
+      // Puerto Rico is asked about first: it is no longer in the app's list of states.
       if (state === 'PR') {
         say(where, 'is in Puerto Rico, which the map does not cover; not loaded');
         notLoaded.push(`${plantName} (Puerto Rico)`);
+        continue;
+      }
+      if (!state || !states[state]) {
+        say(where, `state "${p.state}" is not a state code; left out`);
         continue;
       }
       const city = text(p.city, 120);
@@ -218,8 +223,8 @@ export function normaliseFile(raw, states, label = raw?.brief ?? 'file') {
         say(where, `NAICS "${p.naics}" is not a six-digit manufacturing code; left out`);
         naics = null;
       }
-      // Construction materials are not manufacturing here: concrete (ready-mix, block, pipe, precast), cement, and
-      // asphalt paving mixtures were taken off the map and do not come back through a file.
+      // Construction materials are not manufacturing here: concrete (ready-mix, block, pipe, precast) and asphalt
+      // paving mixtures were taken off the map and do not come back through a file. A cement plant is covered.
       if (naics && NOT_COVERED.some((code) => naics.startsWith(code))) {
         say(where, `is construction materials (NAICS ${naics}), which the map does not cover; not loaded`);
         notLoaded.push(`${plantName} (construction materials, NAICS ${naics})`);

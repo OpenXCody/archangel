@@ -67,12 +67,13 @@
           "employees": 587,
           "employeesYear": 2026,
           "employeesSource": "https://www.victoriaedc.com/workforce/major-employers",
-          "employeesNote": "Victoria Economic Development Corporation's major-employer list. The page carries no date; the year is the year it was read (November 2026).",
+          "employeesNote": "Victoria Economic Development Corporation's major-employer list. The page carries no date; the year is the year it was read (November 2026). OSHA Form 300A, 2025: 'Dow Seadrift', 7501 state hwy 185: 851 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.victoriaedc.com/workforce/major-employers",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -107,14 +108,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
           "products": "Oxo alcohols, organic acids, esters and vinyl acetate (the former Union Carbide plant)",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 722,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'The Dow Chemical Company - Texas City, TX', 3301 5th Avenue South, annual average employees. The employer's own people at the site; contractors are not counted. The filing for 2024 gave 394, and the 2025 filing's hours worked (about 1.03 million) fit roughly 500 full-time people, so 722 may be high. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -164,14 +166,15 @@
           "employees": 7000,
           "employeesYear": 2025,
           "employeesSource": "https://hcoed.harriscountytx.gov/docs/publications/LargestHarrisCountyEmployers2025.pdf",
-          "employeesNote": "Harris County's 2025 list of largest employers gives 7,000 for \"ExxonMobil Baytown Refinery\". The list does not say whether contractors are counted; the figure is well above the company's own published employee counts for the site, so it very likely includes contract workers.",
+          "employeesNote": "Harris County's 2025 list of largest employers gives 7,000 for \"ExxonMobil Baytown Refinery\". The list does not say whether contractors are counted; the figure is well above the company's own published employee counts for the site, so it very likely includes contract workers. OSHA Form 300A, 2025: 'ExxonMobil Baytown Refinery', 5000 Bayway Drive (1,335) + 'ExxonMobil Baytown Chemical Plant', 5000 Bayway Drive (717) + 'ExxonMobil Baytown Olefins Plant', 3525 Decker Drive (429) = 2,481 annual average employees (the employer's own people; contractors are not counted).",
           "opened": 1920,
           "status": "operating",
           "sources": [
             "https://hcoed.harriscountytx.gov/docs/publications/LargestHarrisCountyEmployers2025.pdf",
             "https://baytownedf.org/site-selection/major-employers/",
             "https://en.wikipedia.org/wiki/Baytown_Refinery",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -185,14 +188,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "Polyethylene resins",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 234,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Mont Belvieu Plastics Plant', 13330 Hatcherville Rd., annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -209,13 +213,14 @@
           "employees": 2100,
           "employeesYear": 2023,
           "employeesSource": "https://www.digitalrefining.com/news/1007378/exxonmobil-boosts-fuel-supply-with-beaumont-refinery-expansion",
-          "employeesNote": "ExxonMobil's March 2023 statement, as carried by Digital Refining: \"approximately 2,100 employees in the Beaumont area\". It covers the refinery, chemical, lubricants and polyethylene plants together; contractors are not included.",
+          "employeesNote": "ExxonMobil's March 2023 statement, as carried by Digital Refining: \"approximately 2,100 employees in the Beaumont area\". It covers the refinery, chemical, lubricants and polyethylene plants together; contractors are not included. OSHA Form 300A, 2025: 'ExxonMobil Beaumont Refinery', 1795 Burt Street (1,139) + 'ExxonMobil Chemical', 2775 Gulf States Road (334) + 'ExxonMobil Blending and Packaging Plant', 2805 Sycamore Street (166) = 1,639 annual average employees (the employer's own people; contractors are not counted).",
           "opened": 1903,
           "status": "operating",
           "sources": [
             "https://www.digitalrefining.com/news/1007378/exxonmobil-boosts-fuel-supply-with-beaumont-refinery-expansion",
             "https://en.wikipedia.org/wiki/ExxonMobil_Beaumont_Refinery",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -229,14 +234,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "Polyethylene resins",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": "Its people are counted in the Beaumont-area figure given on the Beaumont Complex.",
+          "employees": 249,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'ExxonMobil Polyethylene Plant', 11440 HWY 90, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -272,14 +278,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325110",
           "products": "Ethylene, polyethylene and monoethylene glycol",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 309,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'ExxonMobil Product Solutions Company Operator of Gulf Coast Growth Ventures', 4589 FM 2986, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -353,12 +360,13 @@
           "employees": 1000,
           "employeesYear": 2026,
           "employeesSource": "https://www.cpchem.com/locations/north-america/brazoria-county-texas",
-          "employeesNote": "Company page: \"Jobs: 1,000 employees and contractors\" for the Sweeny, Old Ocean and Clemens sites together, so contractors are included. The page carries no date; the year is the year it was read (November 2026).",
+          "employeesNote": "Company page: \"Jobs: 1,000 employees and contractors\" for the Sweeny, Old Ocean and Clemens sites together, so contractors are included. The page carries no date; the year is the year it was read (November 2026). OSHA Form 300A, 2025: 'Chevron Phillips Chemical Co. - Sweeny/Old Ocean', 21441 Freedom Lane: 672 annual average employees (the employer's own people; contractors are not counted).",
           "opened": 1944,
           "status": "operating",
           "sources": [
             "https://www.cpchem.com/locations/north-america/brazoria-county-texas",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -394,15 +402,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325110",
           "products": "Ethylene, propylene and cyclohexane",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 270,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Chevron Phillips Chemical Port Arthur', 2001 S. GULFWAY DRIVE, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1970,
           "status": "operating",
           "sources": [
             "https://www.cpchem.com/locations/north-america/southeast-texas-chemical-complex",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -416,15 +425,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "Polyethylene resins",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 147,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Chevron Phillips Chemical Company-Orange', 5309 FM 1006, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1955,
           "status": "operating",
           "sources": [
             "https://www.cpchem.com/locations/north-america/southeast-texas-chemical-complex",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -438,15 +448,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": null,
           "products": "Specialty chemicals (organosulfur chemicals, solvents and reference fuels) and plastics",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 202,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Chevron Phillips Chemical Company Borger Plant', Spur 119 East, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1944,
           "status": "operating",
           "sources": [
             "https://www.cpchem.com/locations/north-america/borger-texas",
-            "https://www.cpchem.com/locations/north-america"
+            "https://www.cpchem.com/locations/north-america",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -460,15 +471,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": null,
           "products": "Drilling-fluid additives",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 36,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Drilling Specialties Co.', 5450 Jefferson Chemical Road, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1978,
           "status": "operating",
           "sources": [
             "https://www.cpchem.com/locations/north-america/conroe-texas",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -482,15 +494,16 @@
           "subsector": "Plastics and Rubber Products Manufacturing",
           "naics": "326122",
           "products": "Polyethylene pipe",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 82,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Performance Pipe Brownwood', 1400 Drisco Drive, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.cpchem.com/locations/north-america",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -539,13 +552,14 @@
           "employees": 2000,
           "employeesYear": 2024,
           "employeesSource": "https://www.lyondellbasell.com/globalassets/lyb/locations/_factsheet/factsheet-channelview.pdf",
-          "employeesNote": "Company fact sheet (PDF dated September 2024): \"Total Employees: ~2000+\". The company's site page says \"about 2,000 people and contractors\", so contractors are probably included. Harris County's 2025 list gives 2,120.",
+          "employeesNote": "Company fact sheet (PDF dated September 2024): \"Total Employees: ~2000+\". The company's site page says \"about 2,000 people and contractors\", so contractors are probably included. Harris County's 2025 list gives 2,120. OSHA Form 300A, 2025: 'Equistar Chemicals, LP', 8280 Sheldon Rd (697) + 'Lyondell Chemical Company', 2502 Sheldon Rd (566) = 1,263 annual average employees (the employer's own people; contractors are not counted).",
           "opened": 1957,
           "status": "operating",
           "sources": [
             "https://www.lyondellbasell.com/globalassets/lyb/locations/_factsheet/factsheet-channelview.pdf",
             "https://www.lyondellbasell.com/en/channelview-complex/",
-            "https://hcoed.harriscountytx.gov/docs/publications/LargestHarrisCountyEmployers2025.pdf"
+            "https://hcoed.harriscountytx.gov/docs/publications/LargestHarrisCountyEmployers2025.pdf",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -562,12 +576,13 @@
           "employees": 780,
           "employeesYear": 2024,
           "employeesSource": "https://www.lyondellbasell.com/globalassets/lyb/locations/_factsheet/factsheet-laporte.pdf",
-          "employeesNote": "Company fact sheet (PDF dated autumn 2024) gives \"Total Employees\"; it does not say whether contractors are counted.",
+          "employeesNote": "Company fact sheet (PDF dated autumn 2024) gives \"Total Employees\"; it does not say whether contractors are counted. OSHA Form 300A, 2025: 'LyondellBasell La Porte Complex', 1515 Miller Cut Off Rd: 528 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.lyondellbasell.com/globalassets/lyb/locations/_factsheet/factsheet-laporte.pdf",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -584,12 +599,13 @@
           "employees": 485,
           "employeesYear": 2024,
           "employeesSource": "https://www.lyondellbasell.com/globalassets/lyb/locations/_factsheet/factsheet-bayport.pdf",
-          "employeesNote": "Company fact sheet (PDF dated autumn 2024) gives \"Total Employees\"; it does not say whether contractors are counted.",
+          "employeesNote": "Company fact sheet (PDF dated autumn 2024) gives \"Total Employees\"; it does not say whether contractors are counted. OSHA Form 300A, 2025: 'Lyondell Chemical Company, Bayport', 10801 Choate Road: 365 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.lyondellbasell.com/globalassets/lyb/locations/_factsheet/factsheet-bayport.pdf",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -606,12 +622,13 @@
           "employees": 355,
           "employeesYear": 2024,
           "employeesSource": "https://www.lyondellbasell.com/globalassets/lyb/locations/_factsheet/factsheet-corpus_christi.pdf",
-          "employeesNote": "Company fact sheet (PDF dated autumn 2024) gives \"Total Employees\"; it does not say whether contractors are counted.",
+          "employeesNote": "Company fact sheet (PDF dated autumn 2024) gives \"Total Employees\"; it does not say whether contractors are counted. OSHA Form 300A, 2025: 'Lyondellbasell Corpus Christi Operations', 1501 McKinzie Rd: 238 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.lyondellbasell.com/globalassets/lyb/locations/_factsheet/factsheet-corpus_christi.pdf",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -628,12 +645,13 @@
           "employees": 95,
           "employeesYear": 2024,
           "employeesSource": "https://www.lyondellbasell.com/globalassets/lyb/locations/_factsheet/factsheet-victoria.pdf",
-          "employeesNote": "Company fact sheet (PDF dated autumn 2024) gives \"Total Employees\"; it does not say whether contractors are counted.",
+          "employeesNote": "Company fact sheet (PDF dated autumn 2024) gives \"Total Employees\"; it does not say whether contractors are counted. OSHA Form 300A, 2025: 'Equistar chemicals, L.P. (Victoria Plant)', 2699 Old Bloomington Highway: 67 annual average employees (the employer's own people; contractors are not counted).",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.lyondellbasell.com/globalassets/lyb/locations/_factsheet/factsheet-victoria.pdf",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -797,15 +815,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325110",
           "products": "Ethylene and propylene, polypropylene, linear alpha olefins and polyalphaolefins",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 576,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'INEOS Olefins and Polymers - Chocolate B', 16000 FM 2004, annual average employees. The employer's own people at the site; contractors are not counted. INEOS Oligomers files separately from 15916 FM 2004 (95 people) and is not counted here.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.ineos.com/sites/chocolate-bayou/",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -819,14 +838,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "High-density polyethylene and polypropylene",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 420,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Battleground Manufacturing Complex', 1230 Independence Parkway South, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -840,14 +860,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
           "products": "Acetic acid and plasticizers (bought from Eastman in 2023)",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 134,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'INEOS Acetyls Chemicals Texas City', 201 Bay Street South, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2024 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -861,14 +882,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
           "products": "Acrylonitrile and acetonitrile",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 146,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Ineos Nitriles USA LLC', 13050 Texas Highway 185, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -882,14 +904,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
           "products": "Ethylene oxide and derivatives (bought from LyondellBasell in 2024)",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 200,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'INEOS Oxide, Bayport', 5761 Underwood, annual average employees. The employer's own people at the site; contractors are not counted. No 2025 filing was found for this plant. The earlier research could not confirm this plant was still operating; a 2024 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -931,15 +954,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325110",
           "products": "Ethylene, propylene, butadiene, benzene, toluene, xylenes, phenol and acetone",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 470,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Shell Deer Park Chemical', 5300 Highway 225, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
-            "https://en.wikipedia.org/wiki/Pemex_Deer_Park"
+            "https://en.wikipedia.org/wiki/Pemex_Deer_Park",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1030,15 +1054,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
           "products": "Ethylene, propylene, oxo alcohols, plasticizers, solvents and specialty plastics; a molecular recycling plant is planned on the site",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1492,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Eastman Chemical Company', 300 Kodak Blvd, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1952,
           "status": "operating",
           "sources": [
             "https://gov.texas.gov/news/post/governor-abbott-announces-new-eastman-investment-in-longview",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1102,14 +1127,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "Engineered plastics (acetal copolymer and ultra-high-molecular-weight polyethylene) and chemical intermediates",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 298,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Celanese Bishop Facility', 5738 CR 4, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1203,14 +1229,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325180",
           "products": "Chlorine, caustic soda, ethylene dichloride and vinyl chloride monomer; an ethylene cracker run as a joint venture with Orbia",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 348,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'OxyChem-Ingleside Plant', 4133 Highway 361, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://www.oxy.com/siteassets/documents/publications/fast-facts/oxy_fast_facts_oxychem_texas.pdf"
+            "https://www.oxy.com/siteassets/documents/publications/fast-facts/oxy_fast_facts_oxychem_texas.pdf",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1224,15 +1251,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": null,
           "products": "Vinyl chloride monomer",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 173,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'OxyVinyls-La Porte Plant', 2400 Miller Cutoff Road, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.oxy.com/siteassets/documents/publications/fast-facts/oxy_fast_facts_oxychem_texas.pdf",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1246,15 +1274,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325180",
           "products": "Chlorine, caustic soda, vinyl chloride monomer and PVC resin",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 106,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'OxyVinyls-Deer Park PVC/KOH Plant', 1000 Tidal Road, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.oxy.com/siteassets/documents/publications/fast-facts/oxy_fast_facts_oxychem_texas.pdf",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1268,15 +1297,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "PVC resin",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 166,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'OxyVinyls-Pasadena Plant', 4403 Pasadena Freeway, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.oxy.com/siteassets/documents/publications/fast-facts/oxy_fast_facts_oxychem_texas.pdf",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1290,15 +1320,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325180",
           "products": "Chlorine and caustic soda; being converted from diaphragm to membrane cells",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 177,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'OxyVinyls-Battleground Plant', 2800 Park Road 1836, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.oxy.com/siteassets/documents/publications/fast-facts/oxy_fast_facts_oxychem_texas.pdf",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1339,15 +1370,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "Polyethylene resins",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 202,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Westlake Longview Corporation', 2290 Callahan Road, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.westlake.com/locations",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1361,15 +1393,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "Epoxy resins and their intermediates (the former Hexion plant)",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 130,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Westlake Epoxy Deer Park Texas', 5900 Hwy 225 Gate 7B, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.westlake.com/locations",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1383,14 +1416,15 @@
           "subsector": "Plastics and Rubber Products Manufacturing",
           "naics": "326122",
           "products": "PVC pipe",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 62,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Westlake Pipe & FIttings', 3348 Industrial Dr, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://www.westlake.com/locations"
+            "https://www.westlake.com/locations",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1429,14 +1463,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325180",
           "products": "Chlorine, caustic soda, chlorinated organics and epoxy materials",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": "The plant is inside Dow's Freeport complex and shares its address and coordinates.",
+          "employees": 1019,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Blue Cube Freeport Operations', 2301 Brazosport Blvd, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1476,14 +1511,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "Impact modifiers for plastics, CPVC resin, silyl-terminated polymers, polyimide film and coenzyme Q10",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 370,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Kaneka North America LLC', 6161 Underwood Rd, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1520,14 +1556,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": null,
           "products": "Lubricant and fuel additives",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 610,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Lubrizol - Deer Park', 41 Tidal Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1541,14 +1578,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": null,
           "products": "Lubricant additives and their intermediates",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 101,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Lubrizol Corporation - Bayport', 12801 Bay Area Blvd, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1587,15 +1625,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": null,
           "products": "Refining catalysts",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 303,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Ketjen', 13000 Bay Park Road, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
-            "https://www.pasadenaedc.com/site-selection/major-employers/?cat=major+employers"
+            "https://www.pasadenaedc.com/site-selection/major-employers/?cat=major+employers",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1609,15 +1648,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": null,
           "products": "Aluminum alkyls and other organometallics, and catalysts",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 201,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Ketjen Pasadena', 2500 N. South St, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
-            "https://www.pasadenaedc.com/site-selection/major-employers/?cat=major+employers"
+            "https://www.pasadenaedc.com/site-selection/major-employers/?cat=major+employers",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1654,14 +1694,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "Polypropylene resin",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 148,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Braskem LaPorte Facility', 8811 Strang Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2024 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1698,14 +1739,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
           "products": "Acrylonitrile and other chemical intermediates for nylon 6,6",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 396,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Ascend Performance Materials- Alvin Tx', 6610 FM Rd. 2917, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1744,14 +1786,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
           "products": "Ethylene oxide, ethylene glycol, propylene oxide, surfactants and ethanolamines",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 583,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Indorama Ventures Oxides, LLC', 2701 Spur 136, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1791,14 +1834,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
           "products": "Polyetheramines, specialty amines and carbonates",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 157,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Huntsman Conroe Texas', 5451 Jefferson Chemical Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1835,14 +1879,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
           "products": "Acrylic acid and acrylates",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 172,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Arkema Clear Lake', 9502 B Bayport Blvd, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1877,14 +1922,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": null,
           "products": "Sulfur-based chemicals (methyl mercaptan and derivatives)",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 121,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Arkema Beaumont', 2810 Gulf States Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2024 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -1898,14 +1944,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": null,
           "products": "Sulfur-based chemicals",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 60,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Arkema Inc. Houston Plant', 2231 Haden Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -1942,14 +1989,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325120",
           "products": "Fluorochemical refrigerants and propellants",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 256,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'The Chemours Company FC, LLC - Corpus Christi', 4127 Highway 361, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2029,14 +2077,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "PVC resin",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 193,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Shintech - Freeport, inc', 5618 E. Hwy 332, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2076,14 +2125,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325120",
           "products": "Oxygen, nitrogen, argon and hydrogen",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 94,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Air Liquide Large Industries - Bayport Complex', 11777 Bay Area Blvd, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2122,14 +2172,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325120",
           "products": "Hydrogen, carbon monoxide and atmospheric gases",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 124,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Air Products and Chemicals Inc.- Laporte Facility', 10202 Strang Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2189,14 +2240,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325120",
           "products": "Industrial gases, including hydrogen",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 24,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Linde POx', 703 6th St. South, annual average employees. The employer's own people at the site; contractors are not counted. Linde files its other Texas City units separately (for example 'Linde GBR', 1720 Grant Ave, 28 people). The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2223,29 +2275,7 @@
       "sources": [
         "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
       ],
-      "plants": [
-        {
-          "name": "Alcon Fort Worth",
-          "city": "Fort Worth",
-          "state": "TX",
-          "address": "6201 South Fwy",
-          "zip": "76134",
-          "latitude": 32.65891,
-          "longitude": -97.31372,
-          "subsector": "Chemical Manufacturing",
-          "naics": "325412",
-          "products": "Ophthalmic pharmaceuticals and contact lens care solutions",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
-          "opened": null,
-          "status": "operating",
-          "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
-          ]
-        }
-      ]
+      "plants": []
     },
     {
       "name": "Goodyear",
@@ -2281,15 +2311,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325212",
           "products": "Synthetic rubber and hydrocarbon resins",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 336,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Beaumont Chemical', 11357 IH10 at Smith Rd, annual average employees. The employer's own people at the site; contractors are not counted. The same filing reports 109,392 hours worked, which does not fit 336 people; treat the figure with care. The 2025 filing is in the name of 'G-3 Chickadee Purchaser, LLC', not Goodyear, and its hours cover only part of the year: the sale of Goodyear's chemical business appears to have closed during 2025. Goodyear's own 2024 filing gave 328.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
-            "https://en.wikipedia.org/wiki/Goodyear_Tire_and_Rubber_Company"
+            "https://en.wikipedia.org/wiki/Goodyear_Tire_and_Rubber_Company",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2303,15 +2334,16 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325212",
           "products": "Synthetic rubber",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 260,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'G-3 Chickadee Purchaser, LLC', 2000 Goodyear Drive, annual average employees. The employer's own people at the site; contractors are not counted. The same filing reports 95,158 hours worked, which does not fit 260 people; treat the figure with care. The 2025 filing is in the name of 'G-3 Chickadee Purchaser, LLC', not Goodyear, and its hours cover only part of the year: the sale of Goodyear's chemical business appears to have closed during 2025. Goodyear's own 2024 filing gave 258.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
-            "https://en.wikipedia.org/wiki/Goodyear_Tire_and_Rubber_Company"
+            "https://en.wikipedia.org/wiki/Goodyear_Tire_and_Rubber_Company",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2350,16 +2382,17 @@
           "subsector": "Petroleum and Coal Products Manufacturing",
           "naics": "324110",
           "products": "Gasoline, diesel, jet fuel and lubricant base oils; about 730,000 barrels a day of throughput",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1594,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Motiva Enterprises LLC', 2555 Savannah Avenue, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1903,
           "status": "operating",
           "sources": [
             "https://www.motiva.com/about/what-we-do/refining",
             "https://en.wikipedia.org/wiki/Port_Arthur_Refinery",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2561,15 +2594,16 @@
           "subsector": "Petroleum and Coal Products Manufacturing",
           "naics": "324110",
           "products": "Gasoline, diesel, jet fuel and petrochemical feedstocks",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1660,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Galveston Bay Refinery', 2401 5th Avenue South, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": 1934,
           "status": "operating",
           "sources": [
             "https://en.wikipedia.org/wiki/Galveston_Bay_Refinery",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2676,15 +2710,16 @@
           "subsector": "Petroleum and Coal Products Manufacturing",
           "naics": "324110",
           "products": "Gasoline, diesel, jet fuel and petrochemicals (East and West plants; the coordinates are the East plant)",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 574,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'CITGO Refining and Chemicals Co. L.P.', 1802 Nueces Bay Blvd, annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
-            "https://csrwire.com/press-release/citgo-honors-local-partners-at-annual-appreciation-breakfast/"
+            "https://csrwire.com/press-release/citgo-honors-local-partners-at-annual-appreciation-breakfast/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2730,15 +2765,16 @@
           "subsector": "Petroleum and Coal Products Manufacturing",
           "naics": "324110",
           "products": "Gasoline, diesel, jet fuel and aromatics",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 964,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Flint Hills Resources - West Plant', 2825 Suntide Road, annual average employees. The employer's own people at the site; contractors are not counted. No 2025 filing was found. The East Plant's 2024 filing (88 people, about 697,000 hours) does not hold together and was not used.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
-            "https://www.fhr.com/fhr2022/media/FHR-Images/FHR_Texas_newsletter-ENGLISH-WEBSITE-VERSION-(12-18-24).pdf"
+            "https://www.fhr.com/fhr2022/media/FHR-Images/FHR_Texas_newsletter-ENGLISH-WEBSITE-VERSION-(12-18-24).pdf",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2849,14 +2885,15 @@
           "subsector": "Petroleum and Coal Products Manufacturing",
           "naics": "324110",
           "products": "Gasoline, diesel and jet fuel",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 273,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Chevron Pasadena Refinery', 111 Red Bluff Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2896,15 +2933,16 @@
           "subsector": "Petroleum and Coal Products Manufacturing",
           "naics": "324110",
           "products": "Gasoline, diesel and jet fuel; 238,000 barrels a day",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 686,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'TotalEnergies Petrochemicals & Refining USA, Inc., Port Arthur Refinery', 7600 32nd St., annual average employees. The employer's own people at the site; contractors are not counted.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://totalenergies.com/en/energy-expertise/projects/refining-petrochemical-platform/port-arthur-sustainable-platform",
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2918,14 +2956,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325211",
           "products": "Polypropylene resin",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 115,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'TOTALENERGIES PETROCHEMICALS & REFINING USA, INC. La Porte PP', 1818 Independence Pkwy, annual average employees. The employer's own people at the site; contractors are not counted. The same filing reports 379,808 hours worked, which does not fit 115 people; treat the figure with care. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -2965,14 +3004,15 @@
           "subsector": "Petroleum and Coal Products Manufacturing",
           "naics": "324110",
           "products": "Gasoline, diesel and jet fuel",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 279,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Delek, Tyler', 425 McMurrey Dr., annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         },
         {
@@ -2986,14 +3026,15 @@
           "subsector": "Petroleum and Coal Products Manufacturing",
           "naics": "324110",
           "products": "Gasoline, diesel, jet fuel and asphalt",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 250,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Big Spring Refinery', 200 Refinery Rd, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3125,14 +3166,15 @@
           "subsector": "Plastics and Rubber Products Manufacturing",
           "naics": "326111",
           "products": "Trash bags, plastic sheeting and liners",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 2617,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Poly-America', 2000 W. Marshall Dr., annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3169,14 +3211,15 @@
           "subsector": "Plastics and Rubber Products Manufacturing",
           "naics": "326199",
           "products": "Moulded plastic coolers and drink containers",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 1953,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Igloo Products Corp', 777 Igloo Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2024 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3214,14 +3257,15 @@
           "subsector": "Plastics and Rubber Products Manufacturing",
           "naics": "326140",
           "products": "Foam and plastic cups and food containers",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 791,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Dart Container Waxahachie', 850 Solon Road, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3260,14 +3304,15 @@
           "subsector": "Plastics and Rubber Products Manufacturing",
           "naics": null,
           "products": "Tread rubber for retreading truck tires",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 246,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Abilene (BAMG)', 4750 FM 18, annual average employees. The employer's own people at the site; contractors are not counted. The earlier research could not confirm this plant was still operating; a 2025 filing from this address is good evidence that it was.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON"
+            "https://data.epa.gov/efservice/tri.tri_facility/state_abbr/equals/TX/JSON",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]
@@ -3323,5 +3368,5 @@
       "why": "Polypropylene plants inside Dow's Freeport and Seadrift sites; no coordinates of their own were found."
     }
   ],
-  "notes": "HOW FACTS WERE CHECKED. Every headcount in this file was read on the page it cites (fetched and searched for the figure). The web-search allowance ran out part-way through, so many plants have no headcount: they are null, not estimated. Existence and addresses of plants without a company page among their sources come from the EPA Toxics Release Inventory facility list for Texas (the URL in their sources), where each is listed as not closed, together with the researcher's general knowledge of the industry; they were not each re-confirmed on a 2026 company page. Product lines and opening years without a cited page are general knowledge and worth a second look. COORDINATES. Exact house-number matches from the geocoder were used where it gave one. Where it matched only the street, the EPA list's coordinate was used when it agreed with the street and with the known layout: Dow Freeport, Dow Deer Park, Dow Texas City, LyondellBasell La Porte and Houston Refinery, BASF Port Arthur, INEOS Chocolate Bayou, Battleground, Texas City and Green Lake, OxyChem La Porte, Pasadena and Battleground, Westlake Epoxy, Ketjen Bayport and Pasadena, Ascend, Indorama, Arkema Clear Lake, Chemours Corpus Christi, Shintech, Valero Port Arthur and Three Rivers, Phillips 66 Sweeny, CITGO, both Flint Hills plants, TotalEnergies La Porte, Delek Big Spring, Air Liquide Bayport, Linde Texas City. EPA coordinates are rounded to seconds and some are inside the fence rather than at the gate. Street-level points (on the right road beside the plant, not a house number) were accepted for: Gulf Coast Growth Ventures (FM 2986), LyondellBasell Corpus Christi (McKinzie Rd), Westlake Longview (Estes Dr), Celanese Bishop (County Road 4), and the Phillips 66 and Chevron Phillips plants at Borger (both on Spur 119, given the same point). These are the first to re-check. Wikipedia coordinates were used for ExxonMobil Baytown, Pemex Deer Park and Valero McKee. Olin Freeport is inside the Dow complex and shares its point; INVISTA Victoria and LyondellBasell Victoria are neighbours on one site and geocode to almost the same point. HEADCOUNT CAVEATS. ExxonMobil Baytown (7,000) is Harris County's figure and almost certainly counts contractors. Figures taken from undated pages (Valero and Phillips 66 refinery pages, the Victoria and Brazosport lists, the BASF Texas total) carry 2026, the year they were read. LyondellBasell's fact sheets say \"Total Employees\" without saying whether contractors are in. The Chevron Phillips Sweeny and OxyChem Texas figures include contractors by the companies' own wording. FIGURES SEEN ONLY IN SEARCH SUMMARIES AND LEFT OUT (the company sites refused automated requests or the page could not be opened): ExxonMobil's 2026 Baytown fact sheet, about 1,900 employees and 4,800 contract personnel (corporate.exxonmobil.com); Dow's Texas flyer, 2022: Freeport 3,666 employees and 2,450 contractors, Seadrift 726 and 563, Texas 7,198 employees (corporate.dow.com/content/dam/corp/documents/location/dow-in-texas-flyer.pdf); Dow Deer Park \"nearly 700\" and Texas City 330 (corporate.dow.com location pages); Eastman Longview \"over 1,500\"; Marathon Galveston Bay 1,550 and Motiva Port Arthur 1,450 (Wikipedia infoboxes, undated); TotalEnergies Port Arthur about 650; CITGO Corpus Christi \"more than 1,000 jobs locally\" (a 2017 company release that does not separate contractors). A reviewer with a browser can confirm these quickly. JUDGMENT CALLS. ExxonMobil's Baytown refinery, chemical plant and olefins plant are one plant; Beaumont refinery, chemical and lubricants are one plant with the polyethylene plant on Highway 90 kept apart. Valero's two Corpus Christi refineries are one plant because the company reports them together; Flint Hills' two are kept apart. BASF TotalEnergies Petrochemicals is listed as a BASF plant (60% owner and operator). Pemex Deer Park is its own company with parent Pemex; Shell keeps the chemical plant on the same site. OxyChem's parent is given as Berkshire Hathaway on the strength of reports that the purchase closed on 2 January 2026 (not opened on a primary page). Covestro's parent is given as XRG (ADNOC) from the Baytown foundation's report. Goodyear agreed in 2025 to sell its chemical business, which includes the Beaumont and Houston plants; whether the sale closed and what the business is now called could not be checked, so the plants are still listed under Goodyear. CITGO's ownership was the subject of a court-ordered sale and its parent is left null. LyondellBasell's Houston Refinery is listed as closed (refining ended in 2025). LEFT OUT FOR LACK OF A CHECKED SOURCE OR ADDRESS: AbbVie (Allergan) Waco, Fujifilm Biotechnologies College Station, Lonza Houston and Mary Kay Lewisville (pharmaceuticals and cosmetics); Nan Ya Plastics Wharton, Berry Global, Advanced Drainage Systems, Diamond Plastics, Charlotte Pipe, Pactiv (plastics); Orion and Cabot (carbon black), TPC Group, Kuraray, Evonik, Nouryon, Solvay/Syensqo, Sasol, Lion Elastomers, Arlanxeo, MEGlobal, Nutrien Borger (chemicals); GAF and Owens Corning (asphalt roofing); Ergon (asphalt terminals, not plants); Continental (no rubber plant in Texas was confirmed); Bridgestone's Firestone Polymers plant at Orange; Goodyear's Bayport plant; Dow's smaller La Porte, Bayport and Beaumont units."
+  "notes": "HOW FACTS WERE CHECKED. Every headcount in this file was read on the page it cites (fetched and searched for the figure). The web-search allowance ran out part-way through, so many plants have no headcount: they are null, not estimated. Existence and addresses of plants without a company page among their sources come from the EPA Toxics Release Inventory facility list for Texas (the URL in their sources), where each is listed as not closed, together with the researcher's general knowledge of the industry; they were not each re-confirmed on a 2026 company page. Product lines and opening years without a cited page are general knowledge and worth a second look. COORDINATES. Exact house-number matches from the geocoder were used where it gave one. Where it matched only the street, the EPA list's coordinate was used when it agreed with the street and with the known layout: Dow Freeport, Dow Deer Park, Dow Texas City, LyondellBasell La Porte and Houston Refinery, BASF Port Arthur, INEOS Chocolate Bayou, Battleground, Texas City and Green Lake, OxyChem La Porte, Pasadena and Battleground, Westlake Epoxy, Ketjen Bayport and Pasadena, Ascend, Indorama, Arkema Clear Lake, Chemours Corpus Christi, Shintech, Valero Port Arthur and Three Rivers, Phillips 66 Sweeny, CITGO, both Flint Hills plants, TotalEnergies La Porte, Delek Big Spring, Air Liquide Bayport, Linde Texas City. EPA coordinates are rounded to seconds and some are inside the fence rather than at the gate. Street-level points (on the right road beside the plant, not a house number) were accepted for: Gulf Coast Growth Ventures (FM 2986), LyondellBasell Corpus Christi (McKinzie Rd), Westlake Longview (Estes Dr), Celanese Bishop (County Road 4), and the Phillips 66 and Chevron Phillips plants at Borger (both on Spur 119, given the same point). These are the first to re-check. Wikipedia coordinates were used for ExxonMobil Baytown, Pemex Deer Park and Valero McKee. Olin Freeport is inside the Dow complex and shares its point; INVISTA Victoria and LyondellBasell Victoria are neighbours on one site and geocode to almost the same point. HEADCOUNT CAVEATS. ExxonMobil Baytown (7,000) is Harris County's figure and almost certainly counts contractors. Figures taken from undated pages (Valero and Phillips 66 refinery pages, the Victoria and Brazosport lists, the BASF Texas total) carry 2026, the year they were read. LyondellBasell's fact sheets say \"Total Employees\" without saying whether contractors are in. The Chevron Phillips Sweeny and OxyChem Texas figures include contractors by the companies' own wording. FIGURES SEEN ONLY IN SEARCH SUMMARIES AND LEFT OUT (the company sites refused automated requests or the page could not be opened): ExxonMobil's 2026 Baytown fact sheet, about 1,900 employees and 4,800 contract personnel (corporate.exxonmobil.com); Dow's Texas flyer, 2022: Freeport 3,666 employees and 2,450 contractors, Seadrift 726 and 563, Texas 7,198 employees (corporate.dow.com/content/dam/corp/documents/location/dow-in-texas-flyer.pdf); Dow Deer Park \"nearly 700\" and Texas City 330 (corporate.dow.com location pages); Eastman Longview \"over 1,500\"; Marathon Galveston Bay 1,550 and Motiva Port Arthur 1,450 (Wikipedia infoboxes, undated); TotalEnergies Port Arthur about 650; CITGO Corpus Christi \"more than 1,000 jobs locally\" (a 2017 company release that does not separate contractors). A reviewer with a browser can confirm these quickly. JUDGMENT CALLS. ExxonMobil's Baytown refinery, chemical plant and olefins plant are one plant; Beaumont refinery, chemical and lubricants are one plant with the polyethylene plant on Highway 90 kept apart. Valero's two Corpus Christi refineries are one plant because the company reports them together; Flint Hills' two are kept apart. BASF TotalEnergies Petrochemicals is listed as a BASF plant (60% owner and operator). Pemex Deer Park is its own company with parent Pemex; Shell keeps the chemical plant on the same site. OxyChem's parent is given as Berkshire Hathaway on the strength of reports that the purchase closed on 2 January 2026 (not opened on a primary page). Covestro's parent is given as XRG (ADNOC) from the Baytown foundation's report. Goodyear agreed in 2025 to sell its chemical business, which includes the Beaumont and Houston plants; whether the sale closed and what the business is now called could not be checked, so the plants are still listed under Goodyear. CITGO's ownership was the subject of a court-ordered sale and its parent is left null. LyondellBasell's Houston Refinery is listed as closed (refining ended in 2025). LEFT OUT FOR LACK OF A CHECKED SOURCE OR ADDRESS: AbbVie (Allergan) Waco, Fujifilm Biotechnologies College Station, Lonza Houston and Mary Kay Lewisville (pharmaceuticals and cosmetics); Nan Ya Plastics Wharton, Berry Global, Advanced Drainage Systems, Diamond Plastics, Charlotte Pipe, Pactiv (plastics); Orion and Cabot (carbon black), TPC Group, Kuraray, Evonik, Nouryon, Solvay/Syensqo, Sasol, Lion Elastomers, Arlanxeo, MEGlobal, Nutrien Borger (chemicals); GAF and Owens Corning (asphalt roofing); Ergon (asphalt terminals, not plants); Continental (no rubber plant in Texas was confirmed); Bridgestone's Firestone Polymers plant at Orange; Goodyear's Bayport plant; Dow's smaller La Porte, Bayport and Beaumont units.\n\nV2, OSHA PASS (18 November 2026). Headcounts that were missing have been filled from OSHA's Form 300A establishment data (https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data): the files for reporting year 2025 and, where an establishment has no 2025 row, 2024, read from the copies on disk. The figure is the establishment's own 'annual average number of employees': that employer's people at that address, offices on the site included, contractors not included. A row was taken only when it had the same street address in the same city, or the same ZIP code and a name that is plainly this plant; each employeesNote names the row. Contractors' filings from the same address (maintenance, scaffolding, catering, security) were never used. Nothing else was changed except as listed here. Web search was not available, so nothing in this pass was checked against a company page. SCOPE RULE (construction is not manufacturing: no ready-mix, concrete block, pipe or precast, NAICS 3273, and no asphalt paving mixtures, 324121): no plant in this file is one of those, so none was removed. COUNTS: 58 plants filled (52 from the 2025 file, 6 from 2024); 6 still without a figure; 9 existing figures annotated with a differing OSHA figure; 87 of 93 plants now carry a headcount. OPERATING STATUS: for 33 plants that the earlier research could not confirm as operating, the note now says that a filing from the address is good evidence it was operating that year (OSHA's page is added to the plant's sources). NOT FILLED, AND WHY. Dow Deer Park: OSHA shows 2,145 for 2025 and 1,313 for 2024 at 1900 Tidal Rd, against the company's 'nearly 700' quoted in this file's earlier notes; the filing looks as if it carries other Houston-area Dow staff, so it was not used. Dow Texas City carries 722 (2025) with a caution in its note (394 in 2024; hours that fit about 500 people). Flint Hills East Refinery: the 2024 filing (88 people, 697,000 hours) does not hold together and there is none for 2025; the West Refinery carries its 2024 figure (964), which may cover staff shared by both plants. LyondellBasell Houston Refinery is marked closed and was left without a figure (its 2025 filing, 374, is the average while it was winding down). No filing found: Arkema Crosby, Linde Deer Park, JM Eagle Wharton. GOODYEAR: both chemical plants filed for 2025 as 'G-3 Chickadee Purchaser, LLC', so the sale the earlier researcher could not confirm appears to have closed; the plants are still listed under Goodyear because the new operating name was not confirmed, and a reviewer should rename the company. LINDE Texas City (24) is one small unit at the listed address; Linde files its other Texas City units separately. SHINTECH Freeport (193) is Shintech's own staff; a maintenance contractor files 522 at the neighbouring address. CORRECTION: the plant 'Alcon Fort Worth' was removed from this file because texas-food-consumer.json carries the same campus under the same company ('Alcon Fort Worth Campus'); one copy is kept there. COMPARISONS: where a plant already had a figure from another source and OSHA differs by more than a fifth, the OSHA figure was added to the note and the figure left alone: ExxonMobil Baytown (7,000 against 2,481 for the refinery, chemical plant and olefins plant together) and Beaumont (2,100 against 1,639), Dow Seadrift (587 against 851), Chevron Phillips Sweeny (1,000 including contractors against 672) and LyondellBasell's Channelview, La Porte, Bayport, Corpus Christi and Victoria fact-sheet totals, which run a quarter to a third above the OSHA figures and probably count contractors. OSHA rows exist for three of this file's unplaced sites: Dow Sabine River Operations (863; now placed in texas-osha-additions.json), LyondellBasell Matagorda (161) and Marathon El Paso (468; filed from 1601 Trowbridge Dr, not the 6500 this file gives, so still unplaced). "
 }
