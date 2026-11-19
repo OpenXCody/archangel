@@ -26,6 +26,7 @@ cleanup() {
     DELETE FROM users WHERE email LIKE '%@admin.test';
     DELETE FROM invites WHERE email LIKE '%@admin.test';
     DELETE FROM external_references WHERE url LIKE 'https://e2e-admin.example.com/%';
+    DELETE FROM record_merges WHERE from_name LIKE 'E2E Admin %';
     DELETE FROM companies WHERE name LIKE 'E2E Admin %';
     DELETE FROM occupations WHERE title LIKE 'E2E Admin %';
     DELETE FROM skills WHERE name LIKE 'E2E Admin %';" >/dev/null
@@ -163,6 +164,7 @@ expect "the old name is kept as an alias" t "$(sql "SELECT aliases @> ARRAY['$RE
 expect "the kept company takes the profile it lacked" 'e2e-admin.example.com|Robotics' "$(sql "SELECT domain || '|' || industry FROM companies WHERE id='$CB'")"
 check "merge again"                   404 "$(req a POST /admin/records/company/$CA/merge "{\"into\":\"$CB\"}")"
 expect "the merge is on record"       "$REC Motors Inc" "$(req a GET "/admin/audit?kind=company&record=$CB" | j 'entries.find((e) => e.action === "merged").detail.merged.name')"
+expect "and in the merge history"     "$CB admin" "$(sql "SELECT into_id || ' ' || via FROM record_merges WHERE kind = 'company' AND from_id = '$CA'")"
 
 # --- Careers and skills: aliases, paths, merges ------------------------------
 OUT=$(req a POST /occupations "{\"title\":\"$REC Welder\"}"); OA=$(printf '%s' "$OUT" | j id)
