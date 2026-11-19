@@ -14,7 +14,11 @@ import { LoadError } from '../account/parts';
 import SkillsViewSwitch from '../explorer/SkillsViewSwitch';
 import AtlasDrawing, { type AtlasMarks, type AtlasOverlay, type AtlasTarget } from './AtlasDrawing';
 import AtlasPanel, { LitSign } from './AtlasPanel';
-import { layoutAtlas, type AtlasLayout } from './layout';
+import type { AtlasLayout } from './layout';
+import PlateSkeleton from './PlateSkeleton';
+import { atlasLayoutOf } from './useAtlasLayout';
+import { useFreshMark } from './useFreshMark';
+import { useSkillMarks } from '../path/useSkillMarks';
 import { atlasHref, readAtlasState } from './state';
 
 /**
@@ -99,21 +103,12 @@ function CareerLine({ sign, id, career, to, missing = 'That career is not in the
   );
 }
 
-/** The plate's place while the taxonomy is on its way: the same square, one quiet ring. */
-function PlateSkeleton({ className }: { className?: string }) {
-  return (
-    <div aria-busy="true" aria-label="Loading" className={cn('flex aspect-square w-full items-center justify-center', className)}>
-      <div className="h-[84%] w-[84%] animate-pulse rounded-full border-2 border-border-subtle" />
-    </div>
-  );
-}
-
 export default function Atlas() {
   const taxonomy = useTaxonomy();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const state = useMemo(() => readAtlasState(params), [params]);
-  const layout = useMemo(() => (taxonomy.data ? layoutAtlas(taxonomy.data) : null), [taxonomy.data]);
+  const layout = taxonomy.data ? atlasLayoutOf(taxonomy.data) : null;
 
   // What is open, from the address: a skill opens its group, a group its domain.
   const leaf = (layout && state.skill && layout.leafById.get(state.skill)) || null;
@@ -147,6 +142,12 @@ export default function Atlas() {
     return found;
   }, [layout, viewer.seeker, mine.data]);
 
+  // With one career laid over it, a seeker fills that career in here as on its own page: the panel's tags for
+  // its skills carry the mark, and the plate draws what is held as walked.
+  const { marks: skillMarks } = useSkillMarks();
+  const { marking, fresh } = useFreshMark(overlay ? skillMarks : null, layout);
+  const walking = Boolean(viewer.seeker && viewer.signedIn && overlay && !overlay.second);
+
   const [preview, setPreview] = useState<AtlasTarget | null>(null);
   const [picking, setPicking] = useState(false);
   useEffect(() => setPicking(false), [state.career, state.with]);
@@ -178,7 +179,12 @@ export default function Atlas() {
     const b = overlay.second;
     const count = (leaves: ReadonlySet<number>) =>
       leaves.size === 0 ? 'no skills recorded' : `${plural(leaves.size, 'skill', 'skills')} across ${plural(domainsOf(layout, leaves), 'domain', 'domains')}`;
-    if (!b) return { first: count(a), second: null, both: null };
+    if (!b) {
+      // To a person filling the career in, the line says how much of it they hold, in Profile's words.
+      let held = 0;
+      if (walking) for (const index of a) if (marks?.get(index) === 'held') held += 1;
+      return { first: walking && a.size > 0 ? `${held} of ${plural(a.size, 'skill', 'skills')} held` : count(a), second: null, both: null };
+    }
     let shared = 0;
     for (const index of a) if (b.has(index)) shared += 1;
     return {
@@ -186,7 +192,7 @@ export default function Atlas() {
       second: plural(b.size, 'skill', 'skills'),
       both: { shared, first: a.size - shared, second: b.size - shared },
     };
-  }, [layout, overlay]);
+  }, [layout, overlay, walking, marks]);
 
   const label = layout
     ? `The Atlas of Manufacturing: ${layout.leaves.length} skills in ${layout.groups.length} skill groups and ${layout.domains.length} domains, drawn as a radial tree. The same tree follows as a list.`
@@ -220,6 +226,8 @@ export default function Atlas() {
                 leaf={leaf}
                 overlay={overlay}
                 marks={marks}
+                walk={walking}
+                fresh={fresh}
                 preview={preview}
                 onPreview={setPreview}
                 onChoose={choose}
@@ -301,6 +309,7 @@ export default function Atlas() {
             state={state}
             overlay={overlay}
             marks={marks}
+            marking={marking}
             onPreview={setPreview}
             className="order-3 mt-5 lg:mt-0"
           />

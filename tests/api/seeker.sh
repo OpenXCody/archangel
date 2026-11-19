@@ -141,6 +141,9 @@ expect "the list fills up behind it"  "B|Filler 1|Filler 2|Filler 3|Filler 4|Fil
 OUT=$(req s GET /me/goals)
 check "goal shows held skills"        200 "$OUT" '"heldSkills":3'
 expect "goal shows its next skills"   "S04:2 S05:3 S06:3" "$(printf '%s' "$OUT" | j "goals.find(g=>g.occupationId==='$A').next.map(n=>n.name.replace('$P ','')+':'+n.level).join(' ')")"
+# A goal carries the ids of every skill of its career: what Profile draws its small plate from.
+expect "goal lists every skill of its career by id" "$(sql "SELECT string_agg(skill_id::text, ' ' ORDER BY skill_id) FROM occupation_skills WHERE occupation_id='$A'")" "$(printf '%s' "$OUT" | j "goals.find(g=>g.occupationId==='$A').skillIds.join(' ')")"
+expect "as many ids as the goal counts skills" true "$(printf '%s' "$OUT" | j "goals.every(g=>g.skillIds.length===g.totalSkills)")"
 check "aim at Unwritten"              200 "$(req s PUT /me/goals/$UNWRITTEN)"
 expect "a goal with no path written still lists next skills, by level" "S04:2 S05:3 S06:3" "$(req s GET /me/goals | j "goals.find(g=>g.occupationId==='$UNWRITTEN').next.map(n=>n.name.replace('$P ','')+':'+n.level).join(' ')")"
 check "stop aiming at A"              200 "$(req s DELETE /me/goals/$A)"
