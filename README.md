@@ -129,7 +129,8 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   | Cleanups: records deleted, merged, renamed | `data/cleanup/*.json` | `build-cleanup-sql.mjs` |
 
   ```bash
-  node scripts/build-paths-sql.mjs data/paths/technical-core-3.json migrations/00NN_career_paths.sql
+  node scripts/build-career-paths-sql.mjs --check
+  node scripts/build-career-paths-sql.mjs data/careers/paths.json data/careers/catalogue.json data/skills/catalogue.json data/skills/taxonomy.json migrations/00NN_career_paths.sql   # never changes a path a person approved
   ```
 
   The path, profile and domain migrations match records by exact name, create no companies or careers, and never overwrite a value set by hand or a path a person has approved. A migration that has been applied is not edited: a later change is a change to the JSON and a new generated migration.
