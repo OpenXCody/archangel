@@ -74,10 +74,11 @@ app.use('/api/employer', noStore, employerRouter);
 app.use('/api/admin/company-requests', noStore, requireAdminUser, adminCompanyRequestsRouter);
 app.use('/api/admin', noStore, requireAdminUser, adminRouter);
 
-// Edge caching. The two heaviest map payloads get 5 minutes; everything else
-// public gets 1 minute. Admin writes are never cached (GET-only middleware).
-// Both take only the parameters named here, so an address made up to miss the
-// cache is refused before it reaches the database.
+// Edge caching. The two heaviest map payloads, the Explore overview and the
+// industry pages get 5 minutes; everything else public gets 1 minute. Admin
+// writes are never cached (GET-only middleware). The two map payloads take
+// only the parameters named here, so an address made up to miss the cache is
+// refused before it reaches the database.
 app.get('/api/factories/pins', onlyQuery('states', 'company'), publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
 app.get('/api/map/state-counts', onlyQuery(), publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
 

@@ -362,8 +362,9 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/occupations/:id - Delete a career. Its path, jobs and their
-// applications, and people's goals go with it; `removed` counts them.
+// DELETE /api/occupations/:id - Delete a career. Refused (409) when one of
+// its jobs has applications. Otherwise its path, the jobs nobody applied to
+// and people's goals go with it; `removed` counts them.
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     if (await refuseDeleteWithJobs(res, 'career', req.params.id)) return;

@@ -1,7 +1,7 @@
 /**
  * Batched import from Pillar → Archangel.
  *
- * Unlike the per-state `import-pillar-tx.ts` helper, this script:
+ * This script:
  *  - Pulls across all states in one go (no state filter).
  *  - Uses bulk INSERTs (~1k rows per SQL roundtrip) so 50k imports in
  *    ~60s instead of ~60 minutes.
@@ -18,7 +18,7 @@
  *
  * Usage:
  *   export PILLAR_DATABASE_URL=$(grep '^DATABASE_URL' ../pillar/.env | cut -d= -f2-)
- *   set -a && source .env && set +a
+ *   set -a && source .env.local && set +a
  *   npx tsx server/scripts/import-pillar-bulk.ts
  */
 import crypto from 'node:crypto';

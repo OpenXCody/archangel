@@ -17,7 +17,7 @@ export default defineConfig({
     },
   },
   root: './client',
-  envDir: '..',  // Load .env from project root
+  envDir: '..',  // .env.local and .env are in the project root
   build: {
     outDir: '../dist',
     emptyOutDir: true,

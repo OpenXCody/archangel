@@ -63,12 +63,13 @@ router.get('/', async (req: Request, res: Response) => {
       conditions.push(eq(skills.category, category as string));
     }
 
-    // Filter by parent skill (for tree navigation)
+    // `parent` and `rootOnly` (and `parentSkillId` and `childCount` in each
+    // row) are from the skill tree page, which is gone. Nothing in the app
+    // sends or reads them; taking them away would narrow the public API.
     if (parent) {
       conditions.push(eq(skills.parentSkillId, parent as string));
     }
 
-    // Filter to only root skills (no parent)
     if (rootOnly === 'true') {
       conditions.push(isNull(skills.parentSkillId));
     }
