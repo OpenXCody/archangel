@@ -165,9 +165,9 @@ expect "every job is journalled"            '8 8' "$(sql "SELECT count(*) FILTER
 expect "of two plants in the town with no headcount, the one the plant merge would keep" 'E2E POSTINGS ACME TWIN FORKS SOUTH' "$(job 111 f.name)"
 expect "and the line says how it was chosen" 't' "$(sql "SELECT look AND detail LIKE '%of 2 plants there, none with a headcount: the one the plant merge would keep%' FROM load_log WHERE run_id = $R1 AND source_id = '111' AND action = 'added'")"
 # What the postings ask for that the catalogue lacks: counted in the run's report, kept nowhere else.
-expect "a word the catalogue lacks is counted for the run" '[["ProtoTRAK", 1]]' "$(sql "SELECT counts->'unknown' FROM intake_runs WHERE id = $R1")"
-case "$OUT" in *"asked for and not in the catalogue (the 1 commonest, with how many postings): ProtoTRAK 1"*) echo "ok    and the run's report says it";; *) echo "FAIL  unknown words in the report: $OUT"; fail=1;; esac
-expect "it is not staged, and not on a job" 'f f' "$(sql "SELECT concat_ws(' ', (SELECT bool_or((payload::text || facts::text) ~* 'prototrak') FROM intake_records WHERE source LIKE 'postings-e2e-%'), (SELECT bool_or(to_jsonb(j)::text ~* 'prototrak') FROM jobs j WHERE source LIKE 'postings-e2e-%'))")"
+expect "a word the catalogue lacks is counted for the run" '[["Milltronics", 1]]' "$(sql "SELECT counts->'unknown' FROM intake_runs WHERE id = $R1")"
+case "$OUT" in *"asked for and not in the catalogue (the 1 commonest, with how many postings): Milltronics 1"*) echo "ok    and the run's report says it";; *) echo "FAIL  unknown words in the report: $OUT"; fail=1;; esac
+expect "it is not staged, and not on a job" 'f f' "$(sql "SELECT concat_ws(' ', (SELECT bool_or((payload::text || facts::text) ~* 'milltronics') FROM intake_records WHERE source LIKE 'postings-e2e-%'), (SELECT bool_or(to_jsonb(j)::text ~* 'milltronics') FROM jobs j WHERE source LIKE 'postings-e2e-%'))")"
 # What the run says of itself: requests by platform, what was listed in full, what was not.
 case "$OUT" in *"requests by platform: myworkdayjobs.com 17 of 300, "*"listed in full (4): e2e-acme, e2e-pages, e2e-works, e2e-long"*"cut short (1): e2e-refused (refused, nothing listed: api.lever.co/robots.txt answered 403"*) echo "ok    the run says its requests by platform, what it listed in full and what it did not";; *) echo "FAIL  run summary: $OUT"; fail=1;; esac
 

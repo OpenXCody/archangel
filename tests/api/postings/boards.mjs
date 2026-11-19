@@ -29,7 +29,7 @@ const welding = (pay) => text('E2E Postings Acme builds steel frames in Postvill
   'Must be a U.S. person',
   'Able to work 2nd shift',
   // A machine's control the catalogue has no make for: it is counted in the run's report and kept nowhere else.
-  'Experience with ProtoTRAK controls is a plus',
+  'Experience with Milltronics controls is a plus',
 ], `<p>Pay range: $${pay[0]}.00 - $${pay[1]}.00 per hour.</p>`);
 const machining = text('Our foundry machines its own castings.', [
   'Experience setting up and operating CNC mills with Haas controls',
