@@ -12,7 +12,7 @@ import { answerWriteError, coordinate, count, FACTORY_STATUSES, isUuid, optional
  * cleanup (scripts/build-cleanup-sql.mjs), in one transaction.
  */
 
-export const RECORD_KINDS = ['company', 'factory', 'career', 'skill'] as const;
+const RECORD_KINDS = ['company', 'factory', 'career', 'skill'] as const;
 export type RecordKind = (typeof RECORD_KINDS)[number];
 
 export function isRecordKind(value: unknown): value is RecordKind {
@@ -59,7 +59,7 @@ const HOSTNAME = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]
  * is brought down to the bare host ("tesla.com"). Null when emptied, false when
  * what is left is not a domain.
  */
-export function cleanDomain(value: unknown): string | null | false {
+function cleanDomain(value: unknown): string | null | false {
   if (value === null) return null;
   if (typeof value !== 'string') return false;
   let host = value.trim().toLowerCase();
@@ -88,7 +88,7 @@ function cleanAliases(value: unknown, ownName: string): string[] | null {
   return list.length <= MAX_ALIASES ? list : null;
 }
 
-export const MAX_TOOLS = 12;
+const MAX_TOOLS = 12;
 /**
  * What a skill is done with: a short list of tools, machines or software.
  * Undefined when left out, an empty list when cleared, false when it is not a

@@ -70,7 +70,7 @@ export interface Near {
   within: number;
 }
 
-export const DEFAULT_WITHIN_MILES = 50;
+const DEFAULT_WITHIN_MILES = 50;
 const MAX_WITHIN_MILES = 500;
 
 /**

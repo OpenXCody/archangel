@@ -12,7 +12,7 @@ import { db, users, sessions } from '../db/index.js';
  *   membership (see routes/employer.ts); an admin has `isAdmin`.
  */
 
-export const SESSION_COOKIE = 'archangel_session';
+const SESSION_COOKIE = 'archangel_session';
 const SESSION_DAYS = 30;
 const SCRYPT_KEYLEN = 64;
 

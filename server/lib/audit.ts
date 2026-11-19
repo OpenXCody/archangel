@@ -6,7 +6,7 @@ import { db, auditLog } from '../db/index.js';
  * one, so a line exists exactly when the change does.
  */
 
-export const AUDIT_KINDS = ['company', 'factory', 'career', 'skill', 'person', 'access', 'invite'] as const;
+const AUDIT_KINDS = ['company', 'factory', 'career', 'skill', 'person', 'access', 'invite'] as const;
 export type AuditKind = (typeof AUDIT_KINDS)[number];
 
 export function isAuditKind(value: unknown): value is AuditKind {

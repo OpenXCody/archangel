@@ -140,7 +140,6 @@ async function main() {
     const t1 = Date.now();
     let companiesCreated = 0;
     for (const batch of chunk(newCompanies, INSERT_BATCH)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const created: any = await arch`
         INSERT INTO companies ${arch(batch as any, 'name', 'industry', 'aliases')}
         RETURNING id, name
@@ -172,10 +171,9 @@ async function main() {
   };
   const factoryRows: FactoryRow[] = [];
   const pendingEpa: { factoryId: string; epa: string }[] = [];
-  let skippedMissingCompany = 0;
   for (const r of enriched) {
     const companyId = companyIdByName.get(r.__canonical.toLowerCase().trim());
-    if (!companyId) { skippedMissingCompany++; continue; }
+    if (!companyId) continue;
     const id = crypto.randomUUID();
     factoryRows.push({
       id,

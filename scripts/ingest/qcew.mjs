@@ -27,7 +27,7 @@ import path from 'node:path';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const FILE_URL = (year, code) => `https://data.bls.gov/cew/data/api/${year}/a/industry/${code.replace('-', '_')}.csv`;
 
-export const MANUFACTURING = '31-33';
+const MANUFACTURING = '31-33';
 
 /** The Bureau's area codes for the states the app knows (shared/states.ts): FIPS, then three zeros. */
 export const STATE_FIPS = {
