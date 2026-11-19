@@ -123,6 +123,14 @@ expect "one line in the log says which row was kept, why, and what was taken" \
   "$(sql "SELECT kind || ' ' || action || ' ' || company || ' ' || plant || ' ' || metres || ' | ' || detail FROM load_log WHERE load = 'plant-merge' AND entity_id = '$KEEP'")"
 expect "with the row that went in its evidence" "$GONE" "$(sql "SELECT evidence->>'merged' FROM load_log WHERE load = 'plant-merge' AND entity_id = '$KEEP'")"
 
+# Of two bare rows, the one placed in a county (its coordinates agree with its state) is kept before the one with more facts.
+PLACED=$(add 'E2E Dupes Acme' 'E2E DUPES ACME PLACED' 39.7000 -116.5000 'county_fips' "(SELECT fips FROM counties ORDER BY fips LIMIT 1)")
+FULLER=$(add 'E2E Dupes Acme' 'E2E DUPES ACME FULLER' 39.7000 -116.5000 'address, zip_code, primary_naics' "'1 Fuller Rd', '89801', '332710'")
+expect "then the one placed in a county"      "$PLACED" "$(sql "SELECT plant_keeps('$FULLER', '$PLACED')")"
+sql "UPDATE factories SET county_fips = NULL WHERE id = '$PLACED'" >/dev/null
+expect "then the one with more facts"         "$FULLER" "$(sql "SELECT plant_keeps('$FULLER', '$PLACED')")"
+sql "DELETE FROM factories WHERE id IN ('$PLACED', '$FULLER')" >/dev/null
+
 # A post office box is not where a plant is.
 BOX=$(add 'E2E Dupes Acme' 'E2E DUPES ACME BOX' 39.6000 -116.5000 'address' "'PO BOX 12'")
 STREET=$(add 'E2E Dupes Acme' 'E2E DUPES ACME BOX INC' 39.6000 -116.5000 'address' "'77 Real St'")
