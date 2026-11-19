@@ -15,6 +15,7 @@ import { isUuid } from '../lib/writes.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { rowsOf } from '../lib/rows.js';
 import { containing, likeLiteral } from '../lib/like.js';
+import { dataQuality } from '../lib/quality.js';
 
 /**
  * Admin Tools: people, company access, invites, password resets and data upkeep.
@@ -38,6 +39,17 @@ router.get(
       })
       .from(sql`(SELECT 1) AS one`);
     res.json(row);
+  })
+);
+
+// GET /api/admin/quality - how complete the plant data is, by state and in
+// all: { total, states: [{ state, plants, industry, code, county, people,
+// address, outsideId, onePlantCompanies, duplicates, duplicateGroups }] }.
+// Counts, computed on demand; what each means is in server/lib/quality.ts.
+router.get(
+  '/quality',
+  handle(async (_req, res) => {
+    res.json(await dataQuality());
   })
 );
 

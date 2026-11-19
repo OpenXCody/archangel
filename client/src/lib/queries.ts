@@ -3,6 +3,7 @@ import {
   companiesApi,
   exploreApi,
   factoriesApi,
+  mapApi,
   occupationsApi,
   skillsApi,
   type CompanyDetail,
@@ -88,6 +89,20 @@ export function useExploreOverview() {
     queryKey: publicKeys.exploreOverview,
     queryFn: exploreApi.overview,
     staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * The county a plant stands in, with the official figures for manufacturing
+ * there. Read by the plant's page and its panel on the map; it changes with a
+ * yearly load, so it is kept for the visit.
+ */
+export function usePlantCounty(factoryId: string) {
+  return useQuery({
+    queryKey: publicKeys.plantCounty(factoryId),
+    queryFn: () => mapApi.plantCounty(factoryId),
+    staleTime: 60 * 60_000,
+    retry: false,
   });
 }
 

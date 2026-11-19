@@ -7,12 +7,14 @@ import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass, Seg
 import { PageSection } from '../layout/Page';
 import Records from './Records';
 import RecordEditor from './RecordEditor';
+import QualityTable from './QualityTable';
 import { isUuid } from '../../lib/validation';
 
 /**
  * Data upkeep. With a record in the address (`kind` and `id`) the tab is that
- * record's editor; otherwise finding or adding a record, and the career paths
- * waiting for review. (Counts of people, requests, jobs and applications are
+ * record's editor; otherwise finding or adding a record, the career paths
+ * waiting for review, and how complete the plant data is, state by state
+ * (`QualityTable`). (Counts of people, requests, jobs and applications are
  * not data upkeep and are not here: People and Access are a tab away.)
  */
 export default function DataTab() {
@@ -24,6 +26,7 @@ export default function DataTab() {
     <>
       <Records />
       <PathsSection />
+      <QualityTable />
     </>
   );
 }

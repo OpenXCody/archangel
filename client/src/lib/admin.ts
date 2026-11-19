@@ -70,6 +70,33 @@ export interface AdminUser {
   isFirstAdmin: boolean;
 }
 
+/**
+ * How complete the plant data is in one state (or with no state): counts of
+ * plants. What each one means is written in server/lib/quality.ts and under
+ * the table that shows them.
+ */
+export interface QualityRow {
+  /** The two-letter code; null for plants filed under no state. */
+  state: string | null;
+  plants: number;
+  industry: number;
+  code: number;
+  county: number;
+  people: number;
+  address: number;
+  outsideId: number;
+  onePlantCompanies: number;
+  duplicates: number;
+  duplicateGroups: number;
+}
+
+export interface DataQuality {
+  /** Every state added up, and how many companies have a plant. */
+  total: QualityRow & { companies: number };
+  /** Largest first. */
+  states: QualityRow[];
+}
+
 /** The roles the People list can be narrowed to. `waiting`: a request to join a company not yet decided. */
 export type PeopleRole = 'admin' | 'employer' | 'waiting' | 'user';
 
@@ -188,6 +215,7 @@ const adminApi = {
   signOutUser: (userId: string) => request<{ ended: number }>(`/admin/users/${userId}/sign-out`, { method: 'POST' }),
   pastInvites: () => request<{ invites: PastInvite[] }>('/admin/invites/past').then((r) => r.invites),
   paths: (status: 'draft' | 'approved') => request<{ paths: DraftPath[] }>(`/admin/paths?status=${status}`).then((r) => r.paths),
+  quality: () => request<DataQuality>('/admin/quality'),
   setAdmin: (userId: string, isAdmin: boolean) =>
     request<{ id: string; isAdmin: boolean }>(`/admin/users/${userId}`, { method: 'PATCH', body: { isAdmin } }),
   deleteUser: (userId: string) => request<{ ok: true }>(`/admin/users/${userId}`, { method: 'DELETE' }),
@@ -355,6 +383,16 @@ export function useAdminPaths(status: 'draft' | 'approved', enabled = true) {
     queryKey: accountKeys.adminPathsIn(status),
     queryFn: () => adminApi.paths(status),
     enabled,
+    staleTime: 0,
+    retry: retryUnlessClientError,
+  });
+}
+
+/** How complete the plant data is, by state. Computed when asked, so it is asked for again each time the table is opened. */
+export function useDataQuality() {
+  return useQuery({
+    queryKey: accountKeys.adminQuality,
+    queryFn: adminApi.quality,
     staleTime: 0,
     retry: retryUnlessClientError,
   });

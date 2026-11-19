@@ -152,20 +152,16 @@ function officialWords(stats: IndustryStats): string {
   return phrase.charAt(0).toUpperCase() + phrase.slice(1);
 }
 
-/** Who counted the official figures, and when: one quiet line, the publisher a link to its own page. */
+/**
+ * Which of a place's figures are official, and their year: one quiet line that
+ * keeps them apart from what the product lists. Who published them is not
+ * shown (no public page names a source).
+ */
 export function SourceLine({ stats }: { stats: IndustryStats }) {
   if (officialFigures(stats).length === 0) return null;
   return (
-    <p className="mt-2.5 text-xs leading-relaxed text-fg-soft" data-source>
-      {officialWords(stats)}:{' '}
-      {stats.sourceUrl ? (
-        <a href={stats.sourceUrl} target="_blank" rel="noreferrer" className={cn('underline decoration-dotted underline-offset-4 hover:text-fg-muted', focusRing)}>
-          {stats.source}
-        </a>
-      ) : (
-        stats.source
-      )}
-      , {stats.year}.
+    <p className="mt-2.5 text-xs leading-relaxed text-fg-soft" data-official-year={stats.year}>
+      {officialWords(stats)}: official figures, {stats.year}.
     </p>
   );
 }

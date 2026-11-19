@@ -75,6 +75,26 @@ test('a career page shows its path, a company page its plants', async ({ page, r
   await expect(page.locator('#skills')).toBeVisible();
   // The list opens on a career with a path: its skills under the three levels, by their names.
   await expect(page.locator('#skills')).toContainText(/Fundamentals[\s\S]*Intermediate[\s\S]*Advanced/);
+  // The path is one diagram: three levels, each a list of skill groups, each a frame of tags.
+  const flow = page.locator('[data-path-flow]');
+  await expect(flow).toHaveCount(1);
+  await expect(flow.locator('[data-path-level]')).toHaveCount(3);
+  expect(await flow.locator('[data-group-box]').count(), 'the path has skill groups').toBeGreaterThan(0);
+  const tags = flow.locator('[data-skill-tag]');
+  expect(await tags.count(), 'the groups hold skills').toBeGreaterThan(0);
+  // To a visitor a tag is the skill's name, which opens its page, with no mark and no progress beside it.
+  await expect(tags.first().locator('a')).toHaveAttribute('href', /^\/skills\/[0-9a-f-]{36}$/);
+  await expect(flow.locator('[data-skill-tag] button')).toHaveCount(0);
+  await expect(flow.locator('[data-level-count], [data-group-count]')).toHaveCount(0);
+  await expect(page.locator('[data-held-count]')).toHaveCount(0);
+  // Every tag is a full finger's height and stays inside the diagram, however long its name.
+  const diagram = await flow.boundingBox();
+  for (const box of await tags.evaluateAll((items) => items.map((item) => item.getBoundingClientRect().toJSON() as { left: number; right: number; height: number }))) {
+    expect(box.height, 'a tag is at least 44px tall').toBeGreaterThanOrEqual(44);
+    expect(box.left, 'a tag starts inside the diagram').toBeGreaterThanOrEqual((diagram?.x ?? 0) - 1);
+    expect(box.right, 'a tag ends inside the diagram').toBeLessThanOrEqual((diagram?.x ?? 0) + (diagram?.width ?? 0) + 1);
+  }
+  await assertHealthyLayout(page, '/occupations/:id path');
 
   // A skill's page says where the skill sits: its domain and group, each a link into the Skills list, and its level.
   const skill = await firstId(request, '/skills');
@@ -83,6 +103,21 @@ test('a career page shows its path, a company page its plants', async ({ page, r
   await expect(page.locator('[data-skill-domain]')).toHaveAttribute('href', /^\/explore\?tab=skills&domain=[a-z0-9-]+$/);
   await expect(page.locator('[data-skill-group]')).toHaveAttribute('href', /^\/explore\?tab=skills&domain=[a-z0-9-]+&group=[a-z0-9-]+$/);
   await expect(page.locator('[data-skill-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
+
+  // A skill with others in its group is shown among them: the group's frame, this skill the one tag that is not a link.
+  const path = (await (await request.get(`${API}/occupations/${career}`)).json()) as { skills: Array<{ id: string }> };
+  for (const each of path.skills) {
+    const detail = (await (await request.get(`${API}/skills/${each.id}`)).json()) as { name: string; group: { name: string }; groupSkills: unknown[] };
+    if (detail.groupSkills.length === 0) continue;
+    await page.goto(`/skills/${each.id}`, { waitUntil: 'domcontentloaded' });
+    const group = page.locator('#group [data-group-box]');
+    await expect(group.locator('legend')).toContainText(detail.group.name);
+    await expect(group.locator('[data-skill-tag]')).toHaveCount(detail.groupSkills.length + 1);
+    await expect(group.locator('[data-skill-tag][data-current]')).toHaveText(detail.name);
+    await expect(group.locator('[data-skill-tag][data-current] a')).toHaveCount(0);
+    await assertHealthyLayout(page, '/skills/:id group');
+    break;
+  }
 
   const company = await firstId(request, '/companies');
   expect(company, 'the API returned a company to open').toBeTruthy();
@@ -247,6 +282,76 @@ test('a seeker and an employer are given different tools', async ({ page, baseUR
   expect(tools.hire.word).toBe('Your jobs');
 });
 
+test("a seeker marks a path's skills and the figures follow; an employer sees none", async ({ page, baseURL, request }) => {
+  // Writes: it makes two accounts, marks one skill and deletes them. Never against a deployed copy.
+  test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
+  const password = 'correct horse battery';
+  const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
+  const career = await firstId(request, '/occupations');
+  expect(career, 'the API returned a career to open').toBeTruthy();
+  /** "2 of 6" (with or without the words around it) as [2, 6]. */
+  const figure = async (locator: ReturnType<Page['locator']>): Promise<[number, number]> => {
+    const match = /(\d+) of (\d+)/.exec((await locator.textContent()) ?? '');
+    expect(match, 'the figure reads "N of M"').toBeTruthy();
+    return [Number(match?.[1]), Number(match?.[2])];
+  };
+
+  for (const purpose of ['work', 'hire'] as const) {
+    const made = await page.request.post(`${API}/auth/sign-up`, {
+      data: { email: `path-${purpose}-${stamp}@device.test`, name: `Path ${purpose}`, password, purpose },
+    });
+    expect(made.status(), `${purpose}: account made`).toBe(201);
+    try {
+      await page.goto(`/occupations/${career}`, { waitUntil: 'domcontentloaded' });
+      const flow = page.locator('[data-path-flow]');
+      await expect(flow.locator('[data-skill-tag]').first()).toBeVisible();
+      if (purpose === 'hire') {
+        // Someone here to hire reads the same diagram with no marks and no progress.
+        await expect(flow.locator('[data-path-level]')).toHaveCount(3);
+        await expect(flow.locator('[data-skill-tag] button')).toHaveCount(0);
+        await expect(flow.locator('[data-level-count], [data-group-count]')).toHaveCount(0);
+        await expect(page.locator('[data-held-count]')).toHaveCount(0);
+        continue;
+      }
+      // A seeker: every tag carries its mark, a full finger's size, and the three figures start at nothing held.
+      const tag = flow.locator('[data-skill-tag]').first();
+      const mark = tag.locator('button');
+      await expect(mark).toHaveAttribute('aria-pressed', 'false');
+      const size = await mark.boundingBox();
+      expect(Math.min(size?.width ?? 0, size?.height ?? 0), 'the mark is at least 44px each way').toBeGreaterThanOrEqual(44);
+      const whole = page.locator('[data-held-count]');
+      const level = tag.locator('xpath=ancestor::*[@data-path-level][1]').locator('[data-level-count]');
+      const group = tag.locator('xpath=ancestor::*[@data-group-box][1]').locator('[data-group-count]');
+      const total = (await figure(whole))[1];
+      expect(total, 'the career counts every skill on the path').toBe(await flow.locator('[data-skill-tag]').count());
+      expect((await figure(whole))[0]).toBe(0);
+      expect((await figure(level))[0]).toBe(0);
+      expect((await figure(group))[0]).toBe(0);
+      // One tap: the tag is lit and all three figures follow, before any reload.
+      await mark.click();
+      await expect(tag).toHaveAttribute('data-status', 'held');
+      await expect(mark).toHaveAttribute('aria-pressed', 'true');
+      await expect.poll(async () => (await figure(whole))[0], { message: 'the career follows' }).toBe(1);
+      expect((await figure(level))[0], 'the level follows').toBe(1);
+      expect((await figure(group))[0], 'the group follows').toBe(1);
+      await assertHealthyLayout(page, '/occupations/:id marked');
+      // It was saved, not only drawn.
+      await expect
+        .poll(async () => ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: unknown[] }).skills.length, { message: 'the mark was saved' })
+        .toBe(1);
+      // And one more tap clears it everywhere.
+      await mark.click();
+      await expect(tag).toHaveAttribute('data-status', 'none');
+      await expect.poll(async () => (await figure(whole))[0]).toBe(0);
+      expect((await figure(level))[0]).toBe(0);
+      expect((await figure(group))[0]).toBe(0);
+    } finally {
+      const gone = await page.request.delete(`${API}/me`, { data: { password } });
+      expect(gone.ok(), `${purpose}: account removed`).toBe(true);
+    }
+  }
+});
+
 test('settings offers the theme to a visitor', async ({ page }) => {
   // The theme is kept in the browser, so nobody has to make an account to change it.
   await page.goto('/settings', { waitUntil: 'domcontentloaded' });
@@ -308,6 +413,7 @@ test("an admin's change reaches the map's panel", async ({ page, request }) => {
   await page.route('**/api/admin/**', (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/overview')) return route.fulfill({ json: { users: 1, pendingMemberships: 0, openJobs: 0, applications: 0, draftPaths: 0 } });
+    if (path.endsWith('/quality')) return route.fulfill({ json: { total: { state: null, plants: 0, industry: 0, code: 0, county: 0, people: 0, address: 0, outsideId: 0, onePlantCompanies: 0, duplicates: 0, duplicateGroups: 0, companies: 0 }, states: [] } });
     return route.fulfill({ json: { users: [], total: 0, memberships: [], requests: [], paths: [], records: [], entries: [], hasMore: false } });
   });
   await page.route('**/api/companies', (route) => {
@@ -339,4 +445,106 @@ test("an admin's change reaches the map's panel", async ({ page, request }) => {
   for (let step = 0; step < 4 && !/\/map\?/.test(page.url()); step++) await page.goBack();
   expect(page.url(), 'back on the map').toContain(`/map?factory=${plant}`);
   await expect(page).toHaveTitle('Renamed Works · Archangel');
+});
+
+test("a plant's page says its county, with the official figures and no source", async ({ page, request }) => {
+  // The county is worked out from coordinates by a script, outside the app: its answer is stood in for here.
+  const plant = await firstId(request, '/factories');
+  expect(plant, 'the API returned a plant to open').toBeTruthy();
+  let answer: unknown = {
+    county: { fips: '48453', name: 'Travis County', state: 'TX' },
+    metro: { code: '12420', name: 'Austin-Round Rock-San Marcos, TX', kind: 'metropolitan' },
+    manufacturing: { year: 2025, establishments: 1354, employment: 60968, avgAnnualPay: 136250, source: 'U.S. Bureau of Labor Statistics, Quarterly Census of Employment and Wages', sourceUrl: 'https://www.bls.gov/cew/' },
+  };
+  await page.route('**/api/map/factories/*/county', (route) => route.fulfill({ json: answer }));
+
+  await page.goto(`/factories/${plant}`, { waitUntil: 'domcontentloaded' });
+  const line = page.locator('[data-entity-view="factories"] [data-county-line]');
+  await expect(line).toHaveText(
+    'Travis County: 60,968 people work in manufacturing, at 1,354 establishments. Average pay $136,250 a year.'
+  );
+  // The page states the figure and never where it was read.
+  await expect(line.getByRole('link')).toHaveCount(0);
+  await assertHealthyLayout(page, '/factories/:id:county');
+
+  // A figure the source withheld is left out, never shown as 0.
+  answer = { county: { fips: '01011', name: 'Bullock County', state: 'AL' }, metro: null, manufacturing: { year: 2025, establishments: 6, employment: null, avgAnnualPay: null, source: 'U.S. Bureau of Labor Statistics', sourceUrl: null } };
+  await page.goto(`/factories/${plant}`, { waitUntil: 'domcontentloaded' });
+  await expect(line).toHaveText('Bullock County: 6 establishments in manufacturing.');
+
+  // A plant with no county, or a county with nothing published, says nothing.
+  for (const none of [{ county: null, metro: null, manufacturing: null }, { county: { fips: '15005', name: 'Kalawao County', state: 'HI' }, metro: null, manufacturing: null }]) {
+    answer = none;
+    await page.goto(`/factories/${plant}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-entity-view="factories"] [data-detail-kind]')).toHaveText('Plant');
+    await page.waitForTimeout(600);
+    await expect(line).toHaveCount(0);
+  }
+});
+
+test('the data quality table fits the screen, and says what it counts', async ({ page }) => {
+  // Nothing is written and no account is made: the admin and the counts are stood in for here.
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({
+      json: {
+        user: { id: '00000000-0000-4000-8000-000000000001', email: 'admin@device.test', name: 'Device Admin', isAdmin: true, homeZip: null, about: null, emailNotices: true, purpose: 'work' },
+        memberships: [],
+        isEmployer: false,
+      },
+    })
+  );
+  await page.route('**/api/me/news', (route) => route.fulfill({ json: { applications: false, applicants: false, access: false } }));
+  // Fifty-one states' worth of counts, shaped like production's: Texas largest, most plants without a headcount.
+  const codes = 'TX CA OH IL PA MI NY IN WI NC GA FL TN MN MO NJ MA AL SC KY VA WA IA LA OR AR OK KS MS AZ CO CT MD UT NE WV NH ME ID NV NM DE SD RI ND MT VT AK HI WY DC'.split(' ');
+  const states = codes.map((state, i) => {
+    const plants = Math.round(4300 / (1 + i * 0.35)) + 3;
+    return {
+      state, plants,
+      industry: Math.round(plants * 0.62), code: Math.round(plants * 0.55), county: plants - (i % 7 === 0 ? 2 : 0), people: i === 0 ? 540 : i % 5 === 0 ? 3 : 0,
+      address: Math.round(plants * 0.97), outsideId: Math.round(plants * 0.98), onePlantCompanies: Math.round(plants * 0.5), duplicates: i % 4 === 0 ? 6 : 0, duplicateGroups: i % 4 === 0 ? 3 : 0,
+    };
+  });
+  const sum = (key: 'plants' | 'industry' | 'code' | 'county' | 'people' | 'address' | 'outsideId' | 'onePlantCompanies' | 'duplicates' | 'duplicateGroups') => states.reduce((n, s) => n + s[key], 0);
+  const total = { state: null, plants: sum('plants'), industry: sum('industry'), code: sum('code'), county: sum('county'), people: sum('people'), address: sum('address'), outsideId: sum('outsideId'), onePlantCompanies: sum('onePlantCompanies'), duplicates: sum('duplicates'), duplicateGroups: sum('duplicateGroups'), companies: 28082 };
+  await page.route('**/api/admin/**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/quality')) return route.fulfill({ json: { total, states } });
+    if (path.endsWith('/overview')) return route.fulfill({ json: { users: 1, pendingMemberships: 0, openJobs: 0, applications: 0, draftPaths: 0 } });
+    return route.fulfill({ json: { users: [], total: 0, memberships: [], requests: [], paths: [], records: [], entries: [], hasMore: false } });
+  });
+
+  await page.goto('/admin?tab=data', { waitUntil: 'domcontentloaded' });
+  const table = page.locator('[data-quality-table]');
+  await expect(table).toBeVisible();
+  await table.scrollIntoViewIfNeeded();
+  // The table may be wider than a phone: it scrolls inside its own card, never the page.
+  await assertHealthyLayout(page, '/admin?tab=data:quality');
+  await expect(table.locator('tbody tr')).toHaveCount(states.length + 1);
+  const cells = table.locator('[data-quality-total] td');
+  const count = (n: number) => n.toLocaleString('en-US');
+  // Shares first: a part of the plants as a percentage; plants and the two tallies stay counts.
+  await expect(cells.nth(0)).toHaveText(count(total.plants));
+  await expect(cells.nth(1)).toHaveText(`${((total.industry / total.plants) * 100).toFixed(1)}%`);
+  await expect(cells.nth(7)).toHaveText(count(total.onePlantCompanies));
+  await expect(cells.nth(8)).toHaveText(count(total.duplicates));
+  // "100%" only when it is every plant: Texas is two short of it.
+  const texas = table.locator('[data-quality-row="TX"] td');
+  await expect(texas.nth(3)).not.toHaveText('100%');
+  await expect(table.locator('[data-quality-row="CA"] td').nth(3)).toHaveText('100%');
+  // Counts: the exact numbers behind the shares.
+  await page.getByRole('radio', { name: 'Counts' }).click();
+  await expect(cells.nth(1)).toHaveText(count(total.industry));
+  await expect(texas.nth(3)).toHaveText(count(states[0].plants - 2));
+  // A column's heading orders the states by it; the state column stays put while the rest scrolls.
+  await page.getByRole('button', { name: 'People' }).click();
+  await expect(table.locator('tbody tr').nth(1)).toHaveAttribute('data-quality-row', 'TX');
+  await page.getByRole('button', { name: 'State', exact: true }).click();
+  await expect(table.locator('tbody tr').nth(1)).toHaveAttribute('data-quality-row', 'AL');
+  await expect(table.locator('thead th').first()).toHaveAttribute('aria-sort', 'ascending');
+  // What each column counts is written under the table, with the two figures the table cannot show.
+  const definitions = page.locator('[data-quality-definitions]');
+  await expect(definitions).toContainText(`${count(total.onePlantCompanies)} of ${count(total.companies)} companies`);
+  await expect(definitions).toContainText(`${count(total.duplicates)} plants at ${count(total.duplicateGroups)} spots`);
+  await definitions.scrollIntoViewIfNeeded();
+  await assertHealthyLayout(page, '/admin?tab=data:quality-definitions');
 });

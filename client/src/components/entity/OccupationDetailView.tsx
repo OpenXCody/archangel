@@ -1,11 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import GoalButton from '../account/GoalButton';
-import { SkillHeldToggle } from '../account/SkillStatusButton';
 import { ErrorNote } from '../account/parts';
-import { signInPath, useAccount } from '../../lib/account';
-import { useMarkSkill, type SkillMark, useMySkills, type SkillStatus } from '../../lib/seeker';
-import { useSeekerTools } from '../../lib/viewer';
-import { type OccupationDetail, type PathSkill as PathSkillData } from '../../lib/api';
+import { signInPath } from '../../lib/account';
+import { type OccupationDetail } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { cityState, stateName } from '../../lib/places';
 import {
@@ -14,68 +11,36 @@ import {
   RecordList,
   RecordRow,
 } from '../layout/Page';
-import { type Head, PATH_LEVELS, LevelHeading, UNPLACED, OpenJobsSection, IndustryRows } from './parts';
+import { ShareRing } from '../path/HeldShare';
+import { PathFlow } from '../path/PathFlow';
+import { SkillGroupBox } from '../path/SkillGroupBox';
+import { buildPath, shareOf } from '../path/model';
+import { useSkillMarks } from '../path/useSkillMarks';
+import { type Head, UNPLACED, OpenJobsSection, IndustryRows } from './parts';
 
 /**
- * One skill on a career's path. Signed out, the row is a link to the skill.
- * For a seeker the mark at its head sets the skill held (or clears it) in
- * place, and the rest of the row is the link.
+ * Career (occupation) detail: the path of skills drawn as a flow, where the
+ * work is done, open jobs, and the plants that have it.
+ *
+ * The path is the page: the heading block's action ("Set as goal") and the
+ * person's progress over the whole career sit together directly above it,
+ * and the diagram carries the same progress for each level and each group.
  */
-function PathSkill({
-  skill,
-  status,
-  onMark,
-  disabled,
-}: {
-  skill: PathSkillData;
-  status: SkillStatus | undefined;
-  /** Present for a signed-in seeker. */
-  onMark?: (mark: SkillMark) => void;
-  disabled?: boolean;
-}) {
-  if (!onMark) return <RecordRow to={`/skills/${skill.id}`} title={skill.name} />;
-  return (
-    <RecordRow
-      to={`/skills/${skill.id}`}
-      title={skill.name}
-      control={<SkillHeldToggle label={skill.name} value={status ?? 'none'} onChange={onMark} disabled={disabled} />}
-      data-path-skill={skill.id}
-      data-status={status ?? 'none'}
-    />
-  );
-}
-
-// Career (occupation) detail: the path of skills by level, where the work is done, open jobs, and the plants that have it.
 export default function OccupationDetailView({ data, head }: { data: OccupationDetail; head: Head }) {
-  const { data: account } = useAccount();
-  // Marks and "You have N of M" are a seeker's: someone here to hire reads the path as a visitor does.
-  const seekerTools = useSeekerTools();
-  const signedIn = Boolean(account?.user) && seekerTools;
-  const { data: mySkills, isPending: skillsPending } = useMySkills(signedIn);
-  const statusBySkill = new Map((mySkills ?? []).map((s) => [s.skillId, s.status]));
-  const markSkill = useMarkSkill();
+  // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same diagram without them.
+  const { marks, canSignIn, error: markError } = useSkillMarks();
   const { pathname, search } = useLocation();
 
   const skills = data.skills ?? [];
   const jobs = data.jobs ?? [];
   const plants = data.factories ?? [];
   const counted = plants.some((plant) => (plant.headcount ?? 0) > 0);
-  const heldCount = skills.filter((s) => statusBySkill.get(s.id) === 'held').length;
-  const byLevel = PATH_LEVELS.map((def) => ({ ...def, skills: skills.filter((s) => s.level === def.level) }));
-  // A career with a path (written, draft or approved) lays its skills out by level; one without lists them.
-  const hasLevels = Boolean(data.pathStatus) && byLevel.some((group) => group.skills.length > 0);
-  // Under no level: every skill of a career without a path, else only a skill that has no level.
-  const unplaced = hasLevels ? skills.filter((s) => !s.level) : skills;
-
-  const pathSkill = (skill: PathSkillData) => (
-    <PathSkill
-      key={skill.id}
-      skill={skill}
-      status={statusBySkill.get(skill.id)}
-      disabled={skillsPending}
-      onMark={signedIn ? (mark) => markSkill.mutate({ skillId: skill.id, name: skill.name, mark }) : undefined}
-    />
-  );
+  const path = buildPath(skills);
+  // Every skill has its own level and group, so any career with skills has a path to draw, whether or not
+  // anyone has written one for it (`pathStatus`: that only decides the word "Draft"). Only skills that no
+  // taxonomy has placed (a database nothing was loaded into) are left to list by themselves.
+  const hasPath = path.levels.some((level) => level.groups.length > 0);
+  const whole = marks && skills.length > 0 ? shareOf(skills, marks) : null;
 
   return (
     <>
@@ -87,16 +52,19 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
         action={
           <>
             <GoalButton occupationId={data.id} />
-            {signedIn && skills.length > 0 && (
-              <span className="text-sm text-fg-muted" data-held-count>
-                You have <span className="font-medium tabular-nums text-fg-default">{heldCount}</span> of {skills.length} skills
+            {whole && (
+              <span className="inline-flex items-center gap-2 text-sm text-fg-muted" data-held-count>
+                <ShareRing share={whole} className="h-5 w-5" />
+                <span>
+                  You have <span className="font-medium tabular-nums text-fg-default">{whole.held}</span> of {whole.total} {whole.total === 1 ? 'skill' : 'skills'}
+                </span>
               </span>
             )}
           </>
         }
       />
 
-      {/* What it is: the path, skills in the order they are learned */}
+      {/* What it is: the path, from the foundation to the specialties */}
       {skills.length === 0 && (
         <DetailSection id="skills" title="Path">
           <p className="text-sm text-fg-muted">Path not written yet.</p>
@@ -105,9 +73,9 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       {skills.length > 0 && (
         <DetailSection
           id="skills"
-          title={hasLevels ? 'Path' : 'Skills'}
+          title={hasPath ? 'Path' : 'Skills'}
           note={
-            hasLevels && data.pathStatus === 'draft' ? (
+            hasPath && data.pathStatus === 'draft' ? (
               // Honest without undermining the page: one quiet word, with the sentence for anyone who asks.
               <details className="group text-xs text-fg-soft" data-draft-path>
                 <summary className="inline-flex min-h-6 cursor-pointer list-none items-center underline decoration-dotted underline-offset-4 hover:text-fg-muted [&::-webkit-details-marker]:hidden">
@@ -118,28 +86,10 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
             ) : undefined
           }
         >
-          {signedIn && <ErrorNote error={markSkill.error} className="mb-3" />}
-          {hasLevels ? (
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              {byLevel.map((group) => (
-                <div key={group.level} className="min-w-0" data-path-level={group.level}>
-                  <LevelHeading number={group.level} label={group.label} hint={group.hint} />
-                  {group.skills.length > 0 ? (
-                    <RecordList>{group.skills.map(pathSkill)}</RecordList>
-                  ) : (
-                    <p className="rounded-xl border border-dashed border-border-subtle p-3 text-sm text-fg-soft">Nothing at this level yet.</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : null}
-          {unplaced.length > 0 && (
-            <div className={hasLevels ? 'mt-6' : ''}>
-              {hasLevels && <LevelHeading label={UNPLACED} />}
-              <RecordList>{unplaced.map(pathSkill)}</RecordList>
-            </div>
-          )}
-          {account && !signedIn && seekerTools && (
+          {marks && <ErrorNote error={markError} className="mb-3" />}
+          {hasPath && <PathFlow path={path} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} />}
+          {path.unplaced.length > 0 && <SkillGroupBox name={UNPLACED} skills={path.unplaced} marks={marks} className={hasPath ? 'mt-4' : undefined} />}
+          {canSignIn && (
             <p className="mt-4 text-sm text-fg-soft">
               <Link to={signInPath(`${pathname}${search}`)} className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
                 Sign in
