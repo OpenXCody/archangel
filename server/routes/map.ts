@@ -4,7 +4,8 @@ import { db, factories } from '../db/index.js';
 import { factoryInArea, factoryInBox, factoryInScope, isStateInScope } from '../lib/scope.js';
 import { focusArea } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
-import { INDUSTRY_NAME_LIST } from '../lib/industries.js';
+import { INDUSTRY_NAME_LIST, plantCounty } from '../lib/industries.js';
+import { isUuid } from '../lib/writes.js';
 import { jobIsOpen } from '../lib/openJobs.js';
 import { rowsOf } from '../lib/rows.js';
 
@@ -242,6 +243,30 @@ router.get('/bounds/overview', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching bounds overview:', error);
     res.status(500).json({ error: 'Failed to fetch overview' });
+  }
+});
+
+// GET /api/map/factories/:id/county - The county a plant stands in, its metro
+// area, and the official figures for manufacturing as a whole in that county:
+// { county: { fips, name, state } | null, metro: { code, name, kind } | null,
+//   manufacturing: { year, establishments, employment, avgAnnualPay, source, sourceUrl } | null }.
+// `county` is null for a plant not yet placed in one.
+router.get('/factories/:id/county', async (req: Request, res: Response) => {
+  const id = String(req.params.id);
+  if (!isUuid(id)) {
+    res.status(400).json({ error: 'Invalid plant id' });
+    return;
+  }
+  try {
+    const found = await plantCounty(id);
+    if (!found) {
+      res.status(404).json({ error: 'Plant not found' });
+      return;
+    }
+    res.json(found);
+  } catch (error) {
+    console.error('Error fetching plant county:', error);
+    res.status(500).json({ error: 'Failed to fetch county' });
   }
 });
 

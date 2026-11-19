@@ -4,13 +4,15 @@
 # only some of a company's plants is said, that search and the Explore
 # overview find industries, that a company's industry is the one most of its
 # plants are in (the lists, their filter, search), and the order of the
-# careers list. Prints one line per check and exits non-zero if any fail.
+# careers list, and the keys that join a plant to public statistics (numeric
+# coordinates, clean NAICS code, county) with the county's official figures.
+# Prints one line per check and exits non-zero if any fail.
 #
 # LOCAL ONLY: it adds five companies and thirteen plants (names starting "E2E
 # Industry") in one state, straight into the database, and
 # removes them on exit however the script ends. Never point it at production.
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/industries.sh
-# Needs a running dev API with migrations 0035 and 0036 applied, and psql,
+# Needs a running dev API with migrations 0035, 0036 and 0044 applied, and psql,
 # curl and node on the PATH.
 set -u
 . "$(dirname "$0")/lib.sh"
@@ -176,6 +178,58 @@ expect "a plant inside the boundary is counted, one outside it is not" "$((INSID
 expect "the box around the area holds both"   "$((BOXED + 2))" "$(get '/map/bounds/overview?west=-98.2985&south=29.6306&east=-97.0243&north=30.9063' | j 'o.totalFactories')"
 expect "its industries are of the 21, the largest first" true "$(get /map/areas/austin/overview | j 'o.topIndustries.length>0 && o.topIndustries.every((x,i,a)=>/ Manufacturing$| Mills$| Activities$/.test(x.label) && x.count>0 && (i===0||a[i-1].count>=x.count))')"
 check "an area that is not one"               404 "$(get /map/areas/nowhere/overview)" 'Area not found'
+
+# ── The keys on a plant ─────────────────────────────────────────────────────
+# Migration 0044: the reference tables are loaded, the coordinates are numbers,
+# the clean NAICS code follows the stored one, and a county is a fact about
+# the coordinates it was worked out from.
+expect "the reference tables are loaded"      "3144 925 630 21" "$(sql "SELECT (SELECT COUNT(*) FROM counties) || ' ' || (SELECT COUNT(*) FROM metros) || ' ' || (SELECT COUNT(*) FROM naics) || ' ' || (SELECT COUNT(*) FROM naics WHERE level = 3)")"
+expect "the 21 subsectors are the product's industries" 21 "$(sql "SELECT COUNT(*) FROM naics n INNER JOIN industry_profiles p ON p.code = n.code AND p.name = n.title WHERE n.level = 3")"
+expect "a six-digit code rolls up to its industry" "$IND" "$(sql "WITH RECURSIVE up AS (SELECT code, title, level, parent FROM naics WHERE code = '316210' UNION ALL SELECT n.code, n.title, n.level, n.parent FROM naics n INNER JOIN up ON up.parent = n.code) SELECT title FROM up WHERE level = 3")"
+KEYS=$(sql "INSERT INTO factories (name, company_id, latitude, longitude, state, city, primary_naics, primary_naics_description) VALUES ('E2E Industry Keys', '$ONE', '30.2672', ' -97.7431 ', 'TX', 'AUSTIN', '336111', 'Transportation Equipment Manufacturing') RETURNING id")
+expect "coordinates are numbers beside the text" "30.2672 -97.7431" "$(sql "SELECT lat || ' ' || lng FROM factories WHERE id='$KEYS'")"
+expect "a code of an earlier edition means its 2022 industry" "336111 336110" "$(sql "SELECT primary_naics || ' ' || naics FROM factories WHERE id='$KEYS'")"
+naics_of() { sql "UPDATE factories SET primary_naics = $1 WHERE id='$KEYS' RETURNING COALESCE(naics, 'none')"; }
+expect "a 2022 national industry is itself"   311611 "$(naics_of "'311611'")"
+expect "a shorter code with one industry under it" 324110 "$(naics_of "'32411'")"
+expect "a code from 2007, through three editions" 311224 "$(naics_of "'311222'")"
+expect "a subsector alone is not one industry" none "$(naics_of "'336'")"
+expect "a code that was split is not guessed"  none "$(naics_of "'339111'")"
+expect "a code outside manufacturing has none" none "$(naics_of "'541110'")"
+expect "no stored code, no clean code"        none "$(naics_of NULL)"
+expect "text that is not a number has no numeric coordinate" "true 30.2672" "$(sql "UPDATE factories SET longitude = 'west' WHERE id='$KEYS' RETURNING (lng IS NULL) || ' ' || lat")"
+expect "nor has a number that is not a latitude" t "$(sql "UPDATE factories SET latitude = '130.2', longitude = '-97.7431' WHERE id='$KEYS' RETURNING lat IS NULL AND lng = -97.7431")"
+sql "UPDATE factories SET latitude = '30.2672' WHERE id='$KEYS'" >/dev/null
+
+# ── A plant's county ────────────────────────────────────────────────────────
+# GET /api/map/factories/:id/county. The county is written by
+# scripts/geo/assign-keys.mjs from the coordinates; here it is set by hand.
+R=$(get "/map/factories/$KEYS/county")
+check "a plant not yet placed has no county"  200 "$R" '"county":null'
+expect "and nothing is said about one"        "null null" "$(printf '%s' "$R" | j 'o.metro+" "+o.manufacturing')"
+sql "UPDATE factories SET county_fips = '48453', cbsa_code = '12420' WHERE id='$KEYS'" >/dev/null
+R=$(get "/map/factories/$KEYS/county")
+check "a plant's county"                      200 "$R" '"county":{"fips":"48453","name":"Travis County","state":"TX"}'
+expect "its metro area"                       "12420|Austin-Round Rock-San Marcos, TX|metropolitan" "$(printf '%s' "$R" | j '[o.metro.code,o.metro.name,o.metro.kind].join("|")')"
+expect "the county's official figures, with who counted them" "$(sql "SELECT year || ' ' || establishments || ' ' || employment || ' ' || avg_annual_pay FROM industry_county_stats WHERE county_fips='48453' AND industry_code='31-33' ORDER BY year DESC LIMIT 1") true" "$(printf '%s' "$R" | j '(m=>[m.year,m.establishments,m.employment,m.avgAnnualPay].join(" ")+" "+(/Labor Statistics/.test(m.source)&&/^https:/.test(m.sourceUrl)))(o.manufacturing)')"
+expect "the figures are the county's, not the state's" true "$(printf '%s' "$R" | j "o.manufacturing.employment < $(get '/industries?state=TX' | j 'o.manufacturing.employment')")"
+check "public and cacheable"                  200 "$(curl -s -o /dev/null -D - -w '\n%{http_code}' "$API/map/factories/$KEYS/county" | tr -d '\r')" 's-maxage='
+check "as production sends it, with the rewrite's path" 200 "$(get "/map/factories/$KEYS/county?path=map/factories/$KEYS/county")" 'Travis County'
+# A county whose employment the Bureau withheld, and one with no row at all.
+HIDDEN=$(sql "SELECT county_fips FROM industry_county_stats WHERE employment IS NULL AND establishments > 0 AND industry_code='31-33' ORDER BY 1 LIMIT 1")
+sql "UPDATE factories SET county_fips = '$HIDDEN', cbsa_code = NULL WHERE id='$KEYS'" >/dev/null
+expect "a withheld figure is null, not zero"  "null null true" "$(get "/map/factories/$KEYS/county" | j '(m=>m.employment+" "+m.avgAnnualPay+" "+(m.establishments>0))(o.manufacturing)')"
+BARE=$(sql "SELECT c.fips FROM counties c WHERE NOT EXISTS (SELECT 1 FROM industry_county_stats s WHERE s.county_fips = c.fips) ORDER BY 1 LIMIT 1")
+sql "UPDATE factories SET county_fips = '$BARE' WHERE id='$KEYS'" >/dev/null
+expect "a county with nothing published says nothing" "$BARE null" "$(get "/map/factories/$KEYS/county" | j 'o.county.fips+" "+o.manufacturing')"
+# A plant that moves loses its county until it is placed again; one moved and placed in one statement keeps it.
+sql "UPDATE factories SET county_fips = '48453', cbsa_code = '12420' WHERE id='$KEYS'" >/dev/null
+expect "changing something else keeps the county" 48453 "$(sql "UPDATE factories SET city = 'Austin', primary_naics = '311611' WHERE id='$KEYS' RETURNING county_fips")"
+expect "moving the plant clears its county and metro" "none none" "$(sql "UPDATE factories SET latitude = '32.7767', longitude = '-96.7970' WHERE id='$KEYS' RETURNING COALESCE(county_fips, 'none') || ' ' || COALESCE(cbsa_code, 'none')")"
+expect "moved and placed in one statement keeps the new county" "48113 19100" "$(sql "UPDATE factories SET latitude = '32.78', county_fips = '48113', cbsa_code = '19100' WHERE id='$KEYS' RETURNING county_fips || ' ' || cbsa_code")"
+expect "a county that does not exist is refused" 1 "$(sql "UPDATE factories SET county_fips = '48999' WHERE id='$KEYS'" 2>&1 | grep -c 'foreign key')"
+check "a plant that does not exist"           404 "$(get /map/factories/00000000-0000-4000-8000-000000000000/county)" 'Plant not found'
+check "an id that is not one"                 400 "$(get /map/factories/giga-texas/county)"
 
 cleanup
 expect "test companies and plants removed"    0 "$(sql "SELECT (SELECT COUNT(*) FROM companies WHERE name LIKE 'E2E Industry %') + (SELECT COUNT(*) FROM factories WHERE name LIKE 'E2E Industry %')")"

@@ -49,7 +49,7 @@ PID=$(sql "SELECT id FROM users WHERE email='person-$RUN@admin.test'")
 expect "make-admin records when"      t "$(sql "SELECT admin_since IS NOT NULL FROM users WHERE id='$AID'")"
 
 # --- The new routes are closed to everyone but an admin ----------------------
-for path in "/admin/records/company?q=te" "/admin/records/company/similar?name=Tesla" "/admin/records/company/$NOBODY" "/admin/audit" "/admin/invites/past"; do
+for path in "/admin/records/company?q=te" "/admin/records/company/similar?name=Tesla" "/admin/records/company/$NOBODY" "/admin/audit" "/admin/invites/past" "/admin/quality"; do
   check "401 GET $path"               401 "$(req anon GET "$path")"
   check "403 GET $path"               403 "$(req p GET "$path")"
 done
@@ -273,6 +273,56 @@ check "delete a company"              200 "$OUT" '"removed":{"factories":2,"jobs
 expect "the deletion is on record with what went" 2 "$(req a GET "/admin/audit?kind=company&record=$CB" | j 'entries[0].detail.removed.factories')"
 check "delete it twice"               404 "$(req a DELETE /companies/$CB)"
 check "its editor says it is gone"    404 "$(req a GET /admin/records/company/$CB)"
+
+# --- Data quality -------------------------------------------------------------
+# GET /api/admin/quality counts the plants state by state. Checked two ways:
+# against the database's own counts, and by what five plants of ours add.
+quality() { req a GET /admin/quality; }
+QST=WY
+BEFORE=$(quality)
+check "the quality table"             200 "$BEFORE" '"total":{'
+expect "it counts every plant"        "$(sql "SELECT COUNT(*) FROM factories")" "$(printf '%s' "$BEFORE" | j total.plants)"
+expect "the states add up to the total" true "$(printf '%s' "$BEFORE" | j "states.reduce((ok, s) => ok && Object.keys(s).every((k) => k === 'state' || Number.isInteger(s[k])), true) && ['plants','industry','code','county','people','address','outsideId','onePlantCompanies','duplicates','duplicateGroups'].every((k) => o.states.reduce((n, s) => n + s[k], 0) === o.total[k])")"
+expect "largest state first"          true "$(printf '%s' "$BEFORE" | j "states.every((s, i, a) => i === 0 || a[i - 1].plants >= s.plants)")"
+expect "no share can pass the whole"  true "$(printf '%s' "$BEFORE" | j "states.every((s) => ['industry','code','county','people','address','outsideId','onePlantCompanies','duplicates'].every((k) => s[k] >= 0 && s[k] <= s.plants))")"
+expect "companies are those with a plant" "$(sql "SELECT COUNT(DISTINCT company_id) FROM factories")" "$(printf '%s' "$BEFORE" | j total.companies)"
+expect "one-plant companies, as the database counts them" "$(sql "SELECT COUNT(*) FROM (SELECT company_id FROM factories WHERE company_id IS NOT NULL GROUP BY company_id HAVING COUNT(*) = 1) one")" "$(printf '%s' "$BEFORE" | j total.onePlantCompanies)"
+expect "industry, code, county and people, as the database counts them" \
+  "$(sql "SELECT COUNT(*) FILTER (WHERE primary_naics_description IN (SELECT name FROM industry_profiles)) || ' ' || COUNT(naics) || ' ' || COUNT(county_fips) || ' ' || COUNT(*) FILTER (WHERE workforce_size > 0) FROM factories")" \
+  "$(printf '%s' "$BEFORE" | j "total.industry + ' ' + o.total.code + ' ' + o.total.county + ' ' + o.total.people")"
+# Five plants in one state: two companies, one of them with a single plant.
+QA=$(sql "INSERT INTO companies (name) VALUES ('$REC Quality A') RETURNING id")
+QB=$(sql "INSERT INTO companies (name) VALUES ('$REC Quality B') RETURNING id")
+sql "INSERT INTO factories (name, company_id, latitude, longitude, state, city, address, primary_naics, primary_naics_description, workforce_size) VALUES
+  ('$REC Q1', '$QA', '41.14001', '-104.82002', '$QST', 'CHEYENNE', '100 Plant Road', '311611', 'Food Manufacturing', 250),
+  ('$REC Q2', '$QA', '41.14049', '-104.81951', '$QST', 'CHEYENNE', 'Cheyenne', '311', 'Food Manufacturing', 0),
+  ('$REC Q3', '$QA', '41.2', '-104.9', '$QST', 'CHEYENNE', NULL, NULL, 'Robots', NULL),
+  ('$REC Q4', '$QA', 'north', '-104.9', '$QST', NULL, '  ', '541110', NULL, NULL),
+  ('$REC Q5', '$QB', '41.14001', '-104.82002', '$QST', 'CHEYENNE', '100 Plant Road', '336111', 'Transportation Equipment Manufacturing', 12)" >/dev/null
+Q1=$(sql "SELECT id FROM factories WHERE name='$REC Q1'")
+sql "UPDATE factories SET county_fips = '56021', cbsa_code = '16940' WHERE id='$Q1';
+     INSERT INTO external_references (entity_type, entity_id, source, external_id, url) VALUES
+       ('factories', '$Q1', 'EPA_ECHO', '110000000001', 'https://e2e-admin.example.com/echo'),
+       ('factories', '$Q1', 'EPA_ECHO', '110000000002', 'https://e2e-admin.example.com/echo-2'),
+       ('factories', (SELECT id FROM factories WHERE name='$REC Q2'), 'CURATED', 'https://e2e-admin.example.com/source', 'https://e2e-admin.example.com/source')" >/dev/null
+AFTER=$(quality)
+delta() { # field -> how much the state's count grew
+  echo $(( $(printf '%s' "$AFTER" | j "states.find((s) => s.state === '$QST').$1") - $(printf '%s' "$BEFORE" | j "states.find((s) => s.state === '$QST')?.$1 ?? 0") ))
+}
+expect "five plants more"             5 "$(delta plants)"
+expect "an industry is one of the 21" 3 "$(delta industry)"
+expect "a code is one that means one national industry" 2 "$(delta code)"
+expect "a county is one a plant was placed in" 1 "$(delta county)"
+expect "a headcount of zero is not a headcount" 2 "$(delta people)"
+expect "the city again, or blanks, is not an address" 2 "$(delta address)"
+expect "an outside id counts the plant once, a source address not at all" 1 "$(delta outsideId)"
+expect "a company with one plant"     1 "$(delta onePlantCompanies)"
+expect "the same company at the same spot, to a hundred metres" "2 1" "$(delta duplicates) $(delta duplicateGroups)"
+expect "the total follows"            "5 1" "$(( $(printf '%s' "$AFTER" | j total.plants) - $(printf '%s' "$BEFORE" | j total.plants) )) $(( $(printf '%s' "$AFTER" | j total.duplicateGroups) - $(printf '%s' "$BEFORE" | j total.duplicateGroups) ))"
+HDR=$(curl -s -D - -o /dev/null -b "$D/a" "$API/admin/quality" | tr -d '\r' | grep -i '^cache-control')
+case "$HDR" in *no-store*) echo "ok    the quality table is not cacheable";; *) echo "FAIL  quality cache header: $HDR"; fail=1;; esac
+sql "DELETE FROM companies WHERE id IN ('$QA', '$QB'); DELETE FROM external_references WHERE url LIKE 'https://e2e-admin.example.com/echo%' OR url = 'https://e2e-admin.example.com/source'" >/dev/null
+expect "and returns to what it was"   "$(printf '%s' "$BEFORE" | j "total.plants + ' ' + o.total.duplicates")" "$(quality | j "total.plants + ' ' + o.total.duplicates")"
 
 # --- People ------------------------------------------------------------------
 sql "INSERT INTO companies (name) VALUES ('$REC Access Co')" >/dev/null

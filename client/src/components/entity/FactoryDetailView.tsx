@@ -5,6 +5,7 @@ import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { industryLabel, industryPath } from '@shared/industry';
 import CompanyLogo from '../CompanyLogo';
 import { PlantFacts } from './RecordFacts';
+import CountyLine from './CountyLine';
 import { cityState } from '../../lib/places';
 import {
   DetailFacts,
@@ -97,6 +98,8 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
       {located && (
         <Footprint points={points} emphasis={data.id}>
           {street && <p className="border-t border-border-subtle px-4 py-3 text-sm text-fg-muted sm:px-6">{street}</p>}
+          {/* The county it stands in, and manufacturing there: official figures, about the county. */}
+          <CountyLine factoryId={data.id} className="border-t border-border-subtle px-4 py-3 sm:px-6" />
         </Footprint>
       )}
 

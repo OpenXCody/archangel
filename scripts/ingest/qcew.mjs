@@ -7,14 +7,21 @@
 //   node scripts/ingest/qcew.mjs                 the latest complete year
 //   node scripts/ingest/qcew.mjs --year 2025     that year
 //   node scripts/ingest/qcew.mjs --from <dir>    read <dir>/<code>.csv instead of downloading
+//   node scripts/ingest/qcew.mjs --counties-only   only the county figures (needs only the 31-33 file)
+//   node scripts/ingest/qcew.mjs --from <dir> --retrieved 2026-11-18   the day the files in <dir> were downloaded
 //
 // It downloads one file per industry (the 21 subsectors named in
 // data/industries/industries.json, and 31-33 for manufacturing as a whole):
 // every area's annual averages for that industry. It keeps the private-sector
 // rows for the nation and for each state the app knows, and writes
 // data/industries/qcew-<year>.json with where the figures came from and when.
+// The file for manufacturing as a whole also holds every county, so the same
+// run writes data/industries/qcew-<year>-counties.json: manufacturing as a
+// whole in each county, and nothing by industry (that would be 21 times the
+// size, most of it withheld).
 // Nothing here touches a database: the JSON reaches one through a generated
-// migration (scripts/build-industry-stats-sql.mjs).
+// migration (scripts/build-industry-stats-sql.mjs for the states,
+// scripts/build-geo-sql.mjs for the counties).
 //
 // A figure the Bureau withheld (to protect one employer's confidentiality) is
 // null, never zero.
@@ -119,6 +126,51 @@ export function parseQcew(csv, code) {
   return rows;
 }
 
+/**
+ * The county rows of one industry's file: private sector, all establishment
+ * sizes, annual, for every county of a known state. Returns [{ county, code,
+ * establishments, employment, avgAnnualPay }], `county` being the five-digit
+ * FIPS code; a withheld figure is null. The Bureau's "unknown or undefined"
+ * county of each state (code 999) is not a place and is left out.
+ */
+export function parseQcewCounties(csv, code) {
+  const lines = csv.split(/\r?\n/).filter((line) => line.trim() !== '');
+  if (lines.length === 0) return [];
+  const header = fields(lines[0]);
+  const at = (name) => {
+    const i = header.indexOf(name);
+    if (i === -1) throw new Error(`QCEW file for ${code} has no "${name}" column`);
+    return i;
+  };
+  const col = {
+    area: at('area_fips'),
+    own: at('own_code'),
+    industry: at('industry_code'),
+    size: at('size_code'),
+    qtr: at('qtr'),
+    disclosure: at('disclosure_code'),
+    establishments: at('annual_avg_estabs'),
+    employment: at('annual_avg_emplvl'),
+    pay: at('avg_annual_pay'),
+  };
+  const rows = [];
+  for (const line of lines.slice(1)) {
+    const f = fields(line);
+    if (f[col.own] !== '5' || f[col.industry] !== code || f[col.size] !== '0' || f[col.qtr] !== 'A') continue;
+    const area = f[col.area];
+    if (!/^\d{5}$/.test(area) || area.endsWith('000') || area.endsWith('999') || !STATE_FIPS[area.slice(0, 2)]) continue;
+    const withheld = f[col.disclosure].trim() !== '';
+    rows.push({
+      county: area,
+      code,
+      establishments: whole(f[col.establishments]),
+      employment: withheld ? null : whole(f[col.employment]),
+      avgAnnualPay: withheld ? null : whole(f[col.pay]),
+    });
+  }
+  return rows.sort((a, b) => a.county.localeCompare(b.county));
+}
+
 /** A year is complete when the nation's figure is published and (nearly) every state has a row. */
 export function isComplete(rows) {
   const nation = rows.find((row) => row.state === 'US');
@@ -142,6 +194,10 @@ async function main() {
   const asked = option('--year');
   if (asked !== undefined && !/^\d{4}$/.test(asked)) throw new Error('--year takes a four-digit year');
 
+  const countiesOnly = args.includes('--counties-only');
+  const retrieved = option('--retrieved') ?? new Date().toISOString().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(retrieved)) throw new Error('--retrieved takes a date, such as 2026-11-18');
+
   const catalogue = JSON.parse(await readFile(path.join(ROOT, 'data', 'industries', 'industries.json'), 'utf8'));
   const codes = [MANUFACTURING, ...catalogue.industries.map((industry) => industry.code)];
   const read = async (year, code) =>
@@ -153,17 +209,53 @@ async function main() {
   const candidates = asked ? [Number(asked)] : [thisYear - 1, thisYear - 2, thisYear - 3];
   let year = null;
   let whole31 = null;
+  let counties = [];
   for (const candidate of candidates) {
     const csv = await read(candidate, MANUFACTURING);
     const rows = csv ? parseQcew(csv, MANUFACTURING) : [];
     if (isComplete(rows)) {
       year = candidate;
       whole31 = rows;
+      counties = parseQcewCounties(csv, MANUFACTURING);
       break;
     }
     console.log(`qcew: ${candidate} is ${csv ? 'not complete' : 'not published'}`);
   }
   if (year === null) throw new Error(`No complete year among ${candidates.join(', ')}`);
+
+  const source = {
+    name: 'Quarterly Census of Employment and Wages',
+    publisher: 'U.S. Bureau of Labor Statistics',
+    url: 'https://www.bls.gov/cew/',
+    files: FILE_URL(year, '<industry code>'),
+    year,
+    retrieved,
+  };
+  // One row per line: a later year's file then diffs against this one.
+  const fileText = (head, list) =>
+    `{\n  "source": ${JSON.stringify(head, null, 2).replace(/\n/g, '\n  ')},\n  "rows": [\n${list.map((row) => `    ${JSON.stringify(row)}`).join(',\n')}\n  ]\n}\n`;
+
+  // Manufacturing as a whole, county by county. A year whose file has no
+  // county rows is still a year of state figures, so this is not an error.
+  if (counties.length > 0) {
+    const file = path.join(ROOT, 'data', 'industries', `qcew-${year}-counties.json`);
+    await writeFile(
+      file,
+      fileText(
+        {
+          ...source,
+          files: FILE_URL(year, MANUFACTURING),
+          note: 'Manufacturing as a whole (NAICS 31-33) in each county: annual averages, private sector, all establishment sizes. county: the five-digit FIPS code. establishments: annual_avg_estabs. employment: annual_avg_emplvl. avgAnnualPay: avg_annual_pay, in dollars. null: withheld by the Bureau (disclosure code N). A county with no row had no private manufacturing establishment. The "unknown or undefined" county of each state (999) is left out.',
+        },
+        counties
+      )
+    );
+    const hidden = counties.filter((row) => row.employment === null).length;
+    console.log(`qcew: wrote ${path.relative(ROOT, file)}: ${counties.length} counties for ${year} (${hidden} with employment withheld)`);
+  } else {
+    console.log(`qcew: the ${year} file for ${MANUFACTURING} has no county rows`);
+  }
+  if (countiesOnly) return;
 
   const rows = [...whole31];
   for (const code of codes.slice(1)) {
@@ -176,22 +268,17 @@ async function main() {
   }
   rows.sort((a, b) => a.code.localeCompare(b.code) || Number(b.state === 'US') - Number(a.state === 'US') || a.state.localeCompare(b.state));
 
-  const out = {
-    source: {
-      name: 'Quarterly Census of Employment and Wages',
-      publisher: 'U.S. Bureau of Labor Statistics',
-      url: 'https://www.bls.gov/cew/',
-      files: FILE_URL(year, '<industry code>'),
-      year,
-      retrieved: new Date().toISOString().slice(0, 10),
-      note: 'Annual averages, private sector, all establishment sizes. "US" is the nation; other rows are states. establishments: annual_avg_estabs. employment: annual_avg_emplvl. avgAnnualPay: avg_annual_pay, in dollars. null: withheld by the Bureau (disclosure code N).',
-    },
-    rows,
-  };
   const file = path.join(ROOT, 'data', 'industries', `qcew-${year}.json`);
-  // One row per line: a later year's file then diffs against this one.
-  const text = `{\n  "source": ${JSON.stringify(out.source, null, 2).replace(/\n/g, '\n  ')},\n  "rows": [\n${rows.map((row) => `    ${JSON.stringify(row)}`).join(',\n')}\n  ]\n}\n`;
-  await writeFile(file, text);
+  await writeFile(
+    file,
+    fileText(
+      {
+        ...source,
+        note: 'Annual averages, private sector, all establishment sizes. "US" is the nation; other rows are states. establishments: annual_avg_estabs. employment: annual_avg_emplvl. avgAnnualPay: avg_annual_pay, in dollars. null: withheld by the Bureau (disclosure code N).',
+      },
+      rows
+    )
+  );
   const withheld = rows.filter((row) => row.employment === null).length;
   console.log(`qcew: wrote ${path.relative(ROOT, file)}: ${rows.length} rows for ${year} (${withheld} with employment withheld)`);
 }
