@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, pgEnum, index, uniqueIndex, primaryKey, varchar, jsonb, boolean, serial, smallint } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, pgEnum, index, uniqueIndex, primaryKey, varchar, jsonb, boolean, serial, smallint, doublePrecision, type AnyPgColumn } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 // ============================================
@@ -103,10 +103,31 @@ export const factories = pgTable(
     status: text('status').default('operating').notNull(),
     // The plant's facts were written from sources (a research file, or an admin), not only a facility list.
     curated: boolean('curated').default(false).notNull(),
+    // Migration 0044: the keys that join a plant to public statistics.
+    // The coordinates as numbers. The database computes them from the text
+    // columns above (the ones the app reads and writes), so they cannot
+    // disagree; null where the text is not a latitude or longitude.
+    lat: doublePrecision('lat').generatedAlwaysAs(
+      sql`CASE WHEN "latitude" ~ '^\\s*[-+]?([0-9]{1,3}(\\.[0-9]*)?|\\.[0-9]+)\\s*$' AND "latitude"::double precision BETWEEN -90 AND 90 THEN "latitude"::double precision END`
+    ),
+    lng: doublePrecision('lng').generatedAlwaysAs(
+      sql`CASE WHEN "longitude" ~ '^\\s*[-+]?([0-9]{1,3}(\\.[0-9]*)?|\\.[0-9]+)\\s*$' AND "longitude"::double precision BETWEEN -180 AND 180 THEN "longitude"::double precision END`
+    ),
+    // The county the coordinates fall in and that county's metro area, written
+    // by scripts/geo/assign-keys.mjs. Null until it has run for the row, and
+    // again when the coordinates change (the factories_keys trigger).
+    countyFips: text('county_fips').references(() => counties.fips),
+    cbsaCode: text('cbsa_code').references(() => metros.code),
+    // The 2022 national industry primaryNaics means, when it means exactly
+    // one. Kept by the factories_keys trigger; primaryNaics stays as stored.
+    naics: varchar('naics', { length: 6 }).references(() => naicsCodes.code),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => ({
+    countyIdx: index('factories_county_idx').on(table.countyFips),
+    cbsaIdx: index('factories_cbsa_idx').on(table.cbsaCode),
+    naicsIdx: index('factories_naics_idx').on(table.naics),
     companyIdx: index('factories_company_idx').on(table.companyId),
     stateIdx: index('factories_state_idx').on(table.state),
     cityIdx: index('factories_city_idx').on(table.city),
@@ -798,5 +819,88 @@ export const industryStats = pgTable(
   (table) => ({
     pk: primaryKey({ columns: [table.state, table.industryCode, table.year] }),
     industryIdx: index('industry_stats_industry_idx').on(table.industryCode, table.year),
+  })
+);
+
+// ============================================
+// GEOGRAPHY AND INDUSTRY REFERENCE (migration 0044)
+// ============================================
+
+// Metropolitan and micropolitan areas (core based statistical areas).
+// Reduced from the Census Bureau's delineation file into data/geo/metros.json.
+export const metros = pgTable('metros', {
+  code: text('code').primaryKey(),
+  name: text('name').notNull(),
+  // 'metropolitan' | 'micropolitan'
+  kind: text('kind').notNull(),
+});
+
+// Every county and county equivalent of the 50 states and the District of
+// Columbia, by its five-digit FIPS code. data/geo/counties.json.
+export const counties = pgTable(
+  'counties',
+  {
+    fips: text('fips').primaryKey(),
+    name: text('name').notNull(),
+    state: text('state').notNull(),
+    // The metro area the county belongs to; null for a county in none.
+    cbsaCode: text('cbsa_code').references(() => metros.code),
+  },
+  (table) => ({
+    stateIdx: index('counties_state_idx').on(table.state),
+    cbsaIdx: index('counties_cbsa_idx').on(table.cbsaCode),
+  })
+);
+
+// The 2022 NAICS codes for manufacturing: the sector ('31-33'), the 21
+// subsectors the product calls industries, and every code under them down to
+// the six-digit national industry. `parent` is the code one level up.
+// data/industries/naics-2022.json.
+export const naicsCodes = pgTable(
+  'naics',
+  {
+    code: text('code').primaryKey(),
+    title: text('title').notNull(),
+    // 2 sector, 3 subsector, 4 industry group, 5 industry, 6 national industry.
+    level: smallint('level').notNull(),
+    parent: text('parent').references((): AnyPgColumn => naicsCodes.code),
+  },
+  (table) => ({
+    parentIdx: index('naics_parent_idx').on(table.parent),
+  })
+);
+
+// Other forms of a code that mean exactly one 2022 national industry: a
+// shorter code with one industry under it ('only'), or a code of an earlier
+// edition that went whole to one industry ('2017', '2012', '2007').
+// data/industries/naics-concordance.json.
+export const naicsConcordance = pgTable('naics_concordance', {
+  fromCode: text('from_code').primaryKey(),
+  code: text('code')
+    .notNull()
+    .references(() => naicsCodes.code),
+  basis: text('basis').notNull(),
+});
+
+// Official statistics by industry and county, one row per year: the county
+// sibling of industry_stats (scripts/ingest/qcew.mjs). `industryCode` is
+// '31-33' for manufacturing as a whole. A figure the source withheld is null,
+// never zero; a county with no row had nothing to count.
+export const industryCountyStats = pgTable(
+  'industry_county_stats',
+  {
+    countyFips: text('county_fips')
+      .notNull()
+      .references(() => counties.fips),
+    industryCode: text('industry_code').notNull(),
+    year: integer('year').notNull(),
+    establishments: integer('establishments'),
+    employment: integer('employment'),
+    avgAnnualPay: integer('avg_annual_pay'),
+    source: text('source').notNull(),
+    sourceUrl: text('source_url'),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.countyFips, table.industryCode, table.year] }),
   })
 );
