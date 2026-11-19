@@ -5,10 +5,10 @@ import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, isUuid, optionalText, refuseDeleteWithJobs, requiredText } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
-import { isUuid, refuseDeleteWithJobs } from '../lib/writes.js';
 import { sourcesOf } from '../lib/sources.js';
+import { rowsOf } from '../lib/rows.js';
 import { companyIndustries, companyIndustry } from '../lib/industries.js';
 import { industryByName, industryBySlug } from '../../shared/industry.js';
 
@@ -192,10 +192,10 @@ router.get('/:id', async (req: Request, res: Response) => {
       .orderBy(sql`6 DESC`, companies.name);
 
     // People in a state, where a source says how many.
-    const peopleByState = Array.from(
-      (await db.execute(sql`
+    const peopleByState = rowsOf<{ state: string; people: number; year: number | null; source: string | null; note: string | null }>(
+      await db.execute(sql`
         SELECT state, people, year, source, note FROM company_state_headcounts WHERE company_id = ${id} ORDER BY people DESC, state ASC
-      `)) as Iterable<{ state: string; people: number; year: number | null; source: string | null; note: string | null }>
+      `)
     );
 
     // Occupations across all of this company's in-scope factories, with how many of
@@ -213,21 +213,21 @@ router.get('/:id', async (req: Request, res: Response) => {
       ORDER BY "factoryCount" DESC, o.title ASC
     `);
 
-    const occupationRows = Array.from(companyOccupations as Iterable<Record<string, unknown>>);
+    const occupationRows = rowsOf(companyOccupations);
     // A company with one plant and no careers recorded there: the careers
     // typical of that plant's industry, as the plant's own page lists them.
     const onlyIndustry = companyFactories.length === 1 ? companyFactories[0].industry : null;
     const typicalCareers =
       occupationRows.length === 0 && onlyIndustry
-        ? Array.from(
-            (await db.execute(sql`
+        ? rowsOf(
+            await db.execute(sql`
               SELECT o.id, o.title
               FROM industry_occupations io
               INNER JOIN occupations o ON o.id = io.occupation_id
               WHERE io.industry = ${onlyIndustry}
               ORDER BY io.rank ASC
               LIMIT 10
-            `)) as Iterable<Record<string, unknown>>
+            `)
           ).map((r) => ({ id: String(r.id), title: String(r.title) }))
         : [];
 

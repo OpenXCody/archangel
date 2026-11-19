@@ -8,6 +8,7 @@ import { packPins } from '../../shared/pins.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalText, requiredText, stateCode } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
+import { rowsOf } from '../lib/rows.js';
 import { sourcesOf } from '../lib/sources.js';
 import { refuseDeleteWithJobs } from '../lib/writes.js';
 
@@ -322,15 +323,15 @@ router.get('/:id', async (req: Request, res: Response) => {
     const industryName = factory.industry;
     const typicalCareers =
       factoryOccupationsResult.length === 0 && industryName
-        ? Array.from(
-            (await db.execute(sql`
+        ? rowsOf(
+            await db.execute(sql`
               SELECT o.id, o.title
               FROM industry_occupations io
               INNER JOIN occupations o ON o.id = io.occupation_id
               WHERE io.industry = ${industryName}
               ORDER BY io.rank ASC
               LIMIT 10
-            `)) as Iterable<Record<string, unknown>>
+            `)
           ).map((r) => ({ id: String(r.id), title: String(r.title) }))
         : [];
 

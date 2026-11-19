@@ -1,7 +1,7 @@
 import { scrypt, randomBytes, timingSafeEqual, createHash } from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
 import { and, eq, gt, lt } from 'drizzle-orm';
-import { db, users, sessions } from '../db/index.js';
+import { db, users, sessions, companyMembers } from '../db/index.js';
 
 /**
  * Accounts and sessions.
@@ -186,6 +186,17 @@ export function requireUser(req: Request, res: Response, next: NextFunction): vo
     if (user) next();
     else res.status(401).json({ error: 'Sign in required' });
   }, next);
+}
+
+/** Whether the person may act for the company: an admin, or one of its active members. */
+export async function canManageCompany(user: SessionUser, companyId: string): Promise<boolean> {
+  if (user.isAdmin) return true;
+  const [row] = await db
+    .select({ status: companyMembers.status })
+    .from(companyMembers)
+    .where(and(eq(companyMembers.companyId, companyId), eq(companyMembers.userId, user.id)))
+    .limit(1);
+  return row?.status === 'active';
 }
 
 /** Wrap an async handler so a rejected promise reaches Express's error handler. */

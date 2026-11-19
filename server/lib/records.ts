@@ -3,6 +3,8 @@ import { and, eq, ne, sql, type SQL } from 'drizzle-orm';
 import { db, companies, factories, occupations, occupationSkills, skills, occupationAliases, skillAliases } from '../db/index.js';
 import { changedFields, recordAudit, type Actor, type Executor } from './audit.js';
 import { answerWriteError, coordinate, count, FACTORY_STATUSES, isUuid, optionalName, optionalText, sourceUrl, stateCode, year } from './writes.js';
+import { rowsOf } from './rows.js';
+import { containing, likeLiteral } from './like.js';
 
 /**
  * Correcting the four kinds of record an admin keeps: companies, factories,
@@ -42,10 +44,6 @@ const NOT_FOUND: Record<RecordKind, string> = {
   career: 'Occupation not found',
   skill: 'Skill not found',
 };
-
-function rowsOf<T = Record<string, unknown>>(result: unknown): T[] {
-  return Array.from(result as Iterable<T>);
-}
 
 // ---------------------------------------------------------------------------
 // Values
@@ -860,10 +858,6 @@ export interface FoundRecord {
   href: string;
 }
 
-function likeLiteral(term: string): string {
-  return term.replace(/[\\%_]/g, '\\$&');
-}
-
 /** "3 factories", "1 skill". */
 function counted(n: number, one: string, many: string): string {
   return `${n.toLocaleString('en-US')} ${n === 1 ? one : many}`;
@@ -915,7 +909,7 @@ function aliasIs(kind: RecordKind, term: string): SQL {
 export async function searchRecords(kind: RecordKind, term: string, limit = 8): Promise<FoundRecord[]> {
   const q = term.trim();
   if (q.length < 2) return [];
-  const contains = `%${likeLiteral(q)}%`;
+  const contains = containing(q);
   const alias =
     kind === 'company'
       ? sql`EXISTS (SELECT 1 FROM unnest(COALESCE(r.aliases, '{}')) a WHERE a ILIKE ${contains})`

@@ -7,6 +7,7 @@ import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { US_STATES } from '../../shared/states.js';
 import { pageLimit } from '../lib/paging.js';
+import { likeLiteral } from '../lib/like.js';
 import { companyIndustry, searchIndustries } from '../lib/industries.js';
 import { shownIndustry } from '../../shared/industry.js';
 import { formatCompanyName, formatFactoryName } from '../../shared/displayName.js';
@@ -83,7 +84,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     // Capped, with the term's own LIKE wildcards made literal ("100%" is not "everything").
     const query = q.trim().slice(0, 80);
-    const literal = query.replace(/[\\%_]/g, '\\$&');
+    const literal = likeLiteral(query);
     const searchPattern = `%${literal}%`;
     // The best matches must be chosen by the database, before the limit: with
     // 120 companies matching "texas", five arbitrary ones are not an answer.

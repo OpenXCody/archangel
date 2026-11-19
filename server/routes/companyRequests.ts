@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { and, desc, eq, gt, or, sql } from 'drizzle-orm';
 import { db, users, companies, companyMembers, companyRequests } from '../db/index.js';
-import { cleanText, handle, type SessionUser } from '../lib/auth.js';
+import { canManageCompany, cleanText, handle } from '../lib/auth.js';
+import { isUuid } from '../lib/writes.js';
 import { accessDecided, companyAddRequested, companyRequestAnswered } from '../lib/notices.js';
 import { recordAudit } from '../lib/audit.js';
 import { uuidParam } from '../middleware/validateUuid.js';
@@ -20,9 +21,6 @@ import { uuidParam } from '../middleware/validateUuid.js';
  * is. Either can be declined. The person is told by email, and reads the
  * answer on their employer page for 30 days.
  */
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const isUuid = (value: unknown): value is string => typeof value === 'string' && UUID.test(value);
 
 /** How many requests one person can have waiting. */
 const MAX_WAITING = 5;
@@ -59,16 +57,6 @@ const requestFields = {
   decidedAt: companyRequests.decidedAt,
   addedCompanyId: companyRequests.addedCompanyId,
 };
-
-async function isActiveMember(user: SessionUser, companyId: string): Promise<boolean> {
-  if (user.isAdmin) return true;
-  const [row] = await db
-    .select({ status: companyMembers.status })
-    .from(companyMembers)
-    .where(and(eq(companyMembers.companyId, companyId), eq(companyMembers.userId, user.id)))
-    .limit(1);
-  return row?.status === 'active';
-}
 
 // ---------------------------------------------------------------------------
 // The person's side: /api/employer/company-requests
@@ -116,7 +104,7 @@ companyRequestsRouter.post(
       if (!isUuid(companyId)) return res.status(400).json({ error: 'Choose a company.' });
       const [company] = await db.select({ id: companies.id, name: companies.name }).from(companies).where(eq(companies.id, companyId)).limit(1);
       if (!company) return res.status(404).json({ error: 'Company not found' });
-      if (!(await isActiveMember(user, company.id))) {
+      if (!(await canManageCompany(user, company.id))) {
         return res.status(403).json({ error: 'Only people who post jobs for a company can ask for its plants to be added.' });
       }
       name = company.name;

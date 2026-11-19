@@ -5,6 +5,7 @@ import { factoryInArea, factoryInBox, factoryInScope, isStateInScope } from '../
 import { focusArea } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
 import { INDUSTRY_NAME_LIST } from '../lib/industries.js';
+import { rowsOf } from '../lib/rows.js';
 
 const router = Router();
 
@@ -115,7 +116,7 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
     ORDER BY j.posted_at DESC
     LIMIT ${REGION_JOB_LIMIT}
   `);
-  const jobRows = Array.from(openJobs as Iterable<Record<string, unknown>>);
+  const jobRows = rowsOf(openJobs);
 
   return {
     openJobs: jobRows.length > 0 ? Number(jobRows[0].total) : 0,
@@ -130,11 +131,11 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
       factoryName: r.factory_name,
       city: r.city ?? null,
     })),
-    careers: Array.from(careers as Iterable<Record<string, unknown>>).map((r) => ({ id: r.id, title: r.title, count: r.count })),
+    careers: rowsOf(careers).map((r) => ({ id: r.id, title: r.title, count: r.count })),
     totalFactories: totalsRow?.totalFactories ?? 0,
     totalCompanies: totalsRow?.totalCompanies ?? 0,
     totalWorkforce: totalsRow?.totalWorkforce ?? 0,
-    topCompanies: Array.from(topCompanies as Iterable<Record<string, unknown>>).map((r) => ({
+    topCompanies: rowsOf(topCompanies).map((r) => ({
       id: r.id,
       name: r.name,
       domain: r.domain ?? null,
@@ -142,7 +143,7 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
       count: r.count,
       sites: r.sites,
     })),
-    topIndustries: Array.from(topIndustries as Iterable<Record<string, unknown>>).map((r) => ({
+    topIndustries: rowsOf(topIndustries).map((r) => ({
       label: r.label,
       count: r.count,
     })),
@@ -225,7 +226,7 @@ router.get('/bounds/overview', async (req: Request, res: Response) => {
     res.json({
       bounds,
       ...overview,
-      plants: Array.from(plants as Iterable<Record<string, unknown>>).map((r) => ({
+      plants: rowsOf(plants).map((r) => ({
         id: r.id,
         name: r.name,
         city: r.city ?? null,

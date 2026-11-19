@@ -16,6 +16,7 @@ import { cleanText, clearAttempts, endSession, handle, requireUser, tooManyAttem
 import { uuidParam } from '../middleware/validateUuid.js';
 import { newsFor } from '../lib/notices.js';
 import { hasCompanyTie, isPurpose, purposeFrom, type Purpose } from '../lib/purpose.js';
+import { rowsOf } from '../lib/rows.js';
 
 /** A signed-in person's own data: profile, skills, goals, applications. */
 const router = Router();
@@ -248,7 +249,7 @@ router.get(
                s.name ASC
       LIMIT ${limit}
     `);
-    const suggested = Array.from(rows as Iterable<Record<string, unknown>>).map((row) => ({
+    const suggested = rowsOf(rows).map((row) => ({
       id: String(row.id),
       name: String(row.name),
       stage: row.stage === null ? null : Number(row.stage),
@@ -386,7 +387,7 @@ router.get(
       FROM reach r
       ORDER BY (r.held + 0.5 * r.learning) / r.total DESC, r.held DESC, r.title ASC
     `);
-    const careers = Array.from(rows as Iterable<Record<string, unknown>>).map((row) => ({
+    const careers = rowsOf(rows).map((row) => ({
       id: String(row.id),
       title: String(row.title),
       held: Number(row.held),
