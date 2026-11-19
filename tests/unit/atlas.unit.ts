@@ -233,7 +233,7 @@ test('the address says what is open, most specific first, and keeps the careers'
   // A second career with no first is the first; a career is not compared with itself.
   assert.equal(atlasHref({ with: 'c2' }), '/atlas?career=c2');
   assert.equal(atlasHref({ career: 'c1', with: 'c1' }), '/atlas?career=c1');
-  assert.deepEqual(readAtlasState(new URLSearchParams('skill=abc&career=c1&with=c2')), { domain: null, group: null, skill: 'abc', career: 'c1', with: 'c2' });
+  assert.deepEqual(readAtlasState(new URLSearchParams('skill=abc&career=c1&with=c2')), { domain: null, group: null, skill: 'abc', career: 'c1', with: 'c2', at: null });
   assert.equal(skillsListHref(), '/explore?tab=skills');
   assert.equal(skillsListHref('quality', 'calibration'), '/explore?tab=skills&domain=quality&group=calibration');
   assert.equal(skillsListHref(null, 'calibration'), '/explore?tab=skills');

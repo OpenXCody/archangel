@@ -128,16 +128,18 @@ async function listVersions(where: SQL, order: SQL, limit: number): Promise<Vers
            AND NOT EXISTS (SELECT 1 FROM occupation_skills os WHERE os.occupation_id = cc.occupation_id AND os.skill_id = x.skill_id)) AS added,
         (SELECT COUNT(*)::int FROM company_career_skills x WHERE x.company_career_id = cc.id AND x.change = 'left_out'
            AND EXISTS (SELECT 1 FROM occupation_skills os WHERE os.occupation_id = cc.occupation_id AND os.skill_id = x.skill_id)) AS left_out,
-        (SELECT COALESCE(json_agg(g.name ORDER BY g.place, g.name), '[]'::json) FROM (
-           -- Each name once, where it first stands on the path: by the skill's place, then the make's own.
-           SELECT m.name, MIN(ARRAY[COALESCE(s.level, 9), COALESCE(sd.position, 9999), COALESCE(sg.position, 9999), COALESCE(s.group_position, 9999), m.position]) AS place
-           FROM company_career_makes cm
-           INNER JOIN skill_makes m ON m.id = cm.make_id
-           INNER JOIN skills s ON s.id = cm.skill_id
-           LEFT JOIN skill_groups sg ON sg.slug = s.group_slug
-           LEFT JOIN skill_domains sd ON sd.slug = sg.domain_slug
-           WHERE cm.company_career_id = cc.id AND ${onVersionPath(sql`cm.skill_id`)}
-           GROUP BY m.name) g) AS makes
+        (SELECT COALESCE(json_agg(g.name ORDER BY g.place), '[]'::json) FROM (
+           -- Each name once, where it first stands on the path: in the skills' order, then the makes' own.
+           SELECT r.name, MIN(r.place) AS place FROM (
+             SELECT m.name, ROW_NUMBER() OVER (ORDER BY s.level NULLS LAST, sd.position NULLS LAST, sg.position NULLS LAST,
+                                                         s.group_position NULLS LAST, s.name, m.position, lower(m.name)) AS place
+             FROM company_career_makes cm
+             INNER JOIN skill_makes m ON m.id = cm.make_id
+             INNER JOIN skills s ON s.id = cm.skill_id
+             LEFT JOIN skill_groups sg ON sg.slug = s.group_slug
+             LEFT JOIN skill_domains sd ON sd.slug = sg.domain_slug
+             WHERE cm.company_career_id = cc.id AND ${onVersionPath(sql`cm.skill_id`)}) r
+           GROUP BY r.name) g) AS makes
       FROM company_careers cc
       INNER JOIN companies c ON c.id = cc.company_id
       INNER JOIN occupations o ON o.id = cc.occupation_id

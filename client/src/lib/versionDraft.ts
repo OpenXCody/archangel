@@ -101,12 +101,14 @@ export function addSkill(draft: VersionDraft, skill: Pick<Skill, 'id' | 'name'> 
  * The server's answer to a save, laid under the draft: what each skill is
  * (its makes, its place, whether the standard now has it) comes from the
  * answer; what the person chose stays as they left it, taps made while the
- * save was on its way included. A skill taken off again in this visit stays
- * shown.
+ * save was on its way included. An addition taken off again in this visit
+ * stays shown.
  */
 export function mergeSaved(draft: VersionDraft, saved: Version): VersionDraft {
   const fresh = new Map([...saved.skills, ...saved.leftOut].map((skill) => [skill.id, draftSkill(skill)]));
-  const kept = draft.skills.filter((skill) => !fresh.has(skill.id));
+  // A standard skill the answer no longer names has left the standard, and goes; an addition taken off
+  // in this visit (or added a moment ago, and not yet saved) is the draft's own, and stays.
+  const kept = draft.skills.filter((skill) => !fresh.has(skill.id) && !skill.standard);
   const skills = [...fresh.values(), ...kept].sort(byOrder);
   const standard = new Set(skills.filter((skill) => skill.standard).map((skill) => skill.id));
   return {
