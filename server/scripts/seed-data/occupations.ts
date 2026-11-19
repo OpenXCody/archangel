@@ -1,7 +1,7 @@
 // Sample careers for the local seed (server/scripts/seed.ts).
 
 // ============================================
-// OCCUPATIONS DATA (80+ with O*NET codes)
+// OCCUPATIONS DATA (938, with O*NET codes)
 // ============================================
 
 export const OCCUPATIONS_DATA = [

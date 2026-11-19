@@ -9,10 +9,10 @@ import {
   factoryOccupations,
   occupationSkills,
 } from '../db/schema.js';
-import { COMPANIES_DATA, TOP_50_MANUFACTURING_COMPANIES, majorCompanyNames, midTierCompanyNames } from './seed-data/companies.js';
+import { FICTIONAL_COMPANIES, REAL_COMPANIES, MAJOR_COMPANIES, MID_TIER_COMPANIES } from './seed-data/companies.js';
 import { OCCUPATIONS_DATA } from './seed-data/occupations.js';
 import { SKILLS_DATA } from './seed-data/skills.js';
-import { FACTORY_LOCATIONS, specializationToIndustry } from './seed-data/factories.js';
+import { FACTORY_LOCATIONS, SPECIALIZATION_INDUSTRIES } from './seed-data/factories.js';
 import { OCCUPATION_SKILL_MAPPINGS } from './seed-data/occupationSkills.js';
 
 /**
@@ -62,14 +62,14 @@ async function seed() {
 
     // Combine all company data
     const allCompaniesData = [
-      ...COMPANIES_DATA.map((c) => ({
+      ...FICTIONAL_COMPANIES.map((c) => ({
         name: c.name,
         description: c.description,
         industries: c.industries,
         lat: null as string | null,
         lng: null as string | null,
       })),
-      ...TOP_50_MANUFACTURING_COMPANIES.map((c) => ({
+      ...REAL_COMPANIES.map((c) => ({
         name: c.name,
         description: c.description,
         industries: c.industries,
@@ -179,9 +179,9 @@ async function seed() {
     for (const [companyName, companyData] of companyMap.entries()) {
       let factoryCount: number;
 
-      if (majorCompanyNames.has(companyName)) {
+      if (MAJOR_COMPANIES.has(companyName)) {
         factoryCount = Math.floor(Math.random() * 5) + 4; // 4-8 factories
-      } else if (midTierCompanyNames.has(companyName)) {
+      } else if (MID_TIER_COMPANIES.has(companyName)) {
         factoryCount = Math.floor(Math.random() * 3) + 2; // 2-4 factories
       } else {
         factoryCount = Math.floor(Math.random() * 2) + 1; // 1-2 factories
@@ -198,7 +198,7 @@ async function seed() {
         let matchingLoc = null;
         for (let j = locationIndex; j < shuffledLocations.length; j++) {
           const loc = shuffledLocations[j];
-          const locIndustries = specializationToIndustry[loc.specialization] || [];
+          const locIndustries = SPECIALIZATION_INDUSTRIES[loc.specialization] || [];
           const hasMatch = companyIndustryList.some(ind => locIndustries.includes(ind));
           if (hasMatch) {
             matchingLoc = loc;

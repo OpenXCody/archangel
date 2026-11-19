@@ -1,7 +1,7 @@
 // Where the sample plants are, and which industries a plant of each specialization suits (server/scripts/seed.ts).
 
 // ============================================
-// FACTORY LOCATIONS (150+ factories across US manufacturing hubs)
+// FACTORY LOCATIONS (457 places across US manufacturing hubs)
 // ============================================
 
 export const FACTORY_LOCATIONS = [
@@ -585,8 +585,8 @@ export const FACTORY_LOCATIONS = [
   { state: 'OH', city: 'Troy Food', lat: 40.0400, lng: -84.2000, specialization: 'Condiments' },
 ];
 
-// Map specializations to industries for smart matching
-export const specializationToIndustry: Record<string, string[]> = {
+// Specializations to the industries of the companies they suit, for matching a location to a company.
+export const SPECIALIZATION_INDUSTRIES: Record<string, string[]> = {
   'Automotive Assembly': ['Automotive'],
   'Automotive Parts': ['Automotive'],
   'Automotive Powertrain': ['Automotive'],

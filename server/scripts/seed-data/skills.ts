@@ -1,7 +1,7 @@
 // Sample skills for the local seed (server/scripts/seed.ts).
 
 // ============================================
-// SKILLS DATA (100+ hard technical skills with category links)
+// SKILLS DATA (1,463 hard technical skills, each with its category)
 // ============================================
 
 export const SKILLS_DATA = [

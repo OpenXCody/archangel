@@ -2,10 +2,10 @@
 // their headquarters, and which of the real ones get more plants.
 
 // ============================================
-// COMPANIES DATA (20 fictional companies; the first industry listed is the company's)
+// FICTIONAL COMPANIES (20; the first industry listed is the company's)
 // ============================================
 
-export const COMPANIES_DATA = [
+export const FICTIONAL_COMPANIES = [
   { name: 'Apex Manufacturing Corp', description: 'Leading manufacturer of precision industrial machinery', industries: ['Industrial Machinery'] },
   { name: 'Midwest Steel Industries', description: 'Integrated steel producer serving automotive and construction', industries: ['Metals & Fabrication', 'Automotive'] },
   { name: 'Pacific Aerospace Components', description: 'Precision aerospace components for commercial and defense', industries: ['Aerospace & Defense'] },
@@ -29,10 +29,10 @@ export const COMPANIES_DATA = [
 ];
 
 // ============================================
-// TOP 50 US MANUFACTURING COMPANIES (Real companies with HQ locations)
+// REAL COMPANIES (122 US manufacturers, with where their headquarters are)
 // ============================================
 
-export const TOP_50_MANUFACTURING_COMPANIES = [
+export const REAL_COMPANIES = [
   { name: 'Apple Inc.', industries: ['Electronics'], description: 'Consumer electronics, software, and online services company', lat: '37.3349', lng: '-122.0090' },
   { name: 'Ford Motor Company', industries: ['Automotive'], description: 'Multinational automaker manufacturing cars, trucks, and SUVs', lat: '42.3112', lng: '-83.2148' },
   { name: 'General Motors', industries: ['Automotive'], description: 'Global automotive manufacturer and mobility company', lat: '42.3314', lng: '-83.0458' },
@@ -175,8 +175,8 @@ export const TOP_50_MANUFACTURING_COMPANIES = [
   { name: 'Cardinal Health', industries: ['Medical & Pharmaceuticals'], description: 'Healthcare services and pharmaceutical distribution company', lat: '40.0992', lng: '-82.9654' },
 ];
 
-// Define company size tiers for factory counts
-export const majorCompanyNames = new Set([
+// Company size tiers for factory counts: the real companies that get the most sample plants, and the next most.
+export const MAJOR_COMPANIES = new Set([
   'Apple Inc.', 'Ford Motor Company', 'General Motors', 'Boeing', 'Intel Corporation',
   'Caterpillar Inc.', '3M Company', 'Honeywell International', 'Lockheed Martin',
   'Raytheon Technologies', 'Northrop Grumman', 'General Dynamics', 'Tesla Inc.',
@@ -189,7 +189,7 @@ export const majorCompanyNames = new Set([
   'Parker Hannifin', 'Emerson Electric', 'Illinois Tool Works',
 ]);
 
-export const midTierCompanyNames = new Set([
+export const MID_TIER_COMPANIES = new Set([
   'Qualcomm', 'Procter & Gamble', 'PepsiCo', 'Coca-Cola Company', 'Dow Inc.',
   'DuPont', 'Rivian', 'BorgWarner', 'Aptiv', 'Lear Corporation', 'Magna International',
   'Dana Incorporated', 'American Axle', 'Abbott Laboratories', 'Boston Scientific',
