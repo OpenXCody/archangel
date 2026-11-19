@@ -451,6 +451,10 @@ input {
     border-radius: var(--radius);
     background-color: rgb(var(--tint) / 0.05);
     color: var(--color-fg-default);
+  }
+  /* A tag changes softly under the hand that changed it, and at once when the marks first arrive. */
+  .skill-tag:hover,
+  .skill-tag:focus-within {
     transition: background-color 0.15s ease, color 0.15s ease;
   }
   /* For a person marking skills: quiet until held. */
@@ -486,13 +490,13 @@ input {
     padding: 2px 6px 6px;
     border-radius: 0.75rem;
     border: 1px solid var(--color-border-subtle);
+  }
+  .skill-group:hover,
+  .skill-group:focus-within {
     transition: border-color 0.15s ease;
   }
   .skill-group-name {
-    display: flex;
     max-width: calc(100% - 12px);
-    align-items: center;
-    gap: 6px;
     margin-left: 2px;
     padding: 0 6px;
     font-size: 0.75rem;

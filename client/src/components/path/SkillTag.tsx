@@ -37,7 +37,7 @@ export function SkillTag({ skill, marks, current, className }: { skill: PathSkil
           value={status ?? 'none'}
           disabled={marks.pending}
           onChange={(next) => marks.mark(skill, next)}
-          className="rounded-lg"
+          className="rounded-lg focus-visible:[outline-offset:-2px]"
         />
       )}
       {current ? (
@@ -45,7 +45,7 @@ export function SkillTag({ skill, marks, current, className }: { skill: PathSkil
           {name}
         </span>
       ) : (
-        <Link to={`/skills/${skill.id}`} className={cn(nameClass, 'rounded-lg underline-offset-4 hover:underline')}>
+        <Link to={`/skills/${skill.id}`} className={cn(nameClass, 'rounded-lg underline-offset-4 hover:underline focus-visible:[outline-offset:-2px]')}>
           {name}
         </Link>
       )}

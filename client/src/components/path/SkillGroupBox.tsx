@@ -36,14 +36,16 @@ export function SkillGroupBox({ name, skills, marks, share: given, currentId, pa
   return (
     <fieldset className={cn('skill-group', className)} data-group-box data-complete={(share && share.total > 0 && share.held === share.total) || undefined}>
       <legend className="skill-group-name">
-        <span className="min-w-0 break-words">{name}</span>
-        {share && (
-          <>
-            <ShareRing share={share} className="h-3.5 w-3.5" />
-            {/* One skill says how much is held by its own mark; the figure is for a group of several. */}
-            <ShareCount share={share} data-group-count className={share.total > 1 ? undefined : 'sr-only'} />
-          </>
-        )}
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="min-w-0 break-words">{name}</span>
+          {share && (
+            <>
+              <ShareRing share={share} className="h-3.5 w-3.5" />
+              {/* One skill says how much is held by its own mark; the figure is for a group of several. */}
+              <ShareCount share={share} data-group-count className={share.total > 1 ? undefined : 'sr-only'} />
+            </>
+          )}
+        </span>
       </legend>
       {(parts ?? [{ label: '', skills }]).map((part) => (
         <div key={part.label} className="skill-group-part">
