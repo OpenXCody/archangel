@@ -14,6 +14,7 @@ import {
 import { canManageCompany, cleanText, getSessionUser, handle, requireUser } from '../lib/auth.js';
 import { isUuid } from '../lib/writes.js';
 import { rowsOf } from '../lib/rows.js';
+import { pageLimit } from '../lib/paging.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { SCOPE } from '../../shared/scope.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
@@ -98,7 +99,7 @@ router.get(
     }
     const miles = near ? milesFromFactory(near) : null;
     if (near && miles) filters.push(sql`${miles} <= ${near.within}`);
-    const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
+    const limit = pageLimit(req.query.limit, 100, 500);
 
     const rows = await db
       .select(miles ? { ...jobSummary, miles } : jobSummary)

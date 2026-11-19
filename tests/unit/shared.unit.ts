@@ -64,6 +64,9 @@ test('a list page is at least one row and never the whole table', () => {
   assert.equal(pageLimit('5000', 20, 100), 100);
   assert.equal(pageLimit(undefined, 20, 100), 20);
   assert.equal(pageLimit('abc', 20, 100), 20);
+  // A fraction is its whole part: LIMIT takes a whole number, and 1.5 reached the database as it was.
+  assert.equal(pageLimit('1.5', 100, 500), 1);
+  assert.equal(pageLimit('2.9', 12, 30), 2);
   assert.equal(pageOffset('-5'), 0);
   assert.equal(pageOffset('99999999999999999999'), 1_000_000);
   assert.equal(pageOffset('40'), 40);

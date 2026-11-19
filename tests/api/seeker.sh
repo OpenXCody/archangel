@@ -158,6 +158,8 @@ expect "how many careers call for it" 8 "$(printf '%s' "$OUT" | j "skills.find(s
 check "learning S02"                  200 "$(req g PUT /me/skills/$S02 '{"status":"learning"}')"
 expect "a skill being learned is not suggested" false "$(req g GET /me/skills/suggested | j "skills.some(s=>s.id==='$S02')")"
 expect "limit is honoured"            3 "$(req g GET '/me/skills/suggested?limit=3' | j skills.length)"
+# A limit is a whole number of rows: a fraction used to reach the database as one and answer 500.
+expect "a limit with a fraction is its whole part" 2 "$(req g GET '/me/skills/suggested?limit=2.9' | j skills.length)"
 check "another person's suggestions are their own" 200 "$(req o GET /me/skills/suggested)" '"skills":\[\]'
 HDR=$(curl -s -D - -o /dev/null -b "$D/g" "$API/me/skills/suggested" | tr -d '\r' | grep -i '^cache-control')
 case "$HDR" in *no-store*) echo "ok    suggestions are not cacheable";; *) echo "FAIL  cache header: $HDR"; fail=1;; esac
@@ -203,6 +205,7 @@ check "latitude out of range"         400 "$(req anon GET '/jobs?near=91,0')"
 check "within must be a distance"     400 "$(req anon GET "/jobs?$NEAR&within=0")"
 expect "no distance without a place"  false "$(req anon GET "/jobs?q=$RUN+fitter" | j "jobs.some(x=>'miles' in x)")"
 expect "without a place, newest first" "Nowhere|Far|Town|Home" "$(req anon GET "/jobs?q=$RUN+fitter" | jobTitles)"
+expect "a limit with a fraction is its whole part" "Nowhere|Far" "$(req anon GET "/jobs?q=$RUN+fitter&limit=2.9" | jobTitles)"
 expect "search finds the company"     4 "$(req anon GET "/jobs?q=$RUN+works" | j jobs.length)"
 expect "search finds the career"      4 "$(req anon GET "/jobs?q=seeker+$RUN+a" | j jobs.length)"
 expect "search finds the shift"       "Home" "$(req anon GET "/jobs?q=$RUN+night" | jobTitles)"
