@@ -1,0 +1,648 @@
+{
+ "_about": "Web domains for the companies in the first ten of a list a visitor meets, as the public API showed them on 2026-11-19: the companies of every industry page (the country, each state, the Austin area), Explore's overview, the Companies and Plants lists and the map's state and area panels. A second pass after data/companies/domains.json, which it does not repeat: a company here had no domain in production. `name` must match companies.name exactly. Each domain is the company's own, or the parent's whose name it trades under (`note` says so), and its front page was opened and read; where the site refuses automated requests or cannot be reached, `note` says its icon was matched to the company by eye. A few names the first file skipped are given a domain here, now that they stand in a first ten. `skipped` lists companies of those lists left without a domain, and why. Regenerate the SQL with: node scripts/build-domains-sql.mjs data/companies/domains-2.json migrations/0045_company_domains_2.sql, then settle each mark with scripts/fetch-logos.mjs (--look, --place, --none).",
+ "companies": [
+  {
+   "name": "A G Equipment",
+   "domain": "agequipmentcompany.com"
+  },
+  {
+   "name": "A R Wilfley & Sons",
+   "domain": "wilfley.com"
+  },
+  {
+   "name": "Accra Fab",
+   "domain": "accrafab.com"
+  },
+  {
+   "name": "Advance Geosciences",
+   "domain": "agiusa.com",
+   "note": "Advanced Geosciences, Inc. of Austin, which trades as AGI."
+  },
+  {
+   "name": "Advanced Chemical",
+   "domain": "advchem.com",
+   "note": "Advanced Chemical Company, the precious metals refiner of Warwick, RI; one of its three plant rows is in Orlando and may be another firm."
+  },
+  {
+   "name": "Advanced Energy Industries",
+   "domain": "advancedenergy.com"
+  },
+  {
+   "name": "Aladdin Manufacturing",
+   "domain": "mohawkind.com",
+   "note": "The manufacturing company of Mohawk Industries; its plants trade as Mohawk."
+  },
+  {
+   "name": "Allied Truss",
+   "domain": "alliedtruss.com",
+   "note": "The East Texas truss maker (its telephone number is Jacksonville's)."
+  },
+  {
+   "name": "American & Efird",
+   "domain": "amefird.com"
+  },
+  {
+   "name": "American Biltrite",
+   "domain": "american-biltrite.com"
+  },
+  {
+   "name": "American Film & Printing",
+   "domain": "americanfilmandprinting.com"
+  },
+  {
+   "name": "Andritz",
+   "domain": "andritz.com"
+  },
+  {
+   "name": "Antaya Technologies",
+   "domain": "antaya.com"
+  },
+  {
+   "name": "Appvion",
+   "domain": "appvion.com"
+  },
+  {
+   "name": "Aquatic Industries",
+   "domain": "aquaticbath.com",
+   "note": "Now trades as Aquatic."
+  },
+  {
+   "name": "Atc Drivetrain",
+   "domain": "atcreman.com",
+   "note": "Now ATC Reman; atcdrivetrain.com forwards there."
+  },
+  {
+   "name": "Atrium Medical",
+   "domain": "getinge.com",
+   "note": "Part of Getinge, whose name its products and its site (atriummed.com forwards) now carry."
+  },
+  {
+   "name": "Austin White Lime",
+   "domain": "austinwhitelime.com"
+  },
+  {
+   "name": "Austin Budget Signs",
+   "domain": "austinbudgetsigns.com"
+  },
+  {
+   "name": "Belleville Shoe Manufacturing",
+   "domain": "bellevilleboot.com",
+   "note": "Trades as Belleville Boot."
+  },
+  {
+   "name": "Bently Nevada",
+   "domain": "bakerhughes.com",
+   "note": "A Baker Hughes business; bently.com forwards to Baker Hughes' site."
+  },
+  {
+   "name": "Black & Decker",
+   "domain": "blackanddecker.com",
+   "note": "A brand of Stanley Black & Decker with its own site and mark."
+  },
+  {
+   "name": "Blanchard Machinery",
+   "domain": "blanchardmachinery.com"
+  },
+  {
+   "name": "Bonded Materials",
+   "domain": "bondedmaterials.net"
+  },
+  {
+   "name": "Boomerang's Foods",
+   "domain": "boomerangspies.com"
+  },
+  {
+   "name": "Branick Industries",
+   "domain": "branick.com"
+  },
+  {
+   "name": "Brc Rubber & Plastics",
+   "domain": "brcrp.com"
+  },
+  {
+   "name": "Butler Manufacturing",
+   "domain": "butlermfg.com"
+  },
+  {
+   "name": "Cgt US",
+   "domain": "cgtower.com",
+   "note": "The US plant of Canadian General-Tower, which trades as CGT."
+  },
+  {
+   "name": "Darling Ingredients",
+   "domain": "darlingii.com"
+  },
+  {
+   "name": "Ebara Technologies",
+   "domain": "ebaratech.com"
+  },
+  {
+   "name": "Elgi Rubber",
+   "domain": "elgirubber.com",
+   "note": "The US company of Elgi Rubber of India; one site for the group."
+  },
+  {
+   "name": "Fruit of the Loom Texas",
+   "domain": "fotlinc.com"
+  },
+  {
+   "name": "Fruit of the Loom",
+   "domain": "fotlinc.com"
+  },
+  {
+   "name": "Glastron Boat",
+   "domain": "glastron.com"
+  },
+  {
+   "name": "High End Systems",
+   "domain": "etcconnect.com",
+   "note": "Bought by ETC in 2017; highend.com forwards to ETC's site."
+  },
+  {
+   "name": "Hoffman Cabinets",
+   "domain": "hoffmancabinets.com"
+  },
+  {
+   "name": "Karsten Manufacturing",
+   "domain": "ping.com",
+   "note": "Karsten Manufacturing Corporation makes and trades as PING."
+  },
+  {
+   "name": "Michael Angelo's Gourmet Food",
+   "domain": "michaelangelos.com"
+  },
+  {
+   "name": "Miller Blueprint",
+   "domain": "millerids.com",
+   "note": "Now Miller IDS."
+  },
+  {
+   "name": "On X Life Technologies",
+   "domain": "onxlti.com"
+  },
+  {
+   "name": "Overwraps Packaging",
+   "domain": "overwraps.com"
+  },
+  {
+   "name": "Polytex Fibers",
+   "domain": "fivestar.com",
+   "note": "Now Five Star Polytex; polytex.com forwards to Five Star's site."
+  },
+  {
+   "name": "Red Wing Shoe",
+   "domain": "redwingshoes.com"
+  },
+  {
+   "name": "Reddy Ice",
+   "domain": "reddyice.com"
+  },
+  {
+   "name": "Reddy Ice Austin/ Red River",
+   "domain": "reddyice.com",
+   "note": "A Reddy Ice plant entered as a company."
+  },
+  {
+   "name": "Reddy Ice-austin (301)",
+   "domain": "reddyice.com",
+   "note": "A Reddy Ice plant entered as a company."
+  },
+  {
+   "name": "Reddy Ice-dallas (311)",
+   "domain": "reddyice.com",
+   "note": "A Reddy Ice plant entered as a company."
+  },
+  {
+   "name": "Reddy Ice-denver (368)",
+   "domain": "reddyice.com",
+   "note": "A Reddy Ice plant entered as a company."
+  },
+  {
+   "name": "Reddy Ice-plant City (413)",
+   "domain": "reddyice.com",
+   "note": "A Reddy Ice plant entered as a company."
+  },
+  {
+   "name": "Republic Elite",
+   "domain": "republicelite.com"
+  },
+  {
+   "name": "S. B. Foot Tanning",
+   "domain": "sbfoot.com"
+  },
+  {
+   "name": "Smtc Manufacturing",
+   "domain": "smtc.com"
+  },
+  {
+   "name": "Specialty Coating Systems",
+   "domain": "scscoatings.com"
+  },
+  {
+   "name": "Spike Electric Controls",
+   "domain": "spikeelectric.com"
+  },
+  {
+   "name": "Veritiv Visual",
+   "domain": "veritiv.com",
+   "note": "A Veritiv business with no site or mark of its own."
+  },
+  {
+   "name": "W L Gore & Associates",
+   "domain": "gore.com"
+  },
+  {
+   "name": "Zimmer Austin",
+   "domain": "zimmerbiomet.com",
+   "note": "The Austin plant of Zimmer Biomet."
+  },
+  {
+   "name": "Bfs Group",
+   "domain": "bldr.com",
+   "note": "BFS Group LLC is Builders FirstSource."
+  },
+  {
+   "name": "Belden Wire & Cable",
+   "domain": "belden.com",
+   "note": "A former name of Belden."
+  },
+  {
+   "name": "Ardagh Glass",
+   "domain": "ardaghgroup.com",
+   "note": "Ardagh Group's glass business."
+  },
+  {
+   "name": "3d Systems",
+   "domain": "3dsystems.com"
+  },
+  {
+   "name": "Agc Glass",
+   "domain": "agc.com",
+   "note": "AGC's one site for the group."
+  },
+  {
+   "name": "Agc Flat Glass North America",
+   "domain": "agc.com",
+   "note": "AGC's one site for the group."
+  },
+  {
+   "name": "Agfa",
+   "domain": "agfa.com"
+  },
+  {
+   "name": "Aggreko",
+   "domain": "aggreko.com"
+  },
+  {
+   "name": "Ahf Products",
+   "domain": "ahfproducts.com"
+  },
+  {
+   "name": "Ahlstrom Filtration",
+   "domain": "ahlstrom.com",
+   "note": "Ahlstrom's filtration business."
+  },
+  {
+   "name": "Ajax Tocco Magnethermic",
+   "domain": "ajaxtocco.com"
+  },
+  {
+   "name": "Alfa Laval",
+   "domain": "alfalaval.com"
+  },
+  {
+   "name": "Amcor Flexibles North America",
+   "domain": "amcor.com"
+  },
+  {
+   "name": "Amcor Rigid Plastics",
+   "domain": "amcor.com"
+  },
+  {
+   "name": "American Bottling",
+   "domain": "keurigdrpepper.com",
+   "note": "The American Bottling Company is Keurig Dr Pepper's bottler and has no site or mark of its own."
+  },
+  {
+   "name": "American Craft Brewery",
+   "domain": "bostonbeer.com",
+   "note": "American Craft Brewery LLC is the Boston Beer Company's brewing company."
+  },
+  {
+   "name": "American Roller",
+   "domain": "americanroller.com"
+  },
+  {
+   "name": "American Standard",
+   "domain": "americanstandard-us.com"
+  },
+  {
+   "name": "American Wood Fibers",
+   "domain": "awf.com"
+  },
+  {
+   "name": "Amsted Rail",
+   "domain": "amstedrail.com"
+  },
+  {
+   "name": "Aptargroup",
+   "domain": "aptar.com"
+  },
+  {
+   "name": "Arclin Surfaces",
+   "domain": "arclin.com"
+  },
+  {
+   "name": "Arcosa Marine Products",
+   "domain": "arcosa.com"
+  },
+  {
+   "name": "Asi Sign Systems",
+   "domain": "asisignage.com"
+  },
+  {
+   "name": "Atco Rubber Products",
+   "domain": "atcoflex.com"
+  },
+  {
+   "name": "Atlas Cop",
+   "domain": "atlascopco.com",
+   "note": "The name is cut off: Atlas Copco."
+  },
+  {
+   "name": "Atlas Molded Products",
+   "domain": "atlasmoldedproducts.com"
+  },
+  {
+   "name": "Barnes Aerospace",
+   "domain": "barnesaero.com"
+  },
+  {
+   "name": "Batesville Manufacturing",
+   "domain": "batesville.com"
+  },
+  {
+   "name": "Bay State Milling",
+   "domain": "baystatemilling.com"
+  },
+  {
+   "name": "Bekaert Steel",
+   "domain": "bekaert.com"
+  },
+  {
+   "name": "Bell Lumber & Pole",
+   "domain": "blpole.com"
+  },
+  {
+   "name": "Belmark",
+   "domain": "belmark.com"
+  },
+  {
+   "name": "Bic Consumer Products Mfg",
+   "domain": "bic.com"
+  },
+  {
+   "name": "Boise Cascade Wood Products",
+   "domain": "bc.com"
+  },
+  {
+   "name": "Bosch Rexroth",
+   "domain": "boschrexroth.com"
+  },
+  {
+   "name": "Bose",
+   "domain": "bose.com"
+  },
+  {
+   "name": "Burgess Norton Mfg",
+   "domain": "burgessnorton.com"
+  },
+  {
+   "name": "Cal-maine Foods",
+   "domain": "calmainefoods.com"
+  },
+  {
+   "name": "Carry-on Trailer",
+   "domain": "carry-ontrailer.com"
+  },
+  {
+   "name": "Certainteed",
+   "domain": "certainteed.com"
+  },
+  {
+   "name": "Charter Next Generation",
+   "domain": "cnginc.com"
+  },
+  {
+   "name": "Custom Building Products",
+   "domain": "custombuildingproducts.com"
+  },
+  {
+   "name": "Dura-line",
+   "domain": "duraline.com"
+  },
+  {
+   "name": "Kennametal",
+   "domain": "kennametal.com"
+  },
+  {
+   "name": "Kent Nutrition",
+   "domain": "kentfeeds.com"
+  },
+  {
+   "name": "Masonite",
+   "domain": "masonite.com"
+  },
+  {
+   "name": "Steel Technologies",
+   "domain": "steeltechnologies.com"
+  },
+  {
+   "name": "US Greenfiber",
+   "domain": "greenfiber.com",
+   "note": "Trades as Greenfiber."
+  },
+  {
+   "name": "Amazon.com Services",
+   "domain": "amazon.com"
+  },
+  {
+   "name": "Aervoe Industries",
+   "domain": "aervoe.com",
+   "note": "The site refuses automated requests; its icon was matched to the company by eye."
+  },
+  {
+   "name": "Brook & Whittle",
+   "domain": "brookandwhittle.com",
+   "note": "The site refuses automated requests; its icon was matched to the company by eye."
+  },
+  {
+   "name": "Coats & Clark",
+   "domain": "coats.com",
+   "note": "Coats' one site for the group; it refuses automated requests, and its icon was matched by eye."
+  },
+  {
+   "name": "Barnes Group",
+   "domain": "onebarnes.com",
+   "note": "The site does not answer from here; its icon was matched to the company by eye."
+  },
+  {
+   "name": "Afton Chemical",
+   "domain": "aftonchemical.com",
+   "note": "The site refuses automated requests; its icon was matched to the company by eye."
+  },
+  {
+   "name": "American Sugar Refining",
+   "domain": "asr-group.com",
+   "note": "Trades as ASR Group; the site refuses automated requests, and its icon was matched by eye."
+  },
+  {
+   "name": "Baillie Lumber",
+   "domain": "baillie.com",
+   "note": "The site refuses automated requests; its icon was matched to the company by eye."
+  },
+  {
+   "name": "Nestle",
+   "domain": "nestle.com",
+   "note": "The site refuses automated requests; its icon was matched to the company by eye."
+  }
+ ],
+ "skipped": [
+  {
+   "name": "Brown Shoe",
+   "why": "Became Caleres in 2015; the plants are long closed."
+  },
+  {
+   "name": "Acme Printing",
+   "why": "Several unrelated printers use this name. The same for Allied Printing, Barton Printing, Beacon Printing, Action Graphics and Block Graphics."
+  },
+  {
+   "name": "A-1 Plating",
+   "why": "Several unrelated companies use this name. The same for Acme Plating, American Plating, Anodizers, Alliance Industries, Century Manufacturing, Atlas Manufacturing, Baker Manufacturing, Best Manufacturing, Bailey Manufacturing, Brown Industries, Allen Industries and Acme Foundry."
+  },
+  {
+   "name": "A L Gebhardt",
+   "why": "The Milwaukee tannery is closed."
+  },
+  {
+   "name": "Acme Boot",
+   "why": "The company closed its plants in the 1990s; the name is a brand of another owner."
+  },
+  {
+   "name": "Aki",
+   "why": "AKI (Arcade Marketing) is gone as a company."
+  },
+  {
+   "name": "American Bank Stationery",
+   "why": "Gone as a company."
+  },
+  {
+   "name": "American Thread",
+   "why": "Gone as a company. The same for Bibb, Fieldcrest Cannon, Samuel Bingham and Eldorado Woolen Mills."
+  },
+  {
+   "name": "Arrow",
+   "why": "The Arrow shirt plants in Georgia closed long ago; the name is a brand of another owner."
+  },
+  {
+   "name": "Breed Technologies",
+   "why": "Became Key Safety Systems and then Joyson Safety Systems."
+  },
+  {
+   "name": "Smurfit Stone Container",
+   "why": "Bought by RockTenn in 2011, now Smurfit Westrock: a row to merge."
+  },
+  {
+   "name": "Taylor Publishing",
+   "why": "Now part of Balfour."
+  },
+  {
+   "name": "Amfac/jmb Hawaii",
+   "why": "The Hawaiian sugar company is gone. The same for C Brewer & (Hawaii), Anderson Clayton, American Tissue and Dairymen's Creamery Association."
+  },
+  {
+   "name": "Maine Rubber",
+   "why": "Gone as a company. The same for Rbx, Ladd Furniture, Furniture Brands International, Atlantic Soft Drink and Coastal Lumber."
+  },
+  {
+   "name": "Lane",
+   "why": "Lane Furniture's Mississippi plants closed in 2022 with United Furniture Industries."
+  },
+  {
+   "name": "Sunbeam",
+   "why": "Now a brand of Newell; the Mississippi and Tennessee plants are closed."
+  },
+  {
+   "name": "Westinghouse",
+   "why": "Two plants of the old Westinghouse Electric Corporation, broken up in the 1990s."
+  },
+  {
+   "name": "Antique Street Lamps",
+   "why": "Acuity Brands has discontinued the brand; antiquestreetlamps.com forwards to its notice."
+  },
+  {
+   "name": "Aryzta",
+   "why": "The North American business became Aspire Bakeries in 2021: a row to rename."
+  },
+  {
+   "name": "Bmc West",
+   "why": "BMC merged into Builders FirstSource in 2021: a row to merge."
+  },
+  {
+   "name": "Southwest Recreational Industries",
+   "why": "The Leander maker of AstroTurf, bankrupt in 2004."
+  },
+  {
+   "name": "Parkview Metal Products",
+   "why": "parkviewmetal.com is now an unrelated blog."
+  },
+  {
+   "name": "Stone Systems of Central Texas",
+   "why": "stonesystems.com is a domain for sale, and stonesystems.net is empty."
+  },
+  {
+   "name": "Texwood Furniture",
+   "why": "texwood.com is now an unrelated blog, and texwoodindustries.com does not answer."
+  },
+  {
+   "name": "Aluminum",
+   "why": "The name is cut off, and the rows mix several companies. The same for Accurate, Aurora, Kinetic, Gemini, Trademarks, Alchem, Anza and Stormwater."
+  },
+  {
+   "name": "Winnebago",
+   "why": "Two chemical plants in Iowa and Texas; nothing ties them to Winnebago Industries."
+  },
+  {
+   "name": "A R Machining",
+   "why": "No site found under its name. The same search by hand is needed for the other small Austin-area firms in the Austin industry lists: Ae Johnson & Sons, Alexander Tank, Artisan's Row Cabinetry, Austin Baking, Austin Lighting Products, Austin Marble, Austin Marygrove Mobile, Austin Pallet, Cad Tech, Cerqa Copyright Printing, Classic Marble, Communication Specialist, Consolidated Metal Technologies, Drilling Supply & Manufacturing, Durol Western Manufacturing, Evergreen Solutions, Gold Star Marble, Huberts Repair, Kemshredder, Lanford Equipment, Longhawk, Majestic Marble, Morgan Printing, Peck's Products, Royal Baths Manufacturing, Special Tee Graphics, T D Wernick, Triumph Balloon, Warenoffs, Whitley, Bollman Industries."
+  },
+  {
+   "name": "Benedettini Cabinets",
+   "why": "benedettinicabinets.com answers \"not found\" and benedettini.com refuses automated requests. The same search by hand is needed for the other small Texas firms in the Texas industry lists: Acp International, Aircraft Interior Resources, Alaniz Fur Dressing Services, American Fiberglass, Kenneth Fox Supply, Lancaster & Associates, Ole Rip Cap, Ritchie Vincent, Roddie Wool Scouring, Southhampton Enterprises, Tarrant Dallas Printing."
+  },
+  {
+   "name": "A. C. Electric",
+   "why": "No site found under its name. The same search by hand is needed for the other small firms that lead a state's map panel only by their number of old registry rows: A. H. Schade, Agricultural Services, Alaska Wild Seafood Partners, American Ethanol, Art Display, Atp Manufacturing, Baldwin Graphics, Ballauf, Baumgarten, Best Printer, Black Pine Cabinets, British Embassy Print Services, C & H Gravel, Fiberglass Plus Recreational Industries, C & S Services; and for Allegheny Wood Products, Appalachian Timber Services, Acme-mccrary, American Nonwovens, Visionary Fiber Technologies, Bert & Wetta Sales, Atlas Hydraulics and Bei Hawaii, whose likely sites do not answer from here (Bei Hawaii's icon is its software's default)."
+  },
+  {
+   "name": "Augusta Fiberglass Coatings",
+   "why": "augustafiberglass.com answers automated requests with a waiting page, and the icon services hold no icon for it."
+  },
+  {
+   "name": "Insteel Wire Products",
+   "why": "insteel.com refuses automated requests, and the icon the services hold is 16 px."
+  },
+  {
+   "name": "Otsuka ICU Medical",
+   "why": "otsukaicumedical.com does not answer from here, and the icon services hold no icon for it. The largest employer on a Texas list still without a mark: worth a domain and a mark by hand."
+  },
+  {
+   "name": "Square Cabinetry",
+   "why": "squarecabinetry.com does not answer from here, and the icon services hold no icon for it."
+  },
+  {
+   "name": "Acoustic Systems",
+   "why": "acousticsystems.com does not answer from here, and the icon services hold no icon for it."
+  }
+ ]
+}

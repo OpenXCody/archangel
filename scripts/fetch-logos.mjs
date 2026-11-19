@@ -598,7 +598,8 @@ if (look.length > 0) {
     mkdirSync(tmp);
     const said = {};
     const reach = { failed: false };
-    const sources = (await siteMarks(domain, tmp, { all: true, said })).map((url) => [url, url.startsWith('file://') ? 'drawn into the front page' : url]);
+    // The best dozen of what the site names: twenty sizes of one touch icon say no more than three.
+    const sources = (await siteMarks(domain, tmp, { all: true, said })).slice(0, 12).map((url) => [url, url.startsWith('file://') ? 'drawn into the front page' : url]);
     // --quick leaves Wikimedia out: it answers slowly when asked often, and a small firm is rarely there.
     const wiki = flag('--quick') ? null : (await wikidataFile(domain, tmp, reach)) ?? (await commonsFile(domains.get(domain) ?? [], tmp, reach));
     if (wiki) for (const url of await commonsUrls(wiki.title, tmp, reach)) sources.push([url, `${wiki.title} (${wiki.via})`]);
@@ -606,13 +607,18 @@ if (look.length > 0) {
     console.log(`${domain}: ${said.words ? `${said.base} says "${said.words}"` : 'its front page did not answer this request'}`);
     cells.push({ heading: `${domain} · ${escapeHtml((domains.get(domain) ?? []).join(', '))} · ${escapeHtml(said.words ?? 'front page not read')}` });
     let n = 0;
+    let served = false;
     for (const [url, source] of sources) {
+      // The icon services pass on one and the same icon: the first that has it is enough.
+      const service = ['google', 'duckduckgo', 'icon.horse'].includes(source);
+      if (service && served) continue;
       const file = path.join(tmp, 'candidate');
       if (url.startsWith('file://')) writeFileSync(file, readFileSync(url.slice(7)));
       else if (!(await curl(url, file)).ok) continue;
       const info = await inspect(file);
       if (!info) continue;
       n += 1;
+      if (service) served = true;
       const ext = await storeAs(path.join(folder, String(n)), file, info);
       // The file as it came, for cutting a symbol out of a larger logo by hand.
       writeFileSync(path.join(folder, `${n}.as-it-came`), readFileSync(file));

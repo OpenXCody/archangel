@@ -49,7 +49,8 @@ test('stored logos are small, and an SVG is only a drawing', () => {
     assert.doesNotMatch(text, /url\(\s*["']?\s*(?!#|data:image\/)|@import|prefers-color-scheme/i, `${file} points outside itself or changes with the colour scheme`);
     assert.match(text, /<svg\b[^>]*\bviewBox\s*=/i, `${file} has no viewBox, so it would be cropped instead of scaled`);
   }
-  assert.ok(total <= 3_500_000, `the logos folder is ${total} bytes`);
+  // Each mark is a file of its own that a page asks for only when it shows it; the cap is on what the repository carries.
+  assert.ok(total <= 5_000_000, `the logos folder is ${total} bytes`);
 });
 
 test('decisions made by hand hold in the list', () => {
