@@ -5,6 +5,7 @@ import { ilike, or, and, count, eq, sql, type AnyColumn } from 'drizzle-orm';
 import { jobTextFilter } from '../lib/jobSearch.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
+import { jobIsOpen } from '../lib/openJobs.js';
 import { US_STATES } from '../../shared/states.js';
 import { pageLimit } from '../lib/paging.js';
 import { likeLiteral } from '../lib/like.js';
@@ -349,7 +350,7 @@ router.get('/', async (req: Request, res: Response) => {
     // the job's title, company, career, shift or place. Newest first.
     const jobFilter = typeFilter.includes('jobs') ? jobTextFilter(query) : null;
     if (jobFilter) {
-      const open = and(eq(jobs.status, 'open'), sql`${jobs.expiresAt} > now()`, factoryInScope(), jobFilter);
+      const open = and(jobIsOpen(), factoryInScope(), jobFilter);
       const [jobRows, jobCount] = await Promise.all([
         db
           .select({ id: jobs.id, title: jobs.title, companyName: companies.name, city: factories.city, state: factories.state })

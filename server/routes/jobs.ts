@@ -19,6 +19,7 @@ import { SCOPE } from '../../shared/scope.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
 import { applicationReceived, applicationStatusChanged } from '../lib/notices.js';
 import { jobTextFilter, milesFromFactory, readNear } from '../lib/jobSearch.js';
+import { jobIsOpen } from '../lib/openJobs.js';
 
 /**
  * Jobs and applications.
@@ -43,11 +44,7 @@ const MAX_JOB_SKILLS = 60;
 const MAX_POSTS_PER_HOUR = 30;
 
 /** Open, unexpired, and at a factory inside the app's region. */
-const isOpenInScope: SQL = and(
-  eq(jobs.status, 'open'),
-  gt(jobs.expiresAt, sql`now()`),
-  factoryInScope()
-) as SQL;
+const isOpenInScope: SQL = and(jobIsOpen(), factoryInScope()) as SQL;
 
 const jobSummary = {
   id: jobs.id,

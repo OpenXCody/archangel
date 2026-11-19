@@ -3,7 +3,7 @@ import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, factories, companies, factoryOccupations, occupations, jobs } from '../db/index.js';
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
-import { listOpenJobs } from '../lib/openJobs.js';
+import { jobIsOpen, listOpenJobs } from '../lib/openJobs.js';
 import { packPins } from '../../shared/pins.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalText, requiredText, stateCode } from '../lib/writes.js';
@@ -163,7 +163,7 @@ router.get('/pins', async (req: Request, res: Response) => {
     const openJobCounts = db
       .select({ factoryId: jobs.factoryId, openJobs: sql<number>`COUNT(*)::int`.as('open_jobs') })
       .from(jobs)
-      .where(sql`${jobs.status} = 'open' AND ${jobs.expiresAt} > now()`)
+      .where(jobIsOpen())
       .groupBy(jobs.factoryId)
       .as('open_job_counts');
 

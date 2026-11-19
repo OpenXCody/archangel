@@ -5,6 +5,7 @@ import { factoryInArea, factoryInBox, factoryInScope, isStateInScope } from '../
 import { focusArea } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
 import { INDUSTRY_NAME_LIST } from '../lib/industries.js';
+import { jobIsOpen } from '../lib/openJobs.js';
 import { rowsOf } from '../lib/rows.js';
 
 const router = Router();
@@ -112,7 +113,7 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
     FROM jobs j
     INNER JOIN factories f ON f.id = j.factory_id
     INNER JOIN companies c ON c.id = j.company_id
-    WHERE j.status = 'open' AND j.expires_at > now() AND ${inSet('f')} AND ${factoryInScope('f')}
+    WHERE ${jobIsOpen('j')} AND ${inSet('f')} AND ${factoryInScope('f')}
     ORDER BY j.posted_at DESC
     LIMIT ${REGION_JOB_LIMIT}
   `);

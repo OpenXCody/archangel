@@ -8,6 +8,7 @@ import { RecordRefusal, changeRecord, isRecordKind, mergeRecords, readRecord, se
 import { RESET_HOURS, resetPath } from '../lib/passwordResets.js';
 import { accessDecided, emailAtDomain, sendAdminResetLink, sendInvite } from '../lib/notices.js';
 import { uuidParam } from '../middleware/validateUuid.js';
+import { jobIsOpen } from '../lib/openJobs.js';
 import { isUuid } from '../lib/writes.js';
 import { rowsOf } from '../lib/rows.js';
 import { containing, likeLiteral } from '../lib/like.js';
@@ -32,7 +33,7 @@ router.get(
       .select({
         users: sql<number>`(SELECT COUNT(*)::int FROM users)`,
         pendingMemberships: sql<number>`(SELECT COUNT(*)::int FROM company_members WHERE status = 'requested')`,
-        openJobs: sql<number>`(SELECT COUNT(*)::int FROM jobs WHERE status = 'open' AND expires_at > now())`,
+        openJobs: sql<number>`(SELECT COUNT(*)::int FROM jobs WHERE ${jobIsOpen()})`,
         applications: sql<number>`(SELECT COUNT(*)::int FROM applications)`,
         // With pendingMemberships, what Admin Tools lists as waiting.
         draftPaths: sql<number>`(SELECT COUNT(*)::int FROM occupations WHERE path_status = 'draft')`,
