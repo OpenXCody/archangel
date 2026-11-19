@@ -4,6 +4,8 @@ import { useDataQuality, type QualityRow } from '../../lib/admin';
 import { stateName } from '../../lib/places';
 import { LoadError, RowsSkeleton, SegmentedChoice, cardClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
+import { Link } from 'react-router-dom';
+import { pairsPath } from './PlantPairs';
 
 /**
  * How complete the plant data is, state by state and in all: the owner's
@@ -81,7 +83,7 @@ export default function QualityTable() {
   const total = quality.data?.total;
 
   const heading = (key: SortKey, label: string, className?: string) => (
-    <th scope="col" aria-sort={sort.key === key ? (sort.down ? 'descending' : 'ascending') : 'none'} className={cn('p-0 font-normal', className)}>
+    <th key={key} scope="col" aria-sort={sort.key === key ? (sort.down ? 'descending' : 'ascending') : 'none'} className={cn('p-0 font-normal', className)}>
       <button
         type="button"
         onClick={() => choose(key)}
@@ -127,7 +129,13 @@ export default function QualityTable() {
                   </th>
                   {COLUMNS.map((column) => (
                     <td key={column.key} className="px-2.5 py-2.5 text-right" data-quality={column.key}>
-                      {cellText(total, column, shown)}
+                      {column.key === 'duplicates' && total.duplicates > 0 ? (
+                        <Link to={pairsPath('spot')} className={cn('underline underline-offset-4', focusRing)} aria-label="Plants on one spot, every state">
+                          {cellText(total, column, shown)}
+                        </Link>
+                      ) : (
+                        cellText(total, column, shown)
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -149,7 +157,19 @@ export default function QualityTable() {
                       const tone = column.key === 'plants' ? 'text-fg-default' : value === 0 ? 'text-fg-soft' : 'text-fg-muted';
                       return (
                         <td key={column.key} className={cn('px-2.5 py-2 text-right', tone)}>
-                          {cellText(row, column, shown)}
+                          {/* The count opens the plants it counts, so they can be worked through. */}
+                          {column.key === 'duplicates' && value > 0 ? (
+                            <Link
+                              to={pairsPath('spot', row.state ?? 'none')}
+                              className={cn('underline underline-offset-4 hover:text-fg-default', focusRing)}
+                              aria-label={`Plants on one spot in ${row.state ? stateName(row.state) : 'no state'}`}
+                              data-quality-duplicates={row.state ?? ''}
+                            >
+                              {cellText(row, column, shown)}
+                            </Link>
+                          ) : (
+                            cellText(row, column, shown)
+                          )}
                         </td>
                       );
                     })}
@@ -188,7 +208,7 @@ function definitions(total: QualityRow & { companies: number }): [string, string
     ],
     [
       'Duplicates',
-      `plants that share their company and their spot (coordinates equal to three decimal places, about a hundred metres) with another plant: ${count(total.duplicates)} plants at ${count(total.duplicateGroups)} ${total.duplicateGroups === 1 ? 'spot' : 'spots'}.`,
+      `plants that share their company and their spot (coordinates equal to three decimal places, about a hundred metres) with another plant, unless an admin has said the two are separate plants: ${count(total.duplicates)} plants at ${count(total.duplicateGroups)} ${total.duplicateGroups === 1 ? 'spot' : 'spots'}. A count opens them.`,
     ],
     ['Shares', 'a part of the state’s plants, to one decimal place. 100% means every plant, 0% none.'],
   ];

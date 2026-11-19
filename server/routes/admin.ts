@@ -17,6 +17,8 @@ import { rowsOf } from '../lib/rows.js';
 import { containing, likeLiteral } from '../lib/like.js';
 import { dataQuality } from '../lib/quality.js';
 import { decideReview, intakeSources, reviewQueue, waitingMatches } from '../lib/intake.js';
+import { pairList, plantPair, plantsNear, setApart } from '../lib/plantPairs.js';
+import { stateCode } from '../lib/writes.js';
 
 /**
  * Admin Tools: people, company access, invites, password resets and data upkeep.
@@ -798,6 +800,9 @@ router.get(
 // POST /api/admin/records/:kind/:id/merge { into } - merge this record into
 // another of its kind. Everything that pointed here points there, this
 // record's name is kept as another name for that one, and this one is deleted.
+// A plant keeps no other names: the kept row takes the facts it lacks (`took`)
+// and the old id leads to it (record_merges). 409 for a plant written from
+// sources into one that was not.
 router.post(
   '/records/:kind/:id/merge',
   handle(async (req, res) => {
@@ -807,6 +812,70 @@ router.post(
     if (!isUuid(into)) return res.status(400).json({ error: 'Choose the record to merge into.' });
     try {
       res.json(await mergeRecords(kind, req.params.id, into, req.user!));
+    } catch (error) {
+      if (error instanceof RecordRefusal) return res.status(error.status).json({ error: error.message, ...error.extra });
+      throw error;
+    }
+  })
+);
+
+// ---------------------------------------------------------------------------
+// Plants listed twice: pairs for a person to decide
+// ---------------------------------------------------------------------------
+
+// GET /api/admin/plants/pairs?list=id|spot&state=&limit=&offset= - rows that
+// may be one plant. `id`: two rows that carry one outside id (the EPA registry
+// id) and that the cleanup was not sure of. `spot`: two rows of one company on
+// one spot, the quality table's "Duplicates". Each pair comes with both rows,
+// the row the rule would keep and what it would take from the other. `state`
+// is a state's code, or `none` for rows filed under no state.
+router.get(
+  '/plants/pairs',
+  handle(async (req, res) => {
+    const list = req.query.list === 'spot' ? 'spot' : req.query.list === 'id' || req.query.list === undefined ? 'id' : null;
+    if (!list) return res.status(400).json({ error: 'list is id or spot.' });
+    const wanted = req.query.state === undefined || req.query.state === '' ? null : req.query.state;
+    const state = wanted === null ? null : wanted === 'none' ? 'none' : stateCode(wanted);
+    if (wanted !== null && !state) return res.status(400).json({ error: 'state is a state code, or none.' });
+    const limit = pageLimit(req.query.limit, 10, 50);
+    const offset = pageOffset(req.query.offset);
+    res.json({ ...(await pairList(list, { state, limit, offset })), list, state, limit, offset });
+  })
+);
+
+// GET /api/admin/plants/pair?a=&b= - two plants side by side, as a merge needs
+// to see them: what each would take from the other, and which the rule keeps.
+router.get(
+  '/plants/pair',
+  handle(async (req, res) => {
+    const { a, b } = req.query;
+    if (!isUuid(a) || !isUuid(b) || a === b) return res.status(400).json({ error: 'a and b are two plants.' });
+    const pair = await plantPair(a, b);
+    if (!pair) return res.status(404).json({ error: 'Plant not found' });
+    res.json(pair);
+  })
+);
+
+// GET /api/admin/plants/:id/near?q= - the plants this one could be merged
+// with: its company's, and anyone's within two kilometres. A row carrying the
+// same outside id comes first, then the nearest.
+router.get(
+  '/plants/:id/near',
+  handle(async (req, res) => {
+    res.json({ plants: await plantsNear(req.params.id, cleanText(req.query.q, 100) ?? '') });
+  })
+);
+
+// POST /api/admin/plants/apart { a, b, apart? } - these two rows are two
+// plants (or, with `apart: false`, that is taken back). Nothing about either
+// changes; the pair is no longer offered as one.
+router.post(
+  '/plants/apart',
+  handle(async (req, res) => {
+    const { a, b, apart } = req.body ?? {};
+    if (!isUuid(a) || !isUuid(b) || a === b) return res.status(400).json({ error: 'a and b are two plants.' });
+    try {
+      res.json(await setApart(a, b, apart !== false, req.user!));
     } catch (error) {
       if (error instanceof RecordRefusal) return res.status(error.status).json({ error: error.message, ...error.extra });
       throw error;
