@@ -17,10 +17,18 @@
 //                                                 store a mark chosen by hand, and remember it
 //   node scripts/fetch-logos.mjs --none a.com --note "why"
 //                                                 leave a domain on the lettermark, and remember why
+//   node scripts/fetch-logos.mjs --look a.com,b.com --into folder --sheet out.html
+//                                                 store nothing: put every mark each source offers for
+//                                                 these domains in the folder, as it would be stored, and
+//                                                 show them all on the sheet, to choose one for --place
+//                                                 (--quick asks the site and the icon services only)
+//   node scripts/fetch-logos.mjs --show a.com,b.com --sheet out.html
+//                                                 fetch nothing: a sheet of the marks stored for these domains
 //
 // Domains come from three places, and a domain named in any of them counts:
 //   data/companies/profiles.json    the curated profiles
 //   data/companies/domains.json     domains for the companies people meet first
+//   data/companies/domains-2.json   the same, a later pass (each file has its own migration)
 //   data/employers/*.json           researched employers, when the folder exists
 //                                   (and any folder given with --employers)
 //
@@ -43,8 +51,12 @@
 // A mark wider than MAX_ASPECT is passed over and the run says so: a wordmark
 // shrunk into a square cannot be read, and the lettermark is better. (A raster
 // is measured without its empty margins, so a wordmark centred on a square
-// icon is seen for what it is, and so is a mark drawn in white.) When the
-// logo has a separate symbol, crop to it by hand and store it with --place.
+// icon is seen for what it is, and so is a mark drawn in white.) That limit is
+// for a run nobody watches. A person deciding by hand is not held to it: three
+// or four bold letters, or a compact boxed logo, can be wider and still read
+// at 28 px. --look shows what every source offers, wide marks included; keep
+// the one that reads on the sheet with --place. When the logo has a separate
+// symbol, crop to it by hand and store that.
 // Raster marks are stored as PNGs of at most 128 px; SVGs are stripped of
 // scripts, links, outside references and editor metadata.
 //
@@ -55,6 +67,10 @@
 // Look at what a run brings in before committing it (--sheet writes a page
 // showing each new mark at size, over a light and a dark page): a wrong logo
 // on a company's page is worse than a letter.
+//
+// Every request says what it is (AGENT below) and is made once. A site that
+// refuses it is left alone: the next source is tried, and the letter stays
+// when there is none.
 //
 // Needs curl and ImageMagick (`identify`, `convert`) on the PATH. This is a
 // maintenance tool: nothing in the build or the app runs it.
@@ -76,9 +92,9 @@ const MAX_PNG_BYTES = 20_000;
 /** Longer side over shorter. Beyond this a mark is a wordmark, not a tile. */
 const MAX_ASPECT = 2;
 const JOBS = 6;
-const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
-/** Wikimedia asks automated clients to say what they are. */
-const WIKI_UA = 'company-logo-fetch/1.0 (maintenance script; curl)';
+/** What every request says it is. Wikimedia asks automated clients to; the rest are owed the same. */
+const UA = 'company-logo-fetch/1.0 (maintenance script; curl)';
+const WIKI_UA = UA;
 
 const DECISIONS = path.join(ROOT, 'data', 'companies', 'logo-decisions.json');
 /** What a person decided: { none: { domain: reason }, kept: { domain: { ext, from } } }. */
@@ -95,6 +111,10 @@ const prune = flag('--prune');
 const only = valuesOf('--only').length > 0 ? new Set(valuesOf('--only').flatMap((v) => v.split(',')).map(cleanDomain)) : null;
 const sheet = valuesOf('--sheet')[0] ?? null;
 const note = valuesOf('--note')[0] ?? '';
+const domainsOf = (name) => valuesOf(name).flatMap((v) => v.split(',')).map(cleanDomain).filter(Boolean);
+const look = domainsOf('--look');
+const show = domainsOf('--show');
+const into = valuesOf('--into')[0] ?? null;
 
 /** "https://www.Example.com/about" → "example.com"; '' when it is not a domain. */
 function cleanDomain(value) {
@@ -116,8 +136,9 @@ function readDomains() {
     const data = JSON.parse(readFileSync(file, 'utf8'));
     return Array.isArray(data.companies) ? data.companies : [];
   };
-  for (const file of ['profiles.json', 'domains.json']) {
-    const full = path.join(ROOT, 'data', 'companies', file);
+  const curated = path.join(ROOT, 'data', 'companies');
+  for (const file of ['profiles.json', ...readdirSync(curated).filter((f) => /^domains(-\d+)?\.json$/.test(f)).sort()]) {
+    const full = path.join(curated, file);
     if (existsSync(full)) for (const c of companiesIn(full)) add(c.domain, c.name);
   }
   for (const folder of [path.join(ROOT, 'data', 'employers'), ...valuesOf('--employers').map((f) => path.resolve(f))]) {
@@ -240,7 +261,7 @@ function cleanSvg(source) {
 }
 
 /** { kind: 'svg', text, w, h } or { kind: 'raster', px, side, w, h, crop, frame } for a downloaded file, or null. */
-async function inspect(file) {
+async function inspect(file, { byHand = false } = {}) {
   const head = readFileSync(file).subarray(0, 4000).toString('utf8').replace(/^﻿/, '').trimStart().toLowerCase();
   if (head.startsWith('<svg') || (/^<(\?xml|!--|!doctype svg)/.test(head) && head.includes('<svg'))) {
     const text = cleanSvg(readFileSync(file, 'utf8'));
@@ -267,7 +288,9 @@ async function inspect(file) {
     if (!(w > best.w * 0.08 && h > best.h * 0.08)) return null;
     // `px` is the picture's size as it came, for the 48 px floor; a mark that
     // fills less than three quarters of that floor is too coarse to enlarge.
-    if (Math.max(w, h) < MIN_PX * 0.75) return null;
+    // (A person placing a mark may go down to a site's own 32 px icon: soft
+    // when enlarged, but the company's, and better than a letter.)
+    if (Math.max(w, h) < (byHand ? 24 : MIN_PX * 0.75)) return null;
     return { kind: 'raster', px: Math.min(best.w, best.h), side: Math.max(w, h), w, h, crop: `${w}x${h}+${Math.max(x - 1, 0)}+${Math.max(y - 1, 0)}`, frame: best.frame };
   } catch {
     return null;
@@ -276,12 +299,30 @@ async function inspect(file) {
 
 const aspect = (info) => Math.max(info.w, info.h) / Math.min(info.w, info.h);
 
-/** Icons and header logos named on a site's front page, best first. */
-async function siteMarks(domain, tmp) {
+/** What a front page says of itself: its title, the name it gives its site, its description. */
+function pageWords(text) {
+  const meta = (name) => {
+    const tag = (text.match(new RegExp(`<meta\\b[^>]*(?:name|property)\\s*=\\s*["']${name}["'][^>]*>`, 'i')) ?? [''])[0];
+    return ((tag.match(/\scontent\s*=\s*"([^"]*)"/i) ?? tag.match(/\scontent\s*=\s*'([^']*)'/i) ?? [])[1] ?? '').trim();
+  };
+  const title = ((text.match(/<title\b[^>]*>([\s\S]*?)<\/title\s*>/i) ?? [])[1] ?? '').replace(/\s+/g, ' ').trim();
+  return [title, meta('og:site_name'), meta('description') || meta('og:description')].filter(Boolean).join(' | ').slice(0, 300);
+}
+
+/**
+ * Icons and header logos named on a site's front page, best first. With
+ * `all` (for --look) also what an unattended run does not try: the header's
+ * logo whatever its type, a logo drawn into the page as an SVG (written to
+ * `tmp`), the picture the page gives for sharing, and /favicon.ico. `said`
+ * is filled with whose site the page says it is.
+ */
+async function siteMarks(domain, tmp, { all = false, said = {} } = {}) {
   const html = path.join(tmp, 'page.html');
   for (const base of [`https://www.${domain}`, `https://${domain}`]) {
     if (!(await curl(`${base}/`, html)).ok) continue;
     const text = readFileSync(html, 'utf8');
+    said.base = base;
+    said.words = pageWords(text);
     const found = [];
     const attrOf = (tag, name) => ((tag.match(new RegExp(`\\s${name}\\s*=\\s*["']([^"']+)["']`, 'i')) ?? [])[1] ?? '').replace(/&amp;/g, '&');
     const resolve = (href, from = `${base}/`) => {
@@ -314,6 +355,32 @@ async function siteMarks(domain, tmp) {
       const url = resolve(src);
       if (url) found.push({ url, score: 5000 });
       break;
+    }
+    if (all) {
+      for (const tag of text.match(/<img\b[^>]*>/gi) ?? []) {
+        const src = attrOf(tag, 'src') || attrOf(tag, 'data-src') || attrOf(tag, 'data-lazy-src');
+        if (!/logo|brand/i.test(tag) || /^data:/i.test(src)) continue;
+        const url = resolve(src);
+        if (url && found.filter((f) => f.score === 400).length < 6) found.push({ url, score: 400 });
+      }
+      // A logo drawn into the page: an <svg> whose own tag, or the link around it, says "logo".
+      let drawn = 0;
+      for (const match of text.matchAll(/<svg\b[\s\S]*?<\/svg\s*>/gi)) {
+        const before = text.slice(Math.max(match.index - 400, 0), match.index);
+        if (drawn >= 4 || !/logo|brand|home/i.test(`${before.slice(before.lastIndexOf('<a'))}${match[0].slice(0, 300)}`)) continue;
+        const file = path.join(tmp, `drawn-${drawn}.svg`);
+        // Drawn in the page's text colour: black on the tile.
+        writeFileSync(file, match[0].replace(/currentColor/gi, '#111'));
+        found.push({ url: `file://${file}`, score: 300 - drawn });
+        drawn += 1;
+      }
+      for (const tag of text.match(/<meta\b[^>]*>/gi) ?? []) {
+        if (!/property\s*=\s*["']og:image["']/i.test(tag)) continue;
+        const url = resolve(attrOf(tag, 'content'));
+        if (url) found.push({ url, score: 100 });
+      }
+      const fallback = resolve('/favicon.ico');
+      if (fallback) found.push({ url: fallback, score: 1 });
     }
     if (manifest && (await curl(manifest, path.join(tmp, 'manifest.json'))).ok) {
       try {
@@ -397,14 +464,17 @@ async function commonsUrls(title, tmp, reach) {
   return [image.mime === 'image/svg+xml' ? image.url : null, image.thumburl ?? (image.mime === 'image/png' ? image.url : null)].filter(Boolean);
 }
 
-async function store(domain, file, info) {
+const store = (domain, file, info) => storeAs(path.join(OUT, domain), file, info);
+
+/** Writes a mark as it is stored, to `base` plus its type, and returns the type. */
+async function storeAs(base, file, info) {
   if (info.kind === 'svg') {
-    writeFileSync(path.join(OUT, `${domain}.svg`), info.text);
+    writeFileSync(`${base}.svg`, info.text);
     return 'svg';
   }
   // Contained in a square, on a transparent ground, never enlarged.
   const side = Math.min(info.side, STORE_PX);
-  const out = path.join(OUT, `${domain}.png`);
+  const out = `${base}.png`;
   await run('convert', [`${file}[${info.frame}]`, '-crop', info.crop, '+repage', '-background', 'none', '-resize', `${side}x${side}`, '-gravity', 'center', '-extent', `${side}x${side}`, '-strip', `PNG32:${out}`]);
   // A photograph-like icon is large as true colour: 128 colours is plenty at this size.
   if (statSync(out).size > MAX_PNG_BYTES) await run('convert', [out, '-dither', 'FloydSteinberg', '-colors', '128', '-define', 'png:compression-level=9', `PNG8:${out}`]);
@@ -477,7 +547,7 @@ if (placed.length > 0 || refused.length > 0) {
   if (!note) throw new Error('say where the mark is from, or why there is none, with --note "..."');
   for (const [domain, file] of placed) {
     if (!domain || !existsSync(file)) throw new Error(`--place takes domain=file; "${domain}=${file}" is not one`);
-    const info = await inspect(file);
+    const info = await inspect(file, { byHand: true });
     if (!info) throw new Error(`${file}: not an image this can store (an SVG must be self-contained and under ${MAX_SVG_BYTES} bytes)`);
     const ext = await store(domain, file, info);
     for (const other of ['png', 'svg']) if (other !== ext) rmSync(path.join(OUT, `${domain}.${other}`), { force: true });
@@ -498,6 +568,79 @@ if (placed.length > 0 || refused.length > 0) {
   writeFileSync(DECISIONS, `${JSON.stringify({ _about: decisions._about, none: ordered(NONE), kept: ordered(KEPT) }, null, 1)}\n`);
   writeFileSync(LIST, `${JSON.stringify(ordered(list), null, 1)}\n`);
   rmSync(tmpRoot, { recursive: true, force: true });
+  process.exit(0);
+}
+
+/**
+ * A page of marks as the app draws them: 44 and 28 px on the white tile,
+ * over the light page and the dark one. Each cell is { file, caption }.
+ */
+function writeSheet(file, title, cells) {
+  // The app pads a mark by 12% of its tile.
+  const tile = (src, px) => `<img src="${src}" width="${px}" height="${px}" style="padding:${(px * 0.12).toFixed(1)}px" alt="">`;
+  const cell = ({ file: src, caption }) => `<figure><div class="light">${tile(src, 44)}${tile(src, 28)}</div><div class="dark">${tile(src, 44)}${tile(src, 28)}</div><figcaption>${caption}</figcaption></figure>`;
+  const css = 'body{margin:0;padding:16px;font:11px system-ui,sans-serif;background:#888;color:#111;display:flex;flex-wrap:wrap;gap:10px}figure{margin:0;width:150px}figure div{display:flex;gap:8px;align-items:center;padding:8px}.light{background:#f5f5f6}.dark{background:#0b0b0c}img{background:#fff;border-radius:6px;object-fit:contain;box-sizing:border-box}figcaption{padding:4px 2px;overflow-wrap:anywhere}h2{flex-basis:100%;margin:8px 0 0;font-size:13px}';
+  mkdirSync(path.dirname(path.resolve(file)), { recursive: true });
+  writeFileSync(file, `<!doctype html><meta charset="utf-8"><title>${title}</title><style>${css}</style>${cells.map((c) => (c.heading ? `<h2>${c.heading}</h2>` : cell(c))).join('')}\n`);
+}
+const escapeHtml = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+// Looking, not storing: every mark each source offers for a domain, written
+// as it would be stored into a folder of its own, and all of them on a sheet.
+if (look.length > 0) {
+  if (!into || !sheet) throw new Error('--look takes --into <folder> and --sheet <file>');
+  const cells = [];
+  for (const domain of look) {
+    const folder = path.join(path.resolve(into), domain);
+    rmSync(folder, { recursive: true, force: true });
+    mkdirSync(folder, { recursive: true });
+    const tmp = path.join(tmpRoot, domain);
+    mkdirSync(tmp);
+    const said = {};
+    const reach = { failed: false };
+    // The best dozen of what the site names: twenty sizes of one touch icon say no more than three.
+    const sources = (await siteMarks(domain, tmp, { all: true, said })).slice(0, 12).map((url) => [url, url.startsWith('file://') ? 'drawn into the front page' : url]);
+    // --quick leaves Wikimedia out: it answers slowly when asked often, and a small firm is rarely there.
+    const wiki = flag('--quick') ? null : (await wikidataFile(domain, tmp, reach)) ?? (await commonsFile(domains.get(domain) ?? [], tmp, reach));
+    if (wiki) for (const url of await commonsUrls(wiki.title, tmp, reach)) sources.push([url, `${wiki.title} (${wiki.via})`]);
+    sources.push([`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`, 'google'], [`https://icons.duckduckgo.com/ip3/${domain}.ico`, 'duckduckgo'], [`https://icon.horse/icon/${domain}`, 'icon.horse']);
+    console.log(`${domain}: ${said.words ? `${said.base} says "${said.words}"` : 'its front page did not answer this request'}`);
+    cells.push({ heading: `${domain} · ${escapeHtml((domains.get(domain) ?? []).join(', '))} · ${escapeHtml(said.words ?? 'front page not read')}` });
+    let n = 0;
+    let served = false;
+    for (const [url, source] of sources) {
+      // The icon services pass on one and the same icon: the first that has it is enough.
+      const service = ['google', 'duckduckgo', 'icon.horse'].includes(source);
+      if (service && served) continue;
+      const file = path.join(tmp, 'candidate');
+      if (url.startsWith('file://')) writeFileSync(file, readFileSync(url.slice(7)));
+      else if (!(await curl(url, file)).ok) continue;
+      const info = await inspect(file);
+      if (!info) continue;
+      n += 1;
+      if (service) served = true;
+      const ext = await storeAs(path.join(folder, String(n)), file, info);
+      // The file as it came, for cutting a symbol out of a larger logo by hand.
+      writeFileSync(path.join(folder, `${n}.as-it-came`), readFileSync(file));
+      const shape = `${info.kind === 'raster' ? `${info.px} px, ` : ''}${aspect(info).toFixed(1)} to 1`;
+      console.log(`  ${n}.${ext}  ${shape}  ${source}`);
+      cells.push({ file: path.join(folder, `${n}.${ext}`), caption: `${n}.${ext} · ${shape}<br>${escapeHtml(source.slice(-90))}` });
+    }
+    if (n === 0) console.log('  nothing that can be stored');
+  }
+  writeSheet(sheet, 'Marks on offer', cells);
+  rmSync(tmpRoot, { recursive: true, force: true });
+  console.log(`\n${sheet}: look, then keep one with --place <domain>=<file> --note "where it is from".`);
+  process.exit(0);
+}
+
+// A sheet of what is stored for the named domains, to judge marks placed by hand.
+if (show.length > 0) {
+  if (!sheet) throw new Error('--show takes --sheet <file>');
+  const stored = show.filter((domain) => list[domain] && existsSync(path.join(OUT, `${domain}.${list[domain]}`)));
+  writeSheet(sheet, 'Stored logos', stored.map((domain) => ({ file: path.join(OUT, `${domain}.${list[domain]}`), caption: `${domain}<br>${escapeHtml((domains.get(domain) ?? []).join(', '))}` })));
+  rmSync(tmpRoot, { recursive: true, force: true });
+  console.log(`${sheet}: ${stored.length} stored marks${stored.length < show.length ? `; nothing is stored for ${show.filter((d) => !stored.includes(d)).join(', ')}` : ''}.`);
   process.exit(0);
 }
 
@@ -563,12 +706,8 @@ for (const domain of Object.keys(list).sort()) {
 writeFileSync(LIST, `${JSON.stringify(kept, null, 1)}\n`);
 
 if (sheet) {
-  // Each new mark as the page draws it: 44 and 28 px on its light tile, over
-  // a light and a dark page.
-  const tile = (domain, px) => `<img src="${path.join(OUT, `${domain}.${kept[domain]}`)}" width="${px}" height="${px}" alt="">`;
-  const cell = (domain) => `<figure><div class="light">${tile(domain, 44)}${tile(domain, 28)}</div><div class="dark">${tile(domain, 44)}${tile(domain, 28)}</div><figcaption>${domain}<br>${(domains.get(domain) ?? []).join(', ')}</figcaption></figure>`;
-  const css = 'body{margin:0;padding:16px;font:11px system-ui,sans-serif;background:#888;color:#111;display:flex;flex-wrap:wrap;gap:10px}figure{margin:0;width:150px}figure div{display:flex;gap:8px;align-items:center;padding:8px}.light{background:#f5f5f6}.dark{background:#0b0b0c}img{background:#fff;border-radius:6px;object-fit:contain;padding:5px;box-sizing:border-box}figcaption{padding:4px 2px;overflow-wrap:anywhere}';
-  writeFileSync(sheet, `<!doctype html><meta charset="utf-8"><title>New logos</title><style>${css}</style>${fresh.sort().map(cell).join('')}\n`);
+  // Each new mark as the page draws it.
+  writeSheet(sheet, 'New logos', fresh.sort().map((domain) => ({ file: path.join(OUT, `${domain}.${kept[domain]}`), caption: `${domain}<br>${escapeHtml((domains.get(domain) ?? []).join(', '))}` })));
   console.log(`\n${sheet}: ${fresh.length} new marks to look at.`);
 }
 

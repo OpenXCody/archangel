@@ -119,7 +119,7 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   |---|---|---|
   | Career paths | `data/paths/*.json` | `build-paths-sql.mjs` |
   | Company profiles: domain, featured, description | `data/companies/profiles.json` | `build-company-profiles-sql.mjs`, `build-company-descriptions-sql.mjs` |
-  | Web domains for more companies | `data/companies/domains.json` | `build-domains-sql.mjs` |
+  | Web domains for more companies | `data/companies/domains.json`, `data/companies/domains-2.json` | `build-domains-sql.mjs` |
   | Careers typical of each industry | `data/careers/industries.json` | `build-industry-careers-sql.mjs` |
   | Everyday names for careers | `data/careers/aliases.json` | `build-career-aliases-sql.mjs` |
   | The skills catalogue | `data/skills/catalogue.json` | `build-skills-sql.mjs` |
@@ -162,7 +162,7 @@ A company's logo is found from its website domain (`companies.domain`). The mark
 node scripts/fetch-logos.mjs --sheet /tmp/new-logos.html     # needs curl and ImageMagick
 ```
 
-It tries the company's own site, then Wikimedia, then the icon services, and leaves a mark wider than 2 to 1 on the letter. Open the sheet and look at every new mark before committing. Refuse a wrong one with `--none <domain> --note "why"`, or place one by hand with `--place <domain>=<file> --note "where it is from"`; both are kept in `data/companies/logo-decisions.json`, and no later run undoes them.
+It tries the company's own site, then Wikimedia, then the icon services, says what it is in every request, and leaves a site that refuses alone. Unattended, it leaves a mark wider than 2 to 1 on the letter. To decide one by hand: `node scripts/fetch-logos.mjs --look a.com --into <folder> --sheet look.html` shows every mark on offer (`--quick` skips Wikimedia); keep one with `--place`, or cut the symbol out of a logo and place that. `--show a.com,b.com --sheet out.html` shows what is stored. Open the sheet and look at every new mark before committing. Refuse a wrong one with `--none <domain> --note "why"`, or place one by hand with `--place <domain>=<file> --note "where it is from"`; both are kept in `data/companies/logo-decisions.json`, and no later run undoes them.
 
 ## Deploying
 
