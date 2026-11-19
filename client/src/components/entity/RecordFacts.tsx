@@ -113,7 +113,7 @@ export function CompanyFamily({ companies }: { companies: NonNullable<CompanyDet
           <RecordRow
             key={company.id}
             to={`/companies/${company.slug ?? company.id}`}
-            lead={<CompanyLogo name={name} domain={company.domain} size={32} className="rounded-md" />}
+            lead={<CompanyLogo name={name} domain={company.domain} size={32} />}
             title={name}
             subtitle={company.factoryCount > 0 ? `${company.factoryCount.toLocaleString()} ${company.factoryCount === 1 ? 'plant' : 'plants'}` : null}
           />

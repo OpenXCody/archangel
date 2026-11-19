@@ -65,7 +65,7 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
         {...head}
         kind="Plant"
         title={name}
-        mark={companyName ? <CompanyLogo name={companyName} domain={company?.domain} size={44} className="rounded-lg" /> : undefined}
+        mark={companyName ? <CompanyLogo name={companyName} domain={company?.domain} size={44} /> : undefined}
         description={data.description}
         action={
           located ? (
@@ -112,7 +112,7 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
           <RecordList>
             <RecordRow
               to={`/companies/${company.slug ?? company.id}`}
-              lead={<CompanyLogo name={companyName} domain={company.domain} size={32} className="rounded-md" />}
+              lead={<CompanyLogo name={companyName} domain={company.domain} size={32} />}
               title={companyName}
               // One plant is this one: counting it says nothing.
               subtitle={plantCount > 1 ? `${plural(plantCount, 'plant', 'plants')}${stateCount > 1 ? ` in ${stateCount} states` : ''}` : null}

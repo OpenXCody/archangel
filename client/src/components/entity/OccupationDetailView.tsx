@@ -159,7 +159,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
                 <RecordRow
                   key={version.company.id}
                   to={versionPath(data.id, version.company)}
-                  lead={<CompanyLogo name={company} domain={version.company.domain} size={28} />}
+                  lead={<CompanyLogo name={company} domain={version.company.domain} size={32} />}
                   title={company}
                   subtitle={versionLine(version)}
                   data-career-version={version.company.id}

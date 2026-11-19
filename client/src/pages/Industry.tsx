@@ -163,7 +163,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
                 <RecordRow
                   key={employer.id}
                   to={`/companies/${employer.slug ?? employer.id}`}
-                  lead={<CompanyLogo name={name} domain={employer.domain} size={32} className="rounded-md" />}
+                  lead={<CompanyLogo name={name} domain={employer.domain} size={32} />}
                   title={name}
                   subtitle={ranked ? employerLine(employer) : null}
                   figure={ranked ? employer.people : counted ? employer.plants : null}

@@ -78,7 +78,7 @@ function CompanyRow({ data, onMouseEnter }: Props<Company>) {
     <Row
       to={`/companies/${data.slug ?? data.id}`}
       name={name}
-      leading={<CompanyLogo name={name} domain={data.domain} size={40} className="rounded-lg" />}
+      leading={<CompanyLogo name={name} domain={data.domain} size={32} />}
       // The industry most of its plants are in, when they carry one.
       facts={[count(data.factoryCount, 'plant', 'plants'), shownIndustry(data.industry)]}
       onMouseEnter={onMouseEnter}

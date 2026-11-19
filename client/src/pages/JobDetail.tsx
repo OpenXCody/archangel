@@ -167,7 +167,7 @@ export default function JobDetail() {
         // (A job from the company's careers site is not one of the jobs it posted here: no number.)
         kind={manages && !data.job.fromSource ? `Job #${data.job.serial}` : 'Job'}
         title={data.job.title}
-        mark={<CompanyLogo name={companyName} domain={data.job.companyDomain} size={44} className="rounded-lg" />}
+        mark={<CompanyLogo name={companyName} domain={data.job.companyDomain} size={44} />}
         // A job from the company's careers site has one action, and it is the page's: Apply, there.
         action={data.job.fromSource && (manages ? false : !signedIn || viewer.seeker) ? <SourcedApply job={data.job} /> : undefined}
       >

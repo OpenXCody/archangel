@@ -131,7 +131,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
         {...head}
         kind="Company"
         title={name}
-        mark={<CompanyLogo name={name} domain={data.domain} size={44} className="rounded-lg" />}
+        mark={<CompanyLogo name={name} domain={data.domain} size={44} />}
         description={data.description}
         action={
           placed.length > 0 ? (

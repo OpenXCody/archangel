@@ -127,7 +127,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         }
         kind="Career"
         title={version.title}
-        mark={<CompanyLogo name={companyName} domain={company.domain} size={44} className="rounded-lg" />}
+        mark={<CompanyLogo name={companyName} domain={company.domain} size={44} />}
         description={data.description}
         action={
           <>

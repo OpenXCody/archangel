@@ -60,7 +60,7 @@ function CompanyTile({ company, className }: { company: ExploreEmployer; classNa
   const industry = shownIndustry(company.industry);
   return (
     <Link to={`/companies/${company.slug ?? company.id}`} className={cn(TILE, 'flex-col p-4 sm:p-5', className)}>
-      <CompanyLogo name={name} domain={company.domain} size={48} className="rounded-lg" />
+      <CompanyLogo name={name} domain={company.domain} size={40} />
       <h3 className="mt-4 line-clamp-2 break-words text-base font-semibold leading-snug text-text-1 sm:text-[17px]">
         {name}
       </h3>

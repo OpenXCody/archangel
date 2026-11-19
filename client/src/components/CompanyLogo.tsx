@@ -45,10 +45,13 @@ const PLACEHOLDER_ICON_PX = 16;
  * blocked or missing logo shows the monogram, never a broken-image icon or
  * an empty tile, and never the last company's mark when a row is reused.
  *
- * A logo is drawn for a white page, so its tile is white in both themes. The
- * mark is fitted inside it whole, at its own proportions.
+ * A logo is drawn for a white page, so it always stands on a white backing
+ * (`--logo-backing`, the one white the token file holds), in both themes. On
+ * the dark canvas the tile carries a hairline ring; on the light one it has
+ * no edge at all. The corner is 6px. The mark is fitted inside it whole, at
+ * its own proportions. A tile is 32px in a list and 40px on Explore's cards.
  */
-export default function CompanyLogo({ name, domain, size = 28, className }: CompanyLogoProps) {
+export default function CompanyLogo({ name, domain, size = 32, className }: CompanyLogoProps) {
   const source = logoSource(domain);
   // What became of which address: the answer for one company's logo says
   // nothing about the next one's.
@@ -61,7 +64,7 @@ export default function CompanyLogo({ name, domain, size = 28, className }: Comp
     <span
       aria-hidden="true"
       className={cn(
-        'relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-md border border-line bg-surface font-semibold text-text-2',
+        'relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-md bg-surface font-semibold text-text-2 dark:ring-1 dark:ring-line',
         className
       )}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.46), lineHeight: 1 }}
