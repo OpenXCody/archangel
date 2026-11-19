@@ -238,7 +238,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       .where(and(eq(factories.id, id), factoryInScope()));
 
     if (factoryResult.length === 0) {
-      res.status(404).json({ error: 'Factory not found' });
+      res.status(404).json({ error: 'Plant not found' });
       return;
     }
 
@@ -351,7 +351,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 const FACTORY_NEEDS =
-  'A factory needs a company, a name, a state, a latitude from -90 to 90 and a longitude from -180 to 180.';
+  'A plant needs a company, a name, a state, a latitude from -90 to 90 and a longitude from -180 to 180.';
 
 // POST /api/factories - Create factory
 router.post('/', async (req: Request, res: Response) => {
@@ -386,7 +386,7 @@ router.post('/', async (req: Request, res: Response) => {
       .where(and(eq(factories.companyId, companyId), eq(factories.state, state), sql`lower(${factories.name}) = lower(${cleanName})`))
       .limit(1);
     if (existing) {
-      answerDuplicate(res, 'factory', existing, 'That company already has a factory with that name in that state.');
+      answerDuplicate(res, 'factory', existing, 'That company already has a plant with that name in that state.');
       return;
     }
 
@@ -430,10 +430,10 @@ router.delete('/:id', async (req: Request, res: Response) => {
     if (await refuseDeleteWithJobs(res, 'factory', req.params.id)) return;
     const gone = await removeRecord('factory', req.params.id, req.user!);
     if (!gone) {
-      res.status(404).json({ error: 'Factory not found' });
+      res.status(404).json({ error: 'Plant not found' });
       return;
     }
-    res.json({ message: 'Factory deleted', id: gone.id, removed: gone.removed });
+    res.json({ message: 'Plant deleted', id: gone.id, removed: gone.removed });
   } catch (error) {
     console.error('Error deleting factory:', error);
     res.status(500).json({ error: 'Failed to delete factory' });

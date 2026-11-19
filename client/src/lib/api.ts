@@ -31,6 +31,12 @@ export interface RelatedFactory {
   openPositions: number | null;
   latitude?: string | null;
   longitude?: string | null;
+  /** On a company's page: the street address, where the people figure was read, and the year production started. */
+  address?: string | null;
+  workforceSource?: string | null;
+  workforceNote?: string | null;
+  openedYear?: number | null;
+  curated?: boolean;
 }
 
 /** Whether a plant is running yet. */
@@ -93,6 +99,7 @@ export interface CareerJob {
 export interface RelatedFactoryWithHeadcount {
   id: string;
   name: string;
+  city?: string | null;
   state: string | null;
   companyId: string | null;
   companyName: string | null;
@@ -146,6 +153,8 @@ export interface CompanyDetail extends Company {
   /** People in a state, where a source says how many. */
   peopleByState?: { state: string; people: number; year: number | null; source: string | null; note: string | null }[];
   sources?: RecordSource[];
+  /** For a company with one plant and no careers recorded there: the careers typical of that plant's industry. */
+  typicalCareers?: { id: string; title: string }[];
 }
 
 export interface Factory {

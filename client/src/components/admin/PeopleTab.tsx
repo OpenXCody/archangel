@@ -22,7 +22,6 @@ import {
   type AdminUser,
   type PeopleRole,
 } from '../../lib/account';
-import { formatDate } from '../../lib/jobFormat';
 import {
   CardNote,
   ErrorNote,
@@ -31,6 +30,7 @@ import {
   busyButtonClass,
   cardClass,
   fieldClass,
+  formatDay,
   outlineButtonClass,
   rowClass,
   selectContentClass,
@@ -123,7 +123,7 @@ export default function PeopleTab({ me }: { me: AccountUser }) {
       ) : people.isError ? (
         <LoadError error={people.error} onRetry={() => void people.refetch()} retrying={people.isFetching} />
       ) : rows.length === 0 ? (
-        <CardNote>{q || role ? 'No match.' : 'None.'}</CardNote>
+        <CardNote>{q || role ? 'No match.' : 'None yet.'}</CardNote>
       ) : (
         <>
           <ul className={cn(cardClass, people.isPlaceholderData && 'opacity-60')} aria-busy={people.isPlaceholderData}>
@@ -172,6 +172,7 @@ interface PersonRowProps {
 
 function PersonRow({ person, isSelf, open, onToggle }: PersonRowProps) {
   const panelId = useId();
+  const roles = personRoles(person);
   return (
     <li className={rowClass} data-person-email={person.email}>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-3">
@@ -179,11 +180,16 @@ function PersonRow({ person, isSelf, open, onToggle }: PersonRowProps) {
           <p className="break-words text-sm font-medium text-fg-default">{person.name}</p>
           <p className="break-all text-sm text-fg-muted">{person.email}</p>
           <p className="mt-1 break-words text-xs text-fg-muted">
-            <span data-person-roles>{personRoles(person).join(' · ')}</span>
-            <span className="mx-1.5" aria-hidden="true">
-              ·
-            </span>
-            Joined {formatDate(person.createdAt)}
+            {/* A plain account has no role label: only when it joined. */}
+            {roles.length > 0 && (
+              <>
+                <span data-person-roles>{roles.join(' · ')}</span>
+                <span className="mx-1.5" aria-hidden="true">
+                  ·
+                </span>
+              </>
+            )}
+            Joined {formatDay(person.createdAt)}
           </p>
         </div>
         <Button
@@ -350,7 +356,7 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
       <div>
         <p className={panelLabelClass}>Companies</p>
         {person.memberships.length === 0 ? (
-          <p className="mt-2 text-sm text-fg-muted">None.</p>
+          <p className="mt-2 text-sm text-fg-muted">None yet.</p>
         ) : (
           <ul className="mt-1">
             {person.memberships.map((membership) => (

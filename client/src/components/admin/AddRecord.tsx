@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { onGroupArrowKeys } from '../../lib/roving';
 import { RECORD_KINDS, editPath, type RecordKind, type RecordLink } from '../../lib/records';
 import { Field, cardClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
@@ -9,13 +10,13 @@ import RecordForm from './RecordForm';
 
 const FIND_LABEL: Record<RecordKind, string> = {
   company: 'Find a company to correct',
-  factory: 'Find a factory to correct',
+  factory: 'Find a plant to correct',
   career: 'Find a career to correct',
   skill: 'Find a skill to correct',
 };
 const ADD_LABEL: Record<RecordKind, string> = {
   company: 'Add a company',
-  factory: 'Add a factory',
+  factory: 'Add a plant',
   career: 'Add a career',
   skill: 'Add a skill',
 };
@@ -32,6 +33,10 @@ export default function Records() {
   // A fresh form for each kind, and after each record added.
   const [round, setRound] = useState(0);
   const [added, setAdded] = useState<RecordLink | null>(null);
+  const chooseKind = (next: RecordKind) => {
+    setKind(next);
+    setAdded(null);
+  };
 
   return (
     <PageSection title="Records">
@@ -39,6 +44,7 @@ export default function Records() {
         <div
           role="radiogroup"
           aria-label="Kind of record"
+          onKeyDown={(event) => onGroupArrowKeys(event, RECORD_KINDS.map((option) => option.kind), kind, chooseKind)}
           className="grid h-[42px] grid-cols-4 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1 sm:max-w-md"
         >
           {RECORD_KINDS.map((option) => (
@@ -47,10 +53,8 @@ export default function Records() {
               type="button"
               role="radio"
               aria-checked={kind === option.kind}
-              onClick={() => {
-                setKind(option.kind);
-                setAdded(null);
-              }}
+              tabIndex={kind === option.kind ? 0 : -1}
+              onClick={() => chooseKind(option.kind)}
               className={cn(
                 'min-w-0 truncate rounded-md px-1 text-sm font-medium transition-colors',
                 kind === option.kind ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'

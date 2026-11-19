@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ExternalLink, Loader2, Lock, MapPin, SearchX } from 'lucide-react';
+import { ExternalLink, Loader2, Lock, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -18,11 +18,11 @@ import {
 import { useApplicantList, useDeleteJob, useExtendJob } from '../lib/employerJobs';
 import { useMarkSkill } from '../lib/seeker';
 import { useViewer } from '../lib/viewer';
-import { employmentLabel, formatAgo, formatDate, formatPay, formatPlace } from '../lib/jobFormat';
+import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
+import { formatCompanyName, formatFactoryName } from '@shared/displayName';
 import {
   ApplicationStatusBadge,
   CardNote,
-  ENTITY,
   ErrorNote,
   Field,
   HeldMeter,
@@ -31,8 +31,9 @@ import {
   RowsSkeleton,
   cardClass,
   fieldClass,
+  formatDay,
+  formatDayCapital,
   outlineButtonClass,
-  rowClass,
   textButtonClass,
 } from '../components/account/parts';
 import ApplicantList from '../components/account/ApplicantList';
@@ -40,7 +41,7 @@ import JobDescription from '../components/account/JobDescription';
 import { SkillHeldToggle } from '../components/account/SkillStatusButton';
 import { busyButtonClass } from '../components/account/JobForm';
 import ConfirmDialog from '../components/admin/ConfirmDialog';
-import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
+import { DetailFacts, DetailHeader, DetailSection, EmptyState, PageContainer, RecordList, RecordRow, recordListClass } from '../components/layout/Page';
 import CompanyLogo from '../components/CompanyLogo';
 
 export default function JobDetail() {
@@ -56,7 +57,7 @@ export default function JobDetail() {
 
   const title = job.data?.job.title;
   useEffect(() => {
-    if (title) document.title = `${title} · Jobs · Archangel`;
+    if (title) document.title = `${title} · Archangel`;
   }, [title]);
 
   // A link to a part of the page (#manage-job) arrives before the job has
@@ -131,10 +132,11 @@ export default function JobDetail() {
   const marksHeld = signedIn && applying;
   const requiredSkills = data.skills.filter((skill) => skill.required);
   const optionalSkills = data.skills.filter((skill) => !skill.required);
-  // Not every factory has a city on record; its name places it well enough.
+  // Not every plant has a city on record; its name places it well enough.
   const place = data.job.city
     ? formatPlace(data.job.city, data.job.state)
-    : [data.job.factoryName, data.job.state].filter(Boolean).join(', ');
+    : [formatFactoryName(data.job.factoryName), data.job.state].filter(Boolean).join(', ');
+  const companyName = formatCompanyName(data.job.companyName);
 
   // A person who can mark skills meets them before the Apply button: the
   // company ranks applicants by the required skills they hold, so marking
@@ -142,37 +144,33 @@ export default function JobDetail() {
   const applyAfterSkills = marksHeld && !manages && data.job.isOpen && !data.myApplication && requiredSkills.length > 0;
   const terms = <TermsCard job={data.job} showApplications={manages} />;
   const apply = (
-    <PageSection title="Apply">
+    <DetailSection id="apply" title="Apply">
       <ApplyPanel data={data} signedIn={signedIn} />
-    </PageSection>
+    </DetailSection>
   );
 
   return (
     <PageContainer size="narrow">
-      <PageHeader
-        backTo={
-          manages ? { to: '/employer', label: 'Your jobs' } : jobsList ? { to: jobsList, label: 'Back to results' } : { to: '/jobs', label: 'All jobs' }
+      <DetailHeader
+        back={
+          // "Your jobs" is a place only for someone drawn as an employer: an admin who manages
+          // every job without belonging to the company came from the open list, and goes back to it.
+          manages && viewer.employer
+            ? { to: '/employer', label: 'Your jobs' }
+            : jobsList
+              ? { to: jobsList, label: 'Back to results' }
+              : { to: '/jobs', label: 'All jobs' }
         }
-        eyebrow={`Job #${data.job.serial}`}
+        // The number is the company's own count of its jobs: said to the people who manage it.
+        kind={manages ? `Job #${data.job.serial}` : 'Job'}
         title={data.job.title}
-        description={
-          <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="inline-flex items-center gap-2">
-              <CompanyLogo name={data.job.companyName} domain={data.job.companyDomain} size={22} className="rounded" />
-              {data.job.companyName}
-            </span>
-            {place && (
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="h-4 w-4 shrink-0" />
-                {place}
-              </span>
-            )}
-          </span>
-        }
-      />
+        mark={<CompanyLogo name={companyName} domain={data.job.companyDomain} size={44} className="rounded-lg" />}
+      >
+        <DetailFacts>{[companyName, place].filter(Boolean).join(' · ')}</DetailFacts>
+      </DetailHeader>
 
       {lostAccess && !manages && (
-        <p role="status" className={cn(cardClass, 'mb-6 p-4 text-sm text-fg-default')} data-lost-access>
+        <p role="status" className={cn(cardClass, 'mt-6 p-4 text-sm text-fg-default')} data-lost-access>
           {signedIn ? (
             `You no longer manage jobs for ${data.job.companyName.replace(/\.$/, '')}.`
           ) : (
@@ -191,27 +189,27 @@ export default function JobDetail() {
         // The company's view comes first: the job's state, then who applied.
         <>
           <ManageSection job={data.job} />
-          <PageSection title="Listing" description="The job as applicants see it." className="mt-10 border-t border-border-subtle pt-8">
+          <DetailSection title="Listing" description="The job as applicants see it." className="mt-10 border-t border-border-subtle pt-8">
             {terms}
-          </PageSection>
+          </DetailSection>
         </>
       ) : (
         <>
           {!data.job.isOpen && <ClosedNotice job={data.job} justClosed={justClosed} />}
-          <PageSection>{terms}</PageSection>
+          <div className="mt-6">{terms}</div>
           {applying && !applyAfterSkills && apply}
         </>
       )}
 
       {data.job.description && (
-        <PageSection title="About the job">
+        <DetailSection title="About the job">
           <div className={cn(cardClass, 'p-4 text-sm leading-relaxed text-fg-default sm:p-6')}>
             <JobDescription text={data.job.description} />
           </div>
-        </PageSection>
+        </DetailSection>
       )}
 
-      <PageSection
+      <DetailSection
         title="Required skills"
         description={requiredSkills.length > 0 && marksHeld ? 'Mark the ones you have. The company sees how many you hold.' : undefined}
       >
@@ -242,12 +240,12 @@ export default function JobDetail() {
             <SkillList skills={requiredSkills} marksHeld={marksHeld} />
           </>
         )}
-      </PageSection>
+      </DetailSection>
 
       {optionalSkills.length > 0 && (
-        <PageSection title="Optional skills" description="Good to have, not needed to apply.">
+        <DetailSection title="Optional skills" description="Good to have, not needed to apply.">
           <SkillList skills={optionalSkills} marksHeld={marksHeld} />
-        </PageSection>
+        </DetailSection>
       )}
 
       {applyAfterSkills && apply}
@@ -260,7 +258,7 @@ export default function JobDetail() {
           // Offered to someone whose account is for finding work and who also manages this job.
           viewer.seeker &&
           !data.job.applyUrl && (
-            <button type="button" onClick={() => setApplyAsManager(true)} className={textButtonClass}>
+            <button type="button" onClick={() => setApplyAsManager(true)} className={cn(textButtonClass, 'mt-8 inline-flex min-h-11 items-center')}>
               Apply to this job myself
             </button>
           )
@@ -276,7 +274,7 @@ export default function JobDetail() {
 function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClosed?: boolean }) {
   const closed = job.status === 'closed';
   return (
-    <div className={cn(cardClass, 'mb-6 flex items-start gap-3 border-warning/30 p-4')} role="status" data-job-closed>
+    <div className={cn(cardClass, 'mt-6 flex items-start gap-3 border-warning/30 p-4')} role="status" data-job-closed>
       <Lock className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
       <p className="min-w-0 break-words text-sm text-fg-default">
         {justClosed
@@ -299,34 +297,19 @@ function Term({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function EntityLink({ kind, to, label, name }: { kind: 'company' | 'factory' | 'career'; to: string; label: string; name: string }) {
-  const { icon: Icon, text } = ENTITY[kind];
-  return (
-    <Link
-      to={to}
-      className={cn(rowClass, 'flex items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-elevated sm:px-6')}
-    >
-      <Icon className={cn('h-4 w-4 shrink-0', text)} />
-      <span className="min-w-0 flex-1">
-        <span className="block text-xs text-fg-muted">{label}</span>
-        <span className="block break-words text-sm font-medium text-fg-default">{name}</span>
-      </span>
-      <span className="shrink-0 text-xs text-fg-muted" aria-hidden="true">
-        View
-      </span>
-    </Link>
-  );
-}
-
+/**
+ * What the job is, in one card: its terms, then the company, the plant and
+ * the career it belongs to, each leading to its own page.
+ */
 function TermsCard({ job, showApplications }: { job: JobDetailData; showApplications: boolean }) {
   const host = job.applyUrl ? hostOf(job.applyUrl) : null;
   return (
-    <div className={cardClass}>
+    <div className={recordListClass} data-job-terms>
       <dl className="grid grid-cols-1 gap-4 p-4 xs:grid-cols-2 sm:grid-cols-4 sm:p-6">
         <Term label="Pay">{formatPay(job.payMin, job.payMax, job.payPeriod)}</Term>
         <Term label="Type">{employmentLabel(job.employmentType)}</Term>
         <Term label="Shift">{job.shift || 'Not stated'}</Term>
-        <Term label="Posted">{formatDate(job.postedAt)}</Term>
+        <Term label="Posted">{formatDayCapital(job.postedAt)}</Term>
         {/* Applicants meet this as the Apply panel; the company has none. */}
         {showApplications && (
           <div className="min-w-0 xs:col-span-2 sm:col-span-4">
@@ -342,14 +325,11 @@ function TermsCard({ job, showApplications }: { job: JobDetailData; showApplicat
           </div>
         )}
       </dl>
-      <EntityLink kind="company" to={`/companies/${job.companyId}`} label="Company" name={job.companyName} />
-      <EntityLink
-        kind="factory"
-        to={`/factories/${job.factoryId}`}
-        label="Factory"
-        name={[job.factoryName, formatPlace(job.city, job.state)].filter(Boolean).join(' · ')}
-      />
-      <EntityLink kind="career" to={`/occupations/${job.occupationId}`} label="Career" name={job.occupationTitle} />
+      <ul className="border-t border-border-subtle">
+        <RecordRow to={`/companies/${job.companyId}`} label="Company" title={formatCompanyName(job.companyName)} />
+        <RecordRow to={`/factories/${job.factoryId}`} label="Plant" title={formatFactoryName(job.factoryName)} />
+        <RecordRow to={`/occupations/${job.occupationId}`} label="Career" title={job.occupationTitle} />
+      </ul>
     </div>
   );
 }
@@ -367,36 +347,25 @@ function SkillList({ skills, marksHeld }: { skills: JobSkill[]; marksHeld: boole
   return (
     <>
       {marksHeld && <ErrorNote error={markSkill.error} className="mb-2" />}
-      <ul className={cardClass}>
+      <RecordList>
         {skills.map((skill) => {
           // The person's own list is the live answer; the job's copy is the fallback until it loads.
           const status = (mySkills ? statusBySkill.get(skill.id) : skill.held ? 'held' : undefined) ?? 'none';
-          const held = status === 'held';
           return (
-            <li
+            <RecordRow
               key={skill.id}
-              className={cn(rowClass, 'flex items-center gap-1 py-0.5 pr-4', marksHeld ? 'pl-1' : 'gap-3 px-4 py-2.5')}
-              data-held={marksHeld ? String(held) : undefined}
-            >
-              {marksHeld ? (
-                <SkillHeldToggle
-                  value={status}
-                  label={skill.name}
-                  onChange={(mark) => markSkill.mutate({ skillId: skill.id, name: skill.name, mark })}
-                />
-              ) : (
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-fg-soft" aria-hidden="true" />
-              )}
-              <Link
-                to={`/skills/${skill.id}`}
-                className="min-w-0 flex-1 break-words text-sm text-fg-default underline-offset-4 hover:underline"
-              >
-                {skill.name}
-              </Link>
-            </li>
+              to={`/skills/${skill.id}`}
+              title={skill.name}
+              control={
+                marksHeld ? (
+                  <SkillHeldToggle value={status} label={skill.name} onChange={(mark) => markSkill.mutate({ skillId: skill.id, name: skill.name, mark })} />
+                ) : undefined
+              }
+              data-held={marksHeld ? String(status === 'held') : undefined}
+            />
           );
         })}
-      </ul>
+      </RecordList>
     </>
   );
 }
@@ -426,12 +395,12 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
       <div className={cn(cardClass, 'flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-6')}>
         <div className="min-w-0 flex-1 basis-48">
           <p className="text-sm font-medium text-fg-default">
-            {myApplication.status === 'withdrawn' ? 'You withdrew this application.' : `You applied ${formatAgo(myApplication.createdAt)}.`}
+            {myApplication.status === 'withdrawn' ? 'You withdrew this application.' : `You applied ${formatDay(myApplication.createdAt)}.`}
           </p>
           <p className="mt-0.5 text-sm text-fg-muted">
             Follow it on{' '}
             <Link to="/me" className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
-              your page
+              your profile
             </Link>
             .
           </p>
@@ -450,11 +419,11 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
     return (
       <div className={cn(cardClass, 'p-4 sm:p-6')}>
         <p className="mb-3 text-sm text-fg-muted">
-          {job.companyName} takes applications for this job on its own site{host ? ` (${host})` : ''}.
+          {job.companyName} takes applications for this job on its own website{host ? ` (${host})` : ''}.
         </p>
         <Button asChild className="h-11 w-full rounded-lg sm:w-auto">
           <a href={job.applyUrl} target="_blank" rel="noopener noreferrer">
-            Apply on the company site
+            Apply on the company website
             <ExternalLink />
           </a>
         </Button>
@@ -466,7 +435,7 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
     const here = `/jobs/${job.id}`;
     return (
       <div className={cn(cardClass, 'p-4 sm:p-6')}>
-        <p className="mb-3 text-sm text-fg-muted">Apply here with your name, email and the skills on your page.</p>
+        <p className="mb-3 text-sm text-fg-muted">Apply here with your name, email and the skills on your profile.</p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <Button asChild className="h-11 w-full rounded-lg sm:w-auto">
             <Link to={signInPath(here)}>Sign in to apply</Link>
@@ -531,16 +500,13 @@ function ManageSection({ job }: { job: JobDetailData }) {
 
   return (
     <div id="manage-job" className="scroll-mt-20">
-      <PageSection title="Manage" description={`Seen only by people who manage jobs for ${job.companyName.replace(/\.$/, '')}.`}>
+      <DetailSection title="Manage" description={`Seen only by people who manage jobs for ${job.companyName.replace(/\.$/, '')}.`}>
         <JobStatusControl job={job} applicantCount={count} />
-      </PageSection>
+      </DetailSection>
 
-      <PageSection
-        title={
-          <span id="applicants" className="scroll-mt-20">
-            Applicants{count ? <span className="ml-2 font-normal tabular-nums text-fg-muted">{count}</span> : null}
-          </span>
-        }
+      <DetailSection
+        id="applicants"
+        title="Applicants"
         description={
           !count
             ? undefined
@@ -554,11 +520,11 @@ function ManageSection({ job }: { job: JobDetailData }) {
         ) : applicants.isError ? (
           <LoadError error={applicants.error} onRetry={() => void applicants.refetch()} retrying={applicants.isFetching} />
         ) : applicants.data.applications.length === 0 ? (
-          <CardNote>{offsite ? 'People apply on your own site, so none are listed here.' : 'Nobody has applied yet.'}</CardNote>
+          <CardNote>{offsite ? 'People apply on your own website, so none are listed here.' : 'None yet.'}</CardNote>
         ) : (
           <ApplicantList data={applicants.data} job={job} />
         )}
-      </PageSection>
+      </DetailSection>
     </div>
   );
 }
@@ -600,8 +566,8 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
               ? `: ${job.closedReason}`
               : ''
             : job.isOpen
-              ? ` until ${formatDate(job.expiresAt)}`
-              : ` on ${formatDate(job.expiresAt)}`}
+              ? ` until ${formatDay(job.expiresAt)}`
+              : ` ${formatDay(job.expiresAt)}`}
         </span>
       </p>
       <p className="mt-0.5 text-sm text-fg-muted">

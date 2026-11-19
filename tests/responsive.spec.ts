@@ -61,10 +61,13 @@ test('entity detail pages render without overflow', async ({ page, request }) =>
     const view = page.locator(`[data-entity-view="${base.slice(1)}"]`);
     await expect(view, `${base}/:id draws its own view`).toHaveCount(1);
     expect(await view.locator('section, h2, h3').count(), `${base}/:id has content`).toBeGreaterThan(0);
+    // Every detail page says what kind of thing it is in the same place: one word above the name.
+    const kind = { '/companies': 'Company', '/factories': 'Plant', '/skills': 'Skill', '/occupations': 'Career' }[base];
+    await expect(view.locator('[data-detail-kind]'), `${base}/:id names its kind`).toHaveText(kind as string);
   }
 });
 
-test('a career page shows its path, a company page its sites', async ({ page, request }) => {
+test('a career page shows its path, a company page its plants', async ({ page, request }) => {
   const career = await firstId(request, '/occupations');
   expect(career, 'the API returned a career to open').toBeTruthy();
   await page.goto(`/occupations/${career}`, { waitUntil: 'domcontentloaded' });
@@ -217,4 +220,16 @@ test('a seeker and an employer are given different tools', async ({ page, baseUR
   expect(tools.work.word).toBe('Jobs');
   expect(tools.hire.jobs).toBe('/employer');
   expect(tools.hire.word).toBe('Your jobs');
+});
+
+test('settings offers the theme to a visitor', async ({ page }) => {
+  // The theme is kept in the browser, so nobody has to make an account to change it.
+  await page.goto('/settings', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'Appearance' })).toBeVisible();
+  await page.locator('[data-choice="theme"] [data-value="light"]').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.locator('[data-choice="theme"] [data-value="dark"]').click();
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('[data-settings-sign-in] a').first(), 'the rest of settings is behind signing in').toHaveAttribute('href', /^\/sign-in\?next=%2Fsettings$/);
+  await assertHealthyLayout(page, '/settings:visitor');
 });

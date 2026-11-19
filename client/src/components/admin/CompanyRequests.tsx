@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { AdminCompany } from '../../lib/account';
 import { useAdminCompanyRequests, useAnswerCompanyRequest, type AdminCompanyRequest } from '../../lib/employerCompanies';
-import { formatAgo } from '../../lib/jobFormat';
-import { ErrorNote, busyButtonClass, cardClass, outlineButtonClass, rowClass } from '../account/parts';
+import { ErrorNote, busyButtonClass, cardClass, formatOnDay, outlineButtonClass, rowClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import CompanyPicker from './CompanyPicker';
 
@@ -96,7 +95,7 @@ function RequestRow({ request }: { request: AdminCompanyRequest }) {
           <Dot />
           <span className="break-all">{request.userEmail}</span>
           <Dot />
-          Asked {formatAgo(request.createdAt)}
+          Asked {formatOnDay(request.createdAt)}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">

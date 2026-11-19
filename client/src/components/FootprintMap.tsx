@@ -3,14 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 
 /**
- * Where a company's sites are: the lower 48 states drawn faintly, one dot per
- * site. A quiet picture of a footprint, not an interactive map (the map page
+ * Where a company's plants are: the lower 48 states drawn faintly, one dot per
+ * plant. A quiet picture of a footprint, not an interactive map (the map page
  * is one tap away). It is plain SVG: the state shapes the map already uses,
  * projected here with an Albers equal-area conic, so it needs no map library
  * and no tiles.
  *
- * Sites outside the lower 48 (Alaska, Hawaii) are not drawn; the
- * caller lists every site beside it.
+ * Plants outside the lower 48 (Alaska, Hawaii) are not drawn; the
+ * caller lists every plant beside it.
  */
 
 export interface FootprintPoint {
@@ -22,7 +22,7 @@ export interface FootprintPoint {
 
 interface FootprintMapProps {
   points: FootprintPoint[];
-  /** One point to mark as the subject (a site among its company's others). */
+  /** One point to mark as the subject (a plant among its company's others). */
   emphasis?: string;
   className?: string;
 }
@@ -127,7 +127,7 @@ export default function FootprintMap({ points, emphasis, className }: FootprintM
     <svg
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       role="img"
-      aria-label={`Map of ${dots.length} ${dots.length === 1 ? 'site' : 'sites'} across the United States`}
+      aria-label={`Map of ${dots.length} ${dots.length === 1 ? 'plant' : 'plants'} across the United States`}
       className={cn('block h-auto w-full', className)}
     >
       <path

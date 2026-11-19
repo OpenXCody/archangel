@@ -199,7 +199,7 @@ expect "an admin with notices off is not" 0 "$(mail adm2 'Access request')"
 expect "the requester is not"         0 "$(mail r '')"
 expect "request email names the person" true "$(mail adm 'Access request' "m.text.includes('Rae Requester ($(addr r))')")"
 expect "request email links to the requests" "$APP_URL/admin?tab=access" "$(mail adm 'Access request' "$LINK")"
-expect "request email says where to turn it off" true "$(mail adm 'Access request' "m.text.includes('turn them off on your account page: $APP_URL/me')")"
+expect "request email says where to turn it off" true "$(mail adm 'Access request' "m.text.includes('turn them off in settings: $APP_URL/settings')")"
 check "asking twice is one request"   201 "$(req r POST /employer/memberships "{\"companyId\":\"$CA\"}")" '"status":"requested"'
 expect "and one email"                1 "$(mail adm 'Access request')"
 check "admin now has news"            200 "$(req adm GET /me/news)" '"access":true'
@@ -293,7 +293,7 @@ expect "the admin is not"             0 "$(mail adm 'New applicant')"
 expect "it gives the required-skills figure" true "$(mail emp "$SUBJ" "m.text.includes('Sam Seeker applied for Email Test Welder') && m.text.includes('1 of the 2 required skills')")"
 expect "it links to the job's applicants" "$APP_URL/jobs/$JOB" "$(mail emp "$SUBJ" "$LINK")"
 check "that page lists the applicant" 200 "$(req emp GET /jobs/$JOB/applications)" "\"id\":\"$APP1\""
-expect "it says where to turn it off" true "$(mail emp "$SUBJ" "m.text.includes('turn them off on your account page: $APP_URL/me')")"
+expect "it says where to turn it off" true "$(mail emp "$SUBJ" "m.text.includes('turn them off in settings: $APP_URL/settings')")"
 expect "the application has its first event" "applied|$(uid s1)" "$(sql "SELECT string_agg(status || '|' || by_user, ',' ORDER BY at) FROM application_events WHERE application_id='$APP1'")"
 check "employer now has news"         200 "$(req emp GET /me/news)" '"applicants":true'
 check "the applicant has none"        200 "$(req s1 GET /me/news)" '"applications":false'

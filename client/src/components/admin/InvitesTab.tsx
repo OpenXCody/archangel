@@ -16,8 +16,8 @@ import {
   type CreatedInvite,
   type InviteRole,
 } from '../../lib/account';
-import { formatDate } from '../../lib/jobFormat';
-import { CardNote, ErrorNote, Field, LoadError, RowsSkeleton, busyButtonClass, cardClass, fieldClass, rowClass, textButtonClass } from '../account/parts';
+import { onGroupArrowKeys } from '../../lib/roving';
+import { CardNote, ErrorNote, Field, LoadError, RowsSkeleton, busyButtonClass, cardClass, fieldClass, formatDay, rowClass, textButtonClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 import CompanyPicker from './CompanyPicker';
@@ -154,6 +154,7 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
           <div
             role="radiogroup"
             aria-labelledby="invite-role-label"
+            onKeyDown={(event) => onGroupArrowKeys(event, INVITE_ROLES, role, setRole)}
             className="grid h-[42px] grid-cols-3 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1 sm:w-72"
           >
             {INVITE_ROLES.map((value) => (
@@ -162,6 +163,7 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
                 type="button"
                 role="radio"
                 aria-checked={role === value}
+                tabIndex={role === value ? 0 : -1}
                 onClick={() => setRole(value)}
                 className={cn(
                   'min-w-0 truncate rounded-md px-2 text-sm font-medium transition-colors',
@@ -245,7 +247,7 @@ function PendingInvites({ onRevoked }: { onRevoked: (inviteId: string) => void }
       ) : invites.isError ? (
         <LoadError error={invites.error} onRetry={() => void invites.refetch()} retrying={invites.isFetching} />
       ) : all.length === 0 ? (
-        <CardNote>None.</CardNote>
+        <CardNote>None yet.</CardNote>
       ) : (
         <>
           {all.length > PENDING_SHOWN && (
@@ -273,10 +275,10 @@ function PendingInvites({ onRevoked }: { onRevoked: (inviteId: string) => void }
                     <p className="mt-0.5 break-words text-xs text-fg-muted">
                       {inviteRoleLabel(invite.role, invite.companyName)}
                       <Dot />
-                      Invited {formatDate(invite.createdAt)}
+                      Invited {formatDay(invite.createdAt)}
                       {invite.invitedBy ? ` by ${invite.invitedBy}` : ''}
                       <Dot />
-                      Expires {formatDate(invite.expiresAt)}
+                      Expires {formatDay(invite.expiresAt)}
                     </p>
                   </div>
                   <button
@@ -321,11 +323,11 @@ function EarlierInvites() {
           <li key={invite.id} className={cn(rowClass, 'px-4 py-3')} data-earlier-invite={invite.state}>
             <p className="break-all text-sm text-fg-default">{invite.email}</p>
             <p className="mt-0.5 break-words text-xs text-fg-muted">
-              {invite.state === 'accepted' && invite.acceptedAt ? `Accepted ${formatDate(invite.acceptedAt)}` : `Expired ${formatDate(invite.expiresAt)}`}
+              {invite.state === 'accepted' && invite.acceptedAt ? `Accepted ${formatDay(invite.acceptedAt)}` : `Expired ${formatDay(invite.expiresAt)}`}
               <Dot />
               {inviteRoleLabel(invite.role, invite.companyName)}
               <Dot />
-              Invited {formatDate(invite.createdAt)}
+              Invited {formatDay(invite.createdAt)}
               {invite.invitedBy ? ` by ${invite.invitedBy}` : ''}
             </p>
           </li>

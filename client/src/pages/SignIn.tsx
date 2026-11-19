@@ -63,7 +63,7 @@ const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
  * to join a company or to have one added is waiting for an admin, since that
  * is where its answer shows; otherwise `?next=` when it is a path on this
  * site. With nowhere to return to, someone signing in lands on the map, and
- * someone who has just created an account lands on their own page, which
+ * someone who has just created an account lands on their profile, which
  * starts them off.
  *
  * The form is checked here before it is sent: every problem is named beside
@@ -409,6 +409,13 @@ export default function SignIn() {
               <span className="block sm:inline">Forgot your password?</span> An admin can give you a reset link.
             </p>
           ))}
+
+        {/* The theme is kept in the browser, so it can be set without an account: settings shows that part to anyone. */}
+        <p className="mt-6 text-center" data-appearance-link>
+          <Link to="/settings" className={textButtonClass}>
+            Dark or light theme
+          </Link>
+        </p>
       </div>
     </PageContainer>
   );
@@ -537,7 +544,7 @@ function ChoosePassword({ email, busy, error, onSubmit }: ChoosePasswordProps) {
             />
           </Field>
           <ErrorNote error={error} />
-          <Button type="submit" disabled={busy} className="h-11 w-full rounded-lg text-sm">
+          <Button type="submit" aria-busy={busy} aria-disabled={busy} className={cn('h-11 w-full rounded-lg text-sm', busyButtonClass)}>
             {busy && <Loader2 className="animate-spin" />}
             Save password
           </Button>

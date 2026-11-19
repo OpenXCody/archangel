@@ -420,7 +420,7 @@ export interface AdminUsersPage {
 /** How many people one page of the People list holds. */
 export const ADMIN_USERS_PAGE = 100;
 
-/** A person's roles as the People list shows them: "Admin", "Employer (Tesla, Samsung)", or "User". */
+/** A person's roles as the People list shows them: "Admin", "Employer (Tesla, Samsung)". None for a plain account: it has no role label. */
 export function personRoles(person: AdminUser): string[] {
   const roles: string[] = [];
   if (person.isAdmin) roles.push('Admin');
@@ -428,7 +428,7 @@ export function personRoles(person: AdminUser): string[] {
   if (active.length > 0) roles.push(`Employer (${active.map((m) => m.companyName).join(', ')})`);
   const waiting = person.memberships.filter((m) => m.status === 'requested');
   if (waiting.length > 0) roles.push(`Waiting for approval (${waiting.map((m) => m.companyName).join(', ')})`);
-  return roles.length > 0 ? roles : ['User'];
+  return roles;
 }
 
 /**

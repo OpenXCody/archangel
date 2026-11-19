@@ -42,7 +42,7 @@ export default function HistoryTab() {
           </SelectContent>
         </Select>
       </div>
-      <HistoryList key={kind} filter={kind ? { kind } : {}} empty={kind ? 'Nothing of this kind yet.' : 'Nothing yet.'} />
+      <HistoryList key={kind} filter={kind ? { kind } : {}} empty="None yet." />
     </PageSection>
   );
 }

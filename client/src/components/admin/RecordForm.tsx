@@ -97,7 +97,7 @@ const FIELD_FOCUS: [FieldName, string][] = [
 const NAME_LABEL: Record<RecordKind, string> = { company: 'Name', factory: 'Name', career: 'Title', skill: 'Name' };
 const NAME_PROBLEM: Record<RecordKind, string> = {
   company: 'Enter the company’s name.',
-  factory: 'Enter the factory’s name.',
+  factory: 'Enter the plant’s name.',
   career: 'Enter the career’s title.',
   skill: 'Enter the skill’s name.',
 };
@@ -158,7 +158,7 @@ interface RecordFormProps {
 }
 
 /**
- * The one form for a company, a factory, a career or a skill: adding one
+ * The one form for a company, a plant, a career or a skill: adding one
  * asks for the few fields that make it; correcting one shows all it has.
  * Each problem is said beside its field, the first takes focus, and a name
  * close to one already listed says so before anything is saved.
@@ -270,7 +270,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
 
   /** What adding sends: an optional field left empty is left out. */
   const newRecord = (): NewRecord | null => {
-    if (kind === 'company') return { kind, name: name.trim(), industry: given(industry) };
+    if (kind === 'company') return { kind, name: name.trim() };
     if (kind === 'career') return { kind, title: name.trim(), description: given(description) };
     if (kind === 'skill') return { kind, name: name.trim(), category: given(category), description: given(description) };
     if (!company || lat === null || lng === null) return null;
@@ -282,7 +282,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
     if (kind === 'company') {
       return {
         name: name.trim(),
-        industry: orNull(industry),
+        // A company's industries are read from its plants; its own free-text label is no longer shown or edited.
         description: orNull(description),
         domain: cleanedDomain,
         featured,
@@ -428,17 +428,6 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
           <FieldError id="record-name-error" message={shown('name')} />
         </Field>
 
-        {kind === 'company' && (
-          <Field label="Industry" htmlFor="record-industry" optional>
-            {input('record-industry', industry, setIndustry, 'industry', { maxLength: 80, list: 'record-industries' })}
-            <datalist id="record-industries">
-              {(facets.data?.companyIndustries ?? []).map((value) => (
-                <option key={value} value={value} />
-              ))}
-            </datalist>
-            <FieldError id="record-industry-error" message={shown('industry')} />
-          </Field>
-        )}
 
         {kind === 'skill' && (
           <Field label="Category" htmlFor="record-category" optional>
@@ -541,7 +530,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
           {editing && (
             <>
               <div className="grid grid-cols-1 gap-4 xs:grid-cols-2">
-                <Field label="People" htmlFor="record-people" optional hint={shown('workforceSize') ? undefined : 'Working at this site.'}>
+                <Field label="People" htmlFor="record-people" optional hint={shown('workforceSize') ? undefined : 'Working at this plant.'}>
                   {input('record-people', people, setPeople, 'workforceSize', { inputMode: 'numeric', maxLength: 10 })}
                   <FieldError id="record-people-error" message={shown('workforceSize')} />
                 </Field>

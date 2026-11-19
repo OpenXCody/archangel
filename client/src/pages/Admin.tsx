@@ -16,10 +16,10 @@ import NotFound from './NotFound';
 
 type TabValue = 'people' | 'access' | 'invites' | 'data' | 'history';
 
-/** `short` is what a phone shows, so all five tabs fit across it. */
-const TABS: { value: TabValue; label: string; short?: string }[] = [
+/** One name each, at every width: five short words fit across a phone. */
+const TABS: { value: TabValue; label: string }[] = [
   { value: 'people', label: 'People' },
-  { value: 'access', label: 'Access requests', short: 'Access' },
+  { value: 'access', label: 'Access' },
   { value: 'invites', label: 'Invites' },
   { value: 'data', label: 'Data' },
   { value: 'history', label: 'History' },
@@ -54,9 +54,12 @@ export default function Admin() {
 const waitingLinkClass = 'font-medium text-fg-default underline underline-offset-4 hover:no-underline';
 
 /**
- * What is waiting for an admin, above the tabs: access requests and career
- * paths not yet reviewed. Each links to where it is dealt with. Nothing is
- * drawn when nothing waits, or before the counts are known.
+ * What a person is waiting on an admin for, above the tabs: requests to join
+ * a company, and requests to add a company or a plant. Each links to where
+ * it is answered. Nothing is drawn when nobody waits, or before the counts
+ * are known, so the line means something when it is there. (Draft career
+ * paths are work, not someone waiting: they are counted where they are
+ * reviewed, under Data.)
  */
 function Waiting() {
   const overview = useAdminOverview();
@@ -68,10 +71,9 @@ function Waiting() {
   }, [refused, queryClient]);
 
   const requests = overview.data?.pendingMemberships ?? 0;
-  const paths = overview.data?.draftPaths ?? 0;
   // Companies and plants people asked to have added: answered on the Access tab too.
   const toAdd = useAdminCompanyRequests().data?.length ?? 0;
-  if (requests === 0 && paths === 0 && toAdd === 0) return null;
+  if (requests === 0 && toAdd === 0) return null;
   return (
     <div className="mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-sm sm:mb-8" data-admin-waiting>
       <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Waiting</span>
@@ -83,11 +85,6 @@ function Waiting() {
       {toAdd > 0 && (
         <Link to="/admin?tab=access" className={waitingLinkClass} data-waiting-to-add>
           {toAdd.toLocaleString('en-US')} {toAdd === 1 ? 'request' : 'requests'} to add a company or plant
-        </Link>
-      )}
-      {paths > 0 && (
-        <Link to="/admin?tab=data" className={waitingLinkClass}>
-          {paths.toLocaleString('en-US')} draft {paths === 1 ? 'path' : 'paths'}
         </Link>
       )}
     </div>
@@ -126,7 +123,7 @@ function AdminTools({ me }: { me: AccountUser }) {
       <Waiting />
       <Tabs value={tab} onValueChange={selectTab}>
         <TabsList className="flex h-auto w-full justify-start gap-4 overflow-x-auto rounded-none border-b border-border-subtle bg-transparent p-0 text-fg-muted sm:gap-6">
-          {TABS.map(({ value, label: tabLabel, short }) => (
+          {TABS.map(({ value, label: tabLabel }) => (
             <TabsTrigger
               key={value}
               value={value}
@@ -136,16 +133,7 @@ function AdminTools({ me }: { me: AccountUser }) {
                 data-[state=active]:border-[color:var(--color-fg-default)] data-[state=active]:bg-transparent
                 data-[state=active]:text-fg-default data-[state=active]:shadow-none"
             >
-              {short ? (
-                <>
-                  <span className="sm:hidden" aria-hidden="true">
-                    {short}
-                  </span>
-                  <span className="sr-only sm:not-sr-only">{tabLabel}</span>
-                </>
-              ) : (
-                tabLabel
-              )}
+              {tabLabel}
             </TabsTrigger>
           ))}
         </TabsList>

@@ -110,7 +110,7 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
                 {group.label} <span className="tabular-nums">{group.items.length}</span>
               </p>
               {group.items.length === 0 ? (
-                <p className="mt-2 text-sm text-fg-muted">None.</p>
+                <p className="mt-2 text-sm text-fg-muted">None yet.</p>
               ) : (
                 <ul className="mt-1">
                   {group.items.map((skill) => (

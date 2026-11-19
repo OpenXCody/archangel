@@ -29,7 +29,7 @@ interface Layout {
 
 /** Where notice emails are turned off. */
 function settingsUrl(): string {
-  return appUrl('/me');
+  return appUrl('/settings');
 }
 
 /** Text typed by a person, safe inside a subject or a sentence: one line, not too long. */
@@ -44,7 +44,7 @@ function escapeHtml(value: string): string {
 
 function footerLines({ why, notice }: Layout): string[] {
   const lines = [`You got this email because ${why}.`];
-  if (notice) lines.push(`To stop emails about applications and access, turn them off on your account page: ${settingsUrl()}`);
+  if (notice) lines.push(`To stop emails about applications and access, turn them off in settings: ${settingsUrl()}`);
   return lines;
 }
 
@@ -108,7 +108,7 @@ export function inviteEmail(input: { to: string; role: 'user' | 'employer' | 'ad
       ? `You are invited to Archangel to post jobs for ${oneLine(input.companyName)} and read its applicants.`
       : input.role === 'admin'
         ? 'You are invited to Archangel as an admin.'
-        : 'You are invited to Archangel, a map of US manufacturing: companies, factories, careers and the skills they take.';
+        : 'You are invited to Archangel, a map of US manufacturing: companies, plants, careers and the skills they take.';
   return build({
     kind: 'invite',
     to: input.to,
@@ -193,7 +193,7 @@ export function accessApprovedEmail(input: { to: string; companyName: string; re
         ? `Your request for access to ${company} was approved. You can post its jobs and read its applicants.`
         : `An admin gave you access to ${company}. You can post its jobs and read its applicants.`,
     ],
-    action: { label: 'Open your employer page', url: appUrl('/employer') },
+    action: { label: 'Open your jobs', url: appUrl('/employer') },
     why: input.requested ? `you asked for access to ${company} on Archangel` : `an Archangel admin added you to ${company}`,
     notice: true,
   });
@@ -209,7 +209,7 @@ export function accessDeclinedEmail(input: { to: string; companyName: string; as
       `An admin declined your request for access to ${company}. Nothing else about your account has changed.`,
       `You can ask again from ${input.askAgainOn}.`,
     ],
-    action: { label: 'Open your employer page', url: appUrl('/employer') },
+    action: { label: 'Open your jobs', url: appUrl('/employer') },
     why: `you asked for access to ${company} on Archangel`,
     notice: true,
   });
@@ -273,7 +273,7 @@ export function companyRequestAnsweredEmail(input: {
           ? `An admin declined your request to add a plant of ${name} (${place}). Nothing else about your account has changed.`
           : `An admin declined your request to add ${name}. Nothing else about your account has changed.`,
     ],
-    action: { label: 'Open your employer page', url: appUrl('/employer') },
+    action: { label: 'Open your jobs', url: appUrl('/employer') },
     why: input.plant ? `you asked for a plant of ${name} to be added on Archangel` : `you asked for ${name} to be added on Archangel`,
     notice: true,
   });

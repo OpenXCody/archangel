@@ -14,8 +14,8 @@ import HistoryList, { attachedWords } from './HistoryList';
 import PathEditor from './PathEditor';
 import RecordForm from './RecordForm';
 
-const KIND_WORD: Record<RecordKind, string> = { company: 'company', factory: 'factory', career: 'career', skill: 'skill' };
-const PAGE_WORD: Record<RecordKind, string> = { company: 'Company page', factory: 'Factory page', career: 'Career page', skill: 'Skill page' };
+const KIND_WORD: Record<RecordKind, string> = { company: 'company', factory: 'plant', career: 'career', skill: 'skill' };
+const PAGE_WORD: Record<RecordKind, string> = { company: 'Company page', factory: 'Plant page', career: 'Career page', skill: 'Skill page' };
 
 /** What moves with a merge: a job's applications follow the job, so they are not counted apart. */
 function movedWords(record: RecordView): string {
@@ -44,7 +44,8 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
   const back = (
     <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-fg-muted transition-colors hover:text-fg-default">
       <ArrowLeft className="h-4 w-4" />
-      Data
+      {/* The tab above already says Data: this is only the way back to its lists. */}
+      Back
     </Link>
   );
 
@@ -102,7 +103,7 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
       {kind !== 'factory' && <MergeSection record={data} />}
 
       <PageSection title="History">
-        <HistoryList filter={{ kind, record: id }} ownRecord empty="No changes by an admin on record." />
+        <HistoryList filter={{ kind, record: id }} ownRecord />
       </PageSection>
 
       <DeleteSection record={data} />
