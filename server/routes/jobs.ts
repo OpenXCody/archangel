@@ -61,6 +61,8 @@ const jobSummary = {
   payPeriod: jobs.payPeriod,
   status: jobs.status,
   postedAt: jobs.postedAt,
+  // True where a posting from a careers site gives no date: postedAt is the day it was first seen.
+  undated: jobs.undated,
   expiresAt: jobs.expiresAt,
   companyId: companies.id,
   companyName: companies.name,

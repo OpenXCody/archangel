@@ -50,6 +50,8 @@ export interface JobSummary {
   payPeriod: PayPeriod;
   status: JobStatus;
   postedAt: string;
+  /** True where a posting from a careers site gives no date: `postedAt` is the day it was first seen. */
+  undated?: boolean | null;
   expiresAt: string;
   companyId: string;
   companyName: string;

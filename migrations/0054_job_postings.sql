@@ -71,6 +71,9 @@ ALTER TABLE jobs ADD COLUMN IF NOT EXISTS requirements jsonb;
 -- boards of a platform that is asked sparingly are each listed in full only
 -- every few days (a week while they are first read in): twice the slowest cycle.
 ALTER TABLE jobs ADD COLUMN IF NOT EXISTS last_seen_at timestamptz;
+-- True on a job whose posting gives no date (a feed that is a list of addresses): `posted_at`
+-- is then the day the posting was first seen, and the page says "Listed", not "Posted".
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS undated boolean;
 -- A posting that does not say full-time or part-time is not called either.
 ALTER TABLE jobs ALTER COLUMN employment_type DROP NOT NULL;
 
@@ -328,7 +331,8 @@ CREATE OR REPLACE FUNCTION posting_job_snapshot(p_job uuid) RETURNS jsonb LANGUA
   SELECT jsonb_build_object(
     'company_id', j.company_id, 'factory_id', j.factory_id, 'occupation_id', j.occupation_id, 'title', j.title,
     'employment_type', j.employment_type, 'shift', j.shift, 'pay_min', j.pay_min, 'pay_max', j.pay_max, 'pay_period', j.pay_period,
-    'apply_url', j.apply_url, 'posted_at', j.posted_at, 'level_word', j.level_word, 'level_rank', j.level_rank,
+    'apply_url', j.apply_url, 'posted_at', j.posted_at, 'undated', coalesce(j.undated, false),
+    'level_word', j.level_word, 'level_rank', j.level_rank,
     'requirements', j.requirements, 'status', j.status, 'closed_reason', j.closed_reason,
     'skills', coalesce((SELECT jsonb_agg(s.skill_id ORDER BY s.skill_id) FROM job_skills s WHERE s.job_id = j.id), '[]'::jsonb),
     'makes', coalesce((SELECT jsonb_agg(m.make_id ORDER BY m.make_id) FROM job_makes m WHERE m.job_id = j.id), '[]'::jsonb))
@@ -357,6 +361,7 @@ RETURNS jsonb LANGUAGE sql STABLE AS $f$
     'posted_at', CASE WHEN p_facts->>'postedAt' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
                       THEN ((p_facts->>'postedAt')::timestamptz AT TIME ZONE 'UTC')
                       ELSE (SELECT j.posted_at FROM jobs j WHERE j.id = p_job) END,
+    'undated', coalesce(p_facts->>'postedAt', '') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}',
     'level_word', NULLIF(left(btrim(rd->'level'->>'word'), 40), ''),
     'level_rank', CASE WHEN rd->'level'->>'rank' ~ '^[1-4]$' THEN (rd->'level'->>'rank')::integer END,
     'requirements', NULLIF(jsonb_strip_nulls(jsonb_build_object(
@@ -399,6 +404,7 @@ BEGIN
     title = p_want->>'title', employment_type = p_want->>'employment_type', shift = p_want->>'shift',
     pay_min = (p_want->>'pay_min')::integer, pay_max = (p_want->>'pay_max')::integer, pay_period = p_want->>'pay_period',
     apply_url = p_want->>'apply_url', posted_at = coalesce((p_want->>'posted_at')::timestamp, posted_at),
+    undated = NULLIF(coalesce((p_want->>'undated')::boolean, false), false),
     level_word = p_want->>'level_word', level_rank = (p_want->>'level_rank')::smallint,
     requirements = NULLIF(p_want->'requirements', 'null'::jsonb),
     status = p_want->>'status', closed_reason = p_want->>'closed_reason', updated_at = now()

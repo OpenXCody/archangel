@@ -157,6 +157,8 @@ expect "a job with no pay stated has none"  '|' "$(job 103 "coalesce(j.pay_min::
 expect "a pay band that can only be a misprint is not said" '|' "$(job 111 "coalesce(j.pay_min::text, '') || '|' || coalesce(j.pay_max::text, '')")"
 expect "and is not called full-time unless the feed says so" 'full-time' "$(job 103 j.employment_type)"
 expect "when it was posted is the posting's day" '2026-11-10 12:00:00' "$(job 103 j.posted_at)"
+expect "a posting that gives its date is not undated" 'f' "$(job 103 "coalesce(j.undated, false)")"
+expect "one that gives none is: the day is the day it was first seen, and the page says Listed" 'true false' "$(sql "SELECT concat_ws(' ', posting_job_wanted('{\"title\": \"Welder\"}'::jsonb, NULL, NULL, NULL)->>'undated', posting_job_wanted('{\"title\": \"Welder\", \"postedAt\": \"2026-11-10\"}'::jsonb, NULL, NULL, NULL)->>'undated')")"
 expect "it expires fourteen days after a complete listing last included it" 't' "$(job 101 "j.created_by IS NULL AND j.last_seen_at > now() - interval '5 minutes' AND j.expires_at BETWEEN (now() AT TIME ZONE 'UTC') + interval '13 days 23 hours' AND (now() AT TIME ZONE 'UTC') + interval '14 days 1 hour'")"
 expect "a posting at a plant's own town and at the town beside it is one job there, not two" '1 112@palisade bend|NV' "$(sql "SELECT count(*) || ' ' || min(x.external_id) FROM jobs j JOIN external_references x ON x.entity_id = j.id AND x.source = 'POSTINGS_E2E_ACME' WHERE j.source = 'postings-e2e-acme' AND j.source_id LIKE '112%'")"
 expect "every job is journalled"            '8 8' "$(sql "SELECT count(*) FILTER (WHERE op = 'job') || ' ' || count(*) FILTER (WHERE op = 'id') FROM intake_changes WHERE run_id = $R1")"

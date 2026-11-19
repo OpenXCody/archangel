@@ -834,6 +834,8 @@ export const jobs = pgTable(
     levelRank: smallint('level_rank'),
     requirements: jsonb('requirements').$type<JobRequirements>(),
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+    // True where the posting gives no date: postedAt is then the day it was first seen.
+    undated: boolean('undated'),
   },
   (table) => ({
     serialIdx: uniqueIndex('jobs_serial_idx').on(table.serial),

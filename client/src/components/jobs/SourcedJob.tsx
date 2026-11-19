@@ -6,7 +6,7 @@ import { employmentLabel, formatPay } from '../../lib/jobFormat';
 import { formatDayCapital } from '../../lib/dates';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
 import { versionPath, versionTitle } from '@shared/versions';
-import { CardNote, ErrorNote, HeldMeter, cardClass } from '../account/parts';
+import { ErrorNote, HeldMeter, cardClass } from '../account/parts';
 import { DetailSection, RecordRow, detailActionClass, recordListClass } from '../layout/Page';
 import { SkillTag, SkillTags } from '../path/SkillTag';
 import { useSkillMarks } from '../path/useSkillMarks';
@@ -112,7 +112,7 @@ export default function SourcedJob({ job, skills, manages }: SourcedJobProps) {
           {job.levelWord && <Term label="Level">{job.levelWord}</Term>}
           {job.employmentType && <Term label="Type">{employmentLabel(job.employmentType)}</Term>}
           {job.shift && <Term label="Shift">{job.shift}</Term>}
-          <Term label="Posted">{formatDayCapital(job.postedAt)}</Term>
+          <Term label={job.undated ? 'Listed' : 'Posted'}>{formatDayCapital(job.postedAt)}</Term>
           {asksFor.length > 0 && (
             <div className="min-w-0 xs:col-span-2 sm:col-span-4" data-job-requirements>
               <dt className="text-xs text-fg-muted">Asks for</dt>
@@ -135,25 +135,22 @@ export default function SourcedJob({ job, skills, manages }: SourcedJobProps) {
         </ul>
       </div>
 
-      <DetailSection title="Skills">
-        {skills.length === 0 ? (
-          <CardNote>None yet.</CardNote>
-        ) : (
-          <>
-            {marks && <HeldMeter held={held} total={skills.length} noun="skills held" className="mb-3" />}
-            <ErrorNote error={error} className="mb-2" />
-            <SkillTags>
-              {skills.map((skill) => (
-                <SkillTag
-                  key={skill.id}
-                  skill={{ id: skill.id, name: skill.name, makes: (skill.makes ?? []).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })) }}
-                  marks={marks}
-                />
-              ))}
-            </SkillTags>
-          </>
-        )}
-      </DetailSection>
+      {/* A posting from which no skill was read has no Skills section: the page leaves out what it does not have. */}
+      {skills.length > 0 && (
+        <DetailSection title="Skills">
+          {marks && <HeldMeter held={held} total={skills.length} noun="skills held" className="mb-3" />}
+          <ErrorNote error={error} className="mb-2" />
+          <SkillTags>
+            {skills.map((skill) => (
+              <SkillTag
+                key={skill.id}
+                skill={{ id: skill.id, name: skill.name, makes: (skill.makes ?? []).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })) }}
+                marks={marks}
+              />
+            ))}
+          </SkillTags>
+        </DetailSection>
+      )}
     </>
   );
 }

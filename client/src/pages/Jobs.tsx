@@ -357,7 +357,7 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
     >
       <div className="flex items-start justify-between gap-3">
         <h2 className="min-w-0 break-words text-base font-medium text-fg-default">{job.title}</h2>
-        <span className="shrink-0 whitespace-nowrap pt-0.5 text-xs text-fg-muted">Posted {formatAgo(job.postedAt)}</span>
+        <span className="shrink-0 whitespace-nowrap pt-0.5 text-xs text-fg-muted">{job.undated ? 'Listed' : 'Posted'} {formatAgo(job.postedAt)}</span>
       </div>
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-muted">
         <span className="inline-flex min-w-0 items-center gap-1.5">
