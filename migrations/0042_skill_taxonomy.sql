@@ -774,8 +774,10 @@ INSERT INTO taxonomy_skills (name, group_slug, level, position) VALUES
 
 -- The stored skills must be exactly the file's ------------------------------------
 -- Checked before anything is changed. A skill the file names and the table lacks,
--- or one the table has and the file does not place, stops the migration. An empty
--- table has nothing to place: a database being built from nothing.
+-- or one the table has and the file does not place, stops the migration. Not when
+-- scripts/create-db.mjs is building a database from nothing: it says so for its
+-- session, because the skills there are only what earlier migrations created (its
+-- second pass, over the sample data, is checked like any other database).
 
 DO $check$
 DECLARE
@@ -784,7 +786,7 @@ DECLARE
   unknown_names text;
   unplaced_names text;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM skills) THEN RETURN; END IF;
+  IF current_setting('archangel.from_nothing', true) = 'on' THEN RETURN; END IF;
   SELECT COUNT(*), string_agg(name, ', ' ORDER BY name) FILTER (WHERE n <= 10) INTO unknown_count, unknown_names
     FROM (SELECT t.name, ROW_NUMBER() OVER (ORDER BY t.name) AS n FROM taxonomy_skills t WHERE NOT EXISTS (SELECT 1 FROM skills s WHERE s.name = t.name)) missing;
   SELECT COUNT(*), string_agg(name, ', ' ORDER BY name) FILTER (WHERE n <= 10) INTO unplaced_count, unplaced_names

@@ -27,8 +27,10 @@
 //   - makes occupation_skills.stage the skill's level, on every row now and,
 //     by two triggers, on every write from here on;
 //   - stops before it changes anything when the stored skills are not exactly
-//     the file's. An empty skills table is the one exception: a database
-//     being built from nothing gets the tables, the domains and the groups.
+//     the file's. The one exception is a database being built from nothing
+//     (scripts/create-db.mjs says so for the session): there the stored skills
+//     are only what earlier migrations happened to create, and the ones the
+//     file names are placed.
 // Every step is a no-op once it has been done.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
@@ -143,8 +145,10 @@ export function taxonomySql(taxonomy, source) {
     '',
     '-- The stored skills must be exactly the file\'s ------------------------------------',
     '-- Checked before anything is changed. A skill the file names and the table lacks,',
-    '-- or one the table has and the file does not place, stops the migration. An empty',
-    '-- table has nothing to place: a database being built from nothing.',
+    '-- or one the table has and the file does not place, stops the migration. Not when',
+    '-- scripts/create-db.mjs is building a database from nothing: it says so for its',
+    '-- session, because the skills there are only what earlier migrations created (its',
+    '-- second pass, over the sample data, is checked like any other database).',
     '',
     `DO $check$
 DECLARE
@@ -153,7 +157,7 @@ DECLARE
   unknown_names text;
   unplaced_names text;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM skills) THEN RETURN; END IF;
+  IF current_setting('archangel.from_nothing', true) = 'on' THEN RETURN; END IF;
   SELECT COUNT(*), string_agg(name, ', ' ORDER BY name) FILTER (WHERE n <= 10) INTO unknown_count, unknown_names
     FROM (SELECT t.name, ROW_NUMBER() OVER (ORDER BY t.name) AS n FROM taxonomy_skills t WHERE NOT EXISTS (SELECT 1 FROM skills s WHERE s.name = t.name)) missing;
   SELECT COUNT(*), string_agg(name, ', ' ORDER BY name) FILTER (WHERE n <= 10) INTO unplaced_count, unplaced_names

@@ -159,7 +159,9 @@ test('the migration checks the stored skills before it changes anything, and hol
   for (const change of ['CREATE TABLE IF NOT EXISTS skill_domains', 'ALTER TABLE skills', 'UPDATE skills s SET', 'UPDATE occupation_skills os SET', 'INSERT INTO skill_domains']) {
     assert.ok(stop < at(change), `the check comes before: ${change}`);
   }
-  at('IF NOT EXISTS (SELECT 1 FROM skills) THEN RETURN; END IF;');
+  // The one way past it is the session scripts/create-db.mjs marks while it builds a database from nothing.
+  at("IF current_setting('archangel.from_nothing', true) = 'on' THEN RETURN; END IF;");
+  assert.match(readFileSync('scripts/create-db.mjs', 'utf8'), /set_config\('archangel\.from_nothing', 'on', false\)[\s\S]*applyMigrations\(sql\);[\s\S]*sql = connect\(\);\s*await applyMigrations\(sql, \{ reapply: true \}\)/);
   at('CREATE TRIGGER occupation_skills_stage_is_level BEFORE INSERT OR UPDATE ON occupation_skills');
   at('CREATE TRIGGER skills_level_moves_paths AFTER UPDATE OF level ON skills');
   // One row per skill, each naming a group the file has.
