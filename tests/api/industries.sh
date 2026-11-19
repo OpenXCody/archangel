@@ -136,6 +136,9 @@ R=$(get /explore/facets)
 check "the lists' filters"                    200 "$R" '"industries":{"plants":\['
 expect "companies are offered the 21 only"    true "$(printf '%s' "$R" | j "o.industries.companies.includes('$IND') && !o.industries.companies.includes('Robots & Lasers') && o.industries.companies.length<=21 && o.industries.plants.length<=21")"
 expect "plants too, under the older name"     true "$(printf '%s' "$R" | j 'o.factoryIndustries.join()===o.industries.plants.join()')"
+# The skills list filters by category: every category some skill carries, each once, in name order.
+expect "the skill categories in use"          "$(sql "SELECT COUNT(DISTINCT btrim(category)) FROM skills WHERE category IS NOT NULL AND lower(btrim(category)) NOT IN ('', 'subcategory', 'category', 'skill', 'root')")" "$(printf '%s' "$R" | j 'o.skillCategories.length')"
+expect "each once, trimmed, in name order"    true "$(printf '%s' "$R" | j 'o.skillCategories.length>0 && o.skillCategories.every((c,i,a)=>c===c.trim() && c!=="" && (i===0||a[i-1].localeCompare(c)<0))')"
 R=$(get '/search?q=E2E%20Industry&types=companies,factories&limit=20')
 expect "search shows it by its short name"    Chemicals "$(printf '%s' "$R" | j "o.results.companies.items.find(c=>c.name==='E2E Industry Three').subtitle")"
 expect "and nothing for free text"            undefined "$(printf '%s' "$R" | j "String(o.results.companies.items.find(c=>c.name==='E2E Industry Five').subtitle)")"
@@ -149,6 +152,25 @@ expect "careers with a path, then the most skills" ok "$(printf '%s' "$R" | j "o
 expect "the last page is the careers with no skills" 0 "$(get "/occupations?limit=1&offset=$(( $(sql 'SELECT COUNT(*) FROM occupations') - 1 ))" | j 'o.data[0].skillCount')"
 expect "sort=name is the plain name order"    "$(sql "SELECT title FROM occupations ORDER BY lower(title), id LIMIT 1")" "$(get '/occupations?sort=name&limit=1' | j 'o.data[0].title')"
 expect "and backwards"                        "$(sql "SELECT title FROM occupations ORDER BY lower(title) DESC, id LIMIT 1")" "$(get '/occupations?sort=name&order=desc&limit=1' | j 'o.data[0].title')"
+
+# ── A focus area on the map ─────────────────────────────────────────────────
+# GET /api/map/areas/:id/overview is the panel a focus area opens: what a
+# state's overview carries, for the plants inside the area's drawn boundary.
+# Two plants of our own: one in the middle of Austin, one inside the box
+# around the area but south-west of its boundary.
+AREA=$(get /map/areas/austin/overview)
+check "a focus area's panel"                  200 "$AREA" '"id":"austin"'
+expect "it says what the area is"             "Austin, TX|true|4" "$(printf '%s' "$AREA" | j '[o.name, o.description.length>0, o.bounds.flat().length].join("|")')"
+expect "it carries what a state's panel does" true "$(printf '%s' "$AREA" | j "$(get /map/states/TX/overview | j 'JSON.stringify(Object.keys(o).filter(k=>k!=="code"))').every(k=>k in o)")"
+INSIDE=$(printf '%s' "$AREA" | j 'o.totalFactories')
+BOXED=$(get '/map/bounds/overview?west=-98.2985&south=29.6306&east=-97.0243&north=30.9063' | j 'o.totalFactories')
+sql "INSERT INTO factories (name, company_id, latitude, longitude, state, city, primary_naics_description) VALUES
+  ('E2E Industry Austin In', '$ONE', '30.2672', '-97.7431', 'TX', 'AUSTIN', '$IND'),
+  ('E2E Industry Austin Out', '$ONE', '29.70', '-98.25', 'TX', 'BOERNE', '$IND')" >/dev/null
+expect "a plant inside the boundary is counted, one outside it is not" "$((INSIDE + 1))" "$(get /map/areas/austin/overview | j 'o.totalFactories')"
+expect "the box around the area holds both"   "$((BOXED + 2))" "$(get '/map/bounds/overview?west=-98.2985&south=29.6306&east=-97.0243&north=30.9063' | j 'o.totalFactories')"
+expect "its industry is listed for the area"  true "$(get /map/areas/austin/overview | j "o.topIndustries.some(x=>x.label==='$IND'&&x.count>=1)")"
+check "an area that is not one"               404 "$(get /map/areas/nowhere/overview)" 'Area not found'
 
 cleanup
 expect "test companies and plants removed"    0 "$(sql "SELECT (SELECT COUNT(*) FROM companies WHERE name LIKE 'E2E Industry %') + (SELECT COUNT(*) FROM factories WHERE name LIKE 'E2E Industry %')")"
