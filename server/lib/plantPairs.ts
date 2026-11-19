@@ -232,6 +232,8 @@ export async function mergePlants(fromId: string, intoId: string, actor: Actor):
         await tx.execute(sql`SELECT plant_merge(${intoId}::uuid, ${fromId}::uuid, 'admin', ${actor.id}::uuid, 'plant-merge', 'an admin said they are one plant') AS merged`)
       );
       const outcome = row.merged;
+      // An id both rows carried did not move: it is held once. The log line says so; the history counts what moved.
+      const { sharedIds: _held, ...moved } = outcome.moved;
       await recordAudit(tx, {
         actor,
         kind: 'factory',
@@ -241,7 +243,7 @@ export async function mergePlants(fromId: string, intoId: string, actor: Actor):
         detail: {
           merged: outcome.merged,
           ...(outcome.took.length > 0 ? { took: outcome.took } : {}),
-          ...(Object.keys(outcome.moved).length > 0 ? { moved: outcome.moved } : {}),
+          ...(Object.keys(moved).length > 0 ? { moved } : {}),
         },
       });
       return outcome;

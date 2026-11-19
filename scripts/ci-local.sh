@@ -12,8 +12,9 @@
 #   2. builds the app and serves the built page and the API;
 #   3. runs the seven API suites (accounts, jobs, seeker, admin, email, industries,
 #      careers), the two that need only the database: the employer loader's
-#      (loader) and the careers catalogue's migration (catalogue), and intake's
-#      (intake), which drives the runner and then the API;
+#      (loader) and the careers catalogue's migration (catalogue), intake's
+#      (intake), which drives the runner and then the API, and the plant
+#      merge's (dupes): the database's merge, the cleanup migration, the API;
 #   4. runs the Playwright device suite against the built page.
 # Every suite runs even if an earlier one fails; the exit code is non-zero if
 # any did. The servers it started are stopped on the way out.

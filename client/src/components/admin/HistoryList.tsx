@@ -95,7 +95,6 @@ const ATTACHED: Record<string, [string, string]> = {
   // What a plant merge gathers on the kept plant.
   citations: ['source', 'sources'],
   ids: ['outside id', 'outside ids'],
-  sharedIds: ['id both carried', 'ids both carried'],
   records: ['staged record', 'staged records'],
 };
 
