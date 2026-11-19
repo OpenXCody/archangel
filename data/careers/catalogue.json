@@ -1,0 +1,2419 @@
+{
+  "note": "The careers the product lists, and the only place they are decided. A career is a real job at the grain of a trade or role. Each has a `title`, a `home` (the slug of one domain in data/skills/taxonomy.json), `what` (one or two sentences, stored as its description), `leadsTo` (up to three titles from this file: the next rungs, in the order shown; no chain of them may come back to where it started) and `was` (titles the product used to list separately: finer tasks, single machines, products, an employer's or a program's words, certification levels. Each is folded into this career and kept as another name for it). `dropAliases` are other names a folded title carries that must not follow it here, because they mean a different job; where one belongs to another career it is listed for that career in data/careers/aliases.json. A name that is now a career's own title is never kept as another name. `note` is for whoever writes the career's path and is shown nowhere. `removed` are titles that are not manufacturing careers and are deleted, each group with its reason. Careers are in the taxonomy's domain order. A title appears once in the whole file, in any letter case. Loaded by scripts/build-careers-sql.mjs (--check validates and writes nothing) into migrations/0046_careers_catalogue.sql; once that has been applied to production a change here goes out as a new generated migration. The careers typical of each industry are in data/careers/industries.json and name these titles.",
+  "careers": [
+    {
+      "title": "Production Operator",
+      "home": "production",
+      "what": "Runs production equipment on a line or in a cell: loads material, starts and watches the machine, checks the product and keeps count. The entry job in most plants.",
+      "leadsTo": [
+        "Setup Technician",
+        "CNC Machine Operator",
+        "Quality Control Inspector"
+      ],
+      "was": [
+        "Diaper Line Operator",
+        "Feminine Care Line Op",
+        "Paper Towel Line Op",
+        "Tissue Converting Op",
+        "Razor Assembly Operator",
+        "Blade Manufacturing Op"
+      ],
+      "note": "The folded titles are single consumer-goods lines (diapers, tissue, razors). Paper converting has no skill in the catalogue; the path is the shared floor skills."
+    },
+    {
+      "title": "Setup Technician",
+      "home": "production",
+      "what": "Changes production machines over from one job to the next: installs the tooling, die or mold, sets the machine, runs the first parts and gets them approved before operators take over.",
+      "leadsTo": [
+        "Maintenance Technician"
+      ],
+      "was": [],
+      "note": "The present path is a CNC machinist's (offsets, CAM, G-code); CNC set-up now belongs to CNC Machinist. Rewrite this one around changeover: Quick Changeover, Die Setting, First Article Inspection, Lockout Tagout, Overhead Crane Operation, Process Equipment Troubleshooting. It is the listed career of plastics, paper, printing and textile plants, which is why it stays general."
+    },
+    {
+      "title": "Continuous Improvement Specialist",
+      "home": "production",
+      "what": "Leads lean work on the floor: maps a process, runs kaizen events, sets standard work and 5S, and follows the numbers to see that the gain holds.",
+      "leadsTo": [
+        "Industrial Engineer"
+      ],
+      "was": [
+        "Lean Manufacturing Specialist"
+      ]
+    },
+    {
+      "title": "Industrial Engineer",
+      "home": "production",
+      "what": "Designs how work flows through a plant: studies times and motions, balances lines, lays out stations and material flow, and measures output and losses.",
+      "leadsTo": [],
+      "was": [
+        "Manufacturing Data Analyst"
+      ],
+      "note": "Manufacturing Data Analyst brings OEE Analysis and Manufacturing Execution System Use."
+    },
+    {
+      "title": "CNC Machine Operator",
+      "home": "machining",
+      "what": "Runs CNC mills and lathes that a machinist has set up: loads parts, starts the cycle, measures what comes off and adjusts offsets to hold size.",
+      "leadsTo": [
+        "CNC Machinist"
+      ],
+      "was": [],
+      "note": "Its present path reaches CAM and G-code programming, which belong to the next rungs; keep it to operating, offsets and in-process measurement."
+    },
+    {
+      "title": "CNC Machinist",
+      "home": "machining",
+      "what": "Sets up and runs CNC mills and lathes to make precision parts from a print: chooses workholding and tools, sets offsets, proves out the program and holds tolerance. Can also cut on manual machines.",
+      "leadsTo": [
+        "CNC Programmer",
+        "Tool and Die Maker",
+        "Swiss CNC Machinist"
+      ],
+      "was": [
+        "Machinist",
+        "CNC Mill Operator",
+        "CNC Lathe Operator",
+        "Casting CNC Machinist"
+      ],
+      "note": "Three present paths meet here (Machinist, CNC Mill Operator, CNC Lathe Operator). Keep manual lathe and mill from Machinist, with CNC Milling and Multi-Axis Turning from the other two, and Structural Casting Machining from Casting CNC Machinist (a title about one employer's large castings). 'CNC machinist' is today an alias of Machinist."
+    },
+    {
+      "title": "Swiss CNC Machinist",
+      "home": "machining",
+      "what": "Sets up and runs Swiss-type sliding-headstock lathes that turn small, long precision parts from bar, typically for medical devices, connectors and aerospace fittings.",
+      "leadsTo": [
+        "CNC Programmer"
+      ],
+      "was": [
+        "Swiss-Type Lathe Operator"
+      ]
+    },
+    {
+      "title": "CNC Programmer",
+      "home": "machining",
+      "what": "Writes the programs CNC machines run: plans the operations, builds toolpaths in CAM software, edits G-code, simulates the cut and proves the program out with the machinist.",
+      "leadsTo": [
+        "Manufacturing Engineer"
+      ],
+      "was": [
+        "NC Programmer",
+        "CAM Programmer",
+        "NC Fixture Programmer"
+      ],
+      "note": "CAM Programmer and NC Programmer have their own draft paths; between the three the path should hold CAM Programming, G-Code Programming, Mastercam, Vericut Simulation, 5-Axis Machining and fixture planning."
+    },
+    {
+      "title": "Precision Grinder",
+      "home": "machining",
+      "what": "Grinds hardened parts to final size and finish on surface, cylindrical and internal grinders, dressing the wheel and measuring to tenths of a thousandth.",
+      "leadsTo": [
+        "Tool and Die Maker"
+      ],
+      "was": [
+        "Grinding Machine Operator"
+      ]
+    },
+    {
+      "title": "EDM Operator",
+      "home": "machining",
+      "what": "Cuts hardened steel and carbide with electrical discharge machines, wire and sinker, for die details, mold cavities and shapes a cutter cannot reach.",
+      "leadsTo": [
+        "Tool and Die Maker"
+      ],
+      "was": []
+    },
+    {
+      "title": "Tool and Die Maker",
+      "home": "machining",
+      "what": "Builds, fits and repairs the dies, molds, gauges and precision tooling a plant produces with: machines and grinds the details, fits them together and tries the tool out in the press.",
+      "leadsTo": [
+        "Tooling Engineer"
+      ],
+      "was": [
+        "Gage Maker",
+        "Die Try-Out Specialist"
+      ],
+      "note": "Gage Maker brings Gauge Block Use, Honing and Lapping and Thread Measurement; Die Try-Out Specialist brings Die Tryout, Die Spotting and Draw Die Operation as the Advanced end of the path."
+    },
+    {
+      "title": "Jig and Fixture Builder",
+      "home": "machining",
+      "what": "Builds the jigs, fixtures, templates and layup tools that hold parts while they are drilled, assembled or cured, then sets and certifies them to the engineering datums.",
+      "leadsTo": [
+        "Tooling Engineer"
+      ],
+      "was": [
+        "Assembly Tool Maker",
+        "Drill Jig Maker",
+        "Template Maker",
+        "Master Model Maker",
+        "Composite Tool Fabricator"
+      ],
+      "note": "The present path is a toolroom machinist's and overlaps Tool and Die Maker. Rewrite it toward building and setting tooling: Workholding and Fixturing, Structural Steel Fabrication, MIG and TIG Welding, Laser Tracker Metrology, Tolerance Stack-Up Analysis, Layup Tool Preparation."
+    },
+    {
+      "title": "MIG Welder",
+      "home": "fabrication",
+      "what": "Welds steel and aluminum parts with the MIG process on a production line or in a fabrication shop, fitting the joint, setting the machine and checking each weld by eye.",
+      "leadsTo": [
+        "Welder",
+        "TIG Welder",
+        "Robotic Welding Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Welder",
+      "home": "fabrication",
+      "what": "Joins metal with several processes (stick, MIG, flux-cored, TIG) in all positions, on structural steel, pipe and plate, and holds the performance qualifications the work calls for.",
+      "leadsTo": [
+        "Metal Fabricator"
+      ],
+      "was": [
+        "Certified Welder"
+      ],
+      "note": "Certified Welder was a qualification level, not a different job; it brings Welder Performance Qualification, Destructive Weld Testing and Orbital Welding."
+    },
+    {
+      "title": "TIG Welder",
+      "home": "fabrication",
+      "what": "Makes precise TIG welds on thin and exotic metals (stainless, aluminum, titanium) where appearance and soundness both matter: tube, sheet, fittings and repair work.",
+      "leadsTo": [
+        "Aerospace Welder"
+      ],
+      "was": []
+    },
+    {
+      "title": "Aerospace Welder",
+      "home": "fabrication",
+      "what": "Welds flight hardware to aerospace codes: propellant tanks, pressure vessels, ducts and tubing in aluminum-lithium, stainless and titanium, by manual TIG, orbital and automated processes.",
+      "leadsTo": [],
+      "was": [
+        "LOX Tank Welder",
+        "RP-1 Tank Welder",
+        "Starship Barrel Welder",
+        "Starship Dome Technician",
+        "Header Tank Technician",
+        "Dragon Pressure Vessel Tech"
+      ],
+      "note": "Every folded title named a SpaceX program or tank (Falcon LOX and RP-1 tanks, Starship barrels, domes and header tanks, Dragon pressure vessels). Path: TIG Welding, Aluminum-Lithium Welding, Stainless Steel Welding, Cryogenic Tank Welding, Friction Stir Welding, Orbital Welding, Pressure Vessel Fabrication, Welder Performance Qualification."
+    },
+    {
+      "title": "Robotic Welding Technician",
+      "home": "fabrication",
+      "what": "Runs and tends robotic welding cells: loads fixtures, touches up weld paths on the teach pendant, changes tips and wire, and checks welds against the standard.",
+      "leadsTo": [
+        "Robot Programmer",
+        "Laser Welding Technician"
+      ],
+      "was": [
+        "Robotic Welder Operator"
+      ]
+    },
+    {
+      "title": "Laser Welding Technician",
+      "home": "fabrication",
+      "what": "Sets up and runs laser welding and brazing systems, checks the seam by section and test, and keeps the optics and process in window.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Body Weld Technician",
+      "home": "fabrication",
+      "what": "Works in an automotive body shop joining stamped panels into a body: tends spot-weld robots and guns, applies adhesive, dresses tips and tears down welds to prove them.",
+      "leadsTo": [
+        "Robotics Technician"
+      ],
+      "was": [
+        "Spot Weld Technician",
+        "Automotive Spot Weld Operator",
+        "Automotive MIG Weld Operator",
+        "Automotive Laser Weld Operator",
+        "Clinch Joint Operator",
+        "Hem Flange Operator",
+        "Body Framer Operator",
+        "Body Framing Technician",
+        "Underbody Assembly Tech",
+        "Quarter Panel Installer",
+        "Roof Installation Tech",
+        "Adhesive Bond Operator",
+        "Adhesive Bonding Technician"
+      ],
+      "note": "Spot Weld Technician has its own draft path and brings Robotic Spot Welding and Destructive Weld Testing; the framing and hemming stations bring Body-in-White Framing and Hemming."
+    },
+    {
+      "title": "Sheet Metal Fabricator",
+      "home": "fabrication",
+      "what": "Makes parts and enclosures from sheet: lays out the flat pattern, cuts it, forms it on a press brake and joins it by spot weld, rivet or weld.",
+      "leadsTo": [],
+      "was": [
+        "Sheet Metal Worker"
+      ]
+    },
+    {
+      "title": "Metal Fabricator",
+      "home": "fabrication",
+      "what": "Builds frames, weldments and structures from plate, tube and structural shapes: cuts and fits the pieces to the print, tacks and welds them, and checks the result square and to size.",
+      "leadsTo": [
+        "Jig and Fixture Builder"
+      ],
+      "was": []
+    },
+    {
+      "title": "Laser Cutting Operator",
+      "home": "fabrication",
+      "what": "Runs CNC cutting tables (laser, plasma or waterjet): loads sheet or plate, calls up the nest, sets the cut for the material and thickness, and checks edge quality and size.",
+      "leadsTo": [
+        "Sheet Metal Fabricator",
+        "Metal Fabricator"
+      ],
+      "was": [
+        "Plasma Cutter Operator",
+        "Waterjet Operator"
+      ],
+      "note": "Three machine titles in one career: the path holds Laser Cutting, Plasma Cutting and Abrasive Waterjet Cutting, and they differ by that one skill each."
+    },
+    {
+      "title": "Stamping Press Operator",
+      "home": "fabrication",
+      "what": "Runs stamping presses that form sheet metal into panels and parts: feeds blanks or coil, watches the dies, and inspects and stacks the stampings.",
+      "leadsTo": [
+        "Die Setter"
+      ],
+      "was": [
+        "Blank Feeder Operator",
+        "Blank Stacker Operator",
+        "Progressive Die Operator",
+        "Transfer Press Operator",
+        "Panel Inspection Tech"
+      ]
+    },
+    {
+      "title": "Die Setter",
+      "home": "fabrication",
+      "what": "Changes dies in stamping presses: moves the die in by crane or cart, clamps and shuts it to height, threads the coil or sets the transfer, and runs first hits until the part is right.",
+      "leadsTo": [
+        "Die Maintenance Technician"
+      ],
+      "was": [],
+      "note": "Present path is five skills; add Quick Changeover, Overhead Crane Operation, Rigging and Slinging, Lockout Tagout, Progressive Die Operation, Transfer Die Operation, Stamped Panel Inspection."
+    },
+    {
+      "title": "Die Maintenance Technician",
+      "home": "fabrication",
+      "what": "Keeps stamping and casting dies running: pulls them for service, replaces worn details, welds and regrinds damage, spots the die back in and proves it in the press.",
+      "leadsTo": [
+        "Tool and Die Maker"
+      ],
+      "was": [
+        "Die Repair Technician",
+        "Tooling Maintenance Tech"
+      ]
+    },
+    {
+      "title": "Die Casting Machine Operator",
+      "home": "fabrication",
+      "what": "Runs high-pressure die casting machines: tends the melt and the shot, sprays the die, pulls and trims the casting and checks it for defects.",
+      "leadsTo": [
+        "Die Casting Technician"
+      ],
+      "was": [
+        "Giga Press Operator",
+        "Casting Trim Operator",
+        "Alloy Preparation Tech"
+      ],
+      "note": "Giga Press is IDRA's machine and Tesla's word for it: an equipment-specific version of this career. Its draft path is the base; Alloy Preparation Tech brings Aluminum Melt Preparation."
+    },
+    {
+      "title": "Die Casting Technician",
+      "home": "fabrication",
+      "what": "Sets up die casting cells and keeps them in process: changes dies, sets shot, vacuum and spray, and troubleshoots porosity, cold shuts and sticking.",
+      "leadsTo": [
+        "Die Maintenance Technician",
+        "Casting Process Engineer"
+      ],
+      "was": [
+        "Die Cast Setup Technician"
+      ],
+      "note": "Die Cast Setup Technician named Giga Press dies; the path is its draft."
+    },
+    {
+      "title": "Casting Process Engineer",
+      "home": "fabrication",
+      "what": "Owns a casting process: designs gating and process windows, runs trials, reads X-ray and section results, and drives scrap down.",
+      "leadsTo": [],
+      "was": [],
+      "note": "The catalogue covers die casting only; sand and investment casting are not described."
+    },
+    {
+      "title": "Injection Molding Operator",
+      "home": "fabrication",
+      "what": "Runs injection molding machines that make plastic parts: starts and monitors the press, clears and inspects parts, trims gates and keeps the cell supplied.",
+      "leadsTo": [
+        "Setup Technician"
+      ],
+      "was": [],
+      "note": "The catalogue has no plastics skills at all (molding machine operation, mold setting, process parameters, material drying). A path today can only be shared floor skills; plastics is one of the 21 industries and needs its own skills written."
+    },
+    {
+      "title": "Additive Manufacturing Technician",
+      "home": "fabrication",
+      "what": "Runs metal and polymer 3D printers: prepares the build, handles powder or resin safely, tends the machine, and removes, cleans and finishes the parts.",
+      "leadsTo": [
+        "Additive Manufacturing Engineer"
+      ],
+      "was": []
+    },
+    {
+      "title": "Additive Manufacturing Engineer",
+      "home": "fabrication",
+      "what": "Develops printed parts and the process that makes them: redesigns for additive, sets orientation, supports and parameters, and qualifies the result through heat treatment and inspection.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Laser Technician",
+      "home": "fabrication",
+      "what": "Operates, aligns and services industrial laser systems used for cutting, welding, marking and measurement, and keeps their optics, chillers and safety interlocks in order.",
+      "leadsTo": [],
+      "was": [],
+      "note": "The catalogue describes what lasers are used for (Laser Cutting, Laser Welding, Laser Brazing, Laser Safety) but not the technician's own work: optics alignment, beam delivery, power measurement, laser source service."
+    },
+    {
+      "title": "Heat Treat Operator",
+      "home": "materials",
+      "what": "Runs furnaces that harden, temper, anneal and age metal parts: loads to the recipe, watches time, temperature and atmosphere, quenches, and checks hardness.",
+      "leadsTo": [
+        "Materials Testing Technician"
+      ],
+      "was": [
+        "Casting Heat Treat Tech"
+      ],
+      "note": "Casting Heat Treat Tech brings Aluminum Casting Heat Treatment and Solution Heat Treatment."
+    },
+    {
+      "title": "Plating and Anodizing Technician",
+      "home": "materials",
+      "what": "Runs chemical finishing lines: racks and masks parts, takes them through cleaning, plating, anodizing, conversion coating or passivation tanks, and checks thickness and adhesion.",
+      "leadsTo": [],
+      "was": [
+        "Plating Operator",
+        "Anodizing Technician",
+        "Cadmium Plating Technician",
+        "Chromate Conversion Technician",
+        "Passivation Technician"
+      ],
+      "note": "Plating Operator's path is the base; Anodizing Technician adds Anodizing and Hard Anodizing. Cadmium plating has no skill of its own (Electroplating covers it)."
+    },
+    {
+      "title": "Thermal Spray Technician",
+      "home": "materials",
+      "what": "Applies sprayed metal and ceramic coatings (plasma, HVOF) to engine and landing-gear parts: masks, grit-blasts, sprays by robot or by hand, and proves the coating. Often runs shot peening too.",
+      "leadsTo": [],
+      "was": [
+        "Thermal Spray Operator",
+        "Shot Peening Operator"
+      ],
+      "note": "Neither thermal spraying nor shot peening is in the catalogue. A path today would be Paint Masking, Coating Removal and Surface Preparation, Coating Adhesion Testing, Metallographic Examination, Robot Teach Pendant Operation and safety skills, without the trade's own two."
+    },
+    {
+      "title": "Industrial Painter",
+      "home": "materials",
+      "what": "Prepares and coats manufactured parts: cleans and masks, mixes the coating, sprays liquid paint or powder, cures it, and checks film thickness and finish.",
+      "leadsTo": [
+        "Aircraft Painter"
+      ],
+      "was": [
+        "Painter, Industrial",
+        "Dry Film Lubricant Technician"
+      ]
+    },
+    {
+      "title": "Aircraft Painter",
+      "home": "materials",
+      "what": "Strips, masks, primes and paints aircraft and aerospace parts to the specification, by hand spray in a hangar or booth, including liveries and specialty coatings.",
+      "leadsTo": [],
+      "was": [
+        "Paint Prep Technician",
+        "Primer Application Technician",
+        "Topcoat Application Technician",
+        "Composite Paint Prep Technician",
+        "Stealth Coatings Tech"
+      ],
+      "note": "Stealth Coatings Tech brings Low-Observable Coating Application as the Advanced end of the path."
+    },
+    {
+      "title": "Automotive Paint Technician",
+      "home": "materials",
+      "what": "Works a vehicle paint shop from bare body to finished color: pretreatment and e-coat, seam sealing, primer, base and clear in the booths, then inspection, sanding, polishing and spot repair.",
+      "leadsTo": [
+        "Paint Process Engineer"
+      ],
+      "was": [
+        "Phosphate Operator",
+        "Pretreatment Operator",
+        "E-Coat Operator",
+        "Sealer Booth Technician",
+        "Sealer Application Tech",
+        "Automotive Sealer Applicator",
+        "PVC Applicator",
+        "Prime Coat Technician",
+        "Primer Spray Operator",
+        "Base Coat Spray Op",
+        "Base Coat Technician",
+        "Clear Coat Spray Op",
+        "Clear Coat Technician",
+        "Paint Robot Operator",
+        "Oven Operator",
+        "Paint Booth Technician",
+        "Paint Mix Technician",
+        "Color Match Technician",
+        "Color Auditor",
+        "Paint Quality Inspector",
+        "Paint Repair Technician",
+        "Spot Repair Painter",
+        "Sanding Operator",
+        "Polishing Operator"
+      ],
+      "dropAliases": [
+        "deburr",
+        "deburrer",
+        "deburring",
+        "finisher",
+        "polisher",
+        "Oven Operator Food"
+      ],
+      "note": "Twenty-four stations of one department, none with a full path. Together they cover Phosphate Pretreatment, E-Coat Operation, Seam Sealer Application, Spray Gun Painting, Robotic Paint Application, Color Matching, Paint Defect Identification, Paint Defect Repair, Paint Film Thickness Measurement and Paint Appearance Measurement. Aliases to move: Polishing Operator carries 'deburrer', 'polisher' and 'finisher', and Oven Operator carries 'Oven Operator Food', none of which belong to a paint shop."
+    },
+    {
+      "title": "Paint Process Engineer",
+      "home": "materials",
+      "what": "Owns a paint shop's processes: bath chemistry, robot programs and booth balance, cure windows, film build and appearance, and the fight against dirt and defects.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Composite Technician",
+      "home": "materials",
+      "what": "Makes composite parts: cuts and kits plies, lays them up on the tool by hand, bags and cures the part, then trims and drills it.",
+      "leadsTo": [
+        "Composite Repair Technician",
+        "Automated Fiber Placement Operator",
+        "Autoclave Operator"
+      ],
+      "was": [
+        "Prepreg Layup Technician",
+        "Wet Layup Technician",
+        "Vacuum Bagging Technician",
+        "Resin Transfer Molding Operator",
+        "Composite Trim and Drill Operator"
+      ],
+      "note": "Prepreg Layup Technician has its own draft path (Debulking, Layup Tool Preparation, Laminate Layup Inspection). The present path carries Ultrasonic Testing and Scarf and Step Repair, which belong to other careers."
+    },
+    {
+      "title": "Automated Fiber Placement Operator",
+      "home": "materials",
+      "what": "Runs the CNC machines that lay composite tape and tow onto a tool: loads material, starts and watches the program, and inspects each ply for gaps, laps and wrinkles.",
+      "leadsTo": [],
+      "was": [
+        "Automated Tape Laying Operator"
+      ],
+      "note": "Catalogue has Unidirectional Tape Layup and CNC Control Operation but no skill for the placement machine itself (head threading, course inspection)."
+    },
+    {
+      "title": "Autoclave Operator",
+      "home": "materials",
+      "what": "Loads, instruments and runs autoclaves and ovens that cure composite and bonded parts, watching temperature, pressure and vacuum against the cure recipe.",
+      "leadsTo": [],
+      "was": [
+        "Oven Cure Technician"
+      ]
+    },
+    {
+      "title": "Composite Bonding Technician",
+      "home": "materials",
+      "what": "Bonds composite and metal structure with film and paste adhesives: prepares the surfaces, fits core and details, bags and cures the assembly, and checks the bond line.",
+      "leadsTo": [
+        "Composite Repair Technician"
+      ],
+      "was": [
+        "Bonded Structure Mechanic",
+        "Honeycomb Core Technician"
+      ],
+      "note": "Honeycomb Core Technician brings Honeycomb Core Installation."
+    },
+    {
+      "title": "Composite Repair Technician",
+      "home": "materials",
+      "what": "Repairs damaged composite structure to the repair manual: maps the damage, dries and scarfs it, lays in the repair plies, cures them with a heat blanket and inspects the result.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Materials Testing Technician",
+      "home": "materials",
+      "what": "Tests metals and coatings in the laboratory or on the floor: hardness, tensile, metallographic sections, alloy identification, and reports against the specification.",
+      "leadsTo": [
+        "Materials Engineer"
+      ],
+      "was": [
+        "Replica Metallography Technician",
+        "Portable Hardness Tester",
+        "Positive Material Identification Tech"
+      ],
+      "note": "No folded title had a path. Path: Rockwell Hardness Testing, Brinell Hardness Testing, Tensile Testing, Metallographic Examination, Destructive Weld Testing, Coating Adhesion Testing, Eddy Current Conductivity Measurement. Positive material identification (XRF, OES) has no skill in the catalogue."
+    },
+    {
+      "title": "Materials Engineer",
+      "home": "materials",
+      "what": "Chooses and qualifies the materials and special processes a product depends on, sets the specifications, and investigates when a material fails.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Production Assembler",
+      "home": "assembly",
+      "what": "Puts components together into products at a bench or on a line, following work instructions with hand and power tools, and checks each unit before it moves on.",
+      "leadsTo": [
+        "Precision Assembly Technician",
+        "Quality Control Inspector"
+      ],
+      "was": [
+        "Assembly Line Worker"
+      ]
+    },
+    {
+      "title": "Precision Assembly Technician",
+      "home": "assembly",
+      "what": "Assembles close-tolerance mechanisms and instruments from drawings: fits bearings and shafts, shims and aligns, torques to sequence and measures as the build goes.",
+      "leadsTo": [
+        "Machine Builder"
+      ],
+      "was": [],
+      "note": "Present path is six skills; add Bearing Installation, Press and Shrink Fitting, Shimming, Assembly Rework and Repair, Height Gauge Measurement."
+    },
+    {
+      "title": "Machine Builder",
+      "home": "assembly",
+      "what": "Builds machinery from castings and components: scrapes and fits ways, installs spindles, ballscrews and guides, plumbs hydraulics and pneumatics, aligns the geometry and runs the machine off.",
+      "leadsTo": [
+        "Millwright"
+      ],
+      "was": [
+        "Machine Tool Assembler",
+        "Spindle Assembler",
+        "Ballscrew Installer",
+        "Linear Guide Installer",
+        "Way System Scraper",
+        "Turret Assembler",
+        "Tool Changer Assembler",
+        "Machine Bed Assembler",
+        "Column Assembler",
+        "Table Assembler",
+        "Enclosure Installer",
+        "Coolant System Tech",
+        "Chip Conveyor Install",
+        "Machine Hydraulics Tech",
+        "Machine Pneumatics Tech",
+        "Geometric Alignment Tech",
+        "Laser Alignment Tech",
+        "Machine Runoff Tech",
+        "Turbine Assembly Tech"
+      ],
+      "note": "Nineteen stations of a machine-tool builder's floor. The catalogue describes it well: Spindle Assembly, Ballscrew Installation, Linear Guide Installation, Hand Scraping of Machine Ways, Machine Tool Geometric Alignment, Machine Leveling, Ballbar Testing, Machine Tool Laser Calibration, CNC Axis Error Compensation."
+    },
+    {
+      "title": "Automotive Assembler",
+      "home": "assembly",
+      "what": "Builds vehicles on a general assembly line: installs trim, wiring, cockpit, glass, seats, chassis and powertrain at a station, to takt time and torque specification.",
+      "leadsTo": [
+        "Vehicle Final Inspector"
+      ],
+      "was": [
+        "Chassis Line Operator",
+        "Trim Line Operator",
+        "Trim Assembly Technician",
+        "Interior Trim Installer",
+        "Door Trim Installer",
+        "Console Installer",
+        "Instrument Panel Install",
+        "Cockpit Installation Tech",
+        "Automotive Carpet Installer",
+        "Automotive Headliner Installer",
+        "Headliner Installation Tech",
+        "Automotive Seat Installer",
+        "Seat Installation Tech",
+        "Automotive Glass Installer",
+        "Glass Installation Tech",
+        "Automotive Wheel Installer",
+        "Wheel and Tire Tech",
+        "Automotive Battery Installer",
+        "HVAC Installation Tech",
+        "HVAC System Installer",
+        "Wiring Harness Install",
+        "Fluid Fill Technician",
+        "Automotive Fluid Fill Operator",
+        "Axle Installer",
+        "Driveline Installer",
+        "Brake System Installer",
+        "Exhaust System Install",
+        "Fuel Tank Installer",
+        "Front Suspension Tech",
+        "Rear Suspension Tech",
+        "Suspension Installer",
+        "Steering Install Tech",
+        "Drive Unit Integration Tech"
+      ],
+      "note": "Thirty-three line stations, none with a full path. The catalogue's vehicle skills make the path: Powertrain Marriage, Cockpit Module Installation, Seat Installation, Vehicle HVAC Module Installation, Glass Bonding, Vehicle Fluid Fill, Vehicle Harness Routing, Torque Wrench Use."
+    },
+    {
+      "title": "Body Fit Technician",
+      "home": "assembly",
+      "what": "Hangs and fits doors, hoods, fenders and lids on a vehicle body, setting gaps and flushness to specification, and finishes out dings and surface defects in the metal.",
+      "leadsTo": [
+        "Dimensional Metrology Technician"
+      ],
+      "was": [
+        "Body Panel Technician",
+        "Closure Technician",
+        "Door Hang Technician",
+        "Fender Installation Tech",
+        "Hood Deck Installer",
+        "Body Repair Specialist"
+      ],
+      "note": "Panel Gap and Flush Fitting, Hemming and Body Dimensional Measurement are in the catalogue; metal finishing (pick-and-file ding repair) is not."
+    },
+    {
+      "title": "Powertrain Assembler",
+      "home": "assembly",
+      "what": "Assembles engines, transmissions and electric drive units: fits bearings, gears, shafts and seals, torques in sequence, and passes each unit through leak and end-of-line test.",
+      "leadsTo": [
+        "Powertrain Test Technician"
+      ],
+      "was": [
+        "Drive Unit Assembler",
+        "Gearbox Assembly Tech",
+        "Automotive Engine Assembly Technician",
+        "Block Assembly Tech",
+        "Cylinder Head Assembler",
+        "Crankshaft Installer",
+        "Camshaft Installer",
+        "Piston Assembly Tech",
+        "Valve Train Assembler",
+        "Oil Pan Installer",
+        "Engine Dress Tech",
+        "Clutch Assembly Tech",
+        "Transmission Assembly",
+        "Torque Converter Install"
+      ],
+      "note": "Drive Unit Assembler's draft path is the base (Bearing Installation, Press and Shrink Fitting, Motor Housing Assembly). Engine and transmission stations have no skills of their own in the catalogue."
+    },
+    {
+      "title": "Aircraft Structures Mechanic",
+      "home": "assembly",
+      "what": "Builds airframes: locates and drills parts in the jig, installs rivets and other fasteners, seals, shims and joins panels, frames and major sections to the drawing.",
+      "leadsTo": [
+        "Aircraft Systems Mechanic",
+        "Aircraft Assembly Inspector"
+      ],
+      "was": [
+        "Aerostructures Mechanic",
+        "Aerospace Assembler",
+        "Fuselage Structural Mechanic",
+        "Empennage Mechanic",
+        "Fighter Assembly Mechanic",
+        "Bomber Assembly Mechanic",
+        "Tanker Assembly Mechanic",
+        "Transport Assembly Mech",
+        "Wing Box Mechanic",
+        "Wing Spar Mechanic",
+        "Wing Rib Installer",
+        "Wing Leading Edge Mechanic",
+        "Wing Trailing Edge Mechanic",
+        "Winglet Installer",
+        "Wing Tip Installer",
+        "Nose Section Mechanic",
+        "Tail Section Mechanic",
+        "Pressure Bulkhead Mechanic",
+        "Keel Beam Mechanic",
+        "Frame Installer",
+        "Stringer Installer",
+        "Floor Beam Installer",
+        "Floor Panel Installer",
+        "Fuselage Join Mechanic",
+        "Final Body Join Mechanic",
+        "Wing-Body Join Mechanic",
+        "Major Assembly Mechanic",
+        "Shimming Specialist",
+        "Structural Repair Mechanic",
+        "Fairing Mechanic",
+        "Pylon Installer",
+        "Pylon Mechanic",
+        "Nacelle Installer",
+        "Nacelle Mechanic",
+        "Door and Hatch Mechanic",
+        "Passenger Door Mechanic",
+        "Cargo Door Mechanic",
+        "Emergency Exit Mechanic",
+        "Canopy Installer",
+        "Conformal Tank Installer",
+        "Weapons Bay Mechanic",
+        "Pylon and Rack Installer"
+      ],
+      "note": "Aerostructures Mechanic and Aerospace Assembler have near-identical draft paths; Aerostructures Mechanic's is the base. The join and section titles bring Major Structural Join, Skin Panel Installation and Lockbolt Installation; Structural Repair Mechanic brings Aircraft Sheet Metal Repair and Structural Repair Manual Use."
+    },
+    {
+      "title": "Aircraft Systems Mechanic",
+      "home": "assembly",
+      "what": "Installs and rigs the systems inside an airframe during final assembly: hydraulics, fuel, flight controls, landing gear, environmental and oxygen systems, then tests them working.",
+      "leadsTo": [
+        "Aircraft Mechanic",
+        "Aircraft Assembly Inspector"
+      ],
+      "was": [
+        "Hydraulic Systems Mechanic",
+        "Fuel Systems Mechanic",
+        "Environmental Control Mechanic",
+        "Oxygen Systems Mechanic",
+        "Fire Protection Mechanic",
+        "De-Ice Systems Mechanic",
+        "Anti-Ice Systems Mechanic",
+        "Pneumatic Systems Mechanic",
+        "Bleed Air Ducting Mechanic",
+        "Flight Controls Rigging Mechanic",
+        "Flight Control Surface Mechanic",
+        "Brake Systems Mechanic",
+        "Steering Systems Mechanic",
+        "Water and Waste Systems Mechanic",
+        "Cargo Systems Mechanic",
+        "Door Actuation Mechanic",
+        "Ram Air Turbine Mechanic",
+        "Probe and Sensor Installer",
+        "Landing Gear Mechanic",
+        "Thrust Reverser Mechanic",
+        "Ejection Seat Installer",
+        "Ejection Seat Mechanic",
+        "Flight Deck Assembly",
+        "Weapons Systems Mechanic",
+        "Gun Systems Technician"
+      ],
+      "note": "No folded title had a full path. Path: Hydraulic Line Installation, Tube Bending and Flaring, Flight Control Surface Installation, Flight Control Rigging, Landing Gear Servicing and Rigging, Safety Wire Installation, Aerospace Sealant Application, Electrical Bonding and Grounding, Pitot-Static System Testing, Closeout Inspection. Armament and ejection-seat installation add Ordnance Handling."
+    },
+    {
+      "title": "Rocket Engine Technician",
+      "home": "assembly",
+      "what": "Builds liquid rocket engines: assembles turbopumps, valves, injectors and chambers in clean conditions, torques and safety-wires, leak-checks, and readies the engine for hot fire.",
+      "leadsTo": [
+        "Propulsion Technician",
+        "Propulsion Test Technician"
+      ],
+      "was": [
+        "Raptor Engine Assembler",
+        "Raptor Turbopump Technician",
+        "Raptor Injector Technician",
+        "Raptor Preburner Technician",
+        "Raptor Combustion Chamber Tech",
+        "Raptor Nozzle Technician",
+        "Raptor Turbine Blade Inspector"
+      ],
+      "note": "The folded titles are one SpaceX engine (Raptor) cut into its components. They bring Rocket Engine Assembly, Injector Fabrication and Regenerative Cooling Channel Fabrication to the draft path."
+    },
+    {
+      "title": "Propulsion Technician",
+      "home": "assembly",
+      "what": "Installs propulsion on launch vehicles and spacecraft: engines and thrusters, thrust-vector actuators, propellant tanks, pressurant bottles, valves and tubing, then leak-checks the system.",
+      "leadsTo": [
+        "Propulsion Test Technician"
+      ],
+      "was": [
+        "Falcon Propulsion Technician",
+        "Raptor Integration Technician",
+        "Raptor TVC Technician",
+        "Draco Thruster Technician",
+        "SuperDraco Technician",
+        "Hot Gas Thruster Technician",
+        "Helium Pressurant Technician",
+        "Starlink Propulsion Tech",
+        "Spacecraft Propulsion Technician"
+      ],
+      "note": "All but one folded title named a SpaceX vehicle or engine (Falcon, Raptor, Draco, SuperDraco, Starlink). Path: Thrust Vector Control Installation, Thruster Installation, Propellant Tank Installation, COPV Installation, Spacecraft Fluid System Installation, Tube Bending and Flaring, Orbital Welding, Helium Leak Detection."
+    },
+    {
+      "title": "Launch Vehicle Integration Technician",
+      "home": "assembly",
+      "what": "Assembles and integrates rocket stages: joins tank and structure sections, installs fairings, interstages, landing and separation mechanisms and heat shielding, and refurbishes recovered boosters.",
+      "leadsTo": [
+        "Launch Pad Technician"
+      ],
+      "was": [
+        "Launch Vehicle Integration Tech",
+        "Falcon Stage Technician",
+        "Falcon Interstage Technician",
+        "Falcon Fairing Technician",
+        "Payload Fairing Technician",
+        "Grid Fin Technician",
+        "Landing Leg Technician",
+        "Stage Separation Technician",
+        "Super Heavy Booster Technician",
+        "Starship Flap Technician",
+        "Launch Adapter Tech",
+        "Booster Refurbishment Tech",
+        "Starlink Dispenser Technician",
+        "Heat Shield Tile Technician",
+        "Heat Shield Tech NASA",
+        "Starship TPS Inspector"
+      ],
+      "note": "Mostly SpaceX program names (Falcon, Super Heavy, Starship, Starlink) and one NASA. Path: Major Structural Join, Separation System Installation, Spacecraft Mechanism Installation, Heat Shield Tile Installation, Thermal Protection System Inspection, Post-Flight Hardware Inspection, Rocket Engine Refurbishment, Overhead Crane Operation, Rigging and Slinging."
+    },
+    {
+      "title": "Spacecraft Integration Technician",
+      "home": "assembly",
+      "what": "Assembles satellites and spacecraft in a cleanroom: builds the bus, installs solar arrays, antennas, mechanisms, harness and thermal blankets, and supports the spacecraft through test.",
+      "leadsTo": [
+        "Test Technician"
+      ],
+      "was": [
+        "Satellite Assembly Technician",
+        "Satellite Bus Tech",
+        "Starlink Assembly Technician",
+        "Starlink Solar Array Tech",
+        "Solar Array Technician",
+        "Solar Panel Tech",
+        "Starlink Laser Link Tech",
+        "Antenna Deployment Tech",
+        "Antenna Systems Technician",
+        "Reaction Wheel Tech",
+        "Star Tracker Installer",
+        "Thermal Blanket Tech",
+        "Thermal Control Technician",
+        "Harness Integration Tech",
+        "Payload Integration Tech",
+        "Crew Module Tech",
+        "Service Module Tech",
+        "Dragon ECLSS Technician",
+        "Dragon Final Integration Tech",
+        "Dragon Hatch Technician",
+        "Dragon Parachute Technician",
+        "Dragon Thermal Control Tech",
+        "Dragon Trunk Technician",
+        "NASA Flight Hardware Tech",
+        "Clean Room Assembler NASA",
+        "Clean Room Assembly Lead",
+        "EVA Hardware Tech",
+        "ISS Hardware Tech",
+        "Life Support Tech NASA",
+        "Planetary Rover Tech",
+        "Sample Return Tech"
+      ],
+      "note": "The kept title has no path; the folded ones named SpaceX programs (Starlink, Dragon) and NASA. Path: Satellite Bus Assembly, Multi-Layer Insulation Installation, Spacecraft Mechanism Installation, Spacecraft Fluid System Installation, Laser Communication Terminal Assembly, Parachute Packing, Cleanroom Protocols, ESD Control, Connector Assembly, Thermal Vacuum Testing."
+    },
+    {
+      "title": "Missile and Ordnance Technician",
+      "home": "assembly",
+      "what": "Assembles and tests missiles and munitions: builds up airframes, installs guidance sections, motors, warheads and initiators under explosive-safety rules, and runs acceptance tests.",
+      "leadsTo": [],
+      "was": [
+        "Missile Assembly Tech",
+        "Missile Technician",
+        "AMRAAM Assembly Tech",
+        "SM-6 Assembly Tech",
+        "Sidewinder Assembly Tech",
+        "Stinger Assembly Tech",
+        "Tomahawk Assembly Tech",
+        "Patriot System Tech",
+        "Guidance System Tech",
+        "Seeker Assembly Tech",
+        "Warhead Integration Tech",
+        "Propulsion Integration",
+        "Ordnance Technician",
+        "Explosive Ordnance Technician",
+        "Armament Test Equipment Tech"
+      ],
+      "note": "Six folded titles are single missile programs (AMRAAM, SM-6, Sidewinder, Stinger, Tomahawk, Patriot). The catalogue has only Missile Assembly and Ordnance Handling for this trade; the rest of a path is shared assembly, harness and test skills."
+    },
+    {
+      "title": "Medical Device Assembler",
+      "home": "assembly",
+      "what": "Assembles medical devices (catheters, implants, instruments, pumps) by hand and under a microscope in a controlled room, to documented procedures and with full lot records.",
+      "leadsTo": [
+        "Quality Control Inspector"
+      ],
+      "was": [
+        "Catheter Assembler",
+        "Stent Assembler",
+        "Pacemaker Assembler",
+        "ICD Assembler",
+        "Hearing Aid Assembler",
+        "Implant Assembler",
+        "Surgical Instrument Assembler",
+        "Diagnostic Kit Assembler",
+        "Filter Assembler",
+        "Needle Assembler",
+        "Tubing Assembler",
+        "Pump Assembler Med",
+        "Contact Lens Technician",
+        "Dental Device Tech",
+        "Suture Technician"
+      ],
+      "note": "Fifteen single products. The catalogue has the regulated-room skills but nothing device-specific (catheter bonding, laser welding of implants, microscope assembly)."
+    },
+    {
+      "title": "Electronics Assembler",
+      "home": "electronics",
+      "what": "Builds electronic assemblies by hand: places and solders components, fits boards, cables and hardware into the enclosure, and inspects the work to IPC standards.",
+      "leadsTo": [
+        "PCB Rework Technician",
+        "Test Technician"
+      ],
+      "was": [
+        "PCB Assembler",
+        "PTH Assembly Tech",
+        "PLC Assembly Technician",
+        "HMI Panel Assembler",
+        "I/O Module Assembler",
+        "Safety Controller Tech",
+        "Network Switch Assembler"
+      ],
+      "note": "PCB Assembler has its own draft path (J-STD-001 Soldering, IPC-A-610 Workmanship Inspection)."
+    },
+    {
+      "title": "SMT Line Operator",
+      "home": "electronics",
+      "what": "Runs a surface-mount line: sets up the paste printer, pick-and-place and reflow oven, loads feeders, and works the inspection machines that follow.",
+      "leadsTo": [
+        "PCB Rework Technician"
+      ],
+      "was": [
+        "Paste Printer Operator",
+        "Pick and Place Operator",
+        "Reflow Oven Operator",
+        "SPI Operator",
+        "AOI Operator",
+        "Wave Solder Operator",
+        "Selective Solder Operator",
+        "Conformal Coat Operator"
+      ],
+      "note": "Each folded title is one machine on the line; they bring Solder Paste Inspection Setup, Wave and Selective Soldering and Conformal Coating."
+    },
+    {
+      "title": "PCB Rework Technician",
+      "home": "electronics",
+      "what": "Repairs circuit boards that fail inspection or test: removes and replaces components down to fine-pitch and BGA, repairs pads and traces, and proves the joint by X-ray.",
+      "leadsTo": [
+        "Electronics Technician"
+      ],
+      "was": [
+        "BGA Rework Technician",
+        "PCB Repair Technician",
+        "X-Ray Inspection Tech"
+      ]
+    },
+    {
+      "title": "Electronics Technician",
+      "home": "electronics",
+      "what": "Troubleshoots and repairs electronic equipment to component level with schematics, meter and oscilloscope, and builds and modifies prototypes for engineers.",
+      "leadsTo": [
+        "RF Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Wire Harness Assembler",
+      "home": "electronics",
+      "what": "Builds wire harnesses and cable assemblies on a form board: cuts, strips and crimps, pins connectors, laces and labels, and tests every circuit.",
+      "leadsTo": [
+        "Aircraft Electrician",
+        "Electrical Panel Builder"
+      ],
+      "was": [
+        "Wire Harness Fabricator",
+        "Cable Assembly Tech",
+        "Connector Assembly Technician"
+      ]
+    },
+    {
+      "title": "Electrical Panel Builder",
+      "home": "electronics",
+      "what": "Builds and wires control panels, motor control centers and switchgear from schematics: lays out and mounts devices, runs wire and bus, terminates, labels and tests.",
+      "leadsTo": [
+        "Industrial Electrician",
+        "Controls Technician"
+      ],
+      "was": [
+        "Switchgear Assembler",
+        "MCC Assembler",
+        "Machine Electrician",
+        "CNC Installer",
+        "Servo Drive Installer",
+        "Encoder Installer"
+      ],
+      "note": "No folded title had a path. Path: Electrical Schematic Reading, Wire Crimping and Termination, Sensor and I/O Wiring, Three-Phase Motor Wiring, Busbar Installation, Continuity and Wiring Verification, Hi-Pot Testing, Insulation Resistance Testing."
+    },
+    {
+      "title": "Aircraft Electrician",
+      "home": "electronics",
+      "what": "Installs the electrical system in an aircraft: routes and clamps harnesses, terminates and pins connectors, bonds and grounds, installs power distribution, and rings out every circuit.",
+      "leadsTo": [
+        "Avionics Technician"
+      ],
+      "was": [
+        "Aircraft Wire Installer",
+        "Aircraft Fiber Optic Installer",
+        "Coaxial Cable Technician",
+        "Circuit Breaker Panel Tech",
+        "Power Distribution Tech",
+        "Generator Control Unit Tech",
+        "Lightning Protection Installer",
+        "Aircraft Battery Technician",
+        "Ground Power Equipment Tech"
+      ],
+      "note": "Present path is three skills. Add Wire Bundle Lacing and Clamping, Wire Crimping and Termination, Continuity and Wiring Verification, RF and Coaxial Cable Assembly, Fiber Optic Termination, Hi-Pot Testing."
+    },
+    {
+      "title": "Avionics Technician",
+      "home": "electronics",
+      "what": "Installs, tests and troubleshoots an aircraft's electronics (navigation, communication, displays, flight management, radar and data buses) on the production line or in maintenance.",
+      "leadsTo": [],
+      "was": [
+        "AFDX Network Technician",
+        "ARINC 429 Systems Specialist",
+        "MIL-STD-1553 Specialist",
+        "Autopilot Systems Technician",
+        "Communication Systems Technician",
+        "Navigation Systems Technician",
+        "Data Link Systems Technician",
+        "Display Systems Technician",
+        "EGPWS Technician",
+        "ELT Systems Technician",
+        "EVS/SVS Technician",
+        "FLIR Systems Technician",
+        "HUD Systems Technician",
+        "IFE Systems Technician",
+        "Cabin Management Systems Tech",
+        "Flight Data Recorder Technician",
+        "Flight Management System Tech",
+        "Radio Altimeter Technician",
+        "TCAS/ACAS Technician",
+        "Transponder Systems Technician",
+        "Weather Radar Technician",
+        "Fiber Optic Avionics Technician",
+        "Mission Systems Technician",
+        "EW Systems Technician",
+        "Targeting Systems Technician",
+        "Countermeasures Installer",
+        "Avionics Ground Support Tech",
+        "AWACS Rotodome Tech",
+        "IRST Installer",
+        "Radar Bay Mechanic",
+        "Sensor Fusion Tech",
+        "Dragon Avionics Integrator",
+        "Starship Avionics Technician"
+      ],
+      "note": "Thirty-three titles, each one avionics box or bus. They bring MIL-STD-1553 Data Bus Testing and Radar System Testing to the draft path. Two named SpaceX vehicles (Dragon, Starship)."
+    },
+    {
+      "title": "Power Electronics Technician",
+      "home": "electronics",
+      "what": "Builds inverters, converters, chargers and power modules: mounts power devices and busbars, applies thermal interface and potting, assembles the cooling, and runs high-voltage tests.",
+      "leadsTo": [
+        "Test Technician"
+      ],
+      "was": [
+        "Power Module Technician",
+        "Inverter Assembly Technician",
+        "DC-DC Converter Technician",
+        "Onboard Charger Technician",
+        "PE PCB Assembler",
+        "PE Thermal Technician",
+        "PE Test Technician",
+        "Capacitor Bank Technician",
+        "Drive System Assembler",
+        "Power Supply Assembler"
+      ],
+      "note": "Power Module Technician's draft path is the base; the others bring Power Electronics Assembly, Cold Plate and Coolant Loop Assembly and Power Electronics Functional Test."
+    },
+    {
+      "title": "Server Assembly Technician",
+      "home": "electronics",
+      "what": "Builds servers and racks: installs boards, processors, memory, drives and cooling, cables the rack, loads firmware and the operating system, and runs burn-in.",
+      "leadsTo": [
+        "Test Technician"
+      ],
+      "was": [
+        "Server Assembly Tech",
+        "Chassis Assembly Tech",
+        "Desktop Assembly Tech",
+        "Workstation Assembly Tech",
+        "Storage System Assembly",
+        "GPU Install Technician",
+        "Memory Install Tech",
+        "Storage Install Tech",
+        "Thermal Module Tech",
+        "BIOS Flash Technician",
+        "OS Load Technician",
+        "System Config Tech",
+        "System Burn-In Tech",
+        "Industrial PC Builder",
+        "Pack and Ship Tech"
+      ]
+    },
+    {
+      "title": "Consumer Electronics Assembler",
+      "home": "electronics",
+      "what": "Assembles phones, tablets, laptops and wearables on a high-volume line: fits displays, batteries, cameras and sensors, seals the enclosure and runs the station's test.",
+      "leadsTo": [
+        "Test Technician"
+      ],
+      "was": [
+        "iPhone Assembly Tech",
+        "iPad Assembly Tech",
+        "Mac Assembly Tech",
+        "Watch Assembly Tech",
+        "AirPods Assembly Tech",
+        "Laptop Assembly Tech",
+        "Tablet Assembly Tech",
+        "Camera Module Tech",
+        "Display Assembly Tech",
+        "Battery Install Tech",
+        "Enclosure Assembly Tech",
+        "Antenna Assembly Tech",
+        "Haptic Assembly Tech",
+        "Face ID Module Tech",
+        "Touch ID Module Tech",
+        "Microphone Assembly Tech",
+        "Speaker Assembly Tech"
+      ],
+      "note": "Eight folded titles are Apple products or parts (iPhone, iPad, Mac, Watch, AirPods, Face ID, Touch ID). Path: Device Battery Installation, Camera Module Assembly, Display Module Assembly, Device Sensor Calibration, Device Enclosure Sealing, ESD Control."
+    },
+    {
+      "title": "Wafer Fab Operator",
+      "home": "semiconductor",
+      "what": "Moves wafer lots through a fab: gowns in, loads tools, runs the recipe the system calls for, logs the lot and flags anything out of control.",
+      "leadsTo": [
+        "Semiconductor Equipment Technician",
+        "Lithography Process Technician",
+        "Etch Process Technician"
+      ],
+      "was": [
+        "Wafer Fab Process Operator",
+        "Semiconductor Process Technician",
+        "Cleanroom Technician",
+        "Clean Room Operator"
+      ],
+      "note": "Semiconductor Process Technician and Cleanroom Technician have draft paths that sample every module; the module skills now sit in the five process technician careers. An operator also moves into thin film, diffusion, wet process and metrology, which three links cannot show. Cleanroom Technician is also listed for medical devices."
+    },
+    {
+      "title": "Lithography Process Technician",
+      "home": "semiconductor",
+      "what": "Runs and sustains the photolithography area: coat and develop tracks, steppers and scanners, reticles, and the focus, dose and overlay checks that keep the pattern in specification.",
+      "leadsTo": [
+        "Lithography Process Engineer"
+      ],
+      "was": [
+        "Photo Operator",
+        "EUV Scanner Operator",
+        "Stepper Operator",
+        "Scanner Operator",
+        "Track Technician",
+        "Resist Coat Operator",
+        "Develop Process Tech",
+        "Mask Handler",
+        "Reticle Inspector"
+      ],
+      "note": "Photo Operator and EUV Scanner Operator have draft paths; EUV Lithography and Immersion Lithography are the Advanced end."
+    },
+    {
+      "title": "Etch Process Technician",
+      "home": "semiconductor",
+      "what": "Runs and sustains plasma etch and strip tools: monitors etch rate, endpoint and profile, qualifies chambers after maintenance and responds to excursions.",
+      "leadsTo": [
+        "Etch Process Engineer"
+      ],
+      "was": [
+        "Dry Etch Technician",
+        "RIE Etch Operator",
+        "Ash Strip Technician"
+      ]
+    },
+    {
+      "title": "Thin Film Process Technician",
+      "home": "semiconductor",
+      "what": "Runs and sustains deposition tools (CVD, ALD, PVD, epitaxy, plating) and checks every film for thickness, stress and particles.",
+      "leadsTo": [
+        "Thin Film Process Engineer"
+      ],
+      "was": [
+        "CVD Process Technician",
+        "ALD Process Technician",
+        "PVD Sputter Technician",
+        "Epitaxy Technician",
+        "Barrier Layer Technician",
+        "Copper Plating Technician",
+        "Metal Deposition Tech",
+        "Nitride Deposition Tech",
+        "Tungsten Fill Technician"
+      ],
+      "note": "Four draft paths meet here (CVD, ALD, PVD, epitaxy); a single path cannot hold every deposition skill at depth, so let the Advanced level show them as the specialisations."
+    },
+    {
+      "title": "Diffusion and Implant Process Technician",
+      "home": "semiconductor",
+      "what": "Runs and sustains furnaces, rapid thermal tools and ion implanters: oxidation, anneal and doping, with the sheet-resistance and thickness monitors that prove them.",
+      "leadsTo": [
+        "Diffusion and Implant Process Engineer"
+      ],
+      "was": [
+        "Diffusion Furnace Operator",
+        "Ion Implant Operator",
+        "Oxide Growth Technician"
+      ]
+    },
+    {
+      "title": "Wet Process and CMP Technician",
+      "home": "semiconductor",
+      "what": "Runs and sustains wet benches, cleans and chemical mechanical polishers: bath chemistry, etch and removal rates, and the defects they leave.",
+      "leadsTo": [
+        "Wet Process and CMP Engineer"
+      ],
+      "was": [
+        "Wet Etch Technician",
+        "Wafer Clean Technician",
+        "CMP Operator"
+      ],
+      "note": "Two fab modules in one career because the catalogue has one CMP skill (Chemical Mechanical Planarization) and three wet ones; split them if CMP gains skills (slurry and pad management, post-CMP clean)."
+    },
+    {
+      "title": "Semiconductor Metrology Technician",
+      "home": "semiconductor",
+      "what": "Measures and inspects wafers in line: critical dimension, overlay, film thickness and defects, and reviews and classifies what the inspection tools find.",
+      "leadsTo": [
+        "Failure Analysis Technician",
+        "Yield Engineer"
+      ],
+      "was": [
+        "Fab Metrology Technician",
+        "CD Metrology Technician",
+        "Overlay Metrology Tech",
+        "Defect Review Technician",
+        "Ellipsometry Technician",
+        "Brightfield Inspector",
+        "Darkfield Inspector",
+        "E-Beam Inspection Tech",
+        "Wafer Inspection Operator"
+      ]
+    },
+    {
+      "title": "Semiconductor Equipment Technician",
+      "home": "semiconductor",
+      "what": "Installs, maintains and repairs wafer fab tools, in a fab or as the toolmaker's field service engineer: preventive maintenance, vacuum and gas systems, robots, and fault finding to get a tool back up.",
+      "leadsTo": [
+        "Semiconductor Equipment Engineer"
+      ],
+      "was": [
+        "ASML Field Service Engineer",
+        "EUV System Engineer",
+        "Source Engineer",
+        "Stage Engineer",
+        "Optics Engineer",
+        "Litho Application Engineer"
+      ],
+      "note": "The most hired technician job in a fab had no title of its own. The folded titles are one toolmaker's (ASML) field roles, split by scanner subsystem: company-specific versions of this career. Path: Preventive Maintenance, Vacuum System Operation, Helium Leak Detection, Process Equipment Troubleshooting, Electrical Schematic Reading, Pneumatic System Repair, Specialty Gas Handling, Lockout Tagout."
+    },
+    {
+      "title": "Semiconductor Equipment Engineer",
+      "home": "semiconductor",
+      "what": "Owns a fleet of fab tools: availability, maintenance procedures, chamber matching, upgrades, and the root cause when a tool drifts or goes down.",
+      "leadsTo": [],
+      "was": [
+        "Fab Equipment Engineer",
+        "CVD Equipment Engineer",
+        "Etch Equipment Engineer",
+        "Litho Equipment Engineer",
+        "CMP Equipment Engineer",
+        "Implant Equipment Engineer",
+        "Metrology Equipment Engineer",
+        "Vacuum Systems Engineer"
+      ],
+      "note": "Five draft paths meet here; they share the equipment skills and differ only by the module's process skills. Fab Equipment Engineer's is the base; Vacuum Systems Engineer brings Residual Gas Analysis."
+    },
+    {
+      "title": "Lithography Process Engineer",
+      "home": "semiconductor",
+      "what": "Develops and controls patterning: resist and exposure processes, focus and dose windows, overlay and critical dimension control, and the corrections applied to the mask.",
+      "leadsTo": [
+        "Process Integration Engineer"
+      ],
+      "was": [
+        "Litho Process Engineer",
+        "Lithography Engineer",
+        "Computational Litho Engineer",
+        "OPC Engineer",
+        "Mask Data Prep Engineer"
+      ],
+      "note": "The computational titles bring Optical Proximity Correction; mask data preparation itself is software the catalogue does not describe."
+    },
+    {
+      "title": "Etch Process Engineer",
+      "home": "semiconductor",
+      "what": "Develops and controls plasma etch processes: chemistry, selectivity, profile and uniformity, chamber matching, and the experiments that widen the window.",
+      "leadsTo": [
+        "Process Integration Engineer"
+      ],
+      "was": [
+        "Etch Engineer"
+      ]
+    },
+    {
+      "title": "Thin Film Process Engineer",
+      "home": "semiconductor",
+      "what": "Develops and controls deposition processes (CVD, ALD, PVD, epitaxy, metal fill): film properties, uniformity, defects and the recipes that deliver them.",
+      "leadsTo": [
+        "Process Integration Engineer"
+      ],
+      "was": [
+        "CVD Process Engineer",
+        "PVD Process Engineer",
+        "Thin Film Engineer",
+        "Metallization Engineer"
+      ]
+    },
+    {
+      "title": "Diffusion and Implant Process Engineer",
+      "home": "semiconductor",
+      "what": "Develops and controls thermal and doping processes: oxidation, anneal, rapid thermal processing and ion implantation, and the junctions and films they form.",
+      "leadsTo": [
+        "Process Integration Engineer"
+      ],
+      "was": [
+        "Diffusion Process Engineer",
+        "Implant Process Engineer"
+      ]
+    },
+    {
+      "title": "Wet Process and CMP Engineer",
+      "home": "semiconductor",
+      "what": "Develops and controls wet cleans, wet etch and chemical mechanical planarization: chemistries, slurries and pads, removal rates, and defect reduction.",
+      "leadsTo": [
+        "Process Integration Engineer"
+      ],
+      "was": [
+        "Wet Process Engineer",
+        "CMP Process Engineer"
+      ]
+    },
+    {
+      "title": "Process Integration Engineer",
+      "home": "semiconductor",
+      "what": "Owns the whole process flow for a technology: how the modules fit together, what the electrical results say about them, and which change fixes a device or yield problem.",
+      "leadsTo": [],
+      "was": [
+        "Integration Engineer",
+        "Device Engineer",
+        "Device Physics Engineer",
+        "TCAD Engineer"
+      ],
+      "note": "Device design and simulation (device physics, TCAD) are not in the catalogue."
+    },
+    {
+      "title": "Yield Engineer",
+      "home": "semiconductor",
+      "what": "Finds what is killing die: reads wafer maps, inline defect and electrical test data, traces the loss to a tool or step, and drives the fix.",
+      "leadsTo": [
+        "Process Integration Engineer"
+      ],
+      "was": [
+        "Fab Yield Engineer",
+        "Product Engineer"
+      ]
+    },
+    {
+      "title": "Failure Analysis Technician",
+      "home": "semiconductor",
+      "what": "Prepares and examines failed devices and material samples in the laboratory: cross-sections, electron microscopy and surface analysis, with a report of what was found.",
+      "leadsTo": [
+        "Failure Analysis Engineer"
+      ],
+      "was": [
+        "SEM Operator",
+        "TEM Operator",
+        "SIMS Analyst",
+        "AFM Technician",
+        "XRD Analyst",
+        "XRF Analyst"
+      ],
+      "note": "Each folded title is one instrument. Path: FIB Cross-Sectioning, TEM Sample Preparation, SIMS Analysis, Defect SEM Review, Electrical Fault Isolation, Metallographic Examination. AFM, XRD and XRF have no skills in the catalogue."
+    },
+    {
+      "title": "Failure Analysis Engineer",
+      "home": "semiconductor",
+      "what": "Leads the investigation of a device failure: isolates the fault electrically, directs the physical analysis, names the mechanism and the corrective action.",
+      "leadsTo": [],
+      "was": [
+        "Semiconductor FA Engineer"
+      ]
+    },
+    {
+      "title": "Semiconductor Packaging Technician",
+      "home": "semiconductor",
+      "what": "Runs back-end assembly: dicing, die attach, wire or flip-chip bonding, underfill, molding and marking, with the pull and shear tests that prove each bond.",
+      "leadsTo": [
+        "Semiconductor Packaging Engineer"
+      ],
+      "was": [
+        "Die Attach Operator",
+        "Wire Bond Operator",
+        "Flip Chip Bonder",
+        "Molding Operator",
+        "Singulation Operator",
+        "Mark and Pack Operator",
+        "Trim and Form Operator"
+      ],
+      "dropAliases": [
+        "molder"
+      ],
+      "note": "Three draft paths (die attach, wire bond, flip chip) are steps of one line; the catalogue's nine packaging skills make one full path. Molding Operator carries the alias 'molder', which belongs to Injection Molding Operator."
+    },
+    {
+      "title": "Semiconductor Packaging Engineer",
+      "home": "semiconductor",
+      "what": "Develops how a chip is packaged: package design and materials, the assembly process, and its reliability through qualification.",
+      "leadsTo": [],
+      "was": [
+        "Package Engineer"
+      ]
+    },
+    {
+      "title": "Semiconductor Test Technician",
+      "home": "semiconductor",
+      "what": "Runs wafer probe and final test: sets up probers, handlers and testers, loads the test program, keeps the cell yielding, and sorts good die from bad.",
+      "leadsTo": [
+        "Semiconductor Test Engineer"
+      ],
+      "was": [
+        "Wafer Probe Technician",
+        "Wafer Sort Operator",
+        "Final Test Operator",
+        "Burn-In Operator"
+      ]
+    },
+    {
+      "title": "Semiconductor Test Engineer",
+      "home": "semiconductor",
+      "what": "Writes and maintains the test programs and hardware that decide whether a chip ships: coverage, limits, test time and correlation between testers.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Battery Electrode Technician",
+      "home": "battery",
+      "what": "Makes battery electrodes: mixes the slurry, coats it onto foil, dries, calenders and slits it, and controls loading, thickness and defects along the way.",
+      "leadsTo": [
+        "Maintenance Technician",
+        "Battery Cell Engineer"
+      ],
+      "was": [
+        "Electrode Coating Technician",
+        "Mixing Room Operator",
+        "Dry Electrode Technician",
+        "Separator Coating Operator"
+      ],
+      "note": "Electrode Coating Technician's draft path is the base; the others bring Electrode Slurry Mixing and Dry Electrode Coating."
+    },
+    {
+      "title": "Battery Cell Assembly Technician",
+      "home": "battery",
+      "what": "Assembles battery cells in a dry room: winds or stacks electrodes and separator, welds tabs, inserts the roll in the can, fills electrolyte and seals the cell.",
+      "leadsTo": [
+        "Maintenance Technician",
+        "Battery Cell Engineer"
+      ],
+      "was": [
+        "Cell Assembly Technician",
+        "Electrolyte Fill Technician",
+        "Cell Tabbing Technician",
+        "Dry Room Technician"
+      ],
+      "note": "Cell Assembly Technician and Electrolyte Fill Technician both have draft paths; filling is one step of this line."
+    },
+    {
+      "title": "Battery Cell Formation Technician",
+      "home": "battery",
+      "what": "Brings new cells to life: runs formation cycling, degassing and aging, watches voltage for rejects, and grades cells by capacity.",
+      "leadsTo": [
+        "Maintenance Technician",
+        "Battery Cell Engineer"
+      ],
+      "was": [
+        "Cell Formation Technician",
+        "Cell Aging Technician",
+        "Cell Grading Technician",
+        "Battery Cell Inspector"
+      ]
+    },
+    {
+      "title": "Battery Pack Assembly Technician",
+      "home": "battery",
+      "what": "Builds cells into modules and packs: welds interconnects and busbars, installs the management system, high-voltage harness and cooling, seals the enclosure and runs leak and end-of-line tests.",
+      "leadsTo": [
+        "Test Technician"
+      ],
+      "was": [
+        "Pack Assembly Technician",
+        "Battery Module Assembler",
+        "Busbar Welding Technician",
+        "BMS Wire Harness Tech",
+        "HV Connector Technician",
+        "Coolant System Technician",
+        "Thermal Interface Technician",
+        "Pack Enclosure Technician",
+        "Pack Leak Test Technician",
+        "Pack EOL Tester"
+      ],
+      "note": "Three draft paths meet here (pack, module, busbar welding). Pack Assembly Technician's is the base; module and busbar work bring Battery Module Assembly and Cell Interconnect Welding."
+    },
+    {
+      "title": "Battery Cell Engineer",
+      "home": "battery",
+      "what": "Develops cells and the process that makes them: electrode design and materials, the coating, assembly and formation windows, and the tests that show a change is better.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Battery Pack Engineer",
+      "home": "battery",
+      "what": "Designs battery modules and packs: structure, sealing, cooling, high-voltage layout and the management system's hardware, through to validation.",
+      "leadsTo": [],
+      "was": [
+        "Battery Engineer",
+        "Pack Design Engineer"
+      ],
+      "note": "Present path is five general skills. The catalogue describes how a pack is built and tested, not how one is designed."
+    },
+    {
+      "title": "Electric Motor Assembler",
+      "home": "battery",
+      "what": "Builds electric motors: winds or inserts the stator conductors, welds and impregnates them, fits magnets to the rotor, balances it, and assembles the motor in its housing.",
+      "leadsTo": [
+        "Powertrain Test Technician"
+      ],
+      "was": [
+        "Motor Stator Winder",
+        "Hairpin Stator Technician",
+        "Motor Rotor Assembler",
+        "Motor Magnet Inserter",
+        "Motor Housing Technician",
+        "Motor Balancing Technician",
+        "Motor Potting Technician",
+        "Motor Assembly Tech",
+        "Servo Motor Assembler",
+        "Generator Assembler",
+        "Transformer Assembler"
+      ],
+      "note": "Hairpin Stator Technician's draft path is the base; the others bring Stator Winding, Rotor Magnet Installation, Dynamic Balancing and Stator Impregnation and Potting. Transformer Assembler shares the winding work; core stacking and tanking are not in the catalogue."
+    },
+    {
+      "title": "Food Processing Operator",
+      "home": "process",
+      "what": "Makes food to the recipe: weighs and blends the batch, runs the cooking, forming, drying or sterilising equipment, and keeps the line clean and its safety records true.",
+      "leadsTo": [
+        "Maintenance Technician"
+      ],
+      "was": [
+        "Food Batch Operator",
+        "Food Blending Operator",
+        "Food Mixer Operator",
+        "Cooker Operator",
+        "Fryer Operator",
+        "Food Extrusion Operator",
+        "Forming Machine Operator",
+        "Depositor Operator",
+        "Enrobing Operator",
+        "Cooling Tunnel Operator",
+        "Coating Drum Operator",
+        "Seasoning Operator",
+        "Food Freeze Dryer Operator",
+        "Spray Dryer Operator",
+        "Pasteurizer Operator",
+        "Retort Operator",
+        "UHT Operator",
+        "CIP Operator",
+        "Food Plant Water Treatment Operator"
+      ],
+      "note": "Nineteen single machines. Path: HACCP Food Safety, Sanitation Procedures, Allergen Changeover Cleaning, Food Batching and Blending, Clean-in-Place Operation, Pasteurization, Retort Operation, Spray Drying, Metal Detection and Checkweighing. Frying, extrusion, forming and enrobing have no skills in the catalogue."
+    },
+    {
+      "title": "Beverage Production Operator",
+      "home": "process",
+      "what": "Runs a bottling or canning line: prepares the syrup, carbonates, fills and seams or caps, and checks fill, Brix and closures through the shift.",
+      "leadsTo": [
+        "Maintenance Technician"
+      ],
+      "was": [
+        "Beverage Filler Operator",
+        "Can Line Operator",
+        "Capper Operator",
+        "Carbonation Operator",
+        "Syrup Room Operator",
+        "Bottle Blow Molder"
+      ],
+      "note": "Path: Bottle and Can Filling, Can Seaming, Beverage Carbonation, Brix Measurement, Clean-in-Place Operation. Bottle blow molding is not in the catalogue."
+    },
+    {
+      "title": "Packaging Line Operator",
+      "home": "process",
+      "what": "Runs the machines that fill, close, label, case and palletize product, clears jams, changes the line over between sizes and checks codes and weights.",
+      "leadsTo": [
+        "Setup Technician",
+        "Maintenance Technician"
+      ],
+      "was": [
+        "Packaging Machine Operator",
+        "Beverage Labeler Operator",
+        "Beverage Packer Operator",
+        "Palletizer Operator",
+        "Cartoner Operator",
+        "Blister Pack Operator",
+        "Pharmaceutical Packaging Operator",
+        "Pharmaceutical Labeling Operator",
+        "Serialization Operator",
+        "Detergent Packing Op",
+        "Fabric Care Packing Op",
+        "Toothpaste Line Operator",
+        "Cosmetics Fill Operator",
+        "Air Care Fill Operator"
+      ],
+      "note": "Pharmaceutical packaging adds Current Good Manufacturing Practice and Lot Tracking; serialization has no skill in the catalogue."
+    },
+    {
+      "title": "Chemical Operator",
+      "home": "process",
+      "what": "Runs chemical and compounding processes: charges raw materials, controls reactors, mixers and transfers from the board and the floor, samples the batch and handles hazardous materials safely.",
+      "leadsTo": [],
+      "was": [
+        "Chemical Processing Operator",
+        "Soap Making Operator",
+        "Detergent Blending Op",
+        "Shampoo Mixing Operator",
+        "Lotion Mixing Operator"
+      ],
+      "note": "The catalogue cannot yet describe this career well: it has P&ID Reading, Chemical Safety, Hazardous Materials Handling and Pump Maintenance but nothing on reactor, distillation or control-room operation. Chemical is one of the 21 industries."
+    },
+    {
+      "title": "Pharmaceutical Manufacturing Operator",
+      "home": "process",
+      "what": "Makes tablets and capsules under GMP: dispenses and blends, granulates, compresses or fills, coats, and records every step in the batch record.",
+      "leadsTo": [
+        "Aseptic Filling Technician"
+      ],
+      "was": [
+        "Pharma Blending Operator",
+        "Granulation Operator",
+        "Tablet Press Operator",
+        "Coating Pan Operator",
+        "Encapsulation Operator"
+      ],
+      "note": "Path: Current Good Manufacturing Practice, Granulation and Blending, Tablet Compression, Tablet Film Coating, Lot Tracking, Process Validation. Encapsulation has no skill of its own."
+    },
+    {
+      "title": "Aseptic Filling Technician",
+      "home": "process",
+      "what": "Fills sterile drug product into vials and syringes in a classified cleanroom or isolator: gowns to qualification, sets up the line aseptically, runs filling and freeze drying, and monitors the room.",
+      "leadsTo": [],
+      "was": [
+        "Aseptic Fill Operator",
+        "Vial Fill Operator",
+        "Syringe Fill Operator",
+        "Liquid Fill Operator",
+        "Lyophilization Operator",
+        "Isolator Operator",
+        "Depyrogenation Tech"
+      ]
+    },
+    {
+      "title": "Sterilization Technician",
+      "home": "process",
+      "what": "Runs the sterilizers that medical devices and drug components pass through (steam, ethylene oxide), loads to the validated pattern and releases each cycle on its records.",
+      "leadsTo": [],
+      "was": [
+        "Sterilizer Operator"
+      ]
+    },
+    {
+      "title": "Quality Control Chemist",
+      "home": "process",
+      "what": "Tests raw materials, in-process samples and finished product in the laboratory by chromatography, dissolution and titration, and releases or rejects on the result.",
+      "leadsTo": [],
+      "was": [
+        "Pharmaceutical QC Analyst",
+        "HPLC Analyst",
+        "GC Analyst",
+        "Mass Spec Analyst",
+        "Dissolution Analyst",
+        "Stability Analyst",
+        "Raw Material Analyst",
+        "In-Process Analyst",
+        "Release Analyst"
+      ],
+      "note": "Each folded title is one instrument or one sample type. Path: HPLC Analysis, Gas Chromatography, Dissolution Testing, Karl Fischer Titration, Current Good Manufacturing Practice. Mass spectrometry is not in the catalogue."
+    },
+    {
+      "title": "Quality Control Microbiologist",
+      "home": "process",
+      "what": "Tests product, water and the manufacturing environment for microbial contamination: bioburden, sterility and endotoxin, with the room and personnel monitoring behind them.",
+      "leadsTo": [],
+      "was": [
+        "Microbiology Analyst",
+        "Endotoxin Analyst",
+        "Sterility Test Analyst",
+        "Environmental Monitor",
+        "Water System Analyst"
+      ]
+    },
+    {
+      "title": "Process Engineer",
+      "home": "process",
+      "what": "Owns a production process in a chemical, food, pharmaceutical or materials plant: sets its conditions, studies its variation, scales it up and validates each change.",
+      "leadsTo": [],
+      "was": [
+        "Chemical Engineer"
+      ],
+      "note": "Present path is five unrelated skills; rewrite around P&ID Reading, Statistical Process Control, Process Capability Analysis, Design of Experiments, Process Validation, Root Cause Analysis. Discrete-part processes belong to Manufacturing Engineer."
+    },
+    {
+      "title": "Quality Control Inspector",
+      "home": "quality",
+      "what": "Checks parts and products against the drawing at receiving, in process, at first article and before shipping, with hand gauges and bench instruments, and writes up what does not conform.",
+      "leadsTo": [
+        "CMM Programmer",
+        "NDT Technician (Penetrant)",
+        "Dimensional Metrology Technician"
+      ],
+      "was": [
+        "In-Process Inspector",
+        "Final QC Inspector",
+        "Source Inspector",
+        "Receiving Inspector",
+        "Receiving Inspection Technician",
+        "First Article Inspector"
+      ],
+      "note": "Receiving Inspector and First Article Inspector have draft paths; they are the same inspector at a different point in the flow and bring Acceptance Sampling, Material Traceability Records and Thread Measurement."
+    },
+    {
+      "title": "CMM Programmer",
+      "home": "quality",
+      "what": "Measures parts on a coordinate measuring machine: aligns the part to its datums, writes and runs the measurement program from the drawing's GD&T, and reports the results.",
+      "leadsTo": [
+        "Quality Engineer",
+        "Metrology Engineer"
+      ],
+      "was": [
+        "CMM Operator"
+      ],
+      "note": "One career from running programs to writing them; CMM Operation is its Intermediate level and CMM Programming its Advanced."
+    },
+    {
+      "title": "Dimensional Metrology Technician",
+      "home": "quality",
+      "what": "Measures large and complex shapes (vehicle bodies, airframe tooling, castings) with laser trackers, scanners and portable arms, and turns the data into a report the build can act on.",
+      "leadsTo": [
+        "Metrology Engineer"
+      ],
+      "was": [
+        "Body Dimensional Inspector",
+        "Body Dimensional Check",
+        "Tooling Inspector"
+      ],
+      "note": "Body Dimensional Inspector's draft path is the base; add Laser Tracker Metrology and Scan Data Processing."
+    },
+    {
+      "title": "Calibration Technician",
+      "home": "quality",
+      "what": "Calibrates a plant's measuring instruments (gauges, torque tools, pressure and temperature devices, electrical meters) against traceable standards and keeps their records.",
+      "leadsTo": [
+        "Metrology Engineer"
+      ],
+      "was": [
+        "Metrology Technician"
+      ],
+      "note": "Renamed because 'metrology technician' means three different jobs here. The draft path mixes calibration with CMM work; keep the calibration skills."
+    },
+    {
+      "title": "Metrology Engineer",
+      "home": "quality",
+      "what": "Decides how a product will be measured: chooses the method and equipment, proves the measurement system is capable, and states its uncertainty.",
+      "leadsTo": [],
+      "was": [],
+      "note": "The present description speaks of semiconductor fabs but the path and the listed industries are dimensional metrology, which is what this career is."
+    },
+    {
+      "title": "Aircraft Assembly Inspector",
+      "home": "quality",
+      "what": "Inspects aircraft as they are built: fastener and sealant workmanship, installations and rigging, closeout of each zone, witnessed functional tests, and the records that make the aircraft conform.",
+      "leadsTo": [
+        "Quality Engineer"
+      ],
+      "was": [
+        "Final Assembly Inspector",
+        "Functional Test Inspector",
+        "Airworthiness Inspector"
+      ],
+      "note": "No folded title had a path. Path: Closeout Inspection, Aerospace Fastener Identification, Assembly Visual Inspection, Borescope Inspection, Inspection Record Keeping, Nonconformance Reporting, AS9100 Quality System Requirements, FOD Prevention."
+    },
+    {
+      "title": "Vehicle Final Inspector",
+      "home": "quality",
+      "what": "Checks finished vehicles at the end of the line: fit and finish, roll and brake test, wheel alignment, headlamp aim, driver-assistance calibration, water test and a short drive for noises.",
+      "leadsTo": [],
+      "was": [
+        "Final Line Inspector",
+        "Vehicle Alignment Tech"
+      ]
+    },
+    {
+      "title": "Quality Engineer",
+      "home": "quality",
+      "what": "Builds quality into a product and process: control plans and FMEAs, capability studies, supplier approval, and the root cause and corrective action when something escapes.",
+      "leadsTo": [],
+      "was": [
+        "Quality Systems Engineer",
+        "Supplier Quality Engineer",
+        "Casting Quality Engineer",
+        "AS9100 Lead Auditor"
+      ],
+      "note": "Supplier Quality Engineer has a draft path and brings PPAP Submission and Acceptance Sampling; auditing brings the quality-system skills (ISO 9001, AS9100, IATF 16949, ISO 13485)."
+    },
+    {
+      "title": "NDT Technician (Penetrant)",
+      "home": "ndt",
+      "what": "Finds surface cracks with liquid penetrant: cleans the part, applies penetrant and developer by the method the specification calls for, and reads the indications under white or UV light.",
+      "leadsTo": [
+        "NDT Technician (Magnetic Particle)",
+        "NDT Technician"
+      ],
+      "was": [
+        "PT Level II Inspector"
+      ]
+    },
+    {
+      "title": "NDT Technician (Magnetic Particle)",
+      "home": "ndt",
+      "what": "Finds surface and near-surface cracks in steel parts by magnetising them and applying particles, choosing the technique and current, then demagnetising.",
+      "leadsTo": [
+        "NDT Technician"
+      ],
+      "was": [
+        "MT Level II Inspector"
+      ]
+    },
+    {
+      "title": "NDT Technician",
+      "home": "ndt",
+      "what": "Inspects parts and welds for hidden flaws without damaging them, certified in several methods: usually visual, penetrant and magnetic particle, with a volumetric method added.",
+      "leadsTo": [
+        "NDT Technician (Ultrasonic)",
+        "NDT Technician (Radiographic)",
+        "NDT Technician (Eddy Current)"
+      ],
+      "was": [
+        "Multi-Method NDT Inspector",
+        "VT Level II Inspector",
+        "Leak Test Technician",
+        "Acoustic Emission Technician",
+        "NDT Data Analyst"
+      ],
+      "note": "The multi-method career; the five method careers are its specialisations. Leak testing brings Helium Leak Detection. Acoustic emission is not in the catalogue."
+    },
+    {
+      "title": "NDT Technician (Ultrasonic)",
+      "home": "ndt",
+      "what": "Finds internal flaws and measures thickness with ultrasound: calibrates on reference blocks, scans by contact or immersion, sizes what it finds, and moves on to phased array.",
+      "leadsTo": [
+        "NDT Technician (Composites)"
+      ],
+      "was": [
+        "UT Level I Inspector",
+        "UT Level II Inspector",
+        "UT Level III Inspector",
+        "Phased Array UT Technician",
+        "TOFD Ultrasonic Technician",
+        "Immersion UT Technician",
+        "Guided Wave UT Technician"
+      ],
+      "note": "Certification levels I to III and four techniques in one career. UT Level II's draft path is the base; Phased Array UT, Full Matrix Capture UT and Time-of-Flight Diffraction are the Advanced end, with NDT Procedure Writing from Level III. Guided wave is not in the catalogue."
+    },
+    {
+      "title": "NDT Technician (Radiographic)",
+      "home": "ndt",
+      "what": "Images the inside of castings, welds and assemblies with X-ray, by film, digital detector or CT, sets the exposure safely and interprets the image.",
+      "leadsTo": [],
+      "was": [
+        "RT Level II Inspector",
+        "Digital Radiography Technician",
+        "Industrial CT Scanner Operator",
+        "Casting X-Ray Inspector"
+      ],
+      "note": "Industrial CT Scanner Operator has a draft path and brings Industrial CT Scanning; Casting X-Ray Inspector brings Real-Time X-Ray Inspection of Castings."
+    },
+    {
+      "title": "NDT Technician (Eddy Current)",
+      "home": "ndt",
+      "what": "Finds cracks and corrosion in conductive parts with eddy current probes: fastener holes, aircraft skins and tubing, and measures conductivity and coating thickness.",
+      "leadsTo": [],
+      "was": [
+        "ET Level II Inspector",
+        "Bolt Hole Eddy Current Inspector"
+      ]
+    },
+    {
+      "title": "NDT Technician (Composites)",
+      "home": "ndt",
+      "what": "Inspects composite and bonded structure for delamination, disbond and porosity with ultrasonic C-scan, bond testers, tap test, shearography and thermography.",
+      "leadsTo": [],
+      "was": [
+        "NDI Composite Inspector",
+        "Shearography Inspector",
+        "Bond Test Inspector",
+        "Thermography Inspector"
+      ],
+      "note": "NDI Composite Inspector's draft path is the base; the others bring Laser Shearography, Bond Testing and Infrared Thermography."
+    },
+    {
+      "title": "Test Technician",
+      "home": "test",
+      "what": "Tests finished assemblies and systems against their specification: sets up the fixture and instruments, runs functional, electrical and environmental tests, and diagnoses what fails.",
+      "leadsTo": [
+        "Test Engineer",
+        "RF Technician"
+      ],
+      "was": [
+        "ICT Operator",
+        "Flying Probe Test Op",
+        "Functional Test Tech",
+        "Spacecraft Test Conductor",
+        "Starlink Test Technician"
+      ],
+      "note": "The spacecraft titles bring Thermal Vacuum Testing and Vibration and Shock Testing as an Advanced branch."
+    },
+    {
+      "title": "RF Technician",
+      "home": "test",
+      "what": "Builds, tunes and tests radio-frequency hardware (radar, antennas, phased arrays, electronic warfare equipment) with network and spectrum analyzers.",
+      "leadsTo": [],
+      "was": [
+        "Radar Technician",
+        "Electronic Warfare Technician",
+        "Phased Array Tech",
+        "TR Module Tech",
+        "Radar Assembly Tech",
+        "Jammer Assembly Tech",
+        "EW Pod Assembly",
+        "Starlink Antenna Technician"
+      ],
+      "note": "No present title is this one, though seven are parts of it. Path: RF and Coaxial Cable Assembly, Phased Array Antenna Assembly, Vector Network Analyzer Measurement, Spectrum Analyzer Measurement, Radar System Testing, EMC Testing, Surface-Mount Soldering."
+    },
+    {
+      "title": "Powertrain Test Technician",
+      "home": "test",
+      "what": "Tests motors, drive units, engines and transmissions at end of line or on a dynamometer: connects the unit, runs the cycle, reads noise, vibration and electrical results, and finds the cause of a failure.",
+      "leadsTo": [
+        "Test Engineer"
+      ],
+      "was": [
+        "Drive Unit Test Technician",
+        "Motor EOL Test Technician",
+        "Transmission Test Op"
+      ],
+      "note": "Path: Motor End-of-Line Testing, Dynamometer Testing, Power Electronics Functional Test, Hi-Pot Testing, High Voltage Safety, CAN Bus Diagnostics, Vibration Analysis."
+    },
+    {
+      "title": "Propulsion Test Technician",
+      "home": "test",
+      "what": "Operates engine test stands and cells: installs the engine, connects propellant and instrumentation, loads propellants, runs the firing or ground run from the console and inspects afterwards.",
+      "leadsTo": [],
+      "was": [
+        "Engine Hot Fire Operator",
+        "Engine Test Cell Operator"
+      ],
+      "note": "Rocket and jet engine test in one career. Path: Hot Fire Testing, Engine Acceptance Testing, Propellant Loading, Cryogenic Propellant Handling, Test Telemetry Review, Aircraft Engine Ground Run, Instrumentation Calibration, P&ID Reading."
+    },
+    {
+      "title": "Launch Pad Technician",
+      "home": "test",
+      "what": "Maintains and operates a launch site's ground systems: transporter-erector, umbilicals and quick-disconnects, propellant and gas systems, through rollout, loading and recovery.",
+      "leadsTo": [],
+      "was": [
+        "Pad Umbilical Technician",
+        "Strongback Technician",
+        "TEL Operator",
+        "Propellant Systems Operator"
+      ],
+      "note": "Not a factory job, but the catalogue kept its skills (Transporter-Erector Operation, Umbilical Connection and Checkout, Quick-Disconnect Coupling Service, Propellant Loading). Strongback and TEL are SpaceX's words for its pad hardware."
+    },
+    {
+      "title": "Test Engineer",
+      "home": "test",
+      "what": "Decides how a product is proven to work and builds the means: test plans and limits, fixtures and automated test software, and the analysis of what fails and why.",
+      "leadsTo": [
+        "Product Reliability Engineer"
+      ],
+      "was": [
+        "Manufacturing Test Engineer",
+        "Validation Engineer",
+        "DVT Engineer",
+        "EMC Engineer",
+        "Compliance Engineer",
+        "Starlink RF Test Engineer",
+        "Flight Test Engineer"
+      ],
+      "note": "Manufacturing Test Engineer has a draft path and brings In-Circuit Test Development; EMC and compliance work bring EMC Testing. Flight test is instrumentation and data review here, not flying."
+    },
+    {
+      "title": "Product Reliability Engineer",
+      "home": "test",
+      "what": "Shows how long a product will last: designs stress, burn-in and accelerated life tests, models the failures and works with design to remove the weak points.",
+      "leadsTo": [],
+      "was": [
+        "Semiconductor Reliability Engineer"
+      ],
+      "note": "Takes the draft path of Semiconductor Reliability Engineer (Accelerated Life Testing, Burn-In Testing, Reliability Stress Testing). The present 'Reliability Engineer' is kept for plant equipment reliability, which is what its path describes."
+    },
+    {
+      "title": "Maintenance Technician",
+      "home": "maintenance",
+      "what": "Keeps a plant's machines running: preventive maintenance, mechanical, hydraulic, pneumatic and basic electrical repair, and finding the fault when a line goes down.",
+      "leadsTo": [
+        "Controls Technician",
+        "Automation Technician",
+        "Industrial Electrician"
+      ],
+      "was": [
+        "Conveyor System Tech"
+      ]
+    },
+    {
+      "title": "Millwright",
+      "home": "maintenance",
+      "what": "Installs, moves, aligns and rebuilds heavy machinery: rigs it into place, levels and anchors it, aligns shafts and couplings, and overhauls gearboxes, pumps and conveyors.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Industrial Electrician",
+      "home": "maintenance",
+      "what": "Installs and maintains a plant's electrical systems: power distribution, conduit and wiring, motors and their controls, and troubleshooting live equipment safely.",
+      "leadsTo": [
+        "Controls Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Hydraulics Technician",
+      "home": "maintenance",
+      "what": "Repairs and troubleshoots hydraulic and pneumatic systems and overhauls their components (pumps, cylinders, servo valves, accumulators) on the bench and on the machine.",
+      "leadsTo": [],
+      "was": [
+        "Hydraulic Component Overhaul Tech",
+        "Flight Control Actuator Tech"
+      ]
+    },
+    {
+      "title": "Reliability Engineer",
+      "home": "maintenance",
+      "what": "Keeps plant equipment from failing: analyses breakdown history, sets the maintenance strategy, runs vibration, thermography and oil analysis programs, and leads root cause work on chronic failures.",
+      "leadsTo": [],
+      "was": [],
+      "note": "The present description speaks of product reliability, but the path (Vibration Analysis, Infrared Thermography) is equipment reliability; product reliability is now Product Reliability Engineer. Add Condition-Based Maintenance, Equipment Reliability Metrics, Preventive Maintenance, Root Cause Analysis."
+    },
+    {
+      "title": "Facilities Engineer",
+      "home": "maintenance",
+      "what": "Runs the utilities a plant depends on: power, compressed air, cooling and process water, bulk gases and chemicals, exhaust and waste treatment, and their capacity and reliability.",
+      "leadsTo": [],
+      "was": [
+        "Chemical Delivery Engineer",
+        "Gas Delivery Engineer",
+        "Ultrapure Water Engineer"
+      ]
+    },
+    {
+      "title": "Aircraft Mechanic",
+      "home": "maintenance",
+      "what": "Inspects, services and repairs aircraft to the maintenance manual and signs for the work: airframe, systems and engines, on the flight line or in a repair station.",
+      "leadsTo": [
+        "Aircraft Engine Mechanic",
+        "Aircraft Assembly Inspector"
+      ],
+      "was": [
+        "Landing Gear Overhaul Technician"
+      ]
+    },
+    {
+      "title": "Aircraft Engine Mechanic",
+      "home": "maintenance",
+      "what": "Tears down, inspects, repairs and rebuilds turbine engines and their modules, accessories and propellers, balances the rotors and readies the engine for test.",
+      "leadsTo": [
+        "Propulsion Test Technician"
+      ],
+      "was": [
+        "Engine Overhaul Technician",
+        "Turbofan Engine Mechanic",
+        "Turboprop Engine Mechanic",
+        "Turboshaft Engine Mechanic",
+        "Fan Module Technician",
+        "Compressor Module Technician",
+        "Combustion Section Technician",
+        "Turbine Section Technician",
+        "Hot Section Inspector",
+        "Cold Section Inspector",
+        "Engine Accessories Mechanic",
+        "Engine Controls Technician",
+        "FADEC Technician",
+        "Engine Balancing Technician",
+        "Engine Blade Repair Technician",
+        "Gearbox Overhaul Technician",
+        "Propeller Mechanic",
+        "APU Mechanic"
+      ],
+      "note": "No folded title had a path. Path: Borescope Inspection, Dynamic Balancing, Bearing Installation, Gearbox Repair, Safety Wire Installation, Aircraft Maintenance Manual Use, Aircraft Maintenance Record Entries, Fluorescent Penetrant Inspection, Aircraft Engine Ground Run. Blade blending and module build have no skills of their own."
+    },
+    {
+      "title": "Automation Technician",
+      "home": "automation",
+      "what": "Keeps automated cells running: robots, conveyors, pneumatics, sensors and vision, with enough PLC to follow the logic to the fault and make small changes.",
+      "leadsTo": [
+        "Robotics Technician",
+        "Controls Technician",
+        "Automation Engineer"
+      ],
+      "was": [
+        "Vision System Technician"
+      ]
+    },
+    {
+      "title": "Controls Technician",
+      "home": "automation",
+      "what": "Troubleshoots a plant's electrical controls and instrumentation: goes online with the PLC, tunes drives, calibrates instruments and loops, and fixes the network when devices drop.",
+      "leadsTo": [
+        "Controls Engineer"
+      ],
+      "was": [
+        "PLC Technician"
+      ]
+    },
+    {
+      "title": "Robotics Technician",
+      "home": "automation",
+      "what": "Installs, maintains and recovers industrial and collaborative robots: mastering, tooling changes, touch-ups on the pendant, safeguarding and preventive maintenance.",
+      "leadsTo": [
+        "Robot Programmer"
+      ],
+      "was": [
+        "Cobot Technician",
+        "Tesla Robot Technician"
+      ],
+      "note": "Cobot Technician has a draft path and brings Universal Robots Programming and Collaborative Robot Safeguarding. Tesla Robot Technician named an employer and two robot makes (KUKA, FANUC)."
+    },
+    {
+      "title": "Robot Programmer",
+      "home": "automation",
+      "what": "Writes and optimises robot programs for welding, handling, sealing and painting, at the pendant and offline in simulation, and commissions them in the cell.",
+      "leadsTo": [
+        "Automation Engineer"
+      ],
+      "was": [
+        "Tesla Robot Programmer",
+        "Paint Robot Programmer"
+      ],
+      "note": "Tesla Robot Programmer named an employer; Paint Robot Programmer brings Robotic Paint Application."
+    },
+    {
+      "title": "Controls Engineer",
+      "home": "automation",
+      "what": "Designs and programs machine control systems: PLC and safety logic, operator screens, drives and motion, industrial networks, and the commissioning on site.",
+      "leadsTo": [],
+      "was": [
+        "PLC Programmer",
+        "Motion Control Engineer"
+      ],
+      "note": "PLC Programmer and Motion Control Engineer have draft paths that are subsets of this one; motion work is the Advanced end (Servo Drive Configuration, Servo Tuning). PLC Programmer named two makes (Allen-Bradley, Siemens), which the catalogue holds as separate skills."
+    },
+    {
+      "title": "Automation Engineer",
+      "home": "automation",
+      "what": "Designs automated production systems: the cell concept, robots and tooling, vision and sensing, safety, and their integration with the line's controls.",
+      "leadsTo": [],
+      "was": [
+        "Automation Integration Engineer",
+        "Mechatronics Engineer",
+        "Vision Systems Engineer"
+      ],
+      "note": "Vision Systems Engineer and Mechatronics Engineer have draft paths; they bring Machine Vision Programming, Machine Vision Setup and End-of-Arm Tooling Design. The catalogue has only two vision skills, too few for a separate career."
+    },
+    {
+      "title": "Manufacturing Engineer",
+      "home": "engineering",
+      "what": "Works out how a product is built: the process steps, tooling and work instructions, the line's layout and capacity, and the fixes when it does not run to plan. Launches new products into production.",
+      "leadsTo": [],
+      "was": [
+        "Assembly Process Engineer",
+        "Body Process Engineer",
+        "Sustaining Engineer",
+        "NPI Launch Engineer",
+        "New Product Introduction Eng"
+      ],
+      "note": "Assembly Process Engineer has a draft path and brings Line Balancing, Error Proofing, Control Plan Development and PPAP Submission."
+    },
+    {
+      "title": "Mechanical Engineer",
+      "home": "engineering",
+      "what": "Designs mechanical parts and assemblies: models them in CAD, sizes them by calculation and analysis, tolerances the drawings, and sees the design through prototype and release.",
+      "leadsTo": [],
+      "was": [
+        "Design Engineer",
+        "Mechanical Design Engineer",
+        "Thermal Design Engineer"
+      ]
+    },
+    {
+      "title": "Electrical Engineer",
+      "home": "engineering",
+      "what": "Designs electrical and electronic systems for products and equipment: power, circuits and boards, wiring and controls, and the tests that prove them.",
+      "leadsTo": [],
+      "was": [
+        "Hardware Design Engineer",
+        "PCB Layout Engineer",
+        "Signal Integrity Engineer",
+        "Power Integrity Engineer",
+        "Display Engineer",
+        "Audio Engineer Hardware",
+        "Sensor Engineer",
+        "Motor Design Engineer",
+        "Power Electronics Engineer"
+      ],
+      "note": "The catalogue describes plant and equipment electrical work (480 V Power Distribution, drives, EMC Testing) but not circuit design, PCB layout, signal integrity or motor design, which is what the nine folded titles do."
+    },
+    {
+      "title": "Tooling Engineer",
+      "home": "engineering",
+      "what": "Designs the dies, molds, fixtures and gauges production needs, works with the toolroom to build them and proves them out on the floor.",
+      "leadsTo": [],
+      "was": [
+        "Die Design Engineer"
+      ]
+    },
+    {
+      "title": "CAD Designer",
+      "home": "engineering",
+      "what": "Turns an engineer's concept into models and drawings: 3D parts and assemblies, detail drawings with dimensions and tolerances, and their revisions in the data system.",
+      "leadsTo": [
+        "Tooling Engineer",
+        "Mechanical Engineer"
+      ],
+      "was": [
+        "CAD Technician",
+        "Drafting Technician",
+        "Mechanical Drafter",
+        "Electrical Drafter",
+        "3D Modeler"
+      ],
+      "note": "Five near-identical titles with five to seven skills each. Electrical drafting (schematics and wiring diagrams) has only AutoCAD and Electrical Schematic Reading in the catalogue."
+    },
+    {
+      "title": "Systems Engineer",
+      "home": "engineering",
+      "what": "Holds a complex product together across disciplines: requirements and interfaces, how the subsystems integrate in the vehicle or spacecraft, and the verification that it all works.",
+      "leadsTo": [],
+      "was": [
+        "Space Systems Engineer",
+        "EV Systems Engineer",
+        "Vehicle Integration Engineer"
+      ],
+      "note": "The catalogue cannot describe this career's own work (requirements, interface control, verification planning). A path today would borrow from design and test: Design FMEA, Tolerance Stack-Up Analysis, PDM and PLM Use, Functional Testing, Vibration and Shock Testing."
+    },
+    {
+      "title": "Aerospace Engineer",
+      "home": "engineering",
+      "what": "Designs and analyses aircraft and spacecraft structures and components, and supports their build: stress and fatigue, materials, drawings, and disposition of nonconforming hardware.",
+      "leadsTo": [
+        "Systems Engineer"
+      ],
+      "was": [
+        "Structures Engineer"
+      ],
+      "note": "Present path is five skills. Path: CATIA, Siemens NX, Finite Element Analysis, GD&T Interpretation, Tolerance Stack-Up Analysis, Structural Repair Manual Use, Composite Damage Assessment, Material Review Board Disposition."
+    },
+    {
+      "title": "Propulsion Engineer",
+      "home": "engineering",
+      "what": "Designs and develops engines and propulsion systems for aircraft and rockets, and proves them on the test stand: components, performance analysis and hot-fire data.",
+      "leadsTo": [],
+      "was": [
+        "Raptor Test Engineer",
+        "Engine Performance Engineer"
+      ],
+      "note": "The catalogue describes propulsion build and test (Hot Fire Testing, Engine Acceptance Testing, Test Telemetry Review) but not propulsion design (combustion, turbomachinery, fluids analysis). Raptor Test Engineer named a SpaceX engine."
+    },
+    {
+      "title": "Automotive Engineer",
+      "home": "engineering",
+      "what": "Designs vehicle systems (body, chassis, powertrain) and tunes how they behave, from CAD and analysis through prototype builds and validation.",
+      "leadsTo": [],
+      "was": [
+        "Automotive Body Engineer",
+        "Chassis Engineer",
+        "Powertrain Engineer",
+        "NVH Engineer"
+      ],
+      "note": "Four design specialisations the catalogue cannot tell apart: each has five general skills (CAD, GD&T). Split them only if vehicle design skills are written."
+    },
+    {
+      "title": "Biomedical Engineer",
+      "home": "engineering",
+      "what": "Designs medical devices and the evidence that they are safe: design controls, risk analysis, verification and validation under the medical device quality system.",
+      "leadsTo": [],
+      "was": [],
+      "note": "Present path is five general skills. Path: SolidWorks, Engineering Drawing Creation, Tolerance Stack-Up Analysis, Design FMEA, Design for Manufacturability, ISO 13485 Quality System Requirements, Process Validation."
+    }
+  ],
+  "removed": [
+    {
+      "why": "Flight crew, launch operations and mission control roles: nothing is made or maintained, and none of the work is in the catalogue.",
+      "titles": [
+        "Tanker Boom Operator",
+        "Countdown Sequencer",
+        "GNC Engineer",
+        "Starlink Network Engineer"
+      ]
+    },
+    {
+      "why": "Military duty stations (loading and handling weapons on operational aircraft), not jobs a plant hires for.",
+      "titles": [
+        "Missile Loading Technician",
+        "Nuclear Weapons Technician"
+      ]
+    },
+    {
+      "why": "Software and firmware roles whose whole skill is outside the catalogue.",
+      "titles": [
+        "Firmware Engineer",
+        "BIOS Engineer",
+        "Scanner Software Engineer",
+        "ADAS Engineer"
+      ]
+    },
+    {
+      "why": "An accreditation body's auditor and a regulator's designee: an individual authorisation, not a job a plant posts.",
+      "titles": [
+        "Nadcap Auditor",
+        "Designated Engineering Representative"
+      ]
+    },
+    {
+      "why": "Marine vessel maintenance (a rocket-recovery ship), not manufacturing.",
+      "titles": [
+        "Drone Ship Technician"
+      ]
+    }
+  ]
+}
