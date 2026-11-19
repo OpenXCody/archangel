@@ -1242,3 +1242,54 @@ input {
   stroke: var(--color-bg-base);
   stroke-width: 1px;
 }
+
+/*
+ * A career as a small plate (GoalPlate): the size of a thumb. Lines and dots
+ * keep their width at any size; the accent is the career, bright is what the
+ * person holds of it.
+ */
+.goal-plate {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+.goal-plate path,
+.goal-plate-ring,
+.goal-plate-root {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.goal-plate-ring {
+  stroke: var(--color-fg-soft);
+  stroke-opacity: 0.7;
+  stroke-width: 1.25px;
+  stroke-linecap: butt;
+}
+.goal-plate-root {
+  stroke: var(--color-fg-soft);
+  stroke-opacity: 0.7;
+  stroke-width: 1px;
+}
+.goal-plate-career {
+  stroke: rgb(var(--info));
+  stroke-opacity: 0.85;
+  stroke-width: 0.75px;
+}
+.goal-plate-walked {
+  stroke: var(--color-fg-default);
+  stroke-width: 1.25px;
+}
+.goal-plate-ahead {
+  stroke: rgb(var(--info));
+  stroke-width: 2.5px;
+}
+.goal-plate-learning {
+  stroke: var(--color-fg-muted);
+  stroke-width: 3px;
+}
+.goal-plate-held {
+  stroke: var(--color-fg-default);
+  stroke-width: 3.5px;
+}

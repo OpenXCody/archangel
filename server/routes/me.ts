@@ -315,7 +315,8 @@ router.delete(
 );
 
 // GET /api/me/goals - careers the person is aiming at, with how many of each
-// career's skills they already hold and the next ones to pick up.
+// career's skills they already hold, the next ones to pick up, and the ids of
+// all of them (`skillIds`).
 router.get(
   '/goals',
   handle(async (req, res) => {
@@ -334,6 +335,10 @@ router.get(
           WHERE os.occupation_id = ${occupations.id}
         )`,
         next: nextSkillsSql(sql`${occupations.id}`, userId),
+        // Every skill of the career, by id: what Profile draws each goal's small plate from, in this one answer.
+        skillIds: sql<string[]>`COALESCE((
+          SELECT array_agg(os.skill_id ORDER BY os.skill_id) FROM occupation_skills os WHERE os.occupation_id = ${occupations.id}
+        ), '{}')`,
       })
       .from(userGoals)
       .innerJoin(occupations, eq(occupations.id, userGoals.occupationId))

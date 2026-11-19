@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent, type PointerEvent } from 'react';
+import { useCallback, useMemo, useState, type FocusEvent, type PointerEvent } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { cn, focusRing, plural } from '@/lib/utils';
 import { LoadError } from '../account/parts';
 import type { PlacedSkill, SkillMarks, SkillPath } from '../path/model';
 import { SkillTag, SkillTags } from '../path/SkillTag';
-import AtlasDrawing, { type AtlasFresh, type AtlasMarks, type AtlasOverlay, type AtlasTarget } from './AtlasDrawing';
+import AtlasDrawing, { type AtlasMarks, type AtlasOverlay, type AtlasTarget } from './AtlasDrawing';
 import PlateSkeleton from './PlateSkeleton';
 import { useAtlasLayout } from './useAtlasLayout';
+import { useFreshMark } from './useFreshMark';
 import { pathViewSearch } from './pathView';
 
 /**
@@ -78,25 +79,7 @@ export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
   }, [layout, marks, career.skills]);
 
   // The skill just marked held: the plate draws the way to it in, once.
-  const [fresh, setFresh] = useState<AtlasFresh | null>(null);
-  const tick = useRef(0);
-  const marking = useMemo<SkillMarks | null>(() => {
-    if (!marks || !layout) return marks;
-    return {
-      ...marks,
-      mark: (skill, next) => {
-        marks.mark(skill, next);
-        const leaf = layout.leafById.get(skill.id);
-        tick.current += 1;
-        setFresh(next === 'held' && leaf ? { index: leaf.index, tick: tick.current } : null);
-      },
-    };
-  }, [marks, layout]);
-  useEffect(() => {
-    if (!fresh) return;
-    const done = window.setTimeout(() => setFresh(null), 1400);
-    return () => window.clearTimeout(done);
-  }, [fresh]);
+  const { marking, fresh } = useFreshMark(marks, layout);
 
   const [preview, setPreview] = useState<AtlasTarget | null>(null);
   const open = useCallback(

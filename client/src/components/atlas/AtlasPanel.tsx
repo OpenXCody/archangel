@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { cn, focusRing, plural } from '@/lib/utils';
 import { LEVELS, LEVEL_NAME } from '../../lib/stages';
-import { SkillMark } from '../account/SkillStatusButton';
+import { SkillHeldToggle, SkillMark } from '../account/SkillStatusButton';
+import type { SkillMarks } from '../path/model';
 import type { AtlasMarks, AtlasOverlay, AtlasTarget } from './AtlasDrawing';
 import type { AtlasDomain, AtlasGroup, AtlasLayout, AtlasLeaf } from './layout';
 import { atlasHref, skillsListHref, type AtlasState } from './state';
@@ -27,6 +28,8 @@ interface AtlasPanelProps {
   state: AtlasState;
   overlay: AtlasOverlay | null;
   marks: AtlasMarks | null;
+  /** A seeker's marks to change, when a career is laid over the atlas: its skills' tags then carry the mark. */
+  marking?: SkillMarks | null;
   onPreview: (target: AtlasTarget | null) => void;
   className?: string;
 }
@@ -126,7 +129,9 @@ function SkillTag({
   detail,
   chosen,
   lit,
+  sign,
   mark,
+  marking,
   onPreview,
 }: {
   to: string;
@@ -134,12 +139,25 @@ function SkillTag({
   detail?: string;
   chosen: boolean;
   lit: Lit;
+  /** Whether the career's sign is shown: with two careers it tells them apart; with one, the mark alone says the skill is the career's. */
+  sign: boolean;
   mark: 'held' | 'learning' | null;
+  /** Given for a skill of a career laid over the atlas, to a seeker: the tag starts with the mark that sets it held or clears it. */
+  marking: SkillMarks | null;
   onPreview: (on: boolean) => void;
 }) {
   return (
     // The same tag a career's path uses (`.skill-tag`), here a link that opens the skill on the atlas.
-    <li className={cn('skill-tag', chosen && 'ring-1 ring-inset ring-info')} data-status={mark ?? undefined}>
+    <li className={cn('skill-tag', chosen && 'ring-1 ring-inset ring-info')} data-status={mark ?? undefined} data-atlas-markable={marking ? leaf.id : undefined}>
+      {marking && (
+        <SkillHeldToggle
+          label={leaf.name}
+          value={mark ?? 'none'}
+          disabled={marking.pending}
+          onChange={(next) => marking.mark({ id: leaf.id, name: leaf.name }, next)}
+          className="rounded-lg focus-visible:[outline-offset:-2px]"
+        />
+      )}
       <Link
         to={to}
         aria-current={chosen ? 'true' : undefined}
@@ -149,12 +167,13 @@ function SkillTag({
         onFocus={() => onPreview(true)}
         onBlur={() => onPreview(false)}
         className={cn(
-          'flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-1.5 text-sm leading-snug underline-offset-4 hover:underline focus-visible:[outline-offset:-2px]',
+          'flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg py-1.5 pr-3 text-sm leading-snug underline-offset-4 hover:underline focus-visible:[outline-offset:-2px]',
+          marking ? 'pl-0' : 'pl-3',
           focusRing
         )}
       >
-        {mark && <SkillMark status={mark} className="h-4 w-4" />}
-        {lit && <LitSign kind={lit} />}
+        {!marking && mark && <SkillMark status={mark} className="h-4 w-4" />}
+        {lit && sign && <LitSign kind={lit} />}
         <span className="flex min-w-0 flex-col">
           <span className="min-w-0 [overflow-wrap:anywhere]">{leaf.name}</span>
           {detail && <span className="min-w-0 text-xs text-fg-soft [overflow-wrap:anywhere]">{detail}</span>}
@@ -208,7 +227,7 @@ function Crumbs({ domain, group, leaf, state }: { domain: AtlasDomain; group: At
   );
 }
 
-export default function AtlasPanel({ layout, domain, group, leaf, state, overlay, marks, onPreview, className }: AtlasPanelProps) {
+export default function AtlasPanel({ layout, domain, group, leaf, state, overlay, marks, marking, onPreview, className }: AtlasPanelProps) {
   const base = { career: state.career, with: state.with };
   const point = (target: AtlasTarget) => (on: boolean) => onPreview(on ? target : null);
 
@@ -332,7 +351,9 @@ export default function AtlasPanel({ layout, domain, group, leaf, state, overlay
                     leaf={l}
                     chosen={leaf?.index === l.index}
                     lit={litOf(overlay, l.index)}
+                    sign={!marking || Boolean(overlay?.second)}
                     mark={marks?.get(l.index) ?? null}
+                    marking={marking && litOf(overlay, l.index) ? marking : null}
                     onPreview={point({ domain, group, leaf: l })}
                   />
                 ))}

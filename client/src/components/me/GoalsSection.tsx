@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, focusRing } from '@/lib/utils';
 import {
   goalNextSkills,
   nextSkillNames,
@@ -11,6 +11,7 @@ import {
   type NextSkill,
   useAddGoal,
   useMyGoals,
+  useMySkills,
   useRemoveGoal,
   type MyGoal,
 } from '../../lib/seeker';
@@ -24,6 +25,9 @@ import {
   textButtonClass,
 } from '../account/parts';
 import { PageSection } from '../layout/Page';
+import GoalPlate, { GoalPlateGround } from '../atlas/GoalPlate';
+import { careerAtlasHref } from '../atlas/pathView';
+import { useAtlasLayout } from '../atlas/useAtlasLayout';
 import { ShareRing } from '../path/HeldShare';
 import { levelName } from '../../lib/stages';
 import { accountKeys } from '../../lib/queryKeys';
@@ -36,6 +40,13 @@ export default function GoalsSection() {
   const addGoal = useAddGoal();
   // Goals removed while this page is open keep their place until it is left, with a way back.
   const [removed, setRemoved] = useState<MyGoal[]>([]);
+
+  // Each goal's career as a small plate, filled as far as the person holds it. The plates read the taxonomy
+  // and the person's skills, which the Skills section below reads too: no request of their own.
+  const { layout } = useAtlasLayout();
+  const mySkills = useMySkills();
+  const statusById = useMemo(() => new Map((mySkills.data ?? []).map((skill) => [skill.skillId, skill.status])), [mySkills.data]);
+  const statusOf = useCallback((skillId: string) => statusById.get(skillId), [statusById]);
 
   const refreshSuggestions = () => void queryClient.invalidateQueries({ queryKey: accountKeys.suggestedSkills });
   const removedIds = new Set(removed.map((goal) => goal.occupationId));
@@ -58,6 +69,9 @@ export default function GoalsSection() {
           </Link>
         </CardNote>
       ) : (
+        <>
+        {/* The ground every goal's small plate shows, drawn once. */}
+        {layout && <GoalPlateGround layout={layout} />}
         <ul className={cardClass}>
           {listed.map((goal) => {
             if (removedIds.has(goal.occupationId)) {
@@ -79,7 +93,18 @@ export default function GoalsSection() {
             }
             const removing = removeGoal.isPending && removeGoal.variables === goal.occupationId;
             return (
-              <li key={goal.occupationId} className={cn(rowClass, 'flex items-center gap-3 py-3 pl-4 pr-2')}>
+              <li key={goal.occupationId} className={cn(rowClass, 'flex items-center gap-3 py-3 pl-4 pr-2')} data-goal={goal.occupationId}>
+                {/* The career on the Atlas, small: how much of it is filled. It opens the career's page on that view. */}
+                {layout && goal.skillIds && goal.skillIds.length > 0 && (
+                  <Link
+                    to={careerAtlasHref(goal.occupationId)}
+                    aria-label={`${goal.title} on the atlas`}
+                    data-goal-plate-link
+                    className={cn('-my-1 -ml-1 shrink-0 self-start rounded-full p-1 transition-opacity hover:opacity-80', focusRing)}
+                  >
+                    <GoalPlate layout={layout} skillIds={goal.skillIds} statusOf={statusOf} className="h-16 w-16" />
+                  </Link>
+                )}
                 <div className="min-w-0 flex-1">
                   <Link
                     to={`/occupations/${goal.occupationId}`}
@@ -129,6 +154,7 @@ export default function GoalsSection() {
             );
           })}
         </ul>
+        </>
       )}
       <ErrorNote error={removeGoal.error ?? addGoal.error} className="mt-2" />
       <CareersInReach />
