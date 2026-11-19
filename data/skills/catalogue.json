@@ -27,7 +27,9 @@
       "category": "Shop Fundamentals",
       "aliases": [
         "Print Reading",
-        "Engineering Drawing Interpretation"
+        "Engineering Drawing Interpretation",
+        "Technical Drawings",
+        "Mechanical Drawings"
       ],
       "what": "Reading an engineering drawing: its views, dimensions, tolerances, notes, title block and revision level. A person who has it can tell from the print exactly what part or assembly is called for and what must be checked.",
       "learned": "Taught in the first term of machining, welding and drafting programs at community colleges, and in most apprenticeships. Shown by making or inspecting a part to print.",
@@ -545,6 +547,10 @@
     {
       "name": "Workholding and Fixturing",
       "category": "Machining",
+      "aliases": [
+        "Workholding",
+        "Work Holding"
+      ],
       "what": "Holding a part so it cannot move and is not distorted while it is cut. A person who has it chooses and sets up vises, chucks, soft jaws, collets, clamps and fixtures, and indicates the part true before cutting.",
       "learned": "Machining programs and apprenticeships; on the job.",
       "tools": [
@@ -1636,7 +1642,10 @@
       "aliases": [
         "Laser Powder Bed Fusion",
         "DMLS",
-        "SLM"
+        "SLM",
+        "PBF",
+        "LPBF",
+        "Powder Bed Fusion"
       ],
       "what": "Building metal parts layer by layer, most often by laser powder bed fusion. A person who has it sets up the build plate and recoater, loads powder, starts and monitors the build and removes it safely.",
       "learned": "Machine makers' training and on the job; some community colleges teach additive manufacturing. SME offers additive manufacturing certifications.",
@@ -3523,7 +3532,8 @@
       ],
       "aliases": [
         "Prepreg Layup",
-        "Hand Layup"
+        "Hand Layup",
+        "Wet Layup"
       ],
       "what": "Laying plies of carbon, glass or aramid fabric onto a tool in the order and fiber direction the ply table calls for. A person who has it works the material into contours without bridging or wrinkles, keeps it clean and tracks its out-time.",
       "learned": "Composite technician programs at community colleges and on the job. The American Composites Manufacturers Association's Certified Composites Technician covers it.",
@@ -3879,6 +3889,9 @@
         "Scarf Repair",
         "Stepped Lap Repair"
       ],
+      "aliases": [
+        "Scarf Repair"
+      ],
       "what": "Repairing a damaged laminate by sanding the surrounding plies to a shallow taper or a series of steps and laying in matching replacement plies. A person who has it holds the taper ratio, matches ply direction and cures the patch with a hot bonder.",
       "learned": "Composite repair courses for aircraft mechanics; on the job under an experienced repair technician.",
       "tools": [
@@ -4029,6 +4042,9 @@
     {
       "name": "Vacuum Heat Treatment",
       "category": "Finishing & Heat Treatment",
+      "aliases": [
+        "Vacuum Heat Treating"
+      ],
       "what": "Heat treating in a vacuum furnace so parts come out clean and bright. A person who has it loads fixtures, sets vacuum level and partial pressure, runs gas quench and leak-checks the furnace.",
       "learned": "On the job in a heat treat shop; furnace makers' training.",
       "tools": [
@@ -6165,6 +6181,9 @@
     {
       "name": "Electrical Schematic Reading",
       "category": "Electrical & Controls",
+      "aliases": [
+        "Wiring Diagrams"
+      ],
       "what": "Reading electrical drawings: power distribution, control circuits, ladder diagrams and wiring diagrams. A person who has it traces a circuit from source to load, finds a device on the drawing and in the panel and knows what state each contact should be in.",
       "learned": "Electrical and mechatronics programs at community colleges; electrical apprenticeships.",
       "tools": [
@@ -6178,6 +6197,10 @@
       "category": "Electrical & Controls",
       "was": [
         "Current Clamp"
+      ],
+      "aliases": [
+        "DMM",
+        "Digital Multimeter Use"
       ],
       "what": "Measuring voltage, current, resistance and continuity safely with a digital multimeter. A person who has it picks the function and range, places leads correctly and reads what the result says about the circuit.",
       "learned": "Taught first in electrical, electronics and maintenance programs.",
@@ -7348,6 +7371,10 @@
     {
       "name": "Thread Measurement",
       "category": "Quality & Measurement",
+      "aliases": [
+        "Thread Gauges",
+        "Thread Gages"
+      ],
       "what": "Checking screw threads for size and form. A person who has it uses go and no-go gauges correctly and measures pitch diameter with thread micrometers or the three-wire method.",
       "learned": "Machining and inspection programs; on the job.",
       "tools": [
@@ -7760,6 +7787,11 @@
       "was": [
         "Anomaly Resolution"
       ],
+      "aliases": [
+        "RCCA",
+        "RCA",
+        "Root Cause and Corrective Action"
+      ],
       "what": "Working from a failure back to the cause that, once removed, stops it happening again. A person who has it gathers the facts first, uses five-whys and cause-and-effect diagrams and tests the suspected cause before closing.",
       "learned": "Employer training; quality programs. Covered by ASQ's quality credentials.",
       "tools": [
@@ -7897,6 +7929,9 @@
     {
       "name": "5S Workplace Organization",
       "category": "Quality & Measurement",
+      "aliases": [
+        "6S"
+      ],
       "what": "Organizing a work area by sort, set in order, shine, standardize and sustain, so everything needed has a marked place and anything abnormal shows. A person who has it sets up an area and keeps it audited.",
       "learned": "Employer training; lean certificate programs.",
       "tools": [
@@ -8828,6 +8863,10 @@
         "ICT Fixture Design",
         "Flying Probe Test"
       ],
+      "aliases": [
+        "ICT",
+        "Flying Probe Testing"
+      ],
       "what": "Building the test that probes a loaded board net by net for shorts, opens and wrong or missing parts. A person who has it specifies the fixture from the board data, writes and debugs the program and tunes out false failures.",
       "learned": "On the job as a test engineer; tester makers' courses.",
       "tools": [
@@ -8938,6 +8977,10 @@
         "Shock Testing",
         "Acoustic Testing"
       ],
+      "aliases": [
+        "Vibration Testing",
+        "Shock Testing"
+      ],
       "what": "Shaking a product to a specified sine, random or shock profile. A person who has it fixtures the unit, places control and response accelerometers and runs the profile without over-testing.",
       "learned": "On the job in an environmental test lab; shaker makers' courses.",
       "tools": [
@@ -8998,7 +9041,8 @@
         "Network Analyzer"
       ],
       "aliases": [
-        "VNA"
+        "VNA",
+        "Network Analyzer Measurement"
       ],
       "what": "Measuring how a cable, antenna, filter or amplifier reflects and passes signals across frequency. A person who has it calibrates at the test ports and reads return loss, insertion loss and phase.",
       "learned": "Electronics technology and engineering programs; on the job in radio-frequency test.",
@@ -9307,7 +9351,8 @@
       "aliases": [
         "HIL Testing",
         "HIL",
-        "Hardware in the Loop"
+        "Hardware in the Loop",
+        "HITL"
       ],
       "what": "Testing a controller by connecting it to a real-time simulation of the machine it will run, so faults and edge cases can be tried without the hardware. A person who has it builds the test bench, maps signals between controller and model, automates the test cases and traces a failure to controller, model or wiring.",
       "learned": "Engineering degree and on the job as a test engineer; simulator makers' courses.",

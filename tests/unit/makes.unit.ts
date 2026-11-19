@@ -16,7 +16,8 @@ interface MakesFile {
 const BUILDER = 'scripts/build-makes-sql.mjs';
 const MAKES = 'data/skills/makes.json';
 const CATALOGUE = 'data/skills/catalogue.json';
-const MIGRATION = 'migrations/0050_skill_makes.sql';
+// The makes' latest migration. 0050 was the first and is as it was applied.
+const MIGRATION = 'migrations/0058_skill_makes_2.sql';
 
 const makes = JSON.parse(readFileSync(MAKES, 'utf8')) as MakesFile;
 const catalogue = JSON.parse(readFileSync(CATALOGUE, 'utf8')) as { skills: { name: string; tools?: string[] }[] };
@@ -129,7 +130,10 @@ test('the migration ties a mark to the holding and to the make, checks before it
 });
 
 test("the migration is in the runner's list after the taxonomy's, and the tables are in the schema", () => {
-  assert.match(readFileSync('scripts/migrate.mjs', 'utf8'), /'0049_skill_taxonomy_2\.sql', '0050_skill_makes\.sql'/);
+  const runner = readFileSync('scripts/migrate.mjs', 'utf8');
+  assert.match(runner, /'0049_skill_taxonomy_2\.sql', '0050_skill_makes\.sql'/);
+  // The latest follows the catalogue's latest, which stores every skill it names.
+  assert.match(runner, /'0057_skills_catalogue_3\.sql', '0058_skill_makes_2\.sql'/);
   const schema = readFileSync('server/db/schema.ts', 'utf8');
   assert.match(schema, /pgTable\(\s*'skill_makes'/);
   assert.match(schema, /pgTable\(\s*'user_skill_makes'/);
