@@ -265,7 +265,9 @@ export function readPay(lines, level) {
     while ((m = RANGE.exec(text))) found.push({ min: money(m[1], m[2]), max: money(m[3], m[4] ?? (m[2] && Number(m[3].replace(/,/g, '')) < 1000 ? 'k' : '')), at: m.index, end: m.index + m[0].length });
     BARE_RANGE.lastIndex = 0;
     if (!found.length) while ((m = BARE_RANGE.exec(text))) found.push({ min: money(m[1]), max: money(m[2]), at: m.index, end: m.index + m[0].length });
-    if (!found.length && /\b(pay|wage|rate|salary|compensation|starting)\b/i.test(text) && !/tax credit|bonus|stipend|reimburse|relocation|401|tuition|referral/i.test(text)) {
+    // One figure is a band of one where the line is about pay, or gives a level its rate ("Level II: $27/hr").
+    const rated = LEVEL_IN_LABEL.test(text) && /\/\s?(hr|hour)\b|per hour|an hour|hourly/i.test(text);
+    if (!found.length && (rated || /\b(pay|wage|rate|salary|compensation|starting)\b/i.test(text)) && !/tax credit|bonus|stipend|reimburse|relocation|401|tuition|referral/i.test(text)) {
       SINGLE.lastIndex = 0;
       const singles = [];
       while ((m = SINGLE.exec(text))) singles.push({ v: money(m[1], m[2]), at: m.index, end: m.index + m[0].length });

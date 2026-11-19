@@ -81,8 +81,8 @@ export function decideCareer(posting, text, vocab) {
     for (const n of vocab.names) {
       if (n.kind !== 'title' || n.career === pick.career || n.words.length <= baseWords.length) continue;
       // The branch's title is this one with a word before or after it, not inside it.
-      const at = n.words.join(' ').indexOf(baseKey);
-      if (at !== 0 && at !== n.key.length - baseKey.length) continue;
+      const at = ` ${n.key} `.indexOf(` ${baseKey} `);
+      if (at < 0 || (at !== 0 && at !== n.key.length - baseKey.length)) continue;
       const theirs = hits(n.career, [pick.career]);
       const ours = hits(pick.career, [n.career]);
       if (theirs >= 2 && ours === 0 && (!best || theirs > best.n)) best = { n: theirs, name: n };

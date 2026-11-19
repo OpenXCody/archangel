@@ -61,6 +61,14 @@ export function readTitle(title) {
   t = t.replace(/\b(entry)\s*\/\s*/gi, () => { lv('Entry', 1, false); said.either = true; return ' '; });
   if (/\b([1-5]|i{1,3}|iv)\s*\/\s*(senior|sr|staff|principal|lead)\b/i.test(t)) said.either = true;
 
+  // An employer's own grade: "Grade 9", "T3", "P4". The code is kept as the word;
+  // the rank is where it falls on a scale of that length.
+  if (!said.numeral && !said.word) {
+    const grade = t.match(/\b(?:grade|band|pay grade)\s*(\d{1,2})\b/i);
+    const code = t.match(/(?<![A-Za-z0-9-])([TPLEM])([1-6])(?![A-Za-z0-9-])/);
+    if (grade) { const n = +grade[1]; said.word = { word: `Grade ${n}`, n: n <= 3 ? 1 : n <= 6 ? 2 : n <= 9 ? 3 : 4 }; t = t.replace(grade[0], ' '); }
+    else if (code) { said.word = { word: code[0], n: Math.min(4, +code[2]) }; t = t.replace(code[0], ' '); }
+  }
   // Brackets hold a site, a programme, a level or a team: each is a part of its own.
   const parts = [];
   t = t.replace(/\(([^)]*)\)|\[([^\]]*)\]/g, (_, a, b) => { parts.push({ text: a ?? b, bracket: true }); return ' , '; });

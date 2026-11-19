@@ -162,6 +162,8 @@ export function assign(found, lines, vocab, path) {
     // same group named in the posting ("SPI" beside solder paste printing, not beside I2C).
     if (h.term.skills.some((s) => named.has(s) || onPath.has(s))) return true;
     const strict = ALSO_MEANS.has(h.term.text);
+    // A posting that names skills of the catalogue speaks its language: a plain code in it is the code.
+    if (!strict && named.size >= 2) return true;
     const near = (s) => (strict ? groups.has(vocab.skills.get(s)?.group) : cats.has(categoryOf(s)));
     for (const s of named.keys()) if (near(s)) return true;
     if (codes.some((o) => o !== h && o.term.text !== h.term.text && o.term.skills.some(near))) return true;
@@ -246,7 +248,7 @@ export function unknownWords(lines, found, vocab, posting, cap = 8) {
     let run = [];
     const flush = () => {
       if (!run.length) return;
-      const phrase = run.map((w) => w.raw).join(' ');
+      const phrase = run.map((w, k) => (k && line.text[w.at - 1] === '-' ? '-' : k ? ' ' : '') + w.raw).join('');
       run = [];
       const key = phrase.toLowerCase();
       if (seen.has(key) || phrase.length < 3 || phrase.length > 40) return;
@@ -261,10 +263,15 @@ export function unknownWords(lines, found, vocab, posting, cap = 8) {
       const brand = /^[A-Z][a-z]+[A-Z][A-Za-z]+$/.test(raw) || /^[a-z]+[A-Z][A-Za-z]+$/.test(raw);
       const first = i === 0 || /[.:;!?•]\s*$/.test(line.text.slice(0, w.at));
       const name = /^[A-Z][a-z][A-Za-z+#]{2,}$/.test(raw) && !first && cue >= 0 && w.at > cue;
-      const ok = !hidden[i] && (code || brand || name) && !NOT_A_TOOL.has(lower) && !NOT_A_TOOL.has(lower.replace(/s$/, '')) && !GENERIC.has(stem(lower)) && !own.has(lower) && !/^(19|20)\d\d$/.test(raw);
-      const joined = run.length && line.text.slice(run[run.length - 1].at + run[run.length - 1].raw.length, w.at) === ' ';
-      if (!ok || (run.length && !joined) || run.length >= 3) flush();
-      if (ok) run.push(w);
+      const partNumber = /^-\d/.test(line.text.slice(w.at + raw.length, w.at + raw.length + 2));
+      const ok = !hidden[i] && !partNumber && (code || brand || name) && !NOT_A_TOOL.has(lower) && !NOT_A_TOOL.has(lower.replace(/s$/, '')) && !GENERIC.has(stem(lower)) && !own.has(lower) && !/^(19|20)\d\d$/.test(raw);
+      const gap = run.length ? line.text.slice(run[run.length - 1].at + run[run.length - 1].raw.length, w.at) : '';
+      const joined = gap === ' ' || gap === '-';
+      // "Allen-Bradley" is one name; the second half of it need not pass by itself.
+      const half = run.length && gap === '-' && /^[A-Z][a-z]+$/.test(raw) && !hidden[i];
+      if (!(ok || half) || (run.length && !joined) || run.length >= 3) flush();
+      if (ok || (half && run.length)) run.push(w);
+      else if (!hidden[i] && !first && /^[A-Z][a-z]+$/.test(raw) && line.text[w.at + raw.length] === '-' && /^[A-Z][a-z]+/.test(line.text.slice(w.at + raw.length + 1)) && !NOT_A_TOOL.has(lower) && !own.has(lower)) run.push(w);
     }
     flush();
   });
