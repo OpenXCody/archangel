@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tansta
 import type { Purpose } from '@shared/purpose';
 import { ApiError, request, retryUnlessClientError } from './http';
 import { accountKeys } from './queryKeys';
+import { writeStored } from './storage';
 
 /**
  * Who is signed in: the account, signing in and out, invites and password
@@ -179,11 +180,8 @@ export function justLeft(account: Account): boolean {
 function identityChanged(queryClient: QueryClient, account: Account): void {
   queryClient.setQueryData(accountKeys.account, account);
   // Tell this browser's other tabs (see useSessionExpiryWatch). The value only has to change.
-  try {
-    window.localStorage.setItem(IDENTITY_SIGNAL, String(Date.now()));
-  } catch {
-    // Storage is unavailable: the other tabs find out when they next ask.
-  }
+  // With storage unavailable the other tabs find out when they next ask.
+  writeStored(IDENTITY_SIGNAL, String(Date.now()));
   queryClient.removeQueries({ queryKey: accountKeys.me });
   queryClient.removeQueries({ queryKey: accountKeys.employer });
   queryClient.removeQueries({ queryKey: accountKeys.admin });
