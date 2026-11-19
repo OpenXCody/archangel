@@ -38,7 +38,7 @@ export function answerRefusal(res: Response, error: unknown, what: string): void
 
 const NOT_FOUND: Record<RecordKind, string> = {
   company: 'Company not found',
-  factory: 'Factory not found',
+  factory: 'Plant not found',
   career: 'Occupation not found',
   skill: 'Skill not found',
 };
@@ -407,7 +407,7 @@ async function changeCompany(id: string, body: Body, actor: Actor): Promise<Save
 
 async function changeFactory(id: string, body: Body, actor: Actor): Promise<SavedRow> {
   const name = optionalName(body.name, 300);
-  if (name === false) refuse('name', 'A factory needs a name of up to 300 characters.');
+  if (name === false) refuse('name', 'A plant needs a name of up to 300 characters.');
   if (body.companyId !== undefined && !isUuid(body.companyId)) refuse('company', 'Choose the company that runs it.');
   const companyId = body.companyId as string | undefined;
   const state = body.state === undefined ? undefined : stateCode(body.state);
@@ -499,7 +499,7 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
         .from(factories)
         .where(and(eq(factories.companyId, after.companyId), eq(factories.state, after.state), sql`lower(${factories.name}) = lower(${after.name})`, ne(factories.id, id)))
         .limit(1);
-      if (taken) throw new RecordRefusal(409, 'That company already has a factory with that name in that state.', { field: 'name', existing: taken });
+      if (taken) throw new RecordRefusal(409, 'That company already has a plant with that name in that state.', { field: 'name', existing: taken });
     }
 
     const changes = changedFields({ ...before, industry: before.primaryNaicsDescription }, { ...after, industry: after.primaryNaicsDescription }, [

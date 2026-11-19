@@ -136,7 +136,7 @@ export function accountRoles(account: Account): string[] {
   const active = account.memberships.filter((m) => m.status === 'active');
   if (active.length === 1) roles.push(`Employer (${active[0].companyName})`);
   else if (active.length > 1) roles.push(`Employer (${active.length} companies)`);
-  else if (account.memberships.some((m) => m.status === 'requested')) roles.push('Employer (pending approval)');
+  else if (account.memberships.some((m) => m.status === 'requested')) roles.push('Waiting for approval');
   return roles;
 }
 

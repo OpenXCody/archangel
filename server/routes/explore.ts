@@ -295,20 +295,11 @@ router.get('/overview', async (_req: Request, res: Response) => {
 //   that are some company's industry (`companies`: the one most of its plants
 //   are in), each by the name a plant carries, in the order of their short names;
 // - `skillCategories`: the skill categories in use;
-// - `companyIndustries`: the free text in companies.industry, most common
-//   first up to a sensible number. Not an industry on screen and not a filter:
-//   only the admin's company form reads it, to offer what is already written.
 // `factoryIndustries` is the same list as `industries.plants`, kept under its
 // old name for the map's filter and for pages loaded before this.
-const FACET_LIMIT = 60;
 router.get('/facets', async (_req: Request, res: Response) => {
   try {
-    const [companyRows, factoryRows, categoryRows, companyIndustryRows] = await Promise.all([
-      db.execute(sql`
-        SELECT btrim(industry) AS value, COUNT(*)::int AS n FROM companies
-        WHERE industry IS NOT NULL AND btrim(industry) <> ''
-        GROUP BY 1 ORDER BY n DESC, value ASC LIMIT ${FACET_LIMIT}
-      `),
+    const [factoryRows, categoryRows, companyIndustryRows] = await Promise.all([
       db.execute(sql`
         SELECT f.primary_naics_description AS value
         FROM factories f
@@ -336,7 +327,6 @@ router.get('/facets', async (_req: Request, res: Response) => {
     res.json({
       industries: { plants: plantIndustries, companies: industries(companyIndustryRows) },
       factoryIndustries: plantIndustries,
-      companyIndustries: values(companyRows),
       skillCategories: values(categoryRows),
     });
   } catch (error) {

@@ -178,3 +178,56 @@ Checked on 2026-11-18 from a script behind a proxy (no browser).
 | **Economic development lists** (the governor's office, regional and city corporations' major-employer tables) | Headcounts by site, as the region states them | Pages reachable; each is its own format | Research briefs, as now, rather than adapters: there is no common shape. |
 | **BLS Occupational Employment and Wage Statistics** | Pay for a career, nationally and by state and metro area | The files answer 403 to a script; the public API (api.bls.gov) answers | Belongs on careers, in a table keyed by O*NET/SOC code and area, not in the contract. Download the yearly file by hand, or page the API (registration lifts its daily limit). |
 | **Census County Business Patterns** | Establishments by size class and employment by industry and county | Yes: zip per year, public domain | Context for an industry in a place; the same kind of table as the industry employment statistics. |
+
+## Official statistics: the QCEW adapter
+
+How many people work in an industry is not a fact about one company or plant,
+so it does not go through the contract. Its path:
+
+```
+data.bls.gov (one CSV per industry, per year)
+        │      scripts/ingest/qcew.mjs
+data/industries/qcew-<year>.json
+        │      scripts/build-industry-stats-sql.mjs   (+ data/industries/industries.json)
+migrations/00NN_industry_stats.sql  (in scripts/migrate.mjs)   ──►   industry_profiles, industry_stats
+```
+
+**The adapter** (`scripts/ingest/qcew.mjs`) reads the Bureau of Labor
+Statistics' Quarterly Census of Employment and Wages: open data, no key.
+
+- `node scripts/ingest/qcew.mjs` takes the latest complete year: it starts at
+  last year and walks back, three years at most. `--year 2025` names the year.
+  `--from <dir>` reads files already downloaded (`<dir>/<code>.csv`, with
+  `31_33.csv` for manufacturing as a whole) instead of fetching them. Behind a
+  proxy, Node's fetch needs `NODE_USE_ENV_PROXY=1`.
+- It reads one file per industry: the 21 subsectors listed in
+  `data/industries/industries.json`, and `31-33` for manufacturing as a whole.
+  From each it keeps the private-sector annual averages, all establishment
+  sizes, for the nation (`US`) and for each state the app knows:
+  `establishments`, `employment` and `avgAnnualPay` (dollars).
+- A figure the Bureau withheld is `null`, never zero.
+- A year is complete when the nation's figure is published and at least 50
+  of the state rows (the states and the District of Columbia) are there. An
+  industry with no file or no national row for that year stops the run.
+- It writes `data/industries/qcew-<year>.json`: the source, the year and the
+  day it was retrieved, then one row per line, so a later year's file diffs
+  against this one. It touches no database.
+
+**The builder** (`scripts/build-industry-stats-sql.mjs`) turns the industries
+file and one year's statistics into one migration:
+
+```bash
+node scripts/build-industry-stats-sql.mjs data/industries/industries.json data/industries/qcew-<year>.json migrations/00NN_industry_stats.sql
+```
+
+- Each industry's name and sentence go into `industry_profiles`; the figures
+  go into `industry_stats`, keyed by state, industry and year, with the
+  source's name and address on every row.
+- It refuses statistics for an industry that is not listed, a state that is
+  not a two-letter code or `US`, and a file that names no year.
+- The migration is safe to run again and deletes nothing. Another year is a
+  new JSON file and a new generated migration, added to the list in
+  `scripts/migrate.mjs`; the year before stays in the table.
+
+`tests/unit/industries.unit.ts` checks the adapter's reading and the stored
+file; `tests/api/industries.sh` checks the pages that read the tables.

@@ -610,8 +610,6 @@ export interface ExploreFacets {
    * plant carries. Absent from an answer cached before this field existed.
    */
   industries?: { plants: string[]; companies: string[] };
-  /** The free text in companies.industry. Not an industry on screen: only the admin's company form reads it. */
-  companyIndustries: string[];
   /** The same list as `industries.plants`, under its older name. */
   factoryIndustries: string[];
   skillCategories: string[];
