@@ -1718,4 +1718,21 @@ test("a job from a company's careers site, as a seeker and as the company: marks
   await expect(page.getByRole('link', { name: /^Edit$|Post another like this/ })).toHaveCount(0);
   await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
   await assertHealthyLayout(page, '/jobs/:id from a posting, the company');
+
+  // Your jobs, for a member who has posted nothing: what is already listed from the company's site is said before the form.
+  await page.route('**/api/employer', (route) =>
+    route.fulfill({
+      json: {
+        companies: [
+          { companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', role: 'member', status: 'active', decidedAt: null, askAgainAt: null, factories: [], jobs: [], listedJobs: 485 },
+        ],
+      },
+    })
+  );
+  await page.route('**/api/employer/company-requests', (route) => route.fulfill({ json: { requests: [] } }));
+  await page.route('**/api/companies/*/careers', (route) => route.fulfill({ json: { versions: [] } }));
+  await page.goto('/employer', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-listed-jobs]')).toContainText("485 open jobs come from the company's careers site and are kept in step with it.");
+  await expect(page.getByRole('heading', { name: 'Post a job' })).toBeVisible();
+  await assertHealthyLayout(page, '/employer with listed jobs and none posted');
 });
