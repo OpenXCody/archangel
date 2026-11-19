@@ -23,9 +23,9 @@ import { useViewer } from '../lib/viewer';
 import { isExpired } from '../lib/jobFormat';
 import CompanyRequestForm from '../components/account/CompanyRequestForm';
 import JobForm, { type JobFormCompany } from '../components/jobs/JobForm';
-import { selectContentClass, selectTriggerClass } from '../components/account/parts';
-import ConfirmDialog from '../components/layout/ConfirmDialog';
 import {
+  selectContentClass,
+  selectTriggerClass,
   AccountGate,
   CardNote,
   KIND_ICON,
@@ -41,6 +41,7 @@ import {
   rowClass,
   textButtonClass,
 } from '../components/account/parts';
+import ConfirmDialog from '../components/layout/ConfirmDialog';
 import { useDebouncedValue } from '../lib/useDebouncedValue';
 import { DAY_MS, formatDay, formatOnDay } from '../lib/dates';
 import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
