@@ -210,8 +210,10 @@ export interface CompanyOccupation {
 }
 
 export interface CompanyDetail extends Company {
-  /** Open jobs here, newest first. */
+  /** Open jobs here, the newest few. */
   jobs?: CareerJob[];
+  /** How many jobs are open here in all. */
+  openJobCount?: number;
   factories: RelatedFactory[];
   occupations?: CompanyOccupation[];
   /** The company this one is part of. */
@@ -285,8 +287,10 @@ export interface SisterSite {
 }
 
 export interface FactoryDetail extends Factory {
-  /** Open jobs here, newest first. */
+  /** Open jobs here, the newest few. */
   jobs?: CareerJob[];
+  /** How many jobs are open here in all. */
+  openJobCount?: number;
   company: FactoryCompany | null;
   /** The company's other sites, closest first (up to five). */
   nearby?: SisterSite[];
@@ -320,7 +324,9 @@ export interface OccupationDetail extends Occupation {
   /** The career's path: its skills, each with its level, group and domain. */
   skills: PathSkill[];
   factories: RelatedFactoryWithHeadcount[];
+  /** Open jobs for it, the newest few, and how many are open in all. */
   jobs?: CareerJob[];
+  openJobCount?: number;
   /** Industries where this work is typically done, with their factory counts. */
   industries?: { name: string; factoryCount: number }[];
   /** True when the career is found in plants of every industry rather than a few. */
@@ -364,8 +370,9 @@ export interface SkillDetail extends Skill {
   everywhere?: boolean;
   /** The skills that most often share a path with it. */
   relatedSkills: RelatedSkill[];
-  /** Open jobs that ask for it. */
+  /** Open jobs that ask for it, the newest few, and how many there are in all. */
   jobs?: CareerJob[];
+  openJobCount?: number;
 }
 
 export type EntityType = 'companies' | 'factories' | 'occupations' | 'skills';

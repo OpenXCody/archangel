@@ -200,7 +200,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
       )}
 
       {/* Open jobs: said only when there are some */}
-      {jobs.length > 0 && <OpenJobsSection jobs={jobs} showCareer />}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} showCareer total={data.openJobCount} all={`/jobs?company=${data.id}`} />}
 
       {/* The companies that are part of this one */}
       {(data.subsidiaries?.length ?? 0) > 0 && (

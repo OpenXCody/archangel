@@ -147,7 +147,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       <WhereWorkIsDone data={data} />
 
       {/* Like the company and plant pages: a section only when there is a job to show. */}
-      {jobs.length > 0 && <OpenJobsSection jobs={jobs} />}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} total={data.openJobCount} all={`/jobs?career=${data.id}`} />}
 
       {/* Companies with their own version of this career: the page stays the standard, and says where it differs. */}
       {versions.length > 0 && (

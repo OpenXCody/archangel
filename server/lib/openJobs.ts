@@ -12,11 +12,24 @@ export function jobIsOpen(jobTable = 'jobs'): SQL {
   return sql`(${job}.status = 'open' AND ${job}.expires_at > now())`;
 }
 
+/** How many open jobs a company's, a plant's or a career's page lists: the newest. The rest are a link away, on Jobs. */
+export const OPEN_JOBS_SHOWN = 12;
+
 /**
  * Open jobs matching a condition, newest first: the short form shown on a
  * career's, a factory's and a company's page. "Open" here also means at a
  * factory inside the app's region.
  */
+/** How many open jobs match a condition: what a page says beside the few it lists. */
+export async function countOpenJobs(where: SQL): Promise<number> {
+  const [row] = await db
+    .select({ total: sql<number>`COUNT(*)::int` })
+    .from(jobs)
+    .innerJoin(factories, eq(jobs.factoryId, factories.id))
+    .where(and(where, jobIsOpen(), factoryInScope()));
+  return row?.total ?? 0;
+}
+
 export async function listOpenJobs(where: SQL, limit = 50) {
   return db
     .select({

@@ -9,7 +9,10 @@ import { distinct, isoTime, shape, webAddress, words } from './shared.mjs';
 
 export const name = 'Workday';
 export const how = 'One request per 20 postings for the list, then one per kept posting that is new or changed.';
-export const pace = 2000;
+// A board's tenants share one platform, and it turns a busy robot away: three seconds apart, and no more
+// than fifty texts for one employer in one run (the rest are read on the runs that follow).
+export const pace = 3000;
+export const textsPerRun = 50;
 
 const PAGE = 20;
 /** 20,000 postings: a count that never ends is a changed feed, not a large board. */

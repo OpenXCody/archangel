@@ -84,7 +84,7 @@ function cents(value: unknown): number | null {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 100_000_000 ? value : null;
 }
 
-// GET /api/jobs?occupationId=&companyId=&factoryId=&q=&state=&near=<lat>,<lng>&within=<miles>&limit=&offset=
+// GET /api/jobs?occupationId=&companyId=&factoryId=&skillId=&q=&state=&near=<lat>,<lng>&within=<miles>&limit=&offset=
 // `q`: every word typed must be in the job's title, company, career, shift or
 // place. `near`: only jobs whose factory is within `within` miles (50 unless
 // said) of the point, nearest first, each with its distance as `miles`.
@@ -97,6 +97,10 @@ router.get(
     if (isUuid(occupationId)) filters.push(eq(jobs.occupationId, occupationId));
     if (isUuid(companyId)) filters.push(eq(jobs.companyId, companyId));
     if (isUuid(factoryId)) filters.push(eq(jobs.factoryId, factoryId));
+    // The jobs that ask for a skill.
+    if (isUuid(req.query.skillId)) {
+      filters.push(sql`EXISTS (SELECT 1 FROM job_skills js WHERE js.job_id = ${jobs.id} AND js.skill_id = ${req.query.skillId})`);
+    }
     const typed = jobTextFilter(q);
     if (typed) filters.push(typed);
     if (typeof state === 'string' && /^[A-Za-z]{2}$/.test(state)) filters.push(eq(factories.state, state.toUpperCase()));

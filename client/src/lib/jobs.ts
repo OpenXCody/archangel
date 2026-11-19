@@ -122,6 +122,8 @@ export interface JobFilters {
   occupationId?: string;
   companyId?: string;
   factoryId?: string;
+  /** The jobs that ask for a skill. */
+  skillId?: string;
   /** "latitude,longitude": only jobs within `within` miles of the point, nearest first. */
   near?: string;
   /** Miles; 50 when left out. */

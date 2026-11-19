@@ -105,6 +105,8 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
         kept.set(posting.id, { same: true, hash: before.hash });
         continue;
       }
+      // Enough texts for one run: the rest wait for the next, staged as they were.
+      if (counts.texts >= (adapter.textsPerRun ?? Infinity)) spent = true;
       if (spent) {
         deferred.add(posting.id);
         continue;

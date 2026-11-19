@@ -244,6 +244,8 @@ expect "the company's page lists its jobs"  'true' "$(req anon GET /companies/$A
 expect "the plant's page lists its jobs"    'true' "$(req anon GET /factories/$PLANT | j "jobs.some((x) => x.id === '$J101')")"
 expect "the career's page lists them"       'true' "$(req anon GET /occupations/$WELDER | j "jobs.some((x) => x.id === '$J101')")"
 expect "the skill's page lists the jobs that ask for it" 'true' "$(req anon GET /skills/$MIG | j "jobs.some((x) => x.id === '$J101')")"
+expect "a page lists the newest few and says how many are open in all" '4 4' "$(req anon GET /companies/$ACME | j "jobs.length + ' ' + o.openJobCount")"
+expect "the jobs list narrows to a company, a plant and a skill, as their pages link" '4 2 2' "$(req anon GET "/jobs?companyId=$ACME" | j total) $(req anon GET "/jobs?factoryId=$PLANT" | j total) $(req anon GET "/jobs?skillId=$MIG&q=E2E+Postings" | j total)"
 expect "search finds it"                    'true' "$(req anon GET '/search?q=E2E+Postings+Acme' | j "results.jobs.count >= 1")"
 expect "the map's pins count it"            'true' "$(req anon GET /factories/pins | j "pins.find((x) => x[0] === '$PLANT')[8] >= 1")"
 

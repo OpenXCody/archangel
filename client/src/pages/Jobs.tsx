@@ -7,13 +7,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import CompanyLogo from '../components/CompanyLogo';
 import JobPlaceFilter, { DEFAULT_WITHIN, WITHIN_CHOICES, jobPlaceLabel, type JobPlace } from '../components/jobs/JobPlaceFilter';
-import { occupationsApi } from '../lib/api';
+import { occupationsApi, skillsApi } from '../lib/api';
 import { useAccount } from '../lib/account';
 import { useJobs, useJobsSummary, type JobSummary } from '../lib/jobs';
 import { usePostJobLink } from '../lib/viewer';
 import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
 import { formatAgo } from '../lib/dates';
-import { formatFactoryName } from '@shared/displayName';
+import { formatCompanyName, formatFactoryName } from '@shared/displayName';
 import { LoadError, busyButtonClass, cardClass, fieldClass, outlineButtonClass } from '../components/account/parts';
 import { useDebouncedValue } from '../lib/useDebouncedValue';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
@@ -46,7 +46,8 @@ function milesAway(miles: number): string {
  *
  * Two fields: what (a job, a company or a career, typed) and where. A career
  * is narrowed to by its page's link (`?career=`), and the line above the list
- * then names it. With no open job anywhere there is nothing to filter: the
+ * then names it; a company's, a plant's and a skill's page link to all of
+ * their open jobs the same way (`?company=`, `?plant=`, `?skill=`). With no open job anywhere there is nothing to filter: the
  * page is one sentence and the way on.
  */
 export default function Jobs() {
@@ -58,6 +59,14 @@ export default function Jobs() {
   const q = searchParams.get('q')?.trim() ?? '';
   const careerParam = searchParams.get('career') ?? '';
   const career = isUuid(careerParam) ? careerParam : '';
+  // A company's, a plant's and a skill's page link here the same way, for all of their open jobs.
+  const linked = (name: string) => {
+    const value = searchParams.get(name) ?? '';
+    return isUuid(value) ? value : '';
+  };
+  const company = linked('company');
+  const plant = linked('plant');
+  const skill = linked('skill');
   const stateParam = (searchParams.get('state') ?? '').toUpperCase();
   const point = readPoint(searchParams.get('near'));
   // A point wins over a state: the address holds one place.
@@ -114,6 +123,9 @@ export default function Jobs() {
     q: q || undefined,
     state: state || undefined,
     occupationId: career || undefined,
+    companyId: company || undefined,
+    factoryId: plant || undefined,
+    skillId: skill || undefined,
     near: point ? `${point.lat},${point.lng}` : undefined,
     within: point ? within : undefined,
   });
@@ -133,8 +145,25 @@ export default function Jobs() {
     staleTime: 5 * 60_000,
   });
   const careerTitle = careerInList ?? linkedCareer.data?.title ?? null;
+  // What else a link narrowed the list to, in the words the line above the list uses.
+  const first = jobs.jobs?.[0];
+  const linkedSkill = useQuery({
+    queryKey: publicKeys.picker('skill', skill),
+    queryFn: () => skillsApi.get(skill),
+    enabled: Boolean(skill),
+    staleTime: 5 * 60_000,
+  });
+  const narrowedTo = career
+    ? careerTitle && `for ${careerTitle}`
+    : company
+      ? first && `at ${formatCompanyName(first.companyName)}`
+      : plant
+        ? first && `at ${formatFactoryName(first.factoryName)}`
+        : skill
+          ? linkedSkill.data && `that ask for ${linkedSkill.data.name}`
+          : null;
 
-  const filtered = Boolean(q || career || place);
+  const filtered = Boolean(q || career || company || plant || skill || place);
   // How many match in all, not how many are on screen: the list shows a page at a time.
   const count = jobs.total;
   const shown = jobs.jobs ?? [];
@@ -146,8 +175,8 @@ export default function Jobs() {
   // What the list is, in one line: how many, and what narrowed it.
   const counted = count.toLocaleString('en-US');
   const summary =
-    career && careerTitle && !q
-      ? `${counted} open ${jobWord(count)} for ${careerTitle}${where}`
+    narrowedTo && !q
+      ? `${counted} open ${jobWord(count)} ${narrowedTo}${where}`
       : place?.kind === 'near'
         ? `${counted} ${jobWord(count)} within ${within} miles of ${placeName}`
         : `${counted} ${filtered ? (count === 1 ? 'job matches' : 'jobs match') : `open ${jobWord(count)}`}`;

@@ -104,7 +104,7 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
       )}
 
       {/* Open jobs: said only when there are some */}
-      {jobs.length > 0 && <OpenJobsSection jobs={jobs} showCareer />}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} showCareer total={data.openJobCount} all={`/jobs?plant=${data.id}`} />}
 
       {/* Who runs it */}
       {company && companyName && !companyIsThisPlant && (

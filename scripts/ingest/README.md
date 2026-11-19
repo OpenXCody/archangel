@@ -293,10 +293,13 @@ nothing private. Each host's robots file is read once per run and obeyed (the
 group naming us, else `*`; the longest rule wins; a `Crawl-delay` up to 30
 seconds is kept, a longer one leaves the employer for a person). A host with
 no robots file (any answer but 200, 403, 429 or a server error) is taken to
-allow. Requests to one host are at least a second apart, two for Jibe,
-Workday (and whatever longer the robots file asks: five for Jibe's sites), 1.5
-for Oracle. An employer has a ceiling of 400 requests a run: postings past it
-wait for the next run, staged as they were.
+allow. Requests to one host are at least a second apart: 1.5 for Oracle, two
+for Jibe (five where its robots file asks, as Rivian's and Panasonic's do),
+three for Workday. An employer has a ceiling of 400 requests a run, and of
+texts where each costs a request (50 for Workday, 100 for Oracle): postings
+past either wait for the next run, staged as they were, so a large board is
+read in over several days. The registry is read in order: one-request boards
+first, Workday's last and smallest first.
 
 **The stop rule.** A 401, 403 or 429, a challenge page, or a connection reset
 ends that employer for the run. It is written to the run (`refused`, with what

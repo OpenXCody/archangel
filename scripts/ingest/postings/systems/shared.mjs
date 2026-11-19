@@ -8,6 +8,7 @@
 //   feed(board)                 the address of the board's first request (what the registry's check and a person read)
 //   async list(board, { get, post, today })   every posting the board lists
 //   async text(board, listed, { get })        optional: the text of one listed posting, where the list has none
+//   textsPerRun                               optional: the most texts asked of one employer in one run
 //
 // A listed posting is
 //   { id, title, location, locations, address, department, url, postedAt, updatedAt, country, text, hints }
