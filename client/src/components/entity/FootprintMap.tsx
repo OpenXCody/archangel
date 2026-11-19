@@ -3,11 +3,11 @@ import { cn } from '@/lib/utils';
 import { useStatesOutline } from '../../lib/queries';
 
 /**
- * Where a company's plants are: the lower 48 states drawn faintly, one dot per
- * plant. A quiet picture of a footprint, not an interactive map (the map page
- * is one tap away). It is plain SVG: the state shapes the map already uses,
- * projected here with an Albers equal-area conic, so it needs no map library
- * and no tiles.
+ * Where a company's plants are: the lower 48 states as hairlines, one dot of
+ * ink per plant. A quiet picture of a footprint, not an interactive map (the
+ * map page is one tap away). It is plain SVG: the state shapes the map already
+ * uses, projected here with an Albers equal-area conic, so it needs no map
+ * library and no tiles. Its colours are theme tokens: the land is the page.
  *
  * Plants outside the lower 48 (Alaska, Hawaii) are not drawn; the
  * caller lists every plant beside it.
@@ -123,8 +123,8 @@ export default function FootprintMap({ points, emphasis, className }: FootprintM
     >
       <path
         d={outline}
-        fill="var(--color-bg-elevated)"
-        stroke="var(--color-border-strong)"
+        fill="none"
+        stroke="var(--line-strong)"
         strokeWidth={1}
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
@@ -139,9 +139,9 @@ export default function FootprintMap({ points, emphasis, className }: FootprintM
             cx={dot.position[0]}
             cy={dot.position[1]}
             r={emphasis ? radius * 0.7 : radius}
-            fill={emphasis ? 'var(--color-fg-soft)' : 'var(--color-fg-default)'}
+            fill={emphasis ? 'var(--text-3)' : 'var(--text-1)'}
             fillOpacity={dots.length > 40 ? 0.6 : 0.85}
-            stroke="var(--color-bg-surface)"
+            stroke="var(--bg)"
             strokeWidth={1}
             vectorEffect="non-scaling-stroke"
           >
@@ -152,20 +152,19 @@ export default function FootprintMap({ points, emphasis, className }: FootprintM
       {dots
         .filter((dot) => dot.id === emphasis)
         .map((dot) => (
-          <g key={dot.id}>
-            <circle cx={dot.position[0]} cy={dot.position[1]} r={radius * 2.1} fill="rgb(var(--info))" fillOpacity={0.18} />
-            <circle
-              cx={dot.position[0]}
-              cy={dot.position[1]}
-              r={radius * 1.05}
-              fill="var(--color-fg-default)"
-              stroke="rgb(var(--info))"
-              strokeWidth={2}
-              vectorEffect="non-scaling-stroke"
-            >
-              {dot.label && <title>{dot.label}</title>}
-            </circle>
-          </g>
+          // The plant this page is about: ink, ringed in the accent.
+          <circle
+            key={dot.id}
+            cx={dot.position[0]}
+            cy={dot.position[1]}
+            r={radius * 1.05}
+            fill="var(--text-1)"
+            stroke="var(--accent)"
+            strokeWidth={2}
+            vectorEffect="non-scaling-stroke"
+          >
+            {dot.label && <title>{dot.label}</title>}
+          </circle>
         ))}
     </svg>
   );
