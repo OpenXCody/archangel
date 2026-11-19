@@ -132,6 +132,7 @@ expect "a street address is taken over a post office box" '77 Real St' "$(sql "S
 # ---------------------------------------------------------------------------
 # 2. The cleanup migration, on rows shaped like production's, rolled back
 # ---------------------------------------------------------------------------
+# In each pair the row meant to be kept has a fact the other lacks, so the keeper rule never falls to the ids.
 cat > "$D/fixture.sql" <<'SQL'
 INSERT INTO companies (name, domain, parent_company_id) VALUES
   ('E2E Dupes Widget Prods', NULL, NULL), ('E2E Dupes Widget Products', NULL, NULL),
@@ -146,14 +147,14 @@ INSERT INTO e2e VALUES
   ('b1', 'E2E Dupes Acme', 'E2E DUPES ACME PRESS SHOP', '39.2000', '-116.7000', '5 Press St', 'NV', '{"naics": "332119"}', 'C-B', false),
   ('b2', 'E2E Dupes Acme', 'E2E DUPES ACME PRESS SHOP INC', '39.3800', '-116.7000', '5 PRESS STREET', 'NV', '{}', 'C-B', true),
   -- c: one company, 20 km apart, different names and addresses
-  ('c1', 'E2E Dupes Acme', 'E2E DUPES ACME NORTH WORKS', '39.2000', '-116.5000', '1 North Rd', 'NV', '{}', 'C-C', false),
+  ('c1', 'E2E Dupes Acme', 'E2E DUPES ACME NORTH WORKS', '39.2000', '-116.5000', '1 North Rd', 'NV', '{"naics": "332312"}', 'C-C', false),
   ('c2', 'E2E Dupes Acme', 'E2E DUPES ACME SOUTH YARD', '39.3800', '-116.5000', '80 South Ave', 'NV', '{}', 'C-C', true),
   -- d: two company rows that are one name written twice; the smaller is left with nothing
   ('d1', 'E2E Dupes Widget Products', 'E2E DUPES WIDGET PRODUCTS', '39.2000', '-116.3000', '7 Widget Way', 'NV', '{"naics": "332999"}', 'C-D', false),
   ('d2', 'E2E Dupes Widget Prods', 'E2E DUPES WIDGET PRODS INC', '39.2010', '-116.3000', '7 WIDGET WAY', 'NV', '{}', 'C-D', true),
   ('d3', 'E2E Dupes Widget Products', 'E2E DUPES WIDGET PLANT 2', '39.7000', '-116.3000', NULL, 'NV', '{}', NULL, false),
   -- e: two companies nothing ties together, one street address
-  ('e1', 'E2E Dupes Landlord', 'E2E DUPES LANDLORD PARK', '39.2000', '-116.1000', '9 Shared Dr', 'NV', '{}', 'C-E', false),
+  ('e1', 'E2E Dupes Landlord', 'E2E DUPES LANDLORD PARK', '39.2000', '-116.1000', '9 Shared Dr', 'NV', '{"naics": "326199"}', 'C-E', false),
   ('e2', 'E2E Dupes Tenant', 'E2E DUPES TENANT MOULDING', '39.2005', '-116.1000', '9 SHARED DR', 'NV', '{}', 'C-E', true),
   -- f: a row written from sources beside a fuller bare row
   ('f1', 'E2E Dupes Acme', 'E2E DUPES ACME BARE BUT FULL', '39.4000', '-116.9000', '3 Curated Ct', 'NV', '{"naics": "333111", "zip": "89801", "people": 40}', 'C-F', false),
@@ -170,9 +171,9 @@ INSERT INTO e2e VALUES
   -- s: one company, one spot, one name, two ids; t: one spot, two names; u: one spot and name, two street addresses
   ('s1', 'E2E Dupes Acme', 'E2E DUPES ACME SPOT CO', '39.6000', '-116.9000', '8 Spot St', 'NV', '{"naics": "326199"}', 'C-S1', false),
   ('s2', 'E2E Dupes Acme', 'E2E DUPES ACME SPOT INC', '39.6001', '-116.9001', '8 Spot Street', 'NV', '{}', 'C-S2', false),
-  ('t1', 'E2E Dupes Acme', 'E2E DUPES ACME BUILDING ONE', '39.6000', '-116.7000', NULL, 'NV', '{}', NULL, false),
+  ('t1', 'E2E Dupes Acme', 'E2E DUPES ACME BUILDING ONE', '39.6000', '-116.7000', NULL, 'NV', '{"naics": "332710"}', NULL, false),
   ('t2', 'E2E Dupes Acme', 'E2E DUPES ACME BUILDING TWO', '39.6001', '-116.7001', NULL, 'NV', '{}', NULL, false),
-  ('u1', 'E2E Dupes Acme', 'E2E DUPES ACME ANNEX', '39.6000', '-116.3000', '10 First Ave', 'NV', '{}', NULL, false),
+  ('u1', 'E2E Dupes Acme', 'E2E DUPES ACME ANNEX', '39.6000', '-116.3000', '10 First Ave', 'NV', '{"naics": "332710"}', NULL, false),
   ('u2', 'E2E Dupes Acme', 'E2E DUPES ACME ANNEX INC', '39.6001', '-116.3001', '99 Second Blvd', 'NV', '{}', NULL, false);
 INSERT INTO factories (company_id, name, latitude, longitude, address, state, primary_naics, zip_code, workforce_size, curated)
   SELECT (SELECT id FROM companies WHERE name = co), name, lat, lng, addr, st, extra->>'naics', extra->>'zip', (extra->>'people')::int, coalesce((extra->>'curated')::boolean, false) FROM e2e;
@@ -233,16 +234,15 @@ expect "what is left: one row for each plant it was sure of, both rows where it 
 expect "merged, each by its rule; a pair placed apart and a tie between companies by more than a legal ending are marked for a look" \
   'E2E DUPES ACME FOUNDRY <same address/one company/false>; E2E DUPES ACME PRESS SHOP <placed apart/one company/true>; E2E DUPES ACME SPOT CO <same spot and name/one company/false>; E2E DUPES GADGET COATINGS <same address/family/true>; E2E DUPES WIDGET PRODUCTS <same address/same name, written differently/true>; E2E Dupes Acme Works <same address/one company/false>' \
   "$(got 'first merged')"
-# (The two annex rows are alike in everything the keeper rule reads, so their ids decide which one the line is about.)
 expect "left for a person, each with its reason" \
   'E2E DUPES ACME ANNEX <same name, different street addresses>; E2E DUPES ACME BORDER <two states>; E2E DUPES ACME NORTH WORKS <far apart>; E2E DUPES LANDLORD PARK <two companies>' \
-  "$(got 'first review' | sed 's/ANNEX INC/ANNEX/')"
+  "$(got 'first review')"
 expect "a company row that is the same name and has nothing left is merged in; one of another name is left and said" \
   'left without plants E2E Dupes Gadget Coatings; merged E2E Dupes Widget Products' "$(got 'first companies')"
 expect "the merged company's name is kept as another name" 'E2E Dupes Widget Prods' "$(got 'first aliases')"
 expect "the row written from sources is kept, with the bare row's facts" 'E2E Dupes Acme Works true 333111 89801 40 3 Curated Court' "$(got 'first curated kept')"
 expect "a pair placed 20 km apart says so"    'true 20038' "$(got 'first far kept')"
-expect "two buildings on one spot stay two rows, said once, and nothing else is" '1 BUILDING' "$(got 'first apart' | awk -F'; ' '{ print NF }') $(got 'first apart' | grep -o 'BUILDING' | head -n1)"
+expect "two buildings on one spot stay two rows, said once, and nothing else is" 'E2E DUPES ACME BUILDING ONE' "$(got 'first apart')"
 expect "a reference to a plant that is gone is removed; one whose plant was merged follows it" 'removed C-GONE; moved C-MOVED' "$(got 'first references')"
 expect "the reference that followed is on the plant kept" 'E2E DUPES ACME BUILDING ONE' "$(got 'first moved reference')"
 expect "a row merged on its spot carries both ids" 'C-S1,C-S2' "$(got 'first two ids on one row')"
