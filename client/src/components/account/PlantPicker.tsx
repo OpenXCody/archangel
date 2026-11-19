@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Search } from 'lucide-react';
 import { formatFactoryName } from '@shared/displayName';
-import { US_STATES } from '@shared/states';
+import { stateName } from '../../lib/places';
 import { cn } from '@/lib/utils';
 import type { EmployerFactory } from '../../lib/employer';
 import { formatPlace } from '../../lib/jobFormat';
@@ -21,12 +21,11 @@ export function plantWhere(factory: Pick<EmployerFactory, 'address' | 'city' | '
   return [street, formatPlace(city, factory.state)].filter(Boolean).join(' · ');
 }
 
-const STATE_NAMES = new Map<string, string>(US_STATES.map((state) => [state.code, state.name]));
-
 /** Everything a plant can be found by, lower case. */
 function searchText(factory: EmployerFactory): string {
-  const stateName = factory.state ? (STATE_NAMES.get(factory.state.toUpperCase()) ?? '') : '';
-  return [factory.name, factory.address, factory.city, factory.state, stateName].filter(Boolean).join(' ').toLowerCase();
+  // A code that is not a state comes back as itself, which the text already holds.
+  const state = factory.state ? stateName(factory.state.toUpperCase()) : '';
+  return [factory.name, factory.address, factory.city, factory.state, state].filter(Boolean).join(' ').toLowerCase();
 }
 
 interface PlantPickerProps {

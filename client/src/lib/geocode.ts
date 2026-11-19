@@ -4,7 +4,7 @@
  * no place search; the rest of the map search is unaffected.
  */
 import type { Bounds } from '@shared/scope';
-import { US_STATES } from '@shared/states';
+import { STATE_CODE_BY_NAME } from './places';
 
 const GEOCODING_BASE = 'https://api.maptiler.com/geocoding';
 
@@ -89,8 +89,6 @@ function mapKey(): string {
 export function placeSearchAvailable(): boolean {
   return mapKey() !== '';
 }
-
-const STATE_CODE_BY_NAME: Record<string, string> = Object.fromEntries(US_STATES.map((s) => [s.name, s.code]));
 
 /** "Williamson" as "Williamson County"; names that already say what they are stay as they are. */
 function countyName(text: string, stateCode: string | undefined): string {

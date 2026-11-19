@@ -29,6 +29,7 @@ import {
 } from '../components/account/parts';
 import { PageContainer, PageHeader } from '../components/layout/Page';
 import { onGroupArrowKeys } from '../lib/roving';
+import { EMAIL_RE } from '../lib/validation';
 
 type Mode = 'sign-in' | 'create';
 /**
@@ -43,9 +44,6 @@ const MODES: { value: Mode; label: string }[] = [
 ];
 
 type FieldName = 'name' | 'email' | 'password';
-
-/** The same rule the server applies to an address. */
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const PURPOSES: { value: Purpose; label: string; detail: string }[] = [
   { value: 'careers', label: 'Find a career', detail: 'Explore careers, track skills, apply.' },

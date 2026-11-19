@@ -15,8 +15,7 @@ import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
 import { formatAgo } from '../lib/dates';
 import { ENTITY, LoadError, cardClass, fieldClass, outlineButtonClass, useDebouncedValue } from '../components/account/parts';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid } from '../lib/validation';
 
 /** `?near=30.5083,-97.6789`: a point, as latitude then longitude. */
 function readPoint(raw: string | null): { lat: number; lng: number } | null {
@@ -55,7 +54,7 @@ export default function Jobs() {
   const postJob = usePostJobLink();
   const q = searchParams.get('q')?.trim() ?? '';
   const careerParam = searchParams.get('career') ?? '';
-  const career = UUID_RE.test(careerParam) ? careerParam : '';
+  const career = isUuid(careerParam) ? careerParam : '';
   const stateParam = (searchParams.get('state') ?? '').toUpperCase();
   const point = readPoint(searchParams.get('near'));
   // A point wins over a state: the address holds one place.

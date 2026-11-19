@@ -31,6 +31,7 @@ import {
   type SearchGroup,
   type SearchRow,
 } from '../search/results';
+import { stateName } from '../../lib/places';
 
 /** The sentence a first visit is given, once. */
 // client/index.html carries the same sentence as the page's description.
@@ -51,8 +52,6 @@ function markSeen(): void {
 
 /** What the API is asked for: the kinds the map can show. States, focus areas and places come from elsewhere. */
 const ASKED: SearchEntityType[] = ['companies', 'factories', 'occupations', 'skills'];
-
-const STATE_NAME: Record<string, string> = Object.fromEntries(US_STATES.map((s) => [s.code, s.name]));
 
 /** A box about three miles across around a point, for a place that is only a point (a street address). */
 function boxAround([lng, lat]: [number, number]): Bounds {
@@ -151,11 +150,11 @@ function Chips() {
           {filters.states.map((code) => (
             <Chip
               key={code}
-              label={STATE_NAME[code] ?? code}
+              label={stateName(code)}
               pressed
-              title={`Only plants in ${STATE_NAME[code] ?? code}`}
+              title={`Only plants in ${stateName(code)}`}
               onRemove={() => setFilters({ states: filters.states.filter((s) => s !== code) })}
-              removeLabel={`Stop limiting the map to ${STATE_NAME[code] ?? code}`}
+              removeLabel={`Stop limiting the map to ${stateName(code)}`}
             />
           ))}
         </div>
@@ -275,10 +274,10 @@ function Filters({ id }: { id: string }) {
                 key={code}
                 type="button"
                 onClick={() => toggleState(code)}
-                aria-label={`Remove ${STATE_NAME[code] ?? code}`}
+                aria-label={`Remove ${stateName(code)}`}
                 className="map-row inline-flex items-center gap-1.5 rounded-full border border-border-strong px-3 text-xs text-fg-muted transition-colors hover:text-fg-default"
               >
-                {STATE_NAME[code] ?? code}
+                {stateName(code)}
                 <X className="h-3 w-3" aria-hidden="true" />
               </button>
             ))}

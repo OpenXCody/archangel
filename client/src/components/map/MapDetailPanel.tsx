@@ -29,7 +29,7 @@ import {
   type CareerJob,
 } from '../../lib/api';
 import { useMapStore, type MapEntityType, type MapPlace, type SheetDetent } from '../../stores/mapStore';
-import { US_STATES } from '@shared/states';
+import { cityState, stateName, titleCase } from '../../lib/places';
 import { milesBetween } from '@shared/scope';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../CompanyLogo';
@@ -51,17 +51,6 @@ import { isNotFound, useSelection } from './selection';
  * Every panel runs in the order a person asks: what is this, who is here,
  * what work is here, where next.
  */
-
-const STATE_NAMES: Record<string, string> = Object.fromEntries(US_STATES.map((s) => [s.code, s.name]));
-
-/** "ROUND ROCK" as "Round Rock": the source data shouts its city names. */
-function titleCase(text: string): string {
-  return text.toLowerCase().replace(/(^|[\s-])([a-z])/g, (_, lead: string, letter: string) => lead + letter.toUpperCase());
-}
-
-function cityAndState(city: string | null | undefined, state: string | null | undefined): string {
-  return [city ? titleCase(city) : null, state].filter(Boolean).join(', ');
-}
 
 // ─── Parts ─────────────────────────────────────────────────────────────────
 
@@ -328,7 +317,7 @@ function RegionBody({
 }
 
 function StateView({ data }: { data: StateOverview }) {
-  const name = STATE_NAMES[data.code] ?? data.code;
+  const name = stateName(data.code);
   return (
     <>
       <Heading title={name} />
@@ -452,7 +441,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
   const company = factory.company;
   const factoryName = formatFactoryName(factory.name);
   const companyName = company ? formatCompanyName(company.name) : null;
-  const place = cityAndState(factory.city, factory.state);
+  const place = cityState(factory.city, factory.state);
   // What the plant makes: its industry, else what its own record says it does. Never the company's free text.
   const industry = shownIndustry(factory.industry) ?? (factory.specialization || null);
   // A curated plant's address was written by a person ("1530 FM 973") and is left as it is.
@@ -572,7 +561,7 @@ function FactoryView({ factory }: { factory: FactoryDetail }) {
                 key={site.id}
                 icon={Factory}
                 title={formatFactoryName(site.name)}
-                subtitle={cityAndState(site.city, site.state) || undefined}
+                subtitle={cityState(site.city, site.state) || undefined}
                 onPress={() => {
                   selectFactory(site.id);
                   flyTo({ kind: 'point', lat: parseFloat(site.latitude), lng: parseFloat(site.longitude), zoom: 10 });
@@ -664,7 +653,7 @@ function CompanyView({ company }: { company: CompanyDetail }) {
                 key={plant.id}
                 icon={Factory}
                 title={formatFactoryName(plant.name)}
-                subtitle={[cityAndState(plant.city, plant.state), shownIndustry(plant.industry)].filter(Boolean).join(' · ') || undefined}
+                subtitle={[cityState(plant.city, plant.state), shownIndustry(plant.industry)].filter(Boolean).join(' · ') || undefined}
                 onPress={() => {
                   selectFactory(plant.id);
                   if (plant.latitude && plant.longitude) {
@@ -743,7 +732,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
                     title={`${state.factoryCount.toLocaleString()} plants in these industries`}
                     className="map-row inline-flex items-center rounded-md border border-border-strong px-2.5 text-xs font-medium text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default"
                   >
-                    {STATE_NAMES[state.code] ?? state.code}
+                    {stateName(state.code)}
                   </button>
                 ))}
               </div>
@@ -763,7 +752,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
                 title={formatFactoryName(plant.name)}
                 subtitle={[
                   plant.headcount ? `${plant.headcount.toLocaleString()} ${plant.headcount === 1 ? 'person' : 'people'}` : null,
-                  plant.state ? (STATE_NAMES[plant.state] ?? plant.state) : null,
+                  plant.state ? stateName(plant.state) : null,
                 ]
                   .filter(Boolean)
                   .join(' · ') || undefined}

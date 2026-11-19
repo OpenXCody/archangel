@@ -18,6 +18,7 @@ import { LoadError, outlineButtonClass } from '../account/parts';
 import EntityRow, { EntityRowSkeleton, type BrowseEntity } from './EntityRow';
 import FilterBar, { SORT_OPTIONS, type FilterState } from './FilterBar';
 import type { BrowseTab } from './ExploreNav';
+import { stateName } from '../../lib/places';
 
 const PAGE_SIZE = 20;
 
@@ -284,7 +285,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
           {industryPage && filters.industry && (
             <Link to={industryPage} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-fg-default sm:min-h-0">
               About {industryLabel(filters.industry)}
-              {filters.state ? ` in ${US_STATES.find((s) => s.code === filters.state)?.name ?? filters.state}` : ''}
+              {filters.state ? ` in ${stateName(filters.state)}` : ''}
             </Link>
           )}
         </div>

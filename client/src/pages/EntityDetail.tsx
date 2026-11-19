@@ -29,7 +29,7 @@ import CompanyLogo from '../components/CompanyLogo';
 import FootprintMap from '../components/FootprintMap';
 import { CompanyFamily, CompanyStanding, PlantFacts, SourceList, peopleCount } from '../components/RecordFacts';
 import { useMapStore } from '../stores/mapStore';
-import { STATE_CODE_TO_NAME, type StateCode } from '@shared/states';
+import { cityState, stateName, titleCase } from '../lib/places';
 import {
   DetailFacts,
   DetailHeader,
@@ -77,16 +77,6 @@ interface Head {
 /** How many rows a list shows before "Show all". */
 const PLANTS_SHOWN = 12;
 const CAREERS_SHOWN = 8;
-
-/** "ROUND ROCK" as "Round Rock": the source data shouts its city names. */
-function titleCase(text: string): string {
-  return text.toLowerCase().replace(/(^|[\s-])([a-z])/g, (_, lead: string, letter: string) => lead + letter.toUpperCase());
-}
-
-/** "Austin, TX": the one way a place is written. */
-function cityState(city: string | null | undefined, state: string | null | undefined): string {
-  return [city ? titleCase(city) : null, state].filter(Boolean).join(', ');
-}
 
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
@@ -140,7 +130,7 @@ function CompanyDetailView({ data, head }: { data: CompanyDetail; head: Head }) 
     const counts = new Map<string, number>();
     for (const plant of plants) if (plant.state) counts.set(plant.state, (counts.get(plant.state) ?? 0) + 1);
     return [...counts.entries()]
-      .map(([code, count]) => ({ code, count, name: STATE_CODE_TO_NAME[code as StateCode] ?? code }))
+      .map(([code, count]) => ({ code, count, name: stateName(code) }))
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
   }, [plants]);
 
@@ -758,7 +748,7 @@ function WhereWorkIsDone({ data }: { data: OccupationDetail }) {
               <div className="flex flex-wrap gap-2">
                 {states.map((state) => (
                   <Link key={state.code} to={`/map?state=${state.code}`} className={placeChipClass}>
-                    {STATE_CODE_TO_NAME[state.code as StateCode] ?? state.code}
+                    {stateName(state.code)}
                   </Link>
                 ))}
               </div>

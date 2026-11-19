@@ -7,10 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 import { companiesApi, factoriesApi, mapApi, occupationsApi, skillsApi } from '../../lib/api';
 import { useMapStore } from '../../stores/mapStore';
 import { focusArea } from '@shared/scope';
-import { US_STATES } from '@shared/states';
+import { stateName } from '../../lib/places';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
-
-const STATE_NAME: Record<string, string> = Object.fromEntries(US_STATES.map((s) => [s.code, s.name]));
 
 /** True when a failed request means "there is no such thing", not "the request failed". */
 export function isNotFound(error: unknown): boolean {
@@ -55,7 +53,7 @@ export function useSelection() {
   else if (type === 'company') name = company.data ? formatCompanyName(company.data.name) : null;
   else if (type === 'occupation') name = occupation.data?.title ?? null;
   else if (type === 'skill') name = skill.data?.name ?? null;
-  else if (type === 'state' && id) name = STATE_NAME[id] ?? id;
+  else if (type === 'state' && id) name = stateName(id);
   else if (type === 'area' && id) name = focusArea(id)?.name ?? null;
   else if (type === 'place') name = place?.name ?? null;
 

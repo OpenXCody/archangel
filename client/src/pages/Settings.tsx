@@ -33,6 +33,7 @@ import {
   textButtonClass,
 } from '../components/account/parts';
 import { PageContainer, PageHeader, PageSection } from '../components/layout/Page';
+import { EMAIL_RE } from '../lib/validation';
 
 export default function Settings() {
   const { data } = useAccount();
@@ -246,8 +247,6 @@ function SignInSection({ account }: { account: SignedInAccount }) {
     </PageSection>
   );
 }
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /** Which field a refusal is about, when the server says. */
 function fieldOf(error: unknown): string | null {

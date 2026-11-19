@@ -13,7 +13,7 @@ import { companiesApi, factoriesApi, mapApi, occupationsApi } from '../../lib/ap
 import { useMapStore, type PinInfo } from '../../stores/mapStore';
 import { currentTheme, type Theme } from '../../lib/theme';
 import { isNotFound } from './selection';
-import { US_STATES } from '@shared/states';
+import { STATE_CODE_BY_NAME } from '../../lib/places';
 import { formatCompanyName } from '@shared/displayName';
 import { FOCUS_AREAS, focusArea } from '@shared/scope';
 import {
@@ -268,19 +268,17 @@ export default function Map({ onViewChange }: MapProps) {
   });
 
   // Merge counts into states GeoJSON so the fill layer can key off
-  // feature.properties.factoryCount. Name → 2-letter-code map comes from
-  // shared/states.ts; the upstream GeoJSON uses full names on properties.name.
+  // feature.properties.factoryCount. The upstream GeoJSON uses full names on
+  // properties.name; STATE_CODE_BY_NAME gives each its 2-letter code.
   // The shapes do not wait for the counts: a slow or failed count request
   // must not leave the map without its states.
   const statesWithCounts = useMemo(() => {
     if (!statesGeoJSONRaw) return null;
-    const nameToCode: Record<string, string> = {};
-    for (const s of US_STATES) nameToCode[s.name] = s.code;
     return {
       ...statesGeoJSONRaw,
       features: statesGeoJSONRaw.features.map((f) => {
         const name = f.properties?.name as string | undefined;
-        const code = name ? nameToCode[name] : undefined;
+        const code = name ? STATE_CODE_BY_NAME[name] : undefined;
         const count = code ? (stateCounts?.[code] ?? 0) : 0;
         return { ...f, properties: { ...(f.properties ?? {}), stateCode: code, factoryCount: count } };
       }),

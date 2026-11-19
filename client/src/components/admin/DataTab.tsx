@@ -8,8 +8,7 @@ import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass } fr
 import { PageSection } from '../layout/Page';
 import Records from './AddRecord';
 import RecordEditor from './RecordEditor';
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid } from '../../lib/validation';
 
 /**
  * Data upkeep. With a record in the address (`kind` and `id`) the tab is that
@@ -21,7 +20,7 @@ export default function DataTab() {
   const [searchParams] = useSearchParams();
   const kind = RECORD_KINDS.find((option) => option.kind === searchParams.get('kind'))?.kind;
   const id = searchParams.get('id');
-  if (kind && id && UUID.test(id)) return <RecordEditor key={`${kind}:${id}`} kind={kind} id={id} />;
+  if (kind && id && isUuid(id)) return <RecordEditor key={`${kind}:${id}`} kind={kind} id={id} />;
   return (
     <>
       <Records />
