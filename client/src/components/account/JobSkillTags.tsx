@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowDown, ArrowUp, Loader2, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { skillsApi } from '../../lib/api';
-import { errorMessage } from '../../lib/account';
+import { errorMessage } from '../../lib/http';
 import { fieldClass, useDebouncedValue } from './parts';
 
 /** One skill a job asks for. Required skills rank applicants; optional ones are listed. */

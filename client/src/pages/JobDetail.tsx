@@ -4,7 +4,6 @@ import { ExternalLink, Loader2, Lock, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
-  ApiError,
   signInPath,
   useAccount,
   useApply,
@@ -15,6 +14,7 @@ import {
   type JobDetailResponse,
   type JobSkill,
 } from '../lib/account';
+import { ApiError } from '../lib/http';
 import { useApplicantList, useDeleteJob, useExtendJob } from '../lib/employerJobs';
 import { useMarkSkill } from '../lib/seeker';
 import { useViewer } from '../lib/viewer';

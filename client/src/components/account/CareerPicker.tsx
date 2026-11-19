@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { occupationsApi } from '../../lib/api';
-import { errorMessage } from '../../lib/account';
+import { errorMessage } from '../../lib/http';
 import { ENTITY, fieldClass, useDebouncedValue } from './parts';
 
 export interface CareerOption {

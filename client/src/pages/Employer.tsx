@@ -6,7 +6,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import {
-  ApiError,
   useCancelMembership,
   useEmailOn,
   useEmployer,
@@ -18,6 +17,7 @@ import {
   type EmployerJob,
   type JobDetailResponse,
 } from '../lib/account';
+import { ApiError } from '../lib/http';
 import { useDeleteJob } from '../lib/employerJobs';
 import {
   COMPANY_SEARCH_LIMIT,

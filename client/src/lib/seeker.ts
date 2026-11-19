@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { API_BASE } from './api';
-import { ApiError, accountKeys, meApi, type MyGoal, type MySkill, type SkillStatus } from './account';
+import { API_BASE, ApiError } from './http';
+import { accountKeys, meApi, type MyGoal, type MySkill, type SkillStatus } from './account';
 
 /**
  * What a career seeker's skills turn into: marking a skill where it is

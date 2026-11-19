@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import type { Purpose } from '@shared/purpose';
-import { API_BASE, UNREACHABLE, fetchWithTimeout } from './api';
+import { ApiError, queryString, request, retryUnlessClientError } from './http';
 
 /**
  * Accounts, jobs, applications, the employer area and the admin area.
@@ -11,73 +11,6 @@ import { API_BASE, UNREACHABLE, fetchWithTimeout } from './api';
  * Errors arrive as `{ error: string }` written for the person using the app;
  * `ApiError.message` carries that text and is safe to show as is.
  */
-
-// ---------------------------------------------------------------------------
-// Transport
-// ---------------------------------------------------------------------------
-
-export class ApiError extends Error {
-  /** HTTP status, or 0 when the server could not be reached. */
-  status: number;
-  /** What the server sent with the refusal, when it sent JSON. */
-  payload: unknown;
-  constructor(message: string, status: number, payload: unknown = null) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.payload = payload;
-  }
-}
-
-interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  body?: unknown;
-  headers?: Record<string, string>;
-}
-
-function messageFor(payload: unknown, status: number): string {
-  if (status >= 500) return 'Something went wrong on our side. Please try again.';
-  if (payload && typeof payload === 'object' && 'error' in payload) {
-    const { error } = payload as { error: unknown };
-    // The session ended elsewhere: say what that means for what was just pressed.
-    if (status === 401 && error === 'Sign in required') return 'You are signed out. Sign in to save this.';
-    if (typeof error === 'string' && error) return error;
-  }
-  return `The request could not be completed (${status}).`;
-}
-
-export async function request<T>(path: string, { method = 'GET', body, headers }: RequestOptions = {}): Promise<T> {
-  let response: Response;
-  try {
-    // Gives up after a while: a save on a dead connection says so instead of spinning.
-    response = await fetchWithTimeout(`${API_BASE}${path}`, {
-      method,
-      credentials: 'same-origin',
-      headers: { ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...headers },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
-  } catch (error) {
-    throw new ApiError(error instanceof Error && error.message ? error.message : UNREACHABLE, 0);
-  }
-  const payload: unknown = await response.json().catch(() => null);
-  if (!response.ok) throw new ApiError(messageFor(payload, response.status), response.status, payload);
-  return payload as T;
-}
-
-/** The text to show a person for any thrown value. */
-export function errorMessage(error: unknown): string {
-  if (error instanceof Error && error.message) return error.message;
-  return 'Something went wrong. Please try again.';
-}
-
-function isClientError(error: unknown): boolean {
-  return error instanceof ApiError && error.status >= 400 && error.status < 500;
-}
-
-/** Retry once on network or server trouble; never on a 4xx, which will not change. */
-function retryUnlessClientError(failureCount: number, error: unknown): boolean {
-  return !isClientError(error) && failureCount < 1;
-}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -540,15 +473,6 @@ export interface AdminCompany {
 // ---------------------------------------------------------------------------
 // API functions
 // ---------------------------------------------------------------------------
-
-function queryString(params: Record<string, string | number | undefined>): string {
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== '') search.set(key, String(value));
-  }
-  const text = search.toString();
-  return text ? `?${text}` : '';
-}
 
 export const authApi = {
   me: () => request<Account>('/auth/me'),

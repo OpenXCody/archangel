@@ -4,7 +4,6 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
-  ApiError,
   inviteRoleLabel,
   safeNextPath,
   useAccount,
@@ -17,6 +16,7 @@ import {
   useSignOut,
   useSignUp,
 } from '../lib/account';
+import { ApiError } from '../lib/http';
 import {
   ErrorNote,
   Field,

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import {
-  ApiError,
   RESET_HOURS,
   personRoles,
   useAddMembership,
@@ -22,6 +21,7 @@ import {
   type AdminUser,
   type PeopleRole,
 } from '../../lib/account';
+import { ApiError } from '../../lib/http';
 import {
   CardNote,
   ErrorNote,

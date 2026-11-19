@@ -12,7 +12,6 @@ import {
 import { cn } from '@/lib/utils';
 import {
   accountRoles,
-  errorMessage,
   signInPath,
   useAccount,
   useJob,
@@ -22,6 +21,7 @@ import {
   useSignOut,
   type News,
 } from '../../lib/account';
+import { errorMessage } from '../../lib/http';
 import { useViewer } from '../../lib/viewer';
 
 /**

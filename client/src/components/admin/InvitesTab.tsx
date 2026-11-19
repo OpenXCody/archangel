@@ -4,7 +4,6 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
-  ApiError,
   INVITE_ROLES,
   inviteRoleLabel,
   useAdminInvites,
@@ -16,6 +15,7 @@ import {
   type CreatedInvite,
   type InviteRole,
 } from '../../lib/account';
+import { ApiError } from '../../lib/http';
 import { onGroupArrowKeys } from '../../lib/roving';
 import { CardNote, ErrorNote, Field, LoadError, RowsSkeleton, busyButtonClass, cardClass, fieldClass, formatDay, rowClass, textButtonClass } from '../account/parts';
 import { PageSection } from '../layout/Page';

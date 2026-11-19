@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError, accountKeys, request } from './account';
+import { accountKeys } from './account';
+import { ApiError, request } from './http';
 
 /**
  * Finding a company to post jobs for, and asking for one that is not in the

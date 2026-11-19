@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import {
-  ApiError,
   useChangeEmail,
   justLeft,
   signInPath,
@@ -18,6 +17,7 @@ import {
   type Purpose,
   type SignedInAccount,
 } from '../lib/account';
+import { ApiError } from '../lib/http';
 import { onGroupArrowKeys } from '../lib/roving';
 import { setTheme, useTheme, type Theme } from '../lib/theme';
 import { VIEW_AS, setViewAs, useViewer, type ViewAs } from '../lib/viewer';

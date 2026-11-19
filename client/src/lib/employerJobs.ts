@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { API_BASE, UNREACHABLE, fetchWithTimeout } from './api';
-import { ApiError, accountKeys, type Applicant, type EmploymentType, type PayPeriod } from './account';
+import { API_BASE, UNREACHABLE, fetchWithTimeout, ApiError } from './http';
+import { accountKeys, type Applicant, type EmploymentType, type PayPeriod } from './account';
 import { parseDollars } from './jobFormat';
 
 /**
