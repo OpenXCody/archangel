@@ -257,6 +257,60 @@ expect "the kept skill keeps its own group and level" "$GRP|1" "$(sql "SELECT gr
 expect "a path that listed only the merged skill lists the kept one, at its level" "Plasma Etching:1" "$(stages $OC)"
 sql "DELETE FROM occupations WHERE id='$OC'" >/dev/null
 
+# A skill's makes: added, renamed, reordered and removed one act at a time, each on record in words.
+makes() { sql "SELECT COALESCE(string_agg(name, '|' ORDER BY position, lower(name)), '') FROM skill_makes WHERE skill_id='$1'"; }
+check "401 add a make"                401 "$(req anon POST /skills/$SB/makes '{"name":"Haas"}')"
+check "403 add a make"                403 "$(req p POST /skills/$SB/makes '{"name":"Haas"}')"
+check "403 reorder makes"             403 "$(req p PUT /skills/$SB/makes '{"order":[]}')"
+check "403 remove a make"             403 "$(req p DELETE /skills/$SB/makes/$NOBODY)"
+OUT=$(req a POST /skills/$SB/makes '{"name":"  Haas  "}'); MH=$(printf '%s' "$OUT" | j id)
+check "add a make"                    201 "$OUT" '"name":"Haas"'
+check "the same make in other letters" 409 "$(req a POST /skills/$SB/makes '{"name":"HAAS"}')" '"field":"make"'
+check "a make needs a name"           400 "$(req a POST /skills/$SB/makes '{"name":"  "}')" '"field":"make"'
+check "a name of 61 characters"       400 "$(req a POST /skills/$SB/makes "{\"name\":\"$(printf 'm%.0s' $(seq 1 61))\"}")" '"field":"make"'
+check "a make for a skill that is not there" 404 "$(req a POST /skills/$NOBODY/makes '{"name":"Haas"}')"
+MF=$(req a POST /skills/$SB/makes '{"name":"Fanuc"}' | j id)
+MO=$(req a POST /skills/$SB/makes '{"name":"Okuma"}' | j id)
+expect "added after the ones it has"  "Haas|Fanuc|Okuma" "$(makes $SB)"
+check "the skill's page lists them"   200 "$(req p GET /skills/$SB)" "\"makes\":\[{\"id\":\"$MH\",\"name\":\"Haas\"}"
+OUT=$(req a GET /admin/records/skill/$SB)
+expect "the editor reads them with how many people marked each" "Haas:0|Fanuc:0|Okuma:0" "$(printf '%s' "$OUT" | j "makes.map((m) => m.name + ':' + m.people).join('|')")"
+expect "and counts them among what hangs from the skill" 3 "$(printf '%s' "$OUT" | j attached.makes)"
+check "rename a make"                 200 "$(req a PATCH /skills/$SB/makes/$MH '{"name":"Haas Automation"}')" '"name":"Haas Automation"'
+check "rename to a name it already has" 409 "$(req a PATCH /skills/$SB/makes/$MH '{"name":"fanuc"}')" '"field":"make"'
+check "rename a make that is not there" 404 "$(req a PATCH /skills/$SB/makes/$NOBODY '{"name":"Mazak"}')"
+check "rename a make of another skill" 404 "$(req a PATCH /skills/$SC/makes/$MH '{"name":"Mazak"}')"
+check "a make id that is not one"     400 "$(req a PATCH /skills/$SB/makes/not-an-id '{"name":"Mazak"}')"
+check "reorder the makes"             200 "$(req a PUT /skills/$SB/makes "{\"order\":[\"$MO\",\"$MH\",\"$MF\"]}")" '"makes":\[{"id":"'"$MO"'"'
+expect "the new order is stored"      "Okuma|Haas Automation|Fanuc" "$(makes $SB)"
+check "an order that leaves one out"  409 "$(req a PUT /skills/$SB/makes "{\"order\":[\"$MO\",\"$MH\"]}")" '"field":"make"'
+check "an order that names one twice" 409 "$(req a PUT /skills/$SB/makes "{\"order\":[\"$MO\",\"$MH\",\"$MH\"]}")"
+check "an order that is not a list"   400 "$(req a PUT /skills/$SB/makes '{"order":"Okuma"}')" '"field":"make"'
+expect "the refusals left the order"  "Okuma|Haas Automation|Fanuc" "$(makes $SB)"
+# Pat holds the skill (the merge above moved the mark) and has run two of its makes.
+sql "INSERT INTO user_skill_makes (user_id, skill_id, make_id) VALUES ('$PID', '$SB', '$MH'), ('$PID', '$SB', '$MF')" >/dev/null
+expect "the editor says how many people marked each" "Okuma:0|Haas Automation:1|Fanuc:1" "$(req a GET /admin/records/skill/$SB | j "makes.map((m) => m.name + ':' + m.people).join('|')")"
+check "remove a make people marked"   200 "$(req a DELETE /skills/$SB/makes/$MH)" '"name":"Haas Automation","people":1'
+expect "their mark on it goes, the other stays" "Fanuc" "$(sql "SELECT string_agg(m.name, '|') FROM user_skill_makes um JOIN skill_makes m ON m.id=um.make_id WHERE um.user_id='$PID'")"
+check "remove it twice"               404 "$(req a DELETE /skills/$SB/makes/$MH)"
+check "remove one nobody marked"      200 "$(req a DELETE /skills/$SB/makes/$MO)" '"people":0'
+expect "each act is on record, in words" "make removed:Okuma|make removed:Haas Automation with 1|makes reordered:Haas Automation,Fanuc,Okuma>Okuma,Haas Automation,Fanuc|make renamed:Haas>Haas Automation|make added:Okuma|make added:Fanuc|make added:Haas" "$(req a GET "/admin/audit?kind=skill&record=$SB&limit=7" | j "entries.map((e) => e.action + ':' + ((d) => d.changes ? (d.changes.make || d.changes.makeOrder).join('>') : d.make + (d.removed ? ' with ' + d.removed.people : ''))(e.detail)).join('|')")"
+for n in 2 3 4 5 6 7 8 9 10 11 12; do req a POST /skills/$SB/makes "{\"name\":\"Make $n\"}" >/dev/null; done
+check "a thirteenth make"             400 "$(req a POST /skills/$SB/makes '{"name":"One too many"}')" 'at most 12'
+sql "DELETE FROM skill_makes WHERE skill_id='$SB' AND name LIKE 'Make %'" >/dev/null
+# A merge takes the merged skill's makes: one the kept skill lacks moves after its own; one it has, in any letter case, keeps its own and takes the marks.
+SX=$(req a POST /skills "{\"name\":\"$REC Mill Running\",\"group\":\"$GRP\",\"level\":2}" | j id)
+XA=$(req a POST /skills/$SX/makes '{"name":"Mazak"}' | j id)
+XB=$(req a POST /skills/$SX/makes '{"name":"FANUC"}' | j id)
+sql "INSERT INTO user_skills (user_id, skill_id, status) VALUES ('$PID', '$SX', 'held'), ('$BID', '$SX', 'held');
+     INSERT INTO user_skill_makes (user_id, skill_id, make_id) VALUES ('$PID', '$SX', '$XA'), ('$BID', '$SX', '$XA'), ('$BID', '$SX', '$XB')" >/dev/null
+check "merge a skill that has makes"  200 "$(req a POST /admin/records/skill/$SX/merge "{\"into\":\"$SB\"}")" '"moved":{"people":2,"makes":2}'
+expect "the kept skill's makes, then the one it lacked" "Fanuc|Mazak" "$(makes $SB)"
+marks() { sql "SELECT COALESCE(string_agg(m.name, '+' ORDER BY m.position), '') FROM user_skill_makes um JOIN skill_makes m ON m.id=um.make_id WHERE um.user_id='$1' AND um.skill_id='$SB'"; }
+expect "a person who held both keeps their marks and gains the moved one" "Fanuc+Mazak" "$(marks $PID)"
+expect "a person who held only the merged skill keeps theirs on the kept one" "Fanuc+Mazak" "$(marks $BID)"
+expect "no mark is left on the merged skill" 0 "$(sql "SELECT COUNT(*) FROM user_skill_makes WHERE skill_id='$SX'")"
+
 # Career A into B: its path, goals and aliases follow.
 sql "INSERT INTO user_goals (user_id, occupation_id) VALUES ('$PID', '$OA')" >/dev/null
 OUT=$(req a POST /admin/records/career/$OA/merge "{\"into\":\"$OB\"}")

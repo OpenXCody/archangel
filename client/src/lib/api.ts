@@ -99,6 +99,14 @@ export interface TaxonomySkill {
   level: SkillLevel;
   /** How many careers use it. */
   careers: number;
+  /** Its makes by name, in the order they are shown: the leaves beyond the skill. Empty for most skills. */
+  makes: string[];
+}
+
+/** A make of a skill: the named equipment or software it is run on ("Haas", "Studio 5000"). */
+export interface Make {
+  id: string;
+  name: string;
 }
 
 /** A skill group: a named set of skills inside one domain, its skills by level and then in the curated order. */
@@ -341,6 +349,8 @@ export interface SkillDetail extends Skill {
   tools?: string[] | null;
   /** The other skills of its group, by level and then in the curated order. */
   groupSkills: GroupSkill[];
+  /** Its makes, in the order they are shown. Empty for a skill that depends on no named equipment or software. */
+  makes?: Make[];
   /** The careers that use it, by title. The skill sits at its own level in each. */
   occupations: RelatedOccupationWithImportance[];
   /** Industries those careers are typical of, the ones with most of them first. */

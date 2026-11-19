@@ -12,6 +12,7 @@ import RecordPicker from './RecordPicker';
 import ConfirmDialog from '../layout/ConfirmDialog';
 import HistoryList, { attachedWords } from './HistoryList';
 import PathEditor from './PathEditor';
+import MakesEditor from './MakesEditor';
 import RecordForm from './RecordForm';
 
 const KIND_WORD: Record<RecordKind, string> = { company: 'company', factory: 'plant', career: 'career', skill: 'skill' };
@@ -24,7 +25,7 @@ function movedWords(record: RecordView): string {
 }
 
 /**
- * One record, corrected in one place: its fields, a career's path, merging
+ * One record, corrected in one place: its fields, a career's path, a skill's makes, merging
  * it into another, deleting it, and the history of what admins did to it.
  * Opened from Admin Tools → Data, or by Edit on the record's own page.
  */
@@ -99,6 +100,8 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
       </PageSection>
 
       {kind === 'career' && <PathEditor record={data} onChanged={() => record.refetch()} />}
+
+      {kind === 'skill' && <MakesEditor record={data} onChanged={() => record.refetch()} />}
 
       {kind !== 'factory' && <MergeSection record={data} />}
 

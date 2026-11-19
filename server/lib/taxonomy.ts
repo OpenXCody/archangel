@@ -3,6 +3,7 @@ import { db, skillDomains, skillGroups, skills } from '../db/index.js';
 import { SKILL_LEVELS, isSkillLevel, type SkillLevel } from '../../shared/skillLevels.js';
 import type { Executor } from './audit.js';
 import { rowsOf } from './rows.js';
+import { makeNamesBySkill } from './makes.js';
 
 /**
  * The skill taxonomy as the API gives it: every skill is in one skill group,
@@ -97,6 +98,8 @@ export interface TaxonomySkill {
   level: SkillLevel;
   /** How many careers use it. */
   careers: number;
+  /** Its makes by name, in the order they are shown: the leaves beyond the skill. Empty for most skills. */
+  makes: string[];
 }
 export interface TaxonomyGroup extends TaxonomyRef {
   description: string;
@@ -114,10 +117,11 @@ export interface Taxonomy {
 /**
  * The whole tree: every domain, its groups and their skills, in the order
  * they are shown (a group's skills by level, then as the taxonomy file orders
- * them). Three small reads: 16 domains, about a hundred groups, 643 skills.
+ * them), each skill with its makes. Four small reads: 16 domains, about a
+ * hundred groups, some 650 skills and their makes.
  */
 export async function readTaxonomy(): Promise<Taxonomy> {
-  const [domainRows, groupRows, skillRows] = await Promise.all([
+  const [domainRows, groupRows, skillRows, makes] = await Promise.all([
     db.select().from(skillDomains).orderBy(skillDomains.position, skillDomains.slug),
     db.select().from(skillGroups).orderBy(skillGroups.position, skillGroups.slug),
     db.execute(sql`
@@ -127,6 +131,7 @@ export async function readTaxonomy(): Promise<Taxonomy> {
       WHERE s.group_slug IS NOT NULL AND s.level IS NOT NULL
       ORDER BY s.level, s.group_position NULLS LAST, s.name
     `),
+    makeNamesBySkill(),
   ]);
   const groups = new Map<string, TaxonomyGroup>();
   const domains = new Map<string, TaxonomyDomain>();
@@ -139,7 +144,8 @@ export async function readTaxonomy(): Promise<Taxonomy> {
   for (const row of rowsOf(skillRows)) {
     const level = Number(row.level);
     if (!isSkillLevel(level)) continue;
-    groups.get(String(row.group_slug))?.skills.push({ id: String(row.id), name: String(row.name), level, careers: Number(row.careers) || 0 });
+    const id = String(row.id);
+    groups.get(String(row.group_slug))?.skills.push({ id, name: String(row.name), level, careers: Number(row.careers) || 0, makes: makes.get(id) ?? [] });
   }
   return { levels: SKILL_LEVELS.map(({ id, name }) => ({ id, name })), domains: [...domains.values()] };
 }
