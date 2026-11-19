@@ -897,6 +897,80 @@ export const userGoals = pgTable(
 );
 
 // ============================================
+// A COMPANY'S VERSION OF A CAREER (migration 0053)
+// How a career is done at one company, kept as changes against the standard
+// (occupation_skills) and never as a copy of it: the skills it adds, the
+// standard's skills it leaves out, and the makes it runs. Read and written
+// through server/lib/versions.ts. Nothing here is ever written by a seed for
+// a real company or by a migration.
+// ============================================
+
+// One version per company and career; one with no changes still says the
+// company hires for the career. `origin` is where it came from: 'member',
+// 'admin', or (a later round) 'source'.
+export const companyCareers = pgTable(
+  'company_careers',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    occupationId: uuid('occupation_id')
+      .notNull()
+      .references(() => occupations.id, { onDelete: 'cascade' }),
+    origin: text('origin').default('member').notNull(),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    companyCareerKey: uniqueIndex('company_careers_company_career_key').on(table.companyId, table.occupationId),
+    occupationIdx: index('company_careers_occupation_idx').on(table.occupationId),
+  })
+);
+
+// A version's changes to the skills: `change` is 'added' or 'left_out'. A
+// change that no longer applies (the standard dropped a skill that was left
+// out, or took up one that was added) stays stored and is not read.
+export const companyCareerSkills = pgTable(
+  'company_career_skills',
+  {
+    companyCareerId: uuid('company_career_id')
+      .notNull()
+      .references(() => companyCareers.id, { onDelete: 'cascade' }),
+    skillId: uuid('skill_id')
+      .notNull()
+      .references(() => skills.id, { onDelete: 'cascade' }),
+    change: text('change').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.companyCareerId, table.skillId] }),
+    skillIdx: index('company_career_skills_skill_idx').on(table.skillId),
+  })
+);
+
+// The makes the company runs for a skill on the version's path. In the
+// database (skill_id, make_id) references skill_makes, ON UPDATE CASCADE ON
+// DELETE CASCADE: only that skill's makes, following a make that moves in a merge.
+export const companyCareerMakes = pgTable(
+  'company_career_makes',
+  {
+    companyCareerId: uuid('company_career_id')
+      .notNull()
+      .references(() => companyCareers.id, { onDelete: 'cascade' }),
+    skillId: uuid('skill_id').notNull(),
+    makeId: uuid('make_id').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.companyCareerId, table.makeId] }),
+    makeIdx: index('company_career_makes_make_idx').on(table.skillId, table.makeId),
+  })
+);
+
+// ============================================
 // INVITES (migration 0015)
 // ============================================
 

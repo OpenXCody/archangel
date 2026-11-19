@@ -165,7 +165,7 @@ function SkillTag({
 }
 
 function Crumbs({ domain, group, leaf, state }: { domain: AtlasDomain; group: AtlasGroup | null; leaf: AtlasLeaf | null; state: AtlasState }) {
-  const base = { career: state.career, with: state.with };
+  const base = { career: state.career, with: state.with, at: state.at };
   const crumb = cn('inline-flex min-h-11 items-center text-fg-muted underline-offset-4 hover:text-fg-default hover:underline sm:min-h-8', focusRing);
   const here = 'inline-flex min-h-11 items-center text-fg-default sm:min-h-8';
   const divider = <ChevronRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-fg-soft" />;
@@ -209,7 +209,7 @@ function Crumbs({ domain, group, leaf, state }: { domain: AtlasDomain; group: At
 }
 
 export default function AtlasPanel({ layout, domain, group, leaf, state, overlay, marks, onPreview, className }: AtlasPanelProps) {
-  const base = { career: state.career, with: state.with };
+  const base = { career: state.career, with: state.with, at: state.at };
   const point = (target: AtlasTarget) => (on: boolean) => onPreview(on ? target : null);
 
   let body: ReactNode;

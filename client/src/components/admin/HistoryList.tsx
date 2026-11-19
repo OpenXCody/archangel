@@ -19,6 +19,10 @@ const ACTION: Record<string, string> = {
   'make renamed': 'Make renamed',
   'make removed': 'Make removed',
   'makes reordered': 'Makes reordered',
+  // A company's version of a career, written by an admin.
+  'career version added': 'Career version added',
+  'career version changed': 'Career version changed',
+  'career version deleted': 'Career version deleted',
   'made admin': 'Made admin',
   'admin role removed': 'Admin role removed',
   'password reset link': 'Password reset link made',
@@ -63,6 +67,10 @@ const FIELD: Record<string, string> = {
   make: 'make',
   makeOrder: 'order',
   pathStatus: 'path',
+  // A company's version of a career: the skills it adds and leaves out, and the makes it runs.
+  adds: 'adds',
+  leavesOut: 'leaves out',
+  runs: 'runs',
   // A career's home domain, and the careers it leads to, by title.
   home: 'home',
   leadsTo: 'leads to',
@@ -97,6 +105,8 @@ const ATTACHED: Record<string, [string, string]> = {
   links: ['link on its ladder', 'links on its ladder'],
   people: ['person who marked it', 'people who marked it'],
   makes: ['make', 'makes'],
+  // Companies' versions of careers: a company's own, a career's, or the ones that add or leave out a skill.
+  versions: ['version of a career', 'versions of careers'],
   memberships: ['company membership', 'company memberships'],
 };
 
@@ -141,6 +151,10 @@ function detailWords(entry: AuditEntry): string | null {
   if (detail.removed && typeof detail.removed === 'object') {
     const removed = attachedWords(detail.removed as Record<string, number>);
     if (removed) parts.push(`with ${removed}`);
+  }
+  // What a deleted version of a career held.
+  for (const key of ['adds', 'leavesOut', 'runs'] as const) {
+    if (names(detail[key])) parts.push(`${FIELD[key]} ${names(detail[key])}`);
   }
   if (names(detail.skillsAdded)) parts.push(`added ${names(detail.skillsAdded)}`);
   if (names(detail.skillsRemoved)) parts.push(`removed ${names(detail.skillsRemoved)}`);

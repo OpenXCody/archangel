@@ -75,6 +75,10 @@ export const publicKeys = {
   counts: ['entity-counts'] as const,
   /** The whole skill taxonomy: every domain, group and skill. */
   taxonomy: ['skill-taxonomy'] as const,
+  /** Companies' versions of careers: a company's list, and one version by company (id or slug) and career. */
+  versions: ['versions'] as const,
+  companyVersions: (company: string) => ['versions', 'company', company] as const,
+  version: (company: string, occupationId: string) => ['versions', 'one', company, occupationId] as const,
 
   exploreOverview: ['explore-overview'] as const,
   exploreFacets: ['explore-facets'] as const,

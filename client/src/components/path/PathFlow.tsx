@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn, focusRing } from '@/lib/utils';
 import { ShareCount, ShareRing } from './HeldShare';
-import { levelSkills, shareOf, type LadderCareer, type SkillMarks, type SkillPath } from './model';
+import { levelSkills, shareOf, type LadderCareer, type PathSkillItem, type SkillMarks, type SkillPath } from './model';
 import { SkillGroupBox } from './SkillGroupBox';
 
 interface PathFlowProps {
@@ -14,6 +14,8 @@ interface PathFlowProps {
   comesFrom?: LadderCareer[];
   /** The careers this one leads to: drawn after the last level. */
   leadsTo?: LadderCareer[];
+  /** Draws a skill in place of its tag: see `SkillGroupBox`. */
+  renderSkill?: (skill: PathSkillItem) => React.ReactNode;
   className?: string;
 }
 
@@ -29,7 +31,7 @@ interface PathFlowProps {
  * To a screen reader it is a list of levels, each a list of groups, each a
  * list of skills; the lines are decoration.
  */
-export function PathFlow({ path, marks, comesFrom = [], leadsTo = [], className }: PathFlowProps) {
+export function PathFlow({ path, marks, comesFrom = [], leadsTo = [], renderSkill, className }: PathFlowProps) {
   const levels = path.levels;
   return (
     <div className={cn('path-flow', className)} data-path-flow>
@@ -68,7 +70,7 @@ export function PathFlow({ path, marks, comesFrom = [], leadsTo = [], className 
                     return (
                       <li key={group.slug} className="path-branch" data-pos={pos} data-domain={opensDomain ? group.domain?.slug ?? '' : undefined}>
                         {opensDomain && group.domain && <p className="path-domain">{group.domain.name}</p>}
-                        <SkillGroupBox name={group.name} skills={group.skills} marks={marks} />
+                        <SkillGroupBox name={group.name} skills={group.skills} marks={marks} renderSkill={renderSkill} />
                       </li>
                     );
                   })}

@@ -18,6 +18,14 @@ export interface PathSkillItem {
   name: string;
   /** A short second line under the name: a make ("Haas"), where a path is specific to one. */
   note?: string | null;
+  /**
+   * The second line as makes, where a path is a company's version: the makes
+   * the company runs, in order. One the person has run themselves is `lit`
+   * (brighter, never another colour). Drawn in place of `note`.
+   */
+  makes?: { name: string; lit?: boolean }[];
+  /** A skill a company's version adds to the standard path: the tag says so. */
+  added?: boolean;
 }
 
 /** A skill group's skills at one level of a path. */
@@ -77,7 +85,7 @@ export function buildPath(skills: readonly PlacedSkill[]): SkillPath {
       group = { slug: skill.group.slug, name: skill.group.name, domain: skill.domain, skills: [] };
       level.groups.push(group);
     }
-    group.skills.push({ id: skill.id, name: skill.name, note: skill.note });
+    group.skills.push({ id: skill.id, name: skill.name, note: skill.note, makes: skill.makes, added: skill.added });
   }
   return { levels, unplaced };
 }

@@ -12,6 +12,7 @@ import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/r
 import { recordAudit } from '../lib/audit.js';
 import { rowsOf } from '../lib/rows.js';
 import { placeColumns, placeOf } from '../lib/taxonomy.js';
+import { versionsOfCareer } from '../lib/versions.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -219,6 +220,8 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     // Open jobs for this career at in-scope factories.
     const jobsResult = await listOpenJobs(eq(jobs.occupationId, id));
+    // The companies that have their own version of this career.
+    const versions = await versionsOfCareer(id, 60);
 
     res.json({
       ...occupation,
@@ -228,6 +231,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       skills: occupationSkillsResult,
       factories: factoriesResult,
       jobs: jobsResult,
+      versions,
       // Where the work is done, by industry. `everywhere` means the career is
       // found in plants of every industry rather than a few.
       industries: ownIndustries.map(({ name, factoryCount }) => ({ name, factoryCount })),
@@ -238,6 +242,16 @@ router.get('/:id', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching occupation:', error);
     res.status(500).json({ error: 'Failed to fetch occupation' });
+  }
+});
+
+// GET /api/occupations/:id/versions - the companies with their own version of this career.
+router.get('/:id/versions', async (req: Request, res: Response) => {
+  try {
+    res.json({ versions: await versionsOfCareer(req.params.id) });
+  } catch (error) {
+    console.error('Error fetching career versions:', error);
+    res.status(500).json({ error: 'Failed to fetch the versions of this career' });
   }
 });
 

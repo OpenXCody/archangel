@@ -21,6 +21,7 @@ import { factoryInScope, isStateInScope } from '../lib/scope.js';
 import { applicationReceived, applicationStatusChanged } from '../lib/notices.js';
 import { jobTextFilter, milesFromFactory, readNear } from '../lib/jobSearch.js';
 import { jobIsOpen } from '../lib/openJobs.js';
+import { hasVersionOf, versionPathSkills } from '../lib/versions.js';
 
 /**
  * Jobs and applications.
@@ -121,7 +122,14 @@ router.get(
   handle(async (req, res) => {
     const user = await getSessionUser(req);
     const [job] = await db
-      .select({ ...jobSummary, description: jobs.description, applyUrl: jobs.applyUrl, closedReason: jobs.closedReason })
+      .select({
+        ...jobSummary,
+        description: jobs.description,
+        applyUrl: jobs.applyUrl,
+        closedReason: jobs.closedReason,
+        // The company has its own version of the job's career: the page links it.
+        hasVersion: hasVersionOf(sql`${jobs.companyId}`, sql`${jobs.occupationId}`),
+      })
       .from(jobs)
       .innerJoin(companies, eq(companies.id, jobs.companyId))
       .innerJoin(factories, eq(factories.id, jobs.factoryId))
@@ -276,7 +284,8 @@ async function readJobSkills(list: unknown[]): Promise<{ error: string } | { row
 
 // POST /api/jobs { companyId, factoryId, occupationId, payMin, payMax, ...optional }
 // Skills default to the career's: Fundamentals and Intermediate required, Advanced optional
-// (a path row's stage is the skill's level).
+// (a path row's stage is the skill's level). Where the company has its own version of the
+// career, they default to that version's skills instead.
 router.post(
   '/',
   requireUser,
@@ -317,11 +326,14 @@ router.post(
       if ('error' in tagged) return res.status(400).json({ error: tagged.error });
       skillRows = tagged.rows;
     } else {
-      const defaults = await db
-        .select({ skillId: occupationSkills.skillId, stage: occupationSkills.stage })
-        .from(occupationSkills)
-        .where(eq(occupationSkills.occupationId, occupationId));
-      skillRows = defaults.map((row) => ({ skillId: row.skillId, required: row.stage !== 3 }));
+      const version = await versionPathSkills(companyId, occupationId);
+      const defaults =
+        version?.map((row) => ({ skillId: row.skillId, stage: row.level })) ??
+        (await db
+          .select({ skillId: occupationSkills.skillId, stage: occupationSkills.stage })
+          .from(occupationSkills)
+          .where(eq(occupationSkills.occupationId, occupationId)));
+      skillRows = defaults.slice(0, MAX_JOB_SKILLS).map((row) => ({ skillId: row.skillId, required: row.stage !== 3 }));
     }
 
     const fields = {
