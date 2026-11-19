@@ -6,6 +6,7 @@ import { searchApi, type SearchEntityType } from '../../lib/api';
 import CompanyLogo from '../CompanyLogo';
 import { readStored, removeStored, writeStored } from '../../lib/storage';
 import { groupHeading, groupRows, noResults, recordRows, regionRows, ROWS_PER_GROUP, type SearchRow } from './results';
+import { publicKeys } from '../../lib/queryKeys';
 
 interface GlobalSearchProps {
   isOpen: boolean;
@@ -103,7 +104,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const hasQuery = debouncedQuery.length >= 1;
 
   const { data: searchResults, isFetching } = useQuery({
-    queryKey: ['search', debouncedQuery],
+    queryKey: publicKeys.searchFor(debouncedQuery),
     queryFn: () => searchApi.search(debouncedQuery, { types: ASKED, limit: ROWS_PER_GROUP }),
     enabled: hasQuery,
     staleTime: 30000,

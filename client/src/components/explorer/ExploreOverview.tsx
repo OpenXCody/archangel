@@ -2,7 +2,6 @@ import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  exploreApi,
   type ExploreArea,
   type ExploreCareer,
   type ExploreEmployer,
@@ -21,6 +20,8 @@ import { LoadError } from '../account/parts';
 import CompanyLogo from '../CompanyLogo';
 import { exploreHref } from './ExploreNav';
 import { STAGE_LABEL } from '../../lib/stages';
+import { publicKeys } from '../../lib/queryKeys';
+import { useExploreOverview } from '../../lib/queries';
 
 const TILE = cn(
   'group flex min-w-0 rounded-xl border border-border-subtle bg-bg-surface transition-colors',
@@ -253,7 +254,7 @@ function outerRings(geojson: unknown): Ring[] {
 function AreaOutline({ areaId }: { areaId: string }) {
   const url = FOCUS_AREAS.find((area) => area.id === areaId)?.boundaryUrl;
   const { data } = useQuery({
-    queryKey: ['area-boundary', url],
+    queryKey: publicKeys.areaBoundary(url),
     queryFn: async (): Promise<unknown> => {
       const response = await fetch(url as string);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -441,14 +442,6 @@ function OverviewSkeleton() {
 
 const isEmpty = (data: Overview) =>
   data.employers.length + data.careers.length + data.skillGroups.length + data.areas.length + data.states.length === 0;
-
-export function useExploreOverview() {
-  return useQuery<Overview>({
-    queryKey: ['explore-overview'],
-    queryFn: exploreApi.overview,
-    staleTime: 1000 * 60 * 5,
-  });
-}
 
 /**
  * What /explore opens on: the shape of what is here and places to start, one

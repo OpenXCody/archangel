@@ -28,6 +28,7 @@ import {
   textButtonClass,
   FieldError,
 } from './parts';
+import { publicKeys } from '../../lib/queryKeys';
 
 // These three live with the other shared form pieces; exported from here too for the files that import them from the job form.
 export { busyButtonClass, selectContentClass, selectTriggerClass };
@@ -161,7 +162,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
   // Careers already recorded at the chosen factory are the likeliest picks;
   // where none are, the careers typical of its industry.
   const factoryCareers = useQuery({
-    queryKey: ['picker', 'factory-careers', factoryId],
+    queryKey: publicKeys.picker('factory-careers', factoryId),
     queryFn: () => factoriesApi.get(factoryId),
     enabled: Boolean(factoryId) && !editing,
     staleTime: 5 * 60_000,
@@ -174,7 +175,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
   // The career's own skills are the default tags: stage 3 optional, the rest required.
   const careerId = career?.id ?? '';
   const careerSkills = useQuery({
-    queryKey: ['picker', 'career-skills', careerId],
+    queryKey: publicKeys.picker('career-skills', careerId),
     queryFn: () => occupationsApi.get(careerId),
     enabled: Boolean(careerId),
     staleTime: 5 * 60_000,

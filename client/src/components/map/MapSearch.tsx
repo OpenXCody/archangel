@@ -12,7 +12,7 @@ import {
 import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Search, X, Building2, Briefcase, Loader2, Filter, Check } from 'lucide-react';
-import { exploreApi, searchApi, type SearchEntityType } from '../../lib/api';
+import { searchApi, type SearchEntityType } from '../../lib/api';
 import { placeSearchAvailable, searchPlaces, type Place } from '../../lib/geocode';
 import { useMapStore, type MapPlace } from '../../stores/mapStore';
 import { US_STATES } from '@shared/states';
@@ -32,6 +32,8 @@ import {
   type SearchRow,
 } from '../search/results';
 import { stateName } from '../../lib/places';
+import { useExploreFacets } from '../../lib/queries';
+import { publicKeys } from '../../lib/queryKeys';
 
 /** The sentence a first visit is given, once. */
 // client/index.html carries the same sentence as the page's description.
@@ -184,11 +186,7 @@ function Filters({ id }: { id: string }) {
   const [stateQuery, setStateQuery] = useState('');
 
   // The industries plants are filed under, from the same list Explore filters by.
-  const { data: facets } = useQuery({
-    queryKey: ['explore-facets'],
-    queryFn: () => exploreApi.facets(),
-    staleTime: 10 * 60_000,
-  });
+  const { data: facets } = useExploreFacets();
   const industries = facets?.factoryIndustries ?? [];
 
   const q = stateQuery.trim().toLowerCase();
@@ -362,7 +360,7 @@ export default function MapSearch() {
   // Our own data: only the kinds the map can act on. States and focus areas
   // are short fixed lists the client already has, so they need no request.
   const { data: searchResults, isFetching: searching } = useQuery({
-    queryKey: ['map-search', debouncedQuery],
+    queryKey: publicKeys.mapSearchFor(debouncedQuery),
     queryFn: () => searchApi.search(debouncedQuery, { limit: ROWS_PER_GROUP, types: ASKED }),
     enabled: hasQuery,
     staleTime: 30000,
@@ -373,7 +371,7 @@ export default function MapSearch() {
   // cancelled; a failed lookup just leaves the group out.
   const placesEnabled = placeSearchAvailable() && placeQuery.length >= 3;
   const { data: places, isFetching: placesLoading } = useQuery({
-    queryKey: ['map-places', placeQuery],
+    queryKey: publicKeys.mapPlaces(placeQuery),
     queryFn: ({ signal }) => searchPlaces(placeQuery, signal),
     enabled: placesEnabled,
     staleTime: 5 * 60_000,

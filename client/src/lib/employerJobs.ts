@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { request, retryUnlessClientError } from './http';
-import { accountKeys } from './queryKeys';
+import { accountKeys, invalidate } from './queryKeys';
 import type { Applicant, EmploymentType, PayPeriod } from './jobs';
 import { parseDollars } from './jobFormat';
 
@@ -80,9 +80,7 @@ export function useEditJob(jobId: string) {
     mutationFn: (edit: JobEdit) => request<{ ok: true }>(`/jobs/${jobId}`, { method: 'PATCH', body: edit, plain401: true }),
     // The listing, the lists it appears in, and the applicants' standing all follow.
     onSuccess: () =>
-      Promise.all(
-        [accountKeys.jobs, accountKeys.employer, accountKeys.applications].map((queryKey) => queryClient.invalidateQueries({ queryKey }))
-      ),
+      invalidate(queryClient, accountKeys.jobs, accountKeys.employer, accountKeys.applications),
   });
 }
 
@@ -95,9 +93,7 @@ export function useDeleteJob() {
       // Nothing is left to refetch for the job itself.
       queryClient.removeQueries({ queryKey: accountKeys.job(jobId) });
       queryClient.removeQueries({ queryKey: accountKeys.applicants(jobId) });
-      return Promise.all(
-        [['jobs', 'list'], accountKeys.employer, accountKeys.adminOverview].map((queryKey) => queryClient.invalidateQueries({ queryKey }))
-      );
+      return invalidate(queryClient, accountKeys.jobLists, accountKeys.employer, accountKeys.adminOverview);
     },
     // Refused because someone has applied since: the lists are stale.
     onError: () => queryClient.invalidateQueries({ queryKey: accountKeys.employer }),
@@ -252,6 +248,6 @@ export function useExtendJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (jobId: string) => request<{ ok: true }>(`/jobs/${jobId}`, { method: 'PATCH', body: { status: 'open' }, plain401: true }),
-    onSuccess: () => Promise.all([accountKeys.jobs, accountKeys.employer].map((queryKey) => queryClient.invalidateQueries({ queryKey }))),
+    onSuccess: () => invalidate(queryClient, accountKeys.jobs, accountKeys.employer),
   });
 }

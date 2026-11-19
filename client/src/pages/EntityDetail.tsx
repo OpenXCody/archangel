@@ -11,10 +11,6 @@ import { editPath, type RecordKind } from '../lib/records';
 import { formatPay } from '../lib/jobFormat';
 import { Loader2 } from 'lucide-react';
 import {
-  companiesApi,
-  factoriesApi,
-  occupationsApi,
-  skillsApi,
   type EntityType,
   type CompanyDetail,
   type FactoryDetail,
@@ -45,6 +41,7 @@ import {
 } from '../components/layout/Page';
 import { plural } from '@/lib/utils';
 import { type Stage, STAGE_LABEL } from '../lib/stages';
+import { recordQuery } from '../lib/queries';
 
 /** What each kind of record is called at the head of its page. */
 const KIND_LABEL: Record<EntityType, string> = {
@@ -876,19 +873,6 @@ const BROWSE_WORD: Record<EntityType, string> = {
   companies: 'companies', factories: 'plants', occupations: 'careers', skills: 'skills',
 };
 
-function getEntityFetcher(entityType: EntityType, id: string) {
-  switch (entityType) {
-    case 'companies':
-      return () => companiesApi.get(id);
-    case 'factories':
-      return () => factoriesApi.get(id);
-    case 'occupations':
-      return () => occupationsApi.get(id);
-    case 'skills':
-      return () => skillsApi.get(id);
-  }
-}
-
 // Union type for all entity details
 type AnyEntityDetail = CompanyDetail | FactoryDetail | OccupationDetail | SkillDetail;
 
@@ -917,8 +901,7 @@ export default function EntityDetail() {
   const entityType = getEntityType(pathname);
 
   const { data, isLoading, error } = useQuery<AnyEntityDetail>({
-    queryKey: [entityType, id],
-    queryFn: getEntityFetcher(entityType, id!),
+    ...recordQuery(entityType, id),
     enabled: !!id,
   });
 

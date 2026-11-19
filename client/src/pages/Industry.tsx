@@ -33,6 +33,7 @@ import {
   readPlace,
   type PagePlace,
 } from '../components/industry/parts';
+import { publicKeys } from '../lib/queryKeys';
 
 const CAREERS_SHOWN = 8;
 /** The states (or a state's towns) listed before "Show all": the section sits near the top of the page, so it starts short. */
@@ -254,7 +255,7 @@ export default function IndustryPage() {
   }, [label, placeTitle]);
 
   const query = useQuery({
-    queryKey: ['industry', industry?.slug, where.state ?? null, where.area ?? null],
+    queryKey: publicKeys.industry(industry?.slug, where.state ?? null, where.area ?? null),
     queryFn: () => industriesApi.get(industry?.slug ?? '', where),
     enabled: Boolean(industry) && place.kind !== 'unknown',
     staleTime: 1000 * 60 * 5,

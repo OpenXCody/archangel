@@ -4,14 +4,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Loader2, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { exploreApi, skillsApi } from '../lib/api';
+import { skillsApi } from '../lib/api';
 import { useMarkSeen, type SignedInAccount } from '../lib/account';
 import { isFinished, useUpdateApplication } from '../lib/jobs';
 import { applicationStatusLabel, formatPlace } from '../lib/jobFormat';
 import {
   goalNextSkills,
   nextSkillNames,
-  suggestedSkillsKey,
   useCareersInReach,
   useMarkSkill,
   useSuggestedSkills,
@@ -48,6 +47,8 @@ import { formatDay } from '../lib/dates';
 import CareerPicker from '../components/account/CareerPicker';
 import { SkillHeldToggle, SkillStatusControl } from '../components/account/SkillStatusButton';
 import { PageContainer, PageHeader, PageSection } from '../components/layout/Page';
+import { useExploreOverview } from '../lib/queries';
+import { accountKeys, publicKeys } from '../lib/queryKeys';
 
 export default function Me() {
   return <AccountGate>{(account) => <MyPage account={account} />}</AccountGate>;
@@ -128,14 +129,14 @@ function Starter({ onStart }: { onStart: () => void }) {
   const queryClient = useQueryClient();
   const addGoal = useAddGoal();
   // The same answer the Explore overview reads, so it is usually already here.
-  const overview = useQuery({ queryKey: ['explore-overview'], queryFn: exploreApi.overview, staleTime: 5 * 60_000 });
+  const overview = useExploreOverview();
   const careers = (overview.data?.careers ?? []).slice(0, STARTER_CAREERS);
 
   const choose = (occupationId: string) => {
     if (addGoal.isPending) return;
     onStart();
     addGoal.mutate(occupationId, {
-      onSuccess: () => void queryClient.invalidateQueries({ queryKey: suggestedSkillsKey }),
+      onSuccess: () => void queryClient.invalidateQueries({ queryKey: accountKeys.suggestedSkills }),
     });
   };
 
@@ -230,7 +231,7 @@ function GoalsSection() {
   // Goals removed while this page is open keep their place until it is left, with a way back.
   const [removed, setRemoved] = useState<MyGoal[]>([]);
 
-  const refreshSuggestions = () => void queryClient.invalidateQueries({ queryKey: suggestedSkillsKey });
+  const refreshSuggestions = () => void queryClient.invalidateQueries({ queryKey: accountKeys.suggestedSkills });
   const removedIds = new Set(removed.map((goal) => goal.occupationId));
   const listed = [
     ...(goals.data ?? []).filter((goal) => !removedIds.has(goal.occupationId)),
@@ -571,7 +572,7 @@ function SkillSearch({ mySkills, onAdd, disabled }: SkillSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const query = useDebouncedValue(term.trim());
   const results = useQuery({
-    queryKey: ['picker', 'skills', query],
+    queryKey: publicKeys.picker('skills', query),
     queryFn: () => skillsApi.list({ search: query, limit: 8 }),
     enabled: query.length >= 2,
     staleTime: 60_000,

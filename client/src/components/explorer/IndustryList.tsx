@@ -18,6 +18,7 @@ import {
   readPlace,
   type PagePlace,
 } from '../industry/parts';
+import { publicKeys } from '../../lib/queryKeys';
 
 function Body({ data, place }: { data: Industries; place: PagePlace }) {
   const figures = [
@@ -85,7 +86,7 @@ export default function IndustryList() {
   }, [placeTitle]);
 
   const query = useQuery({
-    queryKey: ['industries', where.state ?? null, where.area ?? null],
+    queryKey: publicKeys.industries(where.state ?? null, where.area ?? null),
     queryFn: () => industriesApi.list(where),
     enabled: place.kind !== 'unknown',
     staleTime: 1000 * 60 * 5,

@@ -7,6 +7,7 @@ import { US_STATES } from '@shared/states';
 import { placeSearchAvailable, searchPlaces, type Place } from '../../lib/geocode';
 import { fieldClass, useDebouncedValue } from './parts';
 import { stateName } from '../../lib/places';
+import { publicKeys } from '../../lib/queryKeys';
 
 /** Where the jobs list is narrowed to: a state, or a point with a name. */
 export type JobPlace =
@@ -104,7 +105,7 @@ function PlaceCombobox({ value, onChange, within, onWithinChange, states, homeZi
   const query = useDebouncedValue(editing ? typed : '', 300);
   const searching = editing && typed.length >= 2;
   const places = useQuery({
-    queryKey: ['job-places', query],
+    queryKey: publicKeys.jobPlaces(query),
     queryFn: ({ signal }) => searchPlaces(query, signal),
     enabled: searching && query.length >= 2,
     staleTime: 5 * 60_000,

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { skillsApi } from '../../lib/api';
 import { errorMessage } from '../../lib/http';
 import { fieldClass, useDebouncedValue } from './parts';
+import { publicKeys } from '../../lib/queryKeys';
 
 /** One skill a job asks for. Required skills rank applicants; optional ones are listed. */
 export interface JobSkillTag {
@@ -204,7 +205,7 @@ function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderProps) {
   const searching = term.trim().length >= 2;
 
   const results = useQuery({
-    queryKey: ['picker', 'job-skills', query],
+    queryKey: publicKeys.picker('job-skills', query),
     queryFn: () => skillsApi.list({ search: query, limit: SHOWN + 16 }),
     enabled: searching && query.length >= 2,
     staleTime: 60_000,

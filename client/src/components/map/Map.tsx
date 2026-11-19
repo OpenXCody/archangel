@@ -9,7 +9,7 @@ import maplibregl, {
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Maximize2, Minus, Plus } from 'lucide-react';
-import { companiesApi, factoriesApi, mapApi, occupationsApi } from '../../lib/api';
+import { companiesApi, mapApi, occupationsApi } from '../../lib/api';
 import { useMapStore, type PinInfo } from '../../stores/mapStore';
 import { currentTheme, type Theme } from '../../lib/theme';
 import { isNotFound } from './selection';
@@ -46,6 +46,8 @@ import {
   SOURCE,
   type PinView,
 } from './layers';
+import { usePins, useStatesOutline } from '../../lib/queries';
+import { publicKeys } from '../../lib/queryKeys';
 
 declare global {
   interface Window {
@@ -66,9 +68,6 @@ const MAPTILER_STYLE: Record<Theme, string> = {
  * map (MapView keys it on the theme); it reopens here instead of starting over.
  */
 let resumeCamera: { center: [number, number]; zoom: number } | null = null;
-
-// US States GeoJSON, shipped with the app (client/public/data)
-const STATES_GEOJSON_URL = '/data/us-states.geojson';
 
 /** Below this zoom a state reads as a shape and can be hovered and selected. */
 const STATE_SELECT_MAX_ZOOM = 6.5;
@@ -181,11 +180,7 @@ export default function Map({ onViewChange }: MapProps) {
 
   // Every factory in the country, in one response. It loads once; panning,
   // zooming and filtering never refetch (filters are expressions: layers.ts).
-  const { data: factoriesGeoJSON } = useQuery({
-    queryKey: ['factory-pins'],
-    queryFn: () => factoriesApi.pins(),
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: factoriesGeoJSON } = usePins();
 
   // The map's subject, if it has one: a company (its plants alone) or a
   // career (the industries where its work is done). The panel reads the same
@@ -251,21 +246,13 @@ export default function Map({ onViewChange }: MapProps) {
 
   // State-level factory counts (shade the states)
   const { data: stateCounts } = useQuery<Record<string, number>>({
-    queryKey: ['state-counts'],
+    queryKey: publicKeys.stateCounts,
     queryFn: () => mapApi.stateCounts(),
     staleTime: 5 * 60 * 1000,
   });
 
   // Raw US states GeoJSON geometry
-  const { data: statesGeoJSONRaw } = useQuery<GeoJSON.FeatureCollection>({
-    queryKey: ['states-geojson'],
-    queryFn: async () => {
-      const res = await fetch(STATES_GEOJSON_URL);
-      if (!res.ok) throw new Error(`States GeoJSON failed: HTTP ${res.status}`);
-      return res.json();
-    },
-    staleTime: Infinity,
-  });
+  const { data: statesGeoJSONRaw } = useStatesOutline();
 
   // Merge counts into states GeoJSON so the fill layer can key off
   // feature.properties.factoryCount. The upstream GeoJSON uses full names on
@@ -289,7 +276,7 @@ export default function Map({ onViewChange }: MapProps) {
   // An area whose boundary fails to load is simply not outlined; its label
   // and chip still work, because they frame the area by its bounds.
   const { data: areaBoundaries } = useQuery<GeoJSON.FeatureCollection>({
-    queryKey: ['focus-area-boundaries'],
+    queryKey: publicKeys.areaBoundaries,
     queryFn: async () => {
       const loaded = await Promise.all(
         FOCUS_AREAS.map(async (area): Promise<GeoJSON.Feature[]> => {

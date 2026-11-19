@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import {
   X,
   ChevronUp,
@@ -17,7 +16,6 @@ import {
   Navigation,
 } from 'lucide-react';
 import {
-  factoriesApi,
   type FactoryDetail,
   type CompanyDetail,
   type OccupationDetail,
@@ -38,6 +36,7 @@ import { PANEL_WIDTH_PX, SHEET_BAR_PX, SHEET_FULL_VH, sheetPeekPx } from './came
 import { industryPath, leadingIndustry, shownIndustry } from '@shared/industry';
 import { isNotFound, useSelection } from './selection';
 import { STAGE_LABEL } from '../../lib/stages';
+import { usePins } from '../../lib/queries';
 
 /*
  * Words, the same in every panel:
@@ -405,11 +404,7 @@ interface NearbyPlant {
  * with the panel.
  */
 function useNearbyPlants(id: string, latitude: string, longitude: string): NearbyPlant[] {
-  const { data: pins } = useQuery({
-    queryKey: ['factory-pins'],
-    queryFn: () => factoriesApi.pins(),
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: pins } = usePins();
   return useMemo(() => {
     const lat = parseFloat(latitude);
     const lng = parseFloat(longitude);

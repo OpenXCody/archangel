@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { occupationsApi } from '../../lib/api';
 import { errorMessage } from '../../lib/http';
 import { KIND_ICON, fieldClass, useDebouncedValue } from './parts';
+import { publicKeys } from '../../lib/queryKeys';
 
 export interface CareerOption {
   id: string;
@@ -43,7 +44,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
   const searching = term.trim().length >= 2;
 
   const results = useQuery({
-    queryKey: ['picker', 'occupations', query],
+    queryKey: publicKeys.picker('occupations', query),
     queryFn: () => occupationsApi.list({ search: query, limit: SHOWN }),
     enabled: searching && query.length >= 2,
     staleTime: 60_000,

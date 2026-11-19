@@ -9,6 +9,7 @@ import { useMapStore } from '../../stores/mapStore';
 import { focusArea } from '@shared/scope';
 import { stateName } from '../../lib/places';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
+import { publicKeys } from '../../lib/queryKeys';
 
 /** True when a failed request means "there is no such thing", not "the request failed". */
 export function isNotFound(error: unknown): boolean {
@@ -27,10 +28,10 @@ export function useSelection() {
   const company = useQuery({ queryKey: ['company', id], queryFn: () => companiesApi.get(id as string), enabled: on('company'), retry });
   const occupation = useQuery({ queryKey: ['occupation', id], queryFn: () => occupationsApi.get(id as string), enabled: on('occupation'), retry });
   const skill = useQuery({ queryKey: ['skill', id], queryFn: () => skillsApi.get(id as string), enabled: on('skill'), retry });
-  const state = useQuery({ queryKey: ['state-overview', id], queryFn: () => mapApi.stateOverview(id as string), enabled: on('state'), retry });
-  const area = useQuery({ queryKey: ['area-overview', id], queryFn: () => mapApi.areaOverview(id as string), enabled: on('area'), retry });
+  const state = useQuery({ queryKey: publicKeys.stateOverview(id), queryFn: () => mapApi.stateOverview(id as string), enabled: on('state'), retry });
+  const area = useQuery({ queryKey: publicKeys.areaOverview(id), queryFn: () => mapApi.areaOverview(id as string), enabled: on('area'), retry });
   const placeOverview = useQuery({
-    queryKey: ['bounds-overview', id],
+    queryKey: publicKeys.boundsOverview(id),
     queryFn: () => mapApi.boundsOverview((place as NonNullable<typeof place>).bounds),
     enabled: on('place') && !!place,
     retry,

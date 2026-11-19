@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useWindowVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import {
   companiesApi,
-  exploreApi,
   factoriesApi,
   occupationsApi,
   skillsApi,
@@ -19,6 +18,8 @@ import EntityRow, { EntityRowSkeleton, type BrowseEntity } from './EntityRow';
 import FilterBar, { SORT_OPTIONS, type FilterState } from './FilterBar';
 import type { BrowseTab } from './ExploreNav';
 import { stateName } from '../../lib/places';
+import { publicKeys } from '../../lib/queryKeys';
+import { useExploreFacets } from '../../lib/queries';
 
 const PAGE_SIZE = 20;
 
@@ -229,7 +230,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
   );
 
   const list = useInfiniteQuery({
-    queryKey: [`explore-${tab}`, params],
+    queryKey: publicKeys.exploreList(tab, params),
     queryFn: ({ pageParam }) => LIST[tab]({ offset: pageParam, limit: PAGE_SIZE, ...params }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined),
@@ -238,12 +239,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
 
   // Choices for the industry and category filters: every value in use, not
   // just those on the first page of a list.
-  const facets = useQuery({
-    queryKey: ['explore-facets'],
-    queryFn: exploreApi.facets,
-    staleTime: 1000 * 60 * 10,
-    enabled: tab === 'companies' || tab === 'factories' || tab === 'skills',
-  });
+  const facets = useExploreFacets(tab === 'companies' || tab === 'factories' || tab === 'skills');
   // Of the 21: those some plant carries, or those that are some company's industry.
   const industries = tab === 'factories' ? facets.data?.factoryIndustries : (facets.data?.industries?.companies ?? facets.data?.factoryIndustries);
   const categories = facets.data?.skillCategories;

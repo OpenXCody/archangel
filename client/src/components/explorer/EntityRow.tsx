@@ -2,7 +2,6 @@ import { memo, useCallback, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Company, Factory, Occupation, Skill } from '../../lib/api';
-import { companiesApi, factoriesApi, occupationsApi, skillsApi } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { shownIndustry } from '@shared/industry';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,6 +9,7 @@ import CompanyLogo from '../CompanyLogo';
 import type { BrowseTab } from './ExploreNav';
 import { focusRing, plural } from '@/lib/utils';
 import { STAGE_LABEL, type Stage } from '../../lib/stages';
+import { recordQuery } from '../../lib/queries';
 
 /**
  * One row of a browse list. Every type reads the same way:
@@ -141,18 +141,11 @@ function SkillRow({ data, onMouseEnter }: Props<Skill>) {
   );
 }
 
-// Detail pages read queryKey [type, id]: warm it on hover so the page opens filled.
-const FETCHERS: Record<BrowseTab, (id: string) => Promise<unknown>> = {
-  companies: companiesApi.get,
-  factories: factoriesApi.get,
-  occupations: occupationsApi.get,
-  skills: skillsApi.get,
-};
-
 function EntityRowInner({ type, data }: { type: BrowseTab; data: BrowseEntity }) {
   const queryClient = useQueryClient();
   const prefetch = useCallback(() => {
-    void queryClient.prefetchQuery({ queryKey: [type, data.id], queryFn: () => FETCHERS[type](data.id), staleTime: 60_000 });
+    // The record's page reads the same query: warmed on hover, it opens filled.
+    void queryClient.prefetchQuery({ ...recordQuery(type, data.id), staleTime: 60_000 });
   }, [queryClient, type, data.id]);
 
   switch (type) {

@@ -16,6 +16,7 @@ import { formatAgo } from '../lib/dates';
 import { LoadError, cardClass, fieldClass, outlineButtonClass, useDebouncedValue } from '../components/account/parts';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
 import { isUuid } from '../lib/validation';
+import { publicKeys } from '../lib/queryKeys';
 
 /** `?near=30.5083,-97.6789`: a point, as latitude then longitude. */
 function readPoint(raw: string | null): { lat: number; lng: number } | null {
@@ -124,7 +125,7 @@ export default function Jobs() {
   // (a career linked to from its page may have no open job).
   const careerInList = career ? (allJobs.data ?? []).find((job) => job.occupationId === career)?.occupationTitle : undefined;
   const linkedCareer = useQuery({
-    queryKey: ['picker', 'occupation', career],
+    queryKey: publicKeys.picker('occupation', career),
     queryFn: () => occupationsApi.get(career),
     enabled: Boolean(career) && allJobs.isSuccess && !careerInList,
     staleTime: 5 * 60_000,

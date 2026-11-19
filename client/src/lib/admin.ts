@@ -363,7 +363,7 @@ export function useAdminPaths(status: 'draft' | 'approved', enabled = true) {
 /** Company type-ahead for Admin Tools: fresh profile fields, from two letters. */
 export function useAdminCompanies(q: string) {
   return useQuery({
-    queryKey: accountKeys.adminCompanies(q),
+    queryKey: accountKeys.adminCompaniesFor(q),
     queryFn: () => adminApi.companies(q),
     enabled: q.length >= 2,
     staleTime: 0,

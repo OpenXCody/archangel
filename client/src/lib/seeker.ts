@@ -160,12 +160,6 @@ export function useMyApplications(enabled = true) {
 // Careers within reach
 // ---------------------------------------------------------------------------
 
-/**
- * Under the skills key on purpose: whatever changes the person's skills
- * refreshes this list with them.
- */
-export const reachKey = [...accountKeys.skills, 'reach'] as const;
-
 async function fetchReach(): Promise<ReachCareer[]> {
   // A 401 in the server's words, as this list has always shown it.
   const payload = await request<{ careers?: ReachCareer[] } | null>('/me/careers/reach', { plain401: true });
@@ -179,7 +173,7 @@ async function fetchReach(): Promise<ReachCareer[]> {
  */
 export function useCareersInReach(enabled = true) {
   return useQuery({
-    queryKey: reachKey,
+    queryKey: accountKeys.reach,
     queryFn: fetchReach,
     enabled,
     // Keep the list on screen while it is worked out again after a change.
@@ -214,13 +208,6 @@ export interface SuggestedSkill {
   careers: number;
 }
 
-/**
- * Not under the skills key, on purpose: marking a suggestion must not reshuffle
- * the list under the finger. It is read when the page opens, when the person's
- * goals change (`refreshSuggestedSkills`), and when they ask for more.
- */
-export const suggestedSkillsKey = [...accountKeys.me, 'suggested-skills'] as const;
-
 async function fetchSuggestedSkills(): Promise<SuggestedSkill[]> {
   const payload = await request<{ skills?: SuggestedSkill[] } | null>('/me/skills/suggested');
   if (!payload?.skills) throw new ApiError(SERVER_FAILED, 200);
@@ -230,10 +217,14 @@ async function fetchSuggestedSkills(): Promise<SuggestedSkill[]> {
 /**
  * Skills of the person's goal careers, then of the careers within reach, none
  * of them on their list yet. Empty for a person with no goal and no held skill.
+ *
+ * Its key is not under the skills key, on purpose: marking a suggestion must
+ * not reshuffle the list under the finger. It is read when the page opens,
+ * when the person's goals change, and when they ask for more.
  */
 export function useSuggestedSkills(enabled = true) {
   return useQuery({
-    queryKey: suggestedSkillsKey,
+    queryKey: accountKeys.suggestedSkills,
     queryFn: fetchSuggestedSkills,
     enabled,
     staleTime: Infinity,
