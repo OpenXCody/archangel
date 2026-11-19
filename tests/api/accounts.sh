@@ -408,8 +408,12 @@ check "new factory has a page"        200 "$(req anon GET /factories/$RFA)" "\"i
 check "change a factory's city"       200 "$(req a PUT /factories/$RFA '{"city":"Round Rock"}')" '"city":"Round Rock"'
 check "a change keeps what it left out" 200 "$(req anon GET /factories/$RFA)" '"address":"1 Test Way"'
 
-OUT=$(req a POST /occupations "{\"title\":\"$REC Career\",\"description\":\"Checks records.\"}")
+# A career's O*NET code is checked when it is added as it is when it is changed: text of up to 20 characters.
+check "a career's O*NET code must be text" 400 "$(req a POST /occupations "{\"title\":\"$REC Career\",\"onetCode\":[\"51-4041.00\"]}")" 'O\*NET code'
+check "and of up to 20 characters"    400 "$(req a POST /occupations "{\"title\":\"$REC Career\",\"onetCode\":\"$(printf '%021d' 0)\"}")" 'O\*NET code'
+OUT=$(req a POST /occupations "{\"title\":\"$REC Career\",\"description\":\"Checks records.\",\"onetCode\":\" 51-4041.00 \"}")
 check "add a career"                  201 "$OUT" '"description":"Checks records."'
+check "its O*NET code is kept, trimmed" 201 "$OUT" '"onetCode":"51-4041.00"'
 ROC=$(printf '%s' "$OUT" | j id)
 check "same career again"             409 "$(req a POST /occupations "{\"title\":\"$REC CAREER\"}")" "\"existing\":{\"id\":\"$ROC\""
 OUT=$(req a POST /skills "{\"name\":\"$REC Skill\",\"category\":\"Machining\"}")

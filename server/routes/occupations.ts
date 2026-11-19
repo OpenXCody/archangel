@@ -318,15 +318,20 @@ router.put('/:id/path', async (req: Request, res: Response) => {
 // POST /api/occupations - Create occupation
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { onetCode } = req.body;
     const title = requiredText(req.body?.title);
     const description = optionalText(req.body?.description, 2000);
+    // The same check a change to a career makes (changeCareer in lib/records.ts).
+    const onetCode = optionalText(req.body?.onetCode, 20);
     if (!title) {
       res.status(400).json({ error: 'A career needs a title of up to 200 characters.' });
       return;
     }
     if (description === false) {
       res.status(400).json({ error: 'A description is text of up to 2,000 characters.' });
+      return;
+    }
+    if (onetCode === false) {
+      res.status(400).json({ error: 'An O*NET code is text of up to 20 characters.' });
       return;
     }
 
