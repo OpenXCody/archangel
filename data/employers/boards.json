@@ -1,0 +1,42 @@
+{
+  "note": "Employers whose public job postings come in as jobs (scripts/ingest/run.mjs postings). One line per employer: the name its board goes by, the company exactly as our data names it (and, in also, other companies we list under their own names whose plants the same board hires for), the hiring system and the board's token or address. An employer that is not read says why under leftOut. scripts/ingest/postings/registry.mjs --check holds this file to its shape. Nothing behind SmartRecruiters' API is listed: its robots file disallows it.",
+  "employers": [
+    { "slug": "spacex", "employer": "SpaceX", "company": "SpaceX", "system": "greenhouse", "board": "spacex" },
+    { "slug": "anduril", "employer": "Anduril", "company": "Anduril Industries", "system": "greenhouse", "board": "andurilindustries" },
+    { "slug": "relativity", "employer": "Relativity Space", "company": "Relativity Space", "system": "greenhouse", "board": "relativity" },
+    { "slug": "rocket-lab", "employer": "Rocket Lab", "company": "Rocket Lab", "system": "greenhouse", "board": "rocketlab" },
+    { "slug": "lucid", "employer": "Lucid Motors", "company": "Lucid Motors", "system": "greenhouse", "board": "lucidmotors" },
+    { "slug": "apptronik", "employer": "Apptronik", "company": "Apptronik", "system": "greenhouse", "board": "apptronik" },
+    { "slug": "saronic", "employer": "Saronic", "company": "Saronic", "system": "ashby", "board": "saronic" },
+    { "slug": "hermeus", "employer": "Hermeus", "company": "Hermeus", "system": "lever", "board": "hermeus" },
+    { "slug": "rivian", "employer": "Rivian", "company": "Rivian", "system": "jibe", "board": "careers.rivian.com" },
+    { "slug": "panasonic", "employer": "Panasonic North America", "company": "Panasonic Energy", "also": ["Panasonic Corp of N.a."], "system": "jibe", "board": "careers.na.panasonic.com" },
+    { "slug": "deere", "employer": "John Deere", "company": "John Deere", "system": "successfactors", "board": "https://jobs.deere.com/sitemap.xml" },
+    { "slug": "boeing", "employer": "Boeing", "company": "Boeing", "system": "workday", "board": "https://boeing.wd1.myworkdayjobs.com/wday/cxs/boeing/EXTERNAL_CAREERS" },
+    { "slug": "northrop", "employer": "Northrop Grumman", "company": "Northrop Grumman", "system": "workday", "board": "https://ngc.wd1.myworkdayjobs.com/wday/cxs/ngc/Northrop_Grumman_External_Site" },
+    { "slug": "rtx", "employer": "RTX", "company": "Raytheon", "also": ["Collins Aerospace", "Pratt & Whitney", "Pratt & Whitney Engine Services"], "system": "workday", "board": "https://globalhr.wd5.myworkdayjobs.com/wday/cxs/globalhr/REC_RTX_Ext_Gateway", "note": "RTX is Raytheon, Collins Aerospace and Pratt & Whitney on one board; our data lists each under its own name." },
+    { "slug": "gm", "employer": "General Motors", "company": "General Motors", "system": "workday", "board": "https://generalmotors.wd5.myworkdayjobs.com/wday/cxs/generalmotors/Careers_GM" },
+    { "slug": "intel", "employer": "Intel", "company": "Intel", "system": "workday", "board": "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External" },
+    { "slug": "micron", "employer": "Micron", "company": "Micron Technology", "system": "workday", "board": "https://micron.wd1.myworkdayjobs.com/wday/cxs/micron/External", "note": "The company row named Micron holds other firms' plants (Micron Industries, Micron Manufacturing): the chip maker is Micron Technology." },
+    { "slug": "applied-materials", "employer": "Applied Materials", "company": "Applied Materials", "system": "workday", "board": "https://amat.wd1.myworkdayjobs.com/wday/cxs/amat/External" },
+    { "slug": "caterpillar", "employer": "Caterpillar", "company": "Caterpillar", "system": "workday", "board": "https://cat.wd5.myworkdayjobs.com/wday/cxs/cat/CaterpillarCareers" },
+    { "slug": "ge-aerospace", "employer": "GE Aerospace", "company": "GE Aerospace", "also": ["GE Aviation Systems", "GE Engine Services"], "system": "workday", "board": "https://geaerospace.wd5.myworkdayjobs.com/wday/cxs/geaerospace/GE_ExternalSite", "note": "General Electric is not named: that row also holds plants that are not GE Aerospace's." },
+    { "slug": "blue-origin", "employer": "Blue Origin", "company": "Blue Origin", "also": ["Blue Origin Manufacturing"], "system": "workday", "board": "https://blueorigin.wd5.myworkdayjobs.com/wday/cxs/blueorigin/BlueOrigin" },
+    { "slug": "globalfoundries", "employer": "GlobalFoundries", "company": "GlobalFoundries", "system": "workday", "board": "https://globalfoundries.wd1.myworkdayjobs.com/wday/cxs/globalfoundries/External" },
+    { "slug": "flex", "employer": "Flex", "company": "Flex", "system": "workday", "board": "https://flextronics.wd1.myworkdayjobs.com/wday/cxs/flextronics/Careers" },
+    { "slug": "texas-instruments", "employer": "Texas Instruments", "company": "Texas Instruments", "system": "oracle", "board": "edbz.fa.us2.oraclecloud.com/CX" },
+    { "slug": "ford", "employer": "Ford", "company": "Ford", "system": "oracle", "board": "efds.fa.em5.oraclecloud.com/CX_1" }
+  ],
+  "leftOut": [
+    { "employer": "Tesla", "why": "refused", "what": "www.tesla.com/robots.txt answered 403: its own careers site turns robots away at the first request.", "when": "2026-11-19" },
+    { "employer": "L3Harris", "why": "refused", "what": "careers.l3harris.com/robots.txt disallows everything to every robot.", "when": "2026-11-19" },
+    { "employer": "Lockheed Martin", "why": "refused", "system": "Eightfold", "what": "One Eightfold endpoint answered 403; the other answered about 55 requests and then 429.", "when": "2026-11-19" },
+    { "employer": "Toyota Motor North America", "why": "no adapter", "system": "Phenom", "what": "The sitemap lists job pages, one request each for the text; no adapter reads Phenom career sites and the job pages were never fetched.", "when": "2026-11-19" },
+    { "employer": "Honda (US)", "why": "no adapter", "system": "Phenom", "what": "The sitemap lists job pages, one request each for the text; no adapter reads Phenom career sites and the job pages were never fetched.", "when": "2026-11-19" },
+    { "employer": "Bell (Textron)", "why": "not verified", "system": "Oracle Taleo", "what": "Taleo career sections are driven by a session; the feed was not tested. A guessed Workday address answered 422.", "when": "2026-11-19" },
+    { "employer": "General Dynamics", "why": "not verified", "what": "Its business units (Gulfstream, Electric Boat, Land Systems and others) run separate hiring systems; none was sampled.", "when": "2026-11-19" },
+    { "employer": "Samsung (Austin Semiconductor)", "why": "not verified", "system": "Workday", "what": "The connection was reset before any answer, on the one attempt made; the board's address is unverified.", "when": "2026-11-19" },
+    { "employer": "NXP", "why": "not verified", "system": "Workday", "what": "A guessed Workday address answered 422 (no such tenant); the right address was not looked up.", "when": "2026-11-19" },
+    { "employer": "Dell", "why": "not verified", "system": "Workday", "what": "A guessed Workday address answered 422; the right address was not looked up.", "when": "2026-11-19" }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+ "jobPostingInfo": {
+  "id": "860daa59c6901001a63e0c0597af0001",
+  "title": "General Machinist - N0309 South",
+  "jobDescription": "General Machinist - N0309 South<p style=\"text-align:inherit\"></p><p style=\"text-align:inherit\"></p><p style=\"text-align:left\"><b>Company:</b></p>The Boeing Company<p style=\"text-align:inherit\"></p><p style=\"text-align:inherit\"></p><p>Boeing Commercial Airplanes is excited to offer opportunities for a <b>General Machinist</b> to join our Fabrication team in …",
+  "location": "USA - Auburn, WA",
+  "additionalLocations": [
+   "USA - Algona, WA"
+  ],
+  "postedOn": "Posted 6 Days Ago",
+  "startDate": "2026-11-13",
+  "timeType": "Full time",
+  "jobReqId": "JR2026516085",
+  "jobPostingId": "General-Machinist---N0309_JR2026516085-1",
+  "jobPostingSiteId": "EXTERNAL_CAREERS",
+  "country": {
+   "descriptor": "United States of America",
+   "id": "bc33aa3152ec42d4995f4791a106ed09"
+  },
+  "canApply": true,
+  "posted": true,
+  "includeResumeParsing": true,
+  "jobRequisitionLocation": {
+   "descriptor": "USA - Auburn, WA",
+   "country": {
+    "descriptor": "United States of America",
+    "id": "bc33aa3152ec42d4995f4791a106ed09",
+    "alpha2Code": "US"
+   }
+  },
+  "externalUrl": "https://boeing.wd1.myworkdayjobs.com/EXTERNAL_CAREERS/job/USA---Auburn-WA/General-Machinist---N0309_JR2026516085-1",
+  "questionnaireId": "fb845e243dd41001f2c0abfc92dc0000",
+  "secondaryQuestionnaireId": "042f89e4a4ee100106ed46f9b8b00000",
+  "timeLeftToApply": "14 days left to apply",
+  "endDate": "2026-12-04",
+  "jobPostingEndDateAsText": "End Date: December 4, 2026"
+ },
+ "hiringOrganization": {
+  "name": "The Boeing Company",
+  "url": ""
+ },
+ "similarJobs": [],
+ "userAuthenticated": false
+}

@@ -12,11 +12,21 @@
 //   node scripts/ingest/run.mjs undo <run>                 take back what a run changed
 //   node scripts/ingest/run.mjs forget <source>            remove a source and all intake holds for it (not while a run is applied)
 //
+// Employers' job postings (data/employers/boards.json; a source is "postings-<slug>" and has no file: its board is read):
+//   node scripts/ingest/run.mjs postings [--only a,b] [--rehearse] [--again]   every employer in the registry, one run each
+//   node scripts/ingest/run.mjs postings --check           hold the registry to its shape; no request, no database
+//   node scripts/ingest/run.mjs fetch postings-<slug>      read the board and say what it lists; no database
+//   node scripts/ingest/run.mjs rehearse|stage|load postings-<slug>
+//
 // It reads DATABASE_URL. A database that is not on this machine is refused
 // unless `--yes-this-database <host>` names its host. `--report <file>` also
 // writes the report to a file; `--adapter <file.mjs>` reads a source that is
-// not in scripts/ingest/sources/. Every command says what it is about to do
-// before it does it. scripts/ingest/README.md describes the pipeline.
+// not in scripts/ingest/sources/. For postings: `--registry <file.json>` reads
+// another registry, `--reader <file.mjs>` another reading of a posting, and
+// `--feeds http://127.0.0.1:<port>` sends every request to a local server
+// standing in for the feeds (tests, and runs over saved boards). Every command
+// says what it is about to do before it does it. scripts/ingest/README.md
+// describes the pipeline.
 import { writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -28,7 +38,7 @@ const ROOT = path.join(HERE, '..', '..');
 
 /** The command line as { command, args, options }: `--name value`, or `--name` alone for a switch. */
 export function parseArgs(argv) {
-  const SWITCHES = new Set(['all', 'again', 'help']);
+  const SWITCHES = new Set(['all', 'again', 'help', 'rehearse', 'check']);
   const args = [];
   const options = {};
   for (let i = 0; i < argv.length; i += 1) {
@@ -56,6 +66,31 @@ export function fetchDir(slug, to) {
   return dir;
 }
 
+/** What a run of postings needs besides a database: the registry, the fetcher, and the reading of a posting. */
+async function postingTools(options) {
+  const registry = await import('./postings/registry.mjs');
+  const { createFetcher, rewriteTo, USER_AGENT } = await import('./postings/fetch.mjs');
+  const employers = registry.loadRegistry(options.registry ? path.resolve(options.registry) : undefined);
+  let rewrite = null;
+  if (options.feeds) {
+    if (!/^http:\/\/(127\.0\.0\.1|localhost):\d+\/?$/.test(options.feeds)) throw new Error('--feeds names a server on this machine, such as http://127.0.0.1:5999.');
+    rewrite = rewriteTo(options.feeds);
+  }
+  const reader = await import(options.reader ? pathToFileURL(path.resolve(options.reader)).href : './postings/read/index.mjs');
+  return {
+    registry, employers, reader, vocab: reader.loadVocabulary(ROOT), userAgent: USER_AGENT, standIn: Boolean(rewrite),
+    // A stand-in on this machine is not paced: there is nobody to be polite to.
+    fetcher: createFetcher(rewrite ? { rewrite, pace: 0 } : {}),
+    entry(slug) {
+      const entry = registry.entryOf(employers, slug);
+      if (!entry) throw new Error(`There is no employer "${slug.slice(registry.SOURCE_PREFIX.length)}" in the registry (data/employers/boards.json).`);
+      return entry;
+    },
+  };
+}
+
+const isPostings = (slug) => typeof slug === 'string' && slug.startsWith('postings-');
+
 async function loadAdapter(slug, options) {
   const file = options.adapter ? path.resolve(options.adapter) : path.join(HERE, 'sources', `${slug}.mjs`);
   let adapter;
@@ -77,14 +112,33 @@ const runNumber = (text) => {
 const USAGE = `Usage: node scripts/ingest/run.mjs <command>
   list | fetch <source> [--to dir] | rehearse <source> <file> | stage <source> <file> | resolve <run> [--again]
   apply <run> [--all] | load <source> <file> | report <run> [--all] | undo <run> | forget <source>
-Options: --yes-this-database <host>  --report <file>  --adapter <file.mjs>`;
+  postings [--only a,b] [--rehearse] [--again] [--check]     (a posting source, postings-<slug>, takes no file)
+Options: --yes-this-database <host>  --report <file>  --adapter <file.mjs>  --registry <file.json>  --reader <file.mjs>  --feeds <local server>`;
 
 async function main() {
   const { command, args, options } = parseArgs(process.argv.slice(2));
   const say = (line) => console.log(line);
   if (command === 'help' || options.help) return say(USAGE);
 
+  // The registry alone: no request, no database.
+  if (command === 'postings' && options.check) {
+    const { employers } = await postingTools(options);
+    return say(`postings: the registry is usable: ${employers.employers.length} employers are read, ${employers.leftOut.length} are left out.`);
+  }
+
   // The one command that touches no database.
+  if (command === 'fetch' && isPostings(args[0])) {
+    const tools = await postingTools(options);
+    const entry = tools.entry(args[0]);
+    const { SYSTEMS } = await import('./postings/systems/index.mjs');
+    const adapter = SYSTEMS[entry.system];
+    say(`ingest: fetch ${args[0]}: ${adapter.feed(entry.board)}`);
+    say(`  ${adapter.name}. ${adapter.how} Asked as "${tools.userAgent}".`);
+    const session = tools.fetcher.session(entry.slug, { pace: adapter.pace, ceiling: entry.ceiling });
+    const listed = await adapter.list(entry.board, { get: session.get, post: session.post, today: new Date().toISOString().slice(0, 10) });
+    const ours = listed.filter((posting) => tools.reader.readPosting({ employer: entry.employer, title: posting.title, location: posting.location ?? '', text: '' }, tools.vocab).career);
+    return say(`fetched: ${listed.length.toLocaleString('en-US')} postings listed, ${ours.length.toLocaleString('en-US')} with a title that is one of our careers, in ${session.requests} requests. Nothing was kept.`);
+  }
   if (command === 'fetch') {
     const [slug] = args;
     if (!slug) throw new Error('fetch <source>');
@@ -127,9 +181,61 @@ async function main() {
         for (const run of source.runs) {
           const c = run.counts ?? {};
           say(`  run ${run.id}  ${run.state.padEnd(8)}  ${new Date(run.started_at).toISOString().slice(0, 16).replace('T', ' ')}  ${run.input ?? ''}` +
-            `  staged ${c.staged ?? '-'}, by id ${c.byId ?? '-'}, changed ${c.plantsChanged ?? '-'}, added ${c.added ?? '-'}, queued ${c.queued ?? '-'}`);
+            (source.kind === 'job'
+              ? `  ${c.outcome ?? '-'}: listed ${c.read ?? '-'}, kept ${c.kept ?? '-'}, jobs added ${c.jobsAdded ?? '-'}, changed ${c.jobsChanged ?? '-'}, closed ${c.jobsClosed ?? '-'}, waiting ${c.waiting ?? '-'}`
+              : `  staged ${c.staged ?? '-'}, by id ${c.byId ?? '-'}, changed ${c.plantsChanged ?? '-'}, added ${c.added ?? '-'}, queued ${c.queued ?? '-'}`));
         }
       }
+    } else if (command === 'postings' || ((command === 'rehearse' || command === 'stage' || command === 'load') && isPostings(args[0]))) {
+      // Employers' postings: one run per employer. One failure does not stop the rest.
+      const tools = await postingTools(options);
+      const jobs = await import('./postings/jobs.mjs');
+      const one = command !== 'postings';
+      const only = one ? null : options.only ? new Set(String(options.only).split(',').map((slug) => slug.trim()).filter(Boolean)) : null;
+      const entries = one ? [tools.entry(args[0])] : tools.employers.employers.filter((entry) => !only || only.has(entry.slug));
+      if (only) for (const slug of only) if (!entries.some((entry) => entry.slug === slug)) throw new Error(`There is no employer "${slug}" in the registry.`);
+      const rehearse = command === 'rehearse' || Boolean(options.rehearse);
+      const upTo = command === 'stage' ? 'stage' : 'apply';
+      say(rehearse
+        ? `  will read ${entries.length === 1 ? `${entries[0].employer}'s board` : `${entries.length} employers' boards`}, stage, resolve and apply inside a transaction each, print what it did, and roll all of it back`
+        : upTo === 'stage'
+          ? `  will read ${entries[0].employer}'s board into staging as a new run; no job is touched`
+          : `  will read ${entries.length === 1 ? `${entries[0].employer}'s board` : `${entries.length} employers' boards`} and bring the jobs in line: jobs change. \`undo <run>\` takes a run back`);
+      say(`  asked as "${tools.userAgent}"${tools.standIn ? `, of the stand-in at ${options.feeds}` : ''}; robots files are read first and obeyed; a refusal ends that employer for this run`);
+      const started = Date.now();
+      const lines = [];
+      const texts = [];
+      let failed = 0;
+      for (const entry of entries) {
+        const began = Date.now();
+        let result;
+        try {
+          result = await jobs.runEmployer(sql, entry, { ...tools, again: Boolean(options.again), rehearse, upTo, startedBy, log: one ? say : () => {}, everything: Boolean(options.all) });
+        } catch (error) {
+          // The database, or a bug: said, counted, and the next employer is still read.
+          failed += 1;
+          lines.push(`  ${entry.slug.padEnd(18)} FAILED  ${error.message}`);
+          say(lines[lines.length - 1]);
+          continue;
+        }
+        const c = result.counts;
+        if (result.outcome === 'failed') failed += 1;
+        const took = Math.round((Date.now() - began) / 100) / 10;
+        const line = result.outcome === 'read'
+          ? `  ${entry.slug.padEnd(18)} run ${String(result.runId).padEnd(5)} listed ${String(c.read).padStart(5)}  kept ${String(c.kept).padStart(4)}  ` +
+            `new ${String(c.new).padStart(4)}  changed ${String(c.changed).padStart(3)}  gone ${String(c.gone).padStart(3)}  ` +
+            `jobs +${c.jobsAdded ?? 0} ~${c.jobsChanged ?? 0} -${c.jobsClosed ?? 0}  waiting ${String(c.waiting ?? 0).padStart(4)}  ${String(c.requests).padStart(4)} requests  ${took} s`
+          : `  ${entry.slug.padEnd(18)} run ${String(result.runId).padEnd(5)} ${result.outcome.toUpperCase()}: ${result.why}  (${c.requests ?? 0} requests, ${took} s)` +
+            (c.read !== undefined ? `; staged what was read: kept ${c.kept}, jobs +${c.jobsAdded ?? 0}` : '');
+        lines.push(line);
+        if (!one) say(line);
+        texts.push(result.text);
+      }
+      const { requests, refusals } = tools.fetcher.totals;
+      const summary = `postings: ${entries.length} ${entries.length === 1 ? 'employer' : 'employers'}, ${requests.toLocaleString('en-US')} requests, ` +
+        `${refusals} ${refusals === 1 ? 'refusal' : 'refusals'}, ${failed} failed, in ${Math.round((Date.now() - started) / 1000)} s${rehearse ? ' (a rehearsal: nothing was kept)' : ''}`;
+      await finish(one ? `${texts.join('\n\n')}\n\n${summary}` : [summary, ...lines, '', texts.join('\n\n')].join('\n'));
+      if (failed > 0) process.exitCode = 1;
     } else if (command === 'rehearse' || command === 'stage' || command === 'load') {
       const [slug, file] = args;
       if (!slug || !file) throw new Error(`${command} <source> <file>`);
@@ -163,13 +269,23 @@ async function main() {
       }
     } else if (command === 'resolve') {
       const runId = runNumber(args[0]);
-      say('  will decide which plant each staged record is: writes the decisions and the review queue; the plants are not touched');
-      await pipeline.resolve(sql, runId, { log: say, again: Boolean(options.again) });
+      if ((await pipeline.runRow(sql, runId)).kind === 'job') {
+        say('  will decide which plant each staged posting is at: writes the places that wait; no job is touched');
+        await (await import('./postings/jobs.mjs')).resolve(sql, runId, { log: say });
+      } else {
+        say('  will decide which plant each staged record is: writes the decisions and the review queue; the plants are not touched');
+        await pipeline.resolve(sql, runId, { log: say, again: Boolean(options.again) });
+      }
       await finish(await report(sql, runId));
     } else if (command === 'apply') {
       const runId = runNumber(args[0]);
-      say('  will write the ids and facts the run decided onto the plants, a batch to a transaction');
-      await pipeline.apply(sql, runId, { log: say, all: Boolean(options.all) });
+      if ((await pipeline.runRow(sql, runId)).kind === 'job') {
+        say('  will bring the jobs in line with the staged postings, in one transaction');
+        await (await import('./postings/jobs.mjs')).apply(sql, runId, { log: say });
+      } else {
+        say('  will write the ids and facts the run decided onto the plants, a batch to a transaction');
+        await pipeline.apply(sql, runId, { log: say, all: Boolean(options.all) });
+      }
       await finish(await report(sql, runId));
     } else if (command === 'undo') {
       const runId = runNumber(args[0]);
