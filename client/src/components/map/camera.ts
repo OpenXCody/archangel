@@ -31,7 +31,7 @@ import { useMapStore, type CameraRequest } from '../../stores/mapStore';
 /** Desktop detail panel: docked right, this wide. */
 export const PANEL_WIDTH_PX = 380;
 /** Phone detail sheet in its resting (peek) state, as a share of the viewport height. */
-export const SHEET_PEEK_VH = 32;
+const SHEET_PEEK_VH = 32;
 /** Phone detail sheet opened out, as a share of the viewport height. */
 export const SHEET_FULL_VH = 86;
 /** Phone detail sheet folded down to its name: the map is all there behind it. */
@@ -93,7 +93,7 @@ export function sheetPeekPx(): number {
  * it covers nearly everything; the map is still framed for the resting sheet
  * it returns to.
  */
-export function sheetCoverPx(): number {
+function sheetCoverPx(): number {
   return useMapStore.getState().sheetDetent === 'bar' ? SHEET_BAR_PX : sheetPeekPx();
 }
 
@@ -208,17 +208,17 @@ export function fitUS(map: MapLibreMap, { animate = true }: MoveOptions = {}): v
 }
 
 /** Frame a focus area by the box around its boundary. */
-export function fitArea(map: MapLibreMap, area: FocusArea, { animate = true }: MoveOptions = {}): void {
+function fitArea(map: MapLibreMap, area: FocusArea, { animate = true }: MoveOptions = {}): void {
   fit(map, area.bounds, AREA_MAX_ZOOM, animate ? 900 : 0);
 }
 
 /** Frame a box, e.g. a place found by address search. */
-export function fitPlace(map: MapLibreMap, bounds: LngLatBoundsLike, { animate = true }: MoveOptions = {}): void {
+function fitPlace(map: MapLibreMap, bounds: LngLatBoundsLike, { animate = true }: MoveOptions = {}): void {
   fit(map, bounds, PLACE_MAX_ZOOM, animate ? 900 : 0);
 }
 
 /** Frame a state (or any region), given its geometry or its bounds. */
-export function fitState(
+function fitState(
   map: MapLibreMap,
   region: GeoJSON.Geometry | LngLatBoundsLike,
   { animate = true }: MoveOptions = {}
@@ -229,7 +229,7 @@ export function fitState(
 }
 
 /** Frame a set of points, e.g. all of one company's factories. */
-export function fitPoints(map: MapLibreMap, points: Array<[number, number]>, { animate = true }: MoveOptions = {}): void {
+function fitPoints(map: MapLibreMap, points: Array<[number, number]>, { animate = true }: MoveOptions = {}): void {
   if (points.length === 0) return;
   if (points.length === 1) {
     flyToPoint(map, points[0], POINTS_MAX_ZOOM, { animate });
@@ -298,7 +298,7 @@ const REACH: Array<[number, number, number, number]> = [
 ];
 
 /** The nearest point to `center` that the screen's middle may sit on. */
-export function nearestReachable(center: { lng: number; lat: number }): { lng: number; lat: number } {
+function nearestReachable(center: { lng: number; lat: number }): { lng: number; lat: number } {
   let best = center;
   let bestDistance = Infinity;
   for (const [west, south, east, north] of REACH) {
@@ -355,7 +355,7 @@ export function keepNearCountry(map: MapLibreMap): void {
 // ─── The camera in the address ─────────────────────────────────────────────
 
 /** A camera position a link can carry. */
-export interface MapViewpoint {
+interface MapViewpoint {
   center: [number, number];
   zoom: number;
 }

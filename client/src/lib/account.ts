@@ -119,7 +119,7 @@ export interface ResetGrant {
 // API functions
 // ---------------------------------------------------------------------------
 
-export const authApi = {
+const authApi = {
   me: () => request<Account>('/auth/me'),
   /** `invite` is the token from an invite link; the email must be the invited one. */
   signUp: (input: { email: string; password: string; name: string; invite?: string; purpose?: Purpose }) =>
@@ -333,7 +333,7 @@ export function useDeleteAccount() {
 }
 
 /** Whether the app can send mail. It changes only with the deployment, so it is asked rarely. */
-export function useAuthOptions() {
+function useAuthOptions() {
   return useQuery({
     queryKey: accountKeys.authOptions,
     queryFn: authApi.options,

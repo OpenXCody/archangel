@@ -28,7 +28,7 @@ export type BrowseEntity = Company | Factory | Occupation | Skill;
 const JUNK_CATEGORIES = new Set(['', 'subcategory', 'category', 'skill', 'root']);
 
 /** A skill category worth showing, or null. */
-export function skillCategoryLabel(category: string | null | undefined): string | null {
+function skillCategoryLabel(category: string | null | undefined): string | null {
   const value = category?.trim() ?? '';
   return JUNK_CATEGORIES.has(value.toLowerCase()) ? null : value;
 }

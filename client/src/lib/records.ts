@@ -207,7 +207,7 @@ export const AUDIT_KINDS: { kind: string; label: string }[] = [
 
 const HISTORY_PAGE = 30;
 
-export const recordsApi = {
+const recordsApi = {
   search: (kind: RecordKind, q: string) =>
     request<{ records: FoundRecord[] }>(`/admin/records/${kind}${queryString({ q })}`).then((r) => r.records),
   similar: (kind: RecordKind, params: { name: string; exclude?: string; company?: string; lat?: number; lng?: number }) =>

@@ -112,7 +112,7 @@ export function PlaceChoice({ place }: { place: PagePlace }) {
 
 // ─── Figures ───────────────────────────────────────────────────────────────
 
-export interface Figure {
+interface Figure {
   label: string;
   value: string;
   /** A quiet word after the value ("a year"). */
@@ -182,7 +182,7 @@ export function officialFigures(stats: IndustryStats | null): Figure[] {
 
 // ─── A list with figures down its right edge ───────────────────────────────
 
-export interface FigureRow {
+interface FigureRow {
   key: string;
   to: string;
   label: string;

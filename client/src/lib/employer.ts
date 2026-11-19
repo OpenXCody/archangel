@@ -52,7 +52,7 @@ export interface EmployerCompany extends Membership {
 // API functions
 // ---------------------------------------------------------------------------
 
-export const employerApi = {
+const employerApi = {
   get: () => request<{ companies: EmployerCompany[] }>('/employer').then((r) => r.companies),
   requestMembership: (companyId: string) =>
     request<{ companyId: string; status: MembershipStatus; role: string }>('/employer/memberships', {

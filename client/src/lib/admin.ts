@@ -82,7 +82,7 @@ export interface AdminUsersPage {
 }
 
 /** How many people one page of the People list holds. */
-export const ADMIN_USERS_PAGE = 100;
+const ADMIN_USERS_PAGE = 100;
 
 /** A person's roles as the People list shows them: "Admin", "Employer (Tesla, Samsung)". None for a plain account: it has no role label. */
 export function personRoles(person: AdminUser): string[] {
@@ -171,7 +171,7 @@ export interface AdminCompany {
 // API functions
 // ---------------------------------------------------------------------------
 
-export const adminApi = {
+const adminApi = {
   overview: () => request<AdminOverview>('/admin/overview'),
   memberships: (status: MembershipStatus) =>
     request<{ memberships: AdminMembership[] }>(`/admin/memberships?status=${status}`).then((r) => r.memberships),

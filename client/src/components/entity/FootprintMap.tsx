@@ -13,7 +13,7 @@ import { useStatesOutline } from '../../lib/queries';
  * caller lists every plant beside it.
  */
 
-export interface FootprintPoint {
+interface FootprintPoint {
   id: string;
   latitude: number;
   longitude: number;

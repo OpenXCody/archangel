@@ -16,7 +16,7 @@ import { accountKeys, invalidate } from './queryKeys';
 export type ApplicationStatus = 'applied' | 'reviewing' | 'interview' | 'offer' | 'hired' | 'declined' | 'withdrawn';
 
 /** Stages a company moves an application through, in order. */
-export const PIPELINE_STATUSES: ApplicationStatus[] = ['applied', 'reviewing', 'interview', 'offer', 'hired'];
+const PIPELINE_STATUSES: ApplicationStatus[] = ['applied', 'reviewing', 'interview', 'offer', 'hired'];
 
 /** Everything a company can set: the pipeline, or declined. */
 export const EMPLOYER_STATUSES: ApplicationStatus[] = [...PIPELINE_STATUSES, 'declined'];
@@ -149,7 +149,7 @@ export interface ApplicationPatch {
 // API functions
 // ---------------------------------------------------------------------------
 
-export const jobsApi = {
+const jobsApi = {
   list: (filters: JobFilters = {}) =>
     request<{ jobs: JobSummary[] }>(`/jobs${queryString({ ...filters })}`).then((r) => r.jobs),
   get: (id: string) => request<JobDetailResponse>(`/jobs/${id}`),

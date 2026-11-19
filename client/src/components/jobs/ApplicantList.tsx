@@ -28,7 +28,7 @@ const COLUMNS = 'sm:grid-cols-[minmax(0,1fr)_8rem_6.5rem_7rem_1rem]';
 const appliedWhen = formatDayCapital;
 
 /** The job the applicants are for: named in the email to an applicant and in the exported file. */
-export interface ApplicantsJob {
+interface ApplicantsJob {
   /** With `isOpen`: lets a hire offer to close the job. */
   id?: string;
   isOpen?: boolean;

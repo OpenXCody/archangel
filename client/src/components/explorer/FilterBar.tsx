@@ -7,7 +7,7 @@ import { cn, focusRing } from '@/lib/utils';
 import type { BrowseTab } from './ExploreNav';
 
 // Sort options per list
-export type SortOption = {
+type SortOption = {
   value: string;
   label: string;
   field: string;
@@ -44,7 +44,7 @@ export interface FilterState {
   category?: string;
 }
 
-export interface FilterBarProps {
+interface FilterBarProps {
   activeTab: BrowseTab;
   sortValue: string;
   onSortChange: (value: string) => void;
