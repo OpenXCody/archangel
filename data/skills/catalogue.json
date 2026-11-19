@@ -1,5 +1,5 @@
 {
-  "note": "The skills catalogue. Every skill the product keeps is listed with what it is, how it is learned or shown, and what it is done with. \"was\" names the stored skills that became it (the first is renamed when the name is new; the rest are merged and kept as other names). \"careers\" attaches a skill to a career path. \"removed\" lists every stored skill that is deleted, by reason. scripts/build-skills-sql.mjs turns this file into migrations/0033_skills_catalogue.sql.",
+  "note": "The skills catalogue. Every skill the product keeps is listed with what it is, how it is learned or shown, and what it is done with. \"was\" names the stored skills that became it (the first is renamed when the name is new; the rest are merged and kept as other names). \"removed\" lists every stored skill that is deleted, by reason. scripts/build-skills-sql.mjs turns this file into a migration that restates the whole catalogue (0033 first, 0048 after the pass that added the trades it lacked and folded brand names and course topics); a skill's group and level are in taxonomy.json, and the makes it is run on in makes.json.",
   "categories": [
     "Shop Fundamentals",
     "Safety",
@@ -13,6 +13,7 @@
     "Semiconductor Processing",
     "Battery & Electric Drive",
     "Food & Pharmaceutical Processing",
+    "Chemical Processing",
     "Electrical & Controls",
     "Maintenance & Repair",
     "Quality & Measurement",
@@ -180,7 +181,9 @@
       "what": "Using a plant's MES to start and complete operations, record material and labor, and pull production data. A person who has it can find where an order stands and what happened to it at each step.",
       "learned": "On the job on the plant's system.",
       "tools": [
-        "MES products such as Siemens Opcenter, Rockwell Plex, SAP Digital Manufacturing"
+        "Manufacturing execution systems",
+        "Station terminals and scanners",
+        "Travelers and work orders"
       ]
     },
     {
@@ -223,19 +226,41 @@
         "Sit-down and stand-up counterbalance trucks",
         "Reach trucks",
         "Electric pallet jacks"
+      ]
+    },
+    {
+      "name": "Aerial Lift Operation",
+      "category": "Shop Fundamentals",
+      "aliases": [
+        "Scissor Lift Operation",
+        "Boom Lift Operation",
+        "Mobile Elevating Work Platform Operation"
       ],
-      "careers": [
-        {
-          "title": "Die Setter"
-        },
-        {
-          "title": "Millwright",
-          "stage": 2
-        },
-        {
-          "title": "Stamping Press Operator",
-          "stage": 2
-        }
+      "what": "Working from a scissor lift or boom lift. A person who has it inspects the lift before use, checks the ground and what is overhead, ties off where the lift requires it and positions the platform without striking the work.",
+      "learned": "Employer training and a hands-on evaluation on each type of lift, as OSHA requires; the lift makers and equipment dealers run operator courses.",
+      "tools": [
+        "Scissor lifts",
+        "Articulating and telescopic boom lifts",
+        "Harnesses and lanyards"
+      ]
+    },
+    {
+      "name": "Part Marking",
+      "category": "Shop Fundamentals",
+      "aliases": [
+        "Laser Part Marking",
+        "Laser Marking",
+        "Dot Peen Marking",
+        "Part Identification"
+      ],
+      "what": "Putting a permanent identity on a part: part number, serial number, lot or a data matrix code, by laser, dot peen, electrochemical etch, ink stamp or label. A person who has it marks in the place and by the method the drawing calls for and verifies that the mark reads.",
+      "learned": "On the job, in the first weeks at a station that marks parts.",
+      "tools": [
+        "Laser markers",
+        "Dot peen markers",
+        "Electrochemical etch kits",
+        "Ink stamps and labels",
+        "Code verifiers and scanners"
       ]
     },
     {
@@ -453,20 +478,6 @@
         "Grounding straps and conductive footwear",
         "Non-sparking tools",
         "Approved containers and magazines"
-      ],
-      "careers": [
-        {
-          "title": "Ordnance Technician"
-        },
-        {
-          "title": "Missile Assembly Tech"
-        },
-        {
-          "title": "Missile Technician"
-        },
-        {
-          "title": "Patriot System Tech"
-        }
       ]
     },
     {
@@ -479,16 +490,6 @@
         "Ventilation blowers",
         "Retrieval tripods and harnesses",
         "Entry permits"
-      ],
-      "careers": [
-        {
-          "title": "Facilities Engineer",
-          "stage": 2
-        },
-        {
-          "title": "Millwright",
-          "stage": 2
-        }
       ]
     },
     {
@@ -501,15 +502,6 @@
         "Shock-absorbing lanyards and self-retracting lifelines",
         "Anchors",
         "Aerial lifts"
-      ],
-      "careers": [
-        {
-          "title": "Millwright",
-          "stage": 2
-        },
-        {
-          "title": "Launch Pad Technician"
-        }
       ]
     },
     {
@@ -521,17 +513,6 @@
         "Half-face and full-face cartridge respirators",
         "Powered air-purifying respirators",
         "Supplied-air hoods"
-      ],
-      "careers": [
-        {
-          "title": "Painter, Industrial"
-        },
-        {
-          "title": "Plating Operator"
-        },
-        {
-          "title": "Stealth Coatings Tech"
-        }
       ]
     },
     {
@@ -543,7 +524,10 @@
       "what": "Working a CNC machine's control: loading and proving out a program, jogging, setting modes and overrides, reading alarms and restarting safely mid-program. A person who has it can run a job on the control without a setup person standing by.",
       "learned": "Machining programs at community colleges and on the job; NIMS CNC Milling and CNC Turning Operations credentials cover it.",
       "tools": [
-        "FANUC, Haas, Siemens SINUMERIK, Mazak and Okuma controls"
+        "CNC controls and pendants",
+        "Handwheels and overrides",
+        "Program transfer by network, USB or DNC",
+        "Alarm and parameter screens"
       ]
     },
     {
@@ -599,16 +583,20 @@
       "category": "Machining",
       "was": [
         "CNC Programming",
-        "CAM Programming CAD"
-      ],
-      "what": "Building CNC toolpaths from a 3D model in CAM software, choosing tools and strategies, simulating the cut and posting code for a specific machine. A person who has it can take a part from model to proven program.",
-      "learned": "Community-college CNC programming courses; software makers' certifications such as Mastercam's; on the job.",
-      "tools": [
+        "CAM Programming CAD",
         "Mastercam",
         "Fusion 360",
-        "NX CAM",
         "GibbsCAM",
-        "Post processors"
+        "PowerMill"
+      ],
+      "what": "Building CNC toolpaths from a 3D model in CAM software, choosing tools and strategies, simulating the cut and posting code for a specific machine. A person who has it can take a part from model to proven program.",
+      "learned": "Community-college CNC programming courses; the CAM software makers certify users; on the job.",
+      "tools": [
+        "CAM software",
+        "3D models and setup sheets",
+        "Tool libraries",
+        "Post processors",
+        "Toolpath simulation"
       ]
     },
     {
@@ -637,6 +625,10 @@
         "Live tool holders",
         "Bar feeders",
         "Sub-spindles"
+      ],
+      "aliases": [
+        "Mill-Turn Machining",
+        "Live Tooling Turning"
       ]
     },
     {
@@ -645,9 +637,10 @@
       "what": "Running a sliding-headstock lathe, where bar stock feeds through a guide bushing past the tools, to make long, small, precise parts. A person who has it sets guide bushing tension, bar feeder and gang tools and holds tenths over a long run.",
       "learned": "On the job in a screw-machine shop; machine makers' training.",
       "tools": [
-        "Citizen, Star and Tsugami Swiss-type lathes",
+        "Swiss-type lathes",
         "Guide bushings",
-        "Bar feeders"
+        "Bar feeders",
+        "Gang and live tools"
       ]
     },
     {
@@ -794,6 +787,95 @@
         "Large horizontal and gantry machining centers",
         "Hydraulic fixtures",
         "In-machine probing"
+      ]
+    },
+    {
+      "name": "Deburring and Hand Finishing",
+      "category": "Machining",
+      "aliases": [
+        "Deburring",
+        "Benchwork",
+        "Bench Finishing"
+      ],
+      "what": "Removing burrs and sharp edges and blending tool marks by hand after machining. A person who has it breaks every edge to the drawing's note without changing a dimension, rounding a sealing surface or scratching a finished face.",
+      "learned": "On the job in the first weeks in a machine shop; machining programs teach benchwork in the first term.",
+      "tools": [
+        "Deburring knives and scrapers",
+        "Files and stones",
+        "Abrasive wheels and pads",
+        "Die grinders and rotary burrs",
+        "Loupes"
+      ]
+    },
+    {
+      "name": "Drilling and Tapping",
+      "category": "Machining",
+      "aliases": [
+        "Drill Press Operation",
+        "Hand Tapping",
+        "Thread Chasing"
+      ],
+      "what": "Making and threading holes on a drill press or by hand: center, drill, ream, countersink, tap and chase. A person who has it picks the tap drill from a chart, keeps a tap square, clears chips and does not break a tap in the part.",
+      "learned": "Taught with the first machines in machining programs and apprenticeships; on the job.",
+      "tools": [
+        "Drill presses",
+        "Twist drills, reamers and countersinks",
+        "Taps, tap wrenches and tapping heads",
+        "Thread chasers",
+        "Tap drill charts",
+        "Cutting fluid"
+      ]
+    },
+    {
+      "name": "CNC Turning",
+      "category": "Machining",
+      "aliases": [
+        "CNC Lathe Operation",
+        "CNC Lathe"
+      ],
+      "what": "Setting up and running CNC lathes and turning centers: chuck jaws or collets, turret tools, offsets, first part and dimensions held through a lot. A person who has it bores soft jaws, sets tools on center and corrects diameters for tool wear and taper.",
+      "learned": "Machining programs and on the job; NIMS CNC Turning credentials.",
+      "tools": [
+        "CNC lathes and turning centers",
+        "Chucks, soft jaws and collets",
+        "Turning, boring, grooving and threading tools",
+        "Bar feeders and tailstocks",
+        "Bore gauges and micrometers"
+      ]
+    },
+    {
+      "name": "Cutting Tool Presetting",
+      "category": "Machining",
+      "aliases": [
+        "Tool Presetting",
+        "Cutting Tool Management",
+        "Tool Crib"
+      ],
+      "what": "Assembling cutting tools in their holders and measuring them off the machine, so a job starts with known lengths and diameters. A person who has it builds a tool to the tool list, measures it on a presetter, sends the offsets to the control and tracks tool life.",
+      "learned": "On the job in a tool crib or as a setup machinist; presetter makers' courses.",
+      "tools": [
+        "Tool presetters",
+        "Shrink-fit and hydraulic holders, collet chucks",
+        "Tool assembly fixtures and torque wrenches",
+        "Tool management software",
+        "Tool lists"
+      ]
+    },
+    {
+      "name": "On-Machine Probing",
+      "category": "Machining",
+      "aliases": [
+        "In-Process Probing",
+        "Spindle Probing",
+        "Machine Tool Probing"
+      ],
+      "what": "Using the spindle probe and tool setter of a CNC machine to find the part, set work offsets, measure features between cuts and check for broken tools. A person who has it calibrates the probe, runs the probing cycles and knows when a probed number can be trusted.",
+      "learned": "On the job as a setup machinist; probe makers' courses.",
+      "tools": [
+        "Spindle touch probes",
+        "Tool setters and laser tool setters",
+        "Probing cycles and macros",
+        "Calibration spheres and ring gauges"
       ]
     },
     {
@@ -1044,10 +1126,10 @@
       "what": "Running a robot spot welding cell: weld schedules, gun and tip condition, and the position of every weld on the part. A person who has it recovers from faults, touches up weld points and keeps weld quality between tip changes.",
       "learned": "On the job in an automotive body shop, with robot maker training.",
       "tools": [
+        "Spot welding robots",
         "Servo weld guns",
         "Weld timers",
-        "Tip dressers",
-        "FANUC, KUKA and ABB robots"
+        "Tip dressers"
       ]
     },
     {
@@ -1075,11 +1157,6 @@
         "Grinders",
         "Root gap gauges",
         "Tack welds"
-      ],
-      "careers": [
-        {
-          "title": "Super Heavy Booster Technician"
-        }
       ]
     },
     {
@@ -1148,6 +1225,9 @@
         "Test plates and pipe coupons",
         "Bend test jig",
         "Qualification records"
+      ],
+      "aliases": [
+        "AWS D17.1 Welder Qualification"
       ]
     },
     {
@@ -1172,14 +1252,6 @@
         "CNC plasma tables",
         "Nozzles and electrodes",
         "Nesting software"
-      ],
-      "careers": [
-        {
-          "title": "Plasma Cutter Operator"
-        },
-        {
-          "title": "Metal Fabricator"
-        }
       ]
     },
     {
@@ -1194,11 +1266,6 @@
         "Fiber and CO2 laser cutters",
         "Nitrogen and oxygen assist gas",
         "Nesting software"
-      ],
-      "careers": [
-        {
-          "title": "Laser Cutting Operator"
-        }
       ]
     },
     {
@@ -1210,11 +1277,6 @@
         "Waterjet tables and intensifier pumps",
         "Garnet abrasive",
         "Nesting software"
-      ],
-      "careers": [
-        {
-          "title": "Waterjet Operator"
-        }
       ]
     },
     {
@@ -1284,6 +1346,58 @@
         "Flaring and beading tools",
         "Swaging machines",
         "Tube cutters and deburring tools"
+      ]
+    },
+    {
+      "name": "Robotic Arc Welding",
+      "category": "Welding & Fabrication",
+      "aliases": [
+        "Robotic MIG Welding",
+        "Robot Welding",
+        "Robotic Welding"
+      ],
+      "what": "Running a robot arc welding cell: loading parts in the fixture, touching up weld points, adjusting wire feed, voltage and travel speed, and keeping torch, tip and liner in condition. A person who has it reads the welds coming off the cell and corrects the program or the fit-up before bad parts stack up.",
+      "learned": "On the job after manual MIG welding; robot and welding equipment makers' operator courses. AWS certifies robotic arc welding operators and technicians (CRAW).",
+      "tools": [
+        "Arc welding robots",
+        "Welding power sources and wire feeders",
+        "Positioners and weld fixtures",
+        "Torch reamers and tip changers",
+        "Seam tracking and touch sensing"
+      ]
+    },
+    {
+      "name": "Torch Brazing",
+      "category": "Welding & Fabrication",
+      "aliases": [
+        "Brazing",
+        "Silver Brazing",
+        "Induction Brazing"
+      ],
+      "what": "Joining metal with a filler that melts below the base metal, heated by a torch or an induction coil. A person who has it cleans and fits the joint to the right gap, fluxes it, heats evenly so the filler is drawn through by capillary action and cleans off the residue.",
+      "learned": "HVAC, plumbing and welding programs; on the job. Brazers are qualified to ASME Section IX or AWS B2.2.",
+      "tools": [
+        "Oxy-fuel and air-fuel torches",
+        "Induction brazing coils",
+        "Silver and copper-phosphorus filler metals",
+        "Fluxes",
+        "Joint fixtures"
+      ]
+    },
+    {
+      "name": "Furnace Brazing",
+      "category": "Welding & Fabrication",
+      "aliases": [
+        "Vacuum Brazing",
+        "Vacuum Furnace Brazing"
+      ],
+      "what": "Brazing whole assemblies in a vacuum or controlled-atmosphere furnace, where every joint flows at once. A person who has it applies filler and stop-off, fixtures the assembly so gaps hold at temperature, runs the cycle and inspects the joints for flow and voids.",
+      "learned": "On the job in a brazing shop, usually after torch brazing or heat treat work. Aerospace work is done to AWS C3.6 and audited under Nadcap.",
+      "tools": [
+        "Vacuum furnaces",
+        "Nickel, gold and copper braze alloys as paste, foil and wire",
+        "Stop-off",
+        "Fixtures and load thermocouples"
       ]
     },
     {
@@ -1403,14 +1517,6 @@
         "Hem dies and presses",
         "Robotic roller hemming heads",
         "Hem adhesive dispensers"
-      ],
-      "careers": [
-        {
-          "title": "Closure Technician"
-        },
-        {
-          "title": "Body Panel Technician"
-        }
       ]
     },
     {
@@ -1535,7 +1641,7 @@
       "what": "Building metal parts layer by layer, most often by laser powder bed fusion. A person who has it sets up the build plate and recoater, loads powder, starts and monitors the build and removes it safely.",
       "learned": "Machine makers' training and on the job; some community colleges teach additive manufacturing. SME offers additive manufacturing certifications.",
       "tools": [
-        "Laser powder bed fusion machines such as EOS and Nikon SLM Solutions",
+        "Laser powder bed fusion machines",
         "Inert gas systems",
         "Sieving stations"
       ]
@@ -1560,9 +1666,9 @@
       "what": "Preparing a 3D printing job: repairing the model, orienting and nesting parts, adding supports and slicing. A person who has it lays out a build that prints first time and is easy to remove.",
       "learned": "On the job; software makers' training.",
       "tools": [
-        "Materialise Magics",
-        "Autodesk Netfabb",
-        "Machine makers' build software"
+        "Build preparation software",
+        "Machine makers' build software",
+        "Support and orientation tools"
       ]
     },
     {
@@ -1609,6 +1715,126 @@
         "Argon systems",
         "Load fixtures",
         "Cycle recorders"
+      ]
+    },
+    {
+      "name": "Injection Molding Machine Operation",
+      "category": "Casting, Forming & Additive",
+      "aliases": [
+        "Injection Molding",
+        "Molding Machine Operation"
+      ],
+      "what": "Running an injection molding press through production: keeping material fed and dried, checking parts for short shots, flash, sink and splay, trimming gates and packing. A person who has it knows the press's normal cycle and stops it when the parts or the sound change.",
+      "learned": "On the job at a molding plant; community-college plastics programs where there are any.",
+      "tools": [
+        "Injection molding machines",
+        "Dryers and loaders",
+        "Part-removal robots and conveyors",
+        "Gate cutters",
+        "Defect boards"
+      ]
+    },
+    {
+      "name": "Injection Mold Setup",
+      "category": "Casting, Forming & Additive",
+      "aliases": [
+        "Mold Setting",
+        "Mold Changeover"
+      ],
+      "what": "Changing a mold in an injection press: hanging and clamping the mold, connecting water, hydraulics and ejection, purging the barrel and bringing the process up from the setup sheet. A person who has it protects the mold on first close and has good parts running without scrapping a shift.",
+      "learned": "On the job, moving up from operator; mold setter and setup technician courses from plastics training providers.",
+      "tools": [
+        "Overhead cranes and hoist rings",
+        "Mold clamps and quick-change systems",
+        "Water manifolds and thermolators",
+        "Hot runner controllers",
+        "Setup sheets"
+      ]
+    },
+    {
+      "name": "Injection Molding Process Development",
+      "category": "Casting, Forming & Additive",
+      "aliases": [
+        "Scientific Molding",
+        "Decoupled Molding",
+        "Injection Molding Process Setup"
+      ],
+      "what": "Establishing and troubleshooting a molding process from the plastic's point of view: fill, pack and hold separated, with a viscosity curve, gate-seal study and cavity balance behind the settings. A person who has it finds the cause of a defect in the data and widens the process window instead of chasing settings.",
+      "learned": "Scientific molding courses, such as RJG's Master Molder and Paulson's, after years as a setter or process technician.",
+      "tools": [
+        "Injection molding machines",
+        "Cavity pressure sensors and process monitors",
+        "Viscosity curve and gate-seal studies",
+        "Moisture analyzers",
+        "Process sheets"
+      ]
+    },
+    {
+      "name": "Plastic Extrusion",
+      "category": "Casting, Forming & Additive",
+      "aliases": [
+        "Extrusion",
+        "Extruder Operation"
+      ],
+      "what": "Running an extrusion line that makes profile, tube, sheet or film: feeding and drying resin, setting barrel and die temperatures, screw speed and puller speed, and holding dimensions as the line runs. A person who has it strings up the line at start and brings wall thickness in without stopping.",
+      "learned": "On the job at an extrusion plant.",
+      "tools": [
+        "Single- and twin-screw extruders",
+        "Dies and calibrators",
+        "Cooling tanks, pullers and cutters",
+        "Gravimetric blenders",
+        "Laser and ultrasonic wall gauges"
+      ]
+    },
+    {
+      "name": "Blow Molding",
+      "category": "Casting, Forming & Additive",
+      "aliases": [
+        "Stretch Blow Molding",
+        "Bottle Blowing"
+      ],
+      "what": "Making bottles and hollow parts by inflating hot plastic in a mold, from an extruded parison or a reheated preform. A person who has it sets heating, stretch and blow pressures, checks wall distribution and top load and clears a jam safely.",
+      "learned": "On the job at a container or beverage plant; machine makers' operator courses.",
+      "tools": [
+        "Extrusion and reheat stretch blow molders",
+        "Preform ovens",
+        "High-pressure air systems",
+        "Wall thickness and top-load testers"
+      ]
+    },
+    {
+      "name": "Sand Casting",
+      "category": "Casting, Forming & Additive",
+      "aliases": [
+        "Sand Molding",
+        "Coremaking"
+      ],
+      "what": "Making castings in sand molds: preparing sand, ramming or machine-molding around a pattern, setting cores, closing the mold, pouring and shaking out. A person who has it reads a mold for a good pour and knows what a misrun, a scab and a shifted core look like.",
+      "learned": "On the job in a foundry; molder and coremaker apprenticeships. The American Foundry Society runs courses.",
+      "tools": [
+        "Green sand and no-bake molding lines",
+        "Patterns and core boxes",
+        "Flasks",
+        "Pouring ladles",
+        "Shakeout and shot blast"
+      ]
+    },
+    {
+      "name": "Investment Casting",
+      "category": "Casting, Forming & Additive",
+      "aliases": [
+        "Lost-Wax Casting",
+        "Shell Building"
+      ],
+      "what": "Making precise castings by the lost-wax process: injecting wax patterns, assembling them on a tree, building the ceramic shell dip by dip, dewaxing, firing, pouring and knocking out. A person who has it controls slurry and drying between coats and handles a shell without cracking it.",
+      "learned": "On the job in an investment foundry. The Investment Casting Institute runs process courses.",
+      "tools": [
+        "Wax injection presses",
+        "Slurry tanks and sand rainfall or fluidized beds",
+        "Dewax autoclaves",
+        "Burnout furnaces",
+        "Vacuum and air melt furnaces",
+        "Cut-off and knockout equipment"
       ]
     },
     {
@@ -1739,14 +1965,6 @@
         "Flow-drill screw drivers",
         "Robots",
         "Cross-section tools"
-      ],
-      "careers": [
-        {
-          "title": "Underbody Assembly Tech"
-        },
-        {
-          "title": "Body Framing Technician"
-        }
       ]
     },
     {
@@ -1762,11 +1980,6 @@
         "Locating pins and clamps",
         "Spot weld robots",
         "In-line measurement"
-      ],
-      "careers": [
-        {
-          "title": "Body Framing Technician"
-        }
       ]
     },
     {
@@ -1783,17 +1996,6 @@
         "Hinge fixtures",
         "Shims",
         "Closing-effort gauges"
-      ],
-      "careers": [
-        {
-          "title": "Closure Technician"
-        },
-        {
-          "title": "Body Panel Technician"
-        },
-        {
-          "title": "Final Line Inspector"
-        }
       ]
     },
     {
@@ -1893,17 +2095,6 @@
         "Clips and retainers",
         "Connector position assurance locks",
         "Harness boards"
-      ],
-      "careers": [
-        {
-          "title": "Trim Assembly Technician"
-        },
-        {
-          "title": "Headliner Installation Tech"
-        },
-        {
-          "title": "Cockpit Installation Tech"
-        }
       ]
     },
     {
@@ -1942,18 +2133,6 @@
         "Pneumatic and hand pullers",
         "Grip gauges",
         "CherryMAX and similar blind fasteners"
-      ],
-      "careers": [
-        {
-          "title": "Aerostructures Mechanic",
-          "stage": 2
-        },
-        {
-          "title": "Fuselage Structural Mechanic"
-        },
-        {
-          "title": "Fighter Assembly Mechanic"
-        }
       ]
     },
     {
@@ -1981,17 +2160,6 @@
         "Pneumatic-hydraulic pulling tools and nose assemblies",
         "Swage gauges",
         "Collar cutters"
-      ],
-      "careers": [
-        {
-          "title": "Fuselage Structural Mechanic"
-        },
-        {
-          "title": "Wing-Body Join Mechanic"
-        },
-        {
-          "title": "Fighter Assembly Mechanic"
-        }
       ]
     },
     {
@@ -2007,14 +2175,6 @@
         "Microstop countersinks",
         "Rivet squeezers",
         "Clecos"
-      ],
-      "careers": [
-        {
-          "title": "Fighter Assembly Mechanic"
-        },
-        {
-          "title": "Flight Deck Assembly"
-        }
       ]
     },
     {
@@ -2030,14 +2190,6 @@
         "Insert taps",
         "Installation and tang break-off tools",
         "Thread plug gauges"
-      ],
-      "careers": [
-        {
-          "title": "Precision Assembly Technician"
-        },
-        {
-          "title": "Fighter Assembly Mechanic"
-        }
       ]
     },
     {
@@ -2171,11 +2323,6 @@
         "Laser trackers",
         "Drill jigs",
         "Temporary fasteners"
-      ],
-      "careers": [
-        {
-          "title": "Empennage Mechanic"
-        }
       ]
     },
     {
@@ -2231,14 +2378,6 @@
         "Cable tensiometers",
         "Protractors and inclinometers",
         "Travel boards"
-      ],
-      "careers": [
-        {
-          "title": "Empennage Mechanic"
-        },
-        {
-          "title": "Flight Control Surface Mechanic"
-        }
       ]
     },
     {
@@ -2256,11 +2395,6 @@
         "Hydraulic power carts",
         "Strut servicing equipment",
         "Nitrogen carts"
-      ],
-      "careers": [
-        {
-          "title": "Landing Gear Mechanic"
-        }
       ]
     },
     {
@@ -2276,14 +2410,6 @@
         "Crowfoot wrenches",
         "Tube clamps",
         "Caps and plugs"
-      ],
-      "careers": [
-        {
-          "title": "Landing Gear Mechanic"
-        },
-        {
-          "title": "Pneumatic Systems Mechanic"
-        }
       ]
     },
     {
@@ -2501,14 +2627,6 @@
         "Lacing cord and tape",
         "Grounding straps",
         "Ohmmeters"
-      ],
-      "careers": [
-        {
-          "title": "Dragon Thermal Control Tech"
-        },
-        {
-          "title": "Satellite Bus Tech"
-        }
       ]
     },
     {
@@ -2525,11 +2643,6 @@
         "Assembly dollies and lifting fixtures",
         "Torque tools",
         "Connector mate logs"
-      ],
-      "careers": [
-        {
-          "title": "Satellite Bus Tech"
-        }
       ]
     },
     {
@@ -2565,14 +2678,6 @@
         "Torque tools",
         "Grounding equipment",
         "Lifting fixtures"
-      ],
-      "careers": [
-        {
-          "title": "Missile Assembly Tech"
-        },
-        {
-          "title": "Missile Technician"
-        }
       ]
     },
     {
@@ -2655,6 +2760,117 @@
         "Precision machinist levels",
         "Leveling mounts and jacks",
         "Anchor bolts and grout"
+      ]
+    },
+    {
+      "name": "Tube Fitting Make-Up",
+      "category": "Mechanical Assembly",
+      "aliases": [
+        "Tube Fitting Installation",
+        "Compression Fitting Assembly",
+        "Tube Fitting Assembly"
+      ],
+      "what": "Making up the fittings that join tube in fluid systems: compression, flared and face-seal. A person who has it cuts and deburrs the tube square, bottoms it in the fitting, tightens by turns or to torque, checks the gap and never mixes parts from different makers.",
+      "learned": "Fitting makers' installer courses, usually a day, and on the job; aviation maintenance schools teach flared fittings.",
+      "tools": [
+        "Two-ferrule compression fittings",
+        "AN flared and face-seal fittings",
+        "Tube cutters and deburring tools",
+        "Gap inspection gauges",
+        "Torque wrenches"
+      ]
+    },
+    {
+      "name": "Precision Cleaning",
+      "category": "Mechanical Assembly",
+      "aliases": [
+        "Oxygen Cleaning",
+        "LOX Cleaning",
+        "Oxygen Service Cleaning"
+      ],
+      "what": "Cleaning parts to a verified cleanliness level for oxygen, propellant, vacuum or hydraulic service. A person who has it runs the cleaning steps, verifies by particle count, residue test and black light, and bags and tags the part so it stays clean.",
+      "learned": "On the job in a clean room or cleaning shop, to the company's specification; ASTM G93 and aerospace oxygen cleaning standards set the levels.",
+      "tools": [
+        "Ultrasonic and aqueous cleaning tanks",
+        "Solvent flush rigs",
+        "Clean benches",
+        "Particle counting and non-volatile residue test kits",
+        "UV-A lamps",
+        "Clean bags and caps"
+      ]
+    },
+    {
+      "name": "Proof Pressure and Leak Testing",
+      "category": "Mechanical Assembly",
+      "aliases": [
+        "Proof Testing",
+        "Pressure Testing",
+        "Hydrostatic Testing",
+        "Leak Testing"
+      ],
+      "what": "Proving a tube, valve, tank or assembled fluid system holds pressure: a proof test above working pressure, then a leak check. A person who has it sets up the rig behind barriers, raises pressure in steps, holds and reads it, finds leaks with solution, pressure decay or helium and records the result.",
+      "learned": "On the job, with the employer's pressure systems safety training.",
+      "tools": [
+        "Hydrostatic test pumps and gas boosters",
+        "Regulated gas panels",
+        "Pressure gauges and transducers",
+        "Leak detection solution",
+        "Pressure decay testers",
+        "Test cells and barriers"
+      ]
+    },
+    {
+      "name": "Engine Assembly",
+      "category": "Mechanical Assembly",
+      "aliases": [
+        "Engine Build",
+        "Engine Dress"
+      ],
+      "what": "Building an engine from its block or case: crankshaft and bearings, pistons and rods, heads, valve train and timing, each step to torque and angle. A person who has it measures clearances as they build, follows the tightening sequence and turns the engine over by hand before it goes on.",
+      "learned": "On the job at an engine plant; diesel and automotive technology programs teach the fundamentals.",
+      "tools": [
+        "Engine stands and build fixtures",
+        "DC torque tools and angle wrenches",
+        "Plastigage, micrometers and bore gauges",
+        "Ring compressors",
+        "Timing tools"
+      ]
+    },
+    {
+      "name": "Gearbox and Transmission Assembly",
+      "category": "Mechanical Assembly",
+      "aliases": [
+        "Transmission Assembly",
+        "Gearbox Assembly",
+        "Drive Unit Assembly"
+      ],
+      "what": "Assembling gear trains in their housings: shafts, gears, bearings, seals, clutches and shims. A person who has it sets bearing preload and gear backlash by shimming, checks the tooth contact pattern and seals the housing without a leak.",
+      "learned": "On the job at a transmission, axle or gearbox plant.",
+      "tools": [
+        "Bearing presses and induction heaters",
+        "Shim packs",
+        "Dial indicators",
+        "Marking compound",
+        "Sealant dispensers",
+        "DC torque tools"
+      ]
+    },
+    {
+      "name": "Body Metal Finishing",
+      "category": "Mechanical Assembly",
+      "aliases": [
+        "Metal Finishing",
+        "Ding Repair",
+        "Body Panel Finishing"
+      ],
+      "what": "Finding and removing small dents, dings and high spots in bare body panels before paint. A person who has it finds a defect by hand and with a stone or highlight oil, works it out with pick, hammer and file and leaves a surface that shows nothing under paint.",
+      "learned": "On the job in a body shop, over years; a recognized skilled classification in automotive plants.",
+      "tools": [
+        "Pick hammers and dollies",
+        "Body files and sanding boards",
+        "Highlight oil and stones",
+        "Light tunnels",
+        "Dual-action sanders"
       ]
     },
     {
@@ -2750,7 +2966,7 @@
       "what": "Preparing and tuning a placement machine program: part data, feeder setup, pick positions, vision and placement order. A person who has it loads a new board, corrects mispicks and balances the line for throughput.",
       "learned": "On the job as a surface-mount operator moving into setup; machine makers' courses.",
       "tools": [
-        "Placement machines from Fuji, Panasonic, ASMPT, Yamaha and Juki",
+        "Placement machines",
         "Feeders and nozzles",
         "Offline programming software"
       ]
@@ -2776,19 +2992,13 @@
         "Wave Solder Setup",
         "Selective Solder Program"
       ],
-      "what": "Soldering through-hole parts by passing the board over a wave of molten solder or by a programd solder nozzle. A person who has it sets flux, preheat, wave height and speed and corrects bridges, skips and poor hole fill.",
+      "what": "Soldering through-hole parts by passing the board over a wave of molten solder or by a programmed solder nozzle. A person who has it sets flux, preheat, wave height and speed and corrects bridges, skips and poor hole fill.",
       "learned": "On the job in an electronics plant; equipment makers' training.",
       "tools": [
         "Wave and selective soldering machines",
         "Fluxers and preheaters",
         "Pallets",
         "Solder pot analysis"
-      ],
-      "careers": [
-        {
-          "title": "PCB Assembler",
-          "stage": 3
-        }
       ]
     },
     {
@@ -2803,7 +3013,7 @@
       "what": "Programming the camera systems that check boards for missing, shifted and wrong parts and bad joints. A person who has it builds the component library, sets thresholds and cuts false calls without letting defects through.",
       "learned": "On the job on a surface-mount line; machine makers' training.",
       "tools": [
-        "2D and 3D AOI machines from Koh Young, Omron and Mirtec",
+        "2D and 3D automated optical inspection machines",
         "Board design data"
       ]
     },
@@ -2914,6 +3124,9 @@
         "Heat shrink",
         "Tie wraps and lacing",
         "Continuity testers"
+      ],
+      "aliases": [
+        "IPC/WHMA-A-620"
       ]
     },
     {
@@ -2971,23 +3184,6 @@
         "Circular and rectangular connectors such as MIL-DTL-38999 and D-sub",
         "Insertion and extraction tools",
         "Backshell tools"
-      ],
-      "careers": [
-        {
-          "title": "Wire Harness Fabricator"
-        },
-        {
-          "title": "Aircraft Electrician"
-        },
-        {
-          "title": "Starship Avionics Technician"
-        },
-        {
-          "title": "Flight Deck Assembly"
-        },
-        {
-          "title": "Dragon Avionics Integrator"
-        }
       ]
     },
     {
@@ -3000,15 +3196,6 @@
         "Fusion splicers",
         "Inspection scopes",
         "Optical loss test sets"
-      ],
-      "careers": [
-        {
-          "title": "Starlink Laser Link Tech"
-        },
-        {
-          "title": "Wire Harness Assembler",
-          "stage": 3
-        }
       ]
     },
     {
@@ -3026,17 +3213,6 @@
         "Bonding straps and jumpers",
         "Surface preparation tools",
         "Milliohm meters"
-      ],
-      "careers": [
-        {
-          "title": "Aircraft Electrician"
-        },
-        {
-          "title": "Starship Avionics Technician"
-        },
-        {
-          "title": "Dragon Avionics Integrator"
-        }
       ]
     },
     {
@@ -3216,15 +3392,6 @@
         "Network boot (PXE) servers",
         "Imaging software",
         "Test scripts"
-      ],
-      "careers": [
-        {
-          "title": "Server Assembly Tech",
-          "stage": 3
-        },
-        {
-          "title": "Laptop Assembly Tech"
-        }
       ]
     },
     {
@@ -3325,6 +3492,24 @@
         "Alignment lasers and autocollimators",
         "Clean benches",
         "Torque tools"
+      ]
+    },
+    {
+      "name": "Box Build Assembly",
+      "category": "Electronics Assembly",
+      "aliases": [
+        "Electromechanical Assembly",
+        "Chassis Assembly",
+        "Box Build"
+      ],
+      "what": "Building a finished electronic unit in its enclosure: mounting boards, power supplies, fans and connectors, routing and securing cables, fitting covers and labels. A person who has it works from the assembly drawing and bill of material, torques and stakes hardware and leaves wiring that will survive vibration.",
+      "learned": "On the job as an electronics assembler; IPC-A-610 and IPC/WHMA-A-620 courses cover the workmanship.",
+      "tools": [
+        "Torque drivers",
+        "Chassis and card cages",
+        "Cable ties, clamps and lacing",
+        "Thread locker and staking compound",
+        "Assembly drawings and bills of material"
       ]
     },
     {
@@ -3521,12 +3706,6 @@
         "Cure ovens",
         "Heat blankets and hot bonders",
         "Vacuum pumps and gauges"
-      ],
-      "careers": [
-        {
-          "title": "Composite Technician",
-          "stage": 3
-        }
       ]
     },
     {
@@ -3546,12 +3725,6 @@
         "Resin traps",
         "Vacuum pumps",
         "Resin mixing and degassing equipment"
-      ],
-      "careers": [
-        {
-          "title": "Composite Technician",
-          "stage": 3
-        }
       ]
     },
     {
@@ -3728,6 +3901,41 @@
       ]
     },
     {
+      "name": "Automated Fiber Placement",
+      "category": "Composites",
+      "aliases": [
+        "AFP",
+        "Automated Tape Laying",
+        "ATL",
+        "Fiber Placement"
+      ],
+      "what": "Running the machine that lays narrow strips of prepreg tape onto a tool under program control. A person who has it loads and threads spools, watches each course for gaps, laps, twists and missing tows, repairs them by hand and inspects every ply before the next is laid.",
+      "learned": "On the job at an aerostructures or rocket plant, usually after hand layup; machine makers' operator courses.",
+      "tools": [
+        "Fiber placement and tape laying machines",
+        "Slit tape and tow spools",
+        "Layup mandrels and tools",
+        "Laser projection and ply inspection systems"
+      ]
+    },
+    {
+      "name": "Filament Winding",
+      "category": "Composites",
+      "aliases": [
+        "COPV Winding",
+        "Composite Overwrap Winding"
+      ],
+      "what": "Winding resin-wetted fiber onto a rotating mandrel or liner to make pressure vessels, motor cases and tubes. A person who has it sets up the creel and tension, watches the band pattern and resin content as it winds and prepares the part for cure.",
+      "learned": "On the job at a pressure vessel or rocket motor plant.",
+      "tools": [
+        "Filament winding machines",
+        "Creels and tensioners",
+        "Resin baths or towpreg",
+        "Mandrels and liners",
+        "Cure ovens"
+      ]
+    },
+    {
       "name": "Quench and Temper Hardening",
       "category": "Finishing & Heat Treatment",
       "was": [
@@ -3762,12 +3970,6 @@
         "Gas and plasma nitriding furnaces",
         "Ammonia dissociation meters",
         "Microhardness testers"
-      ],
-      "careers": [
-        {
-          "title": "Heat Treat Operator",
-          "stage": 3
-        }
       ]
     },
     {
@@ -3783,12 +3985,6 @@
         "Furnaces with atmosphere control",
         "Load thermocouples",
         "Hardness testers"
-      ],
-      "careers": [
-        {
-          "title": "Heat Treat Operator",
-          "stage": 2
-        }
       ]
     },
     {
@@ -3800,11 +3996,6 @@
         "Drop-bottom and air furnaces",
         "Water and glycol quench tanks",
         "Load thermocouples"
-      ],
-      "careers": [
-        {
-          "title": "Casting Heat Treat Tech"
-        }
       ]
     },
     {
@@ -3819,15 +4010,6 @@
         "Aging ovens",
         "Recorders",
         "Hardness and conductivity testers"
-      ],
-      "careers": [
-        {
-          "title": "Heat Treat Operator",
-          "stage": 2
-        },
-        {
-          "title": "Casting Heat Treat Tech"
-        }
       ]
     },
     {
@@ -3930,11 +4112,6 @@
         "10 mm carbide ball",
         "Measuring microscope",
         "Test blocks"
-      ],
-      "careers": [
-        {
-          "title": "Casting Heat Treat Tech"
-        }
       ]
     },
     {
@@ -3952,11 +4129,6 @@
         "Titanium and aluminum racks",
         "Bath titration kits",
         "Eddy current thickness gauges"
-      ],
-      "careers": [
-        {
-          "title": "Anodizing Technician"
-        }
       ]
     },
     {
@@ -3989,14 +4161,6 @@
         "Immersion tanks",
         "Brush and pen applicators for touch-up",
         "Bath test kits"
-      ],
-      "careers": [
-        {
-          "title": "Anodizing Technician"
-        },
-        {
-          "title": "Plating Operator"
-        }
       ]
     },
     {
@@ -4011,11 +4175,6 @@
         "Acid tanks",
         "Rinse tanks",
         "Copper sulfate and water immersion test kits"
-      ],
-      "careers": [
-        {
-          "title": "Plating Operator"
-        }
       ]
     },
     {
@@ -4035,11 +4194,6 @@
         "Hull cells",
         "Thickness testers",
         "Bake ovens"
-      ],
-      "careers": [
-        {
-          "title": "Plating Operator"
-        }
       ]
     },
     {
@@ -4051,11 +4205,6 @@
         "Heated plating tanks with filtration",
         "Bath analysis and replenishment",
         "Thickness testers"
-      ],
-      "careers": [
-        {
-          "title": "Plating Operator"
-        }
       ]
     },
     {
@@ -4071,11 +4220,6 @@
         "Conforming anodes",
         "Masking",
         "Rectifiers"
-      ],
-      "careers": [
-        {
-          "title": "Plating Operator"
-        }
       ]
     },
     {
@@ -4087,11 +4231,6 @@
         "Electropolishing tanks and rectifiers",
         "Racks",
         "Surface roughness testers"
-      ],
-      "careers": [
-        {
-          "title": "Plating Operator"
-        }
       ]
     },
     {
@@ -4106,11 +4245,6 @@
         "Spray and immersion washers",
         "Titration kits",
         "Conductivity and pH meters"
-      ],
-      "careers": [
-        {
-          "title": "E-Coat Operator"
-        }
       ]
     },
     {
@@ -4146,14 +4280,6 @@
         "Robots",
         "Brushes and spatulas",
         "Seam maps"
-      ],
-      "careers": [
-        {
-          "title": "Sealer Application Tech"
-        },
-        {
-          "title": "Sealer Booth Technician"
-        }
       ]
     },
     {
@@ -4172,23 +4298,6 @@
         "Viscosity cups",
         "Paint mixing rooms",
         "Spray booths"
-      ],
-      "careers": [
-        {
-          "title": "Painter, Industrial"
-        },
-        {
-          "title": "Paint Repair Technician"
-        },
-        {
-          "title": "Clear Coat Technician"
-        },
-        {
-          "title": "Prime Coat Technician"
-        },
-        {
-          "title": "Stealth Coatings Tech"
-        }
       ]
     },
     {
@@ -4216,17 +4325,6 @@
         "Plugs and caps",
         "Fine-line tape",
         "Knives"
-      ],
-      "careers": [
-        {
-          "title": "Painter, Industrial"
-        },
-        {
-          "title": "Paint Repair Technician"
-        },
-        {
-          "title": "Stealth Coatings Tech"
-        }
       ]
     },
     {
@@ -4242,11 +4340,6 @@
         "Sanders",
         "Chemical strippers",
         "Surface profile gauges"
-      ],
-      "careers": [
-        {
-          "title": "Painter, Industrial"
-        }
       ]
     },
     {
@@ -4292,40 +4385,29 @@
         "Fine abrasives",
         "Rotary and orbital polishers",
         "Touch-up guns"
-      ],
-      "careers": [
-        {
-          "title": "Paint Repair Technician"
-        }
       ]
     },
     {
-      "name": "Paint Film Thickness Measurement",
+      "name": "Coating Thickness Measurement",
       "category": "Finishing & Heat Treatment",
       "was": [
+        "Paint Film Thickness Measurement",
         "Paint Film Thickness",
-        "Film Build Measurement"
+        "Film Build Measurement",
+        "Eddy Current Coating Thickness Measurement",
+        "ET Coating Thickness",
+        "ASTM E376 Coating Thickness"
       ],
-      "what": "Measuring wet and dry coating thickness. A person who has it verifies the gauge on shims, takes readings in the pattern the specification calls for and knows the acceptable range for each coat.",
-      "learned": "On the job in a paint shop; coating inspector courses.",
+      "what": "Measuring wet and dry coating thickness: paint, powder, anodize and plating. A person who has it verifies the gauge on shims over the same base metal, takes readings in the pattern the specification calls for and knows the acceptable range for each coat.",
+      "learned": "On the job in a paint or finishing shop; coating inspector courses.",
       "tools": [
         "Magnetic and eddy current dry film gauges",
         "Wet film combs",
         "Calibration shims"
       ],
-      "careers": [
-        {
-          "title": "Painter, Industrial"
-        },
-        {
-          "title": "Paint Quality Inspector"
-        },
-        {
-          "title": "E-Coat Operator"
-        },
-        {
-          "title": "Stealth Coatings Tech"
-        }
+      "aliases": [
+        "Dry Film Thickness Measurement",
+        "DFT"
       ]
     },
     {
@@ -4341,14 +4423,6 @@
       "tools": [
         "Gloss meters",
         "Wave-scan orange peel meters"
-      ],
-      "careers": [
-        {
-          "title": "Paint Quality Inspector"
-        },
-        {
-          "title": "Paint Process Engineer"
-        }
       ]
     },
     {
@@ -4362,14 +4436,6 @@
       "tools": [
         "Cross-hatch cutters and tape",
         "Pull-off adhesion testers"
-      ],
-      "careers": [
-        {
-          "title": "Paint Quality Inspector"
-        },
-        {
-          "title": "Painter, Industrial"
-        }
       ]
     },
     {
@@ -4385,11 +4451,77 @@
         "Spray guns and robots",
         "Thickness measurement",
         "Gap fillers and tapes"
+      ]
+    },
+    {
+      "name": "Shot Peening",
+      "category": "Finishing & Heat Treatment",
+      "aliases": [
+        "Peening",
+        "Glass Bead Peening"
       ],
-      "careers": [
-        {
-          "title": "Stealth Coatings Tech"
-        }
+      "what": "Bombarding a metal surface with shot under control, to leave a compressed layer that resists fatigue cracking. A person who has it masks the part, sets the machine, proves intensity with Almen strips and a saturation curve and verifies coverage.",
+      "learned": "On the job in a processing shop; the industry's shot peening workshops certify operators at three levels. Aerospace work is done to AMS 2430 and audited under Nadcap.",
+      "tools": [
+        "Air-blast and wheel peening machines",
+        "Cast steel, cut wire, glass and ceramic shot",
+        "Almen strips, holders and gauge",
+        "Masking",
+        "Coverage tracer or magnifier"
+      ]
+    },
+    {
+      "name": "Thermal Spray Coating",
+      "category": "Finishing & Heat Treatment",
+      "aliases": [
+        "Thermal Spray",
+        "Plasma Spray",
+        "HVOF Spray",
+        "Thermal Barrier Coating Application"
+      ],
+      "what": "Spraying molten or softened metal, carbide or ceramic onto a part to build a wear, thermal or corrosion coating, by plasma, high-velocity oxy-fuel or wire arc. A person who has it grit-blasts and masks the part, sets gun parameters and standoff, controls part temperature and sprays test coupons for thickness, bond and structure.",
+      "learned": "On the job in a coating shop; gun makers' courses. Aerospace work is audited under Nadcap.",
+      "tools": [
+        "Plasma, HVOF and twin-wire arc spray guns",
+        "Powder feeders",
+        "Robots and turntables",
+        "Grit blast cabinets",
+        "Masking tapes and compounds",
+        "Test coupons"
+      ]
+    },
+    {
+      "name": "Powder Coating",
+      "category": "Finishing & Heat Treatment",
+      "aliases": [
+        "Powder Paint Application",
+        "Electrostatic Powder Coating"
+      ],
+      "what": "Applying dry powder paint with an electrostatic gun and curing it in an oven. A person who has it hangs and grounds parts, sets voltage and powder flow, coats recesses without heavy edges and checks cure and film thickness.",
+      "learned": "On the job in a finishing shop; the Powder Coating Institute certifies and trains.",
+      "tools": [
+        "Electrostatic powder guns and booths",
+        "Powder recovery systems",
+        "Cure ovens",
+        "Hooks and racks",
+        "Film thickness gauges"
+      ]
+    },
+    {
+      "name": "Positive Material Identification",
+      "category": "Finishing & Heat Treatment",
+      "aliases": [
+        "PMI",
+        "Alloy Verification",
+        "XRF Alloy Analysis"
+      ],
+      "what": "Confirming what alloy a part or bar is, with a handheld X-ray fluorescence analyzer or a spark spectrometer. A person who has it prepares the surface, takes the reading, compares it with the grade's limits and knows which elements the instrument cannot see.",
+      "learned": "Instrument makers' courses and on the job; X-ray analyzers need radiation safety training.",
+      "tools": [
+        "Handheld XRF analyzers",
+        "Optical emission spectrometers",
+        "Reference standards",
+        "Grade libraries"
       ]
     },
     {
@@ -4417,7 +4549,7 @@
       "what": "Printing a circuit pattern onto a wafer: coat with photoresist, expose through a mask on a scanner, develop. A person who has it runs lots through the litho cell, checks the tool's focus and dose monitors and sends wafers on for measurement.",
       "learned": "On the job through tool certification; semiconductor manufacturing programs at community colleges teach the process.",
       "tools": [
-        "Steppers and scanners from ASML, Nikon and Canon",
+        "Steppers and scanners",
         "Coat and develop tracks",
         "Reticles"
       ]
@@ -4540,7 +4672,7 @@
       "what": "Running the scanning electron microscope that measures line widths in production. A person who has it writes and edits measurement recipes, sets pattern recognition and focus and avoids charging and resist shrink that distort the reading.",
       "learned": "On the job; tool makers' training.",
       "tools": [
-        "CD-SEMs from Hitachi and Applied Materials",
+        "CD-SEMs",
         "Recipe editors"
       ]
     },
@@ -4550,7 +4682,7 @@
       "what": "Measuring how well one patterned layer lines up with the layer below. A person who has it runs overlay targets, reads the error map and feeds corrections back to the scanner.",
       "learned": "On the job in a litho or metrology area.",
       "tools": [
-        "Overlay tools such as KLA Archer and ASML YieldStar",
+        "Overlay metrology tools",
         "Scanner correction software"
       ]
     },
@@ -4563,7 +4695,7 @@
       "what": "Measuring the thickness and optical constants of thin films from the way they change polarized light. A person who has it picks the film model, runs the map and judges whether the fit can be trusted.",
       "learned": "On the job in a fab metrology or thin films area.",
       "tools": [
-        "Spectroscopic ellipsometers from KLA, Onto and J.A. Woollam",
+        "Spectroscopic ellipsometers",
         "Film stack models"
       ]
     },
@@ -4615,7 +4747,7 @@
       "what": "Scanning wafers for particles, scratches and pattern defects at set points in the process flow. A person who has it runs inspection recipes, reads the defect map and holds a lot that exceeds its limit.",
       "learned": "On the job in a defect or yield area.",
       "tools": [
-        "Brightfield and darkfield inspection tools from KLA and Applied Materials",
+        "Brightfield and darkfield inspection tools",
         "Defect management software"
       ]
     },
@@ -4663,7 +4795,7 @@
       "what": "Depositing thin films on wafers from reacting gases. A person who has it runs deposition recipes, checks thickness and uniformity on monitors and recognizes a chamber that needs cleaning or seasoning.",
       "learned": "On the job through tool certification; semiconductor manufacturing programs teach the principles.",
       "tools": [
-        "CVD tools from Applied Materials, Lam Research and Tokyo Electron",
+        "CVD tools",
         "Gas cabinets",
         "Film thickness tools"
       ]
@@ -4745,7 +4877,7 @@
       "what": "Depositing metal films by knocking atoms off a target with argon plasma. A person who has it runs sputter recipes, tracks target life and checks sheet resistance and uniformity.",
       "learned": "On the job in a metals area.",
       "tools": [
-        "Sputter systems such as Applied Materials Endura",
+        "Sputter systems",
         "Targets and shields",
         "Four-point probes"
       ]
@@ -4774,7 +4906,7 @@
       "what": "Removing material from a wafer with a reactive plasma to transfer the resist pattern into the film below. A person who has it runs etch recipes, checks depth and line width afterwards and keeps the chamber in condition between cleans.",
       "learned": "On the job through tool certification; semiconductor manufacturing programs teach the principles.",
       "tools": [
-        "Etch tools from Lam Research, Tokyo Electron and Applied Materials",
+        "Etch tools",
         "Fluorine, chlorine and bromine process gases"
       ]
     },
@@ -4857,7 +4989,7 @@
       "what": "Driving dopant ions into a wafer at a set energy and dose. A person who has it runs implant recipes, confirms species, dose and tilt, and works safely around high voltage and toxic source gases.",
       "learned": "On the job through tool certification.",
       "tools": [
-        "Implanters from Applied Materials and Axcelis",
+        "Implanters",
         "Ion sources",
         "Dose monitors"
       ]
@@ -4914,7 +5046,7 @@
       "what": "Polishing a wafer flat with slurry on a rotating pad. A person who has it runs polish recipes, changes pads and conditioners, and checks removal, dishing and scratches.",
       "learned": "On the job through tool certification.",
       "tools": [
-        "Polishers from Applied Materials and Ebara",
+        "Polishers",
         "Pads, conditioners and slurry",
         "Post-polish cleaners",
         "Film thickness tools"
@@ -4944,7 +5076,7 @@
       "what": "Picking dies from a sawn wafer and bonding them to a leadframe or substrate with epoxy, film or solder. A person who has it sets dispense pattern, placement and bond force and checks coverage, tilt and bondline thickness.",
       "learned": "On the job at an assembly and test plant; die bonder makers' training.",
       "tools": [
-        "Die bonders from ASMPT, Besi and Kulicke & Soffa",
+        "Die bonders",
         "Dispensers",
         "Cure ovens",
         "Shear testers"
@@ -4956,16 +5088,10 @@
       "what": "Cutting a finished wafer into individual dies. A person who has it mounts the wafer on tape, aligns to the streets, sets blade, speed and water and checks for chipping and cracks.",
       "learned": "On the job at an assembly and test plant.",
       "tools": [
-        "Dicing saws such as Disco",
+        "Dicing saws",
         "Diamond blades",
         "Dicing tape and frames",
         "Inspection microscopes"
-      ],
-      "careers": [
-        {
-          "title": "Package Engineer",
-          "stage": 2
-        }
       ]
     },
     {
@@ -4977,7 +5103,7 @@
       "what": "Connecting a die to its package with fine wire, by ball bonding or wedge bonding. A person who has it sets force, ultrasonic power, time and temperature, programs the loops and checks bonds by pull and shear.",
       "learned": "On the job at an assembly and test plant; bonder makers' training.",
       "tools": [
-        "Wire bonders from Kulicke & Soffa and ASMPT",
+        "Wire bonders",
         "Capillaries and wedges",
         "Gold and aluminum wire",
         "Pull and shear testers"
@@ -5051,7 +5177,7 @@
       "what": "Testing every die on a wafer electrically before it is cut. A person who has it loads the probe card, sets up the prober, checks contact and cleans the probe tips, and judges whether a bad map is the wafer or the setup.",
       "learned": "On the job at a fab or test plant.",
       "tools": [
-        "Wafer probers from Tokyo Electron and Accretech",
+        "Wafer probers",
         "Probe cards",
         "Automatic test equipment"
       ]
@@ -5066,7 +5192,7 @@
       "what": "Testing packaged devices on automatic test equipment and sorting them into bins. A person who has it sets up the handler and load board, runs the program and tells a real failure from a contact or setup problem.",
       "learned": "On the job at a test plant; tester makers' training for those who write test programs.",
       "tools": [
-        "Testers from Advantest and Teradyne",
+        "Automatic test equipment",
         "Handlers",
         "Load boards and sockets"
       ]
@@ -5195,10 +5321,10 @@
     {
       "name": "Cell Winding",
       "category": "Battery & Electric Drive",
-      "what": "Winding anode, separator and cathode into a jelly roll, or stacking them, with exact alignment. A person who has it sets tension and edge guidance, checks overhang and resistance-tests the roll for shorts.",
+      "what": "Winding anode, separator and cathode into a jelly roll with exact alignment. A person who has it sets tension and edge guidance, checks overhang and resistance-tests the roll for shorts.",
       "learned": "On the job at a cell plant.",
       "tools": [
-        "Winding and stacking machines",
+        "Winding machines",
         "X-ray alignment inspection",
         "Hipot testers"
       ]
@@ -5546,6 +5672,37 @@
       ]
     },
     {
+      "name": "Electrode Notching",
+      "category": "Battery & Electric Drive",
+      "aliases": [
+        "Electrode Punching",
+        "Tab Notching"
+      ],
+      "what": "Cutting coated electrode into sheets with their tabs, by die or laser, for stacked cells. A person who has it sets the web path and cut registration, watches for burrs and loose particles and changes dies or optics before the edge degrades.",
+      "learned": "On the job at a cell plant.",
+      "tools": [
+        "Die and laser notching machines",
+        "Web guides and tension controls",
+        "Vision inspection",
+        "Burr measurement microscopes"
+      ]
+    },
+    {
+      "name": "Cell Stacking",
+      "category": "Battery & Electric Drive",
+      "aliases": [
+        "Z-Fold Stacking",
+        "Electrode Stacking"
+      ],
+      "what": "Stacking anode, separator and cathode sheets, or folding separator between them, into the electrode stack of a pouch or prismatic cell. A person who has it holds alignment and overhang within limits, clears a misfeed without damaging sheets and tests each stack for shorts.",
+      "learned": "On the job at a cell plant.",
+      "tools": [
+        "Z-fold and single-sheet stacking machines",
+        "Vision and X-ray alignment inspection",
+        "Hipot testers"
+      ]
+    },
+    {
       "name": "Current Good Manufacturing Practice",
       "category": "Food & Pharmaceutical Processing",
       "was": [
@@ -5631,11 +5788,6 @@
         "Mills",
         "Bin and V-blenders",
         "Moisture balances"
-      ],
-      "careers": [
-        {
-          "title": "Tablet Press Operator"
-        }
       ]
     },
     {
@@ -5717,7 +5869,7 @@
       "what": "Measuring how much of a drug or impurity is in a sample by liquid chromatography. A person who has it prepares mobile phase, standards and samples, runs system suitability and integrates peaks to the method.",
       "learned": "A chemistry degree or laboratory technology program, then method training on the job.",
       "tools": [
-        "HPLC systems from Waters and Agilent",
+        "HPLC systems",
         "Columns",
         "Chromatography data systems"
       ]
@@ -5755,11 +5907,6 @@
       "tools": [
         "Volumetric and coulometric Karl Fischer titrators",
         "Analytical balances"
-      ],
-      "careers": [
-        {
-          "title": "Pharmaceutical QC Analyst"
-        }
       ]
     },
     {
@@ -5845,11 +5992,6 @@
         "Allergen test swabs",
         "Color-coded tools",
         "Changeover checklists"
-      ],
-      "careers": [
-        {
-          "title": "Food Blending Operator"
-        }
       ]
     },
     {
@@ -5857,19 +5999,17 @@
       "category": "Food & Pharmaceutical Processing",
       "was": [
         "Flavor Mixing",
-        "Batch Cooking"
+        "Batch Cooking",
+        "Brix Measurement",
+        "Brix Testing"
       ],
-      "what": "Weighing ingredients to a formula and blending or cooking the batch. A person who has it scales in the right order, runs the mixer or kettle to time and temperature and records each lot number used.",
+      "what": "Weighing ingredients to a formula and blending or cooking the batch. A person who has it scales in the right order, runs the mixer or kettle to time and temperature, checks the batch against target, such as dissolved sugar by a temperature-corrected Brix reading, adjusts it and records each lot number used.",
       "learned": "On the job at a food or beverage plant.",
       "tools": [
         "Scales",
         "Ribbon blenders, mixers and kettles",
+        "Refractometers",
         "Batch sheets"
-      ],
-      "careers": [
-        {
-          "title": "Food Blending Operator"
-        }
       ]
     },
     {
@@ -5940,14 +6080,6 @@
         "Can seamers",
         "Seam micrometers",
         "Seam saws and projectors"
-      ],
-      "careers": [
-        {
-          "title": "Beverage Filler Operator"
-        },
-        {
-          "title": "Retort Operator"
-        }
       ]
     },
     {
@@ -5962,19 +6094,6 @@
         "Carbonators and chillers",
         "Carbonation testers",
         "CO2 supply systems"
-      ]
-    },
-    {
-      "name": "Brix Measurement",
-      "category": "Food & Pharmaceutical Processing",
-      "was": [
-        "Brix Testing"
-      ],
-      "what": "Measuring dissolved sugar in a syrup or beverage. A person who has it takes a temperature-corrected reading and adjusts the batch to target.",
-      "learned": "On the job at a food or beverage plant.",
-      "tools": [
-        "Refractometers",
-        "Density meters"
       ]
     },
     {
@@ -6007,11 +6126,6 @@
         "Inkjet and laser coders",
         "Stretch wrappers",
         "Palletizers"
-      ],
-      "careers": [
-        {
-          "title": "Packaging Machine Operator"
-        }
       ]
     },
     {
@@ -6029,11 +6143,23 @@
         "X-ray inspection systems",
         "Checkweighers",
         "Certified test pieces"
+      ]
+    },
+    {
+      "name": "Weighing and Dispensing",
+      "category": "Food & Pharmaceutical Processing",
+      "aliases": [
+        "Pharmaceutical Dispensing",
+        "Raw Material Dispensing"
       ],
-      "careers": [
-        {
-          "title": "Packaging Machine Operator"
-        }
+      "what": "Weighing out each raw material for a batch in a dispensing booth, to the batch record. A person who has it checks identity and lot against the record, verifies the balance, weighs within tolerance, labels each container and has a second person verify.",
+      "learned": "On the job at a pharmaceutical plant, in the first weeks, under good manufacturing practice.",
+      "tools": [
+        "Calibrated balances and floor scales",
+        "Downflow booths",
+        "Scoops and containers",
+        "Label printers",
+        "Batch records or an electronic batch system"
       ]
     },
     {
@@ -6155,23 +6281,39 @@
       ]
     },
     {
-      "name": "PLC Ladder Logic Programming",
+      "name": "PLC Programming",
       "category": "Electrical & Controls",
       "was": [
-        "PLC Ladder Logic"
+        "PLC Ladder Logic Programming",
+        "PLC Ladder Logic",
+        "Allen-Bradley PLC Programming",
+        "Allen-Bradley PLC",
+        "Rockwell Studio 5000",
+        "Siemens PLC Programming",
+        "Siemens PLC",
+        "TIA Portal Programming"
       ],
-      "what": "Writing programs for programmable logic controllers in ladder diagram: contacts, coils, timers, counters, compares and sequences. A person who has it can turn a machine's sequence of operations into working, readable logic.",
-      "learned": "Mechatronics and automation programs at community colleges; PLC makers' courses.",
+      "what": "Writing programs for programmable logic controllers, most often in ladder diagram: configuring the controller and its I/O, then contacts, coils, timers, counters, compares and sequences. A person who has it can turn a machine's sequence of operations into working, readable logic and go online, edit and download safely.",
+      "learned": "Mechatronics and automation programs at community colleges; PLC makers' and distributors' courses.",
       "tools": [
-        "PLCs and their programming software",
-        "Simulators",
-        "I/O test panels"
+        "Programmable logic controllers and I/O",
+        "Programming software",
+        "Simulators and I/O test panels"
+      ],
+      "aliases": [
+        "Studio 5000",
+        "ControlLogix",
+        "CompactLogix",
+        "TIA Portal",
+        "S7-1500",
+        "Ladder Logic"
       ]
     },
     {
-      "name": "PLC Ladder Logic Troubleshooting",
+      "name": "PLC Troubleshooting",
       "category": "Electrical & Controls",
       "was": [
+        "PLC Ladder Logic Troubleshooting",
         "Ladder Logic Debug"
       ],
       "what": "Going online with a running controller to find why a machine has stopped. A person who has it follows the logic to the condition that is not met, then to the sensor, wire or output behind it, without changing the program.",
@@ -6183,52 +6325,14 @@
       ]
     },
     {
-      "name": "Allen-Bradley PLC Programming",
-      "category": "Electrical & Controls",
-      "was": [
-        "Allen-Bradley PLC",
-        "Rockwell Studio 5000"
-      ],
-      "aliases": [
-        "Studio 5000",
-        "ControlLogix",
-        "CompactLogix"
-      ],
-      "what": "Configuring and programming Rockwell Automation controllers in Studio 5000 Logix Designer: I/O configuration, tags, routines, add-on instructions and communication. A person who has it can go online, edit and download safely.",
-      "learned": "Rockwell Automation and distributor courses; community-college automation programs.",
-      "tools": [
-        "ControlLogix and CompactLogix controllers",
-        "Studio 5000 Logix Designer",
-        "RSLinx"
-      ]
-    },
-    {
-      "name": "Siemens PLC Programming",
-      "category": "Electrical & Controls",
-      "was": [
-        "Siemens PLC",
-        "TIA Portal Programming"
-      ],
-      "aliases": [
-        "TIA Portal",
-        "S7-1500"
-      ],
-      "what": "Configuring and programming Siemens S7 controllers in TIA Portal: hardware configuration, blocks, data types and PROFINET devices. A person who has it can go online, monitor and download safely.",
-      "learned": "Siemens SITRAIN courses; community-college automation programs.",
-      "tools": [
-        "SIMATIC S7-1200 and S7-1500 controllers",
-        "TIA Portal"
-      ]
-    },
-    {
       "name": "Structured Text Programming",
       "category": "Electrical & Controls",
       "what": "Writing controller logic as text, with expressions, IF and CASE statements and loops, where ladder would be awkward. A person who has it writes maths, state machines and data handling in the IEC 61131-3 language.",
       "learned": "Automation engineering courses and PLC makers' training.",
       "tools": [
-        "Studio 5000",
-        "TIA Portal (SCL)",
-        "CODESYS"
+        "PLC programming software",
+        "IEC 61131-3 structured text",
+        "Simulators"
       ]
     },
     {
@@ -6240,9 +6344,9 @@
       "what": "Building the operator screens of a machine: displays, buttons, alarms, trends and recipes tied to controller tags. A person who has it lays out screens an operator can read at a glance and act on.",
       "learned": "Automation programs and software makers' courses.",
       "tools": [
-        "FactoryTalk View",
-        "Siemens WinCC",
-        "Ignition"
+        "HMI software",
+        "Operator panels",
+        "Tag databases"
       ]
     },
     {
@@ -6284,23 +6388,9 @@
       "what": "Checking the controller area network that links a vehicle's or machine's electronic units. A person who has it measures bus resistance and voltage, reads the traffic with an interface and finds a missing node or a wiring fault.",
       "learned": "Automotive and electronics programs; on the job in test.",
       "tools": [
-        "CAN interfaces and analysis software such as Vector CANalyzer",
+        "CAN interfaces and analysis software",
         "Oscilloscopes",
         "Multimeters"
-      ],
-      "careers": [
-        {
-          "title": "Pack EOL Tester"
-        },
-        {
-          "title": "Motor EOL Test Technician"
-        },
-        {
-          "title": "PE Test Technician"
-        },
-        {
-          "title": "Drive Unit Test Technician"
-        }
       ]
     },
     {
@@ -6315,7 +6405,7 @@
       "what": "Commissioning the drive that sets an AC motor's speed. A person who has it enters motor data, sets ramps, limits and control source, tunes it to the load and reads fault codes.",
       "learned": "Industrial maintenance and electrical programs; drive makers' courses.",
       "tools": [
-        "Drives such as Allen-Bradley PowerFlex, Siemens SINAMICS and ABB ACS",
+        "Variable frequency drives",
         "Keypads and drive software"
       ]
     },
@@ -6325,7 +6415,7 @@
       "what": "Setting up a servo axis: motor and feedback, limits, scaling, homing and the link to the motion controller. A person who has it brings an axis from wiring to its first controlled move.",
       "learned": "Automation programs; drive makers' courses.",
       "tools": [
-        "Servo drives such as Allen-Bradley Kinetix, Siemens SINAMICS and Yaskawa Sigma",
+        "Servo drives and motors",
         "Encoders",
         "Drive software"
       ]
@@ -6376,57 +6466,30 @@
       "what": "Running an industrial robot from its pendant: jogging in each coordinate frame, stepping through a program, touching up points and recovering from a fault. A person who has it can get a stopped cell running again safely.",
       "learned": "Robotics and mechatronics programs; robot makers' operator courses.",
       "tools": [
-        "FANUC, ABB, KUKA and Yaskawa teach pendants"
+        "Teach pendants",
+        "Robot controllers",
+        "Coordinate frames"
       ]
     },
     {
-      "name": "FANUC Robot Programming",
+      "name": "Robot Programming",
       "category": "Electrical & Controls",
       "was": [
-        "FANUC TP Programming"
+        "FANUC Robot Programming",
+        "FANUC TP Programming",
+        "ABB Robot Programming",
+        "KUKA Robot Programming",
+        "KUKA KRL Programming",
+        "Universal Robots Programming"
       ],
-      "what": "Writing and editing teach pendant programs on FANUC robots: frames, motion types, registers, I/O, calls and error handling. A person who has it can program a handling, welding or dispensing task from nothing.",
-      "learned": "FANUC America courses, and its certified training programs at community colleges.",
+      "what": "Writing and editing programs on an industrial robot, at the teach pendant or in the maker's language: frames, tool and work object data, motion types, registers, I/O, calls and error handling. A person who has it can program a handling, welding or dispensing task from nothing and touch it up on the floor.",
+      "learned": "Robot makers' programming courses, and their certified training programs at community colleges; robotics and mechatronics programs.",
       "tools": [
-        "FANUC robots and controllers",
-        "Teach pendant",
-        "ROBOGUIDE simulation"
-      ]
-    },
-    {
-      "name": "ABB Robot Programming",
-      "category": "Electrical & Controls",
-      "what": "Programming ABB robots in the RAPID language: tool and work object data, motion instructions, routines and I/O. A person who has it can program and touch up a task at the pendant or offline.",
-      "learned": "ABB training courses; robotics programs.",
-      "tools": [
-        "ABB robots and controllers",
-        "FlexPendant",
-        "RobotStudio"
-      ]
-    },
-    {
-      "name": "KUKA Robot Programming",
-      "category": "Electrical & Controls",
-      "was": [
-        "KUKA KRL Programming"
-      ],
-      "what": "Programming KUKA robots in KRL: tools and bases, motion, logic, subprograms and I/O. A person who has it can program and touch up a task at the pendant.",
-      "learned": "KUKA College courses; robotics programs.",
-      "tools": [
-        "KUKA robots and controllers",
-        "smartPAD",
-        "KUKA.Sim"
-      ]
-    },
-    {
-      "name": "Universal Robots Programming",
-      "category": "Electrical & Controls",
-      "what": "Programming Universal Robots collaborative arms: waypoints, grippers, force and safety settings. A person who has it sets up a simple tending or assembly task and its safety configuration.",
-      "learned": "Universal Robots' free online academy and its instructor-led courses.",
-      "tools": [
-        "UR robots",
-        "PolyScope",
-        "Grippers and URCaps"
+        "Six-axis and collaborative robots",
+        "Teach pendants",
+        "Robot controllers",
+        "Grippers and end-of-arm tooling",
+        "Simulation software"
       ]
     },
     {
@@ -6438,10 +6501,9 @@
       "what": "Programming robots in a 3D model of the cell before it is built. A person who has it checks reach, cycle time and collisions, then downloads and touches up the program on the floor.",
       "learned": "Robotics engineering courses; software makers' training.",
       "tools": [
-        "ROBOGUIDE",
-        "RobotStudio",
-        "Process Simulate",
-        "Cell CAD models"
+        "Robot simulation software",
+        "Cell CAD models",
+        "Calibration between model and cell"
       ]
     },
     {
@@ -6512,8 +6574,99 @@
       "what": "Programming a vision system to find, measure or inspect a part: pattern matching, edges, blobs, codes and pass/fail logic sent to the controller. A person who has it tunes the tools so good parts pass and bad ones do not.",
       "learned": "Vision makers' courses, such as Cognex and Keyence; on the job.",
       "tools": [
-        "Cognex In-Sight and VisionPro",
-        "Keyence vision systems"
+        "Vision software",
+        "Smart cameras",
+        "Pattern, edge, blob and code tools"
+      ]
+    },
+    {
+      "name": "Control Panel Building",
+      "category": "Electrical & Controls",
+      "aliases": [
+        "Panel Building",
+        "Panel Wiring",
+        "Electrical Panel Assembly"
+      ],
+      "what": "Building an industrial control panel from its drawings: laying out and mounting rail, duct and devices on the back panel, then wiring, ferruling and labeling every conductor. A person who has it wires to the schematic, keeps power and signal apart and checks every point before power is applied.",
+      "learned": "On the job in a panel shop; electrical programs at community colleges. Panels are built to UL 508A and NFPA 79.",
+      "tools": [
+        "DIN rail and wire duct",
+        "Wire strippers, ferrule crimpers and labelers",
+        "Terminal blocks, breakers, contactors and power supplies",
+        "Knockout punches and drills",
+        "Multimeters",
+        "Schematics and panel layouts"
+      ]
+    },
+    {
+      "name": "Robot Mastering and Maintenance",
+      "category": "Electrical & Controls",
+      "aliases": [
+        "Robot Maintenance",
+        "Robot Mastering",
+        "Robot Preventive Maintenance"
+      ],
+      "what": "Keeping an industrial robot accurate and running: greasing reducers, changing batteries, cables and dress packs, replacing a motor or reducer and re-mastering the axis afterwards. A person who has it backs up the controller first, masters to the witness marks or with the maker's fixture and proves the program points still land.",
+      "learned": "Robot makers' maintenance courses; robotics and mechatronics programs; on the job.",
+      "tools": [
+        "Six-axis robots and controllers",
+        "Mastering fixtures and witness marks",
+        "Grease guns and the maker's greases",
+        "Backup media",
+        "Dress packs and cables"
+      ]
+    },
+    {
+      "name": "PID Loop Tuning",
+      "category": "Electrical & Controls",
+      "aliases": [
+        "Loop Tuning",
+        "PID Tuning",
+        "Process Control Tuning"
+      ],
+      "what": "Setting a control loop's gain, integral and derivative so a temperature, pressure, flow or level reaches its setpoint quickly and stays there. A person who has it bumps the loop, reads the response, tunes it by a method rather than by guess and finds a sticking valve or a noisy sensor before blaming the tuning.",
+      "learned": "Instrumentation and process control programs; ISA courses; on the job as a controls technician or engineer.",
+      "tools": [
+        "Loop controllers and PID blocks",
+        "Trend displays and loop tuning software",
+        "Control valves and positioners",
+        "Process calibrators"
+      ]
+    },
+    {
+      "name": "SCADA Development",
+      "category": "Electrical & Controls",
+      "aliases": [
+        "SCADA",
+        "Supervisory Control and Data Acquisition"
+      ],
+      "what": "Building the plant-wide system that gathers data from controllers and shows, alarms and stores it: tags, screens, alarm rules, historian and links to databases. A person who has it structures tags and templates so a new machine is added in an hour and keeps alarms few enough to be read.",
+      "learned": "Automation and controls engineering study; software makers' courses and certifications.",
+      "tools": [
+        "SCADA servers and clients",
+        "OPC UA and MQTT connections",
+        "Historians and SQL databases",
+        "Scripting",
+        "Alarm and trend tools"
+      ]
+    },
+    {
+      "name": "Machine Safety Circuit Design",
+      "category": "Electrical & Controls",
+      "aliases": [
+        "Machine Safety",
+        "Safety Circuits",
+        "Safety PLC Programming",
+        "Machine Risk Assessment"
+      ],
+      "what": "Designing and validating the part of a machine's controls that protects people: emergency stops, guard interlocks, light curtains, safety relays and safety controllers. A person who has it works from the risk assessment to the required performance level, designs dual-channel circuits to meet it and proves every safety function before the machine runs.",
+      "learned": "Controls engineering experience plus machine safety courses and certifications, such as TÜV functional safety for machinery; the standards are ISO 13849, ISO 12100 and NFPA 79.",
+      "tools": [
+        "Safety relays and safety controllers",
+        "Light curtains, scanners and interlock switches",
+        "Risk assessment forms",
+        "Performance level calculation software",
+        "Validation checklists"
       ]
     },
     {
@@ -6911,12 +7064,6 @@
         "Drills",
         "Sheet metal brakes and shears",
         "Layout tools"
-      ],
-      "careers": [
-        {
-          "title": "Aircraft Mechanic",
-          "stage": 3
-        }
       ]
     },
     {
@@ -6933,12 +7080,6 @@
         "Conversion coating",
         "Primers",
         "Corrosion preventive compounds"
-      ],
-      "careers": [
-        {
-          "title": "Aircraft Mechanic",
-          "stage": 2
-        }
       ]
     },
     {
@@ -7030,6 +7171,113 @@
       ]
     },
     {
+      "name": "CMMS Use",
+      "category": "Maintenance & Repair",
+      "aliases": [
+        "CMMS",
+        "Work Order Management",
+        "Maintenance Management System Use"
+      ],
+      "what": "Working in a plant's maintenance management system: opening and closing work orders, recording what was found and done, booking parts and labor and looking up an asset's history. A person who has it leaves a record the next technician can use.",
+      "learned": "On the job on the plant's system.",
+      "tools": [
+        "Computerized maintenance management systems",
+        "Work orders",
+        "Asset and spare parts records",
+        "Tablets and scanners"
+      ]
+    },
+    {
+      "name": "Machine Lubrication",
+      "category": "Maintenance & Repair",
+      "aliases": [
+        "Lubrication",
+        "Oiling and Greasing"
+      ],
+      "what": "Keeping machines lubricated: the right oil or grease, in the right amount, at the right interval, kept clean on the way in. A person who has it follows the lubrication route, reads sight glasses and reservoirs, greases a bearing without blowing its seal and takes a clean oil sample.",
+      "learned": "On the job as a maintenance helper or oiler; the Society of Tribologists and Lubrication Engineers and ICML certify lubrication technicians.",
+      "tools": [
+        "Grease guns and meters",
+        "Oil transfer and filter carts",
+        "Automatic lubricators",
+        "Sight glasses and breathers",
+        "Sample bottles and vacuum pumps",
+        "Lubrication routes"
+      ]
+    },
+    {
+      "name": "Belt and Chain Drive Maintenance",
+      "category": "Maintenance & Repair",
+      "aliases": [
+        "Belt Drive Maintenance",
+        "Chain Drive Maintenance",
+        "V-Belt Alignment"
+      ],
+      "what": "Installing and maintaining belt and chain drives: aligning sheaves and sprockets, setting tension and replacing worn belts, chains and sprockets. A person who has it reads a wear pattern for its cause and sets tension by measurement, not by feel.",
+      "learned": "Industrial maintenance programs and millwright apprenticeships; on the job.",
+      "tools": [
+        "Belt tension gauges",
+        "Laser sheave alignment tools",
+        "Chain breakers and wear gauges",
+        "Taper-lock bushings",
+        "Straightedges"
+      ]
+    },
+    {
+      "name": "Laser Optics Maintenance",
+      "category": "Maintenance & Repair",
+      "aliases": [
+        "Laser Alignment",
+        "Laser Beam Alignment",
+        "Laser Service"
+      ],
+      "what": "Keeping an industrial laser's beam path in condition: inspecting and changing cover slides, lenses and mirrors, aligning the beam to the nozzle or scanner and checking power at the work. A person who has it handles optics without marking them, aligns under the laser safety rules and finds whether a weak cut or weld is the source, the fiber or the head.",
+      "learned": "Laser makers' service courses after laser safety training; on the job as a laser technician.",
+      "tools": [
+        "Fiber, disk and CO2 laser sources",
+        "Cutting, welding and scanner heads",
+        "Power meters and beam profilers",
+        "Alignment tools and viewers",
+        "Optics cleaning supplies"
+      ]
+    },
+    {
+      "name": "Compressed Air System Maintenance",
+      "category": "Maintenance & Repair",
+      "aliases": [
+        "Air Compressor Maintenance",
+        "Compressed Air"
+      ],
+      "what": "Keeping a plant's compressed air running: servicing compressors, dryers, filters, drains and receivers and finding leaks in the distribution. A person who has it changes separators and filters on hours, checks dew point and pressure drop and reads a compressor's controller for the cause of a trip.",
+      "learned": "Industrial maintenance programs; compressor makers' service courses; on the job.",
+      "tools": [
+        "Rotary screw and reciprocating compressors",
+        "Refrigerated and desiccant dryers",
+        "Filters and condensate drains",
+        "Ultrasonic leak detectors",
+        "Dew point meters"
+      ]
+    },
+    {
+      "name": "Chiller and HVAC Maintenance",
+      "category": "Maintenance & Repair",
+      "aliases": [
+        "HVAC Maintenance",
+        "Chiller Maintenance",
+        "Process Cooling Water Maintenance"
+      ],
+      "what": "Maintaining the chillers, cooling towers, air handlers and process cooling loops a plant depends on. A person who has it checks refrigerant pressures and temperatures, cleans coils and strainers, treats and tests the water and changes filters and belts; opening a refrigerant circuit needs EPA Section 608 certification.",
+      "learned": "HVAC and refrigeration programs at community colleges; EPA Section 608 certification; on the job.",
+      "tools": [
+        "Chillers and cooling towers",
+        "Air handlers and filters",
+        "Refrigerant gauges and recovery machines",
+        "Pumps and heat exchangers",
+        "Water treatment test kits",
+        "Building automation systems"
+      ]
+    },
+    {
       "name": "Caliper Measurement",
       "category": "Quality & Measurement",
       "what": "Measuring outside, inside, depth and step dimensions with dial or digital calipers to about a thousandth of an inch. A person who has it zeroes the tool, holds it square with light, even pressure and knows when a caliper is not accurate enough.",
@@ -7081,12 +7329,6 @@
         "Setting rings and micrometers",
         "Telescoping gauges",
         "Air gauges"
-      ],
-      "careers": [
-        {
-          "title": "CNC Lathe Operator",
-          "stage": 2
-        }
       ]
     },
     {
@@ -7180,9 +7422,9 @@
       "what": "Running a coordinate measuring machine: fixturing the part, qualifying probes, running a program and reading the report. A person who has it knows when a result is wrong because of the setup, not the part.",
       "learned": "Quality programs at community colleges; CMM makers' operator courses; on the job.",
       "tools": [
-        "Bridge CMMs from Hexagon, Zeiss and Mitutoyo",
+        "Bridge and gantry CMMs",
         "Touch and scanning probes",
-        "PC-DMIS and Calypso"
+        "CMM software"
       ]
     },
     {
@@ -7191,10 +7433,9 @@
       "what": "Writing the measurement program for a part from its drawing and model. A person who has it builds the alignment from the datums, chooses how many points to take on each feature, sets probe angles and outputs the dimensions the drawing requires.",
       "learned": "CMM makers' programming courses after operating experience.",
       "tools": [
-        "PC-DMIS",
-        "Calypso",
-        "MCOSMOS",
-        "CAD models"
+        "CMM software",
+        "CAD models",
+        "Probe configurations"
       ]
     },
     {
@@ -7204,7 +7445,7 @@
         "Coordinate Metrology"
       ],
       "what": "Establishing a part's coordinate system on a measuring machine from its datum features, or by best fit to the model. A person who has it gets the same alignment the drawing intends, which every reported dimension depends on.",
-      "learned": "CMM makers' advanced courses; on the job as a senior programr or metrologist.",
+      "learned": "CMM makers' advanced courses; on the job as a senior programmer or metrologist.",
       "tools": [
         "CMM and scanning software",
         "Datum fixtures",
@@ -7220,9 +7461,9 @@
       "what": "Measuring large parts, tools and assemblies with a laser tracker and a hand-held reflector. A person who has it locates the tracker, ties in to reference points and reports positions against the model.",
       "learned": "Tracker makers' courses; the Coordinate Metrology Society certifies portable metrology operators.",
       "tools": [
-        "Laser trackers from Leica, FARO and API",
+        "Laser trackers",
         "Reflectors",
-        "SpatialAnalyzer and PolyWorks"
+        "Metrology software"
       ]
     },
     {
@@ -7235,8 +7476,8 @@
       "what": "Capturing a part's whole surface with a structured-light or laser scanner. A person who has it prepares the surface, plans the scan positions and gets complete, accurate data.",
       "learned": "Scanner makers' courses; on the job in a metrology lab.",
       "tools": [
-        "Structured-light scanners such as ZEISS ATOS",
-        "Laser line scanners",
+        "Structured-light scanners",
+        "Laser line scanners and scanning arms",
         "Reference targets"
       ]
     },
@@ -7249,10 +7490,9 @@
       "what": "Turning scan or CT data into results: cleaning and aligning the point cloud, comparing it with the CAD model as a color map and extracting dimensions. A person who has it knows how alignment choices change the answer.",
       "learned": "Software makers' courses; on the job in metrology.",
       "tools": [
-        "PolyWorks",
-        "Geomagic",
-        "ZEISS Inspect",
-        "VGSTUDIO MAX"
+        "Point cloud and inspection software",
+        "CAD models",
+        "Color maps and reports"
       ]
     },
     {
@@ -7461,7 +7701,7 @@
       "learned": "Quality programs; employer training. Covered by ASQ's Certified Quality Technician and Engineer credentials.",
       "tools": [
         "X-bar and R, individuals and attribute charts",
-        "Minitab",
+        "Statistics software",
         "SPC software at the station"
       ]
     },
@@ -7478,8 +7718,7 @@
       "what": "Comparing a process's spread and centering with the tolerance, as Cp and Cpk. A person who has it collects enough stable data, checks its distribution and says whether the process can hold the tolerance.",
       "learned": "Quality and engineering programs; ASQ's Certified Quality Engineer and Six Sigma credentials.",
       "tools": [
-        "Minitab",
-        "JMP",
+        "Statistics software",
         "Capability study worksheets"
       ]
     },
@@ -7496,7 +7735,7 @@
       "what": "Testing a measurement system by having several people measure the same parts several times, to split gauge variation into repeatability and reproducibility. A person who has it runs the study and judges whether the gauge is fit for the tolerance.",
       "learned": "Quality programs; AIAG's Measurement Systems Analysis manual is the reference.",
       "tools": [
-        "Minitab",
+        "Statistics software",
         "Study worksheets",
         "Master parts"
       ]
@@ -7510,9 +7749,9 @@
       "what": "Changing several process settings together in a planned pattern to learn which matter and how they interact. A person who has it picks factors and levels, runs the trials in random order and reads the effects.",
       "learned": "Engineering study; ASQ's Certified Quality Engineer and Six Sigma Black Belt credentials.",
       "tools": [
-        "JMP",
-        "Minitab",
-        "Design-Expert"
+        "Statistics software",
+        "Run sheets",
+        "Main effect and interaction plots"
       ]
     },
     {
@@ -7614,60 +7853,35 @@
       ]
     },
     {
-      "name": "ISO 9001 Quality System Requirements",
+      "name": "Quality System Auditing",
       "category": "Quality & Measurement",
       "was": [
-        "ISO 9001 Compliance"
-      ],
-      "what": "Knowing what ISO 9001 requires of a quality management system and how a plant shows it: document control, records, internal audits, corrective action and management review. A person who has it can prepare an area for audit and audit another.",
-      "learned": "Internal auditor and lead auditor courses; ASQ's Certified Quality Auditor.",
-      "tools": [
-        "The ISO 9001 standard",
-        "Quality manual and procedures",
-        "Audit checklists"
-      ]
-    },
-    {
-      "name": "AS9100 Quality System Requirements",
-      "category": "Quality & Measurement",
-      "was": [
+        "ISO 9001 Quality System Requirements",
+        "ISO 9001 Compliance",
+        "AS9100 Quality System Requirements",
         "AS9100 Compliance",
-        "AS9100 Quality System"
-      ],
-      "what": "Knowing what AS9100 adds to ISO 9001 for aerospace: configuration control, product safety, counterfeit parts prevention, first article inspection and control of suppliers. A person who has it works and audits to those requirements.",
-      "learned": "AS9100 internal and lead auditor courses; on the job in aerospace quality.",
-      "tools": [
-        "The AS9100 standard",
-        "Audit checklists",
-        "Customer flow-down requirements"
-      ]
-    },
-    {
-      "name": "ISO 13485 Quality System Requirements",
-      "category": "Quality & Measurement",
-      "was": [
+        "AS9100 Quality System",
+        "IATF 16949 Quality System Requirements",
+        "IATF 16949 Compliance",
+        "ISO 13485 Quality System Requirements",
         "ISO 13485 Compliance"
       ],
-      "what": "Knowing what ISO 13485 requires of a medical device maker: design controls, risk management, validated processes, traceability and complaint handling. A person who has it works and audits to those requirements.",
-      "learned": "ISO 13485 internal and lead auditor courses; on the job in device quality.",
+      "what": "Auditing a plant's quality management system against its standard: ISO 9001, and in aerospace AS9100, in automotive IATF 16949, in medical devices ISO 13485. A person who has it plans the audit, follows a process from requirement to record, writes findings on evidence and checks that the corrective action worked; they can also prepare their own area to be audited.",
+      "learned": "Internal auditor and lead auditor courses for the standard; ASQ's Certified Quality Auditor credential.",
       "tools": [
-        "The ISO 13485 standard",
-        "Device history records",
-        "Audit checklists"
-      ]
-    },
-    {
-      "name": "IATF 16949 Quality System Requirements",
-      "category": "Quality & Measurement",
-      "was": [
-        "IATF 16949 Compliance"
+        "The standard and the quality manual",
+        "Audit plans and checklists",
+        "Process maps and records",
+        "Nonconformance and corrective action reports"
       ],
-      "what": "Knowing what IATF 16949 requires of an automotive supplier, including customer-specific requirements and the core tools: APQP, PPAP, FMEA, MSA and SPC. A person who has it works and audits to those requirements.",
-      "learned": "IATF 16949 internal and lead auditor courses; AIAG core tools training.",
-      "tools": [
-        "The IATF 16949 standard",
-        "AIAG core tool manuals",
-        "Audit checklists"
+      "aliases": [
+        "Internal Auditing",
+        "Internal Quality Auditing",
+        "Quality Auditing",
+        "ISO 9001",
+        "AS9100",
+        "IATF 16949",
+        "ISO 13485"
       ]
     },
     {
@@ -7715,11 +7929,6 @@
         "Value stream map symbols",
         "Stopwatch",
         "Process data boxes"
-      ],
-      "careers": [
-        {
-          "title": "Lean Manufacturing Specialist"
-        }
       ]
     },
     {
@@ -7734,11 +7943,6 @@
         "Event charters",
         "Before and after measurements",
         "Action lists"
-      ],
-      "careers": [
-        {
-          "title": "Lean Manufacturing Specialist"
-        }
       ]
     },
     {
@@ -7768,11 +7972,6 @@
         "Changeover videos and timing sheets",
         "Quick-release clamps",
         "Pre-staged tool carts"
-      ],
-      "careers": [
-        {
-          "title": "Lean Manufacturing Specialist"
-        }
       ]
     },
     {
@@ -7857,11 +8056,6 @@
         "Universal testing machines",
         "Extensometers",
         "Specimen grips"
-      ],
-      "careers": [
-        {
-          "title": "Materials Engineer"
-        }
       ]
     },
     {
@@ -7894,6 +8088,94 @@
       ]
     },
     {
+      "name": "Dial Indicator Measurement",
+      "category": "Quality & Measurement",
+      "aliases": [
+        "Dial Indicator Use",
+        "Test Indicator Use",
+        "Indicating"
+      ],
+      "what": "Measuring small movements and differences with a dial or test indicator: runout, flatness, parallelism and position against a reference. A person who has it mounts the indicator rigidly, sets the contact angle, preloads and zeroes it and reads total indicator movement.",
+      "learned": "Taught in the first term of machining and quality programs; on the job.",
+      "tools": [
+        "Dial indicators",
+        "Dial test indicators",
+        "Magnetic bases and stands",
+        "V-blocks and centers"
+      ]
+    },
+    {
+      "name": "Pin and Plug Gauge Use",
+      "category": "Quality & Measurement",
+      "aliases": [
+        "Pin Gauges",
+        "Plug Gauges",
+        "Go/No-Go Gauging",
+        "Fixed Limit Gauging"
+      ],
+      "what": "Checking holes, slots and diameters with fixed gauges: pin gauges, go and no-go plugs, rings and snap gauges. A person who has it picks the gauge from the tolerance, uses a light, straight feel without forcing and looks after gauges so they stay to size.",
+      "learned": "Taught in the first weeks on a machine or inspection bench; machining and quality programs.",
+      "tools": [
+        "Pin gauge sets",
+        "Go and no-go plug gauges",
+        "Ring and snap gauges",
+        "Gauge handles"
+      ]
+    },
+    {
+      "name": "Surface Plate Inspection",
+      "category": "Quality & Measurement",
+      "aliases": [
+        "Surface Plate Setups",
+        "Open Setup Inspection",
+        "Sine Bar Use"
+      ],
+      "what": "Setting a part up on a granite surface plate to measure it from its datums, with angle plates, V-blocks, parallels, a sine bar and an indicator. A person who has it builds the setup the drawing's datums call for and works out an angle or a position from gauge blocks and indicator readings.",
+      "learned": "Quality and machining programs; on the job in an inspection room.",
+      "tools": [
+        "Granite surface plates",
+        "Angle plates, V-blocks and parallels",
+        "Sine bars and sine plates",
+        "Height gauges and transfer stands",
+        "Indicators"
+      ]
+    },
+    {
+      "name": "Dimensional Gauge Calibration",
+      "category": "Quality & Measurement",
+      "aliases": [
+        "Gauge Calibration",
+        "Gage Calibration",
+        "Dimensional Calibration"
+      ],
+      "what": "Calibrating the gauges a shop measures with: calipers, micrometers, indicators, height gauges, pins, plugs and thread gauges. A person who has it lets gauge and standard reach the same temperature, checks across the range against gauge blocks or masters, adjusts or rejects and records as-found and as-left values.",
+      "learned": "On the job in a calibration laboratory; military metrology schools; ASQ's Certified Calibration Technician credential.",
+      "tools": [
+        "Gauge blocks and ring masters",
+        "Bench micrometers and universal length machines",
+        "Indicator calibrators",
+        "Calibration management software",
+        "Calibration labels"
+      ]
+    },
+    {
+      "name": "Electrical Instrument Calibration",
+      "category": "Quality & Measurement",
+      "aliases": [
+        "Electronic Calibration",
+        "Test Equipment Calibration"
+      ],
+      "what": "Calibrating electrical test equipment: multimeters, power supplies, oscilloscopes, insulation testers and clamp meters. A person who has it applies known values from a calibrator at the points the procedure lists, compares readings with tolerance and records as-found and as-left values.",
+      "learned": "Military metrology schools and electronics programs; on the job in a calibration laboratory. ASQ's Certified Calibration Technician credential.",
+      "tools": [
+        "Multifunction calibrators",
+        "Reference multimeters",
+        "Oscilloscope calibrators",
+        "Decade boxes and standards",
+        "Calibration management software"
+      ]
+    },
+    {
       "name": "Visual Testing",
       "category": "Nondestructive Testing",
       "was": [
@@ -7922,11 +8204,6 @@
         "Video borescopes with articulating tips",
         "Measurement software",
         "Guide tubes"
-      ],
-      "careers": [
-        {
-          "title": "Booster Refurbishment Tech"
-        }
       ]
     },
     {
@@ -7934,17 +8211,22 @@
       "category": "Nondestructive Testing",
       "was": [
         "NDT - Dye Penetrant",
-        "Visible Penetrant Type II"
+        "Visible Penetrant Type II",
+        "Solvent-Removable Penetrant Method",
+        "Solvent Removable Penetrant Method C",
+        "Penetrant Developer Application",
+        "PT Developer Application"
       ],
       "aliases": [
         "PT",
         "Dye Penetrant"
       ],
-      "what": "Finding cracks and porosity open to the surface: apply penetrant, let it dwell, remove the excess, apply developer and read the indications. A person who has it carries out each step to the procedure and tells a relevant indication from a false one.",
+      "what": "Finding cracks and porosity open to the surface: clean the part, apply penetrant, let it dwell, remove the excess, apply developer and read the indications. A person who has it carries out each step to the procedure, with spray cans and wiping in the field or on a process line, applies a thin, even developer and tells a relevant indication from a false one.",
       "learned": "Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or, in aerospace, NAS 410.",
       "tools": [
         "Penetrants, removers and developers",
-        "Process lines or spray cans",
+        "Spray cans and lint-free cloths",
+        "Process lines",
         "White and UV-A light"
       ]
     },
@@ -7952,134 +8234,68 @@
       "name": "Fluorescent Penetrant Inspection",
       "category": "Nondestructive Testing",
       "was": [
-        "Fluorescent Penetrant Type I"
+        "Fluorescent Penetrant Type I",
+        "Water-Washable Penetrant Method",
+        "Water Washable Penetrant Method A",
+        "Post-Emulsifiable Penetrant Method",
+        "Post-Emulsifiable Penetrant Method B",
+        "PT Emulsifier Concentration",
+        "Penetrant Sensitivity Levels",
+        "PT Sensitivity Levels"
       ],
       "aliases": [
         "FPI"
       ],
-      "what": "Penetrant testing with a dye that glows under UV-A light in a darkened booth, the more sensitive form used on aerospace parts. A person who has it adapts their eyes, controls booth light levels and inspects every surface. ASTM E1417 sets the process.",
+      "what": "Penetrant testing with a dye that glows under UV-A light in a darkened booth, the more sensitive form used on aerospace parts, run on a line as water-washable or post-emulsifiable penetrant at the sensitivity level the part requires. A person who has it controls wash pressure, temperature and time, or emulsifier contact time and concentration, so penetrant is not washed out of a defect, then adapts their eyes and inspects every surface. ASTM E1417 sets the process.",
       "learned": "Level II penetrant certification under NAS 410, with experience on a fluorescent line.",
       "tools": [
         "Fluorescent penetrant lines",
+        "Wash stations and emulsifier tanks",
+        "Refractometers and timers",
         "Inspection booths",
         "UV-A lamps",
         "Light meters"
       ]
     },
     {
-      "name": "Water-Washable Penetrant Method",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Water Washable Penetrant Method A"
-      ],
-      "what": "Running penetrant that rinses off with water alone (Method A). A person who has it controls wash pressure, temperature and time so surface penetrant is removed without washing it out of defects.",
-      "learned": "Learned as part of Level II penetrant certification.",
-      "tools": [
-        "Wash stations with pressure and temperature gauges",
-        "UV-A light at the wash station"
-      ]
-    },
-    {
-      "name": "Post-Emulsifiable Penetrant Method",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Post-Emulsifiable Penetrant Method B",
-        "PT Emulsifier Concentration"
-      ],
-      "what": "Running penetrant that needs an emulsifier before it will rinse (Methods B and D), used when shallow or wide defects must not be washed out. A person who has it controls emulsifier contact time and concentration closely.",
-      "learned": "Learned as part of Level II penetrant certification.",
-      "tools": [
-        "Emulsifier tanks",
-        "Refractometers for concentration",
-        "Timers"
-      ]
-    },
-    {
-      "name": "Solvent-Removable Penetrant Method",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Solvent Removable Penetrant Method C"
-      ],
-      "what": "Penetrant testing with spray cans and wiping (Method C), for spot checks and field work. A person who has it wipes with a cloth dampened with solvent and never sprays solvent on the part.",
-      "learned": "Learned as part of Level II penetrant certification; also taught to welders.",
-      "tools": [
-        "Penetrant, cleaner and developer spray cans",
-        "Lint-free cloths"
-      ]
-    },
-    {
-      "name": "Penetrant Developer Application",
-      "category": "Nondestructive Testing",
-      "was": [
-        "PT Developer Application"
-      ],
-      "what": "Applying the developer that draws penetrant back out of a defect, as dry powder, a water-based bath or a solvent spray. A person who has it applies a thin, even coat and reads within the development time window.",
-      "learned": "Learned as part of Level II penetrant certification.",
-      "tools": [
-        "Dry powder stations",
-        "Aqueous developer tanks",
-        "Non-aqueous spray developer"
-      ]
-    },
-    {
-      "name": "Penetrant Sensitivity Levels",
-      "category": "Nondestructive Testing",
-      "was": [
-        "PT Sensitivity Levels"
-      ],
-      "what": "Choosing and verifying the penetrant sensitivity a part requires, from Level ½ to Level 4. A person who has it knows which level the specification calls for and why a rough casting and a polished turbine disk need different ones.",
-      "learned": "Learned as part of Level II penetrant certification.",
-      "tools": [
-        "Qualified products list",
-        "Specifications",
-        "Known-defect standards"
-      ]
-    },
-    {
       "name": "Penetrant System Performance Checks",
       "category": "Nondestructive Testing",
       "was": [
-        "PT System Performance Check"
-      ],
-      "what": "Proving a penetrant line still works: running a known-defect panel each day and checking penetrant, emulsifier, developer, wash and dryer on schedule. A person who has it runs the checks and keeps the log.",
-      "learned": "On the job on a penetrant line, as part of Level II certification.",
-      "tools": [
-        "Known-defect test panels",
-        "Refractometers",
-        "Thermometers and pressure gauges",
-        "UV-A and white light meters"
-      ]
-    },
-    {
-      "name": "UV-A Light Intensity Checks",
-      "category": "Nondestructive Testing",
-      "was": [
+        "PT System Performance Check",
+        "UV-A Light Intensity Checks",
         "PT/MT UV Light Intensity"
       ],
-      "what": "Measuring the UV-A intensity at the part and the white light in the booth before fluorescent inspection. A person who has it takes the readings at the set distance, logs them and replaces a lamp that falls short.",
-      "learned": "Learned as part of Level II penetrant and magnetic particle certification.",
+      "what": "Proving a penetrant line still works: running a known-defect panel each day, measuring UV-A intensity at the part and white light in the booth, and checking penetrant, emulsifier, developer, wash and dryer on schedule. A person who has it runs the checks, keeps the log and takes a lamp or a bath out of use when it falls short.",
+      "learned": "On the job on a penetrant line, as part of Level II certification; the light checks are shared with fluorescent magnetic particle inspection.",
       "tools": [
-        "UV-A radiometers",
-        "White light meters",
-        "UV-A LED lamps"
+        "Known-defect test panels",
+        "UV-A radiometers and white light meters",
+        "Refractometers",
+        "Thermometers and pressure gauges"
       ]
     },
     {
       "name": "Magnetic Particle Testing",
       "category": "Nondestructive Testing",
       "was": [
-        "NDT - Magnetic Particle"
+        "NDT - Magnetic Particle",
+        "MT Yoke Technique",
+        "MT Prod Technique",
+        "Dry Powder Magnetic Particle Inspection",
+        "Dry Powder MT",
+        "MT Demagnetization"
       ],
       "aliases": [
         "MT"
       ],
-      "what": "Finding surface and near-surface cracks in steel by magnetizing it and applying iron particles, which gather at a flaw. A person who has it magnetizes in two directions, applies particles correctly and interprets the indications.",
+      "what": "Finding surface and near-surface cracks in steel by magnetizing it and applying iron particles, which gather at a flaw. A person who has it magnetizes in two directions at right angles, with a yoke and dry powder on welds and castings or on a bench, applies particles while the field is on, interprets the indications and demagnetizes the part afterwards.",
       "learned": "Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.",
       "tools": [
-        "Wet horizontal benches",
-        "Yokes",
-        "Coils",
-        "Fluorescent and visible particles"
+        "AC and DC yokes and lift test weights",
+        "Dry powder bulbs and blowers",
+        "Wet horizontal benches and coils",
+        "Field indicators",
+        "Demagnetizing coils"
       ]
     },
     {
@@ -8087,126 +8303,59 @@
       "category": "Nondestructive Testing",
       "was": [
         "Wet Fluorescent MT",
-        "MT Particle Application"
+        "MT Particle Application",
+        "MT Coil Technique",
+        "MT Head Shot Technique",
+        "Central Conductor MT"
       ],
-      "what": "Magnetic particle testing with fluorescent particles in a liquid bath, read under UV-A light. A person who has it checks bath concentration by settling test and inspects in a darkened booth. ASTM E1444 sets the process.",
+      "what": "Magnetic particle testing on a wet bench with fluorescent particles in a liquid bath, read under UV-A light: a head shot or central conductor for flaws that run lengthwise, a coil for flaws that run around the part. A person who has it sets current for the part's diameter and length, makes good contact to avoid arc burns, checks bath concentration by settling test and inspects in a darkened booth. ASTM E1444 sets the process.",
       "learned": "Level II magnetic particle certification, with experience on a wet bench.",
       "tools": [
         "Wet horizontal benches",
+        "Contact pads and central conductor bars",
+        "Bench coils and cable wraps",
         "Centrifuge tubes",
         "UV-A lamps"
       ]
     },
     {
-      "name": "Dry Powder Magnetic Particle Inspection",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Dry Powder MT"
-      ],
-      "what": "Magnetic particle testing with dry colored powder, used on welds, castings and hot or rough surfaces. A person who has it dusts the powder lightly while the current is on and blows off the excess gently.",
-      "learned": "Level II magnetic particle certification; also taught to weld inspectors.",
-      "tools": [
-        "Yokes and prods",
-        "Powder bulbs and blowers"
-      ]
-    },
-    {
-      "name": "MT Yoke Technique",
-      "category": "Nondestructive Testing",
-      "was": [
-        "MT Prod Technique"
-      ],
-      "what": "Magnetizing a local area with a hand-held electromagnetic yoke. A person who has it sets leg spacing, inspects in two directions at right angles and proves the yoke by lifting its test weight.",
-      "learned": "Learned as part of Level II magnetic particle certification.",
-      "tools": [
-        "AC and DC yokes",
-        "Lift test weights",
-        "Field indicators"
-      ]
-    },
-    {
-      "name": "MT Coil Technique",
-      "category": "Nondestructive Testing",
-      "what": "Magnetizing a part lengthwise by placing it in a coil, to find flaws that run around it. A person who has it works out the current from the part's length and diameter and repositions long parts.",
-      "learned": "Learned as part of Level II magnetic particle certification.",
-      "tools": [
-        "Bench coils and cable wraps",
-        "Ammeters"
-      ]
-    },
-    {
-      "name": "MT Head Shot Technique",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Central Conductor MT"
-      ],
-      "what": "Magnetizing a part circularly by passing current through it between bench heads, or through a central conductor, to find flaws that run lengthwise. A person who has it sets current for the diameter and makes good contact to avoid arc burns.",
-      "learned": "Learned as part of Level II magnetic particle certification.",
-      "tools": [
-        "Wet horizontal benches",
-        "Contact pads",
-        "Central conductor bars"
-      ]
-    },
-    {
-      "name": "MT Current Selection",
-      "category": "Nondestructive Testing",
-      "was": [
-        "MT AC vs DC Selection"
-      ],
-      "what": "Choosing the magnetizing current: alternating for surface cracks, half-wave or full-wave direct for flaws a little below the surface. A person who has it picks the type and amperage the procedure and part require.",
-      "learned": "Learned as part of Level II magnetic particle certification.",
-      "tools": [
-        "Multi-current magnetizing units",
-        "Ammeters"
-      ]
-    },
-    {
       "name": "MT Field Strength Measurement",
       "category": "Nondestructive Testing",
-      "what": "Confirming that a part is magnetized enough, and in the right direction, to show flaws. A person who has it uses notched shims, pie gauges and a gauss meter and adjusts the setup until the field is adequate.",
-      "learned": "Learned as part of Level II magnetic particle certification.",
+      "what": "Choosing the magnetizing current for a part and proving the field it gives: alternating for surface cracks, half-wave or full-wave direct for flaws a little below the surface, at an amperage that shows a known flaw. A person who has it uses notched shims, pie gauges and a gauss meter and adjusts the setup until the field is adequate in strength and direction.",
+      "learned": "Learned as part of Level II magnetic particle certification; setting the technique for a new part is Level III work.",
       "tools": [
+        "Multi-current magnetizing units and ammeters",
         "Notched shims",
         "Pie gauges",
         "Hall-effect gauss meters"
-      ]
-    },
-    {
-      "name": "MT Demagnetization",
-      "category": "Nondestructive Testing",
-      "what": "Removing leftover magnetism after inspection so a part does not attract chips or disturb instruments. A person who has it demagnetizes with a reducing alternating or reversing field and verifies the residual with a field meter.",
-      "learned": "Learned as part of Level II magnetic particle certification.",
-      "tools": [
-        "Demagnetizing coils",
-        "Field indicators"
+      ],
+      "was": [
+        "MT Current Selection",
+        "MT AC vs DC Selection"
       ]
     },
     {
       "name": "Ultrasonic Testing",
       "category": "Nondestructive Testing",
       "was": [
-        "NDT - Ultrasonic Testing"
+        "NDT - Ultrasonic Testing",
+        "A-Scan Interpretation",
+        "Straight-Beam UT",
+        "Straight Beam UT - Longitudinal",
+        "Contact Pulse-Echo UT",
+        "Conventional UT - Contact Method",
+        "Pulse Echo UT",
+        "UT Couplant Selection"
       ],
       "aliases": [
         "UT"
       ],
-      "what": "Finding internal flaws and measuring thickness by sending high-frequency sound into a part and reading the echoes. A person who has it sets up and calibrates the instrument, scans to the procedure and evaluates indications.",
+      "what": "Finding internal flaws by sending high-frequency sound into a part and reading the echoes on the A-scan, where echo height is plotted against time. A person who has it sets up and calibrates the instrument, scans by hand with consistent coupling and overlap, tells back wall, geometry and flaw echoes apart, watches for loss of back wall and evaluates indications to the procedure.",
       "learned": "Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.",
       "tools": [
         "Ultrasonic flaw detectors",
-        "Transducers and wedges",
+        "Straight-beam and dual-element transducers",
         "Couplant",
-        "Calibration blocks"
-      ]
-    },
-    {
-      "name": "A-Scan Interpretation",
-      "category": "Nondestructive Testing",
-      "what": "Reading the basic ultrasonic display, where echo height is plotted against time. A person who has it tells the back wall, geometry and flaw echoes apart and reads depth and amplitude from the screen.",
-      "learned": "Learned as part of Level I and II ultrasonic certification.",
-      "tools": [
-        "Ultrasonic flaw detectors",
         "Calibration blocks"
       ]
     },
@@ -8214,74 +8363,42 @@
       "name": "UT Calibration with Reference Blocks",
       "category": "Nondestructive Testing",
       "was": [
-        "UT Calibration Blocks"
+        "UT Calibration Blocks",
+        "UT Transducer Selection",
+        "UT Probe Selection",
+        "Delay Line Probes",
+        "Dual Element Probes"
       ],
-      "what": "Setting up an ultrasonic instrument on standard blocks before inspection: range, sensitivity, beam exit point and angle. A person who has it calibrates on the right block for the job and rechecks during and after the inspection.",
+      "what": "Choosing the transducer for an inspection and setting the instrument up on standard blocks before it: frequency, size and angle, then range, sensitivity, beam exit point and angle. A person who has it trades penetration against sensitivity, calibrates on the right block for the job and rechecks during and after the inspection.",
       "learned": "Learned as part of Level I and II ultrasonic certification.",
       "tools": [
         "IIW blocks",
         "Distance and sensitivity blocks",
         "Step wedges",
-        "Flat-bottom hole blocks"
-      ]
-    },
-    {
-      "name": "UT Transducer Selection",
-      "category": "Nondestructive Testing",
-      "was": [
-        "UT Probe Selection",
-        "Delay Line Probes",
-        "Dual Element Probes"
-      ],
-      "what": "Choosing the transducer for an inspection: frequency, size, angle and type. A person who has it trades penetration against sensitivity and picks dual-element or delay-line probes for thin or near-surface work.",
-      "learned": "Learned as part of Level II ultrasonic certification.",
-      "tools": [
-        "Contact, angle-beam, dual-element, delay-line and immersion transducers",
-        "Wedges"
-      ]
-    },
-    {
-      "name": "Straight-Beam UT",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Straight Beam UT - Longitudinal"
-      ],
-      "what": "Inspecting with sound sent straight into the part, to find laminations and flaws parallel to the surface and to measure thickness. A person who has it watches for loss of back wall as well as flaw echoes.",
-      "learned": "Learned as part of Level I and II ultrasonic certification.",
-      "tools": [
-        "Straight-beam transducers",
-        "Flaw detectors",
-        "Step blocks"
+        "Flat-bottom hole blocks",
+        "Contact, angle-beam, dual-element and delay-line transducers"
       ]
     },
     {
       "name": "Angle-Beam UT",
       "category": "Nondestructive Testing",
       "was": [
-        "Angle Beam UT - Shear Wave"
+        "Angle Beam UT - Shear Wave",
+        "UT of Welds",
+        "UT of Welds - Butt Joints",
+        "UT of Welds - Fillet Welds"
       ],
-      "what": "Inspecting with sound sent in at an angle, as shear waves, to reach flaws in welds and around geometry. A person who has it plots the sound path and locates a reflector from its surface distance and depth.",
-      "learned": "Learned as part of Level II ultrasonic certification.",
+      "what": "Inspecting with sound sent in at an angle, as shear waves, to reach flaws in welds and around geometry: lack of fusion, cracks, slag and porosity. A person who has it plots the sound path, scans a weld from both sides, locates each reflector in the cross-section from its surface distance and depth and accepts or rejects it to the code.",
+      "learned": "Level II ultrasonic certification with weld experience; AWS D1.1 and ASME Section V set the methods.",
       "tools": [
         "Angle-beam transducers and wedges",
-        "IIW block",
-        "Weld plotting aids"
-      ]
-    },
-    {
-      "name": "Contact Pulse-Echo UT",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Conventional UT - Contact Method",
-        "Pulse Echo UT",
-        "UT Couplant Selection"
-      ],
-      "what": "Scanning by hand with the transducer on the part's surface, the same probe sending and receiving. A person who has it keeps coupling and scan overlap consistent and picks a couplant suited to the surface and temperature.",
-      "learned": "Learned as part of Level I and II ultrasonic certification.",
-      "tools": [
         "Flaw detectors",
-        "Contact transducers",
-        "Couplants"
+        "IIW block",
+        "Weld plotting aids",
+        "Reference blocks"
+      ],
+      "aliases": [
+        "Shear Wave UT"
       ]
     },
     {
@@ -8290,29 +8407,25 @@
       "was": [
         "Conventional UT - Immersion Method",
         "Immersion Tank UT",
-        "Automated UT Systems"
+        "Automated UT Systems",
+        "Through-Transmission UT",
+        "Through Transmission UT",
+        "Squirter UT System",
+        "UT C-Scan Interpretation",
+        "C-Scan Mapping",
+        "B-Scan Display"
       ],
-      "what": "Inspecting a part under water with the transducer held off the surface by a scanner. A person who has it sets water path and angle, normalizes the probe to the surface and runs the scan.",
+      "what": "Inspecting a part under water, or between water jets, with the transducer held off the surface by a scanner that maps the result as a C-scan. A person who has it sets water path and angle, normalizes the probe to the surface, keeps a sender and receiver aligned for through-transmission, sets the gates and marks out and measures each indication on the map.",
       "learned": "Level II ultrasonic certification, with experience on an immersion system.",
       "tools": [
         "Immersion tanks",
-        "Scanning bridges and manipulators",
-        "Focused transducers"
-      ]
-    },
-    {
-      "name": "Through-Transmission UT",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Through Transmission UT",
-        "Squirter UT System"
-      ],
-      "what": "Inspecting with a sender on one side of the part and a receiver on the other, so a flaw shows as lost signal. A person who has it keeps the two aligned and reads the loss map of a composite or bonded panel.",
-      "learned": "Level II ultrasonic certification, with experience on composite inspection systems.",
-      "tools": [
         "Water-jet (squirter) systems",
-        "Paired transducers",
-        "C-scan recording"
+        "Scanning bridges and manipulators",
+        "Focused transducers",
+        "C-scan analysis software"
+      ],
+      "aliases": [
+        "C-Scan Inspection"
       ]
     },
     {
@@ -8344,46 +8457,21 @@
       ]
     },
     {
-      "name": "UT of Welds",
-      "category": "Nondestructive Testing",
-      "was": [
-        "UT of Welds - Butt Joints",
-        "UT of Welds - Fillet Welds"
-      ],
-      "what": "Ultrasonic inspection of welded joints for lack of fusion, cracks, slag and porosity. A person who has it scans from both sides, locates each indication in the weld cross-section and accepts or rejects it to the code.",
-      "learned": "Level II ultrasonic certification with weld experience; AWS D1.1 and ASME Section V set the methods.",
-      "tools": [
-        "Angle-beam transducers",
-        "Flaw detectors",
-        "Weld plotting aids",
-        "Reference blocks"
-      ]
-    },
-    {
       "name": "UT of Composites",
       "category": "Nondestructive Testing",
       "was": [
-        "UT of Adhesive Bonds"
+        "UT of Adhesive Bonds",
+        "Composite Porosity Evaluation",
+        "Porosity Assessment",
+        "Attenuation Measurement"
       ],
-      "what": "Ultrasonic inspection of composite laminates and bonded structure for delaminations, disbonds, porosity and inclusions. A person who has it calibrates on a reference panel of the same layup and reads signal loss as well as echoes.",
+      "what": "Ultrasonic inspection of composite laminates and bonded structure for delaminations, disbonds, porosity and inclusions. A person who has it calibrates on a reference panel of the same layup, reads signal loss as well as echoes and estimates porosity from attenuation against reference panels.",
       "learned": "Level II ultrasonic certification with composite experience, under NAS 410.",
       "tools": [
         "Flaw detectors",
         "Low-frequency and delay-line transducers",
-        "Composite reference standards"
-      ]
-    },
-    {
-      "name": "UT C-Scan Interpretation",
-      "category": "Nondestructive Testing",
-      "was": [
-        "C-Scan Mapping",
-        "B-Scan Display"
-      ],
-      "what": "Reading the plan-view map an automated ultrasonic scan produces. A person who has it sets the gates, reads the color scale and marks out and measures each indication.",
-      "learned": "Level II ultrasonic certification, with experience on scanning systems.",
-      "tools": [
-        "C-scan systems and analysis software"
+        "Composite reference standards",
+        "Porosity reference panels"
       ]
     },
     {
@@ -8391,45 +8479,24 @@
       "category": "Nondestructive Testing",
       "was": [
         "Phased Array UT - Linear Scan",
-        "Phased Array UT - Sectorial Scan"
-      ],
-      "aliases": [
-        "PAUT"
-      ],
-      "what": "Ultrasonic testing with a multi-element probe whose beam is steered and focused electronically. A person who has it sets up linear and sectorial scans, calibrates each beam and reads the images.",
-      "learned": "A phased array course and supervised hours on top of Level II ultrasonic certification.",
-      "tools": [
-        "Phased array instruments such as the OmniScan",
-        "Array probes and wedges",
-        "Scanners and encoders"
-      ]
-    },
-    {
-      "name": "Phased Array Data Acquisition and Analysis",
-      "category": "Nondestructive Testing",
-      "was": [
+        "Phased Array UT - Sectorial Scan",
+        "Phased Array Data Acquisition and Analysis",
         "UT Data Recording",
-        "NDT Ultrasonic Software"
+        "NDT Ultrasonic Software",
+        "Full Matrix Capture UT"
       ],
-      "what": "Recording encoded phased array data and analyzing it afterwards in software. A person who has it sets up the scan plan and encoder, checks data quality and sizes indications from the stored views.",
-      "learned": "Phased array courses; on the job.",
-      "tools": [
-        "Encoded scanners",
-        "Acquisition and analysis software"
-      ]
-    },
-    {
-      "name": "Full Matrix Capture UT",
-      "category": "Nondestructive Testing",
       "aliases": [
+        "PAUT",
         "FMC",
         "TFM"
       ],
-      "what": "Recording the signal between every pair of elements in an array and reconstructing a focused image of the whole area by the total focusing method. A person who has it sets up the capture and judges the image.",
-      "learned": "Advanced courses after phased array experience.",
+      "what": "Ultrasonic testing with a multi-element probe whose beam is steered and focused electronically, recorded with an encoder and analyzed afterwards. A person who has it sets up linear and sectorial scans and the scan plan, calibrates each beam, checks data quality and sizes indications from the stored views; full matrix capture with the total focusing method is the same work with a reconstructed image.",
+      "learned": "A phased array course and supervised hours on top of Level II ultrasonic certification.",
       "tools": [
-        "Phased array instruments with total focusing method",
-        "Array probes"
+        "Phased array instruments",
+        "Array probes and wedges",
+        "Scanners and encoders",
+        "Acquisition and analysis software"
       ]
     },
     {
@@ -8453,33 +8520,30 @@
       "name": "Radiographic Testing",
       "category": "Nondestructive Testing",
       "was": [
-        "NDT - X-Ray Inspection"
+        "NDT - X-Ray Inspection",
+        "Film Radiography",
+        "Film Radiography - X-Ray",
+        "Film Radiography - Gamma Ray",
+        "RT Exposure Calculation",
+        "Geometric Unsharpness Calculation",
+        "IQI Selection and Placement",
+        "RT Scattered Radiation Control",
+        "RT Collimator Usage"
       ],
       "aliases": [
-        "RT"
+        "RT",
+        "Image Quality Indicator",
+        "Penetrameter"
       ],
-      "what": "Finding internal flaws by passing X-rays or gamma rays through a part onto film or a detector. A person who has it sets up the shot safely, produces an image of the required quality and interprets it.",
+      "what": "Finding internal flaws by passing X-rays or gamma rays through a part onto film or a detector. A person who has it works out the exposure from material and thickness, places source, film, markers and the image quality indicator, controls scatter with collimators, masks and lead backing and produces an image of the required density and sensitivity.",
       "learned": "Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410, plus radiation safety training.",
       "tools": [
         "X-ray tubes and gamma sources",
-        "Film and digital detectors",
-        "Image quality indicators"
-      ]
-    },
-    {
-      "name": "Film Radiography",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Film Radiography - X-Ray",
-        "Film Radiography - Gamma Ray"
-      ],
-      "what": "Making radiographs on film. A person who has it chooses film and screens, places the source and film, exposes to the required density and identifies each film to its part and location.",
-      "learned": "Learned as part of Level II radiographic certification.",
-      "tools": [
-        "X-ray tubes",
         "Film cassettes and lead screens",
-        "Lead markers",
-        "Densitometers"
+        "Image quality indicators",
+        "Exposure charts and source decay tables",
+        "Collimators and lead masks",
+        "Lead markers"
       ]
     },
     {
@@ -8500,112 +8564,40 @@
       ]
     },
     {
-      "name": "Computed Radiography",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Computed Radiography CR"
-      ],
-      "what": "Radiography with reusable phosphor plates read by a laser scanner in place of film. A person who has it sets exposure for the plate, scans and erases it and verifies image quality on screen.",
-      "learned": "Level II radiographic certification with digital training.",
-      "tools": [
-        "Imaging plates",
-        "Plate scanners",
-        "Viewing software and calibrated monitors"
-      ]
-    },
-    {
       "name": "Digital Radiography",
       "category": "Nondestructive Testing",
       "was": [
         "Digital Detector Array DR",
-        "Fluoroscopy - Real Time RT"
+        "Fluoroscopy - Real Time RT",
+        "Computed Radiography",
+        "Computed Radiography CR"
       ],
-      "what": "Radiography with a flat-panel detector that shows the image at once. A person who has it calibrates the detector, sets geometry and exposure and checks sharpness and contrast against the requirement.",
+      "what": "Radiography without film: a flat-panel detector that shows the image at once, or a reusable phosphor plate read by a laser scanner. A person who has it calibrates the detector or sets exposure for the plate, sets geometry and checks sharpness and contrast on screen against the requirement.",
       "learned": "Level II radiographic certification with digital training.",
       "tools": [
         "Flat-panel detectors",
+        "Imaging plates and plate scanners",
         "X-ray cabinets and manipulators",
-        "Image software"
-      ]
-    },
-    {
-      "name": "IQI Selection and Placement",
-      "category": "Nondestructive Testing",
-      "aliases": [
-        "Image Quality Indicator",
-        "Penetrameter"
-      ],
-      "what": "Choosing the image quality indicator for the material and thickness and placing it so the radiograph proves its own sensitivity. A person who has it knows which hole or wire must be visible.",
-      "learned": "Learned as part of Level II radiographic certification. ASTM E1025 and E747 define the indicators.",
-      "tools": [
-        "Hole-type and wire-type image quality indicators",
-        "Shims"
-      ]
-    },
-    {
-      "name": "RT Exposure Calculation",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Geometric Unsharpness Calculation"
-      ],
-      "what": "Working out kilovoltage, current, time and distance for a shot from the material, thickness and film or detector. A person who has it uses exposure charts and keeps geometric unsharpness within the limit.",
-      "learned": "Learned as part of Level II radiographic certification.",
-      "tools": [
-        "Exposure charts",
-        "Source decay tables",
-        "Calculators"
-      ]
-    },
-    {
-      "name": "RT Scattered Radiation Control",
-      "category": "Nondestructive Testing",
-      "was": [
-        "RT Collimator Usage"
-      ],
-      "what": "Keeping scattered radiation from fogging the image. A person who has it uses collimators, masks, filters and lead backing and checks for backscatter with a lead letter behind the film.",
-      "learned": "Learned as part of Level II radiographic certification.",
-      "tools": [
-        "Collimators and diaphragms",
-        "Lead screens, masks and sheet"
+        "Viewing software and calibrated monitors"
       ]
     },
     {
       "name": "Radiograph Interpretation",
       "category": "Nondestructive Testing",
       "was": [
-        "Radiographic Film Interpretation"
+        "Radiographic Film Interpretation",
+        "RT of Welds",
+        "Double Wall RT Techniques",
+        "Panoramic RT Techniques",
+        "RT of Castings"
       ],
-      "what": "Reading a radiograph: first confirming its quality, then finding and naming each indication and judging it against the acceptance standard. A person who has it tells porosity, inclusions, shrinkage, cracks and lack of fusion from film artifacts.",
-      "learned": "Level II radiographic certification, with many hours of supervised film reading.",
+      "what": "Reading a radiograph: first confirming its quality, then finding and naming each indication and judging it against the acceptance standard, the code for a weld or the reference radiographs for a casting. A person who has it tells porosity, inclusions, shrinkage, cracks and lack of fusion from film artifacts.",
+      "learned": "Level II radiographic certification, with many hours of supervised film reading. ASME Section V and AWS D1.1 govern welds; ASTM publishes reference radiographs for castings, such as E155 for aluminum and E446 for steel.",
       "tools": [
         "High-intensity viewers",
         "Densitometers",
-        "Reference radiographs"
-      ]
-    },
-    {
-      "name": "RT of Welds",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Double Wall RT Techniques",
-        "Panoramic RT Techniques"
-      ],
-      "what": "Radiographing welded joints in plate and pipe. A person who has it picks single- or double-wall technique, places markers and indicators and evaluates the weld to the code.",
-      "learned": "Level II radiographic certification with weld experience; ASME Section V and AWS D1.1 set the methods.",
-      "tools": [
-        "X-ray tubes and gamma sources",
-        "Pipe crawlers",
-        "Location markers"
-      ]
-    },
-    {
-      "name": "RT of Castings",
-      "category": "Nondestructive Testing",
-      "what": "Radiographing castings and grading what is found, such as gas porosity, shrinkage and inclusions, against reference radiographs. A person who has it plans shots to cover changing sections.",
-      "learned": "Level II radiographic certification with casting experience. ASTM publishes the reference radiographs, such as E155 for aluminum and E446 for steel.",
-      "tools": [
-        "X-ray systems",
-        "Reference radiograph sets"
+        "Reference radiographs",
+        "Calibrated monitors for digital images"
       ]
     },
     {
@@ -8634,23 +8626,33 @@
       "learned": "On the job in a CT lab, with radiation safety training; system makers' courses.",
       "tools": [
         "Industrial CT systems",
-        "Reconstruction and analysis software such as VGSTUDIO MAX"
+        "Reconstruction and analysis software"
       ]
     },
     {
-      "name": "Eddy Current Surface Inspection",
+      "name": "Eddy Current Testing",
       "category": "Nondestructive Testing",
       "was": [
-        "Surface ET Inspection"
+        "Eddy Current Surface Inspection",
+        "Surface ET Inspection",
+        "Eddy Current Probe Selection",
+        "ET Probe Selection",
+        "Eddy Current Impedance Plane Analysis",
+        "ET Impedance Plane Analysis",
+        "Eddy Current Lift-Off Compensation",
+        "ET Lift-Off Compensation",
+        "ET Edge Effect Management"
       ],
       "aliases": [
-        "ET"
+        "ET",
+        "Eddy Current Inspection"
       ],
-      "what": "Finding surface cracks in metal with a probe that induces eddy currents and senses how a flaw disturbs them. A person who has it sets up on a reference standard with notches and scans edges, radii and fastener rows.",
+      "what": "Finding surface cracks in metal with a probe that induces eddy currents and senses how a flaw disturbs them. A person who has it picks probe and frequency for the material and depth, sets up on a notched reference standard, sets gain and rotation so a crack signal stands apart from lift-off and geometry on the impedance plane, and scans edges, radii and fastener rows.",
       "learned": "Classroom hours and supervised experience leading to Level II certification by the employer, under ASNT SNT-TC-1A or NAS 410.",
       "tools": [
-        "Eddy current instruments",
-        "Pencil probes",
+        "Impedance plane instruments",
+        "Pencil, spot, ring and sliding probes",
+        "Shielded probes and probe guides",
         "Notched reference standards"
       ]
     },
@@ -8683,47 +8685,6 @@
       ]
     },
     {
-      "name": "Eddy Current Impedance Plane Analysis",
-      "category": "Nondestructive Testing",
-      "was": [
-        "ET Impedance Plane Analysis"
-      ],
-      "what": "Reading the eddy current display, where a signal's direction and size show what caused it. A person who has it sets frequency, gain and rotation so a crack signal stands apart from lift-off and geometry.",
-      "learned": "Learned as part of Level II eddy current certification.",
-      "tools": [
-        "Impedance plane instruments",
-        "Reference standards"
-      ]
-    },
-    {
-      "name": "Eddy Current Lift-Off Compensation",
-      "category": "Nondestructive Testing",
-      "was": [
-        "ET Lift-Off Compensation",
-        "ET Edge Effect Management"
-      ],
-      "what": "Dealing with the signals caused by the probe's distance from the surface and by nearby edges. A person who has it rotates the lift-off signal out of the way and uses guides or shielded probes near edges.",
-      "learned": "Learned as part of Level II eddy current certification.",
-      "tools": [
-        "Shielded probes",
-        "Probe guides and shoes",
-        "Non-conductive shims"
-      ]
-    },
-    {
-      "name": "Eddy Current Probe Selection",
-      "category": "Nondestructive Testing",
-      "was": [
-        "ET Probe Selection"
-      ],
-      "what": "Choosing the probe and frequency for an eddy current inspection from the material, the depth of interest and the geometry. A person who has it knows what absolute, differential and reflection probes are each for.",
-      "learned": "Learned as part of Level II eddy current certification.",
-      "tools": [
-        "Pencil, spot, ring and sliding probes",
-        "Probe adapters"
-      ]
-    },
-    {
       "name": "Eddy Current Conductivity Measurement",
       "category": "Nondestructive Testing",
       "was": [
@@ -8735,25 +8696,6 @@
       "tools": [
         "Conductivity meters",
         "Conductivity standards"
-      ]
-    },
-    {
-      "name": "Eddy Current Coating Thickness Measurement",
-      "category": "Nondestructive Testing",
-      "was": [
-        "ET Coating Thickness",
-        "ASTM E376 Coating Thickness"
-      ],
-      "what": "Measuring paint, anodize and other non-conductive coating thickness on metal with an eddy current gauge. A person who has it sets the gauge on shims over the same base metal.",
-      "learned": "On the job in finishing and inspection; part of Level I eddy current training.",
-      "tools": [
-        "Eddy current and magnetic coating thickness gauges",
-        "Calibration shims"
-      ],
-      "careers": [
-        {
-          "title": "Anodizing Technician"
-        }
       ]
     },
     {
@@ -8830,37 +8772,16 @@
     {
       "name": "Delamination Sizing",
       "category": "Nondestructive Testing",
-      "what": "Marking out and measuring a delamination found in a laminate, in area and in depth. A person who has it finds the edges by signal drop and reports size and ply depth for the repair decision.",
+      "what": "Mapping and measuring damage found in a laminate, in area and in depth; impact damage is usually wider inside than the dent shows. A person who has it scans beyond the visible mark, finds the edges by signal drop and reports size and ply depth for the repair decision.",
       "learned": "Learned with ultrasonic inspection of composites.",
       "tools": [
         "Ultrasonic flaw detectors",
         "Phased array probes",
-        "Marking templates"
-      ]
-    },
-    {
-      "name": "Composite Porosity Evaluation",
-      "category": "Nondestructive Testing",
-      "was": [
-        "Porosity Assessment",
-        "Attenuation Measurement"
+        "Bond testers and tap hammers",
+        "Marking grids and templates"
       ],
-      "what": "Estimating the void content of a laminate from how much ultrasound it absorbs. A person who has it compares the loss with porosity reference panels and reports it against the limit.",
-      "learned": "Learned with ultrasonic inspection of composites.",
-      "tools": [
-        "Through-transmission and pulse-echo systems",
-        "Porosity reference panels"
-      ]
-    },
-    {
-      "name": "Impact Damage Mapping",
-      "category": "Nondestructive Testing",
-      "what": "Finding the full extent of impact damage in a composite, which is usually wider inside than the dent shows. A person who has it scans beyond the visible mark and maps the damage for assessment.",
-      "learned": "Learned with composite inspection, on the job.",
-      "tools": [
-        "Ultrasonic and bond test instruments",
-        "Tap hammers",
-        "Marking grids"
+      "was": [
+        "Impact Damage Mapping"
       ]
     },
     {
@@ -8910,7 +8831,7 @@
       "what": "Building the test that probes a loaded board net by net for shorts, opens and wrong or missing parts. A person who has it specifies the fixture from the board data, writes and debugs the program and tunes out false failures.",
       "learned": "On the job as a test engineer; tester makers' courses.",
       "tools": [
-        "In-circuit testers from Keysight and Teradyne",
+        "In-circuit testers",
         "Bed-of-nails fixtures",
         "Flying probe testers"
       ]
@@ -9024,11 +8945,6 @@
         "Vibration controllers",
         "Accelerometers",
         "Shock machines"
-      ],
-      "careers": [
-        {
-          "title": "Starlink Test Technician"
-        }
       ]
     },
     {
@@ -9093,15 +9009,22 @@
       ]
     },
     {
-      "name": "LabVIEW Programming",
+      "name": "Test Automation Programming",
       "category": "Testing",
-      "what": "Writing test and data acquisition programs in NI LabVIEW. A person who has it controls instruments, sequences a test, logs data and builds an operator screen.",
-      "learned": "NI courses; engineering and electronics programs. NI certifies developers at Associate (CLAD), Developer (CLD) and Architect (CLA) levels.",
+      "what": "Writing the program that runs a test and gathers its data. A person who has it controls instruments, sequences the steps, checks limits, logs results and builds an operator screen.",
+      "learned": "Engineering and electronics programs; test software makers' courses and developer certifications.",
       "tools": [
-        "LabVIEW",
-        "TestStand",
-        "NI data acquisition hardware",
-        "Instrument drivers"
+        "Graphical and text test programming environments",
+        "Test sequencers",
+        "Instrument drivers and buses",
+        "Data acquisition hardware"
+      ],
+      "was": [
+        "LabVIEW Programming"
+      ],
+      "aliases": [
+        "Test Software Development",
+        "Automated Test Programming"
       ]
     },
     {
@@ -9117,20 +9040,6 @@
         "Programmable power supplies and loads",
         "Power analyzers",
         "Oscilloscopes with differential probes"
-      ],
-      "careers": [
-        {
-          "title": "PE Test Technician"
-        },
-        {
-          "title": "Inverter Assembly Technician"
-        },
-        {
-          "title": "DC-DC Converter Technician"
-        },
-        {
-          "title": "Onboard Charger Technician"
-        }
       ]
     },
     {
@@ -9197,14 +9106,6 @@
       "tools": [
         "Headlamp aimers",
         "Adjusting tools"
-      ],
-      "careers": [
-        {
-          "title": "Final Line Inspector"
-        },
-        {
-          "title": "Vehicle Alignment Tech"
-        }
       ]
     },
     {
@@ -9219,17 +9120,6 @@
         "Calibration targets and frames",
         "Diagnostic scan tools",
         "Wheel alignment equipment"
-      ],
-      "careers": [
-        {
-          "title": "Final Line Inspector"
-        },
-        {
-          "title": "Vehicle Alignment Tech"
-        },
-        {
-          "title": "ADAS Engineer"
-        }
       ]
     },
     {
@@ -9345,14 +9235,6 @@
         "1553 bus analyzers",
         "Couplers and terminators",
         "Oscilloscopes"
-      ],
-      "careers": [
-        {
-          "title": "Electronic Warfare Technician"
-        },
-        {
-          "title": "Radar Technician"
-        }
       ]
     },
     {
@@ -9365,95 +9247,122 @@
         "Power meters",
         "Signal generators",
         "Antenna ranges"
+      ]
+    },
+    {
+      "name": "Firmware Loading",
+      "category": "Testing",
+      "aliases": [
+        "Firmware Flashing",
+        "Device Programming",
+        "Software Loading"
       ],
-      "careers": [
-        {
-          "title": "Radar Technician"
-        },
-        {
-          "title": "Patriot System Tech"
-        }
-      ]
-    },
-    {
-      "name": "SolidWorks",
-      "category": "Design & Software",
-      "what": "Modeling parts and assemblies and making drawings in SolidWorks. A person who has it builds models that update cleanly when a dimension changes and produces drawings a shop can work from.",
-      "learned": "Community-college drafting and engineering programs. Dassault Systèmes certifies users as Certified SOLIDWORKS Associate (CSWA) and Professional (CSWP).",
+      "what": "Programming a board or unit with its released firmware and configuration at a test station. A person who has it connects the programmer, picks the released version for the part number, confirms the load verified and records version and serial number.",
+      "learned": "On the job at a test or assembly station.",
       "tools": [
-        "SOLIDWORKS",
-        "SOLIDWORKS PDM"
+        "Debug probes and device programmers",
+        "Programming fixtures",
+        "Loader software and scripts",
+        "Barcode scanners"
       ]
     },
     {
-      "name": "CATIA",
+      "name": "Test Procedure Writing",
+      "category": "Testing",
+      "aliases": [
+        "Test Plan Writing",
+        "Acceptance Test Procedure Writing"
+      ],
+      "what": "Writing the procedure a test is run to: setup, steps, limits, hold points and what to record. A person who has it turns a requirement into steps a technician can follow without asking, with pass and fail stated for every one, and has it reviewed and released.",
+      "learned": "On the job as a senior test technician or test engineer.",
+      "tools": [
+        "Requirements and specifications",
+        "Procedure templates",
+        "Test equipment lists",
+        "Document control systems"
+      ]
+    },
+    {
+      "name": "Data Acquisition Setup",
+      "category": "Testing",
+      "aliases": [
+        "Data Acquisition",
+        "DAQ",
+        "Test Instrumentation",
+        "Sensor Instrumentation"
+      ],
+      "what": "Instrumenting a test: mounting and wiring thermocouples, pressure transducers, strain gauges, accelerometers and load cells, and setting up the system that records them. A person who has it sets ranges, sample rates and filters, checks every channel end to end before the test and knows a bad channel from a real reading.",
+      "learned": "Electronics and engineering technology programs; on the job as a test technician.",
+      "tools": [
+        "Data acquisition chassis and modules",
+        "Thermocouples, pressure transducers and strain gauges",
+        "Accelerometers and load cells",
+        "Signal conditioners",
+        "Channel lists"
+      ]
+    },
+    {
+      "name": "Hardware-in-the-Loop Testing",
+      "category": "Testing",
+      "aliases": [
+        "HIL Testing",
+        "HIL",
+        "Hardware in the Loop"
+      ],
+      "what": "Testing a controller by connecting it to a real-time simulation of the machine it will run, so faults and edge cases can be tried without the hardware. A person who has it builds the test bench, maps signals between controller and model, automates the test cases and traces a failure to controller, model or wiring.",
+      "learned": "Engineering degree and on the job as a test engineer; simulator makers' courses.",
+      "tools": [
+        "Real-time simulators",
+        "Signal conditioning and fault insertion units",
+        "Plant models",
+        "Test automation software",
+        "CAN and Ethernet interfaces"
+      ]
+    },
+    {
+      "name": "3D CAD Modeling",
       "category": "Design & Software",
+      "what": "Modeling parts and assemblies in a parametric 3D CAD system and making drawings from them. A person who has it builds models that update cleanly when a dimension changes, works in solids and surfaces to the company's modeling standards and produces drawings a shop can work from.",
+      "learned": "Community-college drafting and engineering programs; the CAD makers certify users.",
+      "tools": [
+        "Parametric 3D CAD software",
+        "Sketches, features and surfaces",
+        "Drawing templates",
+        "Model-based definition"
+      ],
       "was": [
+        "SolidWorks",
+        "Autodesk Inventor",
+        "Inventor",
+        "PTC Creo",
+        "Creo (Pro/ENGINEER)",
+        "Siemens NX",
+        "NX (Unigraphics)",
+        "CATIA",
         "CATIA V5 Aerospace"
       ],
-      "what": "Modeling parts, surfaces and assemblies in CATIA, the CAD system most used for aircraft and many vehicles. A person who has it works in part design, generative shape design and assembly design and follows the company's modeling standards.",
-      "learned": "Engineering and drafting programs; Dassault Systèmes and its partners run courses and certification.",
-      "tools": [
-        "CATIA V5 and 3DEXPERIENCE",
-        "ENOVIA"
+      "aliases": [
+        "3D CAD",
+        "Solid Modeling",
+        "CAD Modeling"
       ]
     },
     {
-      "name": "Siemens NX",
+      "name": "2D CAD Drafting",
       "category": "Design & Software",
-      "was": [
-        "NX (Unigraphics)"
+      "what": "Two-dimensional drafting in CAD: layers, blocks, dimension styles and plotted sheets. A person who has it produces accurate layouts, schematics and detail drawings to a drafting standard.",
+      "learned": "Community-college drafting programs; the CAD makers certify users.",
+      "tools": [
+        "2D CAD software",
+        "Layer and block standards",
+        "Plot styles and title blocks"
       ],
-      "what": "Modeling, drafting and preparing manufacturing data in Siemens NX. A person who has it builds parametric and synchronous models, assemblies and drawings, and may program toolpaths in NX CAM.",
-      "learned": "Engineering programs; Siemens and its partners run courses.",
-      "tools": [
-        "NX",
-        "Teamcenter"
-      ]
-    },
-    {
-      "name": "PTC Creo",
-      "category": "Design & Software",
       "was": [
-        "Creo (Pro/ENGINEER)"
+        "AutoCAD"
       ],
-      "what": "Parametric modeling of parts and assemblies and making drawings in Creo. A person who has it builds robust features and relations and manages large assemblies.",
-      "learned": "Engineering and drafting programs; PTC and its partners run courses.",
-      "tools": [
-        "Creo Parametric",
-        "Windchill"
-      ]
-    },
-    {
-      "name": "Autodesk Inventor",
-      "category": "Design & Software",
-      "was": [
-        "Inventor"
-      ],
-      "what": "Modeling parts, assemblies and weldments and making drawings in Inventor. A person who has it builds parametric models and uses the sheet metal and frame tools.",
-      "learned": "Community-college drafting programs. Autodesk certifies users.",
-      "tools": [
-        "Inventor",
-        "Vault"
-      ]
-    },
-    {
-      "name": "AutoCAD",
-      "category": "Design & Software",
-      "what": "Two-dimensional drafting in AutoCAD: layers, blocks, dimension styles and plotted sheets. A person who has it produces accurate layouts, schematics and detail drawings to a drafting standard.",
-      "learned": "Community-college drafting programs. Autodesk certifies users.",
-      "tools": [
-        "AutoCAD",
-        "AutoCAD Electrical"
-      ]
-    },
-    {
-      "name": "Fusion 360",
-      "category": "Design & Software",
-      "what": "Designing a part and programming its machining in one package. A person who has it models, sets up CAM operations, simulates and posts code, usually in a small shop or prototype setting.",
-      "learned": "Community-college and online courses. Autodesk certifies users.",
-      "tools": [
-        "Autodesk Fusion"
+      "aliases": [
+        "2D Drafting",
+        "CAD Drafting"
       ]
     },
     {
@@ -9478,10 +9387,10 @@
       "what": "Putting part models together into an assembly with mates or constraints. A person who has it structures subassemblies, checks interference and motion and produces the bill of material.",
       "learned": "Drafting and engineering programs.",
       "tools": [
-        "SOLIDWORKS",
-        "Creo",
-        "NX",
-        "CATIA"
+        "3D CAD assemblies",
+        "Mates and constraints",
+        "Interference checks",
+        "Bills of material"
       ]
     },
     {
@@ -9495,21 +9404,9 @@
       "what": "Working with design data under control: checking files out and in, revising, routing changes for approval and finding the released revision. A person who has it never builds from an unreleased drawing.",
       "learned": "On the job; software makers' courses.",
       "tools": [
-        "Teamcenter",
-        "Windchill",
-        "ENOVIA",
-        "SOLIDWORKS PDM"
-      ],
-      "careers": [
-        {
-          "title": "CAD Technician"
-        },
-        {
-          "title": "CAD Designer"
-        },
-        {
-          "title": "Mechanical Drafter"
-        }
+        "Product data and lifecycle management systems",
+        "Change orders",
+        "Released drawings and models"
       ]
     },
     {
@@ -9542,50 +9439,219 @@
       "what": "Predicting stress, deflection, vibration and heat flow in a part with a computer model. A person who has it builds the mesh, applies loads and constraints that match reality and checks the answer against a hand calculation or test.",
       "learned": "Engineering degree; software makers' courses.",
       "tools": [
-        "Ansys",
-        "Abaqus",
-        "Nastran",
-        "SOLIDWORKS Simulation"
+        "Finite element software",
+        "Meshing tools",
+        "Hand calculations and test data"
       ]
     },
     {
-      "name": "Mastercam",
-      "category": "Design & Software",
-      "what": "Programming CNC mills, lathes and routers in Mastercam. A person who has it imports or draws geometry, builds toolpaths, verifies them and posts code for the machine.",
-      "learned": "Community-college CNC programs. Mastercam certifies users at Associate and Professional levels.",
-      "tools": [
-        "Mastercam Mill, Lathe and Multiaxis",
-        "Post processors"
-      ]
-    },
-    {
-      "name": "GibbsCAM",
-      "category": "Design & Software",
-      "what": "Programming CNC machines in GibbsCAM, often used for multi-task and Swiss-type lathes. A person who has it builds and synchronizes operations across spindles and turrets and posts proven code.",
-      "learned": "On the job; reseller courses.",
-      "tools": [
-        "GibbsCAM",
-        "Post processors"
-      ]
-    },
-    {
-      "name": "PowerMill",
-      "category": "Design & Software",
-      "what": "Programming complex three- and five-axis milling in PowerMill, widely used for molds, dies and aerospace parts. A person who has it builds collision-free multi-axis toolpaths and controls surface finish.",
-      "learned": "On the job; Autodesk and reseller courses.",
-      "tools": [
-        "Autodesk PowerMill",
-        "Post processors"
-      ]
-    },
-    {
-      "name": "Vericut Simulation",
+      "name": "CNC Program Verification",
       "category": "Design & Software",
       "what": "Checking a CNC program in a virtual copy of the machine before it runs. A person who has it builds the machine, fixture and stock setup, runs the posted code and clears collisions, gouges and excess material.",
-      "learned": "On the job as a CNC programr; CGTech courses.",
+      "learned": "On the job as a CNC programmer; the simulation software makers run courses.",
       "tools": [
-        "VERICUT",
-        "Machine and tool libraries"
+        "Machine simulation software",
+        "Machine, fixture and tool libraries",
+        "Posted G-code"
+      ],
+      "was": [
+        "Vericut Simulation"
+      ],
+      "aliases": [
+        "G-Code Simulation",
+        "Toolpath Verification"
+      ]
+    },
+    {
+      "name": "Circuit Design and Schematic Capture",
+      "category": "Design & Software",
+      "aliases": [
+        "Schematic Capture",
+        "Circuit Design",
+        "Electronic Circuit Design"
+      ],
+      "what": "Designing an electronic circuit and drawing it as a schematic: choosing parts, working out values and margins, simulating where it matters and producing a clean netlist and bill of material. A person who has it reads datasheets closely and draws a schematic another engineer can review.",
+      "learned": "Electrical engineering degree or electronics technology program; on the job.",
+      "tools": [
+        "Schematic capture software",
+        "Circuit simulators",
+        "Component datasheets and libraries",
+        "Bench instruments"
+      ]
+    },
+    {
+      "name": "PCB Layout",
+      "category": "Design & Software",
+      "aliases": [
+        "PCB Layout Design",
+        "PCB Design",
+        "Board Layout"
+      ],
+      "what": "Turning a schematic into a board that can be built: stack-up, placement, routing, power and ground, controlled impedance and clearances, then the fabrication and assembly files. A person who has it lays out for signal integrity and for the factory at once and clears the design rule check honestly.",
+      "learned": "On the job as a designer or engineer; IPC's Certified Interconnect Designer (CID) course.",
+      "tools": [
+        "PCB layout software",
+        "Design rule and manufacturability checks",
+        "Stack-up and impedance calculators",
+        "Gerber and ODB++ outputs"
+      ]
+    },
+    {
+      "name": "Electrical Controls Design",
+      "category": "Design & Software",
+      "aliases": [
+        "Electrical CAD",
+        "Electrical Schematic Design",
+        "Control Panel Design",
+        "Electrical Design"
+      ],
+      "what": "Designing a machine's electrical system and drawing it: power distribution, motor circuits, controller I/O, safety circuits, panel layout and the bill of material. A person who has it sizes wire, breakers and enclosures to code and produces a drawing set a panel shop can build from without calling.",
+      "learned": "Electrical engineering or technology study; on the job in a controls group. UL 508A and NFPA 79 set the rules.",
+      "tools": [
+        "Electrical CAD software",
+        "Schematics, panel layouts and wire lists",
+        "Component catalogs",
+        "Short-circuit and heat-load calculations"
+      ]
+    },
+    {
+      "name": "Fixture and Tooling Design",
+      "category": "Design & Software",
+      "aliases": [
+        "Fixture Design",
+        "Tooling Design",
+        "Tool Design",
+        "Jig and Fixture Design"
+      ],
+      "what": "Designing the fixtures, jigs, gauges and assembly tools that hold and locate a part while it is made or checked. A person who has it locates on the part's datums, clamps without distorting it, leaves room for the cutter or the hand and designs the tool to be built and maintained by the shop it is for.",
+      "learned": "Engineering degree or a toolmaker's apprenticeship followed by design work; on the job.",
+      "tools": [
+        "3D CAD",
+        "Standard fixture components",
+        "Locating and clamping principles",
+        "Tolerance analysis",
+        "Tool drawings"
+      ]
+    },
+    {
+      "name": "Data Analysis and Scripting",
+      "category": "Design & Software",
+      "aliases": [
+        "Data Analysis",
+        "Scripting",
+        "Python Scripting",
+        "SQL"
+      ],
+      "what": "Pulling production, test or equipment data and answering a question with it: querying a database, cleaning the data, plotting it and automating the report. A person who has it writes a short script instead of repeating a spreadsheet by hand and checks the answer against what the floor knows.",
+      "learned": "Engineering study and on the job; online courses in Python and SQL.",
+      "tools": [
+        "Scripting languages",
+        "Databases and query tools",
+        "Spreadsheets",
+        "Dashboards",
+        "Notebooks and version control"
+      ]
+    },
+    {
+      "name": "Requirements Management",
+      "category": "Design & Software",
+      "aliases": [
+        "Requirements Engineering",
+        "Requirements Flowdown",
+        "Requirements Traceability"
+      ],
+      "what": "Writing down what a system must do and keeping each requirement tied to where it came from and how it will be proven. A person who has it writes requirements that can be tested, flows them down to subsystems and keeps the trace intact as the design changes.",
+      "learned": "Engineering degree and on the job; INCOSE's systems engineering certifications.",
+      "tools": [
+        "Requirements management tools",
+        "Specifications and interface control documents",
+        "Traceability matrices"
+      ]
+    },
+    {
+      "name": "Verification Planning",
+      "category": "Design & Software",
+      "aliases": [
+        "Verification and Validation Planning",
+        "V&V Planning",
+        "Qualification Planning"
+      ],
+      "what": "Deciding how each requirement will be proven, by test, analysis, inspection or demonstration, and planning the campaign that does it. A person who has it builds the verification matrix, sets what counts as passing before the test is run and closes each requirement with evidence.",
+      "learned": "On the job as a systems or test engineer; INCOSE's systems engineering certifications.",
+      "tools": [
+        "Verification cross-reference matrices",
+        "Test plans and reports",
+        "Requirements management tools"
+      ]
+    },
+    {
+      "name": "Bulk Chemical Transfer",
+      "category": "Chemical Processing",
+      "aliases": [
+        "Tank Farm Operation",
+        "Railcar Loading and Unloading",
+        "Truck Loading and Unloading"
+      ],
+      "what": "Moving liquids and gases between trucks, railcars, tanks and process: lining up valves, connecting and grounding hoses, starting pumps and watching levels. A person who has it walks the line before starting, never leaves a transfer unattended and knows what to do when a hose or a level alarm fails.",
+      "learned": "On the job as an outside operator; process technology programs at community colleges. Loading and unloading hazardous materials needs training under 49 CFR 172.",
+      "tools": [
+        "Transfer pumps and hoses",
+        "Loading arms",
+        "Grounding and bonding clamps",
+        "Level gauges and overfill alarms",
+        "Valve line-up sheets"
+      ]
+    },
+    {
+      "name": "Batch Reactor Operation",
+      "category": "Chemical Processing",
+      "aliases": [
+        "Reactor Operation",
+        "Batch Processing"
+      ],
+      "what": "Running a batch through a reactor: charging raw materials in order, heating or cooling to the recipe, holding, sampling and discharging. A person who has it controls an exotherm by feed rate and cooling, keeps the batch record as each step is done and knows the safe state to go to when something is wrong.",
+      "learned": "On the job at a chemical plant; process technology (PTEC) associate degree programs.",
+      "tools": [
+        "Jacketed reactors with agitators",
+        "Charging pumps, scales and flow meters",
+        "Heat transfer and vacuum systems",
+        "Sample stations",
+        "Batch records"
+      ]
+    },
+    {
+      "name": "Distillation Column Operation",
+      "category": "Chemical Processing",
+      "aliases": [
+        "Distillation",
+        "Fractionation"
+      ],
+      "what": "Running a distillation column to separate a mixture: starting it up, setting reflux, reboil and pressure and holding product purity as feed changes. A person who has it reads the temperature profile, sees flooding or weeping coming and brings the column back without going off specification.",
+      "learned": "On the job at a chemical plant or refinery; process technology (PTEC) associate degree programs.",
+      "tools": [
+        "Tray and packed columns",
+        "Reboilers and condensers",
+        "Reflux drums and pumps",
+        "Temperature and differential pressure instruments",
+        "Online analyzers"
+      ]
+    },
+    {
+      "name": "Distributed Control System Operation",
+      "category": "Chemical Processing",
+      "aliases": [
+        "Control Room Operation",
+        "Board Operation",
+        "DCS Operation"
+      ],
+      "what": "Running a continuous or batch plant from the control room: watching the unit through its control system, moving setpoints, answering alarms and directing the operators outside. A person who has it keeps the unit steady through an upset, knows which alarm matters first and takes the plant to a safe state when it must.",
+      "learned": "Years as an outside operator on the same unit, then board training on a simulator and beside a qualified board operator.",
+      "tools": [
+        "Distributed control systems",
+        "Alarm summaries and trends",
+        "Process and instrumentation diagrams",
+        "Operating procedures",
+        "Radios"
       ]
     }
   ],
@@ -10152,7 +10218,6 @@
         "SA Deployment Test",
         "Sensory Evaluation",
         "Shelf Life Testing",
-        "Shot Peening",
         "Signal Generator",
         "Spacecraft Alignment",
         "Spacecraft Balance",

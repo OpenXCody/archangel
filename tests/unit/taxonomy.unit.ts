@@ -33,7 +33,8 @@ interface TaxonomyFile {
 const BUILDER = 'scripts/build-taxonomy-sql.mjs';
 const TAXONOMY = 'data/skills/taxonomy.json';
 const CATALOGUE = 'data/skills/catalogue.json';
-const MIGRATION = 'migrations/0042_skill_taxonomy.sql';
+// The taxonomy's latest migration. 0042 was the first and is as it was applied.
+const MIGRATION = 'migrations/0049_skill_taxonomy_2.sql';
 
 const taxonomy = JSON.parse(readFileSync(TAXONOMY, 'utf8')) as TaxonomyFile;
 const catalogue = JSON.parse(readFileSync(CATALOGUE, 'utf8')) as { skills: { name: string }[] };
@@ -170,5 +171,8 @@ test('the migration checks the stored skills before it changes anything, and hol
 });
 
 test('the migration is in the runner\'s list', () => {
-  assert.match(readFileSync('scripts/migrate.mjs', 'utf8'), /'0041_largest_plants\.sql', '0042_skill_taxonomy\.sql'/);
+  const runner = readFileSync('scripts/migrate.mjs', 'utf8');
+  assert.match(runner, /'0041_largest_plants\.sql', '0042_skill_taxonomy\.sql'/);
+  // The catalogue's migration comes first: it leaves exactly the skills this one places.
+  assert.match(runner, /'0048_skills_catalogue_2\.sql', '0049_skill_taxonomy_2\.sql'/);
 });
