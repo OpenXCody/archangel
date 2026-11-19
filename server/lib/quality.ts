@@ -21,8 +21,11 @@ import { int, rowsOf, text } from './rows.js';
  * - onePlantCompanies: plants that are their company's only plant in the country,
  *   which is also the number of such companies.
  * - duplicates: plants that share their company and their spot (coordinates equal
- *   to three decimal places, about a hundred metres) with another plant; duplicateGroups
- *   is how many spots that is.
+ *   to three decimal places, about a hundred metres) with another plant, unless an
+ *   admin has said the two are separate plants (`plants_apart`); duplicateGroups
+ *   is how many spots that is. Admin Tools lists them pair by pair
+ *   (`GET /api/admin/plants/pairs?list=spot`, server/lib/plantPairs.ts): when
+ *   that list is empty this is zero.
  */
 export interface QualityRow {
   state: string | null;
@@ -42,13 +45,21 @@ const COUNTS = ['plants', 'industry', 'code', 'county', 'people', 'address', 'ou
 
 export async function dataQuality(): Promise<{ total: QualityRow & { companies: number }; states: QualityRow[] }> {
   const result = await db.execute(sql`
-    WITH spots AS (
-      SELECT id,
-             COUNT(*) OVER spot AS same,
-             ROW_NUMBER() OVER (PARTITION BY company_id, round(lat::numeric, 3), round(lng::numeric, 3) ORDER BY id) AS nth
+    WITH placed AS (
+      SELECT id, company_id, round(lat::numeric, 3) AS rlat, round(lng::numeric, 3) AS rlng,
+             COUNT(*) OVER (PARTITION BY company_id, round(lat::numeric, 3), round(lng::numeric, 3)) AS same
       FROM factories
       WHERE company_id IS NOT NULL AND lat IS NOT NULL AND lng IS NOT NULL
-      WINDOW spot AS (PARTITION BY company_id, round(lat::numeric, 3), round(lng::numeric, 3))
+    ), shared AS (
+      SELECT id, company_id, rlat, rlng FROM placed WHERE same > 1
+    ), spots AS (
+      -- Of the rows that share a spot, the ones beside a row nobody has said is a separate plant.
+      SELECT a.id, 2 AS same, ROW_NUMBER() OVER (PARTITION BY a.company_id, a.rlat, a.rlng ORDER BY a.id) AS nth
+      FROM shared a
+      WHERE EXISTS (
+        SELECT 1 FROM shared b
+        WHERE b.company_id = a.company_id AND b.rlat = a.rlat AND b.rlng = a.rlng AND b.id <> a.id
+          AND NOT EXISTS (SELECT 1 FROM plants_apart p WHERE p.a_id = least(a.id, b.id) AND p.b_id = greatest(a.id, b.id)))
     ), outside AS (
       SELECT DISTINCT entity_id FROM external_references WHERE entity_type = 'factories' AND source <> 'CURATED'
     ), sites AS (

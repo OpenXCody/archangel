@@ -64,6 +64,11 @@ export const accountKeys = {
   adminAuditFor: (filter: object, pages: number) => ['admin', 'audit', filter, pages] as const,
   adminIntakeSources: ['admin', 'intake', 'sources'] as const,
   adminIntakeReview: ['admin', 'intake', 'review'] as const,
+  /** Everything read about pairs of plants that may be one: the lists, one pair, the plants near one. */
+  adminPlantPairs: ['admin', 'plants'] as const,
+  adminPlantPairList: (list: string, state: string | null, offset: number) => ['admin', 'plants', 'pairs', list, state, offset] as const,
+  adminPlantPair: (a: string, b: string) => ['admin', 'plants', 'pair', a, b] as const,
+  adminPlantsNear: (id: string, q: string) => ['admin', 'plants', 'near', id, q] as const,
 };
 
 /** What anyone can read. */

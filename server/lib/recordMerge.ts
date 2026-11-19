@@ -7,12 +7,15 @@ import { rowsOf } from './rows.js';
 import { recordMerged } from './provenance.js';
 import { mergeMakes } from './makes.js';
 import { mergeVersionSkills, moveVersions } from './versions.js';
+import { mergePlants } from './plantPairs.js';
 
 /**
- * Merging one record into another of its kind: a company, a career or a
- * skill. It follows the row moves of the data cleanup
+ * Merging one record into another of its kind. A company, a career or a
+ * skill follows the row moves of the data cleanup
  * (scripts/build-cleanup-sql.mjs), in one transaction, and writes its line in
- * the audit log.
+ * the audit log. A plant is merged by the database (plant_merge, migration
+ * 0051), which keeps the kept row's facts and takes the other's where its
+ * own are empty: see plantPairs.ts.
  */
 
 export interface MergeResult {
@@ -20,16 +23,23 @@ export interface MergeResult {
   merged: { id: string; name: string };
   /** What now points at the kept record instead. */
   moved: Attached;
+  /** Plants: the facts the kept row took from the other. */
+  took?: string[];
 }
 
 /**
  * Merge `fromId` into `intoId`: everything that pointed at the first points
- * at the second, the first's name is kept as another name for the second,
- * and the first is deleted. Factories are not merged. Throws RecordRefusal.
+ * at the second, the first's name is kept as another name for the second
+ * (a plant has no other names: the merge history keeps it), and the first is
+ * deleted. Throws RecordRefusal.
  */
 export async function mergeRecords(kind: RecordKind, fromId: string, intoId: string, actor: Actor): Promise<MergeResult> {
-  if (kind === 'factory') throw new RecordRefusal(400, 'Factories are not merged. Delete the one that is wrong.');
   if (fromId === intoId) throw new RecordRefusal(400, 'Choose a different record to merge into.');
+  // A plant is merged by the database's own function, the one the cleanup and intake call (plantPairs.ts).
+  if (kind === 'factory') {
+    const merged = await mergePlants(fromId, intoId, actor);
+    return { kept: { ...merged.kept, href: `/factories/${merged.kept.id}` }, merged: merged.merged, moved: merged.moved, took: merged.took };
+  }
   const table = kind === 'company' ? sql`companies` : kind === 'career' ? sql`occupations` : sql`skills`;
   const nameColumn = kind === 'career' ? sql`title` : sql`name`;
 

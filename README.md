@@ -53,10 +53,10 @@ Four kinds. Run all of them before merging.
 |---|---|---|
 | Static | `npm run typecheck` and `npm run lint` | Types; ESLint with no `any`; `.js` endings on server imports; colours from theme tokens only; the page's inline scripts against the Content-Security-Policy |
 | Unit | `npm run test:unit` | The pure functions: pins packed and unpacked, names, industries and a company's industry, paging, LIKE escaping and reading rows, account purpose and View as, when a build migrates, the statistics adapter, the employer loader's generator, the skill taxonomy's check. Also that the migration list is in order, and that the skills catalogue, the skill taxonomy, the company domains and the stored logos agree with what was generated from them |
-| API | `bash tests/api/accounts.sh`, `jobs.sh`, `seeker.sh`, `admin.sh`, `email.sh`, `industries.sh`, `careers.sh`, `versions.sh`, `intake.sh`, `loader.sh`, `catalogue.sh` | Accounts, roles, invites, records, jobs, applications, reach, the industry pages, and the email and notices people get, end to end over HTTP, including every refusal; and the employer loader, research files in, companies and plants out |
+| API | `bash tests/api/accounts.sh`, `jobs.sh`, `seeker.sh`, `admin.sh`, `email.sh`, `industries.sh`, `careers.sh`, `versions.sh`, `intake.sh`, `dupes.sh`, `loader.sh`, `catalogue.sh`, `paths.sh` | Accounts, roles, invites, records, jobs, applications, reach, the industry pages, and the email and notices people get, end to end over HTTP, including every refusal; and the employer loader, research files in, companies and plants out |
 | Pages | `npm run test:ui` | Playwright: the map, Explore and its tabs, the header, jobs, sign-in, settings signed out, each kind of record's page, the industry pages, search, the tools a seeker and an employer are each given, a read that gets no answer giving up, and an admin's change reaching the map's panel, on seven device sizes, with no sideways scroll and no crash |
 
-The API suites are local only. They need the dev server running against a database with data in it, and `psql`, `curl` and `node` on the PATH; they create and remove their own accounts and records. `loader.sh` and `catalogue.sh` are the exceptions: they need only the database (`DB`), not the server. What the suites share (one request, a check, the refusal of an API that is not on this machine) is in `tests/api/lib.sh`.
+The API suites are local only. They need the dev server running against a database with data in it, and `psql`, `curl` and `node` on the PATH; they create and remove their own accounts and records. `loader.sh`, `catalogue.sh` and `paths.sh` are the exceptions: they need only the database (`DB`), not the server. What the suites share (one request, a check, the refusal of an API that is not on this machine) is in `tests/api/lib.sh`.
 
 ```bash
 API=http://localhost:3000/api DB="$DATABASE_URL" bash tests/api/accounts.sh
@@ -91,6 +91,8 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
 
   `scripts/enrich-naics.mjs` filled in missing industry codes from EPA's public export; the intake runner's `epa-echo` source below replaces it.
 
+- **Plants listed twice** are merged by migration 0051 where it is certain (one plant and one company) and listed in Admin Tools, Data, where it is not. Before it ships, and after any change to its rules, rehearse it on a copy of production: `node scripts/build-duplicates-sql.mjs --rehearse --out rehearsal.sql`, run the file on one connection, read the summary and the lines marked for a look. It undoes itself.
+
 - **Large public sources**, through the intake runner, outside the deploy: `scripts/ingest/run.mjs` stages what a source says, decides which plant each record is (by the source's own id first), writes ids and facts by rank, and can take a run back. A rehearsal does the whole run in a transaction that is rolled back and prints what it would do.
 
   ```bash
@@ -117,7 +119,7 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
 
   | List | File | Script |
   |---|---|---|
-  | Career paths | `data/paths/*.json` | `build-paths-sql.mjs` |
+  | Career paths | `data/careers/paths.json` | `build-career-paths-sql.mjs` |
   | Company profiles: domain, featured, description | `data/companies/profiles.json` | `build-company-profiles-sql.mjs`, `build-company-descriptions-sql.mjs` |
   | Web domains for more companies | `data/companies/domains.json`, `data/companies/domains-2.json` | `build-domains-sql.mjs` |
   | Careers, their home domains and ladders | `data/careers/catalogue.json` | `build-careers-sql.mjs` |
@@ -127,7 +129,8 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   | Cleanups: records deleted, merged, renamed | `data/cleanup/*.json` | `build-cleanup-sql.mjs` |
 
   ```bash
-  node scripts/build-paths-sql.mjs data/paths/technical-core-3.json migrations/00NN_career_paths.sql
+  node scripts/build-career-paths-sql.mjs --check
+  node scripts/build-career-paths-sql.mjs data/careers/paths.json data/careers/catalogue.json data/skills/catalogue.json data/skills/taxonomy.json migrations/00NN_career_paths.sql   # never changes a path a person approved
   ```
 
   The path, profile and domain migrations match records by exact name, create no companies or careers, and never overwrite a value set by hand or a path a person has approved. A migration that has been applied is not edited: a later change is a change to the JSON and a new generated migration.

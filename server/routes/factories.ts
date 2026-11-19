@@ -236,6 +236,16 @@ router.get('/:id', async (req: Request, res: Response) => {
       .where(and(eq(factories.id, id), factoryInScope()));
 
     if (factoryResult.length === 0) {
+      // A plant that was merged into another: its old address leads to the one kept (record_merges).
+      const [now] = rowsOf<{ id: string }>(
+        await db.execute(sql`
+          SELECT f.id FROM record_merges m JOIN factories f ON f.id = record_now('factory', m.from_id)
+          WHERE m.kind = 'factory' AND m.from_id = ${id} AND ${factoryInScope('f')}`)
+      );
+      if (now) {
+        res.redirect(301, `/api/factories/${now.id}`);
+        return;
+      }
       res.status(404).json({ error: 'Plant not found' });
       return;
     }

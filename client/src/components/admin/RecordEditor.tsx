@@ -14,6 +14,9 @@ import HistoryList, { attachedWords } from './HistoryList';
 import PathEditor from './PathEditor';
 import MakesEditor from './MakesEditor';
 import RecordForm from './RecordForm';
+import Picker from './Picker';
+import { PairCard } from './PlantPairs';
+import { usePlantPair, usePlantsNear } from '../../lib/plantPairs';
 
 const KIND_WORD: Record<RecordKind, string> = { company: 'company', factory: 'plant', career: 'career', skill: 'skill' };
 const PAGE_WORD: Record<RecordKind, string> = { company: 'Company page', factory: 'Plant page', career: 'Career page', skill: 'Skill page' };
@@ -26,7 +29,8 @@ function movedWords(record: RecordView): string {
 
 /**
  * One record, corrected in one place: its fields, a career's path, a skill's makes, merging
- * it into another, deleting it, and the history of what admins did to it.
+ * it into another (a plant: with another row of the same plant, side by
+ * side), deleting it, and the history of what admins did to it.
  * Opened from Admin Tools → Data, or by Edit on the record's own page.
  */
 export default function RecordEditor({ kind, id }: { kind: RecordKind; id: string }) {
@@ -103,7 +107,7 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
 
       {kind === 'skill' && <MakesEditor record={data} onChanged={() => record.refetch()} />}
 
-      {kind !== 'factory' && <MergeSection record={data} />}
+      {kind === 'factory' ? <PlantMergeSection record={data} /> : <MergeSection record={data} />}
 
       <PageSection title="History">
         <HistoryList filter={{ kind, record: id }} ownRecord />
@@ -181,6 +185,86 @@ function MergeSection({ record }: { record: RecordView }) {
   );
 }
 
+/** How many likely rows are offered before anything is typed. */
+const LIKELY_SHOWN = 3;
+
+/**
+ * Merging a plant with another row that is the same plant. The other row is
+ * found among the company's plants and the ones near by (the likeliest are
+ * offered at once); then both are set side by side, with the row to keep
+ * chosen there. A plant has no other names: the row that is kept keeps its
+ * own name and takes the facts it lacks.
+ */
+function PlantMergeSection({ record }: { record: RecordView }) {
+  const navigate = useNavigate();
+  const [other, setOther] = useState<FoundRecord | null>(null);
+  const likely = usePlantsNear(record.id, '');
+  const pair = usePlantPair(record.id, other?.id ?? null);
+  const useOptions = (term: string) => usePlantsNear(record.id, term, term.length >= 2);
+  const offered = (likely.data ?? []).slice(0, LIKELY_SHOWN);
+
+  return (
+    <PageSection
+      title="Merge"
+      description="When this is the same plant as another row. One row is kept: it takes the facts it lacks from the other, and everything attached moves to it."
+    >
+      <div className={cn(cardClass, 'p-4 sm:p-5')} data-plant-merge>
+        <label htmlFor="merge-with" className="mb-1.5 block text-sm font-medium text-fg-muted">
+          The other row
+        </label>
+        <div className="max-w-[28rem]">
+          <Picker<FoundRecord>
+            id="merge-with"
+            value={other}
+            onChange={setOther}
+            useOptions={useOptions}
+            placeholder="Plant name"
+            listLabel="Plants"
+            detail={(option) => option.detail}
+            excludeId={record.id}
+          />
+        </div>
+        <p className="mt-1.5 text-xs text-fg-muted">Plants of the same company, and any within two kilometres.</p>
+        {!other && offered.length > 0 && (
+          <ul className="mt-3 max-w-[28rem] rounded-lg border border-border-subtle" aria-label="Likely rows" data-plant-merge-likely>
+            {offered.map((option) => (
+              <li key={option.id} className="border-t border-border-subtle first:border-t-0">
+                <button
+                  type="button"
+                  onClick={() => setOther(option)}
+                  className="block w-full rounded-lg px-3 py-2 text-left transition-colors hover:bg-bg-elevated"
+                >
+                  <span className="block break-words text-sm text-fg-default">{option.name}</span>
+                  {option.detail && <span className="block break-words text-xs text-fg-muted">{option.detail}</span>}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {other && (
+        <div className="mt-3">
+          {pair.isPending ? (
+            <RowsSkeleton rows={2} />
+          ) : pair.isError ? (
+            <LoadError error={pair.error} onRetry={() => void pair.refetch()} retrying={pair.isFetching} />
+          ) : (
+            <PairCard
+              key={`${pair.data.a.id}:${pair.data.b.id}:${pair.data.apart}`}
+              pair={pair.data}
+              onMerged={(kept) => {
+                setOther(null);
+                // The row that was kept is the one to go on correcting.
+                if (kept.id !== record.id) navigate(editPath('factory', kept.id), { replace: true });
+              }}
+            />
+          )}
+        </div>
+      )}
+    </PageSection>
+  );
+}
+
 function DeleteSection({ record }: { record: RecordView }) {
   const navigate = useNavigate();
   const notice = useAdminNotice();
@@ -211,7 +295,7 @@ function DeleteSection({ record }: { record: RecordView }) {
               <span className="font-medium text-fg-default">{record.name}</span>
             </p>
             <p data-delete-takes>{going ? `Goes with it: ${going}.` : 'Nothing else is attached to it.'}</p>
-            <p>Cannot be undone.{record.kind !== 'factory' ? ' If it is a duplicate, merge it instead.' : ''}</p>
+            <p>Cannot be undone. If it is a duplicate, merge it instead.</p>
           </>
         }
         confirmLabel={`Delete ${word}`}

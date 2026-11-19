@@ -156,7 +156,7 @@ expect "the overview's companies carry one of the 21, or none" true "$(get /expl
 R=$(get '/occupations?limit=100')
 expect "careers with a path, then the most skills" ok "$(printf '%s' "$R" | j "o.data.every((c,i,a)=>i===0||(!a[i-1].pathStatus)<(!c.pathStatus)||((!a[i-1].pathStatus)===(!c.pathStatus)&&a[i-1].skillCount>=c.skillCount))?'ok':'out of order'")"
 expect "a career with a path counts its skills at each level" true "$(printf '%s' "$R" | j "o.data.some(c=>c.pathStatus) && o.data.filter(c=>c.pathStatus).every(c=>Array.isArray(c.levelCounts)&&c.levelCounts.length===3&&c.levelCounts.reduce((a,b)=>a+b,0)===c.skillCount)")"
-expect "the last page is the careers with no skills" 0 "$(get "/occupations?limit=1&offset=$(( $(sql 'SELECT COUNT(*) FROM occupations') - 1 ))" | j 'o.data[0].skillCount')"
+expect "the last page is the career with the fewest skills" "$(sql "SELECT n FROM (SELECT o.path_status, (SELECT COUNT(*) FROM occupation_skills os WHERE os.occupation_id=o.id) AS n FROM occupations o) x ORDER BY (path_status IS NULL) DESC, n LIMIT 1")" "$(get "/occupations?limit=1&offset=$(( $(sql 'SELECT COUNT(*) FROM occupations') - 1 ))" | j 'o.data[0].skillCount')"
 expect "sort=name is the plain name order"    "$(sql "SELECT title FROM occupations ORDER BY lower(title), id LIMIT 1")" "$(get '/occupations?sort=name&limit=1' | j 'o.data[0].title')"
 expect "and backwards"                        "$(sql "SELECT title FROM occupations ORDER BY lower(title) DESC, id LIMIT 1")" "$(get '/occupations?sort=name&order=desc&limit=1' | j 'o.data[0].title')"
 

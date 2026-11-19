@@ -46,7 +46,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: npm }
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # The browser for the device suite. `--with-deps` also asks the system's
+      # package mirrors for fonts the suite does not need; when the mirrors are
+      # down (they answered 503 for one whole run) the browser alone is enough.
+      - name: Browser for the device suite
+        run: npx playwright install --with-deps chromium || npx playwright install chromium
       - name: Postgres client tools
         run: (command -v psql && command -v createdb) || (sudo apt-get update && sudo apt-get install -y postgresql-client)
       # From template0, so the database is empty whatever the image put in its
