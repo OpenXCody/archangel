@@ -11,7 +11,7 @@ const ASKS = new Set(['duties', 'required', 'preferred']);
 // Three letters that are something else in the same postings (a serial bus, a
 // continuous improvement programme, the Department of Energy, a building's
 // management system …): these need a neighbour from their own skill group.
-const ALSO_MEANS = new Set(['SPI', 'CIP', 'PMI', 'BMS', 'ATL', 'TIM', 'OPC', 'DFT', 'MSA', 'FMC', 'TFM', 'ICP', 'HIP', 'SLM', 'RTP', 'FDC', 'SDS', 'DOE', 'DCS', 'NCR', 'ALD']);
+const ALSO_MEANS = new Set(['SPI', 'CIP', 'PMI', 'BMS', 'ATL', 'TIM', 'OPC', 'DFT', 'MSA', 'FMC', 'TFM', 'ICP', 'HIP', 'SLM', 'RTP', 'FDC', 'SDS', 'DOE', 'DCS', 'NCR', 'ALD', 'ICT']);
 // A sentence outside those parts still asks when it speaks to the person hired.
 const SPEAKS_OF_THE_JOB = /\byou will\b|\byou.ll\b|responsible for|this (role|position)|the (successful |ideal |selected )?(candidate|technician|engineer|operator|inspector|machinist|welder|mechanic|assembler)\b.*\b(will|must|should)\b|\bexperience (with|in|using|operating|performing)\b|\bmust (have|be able|possess)\b|\bability to\b|\bproficien|\bknowledge of\b|\bfamiliar(ity)? with\b|\bperforms?\b|\boperates?\b|\bskilled (in|with)\b|\bcertifi/i;
 
@@ -131,10 +131,26 @@ export function assign(found, lines, vocab, path) {
   const pending = [];
   for (const h of hits) {
     const t = h.term;
-    if (t.kind === 'tool' || h.code || t.skills.length > 1) { pending.push(h); continue; }
+    if (t.kind === 'tool' || h.code || t.skills.length > 1 || t.short) { pending.push(h); continue; }
     name(t.skills[0], h.on);
   }
-  // 2. Short codes need a neighbour.
+  const tools = new Map();
+  for (const h of pending) if (h.term.kind === 'tool') { const s = h.term.skills[0]; if (!tools.has(s)) tools.set(s, new Map()); tools.get(s).set(h.term.key, h.on); }
+  // 2. An other name that names a subject wider than its skill ("injection molding",
+  // "electrical design", "brazing") is the skill only with a neighbour: the skill on
+  // the career's path, another skill of its group named in the posting, or a tool or
+  // a make of it.
+  const groupOf = (skill) => vocab.skills.get(skill)?.group;
+  const before = new Set(named.keys());
+  const madeOf = new Set(makeHits.flatMap((m) => m.make.skills));
+  for (const h of pending) {
+    if (!h.term.short || h.code || h.term.kind === 'tool') continue;
+    const near = h.term.skills.filter((s) => onPath.has(s) || tools.has(s) || madeOf.has(s) || [...before].some((o) => o !== s && groupOf(o) && groupOf(o) === groupOf(s)));
+    if (!near.length) continue;
+    const to = near.length === 1 ? near[0] : near.find((x) => onPath.has(x));
+    if (to) name(to, h.on);
+  }
+  // 3. Short codes need a neighbour.
   const categoryOf = (skill) => vocab.skills.get(skill)?.category;
   const lineStems = new Map();
   const stemsOf = (lineNo) => {
@@ -170,7 +186,7 @@ export function assign(found, lines, vocab, path) {
     return sameLine(!strict);
   };
   const goodCodes = codes.filter(codeOk);
-  // 3. A term that could be several skills goes to the one the posting also names,
+  // 4. A term that could be several skills goes to the one the posting also names,
   // else to the one on the career's path, else to the first the catalogue lists.
   const choose = (skills) => {
     const also = skills.filter((s) => named.has(s));
@@ -183,13 +199,11 @@ export function assign(found, lines, vocab, path) {
     return groups.size === 1 ? skills[0] : null;
   };
   for (const h of goodCodes) if (h.term.skills.length === 1) name(h.term.skills[0], h.on);
-  for (const h of [...goodCodes, ...pending.filter((p) => !p.code && p.term.kind !== 'tool')]) if (h.term.skills.length > 1) { const to = choose(h.term.skills); if (to) name(to, h.on); }
-  // 4. Tools: a tool names its skill only on the career's path, or with a second tool of it.
-  const tools = new Map();
-  for (const h of pending) if (h.term.kind === 'tool') { const s = h.term.skills[0]; if (!tools.has(s)) tools.set(s, new Map()); tools.get(s).set(h.term.key, h.on); }
+  for (const h of [...goodCodes, ...pending.filter((p) => !p.code && p.term.kind !== 'tool' && !p.term.short)]) if (h.term.skills.length > 1) { const to = choose(h.term.skills); if (to) name(to, h.on); }
+  // 5. Tools: a tool names its skill only on the career's path, or with a second tool of it.
   for (const [skill, set] of tools) if (!named.has(skill) && (onPath.has(skill) || set.size >= 2)) name(skill, [...set.values()].slice(0, 2).join(', '));
 
-  // 5. Makes.
+  // 6. Makes.
   const makes = [];
   const made = new Set();
   const byLine = new Map();

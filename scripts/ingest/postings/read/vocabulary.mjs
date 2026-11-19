@@ -108,6 +108,33 @@ const TAILS = ['operation', 'operations', 'use', 'measurement', 'reading', 'writ
 
 const isAcronym = (t) => /^[A-Z0-9][A-Za-z0-9&/+-]*$/.test(t) && /[A-Z]/.test(t) && t.replace(/[^A-Z]/g, '').length >= Math.ceil(t.replace(/[^A-Za-z]/g, '').length * 0.6) && t.length <= 6 && !/\s/.test(t);
 
+// Words that say the doing rather than the thing done.
+const DOING = new Set([...TAILS, 'assembly']);
+const doing = (w) => DOING.has(w) || /ing$/.test(w);
+const plainWords = (t) => t.toLowerCase().split(/[^a-z0-9&]+/).filter((w) => w && w !== 'and');
+
+/**
+ * An other name that is its skill's name with a telling word left out names a
+ * subject wider than the skill: "Injection Molding" for Injection Molding Machine
+ * Operation, "Electrical Design" for Electrical Controls Design, "Brazing" for
+ * Torch Brazing. It is right for a person's search and too little to go on in a
+ * posting, so there it needs a neighbour (skills.mjs). A name that leaves out
+ * only the doing ("3D CAD" for 3D CAD Modeling) or one side of an "and"
+ * ("Scripting" for Data Analysis and Scripting) is the skill. So is one word
+ * in -ing that the skill's name does not have ("Indicating").
+ */
+function shortened(alias, name) {
+  if (isAcronym(alias)) return false;
+  const a = plainWords(alias);
+  const n = plainWords(name);
+  const has = (w, list) => list.some((x) => stem(x) === stem(w));
+  if (a.length === 1 && /ing$/.test(a[0]) && !has(a[0], n)) return true;
+  if (!a.every((w) => has(w, n)) || a.length >= n.length) return false;
+  // Each side of an "and" by its telling words; a side that is all doing ("Scripting") by all of them.
+  const sides = name.split(/\s+and\s+/i).map((side) => { const w = plainWords(side); const tells = w.filter((x) => !doing(x)); return tells.length ? tells : w; });
+  return !sides.some((side) => side.every((w) => has(w, a)));
+}
+
 function distinctive(words) {
   // A cut-down name stands for its skill only if a word of it is long and says
   // something, and a single word only if it names a thing (not "ultrasonic", "sterility").
@@ -130,19 +157,21 @@ function buildSkills(root) {
   // 'head' (a name without its tail; may belong to several skills), 'acronym',
   // 'tool'. skills: the skills the term can mean, in catalogue order.
   const terms = new Map();
-  const put = (text, kind, skill) => {
+  const put = (text, kind, skill, short = false) => {
     const t = text.trim();
     if (!t) return;
     const acr = isAcronym(t);
     const key = acr ? `=${t}` : squashTerm(t);
     if (!key || (!acr && key.length < 4)) return;
     // "Wave and Selective Soldering" is also written "wave/selective soldering".
-    if (!acr && / and /i.test(t) && !/ and .* and /i.test(t)) put(t.replace(/ and /i, ' '), kind, skill);
+    if (!acr && / and /i.test(t) && !/ and .* and /i.test(t)) put(t.replace(/ and /i, ' '), kind, skill, short);
     let e = terms.get(key);
-    if (!e) { e = { key, text: t, kind, acronym: acr, skills: [], words: t.split(/\s+/).length }; terms.set(key, e); }
+    if (!e) { e = { key, text: t, kind, acronym: acr, skills: [], words: t.split(/\s+/).length, short: true }; terms.set(key, e); }
     // A term found two ways keeps the surer one, and only the skills found that way.
-    else if (rank(kind) < rank(e.kind)) { e.kind = kind; e.text = t; e.skills = []; }
+    else if (rank(kind) < rank(e.kind)) { e.kind = kind; e.text = t; e.skills = []; e.short = true; }
     else if (rank(kind) > rank(e.kind)) return;
+    // Short for every skill it is a name of, or not short.
+    if (!short) e.short = false;
     if (!e.skills.includes(skill)) e.skills.push(skill);
   };
   const rank = (k) => ({ name: 0, head: 1, tool: 2 })[k];
@@ -150,7 +179,7 @@ function buildSkills(root) {
   for (const s of catalogue.skills) {
     const all = [s.name, ...(s.aliases ?? [])];
     for (const n of all) {
-      put(n, 'name', s.name);
+      put(n, 'name', s.name, n !== s.name && shortened(n, s.name));
       // "Lockout Tagout" is also written with a slash; "5S Workplace Organization" as "5S".
       const words = n.split(/\s+/);
       const tail = words[words.length - 1].toLowerCase();

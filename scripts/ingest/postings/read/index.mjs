@@ -18,9 +18,19 @@ export function loadVocabulary(root) {
   return buildVocabulary(root);
 }
 
+// A country as feeds write it: the United States, or somewhere else.
+const UNITED_STATES = new Set(['us', 'usa', 'u s', 'u s a', 'united states', 'united states of america', 'america']);
+const abroad = (country) => {
+  const c = String(country ?? '').toLowerCase().replace(/[^a-z]+/g, ' ').trim();
+  return c !== '' && !UNITED_STATES.has(c);
+};
+
 /**
  * One posting, read. Pure.
- * posting = { employer, title, location, department?, text, postedAt? }
+ * posting = { employer, title, location, department?, text, postedAt?, country? }
+ * country is given only where the feed has one of its own. A posting whose
+ * country is not the United States has no place, whatever its location looks
+ * like: "Amsterdam, NH" is North Holland, not New Hampshire.
  */
 export function readPosting(posting, vocab) {
   // The text is only gone through when the title could be a career: four postings
@@ -34,12 +44,13 @@ export function readPosting(posting, vocab) {
     }
     return read;
   };
+  const places = (lines) => (abroad(posting.country) ? [] : readPlaces(posting.location, posting.title, lines));
   const decided = decideCareer(posting, text, vocab);
   if (!decided.career) {
     return {
       career: null,
       level: null,
-      places: readPlaces(posting.location, posting.title, () => text().lines),
+      places: places(() => text().lines),
       skills: [],
       makes: [],
       requirements: { yearsMin: null, yearsMax: null, education: null, certifications: [], clearance: null, citizenship: null, shift: null, employmentType: null },
@@ -53,7 +64,7 @@ export function readPosting(posting, vocab) {
   return {
     career: decided.career,
     level: decided.level,
-    places: readPlaces(posting.location, posting.title, () => lines),
+    places: places(() => lines),
     skills,
     makes,
     requirements: readRequirements(posting, lines, decided.shift),
