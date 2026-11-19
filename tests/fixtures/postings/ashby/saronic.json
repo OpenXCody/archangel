@@ -1,0 +1,182 @@
+{
+ "jobs": [
+  {
+   "id": "da72b14c-4473-4df0-ba3f-08afd772a6ea",
+   "title": "Manufacturing Engineer",
+   "department": "Manufacturing",
+   "team": "Manufacturing Eng",
+   "employmentType": "FullTime",
+   "location": "Franklin, LA",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [
+    {
+     "location": "New Orleans, LA",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "Louisiana",
+       "addressCountry": "United States",
+       "addressLocality": "New Orleans"
+      }
+     }
+    }
+   ],
+   "publishedAt": "2026-02-09T23:28:04.450+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "Louisiana",
+     "addressCountry": "United States",
+     "addressLocality": "Franklin"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/saronic/da72b14c-4473-4df0-ba3f-08afd772a6ea",
+   "applyUrl": "https://jobs.ashbyhq.com/saronic/da72b14c-4473-4df0-ba3f-08afd772a6ea/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\">Saronic Technologies is a leader in revolutionizing autonomy at sea, dedicated to developing state-of-the-art solutions that enhance maritime operations through autonomous and intelligent platforms.</p><p style=\"min-height:1.5em\"></p><p style=\"min-height:1.5em\"><strong>Job Summary:</strong></p><ul style=\"min-height:1.5em\"><li><p …",
+   "descriptionPlain": "Saronic Technologies is a leader in revolutionizing autonomy at sea, dedicated to developing state-of-the-art solutions that enhance maritime operations through autonomous and intelligent platforms.\n\n\n\nJob Summary:\n\n - We are seeking a Manufacturing Engineer to ensure the implementation of new tooling, new processes, and scaling our maritime Autonomous …",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "bee16057-c1f1-43f1-aef8-e596108964b9",
+   "title": "Welder",
+   "department": "Manufacturing",
+   "team": "Production - LA",
+   "employmentType": "FullTime",
+   "location": "Franklin, LA",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-03-11T19:43:46.534+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "Louisiana",
+     "addressCountry": "United States",
+     "addressLocality": "Franklin"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/saronic/bee16057-c1f1-43f1-aef8-e596108964b9",
+   "applyUrl": "https://jobs.ashbyhq.com/saronic/bee16057-c1f1-43f1-aef8-e596108964b9/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\">Saronic Technologies is a leader in revolutionizing autonomy at sea, dedicated to developing state-of-the-art solutions that enhance maritime operations through autonomous and intelligent platforms.</p><p style=\"min-height:1.5em\"></p><h1><strong>Technical Knowledge/Job Summary</strong></h1><ul style=\"min-height:1.5em\"><li><p …",
+   "descriptionPlain": "Saronic Technologies is a leader in revolutionizing autonomy at sea, dedicated to developing state-of-the-art solutions that enhance maritime operations through autonomous and intelligent platforms.\n\n\n\n\nTECHNICAL KNOWLEDGE/JOB SUMMARY\n\n - Understand weld symbols\n\n - Read, interpret, and follow blueprints and sketches to understand the specifications of a …",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "ff3875c5-3dcb-4f9f-8614-c69345a857a8",
+   "title": "Quality Engineer",
+   "department": "Manufacturing",
+   "team": "Quality",
+   "employmentType": "FullTime",
+   "location": "Austin, TX",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-09-28T13:43:00.951+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "Texas",
+     "addressCountry": "United States",
+     "addressLocality": "Austin"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/saronic/ff3875c5-3dcb-4f9f-8614-c69345a857a8",
+   "applyUrl": "https://jobs.ashbyhq.com/saronic/ff3875c5-3dcb-4f9f-8614-c69345a857a8/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\">Saronic Technologies is a leader in revolutionizing autonomy at sea, dedicated to developing state-of-the-art solutions that enhance maritime operations through autonomous and intelligent platforms.</p><p style=\"min-height:1.5em\"></p><h1><strong>Job Overview</strong></h1><p style=\"min-height:1.5em\">We are seeking a …",
+   "descriptionPlain": "Saronic Technologies is a leader in revolutionizing autonomy at sea, dedicated to developing state-of-the-art solutions that enhance maritime operations through autonomous and intelligent platforms.\n\n\n\n\nJOB OVERVIEW\n\nWe are seeking a detail-oriented and experienced Quality Engineer to join our team. In this role, you will be primarily responsible for …",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "0877a61d-023a-476f-a709-e85fc7c25ad0",
+   "title": "Deputy Program Manager, Engineering Services",
+   "department": "Business Development",
+   "team": "Programs",
+   "employmentType": "FullTime",
+   "location": "Virginia Beach, VA",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-11-03T20:08:02.352+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "Virginia",
+     "addressCountry": "United States",
+     "addressLocality": "Virginia Beach"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/saronic/0877a61d-023a-476f-a709-e85fc7c25ad0",
+   "applyUrl": "https://jobs.ashbyhq.com/saronic/0877a61d-023a-476f-a709-e85fc7c25ad0/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\">Saronic Technologies is a leader in revolutionizing autonomy at sea, dedicated to developing state-of-the-art solutions that enhance maritime operations through autonomous and intelligent platforms.</p><p style=\"min-height:1.5em\"></p><h1><strong>Job Overview</strong></h1><p style=\"min-height:1.5em\">Saronic Technologies is seeking …",
+   "descriptionPlain": "Saronic Technologies is a leader in revolutionizing autonomy at sea, dedicated to developing state-of-the-art solutions that enhance maritime operations through autonomous and intelligent platforms.\n\n\n\n\nJOB OVERVIEW\n\nSaronic Technologies is seeking a Deputy Program Manager to lead the execution of small Unmanned Surface Vessel (sUSV) Mission Package …",
+   "compensation": {
+    "compensationTierSummary": "$120K – $150K • Offers Equity",
+    "scrapeableCompensationSalarySummary": "$120K - $150K",
+    "compensationTiers": [
+     {
+      "id": "2da6d373-75fd-4d7b-b4c6-70af79f0d44a",
+      "tierSummary": "$120K – $150K • Offers Equity",
+      "title": "Virginia Beach, VA",
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "d714e96f-f0bd-483c-902b-ddb0a87f77f4",
+        "summary": "$120K – $150K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 120000,
+        "maxValue": 150000
+       },
+       {
+        "id": "359eaceb-63c1-470c-8594-291856836d31",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 120000,
+      "maxValue": 150000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   }
+  }
+ ],
+ "apiVersion": "1"
+}

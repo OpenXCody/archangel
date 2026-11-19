@@ -141,10 +141,14 @@ export function JobRows({ jobs, limit, company = false }: { jobs: CareerJob[]; l
         >
           <span className="min-w-0">
             <span className="block truncate text-sm text-fg-default">{job.title}</span>
-            <span className="block truncate text-xs text-fg-muted">
-              {company && job.companyName ? `${formatCompanyName(job.companyName)} · ` : ''}
-              {formatPay(job.payMin, job.payMax, job.payPeriod)}
-            </span>
+            {/* The company where the panel is not one company's, then the pay where the posting states it: what is not said is not said. */}
+            {(() => {
+              const line = [
+                company && job.companyName ? formatCompanyName(job.companyName) : null,
+                job.payMin !== null && job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null,
+              ].filter(Boolean);
+              return line.length > 0 ? <span className="block truncate text-xs text-fg-muted">{line.join(' · ')}</span> : null;
+            })()}
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" aria-hidden="true" />
         </Link>

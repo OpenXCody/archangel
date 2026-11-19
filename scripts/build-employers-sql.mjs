@@ -490,7 +490,8 @@ async function main() {
     else if (arg === '--all') everything = true;
     else if (arg === '--check') check = true;
     else if (arg.startsWith('--')) throw new Error(`unknown option ${arg}`);
-    else if (path.basename(arg) !== 'corrections.json') inputs.push(arg);
+    // Not research files: our corrections, and the registry of job boards (scripts/ingest/postings/registry.mjs).
+    else if (path.basename(arg) !== 'corrections.json' && path.basename(arg) !== 'boards.json') inputs.push(arg);
   }
   if (inputs.length === 0) {
     console.error('usage: node scripts/build-employers-sql.mjs [--out file.sql] [--check | --rehearse [--all] [--schema file.sql]] [--with file.json] <file.json...>');
@@ -505,7 +506,7 @@ async function main() {
     for (const name of await readdir(dir)) {
       const file = path.join(dir, name);
       if (name === 'corrections.json') correctionPaths.add(file);
-      else if (name.endsWith('.json') && !inputPaths.has(file)) knownPaths.add(file);
+      else if (name.endsWith('.json') && name !== 'boards.json' && !inputPaths.has(file)) knownPaths.add(file);
     }
   }
   // Our corrections to the research (data/employers/corrections.json), laid over every file.

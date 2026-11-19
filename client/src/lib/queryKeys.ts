@@ -35,6 +35,7 @@ export const accountKeys = {
   jobs: ['jobs'] as const,
   jobLists: ['jobs', 'list'] as const,
   jobList: (filters: JobFilters) => ['jobs', 'list', filters] as const,
+  jobsSummary: ['jobs', 'summary'] as const,
   jobDetails: ['jobs', 'detail'] as const,
   job: (id: string) => ['jobs', 'detail', id] as const,
   jobApplicants: ['jobs', 'applicants'] as const,
@@ -64,6 +65,9 @@ export const accountKeys = {
   adminAuditFor: (filter: object, pages: number) => ['admin', 'audit', filter, pages] as const,
   adminIntakeSources: ['admin', 'intake', 'sources'] as const,
   adminIntakeReview: ['admin', 'intake', 'review'] as const,
+  /** Employers' job postings: each employer's latest run, and the places that wait for a plant. */
+  adminPostings: ['admin', 'postings'] as const,
+  adminPostingPlaces: ['admin', 'postings', 'places'] as const,
   /** Everything read about pairs of plants that may be one: the lists, one pair, the plants near one. */
   adminPlantPairs: ['admin', 'plants'] as const,
   adminPlantPairList: (list: string, state: string | null, offset: number) => ['admin', 'plants', 'pairs', list, state, offset] as const,

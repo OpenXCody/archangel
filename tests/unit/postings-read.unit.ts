@@ -165,6 +165,10 @@ test('every way a level is written', () => {
   // A word and a numeral together is the word's level; two offered is the lower.
   assert.equal(level('Senior Electrical Engineer II'), 'Senior/3');
   assert.equal(level('Test Engineer II/Senior Test Engineer'), 'II/2');
+  // Two level words side by side are one level, the higher; a span of levels is none in particular.
+  assert.equal(level('Sr. Principal CNC Programmer'), 'Principal/4');
+  assert.equal(level('Senior Staff Test Engineer - Reliability'), 'Staff/4');
+  assert.equal(level('Mechanical Engineer (Associate to Principal)'), null);
   // The employer's own grade keeps its code.
   assert.equal(level('Machinist (Grade 9)'), 'Grade 9/3');
   assert.equal(level('Test Technician T3'), 'T3/3');
@@ -309,7 +313,19 @@ test('requirements are read as facts', () => {
     'Preferred:', '- Bachelor’s degree', '- NADCAP experience', '- Must be able to obtain a Secret clearance',
     'Additional:', '- This is a 2nd shift, full-time position', '- To comply with ITAR you must be a U.S. person',
   ].join('\n')).requirements;
-  assert.deepEqual(a, { yearsMin: 3, yearsMax: 5, education: 'high school', certifications: ['AWS D17.1', 'A&P'], clearance: 'Secret', citizenship: 'U.S. person', shift: 'swing', employmentType: 'full-time' });
+  // What is only wished for is not a requirement: the licence that is "a plus" is left out, the
+  // bachelor's under Preferred is not the schooling, and the clearance there counts because its line says "must".
+  assert.deepEqual(a, { yearsMin: 3, yearsMax: 5, education: 'high school', certifications: ['AWS D17.1'], clearance: 'Secret', citizenship: 'U.S. person', shift: 'swing', employmentType: 'full-time' });
+
+  // A wish is not a requirement, a posting that offers two shifts names neither, and "master scheduling" is not a degree.
+  const wished = read('Manufacturing Engineer', [
+    'Requirements:', '- BS, M.Eng, MS or PhD in engineering', '- 3 years of experience in manufacturing', '- Experience with master scheduling',
+    '- Secret clearance preferred', '- CWI certification is a plus', '- Must be able to work 1st or 2nd shift',
+  ].join('\n')).requirements;
+  assert.deepEqual(wished, { yearsMin: 3, yearsMax: null, education: 'bachelor', certifications: [], clearance: null, citizenship: null, shift: null, employmentType: null });
+  assert.equal(read('CNC Machinist', 'Requirements:\n- Associate’s or Bachelor’s degree\n- 2 years of experience machining').requirements.education, 'associate');
+  assert.equal(read('Welder - Afternoon Shift', 'Requirements:\n- 2 years of experience welding').requirements.shift, 'swing');
+  assert.equal(read('CNC Machinist', 'Requirements:\n- 2 years of experience machining\n- Overtime and weekend shift as needed').requirements.shift, null);
 
   const b = read('Electronics Assembler', [
     'Requirements:', '- Minimum of two (2) years of experience', '- Associate degree in electronics',
@@ -319,7 +335,7 @@ test('requirements are read as facts', () => {
   ].join('\n')).requirements;
   assert.deepEqual(b, {
     yearsMin: 2, yearsMax: null, education: 'associate',
-    certifications: ['IPC J-STD-001', 'IPC-A-610', 'IPC-7711/7721', 'NDT Level II', 'Forklift', 'Six Sigma Green Belt', 'CWI', 'OSHA 30', 'FAA Repairman'],
+    certifications: ['IPC J-STD-001', 'IPC-A-610', 'NDT Level II', 'Forklift', 'Six Sigma Green Belt', 'CWI', 'OSHA 30', 'FAA Repairman'],
     clearance: 'TS/SCI', citizenship: 'U.S. citizen', shift: 'rotating', employmentType: 'temporary',
   });
 

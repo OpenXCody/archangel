@@ -4,7 +4,7 @@ import { db, occupations, occupationSkills, skills, skillDomains, skillGroups, f
 import { comesFrom, findDomain, homeColumns, homeOf, leadsTo } from '../lib/careers.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
-import { listOpenJobs } from '../lib/openJobs.js';
+import { OPEN_JOBS_SHOWN, countOpenJobs, listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, isUuid, optionalText, refuseDeleteWithJobs, requiredText } from '../lib/writes.js';
 import { careerMatch, careerNearMiss, readCareerTerm, withoutLevel, type CareerMatch } from '../lib/careerSearch.js';
@@ -219,7 +219,8 @@ router.get('/:id', async (req: Request, res: Response) => {
       .where(and(eq(factoryOccupations.occupationId, id), factoryInScope()));
 
     // Open jobs for this career at in-scope factories.
-    const jobsResult = await listOpenJobs(eq(jobs.occupationId, id));
+    const jobsResult = await listOpenJobs(eq(jobs.occupationId, id), OPEN_JOBS_SHOWN);
+    const openJobCount = await countOpenJobs(eq(jobs.occupationId, id));
     // The companies that have their own version of this career.
     const versions = await versionsOfCareer(id, 60);
 
@@ -231,6 +232,8 @@ router.get('/:id', async (req: Request, res: Response) => {
       skills: occupationSkillsResult,
       factories: factoriesResult,
       jobs: jobsResult,
+      // How many are open in all: the page lists the newest few and links to the rest.
+      openJobCount,
       versions,
       // Where the work is done, by industry. `everywhere` means the career is
       // found in plants of every industry rather than a few.

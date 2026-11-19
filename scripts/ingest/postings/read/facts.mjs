@@ -92,13 +92,23 @@ function yearsIn(text) {
 
 const EDUCATION = [
   ['doctorate', /\bph\.?\s?d\b|doctorate|doctoral/i],
-  ['master', /\bmaster(?:'|’)?s?\b(?! (electrician|plumber|mechanic|technician|scheduler|data|production|schedule|planner|of ceremonies))|\bm\.s\.|\bMS (degree|in)\b|\bBS\/MS\b|\bmsc\b|\bMBA\b|\bMSEE\b|\bMSME\b|graduate degree|advanced degree/i],
-  ['bachelor', /\bbachelor(?:'|’)?s?\b|\bb\.s\.|\bb\.a\.|\bBS\b(?=[ /,](degree|in|or|\/|MS|BA|\w+ engineering))|\bBS(EE|ME|ET|CS|EET|MET)\b|\bbsc\b|undergraduate degree|(4|four)[- ]year (college |university )?degree|(college|university|engineering) degree|degree in (an? )?(engineering|mechanical|electrical|aerospace|industrial|manufacturing|materials|chemical|computer|physics|chemistry|a technical|a related|technical|related|science|stem)|engineering degree/i],
-  ['associate', /\bassociate(?:'|’)?s?(?:'|’)? (degree|of|in)\b|\bassociates?(?:'|’)?s? degree|\bA\.?A\.?S\.?\b(?= |,|\.)|\bAS(EET|ET)\b|(2|two)[- ]year (college |technical )?degree/i],
+  ['master', /\bmaster(?:'|’)?s?\b(?! (electrician|plumber|mechanic|technician|schedul\w*|data|production|planner|plan|of ceremonies))|\bm\.s\.|\bMS (degree|in)\b|\bBS\/MS\b|\bmsc\b|\bMBA\b|\bMSEE\b|\bMSME\b|graduate degree|advanced degree/i],
+  ['bachelor', /\bbachelor(?:'|’)?s?\b|\bb\.s\.|\bb\.a\.|\bBS\b(?=[ /,](degree|in|or|\/|MS|BA|\w+ engineering))|\bBS\b(?=\s*[,/]\s*(?:M\.?\s?Eng|M\.?S\b|B\.?A\b|Ph\.?\s?D))|\bBS(EE|ME|ET|CS|EET|MET)\b|\bbsc\b|undergraduate degree|(4|four)[- ]year (college |university )?degree|(college|university|engineering) degree|degree in (an? )?(engineering|mechanical|electrical|aerospace|industrial|manufacturing|materials|chemical|computer|physics|chemistry|a technical|a related|technical|related|science|stem)|engineering degree/i],
+  ['associate', /\bassociate(?:'|’)?s?(?:'|’)? (degree|of|in)\b|\bassociate(?:'|’)?s?(?:'|’)?\s*(?:or|\/)\s*bachelor|\bassociates?(?:'|’)?s? degree|\bA\.?A\.?S\.?\b(?= |,|\.)|\bAS(EET|ET)\b|(2|two)[- ]year (college |technical )?degree/i],
   ['certificate', /trade school|technical (school|training|certificate|certification|diploma|degree)|vocational|certificate (program|of completion)|completed apprenticeship|apprenticeship (program|completion|certificate)|journey(man|person)(?:'|’)?s? (card|certificate|status)/i],
   ['high school', /high school|\bGED\b|\bG\.E\.D|secondary (school|education)|\bHS diploma|equivalency certificate/i],
 ];
 const EDU_RANK = ['high school', 'certificate', 'associate', 'bachelor', 'master', 'doctorate'];
+
+// What a line asks for, without what it only wishes for: "Bachelor's degree
+// required; Master's preferred" asks for a bachelor's, and "Secret clearance
+// preferred" asks for none. A clause that says both is one that asks.
+const WISHED = /\b(preferred|preferably|desired|desirable|nice to have|ideally|an? (?:big |strong |definite )?plus|is a plus|are a plus|bonus)\b/i;
+const ASKED = /\b(required|requires?|must|minimum|at least|mandatory)\b/i;
+function asked(text) {
+  if (!WISHED.test(text)) return text;
+  return text.split(/;|\.\s+|\s[–—]\s/).filter((clause) => !WISHED.test(clause) || ASKED.test(clause)).join('; ');
+}
 
 function educationIn(texts) {
   let least = null;
@@ -164,14 +174,22 @@ function citizenshipIn(text) {
 
 function shiftIn(text) {
   const kinds = new Set();
-  const re = /\b(1st|first|day|days|2nd|second|swing|evening|3rd|third|night|nights|graveyard|weekend|rotating)[- ]shift\b|\bshift:\s*(days?|nights?|swing|weekends?|rotating|1st|2nd|3rd)\b/gi;
+  const re = /\b(1st|first|day|days|2nd|second|swing|evening|afternoon|3rd|third|night|nights|graveyard|weekend|rotating)[- ]shift\b|\bshift:\s*(days?|nights?|swing|weekends?|rotating|1st|2nd|3rd)\b/gi;
   let m;
   while ((m = re.exec(text))) {
     const w = (m[1] ?? m[2]).toLowerCase();
-    kinds.add(/1st|first|day/.test(w) ? 'day' : /2nd|second|swing|evening/.test(w) ? 'swing' : /3rd|third|night|graveyard/.test(w) ? 'night' : /weekend/.test(w) ? 'weekend' : 'rotating');
+    kinds.add(/1st|first|day/.test(w) ? 'day' : /2nd|second|swing|evening|afternoon/.test(w) ? 'swing' : /3rd|third|night|graveyard/.test(w) ? 'night' : /weekend/.test(w) ? 'weekend' : 'rotating');
+  }
+  // "1st or 2nd shift", "first and second shifts": the first of the pair is a shift too.
+  const pair = /\b(1st|first|2nd|second|3rd|third|day|night|swing)\s*(?:or|and|&|\/|,)\s*(?:1st|first|2nd|second|3rd|third|day|night|swing)[- ]shifts?\b/gi;
+  while ((m = pair.exec(text))) {
+    const w = m[1].toLowerCase();
+    kinds.add(/1st|first|day/.test(w) ? 'day' : /2nd|second|swing/.test(w) ? 'swing' : 'night');
   }
   if (!kinds.size) return null;
-  return kinds.size === 1 ? [...kinds][0] : 'rotating';
+  if (kinds.has('rotating')) return 'rotating';
+  // A posting that offers several shifts names none in particular.
+  return kinds.size === 1 ? [...kinds][0] : null;
 }
 
 export function readRequirements(posting, lines, titleShift) {
@@ -195,18 +213,26 @@ export function readRequirements(posting, lines, titleShift) {
     }
     if (got) { req.yearsMin = got.min; req.yearsMax = got.max; break; }
   }
-  req.education = educationIn(required.map((l) => l.text)) ?? educationIn(open.map((l) => l.text));
-  for (const l of [...required, ...preferred, ...open]) certificationsIn(l.text, req.certifications);
+  req.education = educationIn(required.map((l) => asked(l.text))) ?? educationIn(open.filter((l) => l.kind !== 'duties').map((l) => asked(l.text)));
+  // A certificate or a clearance on a line of what is preferred is not one the job asks for,
+  // unless the line itself says it must be had.
+  const insisted = preferred.filter((l) => ASKED.test(l.text));
+  for (const l of [...required, ...insisted, ...open]) certificationsIn(asked(l.text), req.certifications);
 
   const title = String(posting.title ?? '');
+  req.clearance = clearanceIn(title);
+  for (const l of body) {
+    if (req.clearance) break;
+    if (l.kind === 'benefits' || (l.kind === 'preferred' && !ASKED.test(l.text))) continue;
+    req.clearance = clearanceIn(asked(l.text));
+  }
   const everything = [title, ...body.filter((l) => l.kind !== 'benefits').map((l) => l.text)];
   for (const text of everything) {
-    if (!req.clearance) req.clearance = clearanceIn(text);
     const c = citizenshipIn(text);
     if (c === 'U.S. citizen') req.citizenship = c;
     else if (c && !req.citizenship) req.citizenship = c;
   }
-  if (!req.shift) for (const l of body) if (l.kind !== 'benefits' && l.kind !== 'legal' && !/all shifts|any shift|various shifts|shift differential/i.test(l.text)) { req.shift = shiftIn(l.text); if (req.shift) break; }
+  if (!req.shift) for (const l of body) if (l.kind !== 'benefits' && l.kind !== 'legal' && !/all shifts|any shift|various shifts|shift differential|as needed|occasional/i.test(l.text)) { req.shift = shiftIn(l.text); if (req.shift) break; }
 
   if (/\bintern(ship)?\b|\bco-?op\b/i.test(title)) req.employmentType = 'intern';
   else if (/\btemporary\b|\btemp\b/i.test(title)) req.employmentType = 'temporary';

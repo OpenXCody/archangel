@@ -18,6 +18,8 @@ export const entityTypeEnum = pgEnum('entity_type', [
   'factories',
   'occupations',
   'skills',
+  // A job that came from a source: one outside id names one job (migration 0054).
+  'jobs',
 ]);
 
 // ============================================
@@ -475,6 +477,11 @@ export const intakeSources = pgTable('intake_sources', {
   fill: text('fill').default('empty').notNull(),
   rank: smallint('rank').default(50).notNull(),
   ranks: jsonb('ranks').default({}).notNull(),
+  // A source of jobs (kind 'job', migration 0054): the hiring system its board runs on, the
+  // company as our data names it, and other companies whose plants the same board hires for.
+  system: text('system'),
+  company: text('company'),
+  also: text('also').array(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
@@ -776,6 +783,16 @@ export const companyMembers = pgTable(
 // A job is one opening for one career (occupation) at one factory.
 // ============================================
 
+/** What a posting asks for, as facts: only the keys that were said. */
+export interface JobRequirements {
+  yearsMin?: number;
+  yearsMax?: number;
+  education?: string;
+  certifications?: string[];
+  clearance?: string;
+  citizenship?: string;
+}
+
 export const jobs = pgTable(
   'jobs',
   {
@@ -792,7 +809,8 @@ export const jobs = pgTable(
       .references(() => occupations.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     description: text('description'),
-    employmentType: text('employment_type').default('full-time').notNull(),
+    // Null only on a job from a source whose posting does not say.
+    employmentType: text('employment_type').default('full-time'),
     shift: text('shift'),
     payMin: integer('pay_min'), // cents
     payMax: integer('pay_max'), // cents
@@ -805,6 +823,19 @@ export const jobs = pgTable(
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    // Migration 0054. A job that came from an employer's public posting: the intake source it
+    // came from and the posting's id there (both null on a job a member posted), the level its
+    // title states, what it asks for as facts ({ yearsMin, yearsMax, education, certifications,
+    // clearance, citizenship }, only the keys that were said) and when the employer's site last
+    // listed it. The runner keeps such a job in step with the site; it is not edited here.
+    source: text('source'),
+    sourceId: text('source_id'),
+    levelWord: text('level_word'),
+    levelRank: smallint('level_rank'),
+    requirements: jsonb('requirements').$type<JobRequirements>(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+    // True where the posting gives no date: postedAt is then the day it was first seen.
+    undated: boolean('undated'),
   },
   (table) => ({
     serialIdx: uniqueIndex('jobs_serial_idx').on(table.serial),
@@ -829,6 +860,63 @@ export const jobSkills = pgTable(
   (table) => ({
     pk: primaryKey({ columns: [table.jobId, table.skillId] }),
     skillIdx: index('job_skills_skill_idx').on(table.skillId),
+  })
+);
+
+// A make of a skill that a job names (migration 0054). The database ties the make to its skill.
+export const jobMakes = pgTable(
+  'job_makes',
+  {
+    jobId: uuid('job_id')
+      .notNull()
+      .references(() => jobs.id, { onDelete: 'cascade' }),
+    skillId: uuid('skill_id').notNull(),
+    makeId: uuid('make_id').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.jobId, table.makeId] }),
+    makeIdx: index('job_makes_make_idx').on(table.skillId, table.makeId),
+  })
+);
+
+// A place an employer's postings name where we list no plant of that employer (migration 0054):
+// 'waiting' for a person, 'pointed' at a plant by an admin, or 'left'.
+export const postingPlaces = pgTable(
+  'posting_places',
+  {
+    source: text('source')
+      .notNull()
+      .references(() => intakeSources.slug, { onDelete: 'cascade' }),
+    placeKey: text('place_key').notNull(),
+    city: text('city').notNull(),
+    state: text('state').notNull(),
+    status: text('status').default('waiting').notNull(),
+    factoryId: uuid('factory_id'),
+    runId: bigint('run_id', { mode: 'number' }),
+    decidedBy: uuid('decided_by'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.source, table.placeKey] }),
+  })
+);
+
+// A posting whose text was read and which was not kept (migration 0054): remembered by its id and a hash of its
+// line in the listing, so that its text is not asked for again while that line stands.
+export const postingPasses = pgTable(
+  'posting_passes',
+  {
+    source: text('source')
+      .notNull()
+      .references(() => intakeSources.slug, { onDelete: 'cascade' }),
+    sourceId: text('source_id').notNull(),
+    listing: text('listing').notNull(),
+    readOn: date('read_on').notNull(),
+    runId: bigint('run_id', { mode: 'number' }).notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.source, table.sourceId] }),
   })
 );
 

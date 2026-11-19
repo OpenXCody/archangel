@@ -136,7 +136,7 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
       )}
 
       {/* Like the other pages: a section only when there is a job to show. */}
-      {jobs.length > 0 && <OpenJobsSection jobs={jobs} />}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} total={data.openJobCount} all={`/jobs?skill=${data.id}`} />}
 
       {careers.length > 0 && (
         <DetailSection id="occupations" title="Careers that use it">

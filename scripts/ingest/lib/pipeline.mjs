@@ -23,16 +23,16 @@ const APPLY_BATCH = 1000;
 /** Above this many changed records a run says how many changed instead of one line each. */
 const CHANGED_LINES = 2000;
 
-const seconds = (since) => Math.round((Date.now() - since) / 100) / 10;
+export const seconds = (since) => Math.round((Date.now() - since) / 100) / 10;
 
-function chunks(list, size) {
+export function chunks(list, size) {
   const out = [];
   for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
   return out;
 }
 
 /** One transaction: its own on a connection, the surrounding one inside a rehearsal. */
-function inTransaction(db, work) {
+export function inTransaction(db, work) {
   return typeof db.begin === 'function' ? db.begin(work) : work(db);
 }
 
@@ -44,7 +44,8 @@ export function checkSource(source) {
     if (typeof source?.[key] !== 'string' || source[key].trim() === '') problems.push(`${key} is missing`);
   }
   if (source?.refSource === 'CURATED') problems.push('refSource "CURATED" is taken: those rows are not ids');
-  if (source?.kind !== 'factory') problems.push('kind is "factory": plants are the only records a source describes today');
+  if (source?.kind !== 'factory' && source?.kind !== 'job') problems.push('kind is "factory" (plants) or "job" (an employer\'s postings)');
+  if (source?.kind === 'job' && (typeof source.company !== 'string' || source.company.trim() === '')) problems.push('a source of jobs names its company');
   if (!['known', 'all'].includes(source?.scope)) problems.push('scope is "known" or "all"');
   if (!['hold', 'add'].includes(source?.unmatched)) problems.push('unmatched is "hold" or "add"');
   if (!['empty', 'ranked'].includes(source?.fill)) problems.push('fill is "empty" or "ranked"');
@@ -63,17 +64,28 @@ export async function registerSource(db, source) {
     ON CONFLICT (slug) DO UPDATE SET
       name = EXCLUDED.name, publisher = EXCLUDED.publisher, url = EXCLUDED.url, terms = EXCLUDED.terms, how_fetched = EXCLUDED.how_fetched,
       kind = EXCLUDED.kind, ref_source = EXCLUDED.ref_source, scope = EXCLUDED.scope, unmatched = EXCLUDED.unmatched, fill = EXCLUDED.fill,
-      rank = EXCLUDED.rank, ranks = EXCLUDED.ranks, updated_at = now()`;
+      rank = EXCLUDED.rank, ranks = EXCLUDED.ranks, updated_at = now()
+    WHERE (intake_sources.name, intake_sources.publisher, intake_sources.url, intake_sources.terms, intake_sources.how_fetched, intake_sources.kind,
+           intake_sources.ref_source, intake_sources.scope, intake_sources.unmatched, intake_sources.fill, intake_sources.rank, intake_sources.ranks)
+      IS DISTINCT FROM (EXCLUDED.name, EXCLUDED.publisher, EXCLUDED.url, EXCLUDED.terms, EXCLUDED.how_fetched, EXCLUDED.kind,
+           EXCLUDED.ref_source, EXCLUDED.scope, EXCLUDED.unmatched, EXCLUDED.fill, EXCLUDED.rank, EXCLUDED.ranks)`;
+  // A source of jobs (migration 0054): the hiring system, the company as our data names it, and the companies it also hires for.
+  if (source.kind === 'job') {
+    await db`
+      UPDATE intake_sources SET system = ${source.system ?? null}, company = ${source.company}, also = ${source.also?.length ? source.also : null}
+      WHERE slug = ${source.slug}
+        AND (system, company, also) IS DISTINCT FROM (${source.system ?? null}::text, ${source.company}::text, ${source.also?.length ? source.also : null}::text[])`;
+  }
 }
 
-async function runRow(db, runId) {
+export async function runRow(db, runId) {
   const [run] = await db`
-    SELECT r.*, s.ref_source, s.scope, s.unmatched, s.fill FROM intake_runs r JOIN intake_sources s ON s.slug = r.source WHERE r.id = ${runId}`;
+    SELECT r.*, s.ref_source, s.scope, s.unmatched, s.fill, s.kind FROM intake_runs r JOIN intake_sources s ON s.slug = r.source WHERE r.id = ${runId}`;
   if (!run) throw new Error(`There is no run ${runId}.`);
   return run;
 }
 
-async function note(db, runId, { state, counts, timings, ended = false }) {
+export async function note(db, runId, { state, counts, timings, ended = false }) {
   await db`
     UPDATE intake_runs SET
       state = COALESCE(${state ?? null}, state),
@@ -607,13 +619,17 @@ export async function undo(db, runId, { log = console.log } = {}) {
     await tx`
       INSERT INTO load_log (load, kind, action, look, detail, run_id)
       VALUES (${run.source}, 'run', 'undone', ${done.kept > 0},
-              ${`${done.restored} facts restored, ${done.ids} ids taken back, ${done.plants} plants and ${done.companies} companies removed, ${done.kept} left because they changed since`}, ${runId})`;
+              ${run.kind === 'job'
+                ? `${done.jobs} jobs removed or put back, ${done.ids} ids taken back, ${done.kept} left because they changed since`
+                : `${done.restored} facts restored, ${done.ids} ids taken back, ${done.plants} plants and ${done.companies} companies removed, ${done.kept} left because they changed since`}, ${runId})`;
     await tx`
       UPDATE intake_runs SET state = 'undone', ended_at = now(), counts = counts || ${tx.json({ undone: done })},
                              timings = timings || ${tx.json({ undo: seconds(started) })} WHERE id = ${runId}`;
     return done;
   });
-  log(`undo: run ${runId}: ${result.restored} facts restored, ${result.ids} ids taken back, ${result.plants} plants and ${result.companies} companies removed, ${result.kept} left because they changed since, in ${seconds(started)} s`);
+  log(run.kind === 'job'
+    ? `undo: run ${runId}: ${result.jobs} jobs removed or put back, ${result.ids} ids taken back, ${result.kept} left because they changed since, in ${seconds(started)} s`
+    : `undo: run ${runId}: ${result.restored} facts restored, ${result.ids} ids taken back, ${result.plants} plants and ${result.companies} companies removed, ${result.kept} left because they changed since, in ${seconds(started)} s`);
   return result;
 }
 

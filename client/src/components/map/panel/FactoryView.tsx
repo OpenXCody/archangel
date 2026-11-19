@@ -70,6 +70,8 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
   const street = factory.address?.trim() ?? '';
   const address = street && street.toLowerCase() !== (factory.city ?? '').trim().toLowerCase() ? (factory.curated ? street : titleCase(street)) : null;
   const jobs = factory.jobs ?? [];
+  // The record lists the first few open jobs and says how many there are in all.
+  const openJobs = factory.openJobCount ?? jobs.length;
   const underConstruction = factory.status === 'under construction';
   const nearby = factory.nearby ?? [];
   const siteCount = company?.siteCount ?? 0;
@@ -99,7 +101,7 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
       />
       <Figures
         items={[
-          ...(jobs.length > 0 ? [{ label: 'Open jobs', value: jobs.length }] : []),
+          ...(openJobs > 0 ? [{ label: 'Open jobs', value: openJobs }] : []),
           // The year says how current the figure is.
           ...(factory.workforceSize ? [{ label: factory.workforceYear ? `People, ${factory.workforceYear}` : 'People', value: factory.workforceSize }] : []),
         ]}
@@ -146,9 +148,9 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
       {jobs.length > 0 && (
         <Section title="Open jobs">
           <JobRows jobs={jobs} limit={4} />
-          {jobs.length > 4 && (
-            <Link to={`/factories/${factory.id}`} className={MORE_LINK}>
-              All {jobs.length} open jobs
+          {openJobs > 4 && (
+            <Link to={`/jobs?plant=${factory.id}`} className={MORE_LINK}>
+              All {openJobs.toLocaleString()} open jobs
             </Link>
           )}
         </Section>

@@ -141,7 +141,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
                 key={job.id}
                 to={`/jobs/${job.id}`}
                 title={job.title}
-                subtitle={[formatCompanyName(job.companyName), job.city ? titleCase(job.city) : null, formatPay(job.payMin, job.payMax, job.payPeriod)]
+                subtitle={[formatCompanyName(job.companyName), job.city ? titleCase(job.city) : null, job.payMin !== null && job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null]
                   .filter(Boolean)
                   .join(' · ')}
               />

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { formatPay } from '../../lib/jobFormat';
 import { type CareerJob } from '../../lib/api';
 import { formatCompanyName } from '@shared/displayName';
@@ -7,6 +8,7 @@ import FootprintMap from './FootprintMap';
 import { titleCase } from '../../lib/places';
 import {
   DetailSection,
+  sectionLinkClass,
   RecordList,
   RecordRow,
   ShowAll,
@@ -64,9 +66,21 @@ export function TypicalCareers({ careers }: { careers: { id: string; title: stri
 }
 
 /** Open jobs at a company, a plant, for a career or asking for a skill. Drawn only when there is one. */
-export function OpenJobsSection({ jobs, showCareer = false }: { jobs: CareerJob[]; showCareer?: boolean }) {
+export function OpenJobsSection({ jobs, showCareer = false, total, all }: { jobs: CareerJob[]; showCareer?: boolean; total?: number; all?: string }) {
+  // The page lists the newest few. When more are open, one link leads to all of them on Jobs.
+  const more = all && typeof total === 'number' && total > jobs.length;
   return (
-    <DetailSection id="jobs" title="Open jobs">
+    <DetailSection
+      id="jobs"
+      title="Open jobs"
+      action={
+        more ? (
+          <Link to={all} className={sectionLinkClass} data-all-jobs>
+            All {total.toLocaleString('en-US')}
+          </Link>
+        ) : undefined
+      }
+    >
       <RecordList>
         {jobs.map((job) => (
           <RecordRow
@@ -77,7 +91,8 @@ export function OpenJobsSection({ jobs, showCareer = false }: { jobs: CareerJob[
               // The career is said only when the job is not simply named after it.
               showCareer ? (job.occupationTitle !== job.title ? job.occupationTitle : null) : formatCompanyName(job.companyName),
               job.city ? titleCase(job.city) : null,
-              formatPay(job.payMin, job.payMax, job.payPeriod),
+              // A job from a company's careers site that states no pay says nothing about pay.
+              job.payMin !== null || job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null,
             ]
               .filter(Boolean)
               .join(' · ')}
