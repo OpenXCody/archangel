@@ -91,6 +91,13 @@ BEGIN
   DELETE FROM external_references x WHERE x.entity_type = 'companies' AND x.entity_id = m AND x.source = 'CURATED'
     AND EXISTS (SELECT 1 FROM external_references y WHERE y.entity_type = 'companies' AND y.entity_id = k AND y.source = 'CURATED' AND y.url = x.url);
   UPDATE external_references SET entity_id = k WHERE entity_type = 'companies' AND entity_id = m;
+  -- The merge is remembered (record_merges, migration 0043), so an id that pointed at the row that is going still
+  -- leads to the one kept. A copy of the database from before that migration has no such table and is left without.
+  IF to_regclass('public.record_merges') IS NOT NULL THEN
+    INSERT INTO record_merges (kind, from_id, into_id, from_name, via, note)
+      VALUES ('company', m, k, o.name, 'loader', current_setting('el.load', true))
+    ON CONFLICT (kind, from_id) DO NOTHING;
+  END IF;
   -- The slug is unique: the row that is going gives it up before the kept row can take it.
   DELETE FROM companies WHERE id = m;
   UPDATE companies c SET

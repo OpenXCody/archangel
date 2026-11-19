@@ -61,6 +61,8 @@ export const accountKeys = {
   adminRecord: (kind: string, id: string) => ['admin', 'records', 'one', kind, id] as const,
   adminAudit: ['admin', 'audit'] as const,
   adminAuditFor: (filter: object, pages: number) => ['admin', 'audit', filter, pages] as const,
+  adminIntakeSources: ['admin', 'intake', 'sources'] as const,
+  adminIntakeReview: ['admin', 'intake', 'review'] as const,
 };
 
 /** What anyone can read. */

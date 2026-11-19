@@ -93,7 +93,7 @@ export function refusedField(error: unknown): string | null {
 }
 
 /** A record was added, changed, merged or deleted: everything that lists or shows records of its kind is stale. */
-function recordsChanged(queryClient: QueryClient, kind: RecordKind, goneId?: string): void {
+export function recordsChanged(queryClient: QueryClient, kind: RecordKind, goneId?: string): void {
   const entity = ENTITY[kind];
   const stale: (readonly unknown[])[] = [
     publicKeys.counts,

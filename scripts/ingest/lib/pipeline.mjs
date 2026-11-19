@@ -94,7 +94,7 @@ async function note(db, runId, { state, counts, timings, ended = false }) {
  * keeps only the records whose id we hold, and counts the rest under the
  * labels its adapter gives them. What is kept is compared with what staging
  * holds (diffRun), and only records that are new or changed are sent, by
- * COPY, a batch to a transaction; the others are marked as seen. A run that
+ * COPY, a batch to a transaction; the others are not touched. A run that
  * stopped part way is taken up again by staging the same file: every write
  * here can be made twice.
  */
@@ -144,8 +144,10 @@ export async function stage(db, adapter, file, { log = console.log, startedBy = 
       // A file that says one id twice: the first row is the record.
       if (kept.has(id)) repeated += 1;
       else {
-        const record = await adapter.read(row, { asOf });
-        kept.set(id, { payload: record.payload, facts: record.facts, hash: recordHash(record.payload, adapter.version ?? 1) });
+        // Through JSON and back: a field cut from a large file still holds the piece of the file it was cut from,
+        // and tens of thousands of kept records would hold most of the file in memory.
+        const record = JSON.parse(JSON.stringify(await adapter.read(row, { asOf })));
+        kept.set(String(id), { payload: record.payload, facts: record.facts, hash: recordHash(record.payload, adapter.version ?? 1) });
       }
     } else if (adapter.classify) {
       for (const label of adapter.classify(row)) {
@@ -185,15 +187,21 @@ export async function stage(db, adapter, file, { log = console.log, startedBy = 
   }
   for (let from = 1; from <= seq; from += LOAD_BATCH * 2) {
     await db`
-      INSERT INTO intake_records (source, source_id, first_run_id, run_id, changed_run_id, payload, facts, hash)
-      SELECT ${source.slug}, l.source_id, ${runId}, ${runId}, ${runId}, l.payload, l.facts, l.hash
+      INSERT INTO intake_records (source, source_id, first_run_id, changed_run_id, payload, facts, hash)
+      SELECT ${source.slug}, l.source_id, ${runId}, ${runId}, l.payload, l.facts, l.hash
       FROM intake_load l WHERE l.run_id = ${runId} AND l.seq >= ${from} AND l.seq < ${from + LOAD_BATCH * 2}
       ON CONFLICT (source, source_id) DO UPDATE SET
-        run_id = EXCLUDED.run_id, changed_run_id = EXCLUDED.changed_run_id, gone_run_id = NULL,
+        changed_run_id = EXCLUDED.changed_run_id, gone_run_id = NULL,
         payload = EXCLUDED.payload, facts = EXCLUDED.facts, hash = EXCLUDED.hash`;
+    // The short row beside each record, where what is decided about it is kept.
+    await db`
+      INSERT INTO intake_links (source, source_id)
+      SELECT ${source.slug}, l.source_id FROM intake_load l WHERE l.run_id = ${runId} AND l.seq >= ${from} AND l.seq < ${from + LOAD_BATCH * 2}
+      ON CONFLICT (source, source_id) DO NOTHING`;
   }
-  for (const batch of chunks([...diff.same, ...diff.back], LOAD_BATCH * 2)) {
-    await db`UPDATE intake_records SET run_id = ${runId}, gone_run_id = NULL WHERE source = ${source.slug} AND source_id = ANY(${batch})`;
+  // A record that is the same is left alone: that it has no gone_run_id says it is still at the source.
+  for (const batch of chunks(diff.back, LOAD_BATCH * 2)) {
+    await db`UPDATE intake_records SET gone_run_id = NULL WHERE source = ${source.slug} AND source_id = ANY(${batch})`;
   }
   for (const batch of chunks(diff.gone, LOAD_BATCH * 2)) {
     await db`UPDATE intake_records SET gone_run_id = ${runId} WHERE source = ${source.slug} AND source_id = ANY(${batch})`;
@@ -279,26 +287,28 @@ export async function resolve(db, runId, { log = console.log, again = false } = 
 
   // A plant that has gone since an earlier run decided: the one it was merged into, or undecided again.
   await db`
-    UPDATE intake_records r SET
+    UPDATE intake_links r SET
       entity_id = n.id,
       resolution = CASE WHEN n.id IS NULL THEN NULL ELSE r.resolution END,
       resolved_run_id = CASE WHEN n.id IS NULL THEN NULL ELSE r.resolved_run_id END
     FROM (
       SELECT r2.source_id, (SELECT f.id FROM factories f WHERE f.id = record_now('factory', r2.entity_id)) AS id
-      FROM intake_records r2
+      FROM intake_links r2
       WHERE r2.source = ${slug} AND r2.entity_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM factories f WHERE f.id = r2.entity_id)
     ) n
     WHERE r.source = ${slug} AND r.source_id = n.source_id`;
 
   const byIdDirect = await db`
-    UPDATE intake_records r SET entity_id = x.entity_id, resolution = 'id', resolved_run_id = ${runId}
-    FROM external_references x JOIN factories f ON f.id = x.entity_id
-    WHERE r.source = ${slug} AND r.gone_run_id IS NULL AND r.entity_id IS NULL
+    UPDATE intake_links r SET entity_id = x.entity_id, resolution = 'id', resolved_run_id = ${runId}
+    FROM external_references x JOIN factories f ON f.id = x.entity_id, intake_records s
+    WHERE r.source = ${slug} AND r.entity_id IS NULL
+      AND s.source = r.source AND s.source_id = r.source_id AND s.gone_run_id IS NULL
       AND x.source = ${run.ref_source} AND x.entity_type = 'factories' AND x.external_id = r.source_id AND NOT x.duplicate`;
   const byIdMerged = await db`
-    UPDATE intake_records r SET entity_id = f.id, resolution = 'id', resolved_run_id = ${runId}
-    FROM external_references x JOIN factories f ON f.id = record_now('factory', x.entity_id)
-    WHERE r.source = ${slug} AND r.gone_run_id IS NULL AND r.entity_id IS NULL
+    UPDATE intake_links r SET entity_id = f.id, resolution = 'id', resolved_run_id = ${runId}
+    FROM external_references x JOIN factories f ON f.id = record_now('factory', x.entity_id), intake_records s
+    WHERE r.source = ${slug} AND r.entity_id IS NULL
+      AND s.source = r.source AND s.source_id = r.source_id AND s.gone_run_id IS NULL
       AND x.source = ${run.ref_source} AND x.entity_type = 'factories' AND x.external_id = r.source_id AND NOT x.duplicate
       AND NOT EXISTS (SELECT 1 FROM factories g WHERE g.id = x.entity_id)`;
   const byId = byIdDirect.count + byIdMerged.count;
@@ -334,7 +344,7 @@ export async function resolve(db, runId, { log = console.log, again = false } = 
                   THEN (r.facts->>'longitude')::float8 END AS lng,
              '{}'::uuid[] AS companies, '{}'::uuid[] AS parents, '{}'::uuid[] AS family,
              '{}'::text[] AS keys, '{}'::text[] AS bare, '{}'::text[] AS drop_words, '{}'::text[] AS words, ''::text AS nname
-      FROM intake_records r
+      FROM intake_staged r
       WHERE r.source = ${slug} AND r.gone_run_id IS NULL AND r.entity_id IS NULL
         AND (r.resolution IS NULL OR (${again} AND r.resolution IN ('held', 'new')))`;
     await tx.unsafe(`
@@ -430,7 +440,7 @@ export async function resolve(db, runId, { log = console.log, again = false } = 
       WITH sure AS (
         SELECT b.* FROM in_best b WHERE NOT b.look AND b.of_class = 1 AND b.takers = 1
       ), done AS (
-        UPDATE intake_records r SET entity_id = s.id, resolution = 'matched', resolved_run_id = ${runId}
+        UPDATE intake_links r SET entity_id = s.id, resolution = 'matched', resolved_run_id = ${runId}
         FROM sure s WHERE r.source = ${slug} AND r.source_id = s.source_id
         RETURNING r.source_id
       )
@@ -455,7 +465,7 @@ export async function resolve(db, runId, { log = console.log, again = false } = 
                  CASE WHEN b.d > 1500 OR (NOT b.has_company AND b.d > 250) THEN b.d || ' m apart' END) AS why
         FROM in_best b WHERE b.look OR b.of_class > 1 OR b.takers > 1
       ), held AS (
-        UPDATE intake_records r SET resolution = 'review', resolved_run_id = ${runId}
+        UPDATE intake_links r SET resolution = 'review', resolved_run_id = ${runId}
         FROM unsure u WHERE r.source = ${slug} AND r.source_id = u.source_id
         RETURNING r.source_id
       ), item AS (
@@ -465,6 +475,7 @@ export async function resolve(db, runId, { log = console.log, again = false } = 
                 FROM (SELECT c.*, CASE c.class WHEN 0 THEN 'same name' WHEN 1 THEN 'shared word' WHEN 2 THEN 'near' ELSE CASE WHEN c.refers THEN 'near' ELSE 'near, unrelated name' END END AS rule
                       FROM in_cand c WHERE c.source_id = u.source_id AND c.usual ORDER BY c.class, c.rel, c.d, c.id LIMIT 3) c)
         FROM unsure u JOIN held h ON h.source_id = u.source_id
+        ORDER BY u.source_id
         ON CONFLICT (source, source_id) WHERE status = 'waiting' DO NOTHING
         RETURNING source_id
       )
@@ -483,7 +494,7 @@ export async function resolve(db, runId, { log = console.log, again = false } = 
                 JOIN factories f ON f.id = s.id WHERE s.d <= 250) AS beside
         FROM in_rec p WHERE NOT EXISTS (SELECT 1 FROM in_best b WHERE b.source_id = p.source_id)
       ), done AS (
-        UPDATE intake_records r SET
+        UPDATE intake_links r SET
           resolution = CASE WHEN ${run.unmatched} = 'add' AND NOT n.unplaced THEN 'new' ELSE 'held' END, resolved_run_id = ${runId}
         FROM none n WHERE r.source = ${slug} AND r.source_id = n.source_id
         RETURNING r.source_id, r.resolution
@@ -499,7 +510,7 @@ export async function resolve(db, runId, { log = console.log, again = false } = 
       RETURNING action`;
     const [tally] = await tx`
       SELECT count(*) FILTER (WHERE r.resolution = 'new')::int AS fresh, count(*) FILTER (WHERE r.resolution = 'held')::int AS held
-      FROM intake_records r JOIN in_rec p ON p.source_id = r.source_id WHERE r.source = ${slug} AND r.resolved_run_id = ${runId}`;
+      FROM intake_links r JOIN in_rec p ON p.source_id = r.source_id WHERE r.source = ${slug} AND r.resolved_run_id = ${runId}`;
     void rest;
     return { matched: matched.count, queued: queued.count, fresh: tally.fresh, held: tally.held };
   });
@@ -528,7 +539,7 @@ export async function apply(db, runId, { log = console.log, all = false } = {}) 
   const started = Date.now();
   const slug = run.source;
   await note(db, runId, { state: 'applying' });
-  if (all) await db`UPDATE intake_records SET applied_hash = NULL WHERE source = ${slug} AND entity_id IS NOT NULL`;
+  if (all) await db`UPDATE intake_links SET applied_hash = NULL WHERE source = ${slug} AND entity_id IS NOT NULL`;
 
   let added = 0;
   if (run.unmatched === 'add') {
@@ -536,7 +547,7 @@ export async function apply(db, runId, { log = console.log, all = false } = {}) 
     for (;;) {
       const rows = await inTransaction(db, (tx) => tx`
         SELECT t.source_id, intake_add_plant(${slug}, t.source_id, ${runId}) AS id
-        FROM (SELECT source_id FROM intake_records
+        FROM (SELECT source_id FROM intake_staged
               WHERE source = ${slug} AND resolution = 'new' AND gone_run_id IS NULL AND source_id > ${last}
               ORDER BY source_id LIMIT ${APPLY_BATCH}) t`);
       if (rows.length === 0) break;
@@ -551,7 +562,7 @@ export async function apply(db, runId, { log = console.log, all = false } = {}) 
   for (;;) {
     const rows = await inTransaction(db, (tx) => tx`
       SELECT t.source_id, intake_apply_record(${slug}, t.source_id, ${runId}) AS facts
-      FROM (SELECT source_id FROM intake_records
+      FROM (SELECT source_id FROM intake_staged
             WHERE source = ${slug} AND entity_id IS NOT NULL AND gone_run_id IS NULL AND applied_hash IS DISTINCT FROM hash
               AND source_id > ${after}
             ORDER BY source_id LIMIT ${APPLY_BATCH}) t`);
@@ -587,6 +598,9 @@ export async function apply(db, runId, { log = console.log, all = false } = {}) 
 export async function undo(db, runId, { log = console.log } = {}) {
   const run = await runRow(db, runId);
   if (run.state === 'undone') throw new Error(`Run ${runId} is already undone.`);
+  // Newest first: a later run of the source may have built on this one's values.
+  const [later] = await db`SELECT id FROM intake_runs WHERE source = ${run.source} AND id > ${runId} AND state IN ('applying', 'applied') ORDER BY id DESC LIMIT 1`;
+  if (later) throw new Error(`Run ${later.id} of ${run.source} was applied after run ${runId}. Undo run ${later.id} first.`);
   const started = Date.now();
   const result = await inTransaction(db, async (tx) => {
     const [{ done }] = await tx`SELECT intake_undo_run(${runId}) AS done`;

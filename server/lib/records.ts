@@ -6,6 +6,7 @@ import { answerWriteError, coordinate, count, FACTORY_STATUSES, HOSTNAME, isUuid
 import { rowsOf } from './rows.js';
 import { findGroup, placeColumns, placeOf, readLevel, type SkillPlace } from './taxonomy.js';
 import { skillLevelName } from '../../shared/skillLevels.js';
+import { adminSetFacts, factsOfFields } from './provenance.js';
 
 /**
  * Correcting the four kinds of record an admin keeps: companies, factories,
@@ -538,6 +539,8 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
       action: 'edited',
       detail: { changes: { ...(company ? { company } : {}), ...(changes ?? {}) } },
     });
+    // The facts this edit set are an admin's from now on: no source replaces them.
+    await adminSetFacts(tx, id, factsOfFields(Object.keys(changes ?? {})), actor.id);
     return saved;
   });
 }

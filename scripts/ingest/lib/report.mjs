@@ -46,7 +46,7 @@ export async function report(db, runId, { everything = false, rehearsal = false 
       count(*) FILTER (WHERE d.metres > 250)::int AS moved_250,
       count(*) FILTER (WHERE d.metres > 1000)::int AS moved_1000,
       count(*) FILTER (WHERE r.facts->>'active' = 'false')::int AS inactive
-    FROM intake_records r JOIN factories f ON f.id = r.entity_id
+    FROM intake_staged r JOIN factories f ON f.id = r.entity_id
     LEFT JOIN LATERAL (
       SELECT round(sqrt(power(((r.facts->>'latitude')::float8 - f.latitude::float8) * 111320, 2)
                       + power(((r.facts->>'longitude')::float8 - f.longitude::float8) * 111320 * cos(radians(f.latitude::float8)), 2))) AS metres

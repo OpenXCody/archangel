@@ -7,12 +7,15 @@ import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass, Seg
 import { PageSection } from '../layout/Page';
 import Records from './Records';
 import RecordEditor from './RecordEditor';
+import IntakeSources from './IntakeSources';
+import MatchReview from './MatchReview';
 import { isUuid } from '../../lib/validation';
 
 /**
  * Data upkeep. With a record in the address (`kind` and `id`) the tab is that
- * record's editor; otherwise finding or adding a record, and the career paths
- * waiting for review. (Counts of people, requests, jobs and applications are
+ * record's editor; otherwise the matches a source's run was not sure of (when
+ * any wait), finding or adding a record, the career paths waiting for review,
+ * and the sources that come in through the intake runner. (Counts of people, requests, jobs and applications are
  * not data upkeep and are not here: People and Access are a tab away.)
  */
 export default function DataTab() {
@@ -22,8 +25,11 @@ export default function DataTab() {
   if (kind && id && isUuid(id)) return <RecordEditor key={`${kind}:${id}`} kind={kind} id={id} />;
   return (
     <>
+      {/* Matches a source's run was not sure of come first, and only when some wait: someone's load is held up on them. */}
+      <MatchReview />
       <Records />
       <PathsSection />
+      <IntakeSources />
     </>
   );
 }

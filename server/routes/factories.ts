@@ -10,6 +10,7 @@ import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalT
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 import { rowsOf } from '../lib/rows.js';
 import { sourcesOf } from '../lib/sources.js';
+import { adminSetFacts } from '../lib/provenance.js';
 import { refuseDeleteWithJobs } from '../lib/writes.js';
 
 /** A company with this many factories nationwide counts as established. */
@@ -402,6 +403,13 @@ router.post('/', async (req: Request, res: Response) => {
     }).returning();
 
     await recordAdded('factory', result[0], req.user!);
+    // What an admin typed is the admin's: no source replaces it (server/lib/provenance.ts).
+    await adminSetFacts(
+      db,
+      result[0].id,
+      ['coordinates' as const, ...(city ? ['city' as const] : []), ...(address ? ['address' as const] : []), ...(workforce !== null && workforce !== undefined ? ['headcount' as const] : [])],
+      req.user!.id
+    );
     res.status(201).json(result[0]);
   } catch (error) {
     answerWriteError(res, error, 'factory');

@@ -69,19 +69,30 @@ CREATE INDEX IF NOT EXISTS intake_runs_source_idx ON intake_runs (source, id DES
 -- What a source said, one row per source record, kept as it said it
 -- (`payload`: the source's own column names) beside the adapter's reading of
 -- it in our words (`facts`). The run columns let a later run tell new from
--- changed from gone; the resolution columns say which of our records it is.
+-- changed from gone. Written only when a run stages.
 CREATE TABLE IF NOT EXISTS intake_records (
   source text NOT NULL REFERENCES intake_sources(slug) ON DELETE CASCADE,
   source_id text NOT NULL,
+  -- The run that first saw it, the run that last saw it new or changed, and
+  -- the run that found it missing (null while the source still has it: such
+  -- a record was in every run of its source since it appeared). A run does
+  -- not touch the records it finds unchanged, so staging a large source
+  -- again rewrites only what changed.
   first_run_id bigint NOT NULL,
-  -- The run that last saw it, the run that last saw it change, and the run
-  -- that first found it missing (null while the source still has it).
-  run_id bigint NOT NULL,
   changed_run_id bigint NOT NULL,
   gone_run_id bigint,
   payload jsonb NOT NULL,
   facts jsonb NOT NULL,
   hash text NOT NULL,
+  PRIMARY KEY (source, source_id)
+);
+CREATE INDEX IF NOT EXISTS intake_records_changed_idx ON intake_records (changed_run_id);
+
+-- Which of our records each staged record is: one short row beside it, so
+-- resolving and applying never rewrite what the source said.
+CREATE TABLE IF NOT EXISTS intake_links (
+  source text NOT NULL,
+  source_id text NOT NULL,
   -- Our record, how it was found ('id', 'matched', 'added') and the run that
   -- decided. 'review' (in the queue), 'held' and 'new' (to be added when the
   -- run is applied) have no record yet.
@@ -93,10 +104,16 @@ CREATE TABLE IF NOT EXISTS intake_records (
   -- The version of the record (its hash) whose facts were last applied, and by which run.
   applied_hash text,
   applied_run_id bigint,
-  PRIMARY KEY (source, source_id)
+  PRIMARY KEY (source, source_id),
+  FOREIGN KEY (source, source_id) REFERENCES intake_records (source, source_id) ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS intake_records_run_idx ON intake_records (run_id);
-CREATE INDEX IF NOT EXISTS intake_records_entity_idx ON intake_records (entity_id) WHERE entity_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS intake_links_entity_idx ON intake_links (entity_id) WHERE entity_id IS NOT NULL;
+
+-- The two read as one.
+CREATE OR REPLACE VIEW intake_staged AS
+  SELECT r.source, r.source_id, r.first_run_id, r.changed_run_id, r.gone_run_id, r.payload, r.facts, r.hash,
+         l.entity_id, l.resolution, l.resolved_run_id, l.not_ids, l.applied_hash, l.applied_run_id
+  FROM intake_records r JOIN intake_links l ON l.source = r.source AND l.source_id = r.source_id;
 
 -- Where a run's records land first, batch by batch, before they are compared
 -- with intake_records. Emptied when the run is staged.
@@ -227,6 +244,15 @@ WHERE a.kind = 'factory' AND a.action = 'edited'
 ORDER BY a.record_id, m.fact, a.at DESC
 ON CONFLICT (factory_id, fact) DO NOTHING;
 
+-- And the plants admins added by hand: where they put them is theirs.
+INSERT INTO fact_sources (factory_id, fact, source, rank, set_by, set_at)
+SELECT f.id, v.fact, 'admin', 100, a.actor_id, a.at
+FROM audit_log a
+JOIN factories f ON f.id = a.record_id
+CROSS JOIN LATERAL (VALUES ('coordinates', true), ('city', f.city IS NOT NULL), ('address', f.address IS NOT NULL)) AS v(fact, has)
+WHERE a.kind = 'factory' AND a.action = 'added' AND v.has
+ON CONFLICT (factory_id, fact) DO NOTHING;
+
 -- The one rule for whether a source's value goes onto a plant.
 --   p_fill, p_rank, p_as_of   the source's fill rule, its rank for this fact, the day its value is for
 --   cur_*                     what the plant has: whether it is empty, who set it, their rank and day
@@ -326,7 +352,7 @@ CREATE OR REPLACE FUNCTION intake_apply_record(p_source text, p_source_id text, 
 RETURNS text[] LANGUAGE plpgsql AS $f$
 DECLARE
   s intake_sources%ROWTYPE;
-  r intake_records%ROWTYPE;
+  r intake_staged%ROWTYPE;
   f factories%ROWTYPE;
   prov fact_sources%ROWTYPE;
   v jsonb;
@@ -343,7 +369,8 @@ DECLARE
   v_ref uuid;
 BEGIN
   SELECT * INTO s FROM intake_sources WHERE slug = p_source;
-  SELECT * INTO r FROM intake_records WHERE source = p_source AND source_id = p_source_id FOR UPDATE;
+  PERFORM 1 FROM intake_links WHERE source = p_source AND source_id = p_source_id FOR UPDATE;
+  SELECT * INTO r FROM intake_staged WHERE source = p_source AND source_id = p_source_id;
   IF s.slug IS NULL OR r.source IS NULL OR r.entity_id IS NULL THEN RETURN v_set; END IF;
   SELECT * INTO f FROM factories WHERE id = r.entity_id FOR UPDATE;
   IF f.id IS NULL THEN RETURN v_set; END IF;
@@ -463,7 +490,7 @@ BEGIN
               'industry: ' || (v->>'industryNote'), p_run, r.source_id, f.id);
   END IF;
 
-  UPDATE intake_records SET applied_hash = r.hash, applied_run_id = p_run WHERE source = p_source AND source_id = p_source_id;
+  UPDATE intake_links SET applied_hash = r.hash, applied_run_id = p_run WHERE source = p_source AND source_id = p_source_id;
   RETURN v_set;
 END $f$;
 
@@ -476,7 +503,7 @@ CREATE OR REPLACE FUNCTION intake_add_plant(p_source text, p_source_id text, p_r
 RETURNS uuid LANGUAGE plpgsql AS $f$
 DECLARE
   s intake_sources%ROWTYPE;
-  r intake_records%ROWTYPE;
+  r intake_staged%ROWTYPE;
   v jsonb;
   v_name text;
   v_company text;
@@ -486,7 +513,8 @@ DECLARE
   v_fid uuid;
 BEGIN
   SELECT * INTO s FROM intake_sources WHERE slug = p_source;
-  SELECT * INTO r FROM intake_records WHERE source = p_source AND source_id = p_source_id FOR UPDATE;
+  PERFORM 1 FROM intake_links WHERE source = p_source AND source_id = p_source_id FOR UPDATE;
+  SELECT * INTO r FROM intake_staged WHERE source = p_source AND source_id = p_source_id;
   IF s.slug IS NULL OR r.source IS NULL THEN RETURN NULL; END IF;
   v := r.facts;
   v_name := NULLIF(btrim(v->>'name'), '');
@@ -500,7 +528,7 @@ BEGIN
     WHEN v->>'naics' ~ '^(32732|32733|32739|324121)' THEN 'construction materials are not covered'
   END;
   IF v_why IS NOT NULL THEN
-    UPDATE intake_records SET resolution = 'held', resolved_run_id = p_run WHERE source = p_source AND source_id = p_source_id;
+    UPDATE intake_links SET resolution = 'held', resolved_run_id = p_run WHERE source = p_source AND source_id = p_source_id;
     INSERT INTO load_log (load, kind, action, look, company, plant, detail, run_id, source_id)
       VALUES (s.slug, 'plant', 'held', true, v_company, v_name, 'not added: ' || v_why, p_run, r.source_id);
     RETURN NULL;
@@ -534,11 +562,11 @@ BEGIN
     INSERT INTO load_log (load, kind, action, look, company, plant, detail, run_id, source_id, entity_id)
       VALUES (s.slug, 'plant', 'added', v_found > 1, v_company, v_name,
               CASE WHEN v_found > 1 THEN format('its company is found under %s rows; the fullest was taken', v_found) END, p_run, r.source_id, v_fid);
-    UPDATE intake_records SET entity_id = v_fid, resolution = 'added', resolved_run_id = p_run WHERE source = p_source AND source_id = p_source_id;
+    UPDATE intake_links SET entity_id = v_fid, resolution = 'added', resolved_run_id = p_run WHERE source = p_source AND source_id = p_source_id;
   ELSE
     INSERT INTO load_log (load, kind, action, look, company, plant, detail, run_id, source_id, entity_id)
       VALUES (s.slug, 'plant', 'matched', false, v_company, v_name, 'its company already has a plant of this name in this state', p_run, r.source_id, v_fid);
-    UPDATE intake_records SET entity_id = v_fid, resolution = 'matched', resolved_run_id = p_run WHERE source = p_source AND source_id = p_source_id;
+    UPDATE intake_links SET entity_id = v_fid, resolution = 'matched', resolved_run_id = p_run WHERE source = p_source AND source_id = p_source_id;
   END IF;
   PERFORM intake_apply_record(p_source, p_source_id, p_run, p_review, p_actor);
   RETURN v_fid;
@@ -613,9 +641,9 @@ BEGIN
   END LOOP;
 
   -- The run's decisions go with its changes: what it resolved is unresolved, what it queued is withdrawn.
-  UPDATE intake_records SET entity_id = NULL, resolution = NULL, resolved_run_id = NULL
+  UPDATE intake_links SET entity_id = NULL, resolution = NULL, resolved_run_id = NULL
     WHERE source = v_source AND resolved_run_id = p_run;
-  UPDATE intake_records SET applied_hash = NULL, applied_run_id = NULL
+  UPDATE intake_links SET applied_hash = NULL, applied_run_id = NULL
     WHERE source = v_source AND applied_run_id = p_run;
   UPDATE intake_review SET status = 'withdrawn', decided_at = now() WHERE run_id = p_run AND status = 'waiting';
   RETURN jsonb_build_object('restored', v_restored, 'kept', v_kept, 'ids', v_ids, 'plants', v_plants, 'companies', v_companies);

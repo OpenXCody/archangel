@@ -25,6 +25,7 @@ cleanup() {
   psql "$DB" -qtAc "
     DELETE FROM external_references WHERE source = 'CURATED' AND external_id LIKE 'e2e-loader-%';
     DELETE FROM load_log WHERE load LIKE 'e2e-loader-%';
+    DELETE FROM record_merges WHERE from_name LIKE 'E2E Loader %';
     DELETE FROM factories WHERE name LIKE 'E2E LOADER %' OR company_id IN (SELECT id FROM companies WHERE name LIKE 'E2E Loader %');
     DELETE FROM factories WHERE latitude ~ '^39[.][3-6]' AND longitude ~ '^-11[67][.]' AND $IN_AREA;
     DELETE FROM companies WHERE name LIKE 'E2E Loader %';" >/dev/null
@@ -207,6 +208,12 @@ expect "sources are kept for the plant"                  "https://example.test/m
   "$(sql "SELECT string_agg(e.url, ',' ORDER BY e.url COLLATE \"C\") FROM external_references e JOIN factories f ON f.id = e.entity_id WHERE e.entity_type = 'factories' AND e.source = 'CURATED' AND f.name = 'Main Plant' AND $IN_AREA")"
 expect "and for the company"                             "https://example.test/acme" \
   "$(sql "SELECT string_agg(e.url, ',' ORDER BY e.url COLLATE \"C\") FROM external_references e JOIN companies c ON c.id = e.entity_id WHERE e.entity_type = 'companies' AND e.source = 'CURATED' AND c.name = 'E2E Loader Acme'")"
+# Each company merged away is in the merge history (migration 0043), so an id that pointed at it still resolves.
+expect "a merge is remembered"                           "loader e2e-loader-a|loader e2e-loader-a" \
+  "$(sql "SELECT string_agg(via || ' ' || note, '|') FROM record_merges WHERE kind = 'company' AND from_name IN ('E2E Loader Acme Corp', 'E2E Loader Old Acme')")"
+expect "and the merged company's id leads to the kept one" "E2E Loader Acme" \
+  "$(sql "SELECT c.name FROM record_merges m JOIN companies c ON c.id = record_now('company', m.from_id) WHERE m.from_name = 'E2E Loader Old Acme'")"
+expect "a rehearsal's merges were rolled back with it"   2 "$(sql "SELECT count(*) FROM record_merges WHERE from_name LIKE 'E2E Loader %'")"
 expect "every decision is in the log"                    "created 3|found 1|inserted 3|matched 2|merged 2|moved 2|not loaded 4|swept 1" \
   "$(sql "SELECT string_agg(action || ' ' || n, '|' ORDER BY action COLLATE \"C\") FROM (SELECT action, count(*) AS n FROM load_log WHERE load = 'e2e-loader-a' AND action IN ('found', 'created', 'merged', 'matched', 'moved', 'inserted', 'swept', 'not loaded') GROUP BY action) s")"
 once=$(state)

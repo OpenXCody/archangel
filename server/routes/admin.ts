@@ -15,6 +15,7 @@ import { isUuid } from '../lib/writes.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { rowsOf } from '../lib/rows.js';
 import { containing, likeLiteral } from '../lib/like.js';
+import { decideReview, intakeSources, reviewQueue, waitingMatches } from '../lib/intake.js';
 
 /**
  * Admin Tools: people, company access, invites, password resets and data upkeep.
@@ -37,7 +38,8 @@ router.get(
         draftPaths: sql<number>`(SELECT COUNT(*)::int FROM occupations WHERE path_status = 'draft')`,
       })
       .from(sql`(SELECT 1) AS one`);
-    res.json(row);
+    // Matches a source's run was not sure of: waiting for a person, under Data.
+    res.json({ ...row, waitingMatches: await waitingMatches() });
   })
 );
 
@@ -674,6 +676,57 @@ router.patch(
     }
     const [updated] = await db.select(companyProfile).from(companies).where(eq(companies.id, req.params.id)).limit(1);
     res.json(updated);
+  })
+);
+
+// ---------------------------------------------------------------------------
+// Intake: the sources that come in through scripts/ingest/run.mjs, and the
+// matches their runs were not sure of
+// ---------------------------------------------------------------------------
+
+// GET /api/admin/intake/sources - every source that has been staged, with its
+// latest runs: when, how many records matched a plant, how many plants were
+// added and changed, how many matches went to the queue.
+router.get(
+  '/intake/sources',
+  handle(async (_req, res) => {
+    res.json({ sources: await intakeSources() });
+  })
+);
+
+// GET /api/admin/intake/review?limit=&offset= - matches waiting for a person:
+// the source's record beside our candidate plants, with the distance and why
+// the run was not sure. The ones nobody has looked at come first.
+router.get(
+  '/intake/review',
+  handle(async (req, res) => {
+    const limit = pageLimit(req.query.limit, 10, 50);
+    const offset = pageOffset(req.query.offset);
+    res.json({ ...(await reviewQueue(limit, offset)), limit, offset });
+  })
+);
+
+// POST /api/admin/intake/review/:match { decision: 'same' | 'different' | 'skip', plantId? }
+// - same: the record is the plant `plantId` (one of the candidates). The
+//   source's id is written to the crosswalk and the record's facts applied.
+// - different: it is none of them. The record is added as a new plant or
+//   held, as its source says, and those plants are not proposed for it again.
+// - skip: it stays waiting, after the ones nobody has looked at.
+router.post(
+  '/intake/review/:match',
+  handle(async (req, res) => {
+    if (!/^\d{1,15}$/.test(req.params.match)) return res.status(404).json({ error: 'Match not found' });
+    const { decision, plantId } = req.body ?? {};
+    if (decision !== 'same' && decision !== 'different' && decision !== 'skip') {
+      return res.status(400).json({ error: 'decision is same, different or skip.' });
+    }
+    if (decision === 'same' && !isUuid(plantId)) return res.status(400).json({ error: 'Choose one of the plants shown.' });
+    try {
+      res.json(await decideReview(Number(req.params.match), decision, decision === 'same' ? plantId : null, req.user!));
+    } catch (error) {
+      if (error instanceof RecordRefusal) return res.status(error.status).json({ error: error.message, ...error.extra });
+      throw error;
+    }
   })
 );
 
