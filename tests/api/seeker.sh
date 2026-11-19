@@ -309,6 +309,8 @@ expect "the parameter Vercel's rewrite adds changes nothing here either" "2" "$(
 OUT=$(req anon GET /skills/taxonomy)
 expect "the taxonomy carries each skill's makes by name" "S04=Okuma S03=Fanuc+Haas S05=" "$(printf '%s' "$OUT" | j "domains.find(d=>d.slug==='$TD').groups[1].skills.map(s=>s.name.replace('$P ','')+'='+s.makes.map(m=>m.replace('$P ','')).join('+')).join(' ')")"
 expect "every skill of the taxonomy has a list of makes" true "$(printf '%s' "$OUT" | j "domains.every(d=>d.groups.every(g=>g.skills.every(s=>Array.isArray(s.makes)&&s.makes.every(m=>typeof m==='string'))))")"
+expect "a search by a make finds the skills run on it" "S03" "$(req anon GET "/skills?search=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$P Haas")" | j "data.map(s=>s.name.replace('$P ','')).join()")"
+expect "and so does the search across everything" "S03" "$(req anon GET "/search?q=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$P Haas")&types=skills" | j "results.skills.items.map(s=>s.name.replace('$P ','')).join()")"
 check "sign-up a seeker for makes"    201 "$(req m POST /auth/sign-up '{"email":"makes-'"$RUN"'@seeker.test","name":"Mak Maker","password":"correct horse"}')"
 MID=$(sql "SELECT id FROM users WHERE email='makes-$RUN@seeker.test'")
 check "marking makes requires sign-in" 401 "$(req anon PUT /me/skills/$S03/makes "{\"makes\":[\"$HAAS\"]}")"

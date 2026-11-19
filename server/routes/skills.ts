@@ -40,7 +40,8 @@ router.get('/taxonomy', async (_req: Request, res: Response) => {
 //   Browsing (no `search`): only skills a career uses, the ones most careers
 //   use first; `sort=name` puts them in name order (`order=desc` reverses it).
 //   Searching (`search`): by name, by another name it is known by
-//   (skill_aliases) and by the tools it is done with; the closest names first.
+//   (skill_aliases), by the tools it is done with and by a make it is run on
+//   (skill_makes); the closest names first.
 //   A search also finds a skill no career uses yet, so one just added can be
 //   picked for a job or a person's list.
 //   Narrowed by `domain=` and `group=` (slugs) and `level=` (1, 2 or 3). Each
@@ -63,7 +64,8 @@ router.get('/', async (req: Request, res: Response) => {
       const midWord = `% ${starts}`;
       const alias = sql`EXISTS (SELECT 1 FROM skill_aliases a WHERE a.canonical_skill_id = skills.id AND (a.alias_text ILIKE ${starts} OR a.alias_text ILIKE ${midWord}))`;
       const tool = sql`EXISTS (SELECT 1 FROM unnest(skills.tools) AS tool WHERE tool ILIKE ${starts} OR tool ILIKE ${midWord})`;
-      conditions.push(or(ilike(skills.name, pattern), alias, tool));
+      const make = sql`EXISTS (SELECT 1 FROM skill_makes mk WHERE mk.skill_id = skills.id AND (mk.name ILIKE ${starts} OR mk.name ILIKE ${midWord}))`;
+      conditions.push(or(ilike(skills.name, pattern), alias, tool, make));
       orderByClause = sql`CASE
           WHEN lower(${skills.name}) = lower(${search}) THEN 0
           WHEN ${skills.name} ILIKE ${starts} THEN 1

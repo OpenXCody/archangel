@@ -280,8 +280,8 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     // Search skills: by name, by another name a skill is known by (a merged
-    // or everyday name in skill_aliases), by what it is done with, or by the
-    // name of its group or domain. A result's grey line is its group.
+    // or everyday name in skill_aliases), by what it is done with, by a make
+    // it is run on, or by the name of its group or domain. A result's grey line is its group.
     // The subqueries name the table outright: in a select list a column
     // reference is written bare, and "id" would then mean the alias's own.
     if (typeFilter.includes('skills')) {
@@ -296,6 +296,8 @@ router.get('/', async (req: Request, res: Response) => {
         ilike(skills.name, searchPattern),
         sql`EXISTS (SELECT 1 FROM skill_aliases a WHERE a.canonical_skill_id = skills.id AND ${wordStart('a.alias_text')})`,
         sql`EXISTS (SELECT 1 FROM unnest(skills.tools) AS tool WHERE ${wordStart('tool')})`,
+        // A make it is run on: "haas" finds the skills run on a Haas.
+        sql`EXISTS (SELECT 1 FROM skill_makes mk WHERE mk.skill_id = skills.id AND ${wordStart('mk.name')})`,
         sql`EXISTS (SELECT 1 FROM skill_groups sg INNER JOIN skill_domains sd ON sd.slug = sg.domain_slug
           WHERE sg.slug = skills.group_slug AND (sg.name ILIKE ${searchPattern} OR sd.name ILIKE ${searchPattern}))`
       );
