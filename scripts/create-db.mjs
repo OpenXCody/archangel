@@ -17,8 +17,10 @@
 // curated lists in them (career paths, company profiles, slugs, the careers
 // typical of an industry) match records by name, so on the empty database of
 // step 3 they matched nothing; over the sample data they do. Every migration
-// is written to be safe to repeat, and this is where that is checked. Sample
-// data only goes into a database on this machine.
+// is written to be safe to repeat, and this is where that is checked. Last, the
+// sample's made-up companies are given their versions of a few careers
+// (server/scripts/seed-versions.ts). Sample data only goes into a database on
+// this machine.
 //
 // It refuses a database that already has tables: it creates, it never repairs.
 import { readFile, readdir } from 'node:fs/promises';
@@ -92,6 +94,9 @@ try {
     await sql.end({ timeout: 5 });
     sql = connect();
     await applyMigrations(sql, { reapply: true });
+    // Last, now that the catalogue is laid over the sample: the made-up companies' versions of a few careers.
+    const versions = spawnSync(tsx, ['server/scripts/seed-versions.ts'], { cwd: ROOT, stdio: 'inherit', env: process.env });
+    if (versions.status !== 0) throw new Error('the sample versions did not load');
   }
 
   const [counts] = await sql`

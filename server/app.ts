@@ -14,6 +14,7 @@ import adminRouter from './routes/admin.js';
 import { adminCompanyRequestsRouter } from './routes/companyRequests.js';
 import exploreRouter from './routes/explore.js';
 import industriesRouter from './routes/industries.js';
+import companyCareersRouter from './routes/versions.js';
 import { noStore } from './lib/auth.js';
 import { requireAdminUser, requireAdminForWrites } from './middleware/adminAuth.js';
 import { onlyQuery, publicCache } from './middleware/cache.js';
@@ -81,6 +82,10 @@ app.use('/api/admin', noStore, requireAdminUser, adminRouter);
 // refused before it reaches the database.
 app.get('/api/factories/pins', onlyQuery('states', 'company'), publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
 app.get('/api/map/state-counts', onlyQuery(), publicCache(300), (_req: Request, _res: Response, next: NextFunction) => next());
+
+// A company's versions of careers: public reads, and writes by the company's own people or an admin.
+// Ahead of /api/companies, whose writes are an admin's alone; never cached (see routes/versions.ts).
+app.use('/api/companies/:company/careers', noStore, companyCareersRouter);
 
 // Public reads (cached at the edge); writes take a signed-in admin.
 app.use('/api/companies', publicCache(60), requireAdminForWrites, companiesRouter);
