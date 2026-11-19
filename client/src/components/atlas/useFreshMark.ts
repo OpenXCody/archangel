@@ -3,6 +3,9 @@ import type { SkillMarks } from '../path/model';
 import type { AtlasFresh } from './AtlasDrawing';
 import type { AtlasLayout } from './layout';
 
+/** How long the plate takes to answer a mark: the way drawn in, the mark arriving, the ring opening (globals.css, `.atlas-moving`). */
+const ARRIVAL_MS = 1050;
+
 /**
  * A person's marks, with the plate told which skill was just marked held, so
  * it can draw the way to that leaf in once (`fresh`, which lets go a moment
@@ -26,7 +29,7 @@ export function useFreshMark(marks: SkillMarks | null, layout: AtlasLayout | nul
   }, [marks, layout]);
   useEffect(() => {
     if (!fresh) return;
-    const done = window.setTimeout(() => setFresh(null), 1400);
+    const done = window.setTimeout(() => setFresh(null), ARRIVAL_MS);
     return () => window.clearTimeout(done);
   }, [fresh]);
   return { marking, fresh };

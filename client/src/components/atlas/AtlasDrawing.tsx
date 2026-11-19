@@ -215,7 +215,7 @@ const Marks = memo(function Marks({
   layout: AtlasLayout;
   marks: AtlasMarks;
   overlay: AtlasOverlay | null;
-  /** The leaf just marked, whose mark arrives when its way has been drawn. */
+  /** The leaf just marked: its mark arrives above the plate, and the lasting one here waits, unseen, until it has. */
   fresh: number | null;
 }) {
   return (
@@ -230,7 +230,7 @@ const Marks = memo(function Marks({
         const cx = fixed(x * S);
         const cy = fixed(y * S);
         return (
-          <g key={leaf.id} className="atlas-mark-at" data-atlas-mark={status} data-atlas-mark-of={leaf.id} data-fresh={fresh === index || undefined}>
+          <g key={leaf.id} className="atlas-mark-at" data-atlas-mark={status} data-atlas-mark-of={leaf.id} data-arriving={fresh === index || undefined}>
             <circle className="atlas-mark" data-status={status} data-lit={lit || undefined} cx={cx} cy={cy} r={fixed(r)} />
             {/* Learning: the same half-filled ring the skill carries in every list. */}
             {status === 'learning' && <path className="atlas-mark-half" d={`M${cx} ${fixed(cy - r)}A${fixed(r)} ${fixed(r)} 0 0 0 ${cx} ${fixed(cy + r)}Z`} />}
@@ -242,15 +242,47 @@ const Marks = memo(function Marks({
 });
 
 /**
- * A career, part walked. The way from the centre out to each skill of it the
- * person holds, drawn bright over the career's own branches; and at the
- * centre, where every trunk leaves from, the ring of how much is held: the
- * one the career's page carries, which closes when the career is whole.
- *
- * A mark changing adds or removes one line here and moves the ring; the plate
- * under it is not drawn again.
+ * A career, part walked: the way from the centre out to each skill of it the
+ * person holds, drawn bright over the career's own branches. A mark changing
+ * adds or removes one line here; the plate under it is not drawn again.
  */
 const Walk = memo(function Walk({
+  layout,
+  career,
+  marks,
+  arriving,
+}: {
+  layout: AtlasLayout;
+  career: ReadonlySet<number>;
+  marks: AtlasMarks | null;
+  /** The leaf whose way is being drawn in above the plate: its lasting line waits, unseen, until that is done. */
+  arriving: number | null;
+}) {
+  const walk = useMemo(() => walkOf(career, (index) => marks?.get(index)), [career, marks]);
+  return (
+    <g data-atlas-walk data-atlas-whole-career={walk.whole || undefined}>
+      {walk.heldLeaves.map((index) => {
+        const leaf = layout.leaves[index];
+        return <path key={leaf.id} className="atlas-walked" data-atlas-walked={leaf.id} data-arriving={arriving === index || undefined} d={routePath(layout, leaf, S)} />;
+      })}
+    </g>
+  );
+});
+
+/**
+ * What moves when a career is being filled in, kept off the plate: these few
+ * elements are a drawing of their own, laid exactly over the plate and turned
+ * by the same camera, so their motion paints them and never the plate's 700
+ * elements under them.
+ *
+ * At the centre, where every trunk leaves from, the ring of how much of the
+ * career is held: the one the career's page carries, which closes when the
+ * career is whole. And for the skill just marked: the way to it drawn in from
+ * the centre, its mark arriving, and one ring that opens from the leaf and is
+ * gone. When that is done the lasting line and mark on the plate are shown
+ * and these are taken away.
+ */
+const Moving = memo(function Moving({
   layout,
   career,
   marks,
@@ -267,16 +299,17 @@ const Walk = memo(function Walk({
   const walk = useMemo(() => walkOf(career, (index) => marks?.get(index)), [career, marks]);
   const r = layout.geometry.root * S;
   const ring = shareDash(walk, r);
-  const arriving = fresh && marks?.get(fresh.index) === 'held' && career.has(fresh.index) ? layout.leaves[fresh.index] : null;
+  const arriving = fresh && marks?.get(fresh.index) === 'held' ? layout.leaves[fresh.index] : null;
+  const [x, y] = arriving ? point(arriving.angle, arriving.radius) : [0, 0];
+  const markR = arriving ? Math.max(dotRadius(layout, arriving) + 0.002, 0.0095) * S : 0;
   return (
-    <g data-atlas-walk data-atlas-whole-career={walk.whole || undefined}>
-      {walk.heldLeaves.map((index) => {
-        const leaf = layout.leaves[index];
-        return <path key={leaf.id} className="atlas-walked" data-atlas-walked={leaf.id} data-fresh={arriving?.index === index || undefined} d={routePath(layout, leaf, S)} />;
-      })}
-      {/* The way to the skill just marked, drawn in from the centre: one line for a moment, then the one above has taken its place. */}
+    <>
       {arriving && fresh && (
-        <path key={fresh.tick} className="atlas-walk-in" pathLength={1} strokeWidth={fixed(1.5 * unit, 3)} d={routePath(layout, arriving, S)} />
+        <g key={fresh.tick} data-atlas-arriving={arriving.id}>
+          {career.has(arriving.index) && <path className="atlas-walk-in" pathLength={1} strokeWidth={fixed(1.5 * unit, 3)} d={routePath(layout, arriving, S)} />}
+          <circle className="atlas-mark-in" cx={fixed(x * S)} cy={fixed(y * S)} r={fixed(markR)} />
+          <circle className="atlas-pulse" cx={fixed(x * S)} cy={fixed(y * S)} r={fixed((dotRadius(layout, arriving) + 0.012) * S)} />
+        </g>
       )}
       <circle className="atlas-share-bed" r={fixed(r * 1.34)} />
       <circle className="atlas-share-track" r={fixed(r)} strokeWidth={fixed(r * 0.2, 3)} />
@@ -295,7 +328,7 @@ const Walk = memo(function Walk({
           <path d={`M${fixed(-0.48 * r)} ${fixed(0.04 * r)}L${fixed(-0.16 * r)} ${fixed(0.36 * r)}L${fixed(0.48 * r)} ${fixed(-0.32 * r)}`} strokeWidth={fixed(r * 0.25, 3)} />
         </g>
       )}
-    </g>
+    </>
   );
 });
 
@@ -683,21 +716,26 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
   };
   // One career, and a person filling it in. Two careers are compared, not walked.
   const walking = Boolean(walk && overlay && !overlay.second);
-  const freshLeaf = fresh ? layout.leaves[fresh.index] : null;
   const pointed = preview && (!domain || preview.domain.index !== domain.index) ? preview.domain : null;
   const pointedGroup = domain && preview?.group && preview.domain.index === domain.index && !preview.leaf ? preview.group : null;
   const ringed = preview?.leaf ?? leaf;
   const half = (g.domainGap / 2) * layout.step;
 
+  const view = leaf ? 'skill' : group ? 'group' : domain ? 'domain' : 'whole';
+  const viewBox = `${fixed(-box)} ${fixed(-box)} ${fixed(2 * box)} ${fixed(2 * box)}`;
+  // The leaf whose mark is arriving: only while it is held, and only where there is a drawing above the plate to arrive in.
+  const arriving = walking && fresh && marks?.get(fresh.index) === 'held' ? fresh.index : null;
+
   return (
+    <div className="atlas-stack">
     <svg
       ref={svgRef}
       role="img"
       aria-label={label}
-      viewBox={`${fixed(-box)} ${fixed(-box)} ${fixed(2 * box)} ${fixed(2 * box)}`}
+      viewBox={viewBox}
       className={`atlas-plate ${className ?? ''}`}
       data-still={still || undefined}
-      data-atlas-view={leaf ? 'skill' : group ? 'group' : domain ? 'domain' : 'whole'}
+      data-atlas-view={view}
       data-atlas-over={overlay ? true : undefined}
       data-atlas-walking={walking || undefined}
       style={{ cursor: preview ? 'pointer' : undefined }}
@@ -713,18 +751,8 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
         {/* Everything but the open domain, veiled. */}
         {domain && <path key={`veil-${domain.slug}`} className="atlas-veil" d={sectorPath(0.0001, 3, domain.a1 + half, domain.a0 - half + TAU, S)} />}
         {overlay && <Overlay layout={layout} overlay={overlay} ahead={walking} />}
-        {walking && overlay && <Walk layout={layout} career={overlay.first} marks={marks} fresh={fresh ?? null} unit={S / (radiusPx * camera.scale)} />}
-        {marks && marks.size > 0 && <Marks layout={layout} marks={marks} overlay={overlay} fresh={fresh?.index ?? null} />}
-        {/* The leaf just marked answers once: a ring that opens and is gone. */}
-        {fresh && freshLeaf && marks?.get(fresh.index) === 'held' && (
-          <circle
-            key={fresh.tick}
-            className="atlas-pulse"
-            cx={fixed(point(freshLeaf.angle, freshLeaf.radius)[0] * S)}
-            cy={fixed(point(freshLeaf.angle, freshLeaf.radius)[1] * S)}
-            r={fixed((dotRadius(layout, freshLeaf) + 0.012) * S)}
-          />
-        )}
+        {walking && overlay && <Walk layout={layout} career={overlay.first} marks={marks} arriving={arriving} />}
+        {marks && marks.size > 0 && <Marks layout={layout} marks={marks} overlay={overlay} fresh={arriving} />}
         {pointedGroup && (
           <path className="atlas-hover" d={sectorPath(g.group, g.ring - 0.012, pointedGroup.a0 - 0.5 * layout.step, pointedGroup.a1 + 0.5 * layout.step, S)} />
         )}
@@ -744,5 +772,14 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
         )}
       </g>
     </svg>
+    {/* What moves while a career is filled in: a drawing of its own over the plate, under the same camera. */}
+    {walking && overlay && (
+      <svg aria-hidden="true" viewBox={viewBox} className="atlas-moving" data-still={still || undefined} data-atlas-view={view}>
+        <g className="atlas-camera" style={cameraStyle}>
+          <Moving layout={layout} career={overlay.first} marks={marks} fresh={fresh ?? null} unit={S / (radiusPx * camera.scale)} />
+        </g>
+      </svg>
+    )}
+    </div>
   );
 }

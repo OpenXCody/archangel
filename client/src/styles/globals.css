@@ -1052,11 +1052,33 @@ input {
   stroke-linejoin: round;
 }
 /*
- * The way to the skill just marked is drawn in from the centre by a line of
- * its own (dashes need the stroke in the drawing's units), and the lasting
- * line and the mark arrive as it gets there.
+ * What moves is a drawing of its own over the plate (`.atlas-moving`, under
+ * the same camera), so a frame of its motion paints a handful of elements and
+ * never the plate. The way to the skill just marked is drawn in from the
+ * centre (dashes need the stroke in the drawing's units), its mark arrives as
+ * the line gets there, and one ring opens from the leaf and is gone. The
+ * lasting line and mark on the plate wait unseen until then.
  */
-.atlas-plate .atlas-walk-in {
+.atlas-stack {
+  position: relative;
+}
+.atlas-moving {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  will-change: transform;
+}
+.atlas-moving[data-still] .atlas-camera {
+  transition: none;
+}
+.atlas-moving path,
+.atlas-moving circle {
+  vector-effect: non-scaling-stroke;
+}
+.atlas-moving .atlas-walk-in {
   vector-effect: none;
   fill: none;
   stroke: var(--color-fg-default);
@@ -1065,21 +1087,22 @@ input {
   stroke-dasharray: 1;
   animation: atlas-walk-in 0.42s cubic-bezier(0.4, 0, 0.6, 1) both;
 }
-.atlas-walked[data-fresh] {
-  animation: atlas-arrive 0.01s linear 0.42s both;
+.atlas-walked[data-arriving],
+.atlas-mark-at[data-arriving] {
+  opacity: 0;
 }
-.atlas-mark-at {
+.atlas-mark-in {
+  fill: var(--color-fg-default);
+  stroke: var(--color-bg-base);
+  stroke-width: 1px;
   transform-box: fill-box;
   transform-origin: center;
-}
-.atlas-mark-at[data-fresh] {
   animation: atlas-mark-in 0.22s ease-out 0.34s both;
 }
 .atlas-pulse {
   fill: none;
   stroke: var(--color-fg-default);
   stroke-width: 1px;
-  pointer-events: none;
   transform-box: fill-box;
   transform-origin: center;
   animation: atlas-pulse 0.6s ease-out 0.38s both;
@@ -1119,8 +1142,8 @@ input {
 .atlas-share-bed {
   fill: var(--color-bg-base);
 }
-.atlas-plate .atlas-share-track,
-.atlas-plate .atlas-share {
+.atlas-moving .atlas-share-track,
+.atlas-moving .atlas-share {
   vector-effect: none;
   fill: none;
 }
@@ -1134,32 +1157,47 @@ input {
 .atlas-share-whole {
   animation: atlas-arrive 0.3s ease 0.2s both;
 }
-.atlas-plate[data-still] .atlas-share-whole {
+.atlas-moving[data-still] .atlas-share-whole {
   animation: none;
 }
 .atlas-share-whole circle {
   fill: var(--color-fg-default);
 }
-.atlas-plate .atlas-share-whole path {
+.atlas-moving .atlas-share-whole path {
   vector-effect: none;
   fill: none;
   stroke: var(--color-bg-base);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* Enlarged, the moving drawing runs past the frame as the plate does, and fades at the same edges. */
+.atlas-moving:not([data-atlas-view='whole']) {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 1.75rem), linear-gradient(to bottom, transparent, #000 1.75rem, #000 calc(100% - 1.75rem), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 1.75rem), linear-gradient(to bottom, transparent, #000 1.75rem, #000 calc(100% - 1.75rem), transparent);
+  mask-composite: intersect;
+}
+/* With motion off nothing arrives: the line and the mark are simply there, and the ring is where it should be. */
 @media (prefers-reduced-motion: reduce) {
-  .atlas-plate .atlas-walk-in,
-  .atlas-pulse {
+  .atlas-moving [data-atlas-arriving] {
     display: none;
   }
-  .atlas-walked[data-fresh],
-  .atlas-mark-at[data-fresh],
+  .atlas-walked[data-arriving],
+  .atlas-mark-at[data-arriving] {
+    opacity: 1;
+  }
   .atlas-share-whole {
     animation: none;
   }
-  .atlas-share {
+  .atlas-share,
+  .atlas-moving .atlas-camera {
     transition: none;
   }
+}
+/* Walked, a skill of the career is the person's: bright, with no rim of the career's colour left on it. */
+.atlas-plate[data-atlas-walking] .atlas-mark[data-lit][data-status='held'] {
+  stroke: var(--color-bg-base);
+  stroke-width: 1px;
 }
 
 /*
@@ -1236,11 +1274,6 @@ input {
   .career-atlas-list {
     padding-top: 0;
   }
-}
-/* Walked, a skill of the career is the person's: bright, with no rim of the career's colour left on it. */
-.atlas-plate[data-atlas-walking] .atlas-mark[data-lit][data-status='held'] {
-  stroke: var(--color-bg-base);
-  stroke-width: 1px;
 }
 
 /*
