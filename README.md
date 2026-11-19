@@ -89,7 +89,19 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   npx tsx server/scripts/import-pillar-bulk.ts
   ```
 
-  `scripts/enrich-naics.mjs` then fills in missing industry codes from EPA's public export (a dry run unless `--apply` is given; its header says how).
+  `scripts/enrich-naics.mjs` filled in missing industry codes from EPA's public export; the intake runner's `epa-echo` source below replaces it.
+
+- **Large public sources**, through the intake runner, outside the deploy: `scripts/ingest/run.mjs` stages what a source says, decides which plant each record is (by the source's own id first), writes ids and facts by rank, and can take a run back. A rehearsal does the whole run in a transaction that is rolled back and prints what it would do.
+
+  ```bash
+  node scripts/ingest/run.mjs list
+  node scripts/ingest/run.mjs fetch epa-echo                 # one open download from the EPA
+  node scripts/ingest/run.mjs rehearse epa-echo <file>       # writes nothing
+  node scripts/ingest/run.mjs load epa-echo <file>           # stage, resolve, apply
+  node scripts/ingest/run.mjs undo epa-echo <run>
+  ```
+
+  On production it is run by hand from GitHub: add the repository secret `INGEST_DATABASE_URL` (Settings, Secrets and variables, Actions) with the production connection string, then Actions, Ingest, Run workflow, with the source and the mode (`rehearse`, then `apply`; `undo` with the run's number). The report is the run's artifact. Matches a run was not sure of wait in Admin Tools, Data. After a load that adds or moves plants, `scripts/geo/assign-keys.mjs` writes their counties. `scripts/ingest/README.md` has the design and the adapter's contract.
 
 - **Researched employers and plants**, with their sources: how many people work at a plant, what it makes, when it opened, which company a company is part of. Research files in `data/employers/` (and our corrections to them, in `corrections.json`) are turned into one migration by `scripts/build-employers-sql.mjs`. The loader decides in SQL, when the migration is applied, which company and which plant each entry already is, and writes every decision to `load_log`. A new file is checked, then rehearsed on a copy of production, before its migration is generated:
 
