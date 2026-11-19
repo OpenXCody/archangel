@@ -363,7 +363,7 @@ export default function MapSearch() {
     queryKey: publicKeys.mapSearchFor(debouncedQuery),
     queryFn: () => searchApi.search(debouncedQuery, { limit: ROWS_PER_GROUP, types: ASKED }),
     enabled: hasQuery,
-    staleTime: 30000,
+    staleTime: 30_000,
   });
 
   // Places (towns, counties, ZIP codes, addresses). Only with a map key. The

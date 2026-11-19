@@ -258,7 +258,7 @@ export default function Industry() {
     queryKey: publicKeys.industry(industry?.slug, where.state ?? null, where.area ?? null),
     queryFn: () => industriesApi.get(industry?.slug ?? '', where),
     enabled: Boolean(industry) && place.kind !== 'unknown',
-    staleTime: 1000 * 60 * 5,
+    staleTime: 5 * 60_000,
     // Changing the place keeps the page drawn until the new place's figures arrive.
     placeholderData: (previous, previousQuery) => (previousQuery?.queryKey[1] === industry?.slug ? previous : undefined),
   });

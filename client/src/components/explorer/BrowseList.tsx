@@ -234,7 +234,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     queryFn: ({ pageParam }) => LIST[tab]({ offset: pageParam, limit: PAGE_SIZE, ...params }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 5 * 60_000,
   });
 
   // Choices for the industry and category filters: every value in use, not

@@ -89,7 +89,7 @@ export default function IndustryList() {
     queryKey: publicKeys.industries(where.state ?? null, where.area ?? null),
     queryFn: () => industriesApi.list(where),
     enabled: place.kind !== 'unknown',
-    staleTime: 1000 * 60 * 5,
+    staleTime: 5 * 60_000,
     // Changing the place keeps the list drawn until the new place's figures arrive.
     placeholderData: (previous) => previous,
   });

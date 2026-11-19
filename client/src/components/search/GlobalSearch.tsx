@@ -107,7 +107,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     queryKey: publicKeys.searchFor(debouncedQuery),
     queryFn: () => searchApi.search(debouncedQuery, { types: ASKED, limit: ROWS_PER_GROUP }),
     enabled: hasQuery,
-    staleTime: 30000,
+    staleTime: 30_000,
     // The list being read stays until the next answer is in: nothing flashes between letters.
     placeholderData: keepPreviousData,
   });

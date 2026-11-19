@@ -20,7 +20,7 @@ function Figures() {
   const counts = useQuery({
     queryKey: publicKeys.counts,
     queryFn: statsApi.counts,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 10 * 60_000,
   });
   if (counts.isError) return null;
   const parts = counts.data ? FIGURES.filter((key) => counts.data[key] > 0) : [];

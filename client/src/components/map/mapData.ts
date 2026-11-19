@@ -23,7 +23,7 @@ export function useStatesWithCounts(): GeoJSON.FeatureCollection | null {
   const { data: stateCounts } = useQuery<Record<string, number>>({
     queryKey: publicKeys.stateCounts,
     queryFn: () => mapApi.stateCounts(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60_000,
   });
 
   // Raw US states GeoJSON geometry
