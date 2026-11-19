@@ -4,7 +4,7 @@ import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { occupationsApi } from '../../lib/api';
 import { errorMessage } from '../../lib/http';
-import { ENTITY, fieldClass, useDebouncedValue } from './parts';
+import { KIND_ICON, fieldClass, useDebouncedValue } from './parts';
 
 export interface CareerOption {
   id: string;
@@ -57,7 +57,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
   const options: CareerOption[] = searching
     ? (results.data?.data ?? []).map((occupation) => ({ id: occupation.id, title: occupation.title }))
     : suggestions;
-  const CareerIcon = ENTITY.career.icon;
+  const CareerIcon = KIND_ICON.career;
 
   const pickedId = value?.id;
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
   if (value) {
     return (
       <div className={cn(fieldClass, 'flex min-h-[42px] items-center gap-2.5')}>
-        <CareerIcon className={cn('h-4 w-4 shrink-0', ENTITY.career.text)} />
+        <CareerIcon className="h-4 w-4 shrink-0 text-fg-muted" />
         <span className="min-w-0 flex-1 break-words text-fg-default" data-picked-career={value.id}>
           {value.title}
         </span>
@@ -185,7 +185,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
                     index === activeIndex && 'bg-bg-elevated'
                   )}
                 >
-                  <CareerIcon className={cn('h-4 w-4 shrink-0', ENTITY.career.text)} />
+                  <CareerIcon className="h-4 w-4 shrink-0 text-fg-muted" />
                   <span className="min-w-0 break-words">{option.title}</span>
                 </li>
               ))}

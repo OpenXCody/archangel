@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import CompanyLogo from '../CompanyLogo';
 import type { BrowseTab } from './ExploreNav';
 import { focusRing, plural } from '@/lib/utils';
+import { STAGE_LABEL, type Stage } from '../../lib/stages';
 
 /**
  * One row of a browse list. Every type reads the same way:
@@ -114,10 +115,8 @@ function FactoryRow({ data, onMouseEnter }: Props<Factory>) {
   );
 }
 
-const STAGE_NAMES = ['Introduction', 'Fundamentals', 'Advanced'];
-
 function OccupationRow({ data, onMouseEnter }: Props<Occupation>) {
-  const stages = data.pathStatus && data.stageCounts ? data.stageCounts.map((n, i) => (n ? `${STAGE_NAMES[i]} ${n}` : null)) : [];
+  const stages = data.pathStatus && data.stageCounts ? data.stageCounts.map((n, i) => (n ? `${STAGE_LABEL[(i + 1) as Stage]} ${n}` : null)) : [];
   return (
     <Row
       to={`/occupations/${data.id}`}

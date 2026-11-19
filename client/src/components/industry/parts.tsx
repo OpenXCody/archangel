@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn, focusRing } from '@/lib/utils';
 import type { IndustryStats } from '../../lib/api';
-import { BackLink, detailActionClass } from '../layout/Page';
 
 /*
  * Pieces the industry pages share. Words, as everywhere: people (how many
@@ -20,7 +19,6 @@ import { BackLink, detailActionClass } from '../layout/Page';
  * official statistics count). Every number sits under or beside a label, and
  * a figure nobody knows is left out, never shown as 0.
  */
-
 
 // ─── The place in the address ──────────────────────────────────────────────
 
@@ -111,18 +109,6 @@ export function PlaceChoice({ place }: { place: PagePlace }) {
     </DropdownMenu>
   );
 }
-
-// ─── Page furniture ────────────────────────────────────────────────────────
-// The heading block, sections and record rows are the detail page's own
-// (`components/layout/Page.tsx`). These two names are kept for the list of
-// industries, which still asks for them here.
-
-/** Returns to wherever the person came from; with no history (a link opened cold), to `fallback`. */
-export function BackButton({ fallback }: { fallback: string }) {
-  return <BackLink fallback={fallback} />;
-}
-
-export const OUTLINE_LINK = detailActionClass;
 
 // ─── Figures ───────────────────────────────────────────────────────────────
 

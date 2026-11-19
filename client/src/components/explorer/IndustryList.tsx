@@ -5,12 +5,11 @@ import { industriesApi, type IndustryList as Industries } from '../../lib/api';
 import { industryLabel } from '@shared/industry';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmptyState } from '../layout/Page';
+import { EmptyState, detailActionClass } from '../layout/Page';
 import { LoadError } from '../account/parts';
 import {
   FigureList,
   Figures,
-  OUTLINE_LINK,
   PlaceChoice,
   SourceLine,
   officialFigures,
@@ -107,7 +106,7 @@ export default function IndustryList() {
           title="That place is not listed"
           description={`“${place.asked}” is not a state.`}
           action={
-            <Link to="/industries" className={OUTLINE_LINK}>
+            <Link to="/industries" className={detailActionClass}>
               Industries everywhere
             </Link>
           }

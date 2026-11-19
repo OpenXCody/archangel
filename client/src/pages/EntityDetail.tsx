@@ -44,6 +44,7 @@ import {
   recordListClass,
 } from '../components/layout/Page';
 import { plural } from '@/lib/utils';
+import { type Stage, STAGE_LABEL } from '../lib/stages';
 
 /** What each kind of record is called at the head of its page. */
 const KIND_LABEL: Record<EntityType, string> = {
@@ -508,10 +509,10 @@ function OpenJobsSection({ jobs, showCareer = false }: { jobs: CareerJob[]; show
  * The three stages of a career's path, in the order they are learned, and
  * what each means. Said the same way on a career's page and on a skill's.
  */
-const STAGES: { stage: 1 | 2 | 3; label: string; hint: string }[] = [
-  { stage: 1, label: 'Introduction', hint: 'Where to start' },
-  { stage: 2, label: 'Fundamentals', hint: 'The core of the work' },
-  { stage: 3, label: 'Advanced', hint: 'What sets you apart' },
+const STAGES: { stage: Stage; label: string; hint: string }[] = [
+  { stage: 1, label: STAGE_LABEL[1], hint: 'Where to start' },
+  { stage: 2, label: STAGE_LABEL[2], hint: 'The core of the work' },
+  { stage: 3, label: STAGE_LABEL[3], hint: 'What sets you apart' },
 ];
 /** A skill a career uses that has no stage yet, in both pages' words. */
 const UNSTAGED = 'Not yet placed';

@@ -13,7 +13,7 @@ import { useJobs, type JobSummary } from '../lib/jobs';
 import { usePostJobLink } from '../lib/viewer';
 import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
 import { formatAgo } from '../lib/dates';
-import { ENTITY, LoadError, cardClass, fieldClass, outlineButtonClass, useDebouncedValue } from '../components/account/parts';
+import { LoadError, cardClass, fieldClass, outlineButtonClass, useDebouncedValue } from '../components/account/parts';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
 import { isUuid } from '../lib/validation';
 
@@ -323,7 +323,7 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
             {job.shift}
           </Chip>
         )}
-        {job.occupationTitle !== job.title && <Chip className={cn('border-transparent', ENTITY.career.badge)}>{job.occupationTitle}</Chip>}
+        {job.occupationTitle !== job.title && <Chip className="border-transparent bg-bg-elevated text-fg-muted">{job.occupationTitle}</Chip>}
       </div>
     </Link>
   );

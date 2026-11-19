@@ -20,8 +20,7 @@ import { EmptyState, PageSection } from '../layout/Page';
 import { LoadError } from '../account/parts';
 import CompanyLogo from '../CompanyLogo';
 import { exploreHref } from './ExploreNav';
-
-const STAGE_NAME: Record<1 | 2 | 3, string> = { 1: 'Introduction', 2: 'Fundamentals', 3: 'Advanced' };
+import { STAGE_LABEL } from '../../lib/stages';
 
 const TILE = cn(
   'group flex min-w-0 rounded-xl border border-border-subtle bg-bg-surface transition-colors',
@@ -152,7 +151,7 @@ function CareerCard({ career, className }: { career: ExploreCareer; className?: 
             )}
           >
             <div className="flex items-baseline justify-between gap-3">
-              <span className={cn(EYEBROW, 'text-fg-muted')}>{STAGE_NAME[stage.stage]}</span>
+              <span className={cn(EYEBROW, 'text-fg-muted')}>{STAGE_LABEL[stage.stage]}</span>
               <span className="shrink-0 text-xs tabular-nums text-fg-soft">{plural(stage.count, 'skill', 'skills')}</span>
             </div>
             {/* One line of whole names: a name that does not fit wraps out of sight instead of being cut. */}

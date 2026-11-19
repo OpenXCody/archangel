@@ -1,6 +1,6 @@
 import { useEffect, useState, type ElementType, type KeyboardEvent, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { AlertCircle, Briefcase, Building2, Factory, Loader2, RotateCw, Wrench } from 'lucide-react';
+import { AlertCircle, Briefcase, Building2, Factory, Loader2, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,12 +13,11 @@ import { onGroupArrowKeys } from '../../lib/roving';
 
 /** Small shared pieces for the account, jobs, employer and admin pages. */
 
-/** Icons for the kinds of record. The app is monochrome: kinds differ by icon, not hue. A career is the occupation entity. */
-export const ENTITY: Record<'company' | 'factory' | 'career' | 'skill', { icon: ElementType; text: string; badge: string }> = {
-  company: { icon: Building2, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
-  factory: { icon: Factory, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
-  career: { icon: Briefcase, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
-  skill: { icon: Wrench, text: 'text-fg-muted', badge: 'bg-bg-elevated text-fg-muted' },
+/** The icon a picker shows beside a company, a plant or a career. The app is monochrome: an icon is never coloured by kind. */
+export const KIND_ICON: Record<'company' | 'factory' | 'career', ElementType> = {
+  company: Building2,
+  factory: Factory,
+  career: Briefcase,
 };
 
 /**

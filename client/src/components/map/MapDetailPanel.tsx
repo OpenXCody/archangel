@@ -37,6 +37,7 @@ import { formatPay } from '../../lib/jobFormat';
 import { PANEL_WIDTH_PX, SHEET_BAR_PX, SHEET_FULL_VH, sheetPeekPx } from './camera';
 import { industryPath, leadingIndustry, shownIndustry } from '@shared/industry';
 import { isNotFound, useSelection } from './selection';
+import { STAGE_LABEL } from '../../lib/stages';
 
 /*
  * Words, the same in every panel:
@@ -781,7 +782,7 @@ function OccupationView({ occupation }: { occupation: OccupationDetail }) {
         <Section title="Skills">
           {staged && (
             <p className="mb-2 text-xs tabular-nums text-fg-muted">
-              Introduction {stages[0]} · Fundamentals {stages[1]} · Advanced {stages[2]}
+              {STAGE_LABEL[1]} {stages[0]} · {STAGE_LABEL[2]} {stages[1]} · {STAGE_LABEL[3]} {stages[2]}
             </p>
           )}
           <RowList>

@@ -27,7 +27,7 @@ import ConfirmDialog from '../components/admin/ConfirmDialog';
 import {
   AccountGate,
   CardNote,
-  ENTITY,
+  KIND_ICON,
   ErrorNote,
   Field,
   LoadError,
@@ -442,7 +442,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
   const request = useRequestMembership();
   const results = useCompanySearch(query);
   const showResults = term.trim().length >= 2 && query.length >= 2;
-  const CompanyIcon = ENTITY.company.icon;
+  const CompanyIcon = KIND_ICON.company;
   const found = results.data;
 
   const askToAdd = (
@@ -525,7 +525,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                   return (
                     <li key={company.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-company-result={company.id}>
                       <div className="flex min-w-0 flex-1 basis-48 items-start gap-3">
-                        <CompanyIcon className={cn('mt-0.5 h-4 w-4 shrink-0', ENTITY.company.text)} />
+                        <CompanyIcon className="mt-0.5 h-4 w-4 shrink-0 text-fg-muted" />
                         <div className="min-w-0">
                           {/* The company's page, to check it is the right one; in a new tab so the search stays. */}
                           <a
