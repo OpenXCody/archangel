@@ -9,13 +9,11 @@ import maplibregl, {
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Maximize2, Minus, Plus } from 'lucide-react';
-import { mapApi } from '../../lib/api';
 import { useMapStore, type PinInfo } from '../../stores/mapStore';
 import { currentTheme, type Theme } from '../../lib/theme';
 import { isNotFound } from './selection';
-import { STATE_CODE_BY_NAME } from '../../lib/places';
 import { formatCompanyName } from '@shared/displayName';
-import { FOCUS_AREAS, focusArea } from '@shared/scope';
+import { focusArea } from '@shared/scope';
 import {
   applyCameraRequest,
   areaReadsAsShape,
@@ -46,8 +44,8 @@ import {
   SOURCE,
   type PinView,
 } from './layers';
-import { recordQuery, usePins, useStatesOutline } from '../../lib/queries';
-import { publicKeys } from '../../lib/queryKeys';
+import { recordQuery, usePins } from '../../lib/queries';
+import { useStatesWithCounts, useAreaBoundaries } from './mapData';
 
 declare global {
   interface Window {
@@ -56,7 +54,6 @@ declare global {
   }
 }
 
-// MapTiler style base URL - key added at runtime for retry support
 /** MapTiler's quiet basemap, in the variant that matches the theme. */
 const MAPTILER_STYLE: Record<Theme, string> = {
   dark: 'https://api.maptiler.com/maps/dataviz-dark/style.json',
@@ -243,56 +240,9 @@ export default function Map({ onViewChange }: MapProps) {
     return index;
   }, [factoriesGeoJSON]);
 
-  // State-level factory counts (shade the states)
-  const { data: stateCounts } = useQuery<Record<string, number>>({
-    queryKey: publicKeys.stateCounts,
-    queryFn: () => mapApi.stateCounts(),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Raw US states GeoJSON geometry
-  const { data: statesGeoJSONRaw } = useStatesOutline();
-
-  // Merge counts into states GeoJSON so the fill layer can key off
-  // feature.properties.factoryCount. The upstream GeoJSON uses full names on
-  // properties.name; STATE_CODE_BY_NAME gives each its 2-letter code.
-  // The shapes do not wait for the counts: a slow or failed count request
-  // must not leave the map without its states.
-  const statesWithCounts = useMemo(() => {
-    if (!statesGeoJSONRaw) return null;
-    return {
-      ...statesGeoJSONRaw,
-      features: statesGeoJSONRaw.features.map((f) => {
-        const name = f.properties?.name as string | undefined;
-        const code = name ? STATE_CODE_BY_NAME[name] : undefined;
-        const count = code ? (stateCounts?.[code] ?? 0) : 0;
-        return { ...f, properties: { ...(f.properties ?? {}), stateCode: code, factoryCount: count } };
-      }),
-    } as GeoJSON.FeatureCollection;
-  }, [statesGeoJSONRaw, stateCounts]);
-
-  // Boundaries of the focus areas, each feature tagged with its area's id.
-  // An area whose boundary fails to load is simply not outlined; its label
-  // and chip still work, because they frame the area by its bounds.
-  const { data: areaBoundaries } = useQuery<GeoJSON.FeatureCollection>({
-    queryKey: publicKeys.areaBoundaries,
-    queryFn: async () => {
-      const loaded = await Promise.all(
-        FOCUS_AREAS.map(async (area): Promise<GeoJSON.Feature[]> => {
-          try {
-            const res = await fetch(area.boundaryUrl);
-            if (!res.ok) return [];
-            const collection = (await res.json()) as GeoJSON.FeatureCollection;
-            return collection.features.map((f) => ({ ...f, properties: { id: area.id, name: area.name } }));
-          } catch {
-            return [];
-          }
-        })
-      );
-      return { type: 'FeatureCollection', features: loaded.flat() };
-    },
-    staleTime: Infinity,
-  });
+  // The states' shapes with their plant counts, and the focus areas' boundaries (mapData.ts).
+  const statesWithCounts = useStatesWithCounts();
+  const { data: areaBoundaries } = useAreaBoundaries();
 
   // Initialize map with retry logic
   useEffect(() => {
