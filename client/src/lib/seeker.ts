@@ -32,6 +32,8 @@ export interface MyGoal {
   createdAt: string;
   totalSkills: number;
   heldSkills: number;
+  /** Every skill of the career, by id: what its small plate on Profile is drawn from. */
+  skillIds?: string[];
 }
 
 /** One step in an application's history: the stage it reached, and when. */

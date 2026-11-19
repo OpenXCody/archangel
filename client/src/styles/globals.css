@@ -1026,3 +1026,303 @@ input {
     max-width: max(30rem, calc(100dvh - 16.5rem));
   }
 }
+
+/*
+ * A career, part walked (components/atlas/: the Walk layer, CareerAtlas,
+ * GoalPlate). While a seeker fills the one career laid over the atlas in, a
+ * skill of it still ahead is an open mark in the accent; the way from the
+ * centre out to each held one is drawn bright over the career's branches;
+ * and the centre is the ring of how much is held, which closes when the
+ * career is whole. Bright is the person; the accent is the career.
+ */
+.atlas-lit-dot[data-ahead] {
+  fill: var(--color-bg-base);
+  stroke: rgb(var(--info));
+  stroke-width: 1.25px;
+}
+/* The career's own branches step back a little under the walked ones. */
+.atlas-plate[data-atlas-walking] .atlas-lit {
+  stroke-opacity: 0.8;
+}
+.atlas-walked {
+  fill: none;
+  stroke: var(--color-fg-default);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/*
+ * What moves is a drawing of its own over the plate (`.atlas-moving`, under
+ * the same camera), so a frame of its motion paints a handful of elements and
+ * never the plate. The way to the skill just marked is drawn in from the
+ * centre (dashes need the stroke in the drawing's units), its mark arrives as
+ * the line gets there, and one ring opens from the leaf and is gone. The
+ * lasting line and mark on the plate wait unseen until then.
+ */
+.atlas-stack {
+  position: relative;
+}
+.atlas-moving {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  will-change: transform;
+}
+.atlas-moving[data-still] .atlas-camera {
+  transition: none;
+}
+.atlas-moving path,
+.atlas-moving circle {
+  vector-effect: non-scaling-stroke;
+}
+.atlas-moving .atlas-walk-in {
+  vector-effect: none;
+  fill: none;
+  stroke: var(--color-fg-default);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  animation: atlas-walk-in 0.42s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+.atlas-walked[data-arriving],
+.atlas-mark-at[data-arriving] {
+  opacity: 0;
+}
+.atlas-mark-in {
+  fill: var(--color-fg-default);
+  stroke: var(--color-bg-base);
+  stroke-width: 1px;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: atlas-mark-in 0.22s ease-out 0.34s both;
+}
+.atlas-pulse {
+  fill: none;
+  stroke: var(--color-fg-default);
+  stroke-width: 1px;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: atlas-pulse 0.6s ease-out 0.38s both;
+}
+@keyframes atlas-walk-in {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes atlas-mark-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes atlas-pulse {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  15% {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+/* The ring at the centre: the same one the career's page carries, in the plate's own units so it can move. */
+.atlas-share-bed {
+  fill: var(--color-bg-base);
+}
+.atlas-moving .atlas-share-track,
+.atlas-moving .atlas-share {
+  vector-effect: none;
+  fill: none;
+}
+.atlas-share-track {
+  stroke: var(--color-border-strong);
+}
+.atlas-share {
+  stroke: var(--color-fg-default);
+  transition: stroke-dasharray 0.36s cubic-bezier(0.3, 0.1, 0.2, 1), opacity 0.2s ease;
+}
+.atlas-share-whole {
+  animation: atlas-arrive 0.3s ease 0.2s both;
+}
+.atlas-moving[data-still] .atlas-share-whole {
+  animation: none;
+}
+.atlas-share-whole circle {
+  fill: var(--color-fg-default);
+}
+.atlas-moving .atlas-share-whole path {
+  vector-effect: none;
+  fill: none;
+  stroke: var(--color-bg-base);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Enlarged, the moving drawing runs past the frame as the plate does, and fades at the same edges. */
+.atlas-moving:not([data-atlas-view='whole']) {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 1.75rem), linear-gradient(to bottom, transparent, #000 1.75rem, #000 calc(100% - 1.75rem), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 1.75rem), linear-gradient(to bottom, transparent, #000 1.75rem, #000 calc(100% - 1.75rem), transparent);
+  mask-composite: intersect;
+}
+/* With motion off nothing arrives: the line and the mark are simply there, and the ring is where it should be. */
+@media (prefers-reduced-motion: reduce) {
+  .atlas-moving [data-atlas-arriving] {
+    display: none;
+  }
+  .atlas-walked[data-arriving],
+  .atlas-mark-at[data-arriving] {
+    opacity: 1;
+  }
+  .atlas-share-whole {
+    animation: none;
+  }
+  .atlas-share,
+  .atlas-moving .atlas-camera {
+    transition: none;
+  }
+}
+/* Walked, a skill of the career is the person's: bright, with no rim of the career's colour left on it. */
+.atlas-plate[data-atlas-walking] .atlas-mark[data-lit][data-status='held'] {
+  stroke: var(--color-bg-base);
+  stroke-width: 1px;
+}
+
+/*
+ * A career's path on the Atlas (CareerAtlas): the plate, and the career's
+ * skills as tags. On a phone the plate holds still under the header while
+ * the tags move under it, so a mark is seen on the plate as it is made; on a
+ * wide screen the two stand side by side and the plate holds still beside
+ * the tags. A short screen lets the plate scroll away with the page.
+ */
+.career-atlas {
+  --career-atlas-top: 3.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.career-atlas-plate {
+  z-index: 5;
+  margin: 0 -0.25rem;
+  padding: 0 0.25rem;
+  background: var(--color-bg-base);
+}
+/* The plate is never taller than about half the screen, so tags are always in reach under it. */
+.career-atlas-plate > * {
+  width: min(100%, 47dvh);
+  margin: 0 auto;
+}
+@media (min-height: 560px) {
+  .career-atlas-plate {
+    position: sticky;
+    top: var(--career-atlas-top);
+  }
+  /* The tags pass under the plate's edge, not against it. */
+  .career-atlas-plate::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 0.875rem;
+    background: linear-gradient(to bottom, var(--color-bg-base), transparent);
+    pointer-events: none;
+  }
+}
+.career-atlas-list {
+  padding-top: 0.5rem;
+}
+.career-atlas-groups {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+@media (min-width: 640px) and (max-width: 1023.98px) {
+  .career-atlas-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+@media (min-width: 1024px) {
+  .career-atlas {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+    column-gap: 2.5rem;
+    align-items: start;
+  }
+  .career-atlas-plate {
+    top: calc(var(--career-atlas-top) + 1.25rem);
+    margin: 0;
+    padding: 0;
+  }
+  .career-atlas-plate > * {
+    width: min(100%, calc(100dvh - 7rem));
+  }
+  .career-atlas-plate::after {
+    display: none;
+  }
+  .career-atlas-list {
+    padding-top: 0;
+  }
+}
+
+/*
+ * A career as a small plate (GoalPlate): the size of a thumb. Lines and dots
+ * keep their width at any size; the accent is the career, bright is what the
+ * person holds of it.
+ */
+.goal-plate {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+.goal-plate path,
+.goal-plate-ring,
+.goal-plate-root {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.goal-plate-ring {
+  stroke: var(--color-fg-soft);
+  stroke-opacity: 0.7;
+  stroke-width: 1.25px;
+  stroke-linecap: butt;
+}
+.goal-plate-root {
+  stroke: var(--color-fg-soft);
+  stroke-opacity: 0.7;
+  stroke-width: 1px;
+}
+.goal-plate-career {
+  stroke: rgb(var(--info));
+  stroke-opacity: 0.85;
+  stroke-width: 0.75px;
+}
+.goal-plate-walked {
+  stroke: var(--color-fg-default);
+  stroke-width: 1.25px;
+}
+.goal-plate-ahead {
+  stroke: rgb(var(--info));
+  stroke-width: 2.5px;
+}
+.goal-plate-learning {
+  stroke: var(--color-fg-muted);
+  stroke-width: 3px;
+}
+.goal-plate-held {
+  stroke: var(--color-fg-default);
+  stroke-width: 3.5px;
+}
