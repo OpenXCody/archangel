@@ -296,6 +296,8 @@ interface RecordRowProps {
   figure?: number | null;
   /** What the figure counts, for a screen reader ("people"). */
   figureLabel?: string;
+  /** The name in secondary ink: a skill the person does not hold, among ones they do. */
+  quiet?: boolean;
   className?: string;
 }
 
@@ -310,6 +312,7 @@ export function RecordRow({
   subtitle,
   figure,
   figureLabel,
+  quiet,
   className,
   ...rest
 }: RecordRowProps & Record<`data-${string}`, string | undefined>) {
@@ -328,7 +331,7 @@ export function RecordRow({
         {lead}
         <span className="min-w-0 flex-1">
           {label && <span className="block text-xs text-text-3">{label}</span>}
-          <span className="block break-words text-sm font-medium leading-snug text-text-1">{title}</span>
+          <span className={cn('block break-words text-sm font-medium leading-snug', quiet ? 'text-text-2' : 'text-text-1')}>{title}</span>
           {subtitle && <span className="mt-0.5 line-clamp-2 break-words text-xs text-text-2">{subtitle}</span>}
         </span>
         {figure != null ? (

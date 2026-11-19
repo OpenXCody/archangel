@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, optionTileClass } from '@/lib/utils';
 import { REVIEW_PAGE, distance, useDecideReview, useReviewQueue, type ReviewCandidate, type ReviewDecision, type ReviewItem, type ReviewPlant } from '../../lib/intake';
 import { cityState } from '../../lib/places';
 import { onGroupArrowKeys } from '../../lib/roving';
@@ -137,8 +137,8 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
                   tabIndex={option.id === chosen ? 0 : -1}
                   onClick={() => setChosen(option.id)}
                   className={cn(
-                    'block w-full rounded-lg border px-3 py-2 text-left transition-colors',
-                    option.id === chosen ? 'border-text-2 bg-surface' : 'border-line hover:bg-surface-hover'
+                    'block w-full px-3 py-2',
+                    optionTileClass(option.id === chosen)
                   )}
                 >
                   <PlantFacts plant={option} name={option.name} />

@@ -291,7 +291,7 @@ function PendingInvites({ onRevoked }: { onRevoked: (inviteId: string) => void }
                       });
                     }}
                     aria-label={`Revoke the invite for ${invite.email}`}
-                    className={cn(textButtonClass, 'flex min-h-9 items-center aria-disabled:pointer-events-none aria-disabled:opacity-50')}
+                    className={cn(textButtonClass, 'flex min-h-9 items-center aria-disabled:cursor-not-allowed aria-disabled:opacity-40')}
                   >
                     Revoke
                   </button>

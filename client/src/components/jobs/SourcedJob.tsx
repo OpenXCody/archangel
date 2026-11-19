@@ -63,7 +63,7 @@ export function SourcedApply({ job }: { job: JobDetail }) {
   if (!job.applyUrl || !job.isOpen) return null;
   return (
     <>
-      <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className={cn(detailActionClass, 'border-transparent bg-text-1 text-inverse-text hover:bg-text-1/90')} data-apply-on-site>
+      <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className={cn(detailActionClass, 'border-transparent bg-inverse-bg text-inverse-text hover:bg-inverse-bg/90')} data-apply-on-site>
         Apply
         <ExternalLink className="h-4 w-4" aria-hidden="true" />
         <span className="sr-only">, in a new tab</span>

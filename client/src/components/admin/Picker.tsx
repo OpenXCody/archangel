@@ -105,7 +105,7 @@ export default function Picker<T extends { id: string; name: string }>({
             setOpen(true);
             window.setTimeout(() => inputRef.current?.focus(), 0);
           }}
-          className="shrink-0 text-sm font-medium text-text-2 underline underline-offset-4 hover:text-text-1 aria-disabled:opacity-50"
+          className="shrink-0 text-sm font-medium text-text-2 underline underline-offset-4 hover:text-text-1 aria-disabled:cursor-not-allowed aria-disabled:opacity-40"
         >
           Change
         </button>

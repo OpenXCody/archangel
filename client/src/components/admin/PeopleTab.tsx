@@ -51,7 +51,7 @@ const ROLES: { value: PeopleRole; label: string }[] = [
 ];
 
 /** A text action inside a panel, tall enough to press on a phone. */
-const panelActionClass = cn(textButtonClass, 'flex min-h-9 items-center aria-disabled:pointer-events-none aria-disabled:opacity-50');
+const panelActionClass = cn(textButtonClass, 'flex min-h-9 items-center aria-disabled:cursor-not-allowed aria-disabled:opacity-40');
 
 /**
  * Everyone with an account: found by name, email or company and by role,

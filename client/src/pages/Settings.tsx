@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
+import { cn, optionDetailClass, optionTileClass, optionTitleClass } from '@/lib/utils';
 import {
   useChangeEmail,
   justLeft,
@@ -573,14 +573,14 @@ function ChoiceGroup<T extends string>({ label, choices, value, onChange, saving
             data-value={choice.value}
             onClick={() => choose(choice.value)}
             className={cn(
-              'flex min-h-11 min-w-0 items-start gap-2 rounded-lg border px-3 py-2.5 text-left transition-colors',
-              selected ? 'border-text-1 bg-surface' : 'border-line hover:border-line-strong'
+              'flex min-h-11 min-w-0 items-start gap-2 px-3 py-2.5',
+              optionTileClass(selected)
             )}
           >
             <span className="min-w-0 flex-1">
-              <span className={cn('block text-sm font-medium', selected ? 'text-text-1' : 'text-text-2')}>{choice.label}</span>
+              <span className={cn('block text-sm font-medium', optionTitleClass(selected))}>{choice.label}</span>
               {choice.detail && (
-                <span className={cn('mt-0.5 text-xs text-text-2', choices.length === 2 ? 'block' : 'hidden sm:block')}>{choice.detail}</span>
+                <span className={cn('mt-0.5 text-xs', optionDetailClass(selected), choices.length === 2 ? 'block' : 'hidden sm:block')}>{choice.detail}</span>
               )}
             </span>
             {saving === choice.value && <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-text-2" aria-hidden="true" />}

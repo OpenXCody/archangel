@@ -171,11 +171,11 @@ function SuggestedSkills({ mySkills, onMark }: { mySkills: MySkill[]; onMark: (s
       <h3 className="mb-2 text-sm font-medium text-text-2">Suggested</h3>
       <ul className={cn(cardClass, suggested.isPlaceholderData && 'opacity-60')}>
         {shown.map((skill) => (
-          <li key={skill.id} className={cn(rowClass, '-ml-3 flex items-center gap-1 py-0.5')}>
-            <SkillHeldToggle value={statusOf.get(skill.id) ?? 'none'} label={skill.name} onChange={(mark) => onMark(skill.id, skill.name, mark)} />
+          <li key={skill.id} className={cn(rowClass, 'flex items-center gap-1 py-0.5')}>
+            <SkillHeldToggle value={statusOf.get(skill.id) ?? 'none'} label={skill.name} onChange={(mark) => onMark(skill.id, skill.name, mark)} className="-ml-3" />
             <Link
               to={`/skills/${skill.id}`}
-              className="min-w-0 flex-1 break-words py-2 text-sm text-text-1 underline-offset-4 hover:underline"
+              className={cn('min-w-0 flex-1 break-words py-2 text-sm underline-offset-4 hover:underline', statusOf.has(skill.id) ? 'text-text-1' : 'text-text-2')}
             >
               {skill.name}
             </Link>

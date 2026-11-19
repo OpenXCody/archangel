@@ -226,7 +226,10 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
 
       {/* Modal */}
       <div ref={boxRef} role="dialog" aria-modal="true" aria-label="Search" className="fixed inset-x-4 top-[12vh] z-50 mx-auto max-w-[600px]">
-        <div className="overflow-hidden rounded-xl border border-line-strong bg-bg" onClick={(e) => e.stopPropagation()}>
+        <div
+          // The field has no edge of its own: the panel it fills carries the focus ring for it.
+          className="overflow-hidden rounded-xl border border-line-strong bg-bg has-[input:focus-visible]:outline has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-accent"
+          onClick={(e) => e.stopPropagation()}>
           {/* Search input */}
           <div className="flex items-center gap-3 px-4 py-3">
             <Search className="h-5 w-5 flex-shrink-0 text-text-3" aria-hidden="true" />

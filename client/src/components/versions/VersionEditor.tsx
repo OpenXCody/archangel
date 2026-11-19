@@ -279,7 +279,7 @@ function EditTag({ skill, on, runs, onTap, onMake }: EditTagProps) {
                   data-make={make.id}
                   className={cn(
                     chipClass,
-                    pressed ? 'border-line-strong bg-surface font-medium text-text-1' : 'border-line text-text-2 hover:border-line-strong hover:text-text-1'
+                    pressed ? 'border-text-1 font-medium text-text-1' : 'border-line-strong text-text-2 hover:bg-surface-hover hover:text-text-1'
                   )}
                 >
                   {make.name}

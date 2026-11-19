@@ -384,6 +384,7 @@ function SkillList({ skills, marksHeld }: { skills: JobSkill[]; marksHeld: boole
                   <SkillHeldToggle value={status} label={skill.name} onChange={(mark) => markSkill.mutate({ skillId: skill.id, name: skill.name, mark })} />
                 ) : undefined
               }
+              quiet={marksHeld && status === 'none'}
               data-held={marksHeld ? String(status === 'held') : undefined}
             />
           );

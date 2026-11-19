@@ -4,7 +4,7 @@ import { AlertCircle, Briefcase, Building2, Factory, Loader2, RotateCw } from 'l
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { cn, segmentClass } from '@/lib/utils';
 import { justLeft, signInPath, useAccount, type SignedInAccount } from '../../lib/account';
 import { errorMessage } from '../../lib/http';
 import { applicationStatusLabel } from '../../lib/jobFormat';
@@ -27,8 +27,8 @@ export const KIND_ICON: Record<'company' | 'factory' | 'career', ElementType> = 
  */
 export const fieldClass =
   'block min-h-[42px] w-full rounded-lg border border-solid border-line-strong bg-surface px-3 py-2 text-base text-text-1 ' +
-  'placeholder:text-text-3 transition-colors focus:border-[color:var(--text-2)] focus:outline-none ' +
-  'disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm';
+  'placeholder:text-text-3 transition-colors ' +
+  'disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm';
 
 /** A select's trigger and list, matched to the text fields beside them. */
 export const selectTriggerClass =
@@ -60,7 +60,7 @@ export const outlineButtonClass = 'border-line-strong bg-transparent text-text-1
  */
 export const textButtonClass =
   'text-sm font-medium text-text-2 underline underline-offset-4 transition-colors hover:text-text-1 ' +
-  'disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50';
+  'disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40';
 
 interface FieldProps {
   label: string;
@@ -108,7 +108,7 @@ export function SegmentedChoice<T extends string>({ options, value, onChange, la
       aria-label={label}
       aria-labelledby={labelledBy}
       onKeyDown={(event) => onGroupArrowKeys(event, options.map((option) => option.value), value, onChange)}
-      className={cn('grid h-[42px] gap-1 rounded-lg border border-line p-1', className)}
+      className={cn('grid h-[42px] gap-0.5 rounded-lg border border-line p-0.5', className)}
     >
       {options.map((option) => (
         <button
@@ -119,9 +119,9 @@ export function SegmentedChoice<T extends string>({ options, value, onChange, la
           tabIndex={value === option.value ? 0 : -1}
           onClick={() => onChange(option.value)}
           className={cn(
-            'rounded-md text-sm font-medium transition-colors',
+            'rounded-md text-sm transition-colors',
             optionClassName,
-            value === option.value ? 'bg-inverse-bg text-inverse-text' : 'text-text-2 hover:text-text-1'
+            segmentClass(value === option.value)
           )}
         >
           {option.label}

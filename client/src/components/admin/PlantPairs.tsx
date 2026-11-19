@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn, focusRing } from '@/lib/utils';
+import { cn, focusRing, optionTileClass } from '@/lib/utils';
 import { distance } from '../../lib/intake';
 import { PAIRS_PAGE, useKeepApart, useMergePlants, usePairList, type PairList, type PlantPair, type PlantSide } from '../../lib/plantPairs';
 import { stateName } from '../../lib/places';
@@ -127,9 +127,9 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
                 }
               }}
               className={cn(
-                'min-w-0 rounded-lg border px-3 py-2.5 text-left transition-colors',
-                on ? 'border-text-2 bg-surface' : 'border-line',
-                !on && !locked && 'cursor-pointer hover:bg-surface-hover',
+                'min-w-0 px-3 py-2.5',
+                optionTileClass(on),
+                !on && !locked ? 'cursor-pointer' : 'hover:bg-transparent',
                 focusRing
               )}
               data-pair-side={side.id}

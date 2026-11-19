@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, segmentClass, segmentedClass } from '@/lib/utils';
 import { signInPath, useAccount } from '../../lib/account';
 import { useMySkills, useRemoveSkill, useSetSkillStatus, type SkillStatus } from '../../lib/seeker';
 import { onGroupArrowKeys } from '../../lib/roving';
@@ -46,7 +46,7 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
       aria-label={label}
       aria-busy={disabled || undefined}
       onKeyDown={(event) => onGroupArrowKeys(event, values, value, choose)}
-      className={cn('inline-flex shrink-0 rounded-lg border border-line-strong bg-surface p-0.5', disabled && 'opacity-60', className)}
+      className={cn('inline-flex shrink-0', segmentedClass, disabled && 'opacity-40', className)}
     >
       {choices.map((choice) => {
         const selected = choice.value === value;
@@ -60,12 +60,12 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
             tabIndex={choice.value === tabStop ? 0 : -1}
             onClick={() => choose(choice.value)}
             className={cn(
-              'inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors aria-disabled:cursor-default sm:h-8',
-              selected ? 'bg-inverse-bg text-inverse-text' : 'text-text-2 hover:text-text-1'
+              'inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs transition-colors aria-disabled:cursor-not-allowed sm:h-8',
+              segmentClass(selected)
             )}
           >
             {/* The chosen answer carries the same mark the skill has in every list. */}
-            {selected && choice.value !== 'none' && <SkillMark status={choice.value} className="h-3.5 w-3.5" />}
+            {selected && choice.value !== 'none' && <SkillMark status={choice.value} className="h-3.5 w-3.5 text-inverse-text" on="inverse" />}
             {choice.label}
           </button>
         );
@@ -80,14 +80,15 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
  * while it is being learned; an empty, quiet ring when it is neither. Shape
  * and brightness say it; there is no colour for "held".
  */
-export function SkillMark({ status, className }: { status: Choice; className?: string }) {
-  const tone = status === 'held' ? 'text-text-1' : status === 'learning' ? 'text-text-2' : 'text-text-3';
+export function SkillMark({ status, className, on = 'canvas' }: { status: Choice; className?: string; on?: 'canvas' | 'inverse' }) {
+  // Held and learning are the same ink; what is neither is the quietest.
+  const tone = status === 'none' ? 'text-text-3' : 'text-text-1';
   return (
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" data-skill-mark={status} className={cn('h-5 w-5 shrink-0', tone, className)}>
       {status === 'held' ? (
         <>
           <circle cx="10" cy="10" r="8.25" fill="currentColor" />
-          <path d="M6.4 10.3l2.4 2.4 4.8-5.1" stroke="var(--bg)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M6.4 10.3l2.4 2.4 4.8-5.1" stroke={on === 'inverse' ? 'var(--inverse-bg)' : 'var(--bg)'} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
         </>
       ) : (
         <>
@@ -131,7 +132,7 @@ export function SkillHeldToggle({ value, onChange, disabled, label, className }:
       }}
       className={cn(
         'flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-colors',
-        'aria-disabled:cursor-default aria-disabled:opacity-60 [&:hover>svg]:text-text-1',
+        'aria-disabled:cursor-not-allowed aria-disabled:opacity-40 [&:hover>svg]:text-text-1',
         className
       )}
     >

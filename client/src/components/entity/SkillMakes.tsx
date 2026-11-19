@@ -53,7 +53,7 @@ export default function SkillMakes({ skillId, makes }: { skillId: string; makes:
                   chipClass,
                   // A full finger's size where a finger is what presses it.
                   'min-h-9 transition-colors [@media(pointer:coarse)]:min-h-11',
-                  marked.has(make.id) ? 'border-line-strong bg-surface font-medium text-text-1' : cn(quietChip, 'hover:border-line-strong hover:text-text-1')
+                  marked.has(make.id) ? 'border-text-1 font-medium text-text-1' : cn(quietChip, 'hover:bg-surface-hover hover:text-text-1')
                 )}
               >
                 {make.name}

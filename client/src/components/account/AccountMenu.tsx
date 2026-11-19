@@ -102,7 +102,7 @@ export default function AccountMenu() {
         aria-current={onSignIn ? 'page' : undefined}
         className={cn(
           'flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-full px-3 text-sm font-medium transition-colors lg:h-10 lg:px-4',
-          onSignIn ? 'bg-surface text-text-1' : 'text-text-2 hover:bg-surface-hover hover:text-text-1'
+          onSignIn ? 'bg-surface text-text-1' : 'text-text-2 hover:bg-surface hover:text-text-1'
         )}
       >
         <LogIn className="h-4 w-4" />
@@ -137,8 +137,8 @@ export default function AccountMenu() {
       <DropdownMenuTrigger
         aria-label={`Account menu for ${user.name}`}
         aria-describedby={hasNews ? 'account-news' : undefined}
-        className="flex h-10 min-w-0 shrink-0 items-center gap-2 rounded-full border border-line bg-surface
-          p-1 text-sm font-medium text-text-1 transition-colors hover:border-line-strong lg:pr-3"
+        className="flex h-10 min-w-0 shrink-0 items-center gap-2 rounded-full bg-surface
+          p-1 text-sm font-medium text-text-1 transition-colors hover:bg-surface-hover lg:pr-3"
       >
         <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-bg text-xs font-semibold text-text-1">
           {initial}

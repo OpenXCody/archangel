@@ -77,7 +77,7 @@ export default function ApplicantList({ data, job }: { data: JobApplicants; job?
     <div data-applicant-list>
       <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
         {stages.length > 1 && (
-          <div role="group" aria-label="Show applicants by stage" className="flex min-w-0 flex-1 basis-64 flex-wrap gap-1">
+          <div role="group" aria-label="Show applicants by stage" className="flex min-w-0 flex-1 basis-64 flex-wrap gap-x-4 gap-y-1">
             <StageTab label="All" count={data.applications.length} selected={active === 'all'} onSelect={() => setFilter('all')} />
             {stages.map((status) => (
               <StageTab
@@ -161,8 +161,8 @@ function StageTab({ label, count, selected, onSelect }: { label: string; count: 
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(
-        'flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm transition-colors sm:px-3',
-        selected ? 'bg-surface font-medium text-text-1' : 'text-text-2 hover:text-text-1'
+        '-mb-px flex h-9 items-center gap-1.5 border-b-2 px-1 text-sm transition-colors',
+        selected ? 'border-text-1 font-medium text-text-1' : 'border-transparent text-text-2 hover:text-text-1'
       )}
     >
       {label}

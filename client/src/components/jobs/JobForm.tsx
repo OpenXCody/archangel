@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import { cn, optionDetailClass, optionTileClass, optionTitleClass } from '@/lib/utils';
 import { factoriesApi, occupationsApi } from '../../lib/api';
 import { useAccount } from '../../lib/account';
 import { EMPLOYMENT_TYPES, useCreateJob, type EmploymentType, type JobDetailResponse, type PayPeriod } from '../../lib/jobs';
@@ -647,22 +647,22 @@ function ApplyChoice({ selected, onSelect, title, detail }: { selected: boolean;
       tabIndex={selected ? 0 : -1}
       onClick={onSelect}
       className={cn(
-        'flex items-start gap-3 rounded-lg border p-3 text-left transition-colors',
-        selected ? 'border-[color:var(--text-2)] bg-surface' : 'border-line hover:border-line-strong'
+        'flex items-start gap-3 p-3',
+        optionTileClass(selected)
       )}
     >
       <span
         className={cn(
           'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
-          selected ? 'border-[color:var(--text-1)]' : 'border-[color:var(--text-3)]'
+          selected ? 'border-text-1' : 'border-text-3'
         )}
         aria-hidden="true"
       >
-        {selected && <span className="h-2 w-2 rounded-full bg-[color:var(--text-1)]" />}
+        {selected && <span className="h-2 w-2 rounded-full bg-text-1" />}
       </span>
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-text-1">{title}</span>
-        <span className="mt-0.5 block text-xs text-text-2">{detail}</span>
+        <span className={cn('block text-sm font-medium', optionTitleClass(selected))}>{title}</span>
+        <span className={cn('mt-0.5 block text-xs', optionDetailClass(selected))}>{detail}</span>
       </span>
     </button>
   );

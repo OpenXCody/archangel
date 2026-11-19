@@ -112,7 +112,7 @@ export default function Layout() {
                       transition-colors lg:min-h-0 lg:px-4 lg:py-2
                       ${isActive
                         ? 'bg-surface text-text-1'
-                        : 'text-text-2 hover:text-text-1 hover:bg-surface-hover'
+                        : 'text-text-2 hover:text-text-1 hover:bg-surface'
                       }
                     `}
                   >
@@ -146,7 +146,7 @@ export default function Layout() {
                 title={`Search (${SEARCH_SHORTCUT})`}
                 // The narrowest phones (320 px) have room for the view-as sign or for this, not both: the sign stays.
                 className={`flex ${viewer.viewingAs ? 'max-[339px]:hidden' : ''} h-11 min-w-11 items-center justify-center gap-2 px-3 rounded-full sm:h-10
-                  bg-surface border border-line
+                  bg-surface
                   text-sm text-text-2 hover:text-text-1
                   transition-colors flex-shrink-0`}
               >

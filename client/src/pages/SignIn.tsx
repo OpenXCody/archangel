@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, optionDetailClass, optionTileClass, optionTitleClass, segmentClass } from '@/lib/utils';
 import {
   inviteRoleLabel,
   safeNextPath,
@@ -224,7 +224,7 @@ export default function SignIn() {
             role="tablist"
             aria-label="Sign in or create an account"
             onKeyDown={(event) => onGroupArrowKeys(event, MODES.map((each) => each.value), mode, switchMode)}
-            className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-surface p-1"
+            className="mb-5 grid grid-cols-2 gap-0.5 rounded-lg border border-line p-0.5"
           >
             {MODES.map(({ value, label }) => (
               <button
@@ -235,8 +235,8 @@ export default function SignIn() {
                 tabIndex={mode === value ? 0 : -1}
                 onClick={() => switchMode(value)}
                 className={cn(
-                  'h-9 rounded-md text-sm font-medium transition-colors',
-                  mode === value ? 'bg-inverse-bg text-inverse-text' : 'text-text-2 hover:text-text-1'
+                  'h-9 rounded-md text-sm transition-colors',
+                  segmentClass(mode === value)
                 )}
               >
                 {label}
@@ -281,16 +281,14 @@ export default function SignIn() {
                     tabIndex={purpose === value ? 0 : -1}
                     onClick={() => setPurpose(value)}
                     className={cn(
-                      'min-w-0 rounded-lg border px-3 py-2.5 text-left transition-colors',
-                      purpose === value
-                        ? 'border-text-1 bg-surface'
-                        : 'border-line hover:border-line-strong'
+                      'min-w-0 px-3 py-2.5',
+                      optionTileClass(purpose === value)
                     )}
                   >
-                    <span className={cn('block text-sm font-medium', purpose === value ? 'text-text-1' : 'text-text-2')}>
+                    <span className={cn('block text-sm font-medium', optionTitleClass(purpose === value))}>
                       {label}
                     </span>
-                    <span className="mt-0.5 block text-xs text-text-2">{detail}</span>
+                    <span className={cn('mt-0.5 block text-xs', optionDetailClass(purpose === value))}>{detail}</span>
                   </button>
                 ))}
               </div>

@@ -132,7 +132,7 @@ interface TagGroupProps {
 
 const tagButtonClass =
   'flex w-9 shrink-0 items-center justify-center text-text-2 transition-colors ' +
-  'hover:bg-surface-hover hover:text-text-1 disabled:pointer-events-none disabled:opacity-60';
+  'hover:bg-surface-hover hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-40';
 
 function TagGroup({ label, skills, onMove, onRemove, disabled }: TagGroupProps) {
   const headingId = useId();

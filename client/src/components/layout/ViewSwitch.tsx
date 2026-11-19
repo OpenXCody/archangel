@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { cn, focusRing } from '@/lib/utils';
+import { cn, focusRing, segmentClass, segmentedClass } from '@/lib/utils';
 
 export interface ViewChoice {
   key: string;
@@ -26,7 +26,7 @@ interface ViewSwitchProps {
  */
 export default function ViewSwitch({ label, views, current, replace, onChoose, className, data }: ViewSwitchProps) {
   return (
-    <nav aria-label={label} className={cn('inline-flex shrink-0 rounded-lg border border-line-strong p-0.5', className)} {...data}>
+    <nav aria-label={label} className={cn('inline-flex shrink-0', segmentedClass, className)} {...data}>
       {views.map((view) => {
         const on = view.key === current;
         return (
@@ -38,7 +38,7 @@ export default function ViewSwitch({ label, views, current, replace, onChoose, c
             onClick={onChoose ? () => onChoose(view.key) : undefined}
             className={cn(
               'inline-flex h-9 items-center rounded-md px-3.5 text-sm transition-colors sm:h-8',
-              on ? 'bg-surface font-medium text-text-1' : 'text-text-2 hover:text-text-1',
+              segmentClass(on),
               focusRing
             )}
           >
