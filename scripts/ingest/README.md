@@ -862,3 +862,45 @@ readers, the lists, the roll-up and the migration; `tests/api/industries.sh`
 checks the keys and the county's figures; `tests/api/admin.sh` checks the
 quality table (`GET /api/admin/quality`) that counts how many plants have
 each key.
+
+## Reading a posting (`postings/read/`)
+
+An employer's job posting is read by rules over the curated vocabulary in `data/` and nothing else: no network, no file after the vocabulary is loaded, no clock, no model. A run is cheap, repeatable and every match says what it matched on.
+
+```js
+import { loadVocabulary, readPosting } from './postings/read/index.mjs';
+const vocab = loadVocabulary(root);               // once per run: careers, their names and paths, skills, makes
+const reading = readPosting({ employer, title, location, department, text }, vocab);   // text: HTML or plain
+// { career: { title, how: 'title' | 'other name' | 'close', matched } | null,
+//   level: { word, rank: 1..4 } | null, places: [{ city, state }],
+//   skills: [{ name, on }], makes: [{ skill, make, on }],
+//   requirements: { yearsMin, yearsMax, education, certifications, clearance, citizenship, shift, employmentType },
+//   pay: { min, max, period: 'hour' | 'year' } | null, unknown: [{ phrase }] }
+```
+
+`career` is null when the posting is not one of the careers, and then nothing else is read: four postings in five are refused on their title alone. 9,215 postings read in under four seconds on one core.
+
+**What it knows, and where.** Careers, their former titles and other names: `data/careers/catalogue.json` (`title`, `was`) and `aliases.json`. Paths: `data/careers/paths.json`. Skills, their other names and tools: `data/skills/catalogue.json`; groups: `taxonomy.json`; makes: `makes.json`. A name the reader should know is added there, never in the reader. What the reader holds itself is how English and postings work: level and shift words, job words ("technician", "engineer"), words that say nothing ("manufacturing", "process"), the fields that are not ours (software, finance), headings, state names, certificates, and a short list of three-letter codes that also mean something else.
+
+**The career** (`title.mjs`, `career.mjs`, `decide.mjs`). A wrong career is worse than a missed posting.
+- The title is cut into parts at dashes, commas, colons and brackets; level, shift, employment words, requisition codes and aircraft designations are set aside. A part that holds a job word is the job; the others are a site, a programme or a team.
+- A part is a career when its words are a career's title or another name (`how: 'title' | 'other name'`); when a name ends it and the words before it leave it what it is, or a name opens it with a word or two after; when it is a name said backwards ("Technician, Composites"); with "technician" for "mechanic"; or with a skill's short name spelled out ("AFP Operator"). These are `'close'`.
+- Refused on the title: managers, supervisors, directors, leads, interns, students, recruiters, buyers, planners; any title that names software, IT, data, security, sales, finance, EHS or construction; a word that changes the job before the name ("Field", "Service", "Supplier").
+- A name that ends in no job word ("welding", "CNC", "quality assurance") is for search, not for titles. An initialism ("Assembly ME") counts only if the text spells the career out.
+- A one-word name ("operator", "mechanic") matches only alone or after a plain word ("Production"); machinist, welder and electrician stay themselves after anything. A title that opens with "Systems", "Process", "Product", "Design" takes no word before it: a "Fluid Systems Engineer" is not a systems engineer.
+- **The text can refuse.** Another name made only of words any job could carry ("manufacturing specialist", "design engineer", "mechanic") needs two skills of the career's path in the text (three for an engineer); a former title needs one; an engineer's title with words around it needs one. A skill most careers share counts half. In a software department, or under a text full of software's words, two path skills are needed whatever the title.
+- **Two careers.** Where the same words spell two careers ("Test Automation Engineer", "Assembler / Machine Operator", "Reliability Engineer" beside "Product Reliability Engineer"), the one whose path's skills the text names is taken, with at least two more than the other; where it is even the answer is null.
+
+**Skills and makes** (`text.mjs`, `vocabulary.mjs`, `skills.mjs`).
+- The text becomes lines, each knowing its part of the posting (duties, required, preferred, about, benefits, legal, physical); an unbroken paragraph is cut at its inline headings. Only lines that ask for something are read.
+- A skill is found by its name or another name; by its name without its tail ("Torque Wrench Use" as "torque wrenches", "CNC Milling" as "CNC mills"); by a code ("GD&T", "5S"); and, only on the matched career's path or with a second tool of the same skill, by a tool. Words are compared whole, with plurals and -ing set aside, and written together or apart ("lock-out / tag out"). No term runs across a comma.
+- A short code needs a neighbour: two letters ("UT", "PT") a word of the same kind in the same line; three letters the skill's long form, its place on the career's path, another skill of its category, or a posting that names two other skills of the catalogue; the codes that are also something else ("SPI", "CIP", "DOE") another skill of their own group.
+- A term several skills share ("PLC", "CAD", "FMEA") goes to the one the posting also names, else the one on the path, else the first of one group, else nowhere.
+- A make is written as its maker writes it and is not the employer's own name. It goes to its skill the posting names (the same line first), else to its one skill on the career's path, else nowhere; an everyday word or a few capitals ("Star", "NI") only beside its skill.
+- `unknown` holds up to eight codes and names per posting that nothing matched, from requirement lines: the catalogue's next pass.
+
+**Facts** (`facts.mjs`). Places from the location field in each feed's form ("Bastrop, TX", "US-TX-Austin", "United States-Utah-Salt Lake City", "City, Region, CC, postcode"); the text only when the field is empty; remote and abroad are no place. Years: the first requirement stated, a range as min and max. Education: the least that qualifies. Certificates by name (NADCAP is a company's, not a person's). Clearance by the level named. A U.S. citizen where citizenship is required; a U.S. person where the export rules are cited. Pay as dollars and a period; where a band is given per level the title's level picks it, and with no level the span.
+
+**Measured.** `tests/fixtures/postings/gold.json` is 480 hand-labelled postings (half a naive word match would keep, half it would refuse), in reduced form: title, department, location, a few lines, the labels. Half was tuned on; half was not looked at until the reader was done. `tests/unit/postings-read.unit.ts` holds the figures as a floor and names every trap. The figures and what is still missed are in the round's report; the short of it, on the held-out half: no wrong career among 54 kept, nothing kept of 127 that are plainly not ours, three in four of ours kept, and of the skills read 87 in 100 are ones the labelled lines ask for (93 in 100 judged by hand on the whole text).
+
+**Known limits.** "Amsterdam, NH" reads as New Hampshire: a feed that gives a country should pass it in `location`. A title a career has no name for is refused: the list of names to add is the way to raise what is kept. An alias that is an everyday phrase ("Injection Molding", "Electrical Design") is matched wherever it is written.

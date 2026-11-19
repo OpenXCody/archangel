@@ -1,50 +1,63 @@
-// A STAND-IN for the reading of a posting, with the signature the pipeline
-// calls. The real module (title to career and level, text to skills, makes,
-// requirements and pay, by rules over the curated vocabulary) is another
-// engineer's and replaces this folder when the two branches are merged.
+// Reading an employer's job posting: whether it is one of the product's careers
+// and which, its level, where the work is, the skills and makes it asks for, its
+// requirements as facts and its pay band. Rules over the curated vocabulary in
+// data/ and nothing else: no network, no file after loadVocabulary, no clock, no
+// model. A wrong career is worse than a missed posting, so where the title does
+// not say, or two careers could both be meant and the text does not decide, the
+// answer is null.
 //
-// What this one does, and nothing more: a posting is one of our careers when
-// its title is exactly a career's title, in any letter case; its place is read
-// from a location line of the plain "City, ST" or "City, State" kind. It finds
-// no level, skill, make, requirement or pay.
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
+// The two functions below are the whole of what the intake pipeline calls.
+import { readLines } from './text.mjs';
+import { buildVocabulary } from './vocabulary.mjs';
+import { decideCareer } from './decide.mjs';
+import { askingLines, findAll, assign, unknownWords } from './skills.mjs';
+import { readPlaces, readRequirements, readPay } from './facts.mjs';
 
-const STATES = {
-  alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA', colorado: 'CO', connecticut: 'CT', delaware: 'DE',
-  'district of columbia': 'DC', florida: 'FL', georgia: 'GA', hawaii: 'HI', idaho: 'ID', illinois: 'IL', indiana: 'IN', iowa: 'IA',
-  kansas: 'KS', kentucky: 'KY', louisiana: 'LA', maine: 'ME', maryland: 'MD', massachusetts: 'MA', michigan: 'MI', minnesota: 'MN',
-  mississippi: 'MS', missouri: 'MO', montana: 'MT', nebraska: 'NE', nevada: 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
-  'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', ohio: 'OH', oklahoma: 'OK', oregon: 'OR',
-  pennsylvania: 'PA', 'rhode island': 'RI', 'south carolina': 'SC', 'south dakota': 'SD', tennessee: 'TN', texas: 'TX', utah: 'UT',
-  vermont: 'VT', virginia: 'VA', washington: 'WA', 'west virginia': 'WV', wisconsin: 'WI', wyoming: 'WY',
-};
-const CODES = new Set(Object.values(STATES));
-
+/** Built once per run from the curated files in data/ (root is the repository's root). */
 export function loadVocabulary(root) {
-  const { careers } = JSON.parse(readFileSync(path.join(root, 'data', 'careers', 'catalogue.json'), 'utf8'));
-  return { careers: new Map(careers.map((career) => [career.title.toLowerCase(), career.title])) };
+  return buildVocabulary(root);
 }
 
-/** "Austin, TX", "Austin, Texas", "Austin, TX, United States", "USA - Berkeley, MO": the city and the state's code. */
-function placeOf(line) {
-  const parts = String(line ?? '').replace(/^(usa|us|united states)\s*-\s*/i, '').split(',').map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return null;
-  const state = CODES.has(parts[1].toUpperCase()) && parts[1].length === 2 ? parts[1].toUpperCase() : STATES[parts[1].toLowerCase()];
-  return state ? { city: parts[0], state } : null;
-}
-
+/**
+ * One posting, read. Pure.
+ * posting = { employer, title, location, department?, text, postedAt? }
+ */
 export function readPosting(posting, vocab) {
-  const title = vocab.careers.get(String(posting.title ?? '').trim().toLowerCase());
-  const place = placeOf(posting.location);
+  // The text is only gone through when the title could be a career: four postings
+  // in five are refused on their title and cost nothing more.
+  let read = null;
+  const text = () => {
+    if (!read) {
+      const lines = readLines(posting.text);
+      const asking = askingLines(lines);
+      read = { lines, asking, found: findAll(asking, vocab, posting.employer) };
+    }
+    return read;
+  };
+  const decided = decideCareer(posting, text, vocab);
+  if (!decided.career) {
+    return {
+      career: null,
+      level: null,
+      places: readPlaces(posting.location, posting.title, () => text().lines),
+      skills: [],
+      makes: [],
+      requirements: { yearsMin: null, yearsMax: null, education: null, certifications: [], clearance: null, citizenship: null, shift: null, employmentType: null },
+      pay: null,
+      unknown: [],
+    };
+  }
+  const { lines, asking, found } = text();
+  const path = vocab.careers.get(decided.career.title).path;
+  const { skills, makes } = assign(found, asking, vocab, path);
   return {
-    career: title ? { title, how: 'title', matched: posting.title } : null,
-    level: null,
-    places: place ? [place] : [],
-    skills: [],
-    makes: [],
-    requirements: { yearsMin: null, yearsMax: null, education: null, certifications: [], clearance: null, citizenship: null, shift: null, employmentType: null },
-    pay: null,
-    unknown: [],
+    career: decided.career,
+    level: decided.level,
+    places: readPlaces(posting.location, posting.title, () => lines),
+    skills,
+    makes,
+    requirements: readRequirements(posting, lines, decided.shift),
+    pay: readPay(lines, decided.level),
+    unknown: unknownWords(asking, found, vocab, posting),
   };
 }
