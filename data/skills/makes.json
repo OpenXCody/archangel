@@ -20,7 +20,8 @@
         "Mazak",
         "Okuma",
         "Heidenhain",
-        "Mitsubishi"
+        "Mitsubishi",
+        "ProtoTRAK"
       ]
     },
     {
@@ -260,7 +261,9 @@
       "skill": "Additive Build Preparation",
       "makes": [
         "Magics",
-        "Netfabb"
+        "Netfabb",
+        "EOSPRINT",
+        "3DXpert"
       ]
     },
     {
@@ -913,7 +916,9 @@
         "TwinCAT",
         "CODESYS",
         "GX Works",
-        "Sysmac Studio"
+        "Sysmac Studio",
+        "Allen-Bradley",
+        "Siemens"
       ]
     },
     {
@@ -923,7 +928,9 @@
         "RSLogix 500",
         "TIA Portal",
         "STEP 7",
-        "TwinCAT"
+        "TwinCAT",
+        "Allen-Bradley",
+        "Siemens"
       ]
     },
     {
@@ -1091,7 +1098,8 @@
         "Ansys",
         "Abaqus",
         "Nastran",
-        "LS-DYNA"
+        "LS-DYNA",
+        "Femap"
       ]
     },
     {
@@ -1119,7 +1127,8 @@
       "makes": [
         "EPLAN",
         "AutoCAD Electrical",
-        "SolidWorks Electrical"
+        "SolidWorks Electrical",
+        "Zuken"
       ]
     },
     {
