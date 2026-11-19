@@ -12,12 +12,6 @@ const US = /^(u\.?s\.?a?\.?|united states( of america)?)$/i;
 const ABROAD = new Set(('canada can mexico mx mex germany deu de india ind in china cn chn brazil br bra france fr fra netherlands nl nld poland pl pol ireland irl ie australia aus au nz new zealand uk gb gbr united kingdom england scotland singapore sgp sg taiwan twn tw japan jpn jp korea kor kr saudi arabia ksa uae united arab emirates serbia italy ita spain esp sweden swe israel isr argentina ar arg thailand tha malaysia mys vietnam vnm philippines phl costa rica switzerland che austria aut belgium bel denmark dnk finland fin norway nor czech republic hungary romania portugal turkey egypt south africa colombia chile peru puerto rico').split(' '));
 const ABROAD_NAMES = ['new zealand', 'united kingdom', 'saudi arabia', 'united arab emirates', 'south africa', 'costa rica', 'czech republic', 'puerto rico'];
 
-const ELSEWHERE = /\b(Netherlands|Nederland|Germany|Deutschland|France|Canada|Mexico|México|United Kingdom|Ireland|Australia|New Zealand|India|China|Japan|Korea|Singapore|Taiwan|Brazil|Brasil|Poland|Italy|Spain|Sweden|Switzerland|Saudi Arabia|Israel|Europe|European)\b/g;
-
-// State codes that are also a region's code somewhere a US employer has a site
-// (Noord-Holland, Utrecht, Flevoland, Milano, Western Australia, Goa, Tamil Nadu, Pará, Santa Catarina).
-const COLLIDES = new Set(['NH', 'UT', 'FL', 'MI', 'WA', 'GA', 'TN', 'PA', 'SC']);
-
 function tidyCity(city) {
   let c = city.replace(/\s+/g, ' ').trim();
   // A city in capitals is written as a name; a base's letters stay ("Beale AFB").
@@ -47,7 +41,10 @@ function onePlace(raw) {
   if (stateAt < 0) return null;
   const state = STATE_BY_NAME.get(rest[stateAt].toLowerCase()) ?? rest[stateAt];
   // The city stands before its state ("Austin, TX") or, in a feed that leads with the country, after it.
-  const city = stateAt > 0 ? rest[stateAt - 1] : rest[stateAt + 1];
+  // A state written twice ("Waterloo, IA, Iowa, US") is still one state.
+  const isState = (p) => STATE_CODES.has(p) || STATE_BY_NAME.has(p.toLowerCase());
+  const before = rest.slice(0, stateAt).filter((p) => !isState(p) || /^(washington|new york)$/i.test(p));
+  const city = before.length ? before[before.length - 1] : rest.slice(stateAt + 1).find((p) => !isState(p));
   if (!city || STATE_BY_NAME.has(city.toLowerCase()) && city.toLowerCase() !== 'washington' && city.toLowerCase() !== 'new york') return null;
   if (/^\d|^(fab|bldg|building|site|plant)\b/i.test(city)) return null;
   return { city: tidyCity(city), state };
@@ -61,12 +58,6 @@ export function readPlaces(location, title, lines) {
   const field = String(location ?? '').trim();
   if (field) {
     for (const part of field.split(/\s*;\s*|\s+\|\s+|\s+or\s+(?=[A-Z])|\s\/\s/)) add(onePlace(part));
-    // "Amsterdam, NH" is North Holland. Two letters alone cannot say so; a text
-    // that names another country and never the United States can.
-    if (out.length && /^[^,]+,\s*[A-Z]{2}$/.test(field) && COLLIDES.has(out[0].state)) {
-      const all = lines().map((l) => l.text).join(' ');
-      if ((all.match(ELSEWHERE) ?? []).length >= 2 && !/\bU\.?S\.?A?\b|United States|\bAmerican?\b/.test(all)) return [];
-    }
     return out;
   }
   // No field: the title's brackets, then the opening lines.

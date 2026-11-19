@@ -115,7 +115,10 @@ function matchSegment(given, vocab) {
   // 3. A name with a word or two after it ("Aircraft Mechanic AME", "Systems Engineer Autonomy").
   const head = startsWith(words, vocab);
   if (head) return { name: head.name, close: true, words };
-  return null;
+  // 4. A career's own title with only passing words inside it ("Mechanical Systems Design & Analysis Engineer").
+  // Only from the first word on: with words before it too, nothing in the title stands as written.
+  const also = alsoReads(words, { words: [] }, vocab).filter((n) => n.words[0] === words[0]);
+  return also.length ? { also, words } : null;
 }
 
 /**

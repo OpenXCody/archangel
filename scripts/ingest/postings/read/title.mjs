@@ -38,6 +38,8 @@ export function readTitle(title) {
   let t = String(title ?? '').normalize('NFKC').replace(/[–—−]/g, '-').replace(/\s+/g, ' ').trim();
   // An aircraft's or a programme's designation is not a level: "F-22", "U-2", "C-17".
   t = t.replace(/\b[A-Z]{1,3}-\d{1,3}[A-Z]?\b/g, ' ');
+  // Initials joined by "&" are a name ("A&I Products"), not a numeral.
+  t = t.replace(/\b[A-Z]&[A-Z]\b(?! [Mm]echanic)/g, (m) => (m === 'A&P' ? m : ' '));
   const found = { level: null, shift: null, refused: null, entry: false };
 
   if (/\b(new college graduate|new grads?|early careers?|recent graduates?|entry[- ]level)\b/i.test(t)) found.entry = true;
@@ -65,14 +67,14 @@ export function readTitle(title) {
   // the rank is where it falls on a scale of that length.
   if (!said.numeral && !said.word) {
     const grade = t.match(/\b(?:grade|band|pay grade)\s*(\d{1,2})\b/i);
-    const code = t.match(/(?<![A-Za-z0-9-])([TPLEM])([1-6])(?![A-Za-z0-9-])/);
+    const code = t.match(/(?<![A-Za-z0-9-])([TPLE])([1-6])(?![A-Za-z0-9-])/);
     if (grade) { const n = +grade[1]; said.word = { word: `Grade ${n}`, n: n <= 3 ? 1 : n <= 6 ? 2 : n <= 9 ? 3 : 4 }; t = t.replace(grade[0], ' '); }
     else if (code) { said.word = { word: code[0], n: Math.min(4, +code[2]) }; t = t.replace(code[0], ' '); }
   }
   // Brackets hold a site, a programme, a level or a team: each is a part of its own.
   const parts = [];
   t = t.replace(/\(([^)]*)\)|\[([^\]]*)\]/g, (_, a, b) => { parts.push({ text: a ?? b, bracket: true }); return ' , '; });
-  const main = t.split(/\s+-\s+|\s-(?=\S)|(?<=\S)-\s|[,;:|]|\s\/\s|\s@\s|\s+at\s+(?=[A-Z])|\s+im\s+bereich\s+/).map((x) => x.trim()).filter(Boolean);
+  const main = t.split(/\s+-\s+|\s-(?=\S)|(?<=\S)-\s|[,;:|]|\s\/\s|\/(?=\s*(?:senior|sr\.?|staff|principal|lead)\b)|\s@\s|\s+at\s+(?=[A-Z])|\s+im\s+bereich\s+/i).map((x) => x.trim()).filter(Boolean);
   const all = [...main.map((text) => ({ text, bracket: false })), ...parts];
 
   const segments = [];
