@@ -48,6 +48,8 @@ function App() {
               {/* The industries are a tab of Explore, at their own address. */}
               <Route path="/industries" element={<PageBoundary><Explore /></PageBoundary>} />
               <Route path="/industries/:slug" element={<PageBoundary><Industry /></PageBoundary>} />
+              {/* The Atlas of Manufacturing: the Skills tab of Explore as a drawing, at its own address. */}
+              <Route path="/atlas" element={<PageBoundary><Explore /></PageBoundary>} />
               <Route path="/sign-in" element={<PageBoundary><SignIn /></PageBoundary>} />
               <Route path="/me" element={<PageBoundary><Me /></PageBoundary>} />
               <Route path="/jobs" element={<PageBoundary><Jobs /></PageBoundary>} />

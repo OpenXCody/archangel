@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { statsApi } from '../lib/api';
@@ -9,6 +9,10 @@ import ExploreOverview from '../components/explorer/ExploreOverview';
 import BrowseList, { LIST_NOUN, counted } from '../components/explorer/BrowseList';
 import IndustryList from '../components/explorer/IndustryList';
 import { publicKeys } from '../lib/queryKeys';
+import { useTaxonomy } from '../lib/queries';
+
+// The Atlas is its own chunk: the lists do not carry the drawing.
+const Atlas = lazy(() => import('../components/atlas/Atlas'));
 
 const FIGURES: BrowseTab[] = ['companies', 'factories', 'occupations', 'skills'];
 
@@ -104,14 +108,29 @@ function View({ view }: { view: ExploreView }) {
     );
   }
   if (view === 'industries') return <IndustryList />;
+  if (view === 'atlas') return <AtlasView />;
   return <BrowseList tab={view} />;
+}
+
+/**
+ * The Atlas. Its one request, the taxonomy, is asked for here, at once, so it
+ * travels while the drawing's code is fetched rather than after it.
+ */
+function AtlasView() {
+  useTaxonomy();
+  return (
+    <Suspense fallback={<div aria-busy="true" aria-label="Loading" className="min-h-[70vh]" />}>
+      <Atlas />
+    </Suspense>
+  );
 }
 
 /**
  * Explore: an overview of what is here (/explore), and behind it each level
  * of the product as a tab: the industries (/industries), then a list of every
  * company, plant, career and skill (/explore?tab=companies, factories,
- * occupations, skills). One heading and one tab row for all of them; the tab
+ * occupations, skills). The skills are also drawn, as the Atlas (/atlas),
+ * under the Skills tab. One heading and one tab row for all of them; the tab
  * row sits straight under the heading, so it is in the same place on every
  * view. What a view holds is said by the view, as its first line: the four
  * figures on the overview, a list's own count under its filters.
@@ -120,7 +139,13 @@ export default function Explore() {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const tab = searchParams.get('tab');
-  const view: ExploreView = pathname.startsWith('/industries') ? 'industries' : isBrowseTab(tab) ? tab : 'overview';
+  const view: ExploreView = pathname.startsWith('/industries')
+    ? 'industries'
+    : pathname === '/atlas'
+      ? 'atlas'
+      : isBrowseTab(tab)
+        ? tab
+        : 'overview';
 
   return (
     <PageContainer>

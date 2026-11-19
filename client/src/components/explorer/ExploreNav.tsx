@@ -5,8 +5,11 @@ import type { EntityType } from '../../lib/api';
 
 /** What can be browsed as a list. */
 export type BrowseTab = EntityType;
-/** A view of Explore: the overview, the industries, or one of the lists. */
-export type ExploreView = 'overview' | 'industries' | BrowseTab;
+/** A view of Explore: the overview, the industries, one of the lists, or the skills drawn as the Atlas. */
+export type ExploreView = 'overview' | 'industries' | BrowseTab | 'atlas';
+
+/** A tab of the row. The Atlas has none of its own: it is the Skills tab's other view (`SkillsViewSwitch`). */
+type ExploreTab = Exclude<ExploreView, 'atlas'>;
 
 const BROWSE_LABEL: Record<BrowseTab, string> = {
   companies: 'Companies',
@@ -16,16 +19,16 @@ const BROWSE_LABEL: Record<BrowseTab, string> = {
 };
 
 // The order the product is explored in: an industry, its companies, their plants, the careers there, their skills.
-const VIEWS: ExploreView[] = ['overview', 'industries', 'companies', 'factories', 'occupations', 'skills'];
+const VIEWS: ExploreTab[] = ['overview', 'industries', 'companies', 'factories', 'occupations', 'skills'];
 
 export const isBrowseTab = (value: string | null): value is BrowseTab =>
   value !== null && Object.prototype.hasOwnProperty.call(BROWSE_LABEL, value);
 
 /** A view's address. Industries keep their own (/industries), where their pages hang; the lists are tabs of /explore. */
 export const exploreHref = (view: ExploreView) =>
-  view === 'overview' ? '/explore' : view === 'industries' ? '/industries' : `/explore?tab=${view}`;
+  view === 'overview' ? '/explore' : view === 'industries' ? '/industries' : view === 'atlas' ? '/atlas' : `/explore?tab=${view}`;
 
-const exploreLabel = (view: ExploreView) =>
+const exploreLabel = (view: ExploreTab) =>
   view === 'overview' ? 'Overview' : view === 'industries' ? 'Industries' : BROWSE_LABEL[view];
 
 // The current view is heavier and underlined. Every label reserves its heavier
@@ -105,7 +108,8 @@ export default function ExploreNav({ active }: { active: ExploreView }) {
         className="-mb-px flex items-center justify-between gap-x-6 overflow-x-auto [scrollbar-width:none] sm:justify-start sm:gap-x-8 [&::-webkit-scrollbar]:hidden"
       >
         {VIEWS.map((view) => {
-          const on = view === active;
+          // The Atlas is the skills, drawn: the Skills tab is where it lives.
+          const on = view === (active === 'atlas' ? 'skills' : active);
           return (
             <Link key={view} to={exploreHref(view)} aria-current={on ? 'page' : undefined} className={cn(ITEM, on ? ITEM_ON : ITEM_OFF)}>
               {exploreLabel(view)}
