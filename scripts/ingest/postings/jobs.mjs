@@ -95,6 +95,7 @@ async function resumeOf(db, source, adapter) {
  *   noPlace     one of our careers, but naming no US city and state
  *   kept        one of our careers at a place: staged, or as it was staged before
  *   deferred    could be ours, their text not read this run (a ceiling, a budget, a refusal): read on a later run
+ *   spared      read at an earlier run and not kept, their listing as it was: not asked about again
  *   complete    the listing was read to its end. Only then is a posting that is missing counted as missing
  *
  * A listing that is cut short (a refusal, a site that stopped answering, the
@@ -111,15 +112,21 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   const started = Date.now();
   const tools = { get: session.get, post: session.post, today };
 
-  // What staging holds: to tell a listing that has not changed, and to keep its reading.
+  // What staging holds: to tell a listing that has not changed, and to keep its reading. And the postings
+  // whose text was read before and which were not kept: they are not asked about again while their listing stands.
   const previous = new Map();
+  const passedBefore = new Map();
+  const passes = new Map();
   if (adapter.text) {
     for (const row of await db`SELECT source_id, hash, payload, facts FROM intake_records WHERE source = ${source.slug} AND gone_run_id IS NULL`) {
       previous.set(row.source_id, row);
     }
+    for (const row of await db`SELECT source_id, listing, read_on::text AS read_on FROM posting_passes WHERE source = ${source.slug}`) {
+      passedBefore.set(row.source_id, row);
+    }
   }
 
-  const counts = { read: 0, abroad: 0, notCareer: 0, noPlace: 0, noAddress: 0, vanished: 0, texts: 0, kept: 0 };
+  const counts = { read: 0, abroad: 0, notCareer: 0, noPlace: 0, noAddress: 0, vanished: 0, texts: 0, spared: 0, kept: 0 };
   const kept = new Map();
   const deferred = new Set();
   const unknown = new Map();
@@ -148,6 +155,8 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
       ...(posting.country ? { country: posting.country } : {}),
     };
     let full = posting;
+    // Set where the text cost a request: if the posting is then not kept, that is noted (posting_passes).
+    let mark = null;
     if (adapter.text) {
       const before = beforeText(reader, posting, base, vocab);
       if (!before.could) {
@@ -166,6 +175,13 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
       if (fresh) {
         // As it was read: the record is the same, and no request is made.
         kept.set(posting.id, { same: true, hash: staged.hash });
+        return;
+      }
+      // Read before, not kept, and its line in the listing is as it was: not asked about again.
+      mark = short(`${VERSION}.${adapter.version ?? 1}:${listing}`);
+      const passed = passedBefore.get(posting.id);
+      if (passed && passed.listing === mark && !again && Date.parse(today) - Date.parse(passed.read_on) < reread) {
+        counts.spared += 1;
         return;
       }
       // Enough texts for one run: the rest wait for the next, staged as they were.
@@ -198,15 +214,18 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
     // Nothing of a reading that has no career is used.
     if (!reading?.career) {
       counts.notCareer += 1;
+      if (mark) passes.set(posting.id, mark);
       return;
     }
     const places = placesOf(reading.places);
     if (places.length === 0) {
       counts.noPlace += 1;
+      if (mark) passes.set(posting.id, mark);
       return;
     }
     if (!full.url) {
       counts.noAddress += 1;
+      if (mark) passes.set(posting.id, mark);
       return;
     }
     // The words the catalogue lacks are counted for the run's report and kept nowhere else.
@@ -268,7 +287,7 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   log(`fetch: ${entry.employer}: ${counts.read.toLocaleString('en-US')} postings listed${complete ? '' : ' (the listing was cut short)'}, ` +
     `${counts.kept.toLocaleString('en-US')} kept, ${session.requests} requests in ${seconds(started)} s`);
   return {
-    source, kept, deferred, present, complete, resume, resumed: Boolean(from), stopped, counts, unknown: words,
+    source, kept, deferred, present, passes, today, complete, resume, resumed: Boolean(from), stopped, counts, unknown: words,
     requests: session.requests, seconds: seconds(started),
   };
 }
@@ -392,6 +411,19 @@ export async function stage(db, runId, collected, { log = console.log } = {}) {
     for (const batch of chunks(diff.gone, 2000)) {
       await tx`UPDATE intake_records SET gone_run_id = ${runId} WHERE source = ${source.slug} AND source_id = ANY(${batch})`;
     }
+    // The postings whose text was read and which were not kept: noted, as each note stood before (for undo).
+    for (const batch of chunks([...collected.passes], 1000)) {
+      const rows = batch.map(([id, listing]) => ({ source_id: id, listing }));
+      await tx`
+        INSERT INTO intake_changes (run_id, op, entity_id, fact, before)
+        SELECT ${runId}, 'pass', ${NIL}::uuid, t.source_id, (SELECT to_jsonb(p) FROM posting_passes p WHERE p.source = ${source.slug} AND p.source_id = t.source_id)
+        FROM jsonb_to_recordset(${tx.json(rows)}) AS t(source_id text, listing text)`;
+      await tx`
+        INSERT INTO posting_passes (source, source_id, listing, read_on, run_id)
+        SELECT ${source.slug}, t.source_id, t.listing, ${collected.today}::date, ${runId}
+        FROM jsonb_to_recordset(${tx.json(rows)}) AS t(source_id text, listing text)
+        ON CONFLICT (source, source_id) DO UPDATE SET listing = EXCLUDED.listing, read_on = EXCLUDED.read_on, run_id = EXCLUDED.run_id`;
+    }
   });
 
   // The listing or the texts were cut short: what was read is staged, and the run says so.
@@ -459,7 +491,8 @@ export async function report(db, runId, { everything = false, rehearsal = false 
     out.push(`  listing: ${c.resumed ? 'taken up where the last run stopped; ' : ''}` +
       `${c.complete === false ? `not read to its end${c.resume ? ' (the next run takes it up there)' : ' (the next run starts it again)'}: nothing is taken to be gone` : 'read to its end'}`);
     out.push(`  read: ${n(c.read)} postings listed; ${n(c.notCareer)} not one of our careers, ${n(c.abroad)} outside the United States, ${n(c.noPlace)} naming no place` +
-      `${c.vanished ? `, ${n(c.vanished)} gone before they were read` : ''}; kept ${n(c.kept)}${c.texts ? `; ${n(c.texts)} texts asked for` : ''}`);
+      `${c.vanished ? `, ${n(c.vanished)} gone before they were read` : ''}; kept ${n(c.kept)}${c.texts ? `; ${n(c.texts)} texts asked for` : ''}` +
+      `${c.spared ? `; ${n(c.spared)} read before and not ours, not asked about again` : ''}`);
     out.push(`  staged: ${n(c.new)} new, ${n(c.changed)} changed, ${n(c.same)} the same, ${n(c.back)} back, ${n(c.gone)} gone since the last complete listing` +
       `${c.deferred ? `; ${n(c.deferred)} left to be read at a later run` : ''}`);
   }

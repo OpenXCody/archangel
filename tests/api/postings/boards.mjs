@@ -46,7 +46,10 @@ const one = [
   job(108, 'Welder', 'Toronto, Ontario, Canada'),
   job(109, 'Manufacturing Engineer', 'Nowhere Springs, NV'),
   // Two plants of the company in this town and nothing to choose by but the order the plant merge keeps a row in.
-  job(111, 'Industrial Electrician', 'Twin Forks, NV'),
+  // Its pay is a misprint in the posting, as one read in the wild was ("$30 - $389hour"): no pay is said rather than a wrong one.
+  job(111, 'Industrial Electrician', 'Twin Forks, NV', { text: text('Keep the Twin Forks plant powered.', ['Journeyman electrician card'], '<p>Pay range: $30.00 - $389.00 per hour.</p>') }),
+  // The yard's own town, and the town beside it whose postings go to the yard as the nearest plant: one job at the yard.
+  job(112, 'Welder', 'Palisade Bend, NV; Carlin Flat, NV'),
 ];
 // Later: 101 pays more, 103 has moved to Postville, 104 is gone, 110 is new.
 const two = [
@@ -67,10 +70,15 @@ const detail = (tenant, site, listed, description) => writeFileSync(`${dir}/work
 const facets = [{ facetParameter: 'Country', values: [{ descriptor: 'United States of America', id: 'bc33aa3152ec42d4995f4791a106ed09', count: 2 }] }];
 const migWelding = text('Weld frames at the Carlin Flat works.', ['Experience in MIG welding of carbon steel']);
 
-// One career at a plant, one title that is not ours, one abroad.
-const small = [posting('R1', 'Welder', 'Carlin Flat, NV'), posting('R2', 'Accountant', 'Carlin Flat, NV'), posting('R3', 'Welder', 'Tianjin', true)];
+// One career at a plant, one title that is not ours, one abroad, and one title that could be ours until its
+// text is read (it names nothing of the career): read once, not kept, and not asked about again.
+const small = [
+  posting('R1', 'Welder', 'Carlin Flat, NV'), posting('R2', 'Accountant', 'Carlin Flat, NV'), posting('R3', 'Welder', 'Tianjin', true),
+  posting('R4', 'Manufacturing Technician', 'Carlin Flat, NV'),
+];
 writeFileSync(`${dir}/workday/e2e/list.json`, JSON.stringify({ jobPostings: small, facets }));
 detail('e2e', 'Careers', small[0], migWelding);
+detail('e2e', 'Careers', small[3], PLAIN);
 
 // Eighty-five postings, five pages of the list: a welder at the head of the first page, on the second, the
 // fourth and the last, and titles that are not ours between them. In "three" the first welder has left.

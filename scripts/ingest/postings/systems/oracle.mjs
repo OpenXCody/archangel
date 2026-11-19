@@ -6,8 +6,8 @@ import { distinct, isoTime, shape, words } from './shared.mjs';
 export const name = 'Oracle Recruiting';
 export const how = 'One request per 100 postings for the list, then one per kept posting that is new or changed.';
 export const pace = 1500;
-/** The most texts asked of one employer in one run; the rest are read on the runs that follow. */
-export const textsPerRun = 100;
+/** The most texts asked of one employer in one run; the rest are read on the runs that follow. Sixty, a second and a half apart: a minute and a half a board, which keeps a whole day's run of every employer under half an hour. */
+export const textsPerRun = 60;
 
 const PAGE = 100;
 const MOST_PAGES = 100;

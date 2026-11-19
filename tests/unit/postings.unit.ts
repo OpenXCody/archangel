@@ -428,7 +428,7 @@ test('only postings that are one of our careers at a US place are kept, as facts
   await collect(noRows, entry, { session: createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session('saronic', { pace: 0 }), reader: watching, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' });
   assert.deepEqual(countries, ['United States', 'United States', 'United States', 'United States'], 'each posting is read once, with its country');
   const collected = await collect(noRows, entry, { session, reader, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' });
-  assert.deepEqual(collected.counts, { read: 4, abroad: 0, notCareer: 1, noPlace: 0, noAddress: 0, vanished: 0, texts: 0, kept: 3 });
+  assert.deepEqual(collected.counts, { read: 4, abroad: 0, notCareer: 1, noPlace: 0, noAddress: 0, vanished: 0, texts: 0, spared: 0, kept: 3 });
   const welder = [...collected.kept.values()].find((record: { facts: { title: string } }) => record.facts.title === 'Welder');
   assert.equal(welder.facts.reading.career.title, 'Welder');
   assert.deepEqual(welder.facts.reading.places, [{ city: 'Franklin', state: 'LA' }]);

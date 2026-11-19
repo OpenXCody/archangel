@@ -40,8 +40,10 @@ ALTER TABLE intake_sources ADD COLUMN IF NOT EXISTS also text[];
 --                 posting_job_snapshot, with the two dates of `seen` beside them)
 --   op 'posting'  a staged posting as it stood before the run changed it (fact: the posting's id)
 --   op 'place'    a place on the waiting list, as it stood before (fact: 'waiting' for one the run put there)
+--   op 'pass'     a posting noted as read and not kept, as the note stood before (fact: the posting's id; no
+--                 `before` for one the run first noted)
 ALTER TABLE intake_changes DROP CONSTRAINT IF EXISTS intake_changes_op_check;
-ALTER TABLE intake_changes ADD CONSTRAINT intake_changes_op_check CHECK (op IN ('fact', 'id', 'plant', 'company', 'job', 'posting', 'place'));
+ALTER TABLE intake_changes ADD CONSTRAINT intake_changes_op_check CHECK (op IN ('fact', 'id', 'plant', 'company', 'job', 'posting', 'place', 'pass'));
 
 -- ---------------------------------------------------------------------------
 -- A job that came from a source
@@ -122,6 +124,24 @@ CREATE TABLE IF NOT EXISTS posting_places (
   PRIMARY KEY (source, place_key)
 );
 CREATE INDEX IF NOT EXISTS posting_places_waiting_idx ON posting_places (source) WHERE status = 'waiting';
+
+-- A posting whose text was asked for and which was not kept: not one of our
+-- careers once it was read, or at no place in the United States. It is not
+-- staged (nothing of it is kept), but that it was read is remembered, so its
+-- text is not asked for again at every listing while the listing stands as it
+-- was: where a text costs a request, and the platform is asked sparingly, one
+-- posting in twelve would otherwise be read again each time. An id, a hash of
+-- its line in the listing (with the reading's version) and the day: nothing of
+-- the posting. It is read again when its listing changes, when the reading
+-- changes, and after the adapter's own number of days.
+CREATE TABLE IF NOT EXISTS posting_passes (
+  source text NOT NULL REFERENCES intake_sources (slug) ON DELETE CASCADE,
+  source_id text NOT NULL,
+  listing text NOT NULL,
+  read_on date NOT NULL,
+  run_id bigint NOT NULL,
+  PRIMARY KEY (source, source_id)
+);
 
 -- ---------------------------------------------------------------------------
 -- Words
@@ -268,24 +288,34 @@ LANGUAGE sql STABLE AS $f$
     FROM empty_places e JOIN ours o ON o.state = e.state AND o.lat IS NOT NULL AND o.lng IS NOT NULL
     WHERE posting_metres(e.lat, e.lng, o.lat::float8, o.lng::float8) <= 10000
     ORDER BY e.place_key, posting_metres(e.lat, e.lng, o.lat::float8, o.lng::float8), o.id
+  ), decided AS (
+    SELECT rp.source_id, rp.place_key, rp.city, rp.state,
+           coalesce(a.company_id, r.company_id, n.company_id) AS company_id,
+           coalesce(a.id, r.id, n.id) AS factory_id,
+           rp.occupation_id,
+           CASE WHEN a.id IS NOT NULL THEN 'admin'
+                WHEN r.id IS NOT NULL THEN CASE WHEN r.options = 1 THEN 'city'
+                                                WHEN r.best >= 100 AND r.at_best = 1 THEN 'address'
+                                                WHEN r.best > 0 AND r.at_best = 1 THEN 'name'
+                                                WHEN r.workforce_size IS NOT NULL THEN 'largest'
+                                                ELSE 'keeps' END
+                WHEN n.id IS NOT NULL THEN 'near' END AS how,
+           n.metres,
+           coalesce(r.options, n.options, 0)::integer AS options
+    FROM rp
+    LEFT JOIN pointed a ON a.place_key = rp.place_key
+    LEFT JOIN ranked r ON r.source_id = rp.source_id AND r.place_key = rp.place_key AND r.pick = 1
+    LEFT JOIN near n ON n.place_key = rp.place_key AND a.id IS NULL AND r.id IS NULL
   )
-  SELECT rp.source_id, rp.place_key, rp.city, rp.state,
-         coalesce(a.company_id, r.company_id, n.company_id),
-         coalesce(a.id, r.id, n.id),
-         rp.occupation_id,
-         CASE WHEN a.id IS NOT NULL THEN 'admin'
-              WHEN r.id IS NOT NULL THEN CASE WHEN r.options = 1 THEN 'city'
-                                              WHEN r.best >= 100 AND r.at_best = 1 THEN 'address'
-                                              WHEN r.best > 0 AND r.at_best = 1 THEN 'name'
-                                              WHEN r.workforce_size IS NOT NULL THEN 'largest'
-                                              ELSE 'keeps' END
-              WHEN n.id IS NOT NULL THEN 'near' END,
-         n.metres,
-         coalesce(r.options, n.options, 0)::integer
-  FROM rp
-  LEFT JOIN pointed a ON a.place_key = rp.place_key
-  LEFT JOIN ranked r ON r.source_id = rp.source_id AND r.place_key = rp.place_key AND r.pick = 1
-  LEFT JOIN near n ON n.place_key = rp.place_key AND a.id IS NULL AND r.id IS NULL
+  -- One posting is one job at a plant. Where two of the places it names come to the same plant (the plant's own
+  -- city and a town beside it, or a place an admin pointed there), the place that is the plant's by rule stands
+  -- and the other makes nothing: not a second job, and not a place that waits.
+  SELECT d.source_id, d.place_key, d.city, d.state, d.company_id, d.factory_id, d.occupation_id, d.how, d.metres, d.options
+  FROM (SELECT decided.*,
+               row_number() OVER (PARTITION BY decided.source_id, decided.factory_id
+                                  ORDER BY (decided.how = 'near'), (decided.how = 'admin'), decided.metres NULLS FIRST, decided.place_key) AS nth
+        FROM decided) d
+  WHERE d.factory_id IS NULL OR d.nth = 1
 $f$;
 
 -- ---------------------------------------------------------------------------
@@ -353,7 +383,11 @@ RETURNS jsonb LANGUAGE sql STABLE AS $f$
     SELECT coalesce(rd->'pay'->>'period' IN ('hour', 'year')
              AND rd->'pay'->>'min' ~ '^[0-9]+([.][0-9]+)?$' AND rd->'pay'->>'max' ~ '^[0-9]+([.][0-9]+)?$'
              AND (rd->'pay'->>'min')::numeric > 0 AND (rd->'pay'->>'min')::numeric <= (rd->'pay'->>'max')::numeric
-             AND (rd->'pay'->>'max')::numeric <= 1000000, false) AS ok
+             AND (rd->'pay'->>'max')::numeric <= 1000000
+             -- A band whose top is more than four times its bottom is a misprint in the posting ("$30 - $389hour"),
+             -- not a band: no pay is said rather than a wrong one. The widest real bands read, across an
+             -- employer's levels, run to a little over twice.
+             AND (rd->'pay'->>'max')::numeric <= 4 * (rd->'pay'->>'min')::numeric, false) AS ok
   ) pay
 $f$;
 
@@ -728,6 +762,13 @@ BEGIN
         changed_run_id = (c.before->>'changed_run_id')::bigint, gone_run_id = (c.before->>'gone_run_id')::bigint,
         payload = c.before->'payload', facts = c.before->'facts', hash = c.before->>'hash'
       WHERE source = v_source AND source_id = c.fact;
+    ELSIF c.op = 'pass' THEN
+      IF c.before IS NULL THEN
+        DELETE FROM posting_passes WHERE source = v_source AND source_id = c.fact AND run_id = p_run;
+      ELSE
+        UPDATE posting_passes SET listing = c.before->>'listing', read_on = (c.before->>'read_on')::date, run_id = (c.before->>'run_id')::bigint
+        WHERE source = v_source AND source_id = c.fact;
+      END IF;
     ELSIF c.op = 'place' THEN
       IF c.fact = 'waiting' THEN
         DELETE FROM posting_places WHERE source = v_source AND place_key = c.after->>'place_key' AND status = 'waiting' AND run_id = p_run;

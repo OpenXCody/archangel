@@ -900,6 +900,24 @@ export const postingPlaces = pgTable(
   })
 );
 
+// A posting whose text was read and which was not kept (migration 0054): remembered by its id and a hash of its
+// line in the listing, so that its text is not asked for again while that line stands.
+export const postingPasses = pgTable(
+  'posting_passes',
+  {
+    source: text('source')
+      .notNull()
+      .references(() => intakeSources.slug, { onDelete: 'cascade' }),
+    sourceId: text('source_id').notNull(),
+    listing: text('listing').notNull(),
+    readOn: date('read_on').notNull(),
+    runId: bigint('run_id', { mode: 'number' }).notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.source, table.sourceId] }),
+  })
+);
+
 export const applications = pgTable(
   'applications',
   {

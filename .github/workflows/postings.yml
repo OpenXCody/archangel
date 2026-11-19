@@ -15,9 +15,15 @@
 # challenge page, a reset) ends that employer for the day and is recorded; one
 # that does not answer is tried again the next day; neither turns the run red.
 # The run is red only when something needs a person: a feed whose shape
-# changed, or an error of ours. The report (what each employer's run read,
-# kept and changed, the requests made and how long it took) is kept as the
-# run's artifact, and Admin Tools, Data, "Postings" shows the same.
+# changed, or an error of ours. The report (the requests made by platform,
+# which boards were listed in full, which were cut short and why, and what
+# each employer's run read, kept and changed) is kept as the run's artifact,
+# and Admin Tools, Data, "Postings" shows the same.
+#
+# A day's run is under half an hour. Twenty minutes of it is Workday: that
+# platform is given 300 requests a run across all of its boards, four seconds
+# apart, spent on the boards whose complete listing is oldest; the rest are
+# taken up the next day (scripts/ingest/README.md, "A platform's budget").
 #
 # By hand: mode "rehearse" reads every board, does everything inside
 # transactions that are rolled back, and reports what it would do; "undo"
@@ -59,7 +65,8 @@ permissions:
 jobs:
   postings:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    # A run takes under half an hour; this is for a database or a runner that is slow, not for a longer run.
+    timeout-minutes: 60
     env:
       DATABASE_URL: ${{ secrets.INGEST_DATABASE_URL }}
       MODE: ${{ inputs.mode || 'apply' }}

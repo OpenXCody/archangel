@@ -124,7 +124,7 @@ case "$OUT" in *"--feeds names a server on this machine"*) echo "ok    the feeds
 fixture
 hashes > "$D/before.txt"
 OUT=$(ingest rehearse postings-e2e-acme)
-case "$OUT" in *"a rehearsal: nothing was kept"*"listing: read to its end"*"read: 10 postings listed; 1 not one of our careers, 0 outside the United States, 1 naming no place; kept 8"*"placed: 6 postings at a plant; 2 waiting on 1 places"*"jobs: 7 added"*) echo "ok    a rehearsal reports what it would do";; *) echo "FAIL  rehearsal report: $OUT"; fail=1;; esac
+case "$OUT" in *"a rehearsal: nothing was kept"*"listing: read to its end"*"read: 11 postings listed; 1 not one of our careers, 0 outside the United States, 1 naming no place; kept 9"*"placed: 7 postings at a plant; 2 waiting on 1 places"*"jobs: 8 added"*) echo "ok    a rehearsal reports what it would do";; *) echo "FAIL  rehearsal report: $OUT"; fail=1;; esac
 hashes > "$D/rehearsed.txt"
 expect "a rehearsal leaves every table as it was" '' "$(diff "$D/before.txt" "$D/rehearsed.txt")"
 
@@ -132,8 +132,8 @@ expect "a rehearsal leaves every table as it was" '' "$(diff "$D/before.txt" "$D
 OUT=$(ingest postings)
 R1=$(last_run acme)
 case "$OUT" in *"postings: 6 employers, "*" 1 refusal, 0 failed"*) echo "ok    every employer is run, and a refusal is not a failure";; *) echo "FAIL  first run: $OUT"; fail=1;; esac
-expect "the run is applied and counts what it did" 'applied read 10 8 8 6 2 7' "$(sql "SELECT concat_ws(' ', state, counts->>'outcome', counts->>'read', counts->>'kept', counts->>'new', counts->>'placed', counts->>'waiting', counts->>'jobsAdded') FROM intake_runs WHERE id = $R1")"
-expect "only postings that are a career at a US place are staged" '101 102 103 104 105 106 109 111' "$(sql "SELECT string_agg(source_id, ' ' ORDER BY source_id) FROM intake_records WHERE source = 'postings-e2e-acme'")"
+expect "the run is applied and counts what it did" 'applied read 11 9 9 7 2 8' "$(sql "SELECT concat_ws(' ', state, counts->>'outcome', counts->>'read', counts->>'kept', counts->>'new', counts->>'placed', counts->>'waiting', counts->>'jobsAdded') FROM intake_runs WHERE id = $R1")"
+expect "only postings that are a career at a US place are staged" '101 102 103 104 105 106 109 111 112' "$(sql "SELECT string_agg(source_id, ' ' ORDER BY source_id) FROM intake_records WHERE source = 'postings-e2e-acme'")"
 expect "what is staged is facts and a link, never the text" 'f' "$(sql "SELECT bool_or((payload::text || facts::text) ~ 'About the role|steel frames|Weld frames|its own castings') FROM intake_records WHERE source LIKE 'postings-e2e-%'")"
 expect "the text is kept only as a hash"   't' "$(sql "SELECT bool_and(payload->>'text' ~ '^[0-9a-f]{32}\$') FROM intake_records WHERE source LIKE 'postings-e2e-%'")"
 expect "a job has no description"          '0' "$(sql "SELECT count(*) FROM jobs WHERE source LIKE 'postings-e2e-%' AND description IS NOT NULL")"
@@ -146,7 +146,7 @@ expect "and the line says how far"          't' "$(sql "SELECT look AND detail L
 expect "a posting at two places is a job at each" '2' "$(sql "SELECT count(*) FROM jobs WHERE source = 'postings-e2e-acme' AND source_id = '106'")"
 expect "a place with no plant makes no job" '0' "$(sql "SELECT count(*) FROM jobs WHERE source = 'postings-e2e-acme' AND source_id IN ('105', '109')")"
 expect "it waits, with how many postings name it" 'Nowhere Springs|NV|waiting' "$(sql "SELECT concat_ws('|', city, state, status) FROM posting_places WHERE source = 'postings-e2e-acme'")"
-expect "one outside id is one job"          '7 7' "$(sql "SELECT count(*) || ' ' || count(DISTINCT external_id) FROM external_references WHERE source = 'POSTINGS_E2E_ACME' AND entity_type = 'jobs'")"
+expect "one outside id is one job"          '8 8' "$(sql "SELECT count(*) || ' ' || count(DISTINCT external_id) FROM external_references WHERE source = 'POSTINGS_E2E_ACME' AND entity_type = 'jobs'")"
 expect "the id is the posting at its place" '106@castings gap|NV 106@postville|NV' "$(sql "SELECT string_agg(external_id, ' ' ORDER BY external_id) FROM external_references WHERE source = 'POSTINGS_E2E_ACME' AND external_id LIKE '106@%'")"
 expect "a job carries what was read"        'Welder II|II|2|2800|3400|hour|Swing shift|full-time|https://jobs.ashbyhq.com/e2e-acme/101' "$(job 101 "concat_ws('|', j.title, j.level_word, j.level_rank, j.pay_min, j.pay_max, j.pay_period, j.shift, j.employment_type, j.apply_url)")"
 expect "its requirements as facts"          '{"yearsMax": 4, "yearsMin": 2, "education": "high school", "citizenship": "U.S. person", "certifications": ["AWS D1.1"]}' "$(job 101 j.requirements)"
@@ -154,10 +154,12 @@ expect "its skills, by their catalogue names" 'Flux-Cored Welding, MIG Welding' 
 expect "a make is kept with the skill it is a make of" 'CNC Milling, PLC Programming|Haas, Studio 5000' "$(job 102 "(SELECT string_agg(s.name, ', ' ORDER BY s.name) FROM job_skills js JOIN skills s ON s.id = js.skill_id WHERE js.job_id = j.id) || '|' || (SELECT string_agg(m.name, ', ' ORDER BY m.name) FROM job_makes jm JOIN skill_makes m ON m.id = jm.make_id WHERE jm.job_id = j.id)")"
 expect "pay the text states, in cents a year" '6200000|8100000|year' "$(job 102 "concat_ws('|', j.pay_min, j.pay_max, j.pay_period)")"
 expect "a job with no pay stated has none"  '|' "$(job 103 "coalesce(j.pay_min::text, '') || '|' || coalesce(j.pay_max::text, '')")"
+expect "a pay band that can only be a misprint is not said" '|' "$(job 111 "coalesce(j.pay_min::text, '') || '|' || coalesce(j.pay_max::text, '')")"
 expect "and is not called full-time unless the feed says so" 'full-time' "$(job 103 j.employment_type)"
 expect "when it was posted is the posting's day" '2026-11-10 12:00:00' "$(job 103 j.posted_at)"
 expect "it expires fourteen days after a complete listing last included it" 't' "$(job 101 "j.created_by IS NULL AND j.last_seen_at > now() - interval '5 minutes' AND j.expires_at BETWEEN (now() AT TIME ZONE 'UTC') + interval '13 days 23 hours' AND (now() AT TIME ZONE 'UTC') + interval '14 days 1 hour'")"
-expect "every job is journalled"            '7 7' "$(sql "SELECT count(*) FILTER (WHERE op = 'job') || ' ' || count(*) FILTER (WHERE op = 'id') FROM intake_changes WHERE run_id = $R1")"
+expect "a posting at a plant's own town and at the town beside it is one job there, not two" '1 112@palisade bend|NV' "$(sql "SELECT count(*) || ' ' || min(x.external_id) FROM jobs j JOIN external_references x ON x.entity_id = j.id AND x.source = 'POSTINGS_E2E_ACME' WHERE j.source = 'postings-e2e-acme' AND j.source_id LIKE '112%'")"
+expect "every job is journalled"            '8 8' "$(sql "SELECT count(*) FILTER (WHERE op = 'job') || ' ' || count(*) FILTER (WHERE op = 'id') FROM intake_changes WHERE run_id = $R1")"
 expect "of two plants in the town with no headcount, the one the plant merge would keep" 'E2E POSTINGS ACME TWIN FORKS SOUTH' "$(job 111 f.name)"
 expect "and the line says how it was chosen" 't' "$(sql "SELECT look AND detail LIKE '%of 2 plants there, none with a headcount: the one the plant merge would keep%' FROM load_log WHERE run_id = $R1 AND source_id = '111' AND action = 'added'")"
 # What the postings ask for that the catalogue lacks: counted in the run's report, kept nowhere else.
@@ -165,12 +167,13 @@ expect "a word the catalogue lacks is counted for the run" '[["ProtoTRAK", 1]]' 
 case "$OUT" in *"asked for and not in the catalogue (the 1 commonest, with how many postings): ProtoTRAK 1"*) echo "ok    and the run's report says it";; *) echo "FAIL  unknown words in the report: $OUT"; fail=1;; esac
 expect "it is not staged, and not on a job" 'f f' "$(sql "SELECT concat_ws(' ', (SELECT bool_or((payload::text || facts::text) ~* 'prototrak') FROM intake_records WHERE source LIKE 'postings-e2e-%'), (SELECT bool_or(to_jsonb(j)::text ~* 'prototrak') FROM jobs j WHERE source LIKE 'postings-e2e-%'))")"
 # What the run says of itself: requests by platform, what was listed in full, what was not.
-case "$OUT" in *"requests by platform: myworkdayjobs.com 16 of 300, "*"listed in full (4): e2e-acme, e2e-pages, e2e-works, e2e-long"*"cut short (1): e2e-refused (refused, nothing listed: api.lever.co/robots.txt answered 403"*) echo "ok    the run says its requests by platform, what it listed in full and what it did not";; *) echo "FAIL  run summary: $OUT"; fail=1;; esac
+case "$OUT" in *"requests by platform: myworkdayjobs.com 17 of 300, "*"listed in full (4): e2e-acme, e2e-pages, e2e-works, e2e-long"*"cut short (1): e2e-refused (refused, nothing listed: api.lever.co/robots.txt answered 403"*) echo "ok    the run says its requests by platform, what it listed in full and what it did not";; *) echo "FAIL  run summary: $OUT"; fail=1;; esac
 
 # Workday's shape: the text is asked for only where the title is kept.
 RW=$(last_run works)
-expect "a list and then a text: three listed, one abroad left out by the filter, one kept" 'read 2 1 1 1' "$(sql "SELECT concat_ws(' ', counts->>'outcome', counts->>'read', counts->>'notCareer', counts->>'texts', counts->>'jobsAdded') FROM intake_runs WHERE id = $RW")"
-expect "robots, the list twice, one text"   4 "$(asked e2e.wd1.myworkdayjobs.com)"
+expect "a list and then the texts: one abroad left out by the filter, one title not ours, two texts read, one kept" 'read 3 2 2 1' "$(sql "SELECT concat_ws(' ', counts->>'outcome', counts->>'read', counts->>'notCareer', counts->>'texts', counts->>'jobsAdded') FROM intake_runs WHERE id = $RW")"
+expect "robots, the list twice, two texts"  5 "$(asked e2e.wd1.myworkdayjobs.com)"
+expect "the one that was read and not kept is noted, not staged" 'R4 R1' "$(sql "SELECT concat_ws(' ', (SELECT string_agg(source_id, ',') FROM posting_passes WHERE source = 'postings-e2e-works'), (SELECT string_agg(source_id, ',') FROM intake_records WHERE source = 'postings-e2e-works'))")"
 expect "a long board: five pages of the list, a text for each of ours" 'applied read true 85 80 5 5 12' "$(counted "$(last_run long)" outcome complete read notCareer texts jobsAdded requests)"
 expect "a board of two pages with its text" 'applied read true 120 3 3 3' "$(counted "$(last_run pages)" outcome complete read kept jobsAdded requests)"
 expect "the day it was posted comes from the posting itself" '2026-11-16 00:00:00' "$(sql "SELECT posted_at FROM jobs WHERE source = 'postings-e2e-works'")"
@@ -185,18 +188,19 @@ hashes "$RUN_TABLES" > "$D/after-first.txt"
 BEFORE=$(asked e2e.wd1.myworkdayjobs.com)
 OUT=$(ingest postings --only e2e-acme,e2e-works)
 R2=$(last_run acme)
-expect "the same board again: nothing is new" '0 0 8 0 0 0 0' "$(sql "SELECT concat_ws(' ', counts->>'new', counts->>'changed', counts->>'same', counts->>'gone', counts->>'jobsAdded', counts->>'jobsChanged', counts->>'jobsClosed') FROM intake_runs WHERE id = $R2")"
+expect "the same board again: nothing is new" '0 0 9 0 0 0 0' "$(sql "SELECT concat_ws(' ', counts->>'new', counts->>'changed', counts->>'same', counts->>'gone', counts->>'jobsAdded', counts->>'jobsChanged', counts->>'jobsClosed') FROM intake_runs WHERE id = $R2")"
 expect "and nothing is journalled"          0 "$(sql "SELECT count(*) FROM intake_changes WHERE run_id >= $R2")"
 hashes "$RUN_TABLES" > "$D/after-second.txt"
 expect "a run with nothing changed writes nothing but its own row" '' "$(diff "$D/after-first.txt" "$D/after-second.txt")"
 expect "an unchanged listing costs no request for its text: robots and the list twice" 3 "$(( $(asked e2e.wd1.myworkdayjobs.com) - BEFORE ))"
+expect "not for the one that is kept, and not for the one that was read and is not ours" '0 1' "$(sql "SELECT concat_ws(' ', counts->>'texts', counts->>'spared') FROM intake_runs WHERE id = $(last_run works)")"
 
 # --- A later board: gone, changed, moved, added ------------------------------------
 boards two
 hashes "$RUN_TABLES" > "$D/before-third.txt"
 OUT=$(ingest load postings-e2e-acme)
 R3=$(last_run acme)
-expect "a later board: new, changed, the same, gone" '1 2 5 1' "$(sql "SELECT concat_ws(' ', counts->>'new', counts->>'changed', counts->>'same', counts->>'gone') FROM intake_runs WHERE id = $R3")"
+expect "a later board: new, changed, the same, gone" '1 2 6 1' "$(sql "SELECT concat_ws(' ', counts->>'new', counts->>'changed', counts->>'same', counts->>'gone') FROM intake_runs WHERE id = $R3")"
 expect "jobs added, changed, closed"        '2 1 1' "$(sql "SELECT concat_ws(' ', counts->>'jobsAdded', counts->>'jobsChanged', counts->>'jobsClosed') FROM intake_runs WHERE id = $R3")"
 expect "a changed posting corrects its job" '3000|3600' "$(job 101 "j.pay_min || '|' || j.pay_max")"
 expect "the line says what changed"         't' "$(sql "SELECT detail LIKE 'Welder II, at Postville, NV: the posting changed: pay_max, pay_min' FROM load_log WHERE run_id = $R3 AND action = 'changed'")"
@@ -213,7 +217,7 @@ OUT=$(ingest load postings-e2e-acme)
 R5=$(last_run acme)
 expect "a posting that returns reopens its job" "open||$J104" "$(job 104 "j.status || '|' || coalesce(j.closed_reason, '') || '|' || j.id")"
 expect "back, changed, gone; reopened"      '1 2 1 2' "$(sql "SELECT concat_ws(' ', counts->>'back', counts->>'changed', counts->>'gone', counts->>'jobsReopened') FROM intake_runs WHERE id = $R5")"
-expect "no job was ever deleted by a run"   9 "$(sql "SELECT count(*) FROM jobs WHERE source = 'postings-e2e-acme'")"
+expect "no job was ever deleted by a run"   10 "$(sql "SELECT count(*) FROM jobs WHERE source = 'postings-e2e-acme'")"
 
 # --- Undo, newest first, and the database is as it was -----------------------------
 OUT=$(ingest undo "$R3")
@@ -299,7 +303,7 @@ uid() { sql "SELECT id FROM users WHERE email = '$1-$RUN@postings.test'"; }
 # A visitor
 OUT=$(req anon GET '/jobs?q=E2E+Postings&limit=3')
 check "sourced jobs are in the jobs list"   200 "$OUT" '"companyName":"E2E Postings '
-expect "the list says how many match in all, and gives a page" '16 3 0' "$(printf '%s' "$OUT" | j "total + ' ' + o.jobs.length + ' ' + o.offset")"
+expect "the list says how many match in all, and gives a page" '17 3 0' "$(printf '%s' "$OUT" | j "total + ' ' + o.jobs.length + ' ' + o.offset")"
 FIRST=$(printf '%s' "$OUT" | j "jobs.map((x) => x.id).join(' ')")
 expect "the next page carries on where the first stopped" '3 0' "$(req anon GET '/jobs?q=E2E+Postings&limit=3&offset=3' | j "jobs.length + ' ' + o.jobs.filter((x) => '$FIRST'.includes(x.id)).length")"
 expect "the newest day first"               'true' "$(req anon GET '/jobs?q=E2E+Postings' | j "jobs.every((x, i, all) => i === 0 || all[i - 1].postedAt.slice(0, 10) >= x.postedAt.slice(0, 10))")"
@@ -307,10 +311,10 @@ expect "the newest day first"               'true' "$(req anon GET '/jobs?q=E2E+
 expect "within a day the companies take turns" '2 2' "$(req anon GET '/jobs?q=E2E+Postings+Acme' | j "jobs.filter((x) => x.postedAt.startsWith('2026-11-10')).map((x) => x.companyName).reduce((out, name, i, all) => i % 2 === 1 && i < 4 ? out.concat(new Set([all[i - 1], name]).size) : out, []).join(' ')")"
 expect "and the order is the same every time it is asked" 'true' "$(A=$(req anon GET '/jobs?q=E2E+Postings' | j "jobs.map((x) => x.id).join(' ')"); B=$(req anon GET '/jobs?q=E2E+Postings' | j "jobs.map((x) => x.id).join(' ')"); [ "$A" = "$B" ] && echo true)"
 expect "what was typed narrows it: title, company and place" '2' "$(req anon GET '/jobs?q=welder+E2E+Postings+postville' | j total)"
-expect "a state narrows it"                 'true' "$(req anon GET '/jobs?state=NV&q=E2E+Postings' | j "total === 16 && o.jobs.every((x) => x.state === 'NV')")"
+expect "a state narrows it"                 'true' "$(req anon GET '/jobs?state=NV&q=E2E+Postings' | j "total === 17 && o.jobs.every((x) => x.state === 'NV')")"
 expect "near a place, nearest first"        'E2E POSTINGS ACME POSTVILLE PLANT' "$(req anon GET '/jobs?near=40.5,-117.6&within=5&q=welder' | j "jobs[0].factoryName")"
 check "what is open, and where"             200 "$(req anon GET /jobs/summary)" '"state":"NV"'
-expect "the summary counts every open job"  'true' "$(req anon GET /jobs/summary | j "total >= 16 && o.states.find((x) => x.state === 'NV').jobs >= 16")"
+expect "the summary counts every open job"  'true' "$(req anon GET /jobs/summary | j "total >= 17 && o.states.find((x) => x.state === 'NV').jobs >= 17")"
 OUT=$(req anon GET /jobs/$J101)
 check "a sourced job's page"                200 "$OUT" '"fromSource":true'
 expect "it carries facts and a link, no description" 'Welder II||https://jobs.ashbyhq.com/e2e-acme/101|II|2|true|false' "$(printf '%s' "$OUT" | j "job && [o.job.title, o.job.description, o.job.applyUrl, o.job.levelWord, o.job.levelRank, o.job.isOpen, o.canManage].join('|')")"
@@ -319,10 +323,12 @@ expect "its skills"                         'Flux-Cored Welding, MIG Welding' "$
 expect "a make is under the skill it is a make of" 'CNC Milling: Haas; PLC Programming: Studio 5000' "$(req anon GET /jobs/$J102 | j "skills.map((x) => x.name + ': ' + x.makes.map((m) => m.name).join(', ')).sort().join('; ')")"
 expect "the company's page lists its jobs"  'true' "$(req anon GET /companies/$ACME | j "jobs.some((x) => x.id === '$J101')")"
 expect "the plant's page lists its jobs"    'true' "$(req anon GET /factories/$PLANT | j "jobs.some((x) => x.id === '$J101')")"
-expect "the career's page lists them"       'true' "$(req anon GET /occupations/$WELDER | j "jobs.some((x) => x.id === '$J101')")"
+# Thirteen welders' jobs are open; a page lists the first twelve in the list's order and says how many there are.
+E2E_JOBS=$(sql "SELECT string_agg(id::text, ' ') FROM jobs WHERE source LIKE 'postings-e2e-%'")
+expect "the career's page lists them"       'true true' "$(req anon GET /occupations/$WELDER | j "jobs.some((x) => '$E2E_JOBS'.includes(x.id)) + ' ' + (o.openJobCount >= 13 && o.jobs.length === 12)")"
 expect "the skill's page lists the jobs that ask for it" 'true' "$(req anon GET /skills/$MIG | j "jobs.some((x) => x.id === '$J101')")"
-expect "a page lists the newest few and says how many are open in all" '5 5' "$(req anon GET /companies/$ACME | j "jobs.length + ' ' + o.openJobCount")"
-expect "the jobs list narrows to a company, a plant and a skill, as their pages link" '5 2 10' "$(req anon GET "/jobs?companyId=$ACME" | j total) $(req anon GET "/jobs?factoryId=$PLANT" | j total) $(req anon GET "/jobs?skillId=$MIG&q=E2E+Postings" | j total)"
+expect "a page lists the newest few and says how many are open in all" '6 6' "$(req anon GET /companies/$ACME | j "jobs.length + ' ' + o.openJobCount")"
+expect "the jobs list narrows to a company, a plant and a skill, as their pages link" '6 2 10' "$(req anon GET "/jobs?companyId=$ACME" | j total) $(req anon GET "/jobs?factoryId=$PLANT" | j total) $(req anon GET "/jobs?skillId=$MIG&q=E2E+Postings" | j total)"
 expect "search finds it"                    'true' "$(req anon GET '/search?q=E2E+Postings+Acme' | j "results.jobs.count >= 1")"
 expect "the map's pins count it"            'true' "$(req anon GET /factories/pins | j "pins.find((x) => x[0] === '$PLANT')[8] >= 1")"
 
@@ -342,7 +348,7 @@ check "nor delete it"                       409 "$(req m DELETE /jobs/$J101)" "c
 expect "it is as it was"                    'Welder II|open' "$(job 101 "j.title || '|' || j.status")"
 check "a stranger cannot either"            403 "$(req s PATCH /jobs/$J101 '{"title":"x"}')"
 OUT=$(req m GET /employer)
-expect "Your jobs lists what members posted, and counts the rest" '0 5' "$(printf '%s' "$OUT" | j "companies.filter((c) => c.companyId === '$ACME').map((c) => c.jobs.length + ' ' + c.listedJobs)[0]")"
+expect "Your jobs lists what members posted, and counts the rest" '0 6' "$(printf '%s' "$OUT" | j "companies.filter((c) => c.companyId === '$ACME').map((c) => c.jobs.length + ' ' + c.listedJobs)[0]")"
 check "nobody applied, so there is nothing to read" 200 "$(req m GET /jobs/$J101/applications)" '"applications":\[\]'
 
 # --- Admin Tools: each employer's latest run, and the places that wait --------------
@@ -356,7 +362,7 @@ check "401 deciding a place"                401 "$(req anon POST /admin/postings
 check "403 deciding a place"                403 "$(req m POST /admin/postings/places '{}')"
 OUT=$(req a GET /admin/postings)
 check "the employers' runs"                 200 "$OUT" '"slug":"postings-e2e-acme"'
-expect "read, kept, added, changed, closed, waiting" 'read 10 8 7 0 0 2 1' "$(printf '%s' "$OUT" | j "sources.filter((x) => x.slug === 'postings-e2e-acme').map((x) => [x.run.outcome, x.run.read, x.run.kept, x.run.added, x.run.changed, x.run.closed, x.run.waiting, x.waitingPlaces].join(' '))[0]")"
+expect "read, kept, added, changed, closed, waiting" 'read 11 9 8 0 0 2 1' "$(printf '%s' "$OUT" | j "sources.filter((x) => x.slug === 'postings-e2e-acme').map((x) => [x.run.outcome, x.run.read, x.run.kept, x.run.added, x.run.changed, x.run.closed, x.run.waiting, x.waitingPlaces].join(' '))[0]")"
 expect "a refusal, with what refused"       'refused|api.lever.co/robots.txt answered 403' "$(printf '%s' "$OUT" | j "sources.filter((x) => x.slug === 'postings-e2e-refused').map((x) => x.run.outcome + '|' + x.run.why)[0]")"
 expect "a company we do not list"           'not listed' "$(printf '%s' "$OUT" | j "sources.find((x) => x.slug === 'postings-e2e-ghost').run.outcome")"
 expect "employers' postings are not among the sources of plants" 'undefined' "$(req a GET /admin/intake/sources | j "sources.find((x) => x.slug.startsWith('postings-'))")"
