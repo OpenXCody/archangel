@@ -17,7 +17,6 @@ import {
 import {
   CardNote,
   ErrorNote,
-  HeldMeter,
   LoadError,
   RowsSkeleton,
   cardClass,
@@ -25,6 +24,8 @@ import {
   textButtonClass,
 } from '../account/parts';
 import { PageSection } from '../layout/Page';
+import { ShareRing } from '../path/HeldShare';
+import { levelName } from '../../lib/stages';
 import { accountKeys } from '../../lib/queryKeys';
 import { linkClass, RemovedRow } from './parts';
 
@@ -88,7 +89,16 @@ export default function GoalsSection() {
                     {goal.title}
                   </Link>
                   {goal.totalSkills > 0 ? (
-                    <HeldMeter held={goal.heldSkills} total={goal.totalSkills} noun="skills held" className="mt-1" />
+                    // The same ring the career's own page carries beside "Set as goal".
+                    <p className="mt-1 flex items-center gap-2 text-sm text-fg-muted" data-goal-held>
+                      <ShareRing share={{ held: goal.heldSkills, learning: 0, total: goal.totalSkills }} className="h-4 w-4" />
+                      <span>
+                        <span className="font-semibold tabular-nums text-fg-default">
+                          {goal.heldSkills} of {goal.totalSkills}
+                        </span>{' '}
+                        skills held
+                      </span>
+                    </p>
                   ) : (
                     <p className="mt-1 text-sm text-fg-muted">Path not written yet.</p>
                   )}
@@ -126,12 +136,32 @@ export default function GoalsSection() {
   );
 }
 
-/** The skills to pick up next for a career, as one line of text. Nothing when none are left. */
+/**
+ * The skills to pick up next for a career, as one line of text under the
+ * level they are at: "Next, Fundamentals: Blueprint Reading, Lot Tracking".
+ * They come lowest level first, so a second level is named only where the
+ * first runs out. Nothing when none are left.
+ */
 function NextSkills({ next, className }: { next: NextSkill[]; className?: string }) {
   if (next.length === 0) return null;
+  const runs: { level: string | null; skills: NextSkill[] }[] = [];
+  for (const skill of next) {
+    const level = levelName(skill.level);
+    const last = runs[runs.length - 1];
+    if (last && last.level === level) last.skills.push(skill);
+    else runs.push({ level, skills: [skill] });
+  }
   return (
-    <p className={cn('break-words text-sm text-fg-muted', className)}>
-      <span className="text-fg-soft">Next</span> {nextSkillNames(next)}
+    <p className={cn('break-words text-sm text-fg-muted', className)} data-next-skills>
+      {runs.map((run, index) => (
+        <span key={run.level ?? index}>
+          {index > 0 && ' · '}
+          <span className="text-fg-soft">
+            {index === 0 ? (run.level ? `Next, ${run.level}:` : 'Next') : `${run.level}:`}
+          </span>{' '}
+          {nextSkillNames(run.skills)}
+        </span>
+      ))}
     </p>
   );
 }
@@ -172,8 +202,9 @@ function CareersInReach() {
               >
                 {career.title}
               </Link>
-              <span className="shrink-0 text-sm tabular-nums text-fg-muted" aria-label={`${career.held} of ${career.total} skills held`}>
+              <span className="inline-flex shrink-0 items-center gap-1.5 self-center text-sm tabular-nums text-fg-muted" aria-label={`${career.held} of ${career.total} skills held`}>
                 {career.held} of {career.total}
+                <ShareRing share={{ held: career.held, learning: 0, total: career.total }} className="h-3.5 w-3.5" />
               </span>
             </div>
             <NextSkills next={career.next} className="mt-0.5" />

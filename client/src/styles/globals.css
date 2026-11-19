@@ -500,6 +500,19 @@ input {
     line-height: 1rem;
     color: var(--color-fg-muted);
   }
+  /* A caption inside a frame, where its skills are shown by level. */
+  .skill-group-part-label {
+    padding: 8px 6px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 16px;
+    text-transform: uppercase;
+    color: var(--color-fg-soft);
+  }
+  .skill-group-part:first-of-type > .skill-group-part-label {
+    padding-top: 2px;
+  }
   /* Every skill in it held: the frame itself is lit. */
   .skill-group[data-complete] {
     border-color: color-mix(in srgb, var(--color-fg-soft) 60%, var(--color-border-subtle));

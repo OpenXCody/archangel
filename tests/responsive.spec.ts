@@ -75,6 +75,28 @@ test('a career page shows its path, a company page its plants', async ({ page, r
   await expect(page.locator('#skills')).toBeVisible();
   // The list opens on a career with a path: its skills under the three levels, by their names.
   await expect(page.locator('#skills')).toContainText(/Fundamentals[\s\S]*Intermediate[\s\S]*Advanced/);
+  // The path is one diagram: three levels, each a list of skill groups, each a frame of tags.
+  const flow = page.locator('[data-path-flow]');
+  await expect(flow).toHaveCount(1);
+  await expect(flow.locator('[data-path-level]')).toHaveCount(3);
+  expect(await flow.locator('[data-group-box]').count(), 'the path has skill groups').toBeGreaterThan(0);
+  const tags = flow.locator('[data-skill-tag]');
+  expect(await tags.count(), 'the groups hold skills').toBeGreaterThan(0);
+  // To a visitor a tag is the skill's name, which opens its page, with no mark and no progress beside it.
+  await expect(tags.first().locator('a')).toHaveAttribute('href', /^\/skills\/[0-9a-f-]{36}$/);
+  await expect(flow.locator('[data-skill-tag] button')).toHaveCount(0);
+  await expect(flow.locator('[data-level-count], [data-group-count]')).toHaveCount(0);
+  await expect(page.locator('[data-held-count]')).toHaveCount(0);
+  // Every tag is a full finger's height and stays inside the diagram, however long its name.
+  const diagram = await flow.boundingBox();
+  for (const box of await tags.evaluateAll((items) => items.map((item) => item.getBoundingClientRect().toJSON() as { left: number; right: number; height: number }))) {
+    expect(box.height, 'a tag is at least 44px tall').toBeGreaterThanOrEqual(44);
+    expect(box.left, 'a tag starts inside the diagram').toBeGreaterThanOrEqual((diagram?.x ?? 0) - 1);
+    expect(box.right, 'a tag ends inside the diagram').toBeLessThanOrEqual((diagram?.x ?? 0) + (diagram?.width ?? 0) + 1);
+  }
+  // The same skills among all the others.
+  await expect(page.locator('[data-atlas-link]')).toHaveAttribute('href', `/atlas?career=${career}`);
+  await assertHealthyLayout(page, '/occupations/:id path');
 
   // A skill's page says where the skill sits: its domain and group, each a link into the Skills list, and its level.
   const skill = await firstId(request, '/skills');
@@ -83,6 +105,21 @@ test('a career page shows its path, a company page its plants', async ({ page, r
   await expect(page.locator('[data-skill-domain]')).toHaveAttribute('href', /^\/explore\?tab=skills&domain=[a-z0-9-]+$/);
   await expect(page.locator('[data-skill-group]')).toHaveAttribute('href', /^\/explore\?tab=skills&domain=[a-z0-9-]+&group=[a-z0-9-]+$/);
   await expect(page.locator('[data-skill-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
+
+  // A skill with others in its group is shown among them: the group's frame, this skill the one tag that is not a link.
+  const path = (await (await request.get(`${API}/occupations/${career}`)).json()) as { skills: Array<{ id: string }> };
+  for (const each of path.skills) {
+    const detail = (await (await request.get(`${API}/skills/${each.id}`)).json()) as { name: string; group: { name: string }; groupSkills: unknown[] };
+    if (detail.groupSkills.length === 0) continue;
+    await page.goto(`/skills/${each.id}`, { waitUntil: 'domcontentloaded' });
+    const group = page.locator('#group [data-group-box]');
+    await expect(group.locator('legend')).toContainText(detail.group.name);
+    await expect(group.locator('[data-skill-tag]')).toHaveCount(detail.groupSkills.length + 1);
+    await expect(group.locator('[data-skill-tag][data-current]')).toHaveText(detail.name);
+    await expect(group.locator('[data-skill-tag][data-current] a')).toHaveCount(0);
+    await assertHealthyLayout(page, '/skills/:id group');
+    break;
+  }
 
   const company = await firstId(request, '/companies');
   expect(company, 'the API returned a company to open').toBeTruthy();
@@ -245,6 +282,76 @@ test('a seeker and an employer are given different tools', async ({ page, baseUR
   expect(tools.work.word).toBe('Jobs');
   expect(tools.hire.jobs).toBe('/employer');
   expect(tools.hire.word).toBe('Your jobs');
+});
+
+test("a seeker marks a path's skills and the figures follow; an employer sees none", async ({ page, baseURL, request }) => {
+  // Writes: it makes two accounts, marks one skill and deletes them. Never against a deployed copy.
+  test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
+  const password = 'correct horse battery';
+  const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
+  const career = await firstId(request, '/occupations');
+  expect(career, 'the API returned a career to open').toBeTruthy();
+  /** "2 of 6" (with or without the words around it) as [2, 6]. */
+  const figure = async (locator: ReturnType<Page['locator']>): Promise<[number, number]> => {
+    const match = /(\d+) of (\d+)/.exec((await locator.textContent()) ?? '');
+    expect(match, 'the figure reads "N of M"').toBeTruthy();
+    return [Number(match?.[1]), Number(match?.[2])];
+  };
+
+  for (const purpose of ['work', 'hire'] as const) {
+    const made = await page.request.post(`${API}/auth/sign-up`, {
+      data: { email: `path-${purpose}-${stamp}@device.test`, name: `Path ${purpose}`, password, purpose },
+    });
+    expect(made.status(), `${purpose}: account made`).toBe(201);
+    try {
+      await page.goto(`/occupations/${career}`, { waitUntil: 'domcontentloaded' });
+      const flow = page.locator('[data-path-flow]');
+      await expect(flow.locator('[data-skill-tag]').first()).toBeVisible();
+      if (purpose === 'hire') {
+        // Someone here to hire reads the same diagram with no marks and no progress.
+        await expect(flow.locator('[data-path-level]')).toHaveCount(3);
+        await expect(flow.locator('[data-skill-tag] button')).toHaveCount(0);
+        await expect(flow.locator('[data-level-count], [data-group-count]')).toHaveCount(0);
+        await expect(page.locator('[data-held-count]')).toHaveCount(0);
+        continue;
+      }
+      // A seeker: every tag carries its mark, a full finger's size, and the three figures start at nothing held.
+      const tag = flow.locator('[data-skill-tag]').first();
+      const mark = tag.locator('button');
+      await expect(mark).toHaveAttribute('aria-pressed', 'false');
+      const size = await mark.boundingBox();
+      expect(Math.min(size?.width ?? 0, size?.height ?? 0), 'the mark is at least 44px each way').toBeGreaterThanOrEqual(44);
+      const whole = page.locator('[data-held-count]');
+      const level = tag.locator('xpath=ancestor::*[@data-path-level][1]').locator('[data-level-count]');
+      const group = tag.locator('xpath=ancestor::*[@data-group-box][1]').locator('[data-group-count]');
+      const total = (await figure(whole))[1];
+      expect(total, 'the career counts every skill on the path').toBe(await flow.locator('[data-skill-tag]').count());
+      expect((await figure(whole))[0]).toBe(0);
+      expect((await figure(level))[0]).toBe(0);
+      expect((await figure(group))[0]).toBe(0);
+      // One tap: the tag is lit and all three figures follow, before any reload.
+      await mark.click();
+      await expect(tag).toHaveAttribute('data-status', 'held');
+      await expect(mark).toHaveAttribute('aria-pressed', 'true');
+      await expect.poll(async () => (await figure(whole))[0], { message: 'the career follows' }).toBe(1);
+      expect((await figure(level))[0], 'the level follows').toBe(1);
+      expect((await figure(group))[0], 'the group follows').toBe(1);
+      await assertHealthyLayout(page, '/occupations/:id marked');
+      // It was saved, not only drawn.
+      await expect
+        .poll(async () => ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: unknown[] }).skills.length, { message: 'the mark was saved' })
+        .toBe(1);
+      // And one more tap clears it everywhere.
+      await mark.click();
+      await expect(tag).toHaveAttribute('data-status', 'none');
+      await expect.poll(async () => (await figure(whole))[0]).toBe(0);
+      expect((await figure(level))[0]).toBe(0);
+      expect((await figure(group))[0]).toBe(0);
+    } finally {
+      const gone = await page.request.delete(`${API}/me`, { data: { password } });
+      expect(gone.ok(), `${purpose}: account removed`).toBe(true);
+    }
+  }
 });
 
 test('settings offers the theme to a visitor', async ({ page }) => {

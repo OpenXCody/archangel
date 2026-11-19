@@ -15,8 +15,8 @@ import {
 } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
 import { PathFlow } from '../path/PathFlow';
-import { SkillGroupBox, SkillGroups } from '../path/SkillGroupBox';
-import { buildPath, groupsOf, shareOf } from '../path/model';
+import { SkillGroupBox } from '../path/SkillGroupBox';
+import { buildPath, shareOf } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
 import { type Head, UNPLACED, OpenJobsSection, IndustryRows } from './parts';
 
@@ -38,8 +38,10 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   const plants = data.factories ?? [];
   const counted = plants.some((plant) => (plant.headcount ?? 0) > 0);
   const path = buildPath(skills);
-  // A career with a path (written, draft or approved) lays its skills out by level; one without lists them by group.
-  const hasPath = Boolean(data.pathStatus) && path.levels.some((level) => level.groups.length > 0);
+  // Every skill has its own level and group, so any career with skills has a path to draw, whether or not
+  // anyone has written one for it (`pathStatus`: that only decides the word "Draft"). Only skills that no
+  // taxonomy has placed (a database nothing was loaded into) are left to list by themselves.
+  const hasPath = path.levels.some((level) => level.groups.length > 0);
   const whole = marks && skills.length > 0 ? shareOf(skills, marks) : null;
 
   return (
@@ -56,7 +58,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
               <span className="inline-flex items-center gap-2 text-sm text-fg-muted" data-held-count>
                 <ShareRing share={whole} className="h-5 w-5" />
                 <span>
-                  You have <span className="font-medium tabular-nums text-fg-default">{whole.held}</span> of {whole.total} skills
+                  You have <span className="font-medium tabular-nums text-fg-default">{whole.held}</span> of {whole.total} {whole.total === 1 ? 'skill' : 'skills'}
                 </span>
               </span>
             )}
@@ -95,12 +97,8 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           }
         >
           {marks && <ErrorNote error={markError} className="mb-3" />}
-          {hasPath ? (
-            <PathFlow path={path} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
-          ) : (
-            <SkillGroups groups={groupsOf(skills)} marks={marks} />
-          )}
-          {hasPath && path.unplaced.length > 0 && <SkillGroupBox name={UNPLACED} skills={path.unplaced} marks={marks} className="mt-4" />}
+          {hasPath && <PathFlow path={path} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} />}
+          {path.unplaced.length > 0 && <SkillGroupBox name={UNPLACED} skills={path.unplaced} marks={marks} className={hasPath ? 'mt-4' : undefined} />}
           {canSignIn && (
             <p className="mt-4 text-sm text-fg-soft">
               <Link to={signInPath(`${pathname}${search}`)} className="text-fg-muted underline underline-offset-2 hover:text-fg-default">

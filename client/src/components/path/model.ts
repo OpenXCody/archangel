@@ -82,31 +82,6 @@ export function buildPath(skills: readonly PlacedSkill[]): SkillPath {
   return { levels, unplaced };
 }
 
-/**
- * Skills by group alone, in the order they arrive: a career with no path
- * written, a person's own skills. A group that arrives at two levels is one box.
- */
-export function groupsOf(skills: readonly PlacedSkill[]): PathGroup[] {
-  const groups: PathGroup[] = [];
-  for (const skill of skills) {
-    const slug = skill.group?.slug ?? '';
-    let group = groups.find((each) => each.slug === slug);
-    if (!group) {
-      group = { slug, name: skill.group?.name ?? 'Not yet placed', domain: skill.domain, skills: [] };
-      groups.push(group);
-    }
-    group.skills.push({ id: skill.id, name: skill.name, note: skill.note });
-  }
-  return groups;
-}
-
-/** The domains a level draws on, in order, each once. */
-export function levelDomains(level: PathLevel): TaxonomyRef[] {
-  const seen = new Map<string, TaxonomyRef>();
-  for (const group of level.groups) if (group.domain && !seen.has(group.domain.slug)) seen.set(group.domain.slug, group.domain);
-  return [...seen.values()];
-}
-
 export type MarkStatus = SkillStatus | 'none';
 
 /**
