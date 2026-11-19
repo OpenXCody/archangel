@@ -178,7 +178,7 @@ expect "three names become one company"                  1 "$(sql "SELECT count(
 expect "named as the file names it; the profile it had is kept" "E2E Loader Acme|acme-e2e.test|t|e2e-loader-acme|Widgets|Austin|NV" \
   "$(sql "SELECT concat_ws('|', name, domain, featured, slug, industry, headquarters_city, headquarters_state) FROM companies WHERE name = 'E2E Loader Acme'")"
 expect "the other names are kept as aliases"             "E2E Loader ACME HOLDINGS,E2E Loader Acme Corp,E2E Loader Acme Works,E2E Loader Never Heard Of,E2E Loader Old Acme" \
-  "$(sql "SELECT string_agg(a, ',' ORDER BY a) FROM companies, unnest(aliases) a WHERE name = 'E2E Loader Acme'")"
+  "$(sql "SELECT string_agg(a, ',' ORDER BY a COLLATE \"C\") FROM companies, unnest(aliases) a WHERE name = 'E2E Loader Acme'")"
 expect "a company the research names is never an alias"  1 "$(sql "SELECT count(*) FROM companies WHERE name = 'E2E Loader Parent'")"
 expect "people in a state"                               "2500|2024" "$(sql "SELECT people || '|' || year FROM company_state_headcounts h JOIN companies c ON c.id = h.company_id WHERE c.name = 'E2E Loader Acme' AND h.state = 'NV'")"
 expect "a plant of the company 300 m away is the plant"  "39.5|-116.9|1000|2023|333111|Machinery Manufacturing|1990|operating|t|1 Main St|89310" \
@@ -193,7 +193,7 @@ expect "a stranger's plant that names nobody stays"      "E2E Loader Stranger" "
 expect "so the plant beside it is new, with no headcount" "333||t" "$(plant 'E2E Loader Acme' 'New Site' "concat_ws('|', primary_naics, coalesce(workforce_size::text, ''), curated)")"
 expect "closed, announced, uncovered and unusable plants are not loaded" 0 "$(sql "SELECT count(*) FROM factories WHERE name IN ('Old Site', 'Planned Site', 'Nowhere', 'No Industry', 'Ready Mix Yard', 'Island Plant')")"
 expect "and the log says which, and why"                 "Island Plant (Puerto Rico)|Old Site (closed)|Planned Site (announced)|Ready Mix Yard (construction materials, NAICS 327320)" \
-  "$(sql "SELECT string_agg(plant, '|' ORDER BY plant) FROM load_log WHERE load = 'e2e-loader-a' AND action = 'not loaded'")"
+  "$(sql "SELECT string_agg(plant, '|' ORDER BY plant COLLATE \"C\") FROM load_log WHERE load = 'e2e-loader-a' AND action = 'not loaded'")"
 expect "a subsidiary is created with its parent"         "E2E Loader Parent|true" "$(sql "SELECT p.name || '|' || c.featured FROM companies c JOIN companies p ON p.id = c.parent_company_id WHERE c.name = 'E2E Loader Kidco'")"
 expect "the parent is not made a featured employer"      "f" "$(sql "SELECT featured FROM companies WHERE name = 'E2E Loader Parent'")"
 expect "its plant filed under the parent moves to it"    "400|2025" "$(plant 'E2E Loader Kidco' 'Kidco Assembly' "workforce_size || '|' || workforce_year")"
@@ -204,11 +204,11 @@ expect "a missing parent is created bare"                "false|0" "$(sql "SELEC
 expect "a different company with the same name stands aside" "E2E Loader Homonym Boxes" "$(sql "SELECT c.name FROM factories f JOIN companies c ON c.id = f.company_id WHERE f.name = 'E2E LOADER HOMONYM BOXES'")"
 expect "and the researched one is new"                   "Gizmo Works" "$(sql "SELECT string_agg(f.name, ',') FROM factories f JOIN companies c ON c.id = f.company_id WHERE c.name = 'E2E Loader Homonym'")"
 expect "sources are kept for the plant"                  "https://example.test/main,https://example.test/main-2023" \
-  "$(sql "SELECT string_agg(e.url, ',' ORDER BY e.url) FROM external_references e JOIN factories f ON f.id = e.entity_id WHERE e.entity_type = 'factories' AND e.source = 'CURATED' AND f.name = 'Main Plant' AND $IN_AREA")"
+  "$(sql "SELECT string_agg(e.url, ',' ORDER BY e.url COLLATE \"C\") FROM external_references e JOIN factories f ON f.id = e.entity_id WHERE e.entity_type = 'factories' AND e.source = 'CURATED' AND f.name = 'Main Plant' AND $IN_AREA")"
 expect "and for the company"                             "https://example.test/acme" \
-  "$(sql "SELECT string_agg(e.url, ',' ORDER BY e.url) FROM external_references e JOIN companies c ON c.id = e.entity_id WHERE e.entity_type = 'companies' AND e.source = 'CURATED' AND c.name = 'E2E Loader Acme'")"
+  "$(sql "SELECT string_agg(e.url, ',' ORDER BY e.url COLLATE \"C\") FROM external_references e JOIN companies c ON c.id = e.entity_id WHERE e.entity_type = 'companies' AND e.source = 'CURATED' AND c.name = 'E2E Loader Acme'")"
 expect "every decision is in the log"                    "created 3|found 1|inserted 3|matched 2|merged 2|moved 2|not loaded 4|swept 1" \
-  "$(sql "SELECT string_agg(action || ' ' || n, '|' ORDER BY action) FROM (SELECT action, count(*) AS n FROM load_log WHERE load = 'e2e-loader-a' AND action IN ('found', 'created', 'merged', 'matched', 'moved', 'inserted', 'swept', 'not loaded') GROUP BY action) s")"
+  "$(sql "SELECT string_agg(action || ' ' || n, '|' ORDER BY action COLLATE \"C\") FROM (SELECT action, count(*) AS n FROM load_log WHERE load = 'e2e-loader-a' AND action IN ('found', 'created', 'merged', 'matched', 'moved', 'inserted', 'swept', 'not loaded') GROUP BY action) s")"
 once=$(state)
 load e2e-loader-a
 expect "loading the same file again changes nothing"     "$once" "$(state)"
