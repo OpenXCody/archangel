@@ -4,7 +4,8 @@
  * record is fetched once.
  */
 import { useQuery } from '@tanstack/react-query';
-import { companiesApi, factoriesApi, mapApi, occupationsApi, skillsApi } from '../../lib/api';
+import { mapApi } from '../../lib/api';
+import { recordQuery } from '../../lib/queries';
 import { useMapStore } from '../../stores/mapStore';
 import { focusArea } from '@shared/scope';
 import { stateName } from '../../lib/places';
@@ -24,10 +25,12 @@ export function useSelection() {
   // A missing record is an answer, not a failure to retry.
   const retry = (failures: number, error: unknown) => !isNotFound(error) && failures < 2;
 
-  const factory = useQuery({ queryKey: ['factory', id], queryFn: () => factoriesApi.get(id as string), enabled: on('factory'), retry });
-  const company = useQuery({ queryKey: ['company', id], queryFn: () => companiesApi.get(id as string), enabled: on('company'), retry });
-  const occupation = useQuery({ queryKey: ['occupation', id], queryFn: () => occupationsApi.get(id as string), enabled: on('occupation'), retry });
-  const skill = useQuery({ queryKey: ['skill', id], queryFn: () => skillsApi.get(id as string), enabled: on('skill'), retry });
+  // A record is read under the key its own page reads it under (`recordQuery`):
+  // fetched once for both, and refreshed here when an admin corrects it.
+  const factory = useQuery({ ...recordQuery('factories', id), enabled: on('factory'), retry });
+  const company = useQuery({ ...recordQuery('companies', id), enabled: on('company'), retry });
+  const occupation = useQuery({ ...recordQuery('occupations', id), enabled: on('occupation'), retry });
+  const skill = useQuery({ ...recordQuery('skills', id), enabled: on('skill'), retry });
   const state = useQuery({ queryKey: publicKeys.stateOverview(id), queryFn: () => mapApi.stateOverview(id as string), enabled: on('state'), retry });
   const area = useQuery({ queryKey: publicKeys.areaOverview(id), queryFn: () => mapApi.areaOverview(id as string), enabled: on('area'), retry });
   const placeOverview = useQuery({

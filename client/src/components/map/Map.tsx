@@ -9,7 +9,7 @@ import maplibregl, {
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Maximize2, Minus, Plus } from 'lucide-react';
-import { companiesApi, mapApi, occupationsApi } from '../../lib/api';
+import { mapApi } from '../../lib/api';
 import { useMapStore, type PinInfo } from '../../stores/mapStore';
 import { currentTheme, type Theme } from '../../lib/theme';
 import { isNotFound } from './selection';
@@ -46,7 +46,7 @@ import {
   SOURCE,
   type PinView,
 } from './layers';
-import { usePins, useStatesOutline } from '../../lib/queries';
+import { recordQuery, usePins, useStatesOutline } from '../../lib/queries';
 import { publicKeys } from '../../lib/queryKeys';
 
 declare global {
@@ -183,17 +183,16 @@ export default function Map({ onViewChange }: MapProps) {
   const { data: factoriesGeoJSON } = usePins();
 
   // The map's subject, if it has one: a company (its plants alone) or a
-  // career (the industries where its work is done). The panel reads the same
-  // records under the same keys, so each is fetched once.
+  // career (the industries where its work is done). The panel and the
+  // record's own page read the same records under the same keys, so each is
+  // fetched once.
   const { data: subjectCompany, error: subjectCompanyError } = useQuery({
-    queryKey: ['company', filters.company],
-    queryFn: () => companiesApi.get(filters.company as string),
+    ...recordQuery('companies', filters.company),
     enabled: Boolean(filters.company),
     retry: false,
   });
   const { data: subjectCareer, error: subjectCareerError } = useQuery({
-    queryKey: ['occupation', filters.career],
-    queryFn: () => occupationsApi.get(filters.career as string),
+    ...recordQuery('occupations', filters.career),
     enabled: Boolean(filters.career),
     retry: false,
   });

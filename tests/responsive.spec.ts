@@ -263,3 +263,55 @@ test('a read that gets no answer gives up and says so', async ({ page, baseURL, 
     expect(gone.ok(), 'account removed').toBe(true);
   }
 });
+
+test("an admin's change reaches the map's panel", async ({ page, request }) => {
+  // Nothing is written: the account, Admin Tools' answers and the add itself are stood in for here.
+  const plant = await firstId(request, '/factories');
+  expect(plant, 'the API returned a plant to open').toBeTruthy();
+  let changed = false;
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({
+      json: {
+        user: { id: '00000000-0000-4000-8000-000000000001', email: 'admin@device.test', name: 'Device Admin', isAdmin: true, homeZip: null, about: null, emailNotices: true, purpose: 'work' },
+        memberships: [],
+        isEmployer: false,
+      },
+    })
+  );
+  await page.route('**/api/me/news', (route) => route.fulfill({ json: { applications: false, applicants: false, access: false } }));
+  // Whatever Admin Tools asks for while it is open: nobody waiting, nothing found.
+  await page.route('**/api/admin/**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/overview')) return route.fulfill({ json: { users: 1, pendingMemberships: 0, openJobs: 0, applications: 0, draftPaths: 0 } });
+    return route.fulfill({ json: { users: [], total: 0, memberships: [], requests: [], paths: [], records: [], entries: [], hasMore: false } });
+  });
+  await page.route('**/api/companies', (route) => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    changed = true;
+    return route.fulfill({ status: 201, json: { id: '00000000-0000-4000-8000-000000000002', name: 'Changed By The Check', slug: null } });
+  });
+  // The plant itself, under another name once an admin has changed something.
+  await page.route(`**/api/factories/${plant}`, async (route) => {
+    const response = await route.fetch();
+    const record = (await response.json()) as { name: string };
+    await route.fulfill({ response, json: changed ? { ...record, name: 'Renamed Works' } : record });
+  });
+
+  await page.goto(`/map?factory=${plant}`, { waitUntil: 'domcontentloaded' });
+  await expect(page).not.toHaveTitle(/^Map · /);
+  const before = await page.title();
+  expect(before).not.toContain('Renamed Works');
+
+  // To Admin Tools without loading the app again, so what the map read is still held.
+  await page.getByRole('button', { name: /Account menu/ }).click();
+  await page.getByRole('menuitem', { name: 'Admin Tools' }).click();
+  await page.getByRole('tab', { name: 'Data' }).click();
+  await page.locator('#record-name').fill('Changed By The Check');
+  await page.getByRole('button', { name: 'Add company' }).click();
+  await expect(page.locator('[data-record-added]')).toBeVisible();
+
+  // Back to the plant on the map: it is read again, not shown as it was before the change.
+  for (let step = 0; step < 4 && !/\/map\?/.test(page.url()); step++) await page.goBack();
+  expect(page.url(), 'back on the map').toContain(`/map?factory=${plant}`);
+  await expect(page).toHaveTitle('Renamed Works · Archangel');
+});
