@@ -56,17 +56,6 @@ export function ShareRing({ share, className }: { share: Share | null; className
   );
 }
 
-/** The bar form, for a wide place. */
-export function ShareBar({ share, className }: { share: Share; className?: string }) {
-  const part = (n: number) => (share.total > 0 ? `${(Math.min(n, share.total) / share.total) * 100}%` : '0%');
-  return (
-    <span aria-hidden="true" data-share-bar className={cn('relative block h-[3px] overflow-hidden rounded-full bg-tint/10', className)}>
-      <span className="absolute inset-y-0 left-0 bg-fg-soft" style={{ width: part(share.held + share.learning) }} />
-      <span className="absolute inset-y-0 left-0 bg-fg-default" style={{ width: part(share.held) }} />
-    </span>
-  );
-}
-
 /** "2 of 6", with what it counts said to a screen reader. */
 export function ShareCount({ share, className, ...rest }: { share: Share; className?: string } & Record<`data-${string}`, string | number | undefined>) {
   return (

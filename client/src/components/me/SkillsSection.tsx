@@ -118,19 +118,22 @@ function MySkillGroups({ skills, taxonomy, marks }: { skills: MySkill[]; taxonom
   const wholeOf = new Map(domains.flatMap((domain) => domain.groups.map((each) => [each.group.slug, each.whole] as const)));
 
   return (
-    <div className="space-y-4" data-my-skills>
+    // Domains fill two columns where there is room, each kept whole.
+    <div className="gap-x-4 lg:columns-2" data-my-skills>
       {domains.map((domain) => (
-        <section key={domain.slug} aria-label={domain.name} data-my-domain={domain.slug}>
+        <section key={domain.slug} aria-label={domain.name} data-my-domain={domain.slug} className="mb-4 break-inside-avoid">
           <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">{domain.name}</h3>
           <SkillGroups
             groups={domain.groups.map((each) => each.group)}
             marks={marks}
             shareOfGroup={(group) => shareOf(wholeOf.get(group.slug) ?? group.skills, marks)}
-            className="lg:grid-cols-2"
+            className="sm:grid-cols-1 lg:grid-cols-1"
           />
         </section>
       ))}
-      {rest.length > 0 && <SkillGroupBox name={domains.length > 0 ? 'Other skills' : 'Your skills'} skills={rest} marks={marks} />}
+      {rest.length > 0 && (
+        <SkillGroupBox name={domains.length > 0 ? 'Other skills' : 'Your skills'} skills={rest} marks={marks} className="mb-4 break-inside-avoid" />
+      )}
     </div>
   );
 }
