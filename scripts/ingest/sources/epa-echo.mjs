@@ -198,7 +198,8 @@ export async function read(row, { asOf = null } = {}) {
     industryNote: note,
     naicsAll: all.length > 0 ? all : null,
     countyFips: /^\d{5}$/.test(row.FAC_FIPS_CODE ?? '') ? row.FAC_FIPS_CODE : null,
-    active: row.FAC_ACTIVE_FLAG === 'Y' ? true : row.FAC_ACTIVE_FLAG === 'N' ? false : null,
+    // The flag is Y or nothing: a facility with no permit in force is left blank.
+    active: row.FAC_ACTIVE_FLAG === 'Y',
     url: `https://echo.epa.gov/detailed-facility-report?fid=${row.REGISTRY_ID}`,
     asOf,
   };
@@ -236,7 +237,7 @@ export async function fetchFile({ dir, log = console.log }) {
     bytes: (await stat(file)).size,
   };
   await writeFile(`${file}.json`, `${JSON.stringify(note, null, 2)}\n`);
-  log(`fetch: ${(note.bytes / 1048576).toFixed(0)} MB, published ${note.published ?? 'on a day the EPA did not say'}`);
+  log(`fetch: ${Math.round(note.bytes / 1e6)} MB, published ${note.published ?? 'on a day the EPA did not say'}`);
   return file;
 }
 

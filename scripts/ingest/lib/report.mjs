@@ -26,7 +26,7 @@ export async function report(db, runId, { everything = false, rehearsal = false 
   }
   if (c.applied !== undefined) {
     const filled = Object.entries(c.filled ?? {}).map(([fact, count]) => `${fact} ${n(count)}`).join(', ');
-    out.push(`  applied: ${n(c.applied)} records written; ${n(c.plantsChanged)} plants changed${filled ? ` (${filled})` : ''}; ${n(c.idsWritten)} ids written; ${n(c.added)} plants added`);
+    out.push(`  applied: records written ${n(c.applied)}; plants changed ${n(c.plantsChanged)}${filled ? ` (${filled})` : ''}; ids written ${n(c.idsWritten)}; plants added ${n(c.added)}`);
   }
   if (c.undone) {
     out.push(`  undone: ${n(c.undone.restored)} facts restored, ${n(c.undone.ids)} ids taken back, ${n(c.undone.plants)} plants removed, ${n(c.undone.kept)} left because they changed since`);
@@ -55,11 +55,11 @@ export async function report(db, runId, { everything = false, rehearsal = false 
     ) d ON true
     WHERE r.source = ${run.source} AND r.gone_run_id IS NULL`;
   if (s.matched > 0) {
-    out.push(`  our ${n(s.matched)} plants with a record at this source, as they stand now:`);
+    out.push(`  our plants with a record at this source (${n(s.matched)}), as they stand now:`);
     out.push(`    still empty: industry ${n(s.no_industry)}, address ${n(s.no_address)}, ZIP ${n(s.no_zip)}, city ${n(s.no_city)}`);
     out.push(`    ours kept where the source says otherwise: another industry ${n(s.industry_differs)}, another address ${n(s.address_differs)}, another ZIP ${n(s.zip_differs)}; ` +
       `placed more than 250 m away ${n(s.moved_250)} (more than 1 km ${n(s.moved_1000)})`);
-    if (s.inactive > 0) out.push(`    the source marks ${n(s.inactive)} of them inactive`);
+    if (s.inactive > 0) out.push(`    the source does not mark ${n(s.inactive)} of them as active`);
   }
 
   const unfilled = await db`

@@ -263,6 +263,8 @@ test('a row with half a place has no place, and one with no usable code says why
   assert.equal(facts.longitude, undefined);
   assert.equal(facts.naics, undefined);
   assert.equal(facts.industryNote, 'the registry lists only codes outside manufacturing: 562111');
+  // The registry marks an active facility Y and leaves the rest blank.
+  assert.equal(facts.active, false);
 });
 
 test('the id of a row, and what a row we do not stage counts as', () => {

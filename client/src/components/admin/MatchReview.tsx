@@ -11,6 +11,19 @@ import { Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, ou
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 
+/** The facts a source fills, in the words the pages use for them. */
+const FACT_WORD: Record<string, string> = {
+  industry: 'industry',
+  address: 'address',
+  city: 'city',
+  zip: 'ZIP code',
+  coordinates: 'place on the map',
+  headcount: 'people',
+  products: 'what it makes',
+  opened: 'year opened',
+  status: 'status',
+};
+
 const labelClass = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
 
 /** One side of the comparison: the name, then the lines that tell one plant from another. */
@@ -33,9 +46,17 @@ function PlantFacts({ plant, name }: { plant: ReviewPlant; name: React.ReactNode
   );
 }
 
+/** The rule that found a candidate, as a person would say it. */
+const FOUND_BY: Record<string, string> = {
+  'same name': 'The same name',
+  'shared word': 'A word of the name in common',
+  near: 'Close by',
+  'near, unrelated name': 'Close by, under an unrelated name',
+};
+
 /** How a candidate was found, and how far it is from where the source puts the record. */
 function found(candidate: ReviewCandidate): string {
-  const rule = candidate.rule.charAt(0).toUpperCase() + candidate.rule.slice(1);
+  const rule = FOUND_BY[candidate.rule] ?? candidate.rule.charAt(0).toUpperCase() + candidate.rule.slice(1);
   return candidate.metres === null ? rule : `${rule}, ${distance(candidate.metres)} away`;
 }
 
@@ -57,7 +78,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
             decision === 'skip'
               ? `Skipped ${recordName}. It is still waiting.`
               : outcome.status === 'same'
-                ? `${recordName} is ${outcome.plant?.name ?? 'that plant'}.${outcome.filled.length > 0 ? ` Filled: ${outcome.filled.join(', ')}.` : ''}`
+                ? `${recordName} is ${outcome.plant?.name ?? 'that plant'}.${outcome.filled.length > 0 ? ` Filled: ${outcome.filled.map((fact) => FACT_WORD[fact] ?? fact).join(', ')}.` : ''}`
                 : outcome.added
                   ? `Added ${outcome.plant?.name ?? recordName} as a new plant.`
                   : `Kept ${recordName} apart.`;
