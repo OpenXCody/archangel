@@ -10,6 +10,7 @@ import { accessDecided, emailAtDomain, sendAdminResetLink, sendInvite } from '..
 import { uuidParam } from '../middleware/validateUuid.js';
 import { jobIsOpen } from '../lib/openJobs.js';
 import { isUuid } from '../lib/writes.js';
+import { pageLimit, pageOffset } from '../lib/paging.js';
 import { rowsOf } from '../lib/rows.js';
 import { containing, likeLiteral } from '../lib/like.js';
 
@@ -19,11 +20,6 @@ import { containing, likeLiteral } from '../lib/like.js';
  */
 const router = Router();
 router.param('id', uuidParam);
-
-function pageNumber(value: unknown, fallback: number, max: number): number {
-  const parsed = typeof value === 'string' ? Number.parseInt(value, 10) : Number.NaN;
-  return Number.isFinite(parsed) && parsed >= 0 ? Math.min(parsed, max) : fallback;
-}
 
 // GET /api/admin/overview - the counts an admin checks first
 router.get(
@@ -266,8 +262,8 @@ router.get(
   handle(async (req, res) => {
     const term = cleanText(req.query.q, 100) ?? '';
     const role = PEOPLE_ROLES.find((value) => value === req.query.role);
-    const limit = Math.max(1, pageNumber(req.query.limit, 100, 200));
-    const offset = pageNumber(req.query.offset, 0, 1_000_000);
+    const limit = pageLimit(req.query.limit, 100, 200);
+    const offset = pageOffset(req.query.offset);
     const pattern = containing(term);
     const conditions: SQL[] = [];
     if (term) {
@@ -760,8 +756,8 @@ router.post(
 router.get(
   '/audit',
   handle(async (req, res) => {
-    const limit = Math.max(1, pageNumber(req.query.limit, 50, 200));
-    const offset = pageNumber(req.query.offset, 0, 1_000_000);
+    const limit = pageLimit(req.query.limit, 50, 200);
+    const offset = pageOffset(req.query.offset);
     const conditions: SQL[] = [];
     if (isAuditKind(req.query.kind)) conditions.push(eq(auditLog.kind, req.query.kind));
     if (isUuid(req.query.record)) conditions.push(eq(auditLog.recordId, req.query.record));
