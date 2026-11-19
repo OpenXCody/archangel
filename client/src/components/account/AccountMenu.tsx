@@ -43,8 +43,8 @@ const itemClass = 'cursor-pointer gap-2.5 px-2.5 py-2.5 text-sm text-fg-default 
  * News stops being news when the page that shows it is opened: the employer
  * page or a job the person manages (applicants), and the access requests in
  * Admin Tools. A person's own applications are marked seen by their page,
- * once it has listed them (pages/Me.tsx). This lives here because the menu is
- * on every page.
+ * once it has listed them (components/me/ApplicationsSection.tsx). This lives
+ * here because the menu is on every page.
  */
 function useSeenOnVisit(news: News | undefined): void {
   const { pathname, search } = useLocation();
