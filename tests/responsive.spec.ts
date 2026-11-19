@@ -233,3 +233,33 @@ test('settings offers the theme to a visitor', async ({ page }) => {
   await expect(page.locator('[data-settings-sign-in] a').first(), 'the rest of settings is behind signing in').toHaveAttribute('href', /^\/sign-in\?next=%2Fsettings$/);
   await assertHealthyLayout(page, '/settings:visitor');
 });
+
+test('a read that gets no answer gives up and says so', async ({ page, baseURL, request }) => {
+  // Writes: it makes an account with one goal and deletes it. Never against a deployed copy.
+  test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates an account: local only');
+  const password = 'correct horse battery';
+  const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
+  const career = await firstId(request, '/occupations');
+  expect(career, 'the API returned a career to aim for').toBeTruthy();
+  const made = await page.request.post(`${API}/auth/sign-up`, {
+    data: { email: `slow-${stamp}@device.test`, name: 'Slow answer', password, purpose: 'work' },
+  });
+  expect(made.status(), 'account made').toBe(201);
+  try {
+    // With a goal the profile is the full page, which asks for the careers within reach.
+    expect((await page.request.put(`${API}/me/goals/${career}`)).ok(), 'goal set').toBe(true);
+    // That one request is never answered; the page's clock is ours to move.
+    await page.clock.install();
+    await page.route('**/api/me/careers/reach', () => new Promise(() => undefined));
+    await page.goto('/me', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('heading', { name: 'Goals' })).toBeVisible();
+    // Every request to the API gives up after 20 seconds, is tried once more, and then says so.
+    const gaveUp = page.getByText('The server took too long to answer');
+    for (let minute = 0; minute < 3 && !(await gaveUp.isVisible()); minute++) await page.clock.runFor(30_000);
+    await expect(gaveUp, 'the list says the server did not answer').toBeVisible();
+  } finally {
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+    const gone = await page.request.delete(`${API}/me`, { data: { password } });
+    expect(gone.ok(), 'account removed').toBe(true);
+  }
+});

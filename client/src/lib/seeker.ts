@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { API_BASE, ApiError } from './http';
+import { ApiError, SERVER_FAILED, request, retryUnlessClientError } from './http';
 import { accountKeys, meApi, type MyGoal, type MySkill, type SkillStatus } from './account';
 
 /**
@@ -48,17 +48,9 @@ export type SkillMark = SkillStatus | 'none';
 export const reachKey = [...accountKeys.skills, 'reach'] as const;
 
 async function fetchReach(): Promise<ReachCareer[]> {
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE}/me/careers/reach`, { credentials: 'same-origin' });
-  } catch {
-    throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
-  }
-  const payload = (await response.json().catch(() => null)) as { careers?: ReachCareer[]; error?: unknown } | null;
-  if (!response.ok || !payload?.careers) {
-    const message = response.status < 500 && typeof payload?.error === 'string' ? payload.error : '';
-    throw new ApiError(message || 'Something went wrong on our side. Please try again.', response.status);
-  }
+  // A 401 in the server's words, as this list has always shown it.
+  const payload = await request<{ careers?: ReachCareer[] } | null>('/me/careers/reach', { plain401: true });
+  if (!payload?.careers) throw new ApiError(SERVER_FAILED, 200);
   return payload.careers;
 }
 
@@ -73,7 +65,7 @@ export function useCareersInReach(enabled = true) {
     enabled,
     // Keep the list on screen while it is worked out again after a change.
     placeholderData: keepPreviousData,
-    retry: (failureCount, error) => !(error instanceof ApiError && error.status >= 400 && error.status < 500) && failureCount < 1,
+    retry: retryUnlessClientError,
   });
 }
 
@@ -111,14 +103,8 @@ export interface SuggestedSkill {
 export const suggestedSkillsKey = [...accountKeys.me, 'suggested-skills'] as const;
 
 async function fetchSuggestedSkills(): Promise<SuggestedSkill[]> {
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE}/me/skills/suggested`, { credentials: 'same-origin' });
-  } catch {
-    throw new ApiError('Could not reach the server. Check your connection and try again.', 0);
-  }
-  const payload = (await response.json().catch(() => null)) as { skills?: SuggestedSkill[] } | null;
-  if (!response.ok || !payload?.skills) throw new ApiError('Something went wrong on our side. Please try again.', response.status);
+  const payload = await request<{ skills?: SuggestedSkill[] } | null>('/me/skills/suggested');
+  if (!payload?.skills) throw new ApiError(SERVER_FAILED, 200);
   return payload.skills;
 }
 
@@ -135,7 +121,7 @@ export function useSuggestedSkills(enabled = true) {
     // A fresh list each time the page is opened.
     refetchOnMount: 'always',
     placeholderData: keepPreviousData,
-    retry: (failureCount, error) => !(error instanceof ApiError && error.status >= 400 && error.status < 500) && failureCount < 1,
+    retry: retryUnlessClientError,
   });
 }
 
