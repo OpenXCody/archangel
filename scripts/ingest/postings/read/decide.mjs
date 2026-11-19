@@ -7,7 +7,10 @@ import { assign } from './skills.mjs';
 
 // Departments none of the careers work in, and ones whose engineers are not ours
 // unless the text speaks of hardware.
-const OFFICE = /\b(finance|accounting|legal|people|talent|recruit\w*|human resources|hr|sales|marketing|business development|communications|customer (service|success|support|experience)|real estate|food services?|security|information technology|it|internships?)\b/i;
+const OFFICE = /\b(finance|accounting|legal|people|talent|recruit\w*|human resources|hr|sales|marketing|business development|(corporate|internal|public) communications|customer (service|success|support|experience)|real estate|food services?|security|information technology|it)\b/i;
+// An internships department also lists the first jobs of new graduates, which are jobs.
+const INTERNS = /\bintern(ship)?s?\b|\bco-?ops?\b/i;
+const FIRST_JOB = /\b(early careers?|new grad\w*|new college graduate|recent graduate)\b/i;
 const SOFTWARE = /software|firmware|\bdata (platform|engineering|science)\b|cyber|\bAI\b|\bML\b|autonom|perception|\bGNC\b|simulation|\bcloud\b|network engineering|site reliability|digital/i;
 const SOFTWARE_WORDS = /\b(kubernetes|docker|microservices?|ci\/cd|back[- ]?end|front[- ]?end|full[- ]stack|distributed systems|rest(?:ful)? apis?|graphql|react|typescript|javascript|node\.js|golang|c\+\+|c#|kotlin|django|flask|terraform|ansible|aws|gcp|azure|cloud (?:infrastructure|platforms?|services)|llms?|machine learning|deep learning|neural networks?|pytorch|tensorflow|data pipelines?|software development|sdlc|agile|scrum|unit tests?|code reviews?|git|github|gitlab|pull requests?|devops|observability|web applications?|mobile apps?|firmware|rtos|embedded software|software engineering|computer science|linux|algorithms?|compilers?|databases?)\b/gi;
 
@@ -29,7 +32,7 @@ export function decideCareer(posting, text, vocab) {
   if (!options.length) return none(t.refused ?? 'the title is not a career');
 
   const department = String(posting.department ?? '');
-  if (OFFICE.test(department)) return none(`department "${department.trim()}"`);
+  if (OFFICE.test(department) || (INTERNS.test(department) && !FIRST_JOB.test(String(posting.title ?? '')))) return none(`department "${department.trim()}"`);
   const { asking, found } = text();
 
   // What the text names of each career's path. A code that could be several skills

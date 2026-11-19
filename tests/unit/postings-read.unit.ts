@@ -431,8 +431,8 @@ function score(split: 'tune' | 'held') {
 // "Reading a posting"). The held half was not looked at until then. Raise a figure when
 // the reader gets better; never lower one to let a change through.
 const FLOOR = {
-  held: { right: 46, missed: 23, skillTp: 53, skillFp: 7, makeTp: 12, makeFp: 0, level: 20, places: 240, years: 13, education: 13, certifications: 1, clearance: 3, citizenship: 6, shift: 3, employmentType: 1, pay: 12 },
-  tune: { right: 67, missed: 8, skillTp: 89, skillFp: 4, makeTp: 12, makeFp: 0, level: 33, places: 238, years: 23, education: 22, certifications: 2, clearance: 3, citizenship: 10, shift: 2, employmentType: 2, pay: 23 },
+  held: { right: 47, missed: 23, skillPrecision: 0.86, skillRecall: 0.71, makePrecision: 1, makeRecall: 1, level: 21, places: 240, years: 13, education: 13, certifications: 1, clearance: 3, citizenship: 6, shift: 3, employmentType: 1, pay: 12 },
+  tune: { right: 68, missed: 8, skillPrecision: 0.95, skillRecall: 0.76, makePrecision: 1, makeRecall: 0.75, level: 33, places: 238, years: 23, education: 22, certifications: 2, clearance: 3, citizenship: 10, shift: 2, employmentType: 2, pay: 23 },
 } as const;
 
 for (const split of ['held', 'tune'] as const) {
@@ -448,10 +448,12 @@ for (const split of ['held', 'tune'] as const) {
     assert.ok(s.levelStated >= floor.level, `levels read: ${s.levelStated}, was ${floor.level}`);
     assert.equal(s.levelExtra, 0, 'a level was read where the title states none');
     assert.ok(s.placesRight >= floor.places, `places right: ${s.placesRight} of ${s.places}, was ${floor.places}`);
-    assert.ok(s.skillTp >= floor.skillTp, `skills found: ${s.skillTp}, was ${floor.skillTp}`);
-    assert.ok(s.skillFp <= floor.skillFp, `skills the lines do not ask for: ${s.skillFp}, was ${floor.skillFp}`);
-    assert.ok(s.makeTp >= floor.makeTp, `makes found: ${s.makeTp}, was ${floor.makeTp}`);
-    assert.ok(s.makeFp <= floor.makeFp, `makes given to the wrong skill: ${s.makeFp}, was ${floor.makeFp}`);
+    // Of the skills read from the labelled lines, the share the lines ask for; and of those they ask for, the share read.
+    const ratio = (a: number, b: number) => (a + b === 0 ? 1 : a / (a + b));
+    assert.ok(ratio(s.skillTp, s.skillFp) >= floor.skillPrecision, `skills right: ${s.skillTp} of ${s.skillTp + s.skillFp}, floor ${floor.skillPrecision}`);
+    assert.ok(ratio(s.skillTp, s.skillFn) >= floor.skillRecall, `skills found: ${s.skillTp} of ${s.skillTp + s.skillFn}, floor ${floor.skillRecall}`);
+    assert.ok(ratio(s.makeTp, s.makeFp) >= floor.makePrecision, `makes right: ${s.makeTp} of ${s.makeTp + s.makeFp}, floor ${floor.makePrecision}`);
+    assert.ok(ratio(s.makeTp, s.makeFn) >= floor.makeRecall, `makes found: ${s.makeTp} of ${s.makeTp + s.makeFn}, floor ${floor.makeRecall}`);
     for (const name of ['years', 'education', 'certifications', 'clearance', 'citizenship', 'shift', 'employmentType', 'pay'] as const) {
       assert.ok((s.correct[name] ?? 0) >= floor[name], `${name} right when stated: ${s.correct[name] ?? 0}, was ${floor[name]}`);
     }
