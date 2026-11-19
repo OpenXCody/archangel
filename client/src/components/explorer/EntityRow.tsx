@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import CompanyLogo from '../CompanyLogo';
 import type { BrowseTab } from './ExploreNav';
 import { focusRing, plural } from '@/lib/utils';
-import { LEVEL_NAME, levelName, type SkillLevel } from '../../lib/stages';
+import { levelName } from '../../lib/stages';
 import { recordQuery } from '../../lib/queries';
 
 /**
@@ -107,14 +107,13 @@ function FactoryRow({ data, onMouseEnter }: Props<Factory>) {
 }
 
 function OccupationRow({ data, onMouseEnter }: Props<Occupation>) {
-  // "Machining · 17 skills · Fundamentals 4 · Intermediate 8 · Advanced 5": its home, then how many of its skills are at each level.
-  const levels = data.pathStatus && data.levelCounts ? data.levelCounts.map((n, i) => (n ? `${LEVEL_NAME[(i + 1) as SkillLevel]} ${n}` : null)) : [];
+  // "Machining · 17 skills": its home and the size of its path. How the skills fall by level is the career's page.
   return (
     <Row
       to={`/occupations/${data.id}`}
       name={data.title}
       summary={data.description}
-      facts={[data.home?.name, count(data.skillCount, 'skill', 'skills'), ...levels]}
+      facts={[data.home?.name, count(data.skillCount, 'skill', 'skills')]}
       onMouseEnter={onMouseEnter}
     />
   );
