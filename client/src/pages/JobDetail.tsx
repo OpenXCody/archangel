@@ -22,11 +22,10 @@ import {
   RowsSkeleton,
   cardClass,
   fieldClass,
-  formatDay,
-  formatDayCapital,
   outlineButtonClass,
   textButtonClass,
 } from '../components/account/parts';
+import { DAY_MS, formatDay, formatDayCapital } from '../lib/dates';
 import ApplicantList from '../components/account/ApplicantList';
 import JobDescription from '../components/account/JobDescription';
 import { SkillHeldToggle } from '../components/account/SkillStatusButton';
@@ -535,7 +534,7 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
   const remove = useDeleteJob();
   const extend = useExtendJob();
   // Offered once the 60 days are nearly up; before that there is nothing to gain.
-  const daysLeft = Math.ceil((new Date(job.expiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  const daysLeft = Math.ceil((new Date(job.expiresAt).getTime() - Date.now()) / DAY_MS);
   const [closing, setClosing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [reason, setReason] = useState('');

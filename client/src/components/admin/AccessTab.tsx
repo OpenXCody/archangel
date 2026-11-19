@@ -10,11 +10,10 @@ import {
   RowsSkeleton,
   busyButtonClass,
   cardClass,
-  formatDay,
-  formatOnDay,
   outlineButtonClass,
   rowClass,
 } from '../account/parts';
+import { formatDay, formatOnDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
 import CompanyRequests from './CompanyRequests';
 import { useAdminNotice } from './AdminNotice';

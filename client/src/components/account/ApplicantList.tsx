@@ -7,7 +7,8 @@ import { EMPLOYER_STATUSES, useUpdateApplication, useUpdateJob, type Application
 import { applicantsCsv, saveTextFile, type ApplicantSkill, type JobApplicants, type RankedApplicant } from '../../lib/employerJobs';
 import { applicationStatusLabel } from '../../lib/jobFormat';
 import { busyButtonClass } from './JobForm';
-import { ErrorNote, Field, cardClass, fieldClass, formatDayCapital, outlineButtonClass, rowClass, textButtonClass } from './parts';
+import { ErrorNote, Field, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass } from './parts';
+import { formatDayCapital } from '../../lib/dates';
 import { SkillMark } from './SkillStatusButton';
 
 type StageFilter = 'all' | ApplicationStatus;

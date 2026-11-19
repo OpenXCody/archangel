@@ -28,10 +28,10 @@ import {
   busyButtonClass,
   cardClass,
   fieldClass,
-  formatDay,
   rowClass,
   textButtonClass,
 } from '../account/parts';
+import { DAY_MS, formatDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 import CompanyPicker from './CompanyPicker';
@@ -52,7 +52,7 @@ function Dot() {
 
 /** "3 days", "14 days": how long a link made now lasts, from its expiry. */
 function daysLeft(expiresAt: string): string {
-  const days = Math.max(1, Math.round((new Date(expiresAt).getTime() - Date.now()) / 86_400_000));
+  const days = Math.max(1, Math.round((new Date(expiresAt).getTime() - Date.now()) / DAY_MS));
   return `${days} ${days === 1 ? 'day' : 'days'}`;
 }
 

@@ -62,25 +62,6 @@ export function formatPlace(city: string | null, state: string | null): string |
   return [city, state].filter(Boolean).join(', ') || null;
 }
 
-/** "Nov 16, 2026" */
-export function formatDate(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-/** "today", "yesterday", "5 days ago", then the date once it is a month old. */
-export function formatAgo(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  const days = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86_400_000);
-  if (days <= 0) return 'today';
-  if (days === 1) return 'yesterday';
-  if (days < 30) return `${days} days ago`;
-  return `on ${formatDate(iso)}`;
-}
-
 /** Whether a job that is still marked open has run past its 60 days. */
 export function isExpired(expiresAt: string): boolean {
   return new Date(expiresAt).getTime() <= Date.now();

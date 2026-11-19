@@ -29,7 +29,6 @@ import {
   busyButtonClass,
   cardClass,
   fieldClass,
-  formatDay,
   outlineButtonClass,
   rowClass,
   selectContentClass,
@@ -37,6 +36,7 @@ import {
   textButtonClass,
   useDebouncedValue,
 } from '../account/parts';
+import { formatDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 import CompanyPicker from './CompanyPicker';

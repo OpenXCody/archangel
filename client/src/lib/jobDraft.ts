@@ -1,3 +1,4 @@
+import { DAY_MS, daysSince } from './dates';
 import type { EmploymentType, PayPeriod } from './jobs';
 import { readStored, removeStored, writeStored } from './storage';
 
@@ -13,7 +14,7 @@ import { readStored, removeStored, writeStored } from './storage';
  */
 
 const PREFIX = 'archangel.jobDraft.';
-const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const MAX_AGE_MS = 30 * DAY_MS;
 
 /** The job form's fields, as the form holds them. */
 export interface JobDraftFields {
@@ -109,8 +110,7 @@ export function latestDraftCompany(userId: string, companyIds: string[]): string
 export function draftWhen(savedAt: number): string {
   const saved = new Date(savedAt);
   const time = saved.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-  const days = Math.round((startOfDay(new Date()) - startOfDay(saved)) / (24 * 60 * 60 * 1000));
+  const days = daysSince(saved);
   if (days <= 0) return `today at ${time}`;
   if (days === 1) return `yesterday at ${time}`;
   return `on ${saved.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;

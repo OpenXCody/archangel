@@ -11,7 +11,8 @@ import { occupationsApi } from '../lib/api';
 import { useAccount } from '../lib/account';
 import { useJobs, type JobSummary } from '../lib/jobs';
 import { usePostJobLink } from '../lib/viewer';
-import { employmentLabel, formatAgo, formatPay, formatPlace } from '../lib/jobFormat';
+import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
+import { formatAgo } from '../lib/dates';
 import { ENTITY, LoadError, cardClass, fieldClass, outlineButtonClass, useDebouncedValue } from '../components/account/parts';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
 

@@ -36,13 +36,12 @@ import {
   busyButtonClass,
   cardClass,
   fieldClass,
-  formatDay,
-  formatOnDay,
   outlineButtonClass,
   rowClass,
   textButtonClass,
   useDebouncedValue,
 } from '../components/account/parts';
+import { DAY_MS, formatDay, formatOnDay } from '../lib/dates';
 import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
 
 export default function Employer() {
@@ -610,7 +609,7 @@ const STATE_ORDER: Record<JobState, number> = { Open: 0, Draft: 1, Expired: 2, C
 
 /** "Open until Jan 15", or how soon it closes once that is within two weeks. */
 function openUntil(expiresAt: string): string {
-  const days = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  const days = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / DAY_MS);
   if (days > 14 || Number.isNaN(days)) return `Open until ${formatDay(expiresAt)}`;
   return days <= 1 ? 'Open, closes tomorrow' : `Open, closes in ${days} days`;
 }

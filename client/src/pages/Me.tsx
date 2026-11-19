@@ -39,12 +39,12 @@ import {
   busyButtonClass,
   cardClass,
   fieldClass,
-  formatDay,
   outlineButtonClass,
   rowClass,
   textButtonClass,
   useDebouncedValue,
 } from '../components/account/parts';
+import { formatDay } from '../lib/dates';
 import CareerPicker from '../components/account/CareerPicker';
 import { SkillHeldToggle, SkillStatusControl } from '../components/account/SkillStatusButton';
 import { PageContainer, PageHeader, PageSection } from '../components/layout/Page';

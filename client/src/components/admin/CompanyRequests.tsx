@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { AdminCompany } from '../../lib/admin';
 import { useAdminCompanyRequests, useAnswerCompanyRequest, type AdminCompanyRequest } from '../../lib/employerCompanies';
-import { ErrorNote, busyButtonClass, cardClass, formatOnDay, outlineButtonClass, rowClass } from '../account/parts';
+import { ErrorNote, busyButtonClass, cardClass, outlineButtonClass, rowClass } from '../account/parts';
+import { formatOnDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
 import CompanyPicker from './CompanyPicker';
 

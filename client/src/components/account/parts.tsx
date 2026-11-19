@@ -221,34 +221,6 @@ export function AccountGate({ children }: { children: (account: SignedInAccount)
   return <>{children(data as SignedInAccount)}</>;
 }
 
-/**
- * The one way a day is written on these pages: "today", "yesterday", then
- * "Nov 18", with the year only once it is not this one. (The time of day is
- * given in History alone.)
- */
-export function formatDay(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  const days = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86_400_000);
-  if (days === 0) return 'today';
-  if (days === 1) return 'yesterday';
-  const sameYear = date.getFullYear() === new Date().getFullYear();
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' });
-}
-
-/** The same, after a verb: "declined today", "declined on Nov 18". */
-export function formatOnDay(iso: string): string {
-  const day = formatDay(iso);
-  return day === 'today' || day === 'yesterday' || !day ? day : `on ${day}`;
-}
-
-/** The same, to stand at the start of a line: "Today". */
-export function formatDayCapital(iso: string): string {
-  const day = formatDay(iso);
-  return day.charAt(0).toUpperCase() + day.slice(1);
-}
-
 /** The value, a beat after it stops changing. For search-as-you-type. */
 export function useDebouncedValue<T>(value: T, delayMs = 250): T {
   const [debounced, setDebounced] = useState(value);
