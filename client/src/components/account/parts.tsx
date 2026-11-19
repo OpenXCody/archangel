@@ -1,4 +1,4 @@
-import { useEffect, useState, type ElementType, type KeyboardEvent, type ReactNode } from 'react';
+import type { ElementType, ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { AlertCircle, Briefcase, Building2, Factory, Loader2, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ import { justLeft, signInPath, useAccount, type SignedInAccount } from '../../li
 import { errorMessage } from '../../lib/http';
 import { applicationStatusLabel } from '../../lib/jobFormat';
 import { PageContainer } from '../layout/Page';
-import { onGroupArrowKeys } from '../../lib/roving';
 
 /** Small shared pieces for the account, jobs, employer and admin pages. */
 
@@ -237,23 +236,4 @@ export function AccountGate({ children }: { children: (account: SignedInAccount)
     return <Navigate to={justLeft(data) ? '/map' : signInPath(`${location.pathname}${location.search}`)} replace />;
   }
   return <>{children(data as SignedInAccount)}</>;
-}
-
-/** The value, a beat after it stops changing. For search-as-you-type. */
-export function useDebouncedValue<T>(value: T, delayMs = 250): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-  return debounced;
-}
-
-/**
- * Arrow keys for a group of buttons that act as radios or tabs: the next or
- * previous one is chosen and takes focus. Goes on the group; each button in
- * it takes `tabIndex={selected ? 0 : -1}`, so the group is one tab stop.
- */
-export function arrowKeyChoice<T extends string>(values: readonly T[], current: T, onChange: (value: T) => void) {
-  return (event: KeyboardEvent<HTMLElement>) => onGroupArrowKeys(event, values, current, onChange);
 }

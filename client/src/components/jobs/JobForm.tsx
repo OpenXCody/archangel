@@ -19,7 +19,6 @@ import {
   ErrorNote,
   Field,
   LoadError,
-  arrowKeyChoice,
   busyButtonClass,
   fieldClass,
   outlineButtonClass,
@@ -28,10 +27,8 @@ import {
   textButtonClass,
   FieldError,
 } from '../account/parts';
+import { arrowKeyChoice } from '../../lib/roving';
 import { publicKeys } from '../../lib/queryKeys';
-
-// These three live with the other shared form pieces; exported from here too for the files that import them from the job form.
-export { busyButtonClass, selectContentClass, selectTriggerClass };
 
 /** The company a job is posted for, and where it can be. */
 export interface JobFormCompany {

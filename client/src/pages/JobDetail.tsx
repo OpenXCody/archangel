@@ -24,12 +24,12 @@ import {
   fieldClass,
   outlineButtonClass,
   textButtonClass,
+  busyButtonClass,
 } from '../components/account/parts';
 import { DAY_MS, formatDay, formatDayCapital } from '../lib/dates';
 import ApplicantList from '../components/jobs/ApplicantList';
 import JobDescription from '../components/jobs/JobDescription';
 import { SkillHeldToggle } from '../components/account/SkillStatusButton';
-import { busyButtonClass } from '../components/jobs/JobForm';
 import ConfirmDialog from '../components/layout/ConfirmDialog';
 import {
   DetailFacts,

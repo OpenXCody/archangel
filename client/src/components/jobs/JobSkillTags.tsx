@@ -4,7 +4,8 @@ import { ArrowDown, ArrowUp, Loader2, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { skillsApi } from '../../lib/api';
 import { errorMessage } from '../../lib/http';
-import { fieldClass, useDebouncedValue } from '../account/parts';
+import { fieldClass } from '../account/parts';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { publicKeys } from '../../lib/queryKeys';
 
 /** One skill a job asks for. Required skills rank applicants; optional ones are listed. */

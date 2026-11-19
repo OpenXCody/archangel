@@ -8,7 +8,7 @@ import { editPath, useSavePath, type FoundRecord, type PathSkill, type RecordVie
 import { ErrorNote, busyButtonClass, cardClass, outlineButtonClass, textButtonClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
-import { RecordPicker } from './CompanyPicker';
+import RecordPicker from './RecordPicker';
 import { STAGE_LABEL } from '../../lib/stages';
 
 const STAGES: { stage: number | null; label: string }[] = [

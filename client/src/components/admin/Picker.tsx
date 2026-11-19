@@ -2,7 +2,8 @@ import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { errorMessage } from '../../lib/http';
-import { fieldClass, useDebouncedValue } from '../account/parts';
+import { fieldClass } from '../account/parts';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 
 /** What a picker needs of a search: the matches for a term of two letters or more. */
 export interface PickerSearch<T> {

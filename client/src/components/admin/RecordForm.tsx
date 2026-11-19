@@ -28,9 +28,9 @@ import {
   outlineButtonClass,
   selectContentClass,
   selectTriggerClass,
-  useDebouncedValue,
   FieldError,
 } from '../account/parts';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import CompanyPicker from './CompanyPicker';
 import { useExploreFacets } from '../../lib/queries';
 

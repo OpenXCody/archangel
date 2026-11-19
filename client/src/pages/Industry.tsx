@@ -238,7 +238,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
  * how big, where it is, open jobs, its companies, its largest plants and its
  * careers. A part with nothing to say is left out.
  */
-export default function IndustryPage() {
+export default function Industry() {
   const { slug } = useParams<{ slug: string }>();
   const [params] = useSearchParams();
   const { hash } = useLocation();

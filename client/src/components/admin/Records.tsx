@@ -5,7 +5,7 @@ import { onGroupArrowKeys } from '../../lib/roving';
 import { RECORD_KINDS, editPath, type RecordKind, type RecordLink } from '../../lib/records';
 import { Field, cardClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
-import { RecordPicker } from './CompanyPicker';
+import RecordPicker from './RecordPicker';
 import RecordForm from './RecordForm';
 
 const FIND_LABEL: Record<RecordKind, string> = {

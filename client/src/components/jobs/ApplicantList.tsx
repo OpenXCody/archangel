@@ -6,8 +6,7 @@ import { cn } from '@/lib/utils';
 import { EMPLOYER_STATUSES, useUpdateApplication, useUpdateJob, type ApplicationStatus } from '../../lib/jobs';
 import { applicantsCsv, saveTextFile, type ApplicantSkill, type JobApplicants, type RankedApplicant } from '../../lib/employerJobs';
 import { applicationStatusLabel } from '../../lib/jobFormat';
-import { busyButtonClass } from './JobForm';
-import { ErrorNote, Field, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass } from '../account/parts';
+import { ErrorNote, Field, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass, busyButtonClass } from '../account/parts';
 import { formatDayCapital } from '../../lib/dates';
 import { SkillMark } from '../account/SkillStatusButton';
 

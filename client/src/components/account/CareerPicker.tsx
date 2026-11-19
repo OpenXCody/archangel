@@ -4,7 +4,8 @@ import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { occupationsApi } from '../../lib/api';
 import { errorMessage } from '../../lib/http';
-import { KIND_ICON, fieldClass, useDebouncedValue } from './parts';
+import { KIND_ICON, fieldClass } from './parts';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { publicKeys } from '../../lib/queryKeys';
 
 export interface CareerOption {

@@ -5,7 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { US_STATES } from '@shared/states';
 import { placeSearchAvailable, searchPlaces, type Place } from '../../lib/geocode';
-import { fieldClass, useDebouncedValue } from '../account/parts';
+import { fieldClass } from '../account/parts';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { stateName } from '../../lib/places';
 import { publicKeys } from '../../lib/queryKeys';
 

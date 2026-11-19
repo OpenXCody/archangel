@@ -22,3 +22,12 @@ export function onGroupArrowKeys<T>(event: KeyboardEvent<HTMLElement>, values: r
   const options = event.currentTarget.querySelectorAll<HTMLElement>('[role="tab"], [role="radio"]');
   options[next]?.focus();
 }
+
+/**
+ * The same as an `onKeyDown` handler for the group: the next or previous
+ * option is chosen and takes focus. Each button in the group takes
+ * `tabIndex={selected ? 0 : -1}`, so the group is one tab stop.
+ */
+export function arrowKeyChoice<T extends string>(values: readonly T[], current: T, onChange: (value: T) => void) {
+  return (event: KeyboardEvent<HTMLElement>) => onGroupArrowKeys(event, values, current, onChange);
+}

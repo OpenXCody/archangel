@@ -8,7 +8,7 @@ import { editPath, useDeleteRecord, useMergeRecord, useRecord, type FoundRecord,
 import { CardNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, textButtonClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
-import { RecordPicker } from './CompanyPicker';
+import RecordPicker from './RecordPicker';
 import ConfirmDialog from '../layout/ConfirmDialog';
 import HistoryList, { attachedWords } from './HistoryList';
 import PathEditor from './PathEditor';
