@@ -7,7 +7,7 @@ import { industryBySlug, industryLabel } from '@shared/industry';
 import { stateName, titleCase } from '../lib/places';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
 import { formatPay } from '../lib/jobFormat';
-import { cn } from '@/lib/utils';
+import { cn, focusRing, plural } from '@/lib/utils';
 import CompanyLogo from '../components/CompanyLogo';
 import {
   BackLink,
@@ -23,7 +23,6 @@ import {
 } from '../components/layout/Page';
 import { LoadError } from '../components/account/parts';
 import {
-  FOCUS,
   FigureList,
   Figures,
   PlaceChoice,
@@ -38,8 +37,6 @@ import {
 const CAREERS_SHOWN = 8;
 /** The states (or a state's towns) listed before "Show all": the section sits near the top of the page, so it starts short. */
 const STATES_SHOWN = 6;
-
-const plural = (n: number, one: string, many: string) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
 /**
  * What stands under an employer's name. A headcount recorded for only some of
@@ -97,7 +94,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
           {data.place.kind !== 'country' && (
             <>
               {' '}
-              <Link to={`/industries/${industry.slug}`} className={cn('text-fg-default underline underline-offset-4 hover:no-underline', FOCUS)}>
+              <Link to={`/industries/${industry.slug}`} className={cn('text-fg-default underline underline-offset-4 hover:no-underline', focusRing)}>
                 See it everywhere
               </Link>
             </>

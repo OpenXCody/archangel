@@ -8,6 +8,7 @@ import { shownIndustry } from '@shared/industry';
 import { Skeleton } from '@/components/ui/skeleton';
 import CompanyLogo from '../CompanyLogo';
 import type { BrowseTab } from './ExploreNav';
+import { focusRing, plural } from '@/lib/utils';
 
 /**
  * One row of a browse list. Every type reads the same way:
@@ -31,8 +32,7 @@ export function skillCategoryLabel(category: string | null | undefined): string 
   return JUNK_CATEGORIES.has(value.toLowerCase()) ? null : value;
 }
 
-const count = (n: number | null | undefined, one: string, many: string): string | null =>
-  n ? `${n.toLocaleString()} ${n === 1 ? one : many}` : null;
+const count = (n: number | null | undefined, one: string, many: string): string | null => (n ? plural(n, one, many) : null);
 
 type Part = string | null | undefined | false;
 const joined = (parts: Part[]): string => parts.filter((p): p is string => typeof p === 'string' && p.trim().length > 0).join(' · ');
@@ -59,7 +59,7 @@ function Row({ to, name, summary, facts, leading, factsLeading, factsEnd, onMous
     <Link
       to={to}
       onMouseEnter={onMouseEnter}
-      className="group flex h-full min-h-[4.25rem] min-w-0 items-center gap-4 border-b border-border-subtle py-3.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary"
+      className={`group flex h-full min-h-[4.25rem] min-w-0 items-center gap-4 border-b border-border-subtle py-3.5 ${focusRing}`}
     >
       {leading}
       <div className="min-w-0 flex-1">

@@ -31,6 +31,7 @@ import {
   selectContentClass,
   selectTriggerClass,
   useDebouncedValue,
+  FieldError,
 } from '../account/parts';
 import CompanyPicker from './CompanyPicker';
 
@@ -758,14 +759,4 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
 function existingId(error: unknown): string | null {
   const existing = (error as { payload?: { existing?: { id?: unknown } } } | null)?.payload?.existing;
   return typeof existing?.id === 'string' ? existing.id : null;
-}
-
-/** A problem with one field, said beside it. */
-function FieldError({ id, message }: { id: string; message: string | undefined }) {
-  if (!message) return null;
-  return (
-    <p id={id} role="alert" className="mt-1.5 text-xs text-danger">
-      {message}
-    </p>
-  );
 }

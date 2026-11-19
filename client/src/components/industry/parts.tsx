@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { cn, focusRing } from '@/lib/utils';
 import type { IndustryStats } from '../../lib/api';
 import { BackLink, detailActionClass } from '../layout/Page';
 
@@ -21,8 +21,6 @@ import { BackLink, detailActionClass } from '../layout/Page';
  * a figure nobody knows is left out, never shown as 0.
  */
 
-export const FOCUS =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary';
 
 // ─── The place in the address ──────────────────────────────────────────────
 
@@ -85,7 +83,7 @@ export function PlaceChoice({ place }: { place: PagePlace }) {
           className={cn(
             '-my-1 inline-flex h-11 min-w-0 items-center gap-1.5 text-base transition-colors sm:h-9',
             place.kind === 'country' || place.kind === 'unknown' ? 'text-fg-muted hover:text-fg-default' : 'font-medium text-fg-default',
-            FOCUS
+            focusRing
           )}
         >
           <span className="min-w-0 truncate">{current}</span>
@@ -175,7 +173,7 @@ export function SourceLine({ stats }: { stats: IndustryStats }) {
     <p className="mt-2.5 text-xs leading-relaxed text-fg-soft" data-source>
       {officialWords(stats)}:{' '}
       {stats.sourceUrl ? (
-        <a href={stats.sourceUrl} target="_blank" rel="noreferrer" className={cn('underline decoration-dotted underline-offset-4 hover:text-fg-muted', FOCUS)}>
+        <a href={stats.sourceUrl} target="_blank" rel="noreferrer" className={cn('underline decoration-dotted underline-offset-4 hover:text-fg-muted', focusRing)}>
           {stats.source}
         </a>
       ) : (
@@ -227,7 +225,7 @@ export function FigureList({ rows, state: navState }: { rows: FigureRow[]; state
       <ul>
         {rows.map((row) => (
           <li key={row.key} className="border-b border-border-subtle">
-            <Link to={row.to} state={navState} className={cn(columns, 'group min-h-11 py-3 text-[15px] leading-snug sm:py-2.5', FOCUS)}>
+            <Link to={row.to} state={navState} className={cn(columns, 'group min-h-11 py-3 text-[15px] leading-snug sm:py-2.5', focusRing)}>
               <span className="min-w-0 text-fg-default underline-offset-4 group-hover:underline">{row.label}</span>
               {withPeople && (
                 <span className="text-right text-sm tabular-nums text-fg-default">

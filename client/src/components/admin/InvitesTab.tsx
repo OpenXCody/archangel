@@ -30,6 +30,7 @@ import {
   fieldClass,
   rowClass,
   textButtonClass,
+  Dot,
 } from '../account/parts';
 import { DAY_MS, formatDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
@@ -41,14 +42,6 @@ import CopyLinkField from './CopyLinkField';
 // stored), so it is kept for as long as the page is open: looking at another
 // tab and coming back must not lose it.
 let lastCreated: CreatedInvite | null = null;
-
-function Dot() {
-  return (
-    <span className="mx-1.5" aria-hidden="true">
-      ·
-    </span>
-  );
-}
 
 /** "3 days", "14 days": how long a link made now lasts, from its expiry. */
 function daysLeft(expiresAt: string): string {

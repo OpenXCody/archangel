@@ -26,6 +26,7 @@ import {
   selectContentClass,
   selectTriggerClass,
   textButtonClass,
+  FieldError,
 } from './parts';
 
 // These three live with the other shared form pieces; exported from here too for the files that import them from the job form.
@@ -593,15 +594,6 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
 }
 
 /** A problem with one field, said beside it. */
-function FieldError({ id, message }: { id: string; message: string | undefined }) {
-  if (!message) return null;
-  return (
-    <p id={id} role="alert" className="mt-1.5 text-xs text-danger">
-      {message}
-    </p>
-  );
-}
-
 /** A value that cannot be changed here, set out like the fields around it. */
 function Fixed({ label, children }: { label: string; children: ReactNode }) {
   return (

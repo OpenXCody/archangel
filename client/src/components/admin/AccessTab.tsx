@@ -12,6 +12,7 @@ import {
   cardClass,
   outlineButtonClass,
   rowClass,
+  Dot,
 } from '../account/parts';
 import { formatDay, formatOnDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
@@ -20,14 +21,6 @@ import { useAdminNotice } from './AdminNotice';
 
 /** The waiting list is read again this often while it is on screen, and whenever the tab comes back into view. */
 const REFRESH_MS = 60_000;
-
-function Dot() {
-  return (
-    <span className="mx-1.5" aria-hidden="true">
-      ·
-    </span>
-  );
-}
 
 /**
  * What helps decide a request: where the person's address is, set beside the

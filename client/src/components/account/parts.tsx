@@ -76,6 +76,25 @@ export function Field({ label, htmlFor, hint, optional, className, children }: F
   );
 }
 
+/** A problem with one field, said beside it. */
+export function FieldError({ id, message }: { id: string; message: string | undefined }) {
+  if (!message) return null;
+  return (
+    <p id={id} role="alert" className="mt-1.5 text-xs text-danger">
+      {message}
+    </p>
+  );
+}
+
+/** The dot between two facts on one line. */
+export function Dot() {
+  return (
+    <span className="mx-1.5" aria-hidden="true">
+      ·
+    </span>
+  );
+}
+
 /** An error from a form or an action, in the words the server chose. */
 export function ErrorNote({ error, className }: { error: unknown; className?: string }) {
   if (!error) return null;

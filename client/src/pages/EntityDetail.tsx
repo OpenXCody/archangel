@@ -43,6 +43,7 @@ import {
   detailActionClass,
   recordListClass,
 } from '../components/layout/Page';
+import { plural } from '@/lib/utils';
 
 /** What each kind of record is called at the head of its page. */
 const KIND_LABEL: Record<EntityType, string> = {
@@ -77,8 +78,6 @@ interface Head {
 /** How many rows a list shows before "Show all". */
 const PLANTS_SHOWN = 12;
 const CAREERS_SHOWN = 8;
-
-const plural = (n: number, one: string, many: string) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
 /** A link inside a line of facts. The padding gives a finger room without moving the line. */
 const factLinkClass = 'py-[15px] underline decoration-border-strong underline-offset-4 transition-colors hover:text-fg-default hover:decoration-fg-muted';
