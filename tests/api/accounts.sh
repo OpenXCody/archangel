@@ -46,6 +46,9 @@ expect "API does not name its framework"  0 "$(printf '%s' "$HDRS" | grep -c '^x
 check "pins with a made-up parameter"     400 "$(req anon GET '/factories/pins?_=1')" 'Unknown query parameter'
 # Vercel's rewrite adds the matched path to the query of every API request.
 check "pins as Vercel's rewrite sends them" 200 "$(req anon GET '/factories/pins?path=factories/pins')"
+# What the pins take: states and a company. An industry is a filter drawn by the map, never asked of the server.
+check "pins for a state and a company"    200 "$(req anon GET "/factories/pins?states=TX&company=$TXC")" '"pins":'
+check "pins take no industry"             400 "$(req anon GET '/factories/pins?industry=Manufacturing')" 'Unknown query parameter: industry'
 
 # --- A company with one plant ---------------------------------------------------
 # Its page leads with that plant's own facts, so the company's answer carries the plant's

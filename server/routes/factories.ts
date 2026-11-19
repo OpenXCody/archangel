@@ -128,7 +128,7 @@ router.get('/', async (req: Request, res: Response) => {
 // map (shared/pins.ts). The whole country is one response.
 router.get('/pins', async (req: Request, res: Response) => {
   try {
-    const { states, company, industry } = req.query;
+    const { states, company } = req.query;
 
     // Build where conditions. Public reads only ever see in-scope factories.
     const conditions: (SQL | undefined)[] = [factoryInScope()];
@@ -145,10 +145,6 @@ router.get('/pins', async (req: Request, res: Response) => {
 
     if (company) {
       conditions.push(eq(factories.companyId, company as string));
-    }
-
-    if (industry) {
-      conditions.push(sql`${companies.industry} = ${industry}`);
     }
 
     // One row per factory, carrying everything a pin and its hover card show,
