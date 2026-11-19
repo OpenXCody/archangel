@@ -825,6 +825,7 @@ INSERT INTO list_names (alias, title) VALUES
   ('line worker', 'Production Assembler'),
   ('line operator', 'Production Assembler'),
   ('assembly line', 'Production Assembler'),
+  ('aircraft sheet metal technician', 'Aircraft Structures Mechanic'),
   ('solderer', 'Electronics Assembler'),
   ('soldering technician', 'Electronics Assembler'),
   ('electronic assembler', 'Electronics Assembler'),
@@ -893,7 +894,6 @@ INSERT INTO list_names (alias, title) VALUES
   ('test tech', 'Test Technician'),
   ('test operator', 'Test Technician'),
   ('launch technician', 'Launch Pad Technician'),
-  ('mechanic', 'Maintenance Technician'),
   ('maintenance mechanic', 'Maintenance Technician'),
   ('industrial mechanic', 'Maintenance Technician'),
   ('industrial maintenance', 'Maintenance Technician'),
@@ -970,8 +970,10 @@ INSERT INTO list_not (alias, title) VALUES
   ('Integration Engineer', 'Process Integration Engineer'),
   ('Product Engineer', 'Yield Engineer'),
   ('Metrology Technician', 'Calibration Technician'),
+  ('mechanic', 'Maintenance Technician'),
   ('electrical technician', 'Industrial Electrician'),
-  ('electrical tech', 'Industrial Electrician');
+  ('electrical tech', 'Industrial Electrician'),
+  ('Mechatronics Engineer', 'Automation Engineer');
 
 -- Names taken back -----------------------------------------------------------------
 -- A name the list says is not a career's after all is deleted from that career
