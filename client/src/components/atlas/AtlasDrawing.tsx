@@ -421,7 +421,8 @@ function Labels({ layout, labels, zoom, radiusPx, leaf, preview, overlay }: Labe
         const skill = label.kind === 'skill';
         const chosen = skill && leaf?.index === label.index;
         const pointed = skill ? preview?.leaf?.index === label.index : !preview?.leaf && preview?.group?.index === label.index;
-        const quiet = label.far || (overlay ? !(skill ? lit(label.index) : groupLit(layout.groups[label.index])) : false);
+        // Under a career, the groups it does not reach step back. The open group's skills stay readable: the career's are in the accent.
+        const quiet = label.far || (!skill && overlay ? !groupLit(layout.groups[label.index]) : false);
         // From the ring out to the label: a short stroke that leans to wherever the label found room.
         // A skill's name is set a step further out than a group's: it is one level down the tree.
         const radius = zoom.labelRadius + (skill ? 10 * px : 0);
@@ -609,6 +610,7 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
       className={`atlas-plate ${className ?? ''}`}
       data-still={still || undefined}
       data-atlas-view={leaf ? 'skill' : group ? 'group' : domain ? 'domain' : 'whole'}
+      data-atlas-over={overlay ? true : undefined}
       style={{ cursor: preview ? 'pointer' : undefined }}
       onPointerMove={onPointerMove}
       onPointerLeave={() => preview && onPreview(null)}

@@ -542,6 +542,10 @@ input {
 .atlas-label[data-atlas-label='skill'] {
   fill: var(--color-fg-default);
 }
+/* A career is laid over the atlas: its skills are the bright ones, the group's others plain. */
+.atlas-plate[data-atlas-over] .atlas-label[data-atlas-label='skill']:not([data-lit]):not([data-on]) {
+  fill: var(--color-fg-muted);
+}
 .atlas-label[data-step] {
   fill: var(--color-fg-soft);
 }
