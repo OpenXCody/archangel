@@ -177,7 +177,8 @@ Checked on 2026-11-18 from a script behind a proxy (no browser).
 | **State WARN notices** (Texas Workforce Commission) | Layoffs and closures by site, with the number of people: a check on a headcount and the way to learn a plant has closed | Not by script: the page answers 202 with no body (a browser check) | Download the spreadsheet by hand into `data/`, then an adapter. Covers only sites that cut 50 or more jobs. |
 | **Economic development lists** (the governor's office, regional and city corporations' major-employer tables) | Headcounts by site, as the region states them | Pages reachable; each is its own format | Research briefs, as now, rather than adapters: there is no common shape. |
 | **BLS Occupational Employment and Wage Statistics** | Pay for a career, nationally and by state and metro area | The files answer 403 to a script; the public API (api.bls.gov) answers | Belongs on careers, in a table keyed by O*NET/SOC code and area, not in the contract. Download the yearly file by hand, or page the API (registration lifts its daily limit). |
-| **Census County Business Patterns** | Establishments by size class and employment by industry and county | Yes: zip per year, public domain | Context for an industry in a place; the same kind of table as the industry employment statistics. |
+| **Census County Business Patterns** | Establishments by size class and employment by industry and county | Yes: zip per year, public domain | Context for an industry in a place; the same kind of table as the industry employment statistics. Joins on `county_fips`. |
+| **QCEW by county and industry** (the files the adapter already reads, one per subsector) | People, establishments and pay for each of the 21 industries in each county | The files are the documented open-data ones, but see the note under the adapter | 21 times the rows of the county file, a large share withheld. `industry_county_stats` already takes them (`industry_code` a subsector). |
 
 ## Official statistics: the QCEW adapter
 
@@ -194,12 +195,26 @@ migrations/00NN_industry_stats.sql  (in scripts/migrate.mjs)   ──►   indus
 
 **The adapter** (`scripts/ingest/qcew.mjs`) reads the Bureau of Labor
 Statistics' Quarterly Census of Employment and Wages: open data, no key.
+(Checked 2026-11-19: `data.bls.gov/robots.txt` disallows everything to every
+robot, and `www.bls.gov` answered a script 403, so the Bureau's own page on
+these files, which presents them as made for programs to read, could not be
+read again to settle it. The 2025 county figures were therefore built with
+`--from`, out of the file fetched on 2026-11-18, with no new request. Whether
+the adapter may fetch by itself is the owner's call: until it is made,
+download the files in a browser and use `--from`.)
 
 - `node scripts/ingest/qcew.mjs` takes the latest complete year: it starts at
   last year and walks back, three years at most. `--year 2025` names the year.
   `--from <dir>` reads files already downloaded (`<dir>/<code>.csv`, with
-  `31_33.csv` for manufacturing as a whole) instead of fetching them. Behind a
-  proxy, Node's fetch needs `NODE_USE_ENV_PROXY=1`.
+  `31_33.csv` for manufacturing as a whole) instead of fetching them, and
+  `--retrieved 2026-11-18` says which day that was. Behind a proxy, Node's
+  fetch needs `NODE_USE_ENV_PROXY=1`.
+- The file for manufacturing as a whole also holds every county, so the same
+  run writes `data/industries/qcew-<year>-counties.json`: manufacturing as a
+  whole in each county (`county` is the five-digit FIPS code), the same three
+  figures, a withheld one `null`. Nothing by industry at county level yet.
+  `--counties-only` writes only that file and needs only `31_33.csv`. It
+  reaches the database through `scripts/build-geo-sql.mjs` (below).
 - It reads one file per industry: the 21 subsectors listed in
   `data/industries/industries.json`, and `31-33` for manufacturing as a whole.
   From each it keeps the private-sector annual averages, all establishment
@@ -231,3 +246,112 @@ node scripts/build-industry-stats-sql.mjs data/industries/industries.json data/i
 
 `tests/unit/industries.unit.ts` checks the adapter's reading and the stored
 file; `tests/api/industries.sh` checks the pages that read the tables.
+
+## Geography and industry keys
+
+A plant joins to public statistics through four keys on its row
+(`factories`, migration 0044): `lat` and `lng` (its coordinates as numbers),
+`county_fips`, `cbsa_code` (its metro area) and `naics` (a clean six-digit
+2022 code). Behind them are four small reference tables.
+
+```
+census.gov (county list, metro delineation, NAICS 2022 and its concordances)
+        │      scripts/geo/build-reference.mjs        downloads stay outside the repository
+data/geo/counties.json, data/geo/metros.json,
+data/industries/naics-2022.json, data/industries/naics-concordance.json
+        │      scripts/build-geo-sql.mjs   (+ scripts/geo/keys-schema.sql, data/industries/qcew-<year>-counties.json)
+migrations/0044_geo_keys.sql   ──►   counties, metros, naics, naics_concordance, industry_county_stats, the columns on factories
+
+census.gov (county boundaries, 1:500,000; kept outside the repository)
+        │      scripts/geo/assign-keys.mjs   against a database, outside the build
+factories.county_fips, factories.cbsa_code   (and naics, brought up to date)
+```
+
+**The reference lists.** `node scripts/geo/build-reference.mjs --fetch`
+downloads the Census Bureau's files into the system's temporary folder
+(`--dir <folder>` names another; without `--fetch` it reads what is there) and
+writes the four JSON files, each with its sources and the day they were
+retrieved. What it keeps:
+
+- `counties.json`: every county and county equivalent of the 50 states and
+  the District of Columbia (3,144; Connecticut as its planning regions), with
+  its metro area and a point inside it.
+- `metros.json`: the metropolitan and micropolitan areas those counties are in.
+- `naics-2022.json`: manufacturing only (31-33), from the sector down to the
+  national industry, each code with its parent. The three-digit level is the
+  product's 21 industries (a unit check holds the two together).
+- `naics-concordance.json`: other forms of a code that mean exactly one 2022
+  national industry: a shorter 2022 code with one industry under it, and a
+  six-digit code of the 2017, 2012 or 2007 edition that went whole to one
+  2022 industry. A code that was split is left out: nothing says which part
+  a plant is.
+
+**The migration** is generated: `node scripts/build-geo-sql.mjs --out
+migrations/0044_geo_keys.sql` (a unit check fails when the file and the lists
+disagree). It adds the tables and columns, loads the lists, loads one year of
+county statistics, and brings every plant's `naics` up to date in one
+statement. A later year of county statistics alone is `--stats-only
+data/industries/qcew-<year>-counties.json --out migrations/00NN_....sql`.
+
+**What keeps the keys right.**
+
+- `lat` and `lng` are generated columns: the database computes them from the
+  text `latitude` and `longitude` the app reads and writes, so no write path
+  can leave them behind. Text that is not a plain number, or not a latitude
+  or longitude, gives NULL.
+- `naics` follows `primary_naics` by a trigger (`factories_keys`):
+  `naics_2022(stored)` is the code itself when it is a 2022 national
+  industry, else what the concordance says, else NULL. `primary_naics` is
+  never changed.
+- `county_fips` and `cbsa_code` are written by the script below. The same
+  trigger clears them when a plant's coordinates change (unless the same
+  statement sets them), so a plant that moved has no county rather than its
+  old one until the next run.
+
+**The county script.**
+
+```bash
+DATABASE_URL=... node scripts/geo/assign-keys.mjs --fetch            # says what it would write
+DATABASE_URL=... node scripts/geo/assign-keys.mjs --apply            # writes
+DATABASE_URL=... node scripts/geo/assign-keys.mjs --apply --remote --report keys.json   # a database not on this machine
+```
+
+- It reads every plant, finds the county its coordinates fall in (point in
+  polygon against the Bureau's boundary file, with a grid so each point is
+  tried against two or three counties, not 3,200: `scripts/geo/lib/locate.mjs`)
+  and writes only the rows whose keys would change. A run after a run writes
+  nothing; a plant added, moved or corrected since the last run is picked up.
+  44,279 plants are located in under a second.
+- Before anything is written the boundary file is checked against the county
+  list: every listed county must be drawn, and must hold its own inside point.
+- `--boundaries <zip>` names the file; otherwise it is looked for in the
+  system's temporary folder and downloaded there with `--fetch`. It is never
+  committed.
+- A database that is not on this machine is refused without `--remote`.
+  Without `--apply` nothing is written.
+- A point in no county but within 2 km of one (`--near-km`) is given to the
+  nearest: the boundaries are drawn at the shoreline, and a plant on a pier
+  is still in its county. These are counted apart.
+- Left without a county, and listed (`--report <file>` writes every one):
+  coordinates that are not usable numbers; a point outside every county; a
+  point in a county the product does not cover; and a point in a county of
+  another state than the one the plant is filed under. In the last case one
+  of the two is wrong, usually the state (a river town filed under the state
+  across the river), and the list says how far the point is from the stored
+  state. Correct the plant in Admin Tools; the next run places it.
+- A plant filed under no state is placed by its coordinates alone and listed:
+  its county says which state it is in.
+- It also runs the `naics` statement, so a change to the reference tables
+  reaches the plants, and lists the stored codes that are not one industry.
+
+New and edited plants get their county on the next run, not at write time:
+the boundaries are a 12 MB file that does not belong in the website's
+function. Run the script after every load that adds or moves plants (it is
+written to be a step of the intake runner) and after a batch of corrections.
+
+`tests/unit/geo.unit.ts` checks the geometry (inside, outside, on a border,
+holes, islands, Alaska across the 180th meridian, just offshore), the
+readers, the lists, the roll-up and the migration; `tests/api/industries.sh`
+checks the keys and the county's figures; `tests/api/admin.sh` checks the
+quality table (`GET /api/admin/quality`) that counts how many plants have
+each key.
