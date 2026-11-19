@@ -61,7 +61,7 @@ export default function CompanyLogo({ name, domain, size = 28, className }: Comp
     <span
       aria-hidden="true"
       className={cn(
-        'relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-md border border-border-subtle bg-bg-elevated font-semibold text-fg-muted',
+        'relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-md border border-line bg-surface font-semibold text-text-2',
         className
       )}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.46), lineHeight: 1 }}
@@ -85,7 +85,7 @@ export default function CompanyLogo({ name, domain, size = 28, className }: Comp
           onLoad={(e) => setResult({ source, ok: source.startsWith('/') || e.currentTarget.naturalWidth > PLACEHOLDER_ICON_PX })}
           onError={() => setResult({ source, ok: false })}
           className={cn(
-            'absolute inset-0 h-full w-full bg-white object-contain p-[12%]',
+            'absolute inset-0 h-full w-full bg-logo-backing object-contain p-[12%]',
             settled?.ok ? 'opacity-100' : 'opacity-0'
           )}
         />

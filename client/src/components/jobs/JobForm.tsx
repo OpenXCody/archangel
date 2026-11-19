@@ -314,7 +314,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
   return (
     <form onSubmit={submit} noValidate className="space-y-5" data-job-form={mode}>
       {draft && (
-        <p role="status" className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-fg-muted" data-draft-restored>
+        <p role="status" className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-text-2" data-draft-restored>
           Restored what you typed {draftWhen(draft.savedAt)}.
           <button type="button" onClick={onStartOver} className={textButtonClass}>
             Start over
@@ -327,7 +327,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
             <Fixed label="Plant">{[plantName({ name: from.factoryName }), plantWhere({ city: from.city, state: from.state })].filter(Boolean).join(' · ')}</Fixed>
             <Fixed label="Career">{from.occupationTitle}</Fixed>
           </dl>
-          <p className="mt-1.5 text-xs text-fg-muted">Fixed once posted. For another plant or career, post another like this.</p>
+          <p className="mt-1.5 text-xs text-text-2">Fixed once posted. For another plant or career, post another like this.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -357,9 +357,9 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
 
       {career && (
         <fieldset className="min-w-0" data-job-skills>
-          <legend className="mb-1.5 text-sm font-medium text-fg-muted">Skills</legend>
+          <legend className="mb-1.5 text-sm font-medium text-text-2">Skills</legend>
           {!seeded && careerSkills.isPending ? (
-            <p className="flex min-h-[42px] items-center gap-2 text-sm text-fg-muted">
+            <p className="flex min-h-[42px] items-center gap-2 text-sm text-text-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               Loading skills
             </p>
@@ -381,7 +381,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
                 }
               />
               {skills.length > 0 && (
-                <p className="text-xs text-fg-muted">
+                <p className="text-xs text-text-2">
                   {/* Said only where it is so: the list began as the company's own version, not the standard. */}
                   {fromVersion && seeded && !draft && career && <span data-skills-from-version>Started from your version of {career.title}. </span>}
                   Applicants are ranked by required skills held.
@@ -410,7 +410,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
       </Field>
 
       <fieldset className="min-w-0" aria-describedby={payProblem ? 'job-pay-error' : undefined}>
-        <legend className="mb-1.5 text-sm font-medium text-fg-muted">Pay range</legend>
+        <legend className="mb-1.5 text-sm font-medium text-text-2">Pay range</legend>
         <div className="grid grid-cols-1 gap-3 xs:grid-cols-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <DollarInput
             id="job-pay-min"
@@ -437,15 +437,15 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
           />
         </div>
         <FieldError id="job-pay-error" message={payProblem ?? undefined} />
-        {!payProblem && !payQuestion && <p className="mt-1.5 text-xs text-fg-muted">Every job shows its pay.</p>}
+        {!payProblem && !payQuestion && <p className="mt-1.5 text-xs text-text-2">Every job shows its pay.</p>}
         {!payProblem && payQuestion && (
           <div
             role="group"
             aria-labelledby="job-pay-question"
-            className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-border-strong px-3 py-2.5"
+            className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-line-strong px-3 py-2.5"
             data-pay-question
           >
-            <p id="job-pay-question" role={attempted ? 'alert' : 'status'} className="min-w-0 flex-1 basis-48 text-sm text-fg-default">
+            <p id="job-pay-question" role={attempted ? 'alert' : 'status'} className="min-w-0 flex-1 basis-48 text-sm text-text-1">
               {payQuestion} Per hour or per year?
             </p>
             <div className="flex shrink-0 gap-2">
@@ -515,7 +515,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
           <p
             id="job-description-count"
             role="status"
-            className={cn('mt-1.5 text-xs tabular-nums', descriptionOver > 0 ? 'text-danger' : 'text-fg-muted')}
+            className={cn('mt-1.5 text-xs tabular-nums', descriptionOver > 0 ? 'text-danger' : 'text-text-2')}
           >
             {descriptionLength.toLocaleString('en-US')} of {DESCRIPTION_MAX.toLocaleString('en-US')} characters.
             {descriptionOver > 0 && ` Shorten it by ${descriptionOver.toLocaleString('en-US')}.`}
@@ -524,7 +524,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
       </Field>
 
       <fieldset className="min-w-0">
-        <legend className="mb-1.5 text-sm font-medium text-fg-muted">Applications</legend>
+        <legend className="mb-1.5 text-sm font-medium text-text-2">Applications</legend>
         <div
           role="radiogroup"
           aria-label="Applications"
@@ -598,8 +598,8 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
 function Fixed({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="mb-1.5 text-sm font-medium text-fg-muted">{label}</dt>
-      <dd className="break-words text-sm text-fg-default">{children}</dd>
+      <dt className="mb-1.5 text-sm font-medium text-text-2">{label}</dt>
+      <dd className="break-words text-sm text-text-1">{children}</dd>
     </div>
   );
 }
@@ -617,7 +617,7 @@ function DollarInput({ id, label, value, onChange, placeholder, invalid }: Dolla
   return (
     <div className="min-w-0">
       <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-fg-muted" aria-hidden="true">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-text-2" aria-hidden="true">
           $
         </span>
         <input
@@ -633,7 +633,7 @@ function DollarInput({ id, label, value, onChange, placeholder, invalid }: Dolla
           className={cn(fieldClass, 'pl-7', invalid && 'border-danger/60')}
         />
       </div>
-      <span className="mt-1 block text-xs text-fg-muted">{label}</span>
+      <span className="mt-1 block text-xs text-text-2">{label}</span>
     </div>
   );
 }
@@ -648,21 +648,21 @@ function ApplyChoice({ selected, onSelect, title, detail }: { selected: boolean;
       onClick={onSelect}
       className={cn(
         'flex items-start gap-3 rounded-lg border p-3 text-left transition-colors',
-        selected ? 'border-[color:var(--color-fg-muted)] bg-bg-elevated' : 'border-border-subtle hover:border-border-strong'
+        selected ? 'border-[color:var(--text-2)] bg-surface' : 'border-line hover:border-line-strong'
       )}
     >
       <span
         className={cn(
           'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
-          selected ? 'border-[color:var(--color-fg-default)]' : 'border-[color:var(--color-fg-soft)]'
+          selected ? 'border-[color:var(--text-1)]' : 'border-[color:var(--text-3)]'
         )}
         aria-hidden="true"
       >
-        {selected && <span className="h-2 w-2 rounded-full bg-[color:var(--color-fg-default)]" />}
+        {selected && <span className="h-2 w-2 rounded-full bg-[color:var(--text-1)]" />}
       </span>
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-fg-default">{title}</span>
-        <span className="mt-0.5 block text-xs text-fg-muted">{detail}</span>
+        <span className="block text-sm font-medium text-text-1">{title}</span>
+        <span className="mt-0.5 block text-xs text-text-2">{detail}</span>
       </span>
     </button>
   );

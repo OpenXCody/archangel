@@ -1,58 +1,163 @@
-// Fails when a component names a palette colour (text-emerald-400, bg-white/10).
-// Such a class is right in one theme and wrong in the other; colours come from
-// the theme tokens in client/src/styles/globals.css instead:
+// Fails when a colour is named anywhere in the client but the token file.
 //
-//   surfaces  bg-bg-base / bg-bg-surface / bg-bg-elevated
-//   text      text-fg-default / text-fg-muted / text-fg-soft
-//   lines     border-border-subtle / border-border-strong
-//   meaning   success / danger / warning / info   (text-success, bg-danger/10)
-//   wash      tint                                 (bg-tint/5, border-tint/10)
+// The token file is the `:root` blocks of client/src/styles/globals.css: the
+// eleven tokens, per theme, and the few named values beside them. Everything a
+// person sees takes its colour from there:
+//
+//   canvas   bg-bg                               var(--bg)
+//   raised   bg-surface, bg-surface-hover        var(--surface), var(--surface-hover)
+//   lines    border-line, border-line-strong     var(--line), var(--line-strong)
+//   ink      text-text-1 / -2 / -3               var(--text-1) ...
+//   accent   outline-accent, border-accent       var(--accent)
+//   inverse  bg-inverse-bg text-inverse-text     var(--inverse-bg), var(--inverse-text)
+//   error    text-danger, border-danger          var(--danger)
+//
+// So a hex value, rgb( or hsl(, a palette class (text-emerald-400, bg-white/10)
+// or `white` / `black` as a colour is a mistake in any .ts, .tsx or .css file
+// under client/src and in client/index.html: it is right in one theme and
+// wrong in the other, and it is a grey nobody chose. The names the tokens
+// replaced (text-fg-muted, bg-bg-elevated, bg-tint/5, var(--color-…), shadcn's
+// bg-primary, bg-muted …) fail too, so they cannot come back.
+//
+// Not checked: company logos (client/public/logos, images). Two static files a
+// browser reads before any stylesheet must each carry a literal colour, the
+// `theme-color` tag in client/index.html and the manifest's two; they are held
+// equal to the dark theme's --bg instead.
 //
 // Run by `npm run lint`.
 import { readdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'client', 'src');
+const repo = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const client = path.join(repo, 'client');
+const TOKEN_FILE = 'client/src/styles/globals.css';
 
-const PROPS = 'bg|text|border|ring|from|to|via|divide|fill|stroke|outline|decoration|placeholder|caret|accent';
+// The map's files are moved onto the tokens by their own change. Until it
+// lands, what they still hold is counted and said, not failed. Delete these
+// two when it has: the map is then held like everything else.
+const PENDING_FILES = [/^client\/src\/components\/map\//, /^client\/src\/pages\/MapView\.tsx$/, /^client\/src\/components\/entity\/FootprintMap\.tsx$/];
+const PENDING_RULES = /\.map-|\.maplibregl|\.archangel-map/;
+
+const PROPS = 'bg|text|border|ring|ring-offset|from|to|via|divide|fill|stroke|outline|decoration|placeholder|caret|accent|shadow';
 const HUES =
   'gray|slate|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose';
-const PALETTE = new RegExp(`(?<![\\w-])(?:${PROPS})-(?:(?:${HUES})-\\d{2,3}|white|black)(?:/(?:\\d+|\\[[\\d.]+\\]))?(?![\\w-])`, 'g');
+const OLD_NAMES =
+  'fg-default|fg-muted|fg-soft|bg-base|bg-surface|bg-elevated|border-subtle|border-strong|accent-primary|accent-foreground|tint|info|success|warning|' +
+  'background|foreground|card|card-foreground|popover|popover-foreground|primary|primary-foreground|secondary|secondary-foreground|' +
+  'muted|muted-foreground|destructive|destructive-foreground|input|ring';
 
-// Deliberate exceptions, each with its reason.
-const ALLOWED = [
-  // A logo is drawn for a white page: its tile is white in both themes.
-  { file: 'components/CompanyLogo.tsx', pattern: /^bg-white$/ },
-  // A scrim behind a dialog, sheet or the search panel dims the page in both themes.
-  { file: '', pattern: /^bg-black\/\d+$/ },
+const CHECKS = [
+  ['a hex colour', /(?<![&\w])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\w-])/g],
+  ['a colour function', /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(/g],
+  ['a palette class', new RegExp(`(?<![\\w-])(?:${PROPS})-(?:(?:${HUES})-\\d{2,3}|white|black)(?:/(?:\\d+|\\[[\\d.]+\\]))?(?![\\w-])`, 'g')],
+  [
+    'white or black as a colour',
+    /(?:\b(?:fill|stroke|color|background|background-color|backgroundColor|border-color|borderColor|stop-color|stopColor|outline-color|outlineColor)\s*[:=]\s*[{'"`\s]*(?:white|black)\b)|(?:[:,(]\s*(?:white|black)\s*[;,)])/g,
+  ],
+  ['a name the tokens replaced', new RegExp(`(?<![\\w-])(?:${PROPS})-(?:${OLD_NAMES})(?:/(?:\\d+|\\[[\\d.]+\\]))?(?![\\w-])`, 'g')],
+  [
+    'a variable the tokens replaced',
+    /var\(--(?:color-[a-z-]+|background|foreground|card|popover|primary|secondary|muted|destructive|border|input|ring|tint|info|success|warning|scrollbar-thumb|shadow-[a-z]+)\b/g,
+  ],
 ];
 
 async function* walk(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) yield* walk(full);
-    else if (/\.(ts|tsx)$/.test(entry.name)) yield full;
+    else if (/\.(ts|tsx|css)$/.test(entry.name)) yield full;
   }
 }
 
+/**
+ * A stylesheet as lines to check, each with whether it belongs to the map's
+ * rules. Comments are blanked (a colour named in a comment paints nothing),
+ * and so is the token file itself: every `:root` block.
+ */
+function stylesheetLines(text) {
+  const bare = text.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' '));
+  const out = [];
+  const stack = [];
+  let prelude = '';
+  let line = '';
+  const flush = () => {
+    out.push({ text: stack.some((s) => /^:root\b/.test(s)) ? '' : line, pending: stack.some((s) => PENDING_RULES.test(s)) });
+    line = '';
+  };
+  for (const char of bare) {
+    if (char === '\n') {
+      flush();
+      continue;
+    }
+    line += char;
+    if (char === '{') {
+      stack.push(prelude.trim());
+      prelude = '';
+    } else if (char === '}') {
+      stack.pop();
+      prelude = '';
+    } else if (char === ';') prelude = '';
+    else prelude += char;
+  }
+  flush();
+  return out;
+}
+
+/** The value a theme gives a token, read from the token file. */
+function tokenValue(css, name, theme) {
+  const block = theme === 'light' ? /:root\[data-theme='light'\]\s*\{([^}]*)\}/ : /:root\s*\{([^}]*)\}/;
+  const body = css.match(block)?.[1] ?? '';
+  return body.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1].trim().toLowerCase() ?? null;
+}
+
 const problems = [];
+const pending = new Map();
 let files = 0;
-for await (const file of walk(root)) {
-  files += 1;
-  const rel = path.relative(root, file).split(path.sep).join('/');
-  const lines = (await readFile(file, 'utf8')).split('\n');
-  lines.forEach((line, index) => {
-    for (const match of line.matchAll(PALETTE)) {
-      const allowed = ALLOWED.some((rule) => rel.startsWith(rule.file) && rule.pattern.test(match[0]));
-      if (!allowed) problems.push(`client/src/${rel}:${index + 1}  ${match[0]}`);
+
+function check(rel, lines) {
+  const waits = PENDING_FILES.some((pattern) => pattern.test(rel));
+  lines.forEach((entry, index) => {
+    for (const [what, pattern] of CHECKS) {
+      for (const match of entry.text.matchAll(pattern)) {
+        if (waits || entry.pending) pending.set(rel, (pending.get(rel) ?? 0) + 1);
+        else problems.push(`${rel}:${index + 1}  ${what}: ${match[0].trim()}`);
+      }
     }
   });
 }
 
+for await (const file of walk(path.join(client, 'src'))) {
+  files += 1;
+  const rel = path.relative(repo, file).split(path.sep).join('/');
+  const text = await readFile(file, 'utf8');
+  check(rel, file.endsWith('.css') ? stylesheetLines(text) : text.split('\n').map((line) => ({ text: line, pending: false })));
+}
+
+// The page itself: its scripts and tags, apart from the one colour a browser needs before the stylesheet.
+const tokens = await readFile(path.join(repo, TOKEN_FILE), 'utf8');
+const canvas = tokenValue(tokens, '--bg', 'dark');
+const html = await readFile(path.join(client, 'index.html'), 'utf8');
+const chrome = html.match(/<meta name="theme-color" content="([^"]*)"/)?.[1].toLowerCase() ?? null;
+files += 1;
+check(
+  'client/index.html',
+  html.split('\n').map((line) => ({ text: line.replace(/<meta name="theme-color"[^>]*>/, ''), pending: false })),
+);
+if (!canvas) problems.push(`${TOKEN_FILE}  no --bg in the dark theme's :root block`);
+if (chrome !== canvas) problems.push(`client/index.html  theme-color is ${chrome}; the dark theme's --bg is ${canvas}`);
+const manifest = JSON.parse(await readFile(path.join(client, 'public', 'manifest.webmanifest'), 'utf8'));
+for (const key of ['theme_color', 'background_color']) {
+  if (String(manifest[key]).toLowerCase() !== canvas) problems.push(`client/public/manifest.webmanifest  ${key} is ${manifest[key]}; the dark theme's --bg is ${canvas}`);
+}
+
 if (problems.length > 0) {
-  console.error(`theme colours: ${problems.length} palette ${problems.length === 1 ? 'class' : 'classes'} found. Use a theme token instead.`);
+  console.error(`theme colours: ${problems.length} ${problems.length === 1 ? 'colour' : 'colours'} named outside the token file. Use a token instead (${TOKEN_FILE}).`);
   for (const problem of problems) console.error(`  ${problem}`);
   process.exit(1);
 }
-console.log(`theme colours ok (${files} files)`);
+const waiting = [...pending.values()].reduce((sum, n) => sum + n, 0);
+console.log(
+  `theme colours ok (${files} files)` +
+    (waiting > 0 ? `; ${waiting} still in the map's files and rules, which wait for their own change (${[...pending.keys()].length} files)` : ''),
+);

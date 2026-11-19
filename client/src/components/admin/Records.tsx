@@ -55,8 +55,8 @@ export default function Records() {
           <RecordPicker id="record-find" kind={kind} value={null} onChange={(found) => found && navigate(editPath(kind, found.id))} />
         </Field>
 
-        <div className="mt-5 border-t border-border-subtle pt-4">
-          <h3 className="mb-3 text-sm font-semibold text-fg-default">{ADD_LABEL[kind]}</h3>
+        <div className="mt-5 border-t border-line pt-4">
+          <h3 className="mb-3 text-sm font-semibold text-text-1">{ADD_LABEL[kind]}</h3>
           <RecordForm
             key={`${kind}:${round}`}
             kind={kind}
@@ -70,9 +70,9 @@ export default function Records() {
           />
 
           {added && (
-            <p role="status" className="mt-3 text-sm text-fg-muted" data-record-added={added.kind}>
+            <p role="status" className="mt-3 text-sm text-text-2" data-record-added={added.kind}>
               Added{' '}
-              <Link to={added.href} className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+              <Link to={added.href} className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
                 {added.name}
               </Link>
               .

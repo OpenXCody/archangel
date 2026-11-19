@@ -2,7 +2,7 @@ import type { Config } from "tailwindcss";
 
 /**
  * A theme token (a CSS variable holding a colour, globals.css) as a Tailwind
- * colour that takes opacity modifiers: bg-bg-surface, bg-bg-surface/90.
+ * colour that takes opacity modifiers: bg-surface, bg-bg/80.
  */
 const token = (variable: string) => `color-mix(in srgb, var(${variable}) calc(<alpha-value> * 100%), transparent)`;
 
@@ -23,12 +23,28 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      // The type scale (the hierarchy pass, step 5): meta 13px, body 15px. Labels are 11 to 12px
+      // (`labelClass`), section headings 20px, page titles 40px.
+      fontSize: {
+        xs: ['13px', { lineHeight: '18px' }],
+        sm: ['15px', { lineHeight: '22px' }],
+      },
+      // A border with no colour named is a hairline.
+      borderColor: {
+        DEFAULT: "var(--line)",
+      },
       colors: {
-        // The app's own tokens: surfaces, text, lines. Class names read
-        // bg-bg-surface, text-fg-muted, border-border-subtle.
-        // The hierarchy pass's tokens (globals.css): bg-bg, bg-surface, bg-surface-hover,
+        // The eleven tokens (client/src/styles/globals.css): bg-bg, bg-surface, bg-surface-hover,
         // border-line, border-line-strong, text-text-1 / -2 / -3, bg-inverse-bg, text-inverse-text,
-        // and the one accent (outline-accent, border-accent, bg-accent/[0.06]).
+        // and the one accent (outline-accent, border-accent, bg-accent/[0.06]). Nothing here
+        // defines a colour: each name is a token, and takes an opacity modifier.
+        bg: {
+          DEFAULT: token("--bg"),
+          // The map's files only, until they are moved onto the eleven.
+          base: token("--color-bg-base"),
+          surface: token("--color-bg-surface"),
+          elevated: token("--color-bg-elevated"),
+        },
         surface: {
           DEFAULT: token("--surface"),
           hover: token("--surface-hover"),
@@ -46,61 +62,23 @@ export default {
           bg: token("--inverse-bg"),
           text: token("--inverse-text"),
         },
-        bg: {
-          DEFAULT: token("--bg"),
-          base: token("--color-bg-base"),
-          surface: token("--color-bg-surface"),
-          elevated: token("--color-bg-elevated"),
-        },
+        accent: token("--accent"),
+        // An error has to read as one: errors and destructive actions, nothing else.
+        danger: token("--danger"),
+        // A company's mark is drawn for a white page (components/CompanyLogo.tsx).
+        "logo-backing": token("--logo-backing"),
+        // The map's files only, until they are moved onto the eleven.
         fg: {
           default: token("--color-fg-default"),
           muted: token("--color-fg-muted"),
           soft: token("--color-fg-soft"),
         },
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: token("--accent"),
-          foreground: "hsl(var(--accent-foreground))",
-          primary: token("--color-accent-primary"),
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        // Meaning and wash, per theme (globals.css). Use these, never a palette colour.
-        success: "rgb(var(--success) / <alpha-value>)",
-        danger: "rgb(var(--danger) / <alpha-value>)",
-        warning: "rgb(var(--warning) / <alpha-value>)",
-        info: "rgb(var(--info) / <alpha-value>)",
-        tint: "rgb(var(--tint) / <alpha-value>)",
         border: {
-          DEFAULT: "hsl(var(--border))",
           subtle: token("--color-border-subtle"),
           strong: token("--color-border-strong"),
         },
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
+        info: "rgb(var(--info) / <alpha-value>)",
+        tint: "rgb(var(--tint) / <alpha-value>)",
       },
     },
   },

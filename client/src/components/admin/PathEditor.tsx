@@ -96,16 +96,16 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-3">
           {groups.map((group) => (
             <div key={group.label} className={cn('min-w-0', group.level === null && 'lg:col-span-3')} data-path-level={group.level ?? 'none'}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
                 {group.label} <span className="tabular-nums">{group.items.length}</span>
               </p>
               {group.items.length === 0 ? (
-                <p className="mt-2 text-sm text-fg-muted">None yet.</p>
+                <p className="mt-2 text-sm text-text-2">None yet.</p>
               ) : (
                 <ul className="mt-1">
                   {group.items.map((skill) => (
-                    <li key={skill.id} className="flex items-center gap-2 border-t border-border-subtle py-1.5 first:border-t-0" data-path-skill={skill.id}>
-                      <span className="min-w-0 flex-1 break-words text-sm text-fg-default">{skill.name}</span>
+                    <li key={skill.id} className="flex items-center gap-2 border-t border-line py-1.5 first:border-t-0" data-path-skill={skill.id}>
+                      <span className="min-w-0 flex-1 break-words text-sm text-text-1">{skill.name}</span>
                       <button
                         type="button"
                         onClick={() => setSkills(skills.filter((item) => item.id !== skill.id))}
@@ -122,8 +122,8 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
           ))}
         </div>
 
-        <div className="mt-5 border-t border-border-subtle pt-4">
-          <label htmlFor="path-add" className="mb-1.5 block text-sm font-medium text-fg-muted">
+        <div className="mt-5 border-t border-line pt-4">
+          <label htmlFor="path-add" className="mb-1.5 block text-sm font-medium text-text-2">
             Add a skill
           </label>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,24rem)_auto]">
@@ -132,7 +132,7 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
               Add
             </Button>
           </div>
-          {adding && skills.some((skill) => skill.id === adding.id) && <p className="mt-1.5 text-xs text-fg-muted">Already on the path.</p>}
+          {adding && skills.some((skill) => skill.id === adding.id) && <p className="mt-1.5 text-xs text-text-2">Already on the path.</p>}
         </div>
 
         <ErrorNote error={save.error} className="mt-4" />

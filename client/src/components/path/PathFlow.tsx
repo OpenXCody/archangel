@@ -57,7 +57,7 @@ export function PathFlow({ path, marks, comesFrom = [], leadsTo = [], renderSkil
                 <span className="path-node">
                   <ShareRing share={share} />
                 </span>
-                <h3 className="min-w-0 text-[15px] font-semibold text-fg-default">{level.name}</h3>
+                <h3 className="min-w-0 text-[15px] font-semibold text-text-1">{level.name}</h3>
                 {level.gloss && <p className="path-level-gloss">{level.gloss}</p>}
                 {share && share.total > 0 && <ShareCount share={share} data-level-count={level.level} />}
                 <span className="path-level-line" aria-hidden="true" />
@@ -102,7 +102,7 @@ export function LadderAlone({ comesFrom = [], leadsTo = [], children }: { comesF
             <span className="path-node">
               <ShareRing share={null} />
             </span>
-            <p className="min-w-0 text-sm leading-7 text-fg-muted">{children}</p>
+            <p className="min-w-0 text-sm leading-7 text-text-2">{children}</p>
           </div>
         </li>
         {leadsTo.length > 0 && <Ladder label="Leads to" careers={leadsTo} place="after" />}
@@ -134,9 +134,9 @@ function Ladder({ label, careers, place }: { label: string; careers: LadderCaree
           <li key={career.id}>
             <Link
               to={`/occupations/${career.id}`}
-              className={cn('group inline-flex min-h-11 max-w-full items-center text-sm text-fg-muted transition-colors hover:text-fg-default', focusRing)}
+              className={cn('group inline-flex min-h-11 max-w-full items-center text-sm text-text-2 transition-colors hover:text-text-1', focusRing)}
             >
-              <span className="min-w-0 break-words underline decoration-border-strong underline-offset-4 group-hover:decoration-fg-muted">{career.title}</span>
+              <span className="min-w-0 break-words underline decoration-line-strong underline-offset-4 group-hover:decoration-text-2">{career.title}</span>
             </Link>
           </li>
         ))}
@@ -145,7 +145,7 @@ function Ladder({ label, careers, place }: { label: string; careers: LadderCaree
             <button
               type="button"
               onClick={() => setAll(true)}
-              className={cn('inline-flex min-h-11 items-center text-sm text-fg-soft transition-colors hover:text-fg-default', focusRing)}
+              className={cn('inline-flex min-h-11 items-center text-sm text-text-3 transition-colors hover:text-text-1', focusRing)}
               data-ladder-more
             >
               {more} more

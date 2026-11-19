@@ -75,7 +75,7 @@ export default function Layout() {
   }, [isMapView]);
 
   return (
-    <div className="min-h-screen bg-bg-base flex flex-col">
+    <div className="min-h-screen bg-bg flex flex-col">
       {/* First stop for the Tab key: past the header, into the page. Seen only when it has focus. */}
       <a
         href="#main"
@@ -84,13 +84,13 @@ export default function Layout() {
           event.preventDefault();
           document.getElementById('main')?.focus();
         }}
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-2 focus:z-[60] focus:rounded-lg focus:border focus:border-border-strong
-          focus:bg-bg-surface focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-fg-default"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-2 focus:z-[60] focus:rounded-lg focus:border focus:border-line-strong
+          focus:bg-bg focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-text-1"
       >
         Skip to content
       </a>
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg-surface border-b border-border-subtle">
+      <header className="sticky top-0 z-40 bg-bg border-b border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Three columns. From tablet up the outer two are equal, so the wordmark sits at the
               centre of every page. A phone has no room for it beside three words: there the
@@ -111,8 +111,8 @@ export default function Layout() {
                       flex min-h-11 items-center whitespace-nowrap rounded-full px-2 text-sm font-medium max-[339px]:px-1.5 xs:px-3
                       transition-colors lg:min-h-0 lg:px-4 lg:py-2
                       ${isActive
-                        ? 'bg-bg-elevated text-fg-default'
-                        : 'text-fg-muted hover:text-fg-default hover:bg-bg-elevated/50'
+                        ? 'bg-surface text-text-1'
+                        : 'text-text-2 hover:text-text-1 hover:bg-surface-hover'
                       }
                     `}
                   >
@@ -130,7 +130,7 @@ export default function Layout() {
                 <Link
                   to="/map"
                   aria-label="Archangel: the map"
-                  className="hidden whitespace-nowrap rounded-md text-base font-semibold tracking-tight text-fg-default sm:block lg:text-lg"
+                  className="hidden whitespace-nowrap rounded-md text-base font-semibold tracking-tight text-text-1 sm:block lg:text-lg"
                 >
                   ARCHANGEL
                 </Link>
@@ -146,14 +146,14 @@ export default function Layout() {
                 title={`Search (${SEARCH_SHORTCUT})`}
                 // The narrowest phones (320 px) have room for the view-as sign or for this, not both: the sign stays.
                 className={`flex ${viewer.viewingAs ? 'max-[339px]:hidden' : ''} h-11 min-w-11 items-center justify-center gap-2 px-3 rounded-full sm:h-10
-                  bg-bg-elevated border border-border-subtle
-                  text-sm text-fg-muted hover:text-fg-default
+                  bg-surface border border-line
+                  text-sm text-text-2 hover:text-text-1
                   transition-colors flex-shrink-0`}
               >
                 <Search className="w-4 h-4" />
                 <span className="hidden sm:inline">Search</span>
                 <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5
-                  bg-bg-surface rounded text-xs text-fg-soft">
+                  rounded text-xs text-text-3">
                   {SEARCH_SHORTCUT}
                 </kbd>
               </button>

@@ -46,7 +46,7 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
       aria-label={label}
       aria-busy={disabled || undefined}
       onKeyDown={(event) => onGroupArrowKeys(event, values, value, choose)}
-      className={cn('inline-flex shrink-0 rounded-lg border border-border-strong bg-bg-elevated p-0.5', disabled && 'opacity-60', className)}
+      className={cn('inline-flex shrink-0 rounded-lg border border-line-strong bg-surface p-0.5', disabled && 'opacity-60', className)}
     >
       {choices.map((choice) => {
         const selected = choice.value === value;
@@ -61,7 +61,7 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
             onClick={() => choose(choice.value)}
             className={cn(
               'inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors aria-disabled:cursor-default sm:h-8',
-              selected ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
+              selected ? 'bg-inverse-bg text-inverse-text' : 'text-text-2 hover:text-text-1'
             )}
           >
             {/* The chosen answer carries the same mark the skill has in every list. */}
@@ -81,13 +81,13 @@ export function SkillStatusControl({ value, onChange, disabled, hideNone, label,
  * and brightness say it; there is no colour for "held".
  */
 export function SkillMark({ status, className }: { status: Choice; className?: string }) {
-  const tone = status === 'held' ? 'text-fg-default' : status === 'learning' ? 'text-fg-muted' : 'text-fg-soft';
+  const tone = status === 'held' ? 'text-text-1' : status === 'learning' ? 'text-text-2' : 'text-text-3';
   return (
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" data-skill-mark={status} className={cn('h-5 w-5 shrink-0', tone, className)}>
       {status === 'held' ? (
         <>
           <circle cx="10" cy="10" r="8.25" fill="currentColor" />
-          <path d="M6.4 10.3l2.4 2.4 4.8-5.1" stroke="var(--color-bg-surface)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M6.4 10.3l2.4 2.4 4.8-5.1" stroke="var(--bg)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
         </>
       ) : (
         <>
@@ -131,7 +131,7 @@ export function SkillHeldToggle({ value, onChange, disabled, label, className }:
       }}
       className={cn(
         'flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-colors',
-        'aria-disabled:cursor-default aria-disabled:opacity-60 [&:hover>svg]:text-fg-default',
+        'aria-disabled:cursor-default aria-disabled:opacity-60 [&:hover>svg]:text-text-1',
         className
       )}
     >

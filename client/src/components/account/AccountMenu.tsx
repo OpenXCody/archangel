@@ -37,7 +37,7 @@ export function accountPageTitle(pathname: string, isAdmin: boolean): string | n
   return null;
 }
 
-const itemClass = 'cursor-pointer gap-2.5 px-2.5 py-2.5 text-sm text-fg-default focus:bg-bg-elevated';
+const itemClass = 'cursor-pointer gap-2.5 px-2.5 py-2.5 text-sm text-text-1 focus:bg-surface-hover';
 
 /**
  * News stops being news when the page that shows it is opened: the employer
@@ -102,7 +102,7 @@ export default function AccountMenu() {
         aria-current={onSignIn ? 'page' : undefined}
         className={cn(
           'flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-full px-3 text-sm font-medium transition-colors lg:h-10 lg:px-4',
-          onSignIn ? 'bg-bg-elevated text-fg-default' : 'text-fg-muted hover:bg-bg-elevated/50 hover:text-fg-default'
+          onSignIn ? 'bg-surface text-text-1' : 'text-text-2 hover:bg-surface-hover hover:text-text-1'
         )}
       >
         <LogIn className="h-4 w-4" />
@@ -122,9 +122,9 @@ export default function AccountMenu() {
   const hasNews = Boolean(
     news && ((news.applications && showsPage) || (news.applicants && showsJobs) || (news.access && viewer.admin))
   );
-  const pageItemClass = (lit: boolean | undefined) => cn(itemClass, hasNews && (lit ? 'font-medium' : 'text-fg-muted'));
-  const restItemClass = cn(itemClass, hasNews && 'text-fg-muted');
-  const pageIconClass = (lit: boolean | undefined) => (hasNews && lit ? 'text-fg-default' : 'text-fg-muted');
+  const pageItemClass = (lit: boolean | undefined) => cn(itemClass, hasNews && (lit ? 'font-medium' : 'text-text-2'));
+  const restItemClass = cn(itemClass, hasNews && 'text-text-2');
+  const pageIconClass = (lit: boolean | undefined) => (hasNews && lit ? 'text-text-1' : 'text-text-2');
 
   return (
     <DropdownMenu
@@ -137,38 +137,38 @@ export default function AccountMenu() {
       <DropdownMenuTrigger
         aria-label={`Account menu for ${user.name}`}
         aria-describedby={hasNews ? 'account-news' : undefined}
-        className="flex h-10 min-w-0 shrink-0 items-center gap-2 rounded-full border border-border-subtle bg-bg-elevated
-          p-1 text-sm font-medium text-fg-default transition-colors hover:border-border-strong lg:pr-3"
+        className="flex h-10 min-w-0 shrink-0 items-center gap-2 rounded-full border border-line bg-surface
+          p-1 text-sm font-medium text-text-1 transition-colors hover:border-line-strong lg:pr-3"
       >
-        <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-bg-surface text-xs font-semibold text-fg-default">
+        <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-bg text-xs font-semibold text-text-1">
           {initial}
           {hasNews && (
-            <span id="account-news" data-account-news className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-bg-elevated bg-info">
+            <span id="account-news" data-account-news className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-surface bg-text-1">
               <span className="sr-only">Something new</span>
             </span>
           )}
         </span>
         <span className="hidden max-w-[140px] truncate lg:inline">{user.name}</span>
-        <ChevronDown className={cn('hidden h-4 w-4 shrink-0 text-fg-muted transition-transform lg:block', open && 'rotate-180')} />
+        <ChevronDown className={cn('hidden h-4 w-4 shrink-0 text-text-2 transition-transform lg:block', open && 'rotate-180')} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60 rounded-xl border-border-strong bg-bg-surface p-1.5">
+      <DropdownMenuContent align="end" className="w-60 rounded-xl border-line-strong bg-surface p-1.5">
         <DropdownMenuLabel className="px-2.5 py-2 font-normal">
-          <span className="block truncate text-sm font-semibold text-fg-default">{user.name}</span>
-          <span className="block truncate text-xs text-fg-muted">{user.email}</span>
+          <span className="block truncate text-sm font-semibold text-text-1">{user.name}</span>
+          <span className="block truncate text-xs text-text-2">{user.email}</span>
           {/* A plain account has no label: only a role is worth naming. */}
           {viewer.viewingAs ? (
-            <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-info">
+            <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-accent">
               Viewing as {viewer.viewingAs}
             </span>
           ) : (
             roles.length > 0 && (
-              <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
+              <span className="mt-1.5 block truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
                 {roles.join(' · ')}
               </span>
             )
           )}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-[color:var(--color-border-subtle)]" />
+        <DropdownMenuSeparator className="bg-[color:var(--line)]" />
         {showsPage && (
           <DropdownMenuItem asChild className={pageItemClass(news?.applications)}>
             <Link to="/me" data-has-news={news?.applications || undefined}>
@@ -194,11 +194,11 @@ export default function AccountMenu() {
             </Link>
           </DropdownMenuItem>
         )}
-        {(showsPage || showsJobs || viewer.admin) && <DropdownMenuSeparator className="bg-[color:var(--color-border-subtle)]" />}
+        {(showsPage || showsJobs || viewer.admin) && <DropdownMenuSeparator className="bg-[color:var(--line)]" />}
         {/* The account itself, the theme, what the account is for and, for an admin, "View as". */}
         <DropdownMenuItem asChild className={restItemClass}>
           <Link to="/settings">
-            <Settings className="text-fg-muted" />
+            <Settings className="text-text-2" />
             Settings
           </Link>
         </DropdownMenuItem>
@@ -213,7 +213,7 @@ export default function AccountMenu() {
             signOut.mutate(undefined, { onSuccess: () => setOpen(false) });
           }}
         >
-          {signOut.isPending ? <Loader2 className="animate-spin text-fg-muted" /> : <LogOut className="text-fg-muted" />}
+          {signOut.isPending ? <Loader2 className="animate-spin text-text-2" /> : <LogOut className="text-text-2" />}
           Sign out
         </DropdownMenuItem>
         {signOut.isError && (

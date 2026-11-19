@@ -7,7 +7,7 @@ import { ErrorNote } from '../account/parts';
 import { DetailSection } from '../layout/Page';
 
 const chipClass = 'inline-flex max-w-full items-center rounded-full border px-3 text-sm leading-tight [overflow-wrap:anywhere]';
-const quietChip = 'border-border-subtle text-fg-muted';
+const quietChip = 'border-line text-text-2';
 
 /**
  * A skill's makes: the named equipment and software it is run on, as quiet
@@ -38,7 +38,7 @@ export default function SkillMakes({ skillId, makes }: { skillId: string; makes:
       id="makes"
       title="Makes"
       // Said only to the person who can answer it.
-      note={mine ? <span className="text-xs text-fg-soft">Mark the ones you have run</span> : undefined}
+      note={mine ? <span className="text-xs text-text-3">Mark the ones you have run</span> : undefined}
     >
       <ul className="flex flex-wrap gap-2" data-skill-makes data-markable={mine ? '' : undefined}>
         {makes.map((make) =>
@@ -53,7 +53,7 @@ export default function SkillMakes({ skillId, makes }: { skillId: string; makes:
                   chipClass,
                   // A full finger's size where a finger is what presses it.
                   'min-h-9 transition-colors [@media(pointer:coarse)]:min-h-11',
-                  marked.has(make.id) ? 'border-border-strong bg-tint/15 font-medium text-fg-default' : cn(quietChip, 'hover:border-border-strong hover:text-fg-default')
+                  marked.has(make.id) ? 'border-line-strong bg-surface font-medium text-text-1' : cn(quietChip, 'hover:border-line-strong hover:text-text-1')
                 )}
               >
                 {make.name}

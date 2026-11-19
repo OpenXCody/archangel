@@ -89,7 +89,7 @@ function SettingsPage({ account }: { account: SignedInAccount }) {
 
 function Done({ children }: { children: ReactNode }) {
   return (
-    <span role="status" className="inline-flex items-center gap-1.5 text-sm text-success">
+    <span role="status" className="inline-flex items-center gap-1.5 text-sm text-text-1">
       <Check className="h-4 w-4 shrink-0" />
       {children}
     </span>
@@ -201,8 +201,8 @@ function SignInSection({ account }: { account: SignedInAccount }) {
   const row = (action: SignInAction, label: string, value: ReactNode, changed: string) => (
     <li className={cn(rowClass, 'flex items-center gap-3 px-4 py-3 sm:px-6')}>
       <div className="min-w-0 flex-1">
-        <p className="text-xs text-fg-muted">{label}</p>
-        <p className="mt-0.5 break-all text-sm font-medium text-fg-default">{value}</p>
+        <p className="text-xs text-text-2">{label}</p>
+        <p className="mt-0.5 break-all text-sm font-medium text-text-1">{value}</p>
         {done === action && (
           <p className="mt-1">
             <Done>{changed}</Done>
@@ -303,8 +303,8 @@ function EmailChange({ email, onClose }: { email: string; onClose: (changed: boo
       className="space-y-4 p-4 sm:p-6"
       data-email-form
     >
-      <p className="break-all text-sm text-fg-muted">
-        Now <span className="text-fg-default">{email}</span>. Your other devices are signed out by the change.
+      <p className="break-all text-sm text-text-2">
+        Now <span className="text-text-1">{email}</span>. Your other devices are signed out by the change.
       </p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="New email" htmlFor="email-next">
@@ -492,8 +492,8 @@ function NoticeSection({ user }: { user: AccountUser }) {
       <div className={cn(cardClass, 'px-4 py-3 sm:px-6')} data-email-notices>
         <div className="flex items-center gap-4">
           <label htmlFor="email-notices" className="min-w-0 flex-1 cursor-pointer">
-            <span className="block text-sm font-medium text-fg-default">Email me about applications and access</span>
-            <span className="mt-0.5 block text-xs text-fg-muted">Sign-in emails are always sent.</span>
+            <span className="block text-sm font-medium text-text-1">Email me about applications and access</span>
+            <span className="mt-0.5 block text-xs text-text-2">Sign-in emails are always sent.</span>
           </label>
           {/* A button, so the label, Space and Enter all work; marked busy while saving, never disabled. */}
           <button
@@ -505,12 +505,12 @@ function NoticeSection({ user }: { user: AccountUser }) {
             onClick={() => {
               if (!update.isPending) update.mutate({ emailNotices: !checked });
             }}
-            className={cn('relative h-6 w-11 shrink-0 rounded-full transition-colors', checked ? 'bg-fg-default' : 'bg-border-strong')}
+            className={cn('relative h-6 w-11 shrink-0 rounded-full transition-colors', checked ? 'bg-inverse-bg' : 'bg-line-strong')}
           >
             <span
               aria-hidden="true"
               className={cn(
-                'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-bg-surface shadow-sm transition-transform',
+                'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-bg transition-transform',
                 checked && 'translate-x-5'
               )}
             />
@@ -574,16 +574,16 @@ function ChoiceGroup<T extends string>({ label, choices, value, onChange, saving
             onClick={() => choose(choice.value)}
             className={cn(
               'flex min-h-11 min-w-0 items-start gap-2 rounded-lg border px-3 py-2.5 text-left transition-colors',
-              selected ? 'border-fg-default bg-bg-elevated' : 'border-border-subtle hover:border-border-strong'
+              selected ? 'border-text-1 bg-surface' : 'border-line hover:border-line-strong'
             )}
           >
             <span className="min-w-0 flex-1">
-              <span className={cn('block text-sm font-medium', selected ? 'text-fg-default' : 'text-fg-muted')}>{choice.label}</span>
+              <span className={cn('block text-sm font-medium', selected ? 'text-text-1' : 'text-text-2')}>{choice.label}</span>
               {choice.detail && (
-                <span className={cn('mt-0.5 text-xs text-fg-muted', choices.length === 2 ? 'block' : 'hidden sm:block')}>{choice.detail}</span>
+                <span className={cn('mt-0.5 text-xs text-text-2', choices.length === 2 ? 'block' : 'hidden sm:block')}>{choice.detail}</span>
               )}
             </span>
-            {saving === choice.value && <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-fg-muted" aria-hidden="true" />}
+            {saving === choice.value && <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-text-2" aria-hidden="true" />}
           </button>
         );
       })}
@@ -715,7 +715,7 @@ function DeleteSection({ account }: { account: SignedInAccount }) {
   };
 
   return (
-    <section className="mt-10 border-t border-border-subtle pt-6">
+    <section className="mt-10 border-t border-line pt-6">
       <button ref={triggerRef} type="button" onClick={() => setOpen(true)} className={textButtonClass} data-delete-trigger>
         Delete account
       </button>
@@ -727,13 +727,13 @@ function DeleteSection({ account }: { account: SignedInAccount }) {
       >
         <DialogContent
           role="alertdialog"
-          className="w-[calc(100%-2rem)] max-w-md gap-5 rounded-xl border-border-strong bg-bg-surface p-5 text-fg-default sm:rounded-xl [&>button]:hidden"
+          className="w-[calc(100%-2rem)] max-w-md gap-5 rounded-xl border-line-strong bg-bg p-5 text-text-1 sm:rounded-xl [&>button]:hidden"
         >
           <form onSubmit={submit} noValidate className="grid gap-5" data-delete-account>
             <DialogHeader className="space-y-2 text-left">
               <DialogTitle className="text-base font-semibold leading-snug">Delete your account?</DialogTitle>
               <DialogDescription asChild>
-                <div className="space-y-2 break-words text-sm text-fg-muted">
+                <div className="space-y-2 break-words text-sm text-text-2">
                   <p>Your skills, goals and applications are removed. Companies you applied to no longer see them.</p>
                   {companies.length > 0 && (
                     <p>

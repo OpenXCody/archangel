@@ -91,9 +91,9 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
 
   return (
     <div className={cn(cardClass, 'p-4')} data-pair={`${pair.a.id}:${pair.b.id}`}>
-      <p className="break-words text-xs text-fg-muted" data-pair-reason>
+      <p className="break-words text-xs text-text-2" data-pair-reason>
         {head.map((part, index) => (
-          <span key={part} className={index === 1 && pair.reason ? 'text-fg-default' : undefined}>
+          <span key={part} className={index === 1 && pair.reason ? 'text-text-1' : undefined}>
             {index > 0 && <Dot />}
             {part}
           </span>
@@ -128,13 +128,13 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
               }}
               className={cn(
                 'min-w-0 rounded-lg border px-3 py-2.5 text-left transition-colors',
-                on ? 'border-fg-muted bg-bg-elevated' : 'border-border-subtle',
-                !on && !locked && 'cursor-pointer hover:bg-bg-elevated',
+                on ? 'border-text-2 bg-surface' : 'border-line',
+                !on && !locked && 'cursor-pointer hover:bg-surface-hover',
                 focusRing
               )}
               data-pair-side={side.id}
             >
-              <p className={cn('mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em]', on ? 'text-fg-default' : 'text-fg-soft')}>{on ? 'Kept' : 'Merged into it'}</p>
+              <p className={cn('mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em]', on ? 'text-text-1' : 'text-text-3')}>{on ? 'Kept' : 'Merged into it'}</p>
               <PlantFacts
                 plant={side}
                 name={
@@ -143,12 +143,12 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
                   </Link>
                 }
               />
-              {side.curated && <p className="mt-1 text-xs text-fg-default">Written from sources</p>}
+              {side.curated && <p className="mt-1 text-xs text-text-1">Written from sources</p>}
             </div>
           );
         })}
       </div>
-      <p className="mt-3 break-words text-xs text-fg-muted" data-pair-takes>
+      <p className="mt-3 break-words text-xs text-text-2" data-pair-takes>
         {mustKeep ? 'The row written from sources is the one kept. ' : ''}
         {taken ? `It takes from the other: ${taken}.` : 'It takes nothing from the other: it has every fact the other has.'}
         {/* Under two companies the row kept decides which the plant is filed under. */}
@@ -184,7 +184,7 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
           {apart.isPending && <Loader2 className="animate-spin" />}
           {pair.apart ? 'Not two plants' : 'Two plants'}
         </Button>
-        {pair.apart && <p className="min-w-0 basis-full text-xs text-fg-muted sm:ml-2 sm:basis-auto">An admin said these are two plants.</p>}
+        {pair.apart && <p className="min-w-0 basis-full text-xs text-text-2 sm:ml-2 sm:basis-auto">An admin said these are two plants.</p>}
       </div>
       <ErrorNote error={apart.error} className="mt-2" />
       <ConfirmDialog
@@ -193,7 +193,7 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
         description={
           <>
             <p>
-              <span className="font-medium text-fg-default">{gone.name}</span> into <span className="font-medium text-fg-default">{kept.name}</span>
+              <span className="font-medium text-text-1">{gone.name}</span> into <span className="font-medium text-text-1">{kept.name}</span>
               {kept.company ? ` (${kept.company})` : ''}.
             </p>
             <p>
@@ -262,7 +262,7 @@ export function PairsView({ list }: { list: PairList }) {
 
   return (
     <div data-pairs-view={list}>
-      <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-fg-muted transition-colors hover:text-fg-default">
+      <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-text-2 transition-colors hover:text-text-1">
         <ArrowLeft className="h-4 w-4" />
         Back
       </Link>
@@ -275,7 +275,7 @@ export function PairsView({ list }: { list: PairList }) {
           <CardNote>{words.none}</CardNote>
         ) : (
           <>
-            <p className="mb-3 text-xs tabular-nums text-fg-muted" data-pairs-count>
+            <p className="mb-3 text-xs tabular-nums text-text-2" data-pairs-count>
               {pairs.length === 0
                 ? `${total.toLocaleString('en-US')} in all.`
                 : `${(at + 1).toLocaleString('en-US')} to ${(at + pairs.length).toLocaleString('en-US')} of ${total.toLocaleString('en-US')}`}
@@ -327,11 +327,11 @@ export function PairsWaiting() {
     <PageSection title={LISTS.id.title} description="Two rows that carry one registry id, which the cleanup was not sure are one plant.">
       <Link
         to={pairsPath('id')}
-        className={cn(cardClass, 'flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-bg-elevated')}
+        className={cn(cardClass, 'flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-surface-hover')}
         data-pairs-waiting
       >
-        <span className="min-w-0 text-sm font-medium text-fg-default">Open the list</span>
-        <span className="shrink-0 text-xs tabular-nums text-fg-muted">
+        <span className="min-w-0 text-sm font-medium text-text-1">Open the list</span>
+        <span className="shrink-0 text-xs tabular-nums text-text-2">
           {total.toLocaleString('en-US')} {total === 1 ? 'pair' : 'pairs'}
         </span>
       </Link>

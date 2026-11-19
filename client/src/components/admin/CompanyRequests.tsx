@@ -29,7 +29,7 @@ export default function CompanyRequests() {
       description={
         <>
           Asked for by people who could not find them. Add the record under{' '}
-          <Link to="/admin?tab=data" className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+          <Link to="/admin?tab=data" className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
             Data
           </Link>
           , then answer the request here.
@@ -60,7 +60,7 @@ function RequestRow({ request }: { request: AdminCompanyRequest }) {
   return (
     <li className={cn(rowClass, 'space-y-3 p-4')} data-company-request-email={request.userEmail}>
       <div className="min-w-0">
-        <p className="break-words text-sm font-medium text-fg-default">
+        <p className="break-words text-sm font-medium text-text-1">
           {plant ? (
             <>
               Plant for{' '}
@@ -72,7 +72,7 @@ function RequestRow({ request }: { request: AdminCompanyRequest }) {
             request.name
           )}
         </p>
-        <p className="mt-0.5 break-words text-sm text-fg-muted">
+        <p className="mt-0.5 break-words text-sm text-text-2">
           {request.place}
           {request.website && (
             <>
@@ -83,7 +83,7 @@ function RequestRow({ request }: { request: AdminCompanyRequest }) {
             </>
           )}
         </p>
-        <p className="mt-1 break-words text-xs text-fg-muted">
+        <p className="mt-1 break-words text-xs text-text-2">
           {request.userName}
           <Dot />
           <span className="break-all">{request.userEmail}</span>

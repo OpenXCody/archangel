@@ -196,7 +196,7 @@ export default function Jobs() {
       ) : nothingOpen ? null : (
         <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div className="relative min-w-0">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" />
             <input
               type="text"
               role="searchbox"
@@ -207,14 +207,14 @@ export default function Jobs() {
               autoComplete="off"
               value={term}
               onChange={(e) => setTerm(e.target.value)}
-              className={cn(fieldClass, 'h-11 bg-bg-surface pl-9 pr-10')}
+              className={cn(fieldClass, 'h-11 pl-9 pr-10')}
             />
             {term && (
               <button
                 type="button"
                 aria-label="Clear search"
                 onClick={() => setTerm('')}
-                className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted hover:text-fg-default"
+                className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-text-2 hover:text-text-1"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -276,9 +276,9 @@ export default function Jobs() {
                     <Link to="/explore?tab=occupations">Browse careers</Link>
                   </Button>
                   {postJob && (
-                    <p className="text-sm text-fg-muted" data-post-a-job>
+                    <p className="text-sm text-text-2" data-post-a-job>
                       Hiring?{' '}
-                      <Link to={postJob.to} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-fg-default">
+                      <Link to={postJob.to} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-text-1">
                         Post a job
                       </Link>
                     </p>
@@ -290,11 +290,11 @@ export default function Jobs() {
         )
       ) : (
         <>
-          <p className="mb-3 flex items-center gap-2 text-sm text-fg-muted" role="status">
+          <p className="mb-3 flex items-center gap-2 text-sm text-text-2" role="status">
             {summary}
             {jobs.isFetching && !jobs.isFetchingNextPage && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Updating" />}
             {filtered && (
-              <button type="button" onClick={clearFilters} className="shrink-0 whitespace-nowrap font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+              <button type="button" onClick={clearFilters} className="shrink-0 whitespace-nowrap font-medium text-text-1 underline underline-offset-4 hover:no-underline">
                 Clear filters
               </button>
             )}
@@ -323,16 +323,16 @@ export default function Jobs() {
                 {jobs.isFetchingNextPage && <Loader2 className="animate-spin" />}
                 Show more
               </Button>
-              <p className="text-sm text-fg-muted" data-jobs-shown>
+              <p className="text-sm text-text-2" data-jobs-shown>
                 {shown.length.toLocaleString('en-US')} of {counted}
               </p>
             </div>
           )}
           {/* The one place a visiting employer learns they can list a job here. A seeker is not asked. */}
           {postJob && (
-            <p className="mt-6 text-sm text-fg-muted" data-post-a-job>
+            <p className="mt-6 text-sm text-text-2" data-post-a-job>
               {postJob.visitor && 'Hiring? '}
-              <Link to={postJob.to} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-fg-default">
+              <Link to={postJob.to} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-text-1">
                 Post a job
               </Link>
             </p>
@@ -353,13 +353,13 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
     <Link
       to={`/jobs/${job.id}`}
       state={from ? { from } : undefined}
-      className={cn(cardClass, 'flex h-full flex-col p-4 transition-colors hover:border-border-strong hover:bg-bg-elevated')}
+      className={cn(cardClass, 'flex h-full flex-col p-4 transition-colors hover:border-line-strong hover:bg-surface-hover')}
     >
       <div className="flex items-start justify-between gap-3">
-        <h2 className="min-w-0 break-words text-base font-medium text-fg-default">{job.title}</h2>
-        <span className="shrink-0 whitespace-nowrap pt-0.5 text-xs text-fg-muted">{job.undated ? 'Listed' : 'Posted'} {formatAgo(job.postedAt)}</span>
+        <h2 className="min-w-0 break-words text-base font-medium text-text-1">{job.title}</h2>
+        <span className="shrink-0 whitespace-nowrap pt-0.5 text-xs text-text-2">{job.undated ? 'Listed' : 'Posted'} {formatAgo(job.postedAt)}</span>
       </div>
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-muted">
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-2">
         <span className="inline-flex min-w-0 items-center gap-1.5">
           <CompanyLogo name={job.companyName} domain={job.companyDomain} size={20} className="rounded" />
           <span className="min-w-0 truncate">{job.companyName}</span>
@@ -373,7 +373,7 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
       </div>
       {/* A job from a company's careers site that states no pay says nothing about pay. */}
       {(job.payMin !== null || job.payMax !== null) && (
-        <p className="mt-3 text-sm font-semibold text-fg-default">{formatPay(job.payMin, job.payMax, job.payPeriod)}</p>
+        <p className="mt-3 text-sm font-semibold text-text-1">{formatPay(job.payMin, job.payMax, job.payPeriod)}</p>
       )}
       {(job.employmentType || job.shift || job.occupationTitle !== job.title) && (
         <div className="mt-2.5 flex flex-wrap gap-1.5">
@@ -385,7 +385,7 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
               {job.shift}
             </Chip>
           )}
-          {job.occupationTitle !== job.title && <Chip className="border-transparent bg-bg-elevated text-fg-muted">{job.occupationTitle}</Chip>}
+          {job.occupationTitle !== job.title && <Chip className="border-transparent bg-surface text-text-2">{job.occupationTitle}</Chip>}
         </div>
       )}
     </Link>
@@ -396,7 +396,7 @@ function Chip({ children, className }: { children: React.ReactNode; className?: 
   return (
     <span
       className={cn(
-        'inline-flex max-w-full items-center gap-1 rounded-full border border-border-strong px-2.5 py-0.5 text-xs text-fg-muted',
+        'inline-flex max-w-full items-center gap-1 rounded-full border border-line-strong px-2.5 py-0.5 text-xs text-text-2',
         className
       )}
     >

@@ -70,10 +70,10 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           <>
             <GoalButton occupationId={data.id} />
             {whole && (
-              <span className="inline-flex items-center gap-2 text-sm text-fg-muted" data-held-count>
+              <span className="inline-flex items-center gap-2 text-sm text-text-2" data-held-count>
                 <ShareRing share={whole} className="h-5 w-5" />
                 <span>
-                  You have <span className="font-medium tabular-nums text-fg-default">{whole.held}</span> of {whole.total} {whole.total === 1 ? 'skill' : 'skills'}
+                  You have <span className="font-medium tabular-nums text-text-1">{whole.held}</span> of {whole.total} {whole.total === 1 ? 'skill' : 'skills'}
                 </span>
               </span>
             )}
@@ -99,7 +99,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
               Path not written yet.
             </LadderAlone>
           ) : (
-            <p className="text-sm text-fg-muted">Path not written yet.</p>
+            <p className="text-sm text-text-2">Path not written yet.</p>
           )}
         </DetailSection>
       )}
@@ -110,11 +110,11 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           note={
             hasPath && data.pathStatus === 'draft' ? (
               // Honest without undermining the page: one quiet word, with the sentence for anyone who asks.
-              <details className="group text-xs text-fg-soft" data-draft-path>
-                <summary className="inline-flex min-h-6 cursor-pointer list-none items-center underline decoration-dotted underline-offset-4 hover:text-fg-muted [&::-webkit-details-marker]:hidden">
+              <details className="group text-xs text-text-3" data-draft-path>
+                <summary className="inline-flex min-h-6 cursor-pointer list-none items-center underline decoration-dotted underline-offset-4 hover:text-text-2 [&::-webkit-details-marker]:hidden">
                   Draft
                 </summary>
-                <p className="mt-1 max-w-prose text-sm text-fg-muted">A starting point that has not been reviewed by a person yet.</p>
+                <p className="mt-1 max-w-prose text-sm text-text-2">A starting point that has not been reviewed by a person yet.</p>
               </details>
             ) : undefined
           }
@@ -134,8 +134,8 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           )}
           {path.unplaced.length > 0 && <SkillGroupBox name={UNPLACED} skills={path.unplaced} marks={marks} className={hasPath ? 'mt-4' : undefined} />}
           {canSignIn && (
-            <p className="mt-4 text-sm text-fg-soft">
-              <Link to={signInPath(`${pathname}${search}`)} className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
+            <p className="mt-4 text-sm text-text-3">
+              <Link to={signInPath(`${pathname}${search}`)} className="text-text-2 underline underline-offset-2 hover:text-text-1">
                 Sign in
               </Link>{' '}
               to mark the skills you have.
@@ -208,7 +208,7 @@ const VERSIONS_SHOWN = 8;
 
 /** A place that opens on the map: the one thing on these pages drawn as a chip. */
 const placeChipClass =
-  'inline-flex min-h-11 items-center rounded-md border border-border-strong px-3 text-sm text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default sm:min-h-9';
+  'inline-flex min-h-11 items-center rounded-md border border-line-strong px-3 text-sm text-text-2 transition-colors hover:bg-surface-hover hover:text-text-1 sm:min-h-9';
 
 /**
  * Where a career's work is done: the industries that typically have it, with
@@ -222,14 +222,14 @@ function WhereWorkIsDone({ data }: { data: OccupationDetail }) {
   return (
     <DetailSection id="where" title="Where this work is done" column={data.everywhere ? undefined : 'Plants'}>
       {data.everywhere ? (
-        <p className="text-sm text-fg-muted">Plants of every industry.</p>
+        <p className="text-sm text-text-2">Plants of every industry.</p>
       ) : (
         <>
           <IndustryRows industries={industries} />
-          {data.elsewhereToo && <p className="mt-2 text-xs text-fg-soft">And plants of every other industry.</p>}
+          {data.elsewhereToo && <p className="mt-2 text-xs text-text-3">And plants of every other industry.</p>}
           {states.length > 0 && (
             <div className="mt-4">
-              <p className="mb-2 text-xs text-fg-soft">Most plants in these industries</p>
+              <p className="mb-2 text-xs text-text-3">Most plants in these industries</p>
               <div className="flex flex-wrap gap-2">
                 {states.map((state) => (
                   <Link key={state.code} to={`/map?state=${state.code}`} className={placeChipClass}>

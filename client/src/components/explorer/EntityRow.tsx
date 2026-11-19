@@ -51,15 +51,15 @@ function Row({ to, name, summary, facts, leading, factsLeading, factsEnd, onMous
     <Link
       to={to}
       onMouseEnter={onMouseEnter}
-      className={`group flex h-full min-h-[4.25rem] min-w-0 items-center gap-4 border-b border-border-subtle py-3.5 ${focusRing}`}
+      className={`group flex h-full min-h-[4.25rem] min-w-0 items-center gap-4 border-b border-line py-3.5 ${focusRing}`}
     >
       {leading}
       <div className="min-w-0 flex-1">
-        <h3 className="truncate text-base font-medium leading-6 text-fg-default underline-offset-4 group-hover:underline">{name}</h3>
+        <h3 className="truncate text-base font-medium leading-6 text-text-1 underline-offset-4 group-hover:underline">{name}</h3>
         {/* A phone has room for eight words a line: there the description gets two. */}
-        {summary && <p className="line-clamp-2 text-sm leading-6 text-fg-muted sm:line-clamp-1">{summary}</p>}
+        {summary && <p className="line-clamp-2 text-sm leading-6 text-text-2 sm:line-clamp-1">{summary}</p>}
         {(factsText || factsLeading || factsEnd) && (
-          <p className="flex min-w-0 items-center gap-2 text-sm leading-6 text-fg-soft">
+          <p className="flex min-w-0 items-center gap-2 text-sm leading-6 text-text-3">
             {factsLeading}
             <span className="min-w-0 truncate">{factsText}</span>
             {factsEnd && <span className="-ml-1 shrink-0 whitespace-nowrap">{factsText ? `· ${factsEnd}` : factsEnd}</span>}
@@ -162,7 +162,7 @@ const LINES: Record<BrowseTab, 2 | 3> = {
 /** A row's placeholder while its list loads: the same height and shape. */
 export function EntityRowSkeleton({ type, index = 0 }: { type: BrowseTab; index?: number }) {
   return (
-    <div className="flex min-h-[4.25rem] items-center gap-4 border-b border-border-subtle py-3.5">
+    <div className="flex min-h-[4.25rem] items-center gap-4 border-b border-line py-3.5">
       {type === 'companies' && <Skeleton className="h-10 w-10 shrink-0 rounded-lg" />}
       <div className="min-w-0 flex-1">
         <div className="flex h-6 items-center">

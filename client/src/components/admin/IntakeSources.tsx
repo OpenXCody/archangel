@@ -42,7 +42,7 @@ function SourceRow({ source }: { source: IntakeSource }) {
   return (
     <li className={cn(rowClass, 'p-4')} data-intake-source={source.slug}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <p className="min-w-0 break-words text-sm font-medium text-fg-default">
+        <p className="min-w-0 break-words text-sm font-medium text-text-1">
           {source.url ? (
             <a href={source.url} target="_blank" rel="noopener noreferrer" className="underline-offset-4 hover:underline">
               {source.name}
@@ -51,9 +51,9 @@ function SourceRow({ source }: { source: IntakeSource }) {
             source.name
           )}
         </p>
-        <p className="shrink-0 text-xs tabular-nums text-fg-muted">{count(source.staged, 'record', 'records')}</p>
+        <p className="shrink-0 text-xs tabular-nums text-text-2">{count(source.staged, 'record', 'records')}</p>
       </div>
-      <p className="mt-0.5 break-words text-xs text-fg-muted">
+      <p className="mt-0.5 break-words text-xs text-text-2">
         {source.publisher}
         {source.publisher && <Dot />}
         {source.fill === 'empty' ? 'Fills only what a plant lacks' : 'Replaces older and lower-ranked values'}
@@ -66,7 +66,7 @@ function SourceRow({ source }: { source: IntakeSource }) {
             <li
               key={run.id}
               // The latest run is the one that describes the data as it is: earlier ones step back.
-              className={cn('flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs', index === 0 ? 'text-fg-default' : 'text-fg-muted')}
+              className={cn('flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs', index === 0 ? 'text-text-1' : 'text-text-2')}
               data-intake-run={run.id}
             >
               <span className="w-24 shrink-0">{formatDayCapital(run.startedAt)}</span>

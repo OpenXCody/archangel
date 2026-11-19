@@ -5,7 +5,7 @@ import { textButtonClass } from '../account/parts';
 const LINKS = /(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+\.[a-z]{2,}[^\s<>"]*|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})/g;
 /** A description longer than this opens folded. */
 const FOLD_AT = 1200;
-const linkClass = 'break-all text-fg-default underline underline-offset-4 hover:no-underline';
+const linkClass = 'break-all text-text-1 underline underline-offset-4 hover:no-underline';
 
 /** The text with its addresses made into links. Everything else stays text: nothing in it is run. */
 function withLinks(text: string): ReactNode[] {

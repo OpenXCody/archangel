@@ -88,9 +88,9 @@ export default function QualityTable() {
         type="button"
         onClick={() => choose(key)}
         className={cn(
-          'flex min-h-11 w-full items-end whitespace-normal px-2.5 pb-2 pt-3 text-[11px] uppercase leading-tight tracking-wider transition-colors hover:text-fg-default sm:min-h-9 sm:whitespace-nowrap',
+          'flex min-h-11 w-full items-end whitespace-normal px-2.5 pb-2 pt-3 text-[11px] uppercase leading-tight tracking-wider transition-colors hover:text-text-1 sm:min-h-9 sm:whitespace-nowrap',
           key === 'state' ? 'justify-start text-left' : 'justify-end text-right',
-          sort.key === key ? 'text-fg-default' : 'text-fg-muted',
+          sort.key === key ? 'text-text-1' : 'text-text-2',
           focusRing
         )}
       >
@@ -116,14 +116,14 @@ export default function QualityTable() {
           <div className={cn(cardClass, 'overflow-x-auto')} data-quality-table>
             <table className="w-full min-w-[40rem] border-collapse whitespace-nowrap text-sm tabular-nums">
               <thead>
-                <tr className="border-b border-border-subtle">
-                  {heading('state', 'State', 'sticky left-0 z-10 bg-bg-surface')}
+                <tr className="border-b border-line">
+                  {heading('state', 'State', 'sticky left-0 z-10 bg-bg')}
                   {COLUMNS.map((column) => heading(column.key, column.label))}
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-border-strong font-medium text-fg-default" data-quality-total>
-                  <th scope="row" className="sticky left-0 z-10 bg-bg-surface px-2.5 py-2.5 text-left font-medium">
+                <tr className="border-b border-line-strong font-medium text-text-1" data-quality-total>
+                  <th scope="row" className="sticky left-0 z-10 bg-bg px-2.5 py-2.5 text-left font-medium">
                     <span className="sm:hidden">All</span>
                     <span className="hidden sm:inline">All states</span>
                   </th>
@@ -140,8 +140,8 @@ export default function QualityTable() {
                   ))}
                 </tr>
                 {rows.map((row) => (
-                  <tr key={row.state ?? 'none'} className="border-b border-border-subtle last:border-b-0" data-quality-row={row.state ?? ''}>
-                    <th scope="row" className="sticky left-0 z-10 max-w-[9rem] truncate bg-bg-surface px-2.5 py-2 text-left font-normal text-fg-default">
+                  <tr key={row.state ?? 'none'} className="border-b border-line last:border-b-0" data-quality-row={row.state ?? ''}>
+                    <th scope="row" className="sticky left-0 z-10 max-w-[9rem] truncate bg-bg px-2.5 py-2 text-left font-normal text-text-1">
                       {row.state ? (
                         <>
                           <span className="sm:hidden">{row.state}</span>
@@ -154,14 +154,14 @@ export default function QualityTable() {
                     {COLUMNS.map((column) => {
                       const value = row[column.key];
                       // Nothing there reads quieter than something; the plant count leads.
-                      const tone = column.key === 'plants' ? 'text-fg-default' : value === 0 ? 'text-fg-soft' : 'text-fg-muted';
+                      const tone = column.key === 'plants' ? 'text-text-1' : value === 0 ? 'text-text-3' : 'text-text-2';
                       return (
                         <td key={column.key} className={cn('px-2.5 py-2 text-right', tone)}>
                           {/* The count opens the plants it counts, so they can be worked through. */}
                           {column.key === 'duplicates' && value > 0 ? (
                             <Link
                               to={pairsPath('spot', row.state ?? 'none')}
-                              className={cn('underline underline-offset-4 hover:text-fg-default', focusRing)}
+                              className={cn('underline underline-offset-4 hover:text-text-1', focusRing)}
                               aria-label={`Plants on one spot in ${row.state ? stateName(row.state) : 'no state'}`}
                               data-quality-duplicates={row.state ?? ''}
                             >
@@ -178,10 +178,10 @@ export default function QualityTable() {
               </tbody>
             </table>
           </div>
-          <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-2 text-xs leading-relaxed text-fg-muted sm:grid-cols-2" data-quality-definitions>
+          <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-2 text-xs leading-relaxed text-text-2 sm:grid-cols-2" data-quality-definitions>
             {definitions(total).map(([term, meaning]) => (
               <div key={term} className="min-w-0">
-                <dt className="inline text-fg-default">{term}: </dt>
+                <dt className="inline text-text-1">{term}: </dt>
                 <dd className="inline">{meaning}</dd>
               </div>
             ))}

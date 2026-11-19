@@ -174,7 +174,7 @@ export default function JobDetail() {
       </DetailHeader>
 
       {lostAccess && !manages && (
-        <p role="status" className={cn(cardClass, 'mt-6 p-4 text-sm text-fg-default')} data-lost-access>
+        <p role="status" className={cn(cardClass, 'mt-6 p-4 text-sm text-text-1')} data-lost-access>
           {signedIn ? (
             `You no longer manage jobs for ${data.job.companyName.replace(/\.$/, '')}.`
           ) : (
@@ -199,7 +199,7 @@ export default function JobDetail() {
         // The company's view comes first: the job's state, then who applied.
         <>
           <ManageSection job={data.job} />
-          <DetailSection title="Listing" description="The job as applicants see it." className="mt-10 border-t border-border-subtle pt-8">
+          <DetailSection title="Listing" description="The job as applicants see it." className="mt-10 border-t border-line pt-8">
             {terms}
           </DetailSection>
         </>
@@ -213,7 +213,7 @@ export default function JobDetail() {
 
       {!data.job.fromSource && data.job.description && (
         <DetailSection title="About the job">
-          <div className={cn(cardClass, 'p-4 text-sm leading-relaxed text-fg-default sm:p-6')}>
+          <div className={cn(cardClass, 'p-4 text-sm leading-relaxed text-text-1 sm:p-6')}>
             <JobDescription text={data.job.description} />
           </div>
         </DetailSection>
@@ -237,10 +237,10 @@ export default function JobDetail() {
                 />
               ) : (
                 !signedIn && (
-                  <p className="mb-3 text-sm text-fg-muted">
+                  <p className="mb-3 text-sm text-text-2">
                     <Link
                       to={signInPath(`/jobs/${data.job.id}`)}
-                      className="font-medium text-fg-default underline underline-offset-4 hover:no-underline"
+                      className="font-medium text-text-1 underline underline-offset-4 hover:no-underline"
                     >
                       Sign in
                     </Link>{' '}
@@ -287,15 +287,15 @@ export default function JobDetail() {
 function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClosed?: boolean }) {
   const closed = job.status === 'closed';
   return (
-    <div className={cn(cardClass, 'mt-6 flex items-start gap-3 border-warning/30 p-4')} role="status" data-job-closed>
-      <Lock className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-      <p className="min-w-0 break-words text-sm text-fg-default">
+    <div className={cn(cardClass, 'mt-6 flex items-start gap-3 p-4')} role="status" data-job-closed>
+      <Lock className="mt-0.5 h-4 w-4 shrink-0 text-text-2" />
+      <p className="min-w-0 break-words text-sm text-text-1">
         {justClosed
           ? 'This job has just closed and no longer takes applications.'
           : closed
             ? 'This job is closed and no longer takes applications.'
             : 'This job has expired and no longer takes applications.'}
-        {closed && job.closedReason && <span className="text-fg-muted"> Reason: {job.closedReason}</span>}
+        {closed && job.closedReason && <span className="text-text-2"> Reason: {job.closedReason}</span>}
       </p>
     </div>
   );
@@ -304,8 +304,8 @@ function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClo
 function Term({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-fg-muted">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-medium text-fg-default">{children}</dd>
+      <dt className="text-xs text-text-2">{label}</dt>
+      <dd className="mt-0.5 break-words text-sm font-medium text-text-1">{children}</dd>
     </div>
   );
 }
@@ -338,7 +338,7 @@ function TermsCard({ job, showApplications }: { job: JobDetailData; showApplicat
           </div>
         )}
       </dl>
-      <ul className="border-t border-border-subtle">
+      <ul className="border-t border-line">
         <RecordRow to={`/companies/${job.companyId}`} label="Company" title={formatCompanyName(job.companyName)} />
         <RecordRow to={`/factories/${job.factoryId}`} label="Plant" title={formatFactoryName(job.factoryName)} />
         {/* Where the company has its own version of the career, the job leads to that. */}
@@ -417,12 +417,12 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
     return (
       <div className={cn(cardClass, 'flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-6')}>
         <div className="min-w-0 flex-1 basis-48">
-          <p className="text-sm font-medium text-fg-default">
+          <p className="text-sm font-medium text-text-1">
             {myApplication.status === 'withdrawn' ? 'You withdrew this application.' : `You applied ${formatDay(myApplication.createdAt)}.`}
           </p>
-          <p className="mt-0.5 text-sm text-fg-muted">
+          <p className="mt-0.5 text-sm text-text-2">
             Follow it on{' '}
-            <Link to="/me" className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+            <Link to="/me" className="font-medium text-text-1 underline underline-offset-4 hover:no-underline">
               your profile
             </Link>
             .
@@ -441,7 +441,7 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
     const host = hostOf(job.applyUrl);
     return (
       <div className={cn(cardClass, 'p-4 sm:p-6')}>
-        <p className="mb-3 text-sm text-fg-muted">
+        <p className="mb-3 text-sm text-text-2">
           {job.companyName} takes applications for this job on its own website{host ? ` (${host})` : ''}.
         </p>
         <Button asChild className="h-11 w-full rounded-lg sm:w-auto">
@@ -458,14 +458,14 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
     const here = `/jobs/${job.id}`;
     return (
       <div className={cn(cardClass, 'p-4 sm:p-6')}>
-        <p className="mb-3 text-sm text-fg-muted">Apply here with your name, email and the skills on your profile.</p>
+        <p className="mb-3 text-sm text-text-2">Apply here with your name, email and the skills on your profile.</p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <Button asChild className="h-11 w-full rounded-lg sm:w-auto">
             <Link to={signInPath(here)}>Sign in to apply</Link>
           </Button>
           <Link
             to={signInPath(here, 'create')}
-            className="text-sm font-medium text-fg-default underline underline-offset-4 hover:no-underline"
+            className="text-sm font-medium text-text-1 underline underline-offset-4 hover:no-underline"
           >
             Create an account
           </Link>
@@ -581,9 +581,9 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
 
   return (
     <div className={cn(cardClass, 'p-4 sm:p-6')}>
-      <p className="text-sm font-medium text-fg-default" data-job-state={closed ? 'closed' : job.isOpen ? 'open' : 'expired'}>
+      <p className="text-sm font-medium text-text-1" data-job-state={closed ? 'closed' : job.isOpen ? 'open' : 'expired'}>
         {closed ? 'Closed' : job.isOpen ? 'Open' : 'Expired'}
-        <span className="font-normal text-fg-muted">
+        <span className="font-normal text-text-2">
           {closed
             ? job.closedReason
               ? `: ${job.closedReason}`
@@ -593,7 +593,7 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
               : ` ${formatDay(job.expiresAt)}`}
         </span>
       </p>
-      <p className="mt-0.5 text-sm text-fg-muted">
+      <p className="mt-0.5 text-sm text-text-2">
         {listed
           ? 'Closing takes it off the jobs list. People who applied can still see it.'
           : 'Reopening lists the job again for 60 days.'}
@@ -672,7 +672,7 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
             // Escape leaves the job open, as Cancel does.
             if (event.key === 'Escape' && !update.isPending) setClosing(false);
           }}
-          className="mt-4 space-y-3 border-t border-border-subtle pt-4"
+          className="mt-4 space-y-3 border-t border-line pt-4"
         >
           <Field label="Reason" htmlFor="close-reason" optional hint="Shown to people who applied, e.g. “Position filled”.">
             <input

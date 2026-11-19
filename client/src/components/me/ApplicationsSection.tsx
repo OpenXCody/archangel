@@ -104,21 +104,21 @@ function ApplicationRow({ application, email }: { application: MyApplication; em
           <Link
             ref={jobRef}
             to={`/jobs/${application.jobId}`}
-            className="block break-words text-sm font-medium text-fg-default underline-offset-4 hover:underline"
+            className="block break-words text-sm font-medium text-text-1 underline-offset-4 hover:underline"
           >
             {application.jobTitle}
           </Link>
-          <p className="mt-0.5 break-words text-sm text-fg-muted">
+          <p className="mt-0.5 break-words text-sm text-text-2">
             {application.companyName}
             {place && ` · ${place}`}
           </p>
           {/* Its history in one line; the stage it is at now is the bright one. */}
-          <p className="mt-1.5 break-words text-xs text-fg-muted" data-application-history>
+          <p className="mt-1.5 break-words text-xs text-text-2" data-application-history>
             {application.events.map((event, index) => (
               <Fragment key={`${event.at}:${event.status}`}>
                 {index > 0 && ' · '}
                 {/* A stage and its date stay on one line together. */}
-                <span className={cn('whitespace-nowrap', index === application.events.length - 1 && 'text-fg-default')}>
+                <span className={cn('whitespace-nowrap', index === application.events.length - 1 && 'text-text-1')}>
                   {applicationStatusLabel(event.status)} {formatDay(event.at)}
                 </span>
               </Fragment>
@@ -126,7 +126,7 @@ function ApplicationRow({ application, email }: { application: MyApplication; em
             {application.jobStatus === 'closed' && <span>{application.events.length > 0 && ' · '}This job has closed</span>}
           </p>
           {CONTACT_STAGES.has(application.status) && (
-            <p className="mt-1.5 break-words text-sm text-fg-default" data-application-next>
+            <p className="mt-1.5 break-words text-sm text-text-1" data-application-next>
               {application.companyName} will contact you at {email}.
             </p>
           )}
@@ -144,7 +144,7 @@ function ApplicationRow({ application, email }: { application: MyApplication; em
         >
           {confirming ? (
             <>
-              <span className="min-w-0 flex-1 basis-56 text-sm text-fg-muted" id={`withdraw-${application.id}`}>
+              <span className="min-w-0 flex-1 basis-56 text-sm text-text-2" id={`withdraw-${application.id}`}>
                 Withdraw this application? You can apply again while the job is open.
               </span>
               <div className="flex shrink-0 gap-2" role="group" aria-labelledby={`withdraw-${application.id}`}>

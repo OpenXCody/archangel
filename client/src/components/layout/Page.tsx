@@ -108,7 +108,7 @@ export function PageHeader({ title, description, eyebrow, icon: Icon, iconClassN
       {backTo && (
         <Link
           to={backTo.to}
-          className="-mt-2 mb-2 inline-flex min-h-11 items-center gap-2 pr-2 text-sm text-fg-muted transition-colors hover:text-fg-default"
+          className="-mt-2 mb-2 inline-flex min-h-11 items-center gap-2 pr-2 text-sm text-text-2 transition-colors hover:text-text-1"
         >
           <ArrowLeft className="h-4 w-4" />
           {backTo.label}
@@ -117,18 +117,18 @@ export function PageHeader({ title, description, eyebrow, icon: Icon, iconClassN
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           {Icon && (
-            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg-elevated">
-              <Icon className={cn('h-5 w-5', iconClassName ?? 'text-fg-muted')} />
+            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface">
+              <Icon className={cn('h-5 w-5', iconClassName ?? 'text-text-2')} />
             </div>
           )}
           <div className="min-w-0">
             {eyebrow && (
-              <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">{eyebrow}</div>
+              <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">{eyebrow}</div>
             )}
-            <h1 className="text-2xl font-semibold tracking-tight text-fg-default sm:text-3xl [text-wrap:balance]">
+            <h1 className="text-2xl font-semibold tracking-tight text-text-1 sm:text-3xl [text-wrap:balance]">
               {title}
             </h1>
-            {description && <p className="mt-2 max-w-prose text-sm text-fg-muted sm:text-base">{description}</p>}
+            {description && <p className="mt-2 max-w-prose text-sm text-text-2 sm:text-base">{description}</p>}
           </div>
         </div>
         {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
@@ -139,8 +139,8 @@ export function PageHeader({ title, description, eyebrow, icon: Icon, iconClassN
 
 // ─── The detail page ───────────────────────────────────────────────────────
 
-const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
-const BACK = cn('-ml-0.5 inline-flex min-h-11 items-center gap-2 pr-2 text-sm text-fg-muted transition-colors hover:text-fg-default', focusRing);
+const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3';
+const BACK = cn('-ml-0.5 inline-flex min-h-11 items-center gap-2 pr-2 text-sm text-text-2 transition-colors hover:text-text-1', focusRing);
 
 /**
  * The way back at the top of a page. With `to` it is a link to a named place
@@ -168,7 +168,7 @@ export function BackLink({ to, label = 'Back', fallback = '/explore' }: { to?: s
 
 /** The look of a detail page's one action when it is a plain button or link. */
 export const detailActionClass = cn(
-  'inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border-strong px-4 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated sm:h-10',
+  'inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-line-strong px-4 text-sm font-medium text-text-1 transition-colors hover:bg-surface-hover sm:h-10',
   focusRing
 );
 
@@ -206,10 +206,10 @@ export function DetailHeader({ back, kind, title, mark, qualifier, description, 
       </p>
       <div className="flex min-w-0 items-center gap-3">
         {mark}
-        <h1 className="min-w-0 break-words text-2xl font-semibold tracking-tight text-fg-default sm:text-3xl [text-wrap:balance]">{title}</h1>
+        <h1 className="min-w-0 break-words text-2xl font-semibold tracking-tight text-text-1 sm:text-3xl [text-wrap:balance]">{title}</h1>
       </div>
       {qualifier}
-      {description && <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-fg-muted">{description}</p>}
+      {description && <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-text-2">{description}</p>}
       {children}
       {action && (
         <div className="mt-4 flex flex-wrap items-center gap-3 empty:hidden" data-detail-action>
@@ -222,7 +222,7 @@ export function DetailHeader({ back, kind, title, mark, qualifier, description, 
 
 /** A quiet line of facts in a detail page's heading block. */
 export function DetailFacts({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn('mt-2 break-words text-sm text-fg-muted', className)}>{children}</p>;
+  return <p className={cn('mt-2 break-words text-sm text-text-2', className)}>{children}</p>;
 }
 
 interface DetailSectionProps {
@@ -247,22 +247,22 @@ export function DetailSection({ id, title, note, column, action, description, cl
     <section id={id} className={cn('mt-8 scroll-mt-20', className)}>
       <div className={cn('flex items-baseline justify-between gap-3', description ? 'mb-1' : 'mb-3')}>
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-fg-soft">{title}</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wider text-text-3">{title}</h2>
           {note}
         </div>
-        {column ? <span className="shrink-0 pr-4 text-[11px] uppercase tracking-wider text-fg-soft">{column}</span> : action}
+        {column ? <span className="shrink-0 pr-4 text-[11px] uppercase tracking-wider text-text-3">{column}</span> : action}
       </div>
-      {description && <p className="mb-3 text-sm text-fg-muted">{description}</p>}
+      {description && <p className="mb-3 text-sm text-text-2">{description}</p>}
       {children}
     </section>
   );
 }
 
 /** A link at the right of a section's heading. */
-export const sectionLinkClass = cn('shrink-0 text-sm text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default', focusRing);
+export const sectionLinkClass = cn('shrink-0 text-sm text-text-2 underline underline-offset-4 transition-colors hover:text-text-1', focusRing);
 
 /** The card a list of records sits in. */
-export const recordListClass = 'overflow-hidden rounded-xl border border-border-subtle bg-bg-surface';
+export const recordListClass = 'overflow-hidden rounded-xl border border-line';
 
 export function RecordList({ children, className, ...rest }: { children: ReactNode; className?: string } & Record<`data-${string}`, string | undefined>) {
   return (
@@ -307,29 +307,29 @@ export function RecordRow({
   ...rest
 }: RecordRowProps & Record<`data-${string}`, string | undefined>) {
   return (
-    <li className={cn('flex items-stretch border-b border-border-subtle last:border-b-0', className)} {...rest}>
+    <li className={cn('flex items-stretch border-b border-line last:border-b-0', className)} {...rest}>
       {control && <span className="flex shrink-0 items-center">{control}</span>}
       <Link
         to={to}
         state={state}
         className={cn(
-          'group flex min-h-[52px] min-w-0 flex-1 items-center gap-3 py-2.5 pr-4 transition-colors hover:bg-bg-elevated focus-visible:bg-bg-elevated focus-visible:outline-none',
+          'group flex min-h-[52px] min-w-0 flex-1 items-center gap-3 py-2.5 pr-4 transition-colors hover:bg-surface-hover focus-visible:bg-surface-hover focus-visible:-outline-offset-2',
           control ? 'pl-0' : 'pl-4'
         )}
       >
         {lead}
         <span className="min-w-0 flex-1">
-          {label && <span className="block text-xs text-fg-soft">{label}</span>}
-          <span className="block break-words text-sm font-medium leading-snug text-fg-default">{title}</span>
-          {subtitle && <span className="mt-0.5 line-clamp-2 break-words text-xs text-fg-muted">{subtitle}</span>}
+          {label && <span className="block text-xs text-text-3">{label}</span>}
+          <span className="block break-words text-sm font-medium leading-snug text-text-1">{title}</span>
+          {subtitle && <span className="mt-0.5 line-clamp-2 break-words text-xs text-text-2">{subtitle}</span>}
         </span>
         {figure != null ? (
-          <span className="shrink-0 text-sm tabular-nums text-fg-default">
+          <span className="shrink-0 text-sm tabular-nums text-text-1">
             {figure.toLocaleString()}
             {figureLabel && <span className="sr-only"> {figureLabel}</span>}
           </span>
         ) : (
-          <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" aria-hidden="true" />
+          <ChevronRight className="h-4 w-4 shrink-0 text-text-3 group-hover:text-text-1" aria-hidden="true" />
         )}
       </Link>
     </li>
@@ -343,7 +343,7 @@ export function ShowAll({ open, total, onToggle }: { open: boolean; total: numbe
       type="button"
       onClick={onToggle}
       aria-expanded={open}
-      className={cn('mt-1 inline-flex min-h-11 items-center text-sm font-medium text-fg-default underline underline-offset-4 hover:no-underline', focusRing)}
+      className={cn('mt-1 inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline underline-offset-4 hover:no-underline', focusRing)}
     >
       {open ? 'Show fewer' : `Show all ${total.toLocaleString()}`}
     </button>
@@ -366,8 +366,8 @@ export function PageSection({ title, description, actions, className, children }
       {(title || actions) && (
         <div className="mb-3 flex items-end justify-between gap-3">
           <div className="min-w-0">
-            {title && <h2 className="text-base font-semibold text-fg-default sm:text-lg">{title}</h2>}
-            {description && <p className="mt-0.5 text-sm text-fg-muted">{description}</p>}
+            {title && <h2 className="text-base font-semibold text-text-1 sm:text-lg">{title}</h2>}
+            {description && <p className="mt-0.5 text-sm text-text-2">{description}</p>}
           </div>
           {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
         </div>
@@ -389,12 +389,12 @@ export function EmptyState({ icon: Icon, title, description, action, className }
   return (
     <div className={cn('flex flex-col items-center justify-center px-4 py-16 text-center sm:py-20', className)}>
       {Icon && (
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-bg-elevated">
-          <Icon className="h-7 w-7 text-fg-soft" />
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface">
+          <Icon className="h-7 w-7 text-text-3" />
         </div>
       )}
-      <h2 className="text-lg font-semibold text-fg-default">{title}</h2>
-      {description && <p className="mt-2 max-w-md text-sm text-fg-muted">{description}</p>}
+      <h2 className="text-lg font-semibold text-text-1">{title}</h2>
+      {description && <p className="mt-2 max-w-md text-sm text-text-2">{description}</p>}
       {action && <div className="mt-6">{action}</div>}
     </div>
   );

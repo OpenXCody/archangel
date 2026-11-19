@@ -60,8 +60,8 @@ export default function JobPlaceFilter(props: JobPlaceFilterProps) {
   return placeSearchAvailable() ? <PlaceCombobox {...props} /> : <StateSelect {...props} />;
 }
 
-const triggerClass = 'h-11 min-w-0 rounded-lg border-border-strong bg-bg-surface px-3 text-base text-fg-default shadow-none sm:text-sm';
-const contentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-border-strong bg-bg-surface';
+const triggerClass = 'h-11 min-w-0 rounded-lg border-line-strong bg-surface px-3 text-base text-text-1 sm:text-sm';
+const contentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-line-strong bg-surface';
 
 function StateSelect({ value, onChange, states }: JobPlaceFilterProps) {
   const state = value?.kind === 'state' ? value.code : '';
@@ -196,7 +196,7 @@ function PlaceCombobox({ value, onChange, within, onWithinChange, states, homeZi
             setTerm(chosen);
           }}
         >
-          <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+          <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" />
           <input
             ref={inputRef}
             type="text"
@@ -222,10 +222,10 @@ function PlaceCombobox({ value, onChange, within, onWithinChange, states, homeZi
               e.currentTarget.select();
             }}
             onKeyDown={onKeyDown}
-            className={cn(fieldClass, 'h-11 bg-bg-surface pl-9 pr-11')}
+            className={cn(fieldClass, 'h-11 pl-9 pr-11')}
           />
           {(waiting && open) || resolving ? (
-            <Loader2 className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-fg-muted" />
+            <Loader2 className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-text-2" />
           ) : (
             value && (
               <button
@@ -236,7 +236,7 @@ function PlaceCombobox({ value, onChange, within, onWithinChange, states, homeZi
                   setTerm('');
                   inputRef.current?.focus();
                 }}
-                className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted hover:text-fg-default"
+                className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-text-2 hover:text-text-1"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -244,9 +244,9 @@ function PlaceCombobox({ value, onChange, within, onWithinChange, states, homeZi
           )}
 
           {showList && (
-            <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border-strong bg-bg-surface p-1 shadow-lg">
+            <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-line-strong bg-surface p-1">
               {searching && options.length === 0 && (
-                <p className="px-2.5 py-2.5 text-sm text-fg-muted">{waiting ? 'Looking up places' : `No place matches “${typed}”.`}</p>
+                <p className="px-2.5 py-2.5 text-sm text-text-2">{waiting ? 'Looking up places' : `No place matches “${typed}”.`}</p>
               )}
               <ul id={listId} role="listbox" aria-label="Places">
                 {options.map((option, index) => (
@@ -260,12 +260,12 @@ function PlaceCombobox({ value, onChange, within, onWithinChange, states, homeZi
                     onClick={() => choose(option)}
                     onMouseEnter={() => setActiveIndex(index)}
                     className={cn(
-                      'flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-md px-2.5 py-2 text-sm text-fg-default',
-                      index === activeIndex && 'bg-bg-elevated'
+                      'flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-md px-2.5 py-2 text-sm text-text-1',
+                      index === activeIndex && 'bg-surface-hover'
                     )}
                   >
                     <span className="min-w-0 break-words">{option.title}</span>
-                    {option.detail && <span className="shrink-0 text-xs text-fg-muted">{option.detail}</span>}
+                    {option.detail && <span className="shrink-0 text-xs text-text-2">{option.detail}</span>}
                   </li>
                 ))}
               </ul>

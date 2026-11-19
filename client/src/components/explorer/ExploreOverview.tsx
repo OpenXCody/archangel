@@ -24,12 +24,12 @@ import { publicKeys } from '../../lib/queryKeys';
 import { useExploreOverview } from '../../lib/queries';
 
 const TILE = cn(
-  'group flex min-w-0 rounded-xl border border-border-subtle bg-bg-surface transition-colors',
-  'hover:border-border-strong hover:bg-bg-elevated',
+  'group flex min-w-0 rounded-xl border border-line bg-bg transition-colors',
+  'hover:border-line-strong hover:bg-surface-hover',
   focusRing
 );
 const SECTION = 'mb-12 sm:mb-16';
-const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
+const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3';
 /** A row in a typographic list: a full-width link, tall enough to tap. */
 const LIST_ROW = cn(
   'group flex min-h-11 items-baseline justify-between gap-4 py-2.5 text-[15px] leading-snug sm:min-h-0 sm:py-1.5',
@@ -41,7 +41,7 @@ function TextLink({ to, children }: { to: string; children: ReactNode }) {
     <Link
       to={to}
       className={cn(
-        '-my-3 inline-flex min-h-11 items-center text-sm text-fg-muted underline-offset-4 transition-colors hover:text-fg-default hover:underline',
+        '-my-3 inline-flex min-h-11 items-center text-sm text-text-2 underline-offset-4 transition-colors hover:text-text-1 hover:underline',
         focusRing
       )}
     >
@@ -61,13 +61,13 @@ function CompanyTile({ company, className }: { company: ExploreEmployer; classNa
   return (
     <Link to={`/companies/${company.slug ?? company.id}`} className={cn(TILE, 'flex-col p-4 sm:p-5', className)}>
       <CompanyLogo name={name} domain={company.domain} size={48} className="rounded-lg" />
-      <h3 className="mt-4 line-clamp-2 break-words text-base font-semibold leading-snug text-fg-default sm:text-[17px]">
+      <h3 className="mt-4 line-clamp-2 break-words text-base font-semibold leading-snug text-text-1 sm:text-[17px]">
         {name}
       </h3>
       {/* Whole, on two lines if it takes them: half an industry's name says nothing. */}
-      {industry && <p className="mt-1 line-clamp-2 text-sm leading-snug text-fg-soft">{industry}</p>}
+      {industry && <p className="mt-1 line-clamp-2 text-sm leading-snug text-text-3">{industry}</p>}
       {/* Pinned to the foot, so the figures of a row of tiles sit on one line. */}
-      <p className="mt-auto pt-3 text-sm text-fg-muted">
+      <p className="mt-auto pt-3 text-sm text-text-2">
         <span className="whitespace-nowrap">{plural(company.siteCount, 'plant', 'plants')}</span>
         {company.stateCount > 0 && (
           <span className="whitespace-nowrap"> · {plural(company.stateCount, 'state', 'states')}</span>
@@ -106,7 +106,7 @@ function Industries({ industries, year }: { industries: ExploreIndustry[]; year:
   const rows = Math.ceil(industries.length / 2);
   return (
     <PageSection title="Industries" actions={<TextLink to={exploreHref('industries')}>All industries</TextLink>} className={SECTION}>
-      <h3 className={cn(EYEBROW, 'mb-1 border-b border-border-subtle pb-2.5 sm:mb-2')}>
+      <h3 className={cn(EYEBROW, 'mb-1 border-b border-line pb-2.5 sm:mb-2')}>
         {byPeople ? `People employed${year ? `, ${year}` : ''}` : 'Plants'}
       </h3>
       {/* One column on a phone; from there, ranked down the first column, then down the second. */}
@@ -118,8 +118,8 @@ function Industries({ industries, year }: { industries: ExploreIndustry[]; year:
           // A phone lists the first six.
           <li key={industry.slug} className={cn('min-w-0', i >= 6 && 'hidden sm:block')}>
             <Link to={`/industries/${industry.slug}`} className={LIST_ROW}>
-              <span className="min-w-0 truncate text-fg-default underline-offset-4 group-hover:underline">{industryLabel(industry.name)}</span>
-              <span className="shrink-0 text-sm tabular-nums text-fg-soft">
+              <span className="min-w-0 truncate text-text-1 underline-offset-4 group-hover:underline">{industryLabel(industry.name)}</span>
+              <span className="shrink-0 text-sm tabular-nums text-text-3">
                 {(byPeople ? (industry.employment ?? 0) : industry.plants).toLocaleString()}
               </span>
             </Link>
@@ -137,27 +137,27 @@ function Industries({ industries, year }: { industries: ExploreIndustry[]; year:
 function CareerCard({ career, className }: { career: ExploreCareer; className?: string }) {
   return (
     <Link to={`/occupations/${career.id}`} className={cn(TILE, 'flex-col p-5', className)}>
-      <h3 className="truncate text-[17px] font-semibold leading-snug text-fg-default">{career.title}</h3>
-      {career.description && <p className="mt-1 line-clamp-2 text-sm leading-snug text-fg-muted">{career.description}</p>}
+      <h3 className="truncate text-[17px] font-semibold leading-snug text-text-1">{career.title}</h3>
+      {career.description && <p className="mt-1 line-clamp-2 text-sm leading-snug text-text-2">{career.description}</p>}
       {/* The path: three levels down a rail, each with what it holds. (An answer cached before levels has none.) */}
       <ol className="mt-5 space-y-3.5">
         {(career.levels ?? []).map((level, i, levels) => (
           <li
             key={level.level}
             className={cn(
-              'relative min-w-0 pl-5 before:absolute before:left-0 before:top-[5px] before:h-[7px] before:w-[7px] before:rounded-full before:bg-fg-soft',
+              'relative min-w-0 pl-5 before:absolute before:left-0 before:top-[5px] before:h-[7px] before:w-[7px] before:rounded-full before:bg-text-3',
               // The rail runs from this level's mark to the next one's.
               i < levels.length - 1 &&
-                'after:absolute after:-bottom-[17px] after:left-[3px] after:top-[14px] after:w-px after:bg-border-strong'
+                'after:absolute after:-bottom-[17px] after:left-[3px] after:top-[14px] after:w-px after:bg-line-strong'
             )}
           >
             <div className="flex items-baseline justify-between gap-3">
-              <span className={cn(EYEBROW, 'text-fg-muted')}>{LEVEL_NAME[level.level]}</span>
-              <span className="shrink-0 text-xs tabular-nums text-fg-soft">{plural(level.count, 'skill', 'skills')}</span>
+              <span className={cn(EYEBROW, 'text-text-2')}>{LEVEL_NAME[level.level]}</span>
+              <span className="shrink-0 text-xs tabular-nums text-text-3">{plural(level.count, 'skill', 'skills')}</span>
             </div>
             {/* One line of whole names: a name that does not fit wraps out of sight instead of being cut. */}
             {level.skills.length > 0 && (
-              <p className="mt-1 flex h-5 flex-wrap gap-x-1.5 overflow-hidden text-sm leading-5 text-fg-soft">
+              <p className="mt-1 flex h-5 flex-wrap gap-x-1.5 overflow-hidden text-sm leading-5 text-text-3">
                 {level.skills.map((name, n) => (
                   <span key={name} className={n === 0 ? 'min-w-0 max-w-full truncate' : 'whitespace-nowrap'}>
                     {n > 0 && <span className="mr-1.5">·</span>}
@@ -214,14 +214,14 @@ function Skills({ domains }: { domains: ExploreSkillDomain[] }) {
         {domains.map((domain, d) => (
           // A phone lists the first four domains.
           <div key={domain.slug} className={cn('min-w-0', d >= 4 && 'hidden sm:block')}>
-            <h3 className={cn(EYEBROW, 'mb-1 border-b border-border-subtle pb-2.5 sm:mb-2')}>{domain.name}</h3>
+            <h3 className={cn(EYEBROW, 'mb-1 border-b border-line pb-2.5 sm:mb-2')}>{domain.name}</h3>
             <ul>
               {domain.skills.map((skill, i) => (
                 // A phone lists the first four of each domain.
                 <li key={skill.id} className={i >= 4 ? 'hidden sm:block' : undefined}>
                   <Link to={`/skills/${skill.id}`} className={LIST_ROW}>
-                    <span className="min-w-0 truncate text-fg-default underline-offset-4 group-hover:underline">{skill.name}</span>
-                    <span className="shrink-0 text-sm tabular-nums text-fg-soft">
+                    <span className="min-w-0 truncate text-text-1 underline-offset-4 group-hover:underline">{skill.name}</span>
+                    <span className="shrink-0 text-sm tabular-nums text-text-3">
                       in {plural(skill.careerCount, 'career', 'careers')}
                     </span>
                   </Link>
@@ -313,7 +313,7 @@ function AreaOutline({ areaId }: { areaId: string }) {
       {path && (
         <path
           d={path}
-          className="fill-info/10 stroke-info"
+          className="fill-accent/[0.06] stroke-accent"
           strokeWidth={1.5}
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
@@ -328,10 +328,10 @@ function AreaTile({ area }: { area: ExploreArea }) {
     <Link to={`/map?area=${encodeURIComponent(area.id)}`} className={cn(TILE, 'items-center gap-4 p-5 sm:p-6')}>
       <div className="min-w-0 flex-1">
         <p className={EYEBROW}>Focus area</p>
-        <h3 className="mt-2 text-xl font-semibold leading-snug text-fg-default sm:text-2xl">{area.name}</h3>
-        {area.description && <p className="mt-1.5 text-sm text-fg-muted">{area.description}</p>}
+        <h3 className="mt-2 text-xl font-semibold leading-snug text-text-1 sm:text-2xl">{area.name}</h3>
+        {area.description && <p className="mt-1.5 text-sm text-text-2">{area.description}</p>}
         {area.factoryCount > 0 && (
-          <p className="mt-4 text-sm tabular-nums text-fg-soft">{plural(area.factoryCount, 'plant', 'plants')}</p>
+          <p className="mt-4 text-sm tabular-nums text-text-3">{plural(area.factoryCount, 'plant', 'plants')}</p>
         )}
       </div>
       <AreaOutline areaId={area.id} />
@@ -359,14 +359,14 @@ function Plants({ areas, states }: { areas: ExploreArea[]; states: ExploreState[
         )}
         {states.length > 0 && (
           <div className="min-w-0">
-            <h3 className={cn(EYEBROW, 'mb-1 border-b border-border-subtle pb-2.5 sm:mb-2')}>By state</h3>
+            <h3 className={cn(EYEBROW, 'mb-1 border-b border-line pb-2.5 sm:mb-2')}>By state</h3>
             {/* Ranked down the first column, then down the second. */}
             <ul className="grid grid-flow-col grid-cols-2 gap-x-8 sm:gap-x-12" style={{ gridTemplateRows: `repeat(${rows}, auto)` }}>
               {states.map((state) => (
                 <li key={state.code} className="min-w-0">
                   <Link to={`/map?state=${encodeURIComponent(state.code)}`} className={LIST_ROW}>
-                    <span className="min-w-0 truncate text-fg-default underline-offset-4 group-hover:underline">{state.name}</span>
-                    <span className="shrink-0 text-sm tabular-nums text-fg-soft">{state.factoryCount.toLocaleString()}</span>
+                    <span className="min-w-0 truncate text-text-1 underline-offset-4 group-hover:underline">{state.name}</span>
+                    <span className="shrink-0 text-sm tabular-nums text-text-3">{state.factoryCount.toLocaleString()}</span>
                   </Link>
                 </li>
               ))}
@@ -412,7 +412,7 @@ function OverviewSkeleton() {
       <PageSection title="Companies" className={SECTION}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {Array.from({ length: 12 }, (_, i) => (
-            <div key={i} className={cn('rounded-xl border border-border-subtle bg-bg-surface p-4 sm:p-5', i >= 6 && 'hidden sm:block')}>
+            <div key={i} className={cn('rounded-xl border border-line bg-bg p-4 sm:p-5', i >= 6 && 'hidden sm:block')}>
               <Skeleton className="h-12 w-12 rounded-lg" />
               <Skeleton className="mt-5 h-4 w-3/4" />
               <Skeleton className="mt-5 h-3 w-1/2" />
@@ -427,13 +427,13 @@ function OverviewSkeleton() {
             <div
               key={i}
               className={cn(
-                'rounded-xl border border-border-subtle bg-bg-surface p-5',
+                'rounded-xl border border-line bg-bg p-5',
                 i >= 8 ? 'hidden lg:block' : i >= 3 ? 'hidden sm:block' : undefined
               )}
             >
               <Skeleton className="h-5 w-3/5" />
               <Skeleton className="mt-2.5 h-3 w-4/5" />
-              <div className="mt-6 space-y-5 border-l border-border-subtle pl-4">
+              <div className="mt-6 space-y-5 border-l border-line pl-4">
                 {[0, 1, 2].map((level) => (
                   <div key={level}>
                     <Skeleton className="h-3 w-24" />

@@ -128,11 +128,11 @@ function Editor({ companyId, occupationId, source, onReload }: { companyId: stri
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2" data-version-status>
-        <p className="min-w-0 flex-1 basis-56 text-sm text-fg-muted">
-          <span className="tabular-nums text-fg-default">{plural(on.length, 'skill', 'skills')}</span>
+        <p className="min-w-0 flex-1 basis-56 text-sm text-text-2">
+          <span className="tabular-nums text-text-1">{plural(on.length, 'skill', 'skills')}</span>
           {addedCount > 0 && ` · ${addedCount} added`}
           {outCount > 0 && ` · ${outCount} left out`}
-          <span className="ml-3 text-fg-soft" role="status" data-version-saved>
+          <span className="ml-3 text-text-3" role="status" data-version-saved>
             {save.isPending ? 'Saving' : save.isError ? '' : 'Saved'}
           </span>
         </p>
@@ -146,7 +146,7 @@ function Editor({ companyId, occupationId, source, onReload }: { companyId: stri
       </div>
 
       {draft.skills.length === 0 ? (
-        <p className="text-sm text-fg-muted">The standard path has no skills yet. Add the ones this career needs here.</p>
+        <p className="text-sm text-text-2">The standard path has no skills yet. Add the ones this career needs here.</p>
       ) : (
         <div data-version-editor>
           <PathFlow path={path} renderSkill={renderSkill} />
@@ -156,7 +156,7 @@ function Editor({ companyId, occupationId, source, onReload }: { companyId: stri
 
       {/* A save that was refused stays in view until it is put right. */}
       {save.isError && (
-        <div className="sticky bottom-3 z-20 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border-strong bg-bg-surface p-3 shadow-lg" data-version-error>
+        <div className="sticky bottom-3 z-20 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-line-strong bg-bg p-3" data-version-error>
           <ErrorNote error={save.error} className="min-w-0 flex-1 basis-56" />
           <button
             type="button"
@@ -181,7 +181,7 @@ function Editor({ companyId, occupationId, source, onReload }: { companyId: stri
         </div>
       )}
 
-      <div className="mt-10 border-t border-border-subtle pt-5">
+      <div className="mt-10 border-t border-line pt-5">
         <Button
           type="button"
           variant="outline"
@@ -220,11 +220,11 @@ function Editor({ companyId, occupationId, source, onReload }: { companyId: stri
 /** The box of a tag that is a switch: filled with a tick when the skill is on the path, empty when it is not. */
 function Box({ on }: { on: boolean }) {
   return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={cn('h-5 w-5 shrink-0', on ? 'text-fg-default' : 'text-fg-soft')}>
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={cn('h-5 w-5 shrink-0', on ? 'text-text-1' : 'text-text-3')}>
       {on ? (
         <>
           <rect x="2" y="2" width="16" height="16" rx="4" fill="currentColor" />
-          <path d="M6.2 10.3l2.5 2.5 5-5.3" stroke="var(--color-bg-surface)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M6.2 10.3l2.5 2.5 5-5.3" stroke="var(--bg)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
         </>
       ) : (
         <rect x="2.75" y="2.75" width="14.5" height="14.5" rx="3.25" stroke="currentColor" strokeWidth="1.5" />
@@ -262,8 +262,8 @@ function EditTag({ skill, on, runs, onTap, onMake }: EditTagProps) {
       >
         <Box on={on} />
         <span className="min-w-0 [overflow-wrap:anywhere]">
-          <span className={cn('block', !on && skill.standard && 'line-through decoration-fg-soft')}>{skill.name}</span>
-          {second && <span className="block text-xs font-normal text-fg-soft">{second}</span>}
+          <span className={cn('block', !on && skill.standard && 'line-through decoration-text-3')}>{skill.name}</span>
+          {second && <span className="block text-xs font-normal text-text-3">{second}</span>}
         </span>
       </button>
       {on && skill.makes.length > 0 && (
@@ -279,7 +279,7 @@ function EditTag({ skill, on, runs, onTap, onMake }: EditTagProps) {
                   data-make={make.id}
                   className={cn(
                     chipClass,
-                    pressed ? 'border-border-strong bg-tint/15 font-medium text-fg-default' : 'border-border-subtle text-fg-muted hover:border-border-strong hover:text-fg-default'
+                    pressed ? 'border-line-strong bg-surface font-medium text-text-1' : 'border-line text-text-2 hover:border-line-strong hover:text-text-1'
                   )}
                 >
                   {make.name}

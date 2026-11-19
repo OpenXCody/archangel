@@ -80,12 +80,12 @@ export function PlaceChoice({ place }: { place: PagePlace }) {
           data-place-choice
           className={cn(
             '-my-1 inline-flex h-11 min-w-0 items-center gap-1.5 text-base transition-colors sm:h-9',
-            place.kind === 'country' || place.kind === 'unknown' ? 'text-fg-muted hover:text-fg-default' : 'font-medium text-fg-default',
+            place.kind === 'country' || place.kind === 'unknown' ? 'text-text-2 hover:text-text-1' : 'font-medium text-text-1',
             focusRing
           )}
         >
           <span className="min-w-0 truncate">{current}</span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-fg-soft" aria-hidden="true" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-text-3" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-[min(24rem,var(--radix-dropdown-menu-content-available-height))] min-w-[13rem] overflow-y-auto">
@@ -133,11 +133,11 @@ export function Figures({ items }: { items: Figure[] }) {
       data-figures
     >
       {items.map((item) => (
-        <div key={item.label} className="min-w-0 rounded-xl border border-border-subtle bg-bg-surface px-4 py-3">
-          <dt className="truncate text-[11px] uppercase tracking-wider text-fg-muted">{item.label}</dt>
-          <dd className="mt-1 truncate text-xl font-semibold tabular-nums tracking-tight text-fg-default">
+        <div key={item.label} className="min-w-0 rounded-xl border border-line px-4 py-3">
+          <dt className="truncate text-[11px] uppercase tracking-wider text-text-2">{item.label}</dt>
+          <dd className="mt-1 truncate text-xl font-semibold tabular-nums tracking-tight text-text-1">
             {item.value}
-            {item.unit && <span className="ml-1 text-xs font-normal tracking-normal text-fg-soft">{item.unit}</span>}
+            {item.unit && <span className="ml-1 text-xs font-normal tracking-normal text-text-3">{item.unit}</span>}
           </dd>
         </div>
       ))}
@@ -160,7 +160,7 @@ function officialWords(stats: IndustryStats): string {
 export function SourceLine({ stats }: { stats: IndustryStats }) {
   if (officialFigures(stats).length === 0) return null;
   return (
-    <p className="mt-2.5 text-xs leading-relaxed text-fg-soft" data-official-year={stats.year}>
+    <p className="mt-2.5 text-xs leading-relaxed text-text-3" data-official-year={stats.year}>
       {officialWords(stats)}: official figures, {stats.year}.
     </p>
   );
@@ -199,18 +199,18 @@ export function FigureList({ rows, state: navState }: { rows: FigureRow[]; state
   const columns = cn('grid items-baseline gap-x-3', withPeople && withPlants ? 'grid-cols-[minmax(0,1fr)_5.75rem_3.5rem]' : 'grid-cols-[minmax(0,1fr)_5.75rem]');
   return (
     <div data-figure-list>
-      <div aria-hidden="true" className={cn(columns, 'border-b border-border-subtle pb-2 text-right text-[11px] uppercase tracking-wider text-fg-soft')}>
+      <div aria-hidden="true" className={cn(columns, 'border-b border-line pb-2 text-right text-[11px] uppercase tracking-wider text-text-3')}>
         <span />
         {withPeople && <span>People</span>}
         {withPlants && <span>Plants</span>}
       </div>
       <ul>
         {rows.map((row) => (
-          <li key={row.key} className="border-b border-border-subtle">
+          <li key={row.key} className="border-b border-line">
             <Link to={row.to} state={navState} className={cn(columns, 'group min-h-11 py-3 text-[15px] leading-snug sm:py-2.5', focusRing)}>
-              <span className="min-w-0 text-fg-default underline-offset-4 group-hover:underline">{row.label}</span>
+              <span className="min-w-0 text-text-1 underline-offset-4 group-hover:underline">{row.label}</span>
               {withPeople && (
-                <span className="text-right text-sm tabular-nums text-fg-default">
+                <span className="text-right text-sm tabular-nums text-text-1">
                   {row.people != null && (
                     <>
                       {row.people.toLocaleString()}
@@ -220,7 +220,7 @@ export function FigureList({ rows, state: navState }: { rows: FigureRow[]; state
                 </span>
               )}
               {withPlants && (
-                <span className={cn('text-right text-sm tabular-nums', withPeople ? 'text-fg-muted' : 'text-fg-default')}>
+                <span className={cn('text-right text-sm tabular-nums', withPeople ? 'text-text-2' : 'text-text-1')}>
                   {(row.plants ?? 0) > 0 && (
                     <>
                       {row.plants?.toLocaleString()}

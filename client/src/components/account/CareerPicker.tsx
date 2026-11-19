@@ -99,8 +99,8 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
   if (value) {
     return (
       <div className={cn(fieldClass, 'flex min-h-[42px] items-center gap-2.5')}>
-        <CareerIcon className="h-4 w-4 shrink-0 text-fg-muted" />
-        <span className="min-w-0 flex-1 break-words text-fg-default" data-picked-career={value.id}>
+        <CareerIcon className="h-4 w-4 shrink-0 text-text-2" />
+        <span className="min-w-0 flex-1 break-words text-text-1" data-picked-career={value.id}>
           {value.title}
         </span>
         <button
@@ -112,7 +112,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
             setOpen(true);
             window.setTimeout(() => inputRef.current?.focus(), 0);
           }}
-          className="shrink-0 text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default"
+          className="shrink-0 text-sm font-medium text-text-2 underline underline-offset-4 hover:text-text-1"
         >
           Change
         </button>
@@ -129,7 +129,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" />
       <input
         ref={inputRef}
         id={id}
@@ -152,24 +152,24 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
         onKeyDown={onKeyDown}
         className={cn(fieldClass, 'pl-9 pr-9')}
       />
-      {waiting && open && <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-fg-muted" />}
+      {waiting && open && <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-text-2" />}
 
       {showList && (
         <div
-          className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border-strong bg-bg-surface p-1 shadow-lg"
+          className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-line-strong bg-surface p-1"
         >
           {!searching && suggestionsLabel && options.length > 0 && (
-            <p className="px-2.5 pb-1 pt-1.5 text-xs text-fg-muted">{suggestionsLabel}</p>
+            <p className="px-2.5 pb-1 pt-1.5 text-xs text-text-2">{suggestionsLabel}</p>
           )}
           {searching && waiting ? (
-            <p className="px-2.5 py-2.5 text-sm text-fg-muted">Searching careers</p>
+            <p className="px-2.5 py-2.5 text-sm text-text-2">Searching careers</p>
           ) : searching && results.isError ? (
             <p role="alert" className="px-2.5 py-2.5 text-sm text-danger">
               {errorMessage(results.error)}
             </p>
           ) : searching && options.length === 0 ? (
             // The career is the kind of work; the title is the employer's own words.
-            <p className="px-2.5 py-2.5 text-sm text-fg-muted" data-career-none>
+            <p className="px-2.5 py-2.5 text-sm text-text-2" data-career-none>
               No career matches “{query}”. Search for the closest kind of work: the job title can say anything.
             </p>
           ) : null}
@@ -186,16 +186,16 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
                   onClick={() => choose(option)}
                   onMouseEnter={() => setActiveIndex(index)}
                   className={cn(
-                    'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2.5 text-sm text-fg-default',
-                    index === activeIndex && 'bg-bg-elevated'
+                    'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2.5 text-sm text-text-1',
+                    index === activeIndex && 'bg-surface-hover'
                   )}
                 >
-                  <CareerIcon className="h-4 w-4 shrink-0 text-fg-muted" />
+                  <CareerIcon className="h-4 w-4 shrink-0 text-text-2" />
                   <span className="min-w-0 break-words">
                     {option.title}
                     {/* A career found by a name it is also known by says which: the title alone would look like a wrong answer. */}
                     {option.alsoCalled && (
-                      <span className="block text-xs text-fg-muted" data-career-also>
+                      <span className="block text-xs text-text-2" data-career-also>
                         Also called {option.alsoCalled}
                       </span>
                     )}
@@ -204,7 +204,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
               ))}
           </ul>
           {searching && !waiting && total > options.length && options.length > 0 && (
-            <p className="px-2.5 pb-1.5 pt-2 text-xs text-fg-muted" data-career-more>
+            <p className="px-2.5 pb-1.5 pt-2 text-xs text-text-2" data-career-more>
               {options.length} of {total.toLocaleString('en-US')}. Type more to narrow the list.
             </p>
           )}

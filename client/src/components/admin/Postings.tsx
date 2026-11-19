@@ -48,8 +48,8 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
 
   return (
     <li className={cn(rowClass, 'p-4')} data-posting-place={place.placeKey}>
-      <p className="break-words text-sm font-medium text-fg-default">{where}</p>
-      <p className="mt-0.5 break-words text-xs text-fg-muted">
+      <p className="break-words text-sm font-medium text-text-1">{where}</p>
+      <p className="mt-0.5 break-words text-xs text-text-2">
         {place.employer}
         <Dot />
         {n(place.postings)} {place.postings === 1 ? 'posting' : 'postings'}
@@ -87,7 +87,7 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
             </Button>
           </>
         ) : (
-          <p className="min-w-0 basis-full text-xs text-fg-muted">
+          <p className="min-w-0 basis-full text-xs text-text-2">
             The company has no plant in {place.state} in our data. Add the plant, and the next run places these postings.
           </p>
         )}
@@ -116,11 +116,11 @@ export function PlacesWaiting() {
     <PageSection title="Postings with no plant" description="Places employers' postings name where we list no plant of theirs.">
       <Link
         to={PLACES_PATH}
-        className={cn(cardClass, 'flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-bg-elevated')}
+        className={cn(cardClass, 'flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-surface-hover')}
         data-posting-places-waiting
       >
-        <span className="min-w-0 text-sm font-medium text-fg-default">Open the list</span>
-        <span className="shrink-0 text-xs tabular-nums text-fg-muted">
+        <span className="min-w-0 text-sm font-medium text-text-1">Open the list</span>
+        <span className="shrink-0 text-xs tabular-nums text-text-2">
           {n(total)} {total === 1 ? 'place' : 'places'}
         </span>
       </Link>
@@ -138,7 +138,7 @@ export function PlacesView() {
   const total = places.data?.total ?? 0;
   return (
     <>
-      <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-fg-muted transition-colors hover:text-fg-default">
+      <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-text-2 transition-colors hover:text-text-1">
         <ArrowLeft className="h-4 w-4" />
         Back
       </Link>
@@ -151,7 +151,7 @@ export function PlacesView() {
         ) : places.isError ? (
           <LoadError error={places.error} onRetry={() => void places.refetch()} retrying={places.isFetching} />
         ) : rows.length === 0 ? (
-          <p className={cn(cardClass, 'px-4 py-6 text-center text-sm text-fg-muted')}>None yet.</p>
+          <p className={cn(cardClass, 'px-4 py-6 text-center text-sm text-text-2')}>None yet.</p>
         ) : (
           <ul className={cardClass} data-posting-places>
             {rows.map((place, index) => (
@@ -164,7 +164,7 @@ export function PlacesView() {
           </ul>
         )}
         {total > rows.length && (
-          <p className="mt-2 text-xs text-fg-muted">
+          <p className="mt-2 text-xs text-text-2">
             {n(rows.length)} of {n(total)} places, the ones most postings name.
           </p>
         )}
@@ -197,7 +197,7 @@ function RunLine({ source }: { source: PostingSource }) {
   return (
     <>
       {stopped && (
-        <span className="text-fg-default" data-run-stopped={run.outcome}>
+        <span className="text-text-1" data-run-stopped={run.outcome}>
           {stopped}: {run.why}
         </span>
       )}
@@ -249,8 +249,8 @@ export function PostingRuns() {
           {sources.data.map((source) => (
             <li key={source.slug} className={cn(rowClass, 'px-4 py-3')} data-posting-source={source.slug}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
-                <p className="min-w-0 break-words text-sm font-medium text-fg-default">{source.employer}</p>
-                <p className="shrink-0 text-xs tabular-nums text-fg-muted">
+                <p className="min-w-0 break-words text-sm font-medium text-text-1">{source.employer}</p>
+                <p className="shrink-0 text-xs tabular-nums text-text-2">
                   {source.run ? formatDayCapital(source.run.startedAt) : ''}
                   {source.openJobs > 0 && (
                     <>
@@ -260,7 +260,7 @@ export function PostingRuns() {
                   )}
                 </p>
               </div>
-              <p className="mt-0.5 break-words text-xs text-fg-muted">
+              <p className="mt-0.5 break-words text-xs text-text-2">
                 <RunLine source={source} />
               </p>
             </li>

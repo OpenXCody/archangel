@@ -167,7 +167,7 @@ function VirtualRows({
                   <button
                     type="button"
                     onClick={onLoadMore}
-                    className="inline-flex min-h-11 items-center text-sm text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default"
+                    className="inline-flex min-h-11 items-center text-sm text-text-2 underline underline-offset-4 transition-colors hover:text-text-1"
                   >
                     Show more
                   </button>
@@ -302,17 +302,17 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
 
       {/* How many, with the filters applied; the line holds its place while the answer is on its way. */}
       {!failed && (
-        <div className="mb-1 flex min-h-11 flex-wrap items-center justify-between gap-x-6 text-sm text-fg-muted sm:mb-2 sm:min-h-9">
+        <div className="mb-1 flex min-h-11 flex-wrap items-center justify-between gap-x-6 text-sm text-text-2 sm:mb-2 sm:min-h-9">
           <p role="status" className="tabular-nums" data-explore-count>
             {total === undefined ? (
-              <span aria-hidden="true" className="inline-block h-3.5 w-28 animate-pulse rounded bg-primary/10 align-middle" />
+              <span aria-hidden="true" className="inline-block h-3.5 w-28 animate-pulse rounded bg-surface align-middle" />
             ) : (
               counted(total, LIST_NOUN[tab])
             )}
           </p>
           {/* Plants filtered to one industry: that industry has a page of its own, for the same state. */}
           {industryPage && filters.industry && (
-            <Link to={industryPage} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-fg-default sm:min-h-0">
+            <Link to={industryPage} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-text-1 sm:min-h-0">
               About {industryLabel(filters.industry)}
               {filters.state ? ` in ${stateName(filters.state)}` : ''}
             </Link>

@@ -171,7 +171,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
           }))}
         >
           {only ? (
-            <ul className="border-t border-border-subtle" data-only-plant>
+            <ul className="border-t border-line" data-only-plant>
               <RecordRow
                 to={`/factories/${only.id}`}
                 label="Plant"
@@ -181,11 +181,11 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
               />
             </ul>
           ) : (
-            <p className="border-t border-border-subtle px-4 py-3 text-sm text-fg-muted sm:px-6">
+            <p className="border-t border-line px-4 py-3 text-sm text-text-2 sm:px-6">
               {byState.slice(0, 6).map((state, index) => (
                 <span key={state.code}>
                   {index > 0 && ' · '}
-                  <span className="text-fg-default">{state.name}</span> {state.count}
+                  <span className="text-text-1">{state.name}</span> {state.count}
                 </span>
               ))}
               {byState.length > 6 && ` · ${byState.length - 6} more`}

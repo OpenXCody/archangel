@@ -47,12 +47,12 @@ export default function ConfirmDialog({ open, title, description, confirmLabel, 
             opener.current.focus();
           }
         }}
-        className="w-[calc(100%-2rem)] max-w-md gap-5 rounded-xl border-border-strong bg-bg-surface p-5 text-fg-default sm:rounded-xl [&>button]:hidden"
+        className="w-[calc(100%-2rem)] max-w-md gap-5 rounded-xl border-line-strong bg-bg p-5 text-text-1 sm:rounded-xl [&>button]:hidden"
       >
         <DialogHeader className="space-y-2 text-left">
           <DialogTitle className="text-base font-semibold leading-snug">{title}</DialogTitle>
           <DialogDescription asChild>
-            <div className="space-y-2 break-words text-sm text-fg-muted">{description}</div>
+            <div className="space-y-2 break-words text-sm text-text-2">{description}</div>
           </DialogDescription>
         </DialogHeader>
         <ErrorNote error={error} />

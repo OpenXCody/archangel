@@ -61,8 +61,8 @@ export default class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex min-h-[400px] items-center justify-center p-8">
           <div className="max-w-md text-center">
-            <h2 className="mb-2 text-lg font-semibold text-fg-default">This page could not be shown</h2>
-            <p className="mb-5 text-sm text-fg-muted">
+            <h2 className="mb-2 text-lg font-semibold text-text-1">This page could not be shown</h2>
+            <p className="mb-5 text-sm text-text-2">
               {import.meta.env.DEV && this.state.error?.message
                 ? this.state.error.message
                 : 'Something failed while drawing it. Trying again usually works.'}
@@ -70,13 +70,13 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="flex items-center justify-center gap-2">
               <button
                 onClick={this.handleRetry}
-                className="rounded-lg border border-border-strong bg-bg-elevated px-4 py-2 text-sm font-medium text-fg-default transition-colors hover:bg-tint/5"
+                className="rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-text-1 transition-colors hover:bg-surface-hover"
               >
                 Try again
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="rounded-lg px-4 py-2 text-sm font-medium text-fg-muted transition-colors hover:text-fg-default"
+                className="rounded-lg px-4 py-2 text-sm font-medium text-text-2 transition-colors hover:text-text-1"
               >
                 Reload
               </button>

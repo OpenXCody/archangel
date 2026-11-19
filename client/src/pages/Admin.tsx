@@ -54,7 +54,7 @@ export default function Admin() {
   );
 }
 
-const waitingLinkClass = 'font-medium text-fg-default underline underline-offset-4 hover:no-underline';
+const waitingLinkClass = 'font-medium text-text-1 underline underline-offset-4 hover:no-underline';
 
 /**
  * What is waiting on an admin, above the tabs: requests to join a company,
@@ -82,7 +82,7 @@ function Waiting() {
   if (requests === 0 && toAdd === 0 && matches === 0) return null;
   return (
     <div className="mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-sm sm:mb-8" data-admin-waiting>
-      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Waiting</span>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">Waiting</span>
       {requests > 0 && (
         <Link to="/admin?tab=access" className={waitingLinkClass}>
           {requests.toLocaleString('en-US')} access {requests === 1 ? 'request' : 'requests'}
@@ -133,16 +133,16 @@ function AdminTools({ me }: { me: AccountUser }) {
       <PageHeader title="Admin Tools" />
       <Waiting />
       <Tabs value={tab} onValueChange={selectTab}>
-        <TabsList className="flex h-auto w-full justify-start gap-4 overflow-x-auto rounded-none border-b border-border-subtle bg-transparent p-0 text-fg-muted sm:gap-6">
+        <TabsList className="flex h-auto w-full justify-start gap-4 overflow-x-auto rounded-none border-b border-line bg-transparent p-0 text-text-2 sm:gap-6">
           {TABS.map(({ value, label: tabLabel }) => (
             <TabsTrigger
               key={value}
               value={value}
               // The ring is drawn inside the tab: the scrolling list would clip one drawn outside.
-              className="-mb-px rounded-none border-b-2 border-transparent px-1 pb-3 pt-1.5 text-sm font-medium text-fg-muted shadow-none transition-colors
-                hover:text-fg-default focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-offset-0
-                data-[state=active]:border-[color:var(--color-fg-default)] data-[state=active]:bg-transparent
-                data-[state=active]:text-fg-default data-[state=active]:shadow-none"
+              className="-mb-px rounded-none border-b-2 border-transparent px-1 pb-3 pt-1.5 text-sm font-medium text-text-2 transition-colors
+                hover:text-text-1 focus-visible:-outline-offset-2
+                data-[state=active]:border-[color:var(--text-1)] data-[state=active]:bg-transparent
+                data-[state=active]:text-text-1 data-[state=active]:shadow-none"
             >
               {tabLabel}
             </TabsTrigger>

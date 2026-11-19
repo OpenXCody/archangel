@@ -24,7 +24,7 @@ export const FACT_WORD: Record<string, string> = {
   status: 'status',
 };
 
-const labelClass = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
+const labelClass = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3';
 
 /** One side of the comparison: the name, then the lines that tell one plant from another. */
 export function PlantFacts({ plant, name }: { plant: ReviewPlant; name: React.ReactNode }) {
@@ -32,11 +32,11 @@ export function PlantFacts({ plant, name }: { plant: ReviewPlant; name: React.Re
   const industry = plant.industry ? shownIndustry(plant.industry) ?? plant.industry : null;
   return (
     <>
-      <p className="break-words text-sm font-medium text-fg-default">{name}</p>
-      {plant.company && <p className="break-words text-sm text-fg-muted">{plant.company}</p>}
-      {place && <p className="mt-1 break-words text-xs text-fg-muted">{place}</p>}
+      <p className="break-words text-sm font-medium text-text-1">{name}</p>
+      {plant.company && <p className="break-words text-sm text-text-2">{plant.company}</p>}
+      {place && <p className="mt-1 break-words text-xs text-text-2">{place}</p>}
       {(industry || plant.people !== null) && (
-        <p className="break-words text-xs text-fg-muted">
+        <p className="break-words text-xs text-text-2">
           {industry}
           {industry && plant.people !== null && <Dot />}
           {plant.people !== null && `${plant.people.toLocaleString('en-US')} people`}
@@ -91,10 +91,10 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
 
   return (
     <li className={cn(cardClass, 'p-4')} data-match={item.id} data-match-record={recordName}>
-      <p className="break-words text-xs text-fg-muted" data-match-reason>
+      <p className="break-words text-xs text-text-2" data-match-reason>
         {item.sourceName}
         <Dot />
-        <span className="text-fg-default">{item.reason.charAt(0).toUpperCase() + item.reason.slice(1)}</span>
+        <span className="text-text-1">{item.reason.charAt(0).toUpperCase() + item.reason.slice(1)}</span>
       </p>
       <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
         <div className="min-w-0" data-match-theirs>
@@ -115,11 +115,11 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
         <div className="min-w-0" data-match-ours>
           <p className={cn(labelClass, 'mb-1.5')}>{item.candidates.length > 1 ? 'Our plants' : 'Our plant'}</p>
           {item.candidates.length === 0 ? (
-            <p className="text-sm text-fg-muted">The plant it might have been is no longer there.</p>
+            <p className="text-sm text-text-2">The plant it might have been is no longer there.</p>
           ) : item.candidates.length === 1 ? (
             <div>
               <PlantFacts plant={item.candidates[0]} name={<PlantLink candidate={item.candidates[0]} />} />
-              <p className="mt-1 text-xs text-fg-default">{found(item.candidates[0])}</p>
+              <p className="mt-1 text-xs text-text-1">{found(item.candidates[0])}</p>
             </div>
           ) : (
             <div
@@ -138,11 +138,11 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
                   onClick={() => setChosen(option.id)}
                   className={cn(
                     'block w-full rounded-lg border px-3 py-2 text-left transition-colors',
-                    option.id === chosen ? 'border-fg-muted bg-bg-elevated' : 'border-border-subtle hover:bg-bg-elevated'
+                    option.id === chosen ? 'border-text-2 bg-surface' : 'border-line hover:bg-surface-hover'
                   )}
                 >
                   <PlantFacts plant={option} name={option.name} />
-                  <p className={cn('mt-1 text-xs', option.id === chosen ? 'text-fg-default' : 'text-fg-muted')}>{found(option)}</p>
+                  <p className={cn('mt-1 text-xs', option.id === chosen ? 'text-text-1' : 'text-text-2')}>{found(option)}</p>
                 </button>
               ))}
             </div>
@@ -188,7 +188,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
           {doing('skip') && <Loader2 className="animate-spin" />}
           Skip
         </Button>
-        <p className="min-w-0 basis-full text-xs text-fg-muted sm:ml-2 sm:basis-auto">
+        <p className="min-w-0 basis-full text-xs text-text-2 sm:ml-2 sm:basis-auto">
           {item.ifDifferent === 'add' ? 'Different adds it as a new plant.' : 'Different keeps it out: this source adds no plants.'}
         </p>
       </div>
@@ -242,7 +242,7 @@ export default function MatchReview() {
           </ul>
         )}
         {total > items.length && (
-          <p className="mt-3 text-xs tabular-nums text-fg-muted" data-matches-more>
+          <p className="mt-3 text-xs tabular-nums text-text-2" data-matches-more>
             The first {Math.min(REVIEW_PAGE, items.length)} of {total.toLocaleString('en-US')}. The next come up as these are decided.
           </p>
         )}

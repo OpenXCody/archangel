@@ -26,32 +26,32 @@ export const KIND_ICON: Record<'company' | 'factory' | 'career', ElementType> = 
  * on focus; `border-solid` undoes the global `input { border: none }`.
  */
 export const fieldClass =
-  'block min-h-[42px] w-full rounded-lg border border-solid border-input bg-bg-elevated px-3 py-2 text-base text-fg-default ' +
-  'placeholder:text-fg-soft transition-colors focus:border-[color:var(--color-fg-muted)] focus:outline-none ' +
+  'block min-h-[42px] w-full rounded-lg border border-solid border-line-strong bg-surface px-3 py-2 text-base text-text-1 ' +
+  'placeholder:text-text-3 transition-colors focus:border-[color:var(--text-2)] focus:outline-none ' +
   'disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm';
 
 /** A select's trigger and list, matched to the text fields beside them. */
 export const selectTriggerClass =
-  'h-[42px] rounded-lg border-border-strong bg-bg-elevated px-3 text-base text-fg-default shadow-none sm:text-sm';
-export const selectContentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-border-strong bg-bg-surface';
+  'h-[42px] rounded-lg border-line-strong bg-surface px-3 text-base text-text-1 sm:text-sm';
+export const selectContentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-line-strong bg-surface';
 
 /** A button that is busy keeps focus: it is marked, not disabled. */
 export const busyButtonClass = 'aria-disabled:pointer-events-none aria-disabled:opacity-60';
 
-export const cardClass = 'rounded-xl border border-border-subtle bg-bg-surface';
+export const cardClass = 'rounded-xl border border-line';
 
 /** A row inside a card: a hairline between rows, none above the first. */
-export const rowClass = 'border-t border-border-subtle first:border-t-0';
+export const rowClass = 'border-t border-line first:border-t-0';
 
 /** Outline buttons need a border that shows on the dark surface. */
-export const outlineButtonClass = 'border-border-strong bg-transparent text-fg-default shadow-none hover:bg-bg-elevated';
+export const outlineButtonClass = 'border-line-strong bg-transparent text-text-1 hover:bg-surface-hover';
 
 /**
  * A plain text action inside a row. Destructive ones look the same: the
  * confirmation, not the button, carries the weight.
  */
 export const textButtonClass =
-  'text-sm font-medium text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default ' +
+  'text-sm font-medium text-text-2 underline underline-offset-4 transition-colors hover:text-text-1 ' +
   'disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50';
 
 interface FieldProps {
@@ -66,12 +66,12 @@ interface FieldProps {
 export function Field({ label, htmlFor, hint, optional, className, children }: FieldProps) {
   return (
     <div className={cn('min-w-0', className)}>
-      <Label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-fg-muted">
+      <Label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-text-2">
         {label}
-        {optional && <span className="ml-1.5 font-normal text-fg-soft">optional</span>}
+        {optional && <span className="ml-1.5 font-normal text-text-3">optional</span>}
       </Label>
       {children}
-      {hint && <p className="mt-1.5 text-xs text-fg-muted">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-text-2">{hint}</p>}
     </div>
   );
 }
@@ -100,7 +100,7 @@ export function SegmentedChoice<T extends string>({ options, value, onChange, la
       aria-label={label}
       aria-labelledby={labelledBy}
       onKeyDown={(event) => onGroupArrowKeys(event, options.map((option) => option.value), value, onChange)}
-      className={cn('grid h-[42px] gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1', className)}
+      className={cn('grid h-[42px] gap-1 rounded-lg border border-line p-1', className)}
     >
       {options.map((option) => (
         <button
@@ -113,7 +113,7 @@ export function SegmentedChoice<T extends string>({ options, value, onChange, la
           className={cn(
             'rounded-md text-sm font-medium transition-colors',
             optionClassName,
-            value === option.value ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
+            value === option.value ? 'bg-inverse-bg text-inverse-text' : 'text-text-2 hover:text-text-1'
           )}
         >
           {option.label}
@@ -157,7 +157,7 @@ export function ErrorNote({ error, className }: { error: unknown; className?: st
 export function LoadError({ error, onRetry, retrying, className }: { error: unknown; onRetry?: () => void; retrying?: boolean; className?: string }) {
   return (
     <div role="alert" className={cn(cardClass, 'flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:justify-between', className)}>
-      <p className="flex min-w-0 items-start gap-2 text-sm text-fg-muted">
+      <p className="flex min-w-0 items-start gap-2 text-sm text-text-2">
         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
         <span className="min-w-0 break-words">{errorMessage(error)}</span>
       </p>
@@ -201,14 +201,14 @@ export function RowsSkeleton({ rows = 3, className }: { rows?: number; className
 export function PageLoading({ label = 'Loading' }: { label?: string }) {
   return (
     <div className="flex min-h-[400px] items-center justify-center" role="status" aria-label={label}>
-      <Loader2 className="h-8 w-8 animate-spin text-fg-muted" />
+      <Loader2 className="h-8 w-8 animate-spin text-text-2" />
     </div>
   );
 }
 
 /** A quiet message inside a card: an empty list, or a short notice. */
 export function CardNote({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn(cardClass, 'px-4 py-6 text-center text-sm text-fg-muted', className)}>{children}</div>;
+  return <div className={cn(cardClass, 'px-4 py-6 text-center text-sm text-text-2', className)}>{children}</div>;
 }
 
 /**
@@ -216,13 +216,13 @@ export function CardNote({ children, className }: { children: ReactNode; classNa
  * a finished application that went nowhere steps back.
  */
 const STATUS_STYLE: Record<string, string> = {
-  applied: 'border-border-strong text-fg-muted',
-  reviewing: 'border-border-strong bg-bg-elevated text-fg-muted',
-  interview: 'border-border-strong bg-bg-elevated text-fg-default',
-  offer: 'border-fg-muted bg-bg-elevated text-fg-default',
-  hired: 'border-fg-default bg-fg-default text-bg-base',
-  declined: 'border-border-subtle text-fg-soft',
-  withdrawn: 'border-border-subtle text-fg-soft',
+  applied: 'border-line-strong text-text-2',
+  reviewing: 'border-line-strong bg-surface text-text-2',
+  interview: 'border-line-strong bg-surface text-text-1',
+  offer: 'border-text-2 bg-surface text-text-1',
+  hired: 'border-text-1 bg-text-1 text-inverse-text',
+  declined: 'border-line text-text-3',
+  withdrawn: 'border-line text-text-3',
 };
 
 export function ApplicationStatusBadge({ status, className }: { status: string; className?: string }) {
@@ -243,10 +243,10 @@ export function ApplicationStatusBadge({ status, className }: { status: string; 
 /** How much is held: the ring every path uses, then "N of M" and what is counted. */
 export function HeldMeter({ held, total, noun, className }: { held: number; total: number; noun: string; className?: string }) {
   return (
-    <p className={cn('flex min-w-0 items-center gap-2 text-sm text-fg-muted', className)}>
+    <p className={cn('flex min-w-0 items-center gap-2 text-sm text-text-2', className)}>
       {total > 0 && <ShareRing share={{ held, learning: 0, total }} />}
       <span className="min-w-0">
-        <span className="font-semibold tabular-nums text-fg-default">
+        <span className="font-semibold tabular-nums text-text-1">
           {held} of {total}
         </span>{' '}
         {noun}

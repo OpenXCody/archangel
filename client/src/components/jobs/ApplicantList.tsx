@@ -93,7 +93,7 @@ export default function ApplicantList({ data, job }: { data: JobApplicants; job?
         <div className={cn('flex flex-wrap items-center gap-x-4 gap-y-2', stages.length <= 1 && 'flex-1 justify-between')}>
           {searchable && (
             <div className="relative w-full xs:w-44">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" aria-hidden="true" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" aria-hidden="true" />
               <input
                 type="text"
                 role="searchbox"
@@ -109,7 +109,7 @@ export default function ApplicantList({ data, job }: { data: JobApplicants; job?
                     setTerm('');
                   }
                 }}
-                className={cn(fieldClass, 'min-h-[36px] bg-bg-surface py-1.5 pl-9')}
+                className={cn(fieldClass, 'min-h-[36px] py-1.5 pl-9')}
               />
             </div>
           )}
@@ -121,7 +121,7 @@ export default function ApplicantList({ data, job }: { data: JobApplicants; job?
 
       <div className={cn(cardClass, 'overflow-hidden')}>
         <div
-          className={cn('hidden items-center gap-x-4 border-b border-border-subtle px-4 py-2 text-xs text-fg-muted sm:grid', COLUMNS)}
+          className={cn('hidden items-center gap-x-4 border-b border-line px-4 py-2 text-xs text-text-2 sm:grid', COLUMNS)}
           aria-hidden="true"
         >
           <span>Applicant</span>
@@ -131,7 +131,7 @@ export default function ApplicantList({ data, job }: { data: JobApplicants; job?
           <span />
         </div>
         {visible.length === 0 ? (
-          <p className="px-4 py-6 text-center text-sm text-fg-muted" role="status" data-applicants-none>
+          <p className="px-4 py-6 text-center text-sm text-text-2" role="status" data-applicants-none>
             No applicant{active === 'all' ? '' : ` at ${applicationStatusLabel(active).toLowerCase()}`} matches “{term.trim()}”.
           </p>
         ) : (
@@ -162,11 +162,11 @@ function StageTab({ label, count, selected, onSelect }: { label: string; count: 
       onClick={onSelect}
       className={cn(
         'flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm transition-colors sm:px-3',
-        selected ? 'bg-bg-elevated font-medium text-fg-default' : 'text-fg-muted hover:text-fg-default'
+        selected ? 'bg-surface font-medium text-text-1' : 'text-text-2 hover:text-text-1'
       )}
     >
       {label}
-      <span className={cn('tabular-nums', selected ? 'text-fg-muted' : 'text-fg-soft')}>{count}</span>
+      <span className={cn('tabular-nums', selected ? 'text-text-2' : 'text-text-3')}>{count}</span>
     </button>
   );
 }
@@ -195,39 +195,39 @@ function ApplicantRow({ applicant, skills, hasRequired, job, open, onToggle }: A
         aria-controls={panelId}
         onClick={onToggle}
         className={cn(
-          'grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 px-4 py-3 text-left transition-colors hover:bg-bg-elevated',
+          'grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 px-4 py-3 text-left transition-colors hover:bg-surface-hover',
           COLUMNS,
-          open && 'bg-bg-elevated'
+          open && 'bg-surface'
         )}
       >
-        <span className={cn('min-w-0 truncate text-sm font-medium', quiet ? 'text-fg-muted' : 'text-fg-default')}>
+        <span className={cn('min-w-0 truncate text-sm font-medium', quiet ? 'text-text-2' : 'text-text-1')}>
           {applicant.applicant.name}
         </span>
         <span className="hidden items-center gap-2.5 sm:flex">
           {held ? (
             <>
-              <span className={cn('w-16 shrink-0 whitespace-nowrap text-sm tabular-nums', quiet ? 'text-fg-muted' : 'text-fg-default')}>{held}</span>
-              <span className="h-1 w-10 shrink-0 overflow-hidden rounded-full bg-tint/10" aria-hidden="true">
-                <span className="block h-full rounded-full bg-fg-muted" style={{ width: `${percent}%` }} />
+              <span className={cn('w-16 shrink-0 whitespace-nowrap text-sm tabular-nums', quiet ? 'text-text-2' : 'text-text-1')}>{held}</span>
+              <span className="h-1 w-10 shrink-0 overflow-hidden rounded-full bg-line" aria-hidden="true">
+                <span className="block h-full rounded-full bg-text-2" style={{ width: `${percent}%` }} />
               </span>
             </>
           ) : (
-            <span className="text-sm text-fg-soft">None listed</span>
+            <span className="text-sm text-text-3">None listed</span>
           )}
         </span>
         {/* Open, the stage is the control just below: the word here steps aside and keeps its place. */}
         <span
           className={cn(
             'justify-self-end text-sm sm:justify-self-start',
-            status === 'applied' ? 'font-medium text-fg-default' : quiet ? 'text-fg-soft' : 'text-fg-muted',
+            status === 'applied' ? 'font-medium text-text-1' : quiet ? 'text-text-3' : 'text-text-2',
             open && 'invisible'
           )}
         >
           {applicationStatusLabel(status)}
         </span>
-        <span className="hidden text-sm text-fg-muted sm:block">{appliedWhen(applicant.createdAt)}</span>
-        <ChevronDown className={cn('hidden h-4 w-4 text-fg-muted transition-transform sm:block', open && 'rotate-180')} aria-hidden="true" />
-        <span className="col-span-2 text-xs text-fg-muted sm:hidden">
+        <span className="hidden text-sm text-text-2 sm:block">{appliedWhen(applicant.createdAt)}</span>
+        <ChevronDown className={cn('hidden h-4 w-4 text-text-2 transition-transform sm:block', open && 'rotate-180')} aria-hidden="true" />
+        <span className="col-span-2 text-xs text-text-2 sm:hidden">
           {held ? `${held} required skills · ` : ''}
           {appliedWhen(applicant.createdAt)}
         </span>
@@ -300,22 +300,22 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
   const optional = skills.filter((skill) => !skill.required);
 
   return (
-    <div id={id} className="space-y-4 border-t border-border-subtle px-4 pb-4 pt-3.5" data-applicant-panel>
+    <div id={id} className="space-y-4 border-t border-line px-4 pb-4 pt-3.5" data-applicant-panel>
       <div className="flex flex-wrap items-start gap-x-4 gap-y-3">
         <div className="min-w-0 flex-1 basis-56">
           {/* The email opens with the job as its subject, so the applicant knows what it is about. */}
           <a
             href={`mailto:${person.email}${job ? `?subject=${encodeURIComponent(`${job.title} at ${job.companyName}`)}` : ''}`}
-            className="break-all text-sm text-fg-default underline underline-offset-4 hover:no-underline"
+            className="break-all text-sm text-text-1 underline underline-offset-4 hover:no-underline"
           >
             {person.email}
           </a>
           {/* When they applied is in the row above, once. */}
-          {person.homeZip && <p className="mt-0.5 text-xs text-fg-muted">ZIP {person.homeZip}</p>}
+          {person.homeZip && <p className="mt-0.5 text-xs text-text-2">ZIP {person.homeZip}</p>}
         </div>
         <div className="w-full shrink-0 sm:w-44">
           {status === 'withdrawn' ? (
-            <p className="text-sm text-fg-muted sm:text-right">Withdrawn by the applicant.</p>
+            <p className="text-sm text-text-2 sm:text-right">Withdrawn by the applicant.</p>
           ) : (
             // Never disabled while it saves: a disabled control drops focus.
             <Select value={moving ?? status} onValueChange={chooseStage}>
@@ -323,11 +323,11 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
                 ref={stageRef}
                 aria-label={`Stage for ${person.name}`}
                 aria-busy={move.isPending}
-                className="h-[42px] rounded-lg border-border-strong bg-bg-surface px-3 text-sm text-fg-default shadow-none"
+                className="h-[42px] rounded-lg border-line-strong bg-surface px-3 text-sm text-text-1"
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="rounded-lg border-border-strong bg-bg-surface">
+              <SelectContent className="rounded-lg border-line-strong bg-surface">
                 {options.map((option) => (
                   <SelectItem key={option} value={option} className="py-2.5">
                     {applicationStatusLabel(option)}
@@ -340,8 +340,8 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
       </div>
 
       {pending && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-border-strong p-3" role="group" aria-label="Confirm stage">
-          <p className="min-w-0 flex-1 basis-48 text-sm text-fg-default">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-line-strong p-3" role="group" aria-label="Confirm stage">
+          <p className="min-w-0 flex-1 basis-48 text-sm text-text-1">
             Mark {person.name} as {applicationStatusLabel(pending).toLowerCase()}? They see it at once.
           </p>
           <div className="flex shrink-0 gap-2">
@@ -373,7 +373,7 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
         </div>
       )}
       {!pending && before && isDecision(status) && (
-        <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-muted">
+        <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-2">
           Marked {applicationStatusLabel(status).toLowerCase()}.
           <button type="button" onClick={() => moveTo(before)} className={textButtonClass}>
             Undo
@@ -382,7 +382,7 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
       )}
       {/* Someone was hired and the job still takes applications: closing it is one press, not a hunt for the control. */}
       {!pending && status === 'hired' && job?.id && job.isOpen && (
-        <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-muted" data-close-after-hire>
+        <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-2" data-close-after-hire>
           The job is still open.
           <button
             type="button"
@@ -399,7 +399,7 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
       <ErrorNote error={move.error ?? closeJob.error} />
 
       {skills.length === 0 ? (
-        <p className="text-sm text-fg-muted">This job lists no skills.</p>
+        <p className="text-sm text-text-2">This job lists no skills.</p>
       ) : (
         <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           {required.length > 0 && <SkillStanding title="Required skills" skills={required} held={heldIds} learning={learningIds} />}
@@ -409,8 +409,8 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
 
       {applicant.note && (
         <div>
-          <p className="text-xs font-medium text-fg-muted">Note from {person.name}</p>
-          <p className="mt-1 whitespace-pre-line break-words text-sm text-fg-default">{applicant.note}</p>
+          <p className="text-xs font-medium text-text-2">Note from {person.name}</p>
+          <p className="mt-1 whitespace-pre-line break-words text-sm text-text-1">{applicant.note}</p>
         </div>
       )}
 
@@ -429,7 +429,7 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
             maxLength={2000}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className={cn(fieldClass, 'resize-y bg-bg-surface')}
+            className={cn(fieldClass, 'resize-y')}
           />
         </Field>
         <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -446,7 +446,7 @@ function ApplicantPanel({ id, applicant, skills, job }: ApplicantPanelProps) {
             Save note
           </Button>
           {saveNote.isSuccess && !noteDirty && (
-            <span role="status" className="text-xs text-fg-muted">
+            <span role="status" className="text-xs text-text-2">
               Saved
             </span>
           )}
@@ -470,19 +470,19 @@ interface SkillStandingProps {
  */
 function SkillStanding({ title, skills, held, learning }: SkillStandingProps) {
   const groups: { label: string; mark: 'held' | 'learning' | 'none'; tone: string; skills: ApplicantSkill[] }[] = [
-    { label: 'Held', mark: 'held', tone: 'text-fg-default', skills: skills.filter((skill) => held.has(skill.id)) },
-    { label: 'Learning', mark: 'learning', tone: 'text-fg-muted', skills: skills.filter((skill) => !held.has(skill.id) && learning.has(skill.id)) },
-    { label: 'Missing', mark: 'none', tone: 'text-fg-soft', skills: skills.filter((skill) => !held.has(skill.id) && !learning.has(skill.id)) },
+    { label: 'Held', mark: 'held', tone: 'text-text-1', skills: skills.filter((skill) => held.has(skill.id)) },
+    { label: 'Learning', mark: 'learning', tone: 'text-text-2', skills: skills.filter((skill) => !held.has(skill.id) && learning.has(skill.id)) },
+    { label: 'Missing', mark: 'none', tone: 'text-text-3', skills: skills.filter((skill) => !held.has(skill.id) && !learning.has(skill.id)) },
   ];
   return (
     <div className="min-w-0" data-skill-standing={title.split(' ')[0].toLowerCase()}>
-      <p className="text-xs font-medium text-fg-muted">{title}</p>
+      <p className="text-xs font-medium text-text-2">{title}</p>
       <dl className="mt-1.5 space-y-2">
         {groups.map(
           ({ label, mark, tone, skills: group }) =>
             group.length > 0 && (
               <div key={label} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-x-3" data-standing={label.toLowerCase()}>
-                <dt className="flex items-start gap-1.5 text-sm text-fg-muted">
+                <dt className="flex items-start gap-1.5 text-sm text-text-2">
                   <SkillMark status={mark} className="mt-0.5 h-4 w-4" />
                   <span>
                     {label} <span className="tabular-nums">{group.length}</span>

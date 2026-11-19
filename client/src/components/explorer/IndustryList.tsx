@@ -27,7 +27,7 @@ function Body({ data, place }: { data: Industries; place: PagePlace }) {
   ];
   const search = placeSearch(place);
   if (data.industries.length === 0) {
-    return <p className="mt-6 text-sm text-fg-muted">No plants are listed in {data.place.name}.</p>;
+    return <p className="mt-6 text-sm text-text-2">No plants are listed in {data.place.name}.</p>;
   }
   return (
     <>

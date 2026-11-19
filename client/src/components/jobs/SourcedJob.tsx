@@ -63,12 +63,12 @@ export function SourcedApply({ job }: { job: JobDetail }) {
   if (!job.applyUrl || !job.isOpen) return null;
   return (
     <>
-      <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className={cn(detailActionClass, 'border-transparent bg-fg-default text-bg-base hover:bg-fg-default/90')} data-apply-on-site>
+      <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className={cn(detailActionClass, 'border-transparent bg-text-1 text-inverse-text hover:bg-text-1/90')} data-apply-on-site>
         Apply
         <ExternalLink className="h-4 w-4" aria-hidden="true" />
         <span className="sr-only">, in a new tab</span>
       </a>
-      <span className="min-w-0 break-words text-sm text-fg-muted" data-apply-where>
+      <span className="min-w-0 break-words text-sm text-text-2" data-apply-where>
         On {careersSite(job.companyName)}
       </span>
     </>
@@ -78,8 +78,8 @@ export function SourcedApply({ job }: { job: JobDetail }) {
 function Term({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-fg-muted">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-medium text-fg-default">{children}</dd>
+      <dt className="text-xs text-text-2">{label}</dt>
+      <dd className="mt-0.5 break-words text-sm font-medium text-text-1">{children}</dd>
     </div>
   );
 }
@@ -100,9 +100,9 @@ export default function SourcedJob({ job, skills, manages }: SourcedJobProps) {
   return (
     <>
       {manages && (
-        <p className={cn(cardClass, 'mt-6 p-4 text-sm text-fg-default')} role="note" data-job-from-source>
+        <p className={cn(cardClass, 'mt-6 p-4 text-sm text-text-1')} role="note" data-job-from-source>
           This job comes from {careersSite(job.companyName)} and is kept in step with it.
-          <span className="text-fg-muted">{job.isOpen ? ' It is changed there.' : ' It is no longer listed there.'}</span>
+          <span className="text-text-2">{job.isOpen ? ' It is changed there.' : ' It is no longer listed there.'}</span>
         </p>
       )}
 
@@ -115,16 +115,16 @@ export default function SourcedJob({ job, skills, manages }: SourcedJobProps) {
           <Term label={job.undated ? 'Listed' : 'Posted'}>{formatDayCapital(job.postedAt)}</Term>
           {asksFor.length > 0 && (
             <div className="min-w-0 xs:col-span-2 sm:col-span-4" data-job-requirements>
-              <dt className="text-xs text-fg-muted">Asks for</dt>
+              <dt className="text-xs text-text-2">Asks for</dt>
               {asksFor.map((line) => (
-                <dd key={line} className="mt-0.5 break-words text-sm text-fg-default">
+                <dd key={line} className="mt-0.5 break-words text-sm text-text-1">
                   {line}
                 </dd>
               ))}
             </div>
           )}
         </dl>
-        <ul className="border-t border-border-subtle">
+        <ul className="border-t border-line">
           <RecordRow to={`/companies/${job.companyId}`} label="Company" title={formatCompanyName(job.companyName)} />
           <RecordRow to={`/factories/${job.factoryId}`} label="Plant" title={formatFactoryName(job.factoryName)} />
           {job.hasVersion ? (

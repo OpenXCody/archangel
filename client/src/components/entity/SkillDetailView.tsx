@@ -109,14 +109,14 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
         <div className="grid grid-cols-1 gap-x-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
           {data.howLearned && (
             <DetailSection id="learned" title="How it is learned">
-              <p className="text-[15px] leading-relaxed text-fg-muted" data-skill-learned>
+              <p className="text-[15px] leading-relaxed text-text-2" data-skill-learned>
                 {data.howLearned}
               </p>
             </DetailSection>
           )}
           {tools.length > 0 && (
             <DetailSection id="tools" title="Done with">
-              <ul className="space-y-1.5 text-[15px] text-fg-muted" data-skill-tools>
+              <ul className="space-y-1.5 text-[15px] text-text-2" data-skill-tools>
                 {tools.map((tool) => (
                   <li key={tool} className="leading-snug">
                     {tool}
@@ -131,7 +131,7 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
       {/* Where: the industries its careers are typical of */}
       {(industries.length > 0 || data.everywhere) && (
         <DetailSection id="industries" title="Where it is used">
-          {industries.length > 0 ? <IndustryRows industries={industries} /> : <p className="text-sm text-fg-muted">Plants of every industry.</p>}
+          {industries.length > 0 ? <IndustryRows industries={industries} /> : <p className="text-sm text-text-2">Plants of every industry.</p>}
         </DetailSection>
       )}
 

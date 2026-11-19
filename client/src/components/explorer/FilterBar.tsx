@@ -103,10 +103,10 @@ function Choice({
         <button
           type="button"
           aria-label={`${label}: ${selected ?? allLabel ?? ''}`}
-          className={cn(TRIGGER, selected && allLabel ? 'font-medium text-fg-default' : 'text-fg-muted hover:text-fg-default')}
+          className={cn(TRIGGER, selected && allLabel ? 'font-medium text-text-1' : 'text-text-2 hover:text-text-1')}
         >
           <span className="min-w-0 truncate">{selected ?? allLabel}</span>
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-fg-soft" />
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-text-3" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="max-h-[min(22rem,var(--radix-dropdown-menu-content-available-height))] min-w-[12rem]">
@@ -206,7 +206,7 @@ export default function FilterBar({
           />
         )}
         {filtered && (
-          <button type="button" onClick={() => onFilterChange({})} className={cn(TRIGGER, 'text-fg-muted underline underline-offset-4 hover:text-fg-default')}>
+          <button type="button" onClick={() => onFilterChange({})} className={cn(TRIGGER, 'text-text-2 underline underline-offset-4 hover:text-text-1')}>
             Clear
           </button>
         )}

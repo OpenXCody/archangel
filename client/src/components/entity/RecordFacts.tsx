@@ -13,7 +13,7 @@ import { RecordList, RecordRow } from '../layout/Page';
  * and an admin sees it in the editor); the page states the fact and no more.
  */
 
-const quietLink = 'underline decoration-border-strong underline-offset-4 transition-colors hover:text-fg-default hover:decoration-fg-muted';
+const quietLink = 'underline decoration-line-strong underline-offset-4 transition-colors hover:text-text-1 hover:decoration-text-2';
 
 /** "4,500 people". */
 export function peopleCount(people: number): string {
@@ -34,17 +34,17 @@ export function PlantFacts({
   return (
     <div className="mt-6" data-plant-facts>
       {people && (
-        <p className="text-2xl font-medium leading-tight tracking-tight text-fg-default">
+        <p className="text-2xl font-medium leading-tight tracking-tight text-text-1">
           {peopleCount(people)}
-          {factory.workforceYear && <span className="text-fg-muted">, {factory.workforceYear}</span>}
+          {factory.workforceYear && <span className="text-text-2">, {factory.workforceYear}</span>}
         </p>
       )}
       {rows.length > 0 && (
         <dl className={`grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm ${people ? 'mt-4' : ''}`}>
           {rows.map(([label, value]) => (
             <div key={label} className="contents">
-              <dt className="text-fg-soft">{label}</dt>
-              <dd className="min-w-0 break-words text-fg-default">{value}</dd>
+              <dt className="text-text-3">{label}</dt>
+              <dd className="min-w-0 break-words text-text-1">{value}</dd>
             </div>
           ))}
         </dl>
@@ -75,7 +75,7 @@ export function CompanyStanding({ data }: { data: CompanyDetail }) {
     parts.push(
       <span key="parent">
         Part of{' '}
-        <Link to={`/companies/${parent.slug ?? parent.id}`} className={`text-fg-default ${quietLink}`}>
+        <Link to={`/companies/${parent.slug ?? parent.id}`} className={`text-text-1 ${quietLink}`}>
           {formatCompanyName(parent.name)}
         </Link>
       </span>
@@ -92,7 +92,7 @@ export function CompanyStanding({ data }: { data: CompanyDetail }) {
     );
   }
   return (
-    <p className="mt-1.5 text-sm text-fg-muted" data-company-standing>
+    <p className="mt-1.5 text-sm text-text-2" data-company-standing>
       {parts.map((part, index) => (
         <span key={index}>
           {index > 0 && ' · '}
