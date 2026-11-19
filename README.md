@@ -53,10 +53,10 @@ Four kinds. Run all of them before merging.
 |---|---|---|
 | Static | `npm run typecheck` and `npm run lint` | Types; ESLint with no `any`; `.js` endings on server imports; colours from theme tokens only; the page's inline scripts against the Content-Security-Policy |
 | Unit | `npm run test:unit` | The pure functions: pins packed and unpacked, names, industries and a company's industry, paging, LIKE escaping and reading rows, account purpose and View as, when a build migrates, the statistics adapter, the employer loader's generator, the skill taxonomy's check. Also that the migration list is in order, and that the skills catalogue, the skill taxonomy, the company domains and the stored logos agree with what was generated from them |
-| API | `bash tests/api/accounts.sh`, `jobs.sh`, `seeker.sh`, `admin.sh`, `email.sh`, `industries.sh`, `loader.sh` | Accounts, roles, invites, records, jobs, applications, reach, the industry pages, and the email and notices people get, end to end over HTTP, including every refusal; and the employer loader, research files in, companies and plants out |
+| API | `bash tests/api/accounts.sh`, `jobs.sh`, `seeker.sh`, `admin.sh`, `email.sh`, `industries.sh`, `careers.sh`, `intake.sh`, `loader.sh`, `catalogue.sh` | Accounts, roles, invites, records, jobs, applications, reach, the industry pages, and the email and notices people get, end to end over HTTP, including every refusal; and the employer loader, research files in, companies and plants out |
 | Pages | `npm run test:ui` | Playwright: the map, Explore and its tabs, the header, jobs, sign-in, settings signed out, each kind of record's page, the industry pages, search, the tools a seeker and an employer are each given, a read that gets no answer giving up, and an admin's change reaching the map's panel, on seven device sizes, with no sideways scroll and no crash |
 
-The API suites are local only. They need the dev server running against a database with data in it, and `psql`, `curl` and `node` on the PATH; they create and remove their own accounts and records. `loader.sh` is the exception: it needs only the database (`DB`), not the server. What the suites share (one request, a check, the refusal of an API that is not on this machine) is in `tests/api/lib.sh`.
+The API suites are local only. They need the dev server running against a database with data in it, and `psql`, `curl` and `node` on the PATH; they create and remove their own accounts and records. `loader.sh` and `catalogue.sh` are the exceptions: they need only the database (`DB`), not the server. What the suites share (one request, a check, the refusal of an API that is not on this machine) is in `tests/api/lib.sh`.
 
 ```bash
 API=http://localhost:3000/api DB="$DATABASE_URL" bash tests/api/accounts.sh
@@ -89,7 +89,19 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   npx tsx server/scripts/import-pillar-bulk.ts
   ```
 
-  `scripts/enrich-naics.mjs` then fills in missing industry codes from EPA's public export (a dry run unless `--apply` is given; its header says how).
+  `scripts/enrich-naics.mjs` filled in missing industry codes from EPA's public export; the intake runner's `epa-echo` source below replaces it.
+
+- **Large public sources**, through the intake runner, outside the deploy: `scripts/ingest/run.mjs` stages what a source says, decides which plant each record is (by the source's own id first), writes ids and facts by rank, and can take a run back. A rehearsal does the whole run in a transaction that is rolled back and prints what it would do.
+
+  ```bash
+  node scripts/ingest/run.mjs list
+  node scripts/ingest/run.mjs fetch epa-echo                 # one open download from the EPA
+  node scripts/ingest/run.mjs rehearse epa-echo <file>       # writes nothing
+  node scripts/ingest/run.mjs load epa-echo <file>           # stage, resolve, apply
+  node scripts/ingest/run.mjs undo epa-echo <run>
+  ```
+
+  On production it is run by hand from GitHub: add the repository secret `INGEST_DATABASE_URL` (Settings, Secrets and variables, Actions) with the production connection string, then Actions, Ingest, Run workflow, with the source and the mode (`rehearse`, then `apply`; `undo` with the run's number). The report is the run's artifact. Matches a run was not sure of wait in Admin Tools, Data. After a load that adds or moves plants, run the same workflow with the source `counties` (`scripts/geo/assign-keys.mjs`: each plant's county and metro area from its coordinates; `rehearse` says what it would write, `apply` writes). `scripts/ingest/README.md` has the design and the adapter's contract.
 
 - **Researched employers and plants**, with their sources: how many people work at a plant, what it makes, when it opened, which company a company is part of. Research files in `data/employers/` (and our corrections to them, in `corrections.json`) are turned into one migration by `scripts/build-employers-sql.mjs`. The loader decides in SQL, when the migration is applied, which company and which plant each entry already is, and writes every decision to `load_log`. A new file is checked, then rehearsed on a copy of production, before its migration is generated:
 
@@ -107,9 +119,9 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   |---|---|---|
   | Career paths | `data/paths/*.json` | `build-paths-sql.mjs` |
   | Company profiles: domain, featured, description | `data/companies/profiles.json` | `build-company-profiles-sql.mjs`, `build-company-descriptions-sql.mjs` |
-  | Web domains for more companies | `data/companies/domains.json` | `build-domains-sql.mjs` |
-  | Careers typical of each industry | `data/careers/industries.json` | `build-industry-careers-sql.mjs` |
-  | Everyday names for careers | `data/careers/aliases.json` | `build-career-aliases-sql.mjs` |
+  | Web domains for more companies | `data/companies/domains.json`, `data/companies/domains-2.json` | `build-domains-sql.mjs` |
+  | Careers, their home domains and ladders | `data/careers/catalogue.json` | `build-careers-sql.mjs` |
+  | Careers typical of each industry, and everyday names for careers | `data/careers/industries.json`, `data/careers/aliases.json` | `build-career-lists-sql.mjs` |
   | The skills catalogue | `data/skills/catalogue.json` | `build-skills-sql.mjs` |
   | The skill taxonomy: domains, groups, each skill's group and level | `data/skills/taxonomy.json` | `build-taxonomy-sql.mjs` |
   | Cleanups: records deleted, merged, renamed | `data/cleanup/*.json` | `build-cleanup-sql.mjs` |
@@ -150,7 +162,7 @@ A company's logo is found from its website domain (`companies.domain`). The mark
 node scripts/fetch-logos.mjs --sheet /tmp/new-logos.html     # needs curl and ImageMagick
 ```
 
-It tries the company's own site, then Wikimedia, then the icon services, and leaves a mark wider than 2 to 1 on the letter. Open the sheet and look at every new mark before committing. Refuse a wrong one with `--none <domain> --note "why"`, or place one by hand with `--place <domain>=<file> --note "where it is from"`; both are kept in `data/companies/logo-decisions.json`, and no later run undoes them.
+It tries the company's own site, then Wikimedia, then the icon services, says what it is in every request, and leaves a site that refuses alone. Unattended, it leaves a mark wider than 2 to 1 on the letter. To decide one by hand: `node scripts/fetch-logos.mjs --look a.com --into <folder> --sheet look.html` shows every mark on offer (`--quick` skips Wikimedia); keep one with `--place`, or cut the symbol out of a logo and place that. `--show a.com,b.com --sheet out.html` shows what is stored. Open the sheet and look at every new mark before committing. Refuse a wrong one with `--none <domain> --note "why"`, or place one by hand with `--place <domain>=<file> --note "where it is from"`; both are kept in `data/companies/logo-decisions.json`, and no later run undoes them.
 
 ## Deploying
 

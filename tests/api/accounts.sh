@@ -31,7 +31,8 @@ restore_local() {
 trap restore_local EXIT
 TXF=$(psql "$DB" -tAc "SELECT id FROM factories WHERE state='TX' AND company_id IS NOT NULL LIMIT 1")
 TXC=$(psql "$DB" -tAc "SELECT company_id FROM factories WHERE id='$TXF'")
-CAF=$(psql "$DB" -tAc "SELECT id FROM factories WHERE state='CA' AND company_id IS NOT NULL LIMIT 1")
+# A plant of another company: one the Texas plant's company must not be able to post at.
+CAF=$(psql "$DB" -tAc "SELECT id FROM factories WHERE state='CA' AND company_id IS NOT NULL AND company_id <> '$TXC' LIMIT 1")
 CAC=$(psql "$DB" -tAc "SELECT company_id FROM factories WHERE id='$CAF'")
 OCC=$(psql "$DB" -tAc "SELECT occupation_id FROM occupation_skills GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1")
 SK=$(psql "$DB" -tAc "SELECT skill_id FROM occupation_skills WHERE occupation_id='$OCC' AND stage IS DISTINCT FROM 3 ORDER BY skill_id LIMIT 1")

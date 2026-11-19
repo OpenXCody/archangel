@@ -1,7 +1,224 @@
 # Bringing in data in bulk
 
 How a mass source becomes companies and plants in the database, with where
-each fact came from. One path, whatever the source:
+each fact came from. There are two paths today, and the second is where
+everything is headed:
+
+- **Research files** (a few hundred curated employers and plants): the
+  contract and the employer loader, below. They ship as generated migrations
+  inside the site's deploy.
+- **Large sources** (tens of thousands of records and up): the intake
+  pipeline, next. It runs outside the deploy, keeps what each source said,
+  and can be rehearsed and undone.
+
+## Large sources: the intake pipeline
+
+```
+a source's download ──► scripts/ingest/sources/<slug>.mjs   (an adapter: reads, decides nothing)
+                                   │
+        scripts/ingest/run.mjs  stage ──► intake_records   what the source said, one row per record
+                                resolve ─► intake_links     which of our plants each record is
+                                   │       intake_review    the ones a person must decide (Admin Tools, Data)
+                                apply ───► factories        facts, by one rule (intake_fact_wins)
+                                           external_references   the source's id against our record
+                                           fact_sources          where each fact came from
+                                           intake_changes        before and after: how a run is undone
+                                           load_log              one line per decision
+```
+
+Migration `0043_intake.sql` holds the tables and the functions that write a
+record onto a plant. The runner orchestrates; the database decides, so the
+runner and Admin Tools cannot disagree.
+
+### The tables
+
+| Table | What it holds |
+|-------|---------------|
+| `intake_sources` | A source, written from its adapter each time it is staged: slug, name, publisher, where it comes from, its terms in a line, how it is fetched, and its settings (below). |
+| `intake_runs` | One load: start, end, state (`staging`, `staged`, `resolved`, `applying`, `applied`, `undone`), the file it read with its SHA-256 and size, its counts and the seconds each stage took. |
+| `intake_records` | Raw staging, keyed by (source, the source's own id): `payload` (the source's own columns, as it said them), `facts` (the adapter's reading, in the words below), a hash, and the run that first saw it, last saw it change, and found it gone. Written only by `stage`. |
+| `intake_links` | One short row beside each staged record: our record, how it was found (`id`, `matched`, `added`; `review`, `held` and `new` have none yet), the run that decided, the plants an admin said it is not, and the version of the record last applied. The view `intake_staged` reads the two as one. |
+| `external_references` | **The crosswalk.** A source's id names at most one of our records of a kind: `external_refs_identity_key` is unique on (source, entity_type, external_id), which is also the index a lookup by (source, id) uses. A record can carry many sources' ids. Rows with source `CURATED` are citations, not ids, and stand outside the rule. A second row found carrying an id when the rule was made is marked `duplicate`: two of our rows for one outside thing. |
+| `record_merges` | Merge history: which record was merged into which, when, by an admin, a research file or a run. `record_now(kind, id)` follows it, so an id that pointed at a merged record still resolves. |
+| `fact_sources` | For each plant and fact (`industry`, `address`, `city`, `zip`, `coordinates`, `headcount`, `products`, `opened`, `status`): who says so (a source's slug, `admin`, `curated`), their rank, the day the value is for, the run and the source record that set it. A fact with no row was there before intake. `workforce_source` and `workforce_year` stay what a plant's page shows. |
+| `intake_changes` | What a run changed, one row per change with the values before and after. It is how `undo` works and the history behind `fact_sources`. |
+| `intake_review` | A record that may be one of our plants, waiting for a person: the reason, and up to three candidates with the rule that found each and the distance. |
+| `load_log` | Still the one home for decisions. A run's lines carry `run_id`, `source_id`, `entity_id` and `evidence`; the employer loader's lines have none of those. |
+
+### The life of a run
+
+1. **fetch** downloads the source's file to a folder outside the repository
+   (one request; a refusal is reported, never worked around) and notes beside
+   it when it was fetched and the day the source published it.
+2. **stage** reads the file once, in a stream. A source read by id
+   (`scope: 'known'`) keeps only the records whose id we already hold and
+   counts the rest under labels its adapter gives ("manufacturing, active").
+   What is kept is compared with staging by hash (`diffRun`): new, changed,
+   the same, back, gone. Only new and changed records are sent, by `COPY`, in
+   batches of 5,000, each its own transaction; unchanged records are not
+   touched. Staging the same file again takes up an unfinished run. No table
+   the site reads is written.
+3. **resolve** decides which plant each record is. It writes the links, the
+   queue and `load_log`: still nothing the site reads.
+4. **apply** writes: plants to add (a source that adds), then each record's
+   id and facts through `intake_apply_record`, 1,000 records to a
+   transaction, so plants are never locked for long. It applies only records
+   not yet applied in their present version, which is also what makes an
+   apply that stopped safe to start again. A run never deletes a plant or a
+   company.
+5. **undo** takes a run back, newest run first: each fact is restored where
+   the plant still has the value the run gave it (one changed since is kept
+   and listed), ids the run wrote are taken back, plants and companies it
+   added are removed when nothing has been hung on them, what it queued is
+   withdrawn. The run stays in the list, `undone`.
+
+`rehearse` does 2 to 4 inside one transaction, prints the report and rolls
+back: the database is exactly as it was. Because that is one transaction,
+plants it would change stay locked against other writers for its length
+(about a minute for the EPA file); readers are not held up.
+
+### Matching
+
+In order, for each staged record:
+
+1. **By id.** The crosswalk has the source's id for one of our plants: that
+   plant, or the one it was merged into.
+2. **By rule**, for the rest: the employer loader's own rules through its own
+   functions (`pg_temp.el_bare`, `el_words`, `el_share`, `el_refers`,
+   `el_metres`, loaded from `scripts/employers-loader.sql`). A company is
+   found by exact name or other name, in any letter case. A plant is a
+   candidate when it is the company's (or its parent's, or a part of it) with
+   the same name within 5 km, a shared telling word within 3 km, or anything
+   within 1.5 km; or anyone's within 250 m whose name names the company or
+   the site. A record that names no company is known by its own name and
+   place: the same name within 5 km, a shared word within 250 m.
+   - **Taken**: the best candidate, when the loader would not have marked it
+     for a look, no other candidate fits as well, and no other record of the
+     run fits the same plant. The id is written when the run is applied.
+   - **Queued**: anything the loader would have marked (filed under another
+     company or the parent, already described under another name, names with
+     nothing in common, far apart), two that fit equally, or two records for
+     one plant. It waits in Admin Tools with the reason and the evidence.
+   - **No candidate**: held, or added as a new plant, as the source's
+     `unmatched` says. Never added: a record with no name, company, state or
+     coordinates, Puerto Rico, construction materials (`NOT_COVERED`).
+3. A plant that already carries another id of the same source is never a
+   candidate, and neither is one an admin said the record is not.
+
+Not carried over from the loader, because they need the whole research file:
+`sameAs` and `isNew` from the corrections, "the company's only plant in the
+city", moving a plant from one company to another, and merging company rows.
+A queue item is where those cases go instead.
+
+### Which value wins
+
+`intake_fact_wins`, one function, in this order:
+
+1. A value an admin typed is never replaced, even when the admin emptied it.
+2. An empty fact is filled.
+3. A source whose `fill` is `empty` stops there.
+4. Otherwise the higher rank wins; at the same rank, the value for the later
+   day.
+
+Ranks run 1 to 99: a source has one (`rank`) and may differ by fact
+(`ranks: { headcount: 70 }`). An admin's value is 100. A fact with no
+`fact_sources` row counts as 80 on a curated plant and 10 on any other.
+Admin edits write `fact_sources` (`server/lib/provenance.ts`), and the
+migration reads the audit log for the edits made before it existed.
+
+### An adapter
+
+`scripts/ingest/sources/<slug>.mjs` exports:
+
+```js
+export const source = { slug, name, publisher, url, terms, howFetched, kind: 'factory',
+  refSource,            // the name its ids are kept under in external_references.source
+  scope: 'known'|'all', // stage only records whose id we hold, or every record
+  unmatched: 'hold'|'add', fill: 'empty'|'ranked', rank, ranks };
+export const version = 1;        // raise it when the reading changes: every record is read again
+export async function* rows(file) {}   // the file's rows, streamed
+export function idOf(row) {}           // the source's own id, or null
+export function classify(row) {}       // labels a row we do not stage is counted under
+export async function read(row, { asOf }) { return { id, payload, facts }; }
+export async function fetchFile({ dir, log }) {}   // optional
+export async function asOfFile(file) {}            // the day the file is for
+```
+
+`facts` may carry: `name`, `company`, `address`, `city`, `state`, `zip`,
+`latitude`, `longitude` (as text), `naics`, `industry` (one of the 21 names),
+`industryNote` (why the record offers no industry: logged, nothing written),
+`people`, `peopleYear`, `peopleSource`, `peopleNote`, `products`, `opened`,
+`status`, `url` (the record at the source) and `asOf`. Anything else is kept
+with the record and ignored. An adapter decides nothing about the database.
+
+### The EPA ECHO Exporter (`epa-echo`)
+
+The first source. One zip from `echo.epa.gov/files/echodownloads/`, about
+450 MB (2.2 GB as one CSV, 3.2 million facilities), refreshed weekly. EPA data
+is in the public domain; no key or login; `robots.txt` allows the folder and
+asks for 10 seconds between requests, and a fetch is one request. Most of our
+plants came from this registry and carry its id (`EPA_ECHO`), so it is read
+by id (`scope: 'known'`), fills only what a plant lacks (`fill: 'empty'`) and
+adds nothing (`unmatched: 'hold'`).
+
+The industry code written is chosen from the codes the registry lists (in
+number order, not importance): only manufacturing codes the product covers
+count; the industry most of them name wins, a tie going to the lower number;
+within it the first six-digit code. A plant whose record has no usable code
+gets none, and a line says why: no code, only codes outside manufacturing, or
+construction materials.
+
+### Running it
+
+```bash
+node scripts/ingest/run.mjs list
+node scripts/ingest/run.mjs fetch epa-echo --to /tmp/epa            # behind a proxy: NODE_USE_ENV_PROXY=1
+node scripts/ingest/run.mjs rehearse epa-echo /tmp/epa/echo_exporter.zip
+node scripts/ingest/run.mjs load epa-echo /tmp/epa/echo_exporter.zip   # stage, resolve, apply
+node scripts/ingest/run.mjs report 12 --all
+node scripts/ingest/run.mjs undo 12
+```
+
+It reads `DATABASE_URL`, says what it is about to do, and refuses a database
+that is not on this machine unless `--yes-this-database <host>` names its
+host. `stage`, `resolve <run>` and `apply <run>` run the steps one at a time;
+`resolve --again` reconsiders records an earlier run held; `apply --all`
+writes every record again after a rule or a rank changed; `forget <source>`
+removes a source that has no applied run. Reading needs `unzip` on the PATH.
+
+**On production**, nobody's laptop is involved: the workflow
+`.github/workflows/ingest.yml` is started by hand (GitHub, Actions, Ingest,
+Run workflow) with a source and a mode (`rehearse`, `apply`, or `undo` with a
+run's number), runs the runner against the database named by the repository
+secret `INGEST_DATABASE_URL`, and keeps the report as the run's artifact. It
+does nothing on a push. Rehearse first and read the report.
+
+`tests/unit/intake.unit.ts` checks the parts that need no database;
+`tests/api/intake.sh` runs a made-up source through all of it on a local
+database, compares every table before and after, and decides its queue
+through the API.
+
+### The research files through this pipeline
+
+`data/employers/*.json` would be a source like any other: an adapter whose
+`rows` are the plants of a file (company fields carried on each), `idOf` the
+file's name with the company and plant (`texas-electronics/Samsung Austin
+Semiconductor/Samsung Austin Semiconductor`), `scope: 'all'`,
+`unmatched: 'add'`, `fill: 'ranked'`, rank 80. What has to be built first:
+
+- company facts (aliases, domain, description, headquarters, parent, people
+  by state): `intake_apply_record` writes plant facts only;
+- the loader's company merge and its move of a plant between companies, as
+  decisions a run can make and undo (`record_merges` and `intake_changes`
+  are ready for them);
+- `corrections.json` (`sameAs`, `isNew`, `setAside`) read by the adapter, so
+  a correction becomes a fact on the record instead of an edit to the SQL;
+- `curated = true` and the `CURATED` citations, set when a record's source is
+  a research file.
+
+Until then the next research file loads as the last did: the steps below.
+
+## Research files: the contract and the employer loader
 
 ```
 a source's download            scripts/ingest/<source>.mjs (an adapter)
@@ -15,7 +232,7 @@ a source's download            scripts/ingest/<source>.mjs (an adapter)
                           migrations/00NN_<name>.sql  (in scripts/migrate.mjs)
 ```
 
-An **adapter** is a script that reads one source's download and writes
+An **adapter** here is a script that reads one source's download and writes
 contract-shaped JSON. It decides nothing about the database. Everything that
 depends on what the database already holds (is this company there under
 another name, is this plant that row) is decided by the loader's SQL when it
@@ -171,8 +388,8 @@ Checked on 2026-11-18 from a script behind a proxy (no browser).
 
 | Source | What it would add | Reachable | Notes |
 |--------|-------------------|-----------|-------|
-| **OSHA Injury Tracking Application, Form 300A summaries** (osha.gov/Establishment-Specific-Injury-and-Illness-Data) | A headcount for about 300,000 establishments a year: the "annual average number of employees" each reports, with name, address, NAICS and year. The research files in this folder took most of their figures from it by hand. | Yes: one CSV per year, public domain | The best next adapter. Self-reported, covers the whole establishment (offices included), and has no coordinates: match on company and address, geocode what is new. Load as `employees` with the OSHA page as the source and the establishment row named in `employeesNote`. |
-| **EPA Facility Registry Service** (national combined file) and **ECHO exporter** | Names, addresses, coordinates and NAICS for regulated sites. The 47,590 plants came from it; `external_references` keeps each plant's registry id. | Yes: zip downloads, public domain | Use to refresh coordinates and industry codes and to find plants opened since the first import, not to add headcounts (it has none). `scripts/enrich-naics.mjs` already reads ECHO. |
+| **OSHA Injury Tracking Application, Form 300A summaries** (osha.gov/Establishment-Specific-Injury-and-Illness-Data) | A headcount for about 300,000 establishments a year: the "annual average number of employees" each reports, with name, address, NAICS and year. The research files in this folder took most of their figures from it by hand. | Yes: one CSV per year, public domain | The best next adapter for the intake pipeline (`fill: 'ranked'`, a rank for `headcount` above the registry's). Self-reported, covers the whole establishment (offices included), and has no coordinates: it needs a match on company and address, which the matcher does not have yet, and a geocoder for what is new. |
+| **EPA Facility Registry Service** (national combined file) and **ECHO exporter** | Names, addresses, coordinates and NAICS for regulated sites. Most plants came from it; `external_references` keeps each plant's registry id. | Yes: zip downloads, public domain | **Done for the ECHO Exporter**: the `epa-echo` source of the intake pipeline, above, which replaces `scripts/enrich-naics.mjs`. It fills industry codes on plants we hold; the manufacturing facilities it lists that we do not are counted in every run's report and not added. |
 | **EPA Toxics Release Inventory**, basic data files | What a plant handles and releases, by chemical and year, keyed by the same registry id | Yes: one CSV per year (about 60 MB), public domain | Says what is made only indirectly. Worth a table of its own (plant, year, chemical, pounds) rather than the contract. |
 | **State WARN notices** (Texas Workforce Commission) | Layoffs and closures by site, with the number of people: a check on a headcount and the way to learn a plant has closed | Not by script: the page answers 202 with no body (a browser check) | Download the spreadsheet by hand into `data/`, then an adapter. Covers only sites that cut 50 or more jobs. |
 | **Economic development lists** (the governor's office, regional and city corporations' major-employer tables) | Headcounts by site, as the region states them | Pages reachable; each is its own format | Research briefs, as now, rather than adapters: there is no common shape. |

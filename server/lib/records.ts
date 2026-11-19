@@ -6,6 +6,8 @@ import { answerWriteError, coordinate, count, FACTORY_STATUSES, HOSTNAME, isUuid
 import { rowsOf } from './rows.js';
 import { findGroup, placeColumns, placeOf, readLevel, type SkillPlace } from './taxonomy.js';
 import { skillLevelName } from '../../shared/skillLevels.js';
+import { adminSetFacts, factsOfFields } from './provenance.js';
+import { LADDER_LOCK, MAX_LEADS_TO, findDomain, ladderFrom, leadsTo, setLeadsTo, type CareerRef } from './careers.js';
 
 /**
  * Correcting the four kinds of record an admin keeps: companies, factories,
@@ -66,9 +68,11 @@ function cleanDomain(value: unknown): string | null | false {
 }
 
 const MAX_ALIASES = 30;
+/** A career also keeps every title that was folded into it: the catalogue's fullest has 42 of them. */
+const MAX_CAREER_ALIASES = 80;
 
 /** Other names for a record: trimmed, without repeats or the record's own name. Null when the value is not a list of text. */
-function cleanAliases(value: unknown, ownName: string): string[] | null {
+function cleanAliases(value: unknown, ownName: string, most = MAX_ALIASES): string[] | null {
   if (value === null) return [];
   if (!Array.isArray(value) || value.length > 200) return null;
   const seen = new Set<string>([ownName.trim().toLowerCase()]);
@@ -81,7 +85,7 @@ function cleanAliases(value: unknown, ownName: string): string[] | null {
     seen.add(text.toLowerCase());
     list.push(text);
   }
-  return list.length <= MAX_ALIASES ? list : null;
+  return list.length <= most ? list : null;
 }
 
 const MAX_TOOLS = 12;
@@ -147,7 +151,8 @@ export async function attachedTo(executor: Executor, kind: RecordKind, id: strin
       (SELECT COUNT(*)::int FROM applications a INNER JOIN jobs j ON j.id = a.job_id WHERE j.occupation_id = ${id}) AS applications,
       (SELECT COUNT(*)::int FROM user_goals WHERE occupation_id = ${id}) AS goals,
       (SELECT COUNT(*)::int FROM industry_occupations WHERE occupation_id = ${id}) AS industries,
-      (SELECT COUNT(*)::int FROM factory_occupations WHERE occupation_id = ${id}) AS factories`,
+      (SELECT COUNT(*)::int FROM factory_occupations WHERE occupation_id = ${id}) AS factories,
+      (SELECT COUNT(*)::int FROM occupation_links WHERE from_occupation_id = ${id} OR to_occupation_id = ${id}) AS links`,
     skill: sql`SELECT
       (SELECT COUNT(*)::int FROM occupation_skills WHERE skill_id = ${id}) AS careers,
       (SELECT COUNT(*)::int FROM job_skills WHERE skill_id = ${id}) AS jobs,
@@ -178,6 +183,8 @@ export interface RecordView {
   industries?: string[];
   /** Careers: the skills on the path, each with its level, group and domain, read fresh (the public career page is cached). */
   path?: ({ id: string; name: string } & SkillPlace)[];
+  /** Careers: the careers this one leads to, in order. */
+  leadsTo?: CareerRef[];
   /** Skills: the tools, machines or software it is done with. */
   tools?: string[];
 }
@@ -268,9 +275,18 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
       id,
       name: row.title,
       href: `/occupations/${id}`,
-      fields: { title: row.title, description: row.description, onetCode: row.onetCode, pathStatus: row.pathStatus },
+      // `home` is the slug the form sends back; `homeName` is for showing.
+      fields: {
+        title: row.title,
+        description: row.description,
+        onetCode: row.onetCode,
+        pathStatus: row.pathStatus,
+        home: row.homeDomain,
+        homeName: (await findDomain(db, row.homeDomain))?.name ?? null,
+      },
       aliases: await aliasesOf(db, 'career', id),
       attached,
+      leadsTo: await leadsTo(db, id),
       path: (
         await db
           .select({ id: skills.id, name: skills.name, ...placeColumns })
@@ -538,6 +554,8 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
       action: 'edited',
       detail: { changes: { ...(company ? { company } : {}), ...(changes ?? {}) } },
     });
+    // The facts this edit set are an admin's from now on: no source replaces them.
+    await adminSetFacts(tx, id, factsOfFields(Object.keys(changes ?? {})), actor.id);
     return saved;
   });
 }
@@ -569,6 +587,25 @@ async function setAliases(tx: Executor, kind: 'career' | 'skill', id: string, wa
   }
 }
 
+/**
+ * The careers a career is to lead to, as a request gives them: a list of up
+ * to three ids, none twice. Undefined when left out, false when it is not
+ * such a list.
+ */
+function leadsToIds(value: unknown): string[] | undefined | false {
+  if (value === undefined) return undefined;
+  if (value === null) return [];
+  if (!Array.isArray(value) || value.length > MAX_LEADS_TO) return false;
+  const ids: string[] = [];
+  for (const item of value) {
+    // An id, or a career as the record's own view gives it.
+    const id = item && typeof item === 'object' ? (item as { id?: unknown }).id : item;
+    if (!isUuid(id) || ids.includes(id)) return false;
+    ids.push(id);
+  }
+  return ids;
+}
+
 async function changeCareer(id: string, body: Body, actor: Actor): Promise<SavedRow> {
   const title = optionalName(body.title);
   if (title === false) refuse('name', 'A career needs a title of up to 200 characters.');
@@ -576,17 +613,26 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
   if (description === false) refuse('description', 'A description is text of up to 2,000 characters.');
   const onetCode = optionalText(body.onetCode, 20);
   if (onetCode === false) refuse('onetCode', 'An O*NET code is text of up to 20 characters.');
-  if (title === undefined && description === undefined && onetCode === undefined && body.aliases === undefined) {
+  const nextIds = leadsToIds(body.leadsTo);
+  if (nextIds === false) refuse('leadsTo', `A career leads to at most ${MAX_LEADS_TO} others, each listed once.`);
+  if (nextIds?.includes(id)) refuse('leadsTo', 'A career cannot lead to itself.');
+  if (title === undefined && description === undefined && onetCode === undefined && body.aliases === undefined && body.home === undefined && nextIds === undefined) {
     throw new RecordRefusal(400, 'Nothing to change.');
   }
 
   return db.transaction(async (tx) => {
+    if (nextIds !== undefined) await tx.execute(sql`SELECT pg_advisory_xact_lock(${LADDER_LOCK})`);
     const [before] = await tx.select().from(occupations).where(eq(occupations.id, id)).limit(1).for('update');
     if (!before) throw new RecordRefusal(404, NOT_FOUND.career);
+    // A home is a domain, chosen by its slug. Unlike a skill's group it can be emptied: a career need not have one.
+    const homeBefore = await findDomain(tx, before.homeDomain);
+    const homeAfter = body.home === undefined ? homeBefore : body.home === null || body.home === '' ? null : await findDomain(tx, body.home);
+    if (body.home !== undefined && body.home !== null && body.home !== '' && !homeAfter) refuse('home', 'Choose a domain, or none.');
     const after = {
       title: title ?? before.title,
       description: description === undefined ? before.description : description,
       onetCode: onetCode === undefined ? before.onetCode : onetCode,
+      homeDomain: homeAfter?.slug ?? null,
     };
     if (after.title.toLowerCase() !== before.title.toLowerCase()) {
       const [taken] = await tx
@@ -599,16 +645,40 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
     const aliasesBefore = await aliasesOf(tx, 'career', id);
     let aliasesAfter = aliasesBefore;
     if (body.aliases !== undefined) {
-      const aliases = cleanAliases(body.aliases, after.title);
-      if (!aliases) refuse('aliases', `Other names are a list of up to ${MAX_ALIASES} names.`);
+      const aliases = cleanAliases(body.aliases, after.title, MAX_CAREER_ALIASES);
+      if (!aliases) refuse('aliases', `Other names are a list of up to ${MAX_CAREER_ALIASES} names.`);
       aliasesAfter = [...aliases].sort((a, b) => a.localeCompare(b));
     }
-    const changes = changedFields({ ...before, aliases: aliasesBefore }, { ...after, aliases: aliasesAfter }, ['title', 'description', 'onetCode', 'aliases']);
-    if (!changes) return before;
+    // The ladder: each career it leads to exists, and none of them already
+    // leads back here, in however many steps.
+    const ladderBefore = await leadsTo(tx, id);
+    let ladderAfter = ladderBefore;
+    if (nextIds !== undefined && nextIds.join() !== ladderBefore.map((career) => career.id).join()) {
+      ladderAfter = [];
+      for (const nextId of nextIds) {
+        const [next] = await tx.select({ id: occupations.id, title: occupations.title }).from(occupations).where(eq(occupations.id, nextId)).limit(1);
+        if (!next) refuse('leadsTo', 'One of those careers does not exist.');
+        const back = await ladderFrom(tx, nextId, id);
+        if (back) {
+          refuse('leadsTo', `${next.title} already leads to ${after.title} (${back.join(' → ')}). A ladder cannot come back to where it started.`);
+        }
+        ladderAfter.push(next);
+      }
+    }
+    // The log names the home and the ladder as a person reads them.
+    const titles = (list: CareerRef[]) => list.map((career) => career.title);
+    const changes = changedFields(
+      { ...before, home: homeBefore?.name ?? null, leadsTo: titles(ladderBefore), aliases: aliasesBefore },
+      { ...after, home: homeAfter?.name ?? null, leadsTo: titles(ladderAfter), aliases: aliasesAfter },
+      ['title', 'home', 'description', 'onetCode', 'leadsTo', 'aliases']
+    );
+    const answer = ({ homeDomain: _slug, ...row }: typeof before): SavedRow => ({ ...row, home: homeAfter, leadsTo: ladderAfter });
+    if (!changes) return answer(before);
     if (changes.aliases) await setAliases(tx, 'career', id, aliasesAfter);
+    if (changes.leadsTo) await setLeadsTo(tx, id, ladderAfter.map((career) => career.id));
     const [saved] = await tx.update(occupations).set(after).where(eq(occupations.id, id)).returning();
     await recordAudit(tx, { actor, kind: 'career', recordId: id, recordName: saved.title, action: 'edited', detail: { changes } });
-    return saved;
+    return answer(saved);
   });
 }
 

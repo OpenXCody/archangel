@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, plural } from '@/lib/utils';
 import { type SignedInAccount } from '../lib/account';
 import { useAddGoal, useMyApplications, useMyGoals, useMySkills } from '../lib/seeker';
 import { useViewer } from '../lib/viewer';
@@ -133,10 +133,9 @@ function Starter({ onStart }: { onStart: () => void }) {
                     >
                       {career.title}
                     </Link>
-                    <p className="mt-0.5 break-words text-sm text-fg-muted">
-                      {career.description ? `${career.description} · ` : ''}
-                      {count} skills
-                    </p>
+                    {/* What the career is, in two lines at most: the whole of it is on the career's page. */}
+                    {career.description && <p className="mt-0.5 line-clamp-2 break-words text-sm text-fg-muted">{career.description}</p>}
+                    <p className="mt-0.5 text-sm text-fg-soft">{plural(count, 'skill', 'skills')}</p>
                   </div>
                   <Button
                     type="button"

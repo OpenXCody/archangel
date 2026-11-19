@@ -49,7 +49,7 @@ export type NewRecord =
       city?: string;
       address?: string;
     }
-  | { kind: 'career'; title: string; description?: string }
+  | { kind: 'career'; title: string; description?: string; /** The slug of its home domain. */ home?: string }
   | { kind: 'skill'; name: string; /** The slug of its skill group, which fixes its domain. */ group: string; level: SkillLevel; description?: string; howLearned?: string; tools?: string[] };
 
 /** A record as the page that links to it needs it. */
@@ -93,7 +93,7 @@ export function refusedField(error: unknown): string | null {
 }
 
 /** A record was added, changed, merged or deleted: everything that lists or shows records of its kind is stale. */
-function recordsChanged(queryClient: QueryClient, kind: RecordKind, goneId?: string): void {
+export function recordsChanged(queryClient: QueryClient, kind: RecordKind, goneId?: string): void {
   const entity = ENTITY[kind];
   const stale: (readonly unknown[])[] = [
     publicKeys.counts,
@@ -168,6 +168,8 @@ export interface RecordView {
   industries?: string[];
   /** Careers: the skills on the path, each with its own level and group. */
   path?: PathSkill[];
+  /** Careers: the careers this one leads to, in order. */
+  leadsTo?: { id: string; title: string }[];
   /** Skills: the tools, machines or software it is done with. */
   tools?: string[];
 }

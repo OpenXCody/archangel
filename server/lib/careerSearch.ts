@@ -64,6 +64,8 @@ export interface CareerMatch {
   where: SQL;
   /** How well, lower first. */
   relevance: SQL;
+  /** The other name a career was found by, when its own title did not match: null otherwise. */
+  otherName: SQL<string | null>;
 }
 
 /** The careers that match a read term, and how well each does. */
@@ -116,7 +118,14 @@ export function careerMatch(term: string): CareerMatch {
     ), 40)
   )`;
 
-  return { where: sql`(${titleMatches} OR ${byAlias}${byDescription})`, relevance };
+  // Found by another name only: which one, the closest first, so the row can say "Also called …".
+  const otherName = sql<string | null>`CASE WHEN ${titleMatches} THEN NULL ELSE (
+    SELECT a.alias_text FROM occupation_aliases a
+     WHERE a.canonical_occupation_id = occupations.id AND ${aliasMatches}
+     ORDER BY CASE WHEN ${ALIAS} = ${term} THEN 0 WHEN ${ALIAS} LIKE ${`${like}%`} THEN 1 ELSE 2 END, length(a.alias_text), a.alias_text
+     LIMIT 1) END`;
+
+  return { where: sql`(${titleMatches} OR ${byAlias}${byDescription})`, relevance, otherName };
 }
 
 /** How close a title must be to count as a near miss. */
@@ -129,5 +138,11 @@ export function careerNearMiss(term: string): CareerMatch {
     word_similarity(${term}, ${TITLE}),
     COALESCE((SELECT MAX(similarity(${ALIAS}, ${term})) FROM occupation_aliases a WHERE a.canonical_occupation_id = occupations.id), 0)
   )`;
-  return { where: sql`${closeness} >= ${CLOSE_ENOUGH}`, relevance: sql`(1 - ${closeness})` };
+  // Another name that is nearly the term, when the title is not.
+  const otherName = sql<string | null>`CASE WHEN GREATEST(similarity(${TITLE}, ${term}), word_similarity(${term}, ${TITLE})) >= ${CLOSE_ENOUGH} THEN NULL ELSE (
+    SELECT a.alias_text FROM occupation_aliases a
+     WHERE a.canonical_occupation_id = occupations.id AND similarity(${ALIAS}, ${term}) >= ${CLOSE_ENOUGH}
+     ORDER BY similarity(${ALIAS}, ${term}) DESC, a.alias_text
+     LIMIT 1) END`;
+  return { where: sql`${closeness} >= ${CLOSE_ENOUGH}`, relevance: sql`(1 - ${closeness})`, otherName };
 }
