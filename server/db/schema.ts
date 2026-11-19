@@ -150,8 +150,18 @@ export const skills = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     name: text('name').notNull(),
-    // The skill's group as shown and filtered on ("Welding & Fabrication").
+    // The name of the skill's domain, written by the taxonomy migration (0042).
+    // Kept for a deployment that still reads it; nothing here does. A skill's
+    // place is `groupSlug`.
     category: text('category'),
+    // The skill group it is in, which fixes its domain (skill_groups).
+    groupSlug: text('group_slug').references(() => skillGroups.slug, { onUpdate: 'cascade' }),
+    // 1 Fundamentals, 2 Intermediate, 3 Advanced (shared/skillLevels.ts): one
+    // level, the same in every career that uses the skill.
+    level: smallint('level'),
+    // Its place in its group as data/skills/taxonomy.json orders it; a skill
+    // added by hand has none and sorts after the rest of its level.
+    groupPosition: integer('group_position'),
     // What the skill is and what a person who has it can do.
     description: text('description'),
     // How it is usually learned or shown (on the job, a course, a named credential).
@@ -168,6 +178,38 @@ export const skills = pgTable(
     nameTrgmIdx: index('skills_name_trgm_idx').using('gin', table.name.op('gin_trgm_ops')),
     categoryIdx: index('skills_category_idx').on(table.category),
     parentIdx: index('skills_parent_idx').on(table.parentSkillId),
+    groupIdx: index('skills_group_idx').on(table.groupSlug),
+  })
+);
+
+// ============================================
+// SKILL DOMAINS AND GROUPS (the taxonomy)
+// ============================================
+// Curated in data/skills/taxonomy.json and loaded by a generated migration
+// (scripts/build-taxonomy-sql.mjs, 0042). A domain is a department a large
+// manufacturer has; a group is a named set of skills inside one domain.
+// `position` is the order they are shown in.
+
+export const skillDomains = pgTable('skill_domains', {
+  slug: text('slug').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  position: integer('position').notNull(),
+});
+
+export const skillGroups = pgTable(
+  'skill_groups',
+  {
+    slug: text('slug').primaryKey(),
+    domainSlug: text('domain_slug')
+      .notNull()
+      .references(() => skillDomains.slug, { onUpdate: 'cascade' }),
+    name: text('name').notNull(),
+    description: text('description').notNull(),
+    position: integer('position').notNull(),
+  },
+  (table) => ({
+    domainIdx: index('skill_groups_domain_idx').on(table.domainSlug),
   })
 );
 
@@ -211,7 +253,10 @@ export const occupationSkills = pgTable(
       .notNull()
       .references(() => skills.id, { onDelete: 'cascade' }),
     importance: importanceEnum('importance').default('required'),
-    // Where the skill sits on the career's path: 1 Introduction, 2 Fundamentals, 3 Advanced.
+    // Always the skill's level (skills.level). The database keeps it so: a
+    // trigger sets it on every write to this table, and another moves it when
+    // a skill's level changes (migration 0042). Whatever is written here is
+    // replaced.
     stage: smallint('stage'),
   },
   (table) => ({
