@@ -99,8 +99,8 @@ export const publicKeys = {
   areaOverviews: ['area-overview'] as const,
   areaOverview: (id: string | null) => ['area-overview', id] as const,
   boundsOverview: (id: string | null) => ['bounds-overview', id] as const,
-  /** The county a plant stands in and its official figures. */
-  plantCounty: (factoryId: string) => ['plant-county', factoryId] as const,
+  /** The county a plant stands in and its official figures. Under the plant's own key, so a correction to the plant refreshes it. */
+  plantCounty: (factoryId: string) => ['factories', factoryId, 'county'] as const,
   /** Static files: the states' outline and the focus areas' boundaries. */
   statesOutline: ['states-geojson'] as const,
   areaBoundaries: ['focus-area-boundaries'] as const,
