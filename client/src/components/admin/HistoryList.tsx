@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { AUDIT_KINDS, editPath, useAudit, type AuditEntry, type RecordKind } from '../../lib/records';
+import { editPath, useAudit, type AuditEntry, type RecordKind } from '../../lib/records';
 import { CardNote, LoadError, RowsSkeleton, cardClass, outlineButtonClass, rowClass } from '../account/parts';
 
 /** What each stored action reads as at the start of a line. */
@@ -227,4 +227,3 @@ export default function HistoryList({ filter = {}, ownRecord = false, empty = 'N
   );
 }
 
-export { AUDIT_KINDS };

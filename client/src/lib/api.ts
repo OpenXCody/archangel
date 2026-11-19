@@ -263,7 +263,6 @@ export interface Skill {
   description: string | null;
   createdAt: string;
   occupationCount?: number;
-  childCount?: number;
 }
 
 /** A skill as its page shows it: one answer from GET /api/skills/:id. */
@@ -355,13 +354,6 @@ export const companiesApi = {
     apiFetch<CompanyDetail>(`/companies/${id}`),
 };
 
-// Which factories the map's pins cover
-export interface PinFilters {
-  states?: string[];
-  company?: string;
-  industry?: string;
-}
-
 // Factories API
 export const factoriesApi = {
   list: (options: FetchOptions = {}) =>
@@ -370,14 +362,8 @@ export const factoriesApi = {
   get: (id: string) =>
     apiFetch<FactoryDetail>(`/factories/${id}`),
 
-  /** Every factory the filters allow, as the GeoJSON the map's source takes. */
-  pins: async (filters?: PinFilters) => {
-    const params: FetchOptions = {};
-    if (filters?.states?.length) params.states = filters.states.join(',');
-    if (filters?.company) params.company = filters.company;
-    if (filters?.industry) params.industry = filters.industry;
-    return unpackPins(await apiFetch<PinsPayload>(`/factories/pins${buildQueryString(params)}`));
-  },
+  /** Every factory, as the GeoJSON the map's source takes. */
+  pins: async () => unpackPins(await apiFetch<PinsPayload>('/factories/pins')),
 };
 
 // Occupations API

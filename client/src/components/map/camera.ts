@@ -79,11 +79,6 @@ export function isPhoneLayout(): boolean {
   return window.matchMedia(PHONE_LAYOUT_QUERY).matches;
 }
 
-/** True when the pointer is a finger: targets are thumb-sized and a tap is not exact. */
-export function isTouchPointer(): boolean {
-  return window.matchMedia('(pointer: coarse)').matches;
-}
-
 function topControlsPx(): number {
   return isPhoneLayout() ? TOP_CONTROLS_PHONE_PX : TOP_CONTROLS_DESKTOP_PX;
 }

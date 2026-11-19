@@ -306,12 +306,6 @@ export interface Applicant {
   heldOptional: number;
 }
 
-export interface ApplicantsResponse {
-  skillsAreSelfReported: boolean;
-  /** Already ranked by the server: most required skills held first. */
-  applications: Applicant[];
-}
-
 export interface ApplicationPatch {
   status?: ApplicationStatus;
   employerNote?: string;
@@ -441,9 +435,6 @@ export type InviteRole = 'user' | 'employer' | 'admin';
 
 export const INVITE_ROLES: InviteRole[] = ['user', 'employer', 'admin'];
 
-/** How long an invite link works. The server sets the real expiry; this is for the copy beside the link. */
-export const INVITE_DAYS = 14;
-
 /** What an invite grants, in the words used for roles everywhere: "Employer (Tesla)". */
 export function inviteRoleLabel(role: InviteRole, companyName?: string | null): string {
   if (role === 'admin') return 'Admin';
@@ -546,13 +537,6 @@ export interface AdminCompany {
   factoryCount?: number;
 }
 
-export interface AdminCompanyPatch {
-  domain?: string | null;
-  featured?: boolean;
-  industry?: string | null;
-  description?: string | null;
-}
-
 // ---------------------------------------------------------------------------
 // API functions
 // ---------------------------------------------------------------------------
@@ -619,7 +603,6 @@ export const jobsApi = {
   update: (id: string, patch: JobPatch) => request<{ ok: true }>(`/jobs/${id}`, { method: 'PATCH', body: patch }),
   apply: (id: string, note?: string) =>
     request<{ id: string; status: ApplicationStatus }>(`/jobs/${id}/apply`, { method: 'POST', body: { note: note ?? '' } }),
-  applicants: (id: string) => request<ApplicantsResponse>(`/jobs/${id}/applications`),
   updateApplication: (applicationId: string, patch: ApplicationPatch) =>
     request<{ id: string; status: ApplicationStatus }>(`/jobs/applications/${applicationId}`, {
       method: 'PATCH',
@@ -665,17 +648,8 @@ export const adminApi = {
   createInvite: (input: { email: string; role: InviteRole; companyId?: string }) =>
     request<CreatedInvite>('/admin/invites', { method: 'POST', body: input }),
   revokeInvite: (inviteId: string) => request<{ ok: true }>(`/admin/invites/${inviteId}`, { method: 'DELETE' }),
-  draftPaths: () => request<{ paths: DraftPath[] }>('/admin/paths?status=draft').then((r) => r.paths),
-  /** Marks the path reviewed; an empty skills list leaves its skills as they are. */
-  approvePath: (occupationId: string) =>
-    request<{ occupationId: string }>(`/occupations/${occupationId}/path`, {
-      method: 'PUT',
-      body: { skills: [], status: 'approved' },
-    }),
   companies: (q: string) =>
     request<{ companies: AdminCompany[] }>(`/admin/companies${queryString({ q })}`).then((r) => r.companies),
-  updateCompany: (companyId: string, patch: AdminCompanyPatch) =>
-    request<AdminCompany>(`/admin/companies/${companyId}`, { method: 'PATCH', body: patch }),
 };
 
 // ---------------------------------------------------------------------------
@@ -703,7 +677,6 @@ export const accountKeys = {
   adminUsers: (q: string, role: PeopleRole | '' = '') => ['admin', 'users', q, role] as const,
   adminInvites: ['admin', 'invites'] as const,
   adminPastInvites: ['admin', 'invites', 'past'] as const,
-  adminPaths: ['admin', 'paths'] as const,
   adminPathsIn: (status: 'draft' | 'approved') => ['admin', 'paths', status] as const,
   adminCompanies: (q: string) => ['admin', 'companies', q] as const,
   invite: (token: string) => ['invite', token] as const,
@@ -1068,17 +1041,6 @@ export function useApply(jobId: string) {
   });
 }
 
-export function useJobApplicants(jobId: string | undefined, enabled = true) {
-  return useQuery({
-    queryKey: accountKeys.applicants(jobId ?? ''),
-    queryFn: () => jobsApi.applicants(jobId as string),
-    enabled: enabled && Boolean(jobId),
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    retry: retryUnlessClientError,
-  });
-}
-
 /** A company moves an application or notes it; the applicant withdraws. */
 export function useUpdateApplication() {
   const queryClient = useQueryClient();
@@ -1272,16 +1234,6 @@ export function useRevokeInvite() {
   });
 }
 
-/** Careers whose path is a draft. */
-export function useDraftPaths() {
-  return useQuery({
-    queryKey: accountKeys.adminPaths,
-    queryFn: adminApi.draftPaths,
-    staleTime: 0,
-    retry: retryUnlessClientError,
-  });
-}
-
 /** Careers whose path is in one state: drafts to review, or the ones approved. */
 export function useAdminPaths(status: 'draft' | 'approved', enabled = true) {
   return useQuery({
@@ -1293,15 +1245,6 @@ export function useAdminPaths(status: 'draft' | 'approved', enabled = true) {
   });
 }
 
-export function useApprovePath() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (occupationId: string) => adminApi.approvePath(occupationId),
-    // The career page and the career list show the path's state too.
-    onSettled: () => invalidate(queryClient, accountKeys.adminPaths, ['occupations'], ['explore-occupations']),
-  });
-}
-
 /** Company type-ahead for Admin Tools: fresh profile fields, from two letters. */
 export function useAdminCompanies(q: string) {
   return useQuery({
@@ -1310,17 +1253,6 @@ export function useAdminCompanies(q: string) {
     enabled: q.length >= 2,
     staleTime: 0,
     retry: retryUnlessClientError,
-  });
-}
-
-/** Set a company's domain or featured flag. */
-export function useUpdateCompany() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ companyId, patch }: { companyId: string; patch: AdminCompanyPatch }) =>
-      adminApi.updateCompany(companyId, patch),
-    onSuccess: () =>
-      invalidate(queryClient, ['admin', 'companies'], ['companies'], ['factories'], ['explore-companies'], ['picker', 'companies']),
   });
 }
 
