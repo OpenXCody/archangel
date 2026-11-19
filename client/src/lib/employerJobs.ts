@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { API_BASE, UNREACHABLE, fetchWithTimeout, ApiError } from './http';
+import { request, retryUnlessClientError } from './http';
 import { accountKeys, type Applicant, type EmploymentType, type PayPeriod } from './account';
 import { parseDollars } from './jobFormat';
 
@@ -8,44 +8,9 @@ import { parseDollars } from './jobFormat';
  * delete one nobody applied to, and read applicants with their skills. Also
  * the checks the job form runs before it sends anything.
  *
- * Calls go to the same API as `account.ts`, with the same session cookie and
- * the same errors (`ApiError`, whose message is written for the person).
+ * A 401 on these calls is shown in the server's words ("Sign in required"),
+ * as it always has been here: see `plain401` in `http.ts`.
  */
-
-// ---------------------------------------------------------------------------
-// Transport
-// ---------------------------------------------------------------------------
-
-async function send<T>(path: string, method: 'GET' | 'PATCH' | 'DELETE', body?: unknown): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetchWithTimeout(`${API_BASE}${path}`, {
-      method,
-      credentials: 'same-origin',
-      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
-  } catch (error) {
-    throw new ApiError(error instanceof Error && error.message ? error.message : UNREACHABLE, 0);
-  }
-  const payload: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    const said = payload && typeof payload === 'object' && 'error' in payload ? (payload as { error: unknown }).error : null;
-    const message =
-      response.status >= 500
-        ? 'Something went wrong on our side. Please try again.'
-        : typeof said === 'string' && said
-          ? said
-          : `The request could not be completed (${response.status}).`;
-    throw new ApiError(message, response.status);
-  }
-  return payload as T;
-}
-
-function retryUnlessClientError(failureCount: number, error: unknown): boolean {
-  const refused = error instanceof ApiError && error.status >= 400 && error.status < 500;
-  return !refused && failureCount < 1;
-}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -99,7 +64,7 @@ export interface JobApplicants {
 export function useApplicantList(jobId: string | undefined) {
   return useQuery({
     queryKey: accountKeys.applicants(jobId ?? ''),
-    queryFn: () => send<JobApplicants>(`/jobs/${jobId as string}/applications`, 'GET'),
+    queryFn: () => request<JobApplicants>(`/jobs/${jobId as string}/applications`, { plain401: true }),
     enabled: Boolean(jobId),
     staleTime: 0,
     refetchOnWindowFocus: true,
@@ -111,7 +76,7 @@ export function useApplicantList(jobId: string | undefined) {
 export function useEditJob(jobId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (edit: JobEdit) => send<{ ok: true }>(`/jobs/${jobId}`, 'PATCH', edit),
+    mutationFn: (edit: JobEdit) => request<{ ok: true }>(`/jobs/${jobId}`, { method: 'PATCH', body: edit, plain401: true }),
     // The listing, the lists it appears in, and the applicants' standing all follow.
     onSuccess: () =>
       Promise.all(
@@ -124,7 +89,7 @@ export function useEditJob(jobId: string) {
 export function useDeleteJob() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (jobId: string) => send<{ ok: true }>(`/jobs/${jobId}`, 'DELETE'),
+    mutationFn: (jobId: string) => request<{ ok: true }>(`/jobs/${jobId}`, { method: 'DELETE', plain401: true }),
     onSuccess: (_result, jobId) => {
       // Nothing is left to refetch for the job itself.
       queryClient.removeQueries({ queryKey: accountKeys.job(jobId) });
@@ -285,7 +250,7 @@ export function saveTextFile(name: string, text: string, type = 'text/csv'): voi
 export function useExtendJob() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (jobId: string) => send<{ ok: true }>(`/jobs/${jobId}`, 'PATCH', { status: 'open' }),
+    mutationFn: (jobId: string) => request<{ ok: true }>(`/jobs/${jobId}`, { method: 'PATCH', body: { status: 'open' }, plain401: true }),
     onSuccess: () => Promise.all([accountKeys.jobs, accountKeys.employer].map((queryKey) => queryClient.invalidateQueries({ queryKey }))),
   });
 }

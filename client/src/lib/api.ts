@@ -1,5 +1,5 @@
 import { unpackPins, type PinsPayload } from '@shared/pins';
-import { API_BASE, fetchWithTimeout } from './http';
+import { API_BASE, fetchWithTimeout, queryString } from './http';
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -293,35 +293,27 @@ interface FetchOptions {
   [key: string]: string | number | boolean | undefined;
 }
 
-/** A public read. Anything that changes data, or is a person's own, goes through lib/account.ts. */
+/**
+ * A public read. Anything that changes data, or is a person's own, goes
+ * through `request` in lib/http.ts. This one keeps the server's own words for
+ * a failure and throws a plain Error: the map tells "not found" from the text
+ * (`isNotFound` in components/map/selection.ts).
+ */
 async function apiFetch<T>(endpoint: string): Promise<T> {
   const response = await fetchWithTimeout(`${API_BASE}${endpoint}`);
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Network error' }));
+    const error: { error?: string; message?: string } = await response.json().catch(() => ({ message: 'Network error' }));
     throw new Error(error.error || error.message || `HTTP ${response.status}`);
   }
 
   return response.json();
 }
 
-function buildQueryString(params: FetchOptions): string {
-  const searchParams = new URLSearchParams();
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.set(key, String(value));
-    }
-  });
-
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : '';
-}
-
 // Companies API
 export const companiesApi = {
   list: (options: FetchOptions = {}) =>
-    apiFetch<PaginatedResponse<Company>>(`/companies${buildQueryString(options)}`),
+    apiFetch<PaginatedResponse<Company>>(`/companies${queryString(options)}`),
 
   get: (id: string) =>
     apiFetch<CompanyDetail>(`/companies/${id}`),
@@ -330,7 +322,7 @@ export const companiesApi = {
 // Factories API
 export const factoriesApi = {
   list: (options: FetchOptions = {}) =>
-    apiFetch<PaginatedResponse<Factory>>(`/factories${buildQueryString(options)}`),
+    apiFetch<PaginatedResponse<Factory>>(`/factories${queryString(options)}`),
 
   get: (id: string) =>
     apiFetch<FactoryDetail>(`/factories/${id}`),
@@ -342,7 +334,7 @@ export const factoriesApi = {
 // Occupations API
 export const occupationsApi = {
   list: (options: FetchOptions = {}) =>
-    apiFetch<PaginatedResponse<Occupation>>(`/occupations${buildQueryString(options)}`),
+    apiFetch<PaginatedResponse<Occupation>>(`/occupations${queryString(options)}`),
 
   get: (id: string) =>
     apiFetch<OccupationDetail>(`/occupations/${id}`),
@@ -351,7 +343,7 @@ export const occupationsApi = {
 // Skills API
 export const skillsApi = {
   list: (options: FetchOptions = {}) =>
-    apiFetch<PaginatedResponse<Skill>>(`/skills${buildQueryString(options)}`),
+    apiFetch<PaginatedResponse<Skill>>(`/skills${queryString(options)}`),
 
   get: (id: string) =>
     apiFetch<SkillDetail>(`/skills/${id}`),
@@ -414,7 +406,7 @@ export const searchApi = {
     if (options.limit) {
       params.limit = options.limit;
     }
-    return apiFetch<SearchResults>(`/search${buildQueryString(params)}`);
+    return apiFetch<SearchResults>(`/search${queryString(params)}`);
   },
 };
 
@@ -491,7 +483,7 @@ export const mapApi = {
     apiFetch<AreaOverview>(`/map/areas/${encodeURIComponent(id)}/overview`),
   /** Panel data for any box: [[west, south], [east, north]]. */
   boundsOverview: ([[west, south], [east, north]]: [[number, number], [number, number]]) =>
-    apiFetch<BoundsOverview>(`/map/bounds/overview${buildQueryString({ west, south, east, north })}`),
+    apiFetch<BoundsOverview>(`/map/bounds/overview${queryString({ west, south, east, north })}`),
 };
 
 // Explore overview: what /explore opens on, in one response.
@@ -669,7 +661,7 @@ export interface IndustryDetail {
 /** `place`: a state code or a focus area's id, as the page's address carries it. */
 export const industriesApi = {
   list: (place: { state?: string; area?: string } = {}) =>
-    apiFetch<IndustryList>(`/industries${buildQueryString(place)}`),
+    apiFetch<IndustryList>(`/industries${queryString(place)}`),
   get: (slug: string, place: { state?: string; area?: string } = {}) =>
-    apiFetch<IndustryDetail>(`/industries/${encodeURIComponent(slug)}${buildQueryString(place)}`),
+    apiFetch<IndustryDetail>(`/industries/${encodeURIComponent(slug)}${queryString(place)}`),
 };

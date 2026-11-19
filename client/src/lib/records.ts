@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { ApiError, request } from './http';
+import { ApiError, queryString, request, retryUnlessClientError } from './http';
 
 /**
  * Keeping records by hand, from Admin Tools: adding, correcting, merging and
@@ -195,22 +195,13 @@ export const AUDIT_KINDS: { kind: string; label: string }[] = [
   { kind: 'invite', label: 'Invites' },
 ];
 
-function query(params: Record<string, string | number | undefined>): string {
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== '') search.set(key, String(value));
-  }
-  const text = search.toString();
-  return text ? `?${text}` : '';
-}
-
 const HISTORY_PAGE = 30;
 
 export const recordsApi = {
   search: (kind: RecordKind, q: string) =>
-    request<{ records: FoundRecord[] }>(`/admin/records/${kind}${query({ q })}`).then((r) => r.records),
+    request<{ records: FoundRecord[] }>(`/admin/records/${kind}${queryString({ q })}`).then((r) => r.records),
   similar: (kind: RecordKind, params: { name: string; exclude?: string; company?: string; lat?: number; lng?: number }) =>
-    request<{ records: FoundRecord[] }>(`/admin/records/${kind}/similar${query(params)}`).then((r) => r.records),
+    request<{ records: FoundRecord[] }>(`/admin/records/${kind}/similar${queryString(params)}`).then((r) => r.records),
   get: (kind: RecordKind, id: string) => request<RecordView>(`/admin/records/${kind}/${id}`),
   change: (kind: RecordKind, id: string, body: Record<string, unknown>) =>
     request<SavedRecord>(`${PATH[kind]}/${id}`, { method: 'PUT', body }),
@@ -218,15 +209,11 @@ export const recordsApi = {
   merge: (kind: RecordKind, id: string, into: string) =>
     request<MergeResult>(`/admin/records/${kind}/${id}/merge`, { method: 'POST', body: { into } }),
   audit: (params: { kind?: string; record?: string; offset?: number; limit?: number }) =>
-    request<{ entries: AuditEntry[]; hasMore: boolean }>(`/admin/audit${query(params)}`),
+    request<{ entries: AuditEntry[]; hasMore: boolean }>(`/admin/audit${queryString(params)}`),
   /** Sets a career's skills and stages as a whole, and optionally the state of the path. */
   savePath: (occupationId: string, body: { skills: { skillId: string; stage: number | null }[]; replace?: boolean; status?: 'draft' | 'approved' }) =>
     request<{ occupationId: string }>(`/occupations/${occupationId}/path`, { method: 'PUT', body }),
 };
-
-function notClientError(failureCount: number, error: unknown): boolean {
-  return !(error instanceof ApiError && error.status >= 400 && error.status < 500) && failureCount < 1;
-}
 
 /** Records of one kind by name, from two letters. */
 export function useRecordSearch(kind: RecordKind, q: string) {
@@ -235,7 +222,7 @@ export function useRecordSearch(kind: RecordKind, q: string) {
     queryFn: () => recordsApi.search(kind, q),
     enabled: q.length >= 2,
     staleTime: 0,
-    retry: notClientError,
+    retry: retryUnlessClientError,
   });
 }
 
@@ -248,7 +235,7 @@ export function useSimilarRecords(kind: RecordKind, params: { name: string; excl
     enabled: enabled && ready,
     staleTime: 30_000,
     placeholderData: keepPreviousData,
-    retry: notClientError,
+    retry: retryUnlessClientError,
   });
 }
 
@@ -258,7 +245,7 @@ export function useRecord(kind: RecordKind, id: string) {
     queryKey: ['admin', 'records', 'one', kind, id],
     queryFn: () => recordsApi.get(kind, id),
     staleTime: 0,
-    retry: notClientError,
+    retry: retryUnlessClientError,
   });
 }
 
@@ -301,6 +288,6 @@ export function useAudit(filter: { kind?: string; record?: string }, pages = 1) 
     queryFn: () => recordsApi.audit({ ...filter, limit: HISTORY_PAGE * pages }),
     staleTime: 0,
     placeholderData: keepPreviousData,
-    retry: notClientError,
+    retry: retryUnlessClientError,
   });
 }

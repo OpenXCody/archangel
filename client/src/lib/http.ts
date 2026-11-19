@@ -14,9 +14,11 @@
 export const API_BASE = '/api';
 
 /** How long a request may take before it is given up on. */
-export const REQUEST_TIMEOUT_MS = 20_000;
-export const UNREACHABLE = 'Could not reach the server. Check your connection and try again.';
-export const TOO_SLOW = 'The server took too long to answer. Check your connection and try again.';
+const REQUEST_TIMEOUT_MS = 20_000;
+const UNREACHABLE = 'Could not reach the server. Check your connection and try again.';
+const TOO_SLOW = 'The server took too long to answer. Check your connection and try again.';
+/** What a person is told when the server failed, or answered with something it should not have. */
+export const SERVER_FAILED = 'Something went wrong on our side. Please try again.';
 
 /**
  * `fetch` that gives up when no answer has begun after `timeoutMs`, so nothing
@@ -53,20 +55,27 @@ interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   headers?: Record<string, string>;
+  /**
+   * Pass a 401 on in the server's own words ("Sign in required") instead of
+   * rewording it for a save. Set by the calls that have always shown it that
+   * way: a job's edit, delete, renewal and applicant list, and the careers
+   * within reach.
+   */
+  plain401?: boolean;
 }
 
-function messageFor(payload: unknown, status: number): string {
-  if (status >= 500) return 'Something went wrong on our side. Please try again.';
+function messageFor(payload: unknown, status: number, plain401: boolean): string {
+  if (status >= 500) return SERVER_FAILED;
   if (payload && typeof payload === 'object' && 'error' in payload) {
     const { error } = payload as { error: unknown };
     // The session ended elsewhere: say what that means for what was just pressed.
-    if (status === 401 && error === 'Sign in required') return 'You are signed out. Sign in to save this.';
+    if (status === 401 && error === 'Sign in required' && !plain401) return 'You are signed out. Sign in to save this.';
     if (typeof error === 'string' && error) return error;
   }
   return `The request could not be completed (${status}).`;
 }
 
-export async function request<T>(path: string, { method = 'GET', body, headers }: RequestOptions = {}): Promise<T> {
+export async function request<T>(path: string, { method = 'GET', body, headers, plain401 = false }: RequestOptions = {}): Promise<T> {
   let response: Response;
   try {
     // Gives up after a while: a save on a dead connection says so instead of spinning.
@@ -80,7 +89,7 @@ export async function request<T>(path: string, { method = 'GET', body, headers }
     throw new ApiError(error instanceof Error && error.message ? error.message : UNREACHABLE, 0);
   }
   const payload: unknown = await response.json().catch(() => null);
-  if (!response.ok) throw new ApiError(messageFor(payload, response.status), response.status, payload);
+  if (!response.ok) throw new ApiError(messageFor(payload, response.status, plain401), response.status, payload);
   return payload as T;
 }
 
@@ -100,10 +109,10 @@ export function retryUnlessClientError(failureCount: number, error: unknown): bo
 }
 
 /** `?a=1&b=2` from the values that are set, or nothing when none is. */
-export function queryString(params: Record<string, string | number | undefined>): string {
+export function queryString(params: Record<string, string | number | boolean | null | undefined>): string {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== '') search.set(key, String(value));
+    if (value !== undefined && value !== null && value !== '') search.set(key, String(value));
   }
   const text = search.toString();
   return text ? `?${text}` : '';
