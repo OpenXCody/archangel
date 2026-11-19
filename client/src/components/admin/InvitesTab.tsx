@@ -4,20 +4,35 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
-  ApiError,
   INVITE_ROLES,
   inviteRoleLabel,
+  useEmailOn,
+  type InviteRole,
+} from '../../lib/account';
+import {
   useAdminInvites,
   useAdminPastInvites,
   useCreateInvite,
-  useEmailOn,
   useRevokeInvite,
   type AdminCompany,
   type CreatedInvite,
-  type InviteRole,
-} from '../../lib/account';
-import { onGroupArrowKeys } from '../../lib/roving';
-import { CardNote, ErrorNote, Field, LoadError, RowsSkeleton, busyButtonClass, cardClass, fieldClass, formatDay, rowClass, textButtonClass } from '../account/parts';
+} from '../../lib/admin';
+import { ApiError } from '../../lib/http';
+import {
+  CardNote,
+  ErrorNote,
+  Field,
+  LoadError,
+  RowsSkeleton,
+  busyButtonClass,
+  cardClass,
+  fieldClass,
+  rowClass,
+  textButtonClass,
+  Dot,
+  SegmentedChoice,
+} from '../account/parts';
+import { DAY_MS, formatDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 import CompanyPicker from './CompanyPicker';
@@ -28,17 +43,11 @@ import CopyLinkField from './CopyLinkField';
 // tab and coming back must not lose it.
 let lastCreated: CreatedInvite | null = null;
 
-function Dot() {
-  return (
-    <span className="mx-1.5" aria-hidden="true">
-      ·
-    </span>
-  );
-}
+const ROLE_OPTIONS = INVITE_ROLES.map((value) => ({ value, label: inviteRoleLabel(value) }));
 
 /** "3 days", "14 days": how long a link made now lasts, from its expiry. */
 function daysLeft(expiresAt: string): string {
-  const days = Math.max(1, Math.round((new Date(expiresAt).getTime() - Date.now()) / 86_400_000));
+  const days = Math.max(1, Math.round((new Date(expiresAt).getTime() - Date.now()) / DAY_MS));
   return `${days} ${days === 1 ? 'day' : 'days'}`;
 }
 
@@ -151,29 +160,14 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
           <p id="invite-role-label" className="mb-1.5 text-sm font-medium text-fg-muted">
             Role
           </p>
-          <div
-            role="radiogroup"
-            aria-labelledby="invite-role-label"
-            onKeyDown={(event) => onGroupArrowKeys(event, INVITE_ROLES, role, setRole)}
-            className="grid h-[42px] grid-cols-3 gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1 sm:w-72"
-          >
-            {INVITE_ROLES.map((value) => (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={role === value}
-                tabIndex={role === value ? 0 : -1}
-                onClick={() => setRole(value)}
-                className={cn(
-                  'min-w-0 truncate rounded-md px-2 text-sm font-medium transition-colors',
-                  role === value ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
-                )}
-              >
-                {inviteRoleLabel(value)}
-              </button>
-            ))}
-          </div>
+          <SegmentedChoice
+            labelledBy="invite-role-label"
+            options={ROLE_OPTIONS}
+            value={role}
+            onChange={setRole}
+            className="grid-cols-3 sm:w-72"
+            optionClassName="min-w-0 truncate px-2"
+          />
         </div>
         {role === 'employer' && (
           <Field label="Company" htmlFor="invite-company" className="sm:col-span-2">

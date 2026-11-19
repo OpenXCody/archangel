@@ -4,10 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { industriesApi, type IndustryDetail, type IndustryEmployer } from '../lib/api';
 import { industryBySlug, industryLabel } from '@shared/industry';
-import { STATE_CODE_TO_NAME, type StateCode } from '@shared/states';
+import { stateName, titleCase } from '../lib/places';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
 import { formatPay } from '../lib/jobFormat';
-import { cn } from '@/lib/utils';
+import { cn, focusRing, plural } from '@/lib/utils';
 import CompanyLogo from '../components/CompanyLogo';
 import {
   BackLink,
@@ -22,18 +22,22 @@ import {
   sectionLinkClass,
 } from '../components/layout/Page';
 import { LoadError } from '../components/account/parts';
-import { FOCUS, FigureList, Figures, PlaceChoice, SourceLine, officialFigures, placeQuery, placeSearch, readPlace, type PagePlace } from '../components/industry/parts';
+import {
+  FigureList,
+  Figures,
+  PlaceChoice,
+  SourceLine,
+  officialFigures,
+  placeQuery,
+  placeSearch,
+  readPlace,
+  type PagePlace,
+} from '../components/industry/parts';
+import { publicKeys } from '../lib/queryKeys';
 
 const CAREERS_SHOWN = 8;
 /** The states (or a state's towns) listed before "Show all": the section sits near the top of the page, so it starts short. */
 const STATES_SHOWN = 6;
-
-const plural = (n: number, one: string, many: string) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
-
-/** "ROUND ROCK" as "Round Rock": the source data shouts its city names. */
-function titleCase(text: string): string {
-  return text.toLowerCase().replace(/(^|[\s-])([a-z])/g, (_, lead: string, letter: string) => lead + letter.toUpperCase());
-}
 
 /**
  * What stands under an employer's name. A headcount recorded for only some of
@@ -91,7 +95,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
           {data.place.kind !== 'country' && (
             <>
               {' '}
-              <Link to={`/industries/${industry.slug}`} className={cn('text-fg-default underline underline-offset-4 hover:no-underline', FOCUS)}>
+              <Link to={`/industries/${industry.slug}`} className={cn('text-fg-default underline underline-offset-4 hover:no-underline', focusRing)}>
                 See it everywhere
               </Link>
             </>
@@ -119,7 +123,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
           <FigureList
             rows={(allStates ? cities : cities.slice(0, STATES_SHOWN)).map((city) => {
               const name = titleCase(city.name);
-              const within = city.state ? (STATE_CODE_TO_NAME[city.state as StateCode] ?? city.state) : placeName;
+              const within = city.state ? stateName(city.state) : placeName;
               // The map, on this city, showing this industry's plants.
               const query = new URLSearchParams({ industry: industry.name, place: name, in: within, box: (city.box ?? []).flat().join('_') });
               return { key: `${city.name}-${city.state ?? ''}`, to: `/map?${query}`, label: name, plants: city.plants };
@@ -234,7 +238,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
  * how big, where it is, open jobs, its companies, its largest plants and its
  * careers. A part with nothing to say is left out.
  */
-export default function IndustryPage() {
+export default function Industry() {
   const { slug } = useParams<{ slug: string }>();
   const [params] = useSearchParams();
   const { hash } = useLocation();
@@ -251,10 +255,10 @@ export default function IndustryPage() {
   }, [label, placeTitle]);
 
   const query = useQuery({
-    queryKey: ['industry', industry?.slug, where.state ?? null, where.area ?? null],
+    queryKey: publicKeys.industry(industry?.slug, where.state ?? null, where.area ?? null),
     queryFn: () => industriesApi.get(industry?.slug ?? '', where),
     enabled: Boolean(industry) && place.kind !== 'unknown',
-    staleTime: 1000 * 60 * 5,
+    staleTime: 5 * 60_000,
     // Changing the place keeps the page drawn until the new place's figures arrive.
     placeholderData: (previous, previousQuery) => (previousQuery?.queryKey[1] === industry?.slug ? previous : undefined),
   });

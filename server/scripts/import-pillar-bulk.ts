@@ -1,7 +1,7 @@
 /**
  * Batched import from Pillar → Archangel.
  *
- * Unlike the per-state `import-pillar-tx.ts` helper, this script:
+ * This script:
  *  - Pulls across all states in one go (no state filter).
  *  - Uses bulk INSERTs (~1k rows per SQL roundtrip) so 50k imports in
  *    ~60s instead of ~60 minutes.
@@ -18,7 +18,7 @@
  *
  * Usage:
  *   export PILLAR_DATABASE_URL=$(grep '^DATABASE_URL' ../pillar/.env | cut -d= -f2-)
- *   set -a && source .env && set +a
+ *   set -a && source .env.local && set +a
  *   npx tsx server/scripts/import-pillar-bulk.ts
  */
 import crypto from 'node:crypto';
@@ -140,7 +140,6 @@ async function main() {
     const t1 = Date.now();
     let companiesCreated = 0;
     for (const batch of chunk(newCompanies, INSERT_BATCH)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const created: any = await arch`
         INSERT INTO companies ${arch(batch as any, 'name', 'industry', 'aliases')}
         RETURNING id, name
@@ -172,10 +171,9 @@ async function main() {
   };
   const factoryRows: FactoryRow[] = [];
   const pendingEpa: { factoryId: string; epa: string }[] = [];
-  let skippedMissingCompany = 0;
   for (const r of enriched) {
     const companyId = companyIdByName.get(r.__canonical.toLowerCase().trim());
-    if (!companyId) { skippedMissingCompany++; continue; }
+    if (!companyId) continue;
     const id = crypto.randomUUID();
     factoryRows.push({
       id,

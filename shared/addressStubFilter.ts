@@ -7,9 +7,12 @@
 // showing an obvious address-stub in a demo. Bias: aggressive drop.
 //
 // Used by:
-//   - Pillar ECHO connector (reject at ingest)
-//   - Archangel import-pillar-bulk (reject on re-import)
-//   - Archangel one-off cleanup script (purge existing rows)
+//   - Pillar ECHO connector (reject at ingest), in the Pillar repository
+//   - server/scripts/import-pillar-bulk.ts (reject on re-import), the only
+//     user in this repository
+// The PostgreSQL patterns at the foot were for a one-off cleanup script that
+// is gone from this repository. Nothing here reads them now; they stay until
+// it is known that Pillar does not either.
 
 const STREET_WORDS = [
   'AVENUE', 'AVE',

@@ -1,7 +1,8 @@
 /**
  * What the map draws: the basemap treatment and the app's own sources and
- * layers. Map.tsx owns the instance, the data and the interactions; this file
- * owns the look, so every paint value lives in one place.
+ * layers. Map.tsx owns the instance and the interactions, and mapData.ts
+ * reads what is drawn; this file owns the look, so every paint value lives
+ * in one place.
  *
  * Draw order, bottom to top:
  *   basemap fills and roads → state fills and borders → focus-area geofence →

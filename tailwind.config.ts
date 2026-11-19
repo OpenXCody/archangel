@@ -27,7 +27,6 @@ export default {
         // The app's own tokens: surfaces, text, lines. Class names read
         // bg-bg-surface, text-fg-muted, border-border-subtle.
         bg: {
-          shell: token("--color-bg-shell"),
           base: token("--color-bg-base"),
           surface: token("--color-bg-surface"),
           elevated: token("--color-bg-elevated"),
@@ -63,7 +62,6 @@ export default {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
           primary: token("--color-accent-primary"),
-          soft: token("--color-accent-soft"),
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",

@@ -89,6 +89,14 @@ export function sourceUrl(value: unknown): string | null | false {
 
 export const FACTORY_STATUSES = ['operating', 'under construction'] as const;
 
+/**
+ * A bare hostname: labels of letters, digits and hyphens, then a letters-only
+ * ending. The two readers of a typed web address test against it, each after
+ * its own trimming: `cleanDomain` in lib/records.ts (a company's domain) and
+ * `readWebsite` in routes/companyRequests.ts (the website on a request).
+ */
+export const HOSTNAME = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+
 function pgCode(error: unknown): string | undefined {
   const own = (error as { code?: unknown } | null)?.code;
   if (typeof own === 'string') return own;

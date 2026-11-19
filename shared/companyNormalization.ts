@@ -8,13 +8,13 @@
  * - "BOEING*" → "Boeing"
  */
 
-export interface CompanyRule {
+interface CompanyRule {
   patterns: RegExp[];
   canonical: string;
 }
 
 // Company normalization rules - order matters (more specific patterns first)
-export const COMPANY_RULES: CompanyRule[] = [
+const COMPANY_RULES: CompanyRule[] = [
   // Aerospace & Defense
   {
     patterns: [
@@ -282,7 +282,7 @@ export function normalizeCompanyName(rawName: string): string {
  * - Convert to title case
  * - Remove "THE" prefix
  */
-export function cleanCompanyName(name: string): string {
+function cleanCompanyName(name: string): string {
   if (!name) return name;
 
   let cleaned = name
@@ -325,105 +325,3 @@ function toTitleCase(str: string): string {
     })
     .join(' ');
 }
-
-/**
- * Extract company name from a facility/factory name
- * e.g., "BOEING COMPANY THE - MESA FACILITY" → "Boeing"
- */
-export function extractCompanyFromFacilityName(facilityName: string): string | null {
-  if (!facilityName) return null;
-
-  // Try to match known company patterns
-  for (const rule of COMPANY_RULES) {
-    for (const pattern of rule.patterns) {
-      if (pattern.test(facilityName)) {
-        return rule.canonical;
-      }
-    }
-  }
-
-  // Try to extract company name before common separators
-  const separators = [' - ', ' – ', ' — ', ' / ', ', '];
-  for (const sep of separators) {
-    const idx = facilityName.indexOf(sep);
-    if (idx > 0) {
-      const potentialCompany = facilityName.substring(0, idx).trim();
-      // Recursively try to normalize
-      const normalized = normalizeCompanyName(potentialCompany);
-      if (normalized !== potentialCompany) {
-        return normalized;
-      }
-      return cleanCompanyName(potentialCompany);
-    }
-  }
-
-  return null;
-}
-
-/**
- * Generate a factory name from company name and location
- */
-export function generateFactoryName(
-  companyName: string,
-  city?: string | null,
-  state?: string | null,
-  suffix: string = 'Plant'
-): string {
-  const parts: string[] = [];
-
-  // Get the short company name
-  const shortName = normalizeCompanyName(companyName);
-  parts.push(shortName);
-
-  // Add city if available
-  if (city) {
-    // Clean up city name
-    const cleanCity = toTitleCase(city.trim());
-    parts.push(cleanCity);
-  } else if (state) {
-    // Use state if no city
-    parts.push(state.toUpperCase());
-  }
-
-  // Add suffix
-  parts.push(suffix);
-
-  return parts.join(' ');
-}
-
-/**
- * Check if a row has valid location data
- * Returns: 'valid' | 'address_only' | 'invalid'
- */
-export function checkLocationData(row: {
-  latitude?: string | number | null;
-  longitude?: string | number | null;
-  address?: string | null;
-  city?: string | null;
-  state?: string | null;
-  zip?: string | null;
-}): 'valid' | 'address_only' | 'invalid' {
-  // Check for valid coordinates
-  const hasLat = row.latitude != null && row.latitude !== '' && !isNaN(Number(row.latitude));
-  const hasLng = row.longitude != null && row.longitude !== '' && !isNaN(Number(row.longitude));
-
-  if (hasLat && hasLng) {
-    return 'valid';
-  }
-
-  // Check for address data
-  const hasAddress = !!(row.address && row.address.toString().trim());
-  const hasCity = !!(row.city && row.city.toString().trim());
-  const hasState = !!(row.state && row.state.toString().trim());
-  const hasZip = !!(row.zip && row.zip.toString().trim());
-
-  // Need at least address+city or address+state or city+state
-  if ((hasAddress && hasCity) || (hasAddress && hasState) || (hasCity && hasState) || hasZip) {
-    return 'address_only';
-  }
-
-  return 'invalid';
-}
-
-// Export types for use in other modules
-export type LocationStatus = ReturnType<typeof checkLocationData>;

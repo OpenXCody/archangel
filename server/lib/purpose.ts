@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
+import { rowsOf } from './rows.js';
 
 /**
  * What an account is for: finding work, or hiring (`users.purpose`, and the
@@ -14,8 +15,10 @@ export { isPurpose, purposeFrom, type Purpose } from '../../shared/purpose.js';
 
 /** Whether the person has, or has asked for, anything to do with a company, whatever became of it. */
 export async function hasCompanyTie(userId: string): Promise<boolean> {
-  const rows = (await db.execute(sql`
+  const rows = rowsOf<{ tie: boolean }>(
+    await db.execute(sql`
     SELECT (EXISTS (SELECT 1 FROM company_members WHERE user_id = ${userId})
-         OR EXISTS (SELECT 1 FROM company_requests WHERE user_id = ${userId})) AS tie`)) as Iterable<{ tie: boolean }>;
-  return [...rows][0]?.tie === true;
+         OR EXISTS (SELECT 1 FROM company_requests WHERE user_id = ${userId})) AS tie`)
+  );
+  return rows[0]?.tie === true;
 }

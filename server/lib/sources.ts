@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
+import { rowsOf } from './rows.js';
 
 /**
  * Where a company's or a plant's facts came from, for the foot of its page.
@@ -25,14 +26,14 @@ function host(url: string): string | null {
 }
 
 export async function sourcesOf(entityType: 'companies' | 'factories', id: string): Promise<RecordSource[]> {
-  const rows = Array.from(
-    (await db.execute(sql`
+  const rows = rowsOf<{ source: string; external_id: string; url: string | null }>(
+    await db.execute(sql`
       SELECT source, external_id, url
       FROM external_references
       WHERE entity_type = ${entityType}::entity_type AND entity_id = ${id} AND source IN ('CURATED', 'EPA_ECHO')
       ORDER BY (source = 'CURATED') DESC, created_at ASC, url ASC
       LIMIT 40
-    `)) as Iterable<{ source: string; external_id: string; url: string | null }>
+    `)
   );
   const sources: RecordSource[] = [];
   const seen = new Set<string>();

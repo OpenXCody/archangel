@@ -3,19 +3,12 @@ import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { AdminCompany } from '../../lib/account';
+import type { AdminCompany } from '../../lib/admin';
 import { useAdminCompanyRequests, useAnswerCompanyRequest, type AdminCompanyRequest } from '../../lib/employerCompanies';
-import { ErrorNote, busyButtonClass, cardClass, formatOnDay, outlineButtonClass, rowClass } from '../account/parts';
+import { ErrorNote, busyButtonClass, cardClass, outlineButtonClass, rowClass, Dot } from '../account/parts';
+import { formatOnDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
 import CompanyPicker from './CompanyPicker';
-
-function Dot() {
-  return (
-    <span className="mx-1.5" aria-hidden="true">
-      ·
-    </span>
-  );
-}
 
 /**
  * Requests to add what is not in the data: a company (from someone who could

@@ -2,7 +2,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { Check, Loader2, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { signInPath, useAccount, useAddGoal, useMyGoals, useRemoveGoal } from '../../lib/account';
+import { signInPath, useAccount } from '../../lib/account';
+import { useAddGoal, useMyGoals, useRemoveGoal } from '../../lib/seeker';
 import { useSeekerTools } from '../../lib/viewer';
 import { ErrorNote, busyButtonClass, outlineButtonClass } from './parts';
 

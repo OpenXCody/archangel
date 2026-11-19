@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import {
-  ApiError,
   useChangeEmail,
   justLeft,
   signInPath,
@@ -18,6 +17,7 @@ import {
   type Purpose,
   type SignedInAccount,
 } from '../lib/account';
+import { ApiError } from '../lib/http';
 import { onGroupArrowKeys } from '../lib/roving';
 import { setTheme, useTheme, type Theme } from '../lib/theme';
 import { VIEW_AS, setViewAs, useViewer, type ViewAs } from '../lib/viewer';
@@ -33,6 +33,7 @@ import {
   textButtonClass,
 } from '../components/account/parts';
 import { PageContainer, PageHeader, PageSection } from '../components/layout/Page';
+import { EMAIL_RE } from '../lib/validation';
 
 export default function Settings() {
   const { data } = useAccount();
@@ -246,8 +247,6 @@ function SignInSection({ account }: { account: SignedInAccount }) {
     </PageSection>
   );
 }
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /** Which field a refusal is about, when the server says. */
 function fieldOf(error: unknown): string | null {

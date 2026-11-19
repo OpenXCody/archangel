@@ -1,4 +1,5 @@
 import { sql, type SQL } from 'drizzle-orm';
+import { likeLiteral } from './like.js';
 
 /**
  * Finding a career by the words a plant uses for it.
@@ -53,11 +54,6 @@ export function withoutLevel(term: string): string | null {
   return text && text !== term ? text : null;
 }
 
-/** A term with its own LIKE wildcards made literal. (A read term has none; this guards the callers that pass other text.) */
-function literal(text: string): string {
-  return text.replace(/[\\%_]/g, '\\$&');
-}
-
 /** A plural matches its singular: "welders" is looked for as "welder". */
 function stem(word: string): string {
   return word.length >= 4 && word.endsWith('s') && !word.endsWith('ss') ? word.slice(0, -1) : word;
@@ -72,8 +68,9 @@ export interface CareerMatch {
 
 /** The careers that match a read term, and how well each does. */
 export function careerMatch(term: string): CareerMatch {
-  const like = literal(term);
-  const words = term.split(' ').slice(0, 6).map(stem).map(literal);
+  // A read term has no wildcards of its own; this guards the callers that pass other text.
+  const like = likeLiteral(term);
+  const words = term.split(' ').slice(0, 6).map(stem).map(likeLiteral);
   const short = term.length <= 2;
   const everyWord = (text: SQL): SQL =>
     sql.join(

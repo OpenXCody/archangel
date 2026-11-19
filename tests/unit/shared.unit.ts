@@ -7,6 +7,8 @@ import { industryLabel } from '../../shared/industry.js';
 import { formatCompanyName, formatFactoryName } from '../../shared/displayName.js';
 import { milesBetween, focusArea, FOCUS_AREAS } from '../../shared/scope.js';
 import { pageLimit, pageOffset } from '../../server/lib/paging.js';
+import { containing, likeLiteral } from '../../server/lib/like.js';
+import { int, rowsOf, text } from '../../server/lib/rows.js';
 // @ts-expect-error a plain script, no types
 import { buildDecision, MIGRATIONS } from '../../scripts/migrate.mjs';
 
@@ -64,9 +66,29 @@ test('a list page is at least one row and never the whole table', () => {
   assert.equal(pageLimit('5000', 20, 100), 100);
   assert.equal(pageLimit(undefined, 20, 100), 20);
   assert.equal(pageLimit('abc', 20, 100), 20);
+  // A fraction is its whole part: LIMIT takes a whole number, and 1.5 reached the database as it was.
+  assert.equal(pageLimit('1.5', 100, 500), 1);
+  assert.equal(pageLimit('2.9', 12, 30), 2);
   assert.equal(pageOffset('-5'), 0);
   assert.equal(pageOffset('99999999999999999999'), 1_000_000);
   assert.equal(pageOffset('40'), 40);
+});
+
+test('typed text inside a LIKE pattern means itself', () => {
+  assert.equal(likeLiteral('plain'), 'plain');
+  assert.equal(likeLiteral('100%'), '100\\%');
+  assert.equal(likeLiteral('a_b\\c'), 'a\\_b\\\\c');
+  assert.equal(containing('50%_off'), '%50\\%\\_off%');
+});
+
+test('the rows of a statement are an array, and a column reads as text or as a number', () => {
+  assert.deepEqual(rowsOf<{ n: number }>(new Set([{ n: 1 }, { n: 2 }])), [{ n: 1 }, { n: 2 }]);
+  assert.equal(text(' Welding '), ' Welding ');
+  assert.equal(text('   '), null);
+  assert.equal(text(5), null);
+  assert.equal(int('7'), 7);
+  assert.equal(int(null), 0);
+  assert.equal(int('seven'), 0);
 });
 
 test('focus areas are found by id, and distance is in miles', () => {

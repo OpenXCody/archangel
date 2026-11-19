@@ -11,7 +11,7 @@ import type { Place } from '../../lib/geocode';
  * does when chosen differs: the header opens its page, the map shows it.
  */
 
-export type SearchGroupId = 'regions' | 'industries' | 'companies' | 'factories' | 'occupations' | 'skills' | 'jobs' | 'places';
+type SearchGroupId = 'regions' | 'industries' | 'companies' | 'factories' | 'occupations' | 'skills' | 'jobs' | 'places';
 
 /**
  * The groups, widest thing first: a state, an industry, a company, a plant,
@@ -19,7 +19,7 @@ export type SearchGroupId = 'regions' | 'industries' | 'companies' | 'factories'
  * codes from the geocoder, which only the map asks: they arrive a moment
  * after everything else, so they come last.
  */
-export const SEARCH_GROUPS: { id: SearchGroupId; heading: string }[] = [
+const SEARCH_GROUPS: { id: SearchGroupId; heading: string }[] = [
   { id: 'regions', heading: 'States and areas' },
   { id: 'industries', heading: 'Industries' },
   { id: 'companies', heading: 'Companies' },

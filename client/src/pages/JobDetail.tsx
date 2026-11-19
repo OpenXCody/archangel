@@ -3,20 +3,11 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ExternalLink, Loader2, Lock, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import {
-  ApiError,
-  signInPath,
-  useAccount,
-  useApply,
-  useJob,
-  useMySkills,
-  useUpdateJob,
-  type JobDetail as JobDetailData,
-  type JobDetailResponse,
-  type JobSkill,
-} from '../lib/account';
+import { signInPath, useAccount } from '../lib/account';
+import { useApply, useJob, useUpdateJob, type JobDetail as JobDetailData, type JobDetailResponse, type JobSkill } from '../lib/jobs';
+import { ApiError } from '../lib/http';
 import { useApplicantList, useDeleteJob, useExtendJob } from '../lib/employerJobs';
-import { useMarkSkill } from '../lib/seeker';
+import { useMarkSkill, useMySkills } from '../lib/seeker';
 import { useViewer } from '../lib/viewer';
 import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
@@ -31,17 +22,25 @@ import {
   RowsSkeleton,
   cardClass,
   fieldClass,
-  formatDay,
-  formatDayCapital,
   outlineButtonClass,
   textButtonClass,
+  busyButtonClass,
 } from '../components/account/parts';
-import ApplicantList from '../components/account/ApplicantList';
-import JobDescription from '../components/account/JobDescription';
+import { DAY_MS, formatDay, formatDayCapital } from '../lib/dates';
+import ApplicantList from '../components/jobs/ApplicantList';
+import JobDescription from '../components/jobs/JobDescription';
 import { SkillHeldToggle } from '../components/account/SkillStatusButton';
-import { busyButtonClass } from '../components/account/JobForm';
-import ConfirmDialog from '../components/admin/ConfirmDialog';
-import { DetailFacts, DetailHeader, DetailSection, EmptyState, PageContainer, RecordList, RecordRow, recordListClass } from '../components/layout/Page';
+import ConfirmDialog from '../components/layout/ConfirmDialog';
+import {
+  DetailFacts,
+  DetailHeader,
+  DetailSection,
+  EmptyState,
+  PageContainer,
+  RecordList,
+  RecordRow,
+  recordListClass,
+} from '../components/layout/Page';
 import CompanyLogo from '../components/CompanyLogo';
 
 export default function JobDetail() {
@@ -535,7 +534,7 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
   const remove = useDeleteJob();
   const extend = useExtendJob();
   // Offered once the 60 days are nearly up; before that there is nothing to gain.
-  const daysLeft = Math.ceil((new Date(job.expiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  const daysLeft = Math.ceil((new Date(job.expiresAt).getTime() - Date.now()) / DAY_MS);
   const [closing, setClosing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [reason, setReason] = useState('');

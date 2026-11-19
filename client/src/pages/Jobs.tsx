@@ -6,15 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import CompanyLogo from '../components/CompanyLogo';
-import JobPlaceFilter, { DEFAULT_WITHIN, WITHIN_CHOICES, jobPlaceLabel, type JobPlace } from '../components/account/JobPlaceFilter';
+import JobPlaceFilter, { DEFAULT_WITHIN, WITHIN_CHOICES, jobPlaceLabel, type JobPlace } from '../components/jobs/JobPlaceFilter';
 import { occupationsApi } from '../lib/api';
-import { useAccount, useJobs, type JobSummary } from '../lib/account';
+import { useAccount } from '../lib/account';
+import { useJobs, type JobSummary } from '../lib/jobs';
 import { usePostJobLink } from '../lib/viewer';
-import { employmentLabel, formatAgo, formatPay, formatPlace } from '../lib/jobFormat';
-import { ENTITY, LoadError, cardClass, fieldClass, outlineButtonClass, useDebouncedValue } from '../components/account/parts';
+import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
+import { formatAgo } from '../lib/dates';
+import { LoadError, cardClass, fieldClass, outlineButtonClass } from '../components/account/parts';
+import { useDebouncedValue } from '../lib/useDebouncedValue';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid } from '../lib/validation';
+import { publicKeys } from '../lib/queryKeys';
 
 /** `?near=30.5083,-97.6789`: a point, as latitude then longitude. */
 function readPoint(raw: string | null): { lat: number; lng: number } | null {
@@ -53,7 +56,7 @@ export default function Jobs() {
   const postJob = usePostJobLink();
   const q = searchParams.get('q')?.trim() ?? '';
   const careerParam = searchParams.get('career') ?? '';
-  const career = UUID_RE.test(careerParam) ? careerParam : '';
+  const career = isUuid(careerParam) ? careerParam : '';
   const stateParam = (searchParams.get('state') ?? '').toUpperCase();
   const point = readPoint(searchParams.get('near'));
   // A point wins over a state: the address holds one place.
@@ -123,7 +126,7 @@ export default function Jobs() {
   // (a career linked to from its page may have no open job).
   const careerInList = career ? (allJobs.data ?? []).find((job) => job.occupationId === career)?.occupationTitle : undefined;
   const linkedCareer = useQuery({
-    queryKey: ['picker', 'occupation', career],
+    queryKey: publicKeys.picker('occupation', career),
     queryFn: () => occupationsApi.get(career),
     enabled: Boolean(career) && allJobs.isSuccess && !careerInList,
     staleTime: 5 * 60_000,
@@ -322,7 +325,7 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
             {job.shift}
           </Chip>
         )}
-        {job.occupationTitle !== job.title && <Chip className={cn('border-transparent', ENTITY.career.badge)}>{job.occupationTitle}</Chip>}
+        {job.occupationTitle !== job.title && <Chip className="border-transparent bg-bg-elevated text-fg-muted">{job.occupationTitle}</Chip>}
       </div>
     </Link>
   );

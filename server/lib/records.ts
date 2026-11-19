@@ -2,17 +2,18 @@ import type { Response } from 'express';
 import { and, eq, ne, sql, type SQL } from 'drizzle-orm';
 import { db, companies, factories, occupations, occupationSkills, skills, occupationAliases, skillAliases } from '../db/index.js';
 import { changedFields, recordAudit, type Actor, type Executor } from './audit.js';
-import { answerWriteError, coordinate, count, FACTORY_STATUSES, isUuid, optionalName, optionalText, sourceUrl, stateCode, year } from './writes.js';
+import { answerWriteError, coordinate, count, FACTORY_STATUSES, HOSTNAME, isUuid, optionalName, optionalText, sourceUrl, stateCode, year } from './writes.js';
+import { rowsOf } from './rows.js';
 
 /**
  * Correcting the four kinds of record an admin keeps: companies, factories,
  * careers and skills. One place checks a change, makes it, and writes the
  * line in the audit log, whichever route it arrived by (the kind's own
- * PUT / DELETE, or Admin Tools). Merging follows the row moves of the data
- * cleanup (scripts/build-cleanup-sql.mjs), in one transaction.
+ * PUT / DELETE, or Admin Tools). Merging two records is in recordMerge.ts;
+ * finding one by name, and the ones a name comes close to, in recordSearch.ts.
  */
 
-export const RECORD_KINDS = ['company', 'factory', 'career', 'skill'] as const;
+const RECORD_KINDS = ['company', 'factory', 'career', 'skill'] as const;
 export type RecordKind = (typeof RECORD_KINDS)[number];
 
 export function isRecordKind(value: unknown): value is RecordKind {
@@ -36,30 +37,23 @@ export function answerRefusal(res: Response, error: unknown, what: string): void
   else answerWriteError(res, error, what);
 }
 
-const NOT_FOUND: Record<RecordKind, string> = {
+export const NOT_FOUND: Record<RecordKind, string> = {
   company: 'Company not found',
   factory: 'Plant not found',
   career: 'Occupation not found',
   skill: 'Skill not found',
 };
 
-function rowsOf<T = Record<string, unknown>>(result: unknown): T[] {
-  return Array.from(result as Iterable<T>);
-}
-
 // ---------------------------------------------------------------------------
 // Values
 // ---------------------------------------------------------------------------
-
-/** A bare hostname: labels of letters, digits and hyphens, then a letters-only ending. */
-const HOSTNAME = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 
 /**
  * A web domain as it is stored: what a person pastes ("https://www.Tesla.com/about")
  * is brought down to the bare host ("tesla.com"). Null when emptied, false when
  * what is left is not a domain.
  */
-export function cleanDomain(value: unknown): string | null | false {
+function cleanDomain(value: unknown): string | null | false {
   if (value === null) return null;
   if (typeof value !== 'string') return false;
   let host = value.trim().toLowerCase();
@@ -88,7 +82,7 @@ function cleanAliases(value: unknown, ownName: string): string[] | null {
   return list.length <= MAX_ALIASES ? list : null;
 }
 
-export const MAX_TOOLS = 12;
+const MAX_TOOLS = 12;
 /**
  * What a skill is done with: a short list of tools, machines or software.
  * Undefined when left out, an empty list when cleared, false when it is not a
@@ -132,7 +126,7 @@ function refuse(field: string, message: string): never {
 /** Counts of what points at a record: what a merge moves and a deletion takes. Zeroes are left out. */
 export type Attached = Record<string, number>;
 
-async function attachedTo(executor: Executor, kind: RecordKind, id: string): Promise<Attached> {
+export async function attachedTo(executor: Executor, kind: RecordKind, id: string): Promise<Attached> {
   const query: Record<RecordKind, SQL> = {
     company: sql`SELECT
       (SELECT COUNT(*)::int FROM factories WHERE company_id = ${id}) AS factories,
@@ -709,289 +703,4 @@ export async function removeRecord(kind: RecordKind, id: string, actor: Actor): 
     });
     return { id, name: gone.name, removed };
   });
-}
-
-// ---------------------------------------------------------------------------
-// Merging one record into another
-// ---------------------------------------------------------------------------
-
-export interface MergeResult {
-  kept: { id: string; name: string; href: string };
-  merged: { id: string; name: string };
-  /** What now points at the kept record instead. */
-  moved: Attached;
-}
-
-/**
- * Merge `fromId` into `intoId`: everything that pointed at the first points
- * at the second, the first's name is kept as another name for the second,
- * and the first is deleted. Factories are not merged. Throws RecordRefusal.
- */
-export async function mergeRecords(kind: RecordKind, fromId: string, intoId: string, actor: Actor): Promise<MergeResult> {
-  if (kind === 'factory') throw new RecordRefusal(400, 'Factories are not merged. Delete the one that is wrong.');
-  if (fromId === intoId) throw new RecordRefusal(400, 'Choose a different record to merge into.');
-  const table = kind === 'company' ? sql`companies` : kind === 'career' ? sql`occupations` : sql`skills`;
-  const nameColumn = kind === 'career' ? sql`title` : sql`name`;
-
-  return db.transaction(async (tx) => {
-    // Both rows are held, in one order, so two merges cannot cross.
-    const locked = rowsOf<{ id: string; name: string }>(
-      await tx.execute(sql`SELECT id, ${nameColumn} AS name FROM ${table} WHERE id IN (${fromId}, ${intoId}) ORDER BY id FOR UPDATE`)
-    );
-    const from = locked.find((row) => row.id === fromId);
-    const into = locked.find((row) => row.id === intoId);
-    if (!from) throw new RecordRefusal(404, NOT_FOUND[kind]);
-    if (!into) throw new RecordRefusal(404, 'The record to merge into was not found.');
-    const moved = await attachedTo(tx, kind, fromId);
-    let href = `/${kind === 'career' ? 'occupations' : 'skills'}/${intoId}`;
-
-    if (kind === 'company') {
-      const [gone] = await tx.select().from(companies).where(eq(companies.id, fromId)).limit(1);
-      await tx.execute(sql`UPDATE factories SET company_id = ${intoId} WHERE company_id = ${fromId}`);
-      await tx.execute(sql`UPDATE jobs SET company_id = ${intoId} WHERE company_id = ${fromId}`);
-      await tx.execute(sql`UPDATE invites SET company_id = ${intoId} WHERE company_id = ${fromId}`);
-      // A person with a row at both keeps the stronger one (access over a request).
-      await tx.execute(sql`
-        UPDATE company_members y SET status = 'active', decided_at = x.decided_at, decided_by = x.decided_by
-        FROM company_members x
-        WHERE x.company_id = ${fromId} AND y.company_id = ${intoId} AND y.user_id = x.user_id
-          AND x.status = 'active' AND y.status <> 'active'`);
-      await tx.execute(sql`
-        UPDATE company_members x SET company_id = ${intoId} WHERE company_id = ${fromId}
-          AND NOT EXISTS (SELECT 1 FROM company_members y WHERE y.company_id = ${intoId} AND y.user_id = x.user_id)`);
-      // Requests for a plant of the company, the companies that are part of it, its people by state and its sources.
-      await tx.execute(sql`UPDATE company_requests SET company_id = ${intoId} WHERE company_id = ${fromId}`);
-      await tx.execute(sql`UPDATE company_requests SET added_company_id = ${intoId} WHERE added_company_id = ${fromId}`);
-      await tx.execute(sql`UPDATE companies SET parent_company_id = ${intoId} WHERE parent_company_id = ${fromId} AND id <> ${intoId}`);
-      await tx.execute(sql`
-        UPDATE company_state_headcounts x SET company_id = ${intoId} WHERE company_id = ${fromId}
-          AND NOT EXISTS (SELECT 1 FROM company_state_headcounts y WHERE y.company_id = ${intoId} AND y.state = x.state)`);
-      await tx.execute(sql`
-        DELETE FROM external_references x WHERE x.entity_type = 'companies' AND x.entity_id = ${fromId} AND x.source = 'CURATED'
-          AND EXISTS (SELECT 1 FROM external_references y WHERE y.entity_type = 'companies' AND y.entity_id = ${intoId} AND y.source = 'CURATED' AND y.url = x.url)`);
-      await tx.execute(sql`UPDATE external_references SET entity_id = ${intoId} WHERE entity_type = 'companies' AND entity_id = ${fromId}`);
-      // The slug is unique: the row that is going gives it up before the kept row can take it.
-      await tx.delete(companies).where(eq(companies.id, fromId));
-      // The kept company takes whatever profile it lacks, and remembers the old name.
-      const [kept] = rowsOf<{ slug: string | null }>(
-        await tx.execute(sql`
-          UPDATE companies c SET
-            domain = COALESCE(c.domain, ${gone.domain}),
-            description = COALESCE(NULLIF(btrim(c.description), ''), ${gone.description}),
-            industry = CASE WHEN c.industry IS NULL OR lower(btrim(c.industry)) IN ('', 'manufacturing') THEN COALESCE(${gone.industry}, c.industry) ELSE c.industry END,
-            featured = c.featured OR ${gone.featured},
-            slug = COALESCE(c.slug, ${gone.slug}),
-            parent_company_id = COALESCE(c.parent_company_id, NULLIF(${gone.parentCompanyId}::uuid, c.id)),
-            headquarters_state = CASE WHEN c.headquarters_city IS NULL THEN ${gone.headquartersState} ELSE c.headquarters_state END,
-            headquarters_country = CASE WHEN c.headquarters_city IS NULL THEN ${gone.headquartersCountry} ELSE c.headquarters_country END,
-            headquarters_city = COALESCE(c.headquarters_city, ${gone.headquartersCity}),
-            aliases = (
-              SELECT array_agg(DISTINCT a) FROM unnest(COALESCE(c.aliases, '{}') || ${sql.param(gone.aliases ?? [], companies.aliases)}::text[] || ARRAY[${gone.name}]::text[]) AS a
-              WHERE lower(a) <> lower(c.name)
-            ),
-            updated_at = now()
-          WHERE c.id = ${intoId}
-          RETURNING c.slug`)
-      );
-      href = `/companies/${kept?.slug ?? intoId}`;
-    } else if (kind === 'career') {
-      const k = intoId;
-      const m = fromId;
-      await tx.execute(sql`UPDATE occupation_skills x SET occupation_id = ${k} WHERE occupation_id = ${m}
-        AND NOT EXISTS (SELECT 1 FROM occupation_skills y WHERE y.occupation_id = ${k} AND y.skill_id = x.skill_id)`);
-      await tx.execute(sql`UPDATE user_goals x SET occupation_id = ${k} WHERE occupation_id = ${m}
-        AND NOT EXISTS (SELECT 1 FROM user_goals y WHERE y.occupation_id = ${k} AND y.user_id = x.user_id)`);
-      await tx.execute(sql`UPDATE industry_occupations x SET occupation_id = ${k} WHERE occupation_id = ${m}
-        AND NOT EXISTS (SELECT 1 FROM industry_occupations y WHERE y.occupation_id = ${k} AND y.industry = x.industry)`);
-      await tx.execute(sql`UPDATE factory_occupations x SET occupation_id = ${k} WHERE occupation_id = ${m}
-        AND NOT EXISTS (SELECT 1 FROM factory_occupations y WHERE y.occupation_id = ${k} AND y.factory_id = x.factory_id)`);
-      await tx.execute(sql`UPDATE jobs SET occupation_id = ${k} WHERE occupation_id = ${m}`);
-      await tx.execute(sql`UPDATE occupation_aliases SET canonical_occupation_id = ${k} WHERE canonical_occupation_id = ${m}`);
-      await tx.execute(sql`INSERT INTO occupation_aliases (alias_text, canonical_occupation_id) VALUES (${from.name}, ${k}) ON CONFLICT (alias_text) DO NOTHING`);
-      await tx.execute(sql`UPDATE occupations o SET
-          path_status = COALESCE(o.path_status, (SELECT path_status FROM occupations WHERE id = ${m})),
-          description = COALESCE(NULLIF(btrim(o.description), ''), (SELECT description FROM occupations WHERE id = ${m}))
-        WHERE o.id = ${k}`);
-      await tx.delete(occupations).where(eq(occupations.id, m));
-    } else {
-      const k = intoId;
-      const m = fromId;
-      await tx.execute(sql`UPDATE occupation_skills x SET skill_id = ${k} WHERE skill_id = ${m}
-        AND NOT EXISTS (SELECT 1 FROM occupation_skills y WHERE y.skill_id = ${k} AND y.occupation_id = x.occupation_id)`);
-      await tx.execute(sql`UPDATE job_skills x SET skill_id = ${k} WHERE skill_id = ${m}
-        AND NOT EXISTS (SELECT 1 FROM job_skills y WHERE y.skill_id = ${k} AND y.job_id = x.job_id)`);
-      // A person who marked both keeps the stronger mark (held over learning).
-      await tx.execute(sql`UPDATE user_skills y SET status = 'held' FROM user_skills x
-        WHERE x.skill_id = ${m} AND y.skill_id = ${k} AND y.user_id = x.user_id AND x.status = 'held'`);
-      await tx.execute(sql`UPDATE user_skills x SET skill_id = ${k} WHERE skill_id = ${m}
-        AND NOT EXISTS (SELECT 1 FROM user_skills y WHERE y.skill_id = ${k} AND y.user_id = x.user_id)`);
-      await tx.execute(sql`UPDATE skills SET parent_skill_id = ${k} WHERE parent_skill_id = ${m} AND id <> ${k}`);
-      await tx.execute(sql`UPDATE skills SET parent_skill_id = NULL WHERE id = ${k} AND parent_skill_id = ${m}`);
-      await tx.execute(sql`UPDATE skill_aliases SET canonical_skill_id = ${k} WHERE canonical_skill_id = ${m}`);
-      await tx.execute(sql`INSERT INTO skill_aliases (alias_text, canonical_skill_id) VALUES (${from.name}, ${k}) ON CONFLICT (alias_text) DO NOTHING`);
-      await tx.execute(sql`UPDATE skills s SET
-          category = COALESCE(NULLIF(btrim(s.category), ''), (SELECT category FROM skills WHERE id = ${m})),
-          description = COALESCE(NULLIF(btrim(s.description), ''), (SELECT description FROM skills WHERE id = ${m}))
-        WHERE s.id = ${k}`);
-      await tx.delete(skills).where(eq(skills.id, m));
-    }
-
-    await recordAudit(tx, {
-      actor,
-      kind,
-      recordId: intoId,
-      recordName: into.name,
-      action: 'merged',
-      detail: { merged: { id: fromId, name: from.name }, ...(Object.keys(moved).length > 0 ? { moved } : {}) },
-    });
-    return { kept: { id: intoId, name: into.name, href }, merged: { id: fromId, name: from.name }, moved };
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Finding records: by search, and the ones a name comes close to
-// ---------------------------------------------------------------------------
-
-export interface FoundRecord {
-  id: string;
-  name: string;
-  /** One line that tells it from its neighbours: a domain and plant count, a place, a category. */
-  detail: string | null;
-  href: string;
-}
-
-function likeLiteral(term: string): string {
-  return term.replace(/[\\%_]/g, '\\$&');
-}
-
-/** "3 factories", "1 skill". */
-function counted(n: number, one: string, many: string): string {
-  return `${n.toLocaleString('en-US')} ${n === 1 ? one : many}`;
-}
-
-function found(kind: RecordKind, row: Record<string, unknown>): FoundRecord {
-  const id = String(row.id);
-  const text = (value: unknown) => (typeof value === 'string' && value.trim() ? value.trim() : null);
-  if (kind === 'company') {
-    const detail = [text(row.domain), counted(Number(row.plants) || 0, 'factory', 'factories')].filter(Boolean).join(' · ');
-    return { id, name: String(row.name), detail, href: `/companies/${text(row.slug) ?? id}` };
-  }
-  if (kind === 'factory') {
-    const place = [text(row.city), text(row.state)].filter(Boolean).join(', ');
-    return { id, name: String(row.name), detail: [text(row.company), place].filter(Boolean).join(' · ') || null, href: `/factories/${id}` };
-  }
-  if (kind === 'career') {
-    const skillsOnPath = Number(row.skills) || 0;
-    const detail = skillsOnPath > 0 ? `${counted(skillsOnPath, 'skill', 'skills')}${text(row.path_status) ? `, ${text(row.path_status)}` : ''}` : 'No path';
-    return { id, name: String(row.name), detail, href: `/occupations/${id}` };
-  }
-  return { id, name: String(row.name), detail: text(row.category), href: `/skills/${id}` };
-}
-
-/** What each kind's search and near-match queries select, from the table aliased `r`. */
-const FOUND_COLUMNS: Record<RecordKind, SQL> = {
-  company: sql`r.id, r.name, r.slug, r.domain, (SELECT COUNT(*)::int FROM factories f WHERE f.company_id = r.id) AS plants`,
-  factory: sql`r.id, r.name, r.city, r.state, (SELECT c.name FROM companies c WHERE c.id = r.company_id) AS company`,
-  career: sql`r.id, r.title AS name, r.path_status, (SELECT COUNT(*)::int FROM occupation_skills os WHERE os.occupation_id = r.id) AS skills`,
-  skill: sql`r.id, r.name, r.category`,
-};
-const FOUND_TABLE: Record<RecordKind, SQL> = {
-  company: sql`companies r`,
-  factory: sql`factories r`,
-  career: sql`occupations r`,
-  skill: sql`skills r`,
-};
-const FOUND_NAME: Record<RecordKind, SQL> = { company: sql`r.name`, factory: sql`r.name`, career: sql`r.title`, skill: sql`r.name` };
-
-/** Whether a record is also known by exactly this name. */
-function aliasIs(kind: RecordKind, term: string): SQL {
-  if (kind === 'company') return sql`EXISTS (SELECT 1 FROM unnest(COALESCE(r.aliases, '{}')) a WHERE lower(a) = lower(${term}))`;
-  if (kind === 'career') return sql`EXISTS (SELECT 1 FROM occupation_aliases a WHERE a.canonical_occupation_id = r.id AND lower(a.alias_text) = lower(${term}))`;
-  if (kind === 'skill') return sql`EXISTS (SELECT 1 FROM skill_aliases a WHERE a.canonical_skill_id = r.id AND lower(a.alias_text) = lower(${term}))`;
-  return sql`false`;
-}
-
-/** Records of one kind whose name, or other name, contains the term. Names that start with it come first. */
-export async function searchRecords(kind: RecordKind, term: string, limit = 8): Promise<FoundRecord[]> {
-  const q = term.trim();
-  if (q.length < 2) return [];
-  const contains = `%${likeLiteral(q)}%`;
-  const alias =
-    kind === 'company'
-      ? sql`EXISTS (SELECT 1 FROM unnest(COALESCE(r.aliases, '{}')) a WHERE a ILIKE ${contains})`
-      : kind === 'career'
-        ? sql`EXISTS (SELECT 1 FROM occupation_aliases a WHERE a.canonical_occupation_id = r.id AND a.alias_text ILIKE ${contains})`
-        : kind === 'skill'
-          ? sql`EXISTS (SELECT 1 FROM skill_aliases a WHERE a.canonical_skill_id = r.id AND a.alias_text ILIKE ${contains})`
-          : sql`false`;
-  const rows = rowsOf(
-    await db.execute(sql`
-      SELECT ${FOUND_COLUMNS[kind]}
-      FROM ${FOUND_TABLE[kind]}
-      WHERE ${FOUND_NAME[kind]} ILIKE ${contains} OR ${alias}
-      ORDER BY (lower(${FOUND_NAME[kind]}) = lower(${q})) DESC, (${FOUND_NAME[kind]} ILIKE ${`${likeLiteral(q)}%`}) DESC, ${FOUND_NAME[kind]} ASC, r.id
-      LIMIT ${limit}
-    `)
-  );
-  return rows.map((row) => found(kind, row));
-}
-
-/** A name without case, punctuation or the endings companies carry ("Inc", "Corp", "LLC"). */
-function plainName(column: SQL): SQL {
-  return sql`btrim(regexp_replace(regexp_replace(regexp_replace(lower(${column}), '[^a-z0-9]+', ' ', 'g'), '\\m(the|inc|incorporated|corp|corporation|co|company|llc|ltd|lp|plc|holdings|group)\\M', ' ', 'g'), ' +', ' ', 'g'))`;
-}
-
-const NEAR = 0.5;
-const NEAR_METRES = 150;
-
-export interface SimilarQuery {
-  name: string;
-  /** A record to leave out: the one being edited. */
-  excludeId?: string;
-  /** Factories: the company the plant belongs to, and where it is. */
-  companyId?: string;
-  latitude?: number;
-  longitude?: number;
-}
-
-/**
- * Records a name comes close to: the same name in another case or with
- * another ending, one it is also known by, or one that reads much the same.
- * For a factory: a like-named plant of the same company, or any plant within
- * 150 metres.
- */
-export async function similarRecords(kind: RecordKind, query: SimilarQuery): Promise<FoundRecord[]> {
-  const name = query.name.trim();
-  if (name.length < 3 && kind !== 'factory') return [];
-  const column = FOUND_NAME[kind];
-  const score = sql`similarity(lower(${column}), lower(${name}))`;
-  const exclude = query.excludeId ? sql`r.id <> ${query.excludeId}` : sql`true`;
-
-  let where: SQL;
-  if (kind === 'factory') {
-    const tests: SQL[] = [];
-    if (query.companyId && name.length >= 3) tests.push(sql`(r.company_id = ${query.companyId} AND ${score} >= ${NEAR})`);
-    if (query.latitude !== undefined && query.longitude !== undefined) {
-      const numeric = sql`'^-?[0-9]+([.][0-9]+)?$'`;
-      // About 111 km per degree of latitude; longitude shrinks with the cosine.
-      tests.push(sql`(r.latitude ~ ${numeric} AND r.longitude ~ ${numeric}
-        AND abs(r.latitude::float8 - ${query.latitude}) < 0.01 AND abs(r.longitude::float8 - ${query.longitude}) < 0.01
-        AND sqrt(power((r.latitude::float8 - ${query.latitude}) * 111320, 2) + power((r.longitude::float8 - ${query.longitude}) * 111320 * cos(radians(${query.latitude})), 2)) <= ${NEAR_METRES})`);
-    }
-    if (tests.length === 0) return [];
-    where = sql`(${sql.join(tests, sql` OR `)})`;
-  } else {
-    const plain = kind === 'company' ? sql`OR ${plainName(column)} = ${plainName(sql`${name}`)}` : sql``;
-    where = sql`(lower(${column}) = lower(${name}) OR ${score} >= ${NEAR} ${plain} OR ${aliasIs(kind, name)})`;
-  }
-  const rows = rowsOf(
-    await db.execute(sql`
-      SELECT ${FOUND_COLUMNS[kind]}
-      FROM ${FOUND_TABLE[kind]}
-      WHERE ${exclude} AND ${where}
-      ORDER BY ${score} DESC, ${column} ASC
-      LIMIT 5
-    `)
-  );
-  return rows.map((row) => found(kind, row));
 }

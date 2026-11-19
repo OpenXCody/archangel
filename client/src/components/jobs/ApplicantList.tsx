@@ -3,12 +3,12 @@ import { ChevronDown, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { EMPLOYER_STATUSES, useUpdateApplication, useUpdateJob, type ApplicationStatus } from '../../lib/account';
+import { EMPLOYER_STATUSES, useUpdateApplication, useUpdateJob, type ApplicationStatus } from '../../lib/jobs';
 import { applicantsCsv, saveTextFile, type ApplicantSkill, type JobApplicants, type RankedApplicant } from '../../lib/employerJobs';
 import { applicationStatusLabel } from '../../lib/jobFormat';
-import { busyButtonClass } from './JobForm';
-import { ErrorNote, Field, cardClass, fieldClass, formatDayCapital, outlineButtonClass, rowClass, textButtonClass } from './parts';
-import { SkillMark } from './SkillStatusButton';
+import { ErrorNote, Field, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass, busyButtonClass } from '../account/parts';
+import { formatDayCapital } from '../../lib/dates';
+import { SkillMark } from '../account/SkillStatusButton';
 
 type StageFilter = 'all' | ApplicationStatus;
 
@@ -28,7 +28,7 @@ const COLUMNS = 'sm:grid-cols-[minmax(0,1fr)_8rem_6.5rem_7rem_1rem]';
 const appliedWhen = formatDayCapital;
 
 /** The job the applicants are for: named in the email to an applicant and in the exported file. */
-export interface ApplicantsJob {
+interface ApplicantsJob {
   /** With `isOpen`: lets a hire offer to close the job. */
   id?: string;
   isOpen?: boolean;

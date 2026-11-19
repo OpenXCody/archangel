@@ -8,6 +8,7 @@ import ExploreNav, { isBrowseTab, type BrowseTab, type ExploreView } from '../co
 import ExploreOverview from '../components/explorer/ExploreOverview';
 import BrowseList, { LIST_NOUN, counted } from '../components/explorer/BrowseList';
 import IndustryList from '../components/explorer/IndustryList';
+import { publicKeys } from '../lib/queryKeys';
 
 const FIGURES: BrowseTab[] = ['companies', 'factories', 'occupations', 'skills'];
 
@@ -17,9 +18,9 @@ const FIGURES: BrowseTab[] = ['companies', 'factories', 'occupations', 'skills']
  */
 function Figures() {
   const counts = useQuery({
-    queryKey: ['entity-counts'],
+    queryKey: publicKeys.counts,
     queryFn: statsApi.counts,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 10 * 60_000,
   });
   if (counts.isError) return null;
   const parts = counts.data ? FIGURES.filter((key) => counts.data[key] > 0) : [];

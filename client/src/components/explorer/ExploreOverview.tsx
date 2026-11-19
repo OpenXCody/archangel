@@ -2,7 +2,6 @@ import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  exploreApi,
   type ExploreArea,
   type ExploreCareer,
   type ExploreEmployer,
@@ -14,30 +13,27 @@ import {
 import { formatCompanyName } from '@shared/displayName';
 import { FOCUS_AREAS } from '@shared/scope';
 import { industryLabel, shownIndustry } from '@shared/industry';
-import { cn } from '@/lib/utils';
+import { cn, focusRing, plural } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState, PageSection } from '../layout/Page';
 import { LoadError } from '../account/parts';
 import CompanyLogo from '../CompanyLogo';
 import { exploreHref } from './ExploreNav';
+import { STAGE_LABEL } from '../../lib/stages';
+import { publicKeys } from '../../lib/queryKeys';
+import { useExploreOverview } from '../../lib/queries';
 
-const STAGE_NAME: Record<1 | 2 | 3, string> = { 1: 'Introduction', 2: 'Fundamentals', 3: 'Advanced' };
-
-const count = (n: number, one: string, many: string) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
-
-const FOCUS =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary';
 const TILE = cn(
   'group flex min-w-0 rounded-xl border border-border-subtle bg-bg-surface transition-colors',
   'hover:border-border-strong hover:bg-bg-elevated',
-  FOCUS
+  focusRing
 );
 const SECTION = 'mb-12 sm:mb-16';
 const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
 /** A row in a typographic list: a full-width link, tall enough to tap. */
 const LIST_ROW = cn(
   'group flex min-h-11 items-baseline justify-between gap-4 py-2.5 text-[15px] leading-snug sm:min-h-0 sm:py-1.5',
-  FOCUS
+  focusRing
 );
 
 function TextLink({ to, children }: { to: string; children: ReactNode }) {
@@ -46,7 +42,7 @@ function TextLink({ to, children }: { to: string; children: ReactNode }) {
       to={to}
       className={cn(
         '-my-3 inline-flex min-h-11 items-center text-sm text-fg-muted underline-offset-4 transition-colors hover:text-fg-default hover:underline',
-        FOCUS
+        focusRing
       )}
     >
       {children}
@@ -72,9 +68,9 @@ function CompanyTile({ company, className }: { company: ExploreEmployer; classNa
       {industry && <p className="mt-1 line-clamp-2 text-sm leading-snug text-fg-soft">{industry}</p>}
       {/* Pinned to the foot, so the figures of a row of tiles sit on one line. */}
       <p className="mt-auto pt-3 text-sm text-fg-muted">
-        <span className="whitespace-nowrap">{count(company.siteCount, 'plant', 'plants')}</span>
+        <span className="whitespace-nowrap">{plural(company.siteCount, 'plant', 'plants')}</span>
         {company.stateCount > 0 && (
-          <span className="whitespace-nowrap"> · {count(company.stateCount, 'state', 'states')}</span>
+          <span className="whitespace-nowrap"> · {plural(company.stateCount, 'state', 'states')}</span>
         )}
       </p>
     </Link>
@@ -156,8 +152,8 @@ function CareerCard({ career, className }: { career: ExploreCareer; className?: 
             )}
           >
             <div className="flex items-baseline justify-between gap-3">
-              <span className={cn(EYEBROW, 'text-fg-muted')}>{STAGE_NAME[stage.stage]}</span>
-              <span className="shrink-0 text-xs tabular-nums text-fg-soft">{count(stage.count, 'skill', 'skills')}</span>
+              <span className={cn(EYEBROW, 'text-fg-muted')}>{STAGE_LABEL[stage.stage]}</span>
+              <span className="shrink-0 text-xs tabular-nums text-fg-soft">{plural(stage.count, 'skill', 'skills')}</span>
             </div>
             {/* One line of whole names: a name that does not fit wraps out of sight instead of being cut. */}
             {stage.skills.length > 0 && (
@@ -215,7 +211,7 @@ function Skills({ groups }: { groups: ExploreSkillGroup[] }) {
                   <Link to={`/skills/${skill.id}`} className={LIST_ROW}>
                     <span className="min-w-0 truncate text-fg-default underline-offset-4 group-hover:underline">{skill.name}</span>
                     <span className="shrink-0 text-sm tabular-nums text-fg-soft">
-                      in {count(skill.careerCount, 'career', 'careers')}
+                      in {plural(skill.careerCount, 'career', 'careers')}
                     </span>
                   </Link>
                 </li>
@@ -258,7 +254,7 @@ function outerRings(geojson: unknown): Ring[] {
 function AreaOutline({ areaId }: { areaId: string }) {
   const url = FOCUS_AREAS.find((area) => area.id === areaId)?.boundaryUrl;
   const { data } = useQuery({
-    queryKey: ['area-boundary', url],
+    queryKey: publicKeys.areaBoundary(url),
     queryFn: async (): Promise<unknown> => {
       const response = await fetch(url as string);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -324,7 +320,7 @@ function AreaTile({ area }: { area: ExploreArea }) {
         <h3 className="mt-2 text-xl font-semibold leading-snug text-fg-default sm:text-2xl">{area.name}</h3>
         {area.description && <p className="mt-1.5 text-sm text-fg-muted">{area.description}</p>}
         {area.factoryCount > 0 && (
-          <p className="mt-4 text-sm tabular-nums text-fg-soft">{count(area.factoryCount, 'plant', 'plants')}</p>
+          <p className="mt-4 text-sm tabular-nums text-fg-soft">{plural(area.factoryCount, 'plant', 'plants')}</p>
         )}
       </div>
       <AreaOutline areaId={area.id} />
@@ -446,14 +442,6 @@ function OverviewSkeleton() {
 
 const isEmpty = (data: Overview) =>
   data.employers.length + data.careers.length + data.skillGroups.length + data.areas.length + data.states.length === 0;
-
-export function useExploreOverview() {
-  return useQuery<Overview>({
-    queryKey: ['explore-overview'],
-    queryFn: exploreApi.overview,
-    staleTime: 1000 * 60 * 5,
-  });
-}
 
 /**
  * What /explore opens on: the shape of what is here and places to start, one

@@ -3,7 +3,9 @@ import { sql, type SQL } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { browsableCompanyNameSql } from '../lib/companyFilters.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
-import { inPlace, int, known, listIndustries, placeOut, rowsOf, statsKey, statsOf, text, type Place, type Row } from '../lib/industries.js';
+import { jobIsOpen } from '../lib/openJobs.js';
+import { inPlace, known, listIndustries, placeOut, statsKey, statsOf, type Place } from '../lib/industries.js';
+import { int, rowsOf, text, type Row } from '../lib/rows.js';
 import { SCOPE, focusArea } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
 import { industryBySlug, type Industry } from '../../shared/industry.js';
@@ -190,7 +192,7 @@ router.get('/:slug', async (req: Request, res: Response) => {
         FROM jobs j
         INNER JOIN factories f ON f.id = j.factory_id
         INNER JOIN companies c ON c.id = j.company_id
-        WHERE j.status = 'open' AND j.expires_at > now() AND ${here('f')}
+        WHERE ${jobIsOpen('j')} AND ${here('f')}
         ORDER BY j.posted_at DESC
         LIMIT ${JOB_LIMIT}
       `),

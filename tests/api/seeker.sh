@@ -16,31 +16,10 @@
 #   API=http://localhost:3000/api DB=postgresql://... bash tests/api/seeker.sh
 # Needs a running dev API, and psql, curl and node on the PATH.
 set -u
-API=${API:-http://localhost:3000/api}
-DB=${DB:-postgresql://postgres:postgres@127.0.0.1:5432/archangel}
-case "$API" in http://localhost:*|http://127.0.0.1:*) ;; *) echo "Refusing to run against $API: local only."; exit 2;; esac
+. "$(dirname "$0")/lib.sh"
 D=$(mktemp -d)
 # A fresh address per run, so repeat runs do not trip the sign-in throttle.
 RUN=$(date +%s)
-fail=0
-req() { # jar method path [json]  -> prints "status body"
-  local jar=$1 m=$2 p=$3 d=${4:-}
-  if [ -n "$d" ]; then curl -s -b "$D/$jar" -c "$D/$jar" -X "$m" -H 'Content-Type: application/json' -d "$d" -w '\n%{http_code}' "$API$p"
-  else curl -s -b "$D/$jar" -c "$D/$jar" -X "$m" -w '\n%{http_code}' "$API$p"; fi
-}
-check() { # name expected-status actual-output [grep-pattern]
-  local name=$1 want=$2 out=$3 pat=${4:-}
-  local code; code=$(printf '%s' "$out" | tail -n1)
-  local body; body=$(printf '%s' "$out" | sed '$d')
-  if [ "$code" != "$want" ] || { [ -n "$pat" ] && ! printf '%s' "$body" | grep -q "$pat"; }; then
-    echo "FAIL  $name: wanted $want ${pat:+matching /$pat/ }got $code $(printf '%s' "$body" | head -c 200)"; fail=1
-  else echo "ok    $name"; fi
-}
-expect() { # name wanted got
-  if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "FAIL  $1: wanted $2 got $3"; fail=1; fi
-}
-sql() { psql "$DB" -qtAc "$1"; }
-j() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s.split('\n').slice(0,-1).join('\n'));console.log(eval('o.'+process.argv[1]))})" "$1"; }
 
 cleanup() {
   psql "$DB" -qtAc "DELETE FROM users WHERE email LIKE '%@seeker.test';
@@ -179,6 +158,8 @@ expect "how many careers call for it" 8 "$(printf '%s' "$OUT" | j "skills.find(s
 check "learning S02"                  200 "$(req g PUT /me/skills/$S02 '{"status":"learning"}')"
 expect "a skill being learned is not suggested" false "$(req g GET /me/skills/suggested | j "skills.some(s=>s.id==='$S02')")"
 expect "limit is honoured"            3 "$(req g GET '/me/skills/suggested?limit=3' | j skills.length)"
+# A limit is a whole number of rows: a fraction used to reach the database as one and answer 500.
+expect "a limit with a fraction is its whole part" 2 "$(req g GET '/me/skills/suggested?limit=2.9' | j skills.length)"
 check "another person's suggestions are their own" 200 "$(req o GET /me/skills/suggested)" '"skills":\[\]'
 HDR=$(curl -s -D - -o /dev/null -b "$D/g" "$API/me/skills/suggested" | tr -d '\r' | grep -i '^cache-control')
 case "$HDR" in *no-store*) echo "ok    suggestions are not cacheable";; *) echo "FAIL  cache header: $HDR"; fail=1;; esac
@@ -224,6 +205,7 @@ check "latitude out of range"         400 "$(req anon GET '/jobs?near=91,0')"
 check "within must be a distance"     400 "$(req anon GET "/jobs?$NEAR&within=0")"
 expect "no distance without a place"  false "$(req anon GET "/jobs?q=$RUN+fitter" | j "jobs.some(x=>'miles' in x)")"
 expect "without a place, newest first" "Nowhere|Far|Town|Home" "$(req anon GET "/jobs?q=$RUN+fitter" | jobTitles)"
+expect "a limit with a fraction is its whole part" "Nowhere|Far" "$(req anon GET "/jobs?q=$RUN+fitter&limit=2.9" | jobTitles)"
 expect "search finds the company"     4 "$(req anon GET "/jobs?q=$RUN+works" | j jobs.length)"
 expect "search finds the career"      4 "$(req anon GET "/jobs?q=seeker+$RUN+a" | j jobs.length)"
 expect "search finds the shift"       "Home" "$(req anon GET "/jobs?q=$RUN+night" | jobTitles)"
@@ -355,5 +337,4 @@ cleanup
 expect "test accounts removed"        0 "$(sql "SELECT COUNT(*) FROM users WHERE email LIKE '%@seeker.test'")"
 expect "test careers and skills removed" 0 "$(sql "SELECT (SELECT COUNT(*) FROM occupations WHERE title LIKE 'Seeker Test %') + (SELECT COUNT(*) FROM skills WHERE name LIKE 'Seeker Test %')")"
 expect "test company, factories and jobs removed" 0 "$(sql "SELECT (SELECT COUNT(*) FROM companies WHERE name LIKE 'Seeker Test %') + (SELECT COUNT(*) FROM factories WHERE name LIKE 'Seeker Test %') + (SELECT COUNT(*) FROM jobs WHERE title LIKE 'Seeker Test %')")"
-[ $fail -eq 0 ] && echo "ALL PASSED" || echo "SOME FAILED"
-exit $fail
+finish

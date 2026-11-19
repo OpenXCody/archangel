@@ -5,19 +5,10 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import {
-  ApiError,
-  useCancelMembership,
-  useEmailOn,
-  useEmployer,
-  useJob,
-  useRequestMembership,
-  useUpdateProfile,
-  type AccountUser,
-  type EmployerCompany,
-  type EmployerJob,
-  type JobDetailResponse,
-} from '../lib/account';
+import { useEmailOn, useUpdateProfile, type AccountUser } from '../lib/account';
+import { useCancelMembership, useEmployer, useRequestMembership, type EmployerCompany, type EmployerJob } from '../lib/employer';
+import { useJob, type JobDetailResponse } from '../lib/jobs';
+import { ApiError } from '../lib/http';
 import { useDeleteJob } from '../lib/employerJobs';
 import {
   COMPANY_SEARCH_LIMIT,
@@ -31,12 +22,13 @@ import { latestDraftCompany } from '../lib/jobDraft';
 import { useViewer } from '../lib/viewer';
 import { isExpired } from '../lib/jobFormat';
 import CompanyRequestForm from '../components/account/CompanyRequestForm';
-import JobForm, { selectContentClass, selectTriggerClass, type JobFormCompany } from '../components/account/JobForm';
-import ConfirmDialog from '../components/admin/ConfirmDialog';
+import JobForm, { type JobFormCompany } from '../components/jobs/JobForm';
 import {
+  selectContentClass,
+  selectTriggerClass,
   AccountGate,
   CardNote,
-  ENTITY,
+  KIND_ICON,
   ErrorNote,
   Field,
   LoadError,
@@ -45,13 +37,13 @@ import {
   busyButtonClass,
   cardClass,
   fieldClass,
-  formatDay,
-  formatOnDay,
   outlineButtonClass,
   rowClass,
   textButtonClass,
-  useDebouncedValue,
 } from '../components/account/parts';
+import ConfirmDialog from '../components/layout/ConfirmDialog';
+import { useDebouncedValue } from '../lib/useDebouncedValue';
+import { DAY_MS, formatDay, formatOnDay } from '../lib/dates';
 import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
 
 export default function Employer() {
@@ -452,7 +444,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
   const request = useRequestMembership();
   const results = useCompanySearch(query);
   const showResults = term.trim().length >= 2 && query.length >= 2;
-  const CompanyIcon = ENTITY.company.icon;
+  const CompanyIcon = KIND_ICON.company;
   const found = results.data;
 
   const askToAdd = (
@@ -535,7 +527,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                   return (
                     <li key={company.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-company-result={company.id}>
                       <div className="flex min-w-0 flex-1 basis-48 items-start gap-3">
-                        <CompanyIcon className={cn('mt-0.5 h-4 w-4 shrink-0', ENTITY.company.text)} />
+                        <CompanyIcon className="mt-0.5 h-4 w-4 shrink-0 text-fg-muted" />
                         <div className="min-w-0">
                           {/* The company's page, to check it is the right one; in a new tab so the search stays. */}
                           <a
@@ -619,7 +611,7 @@ const STATE_ORDER: Record<JobState, number> = { Open: 0, Draft: 1, Expired: 2, C
 
 /** "Open until Jan 15", or how soon it closes once that is within two weeks. */
 function openUntil(expiresAt: string): string {
-  const days = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  const days = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / DAY_MS);
   if (days > 14 || Number.isNaN(days)) return `Open until ${formatDay(expiresAt)}`;
   return days <= 1 ? 'Open, closes tomorrow' : `Open, closes in ${days} days`;
 }

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError, accountKeys, request } from './account';
+import { accountKeys, invalidate, publicKeys } from './queryKeys';
+import { ApiError, request } from './http';
 
 /**
  * Finding a company to post jobs for, and asking for one that is not in the
@@ -35,7 +36,7 @@ export const COMPANY_SEARCH_LIMIT = 8;
 /** Companies by name, tolerant of spelling, spacing, "&" and the legal form. From two letters. */
 export function useCompanySearch(q: string) {
   return useQuery({
-    queryKey: ['picker', 'companies', q],
+    queryKey: publicKeys.picker('companies', q),
     queryFn: () => request<CompanySearchResult>(`/employer/companies?q=${encodeURIComponent(q)}&limit=${COMPANY_SEARCH_LIMIT}`),
     enabled: q.length >= 2,
     staleTime: 60_000,
@@ -82,11 +83,6 @@ export interface AdminCompanyRequest extends CompanyRequest {
   userEmail: string;
 }
 
-export const companyRequestKeys = {
-  mine: ['employer', 'company-requests'] as const,
-  admin: ['admin', 'company-requests'] as const,
-};
-
 /** Which field of the request form a refusal is about, when the server says. */
 export function requestField(error: unknown): 'name' | 'website' | 'place' | null {
   if (!(error instanceof ApiError) || !error.payload || typeof error.payload !== 'object') return null;
@@ -97,7 +93,7 @@ export function requestField(error: unknown): 'name' | 'website' | 'place' | nul
 /** The person's own requests: those waiting, and those answered in the last 30 days. */
 export function useCompanyRequests(enabled = true) {
   return useQuery({
-    queryKey: companyRequestKeys.mine,
+    queryKey: accountKeys.companyRequests,
     queryFn: () => request<{ requests: CompanyRequest[] }>('/employer/company-requests').then((r) => r.requests),
     enabled,
     staleTime: 0,
@@ -111,9 +107,7 @@ export function useAskForCompany() {
     mutationFn: (input: NewCompanyRequest) =>
       request<{ request: CompanyRequest }>('/employer/company-requests', { method: 'POST', body: input }).then((r) => r.request),
     onSuccess: () =>
-      Promise.all(
-        [companyRequestKeys.mine, companyRequestKeys.admin, accountKeys.news].map((queryKey) => queryClient.invalidateQueries({ queryKey }))
-      ),
+      invalidate(queryClient, accountKeys.companyRequests, accountKeys.adminCompanyRequests, accountKeys.news),
   });
 }
 
@@ -123,14 +117,14 @@ export function useWithdrawCompanyRequest() {
   return useMutation({
     mutationFn: (id: string) => request<{ ok: true }>(`/employer/company-requests/${id}`, { method: 'DELETE' }),
     onSuccess: () =>
-      Promise.all([companyRequestKeys.mine, companyRequestKeys.admin].map((queryKey) => queryClient.invalidateQueries({ queryKey }))),
+      invalidate(queryClient, accountKeys.companyRequests, accountKeys.adminCompanyRequests),
   });
 }
 
 /** For an admin: the requests that are waiting, oldest first. */
 export function useAdminCompanyRequests(enabled = true) {
   return useQuery({
-    queryKey: companyRequestKeys.admin,
+    queryKey: accountKeys.adminCompanyRequests,
     queryFn: () => request<{ requests: AdminCompanyRequest[] }>('/admin/company-requests').then((r) => r.requests),
     enabled,
     staleTime: 0,
@@ -148,10 +142,6 @@ export function useAnswerCompanyRequest() {
     mutationFn: ({ id, ...answer }: { id: string; decision: 'add' | 'decline'; companyId?: string }) =>
       request<{ status: CompanyRequestStatus }>(`/admin/company-requests/${id}`, { method: 'PATCH', body: answer }),
     onSettled: () =>
-      Promise.all(
-        [accountKeys.admin, accountKeys.account, accountKeys.employer, accountKeys.news].map((queryKey) =>
-          queryClient.invalidateQueries({ queryKey })
-        )
-      ),
+      invalidate(queryClient, accountKeys.admin, accountKeys.account, accountKeys.employer, accountKeys.news),
   });
 }

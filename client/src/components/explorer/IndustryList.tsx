@@ -5,12 +5,11 @@ import { industriesApi, type IndustryList as Industries } from '../../lib/api';
 import { industryLabel } from '@shared/industry';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmptyState } from '../layout/Page';
+import { EmptyState, detailActionClass } from '../layout/Page';
 import { LoadError } from '../account/parts';
 import {
   FigureList,
   Figures,
-  OUTLINE_LINK,
   PlaceChoice,
   SourceLine,
   officialFigures,
@@ -19,6 +18,7 @@ import {
   readPlace,
   type PagePlace,
 } from '../industry/parts';
+import { publicKeys } from '../../lib/queryKeys';
 
 function Body({ data, place }: { data: Industries; place: PagePlace }) {
   const figures = [
@@ -86,10 +86,10 @@ export default function IndustryList() {
   }, [placeTitle]);
 
   const query = useQuery({
-    queryKey: ['industries', where.state ?? null, where.area ?? null],
+    queryKey: publicKeys.industries(where.state ?? null, where.area ?? null),
     queryFn: () => industriesApi.list(where),
     enabled: place.kind !== 'unknown',
-    staleTime: 1000 * 60 * 5,
+    staleTime: 5 * 60_000,
     // Changing the place keeps the list drawn until the new place's figures arrive.
     placeholderData: (previous) => previous,
   });
@@ -107,7 +107,7 @@ export default function IndustryList() {
           title="That place is not listed"
           description={`“${place.asked}” is not a state.`}
           action={
-            <Link to="/industries" className={OUTLINE_LINK}>
+            <Link to="/industries" className={detailActionClass}>
               Industries everywhere
             </Link>
           }

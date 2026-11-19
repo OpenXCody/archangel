@@ -5,8 +5,10 @@ import { ilike, or, and, count, eq, sql, type AnyColumn } from 'drizzle-orm';
 import { jobTextFilter } from '../lib/jobSearch.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
+import { jobIsOpen } from '../lib/openJobs.js';
 import { US_STATES } from '../../shared/states.js';
 import { pageLimit } from '../lib/paging.js';
+import { likeLiteral } from '../lib/like.js';
 import { companyIndustry, searchIndustries } from '../lib/industries.js';
 import { shownIndustry } from '../../shared/industry.js';
 import { formatCompanyName, formatFactoryName } from '../../shared/displayName.js';
@@ -83,7 +85,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     // Capped, with the term's own LIKE wildcards made literal ("100%" is not "everything").
     const query = q.trim().slice(0, 80);
-    const literal = query.replace(/[\\%_]/g, '\\$&');
+    const literal = likeLiteral(query);
     const searchPattern = `%${literal}%`;
     // The best matches must be chosen by the database, before the limit: with
     // 120 companies matching "texas", five arbitrary ones are not an answer.
@@ -348,7 +350,7 @@ router.get('/', async (req: Request, res: Response) => {
     // the job's title, company, career, shift or place. Newest first.
     const jobFilter = typeFilter.includes('jobs') ? jobTextFilter(query) : null;
     if (jobFilter) {
-      const open = and(eq(jobs.status, 'open'), sql`${jobs.expiresAt} > now()`, factoryInScope(), jobFilter);
+      const open = and(jobIsOpen(), factoryInScope(), jobFilter);
       const [jobRows, jobCount] = await Promise.all([
         db
           .select({ id: jobs.id, title: jobs.title, companyName: companies.name, city: factories.city, state: factories.state })

@@ -5,7 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { US_STATES } from '@shared/states';
 import { placeSearchAvailable, searchPlaces, type Place } from '../../lib/geocode';
-import { fieldClass, useDebouncedValue } from './parts';
+import { fieldClass } from '../account/parts';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
+import { stateName } from '../../lib/places';
+import { publicKeys } from '../../lib/queryKeys';
 
 /** Where the jobs list is narrowed to: a state, or a point with a name. */
 export type JobPlace =
@@ -16,7 +19,6 @@ export type JobPlace =
 export const WITHIN_CHOICES = [10, 25, 50, 100];
 export const DEFAULT_WITHIN = 50;
 
-const STATE_NAME: Record<string, string> = Object.fromEntries(US_STATES.map((state) => [state.code, state.name]));
 const ANYWHERE = 'anywhere';
 
 /** "Round Rock, TX"; a ZIP code keeps its town: "78664, Round Rock, TX". */
@@ -28,7 +30,7 @@ function placeLabel(place: Place): string {
 
 export function jobPlaceLabel(place: JobPlace | null): string {
   if (!place) return '';
-  return place.kind === 'state' ? (STATE_NAME[place.code] ?? place.code) : place.label;
+  return place.kind === 'state' ? stateName(place.code) : place.label;
 }
 
 type Option =
@@ -63,7 +65,7 @@ const contentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-border-strong b
 
 function StateSelect({ value, onChange, states }: JobPlaceFilterProps) {
   const state = value?.kind === 'state' ? value.code : '';
-  const listed = [...new Set([...(state ? [state] : []), ...states])].sort((a, b) => (STATE_NAME[a] ?? a).localeCompare(STATE_NAME[b] ?? b));
+  const listed = [...new Set([...(state ? [state] : []), ...states])].sort((a, b) => stateName(a).localeCompare(stateName(b)));
   return (
     <Select value={state || ANYWHERE} onValueChange={(code) => onChange(code === ANYWHERE ? null : { kind: 'state', code })}>
       <SelectTrigger aria-label="Filter by state" className={triggerClass}>
@@ -75,7 +77,7 @@ function StateSelect({ value, onChange, states }: JobPlaceFilterProps) {
         </SelectItem>
         {listed.map((code) => (
           <SelectItem key={code} value={code} className="py-2.5">
-            {STATE_NAME[code] ?? code}
+            {stateName(code)}
           </SelectItem>
         ))}
       </SelectContent>
@@ -104,7 +106,7 @@ function PlaceCombobox({ value, onChange, within, onWithinChange, states, homeZi
   const query = useDebouncedValue(editing ? typed : '', 300);
   const searching = editing && typed.length >= 2;
   const places = useQuery({
-    queryKey: ['job-places', query],
+    queryKey: publicKeys.jobPlaces(query),
     queryFn: ({ signal }) => searchPlaces(query, signal),
     enabled: searching && query.length >= 2,
     staleTime: 5 * 60_000,
@@ -128,8 +130,8 @@ function PlaceCombobox({ value, onChange, within, onWithinChange, states, homeZi
     }
   } else if (!editing || typed === '') {
     if (homeZip) options.push({ key: 'zip', kind: 'zip', zip: homeZip.slice(0, 5), title: `Near ${homeZip.slice(0, 5)}`, detail: 'Your ZIP code' });
-    for (const code of [...states].sort((a, b) => (STATE_NAME[a] ?? a).localeCompare(STATE_NAME[b] ?? b))) {
-      options.push({ key: `state:${code}`, kind: 'state', code, title: STATE_NAME[code] ?? code });
+    for (const code of [...states].sort((a, b) => stateName(a).localeCompare(stateName(b)))) {
+      options.push({ key: `state:${code}`, kind: 'state', code, title: stateName(code) });
     }
   }
 

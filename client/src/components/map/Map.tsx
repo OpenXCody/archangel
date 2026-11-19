@@ -9,13 +9,11 @@ import maplibregl, {
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Maximize2, Minus, Plus } from 'lucide-react';
-import { companiesApi, factoriesApi, mapApi, occupationsApi } from '../../lib/api';
 import { useMapStore, type PinInfo } from '../../stores/mapStore';
 import { currentTheme, type Theme } from '../../lib/theme';
 import { isNotFound } from './selection';
-import { US_STATES } from '@shared/states';
 import { formatCompanyName } from '@shared/displayName';
-import { FOCUS_AREAS, focusArea } from '@shared/scope';
+import { focusArea } from '@shared/scope';
 import {
   applyCameraRequest,
   areaReadsAsShape,
@@ -46,6 +44,8 @@ import {
   SOURCE,
   type PinView,
 } from './layers';
+import { recordQuery, usePins } from '../../lib/queries';
+import { useStatesWithCounts, useAreaBoundaries } from './mapData';
 
 declare global {
   interface Window {
@@ -54,7 +54,6 @@ declare global {
   }
 }
 
-// MapTiler style base URL - key added at runtime for retry support
 /** MapTiler's quiet basemap, in the variant that matches the theme. */
 const MAPTILER_STYLE: Record<Theme, string> = {
   dark: 'https://api.maptiler.com/maps/dataviz-dark/style.json',
@@ -66,9 +65,6 @@ const MAPTILER_STYLE: Record<Theme, string> = {
  * map (MapView keys it on the theme); it reopens here instead of starting over.
  */
 let resumeCamera: { center: [number, number]; zoom: number } | null = null;
-
-// US States GeoJSON, shipped with the app (client/public/data)
-const STATES_GEOJSON_URL = '/data/us-states.geojson';
 
 /** Below this zoom a state reads as a shape and can be hovered and selected. */
 const STATE_SELECT_MAX_ZOOM = 6.5;
@@ -181,24 +177,19 @@ export default function Map({ onViewChange }: MapProps) {
 
   // Every factory in the country, in one response. It loads once; panning,
   // zooming and filtering never refetch (filters are expressions: layers.ts).
-  const { data: factoriesGeoJSON } = useQuery({
-    queryKey: ['factory-pins'],
-    queryFn: () => factoriesApi.pins(),
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: factoriesGeoJSON } = usePins();
 
   // The map's subject, if it has one: a company (its plants alone) or a
-  // career (the industries where its work is done). The panel reads the same
-  // records under the same keys, so each is fetched once.
+  // career (the industries where its work is done). The panel and the
+  // record's own page read the same records under the same keys, so each is
+  // fetched once.
   const { data: subjectCompany, error: subjectCompanyError } = useQuery({
-    queryKey: ['company', filters.company],
-    queryFn: () => companiesApi.get(filters.company as string),
+    ...recordQuery('companies', filters.company),
     enabled: Boolean(filters.company),
     retry: false,
   });
   const { data: subjectCareer, error: subjectCareerError } = useQuery({
-    queryKey: ['occupation', filters.career],
-    queryFn: () => occupationsApi.get(filters.career as string),
+    ...recordQuery('occupations', filters.career),
     enabled: Boolean(filters.career),
     retry: false,
   });
@@ -249,66 +240,9 @@ export default function Map({ onViewChange }: MapProps) {
     return index;
   }, [factoriesGeoJSON]);
 
-  // State-level factory counts (shade the states)
-  const { data: stateCounts } = useQuery<Record<string, number>>({
-    queryKey: ['state-counts'],
-    queryFn: () => mapApi.stateCounts(),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Raw US states GeoJSON geometry
-  const { data: statesGeoJSONRaw } = useQuery<GeoJSON.FeatureCollection>({
-    queryKey: ['states-geojson'],
-    queryFn: async () => {
-      const res = await fetch(STATES_GEOJSON_URL);
-      if (!res.ok) throw new Error(`States GeoJSON failed: HTTP ${res.status}`);
-      return res.json();
-    },
-    staleTime: Infinity,
-  });
-
-  // Merge counts into states GeoJSON so the fill layer can key off
-  // feature.properties.factoryCount. Name → 2-letter-code map comes from
-  // shared/states.ts; the upstream GeoJSON uses full names on properties.name.
-  // The shapes do not wait for the counts: a slow or failed count request
-  // must not leave the map without its states.
-  const statesWithCounts = useMemo(() => {
-    if (!statesGeoJSONRaw) return null;
-    const nameToCode: Record<string, string> = {};
-    for (const s of US_STATES) nameToCode[s.name] = s.code;
-    return {
-      ...statesGeoJSONRaw,
-      features: statesGeoJSONRaw.features.map((f) => {
-        const name = f.properties?.name as string | undefined;
-        const code = name ? nameToCode[name] : undefined;
-        const count = code ? (stateCounts?.[code] ?? 0) : 0;
-        return { ...f, properties: { ...(f.properties ?? {}), stateCode: code, factoryCount: count } };
-      }),
-    } as GeoJSON.FeatureCollection;
-  }, [statesGeoJSONRaw, stateCounts]);
-
-  // Boundaries of the focus areas, each feature tagged with its area's id.
-  // An area whose boundary fails to load is simply not outlined; its label
-  // and chip still work, because they frame the area by its bounds.
-  const { data: areaBoundaries } = useQuery<GeoJSON.FeatureCollection>({
-    queryKey: ['focus-area-boundaries'],
-    queryFn: async () => {
-      const loaded = await Promise.all(
-        FOCUS_AREAS.map(async (area): Promise<GeoJSON.Feature[]> => {
-          try {
-            const res = await fetch(area.boundaryUrl);
-            if (!res.ok) return [];
-            const collection = (await res.json()) as GeoJSON.FeatureCollection;
-            return collection.features.map((f) => ({ ...f, properties: { id: area.id, name: area.name } }));
-          } catch {
-            return [];
-          }
-        })
-      );
-      return { type: 'FeatureCollection', features: loaded.flat() };
-    },
-    staleTime: Infinity,
-  });
+  // The states' shapes with their plant counts, and the focus areas' boundaries (mapData.ts).
+  const statesWithCounts = useStatesWithCounts();
+  const { data: areaBoundaries } = useAreaBoundaries();
 
   // Initialize map with retry logic
   useEffect(() => {
