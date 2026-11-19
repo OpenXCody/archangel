@@ -5,13 +5,11 @@
   "allieduniversal.com": "its icon is its logo cut off at both sides",
   "baf.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
   "burndy.com": "its icon is the mark of its owner, Hubbell; its own logo is a wide wordmark",
-  "butterball.com": "The fetched mark is a photograph of a building, not a logo.",
   "cabinetworksgroup.com": "The fetched mark is a plain teal square, not the company's mark.",
   "cocacolaswb.com": "its icon is its owner's logo in white, drawn for a dark page",
   "crjackson.com": "its marks are white, drawn for a dark page",
   "epiroc.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
   "hmhw.com": "its icon is the default of the software its site runs on, not its own mark",
-  "indianapackerscorp.com": "A two-line wordmark that cannot be read at 28 px.",
   "justinbrands.com": "its icon is the initials of its holding company, not its own mark",
   "lucidmotors.com": "A thin wordmark on black that cannot be read at 28 px.",
   "magna.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
@@ -97,6 +95,10 @@
    "ext": "png",
    "from": "the logo in the header of broxindustries.com"
   },
+  "butterball.com": {
+   "ext": "png",
+   "from": "the oval logo in the header of butterball.com: a compact boxed logo, wider than the limit, and its shape reads at 28 px (the site's square icon is the same oval on blue, but only 48 px)"
+  },
   "cabotcorp.com": {
    "ext": "png",
    "from": "the symbol from the header logo on cabotcorp.com, the same one its favicon shows; the wordmark is left out"
@@ -137,6 +139,10 @@
    "ext": "png",
    "from": "the icon of hsmsolutions.com: three letters, a little wider than the limit, and it reads at 28 px"
   },
+  "indianapackerscorp.com": {
+   "ext": "png",
+   "from": "the icon of indianapackerscorp.com, the two-line name the company itself shows small; faint at 28 px, clear at 32 and up"
+  },
   "irco.com": {
    "ext": "png",
    "from": "the IR badge from Ingersoll Rand's logo (Commons File:Ingersoll Rand logo.svg); the wordmark is left out"
@@ -148,6 +154,10 @@
   "itt.com": {
    "ext": "svg",
    "from": "ITT's logo (Commons File:ITT logo.svg, the logo of the Wikidata entry for itt.com): three letters, a little wider than the limit, and it reads at 28 px"
+  },
+  "jbsfoodsgroup.com": {
+   "ext": "png",
+   "from": "the touch icon of jbsfoodsgroup.com: three bold letters in their swoosh, a little wider than the limit, and it reads at 28 px"
   },
   "johnsoncontrols.com": {
    "ext": "png",
@@ -181,6 +191,10 @@
    "ext": "png",
    "from": "the logo in the header of schusterconcrete.com"
   },
+  "smithfieldfoods.com": {
+   "ext": "svg",
+   "from": "the S of Smithfield's wordmark (Commons File:Smithfield Foods logo.svg, the logo of the Wikidata entry for smithfieldfoods.com), the same letter its 16 px favicon shows; the wordmark is 4.6 to 1 and cannot be read at 28 px"
+  },
   "totalenergies.com": {
    "ext": "png",
    "from": "the logo in the header of totalenergies.com"
@@ -192,6 +206,10 @@
   "tysonfoods.com": {
    "ext": "png",
    "from": "the touch icon of tysonfoods.com, fetched in a browser (the site refuses curl)"
+  },
+  "waynesandersonfarms.com": {
+   "ext": "svg",
+   "from": "the rooster seal from the logo drawn into the header of waynesandersonfarms.com, the same one its 32 px favicon shows; the wordmark is left out"
   }
  }
 }
