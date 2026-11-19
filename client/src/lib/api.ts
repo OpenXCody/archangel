@@ -314,6 +314,10 @@ export interface OccupationDetail extends Occupation {
   elsewhereToo?: boolean;
   /** States with the most factories in those industries. */
   topStates?: { code: string; factoryCount: number }[];
+  /** The ladder: careers a person usually comes to this one from. Absent or empty until that data is loaded. */
+  comesFrom?: { id: string; title: string }[];
+  /** The ladder: careers this one leads to. */
+  leadsTo?: { id: string; title: string }[];
 }
 
 export interface Skill extends SkillPlace {

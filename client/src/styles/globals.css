@@ -428,3 +428,334 @@ input {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-fg-soft);
 }
+
+/*
+ * Skill paths (components/path/).
+ *
+ * A tag is one skill; a group box holds a group's tags; the flow lays the
+ * boxes out by level along one trunk. Lines are hairlines in the strong
+ * border colour; what a person holds is lit and the rest is quiet. Nothing
+ * here names a colour of its own.
+ */
+@layer components {
+  /*
+   * One skill: [mark][name], or the name alone. Tags fill the row they are
+   * on, so a box of them has straight edges however long the names are.
+   */
+  .skill-tag {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    align-items: stretch;
+    border-radius: var(--radius);
+    background-color: rgb(var(--tint) / 0.05);
+    color: var(--color-fg-default);
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  /* For a person marking skills: quiet until held. */
+  .skill-tag[data-status='none'] {
+    background-color: rgb(var(--tint) / 0.035);
+    color: var(--color-fg-muted);
+  }
+  .skill-tag[data-status='learning'] {
+    background-color: rgb(var(--tint) / 0.035);
+  }
+  .skill-tag[data-status='held'] {
+    background-color: rgb(var(--tint) / 0.13);
+  }
+  /* The skill whose page this is, among the others of its group. */
+  .skill-tag[data-current] {
+    box-shadow: inset 0 0 0 1px var(--color-fg-soft);
+    color: var(--color-fg-default);
+  }
+  .skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /*
+   * A skill group: a thin frame that holds the group's tags, with its name
+   * set into the top edge. One skill in a frame costs little more than the
+   * skill alone.
+   */
+  .skill-group {
+    min-width: 0;
+    margin: 0;
+    padding: 2px 6px 6px;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-border-subtle);
+    transition: border-color 0.15s ease;
+  }
+  .skill-group-name {
+    display: flex;
+    max-width: calc(100% - 12px);
+    align-items: center;
+    gap: 6px;
+    margin-left: 2px;
+    padding: 0 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1rem;
+    color: var(--color-fg-muted);
+  }
+  /* Every skill in it held: the frame itself is lit. */
+  .skill-group[data-complete] {
+    border-color: color-mix(in srgb, var(--color-fg-soft) 60%, var(--color-border-subtle));
+  }
+
+  /*
+   * The flow. --path-x is where the trunk runs, --path-in where content
+   * starts. Each piece draws the stretch of trunk beside itself, so the line
+   * is whole however tall the boxes turn out, with nothing to measure.
+   */
+  .path-flow {
+    --path-line: var(--color-border-strong);
+    --path-x: 8.5px;
+    --path-in: 28px;
+    --path-gap: 20px;
+    container-type: inline-size;
+    min-width: 0;
+  }
+  .path-levels {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .path-level {
+    position: relative;
+    min-width: 0;
+  }
+  .path-level + .path-level,
+  .path-ladder + .path-level {
+    padding-top: var(--path-gap);
+  }
+  /* Into the node from above. */
+  .path-level[data-entered]::before {
+    content: '';
+    position: absolute;
+    left: var(--path-x);
+    top: 0;
+    height: calc(var(--path-gap) + 3px);
+    width: 1px;
+    background: var(--path-line);
+  }
+  /* A level's line: its node, its name, what it is, how much of it is held. */
+  .path-level-head {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 8px;
+    min-height: 28px;
+    padding-left: var(--path-in);
+    padding-bottom: 2px;
+  }
+  .path-level-head > h3 {
+    line-height: 28px;
+  }
+  .path-level-head > [data-level-count] {
+    margin-left: auto;
+    font-size: 0.8125rem;
+  }
+  .path-level-line {
+    display: none;
+  }
+  .path-level-gloss {
+    font-size: 0.75rem;
+    color: var(--color-fg-soft);
+  }
+  .path-node {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    height: 28px;
+    width: 18px;
+    align-items: center;
+  }
+  /* Out of the node, down to whatever follows. */
+  .path-level-head[data-below]::after {
+    content: '';
+    position: absolute;
+    left: var(--path-x);
+    top: 25px;
+    bottom: 0;
+    width: 1px;
+    background: var(--path-line);
+  }
+  .path-branch,
+  .path-empty {
+    position: relative;
+    min-width: 0;
+    padding-left: var(--path-in);
+    padding-top: 8px;
+  }
+  .path-branch[data-domain] {
+    padding-top: 10px;
+  }
+  /* A domain's name on its branch; the ladder's two labels are set the same. */
+  .path-domain {
+    display: flex;
+    min-height: 20px;
+    align-items: center;
+    padding-bottom: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 16px;
+    text-transform: uppercase;
+    color: var(--color-fg-soft);
+  }
+  /* The trunk beside a branch: past it when more follows, turning into the last one where it ends. */
+  .path-branch[data-pos='before']::before,
+  .path-level[data-continues] .path-branch::before,
+  .path-level[data-continues] .path-empty::before {
+    content: '';
+    position: absolute;
+    left: var(--path-x);
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--path-line);
+  }
+  .path-level:not([data-continues]) .path-branch[data-pos='last']::before {
+    content: '';
+    position: absolute;
+    left: var(--path-x);
+    top: 0;
+    height: 19px;
+    width: 12px;
+    border-left: 1px solid var(--path-line);
+    border-bottom: 1px solid var(--path-line);
+    border-bottom-left-radius: 8px;
+  }
+  /* The tick to a domain's name. */
+  .path-branch[data-domain]::after {
+    content: '';
+    position: absolute;
+    left: var(--path-x);
+    top: 18px;
+    width: 12px;
+    height: 1px;
+    background: var(--path-line);
+  }
+  .path-level:not([data-continues]) .path-branch[data-pos='last']::after {
+    display: none;
+  }
+  .path-empty {
+    padding-top: 4px;
+    padding-bottom: 2px;
+    font-size: 0.875rem;
+    color: var(--color-fg-soft);
+  }
+
+  /* The ladder: the careers before and after this one, on the same trunk. */
+  .path-ladder {
+    position: relative;
+    padding-left: var(--path-in);
+  }
+  .path-ladder[data-path-ladder='after'] {
+    padding-top: 10px;
+  }
+  .path-ladder::before {
+    content: '';
+    position: absolute;
+    left: var(--path-x);
+    width: 12px;
+    border-left: 1px solid var(--path-line);
+  }
+  .path-ladder[data-path-ladder='before']::before {
+    top: 8px;
+    bottom: 0;
+    border-top: 1px solid var(--path-line);
+    border-top-left-radius: 8px;
+  }
+  .path-ladder[data-path-ladder='after']::before {
+    top: 0;
+    height: 19px;
+    border-bottom: 1px solid var(--path-line);
+    border-bottom-left-radius: 8px;
+  }
+
+  /*
+   * With room, the levels stand side by side and the trunk runs across their
+   * heads. Where the career comes from stands over the first level, and where
+   * it leads hangs directly under the last one's boxes: the last row takes
+   * whatever the taller columns need.
+   */
+  @container (min-width: 700px) {
+    .path-levels {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: auto auto 1fr;
+      column-gap: 20px;
+    }
+    .path-level {
+      grid-row: 2 / span 2;
+    }
+    .path-levels[data-leads-on] > .path-level[data-last] {
+      grid-row: 2;
+    }
+    .path-ladder[data-path-ladder='before'] {
+      grid-row: 1;
+      grid-column: 1;
+    }
+    .path-ladder[data-path-ladder='after'] {
+      grid-row: 3;
+      grid-column: 3;
+    }
+    .path-level + .path-level,
+    .path-ladder + .path-level {
+      padding-top: 0;
+    }
+    .path-level[data-entered]::before {
+      display: none;
+    }
+    .path-ladder[data-path-ladder='before'] {
+      padding-bottom: 5px;
+    }
+    .path-level-head > [data-level-count] {
+      order: 1;
+      margin-left: 0;
+    }
+    /* The trunk between two levels: from this head's words to the next level's node. */
+    .path-level:not([data-last]) .path-level-line {
+      display: block;
+      order: 2;
+      flex: 1 1 12px;
+      align-self: flex-start;
+      height: 1px;
+      margin-top: 14px;
+      margin-right: -18px;
+      background: var(--path-line);
+    }
+    .path-level-gloss {
+      order: 3;
+      flex-basis: 100%;
+      margin-top: -4px;
+    }
+    /* Each column's trunk ends at its own last branch; only the last column can lead on. */
+    .path-level:not([data-last]) .path-branch[data-pos='last']::before {
+      bottom: auto;
+      height: 19px;
+      width: 12px;
+      background: none;
+      border-left: 1px solid var(--path-line);
+      border-bottom: 1px solid var(--path-line);
+      border-bottom-left-radius: 8px;
+    }
+    .path-level:not([data-last]) .path-branch[data-pos='last']::after,
+    .path-level:not([data-last]) .path-branch[data-pos='after']::before,
+    .path-level:not([data-last]) .path-empty::before,
+    .path-level:not([data-last]) .path-level-head:not([data-groups])::after {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skill-tag,
+    .skill-group {
+      transition: none;
+    }
+  }
+}
