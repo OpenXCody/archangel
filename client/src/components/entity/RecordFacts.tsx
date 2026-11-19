@@ -1,50 +1,30 @@
 import { Link } from 'react-router-dom';
 import { formatCompanyName } from '@shared/displayName';
 import { stateName } from '../../lib/places';
-import type { CompanyDetail, FactoryDetail, RecordSource } from '../../lib/api';
+import type { CompanyDetail, FactoryDetail } from '../../lib/api';
 import CompanyLogo from '../CompanyLogo';
 import { RecordList, RecordRow } from '../layout/Page';
 
 /**
  * The deeper facts a plant or a company has when its record was written from
- * sources: how many people, what is made, when it opened, what it is part of,
- * and where each of those was read. Every piece shows only when it is known,
- * so a bare record's page is as it was.
+ * sources: how many people, what is made, when it opened, what it is part of.
+ * Every piece shows only when it is known, so a bare record's page is as it
+ * was. Where a fact was read is kept with the record (the API still gives it,
+ * and an admin sees it in the editor); the page states the fact and no more.
  */
 
 const quietLink = 'underline decoration-border-strong underline-offset-4 transition-colors hover:text-fg-default hover:decoration-fg-muted';
-
-/** "https://www.example.com/page" as "example.com". */
-function siteOf(url: string): string {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return 'source';
-  }
-}
-
-/** A source named by its site, opening the page it is stated on. */
-function SourceLink({ url, label }: { url: string; label?: string }) {
-  return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className={quietLink}>
-      {label ?? siteOf(url)}
-    </a>
-  );
-}
 
 /** "4,500 people". */
 export function peopleCount(people: number): string {
   return `${people.toLocaleString()} ${people === 1 ? 'person' : 'people'}`;
 }
 
-/**
- * A plant's facts, said plainly: "4,500 people, 2024" with where that was
- * read, then what it makes and the year it opened.
- */
+/** A plant's facts, said plainly: "4,500 people, 2024", then what it makes and the year it opened. */
 export function PlantFacts({
   factory,
 }: {
-  factory: Partial<Pick<FactoryDetail, 'workforceSize' | 'workforceYear' | 'workforceSource' | 'workforceNote' | 'products' | 'openedYear'>>;
+  factory: Partial<Pick<FactoryDetail, 'workforceSize' | 'workforceYear' | 'products' | 'openedYear'>>;
 }) {
   const people = factory.workforceSize && factory.workforceSize > 0 ? factory.workforceSize : null;
   const rows: [string, string][] = [];
@@ -54,19 +34,10 @@ export function PlantFacts({
   return (
     <div className="mt-6" data-plant-facts>
       {people && (
-        <>
-          <p className="text-2xl font-medium leading-tight tracking-tight text-fg-default">
-            {peopleCount(people)}
-            {factory.workforceYear && <span className="text-fg-muted">, {factory.workforceYear}</span>}
-          </p>
-          {(factory.workforceSource || factory.workforceNote) && (
-            <p className="mt-1 line-clamp-2 text-sm text-fg-muted">
-              {factory.workforceSource && <SourceLink url={factory.workforceSource} />}
-              {factory.workforceSource && factory.workforceNote && ' · '}
-              {factory.workforceNote}
-            </p>
-          )}
-        </>
+        <p className="text-2xl font-medium leading-tight tracking-tight text-fg-default">
+          {peopleCount(people)}
+          {factory.workforceYear && <span className="text-fg-muted">, {factory.workforceYear}</span>}
+        </p>
       )}
       {rows.length > 0 && (
         <dl className={`grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm ${people ? 'mt-4' : ''}`}>
@@ -82,22 +53,6 @@ export function PlantFacts({
   );
 }
 
-/** Where a page's facts came from, quietly, at its foot. */
-export function SourceList({ sources }: { sources: RecordSource[] | undefined }) {
-  if (!sources || sources.length === 0) return null;
-  return (
-    <p className="mt-10 break-words text-xs leading-relaxed text-fg-soft" data-sources>
-      {sources.length === 1 ? 'Source' : 'Sources'}:{' '}
-      {sources.map((source, index) => (
-        <span key={source.url}>
-          {index > 0 && ', '}
-          <SourceLink url={source.url} label={source.label} />
-        </span>
-      ))}
-    </p>
-  );
-}
-
 /** "Fort Worth, Texas", or "Geneva, Switzerland" for a headquarters outside the country. */
 function placeOf(headquarters: NonNullable<CompanyDetail['headquarters']>): string {
   const state = headquarters.state ? stateName(headquarters.state) : null;
@@ -107,7 +62,7 @@ function placeOf(headquarters: NonNullable<CompanyDetail['headquarters']>): stri
 
 /**
  * Where a company stands: what it is part of, where its headquarters are, and
- * how many people it has in a state when a source says so. One quiet line
+ * how many people it has in a state when that is known. One quiet line
  * under the company's facts.
  */
 export function CompanyStanding({ data }: { data: CompanyDetail }) {
@@ -131,11 +86,7 @@ export function CompanyStanding({ data }: { data: CompanyDetail }) {
     const where = stateName(entry.state);
     parts.push(
       <span key={entry.state}>
-        {entry.source ? (
-          <SourceLink url={entry.source} label={`${peopleCount(entry.people)} in ${where}`} />
-        ) : (
-          `${peopleCount(entry.people)} in ${where}`
-        )}
+        {`${peopleCount(entry.people)} in ${where}`}
         {entry.year ? `, ${entry.year}` : ''}
       </span>
     );
