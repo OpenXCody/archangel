@@ -32,7 +32,7 @@ interface IndustriesFile {
 }
 interface AliasesFile {
   note: string;
-  careers: { title: string; aliases: string[] }[];
+  careers: { title: string; aliases: string[]; not?: string[] }[];
 }
 
 const BUILDER = 'scripts/build-careers-sql.mjs';
@@ -42,7 +42,7 @@ const TAXONOMY = 'data/skills/taxonomy.json';
 const INDUSTRY_LIST = 'data/careers/industries.json';
 const ALIASES = 'data/careers/aliases.json';
 const MIGRATION = 'migrations/0046_careers_catalogue.sql';
-const LISTS_MIGRATION = 'migrations/0047_career_lists.sql';
+const LISTS_MIGRATION = 'migrations/0056_career_lists_2.sql';
 
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
 const catalogue = read<CatalogueFile>(CATALOGUE);
@@ -296,5 +296,46 @@ test('the catalogue migration decides in the database, keeps one path and loses 
 });
 
 test('both migrations are in the runner\'s list, the lists after the catalogue', () => {
-  assert.match(readFileSync('scripts/migrate.mjs', 'utf8'), /'0046_careers_catalogue\.sql', '0047_career_lists\.sql'/);
+  const runner = readFileSync('scripts/migrate.mjs', 'utf8');
+  assert.match(runner, /'0046_careers_catalogue\.sql', '0047_career_lists\.sql'/);
+  assert.ok(runner.indexOf("'0047_career_lists.sql'") < runner.indexOf("'0056_career_lists_2.sql'"), 'the second lists migration follows the first');
+});
+
+test('a name taken back is deleted from its career only, said in the log, and listed for nobody', () => {
+  const sql = readFileSync(LISTS_MIGRATION, 'utf8');
+  const taken = aliases.careers.flatMap((row) => (row.not ?? []).map((name) => [row.title, name] as const));
+  assert.ok(taken.length > 0, 'the list takes some names back');
+  const earlier = readFileSync('migrations/0047_career_lists.sql', 'utf8');
+  for (const [title, name] of taken) {
+    assert.ok(sql.includes(`  ('${name.replace(/'/g, "''")}', '${title}')`), `${name} is taken back from ${title}`);
+    // A name that means other work elsewhere is not another career's either.
+    for (const row of aliases.careers) assert.ok(!row.aliases.some((alias) => alias.toLowerCase() === name.toLowerCase()), `"${name}" is not listed for ${row.title}`);
+    // It was a name the career had: a folded title of the catalogue, or an everyday name of the earlier list.
+    const folded = catalogue.careers.find((career) => career.title === title)?.was.some((was) => was.toLowerCase() === name.toLowerCase());
+    assert.ok(folded || earlier.includes(`('${name}', '${title}')`), `"${name}" was a name of ${title}`);
+  }
+  const at = (text: string) => {
+    const i = sql.indexOf(text);
+    assert.ok(i >= 0, `the migration has: ${text}`);
+    return i;
+  };
+  const gone = at('DELETE FROM occupation_aliases a USING list_not n, occupations o');
+  at('WHERE o.title = n.title AND a.canonical_occupation_id = o.id AND lower(a.alias_text) = lower(n.alias)');
+  at("'name removed'");
+  assert.ok(gone < at('INSERT INTO occupation_aliases (alias_text, canonical_occupation_id)'), 'names are taken back before any is added');
+  assert.equal(sql.match(/DELETE FROM occupation_aliases/g)?.length, 1, 'no other name is deleted');
+  at("'name added'");
+  at("'name not added'");
+});
+
+test('the check refuses a name both listed for a career and taken back from it', () => {
+  const twice = copy(aliases);
+  const row = twice.careers.find((career) => career.aliases.length > 0)!;
+  row.not = [row.aliases[0].toUpperCase()];
+  const result = checkLists({ aliases: twice });
+  assert.ok(!result.ok);
+  assert.match(result.said, /is both listed for .* and taken back from it/);
+  const title = copy(aliases);
+  title.careers[0].not = [title.careers[0].title];
+  assert.match(checkLists({ aliases: title }).said, /cannot be taken back from it/);
 });

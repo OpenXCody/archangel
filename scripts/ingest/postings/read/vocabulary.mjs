@@ -47,12 +47,16 @@ function buildCareers(root) {
     const titled = ROLE_NOUNS.has(last) || /\(/.test(name);
     names.push({ name, words, key: words.join(' '), career, kind, source, initialism, titled: titled && !initialism });
   };
+  // Names the lists file says are not a career's after all (`not`): a title once
+  // folded into it, or an everyday name, that turned out to mean other work elsewhere.
+  const taken = new Set(aliases.careers.flatMap((a) => (a.not ?? []).map((n) => `${a.title}|${n.toLowerCase()}`)));
+  const isNot = (title, name) => taken.has(`${title}|${name.toLowerCase()}`);
   for (const c of catalogue.careers) {
     careers.set(c.title, { title: c.title, home: c.home, path: [] });
     add(c.title, c.title, 'title');
-    for (const was of c.was ?? []) add(was, c.title, 'other name', 'was');
+    for (const was of c.was ?? []) if (!isNot(c.title, was)) add(was, c.title, 'other name', 'was');
   }
-  for (const a of aliases.careers) for (const n of a.aliases ?? []) if (careers.has(a.title)) add(n, a.title, 'other name', 'alias');
+  for (const a of aliases.careers) for (const n of a.aliases ?? []) if (careers.has(a.title) && !isNot(a.title, n)) add(n, a.title, 'other name', 'alias');
   for (const p of paths.careers ?? []) {
     const c = careers.get(p.title);
     if (c) c.path = (p.skills ?? []).map((s) => (typeof s === 'string' ? s : s.skill)).filter(Boolean);
