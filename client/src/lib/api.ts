@@ -298,6 +298,10 @@ export interface Occupation {
   factoryCount?: number;
   /** How many of its skills are at each level (Fundamentals, Intermediate, Advanced), where a response carries it. */
   levelCounts?: [number, number, number] | null;
+  /** The career's home: the domain most of its work is in. Null for a career added by hand without one. */
+  home?: TaxonomyRef | null;
+  /** In a search: the other name the career was found by, when its title did not match. */
+  alsoCalled?: string | null;
 }
 
 // Occupation with relations
@@ -314,9 +318,9 @@ export interface OccupationDetail extends Occupation {
   elsewhereToo?: boolean;
   /** States with the most factories in those industries. */
   topStates?: { code: string; factoryCount: number }[];
-  /** The ladder: careers a person usually comes to this one from. Absent or empty until that data is loaded. */
+  /** The ladder: careers a person usually comes to this one from, those it is the first next step of first. Empty for a first rung. */
   comesFrom?: { id: string; title: string }[];
-  /** The ladder: careers this one leads to. */
+  /** The ladder: careers this one leads to, in the order the catalogue keeps them. */
   leadsTo?: { id: string; title: string }[];
 }
 
@@ -359,7 +363,7 @@ interface FetchOptions {
   order?: 'asc' | 'desc';
   state?: string;
   company?: string;
-  /** Skills: a domain's slug, a group's slug, a level. */
+  /** Skills: a domain's slug, a group's slug, a level. Careers: a domain's slug (their home). */
   domain?: string;
   group?: string;
   level?: number;
@@ -641,6 +645,8 @@ export interface ExploreFacets {
   factoryIndustries: string[];
   /** The domains with a skill some career uses, each with such groups, in the taxonomy's order. */
   skillDomains: (TaxonomyRef & { groups: TaxonomyRef[] })[];
+  /** The domains that are some career's home, in the taxonomy's order. Absent from an answer cached before this field existed. */
+  careerDomains?: TaxonomyRef[];
 }
 
 export const exploreApi = {

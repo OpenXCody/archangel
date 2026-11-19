@@ -67,9 +67,11 @@ function cleanDomain(value: unknown): string | null | false {
 }
 
 const MAX_ALIASES = 30;
+/** A career also keeps every title that was folded into it: the catalogue's fullest has 42 of them. */
+const MAX_CAREER_ALIASES = 80;
 
 /** Other names for a record: trimmed, without repeats or the record's own name. Null when the value is not a list of text. */
-function cleanAliases(value: unknown, ownName: string): string[] | null {
+function cleanAliases(value: unknown, ownName: string, most = MAX_ALIASES): string[] | null {
   if (value === null) return [];
   if (!Array.isArray(value) || value.length > 200) return null;
   const seen = new Set<string>([ownName.trim().toLowerCase()]);
@@ -82,7 +84,7 @@ function cleanAliases(value: unknown, ownName: string): string[] | null {
     seen.add(text.toLowerCase());
     list.push(text);
   }
-  return list.length <= MAX_ALIASES ? list : null;
+  return list.length <= most ? list : null;
 }
 
 const MAX_TOOLS = 12;
@@ -640,8 +642,8 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
     const aliasesBefore = await aliasesOf(tx, 'career', id);
     let aliasesAfter = aliasesBefore;
     if (body.aliases !== undefined) {
-      const aliases = cleanAliases(body.aliases, after.title);
-      if (!aliases) refuse('aliases', `Other names are a list of up to ${MAX_ALIASES} names.`);
+      const aliases = cleanAliases(body.aliases, after.title, MAX_CAREER_ALIASES);
+      if (!aliases) refuse('aliases', `Other names are a list of up to ${MAX_CAREER_ALIASES} names.`);
       aliasesAfter = [...aliases].sort((a, b) => a.localeCompare(b));
     }
     // The ladder: each career it leads to exists, and none of them already

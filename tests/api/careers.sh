@@ -25,6 +25,8 @@ REC="E2E Careers $RUN"
 
 cleanup() {
   psql "$DB" -qtAc "
+    UPDATE occupations o SET onet_code = (SELECT a.detail->'changes'->'onetCode'->>0 FROM audit_log a WHERE a.record_id = o.id AND a.detail->'changes'->'onetCode'->>1 LIKE 'E2E-%' ORDER BY a.at DESC LIMIT 1)
+      WHERE o.onet_code LIKE 'E2E-%';
     DELETE FROM audit_log WHERE actor_id IN (SELECT id FROM users WHERE email LIKE '%@careers.test') OR record_name LIKE 'E2E Careers %';
     DELETE FROM users WHERE email LIKE '%@careers.test';
     DELETE FROM occupations WHERE title LIKE 'E2E Careers %';" >/dev/null
@@ -60,7 +62,9 @@ MACHINIST=$(id_of 'CNC Machinist')
 OUT=$(req anon GET /occupations/$MACHINIST)
 check "a career's page"                            200 "$OUT" '"home":{"slug":"machining","name":"Machining"}'
 expect "leads to, in the file's order"             "$(cat_ 'by("CNC Machinist").leadsTo.join("|")')" "$(printf '%s' "$OUT" | j 'leadsTo.map((c) => c.title).join("|")')"
-expect "comes from, by title"                      "$(cat_ 'careers.filter((x)=>x.leadsTo.includes("CNC Machinist")).map((x)=>x.title).sort().join("|")')" "$(printf '%s' "$OUT" | j 'comesFrom.map((c) => c.title).join("|")')"
+expect "comes from"                                "$(cat_ 'careers.filter((x)=>x.leadsTo.includes("CNC Machinist")).map((x)=>x.title).sort().join("|")')" "$(printf '%s' "$OUT" | j 'comesFrom.map((c) => c.title).join("|")')"
+# Seven careers lead to Maintenance Technician: the ones it is the first next step of come first, then by title.
+expect "comes from: a career's first next step leads" "$(cat_ 'careers.filter((x)=>x.leadsTo.includes("Maintenance Technician")).sort((x,y)=>x.leadsTo.indexOf("Maintenance Technician")-y.leadsTo.indexOf("Maintenance Technician")||(x.title<y.title?-1:1)).map((x)=>x.title).join("|")')" "$(req anon GET /occupations/$(id_of 'Maintenance Technician') | j 'comesFrom.map((c) => c.title).join("|")')"
 expect "each rung carries its id"                  "$(id_of 'CNC Programmer')" "$(printf '%s' "$OUT" | j 'leadsTo.find((c) => c.title === "CNC Programmer").id')"
 expect "the stored column is not in the answer"    undefined "$(printf '%s' "$OUT" | j homeDomain)"
 ALONE=$(cat_ 'careers.find((x)=>x.leadsTo.length===0 && !careers.some((y)=>y.leadsTo.includes(x.title))).title')
@@ -159,6 +163,13 @@ expect "and counts its links"                      2 "$(req a GET /admin/records
 check "a home can be emptied"                      200 "$(req a PUT /occupations/$A '{"home":null}')" '"home":null'
 check "the list finds it under its domain no more" 200 "$(req anon GET "/occupations?domain=quality&search=$(enc "$REC")")" '"total":0'
 check "a change that says nothing"                 400 "$(req a PUT /occupations/$A '{}')" 'Nothing to change'
+# The form sends every other name back with a correction: a career that 42 titles were folded into can still be saved.
+MANY=$(id_of 'Aircraft Structures Mechanic')
+ONET=$(sql "SELECT COALESCE(onet_code, '') FROM occupations WHERE id = '$MANY'")
+NAMES=$(req a GET /admin/records/career/$MANY | j 'aliases.length + "|" + JSON.stringify(o.aliases)')
+check "a career with dozens of other names is saved with them" 200 "$(req a PUT /occupations/$MANY "{\"onetCode\":\"E2E-$RUN\",\"aliases\":${NAMES#*|}}")"
+expect "and keeps every one"                       "${NAMES%%|*}" "$(sql "SELECT COUNT(*) FROM occupation_aliases WHERE canonical_occupation_id = '$MANY'")"
+sql "UPDATE occupations SET onet_code = NULLIF('$ONET', '') WHERE id = '$MANY'" >/dev/null
 
 # --- A merge moves the ladder -----------------------------------------------------
 # Operator leads to Specialist and Technician; Specialist leads to Engineer; Fifth leads to CNC Machinist.

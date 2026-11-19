@@ -51,14 +51,17 @@ export async function leadsTo(executor: Executor, id: string): Promise<CareerRef
     .orderBy(asc(occupationLinks.position), asc(occupations.title));
 }
 
-/** The careers that lead to this one, by title. */
+/**
+ * The careers that lead to this one: first those for which it is the first
+ * next step, then the second, and so on; among equals, by title.
+ */
 export async function comesFrom(executor: Executor, id: string): Promise<CareerRef[]> {
   return executor
     .select({ id: occupations.id, title: occupations.title })
     .from(occupationLinks)
     .innerJoin(occupations, eq(occupations.id, occupationLinks.fromOccupationId))
     .where(eq(occupationLinks.toOccupationId, id))
-    .orderBy(asc(occupations.title));
+    .orderBy(asc(occupationLinks.position), asc(occupations.title));
 }
 
 /**

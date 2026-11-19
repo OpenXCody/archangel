@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn, focusRing } from '@/lib/utils';
 import { ShareCount, ShareRing } from './HeldShare';
@@ -85,16 +86,49 @@ export function PathFlow({ path, marks, comesFrom = [], leadsTo = [], className 
 }
 
 /**
+ * A career whose path is not written yet still stands on its ladder: one
+ * node on the trunk for the career, where a person comes from above it and
+ * where it leads below. Kept narrow, so it runs down the page at any width.
+ */
+export function LadderAlone({ comesFrom = [], leadsTo = [], children }: { comesFrom?: LadderCareer[]; leadsTo?: LadderCareer[]; children: React.ReactNode }) {
+  return (
+    <div className="path-flow max-w-xl" data-path-flow data-path-unwritten>
+      <ol className="path-levels">
+        {comesFrom.length > 0 && <Ladder label="Comes from" careers={comesFrom} place="before" />}
+        <li className="path-level" data-last data-entered={comesFrom.length > 0 || undefined} data-continues={leadsTo.length > 0 || undefined}>
+          <div className="path-level-head" data-below={leadsTo.length > 0 || undefined}>
+            <span className="path-node">
+              <ShareRing share={null} />
+            </span>
+            <p className="min-w-0 text-sm leading-7 text-fg-muted">{children}</p>
+          </div>
+        </li>
+        {leadsTo.length > 0 && <Ladder label="Leads to" careers={leadsTo} place="after" />}
+      </ol>
+    </div>
+  );
+}
+
+/** How many careers a ladder's side names before the rest wait behind "N more": a career leads to at most this many. */
+const LADDER_SHOWN = 3;
+
+/**
  * The careers before or after this one on the ladder: branches of the same
  * trunk, each a quiet link. Several are alternatives, not a sequence, which
- * is why they are branches and not nodes.
+ * is why they are branches and not nodes. Many careers can lead to one
+ * (seven to a maintenance technician): the first few are named and the rest
+ * wait behind one quiet word, so the path itself stays in reach.
  */
 function Ladder({ label, careers, place }: { label: string; careers: LadderCareer[]; place: 'before' | 'after' }) {
+  const [all, setAll] = useState(false);
+  // One more than the limit is shown rather than hidden behind "1 more".
+  const shown = all || careers.length <= LADDER_SHOWN + 1 ? careers : careers.slice(0, LADDER_SHOWN);
+  const more = careers.length - shown.length;
   return (
     <li className="path-ladder" data-path-ladder={place}>
       <p className="path-domain">{label}</p>
       <ul>
-        {careers.map((career) => (
+        {shown.map((career) => (
           <li key={career.id}>
             <Link
               to={`/occupations/${career.id}`}
@@ -104,6 +138,18 @@ function Ladder({ label, careers, place }: { label: string; careers: LadderCaree
             </Link>
           </li>
         ))}
+        {more > 0 && (
+          <li>
+            <button
+              type="button"
+              onClick={() => setAll(true)}
+              className={cn('inline-flex min-h-11 items-center text-sm text-fg-soft transition-colors hover:text-fg-default', focusRing)}
+              data-ladder-more
+            >
+              {more} more
+            </button>
+          </li>
+        )}
       </ul>
     </li>
   );

@@ -11,6 +11,8 @@ import { publicKeys } from '../../lib/queryKeys';
 export interface CareerOption {
   id: string;
   title: string;
+  /** The other name a search found it by ("PLC Programmer" for Controls Engineer), said under the title. */
+  alsoCalled?: string | null;
 }
 
 interface CareerPickerProps {
@@ -57,7 +59,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
 
   const waiting = searching && (query !== term.trim() || results.isPending);
   const options: CareerOption[] = searching
-    ? (results.data?.data ?? []).map((occupation) => ({ id: occupation.id, title: occupation.title }))
+    ? (results.data?.data ?? []).map((occupation) => ({ id: occupation.id, title: occupation.title, alsoCalled: occupation.alsoCalled }))
     : suggestions;
   const CareerIcon = KIND_ICON.career;
 
@@ -67,9 +69,10 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
     focusPicked.current = false;
   }, [pickedId]);
 
-  const choose = (option: CareerOption) => {
+  const choose = ({ id: chosen, title }: CareerOption) => {
     focusPicked.current = true;
-    onChange(option);
+    // What it was found by is the list's to say, not the form's to keep.
+    onChange({ id: chosen, title });
     setTerm('');
     setOpen(false);
   };
@@ -188,7 +191,15 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
                   )}
                 >
                   <CareerIcon className="h-4 w-4 shrink-0 text-fg-muted" />
-                  <span className="min-w-0 break-words">{option.title}</span>
+                  <span className="min-w-0 break-words">
+                    {option.title}
+                    {/* A career found by a name it is also known by says which: the title alone would look like a wrong answer. */}
+                    {option.alsoCalled && (
+                      <span className="block text-xs text-fg-muted" data-career-also>
+                        Also called {option.alsoCalled}
+                      </span>
+                    )}
+                  </span>
                 </li>
               ))}
           </ul>

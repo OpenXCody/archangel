@@ -7,6 +7,7 @@ import { type OccupationDetail } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { cityState, stateName } from '../../lib/places';
 import {
+  DetailFacts,
   DetailHeader,
   DetailSection,
   RecordList,
@@ -14,11 +15,11 @@ import {
   sectionLinkClass,
 } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
-import { PathFlow } from '../path/PathFlow';
+import { LadderAlone, PathFlow } from '../path/PathFlow';
 import { SkillGroupBox } from '../path/SkillGroupBox';
 import { buildPath, shareOf } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
-import { type Head, UNPLACED, OpenJobsSection, IndustryRows } from './parts';
+import { type Head, UNPLACED, OpenJobsSection, IndustryRows, factLinkClass } from './parts';
 
 /**
  * Career (occupation) detail: the path of skills drawn as a flow, where the
@@ -43,6 +44,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   // taxonomy has placed (a database nothing was loaded into) are left to list by themselves.
   const hasPath = path.levels.some((level) => level.groups.length > 0);
   const whole = marks && skills.length > 0 ? shareOf(skills, marks) : null;
+  const onLadder = (data.comesFrom?.length ?? 0) + (data.leadsTo?.length ?? 0) > 0;
 
   return (
     <>
@@ -64,12 +66,28 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
             )}
           </>
         }
-      />
+      >
+        {/* Its home: the domain most of its work is in, which opens the Careers list narrowed to it. */}
+        {data.home && (
+          <DetailFacts>
+            <Link to={`/explore?tab=occupations&domain=${data.home.slug}`} className={factLinkClass} data-career-home>
+              {data.home.name}
+            </Link>
+          </DetailFacts>
+        )}
+      </DetailHeader>
 
       {/* What it is: the path, from the foundation to the specialties */}
       {skills.length === 0 && (
         <DetailSection id="skills" title="Path">
-          <p className="text-sm text-fg-muted">Path not written yet.</p>
+          {onLadder ? (
+            // No skills to lay out yet, but the career still has its place between others.
+            <LadderAlone comesFrom={data.comesFrom} leadsTo={data.leadsTo}>
+              Path not written yet.
+            </LadderAlone>
+          ) : (
+            <p className="text-sm text-fg-muted">Path not written yet.</p>
+          )}
         </DetailSection>
       )}
       {skills.length > 0 && (
