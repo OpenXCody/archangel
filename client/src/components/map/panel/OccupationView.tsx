@@ -103,7 +103,12 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
         <Section title="Skills">
           {staged && (
             <p className="mb-2 text-xs tabular-nums text-fg-muted">
-              {STAGE_LABEL[1]} {stages[0]} · {STAGE_LABEL[2]} {stages[1]} · {STAGE_LABEL[3]} {stages[2]}
+              {`${STAGE_LABEL[1]} `}
+              {stages[0]}
+              {` · ${STAGE_LABEL[2]} `}
+              {stages[1]}
+              {` · ${STAGE_LABEL[3]} `}
+              {stages[2]}
             </p>
           )}
           <RowList>
