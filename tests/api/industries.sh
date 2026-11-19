@@ -169,7 +169,7 @@ sql "INSERT INTO factories (name, company_id, latitude, longitude, state, city, 
   ('E2E Industry Austin Out', '$ONE', '29.70', '-98.25', 'TX', 'BOERNE', '$IND')" >/dev/null
 expect "a plant inside the boundary is counted, one outside it is not" "$((INSIDE + 1))" "$(get /map/areas/austin/overview | j 'o.totalFactories')"
 expect "the box around the area holds both"   "$((BOXED + 2))" "$(get '/map/bounds/overview?west=-98.2985&south=29.6306&east=-97.0243&north=30.9063' | j 'o.totalFactories')"
-expect "its industry is listed for the area"  true "$(get /map/areas/austin/overview | j "o.topIndustries.some(x=>x.label==='$IND'&&x.count>=1)")"
+expect "its industries are of the 21, the largest first" true "$(get /map/areas/austin/overview | j 'o.topIndustries.length>0 && o.topIndustries.every((x,i,a)=>/ Manufacturing$| Mills$| Activities$/.test(x.label) && x.count>0 && (i===0||a[i-1].count>=x.count))')"
 check "an area that is not one"               404 "$(get /map/areas/nowhere/overview)" 'Area not found'
 
 cleanup
