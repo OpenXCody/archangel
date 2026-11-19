@@ -1,8 +1,13 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Compass } from 'lucide-react';
 import { PageContainer, EmptyState } from '../components/layout/Page';
 
 export default function NotFound() {
+  // The browser tab says so too: this page has no section to be named after.
+  useEffect(() => {
+    document.title = 'Not found · Archangel';
+  }, []);
   return (
     <PageContainer size="narrow">
       <EmptyState

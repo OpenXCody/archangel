@@ -110,12 +110,74 @@ test('industry pages render without overflow', async ({ page, request }) => {
 
 test('global search opens and is usable', async ({ page }) => {
   await page.goto('/explore', { waitUntil: 'domcontentloaded' });
-  await page.getByRole('button', { name: /search/i }).first().click();
-  const input = page.getByRole('textbox').first();
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Search' });
+  const input = dialog.getByRole('combobox');
   await expect(input).toBeVisible();
-  await input.fill('steel');
-  await page.waitForTimeout(1200);
+  // With nothing typed there is the field and nothing else to choose.
+  await expect(dialog.getByRole('option')).toHaveCount(0);
+  await input.fill('tex');
+  // The groups come in the one order every search here uses, under its words.
+  await expect(dialog.getByRole('option').first()).toBeVisible();
+  const headings = await dialog.locator('[role="group"] > [role="presentation"]').allInnerTexts();
+  const order = ['States and areas', 'Industries', 'Companies', 'Plants', 'Careers', 'Skills', 'Jobs'];
+  const found = headings.map((heading) => order.findIndex((word) => word.toLowerCase() === heading.trim().toLowerCase()));
+  expect(found.every((at) => at !== -1), `group headings are the shared words: ${headings.join(', ')}`).toBe(true);
+  expect(found, 'groups are in the shared order').toEqual([...found].sort((a, b) => a - b));
+  expect(headings[0].trim().toLowerCase(), 'the state the text starts leads').toBe('states and areas');
   await assertHealthyLayout(page, '/explore#search');
+});
+
+test('Explore holds every level, and the header says where you are', async ({ page, request }) => {
+  await page.goto('/explore', { waitUntil: 'domcontentloaded' });
+  const tabs = page.getByRole('navigation', { name: 'Explore' });
+  // By their names: each label also holds an unseen copy of itself, which keeps its width when it turns bold.
+  await expect(tabs.getByRole('link').first()).toBeVisible();
+  const names = await tabs.getByRole('link').evaluateAll((links) => links.map((link) => (link as HTMLElement).innerText.trim()));
+  expect(names).toEqual(['Overview', 'Industries', 'Companies', 'Plants', 'Careers', 'Skills']);
+  await expect(tabs.locator('[aria-current="page"]')).toHaveAccessibleName('Overview');
+  // The overview's sections are the tabs' words in the tabs' order.
+  // (Asked until it is so: the page holds its place with three of them while the answer loads.)
+  await expect.poll(() => page.locator('main h2').allInnerTexts()).toEqual(['Industries', 'Companies', 'Plants', 'Careers', 'Skills']);
+
+  // The header names its three places in words at every width, and lights the one this page belongs to.
+  const main = page.getByRole('navigation', { name: 'Main' });
+  await expect(main.getByRole('link')).toHaveText(['Map', 'Explore', 'Jobs']);
+  for (const link of await main.getByRole('link').all()) await expect(link).toBeVisible();
+  await expect(main.locator('[aria-current="page"]')).toHaveText('Explore');
+
+  // The industries are a tab of Explore, at their own address.
+  await tabs.getByRole('link', { name: 'Industries' }).click();
+  await expect(page).toHaveURL(/\/industries$/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Explore');
+  await expect(tabs.locator('[aria-current="page"]')).toHaveAccessibleName('Industries');
+  await expect(main.locator('[aria-current="page"]')).toHaveText('Explore');
+
+  // The last tab: where the row is wider than the screen it has scrolled the current tab into sight.
+  await page.goto('/explore?tab=skills', { waitUntil: 'domcontentloaded' });
+  const current = tabs.locator('[aria-current="page"]');
+  await expect(current).toHaveAccessibleName('Skills');
+  await expect(page.locator('[data-explore-count]')).toHaveText(/^[\d,]+ skills$/);
+  const seen = await current.evaluate((el) => {
+    const nav = el.closest('nav') as HTMLElement;
+    const a = el.getBoundingClientRect();
+    const b = nav.getBoundingClientRect();
+    return a.left >= b.left - 1 && a.right <= b.right + 1;
+  });
+  expect(seen, 'the current tab is in sight').toBe(true);
+  await assertHealthyLayout(page, '/explore?tab=skills');
+
+  // The plants list says plants, and a list's own count follows its filters.
+  await page.goto('/explore?tab=factories&state=TX', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-explore-count]')).toHaveText(/^[\d,]+ plants?$/);
+  await assertHealthyLayout(page, '/explore?tab=factories&state=TX');
+
+  // A record's page belongs to Explore; the wordmark, where there is room for it, leads to the map.
+  const company = await firstId(request, '/companies');
+  await page.goto(`/companies/${company}`, { waitUntil: 'domcontentloaded' });
+  await expect(main.locator('[aria-current="page"]')).toHaveText('Explore');
+  const wordmark = page.getByRole('link', { name: 'Archangel: the map' });
+  if (await wordmark.isVisible()) await expect(wordmark).toHaveAttribute('href', '/map');
 });
 
 test('a seeker and an employer are given different tools', async ({ page, baseURL }) => {
@@ -123,7 +185,7 @@ test('a seeker and an employer are given different tools', async ({ page, baseUR
   test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
   const password = 'correct horse battery';
   const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
-  const tools: Record<string, { menu: string[]; jobs: string | null }> = {};
+  const tools: Record<string, { menu: string[]; jobs: string | null; word: string }> = {};
 
   for (const purpose of ['work', 'hire'] as const) {
     const made = await page.request.post(`${API}/auth/sign-up`, {
@@ -135,11 +197,13 @@ test('a seeker and an employer are given different tools', async ({ page, baseUR
       await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
       await assertHealthyLayout(page, `/settings:${purpose}`);
       // The header's third item: the open jobs for a seeker, their own jobs for an employer.
-      const jobs = await page.locator('header nav a').nth(2).getAttribute('href');
+      const third = page.locator('header nav a').nth(2);
+      const jobs = await third.getAttribute('href');
+      const word = (await third.innerText()).trim();
       await page.getByRole('button', { name: /Account menu/ }).click();
       const menu = (await page.getByRole('menuitem').allInnerTexts()).map((text) => text.trim());
       await page.keyboard.press('Escape');
-      tools[purpose] = { menu, jobs };
+      tools[purpose] = { menu, jobs, word };
     } finally {
       const gone = await page.request.delete(`${API}/me`, { data: { password } });
       expect(gone.ok(), `${purpose}: account removed`).toBe(true);
@@ -147,7 +211,10 @@ test('a seeker and an employer are given different tools', async ({ page, baseUR
   }
 
   expect(tools.work.menu, 'a seeker is led to their own page').toEqual(['Profile', 'Settings', 'Sign out']);
-  expect(tools.hire.menu, 'an employer is led to their jobs').toEqual(['Your jobs', 'Settings', 'Sign out']);
+  // An employer's jobs are in the header, by name; the menu does not say them again.
+  expect(tools.hire.menu, 'an employer is led to their jobs by the header').toEqual(['Settings', 'Sign out']);
   expect(tools.work.jobs).toBe('/jobs');
+  expect(tools.work.word).toBe('Jobs');
   expect(tools.hire.jobs).toBe('/employer');
+  expect(tools.hire.word).toBe('Your jobs');
 });

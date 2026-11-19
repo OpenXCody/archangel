@@ -7,7 +7,9 @@ import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { US_STATES } from '../../shared/states.js';
 import { pageLimit } from '../lib/paging.js';
-import { searchIndustries } from '../lib/industries.js';
+import { companyIndustry, searchIndustries } from '../lib/industries.js';
+import { shownIndustry } from '../../shared/industry.js';
+import { formatCompanyName, formatFactoryName } from '../../shared/displayName.js';
 
 const router = Router();
 
@@ -129,8 +131,8 @@ router.get('/', async (req: Request, res: Response) => {
           .select({
             id: companies.id,
             name: companies.name,
-            industry: companies.industry,
-            description: companies.description,
+            // The industry most of its plants are in; the free text on the row is not shown.
+            industry: companyIndustry(sql`${companies.id}`),
             domain: companies.domain,
           })
           .from(companies)
@@ -163,7 +165,8 @@ router.get('/', async (req: Request, res: Response) => {
         id: c.id,
         name: c.name,
         type: 'companies' as const,
-        subtitle: c.industry || undefined,
+        // One of the 21 by its short name, or no line at all.
+        subtitle: shownIndustry(c.industry) ?? undefined,
         domain: c.domain,
       }));
 
@@ -180,11 +183,12 @@ router.get('/', async (req: Request, res: Response) => {
           .select({
             id: factories.id,
             name: factories.name,
-            specialization: factories.specialization,
+            city: factories.city,
             state: factories.state,
-            companyId: factories.companyId,
+            companyName: companies.name,
           })
           .from(factories)
+          .leftJoin(companies, eq(companies.id, factories.companyId))
           .where(
             and(
               factoryInScope(),
@@ -210,13 +214,20 @@ router.get('/', async (req: Request, res: Response) => {
           ),
       ]);
 
-      const factoryItems = factoryResults.map((f) => ({
-        id: f.id,
-        name: f.name,
-        type: 'factories' as const,
-        subtitle: f.specialization || undefined,
-        meta: f.state || undefined,
-      }));
+      // A plant's line is whose it is and where: "Tesla · Austin, TX". The
+      // company is left out when the plant's own name already starts with it.
+      const factoryItems = factoryResults.map((f) => {
+        const company = f.companyName ? formatCompanyName(f.companyName) : null;
+        const repeats = company !== null && formatFactoryName(f.name).toLowerCase().startsWith(company.toLowerCase());
+        // Cities arrive in capitals ("ROUND ROCK").
+        const place = [f.city ? formatCompanyName(f.city) : null, f.state].filter(Boolean).join(', ');
+        return {
+          id: f.id,
+          name: f.name,
+          type: 'factories' as const,
+          subtitle: [repeats ? null : company, place].filter(Boolean).join(' · ') || undefined,
+        };
+      });
 
       results.results.factories = {
         count: factoryCount[0]?.count ?? 0,
@@ -257,7 +268,7 @@ router.get('/', async (req: Request, res: Response) => {
         id: o.id,
         name: o.title,
         type: 'occupations' as const,
-        subtitle: o.description?.slice(0, 60) || undefined,
+        subtitle: o.description || undefined,
       }));
 
       results.results.occupations = {

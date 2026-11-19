@@ -4,6 +4,7 @@ import { db, factories } from '../db/index.js';
 import { factoryInArea, factoryInBox, factoryInScope, isStateInScope } from '../lib/scope.js';
 import { focusArea } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
+import { INDUSTRY_NAME_LIST } from '../lib/industries.js';
 
 const router = Router();
 
@@ -72,12 +73,13 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
     LIMIT 12
   `);
 
+  // The industries here, of the 21: a plant filed under anything else has no industry to show.
   const topIndustries = await db.execute(sql`
     SELECT
-      COALESCE(f.primary_naics_description, f.primary_naics, 'Unclassified') AS label,
+      f.primary_naics_description AS label,
       COUNT(*)::int AS count
     FROM factories f
-    WHERE ${inSet('f')} AND ${factoryInScope('f')} AND f.primary_naics IS NOT NULL
+    WHERE ${inSet('f')} AND ${factoryInScope('f')} AND f.primary_naics_description IN (${INDUSTRY_NAME_LIST})
     GROUP BY label
     ORDER BY count DESC
     LIMIT 8

@@ -5,7 +5,8 @@ import { browsableCompanyNameSql } from '../lib/companyFilters.js';
 import { factoryInArea, factoryInScope } from '../lib/scope.js';
 import { FOCUS_AREAS } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
-import { listIndustries } from '../lib/industries.js';
+import { INDUSTRY_NAME_LIST, companyIndustries, listIndustries } from '../lib/industries.js';
+import { industryByName, industryLabel } from '../../shared/industry.js';
 
 const router = Router();
 
@@ -98,10 +99,13 @@ function pickCareers(candidates: CareerCandidate[], day: string, count: number):
   return picked;
 }
 
-// Featured employers with a site in scope, most sites first.
+// Featured employers with a plant in scope, most plants first. Each with the
+// industry most of its plants are in (one of the 21, or none).
 async function loadEmployers() {
   const result = await db.execute(sql`
-    SELECT c.id, c.name, c.slug, c.domain, c.industry,
+    SELECT c.id, c.name, c.slug, c.domain,
+           mode() WITHIN GROUP (ORDER BY f.primary_naics_description COLLATE "C")
+             FILTER (WHERE f.primary_naics_description IN (${INDUSTRY_NAME_LIST})) AS industry,
            COUNT(*)::int AS site_count,
            COUNT(DISTINCT f.state)::int AS state_count
     FROM companies c
@@ -287,37 +291,52 @@ router.get('/overview', async (_req: Request, res: Response) => {
 
 // GET /api/explore/facets - The values the browse lists can be filtered by,
 // taken from every row (not from the first page a list happens to load):
-// industries that companies and factories carry, most common first up to a
-// sensible number, and the skill categories in use.
+// - `industries`: of the 21, those some plant carries (`plants`) and those
+//   that are some company's industry (`companies`: the one most of its plants
+//   are in), each by the name a plant carries, in the order of their short names;
+// - `skillCategories`: the skill categories in use;
+// - `companyIndustries`: the free text in companies.industry, most common
+//   first up to a sensible number. Not an industry on screen and not a filter:
+//   only the admin's company form reads it, to offer what is already written.
+// `factoryIndustries` is the same list as `industries.plants`, kept under its
+// old name for the map's filter and for pages loaded before this.
 const FACET_LIMIT = 60;
 router.get('/facets', async (_req: Request, res: Response) => {
   try {
-    const [companyRows, factoryRows, categoryRows] = await Promise.all([
+    const [companyRows, factoryRows, categoryRows, companyIndustryRows] = await Promise.all([
       db.execute(sql`
         SELECT btrim(industry) AS value, COUNT(*)::int AS n FROM companies
         WHERE industry IS NOT NULL AND btrim(industry) <> ''
         GROUP BY 1 ORDER BY n DESC, value ASC LIMIT ${FACET_LIMIT}
       `),
       db.execute(sql`
-        SELECT btrim(COALESCE(f.primary_naics_description, f.specialization)) AS value, COUNT(*)::int AS n
+        SELECT f.primary_naics_description AS value
         FROM factories f
-        WHERE ${factoryInScope('f')} AND btrim(COALESCE(f.primary_naics_description, f.specialization, '')) <> ''
-        GROUP BY 1 ORDER BY n DESC, value ASC LIMIT ${FACET_LIMIT}
+        WHERE ${factoryInScope('f')} AND f.primary_naics_description IN (${INDUSTRY_NAME_LIST})
+        GROUP BY 1
       `),
       db.execute(sql`
         SELECT btrim(category) AS value, COUNT(*)::int AS n FROM skills
         WHERE category IS NOT NULL AND lower(btrim(category)) NOT IN ('', 'subcategory', 'category', 'skill', 'root')
         GROUP BY 1 ORDER BY value ASC
       `),
+      db.execute(sql`SELECT DISTINCT ci.industry AS value FROM (${companyIndustries()}) ci`),
     ]);
     const values = (result: unknown) =>
       rowsOf(result)
         .map((r) => text(r.value))
         .filter((v): v is string => v !== null)
         .sort((x, y) => x.localeCompare(y));
+    // Of the 21 only, in the order a person reads them: by the short name.
+    const industries = (result: unknown) =>
+      values(result)
+        .filter((name) => industryByName(name) !== undefined)
+        .sort((x, y) => industryLabel(x).localeCompare(industryLabel(y)));
+    const plantIndustries = industries(factoryRows);
     res.json({
+      industries: { plants: plantIndustries, companies: industries(companyIndustryRows) },
+      factoryIndustries: plantIndustries,
       companyIndustries: values(companyRows),
-      factoryIndustries: values(factoryRows),
       skillCategories: values(categoryRows),
     });
   } catch (error) {

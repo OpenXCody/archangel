@@ -17,7 +17,7 @@ router.param('id', uuidParam);
 // GET /api/occupations - List occupations with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { offset = '0', limit = '20', search, order = 'asc' } = req.query;
+    const { offset = '0', limit = '20', search, sort, order = 'asc' } = req.query;
     const limitNum = pageLimit(limit, 20, 100);
     const offsetNum = pageOffset(offset);
 
@@ -60,16 +60,22 @@ router.get('/', async (req: Request, res: Response) => {
     const whereClause = match?.where;
 
     // Build order by clause
-    // Careers that have a path come first, so the list opens on the ones with
-    // something to follow; within each group, by title.
+    // The list opens on the careers with something to follow: those with a
+    // path, then those with the most skills, so a career that is only a title
+    // comes last; among equals, by title. `sort=name` (or `title`) is the
+    // plain name order, `order=desc` reversing it.
     const hasPathFirst = sql`(${occupations.pathStatus} IS NULL) ASC`;
+    const mostSkillsFirst = sql`(SELECT COUNT(*) FROM occupation_skills os_n WHERE os_n.occupation_id = ${occupations.id}) DESC`;
     // By the letters, whatever their case ("ALD …" is not ahead of "Additive …").
     const byTitle = order === 'desc' ? sql`lower(${occupations.title}) DESC` : sql`lower(${occupations.title}) ASC`;
+    const byName = sort === 'name' || sort === 'title';
     // With a search, the closest match first; among equals, careers with a
     // path, then the shorter title ("Machinist" before "Casting CNC Machinist").
     const orderByClause = match
       ? sql`${match.relevance}, ${hasPathFirst}, length(${occupations.title}), ${byTitle}`
-      : sql`${hasPathFirst}, ${byTitle}`;
+      : byName
+        ? sql`${byTitle}, ${occupations.id}`
+        : sql`${hasPathFirst}, ${mostSkillsFirst}, lower(${occupations.title}) ASC, ${occupations.id}`;
 
     // Query with skill and factory counts (in-scope factories only)
     const result = await db

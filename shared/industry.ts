@@ -93,3 +93,35 @@ export function industryPath(name: string | null | undefined, place?: { state?: 
   const query = place?.area ? `?area=${encodeURIComponent(place.area)}` : place?.state ? `?state=${encodeURIComponent(place.state)}` : '';
   return `/industries/${industry.slug}${query}`;
 }
+
+/**
+ * An industry as it is printed, or null when the value is not one: the short
+ * name of one of the 21, and nothing for a blank, for "Manufacturing" (every
+ * plant here is that) or for any other free text. The one test of whether a
+ * value is an industry worth a line; nothing on screen compares the text itself.
+ */
+export function shownIndustry(name: string | null | undefined): string | null {
+  const industry = industryByName(name);
+  return industry ? industryLabel(industry.name) : null;
+}
+
+/**
+ * A company's industry: the one most of its plants are in. Give it each
+ * plant's own industry; a plant with none, or with one that is not of the 21,
+ * does not count, and a tie goes to the name that sorts first (the server
+ * breaks it the same way: `companyIndustry` in server/lib/industries.ts).
+ * Null when no plant carries an industry.
+ */
+export function leadingIndustry(names: Iterable<string | null | undefined>): string | null {
+  const counts = new Map<string, number>();
+  for (const raw of names) {
+    const name = industryByName(raw)?.name;
+    if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+  let lead: string | null = null;
+  for (const [name, count] of counts) {
+    const best = lead === null ? 0 : (counts.get(lead) ?? 0);
+    if (count > best || (count === best && lead !== null && name < lead)) lead = name;
+  }
+  return lead;
+}

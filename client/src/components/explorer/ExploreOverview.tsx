@@ -1,7 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
 import {
   exploreApi,
   type ExploreArea,
@@ -14,17 +13,13 @@ import {
 } from '../../lib/api';
 import { formatCompanyName } from '@shared/displayName';
 import { FOCUS_AREAS } from '@shared/scope';
-import { industryLabel } from '@shared/industry';
+import { industryLabel, shownIndustry } from '@shared/industry';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState, PageSection } from '../layout/Page';
 import { LoadError } from '../account/parts';
 import CompanyLogo from '../CompanyLogo';
 import { exploreHref } from './ExploreNav';
-import { SEARCH_SHORTCUT } from '../../lib/shortcut';
-
-/** Industry value the bulk import stamped on nearly every company; it says nothing. */
-const GENERIC_INDUSTRY = 'manufacturing';
 
 const STAGE_NAME: Record<1 | 2 | 3, string> = { 1: 'Introduction', 2: 'Fundamentals', 3: 'Advanced' };
 
@@ -37,9 +32,7 @@ const TILE = cn(
   'hover:border-border-strong hover:bg-bg-elevated',
   FOCUS
 );
-const SECTION = 'mb-14 sm:mb-20';
-/** The overview's section headings sit a step above the house section heading. */
-const heading = (text: string) => <span className="text-xl tracking-tight sm:text-2xl">{text}</span>;
+const SECTION = 'mb-12 sm:mb-16';
 const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
 /** A row in a typographic list: a full-width link, tall enough to tap. */
 const LIST_ROW = cn(
@@ -62,68 +55,41 @@ function TextLink({ to, children }: { to: string; children: ReactNode }) {
 }
 
 // ---------------------------------------------------------------------------
-// Search: a field-sized button. The search itself is the global one.
+// Companies
 // ---------------------------------------------------------------------------
 
-/** Opens the global search the way its keyboard shortcut does (Layout listens for it). */
-function openGlobalSearch() {
-  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
-}
-
-function SearchField() {
+function CompanyTile({ company, className }: { company: ExploreEmployer; className?: string }) {
+  const name = formatCompanyName(company.name);
+  // The industry most of its plants are in.
+  const industry = shownIndustry(company.industry);
   return (
-    <button
-      type="button"
-      onClick={openGlobalSearch}
-      aria-label="Search companies, careers, skills"
-      className={cn(
-        'flex h-14 w-full max-w-2xl items-center gap-3 rounded-xl border border-border-subtle bg-bg-surface px-4 text-left transition-colors sm:h-16 sm:px-5',
-        'hover:border-border-strong',
-        'mb-12 mt-6 sm:mb-16 sm:mt-10',
-        FOCUS
-      )}
-    >
-      <Search className="h-5 w-5 shrink-0 text-fg-soft" />
-      <span className="min-w-0 flex-1 truncate text-base text-fg-soft sm:text-lg">Companies, careers, skills</span>
-      <kbd className="hidden shrink-0 items-center gap-0.5 rounded-md bg-bg-elevated px-2 py-1 text-xs text-fg-soft sm:inline-flex">
-        {SEARCH_SHORTCUT}
-      </kbd>
-    </button>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Employers
-// ---------------------------------------------------------------------------
-
-function EmployerTile({ employer }: { employer: ExploreEmployer }) {
-  const name = formatCompanyName(employer.name);
-  const industry =
-    employer.industry && employer.industry.trim().toLowerCase() !== GENERIC_INDUSTRY ? employer.industry : null;
-  return (
-    <Link to={`/companies/${employer.slug ?? employer.id}`} className={cn(TILE, 'flex-col p-4 sm:p-5')}>
-      <CompanyLogo name={name} domain={employer.domain} size={48} className="rounded-lg" />
-      <h3 className="mb-3 mt-4 line-clamp-2 break-words text-base font-semibold leading-snug text-fg-default sm:text-[17px]">
+    <Link to={`/companies/${company.slug ?? company.id}`} className={cn(TILE, 'flex-col p-4 sm:p-5', className)}>
+      <CompanyLogo name={name} domain={company.domain} size={48} className="rounded-lg" />
+      <h3 className="mt-4 line-clamp-2 break-words text-base font-semibold leading-snug text-fg-default sm:text-[17px]">
         {name}
       </h3>
-      <p className="mt-auto text-sm text-fg-muted">
-        <span className="whitespace-nowrap">{count(employer.siteCount, 'site', 'sites')}</span>
-        {employer.stateCount > 0 && (
-          <span className="whitespace-nowrap"> · {count(employer.stateCount, 'state', 'states')}</span>
+      {/* Whole, on two lines if it takes them: half an industry's name says nothing. */}
+      {industry && <p className="mt-1 line-clamp-2 text-sm leading-snug text-fg-soft">{industry}</p>}
+      {/* Pinned to the foot, so the figures of a row of tiles sit on one line. */}
+      <p className="mt-auto pt-3 text-sm text-fg-muted">
+        <span className="whitespace-nowrap">{count(company.siteCount, 'plant', 'plants')}</span>
+        {company.stateCount > 0 && (
+          <span className="whitespace-nowrap"> · {count(company.stateCount, 'state', 'states')}</span>
         )}
       </p>
-      {industry && <p className="mt-0.5 truncate text-sm text-fg-soft">{industry}</p>}
     </Link>
   );
 }
 
-function Employers({ employers }: { employers: ExploreEmployer[] }) {
-  if (employers.length === 0) return null;
+/** The featured companies, most plants first. */
+function Companies({ companies }: { companies: ExploreEmployer[] }) {
+  if (companies.length === 0) return null;
   return (
-    <PageSection title={heading('Employers')} actions={<TextLink to={exploreHref('companies')}>All companies</TextLink>} className={SECTION}>
+    <PageSection title="Companies" actions={<TextLink to={exploreHref('companies')}>All companies</TextLink>} className={SECTION}>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-        {employers.map((employer) => (
-          <EmployerTile key={employer.id} employer={employer} />
+        {companies.map((company, i) => (
+          // A phone shows six.
+          <CompanyTile key={company.id} company={company} className={i >= 6 ? 'hidden sm:flex' : undefined} />
         ))}
       </div>
     </PageSection>
@@ -143,7 +109,7 @@ function Industries({ industries, year }: { industries: ExploreIndustry[]; year:
   const byPeople = industries.every((industry) => industry.employment !== null);
   const rows = Math.ceil(industries.length / 2);
   return (
-    <PageSection title={heading('Industries')} actions={<TextLink to="/industries">All industries</TextLink>} className={SECTION}>
+    <PageSection title="Industries" actions={<TextLink to={exploreHref('industries')}>All industries</TextLink>} className={SECTION}>
       <h3 className={cn(EYEBROW, 'mb-1 border-b border-border-subtle pb-2.5 sm:mb-2')}>
         {byPeople ? `People employed${year ? `, ${year}` : ''}` : 'Plants'}
       </h3>
@@ -176,7 +142,7 @@ function CareerCard({ career, className }: { career: ExploreCareer; className?: 
   return (
     <Link to={`/occupations/${career.id}`} className={cn(TILE, 'flex-col p-5', className)}>
       <h3 className="truncate text-[17px] font-semibold leading-snug text-fg-default">{career.title}</h3>
-      {career.description && <p className="mt-1 truncate text-sm text-fg-muted">{career.description}</p>}
+      {career.description && <p className="mt-1 line-clamp-2 text-sm leading-snug text-fg-muted">{career.description}</p>}
       {/* The path: three stages down a rail, each with what it holds. */}
       <ol className="mt-5 space-y-3.5">
         {career.stages.map((stage, i) => (
@@ -214,14 +180,14 @@ function CareerCard({ career, className }: { career: ExploreCareer; className?: 
 function Careers({ careers }: { careers: ExploreCareer[] }) {
   if (careers.length === 0) return null;
   return (
-    <PageSection title={heading('Careers')} actions={<TextLink to={exploreHref('occupations')}>All careers</TextLink>} className={SECTION}>
+    <PageSection title="Careers" actions={<TextLink to={exploreHref('occupations')}>All careers</TextLink>} className={SECTION}>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {careers.map((career, i) => (
-          // A phone shows six; two columns show an even eight.
+          // A phone shows three; two columns show an even eight.
           <CareerCard
             key={career.id}
             career={career}
-            className={i >= 8 ? 'hidden lg:flex' : i >= 6 ? 'hidden sm:flex' : undefined}
+            className={i >= 8 ? 'hidden lg:flex' : i >= 3 ? 'hidden sm:flex' : undefined}
           />
         ))}
       </div>
@@ -236,10 +202,11 @@ function Careers({ careers }: { careers: ExploreCareer[] }) {
 function Skills({ groups }: { groups: ExploreSkillGroup[] }) {
   if (groups.length === 0) return null;
   return (
-    <PageSection title={heading('Skills')} actions={<TextLink to={exploreHref('skills')}>All skills</TextLink>} className={SECTION}>
+    <PageSection title="Skills" actions={<TextLink to={exploreHref('skills')}>All skills</TextLink>} className={SECTION}>
       <div className="grid grid-cols-1 gap-x-12 gap-y-8 pt-1 sm:grid-cols-2 sm:gap-y-10 sm:pt-2 lg:grid-cols-3">
-        {groups.map((group) => (
-          <div key={group.category} className="min-w-0">
+        {groups.map((group, g) => (
+          // A phone lists the first four categories.
+          <div key={group.category} className={cn('min-w-0', g >= 4 && 'hidden sm:block')}>
             <h3 className={cn(EYEBROW, 'mb-1 border-b border-border-subtle pb-2.5 sm:mb-2')}>{group.category}</h3>
             <ul>
               {group.skills.map((skill, i) => (
@@ -262,7 +229,8 @@ function Skills({ groups }: { groups: ExploreSkillGroup[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Places
+// Plants: where they are. Each place opens on the map; the list of every
+// plant is the Plants tab.
 // ---------------------------------------------------------------------------
 
 type Ring = [number, number][];
@@ -356,7 +324,7 @@ function AreaTile({ area }: { area: ExploreArea }) {
         <h3 className="mt-2 text-xl font-semibold leading-snug text-fg-default sm:text-2xl">{area.name}</h3>
         {area.description && <p className="mt-1.5 text-sm text-fg-muted">{area.description}</p>}
         {area.factoryCount > 0 && (
-          <p className="mt-4 text-sm tabular-nums text-fg-soft">{count(area.factoryCount, 'factory', 'factories')}</p>
+          <p className="mt-4 text-sm tabular-nums text-fg-soft">{count(area.factoryCount, 'plant', 'plants')}</p>
         )}
       </div>
       <AreaOutline areaId={area.id} />
@@ -364,11 +332,11 @@ function AreaTile({ area }: { area: ExploreArea }) {
   );
 }
 
-function Places({ areas, states }: { areas: ExploreArea[]; states: ExploreState[] }) {
+function Plants({ areas, states }: { areas: ExploreArea[]; states: ExploreState[] }) {
   if (areas.length === 0 && states.length === 0) return null;
   const rows = Math.ceil(states.length / 2);
   return (
-    <PageSection title={heading('Places')} actions={<TextLink to="/map">Open the map</TextLink>} className={SECTION}>
+    <PageSection title="Plants" actions={<TextLink to={exploreHref('factories')}>All plants</TextLink>} className={SECTION}>
       <div
         className={cn(
           'grid grid-cols-1 gap-x-12 gap-y-8',
@@ -384,7 +352,7 @@ function Places({ areas, states }: { areas: ExploreArea[]; states: ExploreState[
         )}
         {states.length > 0 && (
           <div className="min-w-0">
-            <h3 className={cn(EYEBROW, 'mb-1 border-b border-border-subtle pb-2.5 sm:mb-2')}>Factories by state</h3>
+            <h3 className={cn(EYEBROW, 'mb-1 border-b border-border-subtle pb-2.5 sm:mb-2')}>By state</h3>
             {/* Ranked down the first column, then down the second. */}
             <ul className="grid grid-flow-col grid-cols-2 gap-x-8 sm:gap-x-12" style={{ gridTemplateRows: `repeat(${rows}, auto)` }}>
               {states.map((state) => (
@@ -426,10 +394,18 @@ function ListSkeleton({ rows }: { rows: number }) {
 function OverviewSkeleton() {
   return (
     <div aria-busy="true" aria-label="Loading">
-      <PageSection title={heading('Employers')} className={SECTION}>
+      <PageSection title="Industries" className={SECTION}>
+        <div className="grid grid-cols-1 gap-x-12 sm:grid-cols-2">
+          <ListSkeleton rows={5} />
+          <div className="hidden sm:block">
+            <ListSkeleton rows={5} />
+          </div>
+        </div>
+      </PageSection>
+      <PageSection title="Companies" className={SECTION}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {Array.from({ length: 12 }, (_, i) => (
-            <div key={i} className="rounded-xl border border-border-subtle bg-bg-surface p-4 sm:p-5">
+            <div key={i} className={cn('rounded-xl border border-border-subtle bg-bg-surface p-4 sm:p-5', i >= 6 && 'hidden sm:block')}>
               <Skeleton className="h-12 w-12 rounded-lg" />
               <Skeleton className="mt-5 h-4 w-3/4" />
               <Skeleton className="mt-5 h-3 w-1/2" />
@@ -438,14 +414,14 @@ function OverviewSkeleton() {
           ))}
         </div>
       </PageSection>
-      <PageSection title={heading('Careers')} className={SECTION}>
+      <PageSection title="Careers" className={SECTION}>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {Array.from({ length: 9 }, (_, i) => (
             <div
               key={i}
               className={cn(
                 'rounded-xl border border-border-subtle bg-bg-surface p-5',
-                i >= 8 ? 'hidden lg:block' : i >= 6 ? 'hidden sm:block' : undefined
+                i >= 8 ? 'hidden lg:block' : i >= 3 ? 'hidden sm:block' : undefined
               )}
             >
               <Skeleton className="h-5 w-3/5" />
@@ -459,13 +435,6 @@ function OverviewSkeleton() {
                 ))}
               </div>
             </div>
-          ))}
-        </div>
-      </PageSection>
-      <PageSection title={heading('Skills')} className={SECTION}>
-        <div className="grid grid-cols-1 gap-x-12 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }, (_, i) => (
-            <ListSkeleton key={i} rows={6} />
           ))}
         </div>
       </PageSection>
@@ -487,31 +456,32 @@ export function useExploreOverview() {
 }
 
 /**
- * What /explore opens on: the shape of what is here and places to start.
- * A section with nothing to show is left out.
+ * What /explore opens on: the shape of what is here and places to start, one
+ * section per tab, under the tab's word and in the tabs' order, each with the
+ * one link to its tab. A section with nothing to show is left out.
  */
 export default function ExploreOverview() {
   const overview = useExploreOverview();
   const data = overview.data;
 
   return (
-    <>
-      <SearchField />
+    <div className="mt-8 sm:mt-10">
       {data && isEmpty(data) ? (
         <EmptyState title="Nothing here yet" description="Companies, careers and skills appear here once they are imported." />
       ) : data ? (
         <>
-          <Employers employers={data.employers} />
+          {/* The tabs' words, in the tabs' order. */}
           <Industries industries={data.industries ?? []} year={data.industriesYear ?? null} />
+          <Companies companies={data.employers} />
+          <Plants areas={data.areas} states={data.states} />
           <Careers careers={data.careers} />
           <Skills groups={data.skillGroups} />
-          <Places areas={data.areas} states={data.states} />
         </>
       ) : overview.isError ? (
         <LoadError error={overview.error} onRetry={() => void overview.refetch()} retrying={overview.isFetching} />
       ) : (
         <OverviewSkeleton />
       )}
-    </>
+    </div>
   );
 }

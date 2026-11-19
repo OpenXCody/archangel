@@ -9,6 +9,8 @@ import { answerDuplicate, answerWriteError, optionalText, requiredText } from '.
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 import { isUuid, refuseDeleteWithJobs } from '../lib/writes.js';
 import { sourcesOf } from '../lib/sources.js';
+import { companyIndustries, companyIndustry } from '../lib/industries.js';
+import { industryByName, industryBySlug } from '../../shared/industry.js';
 
 const router = Router();
 // A company is addressed by its id, or, for reading, by its slug
@@ -51,14 +53,20 @@ router.get('/', async (req: Request, res: Response) => {
       const searchTerm = `%${search}%`;
       const searchCondition = or(
         ilike(companies.name, searchTerm),
-        ilike(companies.industry, searchTerm),
         ilike(companies.description, searchTerm)
       );
       if (searchCondition) conditions.push(searchCondition);
     }
 
-    if (industry) {
-      conditions.push(eq(companies.industry, industry as string));
+    // An industry is one of the 21, named as a plant carries it or by its page's slug.
+    // A company is listed under the industry most of its plants are in.
+    if (typeof industry === 'string' && industry) {
+      const asked = industryByName(industry) ?? industryBySlug(industry);
+      conditions.push(
+        asked
+          ? sql`${companies.id} IN (SELECT ci.company_id FROM (${companyIndustries()}) ci WHERE ci.industry = ${asked.name})`
+          : sql`FALSE`
+      );
     }
 
     // Get total count
@@ -88,7 +96,8 @@ router.get('/', async (req: Request, res: Response) => {
       .select({
         id: companies.id,
         name: companies.name,
-        industry: companies.industry,
+        // The industry most of its plants are in (one of the 21, or null), not the free text on the row.
+        industry: companyIndustry(sql`${companies.id}`),
         description: companies.description,
         domain: companies.domain,
         featured: companies.featured,

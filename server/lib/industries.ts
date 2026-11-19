@@ -28,6 +28,41 @@ export type Place =
   | { kind: 'state'; code: string; name: string }
   | { kind: 'area'; id: string; name: string; area: FocusArea };
 
+/** The 21 names as one SQL list (`x IN (${INDUSTRY_NAME_LIST})`). They are constants of the product, written into the statement. */
+export const INDUSTRY_NAME_LIST = sql.raw(INDUSTRIES.map((industry) => `'${industry.name.replace(/'/g, "''")}'`).join(', '));
+
+/** A plant's industry counts toward its company's only when it is one of the 21. */
+const countedIndustry = (factoryTable: string): SQL =>
+  sql`${sql.identifier(factoryTable)}.primary_naics_description IN (${INDUSTRY_NAME_LIST})`;
+
+/**
+ * A company's industry, as an expression for one company row: the industry
+ * most of its plants are in, by the name a plant carries. Null when none of
+ * its plants carries one of the 21. A tie goes to the name that sorts first,
+ * as `leadingIndustry` in shared/industry.ts breaks it. The free text in
+ * companies.industry is never read for this.
+ */
+export function companyIndustry(companyId: SQL): SQL<string | null> {
+  return sql<string | null>`(
+    SELECT mode() WITHIN GROUP (ORDER BY ci_f.primary_naics_description COLLATE "C")
+    FROM factories ci_f
+    WHERE ci_f.company_id = ${companyId} AND ${countedIndustry('ci_f')} AND ${factoryInScope('ci_f')}
+  )`;
+}
+
+/**
+ * Every company's industry in one pass over the plants: rows of
+ * (company_id, industry). For a filter or a list of the industries in use,
+ * where asking company by company would read the plants 28,000 times.
+ */
+export function companyIndustries(): SQL {
+  return sql`
+    SELECT ci_f.company_id, mode() WITHIN GROUP (ORDER BY ci_f.primary_naics_description COLLATE "C") AS industry
+    FROM factories ci_f
+    WHERE ci_f.company_id IS NOT NULL AND ${countedIndustry('ci_f')} AND ${factoryInScope('ci_f')}
+    GROUP BY ci_f.company_id`;
+}
+
 /** The plants of a place, by the name the factories table goes by in the query. */
 export function inPlace(place: Place, table: string): SQL {
   if (place.kind === 'state') return sql`${sql.identifier(table)}.state = ${place.code}`;

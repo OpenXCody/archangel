@@ -877,10 +877,7 @@ export default function Map({ onViewChange }: MapProps) {
       {/* Loading state */}
       {!mapLoaded && !mapError && (
         <div className="absolute inset-0 flex items-center justify-center bg-bg-base">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 text-fg-muted animate-spin" />
-            <span className="text-sm text-fg-muted">Loading map...</span>
-          </div>
+          <Loader2 className="w-8 h-8 text-fg-muted animate-spin" role="status" aria-label="Loading the map" />
         </div>
       )}
 
@@ -888,13 +885,13 @@ export default function Map({ onViewChange }: MapProps) {
       {mapError && (
         <div className="absolute inset-0 flex items-center justify-center bg-bg-base">
           <div className="flex flex-col items-center gap-3 text-center px-4">
-            <span className="text-fg-muted">Failed to load map</span>
+            <span className="text-fg-default">The map could not be loaded.</span>
             <span className="text-sm text-fg-muted">{mapError}</span>
             <button
               onClick={() => window.location.reload()}
               className="mt-2 px-4 py-2 text-sm bg-tint/10 rounded-lg hover:bg-tint/20 transition-colors"
             >
-              Retry
+              Try again
             </button>
           </div>
         </div>

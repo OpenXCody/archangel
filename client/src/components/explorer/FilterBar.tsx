@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { US_STATES, type StateCode } from '@shared/states';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
+import { industryLabel } from '@shared/industry';
 import { cn } from '@/lib/utils';
 import type { BrowseTab } from './ExploreNav';
 
@@ -23,13 +24,15 @@ const BY_TITLE: SortOption[] = [
 ];
 
 export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
-  // Most sites first by default, so the big manufacturers come before the
-  // long tail of single-site companies.
-  companies: [{ value: 'factories-desc', label: 'Most sites', field: 'factoryCount', order: 'desc' }, ...BY_NAME],
+  // Most plants first by default, so the big manufacturers come before the
+  // long tail of one-plant companies.
+  companies: [{ value: 'factories-desc', label: 'Most plants', field: 'factoryCount', order: 'desc' }, ...BY_NAME],
   // Most people first by default: the plants whose size is known lead, the
   // largest first, and the rest follow by name.
   factories: [{ value: 'people-desc', label: 'Most people', field: 'workforceSize', order: 'desc' }, ...BY_NAME],
-  occupations: BY_TITLE,
+  // Careers with a path first, the fullest first: the list opens on the ones
+  // with something to follow, and a career that is only a title comes last.
+  occupations: [{ value: 'skills-desc', label: 'Most skills', field: 'skillCount', order: 'desc' }, ...BY_TITLE],
   // The skills most careers use first: the list opens on what matters most,
   // not on the alphabet.
   skills: [{ value: 'careers-desc', label: 'Most careers', field: 'occupationCount', order: 'desc' }, ...BY_NAME],
@@ -47,10 +50,9 @@ export interface FilterBarProps {
   onSortChange: (value: string) => void;
   filters: FilterState;
   onFilterChange: (filters: FilterState) => void;
+  /** Industries to offer, by the name a plant carries; shown by their short names. */
   industries?: string[];
   categories?: string[];
-  /** Shown beside the filters while one is set: how many rows match. */
-  summary?: string | null;
 }
 
 const ALL = '__all__';
@@ -109,7 +111,8 @@ function Choice({
 
 /**
  * Filters on the left, sort on the right, all as plain text. A filter that is
- * set reads as its value; "Clear" puts the list back.
+ * set reads as its value; "Clear" puts the list back. How many rows match is
+ * the list's own line, under this one.
  */
 export default function FilterBar({
   activeTab,
@@ -119,14 +122,16 @@ export default function FilterBar({
   onFilterChange,
   industries = [],
   categories = [],
-  summary,
 }: FilterBarProps) {
   const sortOptions = SORT_OPTIONS[activeTab];
   const stateOptions = useMemo(() => US_STATES.map((s) => ({ value: s.code as string, label: s.name as string })), []);
   // A value arriving by link may not be in the fetched list: keep it choosable.
-  const withCurrent = (values: string[], current: string | undefined) =>
-    (current && !values.includes(current) ? [...values, current].sort() : values).map((v) => ({ value: v, label: v }));
-  const industryOptions = useMemo(() => withCurrent(industries, filters.industry), [industries, filters.industry]);
+  const withCurrent = (values: string[], current: string | undefined, label: (value: string) => string = (value) => value) =>
+    (current && !values.includes(current) ? [...values, current] : values)
+      .map((value) => ({ value, label: label(value) }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  // An industry is offered, and reads once chosen, by its short name ("Food", not "Food Manufacturing").
+  const industryOptions = useMemo(() => withCurrent(industries, filters.industry, industryLabel), [industries, filters.industry]);
   const categoryOptions = useMemo(() => withCurrent(categories, filters.category), [categories, filters.category]);
 
   const showState = activeTab === 'factories';
@@ -135,7 +140,7 @@ export default function FilterBar({
   const filtered = Boolean(filters.state || filters.industry || filters.category);
 
   return (
-    <div className="my-2 flex flex-wrap items-center justify-between gap-x-6 sm:my-4">
+    <div className="mt-2 flex flex-wrap items-center justify-between gap-x-6 sm:mt-4">
       <div className="flex min-w-0 flex-wrap items-center gap-x-6">
         {showState && (
           <Choice
@@ -165,16 +170,9 @@ export default function FilterBar({
           />
         )}
         {filtered && (
-          <>
-            <button type="button" onClick={() => onFilterChange({})} className={cn(TRIGGER, 'text-fg-muted underline underline-offset-4 hover:text-fg-default')}>
-              Clear
-            </button>
-            {summary && (
-              <span role="status" className="text-sm tabular-nums text-fg-soft">
-                {summary}
-              </span>
-            )}
-          </>
+          <button type="button" onClick={() => onFilterChange({})} className={cn(TRIGGER, 'text-fg-muted underline underline-offset-4 hover:text-fg-default')}>
+            Clear
+          </button>
         )}
       </div>
 

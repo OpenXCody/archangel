@@ -12,7 +12,6 @@ const SignIn = lazy(() => import('./pages/SignIn'));
 const Me = lazy(() => import('./pages/Me'));
 const Jobs = lazy(() => import('./pages/Jobs'));
 const JobDetail = lazy(() => import('./pages/JobDetail'));
-const Industries = lazy(() => import('./pages/Industries'));
 const Industry = lazy(() => import('./pages/Industry'));
 const Employer = lazy(() => import('./pages/Employer'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -23,7 +22,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 function PageLoader() {
   return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-8 h-8 text-info animate-spin" />
+      <Loader2 className="w-8 h-8 text-fg-muted animate-spin" />
     </div>
   );
 }
@@ -46,7 +45,8 @@ function App() {
               <Route path="/factories/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/occupations/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/skills/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
-              <Route path="/industries" element={<PageBoundary><Industries /></PageBoundary>} />
+              {/* The industries are a tab of Explore, at their own address. */}
+              <Route path="/industries" element={<PageBoundary><Explore /></PageBoundary>} />
               <Route path="/industries/:slug" element={<PageBoundary><Industry /></PageBoundary>} />
               <Route path="/sign-in" element={<PageBoundary><SignIn /></PageBoundary>} />
               <Route path="/me" element={<PageBoundary><Me /></PageBoundary>} />

@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { INDUSTRIES, industryByName, industryBySlug, industryLabel, industryPath } from '../../shared/industry.js';
+import { INDUSTRIES, industryByName, industryBySlug, industryLabel, industryPath, leadingIndustry, shownIndustry } from '../../shared/industry.js';
 // @ts-expect-error a plain script, no types
 import { parseQcew, isComplete, STATE_FIPS } from '../../scripts/ingest/qcew.mjs';
 // @ts-expect-error a plain script, no types
@@ -34,6 +34,28 @@ test('an industry link is narrowed to a place, and absent for a name that is not
   assert.equal(industryPath('Chemical Manufacturing', { state: null }), '/industries/chemicals');
   assert.equal(industryPath('Unclassified', { state: 'TX' }), null);
   assert.equal(industryPath(null), null);
+});
+
+test('an industry is printed only when it is one of the 21', () => {
+  assert.equal(shownIndustry('Food Manufacturing'), 'Food');
+  assert.equal(shownIndustry(' food manufacturing '), 'Food');
+  for (const none of ['Manufacturing', 'manufacturing', 'Automotive & Energy', '', '  ', null, undefined]) {
+    assert.equal(shownIndustry(none), null, `${String(none)} is not an industry`);
+  }
+});
+
+test("a company's industry is the one most of its plants are in", () => {
+  const food = 'Food Manufacturing';
+  const chemicals = 'Chemical Manufacturing';
+  assert.equal(leadingIndustry([food, chemicals, food]), food);
+  assert.equal(leadingIndustry([chemicals, food, food, null, 'Robots']), food);
+  // A plant with no industry, or one that is not of the 21, does not count.
+  assert.equal(leadingIndustry([null, undefined, '', 'Manufacturing', 'Robots', 'Robots', chemicals]), chemicals);
+  // A tie goes to the name that sorts first, whichever came first.
+  assert.equal(leadingIndustry([food, chemicals]), chemicals);
+  assert.equal(leadingIndustry([chemicals, food]), chemicals);
+  assert.equal(leadingIndustry([]), null);
+  assert.equal(leadingIndustry([null, 'Semiconductors']), null);
 });
 
 test('every industry has its sentence, under the name a plant carries', async () => {
