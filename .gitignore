@@ -3,7 +3,6 @@ node_modules/
 
 # Build outputs
 dist/
-.output/
 
 # Environment files
 .env
@@ -21,9 +20,6 @@ dist/
 *.log
 npm-debug.log*
 
-# Testing
-coverage/
-
 # Vercel
 .vercel/
 
@@ -33,9 +29,6 @@ coverage/
 
 # Claude Code local settings
 .claude/
-
-# Bundled API - committed for Vercel
-# api/index.js
 
 # Local .env backups (never commit)
 .env.bak.*
@@ -48,5 +41,4 @@ playwright-report/
 ci-results/
 
 # scripts/enrich-naics.mjs output
-enrich-naics.checkpoint.json
 enrich-naics-audit.json

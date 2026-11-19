@@ -11,9 +11,9 @@ import { hashToken } from './auth.js';
 
 export const INVITE_DAYS = 14;
 /** An admin invite grants the most, so its link is open for the shortest time. */
-export const ADMIN_INVITE_DAYS = 3;
+const ADMIN_INVITE_DAYS = 3;
 
-export const INVITE_ROLES = ['user', 'employer', 'admin'] as const;
+const INVITE_ROLES = ['user', 'employer', 'admin'] as const;
 export type InviteRole = (typeof INVITE_ROLES)[number];
 
 export function isInviteRole(value: unknown): value is InviteRole {

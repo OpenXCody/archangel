@@ -16,6 +16,7 @@ import {
 } from './emailTemplates.js';
 import { INVITE_DAYS, invitePath, type InviteRole } from './invites.js';
 import { RESET_HOURS, resetPath } from './passwordResets.js';
+import { rowsOf } from './rows.js';
 
 /**
  * What the app tells people, and when.
@@ -69,7 +70,7 @@ async function claimNotice(
   minutes: number,
   max = 1
 ): Promise<{ previous: Date | null } | null> {
-  const rows = (await db.execute(sql`
+  const rows = rowsOf<{ previous: Date | string | null }>(await db.execute(sql`
     WITH old AS (SELECT window_start FROM notice_log WHERE key = ${key})
     INSERT INTO notice_log AS n (key, window_start, count, user_id, job_id)
     VALUES (${key}, now(), 1, ${owner.userId}, ${owner.jobId ?? null})
@@ -78,7 +79,7 @@ async function claimNotice(
       count = CASE WHEN n.window_start <= now() - make_interval(mins => ${minutes}) THEN 1 ELSE n.count + 1 END
     WHERE n.window_start <= now() - make_interval(mins => ${minutes}) OR n.count < ${max}
     RETURNING (SELECT window_start FROM old) AS previous
-  `)) as unknown as { previous: Date | string | null }[];
+  `));
   if (rows.length === 0) return null;
   const { previous } = rows[0];
   return { previous: previous ? new Date(previous) : null };
@@ -336,12 +337,12 @@ export async function applicationReceived(input: { applicationId: string; jobId:
     const recipients = members.filter((member) => member.id !== input.applicantId);
     if (recipients.length === 0) return;
 
-    const [figure] = (await db.execute(sql`
+    const [figure] = rowsOf<ApplicantFigure>(await db.execute(sql`
       SELECT COUNT(*) FILTER (WHERE us.user_id IS NOT NULL)::int AS held_required, COUNT(*)::int AS total_required
         FROM job_skills js
         LEFT JOIN user_skills us ON us.skill_id = js.skill_id AND us.user_id = ${input.applicantId} AND us.status = 'held'
        WHERE js.job_id = ${input.jobId} AND js.required
-    `)) as unknown as ApplicantFigure[];
+    `));
 
     const messages: EmailMessage[] = [];
     for (const member of recipients) {
@@ -350,13 +351,13 @@ export async function applicationReceived(input: { applicationId: string; jobId:
       let others = 0;
       if (claim.previous) {
         // Everyone else who applied after the last email this member got about the job.
-        const [row] = (await db.execute(sql`
+        const [row] = rowsOf<{ others: number }>(await db.execute(sql`
           SELECT COUNT(DISTINCT e.application_id)::int AS others
             FROM application_events e
             JOIN applications a ON a.id = e.application_id
            WHERE a.job_id = ${input.jobId} AND e.status = 'applied' AND e.at > ${claim.previous.toISOString()}::timestamptz
              AND a.status <> 'withdrawn' AND a.id <> ${input.applicationId} AND a.user_id <> ${member.id}
-        `)) as unknown as { others: number }[];
+        `));
         others = row?.others ?? 0;
       }
       messages.push(
@@ -423,7 +424,7 @@ export interface News {
 
 /** Three EXISTS checks in one round trip. */
 export async function newsFor(userId: string): Promise<News> {
-  const [row] = (await db.execute(sql`
+  const [row] = rowsOf<News>(await db.execute(sql`
     SELECT
       EXISTS (
         SELECT 1 FROM application_events e
@@ -450,6 +451,6 @@ export async function newsFor(userId: string): Promise<News> {
          WHERE r.status = 'requested' AND (u.access_seen_at IS NULL OR r.created_at > u.access_seen_at)
       ))) AS access
     FROM users u WHERE u.id = ${userId}
-  `)) as unknown as News[];
+  `));
   return { applications: Boolean(row?.applications), applicants: Boolean(row?.applicants), access: Boolean(row?.access) };
 }

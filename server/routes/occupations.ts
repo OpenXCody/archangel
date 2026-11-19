@@ -5,11 +5,11 @@ import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
+import { answerDuplicate, answerWriteError, isUuid, optionalText, refuseDeleteWithJobs, requiredText } from '../lib/writes.js';
 import { careerMatch, careerNearMiss, readCareerTerm, withoutLevel, type CareerMatch } from '../lib/careerSearch.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 import { recordAudit } from '../lib/audit.js';
-import { refuseDeleteWithJobs } from '../lib/writes.js';
+import { rowsOf } from '../lib/rows.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -147,15 +147,15 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     // Industries where this work is typically done, with how many in-scope
     // factories each has and the states with the most of them.
-    const industriesResult = Array.from(
-      (await db.execute(sql`
+    const industriesResult = rowsOf(
+      await db.execute(sql`
         SELECT io.industry, io.common, COUNT(f.id)::int AS factory_count
         FROM industry_occupations io
         LEFT JOIN factories f ON f.primary_naics_description = io.industry AND ${factoryInScope('f')}
         WHERE io.occupation_id = ${id}
         GROUP BY io.industry, io.common, io.rank
         ORDER BY io.common ASC, factory_count DESC, io.industry ASC
-      `)) as Iterable<Record<string, unknown>>
+      `)
     ).map((r) => ({ name: String(r.industry), common: Boolean(r.common), factoryCount: Number(r.factory_count) || 0 }));
     // A career found everywhere is not pinned to industries; one that is, lists them.
     const ownIndustries = industriesResult.filter((i) => !i.common);
@@ -164,14 +164,14 @@ router.get('/:id', async (req: Request, res: Response) => {
     const elsewhereToo = ownIndustries.length > 0 && industriesResult.some((i) => i.common);
     const topStates = everywhere || ownIndustries.length === 0
       ? []
-      : Array.from(
-          (await db.execute(sql`
+      : rowsOf(
+          await db.execute(sql`
             SELECT f.state AS code, COUNT(*)::int AS factory_count
             FROM factories f
             INNER JOIN industry_occupations io ON io.industry = f.primary_naics_description
             WHERE io.occupation_id = ${id} AND io.common = false AND ${factoryInScope('f')} AND f.state ~ '^[A-Z]{2}$'
             GROUP BY f.state ORDER BY factory_count DESC, f.state ASC LIMIT 6
-          `)) as Iterable<Record<string, unknown>>
+          `)
         ).map((r) => ({ code: String(r.code), factoryCount: Number(r.factory_count) || 0 }));
 
     // Get in-scope factories hiring this role with headcount (include coordinates for map fly-to)
@@ -227,11 +227,10 @@ router.put('/:id/path', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'skills must be a list of { skillId, stage }.' });
       return;
     }
-    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const rows: { occupationId: string; skillId: string; stage: number | null }[] = [];
     for (const item of items as { skillId?: unknown; stage?: unknown }[]) {
       const stage = item?.stage ?? null;
-      if (typeof item?.skillId !== 'string' || !UUID.test(item.skillId) || ![null, 1, 2, 3].includes(stage as number | null)) {
+      if (!isUuid(item?.skillId) || ![null, 1, 2, 3].includes(stage as number | null)) {
         res.status(400).json({ error: 'Each entry needs a skillId and a stage of 1, 2, 3 or null.' });
         return;
       }
@@ -319,15 +318,20 @@ router.put('/:id/path', async (req: Request, res: Response) => {
 // POST /api/occupations - Create occupation
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { onetCode } = req.body;
     const title = requiredText(req.body?.title);
     const description = optionalText(req.body?.description, 2000);
+    // The same check a change to a career makes (changeCareer in lib/records.ts).
+    const onetCode = optionalText(req.body?.onetCode, 20);
     if (!title) {
       res.status(400).json({ error: 'A career needs a title of up to 200 characters.' });
       return;
     }
     if (description === false) {
       res.status(400).json({ error: 'A description is text of up to 2,000 characters.' });
+      return;
+    }
+    if (onetCode === false) {
+      res.status(400).json({ error: 'An O*NET code is text of up to 20 characters.' });
       return;
     }
 
@@ -363,8 +367,9 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/occupations/:id - Delete a career. Its path, jobs and their
-// applications, and people's goals go with it; `removed` counts them.
+// DELETE /api/occupations/:id - Delete a career. Refused (409) when one of
+// its jobs has applications. Otherwise its path, the jobs nobody applied to
+// and people's goals go with it; `removed` counts them.
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     if (await refuseDeleteWithJobs(res, 'career', req.params.id)) return;

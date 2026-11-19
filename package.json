@@ -9,7 +9,6 @@
     "dev:server": "tsx watch server/index.ts",
     "build": "node scripts/migrate.mjs --build && tsc && vite build",
     "preview": "vite preview",
-    "start:server": "tsx server/index.ts",
     "db:create": "node scripts/create-db.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "tsx server/scripts/seed.ts",

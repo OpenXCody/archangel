@@ -10,14 +10,17 @@ import {
   occupations,
   occupationSkills,
   skills,
-  companyMembers,
 } from '../db/index.js';
-import { cleanText, getSessionUser, handle, requireUser, type SessionUser } from '../lib/auth.js';
+import { canManageCompany, cleanText, getSessionUser, handle, requireUser } from '../lib/auth.js';
+import { isUuid } from '../lib/writes.js';
+import { rowsOf } from '../lib/rows.js';
+import { pageLimit } from '../lib/paging.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { SCOPE } from '../../shared/scope.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
 import { applicationReceived, applicationStatusChanged } from '../lib/notices.js';
 import { jobTextFilter, milesFromFactory, readNear } from '../lib/jobSearch.js';
+import { jobIsOpen } from '../lib/openJobs.js';
 
 /**
  * Jobs and applications.
@@ -42,11 +45,7 @@ const MAX_JOB_SKILLS = 60;
 const MAX_POSTS_PER_HOUR = 30;
 
 /** Open, unexpired, and at a factory inside the app's region. */
-const isOpenInScope: SQL = and(
-  eq(jobs.status, 'open'),
-  gt(jobs.expiresAt, sql`now()`),
-  factoryInScope()
-) as SQL;
+const isOpenInScope: SQL = and(jobIsOpen(), factoryInScope()) as SQL;
 
 const jobSummary = {
   id: jobs.id,
@@ -74,23 +73,9 @@ const jobSummary = {
   occupationTitle: occupations.title,
 };
 
-async function canManageCompany(user: SessionUser, companyId: string): Promise<boolean> {
-  if (user.isAdmin) return true;
-  const [row] = await db
-    .select({ status: companyMembers.status })
-    .from(companyMembers)
-    .where(and(eq(companyMembers.companyId, companyId), eq(companyMembers.userId, user.id)))
-    .limit(1);
-  return row?.status === 'active';
-}
-
 /** Whole cents, zero or more. Accepts numbers only. */
 function cents(value: unknown): number | null {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 100_000_000 ? value : null;
-}
-
-function isUuid(value: unknown): value is string {
-  return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
 // GET /api/jobs?occupationId=&companyId=&factoryId=&q=&state=&near=<lat>,<lng>&within=<miles>&limit=
@@ -114,7 +99,7 @@ router.get(
     }
     const miles = near ? milesFromFactory(near) : null;
     if (near && miles) filters.push(sql`${miles} <= ${near.within}`);
-    const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
+    const limit = pageLimit(req.query.limit, 100, 500);
 
     const rows = await db
       .select(miles ? { ...jobSummary, miles } : jobSummary)
@@ -556,7 +541,7 @@ router.get(
       .where(eq(jobSkills.jobId, job.id))
       .orderBy(sql`${jobSkills.required} DESC`, skills.name);
     // Every applicant's standing on the job's skills in one pass, not one query each.
-    const rows = (await db.execute(sql`
+    const rows = rowsOf<ApplicantRow>(await db.execute(sql`
       SELECT a.id, a.status, a.note, a.employer_note, a.created_at, a.status_changed_at,
              u.id AS user_id, u.name, u.email, u.home_zip,
              COALESCE(s.held, '[]'::json) AS held,
@@ -573,7 +558,7 @@ router.get(
            GROUP BY us.user_id
         ) s ON s.user_id = a.user_id
        WHERE a.job_id = ${job.id}
-    `)) as unknown as ApplicantRow[];
+    `));
 
     const requiredIds = new Set(skillRows.filter((skill) => skill.required).map((skill) => skill.id));
     const totalRequired = requiredIds.size;

@@ -158,7 +158,8 @@ export const skills = pgTable(
     howLearned: text('how_learned'),
     // The tools, machines or software it is done with: a short list.
     tools: text('tools').array(),
-    // Skill tree: self-referential parent for adjacency list pattern
+    // A parent skill, from the skill tree the product no longer shows. Merges
+    // and cleanups keep it consistent, and GET /api/skills still returns it.
     parentSkillId: uuid('parent_skill_id'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },

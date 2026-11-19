@@ -2,6 +2,8 @@ import { sql, type SQL } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { browsableCompanyNameSql } from './companyFilters.js';
 import { companyInScope, factoryInScope } from './scope.js';
+import { rowsOf } from './rows.js';
+import { likeLiteral } from './like.js';
 
 /**
  * Finding one company by its name, as a person types it.
@@ -60,11 +62,6 @@ export function readCompanyTerm(raw: unknown): CompanyTerm | null {
   return { core, words: words.length > 0 ? words : core.split(' '), initials };
 }
 
-/** A term with its own LIKE wildcards made literal. */
-function literal(text: string): string {
-  return text.replace(/[\\%_]/g, '\\$&');
-}
-
 export interface FoundCompany {
   id: string;
   name: string;
@@ -106,14 +103,14 @@ function whereOf(row: Row): string | null {
 /** Search companies by name. `limit` is how many to return; `total` counts them all. */
 export async function searchCompanies(term: CompanyTerm, limit: number): Promise<CompanySearchResult> {
   const core = term.core;
-  const like = literal(core);
+  const like = likeLiteral(core);
   // Each name read as the term is: see the note at the top of the file.
   const norm = sql`btrim(regexp_replace(replace(lower(c.name), '&', ' and '), '[^a-z0-9]+', ' ', 'g'))`;
   const coreOf = sql`regexp_replace(n.norm, ${`( (${LEGAL_FORMS}))+$`}, '')`;
   // The first letter of each word that carries weight: "johnson and johnson" is "jj".
   const initialsOf = sql`regexp_replace(regexp_replace(k.core, '\\m(and|of|the)\\M ?', '', 'g'), '\\m([a-z0-9])[a-z0-9]* ?', '\\1', 'g')`;
   const everyWord: SQL = sql.join(
-    term.words.slice(0, 6).map((word) => sql`(' ' || k.core) LIKE ${`% ${literal(word)}%`}`),
+    term.words.slice(0, 6).map((word) => sql`(' ' || k.core) LIKE ${`% ${likeLiteral(word)}%`}`),
     sql` AND `
   );
 
@@ -130,12 +127,12 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
     ), keyed AS MATERIALIZED (
       SELECT n.*, ${coreOf} AS core FROM named n
     )`;
-  const nameHas = (word: string): SQL => sql`c.name ILIKE ${`%${literal(word)}%`}`;
+  const nameHas = (word: string): SQL => sql`c.name ILIKE ${`%${likeLiteral(word)}%`}`;
   // A name that matches the term has each of its words somewhere in it; one
   // that has the term as its initials starts with the same letter.
   const hasEveryWord = sql.join(term.words.slice(0, 6).map(nameHas), sql` AND `);
   const couldMatch =
-    term.initials === null ? hasEveryWord : sql`(${hasEveryWord}) OR lower(c.name) LIKE ${`${literal(term.initials.charAt(0))}%`}`;
+    term.initials === null ? hasEveryWord : sql`(${hasEveryWord}) OR lower(c.name) LIKE ${`${likeLiteral(term.initials.charAt(0))}%`}`;
   // A near miss shares enough trigrams with the term, or holds one of its longer words whole.
   const longWords = term.words.filter((word) => word.length >= 4).slice(0, 6);
   const couldBeNear = sql.join([sql`c.name % ${core}`, sql`c.name %> ${core}`, ...longWords.map(nameHas)], sql` OR `);
@@ -172,9 +169,9 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
         FROM keyed k
     ) r
     WHERE r.rank IS NOT NULL`;
-  const found = (await db.execute(
-    withPlaces(couldMatch, ranked, sql`m.rank, m.featured DESC, m.factory_count DESC, length(m.name), m.name`)
-  )) as unknown as Row[];
+  const found = rowsOf<Row>(
+    await db.execute(withPlaces(couldMatch, ranked, sql`m.rank, m.featured DESC, m.factory_count DESC, length(m.name), m.name`))
+  );
   if (found.length > 0) {
     return { companies: found.map(toCompany), total: found[0].total, close: false };
   }
@@ -194,7 +191,7 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
     ORDER BY s.sim DESC, s.featured DESC, length(s.name), s.name
     LIMIT 3`;
   try {
-    const close = (await db.execute(withPlaces(couldBeNear, near, sql`m.sim DESC, m.featured DESC, length(m.name), m.name`))) as unknown as Row[];
+    const close = rowsOf<Row>(await db.execute(withPlaces(couldBeNear, near, sql`m.sim DESC, m.featured DESC, length(m.name), m.name`)));
     return { companies: close.map(toCompany), total: close.length, close: close.length > 0 };
   } catch (error) {
     // The closest names need the pg_trgm extension. Without it the answer is

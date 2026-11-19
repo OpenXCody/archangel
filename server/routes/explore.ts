@@ -7,6 +7,7 @@ import { FOCUS_AREAS } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
 import { INDUSTRY_NAME_LIST, companyIndustries, listIndustries } from '../lib/industries.js';
 import { industryByName, industryLabel } from '../../shared/industry.js';
+import { int, rowsOf, text } from '../lib/rows.js';
 
 const router = Router();
 
@@ -20,11 +21,6 @@ const SUPPORT_CATEGORIES = new Set(['material handling']);
 const STATE_COUNT = 10;
 const INDUSTRY_COUNT = 10;
 const OTHER = 'Other';
-
-type Row = Record<string, unknown>;
-const rowsOf = (result: unknown): Row[] => Array.from(result as Iterable<Row>);
-const text = (value: unknown): string | null => (typeof value === 'string' && value.trim() ? value : null);
-const int = (value: unknown): number => Number(value) || 0;
 
 /**
  * A skill's category as the overview shows it. The column holds leftovers from

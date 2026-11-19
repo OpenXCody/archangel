@@ -1,5 +1,6 @@
 import { sql, type SQL } from 'drizzle-orm';
 import { US_STATES } from '../../shared/states.js';
+import { containing } from './like.js';
 
 /**
  * Narrowing the open jobs list: by what a person typed, and by distance from
@@ -19,8 +20,6 @@ function stem(word: string): string {
   }
   return word;
 }
-
-const escapeLike = (text: string): string => text.replace(/[\\%_]/g, (ch) => `\\${ch}`);
 
 /**
  * What was typed, as a condition on the jobs list. Every word must be found
@@ -54,7 +53,7 @@ export function jobTextFilter(raw: unknown): SQL | null {
 
   const parts: SQL[] = states.map((code) => sql`factories.state = ${code}`);
   for (const word of words) {
-    const like = `%${escapeLike(stem(word))}%`;
+    const like = containing(stem(word));
     parts.push(sql`(
       jobs.title ILIKE ${like} OR companies.name ILIKE ${like} OR occupations.title ILIKE ${like}
       OR factories.city ILIKE ${like} OR jobs.shift ILIKE ${like}
@@ -70,7 +69,7 @@ export interface Near {
   within: number;
 }
 
-export const DEFAULT_WITHIN_MILES = 50;
+const DEFAULT_WITHIN_MILES = 50;
 const MAX_WITHIN_MILES = 500;
 
 /**

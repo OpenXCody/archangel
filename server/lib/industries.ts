@@ -3,6 +3,7 @@ import { db } from '../db/index.js';
 import { factoryInArea, factoryInScope } from './scope.js';
 import type { FocusArea } from '../../shared/scope.js';
 import { INDUSTRIES, MANUFACTURING_CODE, industryLabel } from '../../shared/industry.js';
+import { int, rowsOf, text, type Row } from './rows.js';
 
 /**
  * The industry as a level of the product: what the industry routes, the
@@ -16,10 +17,6 @@ import { INDUSTRIES, MANUFACTURING_CODE, industryLabel } from '../../shared/indu
  * A figure that is not known is null, never zero.
  */
 
-export type Row = Record<string, unknown>;
-export const rowsOf = (result: unknown): Row[] => Array.from(result as Iterable<Row>);
-export const text = (value: unknown): string | null => (typeof value === 'string' && value.trim() ? value : null);
-export const int = (value: unknown): number => Number(value) || 0;
 /** A figure that may be unknown: null stays null, and so does a zero nobody would state. */
 export const known = (value: unknown): number | null => (value === null || value === undefined || Number(value) <= 0 ? null : Number(value));
 

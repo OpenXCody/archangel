@@ -4,10 +4,17 @@ import { db, users, companies, companyMembers, invites, occupations, passwordRes
 import { cleanText, currentSessionHash, handle, newToken, hashToken, normalizeEmail } from '../lib/auth.js';
 import { changedFields, isAuditKind, recordAudit, type Executor } from '../lib/audit.js';
 import { inviteDays, invitePath, isInviteRole } from '../lib/invites.js';
-import { RecordRefusal, changeRecord, isRecordKind, mergeRecords, readRecord, searchRecords, similarRecords } from '../lib/records.js';
+import { RecordRefusal, changeRecord, isRecordKind, readRecord } from '../lib/records.js';
+import { mergeRecords } from '../lib/recordMerge.js';
+import { searchRecords, similarRecords } from '../lib/recordSearch.js';
 import { RESET_HOURS, resetPath } from '../lib/passwordResets.js';
 import { accessDecided, emailAtDomain, sendAdminResetLink, sendInvite } from '../lib/notices.js';
 import { uuidParam } from '../middleware/validateUuid.js';
+import { jobIsOpen } from '../lib/openJobs.js';
+import { isUuid } from '../lib/writes.js';
+import { pageLimit, pageOffset } from '../lib/paging.js';
+import { rowsOf } from '../lib/rows.js';
+import { containing, likeLiteral } from '../lib/like.js';
 
 /**
  * Admin Tools: people, company access, invites, password resets and data upkeep.
@@ -15,26 +22,6 @@ import { uuidParam } from '../middleware/validateUuid.js';
  */
 const router = Router();
 router.param('id', uuidParam);
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function isUuid(value: unknown): value is string {
-  return typeof value === 'string' && UUID.test(value);
-}
-
-/** A search term with its own LIKE wildcards made literal. */
-function likeLiteral(term: string): string {
-  return term.replace(/[\\%_]/g, '\\$&');
-}
-
-function containsPattern(term: string): string {
-  return `%${likeLiteral(term)}%`;
-}
-
-function pageNumber(value: unknown, fallback: number, max: number): number {
-  const parsed = typeof value === 'string' ? Number.parseInt(value, 10) : Number.NaN;
-  return Number.isFinite(parsed) && parsed >= 0 ? Math.min(parsed, max) : fallback;
-}
 
 // GET /api/admin/overview - the counts an admin checks first
 router.get(
@@ -44,7 +31,7 @@ router.get(
       .select({
         users: sql<number>`(SELECT COUNT(*)::int FROM users)`,
         pendingMemberships: sql<number>`(SELECT COUNT(*)::int FROM company_members WHERE status = 'requested')`,
-        openJobs: sql<number>`(SELECT COUNT(*)::int FROM jobs WHERE status = 'open' AND expires_at > now())`,
+        openJobs: sql<number>`(SELECT COUNT(*)::int FROM jobs WHERE ${jobIsOpen()})`,
         applications: sql<number>`(SELECT COUNT(*)::int FROM applications)`,
         // With pendingMemberships, what Admin Tools lists as waiting.
         draftPaths: sql<number>`(SELECT COUNT(*)::int FROM occupations WHERE path_status = 'draft')`,
@@ -277,9 +264,9 @@ router.get(
   handle(async (req, res) => {
     const term = cleanText(req.query.q, 100) ?? '';
     const role = PEOPLE_ROLES.find((value) => value === req.query.role);
-    const limit = Math.max(1, pageNumber(req.query.limit, 100, 200));
-    const offset = pageNumber(req.query.offset, 0, 1_000_000);
-    const pattern = containsPattern(term);
+    const limit = pageLimit(req.query.limit, 100, 200);
+    const offset = pageOffset(req.query.offset);
+    const pattern = containing(term);
     const conditions: SQL[] = [];
     if (term) {
       conditions.push(
@@ -402,10 +389,10 @@ router.delete(
         if (admins.length === 1) return 'last';
         if (id === (await firstAdminId(tx))) return 'first';
       }
-      const [counts] = Array.from(
-        (await tx.execute(sql`SELECT
+      const [counts] = rowsOf<Record<string, number>>(
+        await tx.execute(sql`SELECT
           (SELECT COUNT(*)::int FROM applications WHERE user_id = ${id}) AS applications,
-          (SELECT COUNT(*)::int FROM company_members WHERE user_id = ${id}) AS memberships`)) as Iterable<Record<string, number>>
+          (SELECT COUNT(*)::int FROM company_members WHERE user_id = ${id}) AS memberships`)
       );
       const deleted = await tx.delete(users).where(eq(users.id, id)).returning({ email: users.email, name: users.name });
       if (deleted.length === 0) return 'missing';
@@ -662,7 +649,7 @@ router.get(
         factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factories f WHERE f.company_id = companies.id)`,
       })
       .from(companies)
-      .where(ilike(companies.name, containsPattern(term)))
+      .where(ilike(companies.name, containing(term)))
       .orderBy(sql`(${companies.name} ILIKE ${`${likeLiteral(term)}%`}) DESC`, desc(companies.featured), companies.name)
       .limit(8);
     res.json({ companies: rows });
@@ -771,8 +758,8 @@ router.post(
 router.get(
   '/audit',
   handle(async (req, res) => {
-    const limit = Math.max(1, pageNumber(req.query.limit, 50, 200));
-    const offset = pageNumber(req.query.offset, 0, 1_000_000);
+    const limit = pageLimit(req.query.limit, 50, 200);
+    const offset = pageOffset(req.query.offset);
     const conditions: SQL[] = [];
     if (isAuditKind(req.query.kind)) conditions.push(eq(auditLog.kind, req.query.kind));
     if (isUuid(req.query.record)) conditions.push(eq(auditLog.recordId, req.query.record));

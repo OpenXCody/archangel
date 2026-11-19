@@ -6,6 +6,8 @@ import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, optionalText, requiredText } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord, toolList } from '../lib/records.js';
 import { listOpenJobs } from '../lib/openJobs.js';
+import { rowsOf } from '../lib/rows.js';
+import { containing } from '../lib/like.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -16,9 +18,6 @@ router.use(uuidQuery('parent'));
 /** How many careers list the skill. */
 const careerCount = sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.skill_id = skills.id)`;
 const onACareer = sql`EXISTS (SELECT 1 FROM occupation_skills WHERE occupation_skills.skill_id = skills.id)`;
-
-/** A typed term as a LIKE pattern, with its own wildcards made literal. */
-const containing = (term: string) => `%${term.replace(/[\\%_]/g, '\\$&')}%`;
 
 // GET /api/skills - The skills list.
 //   Browsing (no `search`): only skills a career uses, the ones most careers
@@ -64,12 +63,13 @@ router.get('/', async (req: Request, res: Response) => {
       conditions.push(eq(skills.category, category as string));
     }
 
-    // Filter by parent skill (for tree navigation)
+    // `parent` and `rootOnly` (and `parentSkillId` and `childCount` in each
+    // row) are from the skill tree page, which is gone. Nothing in the app
+    // sends or reads them; taking them away would narrow the public API.
     if (parent) {
       conditions.push(eq(skills.parentSkillId, parent as string));
     }
 
-    // Filter to only root skills (no parent)
     if (rootOnly === 'true') {
       conditions.push(isNull(skills.parentSkillId));
     }
@@ -177,8 +177,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       listOpenJobs(sql`EXISTS (SELECT 1 FROM job_skills js WHERE js.job_id = ${jobs.id} AND js.skill_id = ${id})`, JOBS_SHOWN),
     ]);
 
-    const rows = (result: unknown): Record<string, unknown>[] => Array.from(result as Iterable<Record<string, unknown>>);
-    const industries = rows(industryRows);
+    const industries = rowsOf(industryRows);
     const own = industries.filter((r) => !r.common);
 
     res.json({
@@ -187,7 +186,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       industries: own.slice(0, INDUSTRIES_SHOWN).map((r) => ({ name: String(r.industry), careerCount: Number(r.career_count) || 0 })),
       // Used only by careers found in plants of every industry.
       everywhere: own.length === 0 && industries.length > 0,
-      relatedSkills: rows(relatedRows).map((r) => ({ id: String(r.id), name: String(r.name), category: r.category === null ? null : String(r.category) })),
+      relatedSkills: rowsOf(relatedRows).map((r) => ({ id: String(r.id), name: String(r.name), category: r.category === null ? null : String(r.category) })),
       jobs: openJobs,
     });
   } catch (error) {

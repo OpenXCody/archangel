@@ -3,11 +3,12 @@ import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, factories, companies, factoryOccupations, occupations, jobs } from '../db/index.js';
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
-import { listOpenJobs } from '../lib/openJobs.js';
+import { jobIsOpen, listOpenJobs } from '../lib/openJobs.js';
 import { packPins } from '../../shared/pins.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalText, requiredText, stateCode } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
+import { rowsOf } from '../lib/rows.js';
 import { sourcesOf } from '../lib/sources.js';
 import { refuseDeleteWithJobs } from '../lib/writes.js';
 
@@ -127,7 +128,7 @@ router.get('/', async (req: Request, res: Response) => {
 // map (shared/pins.ts). The whole country is one response.
 router.get('/pins', async (req: Request, res: Response) => {
   try {
-    const { states, company, industry } = req.query;
+    const { states, company } = req.query;
 
     // Build where conditions. Public reads only ever see in-scope factories.
     const conditions: (SQL | undefined)[] = [factoryInScope()];
@@ -146,10 +147,6 @@ router.get('/pins', async (req: Request, res: Response) => {
       conditions.push(eq(factories.companyId, company as string));
     }
 
-    if (industry) {
-      conditions.push(sql`${companies.industry} = ${industry}`);
-    }
-
     // One row per factory, carrying everything a pin and its hover card show,
     // so hovering never has to fetch. `sites` is how many factories the
     // company has nationwide; with `featured` it gives each pin a tier.
@@ -162,7 +159,7 @@ router.get('/pins', async (req: Request, res: Response) => {
     const openJobCounts = db
       .select({ factoryId: jobs.factoryId, openJobs: sql<number>`COUNT(*)::int`.as('open_jobs') })
       .from(jobs)
-      .where(sql`${jobs.status} = 'open' AND ${jobs.expiresAt} > now()`)
+      .where(jobIsOpen())
       .groupBy(jobs.factoryId)
       .as('open_job_counts');
 
@@ -322,15 +319,15 @@ router.get('/:id', async (req: Request, res: Response) => {
     const industryName = factory.industry;
     const typicalCareers =
       factoryOccupationsResult.length === 0 && industryName
-        ? Array.from(
-            (await db.execute(sql`
+        ? rowsOf(
+            await db.execute(sql`
               SELECT o.id, o.title
               FROM industry_occupations io
               INNER JOIN occupations o ON o.id = io.occupation_id
               WHERE io.industry = ${industryName}
               ORDER BY io.rank ASC
               LIMIT 10
-            `)) as Iterable<Record<string, unknown>>
+            `)
           ).map((r) => ({ id: String(r.id), title: String(r.title) }))
         : [];
 
