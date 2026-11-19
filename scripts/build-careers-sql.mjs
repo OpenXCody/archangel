@@ -238,7 +238,7 @@ BEGIN
         VALUES (c.title, c.what, (SELECT slug FROM skill_domains WHERE slug = c.home))
         RETURNING id INTO v_keeper;
       n_created := n_created + 1;
-      PERFORM pg_temp.cat_log('created', NOT v_new, format('%s: none of its %s titles is stored. Created, with no path', c.title, array_length(v_names, 1)));
+      PERFORM pg_temp.cat_log('created', NOT v_new, format('%s: neither its title nor one folded into it is stored. Created, with no path', c.title));
     ELSE
       -- One path: the title row's own when it is a full one, else that of the row with the most skills.
       IF NOT (lower(v_keeper_title) = lower(c.title) AND v_keeper_n >= ${OWN_PATH}) THEN
