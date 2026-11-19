@@ -73,10 +73,15 @@ export function readTitle(title) {
     // "Programmer/Operator": the second job word is the same person; "CAD/CAM" stays.
     text = text.replace(/\/\s*([A-Za-z]+)\b/g, (whole, b) => (ROLE_NOUNS.has(titleWords(b)[0]) ? ' ' : ' ' + b));
     const words = [];
-    const raw = titleWords(text);
+    // Where an "and" stood, so "Automation & Controls Engineer" can be told from "Test Automation Engineer".
+    const joins = new Set();
+    let and = false;
+    const raw = titleWords(text, true);
     for (let i = 0; i < raw.length; i++) {
       const w = raw[i];
       const next = raw[i + 1];
+      if (w === 'and') { and = true; continue; }
+      if (and) { joins.add(words.length); and = false; }
       if (NOT_A_CAREER.has(w)) found.refused = found.refused ?? `"${w}" in the title`;
       if (w === 'co' && next === 'op') { found.refused = found.refused ?? '"co-op" in the title'; continue; }
       if (w === 'team' && (next === 'lead' || next === 'leader' || next === 'member')) { if (next !== 'member') found.refused = found.refused ?? '"team lead" in the title'; }
@@ -100,7 +105,7 @@ export function readTitle(title) {
       if (w === 'associate' && !(i === raw.length - 1 && words.length > 0)) { lv('Associate', 1, false); continue; }
       words.push(w);
     }
-    if (words.length) segments.push(words);
+    if (words.length) { words.joins = joins; segments.push(words); }
   }
   const pick = said.either && said.word && said.numeral ? (said.numeral.n <= said.word.n ? said.numeral : said.word) : said.word ?? said.numeral;
   if (pick) found.level = { word: pick.word, rank: rankOf(pick.n) };

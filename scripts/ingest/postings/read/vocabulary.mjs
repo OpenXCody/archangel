@@ -16,10 +16,10 @@ const json = (root, file) => JSON.parse(readFileSync(path.join(root, file), 'utf
 export const ROLE_NOUNS = new Set(['engineer', 'technician', 'operator', 'machinist', 'welder', 'assembler', 'inspector', 'mechanic', 'electrician', 'programmer', 'builder', 'maker', 'fabricator', 'painter', 'designer', 'chemist', 'microbiologist', 'specialist', 'setter', 'grinder', 'millwright', 'tester', 'drafter', 'draftsman', 'installer', 'worker', 'laborer', 'associate', 'member', 'analyst', 'conductor', 'toolmaker', 'moldmaker', 'molder', 'plater', 'anodizer', 'coater', 'laminator', 'solderer', 'packer', 'packager', 'rigger', 'fitter', 'sander', 'treater', 'repairman', 'mover', 'man', 'cutter', 'winder', 'bonder', 'handler', 'monitor', 'scraper', 'inserter', 'stacker', 'feeder', 'integrator']);
 
 // Short forms employers write in a title. Only spellings, never a job's meaning.
-const TITLE_WORD = { tech: 'technician', techs: 'technician', technicians: 'technician', mfg: 'manufacturing', manuf: 'manufacturing', eng: 'engineer', engr: 'engineer', engineers: 'engineer', maint: 'maintenance', op: 'operator', ops: 'operator', operators: 'operator', nde: 'ndt', qlty: 'quality', assy: 'assembly', elec: 'electrical', mech: 'mechanical', composites: 'composite', structural: 'structures', electronic: 'electronics', inspectors: 'inspector', mechanics: 'mechanic', machinists: 'machinist', welders: 'welder', assemblers: 'assembler', programmers: 'programmer', designers: 'designer', electricians: 'electrician', journeyperson: 'journeyman', setup: 'setup' };
+const TITLE_WORD = { tech: 'technician', techs: 'technician', technicians: 'technician', mfg: 'manufacturing', manuf: 'manufacturing', eng: 'engineer', engr: 'engineer', engineers: 'engineer', maint: 'maintenance', op: 'operator', ops: 'operator', operators: 'operator', nde: 'ndt', qlty: 'quality', assy: 'assembly', elec: 'electrical', mech: 'mechanical', composites: 'composite', electronic: 'electronics', inspectors: 'inspector', mechanics: 'mechanic', machinists: 'machinist', welders: 'welder', assemblers: 'assembler', programmers: 'programmer', designers: 'designer', electricians: 'electrician', journeyperson: 'journeyman', setup: 'setup' };
 
 /** The words of a title or a career name as they are compared. */
-export function titleWords(text) {
+export function titleWords(text, keepAnd = false) {
   return String(text)
     .normalize('NFKD').replace(/[̀-ͯ]/g, '')
     .toLowerCase()
@@ -27,7 +27,7 @@ export function titleWords(text) {
     .replace(/\bset[- ]up\b/g, 'setup').replace(/\bnon[- ]destructive\b/g, 'nondestructive').replace(/\belectro[- ]mechanical\b/g, 'electromechanical').replace(/\bmulti[- ]craft\b/g, 'multicraft').replace(/\bclean ?room\b/g, 'cleanroom').replace(/\btool ?room\b/g, 'toolroom')
     .replace(/[^a-z0-9+#]+/g, ' ').trim().split(' ').filter(Boolean)
     .map((w) => TITLE_WORD[w] ?? w)
-    .filter((w) => w !== 'and' && w !== 'of' && w !== 'the');
+    .filter((w) => (w !== 'and' || keepAnd) && w !== 'of' && w !== 'the');
 }
 
 function buildCareers(root) {
@@ -36,7 +36,7 @@ function buildCareers(root) {
   const paths = json(root, 'data/careers/paths.json');
   const careers = new Map();
   const names = [];   // { words, key, career, kind: 'title' | 'other name', initialism }
-  const add = (name, career, kind) => {
+  const add = (name, career, kind, source = kind) => {
     const bare = name.replace(/\(([^)]*)\)/g, ' $1 ');
     const words = titleWords(bare);
     if (!words.length) return;
@@ -45,17 +45,25 @@ function buildCareers(root) {
     // A name is a title when it ends in a job word; a branch written in brackets
     // ("NDT Technician (Ultrasonic)") ends in its branch and is one too.
     const titled = ROLE_NOUNS.has(last) || /\(/.test(name);
-    names.push({ name, words, key: words.join(' '), career, kind, initialism, titled: titled && !initialism });
+    names.push({ name, words, key: words.join(' '), career, kind, source, initialism, titled: titled && !initialism });
   };
   for (const c of catalogue.careers) {
     careers.set(c.title, { title: c.title, home: c.home, path: [] });
     add(c.title, c.title, 'title');
-    for (const was of c.was ?? []) add(was, c.title, 'other name');
+    for (const was of c.was ?? []) add(was, c.title, 'other name', 'was');
   }
-  for (const a of aliases.careers) for (const n of a.aliases ?? []) if (careers.has(a.title)) add(n, a.title, 'other name');
+  for (const a of aliases.careers) for (const n of a.aliases ?? []) if (careers.has(a.title)) add(n, a.title, 'other name', 'alias');
   for (const p of paths.careers ?? []) {
     const c = careers.get(p.title);
     if (c) c.path = (p.skills ?? []).map((s) => (typeof s === 'string' ? s : s.skill)).filter(Boolean);
+  }
+  // How many paths each skill is on. A skill most careers share ("Blueprint Reading")
+  // says less about which career a text is than one a few have ("Wafer Handling").
+  const onPaths = new Map();
+  for (const c of careers.values()) for (const s of c.path) onPaths.set(s, (onPaths.get(s) ?? 0) + 1);
+  for (const c of careers.values()) {
+    c.telling = new Set(c.path.filter((s) => onPaths.get(s) <= 20));
+    c.weighs = c.telling.size >= 4;
   }
   // One key, one career: a name two careers share cannot decide between them.
   const byKey = new Map();
@@ -124,6 +132,8 @@ function buildSkills(root) {
     const acr = isAcronym(t);
     const key = acr ? `=${t}` : squashTerm(t);
     if (!key || (!acr && key.length < 4)) return;
+    // "Wave and Selective Soldering" is also written "wave/selective soldering".
+    if (!acr && / and /i.test(t) && !/ and .* and /i.test(t)) put(t.replace(/ and /i, ' '), kind, skill);
     let e = terms.get(key);
     if (!e) { e = { key, text: t, kind, acronym: acr, skills: [], words: t.split(/\s+/).length }; terms.set(key, e); }
     // A term found two ways keeps the surer one, and only the skills found that way.
@@ -185,7 +195,7 @@ function buildSkills(root) {
   for (const e of makes.values()) {
     // A make that is an everyday word, or a few capitals, is only read as a make
     // beside the skill it is a make of.
-    e.risky = e.words === 1 && (e.make.length <= 4 || EVERYDAY.has(e.make.toLowerCase()));
+    e.risky = e.words === 1 && (e.make.length <= 3 || EVERYDAY.has(e.make.toLowerCase()));
     // A short make or an everyday word must be written as its maker writes it;
     // the rest only need their first letter capital ("ANSYS", "Matlab").
     e.exact = e.risky;
@@ -194,14 +204,14 @@ function buildSkills(root) {
 }
 
 // Makes whose names are also ordinary words or places.
-const EVERYDAY = new Set(['star', 'flow', 'citizen', 'carbon', 'arena', 'banner', 'nova', 'disco', 'sick', 'parker', 'wagner', 'python', 'waters', 'canon', 'fluke', 'plex', 'hesse', 'heller', 'ingersoll', 'eastman', 'gerber', 'fives', 'horiba', 'agilent', 'bruker', 'keysight', 'cohu', 'ferrum', 'angelus', 'krones', 'sidel', 'husky', 'engel', 'yamaha', 'kawasaki', 'mitsubishi', 'siemens', 'panasonic', 'nikon', 'omron', 'hexagon', 'leica', 'zeiss', 'instron', 'vector', 'empower', 'ignition', 'inventor', 'creo', 'allegro', 'pads', 'magics', 'modus']);
+const EVERYDAY = new Set(['doors', 'upkeep', 'gema', 'besi', 'atos', 'limble', 'calypso', 'tornos', 'ame', 'star', 'flow', 'citizen', 'carbon', 'arena', 'banner', 'nova', 'disco', 'sick', 'parker', 'wagner', 'python', 'waters', 'canon', 'fluke', 'plex', 'hesse', 'heller', 'ingersoll', 'eastman', 'gerber', 'fives', 'horiba', 'agilent', 'bruker', 'keysight', 'cohu', 'ferrum', 'angelus', 'krones', 'sidel', 'husky', 'engel', 'yamaha', 'kawasaki', 'mitsubishi', 'siemens', 'panasonic', 'nikon', 'omron', 'hexagon', 'leica', 'zeiss', 'instron', 'vector', 'empower', 'ignition', 'inventor', 'creo', 'allegro', 'pads', 'magics', 'modus']);
 
-/** Index squashed terms by their first three letters, longest first. */
+/** Index squashed terms by their first two letters, longest first. */
 function index(entries) {
   const idx = new Map();
   for (const e of entries) {
     if (e.key.startsWith('=')) continue;
-    const k = e.key.slice(0, 3);
+    const k = e.key.slice(0, 2);
     if (!idx.has(k)) idx.set(k, []);
     idx.get(k).push(e);
   }
@@ -221,6 +231,14 @@ export function buildVocabulary(root) {
     for (const w of s.name.split(/[^A-Za-z0-9]+/)) if (w.length >= 5 && !GENERIC.has(stem(w))) categoryWords.get(s.category).add(stem(w));
   }
   for (const [cat, set] of categoryWords) for (const w of cat.split(/[^A-Za-z]+/)) if (w.length >= 5 && !GENERIC.has(stem(w))) set.add(stem(w));
+  // The words of a skill's own names: "PLC" beside "program", "SPC" beside "statistical".
+  const catalogue = json(root, 'data/skills/catalogue.json');
+  const ownWords = new Map();
+  for (const s of catalogue.skills) {
+    const set = new Set();
+    for (const n of [s.name, ...(s.aliases ?? [])]) for (const w of n.split(/[^A-Za-z]+/)) if (w.length >= 4 && !EMPTY.has(stem(w)) && !/^[A-Z]+$/.test(w)) set.add(stem(w));
+    ownWords.set(s.name, set);
+  }
   return {
     ...careers,
     skills: sk.skills,
@@ -231,5 +249,6 @@ export function buildVocabulary(root) {
     makes: sk.makes,
     makeIndex: index(sk.makes.values()),
     categoryWords,
+    ownWords,
   };
 }

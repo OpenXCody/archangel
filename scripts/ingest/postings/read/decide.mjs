@@ -2,7 +2,7 @@
 // (career.mjs); the department and the text's own words can refuse; where the title
 // could be two careers, the one whose path's skills the text names is taken, and
 // where that is even the answer is null.
-import { readCareerTitle, initialismOption } from './career.mjs';
+import { readCareerTitle, initialismOption, saysNothing, SAYS_NOTHING } from './career.mjs';
 import { assign } from './skills.mjs';
 
 // Departments none of the careers work in, and ones whose engineers are not ours
@@ -32,46 +32,63 @@ export function decideCareer(posting, text, vocab) {
   if (OFFICE.test(department)) return none(`department "${department.trim()}"`);
   const { asking, found } = text();
 
-  // What the text names, before any career is assumed.
-  const named = new Set(assign(found, asking, vocab, []).skills.map((s) => s.name));
+  // What the text names of each career's path. A code that could be several skills
+  // ("PLC") is read with the career's path in hand, so each career is asked in turn.
   const pathOf = (career) => vocab.careers.get(career).path;
+  const namedFor = new Map();
+  const named = (career) => {
+    if (!namedFor.has(career)) namedFor.set(career, new Set(assign(found, asking, vocab, pathOf(career)).skills.map((s) => s.name)));
+    return namedFor.get(career);
+  };
   const hits = (career, not = []) => {
     const others = new Set(not.flatMap(pathOf));
-    return pathOf(career).filter((s) => named.has(s) && !others.has(s)).length;
+    const has = named(career);
+    return pathOf(career).filter((s) => has.has(s) && !others.has(s)).length;
   };
 
   let pick = null;
-  if (options.length === 1) pick = options[0];
-  else {
+  const real = options.filter((o) => !o.yields);
+  if (real.length === 1) {
+    pick = real[0];
+    // "Automation & Controls Engineer": the last named is the job unless the text is plainly the other's.
+    const other = options.find((o) => o.yields);
+    if (other && hits(other.career, [pick.career]) >= 2 && hits(pick.career, [other.career]) === 0) pick = other;
+  } else {
     // Two careers could both be meant: the one whose path's skills the text names,
     // and where that is even, neither.
-    const scored = options.map((o) => ({ o, n: hits(o.career, options.filter((x) => x !== o).map((x) => x.career)) })).sort((a, b) => b.n - a.n);
+    const scored = real.map((o) => ({ o, n: hits(o.career, real.filter((x) => x !== o).map((x) => x.career)) })).sort((a, b) => b.n - a.n);
     if (scored[0].n >= 2 && scored[0].n > scored[1].n) pick = scored[0].o;
-    else return none(`could be ${options.map((o) => o.career).join(' or ')}`);
+    else return none(`could be ${real.map((o) => o.career).join(' or ')}`);
   }
 
   const onPath = hits(pick.career);
-  // A title that is only another name for a career, or close to one, is taken on
-  // the text's word as well: it has to name something the career's path holds.
+  // As evidence, a skill half the careers share counts half, for a career that has
+  // skills of its own to be known by.
+  const career = vocab.careers.get(pick.career);
+  const has = named(pick.career);
+  const weight = career.weighs ? career.path.reduce((sum, s) => sum + (has.has(s) ? (career.telling.has(s) ? 1 : 0.5) : 0), 0) : onPath;
   const need = evidenceNeeded(pick, vocab);
-  if (onPath < need) return none(`"${pick.matched}" for ${pick.career}, and the text names ${onPath} of its skills where ${need} would make it sure`);
+  // One skill of the path is one skill, whichever; the weighing is for the names that need more.
+  if ((need === 1 ? onPath : weight) < need) return none(`"${pick.matched}" for ${pick.career}, and the text names too little of its path (${weight} where ${need} would make it sure)`);
   if (SOFTWARE.test(department) && onPath < 2) return none(`department "${department.trim()}" and the text names none of the career's skills`);
   if (softwareWords(asking) >= 4 && onPath < 2) return none('the text is a software job\'s');
 
   // A branch of the same career the text speaks for: "Welder" whose text is all GTAW.
-  const base = vocab.careers.get(pick.career);
-  const baseWords = new Set(vocab.byKey.get(titleKey(base.title, vocab))?.words ?? []);
-  {
+  const baseKey = titleKey(pick.career, vocab);
+  const baseWords = baseKey ? baseKey.split(' ') : [];
+  if (baseWords.length) {
     let best = null;
     for (const n of vocab.names) {
-      if (n.kind !== 'title' || n.career === pick.career || n.words.length <= baseWords.size) continue;
-      if (![...baseWords].every((w) => n.words.includes(w))) continue;
+      if (n.kind !== 'title' || n.career === pick.career || n.words.length <= baseWords.length) continue;
+      // The branch's title is this one with a word before or after it, not inside it.
+      const at = n.words.join(' ').indexOf(baseKey);
+      if (at !== 0 && at !== n.key.length - baseKey.length) continue;
       const theirs = hits(n.career, [pick.career]);
       const ours = hits(pick.career, [n.career]);
       if (theirs >= 2 && ours === 0 && (!best || theirs > best.n)) best = { n: theirs, name: n };
       // A branch whose extra word says nothing ("Product Reliability Engineer" beside
       // "Reliability Engineer") shares the bare title: the text has to say which.
-      if (n.words.length === baseWords.size + 1 && SAYS_NOTHING.has(n.words.find((w) => !baseWords.has(w)))) {
+      if (n.words.length === baseWords.length + 1 && SAYS_NOTHING.has(n.words.find((w) => !baseWords.includes(w)))) {
         if (theirs > ours && theirs >= 1) best = { n: theirs + 100, name: n };
         else if (!(ours > theirs)) return none(`could be ${pick.career} or ${n.career}`);
       }
@@ -82,10 +99,6 @@ export function decideCareer(posting, text, vocab) {
   return { career: { title: pick.career, how: pick.how, matched: pick.matched }, level: t.level, shift: t.shift, why: null, onPath };
 }
 
-// Words of a name that do not say what the work is.
-const SAYS_NOTHING = new Set(['manufacturing', 'production', 'process', 'product', 'design', 'integration', 'equipment', 'quality', 'test', 'machine', 'general', 'operations', 'systems', 'system', 'assembly', 'line', 'plant', 'factory', 'shop', 'development', 'engineering', 'technical', 'service', 'support', 'project', 'device', 'package', 'source', 'stage', 'sustaining', 'validation', 'compliance', 'final', 'functional', 'industrial', 'maintenance']);
-const ANY_JOB = new Set(['engineer', 'technician', 'operator', 'specialist', 'associate', 'worker', 'member', 'mechanic', 'inspector', 'tester', 'analyst', 'laborer', 'installer', 'handler', 'monitor', 'conductor']);
-
 /**
  * How many of the career's path skills the text has to name before a title is
  * taken for it. A career's own title needs none. Another name that says what the
@@ -95,15 +108,19 @@ const ANY_JOB = new Set(['engineer', 'technician', 'operator', 'specialist', 'as
  * technician's, because an engineer's posting says more.
  */
 function evidenceNeeded(pick, vocab) {
-  if (pick.kind === 'title') return 0;
+  // The career's own title: as it stands, nothing; with words around it, an engineer's
+  // is checked against the text ("Power Controls Engineer" is not a plant's controls engineer).
+  if (pick.kind === 'title') return pick.how === 'close' && /engineer$/i.test(pick.career) ? 1 : 0;
   const name = vocab.names.find((n) => n.career === pick.career && n.name === pick.matched);
   if (!name) return 1;
   const last = name.words[name.words.length - 1];
   const careerLast = (vocab.names.find((n) => n.kind === 'title' && n.career === pick.career)?.words ?? []).slice(-1)[0];
-  const empty = name.words.every((w, i) => SAYS_NOTHING.has(w) || (i === name.words.length - 1 && ANY_JOB.has(w)));
+  const empty = saysNothing(name);
   // "Optics Engineer" filed under a technician's career is one employer's word for it.
   const crossed = last === 'engineer' && careerLast !== 'engineer';
-  if (!empty && !crossed) return 0;
+  // A title the product once listed separately and folded in is one employer's or one
+  // trade's word; an everyday name ("electrician", "pipe welder") is everyone's.
+  if (!empty && !crossed) return name.source === 'was' ? 1 : 0;
   return last === 'engineer' ? 3 : 2;
 }
 

@@ -7,7 +7,21 @@ import { ROLE_NOUNS, titleWords } from './vocabulary.mjs';
 
 const titleWordsOf = (name) => titleWords(name);
 
+// Words of a name that do not say what the work is, and job words any work could carry.
+export const SAYS_NOTHING = new Set(['manufacturing', 'production', 'process', 'product', 'design', 'integration', 'equipment', 'quality', 'test', 'machine', 'general', 'operations', 'systems', 'system', 'assembly', 'line', 'plant', 'factory', 'shop', 'development', 'engineering', 'technical', 'service', 'support', 'project', 'device', 'package', 'source', 'stage', 'sustaining', 'validation', 'compliance', 'final', 'functional', 'industrial']);
+export const ANY_JOB = new Set(['engineer', 'technician', 'operator', 'specialist', 'associate', 'worker', 'member', 'mechanic', 'tester', 'analyst', 'laborer', 'installer', 'handler', 'monitor', 'conductor']);
+/** A name made only of words any job could carry ("manufacturing specialist", "design engineer"). */
+export function saysNothing(name) {
+  return name.words.every((w, i) => SAYS_NOTHING.has(w) || (i === name.words.length - 1 && ANY_JOB.has(w)));
+}
+// Trades that stay themselves whatever stands before them: an "Orbital Tube Welder"
+// is a welder, a "Diamond Turning Machinist" a machinist.
+const TRADE = new Set(['machinist', 'welder', 'electrician']);
+
 const SWAP = { technician: 'mechanic', mechanic: 'technician' };
+// "Aircraft Structural Technician" is an aircraft structures mechanic; a "Structural
+// Engineer" is not a structures engineer (one designs buildings), so this is for the trades only.
+const TRADE_SPELLING = { structural: 'structures' };
 // A title that opens with one of these is a compound with whatever stands before
 // it: a "Fluid Systems Engineer" is an engineer of fluid systems, not a systems engineer.
 const COMPOUNDS = new Set(['systems', 'process', 'product', 'equipment', 'integration', 'design', 'operations', 'development']);
@@ -72,7 +86,8 @@ function matchSegment(given, vocab) {
   if (whole) return { name: whole, close: false, words };
   const last = words[words.length - 1];
   if (SWAP[last] && words.length >= 2) {
-    const swapped = exact([...words.slice(0, -1), SWAP[last]], vocab);
+    const body = words.slice(0, -1).map((w) => TRADE_SPELLING[w] ?? w);
+    const swapped = exact([...body, SWAP[last]], vocab) ?? exact([...body, last], vocab);
     if (swapped) return { name: swapped, close: true, words };
   }
   // 2. A name with words before it.
@@ -86,10 +101,16 @@ function matchSegment(given, vocab) {
     // word that leaves it so: a "Heavy Equipment Operator" is not a production operator.
     // The same holds for a two-word other name ("Design Engineer", "Product Engineer")
     // and for a compound: with a word before them they are usually another job.
-    const loose = name.words.length === 1 || (name.kind !== 'title' && name.words.length === 2) || COMPOUNDS.has(name.words[0]);
+    const compound = COMPOUNDS.has(name.words[0]);
+    const loose = (name.words.length === 1 && !TRADE.has(last)) || (name.kind !== 'title' && saysNothing(name)) || compound;
     const also = alsoReads(words, name, vocab);
-    if (loose && !plain) return also.length ? { also, words } : null;
-    return { name, close: true, words, also };
+    if (loose && (!plain || compound)) return also.length ? { also, words } : null;
+    // "Test Automation Engineer": the word before the name makes, with the job word,
+    // another career's own title. Which of the two is meant is for the text to say.
+    // A career's own title gives way only to another's own title; another name gives way to any name.
+    const beside = vocab.byKey.get(`${before[before.length - 1]} ${last}`);
+    const rival = beside && beside.career !== name.career && (beside.kind === 'title' || name.kind !== 'title') ? beside : null;
+    return { name, close: true, words, also, rival, joined: Boolean(given.joins?.has(before.length)) };
   }
   // 3. A name with a word or two after it ("Aircraft Mechanic AME", "Systems Engineer Autonomy").
   const head = startsWith(words, vocab);
@@ -129,6 +150,7 @@ export function readCareerTitle(posting, vocab) {
     if (turned) { add(turned, turned.words); continue; }
     // "Technician Structures": the job word first, what kind after.
     const order = ROLE_NOUNS.has(seg[0]) && seg.length > 1 && !ROLE_NOUNS.has(seg[seg.length - 1]) ? [...seg.slice(1), seg[0]] : seg;
+    if (order !== seg) order.joins = new Set();
     let m = matchSegment(order, vocab);
     // A skill's short name in a title stands for the skill: "AFP Operator".
     if (!m) {
@@ -148,7 +170,12 @@ export function readCareerTitle(posting, vocab) {
     const titled = m.also ?? [];
     let take = m.name ? [{ name: m.name, how: m.close ? 'close' : m.name.kind }] : [];
     if ((!m.name || m.name.kind !== 'title') && titled.length) take = [{ name: titled[0], how: 'close' }];
-    for (const t of take) if (!seen.has(t.name.career)) seen.set(t.name.career, { career: t.name.career, how: t.how, matched: t.name.name, said: m.said, kind: t.name.kind });
+    for (const t of take) if (!seen.has(t.name.career)) seen.set(t.name.career, { career: t.name.career, how: t.how, matched: t.name.name, said: m.said, kind: t.name.kind, source: t.name.source });
+    if (m.rival && m.name && take[0]?.name === m.name && !seen.has(m.rival.career)) {
+      // "Automation & Controls Engineer" names both and means the last; without the "and" it is open.
+      const joined = m.joined;
+      seen.set(m.rival.career, { career: m.rival.career, how: 'close', matched: m.rival.name, said: m.said, kind: m.rival.kind, source: m.rival.source, rival: true, yields: joined });
+    }
   }
   out.options = [...seen.values()];
   if (out.options.length) out.refused = null;

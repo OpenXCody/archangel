@@ -104,9 +104,12 @@ export function readLines(text) {
 // opportunity paragraph, the benefits list, the company's boilerplate.
 const LEGAL_SENTENCE = /equal opportunity|without regard to|reasonable accommodation|affirmative action|protected veteran|e-verify|export (control|regulations)|international traffic in arms|\bitar\b|8 u\.s\.c|22 c\.f\.r|drug[- ]free|background check/i;
 const BENEFIT_SENTENCE = /401\(?k\)?|medical, (dental|vision)|dental,? (and )?vision|paid (time off|vacation|holidays|parental|sick)|\bpto\b|health insurance|life insurance|stock (options|purchase)|equity (grants|awards)|tuition|employee assistance|wellness program|total (rewards|compensation) package|base salary|salary range|pay range|compensation (will|is|range)|bonus(es)?\b.*eligible|eligible for .*bonus/i;
+// What the body must be able to do is not a skill asked for, whatever it mentions.
+const PHYSICAL_SENTENCE = /physically demanding|physical (demands|requirements)|^(must be able|ability|able) to (lift|stand|stoop|bend|climb|crawl|kneel|sit|walk)/i;
 function sentenceKind(text, kind) {
   if (LEGAL_SENTENCE.test(text)) return 'legal';
   if (BENEFIT_SENTENCE.test(text)) return 'benefits';
+  if (PHYSICAL_SENTENCE.test(text)) return 'physical';
   return kind;
 }
 
@@ -121,7 +124,7 @@ export function stem(word) {
   else if (w.endsWith('s') && !/(ss|us|is)$/.test(w)) w = w.slice(0, -1);
   if (w.length > 5 && w.endsWith('ing')) w = undouble(w.slice(0, -3));
   else if (w.length > 4 && w.endsWith('ed') && !w.endsWith('eed')) w = undouble(w.slice(0, -2));
-  if (w.length > 4 && w.endsWith('e')) w = w.slice(0, -1);
+  if (w.length >= 4 && w.endsWith('e') && !w.endsWith('ee')) w = w.slice(0, -1);
   return w;
 }
 function undouble(w) {
@@ -150,8 +153,6 @@ export function squash(text) {
     // A comma, a stop or a bracket before a word: no term runs across it.
     words.push({ raw: m[0], at: m.index, cut: /[,;:.!?()[\]]/.test(text.slice(last, m.index)) });
     last = m.index + m[0].length;
-    // "wave/selective soldering" and "Wave and Selective Soldering" are the same words.
-    if (w === 'and') { starts.push(s.length); ends.push(-1); continue; }
     starts.push(s.length);
     s += w;
     ends.push(s.length);

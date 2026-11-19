@@ -8,6 +8,10 @@ import { squash, stem } from './text.mjs';
 import { GENERIC } from './vocabulary.mjs';
 
 const ASKS = new Set(['duties', 'required', 'preferred']);
+// Three letters that are something else in the same postings (a serial bus, a
+// continuous improvement programme, the Department of Energy, a building's
+// management system …): these need a neighbour from their own skill group.
+const ALSO_MEANS = new Set(['SPI', 'CIP', 'PMI', 'BMS', 'ATL', 'TIM', 'OPC', 'DFT', 'MSA', 'FMC', 'TFM', 'ICP', 'HIP', 'SLM', 'RTP', 'FDC', 'SDS', 'DOE', 'DCS', 'NCR', 'ALD']);
 // A sentence outside those parts still asks when it speaks to the person hired.
 const SPEAKS_OF_THE_JOB = /\byou will\b|\byou.ll\b|responsible for|this (role|position)|the (successful |ideal |selected )?(candidate|technician|engineer|operator|inspector|machinist|welder|mechanic|assembler)\b.*\b(will|must|should)\b|\bexperience (with|in|using|operating|performing)\b|\bmust (have|be able|possess)\b|\bability to\b|\bproficien|\bknowledge of\b|\bfamiliar(ity)? with\b|\bperforms?\b|\boperates?\b|\bskilled (in|with)\b|\bcertifi/i;
 
@@ -44,7 +48,7 @@ export function findAll(lines, vocab, employer) {
     const scan = (index, each) => {
       for (let i = 0; i < n; i++) {
         const pos = sq.starts[i];
-        const bucket = index.get(sq.s.substr(pos, 3));
+        const bucket = index.get(sq.s.substr(pos, 2));
         if (!bucket) continue;
         for (const e of bucket) {
           if (!sq.s.startsWith(e.key, pos)) continue;
@@ -95,6 +99,8 @@ export function findAll(lines, vocab, employer) {
     scan(vocab.makeIndex, (make, i, j) => {
       const on = rawSlice(text, sq, i, j);
       if (make.exact && on !== make.make) return false;
+      // A make is a name: it opens with a capital unless its maker writes it otherwise ("hyperMILL").
+      if (/^[A-Z]/.test(make.make) && !/^[A-Z]/.test(on)) return false;
       if (i === j && sq.words[i].raw.length !== make.make.replace(/[^A-Za-z0-9&+#]/g, '').length && make.words === 1 && !/[^A-Za-z0-9]/.test(make.make)) return false;
       if (employerKey && (employerKey.includes(make.key) || make.key.includes(employerKey))) return false;
       madeAt.push({ make, line: lineNo, i, j, on });
@@ -141,17 +147,25 @@ export function assign(found, lines, vocab, path) {
     const digits = /\d|&/.test(h.term.text);
     if (letters >= 4 || digits) return true;
     const cats = new Set(h.term.skills.map(categoryOf));
-    // The long form, or another skill of the same kind, in the posting.
-    const sameLine = () => {
+    const groups = new Set(h.term.skills.map((s) => vocab.skills.get(s)?.group));
+    // A neighbour in the same line: a word of the skill's own name ("PLC" beside
+    // "program"), a word of its kind ("UT" beside "ultrasonic"), or another code of its kind.
+    const sameLine = (wide) => {
       const stems = stemsOf(h.line);
+      for (const s of h.term.skills) for (const w of vocab.ownWords.get(s) ?? []) if (stems.has(w)) return true;
+      if (!wide) return false;
       for (const c of cats) for (const w of vocab.categoryWords.get(c) ?? []) if (stems.has(w)) return true;
       return codes.some((o) => o !== h && o.line === h.line && o.term.skills.some((s) => cats.has(categoryOf(s))));
     };
-    if (letters <= 2) return sameLine();
+    if (letters <= 2) return sameLine(true);
+    // Three letters: the skill's long form or the career's path, or a skill of the
+    // same group named in the posting ("SPI" beside solder paste printing, not beside I2C).
     if (h.term.skills.some((s) => named.has(s) || onPath.has(s))) return true;
-    for (const s of named.keys()) if (cats.has(categoryOf(s))) return true;
-    if (codes.some((o) => o !== h && o.term.text !== h.term.text && o.term.skills.some((s) => cats.has(categoryOf(s))))) return true;
-    return sameLine();
+    const strict = ALSO_MEANS.has(h.term.text);
+    const near = (s) => (strict ? groups.has(vocab.skills.get(s)?.group) : cats.has(categoryOf(s)));
+    for (const s of named.keys()) if (near(s)) return true;
+    if (codes.some((o) => o !== h && o.term.text !== h.term.text && o.term.skills.some(near))) return true;
+    return sameLine(!strict);
   };
   const goodCodes = codes.filter(codeOk);
   // 3. A term that could be several skills goes to the one the posting also names,
@@ -187,8 +201,10 @@ export function assign(found, lines, vocab, path) {
       const also = mine.filter((s) => named.has(s));
       if (also.length) to = also;
       else if (!m.make.risky) {
-        const pathed = mine.filter((s) => onPath.has(s)).sort((a, b) => onPath.get(a) - onPath.get(b));
-        if (pathed.length) { to = [pathed[0]]; name(pathed[0], m.on); }
+        // No skill of the make's is named: it goes to the one on the career's path,
+        // and where the path has several the make alone does not say which.
+        const pathed = mine.filter((s) => onPath.has(s));
+        if (pathed.length === 1) { to = [pathed[0]]; name(pathed[0], m.on); }
       }
     }
     for (const skill of to) {
@@ -205,20 +221,28 @@ export function assign(found, lines, vocab, path) {
 
 // --- Words the catalogue does not have -----------------------------------------
 
-const NOT_A_TOOL = new Set(('the a an and or of in on at to for with by from as is are be will we you our your their this that these those it its all any each other such via per not no yes if then than when while who what which how also may must can should would could etc including include includes using used use ability able experience experienced strong excellent good great high highly working work works worked team teams company role position job candidate candidates applicants applicant engineer engineers engineering technician technicians manager managers management quality safety manufacturing production process processes systems system product products business customer customers support development design test testing time year years month months day days week weeks hours hour degree bachelor bachelors master masters associate associates diploma school college university education preferred required requirements qualifications responsibilities skills knowledge communication written verbal english spanish microsoft office word excel outlook powerpoint teams google united states us usa america american california texas florida washington january february march april may june july august september october november december monday tuesday wednesday thursday friday saturday sunday am pm pst est cst pt et ged eoe eeo ada itar ear osha epa faa dod nasa iso ansi asme astm aws ipc sae mil nfpa nec ul ce fda gmp erp mrp sap oracle jira confluence slack zoom pdf id ii iii iv bs ba ms mba phd stem gpa r&d rd hr it qa qc ok tbd na n/a k kpi kpis roi sop sops bom boms po pos nda pto usd').split(' '));
+// Capitals that are not a tool's name: ranks, schooling, the furniture of a posting.
+const NOT_A_TOOL = new Set(('the a an and or of in on at to for with by from as is are be will we you our your their this that these those it its all any each other such via per not no yes if then than when while who what which how also may must can should would could etc including include includes using used use ability able experience experienced strong excellent good great high highly working work works worked team teams company role position job candidate candidates applicants applicant engineer engineers engineering technician technicians manager managers management quality safety manufacturing production process processes systems system product products business customer customers support development design test testing time year years month months day days week weeks hours hour degree bachelor bachelors master masters associate associates diploma school college university education preferred required requirements qualifications responsibilities skills knowledge communication written verbal english spanish microsoft office word excel outlook powerpoint google united states us usa america american january february march april may june july august september october november december monday tuesday wednesday thursday friday saturday sunday am pm pst est cst pt et ged eoe eeo ada itar ear osha epa faa dod nasa iso ansi asme astm aws ipc sae mil nfpa nec ul ce fda gmp erp mrp sap oracle jira confluence slack zoom pdf id ii iii iv bs ba ms mba phd stem gpa hr it qa qc ok tbd na kpi kpis roi sop sops bom boms po pos nda pto usd senior staff lead principal junior entry level earth mars moon supply chain science sciences computer physics mathematics math chemistry electronics electrical mechanical aerospace automotive maritime marine robotics mechatronics propulsion avionics automation facilities reliability integration inspector designer supplier secret top clearance citizen citizenship formula baja national airspace career readiness certificate physical mental society group strategy collaboration advanced lifecycle space summary duties key meet recruiter range hourly salary retirement healthcare benefits minimum basic additional plus bonus nice note other general technical industrial commercial government military defense army navy air force marine corps veteran veterans std standard standards spec specs rev class type grade part parts number numbers data analysis operations operation program programs project projects department division site plant factory lab laboratory shop floor line cell area').split(' '));
+const ASKS_FOR = /\b(experience (with|in|using|operating|programming)|proficien\w* (in|with)|knowledge of|familiar\w* with|such as|including|e\.g\.,?|i\.e\.,?|like|using|skilled (in|with)|certified in|background in|expertise (in|with)|understanding of|exposure to|trained (in|on))\b/i;
 
-/** Tool and method words met in requirement lines that no term or make matched. */
-export function unknownWords(lines, found, vocab, employer, cap = 8) {
+/**
+ * Tool, machine and method words a requirement line names that no term or make
+ * matched: codes ("RCCA", "UL508A"), names written as their makers write them
+ * ("ProtoTRAK"), and capitalised names that follow "experience with", "such as".
+ * A short list per posting, for whoever next works on the catalogue.
+ */
+export function unknownWords(lines, found, vocab, posting, cap = 8) {
   const out = [];
   const seen = new Set();
-  const employerWords = new Set(String(employer ?? '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
+  const own = new Set([posting.employer, posting.title, posting.location, posting.department].join(' ').toLowerCase().split(/[^a-z0-9&+#]+/).filter(Boolean));
   const covered = new Map();
   for (const h of [...found.hits, ...found.makeHits]) { if (!covered.has(h.line)) covered.set(h.line, []); covered.get(h.line).push(h); }
   lines.forEach((line, lineNo) => {
-    if (out.length >= cap || !(line.kind === 'required' || line.kind === 'preferred' || line.kind === 'duties')) return;
+    if (out.length >= cap || !(line.kind === 'required' || line.kind === 'preferred')) return;
     const sq = (line.sq ??= squash(line.text));
     const hidden = new Array(sq.words.length).fill(false);
     for (const h of covered.get(lineNo) ?? []) for (let k = h.i; k <= h.j; k++) hidden[k] = true;
+    const cue = line.text.search(ASKS_FOR);
     let run = [];
     const flush = () => {
       if (!run.length) return;
@@ -233,15 +257,14 @@ export function unknownWords(lines, found, vocab, employer, cap = 8) {
       const w = sq.words[i];
       const raw = w.raw;
       const lower = raw.toLowerCase();
-      const first = i === 0 || /[.:;!?]\s*$/.test(line.text.slice(0, w.at));
-      // A name written as makers write them: capitals inside a sentence, or a code.
-      const named = /^[A-Z][A-Za-z0-9+#&]*[a-z0-9+#][A-Za-z0-9+#&]*$/.test(raw) || /^[A-Z][A-Z0-9&+#]{1,7}$/.test(raw) || /^[A-Za-z]+\d+[A-Za-z0-9]*$/.test(raw);
+      const code = /^[A-Z][A-Z0-9&+#]{2,7}$/.test(raw) || (/^[A-Za-z]+\d+[A-Za-z0-9]*$/.test(raw) && raw.length >= 3) || /^\d+[A-Z][A-Za-z0-9]+$/.test(raw);
+      const brand = /^[A-Z][a-z]+[A-Z][A-Za-z]+$/.test(raw) || /^[a-z]+[A-Z][A-Za-z]+$/.test(raw);
+      const first = i === 0 || /[.:;!?•]\s*$/.test(line.text.slice(0, w.at));
+      const name = /^[A-Z][a-z][A-Za-z+#]{2,}$/.test(raw) && !first && cue >= 0 && w.at > cue;
+      const ok = !hidden[i] && (code || brand || name) && !NOT_A_TOOL.has(lower) && !NOT_A_TOOL.has(lower.replace(/s$/, '')) && !GENERIC.has(stem(lower)) && !own.has(lower) && !/^(19|20)\d\d$/.test(raw);
       const joined = run.length && line.text.slice(run[run.length - 1].at + run[run.length - 1].raw.length, w.at) === ' ';
-      if (hidden[i] || !named || NOT_A_TOOL.has(lower) || GENERIC.has(stem(lower)) || employerWords.has(lower) || (first && !/[A-Z].*[A-Z0-9]/.test(raw)) || (run.length && !joined) || run.length >= 3) {
-        flush();
-        if (hidden[i] || !named || NOT_A_TOOL.has(lower) || GENERIC.has(stem(lower)) || employerWords.has(lower) || (first && !/[A-Z].*[A-Z0-9]/.test(raw))) continue;
-      }
-      run.push(w);
+      if (!ok || (run.length && !joined) || run.length >= 3) flush();
+      if (ok) run.push(w);
     }
     flush();
   });

@@ -58,6 +58,6 @@ export function readPosting(posting, vocab) {
     makes,
     requirements: readRequirements(posting, lines, decided.shift),
     pay: readPay(lines, decided.level),
-    unknown: unknownWords(asking, found, vocab, posting.employer),
+    unknown: unknownWords(asking, found, vocab, posting),
   };
 }
