@@ -19,6 +19,7 @@ import type { Head } from '../components/entity/parts';
 import CompanyDetailView from '../components/entity/CompanyDetailView';
 import FactoryDetailView from '../components/entity/FactoryDetailView';
 import OccupationDetailView from '../components/entity/OccupationDetailView';
+import CareerVersionView from '../components/entity/CareerVersionView';
 import SkillDetailView from '../components/entity/SkillDetailView';
 
 /** What each kind of record is called at the head of its page. */
@@ -81,8 +82,10 @@ function isSkillDetail(data: AnyEntityDetail): data is SkillDetail {
  */
 export default function EntityDetail() {
   const { id } = useParams<{ id: string }>();
-  const { pathname, hash } = useLocation();
+  const { pathname, hash, search } = useLocation();
   const entityType = getEntityType(pathname);
+  // A career's page at a company (`?at=<company id or slug>`) is that company's version of the career.
+  const at = entityType === 'occupations' ? new URLSearchParams(search).get('at') : null;
 
   const { data, isLoading, error } = useQuery<AnyEntityDetail>({
     ...recordQuery(entityType, id),
@@ -92,10 +95,11 @@ export default function EntityDetail() {
   // The tab is named as the page's heading is: "Tesla Giga Texas · Archangel".
   useEffect(() => {
     const raw = data && ('name' in data ? data.name : 'title' in data ? data.title : null);
-    if (!raw) return;
+    // A company's version of a career names the tab itself, once it has been read.
+    if (!raw || at) return;
     const shown = entityType === 'factories' ? formatFactoryName(raw) : entityType === 'companies' ? formatCompanyName(raw) : raw;
     document.title = `${shown} · Archangel`;
-  }, [data, entityType]);
+  }, [data, entityType, at]);
 
   // A company with a short name is shown under it: /companies/tesla.
   const navigate = useNavigate();
@@ -168,7 +172,8 @@ export default function EntityDetail() {
       <div className="contents" data-entity-view={entityType} data-entity-kind={KIND_LABEL[entityType]}>
         {entityType === 'companies' && isCompanyDetail(data) && <CompanyDetailView data={data} head={head} />}
         {entityType === 'factories' && isFactoryDetail(data) && <FactoryDetailView data={data} head={head} />}
-        {entityType === 'occupations' && isOccupationDetail(data) && <OccupationDetailView data={data} head={head} />}
+        {entityType === 'occupations' && isOccupationDetail(data) && !at && <OccupationDetailView data={data} head={head} />}
+        {entityType === 'occupations' && isOccupationDetail(data) && at && <CareerVersionView key={at} data={data} at={at} head={head} />}
         {entityType === 'skills' && isSkillDetail(data) && <SkillDetailView data={data} head={head} />}
       </div>
     </PageContainer>

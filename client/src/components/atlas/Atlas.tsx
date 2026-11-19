@@ -5,6 +5,7 @@ import { ArrowLeft, X } from 'lucide-react';
 import { cn, focusRing, plural } from '@/lib/utils';
 import type { OccupationDetail } from '../../lib/api';
 import { recordQuery, useTaxonomy } from '../../lib/queries';
+import { useVersion } from '../../lib/versions';
 import { useMySkills } from '../../lib/seeker';
 import { useViewer } from '../../lib/viewer';
 import { ApiError, errorMessage } from '../../lib/http';
@@ -32,7 +33,7 @@ function useCareer(id: string | null | undefined) {
 }
 
 /** A career's skills as positions on the plate. A skill the taxonomy does not hold has no leaf to light. */
-function leavesOf(layout: AtlasLayout, career: OccupationDetail | undefined): Set<number> | null {
+function leavesOf(layout: AtlasLayout, career: Pick<OccupationDetail, 'skills'> | { skills: { id: string }[] } | undefined): Set<number> | null {
   if (!career) return null;
   const leaves = new Set<number>();
   for (const skill of career.skills) {
@@ -52,14 +53,19 @@ const TEXT_BUTTON = cn(
 interface CareerLineProps {
   sign: 'first' | 'second';
   id: string;
-  career: ReturnType<typeof useCareer>;
+  /** The career's read, or a company's version of it: what the line names and whether it failed. */
+  career: { data?: { title: string }; isError: boolean; error: unknown };
+  /** Where the name leads: the career's page unless said. */
+  to?: string;
+  /** What to say when it is not there: that the career is not in the catalogue, unless said. */
+  missing?: string;
   /** What follows the career's name: "17 skills across 4 domains". */
   facts: string | null;
   removeTo: string;
 }
 
 /** One career laid over the atlas: its sign, its name, what is lit, and the way to take it off. */
-function CareerLine({ sign, id, career, facts, removeTo }: CareerLineProps) {
+function CareerLine({ sign, id, career, to, missing = 'That career is not in the catalogue.', facts, removeTo }: CareerLineProps) {
   const title = career.data?.title;
   return (
     <div className="flex min-h-11 items-center gap-2.5 text-sm" data-atlas-career={id}>
@@ -68,11 +74,11 @@ function CareerLine({ sign, id, career, facts, removeTo }: CareerLineProps) {
         {career.isError ? (
           // A link to a career that is gone, or was mistyped: said in the product's own word.
           <span role="alert">
-            {career.error instanceof ApiError && career.error.status >= 400 && career.error.status < 500 ? 'That career is not in the catalogue.' : errorMessage(career.error)}
+            {career.error instanceof ApiError && career.error.status >= 400 && career.error.status < 500 ? missing : errorMessage(career.error)}
           </span>
         ) : title ? (
           <>
-            <Link to={`/occupations/${id}`} className={cn('font-medium text-fg-default underline-offset-4 hover:underline', focusRing)}>
+            <Link to={to ?? `/occupations/${id}`} className={cn('font-medium text-fg-default underline-offset-4 hover:underline', focusRing)}>
               {title}
             </Link>
             {facts && <span data-atlas-career-facts>{` · ${facts}`}</span>}
@@ -115,7 +121,10 @@ export default function Atlas() {
   const domain = layout ? (group ? layout.domains[group.domain] : (state.domain && layout.domainBySlug.get(state.domain)) || null) : null;
 
   // The careers laid over it.
-  const first = useCareer(state.career);
+  // The first is the career itself, or with `at` a company's version of it: the same skills with the company's changes.
+  const career = useCareer(state.at ? null : state.career);
+  const version = useVersion(state.at, state.career, Boolean(state.at));
+  const first = state.at ? version : career;
   const second = useCareer(state.career ? state.with : null);
   const overlay: AtlasOverlay | null = useMemo(() => {
     if (!layout) return null;
@@ -149,11 +158,12 @@ export default function Atlas() {
         atlasHref({
           career: state.career,
           with: state.with,
+          at: state.at,
           ...(target.leaf ? { skill: target.leaf.id } : target.group ? { group: target.group.slug } : { domain: target.domain.slug }),
         })
       );
     },
-    [navigate, state.career, state.with]
+    [navigate, state.career, state.with, state.at]
   );
 
   const title = leaf?.name ?? group?.name ?? domain?.name;
@@ -217,7 +227,7 @@ export default function Atlas() {
               />
               {domain && (
                 <Link
-                  to={atlasHref({ career: state.career, with: state.with })}
+                  to={atlasHref({ career: state.career, with: state.with, at: state.at })}
                   data-atlas-whole
                   className={cn(
                     'absolute left-0 top-0 inline-flex h-11 items-center gap-1.5 rounded-lg bg-bg-base/85 pr-3 text-sm text-fg-muted transition-colors hover:text-fg-default',
@@ -246,12 +256,14 @@ export default function Atlas() {
                 sign="first"
                 id={state.career}
                 career={first}
+                to={state.at ? `/occupations/${state.career}?at=${encodeURIComponent(state.at)}` : undefined}
+                missing={state.at ? 'That company has no version of this career.' : undefined}
                 facts={facts.first}
                 removeTo={atlasHref({ ...open, career: state.with })}
               />
             )}
             {state.career && state.with && (
-              <CareerLine sign="second" id={state.with} career={second} facts={facts.second} removeTo={atlasHref({ ...open, career: state.career })} />
+              <CareerLine sign="second" id={state.with} career={second} facts={facts.second} removeTo={atlasHref({ ...open, career: state.career, at: state.at })} />
             )}
             {facts.both && (
               <p className="flex flex-wrap items-center gap-x-2 pb-1 pt-0.5 text-sm text-fg-muted" data-atlas-shared>
@@ -272,7 +284,7 @@ export default function Atlas() {
                   value={null}
                   onChange={(career) => {
                     if (!career) return;
-                    navigate(atlasHref({ ...open, career: state.career ?? career.id, with: state.career ? career.id : null }));
+                    navigate(atlasHref({ ...open, career: state.career ?? career.id, with: state.career ? career.id : null, at: state.at }));
                   }}
                 />
               </div>

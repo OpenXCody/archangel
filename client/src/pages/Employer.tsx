@@ -23,6 +23,8 @@ import { useViewer } from '../lib/viewer';
 import { isExpired } from '../lib/jobFormat';
 import CompanyRequestForm from '../components/account/CompanyRequestForm';
 import JobForm, { type JobFormCompany } from '../components/jobs/JobForm';
+import CompanyCareers from '../components/versions/CompanyCareers';
+import VersionEditor from '../components/versions/VersionEditor';
 import {
   selectContentClass,
   selectTriggerClass,
@@ -55,9 +57,14 @@ export default function Employer() {
  * job form takes the page over when asked for in the address: `?post=1` for a
  * new job, `?copy=<job>` for another like an existing one, `?edit=<job>` to
  * change one. `&from=job` says the form was opened from the job's own page.
+ * `?company=<id>&career=<id>` is the editor of that company's version of the
+ * career.
  */
 function EmployerPage({ user }: { user: AccountUser }) {
   const [params] = useSearchParams();
+  const versionCompany = params.get('company');
+  const versionCareer = params.get('career');
+  if (versionCompany && versionCareer) return <VersionEditorPage key={`${versionCompany}:${versionCareer}`} user={user} companyId={versionCompany} occupationId={versionCareer} />;
   const editId = params.get('edit');
   const copyId = params.get('copy');
   const sourceId = editId ?? copyId;
@@ -144,6 +151,11 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
           {hasJobs &&
             active.map((company) => <CompanyJobs key={company.companyId} company={company} showCompanyName={active.length > 1} />)}
 
+          {/* Under the company: its careers, each its own version of the standard. */}
+          {active.map((company) => (
+            <CompanyCareers key={company.companyId} company={company} showCompanyName={active.length > 1} />
+          ))}
+
           {active.length === 0 ? (
             <PageSection
               title="Company"
@@ -214,6 +226,44 @@ function HiringSwitch() {
       </Button>
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// A company's version of a career, as a page
+// ---------------------------------------------------------------------------
+
+/**
+ * The editor of one company's version of one career. For the company's own
+ * people and for an admin; to anyone else it is not theirs, said plainly. (The
+ * server refuses their saves whatever is drawn here.)
+ */
+function VersionEditorPage({ user, companyId, occupationId }: { user: AccountUser; companyId: string; occupationId: string }) {
+  const employer = useEmployer();
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      document.title = 'Your jobs · Archangel';
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+  if (employer.isPending) return <PageLoading label="Loading career" />;
+  const member = (employer.data ?? []).some((company) => company.companyId === companyId && company.status === 'active');
+  if (!member && !user.isAdmin) {
+    return (
+      <PageContainer size="narrow">
+        <EmptyState
+          icon={SearchX}
+          title="This career is not yours to change"
+          description="A company's version of a career is changed by the company's own people."
+          action={
+            <Button asChild className="h-10 rounded-lg">
+              <Link to="/employer">Your jobs</Link>
+            </Button>
+          }
+        />
+      </PageContainer>
+    );
+  }
+  return <VersionEditor companyId={companyId} occupationId={occupationId} />;
 }
 
 // ---------------------------------------------------------------------------

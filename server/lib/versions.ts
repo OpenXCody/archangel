@@ -63,6 +63,8 @@ export interface VersionSkill extends SkillPlace {
   added: boolean;
   /** Every make of the skill, in the skill's order, each saying whether the company runs it. */
   makes: VersionMake[];
+  /** Where the skill stands among all the version names, kept and left out together, in path order. */
+  order: number;
 }
 
 /** One version as a path ready to draw. */
@@ -226,7 +228,7 @@ export async function readVersion(executor: Executor, companyId: string, occupat
 
   const skills: VersionSkill[] = [];
   const leftOut: VersionSkill[] = [];
-  for (const row of skillRows) {
+  for (const [order, row] of skillRows.entries()) {
     const standard = Boolean(row.standard);
     const out = standard && row.change === 'left_out';
     const makes = makesBySkill.get(String(row.id)) ?? [];
@@ -237,6 +239,7 @@ export async function readVersion(executor: Executor, companyId: string, occupat
       added: !standard,
       // A skill that is left out runs nothing here, whatever was stored before it was.
       makes: out ? makes.map((make) => ({ ...make, runs: false })) : makes,
+      order,
     };
     (out ? leftOut : skills).push(skill);
   }

@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent, type RefObject 
 import { useQuery } from '@tanstack/react-query';
 import { ArrowDown, ArrowUp, Loader2, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { skillsApi } from '../../lib/api';
+import { skillsApi, type Skill } from '../../lib/api';
 import { errorMessage } from '../../lib/http';
 import { fieldClass } from '../account/parts';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
@@ -187,17 +187,20 @@ function TagGroup({ label, skills, onMove, onRemove, disabled }: TagGroupProps) 
 
 interface SkillAdderProps {
   id: string;
-  inputRef: RefObject<HTMLInputElement>;
-  taken: JobSkillTag[];
-  onAdd: (skill: { id: string; name: string }) => void;
+  inputRef?: RefObject<HTMLInputElement>;
+  /** Skills that are already there: left out of the results. */
+  taken: readonly { id: string }[];
+  /** The skill chosen, as the catalogue lists it (with its level, group and domain). */
+  onAdd: (skill: Skill) => void;
   disabled?: boolean;
 }
 
 /**
  * Search the skills catalogue and add a result. A combobox: type to search,
  * arrow keys to move, Enter to add, Escape to close. Tagged skills are left out.
+ * Also what adds a skill to a company's version of a career.
  */
-function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderProps) {
+export function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderProps) {
   const listId = useId();
   const [term, setTerm] = useState('');
   const [open, setOpen] = useState(false);
@@ -220,7 +223,7 @@ function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderProps) {
   const options = matches.filter((skill) => !taken.some((tag) => tag.id === skill.id)).slice(0, SHOWN);
   const showList = open && !disabled && searching;
 
-  const choose = (skill: { id: string; name: string }) => {
+  const choose = (skill: Skill) => {
     onAdd(skill);
     setTerm('');
     setOpen(false);

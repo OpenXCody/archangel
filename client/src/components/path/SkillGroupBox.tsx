@@ -22,6 +22,11 @@ interface SkillGroupBoxProps {
    * the level is said by where the box stands.
    */
   parts?: { label: string; skills: PathSkillItem[] }[];
+  /**
+   * Draws a skill in place of the tag (it returns the list item): the
+   * employer's editor of a company's version, whose tags are switches.
+   */
+  renderSkill?: (skill: PathSkillItem) => React.ReactNode;
   className?: string;
 }
 
@@ -31,7 +36,7 @@ interface SkillGroupBoxProps {
  * surface), how much of the group the person holds, and the skills as tags.
  * It knows nothing of the page it is on.
  */
-export function SkillGroupBox({ name, skills, marks, share: given, currentId, parts, className }: SkillGroupBoxProps) {
+export function SkillGroupBox({ name, skills, marks, share: given, currentId, parts, renderSkill, className }: SkillGroupBoxProps) {
   const share = marks ? given ?? shareOf(skills, marks) : null;
   return (
     <fieldset className={cn('skill-group', className)} data-group-box data-complete={(share && share.total > 0 && share.held === share.total) || undefined}>
@@ -51,9 +56,9 @@ export function SkillGroupBox({ name, skills, marks, share: given, currentId, pa
         <div key={part.label} className="skill-group-part">
           {part.label && <p className="skill-group-part-label">{part.label}</p>}
           <SkillTags>
-            {part.skills.map((skill) => (
-              <SkillTag key={skill.id} skill={skill} marks={marks} current={skill.id === currentId} />
-            ))}
+            {part.skills.map((skill) =>
+              renderSkill ? renderSkill(skill) : <SkillTag key={skill.id} skill={skill} marks={marks} current={skill.id === currentId} />
+            )}
           </SkillTags>
         </div>
       ))}

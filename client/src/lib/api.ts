@@ -1,6 +1,7 @@
 import { unpackPins, type PinsPayload } from '@shared/pins';
 import type { SkillLevel } from '@shared/skillLevels';
 import { API_BASE, fetchWithTimeout, queryString } from './http';
+import type { VersionSummary } from './versions';
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -223,6 +224,8 @@ export interface CompanyDetail extends Company {
   sources?: RecordSource[];
   /** For a company with one plant and no careers recorded there: the careers typical of that plant's industry. */
   typicalCareers?: { id: string; title: string }[];
+  /** The careers the company has its own version of. */
+  versions?: VersionSummary[];
 }
 
 export interface Factory {
@@ -330,6 +333,8 @@ export interface OccupationDetail extends Occupation {
   comesFrom?: { id: string; title: string }[];
   /** The ladder: careers this one leads to, in the order the catalogue keeps them. */
   leadsTo?: { id: string; title: string }[];
+  /** The companies that have their own version of this career. */
+  versions?: VersionSummary[];
 }
 
 export interface Skill extends SkillPlace {
