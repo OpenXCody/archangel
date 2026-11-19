@@ -10,6 +10,7 @@ import { errorMessage } from '../../lib/http';
 import { applicationStatusLabel } from '../../lib/jobFormat';
 import { onGroupArrowKeys } from '../../lib/roving';
 import { PageContainer } from '../layout/Page';
+import { ShareRing } from '../path/HeldShare';
 
 /** Small shared pieces for the account, jobs, employer and admin pages. */
 
@@ -239,24 +240,18 @@ export function ApplicationStatusBadge({ status, className }: { status: string; 
   );
 }
 
-/** "N of M" with a thin bar. Renders the words alone when there is nothing to measure. */
+/** How much is held: the ring every path uses, then "N of M" and what is counted. */
 export function HeldMeter({ held, total, noun, className }: { held: number; total: number; noun: string; className?: string }) {
-  const percent = total > 0 ? Math.round((Math.min(held, total) / total) * 100) : 0;
   return (
-    <div className={cn('min-w-0', className)}>
-      <p className="text-sm text-fg-muted">
+    <p className={cn('flex min-w-0 items-center gap-2 text-sm text-fg-muted', className)}>
+      {total > 0 && <ShareRing share={{ held, learning: 0, total }} />}
+      <span className="min-w-0">
         <span className="font-semibold tabular-nums text-fg-default">
           {held} of {total}
         </span>{' '}
         {noun}
-      </p>
-      {total > 0 && (
-        // Monochrome: the held share is the bright part of a quiet track.
-        <div className="mt-1.5 h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-tint/10" aria-hidden="true">
-          <div className="h-full rounded-full bg-fg-default" style={{ width: `${percent}%` }} />
-        </div>
-      )}
-    </div>
+      </span>
+    </p>
   );
 }
 

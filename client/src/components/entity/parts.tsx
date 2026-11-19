@@ -12,7 +12,6 @@ import {
   ShowAll,
   recordListClass,
 } from '../layout/Page';
-import { LEVELS } from '../../lib/stages';
 
 /*
  * What the four record pages share: the heading block's inputs, the footprint
@@ -89,25 +88,8 @@ export function OpenJobsSection({ jobs, showCareer = false }: { jobs: CareerJob[
   );
 }
 
-/**
- * The three levels a career's path is laid out by, in the order they are
- * learned, each with its name and the few words under it (lib/stages.ts).
- */
-export const PATH_LEVELS = LEVELS.map(({ id, name, gloss }) => ({ level: id, label: name, hint: gloss }));
-
 /** A skill with no level: only in a database no taxonomy was loaded into. */
 export const UNPLACED = 'Not yet placed';
-
-/** The line above one level's rows: its number on a path, its name, what it means. */
-export function LevelHeading({ number, label, hint }: { number?: number; label: string; hint?: string }) {
-  return (
-    <h3 className="mb-2 flex flex-wrap items-baseline gap-x-2 text-sm">
-      {number && <span className="text-xs font-medium tabular-nums text-fg-soft">{number}</span>}
-      <span className="font-semibold text-fg-default">{label}</span>
-      {hint && <span className="text-xs font-normal text-fg-soft">{hint}</span>}
-    </h3>
-  );
-}
 
 /** How many industries are listed before "Show all". */
 const INDUSTRIES_SHOWN = 4;
