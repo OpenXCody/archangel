@@ -99,22 +99,27 @@ export default function SkillsSection() {
  * frames of tags, the same tags a career's path is made of. A group's figure
  * is against the whole group ("2 of 8"), so the page says how far into each
  * group the person is. A skill is taken off with its mark; learning or held
- * is chosen on the skill's own page, or when it is added from the search.
+ * is chosen on the skill's own page, or when it is added from the search. The
+ * makes of a skill the person has run (marked on the skill's page) are the
+ * second line of its tag.
  */
 function MySkillGroups({ skills, taxonomy, marks }: { skills: MySkill[]; taxonomy: Taxonomy | undefined; marks: SkillMarks }) {
   const mine = new Set(skills.map((skill) => skill.skillId));
+  // The makes a person has run stand under the skill's name: the second line of its tag.
+  const note = new Map(skills.map((skill) => [skill.skillId, (skill.makes ?? []).map((make) => make.name).join(', ') || null]));
+  const tag = (skill: { id: string; name: string }) => ({ id: skill.id, name: skill.name, note: note.get(skill.id) });
   const domains = (taxonomy?.domains ?? [])
     .map((domain) => ({
       slug: domain.slug,
       name: domain.name,
       groups: domain.groups
-        .map((group) => ({ whole: group.skills, group: { slug: group.slug, name: group.name, domain, skills: group.skills.filter((skill) => mine.has(skill.id)) } }))
+        .map((group) => ({ whole: group.skills, group: { slug: group.slug, name: group.name, domain, skills: group.skills.filter((skill) => mine.has(skill.id)).map(tag) } }))
         .filter((each) => each.group.skills.length > 0),
     }))
     .filter((domain) => domain.groups.length > 0);
   // A skill the taxonomy does not place (or the taxonomy itself not read) is still the person's: it is listed, under no domain.
   const placed = new Set(domains.flatMap((domain) => domain.groups.flatMap((each) => each.group.skills.map((skill) => skill.id))));
-  const rest = skills.filter((skill) => !placed.has(skill.skillId)).map((skill) => ({ id: skill.skillId, name: skill.name }));
+  const rest = skills.filter((skill) => !placed.has(skill.skillId)).map((skill) => tag({ id: skill.skillId, name: skill.name }));
   const wholeOf = new Map(domains.flatMap((domain) => domain.groups.map((each) => [each.group.slug, each.whole] as const)));
 
   return (

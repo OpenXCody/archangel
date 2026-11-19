@@ -6,6 +6,8 @@ import { answerWriteError, coordinate, count, FACTORY_STATUSES, HOSTNAME, isUuid
 import { rowsOf } from './rows.js';
 import { findGroup, placeColumns, placeOf, readLevel, type SkillPlace } from './taxonomy.js';
 import { skillLevelName } from '../../shared/skillLevels.js';
+import { skillMakes } from '../db/index.js';
+import { MAKES_MAX, MAKE_NAME_MAX, makeName, makesForEditor, makesOf, type Make } from './makes.js';
 
 /**
  * Correcting the four kinds of record an admin keeps: companies, factories,
@@ -151,7 +153,8 @@ export async function attachedTo(executor: Executor, kind: RecordKind, id: strin
     skill: sql`SELECT
       (SELECT COUNT(*)::int FROM occupation_skills WHERE skill_id = ${id}) AS careers,
       (SELECT COUNT(*)::int FROM job_skills WHERE skill_id = ${id}) AS jobs,
-      (SELECT COUNT(*)::int FROM user_skills WHERE skill_id = ${id}) AS people`,
+      (SELECT COUNT(*)::int FROM user_skills WHERE skill_id = ${id}) AS people,
+      (SELECT COUNT(*)::int FROM skill_makes WHERE skill_id = ${id}) AS makes`,
   };
   const [row] = rowsOf<Record<string, number>>(await executor.execute(query[kind]));
   const attached: Attached = {};
@@ -180,6 +183,8 @@ export interface RecordView {
   path?: ({ id: string; name: string } & SkillPlace)[];
   /** Skills: the tools, machines or software it is done with. */
   tools?: string[];
+  /** Skills: its makes in the order they are shown, each with how many people marked it. */
+  makes?: (Make & { people: number })[];
 }
 
 async function aliasesOf(executor: Executor, kind: 'career' | 'skill', id: string): Promise<string[]> {
@@ -299,6 +304,7 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
     // `group` is the slug the form sends back; `groupName` and `domain` are for showing.
     fields: { name: row.name, group: row.groupSlug, groupName: row.groupName, domain: row.domainName, level: row.level, description: row.description, howLearned: row.howLearned },
     tools: row.tools ?? [],
+    makes: await makesForEditor(db, id),
     aliases: await aliasesOf(db, 'skill', id),
     attached,
   };
@@ -689,6 +695,100 @@ async function changeSkill(id: string, body: Body, actor: Actor): Promise<SavedR
     const [saved] = await tx.update(skills).set(after).where(eq(skills.id, id)).returning();
     await recordAudit(tx, { actor, kind: 'skill', recordId: id, recordName: saved.name, action: 'edited', detail: { changes } });
     return answer(saved);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// A skill's makes
+// ---------------------------------------------------------------------------
+
+/**
+ * The makes of a skill are corrected one act at a time: add, rename, remove,
+ * reorder. Each holds the skill's row, so two admins cannot cross, and writes
+ * its own line in the log, in words. A refusal carries `field: 'make'`.
+ */
+async function withSkillMakes<T>(skillId: string, act: (tx: Executor, skill: { id: string; name: string }, makes: Make[]) => Promise<T>): Promise<T> {
+  return db.transaction(async (tx) => {
+    const [skill] = await tx.select({ id: skills.id, name: skills.name }).from(skills).where(eq(skills.id, skillId)).limit(1).for('update');
+    if (!skill) throw new RecordRefusal(404, NOT_FOUND.skill);
+    return act(tx, skill, await makesOf(tx, skillId));
+  });
+}
+
+function cleanMakeName(value: unknown, makes: Make[], exceptId?: string): string {
+  const name = makeName(value);
+  if (!name) refuse('make', `A make is a name of up to ${MAKE_NAME_MAX} characters.`);
+  if (makes.some((make) => make.id !== exceptId && make.name.toLowerCase() === name.toLowerCase())) {
+    throw new RecordRefusal(409, `“${name}” is already a make of this skill.`, { field: 'make' });
+  }
+  return name;
+}
+
+/** Add a make to a skill, after the ones it has. */
+export function addSkillMake(skillId: string, nameGiven: unknown, actor: Actor): Promise<Make> {
+  return withSkillMakes(skillId, async (tx, skill, makes) => {
+    const name = cleanMakeName(nameGiven, makes);
+    if (makes.length >= MAKES_MAX) refuse('make', `A skill has at most ${MAKES_MAX} makes.`);
+    const [{ last }] = await tx.select({ last: sql<number>`COALESCE(MAX(${skillMakes.position}), 0)::int` }).from(skillMakes).where(eq(skillMakes.skillId, skillId));
+    const [added] = await tx.insert(skillMakes).values({ skillId, name, position: last + 1 }).returning({ id: skillMakes.id, name: skillMakes.name });
+    await recordAudit(tx, { actor, kind: 'skill', recordId: skillId, recordName: skill.name, action: 'make added', detail: { make: added.name } });
+    return added;
+  });
+}
+
+/** Rename one of a skill's makes. People's marks stay on it. */
+export function renameSkillMake(skillId: string, makeId: string, nameGiven: unknown, actor: Actor): Promise<Make> {
+  return withSkillMakes(skillId, async (tx, skill, makes) => {
+    const make = makes.find((each) => each.id === makeId);
+    if (!make) throw new RecordRefusal(404, 'Make not found');
+    const name = cleanMakeName(nameGiven, makes, makeId);
+    if (name === make.name) return make;
+    await tx.update(skillMakes).set({ name }).where(eq(skillMakes.id, makeId));
+    await recordAudit(tx, { actor, kind: 'skill', recordId: skillId, recordName: skill.name, action: 'make renamed', detail: { changes: { make: [make.name, name] } } });
+    return { id: makeId, name };
+  });
+}
+
+/** Remove one of a skill's makes, and with it the marks people put on it; `people` is how many had. */
+export function removeSkillMake(skillId: string, makeId: string, actor: Actor): Promise<Make & { people: number }> {
+  return withSkillMakes(skillId, async (tx, skill, makes) => {
+    const make = makes.find((each) => each.id === makeId);
+    if (!make) throw new RecordRefusal(404, 'Make not found');
+    const people = (await makesForEditor(tx, skillId)).find((each) => each.id === makeId)?.people ?? 0;
+    await tx.delete(skillMakes).where(eq(skillMakes.id, makeId));
+    await recordAudit(tx, {
+      actor,
+      kind: 'skill',
+      recordId: skillId,
+      recordName: skill.name,
+      action: 'make removed',
+      detail: { make: make.name, ...(people > 0 ? { removed: { people } } : {}) },
+    });
+    return { ...make, people };
+  });
+}
+
+/** Put a skill's makes in a new order: `order` is every one of its make ids, once each. */
+export function orderSkillMakes(skillId: string, order: unknown, actor: Actor): Promise<Make[]> {
+  return withSkillMakes(skillId, async (tx, skill, makes) => {
+    const ids = Array.isArray(order) && order.every(isUuid) ? (order as string[]) : null;
+    if (!ids) refuse('make', "The order is a list of the skill's make ids.");
+    const byId = new Map(makes.map((make) => [make.id, make]));
+    if (ids.length !== makes.length || new Set(ids).size !== ids.length || ids.some((id) => !byId.has(id))) {
+      throw new RecordRefusal(409, 'The makes of this skill have changed. Open it again.', { field: 'make' });
+    }
+    const after = ids.map((id) => byId.get(id) as Make);
+    if (after.every((make, i) => make.id === makes[i].id)) return makes;
+    for (const [i, make] of after.entries()) await tx.update(skillMakes).set({ position: i + 1 }).where(eq(skillMakes.id, make.id));
+    await recordAudit(tx, {
+      actor,
+      kind: 'skill',
+      recordId: skillId,
+      recordName: skill.name,
+      action: 'makes reordered',
+      detail: { changes: { makeOrder: [makes.map((make) => make.name), after.map((make) => make.name)] } },
+    });
+    return after;
   });
 }
 

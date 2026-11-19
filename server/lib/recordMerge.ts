@@ -3,6 +3,7 @@ import { db, companies, occupations, skills } from '../db/index.js';
 import { recordAudit, type Actor } from './audit.js';
 import { NOT_FOUND, RecordRefusal, attachedTo, type Attached, type RecordKind } from './records.js';
 import { rowsOf } from './rows.js';
+import { mergeMakes } from './makes.js';
 
 /**
  * Merging one record into another of its kind: a company, a career or a
@@ -116,11 +117,15 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
         AND NOT EXISTS (SELECT 1 FROM occupation_skills y WHERE y.skill_id = ${k} AND y.occupation_id = x.occupation_id)`);
       await tx.execute(sql`UPDATE job_skills x SET skill_id = ${k} WHERE skill_id = ${m}
         AND NOT EXISTS (SELECT 1 FROM job_skills y WHERE y.skill_id = ${k} AND y.job_id = x.job_id)`);
+      // The merged skill's makes, and the marks people put on them, are set aside while their skills move.
+      const makes = await mergeMakes(tx, m, k);
       // A person who marked both keeps the stronger mark (held over learning).
       await tx.execute(sql`UPDATE user_skills y SET status = 'held' FROM user_skills x
         WHERE x.skill_id = ${m} AND y.skill_id = ${k} AND y.user_id = x.user_id AND x.status = 'held'`);
       await tx.execute(sql`UPDATE user_skills x SET skill_id = ${k} WHERE skill_id = ${m}
         AND NOT EXISTS (SELECT 1 FROM user_skills y WHERE y.skill_id = ${k} AND y.user_id = x.user_id)`);
+      // A make the kept skill lacks moves to it; one it has keeps its own, and takes the marks.
+      await makes.restore();
       await tx.execute(sql`UPDATE skills SET parent_skill_id = ${k} WHERE parent_skill_id = ${m} AND id <> ${k}`);
       await tx.execute(sql`UPDATE skills SET parent_skill_id = NULL WHERE id = ${k} AND parent_skill_id = ${m}`);
       await tx.execute(sql`UPDATE skill_aliases SET canonical_skill_id = ${k} WHERE canonical_skill_id = ${m}`);

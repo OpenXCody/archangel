@@ -170,6 +170,16 @@ export interface RecordView {
   path?: PathSkill[];
   /** Skills: the tools, machines or software it is done with. */
   tools?: string[];
+  /** Skills: its makes in the order they are shown, each with how many people marked it. */
+  makes?: EditorMake[];
+}
+
+/** One make of a skill, as the skill's editor lists it. */
+export interface EditorMake {
+  id: string;
+  name: string;
+  /** How many people marked it: what removing it would take. */
+  people: number;
 }
 
 /**
@@ -229,6 +239,13 @@ const recordsApi = {
     request<MergeResult>(`/admin/records/${kind}/${id}/merge`, { method: 'POST', body: { into } }),
   audit: (params: { kind?: string; record?: string; offset?: number; limit?: number }) =>
     request<{ entries: AuditEntry[]; hasMore: boolean }>(`/admin/audit${queryString(params)}`),
+  addMake: (skillId: string, name: string) => request<{ id: string; name: string }>(`${PATH.skill}/${skillId}/makes`, { method: 'POST', body: { name } }),
+  renameMake: (skillId: string, makeId: string, name: string) =>
+    request<{ id: string; name: string }>(`${PATH.skill}/${skillId}/makes/${makeId}`, { method: 'PATCH', body: { name } }),
+  removeMake: (skillId: string, makeId: string) =>
+    request<{ id: string; name: string; people: number }>(`${PATH.skill}/${skillId}/makes/${makeId}`, { method: 'DELETE' }),
+  orderMakes: (skillId: string, order: string[]) =>
+    request<{ makes: { id: string; name: string }[] }>(`${PATH.skill}/${skillId}/makes`, { method: 'PUT', body: { order } }),
   /** Sets a career's skills as a whole, and optionally the state of the path. Each skill sits at its own level. */
   savePath: (occupationId: string, body: { skills: { skillId: string }[]; replace?: boolean; status?: 'draft' | 'approved' }) =>
     request<{ occupationId: string }>(`/occupations/${occupationId}/path`, { method: 'PUT', body }),
@@ -297,6 +314,29 @@ export function useSavePath(occupationId: string) {
   return useMutation({
     mutationFn: (body: Parameters<typeof recordsApi.savePath>[1]) => recordsApi.savePath(occupationId, body),
     onSuccess: () => recordsChanged(queryClient, 'career'),
+  });
+}
+
+/** One change to a skill's makes: add one, rename one, remove one, or put them in a new order. */
+export type MakeChange =
+  | { act: 'add'; name: string }
+  | { act: 'rename'; makeId: string; name: string }
+  | { act: 'remove'; makeId: string }
+  | { act: 'order'; order: string[] };
+
+/** Change a skill's makes, one act at a time. The skill's page, the taxonomy and people's lists follow. */
+export function useChangeMakes(skillId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (change: MakeChange): Promise<unknown> =>
+      change.act === 'add'
+        ? recordsApi.addMake(skillId, change.name)
+        : change.act === 'rename'
+          ? recordsApi.renameMake(skillId, change.makeId, change.name)
+          : change.act === 'remove'
+            ? recordsApi.removeMake(skillId, change.makeId)
+            : recordsApi.orderMakes(skillId, change.order),
+    onSuccess: () => recordsChanged(queryClient, 'skill'),
   });
 }
 

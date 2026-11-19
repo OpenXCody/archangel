@@ -278,7 +278,7 @@ check "the taxonomy in one answer"    200 "$OUT" '"levels":\[{"id":1,"name":"Fun
 expect "every domain, in the taxonomy's order" "$(sql "SELECT string_agg(slug, ',' ORDER BY position, slug) FROM skill_domains")" "$(printf '%s' "$OUT" | j "domains.map(d=>d.slug).join()")"
 expect "every group"                  "$(sql "SELECT COUNT(*) FROM skill_groups")" "$(printf '%s' "$OUT" | j "domains.reduce((n,d)=>n+d.groups.length,0)")"
 expect "every placed skill, once"     "$(sql "SELECT COUNT(DISTINCT id) || ' ' || COUNT(*) FROM skills WHERE group_slug IS NOT NULL AND level IS NOT NULL")" "$(printf '%s' "$OUT" | j "domains.flatMap(d=>d.groups.flatMap(g=>g.skills.map(s=>s.id))).reduce((seen,id)=>seen.add(id),new Set()).size+' '+o.domains.flatMap(d=>d.groups.flatMap(g=>g.skills)).length")"
-expect "a domain carries what is drawn" "description,groups,name,slug|description,name,skills,slug|careers,id,level,name" "$(printf '%s' "$OUT" | j "domains.filter(d=>d.slug==='$TD').flatMap(d=>[d, d.groups[0], d.groups[0].skills[0]]).map(x=>Object.keys(x).sort().join()).join('|')")"
+expect "a domain carries what is drawn" "description,groups,name,slug|description,name,skills,slug|careers,id,level,makes,name" "$(printf '%s' "$OUT" | j "domains.filter(d=>d.slug==='$TD').flatMap(d=>[d, d.groups[0], d.groups[0].skills[0]]).map(x=>Object.keys(x).sort().join()).join('|')")"
 expect "our domain: its groups, their skills by level then order, each with how many careers use it" "$TD-one=S01:1:12 S02:1:4|$TD-two=S04:2:3 S03:2:3 S05:3:2" "$(printf '%s' "$OUT" | j "domains.find(d=>d.slug==='$TD').groups.map(g=>g.slug+'='+g.skills.map(s=>[s.name.replace('$P ',''),s.level,s.careers].join(':')).join(' ')).join('|')")"
 expect "every skill's level is 1, 2 or 3" true "$(printf '%s' "$OUT" | j "domains.every(d=>d.groups.every(g=>g.skills.every(s=>[1,2,3].includes(s.level)&&Number.isInteger(s.careers))))")"
 expect "the parameter Vercel's rewrite adds changes nothing" "$(printf '%s' "$OUT" | sed '$d' | wc -c)" "$(req anon GET '/skills/taxonomy?path=skills/taxonomy' | sed '$d' | wc -c)"
@@ -294,6 +294,60 @@ expect "the industries its careers work in, most careers first" "$P Industry:2|$
 expect "a skill only on careers found everywhere says so" "0 true" "$(sql "INSERT INTO skills (name) VALUES ('$P Common')" >/dev/null; sql "INSERT INTO occupation_skills (occupation_id, skill_id) SELECT '$UNWRITTEN', id FROM skills WHERE name='$P Common'" >/dev/null; req anon GET /skills/$(sql "SELECT id FROM skills WHERE name='$P Common'") | j "industries.length+' '+o.everywhere")"
 sql "DELETE FROM industry_occupations WHERE industry LIKE '$P %'" >/dev/null
 check "a skill that is not there"     404 "$(req anon GET /skills/00000000-0000-4000-8000-000000000000)"
+
+# --- Makes: the named equipment a skill is run on, and the ones a person has run ---
+# S03 has two makes, stored out of order; S04 has one; the rest have none.
+sql "INSERT INTO skill_makes (skill_id, name, position) VALUES ('$S03', '$P Haas', 2), ('$S03', '$P Fanuc', 1), ('$S04', '$P Okuma', 1)" >/dev/null
+make() { sql "SELECT id FROM skill_makes WHERE name='$P $1'"; }
+HAAS=$(make Haas); FANUC=$(make Fanuc); OKUMA=$(make Okuma)
+mine() { req "$1" GET /me/skills | j "skills.filter(s=>s.skillId==='$2').map(s=>s.status+':'+s.makes.map(m=>m.name.replace('$P ','')).join('+'))[0]"; }
+OUT=$(req anon GET /skills/$S03)
+expect "a skill's makes, in their order, each with its id" "$FANUC:Fanuc|$HAAS:Haas" "$(printf '%s' "$OUT" | j "makes.map(m=>m.id+':'+m.name.replace('$P ','')).join('|')")"
+expect "a make carries its id and name, nothing else" "id,name" "$(printf '%s' "$OUT" | j "makes.map(m=>Object.keys(m).sort().join())[0]")"
+expect "a skill with none says so with an empty list" "0" "$(req anon GET /skills/$S01 | j makes.length)"
+expect "the parameter Vercel's rewrite adds changes nothing here either" "2" "$(req anon GET "/skills/$S03?path=skills/$S03" | j makes.length)"
+OUT=$(req anon GET /skills/taxonomy)
+expect "the taxonomy carries each skill's makes by name" "S04=Okuma S03=Fanuc+Haas S05=" "$(printf '%s' "$OUT" | j "domains.find(d=>d.slug==='$TD').groups[1].skills.map(s=>s.name.replace('$P ','')+'='+s.makes.map(m=>m.replace('$P ','')).join('+')).join(' ')")"
+expect "every skill of the taxonomy has a list of makes" true "$(printf '%s' "$OUT" | j "domains.every(d=>d.groups.every(g=>g.skills.every(s=>Array.isArray(s.makes)&&s.makes.every(m=>typeof m==='string'))))")"
+check "sign-up a seeker for makes"    201 "$(req m POST /auth/sign-up '{"email":"makes-'"$RUN"'@seeker.test","name":"Mak Maker","password":"correct horse"}')"
+MID=$(sql "SELECT id FROM users WHERE email='makes-$RUN@seeker.test'")
+check "marking makes requires sign-in" 401 "$(req anon PUT /me/skills/$S03/makes "{\"makes\":[\"$HAAS\"]}")"
+check "not for a skill off the list"  409 "$(req m PUT /me/skills/$S03/makes "{\"makes\":[\"$HAAS\"]}")" 'Add the skill to your list first'
+check "hold S03"                      200 "$(req m PUT /me/skills/$S03 '{"status":"held"}')"
+expect "a held skill starts with no makes" "held:" "$(mine m $S03)"
+OUT=$(req m PUT /me/skills/$S03/makes "{\"makes\":[\"$HAAS\"]}")
+check "mark one make"                 200 "$OUT" "\"skillId\":\"$S03\""
+expect "the answer is the list as it now stands" "Haas" "$(printf '%s' "$OUT" | j "makes.map(m=>m.name.replace('$P ','')).join('+')")"
+expect "the person's skills carry it" "held:Haas" "$(mine m $S03)"
+check "mark both, sent out of order and twice" 200 "$(req m PUT /me/skills/$S03/makes "{\"makes\":[\"$HAAS\",\"$FANUC\",\"$HAAS\"]}")"
+expect "listed once each, in the skill's order" "held:Fanuc+Haas" "$(mine m $S03)"
+check "another skill's make is refused" 400 "$(req m PUT /me/skills/$S03/makes "{\"makes\":[\"$HAAS\",\"$OKUMA\"]}")" 'not a make of this skill'
+check "a make that does not exist"    400 "$(req m PUT /me/skills/$S03/makes '{"makes":["00000000-0000-4000-8000-000000000000"]}')"
+check "makes that are not a list"     400 "$(req m PUT /me/skills/$S03/makes "{\"makes\":\"$HAAS\"}")"
+check "makes that are not ids"        400 "$(req m PUT /me/skills/$S03/makes '{"makes":["Haas"]}')"
+check "no body at all"                400 "$(req m PUT /me/skills/$S03/makes)"
+check "a skill id that is not one"    400 "$(req m PUT /me/skills/not-an-id/makes '{"makes":[]}')"
+expect "the refusals changed nothing" "held:Fanuc+Haas" "$(mine m $S03)"
+check "learning it instead"           200 "$(req m PUT /me/skills/$S03 '{"status":"learning"}')"
+expect "a change of status keeps the makes" "learning:Fanuc+Haas" "$(mine m $S03)"
+check "unmark one"                    200 "$(req m PUT /me/skills/$S03/makes "{\"makes\":[\"$FANUC\"]}")"
+expect "the list is what was sent"    "learning:Fanuc" "$(mine m $S03)"
+check "hold S04 and mark its make"    200 "$(req m PUT /me/skills/$S04 '{"status":"held"}')"
+check "S04's make"                    200 "$(req m PUT /me/skills/$S04/makes "{\"makes\":[\"$OKUMA\"]}")"
+expect "each skill keeps its own makes" "learning:Fanuc held:Okuma" "$(mine m $S03) $(mine m $S04)"
+check "another person holds S03"      200 "$(req o PUT /me/skills/$S03 '{"status":"held"}')"
+expect "and sees none of the first person's makes" "held:" "$(mine o $S03)"
+check "taking the skill off the list" 200 "$(req m DELETE /me/skills/$S03)"
+expect "takes its makes with it, and only its" "0 1" "$(sql "SELECT COUNT(*) FILTER (WHERE skill_id='$S03') || ' ' || COUNT(*) FILTER (WHERE skill_id='$S04') FROM user_skill_makes WHERE user_id='$MID'")"
+check "back on the list"              200 "$(req m PUT /me/skills/$S03 '{"status":"held"}')"
+expect "it starts again with none"    "held:" "$(mine m $S03)"
+check "clearing a skill's makes"      200 "$(req m PUT /me/skills/$S04/makes '{"makes":[]}')" '"makes":\[\]'
+expect "the database refuses a mark for a skill off the list" "refused" "$(psql "$DB" -qtAc "INSERT INTO user_skill_makes (user_id, skill_id, make_id) VALUES ('$MID', '$S05', '$HAAS')" 2>&1 | grep -q 'violates foreign key' && echo refused)"
+expect "and a mark for another skill's make" "refused" "$(psql "$DB" -qtAc "INSERT INTO user_skill_makes (user_id, skill_id, make_id) VALUES ('$MID', '$S03', '$OKUMA')" 2>&1 | grep -q 'violates foreign key' && echo refused)"
+check "mark again before the account goes" 200 "$(req m PUT /me/skills/$S03/makes "{\"makes\":[\"$HAAS\"]}")"
+check "deleting the account"          200 "$(req m DELETE /me '{"password":"correct horse"}')"
+expect "takes the person's makes"     0 "$(sql "SELECT COUNT(*) FROM user_skill_makes WHERE user_id='$MID'")"
+check "the other person drops S03 again" 200 "$(req o DELETE /me/skills/$S03)"
 
 # The list: skills a career uses, the ones most careers use first.
 ENC=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$P")

@@ -17,6 +17,7 @@ import { SkillGroupBox } from '../path/SkillGroupBox';
 import type { SkillMarks } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
 import { CAREERS_SHOWN, type Head, factLinkClass, IndustryRows, OpenJobsSection } from './parts';
+import SkillMakes from './SkillMakes';
 
 /** The careers that use a skill: the first few, and the rest on request. A skill sits at its own level in each. */
 function SkillCareers({ careers }: { careers: SkillDetail['occupations'] }) {
@@ -59,8 +60,8 @@ function SkillGroup({ data, marks }: { data: SkillDetail; marks: SkillMarks | nu
 
 /**
  * A skill's page: what it is (the heading, with its domain, group and level,
- * then its group: the skills it stands among), how it is learned and what it
- * is done with, the industries it is used in, open jobs that ask for it, the
+ * then its group: the skills it stands among, then its makes), how it is
+ * learned and what it is done with, the industries it is used in, open jobs that ask for it, the
  * careers that use it, and the skills that go with it. A part with nothing
  * to say is not drawn.
  */
@@ -100,6 +101,9 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
           <SkillGroup data={data} marks={marks} />
         </DetailSection>
       )}
+
+      {/* Beyond the skill: the makes of equipment and software it is run on. */}
+      <SkillMakes skillId={data.id} makes={data.makes ?? []} />
 
       {(data.howLearned || tools.length > 0) && (
         <div className="grid grid-cols-1 gap-x-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">

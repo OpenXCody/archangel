@@ -18,6 +18,7 @@ import { newsFor } from '../lib/notices.js';
 import { hasCompanyTie, isPurpose, purposeFrom, type Purpose } from '../lib/purpose.js';
 import { rowsOf } from '../lib/rows.js';
 import { pageLimit } from '../lib/paging.js';
+import { markedMakes, setMarkedMakes } from '../lib/makes.js';
 
 /** A signed-in person's own data: profile, skills, goals, applications. */
 const router = Router();
@@ -170,17 +171,21 @@ router.post(
   })
 );
 
-// GET /api/me/skills
+// GET /api/me/skills - the person's skills, each with the makes of it they
+// marked (`makes: [{ id, name }]`, in the skill's order; empty for most).
 router.get(
   '/skills',
   handle(async (req, res) => {
-    const rows = await db
-      .select({ skillId: skills.id, name: skills.name, status: userSkills.status, updatedAt: userSkills.updatedAt })
-      .from(userSkills)
-      .innerJoin(skills, eq(skills.id, userSkills.skillId))
-      .where(eq(userSkills.userId, req.user!.id))
-      .orderBy(skills.name);
-    res.json({ skills: rows });
+    const [rows, makes] = await Promise.all([
+      db
+        .select({ skillId: skills.id, name: skills.name, status: userSkills.status, updatedAt: userSkills.updatedAt })
+        .from(userSkills)
+        .innerJoin(skills, eq(skills.id, userSkills.skillId))
+        .where(eq(userSkills.userId, req.user!.id))
+        .orderBy(skills.name),
+      markedMakes(req.user!.id),
+    ]);
+    res.json({ skills: rows.map((row) => ({ ...row, makes: makes.get(row.skillId) ?? [] })) });
   })
 );
 
@@ -285,7 +290,20 @@ router.put(
   })
 );
 
-// DELETE /api/me/skills/:skillId
+// PUT /api/me/skills/:skillId/makes { makes: [make id, …] } - the makes of a
+// skill the person has run, as the whole list (an empty one clears them). Only
+// for a skill on their list (409 otherwise), only that skill's makes (400).
+router.put(
+  '/skills/:skillId/makes',
+  handle(async (req, res) => {
+    const result = await setMarkedMakes(req.user!.id, req.params.skillId, req.body?.makes);
+    if (!result.ok) return res.status(result.status).json({ error: result.error });
+    res.json({ skillId: req.params.skillId, makes: result.makes });
+  })
+);
+
+// DELETE /api/me/skills/:skillId - off the person's list, and with it the
+// makes of it they marked.
 router.delete(
   '/skills/:skillId',
   handle(async (req, res) => {

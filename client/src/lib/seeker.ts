@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { ApiError, SERVER_FAILED, request, retryUnlessClientError } from './http';
-import type { SkillLevel } from './api';
+import type { Make, SkillLevel } from './api';
 import type { ApplicationStatus, JobStatus } from './jobs';
 import { accountKeys, invalidate } from './queryKeys';
 
@@ -22,6 +22,8 @@ export interface MySkill {
   name: string;
   status: SkillStatus;
   updatedAt: string;
+  /** The makes of the skill the person has run, in the skill's order. */
+  makes?: Make[];
 }
 
 export interface MyGoal {
@@ -89,6 +91,8 @@ const seekerApi = {
   setSkill: (skillId: string, status: SkillStatus) =>
     request<{ skillId: string; status: SkillStatus }>(`/me/skills/${skillId}`, { method: 'PUT', body: { status } }),
   removeSkill: (skillId: string) => request<{ ok: true }>(`/me/skills/${skillId}`, { method: 'DELETE' }),
+  setMakes: (skillId: string, makes: string[]) =>
+    request<{ skillId: string; makes: Make[] }>(`/me/skills/${skillId}/makes`, { method: 'PUT', body: { makes } }),
   goals: () => request<{ goals: MyGoal[] }>('/me/goals').then((r) => r.goals),
   addGoal: (occupationId: string) =>
     request<{ occupationId: string }>(`/me/goals/${occupationId}`, { method: 'PUT' }),
@@ -252,7 +256,9 @@ const markKey = ['me', 'mark-skill'] as const;
 function withMark(list: MySkill[], skillId: string, name: string, mark: SkillMark): MySkill[] {
   const rest = list.filter((skill) => skill.skillId !== skillId);
   if (mark === 'none') return rest;
-  const entry: MySkill = { skillId, name, status: mark, updatedAt: new Date().toISOString() };
+  // Its makes stay with it while it stays on the list; off the list, they go.
+  const makes = list.find((skill) => skill.skillId === skillId)?.makes;
+  const entry: MySkill = { skillId, name, status: mark, updatedAt: new Date().toISOString(), makes };
   return [...rest, entry].sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -289,6 +295,39 @@ export function useMarkSkill() {
       for (const queryKey of [accountKeys.skills, accountKeys.goals, accountKeys.jobDetails, accountKeys.jobApplicants]) {
         void queryClient.invalidateQueries({ queryKey });
       }
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// The makes of a skill a person has run
+// ---------------------------------------------------------------------------
+
+const makesKey = ['me', 'skill-makes'] as const;
+
+/**
+ * Set which makes of one skill the person has run, as the whole list, showing
+ * the change at once. Only a skill on their list has makes to mark. If the
+ * server refuses, that skill's makes go back to what they were.
+ */
+export function useSetSkillMakes() {
+  const queryClient = useQueryClient();
+  const put = (skillId: string, makes: Make[] | undefined) =>
+    queryClient.setQueryData<MySkill[]>(accountKeys.skills, (list) => (list ?? []).map((skill) => (skill.skillId === skillId ? { ...skill, makes } : skill)));
+  return useMutation({
+    mutationKey: makesKey,
+    mutationFn: ({ skillId, makes }: { skillId: string; makes: Make[] }) => seekerApi.setMakes(skillId, makes.map((make) => make.id)),
+    onMutate: async ({ skillId, makes }) => {
+      await queryClient.cancelQueries({ queryKey: accountKeys.skills, exact: true });
+      const before = queryClient.getQueryData<MySkill[]>(accountKeys.skills)?.find((skill) => skill.skillId === skillId)?.makes;
+      put(skillId, makes);
+      return { before };
+    },
+    onError: (_error, { skillId }, context) => put(skillId, context?.before),
+    onSettled: () => {
+      // Several presses can be in flight; the list is read again once, after the last.
+      if (queryClient.isMutating({ mutationKey: makesKey }) > 1) return;
+      void queryClient.invalidateQueries({ queryKey: accountKeys.skills, exact: true });
     },
   });
 }

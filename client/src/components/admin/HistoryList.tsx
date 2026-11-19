@@ -15,6 +15,10 @@ const ACTION: Record<string, string> = {
   'path edited': 'Path edited',
   'path approved': 'Path approved',
   'path returned to draft': 'Path returned to draft',
+  'make added': 'Make added',
+  'make renamed': 'Make renamed',
+  'make removed': 'Make removed',
+  'makes reordered': 'Makes reordered',
   'made admin': 'Made admin',
   'admin role removed': 'Admin role removed',
   'password reset link': 'Password reset link made',
@@ -55,6 +59,9 @@ const FIELD: Record<string, string> = {
   // A skill's group and level; its domain reads under `domain` above.
   group: 'group',
   level: 'level',
+  // A skill's makes: one renamed, or all of them in a new order.
+  make: 'make',
+  makeOrder: 'order',
   pathStatus: 'path',
   email: 'email',
   specialization: 'specialization',
@@ -85,6 +92,7 @@ const ATTACHED: Record<string, [string, string]> = {
   goals: ['person aiming at it', 'people aiming at it'],
   industries: ['industry', 'industries'],
   people: ['person who marked it', 'people who marked it'],
+  makes: ['make', 'makes'],
   memberships: ['company membership', 'company memberships'],
 };
 
@@ -115,6 +123,8 @@ function detailWords(entry: AuditEntry): string | null {
   const detail = entry.detail;
   if (!detail) return null;
   const parts: string[] = [];
+  // A skill's make that was added or removed, by name.
+  if (typeof detail.make === 'string') parts.push(detail.make);
   const changes = detail.changes as Record<string, [unknown, unknown]> | undefined;
   if (changes && typeof changes === 'object') {
     for (const [field, pair] of Object.entries(changes)) {

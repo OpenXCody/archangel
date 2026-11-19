@@ -354,6 +354,117 @@ test("a seeker marks a path's skills and the figures follow; an employer sees no
   }
 });
 
+/** A skill that has makes, and one that has none, from the taxonomy. Null when the database holds no makes. */
+async function skillsByMakes(request: APIRequestContext): Promise<{ withMakes: { id: string; name: string; makes: string[] }; without: { id: string } } | null> {
+  const taxonomy = (await (await request.get(`${API}/skills/taxonomy`)).json()) as {
+    domains: { groups: { skills: { id: string; name: string; makes: string[] }[] }[] }[];
+  };
+  const skills = taxonomy.domains.flatMap((domain) => domain.groups.flatMap((group) => group.skills));
+  const withMakes = skills.find((skill) => skill.makes.length >= 3);
+  const without = skills.find((skill) => skill.makes.length === 0);
+  return withMakes && without ? { withMakes, without } : null;
+}
+
+test("a skill's makes are plain chips to a visitor, after its group", async ({ page, request }) => {
+  const found = await skillsByMakes(request);
+  expect(found, 'the taxonomy has a skill with makes and one without').toBeTruthy();
+  const { withMakes: skill, without } = found!;
+  await page.goto(`/skills/${skill.id}`, { waitUntil: 'domcontentloaded' });
+  const section = page.locator('#makes');
+  await expect(section.getByRole('heading', { name: 'Makes' })).toBeVisible();
+  // The makes by name, in the order the API gives them, as chips that do nothing.
+  const chips = section.locator('[data-skill-makes] [data-make]');
+  await expect(chips).toHaveText(skill.makes);
+  await expect(section.locator('button, a')).toHaveCount(0);
+  await expect(section).not.toContainText('Mark the ones');
+  // No counts and no icons: the section is its heading and the names.
+  await expect(section.locator('svg')).toHaveCount(0);
+  expect(((await section.textContent()) ?? '').replace('Makes', ''), 'nothing but the names').toBe(skill.makes.join(''));
+  // In the template's order: after the group, before how it is learned.
+  const order = await page.evaluate(() => ['group', 'makes', 'learned'].map((id) => document.getElementById(id)?.getBoundingClientRect().top ?? null));
+  if (order[0] !== null) expect(order[0], 'the group comes first').toBeLessThan(order[1] as number);
+  if (order[2] !== null) expect(order[1], 'then the makes').toBeLessThan(order[2] as number);
+  await assertHealthyLayout(page, '/skills/:id makes');
+  // A skill with no makes has no section.
+  await page.goto(`/skills/${without.id}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(page.locator('#makes')).toHaveCount(0);
+});
+
+test('a seeker who has the skill marks the makes they have run, and Profile says them under the skill', async ({ page, baseURL, request }) => {
+  // Writes: it makes two accounts, marks a skill and two makes and deletes them. Never against a deployed copy.
+  test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
+  const found = await skillsByMakes(request);
+  expect(found, 'the taxonomy has a skill with makes').toBeTruthy();
+  const skill = found!.withMakes;
+  const password = 'correct horse battery';
+  const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
+
+  for (const purpose of ['work', 'hire'] as const) {
+    const made = await page.request.post(`${API}/auth/sign-up`, {
+      data: { email: `makes-${purpose}-${stamp}@device.test`, name: `Makes ${purpose}`, password, purpose },
+    });
+    expect(made.status(), `${purpose}: account made`).toBe(201);
+    try {
+      await page.goto(`/skills/${skill.id}`, { waitUntil: 'domcontentloaded' });
+      const list = page.locator('#makes [data-skill-makes]');
+      await expect(list.locator('[data-make]')).toHaveText(skill.makes);
+      // Without the skill on their list, and for someone here to hire, the chips are plain.
+      await expect(list.locator('button')).toHaveCount(0);
+      await expect(page.locator('#makes')).not.toContainText('Mark the ones');
+      if (purpose === 'hire') continue;
+
+      // Holding the skill turns each chip into a toggle, with the few words that say what it asks.
+      await page.getByRole('radio', { name: 'Held', exact: true }).click();
+      const chips = list.locator('button[data-make]');
+      await expect(chips).toHaveText(skill.makes);
+      await expect(page.locator('#makes')).toContainText('Mark the ones you have run');
+      await expect(list.locator('button[aria-pressed="true"]')).toHaveCount(0);
+      const size = await chips.first().boundingBox();
+      const touch = await page.evaluate(() => matchMedia('(pointer: coarse)').matches);
+      expect(size?.height ?? 0, 'a chip is a full finger tall on a touch screen').toBeGreaterThanOrEqual(touch ? 44 : 36);
+      // Two taps: both are pressed at once, and saved.
+      await chips.nth(0).click();
+      await chips.nth(2).click();
+      await expect(chips.nth(0)).toHaveAttribute('aria-pressed', 'true');
+      await expect(chips.nth(2)).toHaveAttribute('aria-pressed', 'true');
+      await expect(chips.nth(1)).toHaveAttribute('aria-pressed', 'false');
+      const saved = async () =>
+        ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: { skillId: string; makes: { name: string }[] }[] }).skills
+          .find((each) => each.skillId === skill.id)
+          ?.makes.map((make) => make.name)
+          .join('|');
+      await expect.poll(saved, { message: 'the marks were saved' }).toBe(`${skill.makes[0]}|${skill.makes[2]}`);
+      await assertHealthyLayout(page, '/skills/:id makes marked');
+      // One more tap takes one off.
+      await chips.nth(2).click();
+      await expect(chips.nth(2)).toHaveAttribute('aria-pressed', 'false');
+      await expect.poll(saved).toBe(skill.makes[0]);
+      await chips.nth(2).click();
+      await expect.poll(saved).toBe(`${skill.makes[0]}|${skill.makes[2]}`);
+
+      // Profile: the skill's tag carries the makes as its second line.
+      await page.goto('/me', { waitUntil: 'domcontentloaded' });
+      const tag = page.locator(`[data-my-skills] [data-skill-tag="${skill.id}"]`);
+      await expect(tag).toContainText(skill.name);
+      await expect(tag).toContainText(`${skill.makes[0]}, ${skill.makes[2]}`);
+      await assertHealthyLayout(page, '/me makes');
+
+      // Off the list, the skill's makes go with it: the chips are plain again, and nothing is pressed when it comes back.
+      await page.goto(`/skills/${skill.id}`, { waitUntil: 'domcontentloaded' });
+      await expect(list.locator('button[aria-pressed="true"]')).toHaveCount(2);
+      await page.getByRole('radio', { name: 'Not held', exact: true }).click();
+      await expect(list.locator('button')).toHaveCount(0);
+      await page.getByRole('radio', { name: 'Learning', exact: true }).click();
+      await expect(list.locator('button[data-make]')).toHaveCount(skill.makes.length);
+      await expect(list.locator('button[aria-pressed="true"]')).toHaveCount(0);
+    } finally {
+      const gone = await page.request.delete(`${API}/me`, { data: { password } });
+      expect(gone.ok(), `${purpose}: account removed`).toBe(true);
+    }
+  }
+});
+
 test('settings offers the theme to a visitor', async ({ page }) => {
   // The theme is kept in the browser, so nobody has to make an account to change it.
   await page.goto('/settings', { waitUntil: 'domcontentloaded' });
