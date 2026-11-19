@@ -24,7 +24,8 @@
 // not in scripts/ingest/sources/. For postings: `--registry <file.json>` reads
 // another registry, `--reader <file.mjs>` another reading of a posting, and
 // `--feeds http://127.0.0.1:<port>` sends every request to a local server
-// standing in for the feeds (tests, and runs over saved boards). Every command
+// standing in for the feeds (tests, and runs over saved boards; `--paced` keeps
+// each system's pacing there, to time a run as it would be). Every command
 // says what it is about to do before it does it. scripts/ingest/README.md
 // describes the pipeline.
 import { writeFile } from 'node:fs/promises';
@@ -38,7 +39,7 @@ const ROOT = path.join(HERE, '..', '..');
 
 /** The command line as { command, args, options }: `--name value`, or `--name` alone for a switch. */
 export function parseArgs(argv) {
-  const SWITCHES = new Set(['all', 'again', 'help', 'rehearse', 'check']);
+  const SWITCHES = new Set(['all', 'again', 'help', 'rehearse', 'check', 'paced']);
   const args = [];
   const options = {};
   for (let i = 0; i < argv.length; i += 1) {
@@ -79,8 +80,8 @@ async function postingTools(options) {
   const reader = await import(options.reader ? pathToFileURL(path.resolve(options.reader)).href : './postings/read/index.mjs');
   return {
     registry, employers, reader, vocab: reader.loadVocabulary(ROOT), userAgent: USER_AGENT, standIn: Boolean(rewrite),
-    // A stand-in on this machine is not paced: there is nobody to be polite to.
-    fetcher: createFetcher(rewrite ? { rewrite, pace: 0 } : {}),
+    // A stand-in on this machine is not paced (there is nobody to be polite to) unless --paced asks, to time a run as it would be.
+    fetcher: createFetcher(rewrite ? { rewrite, unpaced: !options.paced } : {}),
     entry(slug) {
       const entry = registry.entryOf(employers, slug);
       if (!entry) throw new Error(`There is no employer "${slug.slice(registry.SOURCE_PREFIX.length)}" in the registry (data/employers/boards.json).`);

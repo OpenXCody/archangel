@@ -683,10 +683,22 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
     .map((job) => ({ job, state: jobState(job) }))
     .sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state]);
 
+  // Jobs that come from the company's own careers site are not managed here: one line says they are listed.
+  const listed = company.listedJobs ?? 0;
+  const fromSite = listed > 0 && (
+    <p className="mt-3 text-sm text-fg-muted" data-listed-jobs>
+      <Link to={`/companies/${company.companyId}`} className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+        {listed.toLocaleString('en-US')} open {listed === 1 ? 'job' : 'jobs'}
+      </Link>{' '}
+      {listed === 1 ? 'comes' : 'come'} from the company's careers site and {listed === 1 ? 'is' : 'are'} kept in step with it.
+    </p>
+  );
+
   if (jobs.length === 0) {
     return (
       <PageSection title={company.companyName}>
         <CardNote>None yet.</CardNote>
+        {fromSite}
       </PageSection>
     );
   }
@@ -747,6 +759,7 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
           </li>
         ))}
       </ul>
+      {fromSite}
 
       <ConfirmDialog
         open={deleting !== null}

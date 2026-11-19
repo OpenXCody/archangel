@@ -135,7 +135,7 @@ export default function JobDetail() {
   const optionalSkills = data.skills.filter((skill) => !skill.required);
   // Not every plant has a city on record; its name places it well enough.
   const place = data.job.city
-    ? formatPlace(data.job.city, data.job.state)
+    ? formatPlace(formatFactoryName(data.job.city), data.job.state)
     : [formatFactoryName(data.job.factoryName), data.job.state].filter(Boolean).join(', ');
   const companyName = formatCompanyName(data.job.companyName);
 
@@ -220,38 +220,38 @@ export default function JobDetail() {
       )}
 
       {!data.job.fromSource && (
-      <DetailSection
-        title="Required skills"
-        description={requiredSkills.length > 0 && marksHeld ? 'Mark the ones you have. The company sees how many you hold.' : undefined}
-      >
-        {requiredSkills.length === 0 ? (
-          <CardNote>No required skills are listed for this job.</CardNote>
-        ) : (
-          <>
-            {marksHeld ? (
-              <HeldMeter
-                held={requiredSkills.filter((skill) => skill.held).length}
-                total={requiredSkills.length}
-                noun="required skills held"
-                className="mb-3"
-              />
-            ) : (
-              !signedIn && (
-                <p className="mb-3 text-sm text-fg-muted">
-                  <Link
-                    to={signInPath(`/jobs/${data.job.id}`)}
-                    className="font-medium text-fg-default underline underline-offset-4 hover:no-underline"
-                  >
-                    Sign in
-                  </Link>{' '}
-                  to see which of these you already hold.
-                </p>
-              )
-            )}
-            <SkillList skills={requiredSkills} marksHeld={marksHeld} />
-          </>
-        )}
-      </DetailSection>
+        <DetailSection
+          title="Required skills"
+          description={requiredSkills.length > 0 && marksHeld ? 'Mark the ones you have. The company sees how many you hold.' : undefined}
+        >
+          {requiredSkills.length === 0 ? (
+            <CardNote>No required skills are listed for this job.</CardNote>
+          ) : (
+            <>
+              {marksHeld ? (
+                <HeldMeter
+                  held={requiredSkills.filter((skill) => skill.held).length}
+                  total={requiredSkills.length}
+                  noun="required skills held"
+                  className="mb-3"
+                />
+              ) : (
+                !signedIn && (
+                  <p className="mb-3 text-sm text-fg-muted">
+                    <Link
+                      to={signInPath(`/jobs/${data.job.id}`)}
+                      className="font-medium text-fg-default underline underline-offset-4 hover:no-underline"
+                    >
+                      Sign in
+                    </Link>{' '}
+                    to see which of these you already hold.
+                  </p>
+                )
+              )}
+              <SkillList skills={requiredSkills} marksHeld={marksHeld} />
+            </>
+          )}
+        </DetailSection>
       )}
 
       {!data.job.fromSource && optionalSkills.length > 0 && (

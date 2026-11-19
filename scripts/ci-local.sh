@@ -127,6 +127,7 @@ run_suite paths bash tests/api/paths.sh
 run_suite intake bash tests/api/intake.sh
 run_suite versions bash tests/api/versions.sh
 run_suite dupes bash tests/api/dupes.sh
+run_suite postings bash tests/api/postings.sh
 
 step "Device suite"
 if BASE_URL=$WEB_URL npx playwright test --trace off > "$LOGS/devices.log" 2>&1; then

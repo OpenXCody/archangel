@@ -166,11 +166,12 @@ export function platformOf(host) {
  *   ceiling    the most requests for one employer in one run
  *   timeout    milliseconds to wait for an answer
  *   rewrite    (url) => url: sends requests elsewhere (a local server standing in for the feeds)
+ *   unpaced    no waiting between requests: only ever with `rewrite`, where there is nobody to be polite to
  *   fetchImpl, sleep, now
  */
 export function createFetcher({
   userAgent = USER_AGENT, pace = DEFAULT_PACE, ceiling = DEFAULT_CEILING, timeout = DEFAULT_TIMEOUT,
-  rewrite = null, fetchImpl = globalThis.fetch, sleep = (ms) => new Promise((done) => setTimeout(done, ms)), now = Date.now,
+  rewrite = null, unpaced = false, fetchImpl = globalThis.fetch, sleep = (ms) => new Promise((done) => setTimeout(done, ms)), now = Date.now,
 } = {}) {
   const robots = new Map();      // host -> Promise of rules
   const lastAt = new Map();      // host -> when the last request to it was sent
@@ -182,7 +183,7 @@ export function createFetcher({
     const host = new URL(url).host;
     if (session.requests >= session.ceiling) throw new CeilingReached(session.ceiling);
     const since = now() - (lastAt.get(host) ?? -Infinity);
-    if (since < wait) await sleep(wait - since);
+    if (since < wait && !(unpaced && rewrite)) await sleep(wait - since);
     lastAt.set(host, now());
     session.requests += 1;
     totals.requests += 1;

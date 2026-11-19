@@ -309,6 +309,7 @@ test('Ashby: one request; a posting at a second place names both', async () => {
   const one = listed.find((posting) => posting.title === 'Manufacturing Engineer');
   assert.deepEqual(one?.locations, ['Franklin, LA', 'New Orleans, LA']);
   assert.equal(one?.hints.employmentType, 'full-time');
+  assert.equal(one?.country, 'United States', 'the country as the feed writes it');
   assert.deepEqual(listed.find((posting) => posting.title.startsWith('Deputy Program Manager'))?.hints.pay, { min: 120000, max: 150000, period: 'year' });
 });
 
@@ -413,6 +414,11 @@ test('the stand-in reader keeps a posting whose title is a career, and reads a p
 test('only postings that are one of our careers at a US place are kept, as facts and a link: never the text', async () => {
   const session: Session = createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session('saronic', { pace: 0 });
   const entry = { slug: 'saronic', employer: 'Saronic', company: 'Saronic', system: 'ashby', board: 'saronic' };
+  // The reader is given the country where the feed gives one, as the feed writes it.
+  const countries: unknown[] = [];
+  const watching = { ...reader, readPosting: (posting: { country?: string; text: string }, vocab: unknown) => { if (posting.text) countries.push(posting.country); return reader.readPosting(posting, vocab); } };
+  await collect(noRows, entry, { session: createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session('saronic', { pace: 0 }), reader: watching, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' });
+  assert.deepEqual(countries, ['United States', 'United States', 'United States']);
   const collected = await collect(noRows, entry, { session, reader, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' });
   assert.deepEqual(collected.counts, { read: 4, abroad: 0, notCareer: 1, noPlace: 0, noAddress: 0, vanished: 0, texts: 0, kept: 3 });
   const welder = [...collected.kept.values()].find((record: { facts: { title: string } }) => record.facts.title === 'Welder');

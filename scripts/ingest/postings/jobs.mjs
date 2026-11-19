@@ -17,6 +17,7 @@ import { chunks, inTransaction, note, registerSource, runRow, seconds } from '..
 import { CeilingReached, FeedError, Refusal } from './fetch.mjs';
 import { sourceOf } from './registry.mjs';
 import { SYSTEMS } from './systems/index.mjs';
+import { isUnitedStates } from './systems/shared.mjs';
 
 /** Raise it when what is staged for a posting changes shape: every posting is staged again. */
 const VERSION = 1;
@@ -80,13 +81,16 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   let stopped = null;
 
   for (const posting of listed) {
-    if (posting.country && posting.country !== 'US') {
+    if (posting.country && !isUnitedStates(posting.country)) {
       counts.abroad += 1;
       continue;
     }
     const base = { employer: entry.employer, title: posting.title, location: posting.location ?? '', department: posting.department ?? undefined };
-    // By the title alone.
-    if (!reader.readPosting({ ...base, text: '' }, vocab).career) {
+    // The country, where the feed gives one, goes to the reader with the posting's own location line
+    // ("Amsterdam, NH" is North Holland); a feed that gives none passes nothing.
+    const country = posting.country ? { country: posting.country } : {};
+    // By the title alone. Nothing else of a reading that has no career is used.
+    if (!reader.readPosting({ ...base, ...country, text: '' }, vocab).career) {
       counts.notCareer += 1;
       continue;
     }
@@ -118,13 +122,16 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
         // what was read is staged, and the rest waits for the next run.
         if (error.shape || !(error instanceof CeilingReached || error instanceof Refusal || error instanceof FeedError)) throw error;
         spent = true;
-        if (!(error instanceof CeilingReached)) stopped = { outcome: error instanceof Refusal ? 'refused' : 'failed', why: error.message };
+        if (!(error instanceof CeilingReached)) stopped = { outcome: error instanceof Refusal ? 'refused' : 'unreachable', why: error.message };
         deferred.add(posting.id);
         continue;
       }
     }
 
-    const reading = reader.readPosting({ ...base, location: full.location ?? '', department: full.department ?? undefined, text: full.text ?? '', postedAt: full.postedAt ?? undefined }, vocab);
+    const reading = reader.readPosting({
+      ...base, location: full.location ?? '', department: full.department ?? undefined, text: full.text ?? '', postedAt: full.postedAt ?? undefined,
+      ...(full.country ? { country: full.country } : {}),
+    }, vocab);
     if (!reading?.career) {
       counts.notCareer += 1;
       continue;
@@ -348,9 +355,10 @@ export async function report(db, runId, { everything = false, rehearsal = false 
 /**
  * One employer, start to finish: read the board, stage, resolve, apply.
  * Returns { runId, outcome, counts, text }. `outcome` is 'read', 'refused'
- * (the site said no: recorded, not an error), 'not listed' (the registry's
- * company is not in our data: nothing was asked) or 'failed' (the feed's
- * shape changed, or the site did not answer). With `rehearse` everything is
+ * (the site said no: recorded, not an error), 'unreachable' (it did not
+ * answer, or answered an error: the next run tries again), 'not listed' (the
+ * registry's company is not in our data: nothing was asked) or 'failed' (the
+ * feed's shape changed: the adapter needs a person). With `rehearse` everything is
  * done in a transaction that is rolled back; `upTo` stops after 'stage' or
  * 'resolve'.
  */
@@ -368,6 +376,9 @@ export async function runEmployer(db, entry, { fetcher, reader, vocab, today, ag
       collected = await collect(db, entry, { session, reader, vocab, today, again, log });
     } catch (error) {
       if (error instanceof Refusal) fail = { outcome: 'refused', why: error.message };
+      // The site did not answer, or answered an error: tomorrow is another day. A changed shape, or a list
+      // longer than the ceiling, needs a person: that is a failure.
+      else if (error instanceof FeedError && !error.shape) fail = { outcome: 'unreachable', why: error.message };
       else if (error instanceof FeedError || error instanceof CeilingReached) fail = { outcome: 'failed', why: error.message };
       else throw error;
     }

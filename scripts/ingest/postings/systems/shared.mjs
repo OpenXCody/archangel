@@ -13,12 +13,18 @@
 //   { id, title, location, locations, address, department, url, postedAt, updatedAt, country, text, hints }
 // `id` is the system's own, stable while the posting is up. `location` is the
 // line the feed gives for where the work is and `locations` every such line
-// (the first is `location`). `country` is a two-letter code when the feed
-// says one. `text` is the description, HTML or plain, or null where it costs
+// (the first is `location`). `country` is the country of that first line as
+// the feed writes it ("US", "United States"), or null when the feed gives
+// none: `isUnitedStates` reads it. `text` is the description, HTML or plain, or null where it costs
 // a request. `hints` is what the feed states as fields of its own:
 // { pay: { min, max, period }, employmentType, shift }. Nothing an adapter
 // returns is written anywhere by the adapter: it decides nothing.
 import { FeedError } from '../fetch.mjs';
+
+/** Whether a country, as a feed writes it, is the United States. */
+export function isUnitedStates(country) {
+  return /^(us|usa|u\.s\.a?\.?|united states|united states of america)$/i.test(String(country ?? '').trim());
+}
 
 /** A feed whose answer is not the shape the adapter reads: the run fails for that employer and says what was missing. */
 export function shape(condition, what, url) {

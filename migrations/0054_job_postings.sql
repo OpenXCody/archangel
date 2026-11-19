@@ -178,7 +178,7 @@ $f$;
 --   address  of several there, the one whose street address the posting's words carry
 --   name     ... or whose name they carry (the words of the plant's name that are not the company's, the city's or generic)
 --   largest  ... else the one with the most people, then the one written from sources, then the oldest
---   near     none in the city: the company's nearest plant in the state within 20 km of the city's centre,
+--   near     none in the city: the company's nearest plant in the state within 10 km of the city's centre,
 --            the centre being the middle of every plant we list in that city (no outside geocoder)
 -- "The company" is posting_companies. The posting's words are what staging
 -- keeps of it: its title, its location line, its street address, its department.
@@ -216,7 +216,8 @@ LANGUAGE sql STABLE AS $f$
                    AND w NOT IN ('plant', 'plants', 'factory', 'facility', 'facilities', 'manufacturing', 'operations', 'operation', 'division',
                                  'company', 'corporation', 'corp', 'incorporated', 'site', 'center', 'centre', 'campus', 'building', 'bldg',
                                  'works', 'north', 'south', 'east', 'west', 'america', 'american', 'usa', 'international', 'industries',
-                                 'products', 'systems', 'group', 'holdings', 'technologies', 'technology', 'services', 'assembly')) AS telling
+                                 'products', 'systems', 'group', 'holdings', 'technologies', 'technology', 'services', 'assembly',
+                                 'space', 'exploration', 'development', 'engineering', 'research', 'global', 'general', 'national', 'united')) AS telling
     FROM factories f JOIN companies co ON co.id = f.company_id
     WHERE f.company_id IN (SELECT company_id FROM fam)
   ), pointed AS (
@@ -251,7 +252,7 @@ LANGUAGE sql STABLE AS $f$
     SELECT DISTINCT ON (e.place_key) e.place_key, o.id, o.company_id, posting_metres(e.lat, e.lng, o.lat::float8, o.lng::float8) AS metres,
            count(*) OVER (PARTITION BY e.place_key)::integer AS options
     FROM empty_places e JOIN ours o ON o.state = e.state AND o.lat IS NOT NULL AND o.lng IS NOT NULL
-    WHERE posting_metres(e.lat, e.lng, o.lat::float8, o.lng::float8) <= 20000
+    WHERE posting_metres(e.lat, e.lng, o.lat::float8, o.lng::float8) <= 10000
     ORDER BY e.place_key, posting_metres(e.lat, e.lng, o.lat::float8, o.lng::float8), o.id
   )
   SELECT rp.source_id, rp.place_key, rp.city, rp.state,

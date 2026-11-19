@@ -31,9 +31,9 @@ export interface PostingSource {
   run: {
     id: number;
     startedAt: string;
-    /** 'read', 'refused', 'failed' or 'not listed'; null while a run is under way. */
+    /** 'read', 'refused', 'unreachable', 'failed' or 'not listed'; null while a run is under way. */
     outcome: string | null;
-    /** Why a run that was refused, failed or found no company stopped. */
+    /** Why a run that was refused, got no answer, failed or found no company stopped. */
     why: string | null;
     undone: boolean;
     read: number | null;

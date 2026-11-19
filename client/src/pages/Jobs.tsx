@@ -13,6 +13,7 @@ import { useJobs, useJobsSummary, type JobSummary } from '../lib/jobs';
 import { usePostJobLink } from '../lib/viewer';
 import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
 import { formatAgo } from '../lib/dates';
+import { formatFactoryName } from '@shared/displayName';
 import { LoadError, busyButtonClass, cardClass, fieldClass, outlineButtonClass } from '../components/account/parts';
 import { useDebouncedValue } from '../lib/useDebouncedValue';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
@@ -315,7 +316,8 @@ export default function Jobs() {
 
 function JobCard({ job, from }: { job: JobSummary; from?: string }) {
   // Not every plant has a city on record; its name places it well enough.
-  const town = job.city ? formatPlace(job.city, job.state) : [job.factoryName, job.state].filter(Boolean).join(', ');
+  // (A city is stored as its source wrote it, often in capitals: it is read as a name.)
+  const town = job.city ? formatPlace(formatFactoryName(job.city), job.state) : [formatFactoryName(job.factoryName), job.state].filter(Boolean).join(', ');
   // Near a chosen place, how far the job is from it.
   const place = [town, typeof job.miles === 'number' ? milesAway(job.miles) : null].filter(Boolean).join(' · ');
   return (
@@ -344,17 +346,19 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
       {(job.payMin !== null || job.payMax !== null) && (
         <p className="mt-3 text-sm font-semibold text-fg-default">{formatPay(job.payMin, job.payMax, job.payPeriod)}</p>
       )}
-      <div className="mt-2.5 flex flex-wrap gap-1.5">
-        {job.employmentType && <Chip>{employmentLabel(job.employmentType)}</Chip>}
-        {job.shift && (
-          <Chip>
-            <Clock className="h-3 w-3" />
-            <span className="sr-only">Shift: </span>
-            {job.shift}
-          </Chip>
-        )}
-        {job.occupationTitle !== job.title && <Chip className="border-transparent bg-bg-elevated text-fg-muted">{job.occupationTitle}</Chip>}
-      </div>
+      {(job.employmentType || job.shift || job.occupationTitle !== job.title) && (
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {job.employmentType && <Chip>{employmentLabel(job.employmentType)}</Chip>}
+          {job.shift && (
+            <Chip>
+              <Clock className="h-3 w-3" />
+              <span className="sr-only">Shift: </span>
+              {job.shift}
+            </Chip>
+          )}
+          {job.occupationTitle !== job.title && <Chip className="border-transparent bg-bg-elevated text-fg-muted">{job.occupationTitle}</Chip>}
+        </div>
+      )}
     </Link>
   );
 }

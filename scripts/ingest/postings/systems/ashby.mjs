@@ -34,7 +34,7 @@ export async function list(board, { get }) {
         url: webAddress(job.jobUrl),
         postedAt: isoTime(job.publishedAt),
         updatedAt: null,
-        country: country === null ? null : /^(united states|usa?|us)$/i.test(country) ? 'US' : country,
+        country,
         text: job.descriptionHtml ?? job.descriptionPlain ?? '',
         hints: { ...(pay ? { pay } : {}), ...(type ? { employmentType: type } : {}) },
       };
