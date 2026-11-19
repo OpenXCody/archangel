@@ -906,3 +906,275 @@ test('the data quality table fits the screen, and says what it counts', async ({
   await definitions.scrollIntoViewIfNeeded();
   await assertHealthyLayout(page, '/admin?tab=data:quality-definitions');
 });
+
+// ---------------------------------------------------------------------------
+// A company's version of a career
+// ---------------------------------------------------------------------------
+
+interface DeviceVersionSkill {
+  id: string;
+  name: string;
+  added: boolean;
+  makes: { id: string; name: string; runs: boolean }[];
+}
+interface DeviceVersion {
+  company: { id: string; name: string; slug: string | null };
+  occupation: { id: string; title: string };
+  title: string;
+  skills: DeviceVersionSkill[];
+  leftOut: DeviceVersionSkill[];
+}
+
+/**
+ * A version to look at: one of the local sample's (a made-up company's), the
+ * one that differs most from its standard. Null in a database with no version.
+ */
+async function sampleVersion(request: APIRequestContext): Promise<DeviceVersion | null> {
+  const found = (await (await request.get(`${API}/companies?search=${encodeURIComponent('Pacific Aerospace Components')}&limit=5`)).json()) as { data: { id: string; name: string }[] };
+  const company = found.data.find((each) => each.name === 'Pacific Aerospace Components');
+  if (!company) return null;
+  const list = (await (await request.get(`${API}/companies/${company.id}/careers`)).json()) as { versions: { occupation: { id: string }; added: number; leftOut: number; makes: string[] }[] };
+  const most = [...list.versions].sort((a, b) => b.added + b.leftOut + b.makes.length - (a.added + a.leftOut + a.makes.length))[0];
+  if (!most) return null;
+  return (await (await request.get(`${API}/companies/${company.id}/careers/${most.occupation.id}`)).json()) as DeviceVersion;
+}
+
+test("a company's version of a career, as a visitor: the same page, its changes said, one tap back to the standard", async ({ page, request }) => {
+  const version = await sampleVersion(request);
+  expect(version, "the sample has a made-up company's version of a career").toBeTruthy();
+  const { company, occupation, skills, leftOut } = version!;
+  const address = `/occupations/${occupation.id}?at=${company.id}`;
+
+  await page.goto(address, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(version!.title);
+  await expect(page).toHaveTitle(`${version!.title} · Archangel`);
+  await expect(page.locator('[data-detail-kind]')).toHaveText('Career');
+  // The path is drawn with the same parts: three levels, the version's skills as tags, no marks for a visitor.
+  const flow = page.locator('[data-path-flow]');
+  await expect(flow.locator('[data-path-level]')).toHaveCount(3);
+  await expect(flow.locator('[data-skill-tag]')).toHaveCount(skills.length);
+  await expect(flow.locator('[data-skill-tag] button')).toHaveCount(0);
+  await expect(page.locator('[data-held-count]')).toHaveCount(0);
+  // A skill the company adds says so on its tag, and only those do.
+  const added = skills.filter((skill) => skill.added);
+  await expect(flow.locator('[data-skill-tag][data-added]')).toHaveCount(added.length);
+  for (const skill of added.slice(0, 2)) await expect(flow.locator(`[data-skill-tag="${skill.id}"] [data-tag-added]`)).toHaveText('Added');
+  // A tag names the makes the company runs on its second line; a skill it runs none of has no second line.
+  const withMakes = skills.find((skill) => skill.makes.some((make) => make.runs));
+  if (withMakes) {
+    await expect(flow.locator(`[data-skill-tag="${withMakes.id}"] [data-tag-make]`)).toHaveText(withMakes.makes.filter((make) => make.runs).map((make) => make.name));
+  }
+  const plain = skills.find((skill) => !skill.added && !skill.makes.some((make) => make.runs));
+  if (plain) await expect(flow.locator(`[data-skill-tag="${plain.id}"] [data-tag-line]`)).toHaveCount(0);
+  // What it leaves out is not drawn: one line says how many, and opens them.
+  for (const skill of leftOut) await expect(flow.locator(`[data-skill-tag="${skill.id}"]`)).toHaveCount(0);
+  const line = page.locator('[data-left-out]');
+  if (leftOut.length > 0) {
+    await expect(line.locator('summary')).toHaveText(`${leftOut.length} ${leftOut.length === 1 ? 'skill' : 'skills'} of the standard path left out`);
+    await expect(line.locator('[data-skill-tag]').first()).toBeHidden();
+    await line.locator('summary').click();
+    await expect(line.locator('[data-skill-tag]')).toHaveText(leftOut.map((skill) => skill.name));
+  } else {
+    await expect(line).toHaveCount(0);
+  }
+  await assertHealthyLayout(page, '/occupations/:id?at=company');
+
+  // One tap returns to the standard, which says the company has its own version; the row opens it again.
+  const standard = page.locator('[data-standard-link]');
+  await expect(standard).toHaveText(`Standard ${occupation.title}`);
+  const reach = await standard.boundingBox();
+  expect(reach?.height ?? 0, 'the way back to the standard is a full finger tall').toBeGreaterThanOrEqual(44);
+  await standard.click();
+  await expect(page).toHaveURL(new RegExp(`/occupations/${occupation.id}$`));
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(occupation.title);
+  await expect(page.locator('[data-path-flow] [data-skill-tag][data-added]')).toHaveCount(0);
+  const row = page.locator(`#companies [data-career-version="${company.id}"]`);
+  await expect(row).toContainText(company.name);
+  await row.scrollIntoViewIfNeeded();
+  await assertHealthyLayout(page, '/occupations/:id companies');
+  await row.locator('a').click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(version!.title);
+
+  // The company's page lists its careers, each opening its version.
+  await page.goto(`/companies/${company.id}`, { waitUntil: 'domcontentloaded' });
+  const career = page.locator(`#occupations [data-company-version="${occupation.id}"]`);
+  await expect(career).toContainText(occupation.title);
+  await expect(career.locator('a')).toHaveAttribute('href', new RegExp(`/occupations/${occupation.id}\\?at=`));
+
+  // A company with no version of the career says so, and leads back to the standard.
+  const other = (await (await request.get(`${API}/companies?limit=5`)).json()) as { data: { id: string }[] };
+  const none = other.data.find((each) => each.id !== company.id);
+  if (none) {
+    const has = await request.get(`${API}/companies/${none.id}/careers/${occupation.id}`);
+    if (has.status() === 404) {
+      await page.goto(`/occupations/${occupation.id}?at=${none.id}`, { waitUntil: 'domcontentloaded' });
+      await expect(page.getByText('No version of this career here')).toBeVisible();
+      await expect(page.locator('[data-standard-link]')).toHaveAttribute('href', `/occupations/${occupation.id}`);
+    }
+  }
+});
+
+test("a seeker's marks and progress on a company's version count its skills, and a make they have run is lit", async ({ page, baseURL, request }) => {
+  // Writes: it makes an account, marks skills and a make, and deletes the account. Never against a deployed copy.
+  test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates an account: local only');
+  const version = await sampleVersion(request);
+  expect(version, "the sample has a made-up company's version of a career").toBeTruthy();
+  const { company, occupation, skills } = version!;
+  const password = 'correct horse battery';
+  const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
+  const made = await page.request.post(`${API}/auth/sign-up`, { data: { email: `version-${stamp}@device.test`, name: 'Version Seeker', password, purpose: 'work' } });
+  expect(made.status(), 'account made').toBe(201);
+  try {
+    // The person holds one skill the company runs makes for, and has run the first of those makes.
+    const skill = skills.find((each) => each.makes.some((make) => make.runs));
+    const ran = skill?.makes.find((make) => make.runs);
+    if (skill && ran) {
+      expect((await page.request.put(`${API}/me/skills/${skill.id}`, { data: { status: 'held' } })).ok()).toBe(true);
+      expect((await page.request.put(`${API}/me/skills/${skill.id}/makes`, { data: { makes: [ran.id] } })).ok()).toBe(true);
+    }
+    await page.goto(`/occupations/${occupation.id}?at=${company.id}`, { waitUntil: 'domcontentloaded' });
+    const flow = page.locator('[data-path-flow]');
+    await expect(flow.locator('[data-skill-tag]')).toHaveCount(skills.length);
+    // Progress is counted against the version's skills, not the standard's.
+    const whole = page.locator('[data-held-count]');
+    await expect(whole).toContainText(`${skill ? 1 : 0} of ${skills.length} ${skills.length === 1 ? 'skill' : 'skills'}`);
+    if (skill && ran) {
+      const tag = flow.locator(`[data-skill-tag="${skill.id}"]`);
+      await expect(tag).toHaveAttribute('data-status', 'held');
+      // The make the person has run is lit; the company's others are not. Brightness only: the same family of colour.
+      await expect(tag.locator('[data-tag-make="lit"]')).toHaveText([ran.name]);
+      await expect(tag.locator('[data-tag-make]')).toHaveCount(skill.makes.filter((make) => make.runs).length);
+    }
+    // One tap on another skill's mark: the tag is lit and the figure follows, as on the standard.
+    const next = skills.find((each) => each.id !== skill?.id);
+    if (next) {
+      const tag = flow.locator(`[data-skill-tag="${next.id}"]`);
+      const mark = tag.locator('button');
+      const size = await mark.boundingBox();
+      expect(Math.min(size?.width ?? 0, size?.height ?? 0), 'the mark is at least 44px each way').toBeGreaterThanOrEqual(44);
+      await mark.click();
+      await expect(tag).toHaveAttribute('data-status', 'held');
+      await expect(whole).toContainText(`${skill ? 2 : 1} of ${skills.length}`);
+    }
+    await assertHealthyLayout(page, '/occupations/:id?at=company seeker');
+  } finally {
+    const gone = await page.request.delete(`${API}/me`, { data: { password } });
+    expect(gone.ok(), 'account removed').toBe(true);
+  }
+});
+
+test("an employer edits the company's version of a career with a thumb: a tap leaves a skill out, a chip says a make, each saved as it is made", async ({ page, request }) => {
+  // Nothing is written: the person, their company and the saves are stood in for here, over the sample's own version.
+  const version = await sampleVersion(request);
+  expect(version, "the sample has a made-up company's version of a career").toBeTruthy();
+  const { company, occupation } = version!;
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({
+      json: {
+        user: { id: '00000000-0000-4000-8000-000000000003', email: 'employer@device.test', name: 'Device Employer', isAdmin: false, homeZip: null, about: null, emailNotices: true, purpose: 'hire' },
+        memberships: [{ companyId: company.id, companyName: company.name, role: 'member', status: 'active' }],
+        isEmployer: true,
+      },
+    })
+  );
+  await page.route('**/api/me/news', (route) => route.fulfill({ json: { applications: false, applicants: false, access: false } }));
+  await page.route('**/api/employer', (route) =>
+    route.fulfill({
+      json: { companies: [{ companyId: company.id, companyName: company.name, role: 'member', status: 'active', decidedAt: null, askAgainAt: null, factories: [], jobs: [] }] },
+    })
+  );
+  await page.route('**/api/employer/company-requests', (route) => route.fulfill({ json: { requests: [] } }));
+  // A save is answered as the server would: the version as it stands, with the lists that were sent laid over it.
+  const saves: { added?: string[]; leftOut?: string[]; makes?: string[] }[] = [];
+  let current = version!;
+  await page.route(`**/api/companies/${company.id}/careers/${occupation.id}`, async (route) => {
+    if (route.request().method() !== 'PUT') return route.fallback();
+    const body = route.request().postDataJSON() as { added?: string[]; leftOut?: string[]; makes?: string[] };
+    saves.push(body);
+    const every = [...current.skills, ...current.leftOut];
+    const out = new Set(body.leftOut ?? current.leftOut.map((skill) => skill.id));
+    const runs = new Set(body.makes ?? []);
+    const stand = (skill: DeviceVersionSkill) => ({ ...skill, makes: skill.makes.map((make) => ({ ...make, runs: !out.has(skill.id) && runs.has(make.id) })) });
+    const on = (skill: DeviceVersionSkill) => (skill.added ? (body.added ?? []).includes(skill.id) : !out.has(skill.id));
+    current = { ...current, skills: every.filter(on).map(stand), leftOut: every.filter((skill) => !skill.added && out.has(skill.id)).map(stand) };
+    return route.fulfill({ json: current });
+  });
+
+  // Your jobs: under the company, its careers, and the way to add one.
+  await page.goto('/employer', { waitUntil: 'domcontentloaded' });
+  const careers = page.locator(`[data-company-careers="${company.id}"]`);
+  const row = careers.locator(`[data-version-row="${occupation.id}"]`);
+  await expect(row).toContainText(occupation.title);
+  await expect(careers.locator('[data-add-career]')).toHaveText('Add a career');
+  await careers.scrollIntoViewIfNeeded();
+  await assertHealthyLayout(page, '/employer careers');
+  // Adding one is choosing a career: the picker, and nothing else to fill in.
+  await careers.locator('[data-add-career]').click();
+  await expect(careers.getByRole('combobox')).toBeVisible();
+  await expect(careers.locator('input, textarea, select')).toHaveCount(1);
+
+  // Editing one is the path itself.
+  await row.locator('a').click();
+  await expect(page).toHaveURL(new RegExp(`/employer\\?company=${company.id}&career=${occupation.id}$`));
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(version!.title);
+  const editor = page.locator('[data-version-editor]');
+  const every = [...version!.skills, ...version!.leftOut];
+  await expect(editor.locator('[data-edit-skill]')).toHaveCount(every.length);
+  await expect(editor.locator('[data-path-level]')).toHaveCount(3);
+  await expect(editor.locator('[data-edit-skill][data-on="false"]')).toHaveCount(version!.leftOut.length);
+  await expect(page.locator('form')).toHaveCount(0);
+  await assertHealthyLayout(page, '/employer?career editor');
+
+  // Every tag is a switch a full finger tall.
+  const kept = version!.skills.find((skill) => !skill.added && skill.makes.length === 0) ?? version!.skills[0];
+  const tag = editor.locator(`[data-edit-skill="${kept.id}"]`);
+  const box = tag.getByRole('checkbox');
+  await expect(box).toHaveAttribute('aria-checked', 'true');
+  expect((await box.boundingBox())?.height ?? 0, 'a tag is at least 44px tall').toBeGreaterThanOrEqual(44);
+  // One tap leaves it out, and that is saved at once; one more puts it back.
+  await box.click();
+  await expect(box).toHaveAttribute('aria-checked', 'false');
+  await expect(tag).toContainText('Left out');
+  await expect.poll(() => saves.at(-1)?.leftOut?.includes(kept.id), { message: 'the tap was saved' }).toBe(true);
+  await expect(page.locator('[data-version-saved]')).toHaveText('Saved');
+  await box.click();
+  await expect(box).toHaveAttribute('aria-checked', 'true');
+  await expect.poll(() => saves.at(-1)?.leftOut?.includes(kept.id), { message: 'and so was the tap that put it back' }).toBe(false);
+
+  // Under a skill that has makes: its makes as chips to tap.
+  const withMakes = version!.skills.find((skill) => skill.makes.length > 0);
+  if (withMakes) {
+    const chips = editor.locator(`[data-edit-skill="${withMakes.id}"] [data-edit-makes] button`);
+    await expect(chips).toHaveText(withMakes.makes.map((make) => make.name));
+    const make = withMakes.makes.find((each) => !each.runs) ?? withMakes.makes[0];
+    const chip = editor.locator(`[data-edit-skill="${withMakes.id}"] [data-make="${make.id}"]`);
+    await expect(chip).toHaveAttribute('aria-pressed', String(make.runs));
+    const touch = await page.evaluate(() => matchMedia('(pointer: coarse)').matches);
+    expect((await chip.boundingBox())?.height ?? 0, 'a chip is a full finger tall on a touch screen').toBeGreaterThanOrEqual(touch ? 44 : 36);
+    await chip.click();
+    await expect(chip).toHaveAttribute('aria-pressed', String(!make.runs));
+    await expect.poll(() => saves.at(-1)?.makes?.includes(make.id), { message: 'the make was saved' }).toBe(!make.runs);
+    // A skill that is left out shows no chips; put back, they are as they were left.
+    const owner = editor.locator(`[data-edit-skill="${withMakes.id}"]`).getByRole('checkbox');
+    if (!withMakes.added) {
+      await owner.click();
+      await expect(editor.locator(`[data-edit-skill="${withMakes.id}"] [data-edit-makes]`)).toHaveCount(0);
+      await expect.poll(() => saves.at(-1)?.makes?.includes(make.id), { message: 'a skill left out sends no makes' }).toBe(false);
+      await owner.click();
+      await expect(chip).toHaveAttribute('aria-pressed', String(!make.runs));
+    }
+  }
+  // Every save sent the three lists whole.
+  expect(saves.length).toBeGreaterThanOrEqual(2);
+  for (const save of saves) expect(Object.keys(save).sort()).toEqual(['added', 'leftOut', 'makes']);
+  await assertHealthyLayout(page, '/employer?career editor tapped');
+
+  // A search adds a skill; deleting the version asks first.
+  await expect(page.getByRole('combobox', { name: 'Add a skill' })).toBeVisible();
+  await page.locator('[data-version-delete]').click();
+  const dialog = page.getByRole('alertdialog');
+  await expect(dialog).toContainText(version!.title);
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('[data-version-page]')).toHaveAttribute('href', new RegExp(`/occupations/${occupation.id}\\?at=`));
+});
