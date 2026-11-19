@@ -123,7 +123,7 @@ function Starter({ onStart }: { onStart: () => void }) {
           <ul className={cn(cardClass, 'mt-3')}>
             {careers.map((career) => {
               const busy = addGoal.isPending && addGoal.variables === career.id;
-              const count = career.stages.reduce((sum, stage) => sum + stage.count, 0);
+              const count = (career.levels ?? []).reduce((sum, level) => sum + level.count, 0);
               return (
                 <li key={career.id} className={cn(rowClass, 'flex items-center gap-3 px-4 py-3')}>
                   <div className="min-w-0 flex-1">

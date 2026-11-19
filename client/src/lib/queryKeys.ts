@@ -70,6 +70,8 @@ export const publicKeys = {
   /** One company, plant, career or skill: its page, the map's panel and a list row's prefetch read it here. */
   record: (entity: EntityType, id: string | null | undefined) => [entity, id] as const,
   counts: ['entity-counts'] as const,
+  /** The whole skill taxonomy: every domain, group and skill. */
+  taxonomy: ['skill-taxonomy'] as const,
 
   exploreOverview: ['explore-overview'] as const,
   exploreFacets: ['explore-facets'] as const,

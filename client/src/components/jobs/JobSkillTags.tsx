@@ -310,7 +310,7 @@ function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderProps) {
                 )}
               >
                 <span className="min-w-0 break-words">{option.name}</span>
-                {option.category && <span className="min-w-0 truncate text-xs text-fg-muted">{option.category}</span>}
+                {option.group && <span className="min-w-0 truncate text-xs text-fg-muted">{option.group.name}</span>}
               </li>
             ))}
           </ul>

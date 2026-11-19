@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { US_STATES } from '@shared/states';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import type { AdminCompany } from '../../lib/admin';
@@ -32,7 +32,8 @@ import {
 } from '../account/parts';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import CompanyPicker from './CompanyPicker';
-import { useExploreFacets } from '../../lib/queries';
+import { useTaxonomy } from '../../lib/queries';
+import { LEVELS } from '../../lib/stages';
 
 type FieldName =
   | 'company'
@@ -48,7 +49,8 @@ type FieldName =
   | 'headquartersLng'
   | 'city'
   | 'address'
-  | 'category'
+  | 'group'
+  | 'level'
   | 'onetCode'
   | 'howLearned'
   | 'tools'
@@ -68,7 +70,8 @@ const FIELD_FOCUS: [FieldName, string][] = [
   ['company', 'record-company'],
   ['name', 'record-name'],
   ['industry', 'record-industry'],
-  ['category', 'record-category'],
+  ['group', 'record-group'],
+  ['level', 'record-level'],
   ['state', 'record-state'],
   ['latitude', 'record-latitude'],
   ['longitude', 'record-longitude'],
@@ -182,7 +185,9 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   const [city, setCity] = useState(text(fields.city));
   const [address, setAddress] = useState(text(fields.address));
   const [industry, setIndustry] = useState(text(fields.industry));
-  const [category, setCategory] = useState(text(fields.category));
+  // A skill's group, by its slug, and its level as the select holds it: '1', '2' or '3'.
+  const [group, setGroup] = useState(text(fields.group));
+  const [level, setLevel] = useState(text(fields.level));
   const [description, setDescription] = useState(text(fields.description));
   const [domain, setDomain] = useState(text(fields.domain));
   const [featured, setFeatured] = useState(fields.featured === true);
@@ -209,8 +214,10 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   const [status, setStatus] = useState(text(fields.status) || 'operating');
   const [attempted, setAttempted] = useState(false);
 
-  // Industries and categories already in use, offered as the field is typed in.
-  const facets = useExploreFacets(kind === 'company' || kind === 'skill');
+  // A skill is put in a group, which fixes its domain: every group, under its domain.
+  const taxonomy = useTaxonomy(kind === 'skill');
+  const groupDomain = taxonomy.data?.domains.find((domain) => domain.groups.some((item) => item.slug === group));
+  const levelNumber = level === '1' ? 1 : level === '2' ? 2 : level === '3' ? 3 : null;
 
   const lat = coordinate(latitude, 90);
   const lng = coordinate(longitude, 180);
@@ -222,6 +229,11 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
 
   const problems: Partial<Record<FieldName, string>> = {};
   if (!name.trim()) problems.name = NAME_PROBLEM[kind];
+  if (kind === 'skill') {
+    // A skill on record with neither (a database no taxonomy was loaded into) can be corrected without them.
+    if (!group && (!editing || fields.group)) problems.group = 'Choose the group it belongs to.';
+    if (!levelNumber && (!editing || fields.level)) problems.level = 'Choose a level.';
+  }
   if (kind === 'factory') {
     // A plant on record without a company can be corrected without being given one.
     if (!company && (!editing || fields.companyId)) problems.company = 'Choose the company that runs it.';
@@ -267,7 +279,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   const newRecord = (): NewRecord | null => {
     if (kind === 'company') return { kind, name: name.trim() };
     if (kind === 'career') return { kind, title: name.trim(), description: given(description) };
-    if (kind === 'skill') return { kind, name: name.trim(), category: given(category), description: given(description) };
+    if (kind === 'skill') return levelNumber ? { kind, name: name.trim(), group, level: levelNumber, description: given(description) } : null;
     if (!company || lat === null || lng === null) return null;
     return { kind, companyId: company.id, name: name.trim(), state, latitude: lat, longitude: lng, city: given(city), address: given(address) };
   };
@@ -292,7 +304,15 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
     }
     if (kind === 'career') return { title: name.trim(), description: orNull(description), onetCode: orNull(onetCode), aliases: aliasList };
     if (kind === 'skill') {
-      return { name: name.trim(), category: orNull(category), description: orNull(description), howLearned: orNull(howLearned), tools: toolList, aliases: aliasList };
+      return {
+        name: name.trim(),
+        ...(group ? { group } : {}),
+        ...(levelNumber ? { level: levelNumber } : {}),
+        description: orNull(description),
+        howLearned: orNull(howLearned),
+        tools: toolList,
+        aliases: aliasList,
+      };
     }
     return {
       name: name.trim(),
@@ -425,14 +445,54 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
 
 
         {kind === 'skill' && (
-          <Field label="Category" htmlFor="record-category" optional>
-            {input('record-category', category, setCategory, 'category', { maxLength: 80, list: 'record-categories' })}
-            <datalist id="record-categories">
-              {(facets.data?.skillCategories ?? []).map((value) => (
-                <option key={value} value={value} />
-              ))}
-            </datalist>
-            <FieldError id="record-category-error" message={shown('category')} />
+          // The group fixes the domain: the list is every group under its domain, and the line below says which.
+          <Field label="Group" htmlFor="record-group" hint={shown('group') ? undefined : groupDomain ? `In ${groupDomain.name}.` : undefined}>
+            <Select value={group} onValueChange={setGroup}>
+              <SelectTrigger
+                id="record-group"
+                aria-invalid={shown('group') ? true : undefined}
+                aria-describedby={shown('group') ? 'record-group-error' : undefined}
+                className={cn(selectTriggerClass, shown('group') && 'border-danger/60')}
+              >
+                <SelectValue placeholder="Choose a group" />
+              </SelectTrigger>
+              <SelectContent className={cn(selectContentClass, 'max-h-72')}>
+                {(taxonomy.data?.domains ?? []).map((domain) => (
+                  <SelectGroup key={domain.slug}>
+                    <SelectLabel className="pt-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">{domain.name}</SelectLabel>
+                    {domain.groups.map((item) => (
+                      <SelectItem key={item.slug} value={item.slug} className="py-2.5">
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldError id="record-group-error" message={shown('group')} />
+          </Field>
+        )}
+
+        {kind === 'skill' && (
+          <Field label="Level" htmlFor="record-level" hint={shown('level') ? undefined : 'The same in every career that uses the skill.'}>
+            <Select value={level} onValueChange={setLevel}>
+              <SelectTrigger
+                id="record-level"
+                aria-invalid={shown('level') ? true : undefined}
+                aria-describedby={shown('level') ? 'record-level-error' : undefined}
+                className={cn(selectTriggerClass, shown('level') && 'border-danger/60')}
+              >
+                <SelectValue placeholder="Choose a level" />
+              </SelectTrigger>
+              <SelectContent className={selectContentClass}>
+                {LEVELS.map((option) => (
+                  <SelectItem key={option.id} value={String(option.id)} className="py-2.5">
+                    {option.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldError id="record-level-error" message={shown('level')} />
           </Field>
         )}
 

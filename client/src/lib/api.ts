@@ -1,4 +1,5 @@
 import { unpackPins, type PinsPayload } from '@shared/pins';
+import type { SkillLevel } from '@shared/skillLevels';
 import { API_BASE, fetchWithTimeout, queryString } from './http';
 
 export interface PaginatedResponse<T> {
@@ -64,17 +65,80 @@ export interface RelatedOccupationWithImportance {
   title: string;
   onetCode: string | null;
   importance: 'required' | 'preferred' | 'nice_to_have';
-  /** Where the skill sits on this career's path: 1 Introduction, 2 Fundamentals, 3 Advanced. */
-  stage?: 1 | 2 | 3 | null;
 }
 
+// ---------------------------------------------------------------------------
+// The skill taxonomy: domain > skill group > skill, and one level per skill
+// ---------------------------------------------------------------------------
+
+/** A skill's level, the same in every career: 1 Fundamentals, 2 Intermediate, 3 Advanced (names in lib/stages.ts). */
+export type { SkillLevel };
+
+/** A domain or a skill group, by what a link (`slug`) and a label (`name`) need. */
+export interface TaxonomyRef {
+  slug: string;
+  name: string;
+}
+
+/**
+ * Where a skill sits: its level, its skill group and the group's domain.
+ * Every skill has all three. (The server sends null for each only from a
+ * local database filled with `npm run db:seed` alone, where no migration has
+ * placed the sample skills; `npm run db:create -- --sample` places them.)
+ */
+export interface SkillPlace {
+  level: SkillLevel;
+  group: TaxonomyRef;
+  domain: TaxonomyRef;
+}
+
+/** A skill in the taxonomy tree. */
+export interface TaxonomySkill {
+  id: string;
+  name: string;
+  level: SkillLevel;
+  /** How many careers use it. */
+  careers: number;
+}
+
+/** A skill group: a named set of skills inside one domain, its skills by level and then in the curated order. */
+export interface TaxonomyGroup extends TaxonomyRef {
+  description: string;
+  skills: TaxonomySkill[];
+}
+
+/** A domain: a department a large manufacturer has, with its groups in display order. */
+export interface TaxonomyDomain extends TaxonomyRef {
+  description: string;
+  groups: TaxonomyGroup[];
+}
+
+/** GET /api/skills/taxonomy: the whole tree, domains in display order. Read it with `useTaxonomy()` (lib/queries.ts). */
+export interface Taxonomy {
+  levels: { id: SkillLevel; name: string }[];
+  domains: TaxonomyDomain[];
+}
+
+/** A skill on a career's path (GET /api/occupations/:id → `skills`), in path order: by level, then domain and group. */
+export interface PathSkill extends SkillPlace {
+  id: string;
+  name: string;
+  importance?: 'required' | 'preferred' | 'nice_to_have';
+}
+
+/** A skill that shares careers with another (GET /api/skills/:id → `relatedSkills`). */
 export interface RelatedSkill {
   id: string;
   name: string;
-  category: string | null;
-  importance?: 'required' | 'preferred' | 'nice_to_have';
-  /** Where the skill sits on a career's path: 1 Introduction, 2 Fundamentals, 3 Advanced. */
-  stage?: 1 | 2 | 3 | null;
+  level: SkillLevel;
+  group: TaxonomyRef;
+}
+
+/** Another skill of the same group (GET /api/skills/:id → `groupSkills`). */
+export interface GroupSkill {
+  id: string;
+  name: string;
+  level: SkillLevel;
 }
 
 /** An open job listed on its career's page. Pay is in cents. */
@@ -232,13 +296,14 @@ export interface Occupation {
   createdAt: string;
   skillCount?: number;
   factoryCount?: number;
-  /** Skills at each stage of the path (Introduction, Fundamentals, Advanced), where a response carries it. */
-  stageCounts?: [number, number, number] | null;
+  /** How many of its skills are at each level (Fundamentals, Intermediate, Advanced), where a response carries it. */
+  levelCounts?: [number, number, number] | null;
 }
 
 // Occupation with relations
 export interface OccupationDetail extends Occupation {
-  skills: RelatedSkill[];
+  /** The career's path: its skills, each with its level, group and domain. */
+  skills: PathSkill[];
   factories: RelatedFactoryWithHeadcount[];
   jobs?: CareerJob[];
   /** Industries where this work is typically done, with their factory counts. */
@@ -251,10 +316,9 @@ export interface OccupationDetail extends Occupation {
   topStates?: { code: string; factoryCount: number }[];
 }
 
-export interface Skill {
+export interface Skill extends SkillPlace {
   id: string;
   name: string;
-  category: string | null;
   /** What it is and what a person who has it can do. */
   description: string | null;
   createdAt: string;
@@ -267,7 +331,9 @@ export interface SkillDetail extends Skill {
   howLearned?: string | null;
   /** The tools, machines or software it is done with. */
   tools?: string[] | null;
-  /** The careers that use it, each with the stage it holds on that career's path. */
+  /** The other skills of its group, by level and then in the curated order. */
+  groupSkills: GroupSkill[];
+  /** The careers that use it, by title. The skill sits at its own level in each. */
   occupations: RelatedOccupationWithImportance[];
   /** Industries those careers are typical of, the ones with most of them first. */
   industries?: { name: string; careerCount: number }[];
@@ -289,7 +355,10 @@ interface FetchOptions {
   order?: 'asc' | 'desc';
   state?: string;
   company?: string;
-  category?: string;
+  /** Skills: a domain's slug, a group's slug, a level. */
+  domain?: string;
+  group?: string;
+  level?: number;
   [key: string]: string | number | boolean | undefined;
 }
 
@@ -347,6 +416,10 @@ export const skillsApi = {
 
   get: (id: string) =>
     apiFetch<SkillDetail>(`/skills/${id}`),
+
+  /** Every domain, group and skill in one answer. */
+  taxonomy: () =>
+    apiFetch<Taxonomy>('/skills/taxonomy'),
 };
 
 // Entity counts for tabs
@@ -499,9 +572,9 @@ export interface ExploreEmployer {
   stateCount: number;
 }
 
-/** One stage of a career's path: how many skills it holds and the first few by name. */
-export interface ExploreCareerStage {
-  stage: 1 | 2 | 3;
+/** One level of a career's path: how many of its skills are at it and the first few by name. */
+export interface ExploreCareerLevel {
+  level: SkillLevel;
   count: number;
   skills: string[];
 }
@@ -511,12 +584,11 @@ export interface ExploreCareer {
   id: string;
   title: string;
   description: string | null;
-  stages: ExploreCareerStage[];
+  levels: ExploreCareerLevel[];
 }
 
-/** The most connected skills of one category. */
-export interface ExploreSkillGroup {
-  category: string;
+/** The skills of one domain that the most careers use. */
+export interface ExploreSkillDomain extends TaxonomyRef {
   skills: { id: string; name: string; careerCount: number }[];
 }
 
@@ -545,7 +617,7 @@ export interface ExploreIndustry {
 export interface ExploreOverview {
   employers: ExploreEmployer[];
   careers: ExploreCareer[];
-  skillGroups: ExploreSkillGroup[];
+  skillDomains: ExploreSkillDomain[];
   areas: ExploreArea[];
   states: ExploreState[];
   /** The largest industries, and the year their official figures are for. */
@@ -563,7 +635,8 @@ export interface ExploreFacets {
   industries?: { plants: string[]; companies: string[] };
   /** The same list as `industries.plants`, under its older name. */
   factoryIndustries: string[];
-  skillCategories: string[];
+  /** The domains with a skill some career uses, each with such groups, in the taxonomy's order. */
+  skillDomains: (TaxonomyRef & { groups: TaxonomyRef[] })[];
 }
 
 export const exploreApi = {

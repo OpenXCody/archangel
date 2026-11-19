@@ -55,7 +55,24 @@ export function usePins() {
   });
 }
 
-/** The industries and skill categories in use: what the browse lists filter by. */
+/**
+ * The skill taxonomy: every domain with its groups and their skills, each
+ * skill with its level and how many careers use it. One answer, shared by
+ * whatever draws it. It changes only with a deploy or an admin's edit, so it
+ * is kept for the visit; an admin's change to a skill refreshes it
+ * (`recordsChanged` in lib/records.ts).
+ */
+export function useTaxonomy(enabled = true) {
+  return useQuery({
+    queryKey: publicKeys.taxonomy,
+    queryFn: skillsApi.taxonomy,
+    staleTime: 60 * 60_000,
+    gcTime: Infinity,
+    enabled,
+  });
+}
+
+/** The industries, and the skill domains and groups, in use: what the browse lists filter by. */
 export function useExploreFacets(enabled = true) {
   return useQuery({
     queryKey: publicKeys.exploreFacets,

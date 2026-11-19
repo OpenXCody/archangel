@@ -41,7 +41,16 @@ export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
 export interface FilterState {
   state?: StateCode;
   industry?: string;
-  category?: string;
+  /** Skills: a domain's slug, and the slug of one of its groups. */
+  domain?: string;
+  group?: string;
+}
+
+/** A domain the Skills list can be narrowed to, with its groups, in the taxonomy's order. */
+export interface DomainChoice {
+  slug: string;
+  name: string;
+  groups: { slug: string; name: string }[];
 }
 
 interface FilterBarProps {
@@ -52,7 +61,8 @@ interface FilterBarProps {
   onFilterChange: (filters: FilterState) => void;
   /** Industries to offer, by the name a plant carries; shown by their short names. */
   industries?: string[];
-  categories?: string[];
+  /** Skills: the domains to offer, each with its groups. */
+  domains?: DomainChoice[];
 }
 
 const ALL = '__all__';
@@ -119,7 +129,7 @@ export default function FilterBar({
   filters,
   onFilterChange,
   industries = [],
-  categories = [],
+  domains = [],
 }: FilterBarProps) {
   const sortOptions = SORT_OPTIONS[activeTab];
   const stateOptions = useMemo(() => US_STATES.map((s) => ({ value: s.code as string, label: s.name as string })), []);
@@ -130,12 +140,18 @@ export default function FilterBar({
       .sort((a, b) => a.label.localeCompare(b.label));
   // An industry is offered, and reads once chosen, by its short name ("Food", not "Food Manufacturing").
   const industryOptions = useMemo(() => withCurrent(industries, filters.industry, industryLabel), [industries, filters.industry]);
-  const categoryOptions = useMemo(() => withCurrent(categories, filters.category), [categories, filters.category]);
+  // Domains and groups keep the taxonomy's order. A group is offered once its domain is chosen.
+  const domainOptions = useMemo(() => domains.map((domain) => ({ value: domain.slug, label: domain.name })), [domains]);
+  const groupOptions = useMemo(
+    () => (domains.find((domain) => domain.slug === filters.domain)?.groups ?? []).map((group) => ({ value: group.slug, label: group.name })),
+    [domains, filters.domain]
+  );
 
   const showState = activeTab === 'factories';
   const showIndustry = (activeTab === 'companies' || activeTab === 'factories') && industryOptions.length > 0;
-  const showCategory = activeTab === 'skills' && categoryOptions.length > 0;
-  const filtered = Boolean(filters.state || filters.industry || filters.category);
+  const showDomain = activeTab === 'skills' && domainOptions.length > 0;
+  const showGroup = showDomain && groupOptions.length > 0;
+  const filtered = Boolean(filters.state || filters.industry || filters.domain || filters.group);
 
   return (
     <div className="mt-2 flex flex-wrap items-center justify-between gap-x-6 sm:mt-4">
@@ -158,13 +174,23 @@ export default function FilterBar({
             allLabel="All industries"
           />
         )}
-        {showCategory && (
+        {showDomain && (
           <Choice
-            label="Category"
-            value={filters.category}
-            options={categoryOptions}
-            onChange={(value) => onFilterChange({ ...filters, category: value })}
-            allLabel="All categories"
+            label="Domain"
+            value={filters.domain}
+            options={domainOptions}
+            // A group belongs to one domain: another domain, or none, clears it.
+            onChange={(value) => onFilterChange({ ...filters, domain: value, group: undefined })}
+            allLabel="All domains"
+          />
+        )}
+        {showGroup && (
+          <Choice
+            label="Group"
+            value={filters.group}
+            options={groupOptions}
+            onChange={(value) => onFilterChange({ ...filters, group: value })}
+            allLabel="All groups"
           />
         )}
         {filtered && (

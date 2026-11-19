@@ -7,7 +7,7 @@ import {
   type ExploreEmployer,
   type ExploreIndustry,
   type ExploreOverview as Overview,
-  type ExploreSkillGroup,
+  type ExploreSkillDomain,
   type ExploreState,
 } from '../../lib/api';
 import { formatCompanyName } from '@shared/displayName';
@@ -19,7 +19,7 @@ import { EmptyState, PageSection } from '../layout/Page';
 import { LoadError } from '../account/parts';
 import CompanyLogo from '../CompanyLogo';
 import { exploreHref } from './ExploreNav';
-import { STAGE_LABEL } from '../../lib/stages';
+import { LEVEL_NAME } from '../../lib/stages';
 import { publicKeys } from '../../lib/queryKeys';
 import { useExploreOverview } from '../../lib/queries';
 
@@ -139,26 +139,26 @@ function CareerCard({ career, className }: { career: ExploreCareer; className?: 
     <Link to={`/occupations/${career.id}`} className={cn(TILE, 'flex-col p-5', className)}>
       <h3 className="truncate text-[17px] font-semibold leading-snug text-fg-default">{career.title}</h3>
       {career.description && <p className="mt-1 line-clamp-2 text-sm leading-snug text-fg-muted">{career.description}</p>}
-      {/* The path: three stages down a rail, each with what it holds. */}
+      {/* The path: three levels down a rail, each with what it holds. (An answer cached before levels has none.) */}
       <ol className="mt-5 space-y-3.5">
-        {career.stages.map((stage, i) => (
+        {(career.levels ?? []).map((level, i, levels) => (
           <li
-            key={stage.stage}
+            key={level.level}
             className={cn(
               'relative min-w-0 pl-5 before:absolute before:left-0 before:top-[5px] before:h-[7px] before:w-[7px] before:rounded-full before:bg-fg-soft',
-              // The rail runs from this stage's mark to the next one's.
-              i < career.stages.length - 1 &&
+              // The rail runs from this level's mark to the next one's.
+              i < levels.length - 1 &&
                 'after:absolute after:-bottom-[17px] after:left-[3px] after:top-[14px] after:w-px after:bg-border-strong'
             )}
           >
             <div className="flex items-baseline justify-between gap-3">
-              <span className={cn(EYEBROW, 'text-fg-muted')}>{STAGE_LABEL[stage.stage]}</span>
-              <span className="shrink-0 text-xs tabular-nums text-fg-soft">{plural(stage.count, 'skill', 'skills')}</span>
+              <span className={cn(EYEBROW, 'text-fg-muted')}>{LEVEL_NAME[level.level]}</span>
+              <span className="shrink-0 text-xs tabular-nums text-fg-soft">{plural(level.count, 'skill', 'skills')}</span>
             </div>
             {/* One line of whole names: a name that does not fit wraps out of sight instead of being cut. */}
-            {stage.skills.length > 0 && (
+            {level.skills.length > 0 && (
               <p className="mt-1 flex h-5 flex-wrap gap-x-1.5 overflow-hidden text-sm leading-5 text-fg-soft">
-                {stage.skills.map((name, n) => (
+                {level.skills.map((name, n) => (
                   <span key={name} className={n === 0 ? 'min-w-0 max-w-full truncate' : 'whitespace-nowrap'}>
                     {n > 0 && <span className="mr-1.5">·</span>}
                     {name}
@@ -195,18 +195,19 @@ function Careers({ careers }: { careers: ExploreCareer[] }) {
 // Skills
 // ---------------------------------------------------------------------------
 
-function Skills({ groups }: { groups: ExploreSkillGroup[] }) {
-  if (groups.length === 0) return null;
+/** The skills the most careers use, under the domains careers draw on most. */
+function Skills({ domains }: { domains: ExploreSkillDomain[] }) {
+  if (domains.length === 0) return null;
   return (
     <PageSection title="Skills" actions={<TextLink to={exploreHref('skills')}>All skills</TextLink>} className={SECTION}>
       <div className="grid grid-cols-1 gap-x-12 gap-y-8 pt-1 sm:grid-cols-2 sm:gap-y-10 sm:pt-2 lg:grid-cols-3">
-        {groups.map((group, g) => (
-          // A phone lists the first four categories.
-          <div key={group.category} className={cn('min-w-0', g >= 4 && 'hidden sm:block')}>
-            <h3 className={cn(EYEBROW, 'mb-1 border-b border-border-subtle pb-2.5 sm:mb-2')}>{group.category}</h3>
+        {domains.map((domain, d) => (
+          // A phone lists the first four domains.
+          <div key={domain.slug} className={cn('min-w-0', d >= 4 && 'hidden sm:block')}>
+            <h3 className={cn(EYEBROW, 'mb-1 border-b border-border-subtle pb-2.5 sm:mb-2')}>{domain.name}</h3>
             <ul>
-              {group.skills.map((skill, i) => (
-                // A phone lists the first four of each category.
+              {domain.skills.map((skill, i) => (
+                // A phone lists the first four of each domain.
                 <li key={skill.id} className={i >= 4 ? 'hidden sm:block' : undefined}>
                   <Link to={`/skills/${skill.id}`} className={LIST_ROW}>
                     <span className="min-w-0 truncate text-fg-default underline-offset-4 group-hover:underline">{skill.name}</span>
@@ -423,8 +424,8 @@ function OverviewSkeleton() {
               <Skeleton className="h-5 w-3/5" />
               <Skeleton className="mt-2.5 h-3 w-4/5" />
               <div className="mt-6 space-y-5 border-l border-border-subtle pl-4">
-                {[0, 1, 2].map((stage) => (
-                  <div key={stage}>
+                {[0, 1, 2].map((level) => (
+                  <div key={level}>
                     <Skeleton className="h-3 w-24" />
                     <Skeleton className="mt-2 h-3 w-full" />
                   </div>
@@ -441,7 +442,7 @@ function OverviewSkeleton() {
 // ---------------------------------------------------------------------------
 
 const isEmpty = (data: Overview) =>
-  data.employers.length + data.careers.length + data.skillGroups.length + data.areas.length + data.states.length === 0;
+  data.employers.length + data.careers.length + (data.skillDomains ?? []).length + data.areas.length + data.states.length === 0;
 
 /**
  * What /explore opens on: the shape of what is here and places to start, one
@@ -463,7 +464,7 @@ export default function ExploreOverview() {
           <Companies companies={data.employers} />
           <Plants areas={data.areas} states={data.states} />
           <Careers careers={data.careers} />
-          <Skills groups={data.skillGroups} />
+          <Skills domains={data.skillDomains ?? []} />
         </>
       ) : overview.isError ? (
         <LoadError error={overview.error} onRetry={() => void overview.refetch()} retrying={overview.isFetching} />
