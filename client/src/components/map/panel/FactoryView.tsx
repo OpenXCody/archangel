@@ -9,7 +9,7 @@ import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../../CompanyLogo';
 import { shownIndustry } from '@shared/industry';
 import { usePins } from '../../../lib/queries';
-import { Heading, Section, JobRows, MORE_LINK, CareerRows, More, RowList, NodeRow, PageLink, Figures } from './parts';
+import { Heading, Section, JobRows, MORE_LINK, CareerRows, More, RowList, NodeRow, PageLink, Figures, META_IN_ROW } from './parts';
 
 /** How far "nearby" reaches, and how many plants it lists. */
 const NEARBY_MILES = 30;
@@ -129,7 +129,7 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
               <span className="min-w-0">
                 <span className="block truncate text-[15px] text-text-1">{companyName}</span>
                 {siteCount > 0 && (
-                  <span className="block text-[13px] tabular-nums text-text-3">
+                  <span className={`block text-[13px] tabular-nums ${META_IN_ROW}`}>
                     {siteCount.toLocaleString()} {siteCount === 1 ? 'plant' : 'plants'}
                     {stateCount > 1 ? ` in ${stateCount} states` : ''}
                   </span>

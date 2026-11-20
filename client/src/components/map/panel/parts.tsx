@@ -33,6 +33,9 @@ export const LABEL_SMALL = 'text-[11px] font-medium uppercase tracking-[0.08em] 
 export const ROW =
   'map-row map-list-row group -mx-4 flex w-[calc(100%+2rem)] items-center gap-3 border-b border-line px-4 text-left transition-colors last:border-b-0 hover:bg-surface-hover';
 
+/** Meta inside a row: it steps up while the row is under the pointer, where --text-3 would fall short of 4.5:1 on the hover fill. */
+export const META_IN_ROW = 'text-text-3 transition-colors group-hover:text-text-2';
+
 /** A button that is not the page's one action: an outline, no fill. Give it `flex` or `inline-flex`. */
 export const SECONDARY_BUTTON =
   'map-row items-center justify-center rounded-lg border border-line-strong text-sm font-medium text-text-1 transition-colors hover:bg-surface-hover';
@@ -109,7 +112,7 @@ export function NodeRow({
       {logo ?? (Icon && <Icon className="h-4 w-4 shrink-0 text-text-2" aria-hidden="true" />)}
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[15px] text-text-1">{title}</span>
-        {subtitle && <span className="block truncate text-[13px] text-text-3">{subtitle}</span>}
+        {subtitle && <span className={`block truncate text-[13px] ${META_IN_ROW}`}>{subtitle}</span>}
       </span>
       <ChevronRight className="h-4 w-4 shrink-0 text-text-3 transition-colors group-hover:text-text-1" aria-hidden="true" />
     </button>
@@ -168,7 +171,7 @@ export function JobRows({ jobs, limit, company = false }: { jobs: CareerJob[]; l
                 company && job.companyName ? formatCompanyName(job.companyName) : null,
                 job.payMin !== null && job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null,
               ].filter(Boolean);
-              return line.length > 0 ? <span className="block truncate text-[13px] tabular-nums text-text-3">{line.join(' · ')}</span> : null;
+              return line.length > 0 ? <span className={`block truncate text-[13px] tabular-nums ${META_IN_ROW}`}>{line.join(' · ')}</span> : null;
             })()}
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-text-3 transition-colors group-hover:text-text-1" aria-hidden="true" />

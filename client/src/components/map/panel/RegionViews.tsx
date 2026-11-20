@@ -12,7 +12,7 @@ import { stateName, titleCase } from '../../../lib/places';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../../CompanyLogo';
 import { industryPath, shownIndustry } from '@shared/industry';
-import { Section, JobRows, MORE_LINK, CareerRows, Heading, PageLink, RowList, NodeRow, More, Figures, ROW } from './parts';
+import { Section, JobRows, MORE_LINK, CareerRows, Heading, PageLink, RowList, NodeRow, More, Figures, ROW, META_IN_ROW } from './parts';
 
 /** How many open jobs a region's panel lists before sending the person to the jobs list. */
 const REGION_JOBS_SHOWN = 4;
@@ -80,7 +80,7 @@ function RegionBody({
                 >
                   <CompanyLogo name={name} domain={c.domain} size={32} />
                   <span className="min-w-0 flex-1 truncate text-[15px] text-text-1">{name}</span>
-                  <span className="shrink-0 text-[13px] tabular-nums text-text-3">{c.count.toLocaleString()}</span>
+                  <span className={`shrink-0 text-[13px] tabular-nums ${META_IN_ROW}`}>{c.count.toLocaleString()}</span>
                 </button>
               );
             })}
@@ -105,7 +105,7 @@ function RegionBody({
                   className={`${ROW} justify-between py-1`}
                 >
                   <span className="min-w-0 truncate text-[15px] text-text-1">{shownIndustry(industry.label)}</span>
-                  <span className="shrink-0 text-[13px] tabular-nums text-text-3">{industry.count.toLocaleString()}</span>
+                  <span className={`shrink-0 text-[13px] tabular-nums ${META_IN_ROW}`}>{industry.count.toLocaleString()}</span>
                 </Link>
               );
             })}

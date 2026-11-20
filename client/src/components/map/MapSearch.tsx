@@ -647,7 +647,7 @@ export default function MapSearch() {
                           {row.kind === 'company' && <CompanyLogo name={row.title} domain={row.domain} size={32} />}
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-[15px] text-text-1">{row.title}</span>
-                            {row.subtitle && <span className="block truncate text-[13px] text-text-3">{row.subtitle}</span>}
+                            {row.subtitle && <span className={`block truncate text-[13px] ${active ? 'text-text-2' : 'text-text-3'}`}>{row.subtitle}</span>}
                           </span>
                         </div>
                       );
