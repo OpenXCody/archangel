@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { ApiError } from '../../lib/http';
 import { useAddVersion, useCompanyVersions, versionLine } from '../../lib/versions';
 import CareerPicker from '../account/CareerPicker';
-import { CardNote, ErrorNote, LoadError, RowsSkeleton, cardClass, outlineButtonClass, rowClass, textButtonClass } from '../account/parts';
+import { CardNote, ErrorNote, LoadError, RowsSkeleton, cardClass, outlineButtonClass, rowClass, textButtonClass, rowHoverClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import { versionEditorPath } from '../entity/CareerVersionView';
 
@@ -53,13 +53,13 @@ export default function CompanyCareers({ company, showCompanyName }: { company: 
               <li key={version.occupation.id} className={rowClass} data-version-row={version.occupation.id}>
                 <Link
                   to={versionEditorPath(company.companyId, version.occupation.id)}
-                  className="group flex min-h-[52px] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-bg-elevated"
+                  className={cn(rowHoverClass, 'group flex min-h-[52px] items-center gap-3 py-2.5')}
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block break-words text-sm font-medium text-fg-default">{version.occupation.title}</span>
-                    <span className="mt-0.5 block break-words text-sm text-fg-muted">{versionLine(version) ?? 'The standard path'}</span>
+                    <span className="block break-words text-sm text-text-1">{version.occupation.title}</span>
+                    <span className="mt-0.5 block break-words text-sm text-text-2">{versionLine(version) ?? 'The standard path'}</span>
                   </span>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" aria-hidden="true" />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-text-3 group-hover:text-text-1" aria-hidden="true" />
                 </Link>
               </li>
             ))}
@@ -69,11 +69,11 @@ export default function CompanyCareers({ company, showCompanyName }: { company: 
         <div className="mt-3">
           {adding ? (
             <div className="max-w-md">
-              <label htmlFor={`add-career-${company.companyId}`} className="mb-1.5 block text-sm font-medium text-fg-muted">
+              <label htmlFor={`add-career-${company.companyId}`} className="mb-1.5 block text-sm font-medium text-text-2">
                 Career
               </label>
               <CareerPicker id={`add-career-${company.companyId}`} value={null} onChange={choose} disabled={add.isPending} />
-              <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-3">
                 {add.isPending ? (
                   <span className="inline-flex items-center gap-1.5" role="status">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />

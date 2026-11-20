@@ -22,19 +22,19 @@ export function ShareRing({ share, className }: { share: Share | null; className
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" data-share-ring className={cn('h-[18px] w-[18px] shrink-0', className)}>
       {whole ? (
         <>
-          <circle cx="10" cy="10" r="8.25" className="fill-fg-default" />
-          <path d="M6.4 10.3l2.4 2.4 4.8-5.1" stroke="var(--color-bg-base)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="10" cy="10" r="8.25" className="fill-text-1" />
+          <path d="M6.4 10.3l2.4 2.4 4.8-5.1" stroke="var(--bg)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
         </>
       ) : (
         <>
-          <circle cx="10" cy="10" r={R} strokeWidth="1.5" className="stroke-border-strong" />
+          <circle cx="10" cy="10" r={R} strokeWidth="1.5" className="stroke-line-strong" />
           {learning > 0 && (
             <circle
               cx="10"
               cy="10"
               r={R}
               strokeWidth="2.5"
-              className="stroke-fg-soft"
+              className="stroke-text-3"
               strokeDasharray={`${(held + learning) * LENGTH} ${LENGTH}`}
               transform="rotate(-90 10 10)"
             />
@@ -45,7 +45,7 @@ export function ShareRing({ share, className }: { share: Share | null; className
               cy="10"
               r={R}
               strokeWidth="2.5"
-              className="stroke-fg-default"
+              className="stroke-text-1"
               strokeDasharray={`${held * LENGTH} ${LENGTH}`}
               transform="rotate(-90 10 10)"
             />
@@ -59,8 +59,8 @@ export function ShareRing({ share, className }: { share: Share | null; className
 /** "2 of 6", with what it counts said to a screen reader. */
 export function ShareCount({ share, className, ...rest }: { share: Share; className?: string } & Record<`data-${string}`, string | number | undefined>) {
   return (
-    <span className={cn('shrink-0 whitespace-nowrap text-xs tabular-nums text-fg-soft', className)} {...rest}>
-      <span className={share.held > 0 ? 'text-fg-default' : undefined}>{share.held}</span> of {share.total}
+    <span className={cn('shrink-0 whitespace-nowrap text-xs tabular-nums text-text-3', className)} {...rest}>
+      <span className={share.held > 0 ? 'text-text-1' : undefined}>{share.held}</span> of {share.total}
       <span className="sr-only"> held</span>
     </span>
   );

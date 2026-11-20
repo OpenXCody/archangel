@@ -74,7 +74,7 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
       className="
         map-overlay
         fixed z-50
-        rounded-xl
+        rounded-lg
         py-1.5 min-w-[180px]
         animate-in fade-in zoom-in-95 duration-100
       "
@@ -88,12 +88,12 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
         onClick={handleResetView}
         className="
           w-full flex items-center gap-3 px-4 py-2.5
-          text-sm text-fg-default
-          hover:bg-tint/5 transition-colors
+          text-[15px] text-text-1
+          hover:bg-surface-hover transition-colors
           text-left
         "
       >
-        <Maximize2 className="w-4 h-4 text-fg-muted" />
+        <Maximize2 className="w-4 h-4 text-text-2" />
         <span>Reset view</span>
       </button>
 
@@ -102,14 +102,14 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
         onClick={handleSearch}
         className="
           w-full flex items-center gap-3 px-4 py-2.5
-          text-sm text-fg-default
-          hover:bg-tint/5 transition-colors
+          text-[15px] text-text-1
+          hover:bg-surface-hover transition-colors
           text-left
         "
       >
-        <Search className="w-4 h-4 text-fg-muted" />
+        <Search className="w-4 h-4 text-text-2" />
         <span>Search</span>
-        <kbd className="ml-auto px-1.5 py-0.5 rounded bg-bg-base border border-border-strong text-[10px] text-fg-muted">
+        <kbd className="ml-auto px-1.5 py-0.5 rounded border border-line-strong text-[11px] text-text-2">
           /
         </kbd>
       </button>
@@ -117,17 +117,17 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
       {/* Clear Filters - only show if filters are active */}
       {hasActiveFilters && (
         <>
-          <div className="my-1.5 border-t border-border-strong" />
+          <div className="my-1.5 border-t border-line" />
           <button
             onClick={handleClearFilters}
             className="
               w-full flex items-center gap-3 px-4 py-2.5
-              text-sm text-fg-default
-              hover:bg-tint/5 transition-colors
+              text-[15px] text-text-1
+              hover:bg-surface-hover transition-colors
               text-left
             "
           >
-            <FilterX className="w-4 h-4 text-fg-muted" />
+            <FilterX className="w-4 h-4 text-text-2" />
             <span>Show every plant</span>
           </button>
         </>

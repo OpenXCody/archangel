@@ -46,6 +46,7 @@ import {
 } from './layers';
 import { recordQuery, usePins } from '../../lib/queries';
 import { useStatesWithCounts, useAreaBoundaries } from './mapData';
+import { SECONDARY_BUTTON } from './panel/parts';
 
 declare global {
   interface Window {
@@ -255,7 +256,7 @@ export default function Map({ onViewChange }: MapProps) {
     let basemapUnavailable = false;
 
     const initMap = () => {
-      // Get key fresh each attempt. No key: draw on the plain dark canvas
+      // Get key fresh each attempt. No key: draw on the plain canvas
       // instead of asking MapTiler for a style it will refuse.
       const mapKey = (import.meta.env.VITE_MAP_TOKEN as string | undefined)?.trim() || '';
       const keyless = basemapUnavailable || mapKey === '';
@@ -337,8 +338,7 @@ export default function Map({ onViewChange }: MapProps) {
 
         try {
           // MapTiler basemap only; the plain style is already exactly what we want.
-          const beneathLabels = keyless ? undefined : quietBasemap(currentMap);
-          addAppLayers(currentMap, beneathLabels);
+          addAppLayers(currentMap, keyless ? undefined : quietBasemap(currentMap));
         } catch (err) {
           console.error('Failed to add map layers:', err);
         }
@@ -765,7 +765,7 @@ export default function Map({ onViewChange }: MapProps) {
       <div
         ref={mapContainer}
         className="archangel-map isolate absolute inset-0 w-full h-full"
-        style={{ background: 'var(--color-bg-base)', '--map-covered-bottom': `${coveredBottom}px` } as CSSProperties}
+        style={{ background: 'var(--bg)', '--map-covered-bottom': `${coveredBottom}px` } as CSSProperties}
       />
 
       {/* Reset view and zoom */}
@@ -784,21 +784,21 @@ export default function Map({ onViewChange }: MapProps) {
           >
             <Maximize2 className="h-[18px] w-[18px]" />
           </button>
-          <div className="map-overlay flex flex-col overflow-hidden rounded-lg">
+          <div className="map-overlay flex flex-col rounded-lg">
             <button
               type="button"
               onClick={() => map.current && zoomBy(map.current, 1)}
-              className="map-overlay-button map-control flex items-center justify-center"
+              className="map-overlay-button map-control flex items-center justify-center rounded-t-[7px]"
               title="Zoom in"
               aria-label="Zoom in"
             >
               <Plus className="h-[18px] w-[18px]" />
             </button>
-            <span className="h-px bg-border-strong" aria-hidden="true" />
+            <span className="h-px bg-line" aria-hidden="true" />
             <button
               type="button"
               onClick={() => map.current && zoomBy(map.current, -1)}
-              className="map-overlay-button map-control flex items-center justify-center"
+              className="map-overlay-button map-control flex items-center justify-center rounded-b-[7px]"
               title="Zoom out"
               aria-label="Zoom out"
             >
@@ -810,20 +810,20 @@ export default function Map({ onViewChange }: MapProps) {
 
       {/* Loading state */}
       {!mapLoaded && !mapError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-bg-base">
-          <Loader2 className="w-8 h-8 text-fg-muted animate-spin" role="status" aria-label="Loading the map" />
+        <div className="absolute inset-0 flex items-center justify-center bg-bg">
+          <Loader2 className="w-8 h-8 text-text-2 animate-spin" role="status" aria-label="Loading the map" />
         </div>
       )}
 
       {/* Error state */}
       {mapError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-bg-base">
+        <div className="absolute inset-0 flex items-center justify-center bg-bg">
           <div className="flex flex-col items-center gap-3 text-center px-4">
-            <span className="text-fg-default">The map could not be loaded.</span>
-            <span className="text-sm text-fg-muted">{mapError}</span>
+            <span className="text-[15px] text-text-1">The map could not be loaded.</span>
+            <span className="text-[13px] text-text-3">{mapError}</span>
             <button
               onClick={() => window.location.reload()}
-              className="mt-2 px-4 py-2 text-sm bg-tint/10 rounded-lg hover:bg-tint/20 transition-colors"
+              className={`mt-2 inline-flex px-4 ${SECONDARY_BUTTON}`}
             >
               Try again
             </button>

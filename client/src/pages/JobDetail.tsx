@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ExternalLink, Loader2, Lock, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, labelClass } from '@/lib/utils';
 import { signInPath, useAccount } from '../lib/account';
 import { useApply, useJob, useUpdateJob, type JobDetail as JobDetailData, type JobDetailResponse, type JobSkill } from '../lib/jobs';
 import { ApiError } from '../lib/http';
@@ -153,6 +153,7 @@ export default function JobDetail() {
   return (
     <PageContainer size="narrow">
       <DetailHeader
+        longTitle
         back={
           // "Your jobs" is a place only for someone drawn as an employer: an admin who manages
           // every job without belonging to the company came from the open list, and goes back to it.
@@ -166,7 +167,7 @@ export default function JobDetail() {
         // (A job from the company's careers site is not one of the jobs it posted here: no number.)
         kind={manages && !data.job.fromSource ? `Job #${data.job.serial}` : 'Job'}
         title={data.job.title}
-        mark={<CompanyLogo name={companyName} domain={data.job.companyDomain} size={44} className="rounded-lg" />}
+        mark={<CompanyLogo name={companyName} domain={data.job.companyDomain} size={44} />}
         // A job from the company's careers site has one action, and it is the page's: Apply, there.
         action={data.job.fromSource && (manages ? false : !signedIn || viewer.seeker) ? <SourcedApply job={data.job} /> : undefined}
       >
@@ -174,13 +175,13 @@ export default function JobDetail() {
       </DetailHeader>
 
       {lostAccess && !manages && (
-        <p role="status" className={cn(cardClass, 'mt-6 p-4 text-sm text-fg-default')} data-lost-access>
+        <p role="status" className={cn(cardClass, 'mt-6 text-sm text-text-1')} data-lost-access>
           {signedIn ? (
             `You no longer manage jobs for ${data.job.companyName.replace(/\.$/, '')}.`
           ) : (
             <>
               You are signed out.{' '}
-              <Link to={signInPath(`/jobs/${data.job.id}`)} className="font-medium underline underline-offset-4 hover:no-underline">
+              <Link to={signInPath(`/jobs/${data.job.id}`)} className="font-medium underline hover:no-underline">
                 Sign in
               </Link>{' '}
               to manage this job.
@@ -199,7 +200,7 @@ export default function JobDetail() {
         // The company's view comes first: the job's state, then who applied.
         <>
           <ManageSection job={data.job} />
-          <DetailSection title="Listing" description="The job as applicants see it." className="mt-10 border-t border-border-subtle pt-8">
+          <DetailSection title="Listing" description="The job as applicants see it." className="mt-10 border-t border-line pt-8">
             {terms}
           </DetailSection>
         </>
@@ -213,7 +214,7 @@ export default function JobDetail() {
 
       {!data.job.fromSource && data.job.description && (
         <DetailSection title="About the job">
-          <div className={cn(cardClass, 'p-4 text-sm leading-relaxed text-fg-default sm:p-6')}>
+          <div className={cn(cardClass, 'text-sm leading-relaxed text-text-1')}>
             <JobDescription text={data.job.description} />
           </div>
         </DetailSection>
@@ -237,10 +238,10 @@ export default function JobDetail() {
                 />
               ) : (
                 !signedIn && (
-                  <p className="mb-3 text-sm text-fg-muted">
+                  <p className="mb-3 text-sm text-text-2">
                     <Link
                       to={signInPath(`/jobs/${data.job.id}`)}
-                      className="font-medium text-fg-default underline underline-offset-4 hover:no-underline"
+                      className="font-medium text-text-1 underline hover:no-underline"
                     >
                       Sign in
                     </Link>{' '}
@@ -287,15 +288,15 @@ export default function JobDetail() {
 function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClosed?: boolean }) {
   const closed = job.status === 'closed';
   return (
-    <div className={cn(cardClass, 'mt-6 flex items-start gap-3 border-warning/30 p-4')} role="status" data-job-closed>
-      <Lock className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-      <p className="min-w-0 break-words text-sm text-fg-default">
+    <div className={cn(cardClass, 'mt-6 flex items-start gap-3')} role="status" data-job-closed>
+      <Lock className="mt-0.5 h-4 w-4 shrink-0 text-text-2" />
+      <p className="min-w-0 break-words text-sm text-text-1">
         {justClosed
           ? 'This job has just closed and no longer takes applications.'
           : closed
             ? 'This job is closed and no longer takes applications.'
             : 'This job has expired and no longer takes applications.'}
-        {closed && job.closedReason && <span className="text-fg-muted"> Reason: {job.closedReason}</span>}
+        {closed && job.closedReason && <span className="text-text-2"> Reason: {job.closedReason}</span>}
       </p>
     </div>
   );
@@ -304,21 +305,21 @@ function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClo
 function Term({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-fg-muted">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-medium text-fg-default">{children}</dd>
+      <dt className={labelClass}>{label}</dt>
+      <dd className="mt-1 break-words text-sm text-text-1">{children}</dd>
     </div>
   );
 }
 
 /**
- * What the job is, in one card: its terms, then the company, the plant and
+ * What the job is, in one block: its terms, then the company, the plant and
  * the career it belongs to, each leading to its own page.
  */
 function TermsCard({ job, showApplications }: { job: JobDetailData; showApplications: boolean }) {
   const host = job.applyUrl ? hostOf(job.applyUrl) : null;
   return (
     <div className={recordListClass} data-job-terms>
-      <dl className="grid grid-cols-1 gap-4 p-4 xs:grid-cols-2 sm:grid-cols-4 sm:p-6">
+      <dl className="grid grid-cols-1 gap-4 pb-5 xs:grid-cols-2 sm:grid-cols-4">
         <Term label="Pay">{formatPay(job.payMin, job.payMax, job.payPeriod)}</Term>
         <Term label="Type">{job.employmentType ? employmentLabel(job.employmentType) : 'Not stated'}</Term>
         <Term label="Shift">{job.shift || 'Not stated'}</Term>
@@ -328,7 +329,7 @@ function TermsCard({ job, showApplications }: { job: JobDetailData; showApplicat
           <div className="min-w-0 xs:col-span-2 sm:col-span-4">
             <Term label="Applications">
               {job.applyUrl ? (
-                <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className="break-all underline underline-offset-4 hover:no-underline">
+                <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className="break-all underline hover:no-underline">
                   {host ?? job.applyUrl}
                 </a>
               ) : (
@@ -338,7 +339,7 @@ function TermsCard({ job, showApplications }: { job: JobDetailData; showApplicat
           </div>
         )}
       </dl>
-      <ul className="border-t border-border-subtle">
+      <ul className="border-t border-line">
         <RecordRow to={`/companies/${job.companyId}`} label="Company" title={formatCompanyName(job.companyName)} />
         <RecordRow to={`/factories/${job.factoryId}`} label="Plant" title={formatFactoryName(job.factoryName)} />
         {/* Where the company has its own version of the career, the job leads to that. */}
@@ -384,6 +385,7 @@ function SkillList({ skills, marksHeld }: { skills: JobSkill[]; marksHeld: boole
                   <SkillHeldToggle value={status} label={skill.name} onChange={(mark) => markSkill.mutate({ skillId: skill.id, name: skill.name, mark })} />
                 ) : undefined
               }
+              quiet={marksHeld && status === 'none'}
               data-held={marksHeld ? String(status === 'held') : undefined}
             />
           );
@@ -415,14 +417,14 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   const canReapply = myApplication?.status === 'withdrawn' && job.isOpen && !job.applyUrl;
   if (myApplication && !canReapply) {
     return (
-      <div className={cn(cardClass, 'flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-6')}>
+      <div className={cn(cardClass, 'flex flex-wrap items-center gap-x-4 gap-y-2')}>
         <div className="min-w-0 flex-1 basis-48">
-          <p className="text-sm font-medium text-fg-default">
+          <p className="text-sm text-text-1">
             {myApplication.status === 'withdrawn' ? 'You withdrew this application.' : `You applied ${formatDay(myApplication.createdAt)}.`}
           </p>
-          <p className="mt-0.5 text-sm text-fg-muted">
+          <p className="mt-0.5 text-sm text-text-2">
             Follow it on{' '}
-            <Link to="/me" className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+            <Link to="/me" className="font-medium text-text-1 underline hover:no-underline">
               your profile
             </Link>
             .
@@ -440,8 +442,8 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   if (job.applyUrl) {
     const host = hostOf(job.applyUrl);
     return (
-      <div className={cn(cardClass, 'p-4 sm:p-6')}>
-        <p className="mb-3 text-sm text-fg-muted">
+      <div className={cardClass}>
+        <p className="mb-3 text-sm text-text-2">
           {job.companyName} takes applications for this job on its own website{host ? ` (${host})` : ''}.
         </p>
         <Button asChild className="h-11 w-full rounded-lg sm:w-auto">
@@ -457,15 +459,15 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   if (!signedIn) {
     const here = `/jobs/${job.id}`;
     return (
-      <div className={cn(cardClass, 'p-4 sm:p-6')}>
-        <p className="mb-3 text-sm text-fg-muted">Apply here with your name, email and the skills on your profile.</p>
+      <div className={cardClass}>
+        <p className="mb-3 text-sm text-text-2">Apply here with your name, email and the skills on your profile.</p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <Button asChild className="h-11 w-full rounded-lg sm:w-auto">
             <Link to={signInPath(here)}>Sign in to apply</Link>
           </Button>
           <Link
             to={signInPath(here, 'create')}
-            className="text-sm font-medium text-fg-default underline underline-offset-4 hover:no-underline"
+            className="text-sm font-medium text-text-1 underline hover:no-underline"
           >
             Create an account
           </Link>
@@ -480,7 +482,7 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   };
 
   return (
-    <form onSubmit={submit} className={cn(cardClass, 'space-y-4 p-4 sm:p-6')}>
+    <form onSubmit={submit} className={cn(cardClass, 'space-y-4')}>
       <Field
         label="Note to the company"
         htmlFor="apply-note"
@@ -580,10 +582,10 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
   };
 
   return (
-    <div className={cn(cardClass, 'p-4 sm:p-6')}>
-      <p className="text-sm font-medium text-fg-default" data-job-state={closed ? 'closed' : job.isOpen ? 'open' : 'expired'}>
+    <div className={cardClass}>
+      <p className="text-sm text-text-1" data-job-state={closed ? 'closed' : job.isOpen ? 'open' : 'expired'}>
         {closed ? 'Closed' : job.isOpen ? 'Open' : 'Expired'}
-        <span className="font-normal text-fg-muted">
+        <span className="font-normal text-text-2">
           {closed
             ? job.closedReason
               ? `: ${job.closedReason}`
@@ -593,7 +595,7 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
               : ` ${formatDay(job.expiresAt)}`}
         </span>
       </p>
-      <p className="mt-0.5 text-sm text-fg-muted">
+      <p className="mt-0.5 text-sm text-text-2">
         {listed
           ? 'Closing takes it off the jobs list. People who applied can still see it.'
           : 'Reopening lists the job again for 60 days.'}
@@ -672,7 +674,7 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
             // Escape leaves the job open, as Cancel does.
             if (event.key === 'Escape' && !update.isPending) setClosing(false);
           }}
-          className="mt-4 space-y-3 border-t border-border-subtle pt-4"
+          className="mt-4 space-y-3 border-t border-line pt-4"
         >
           <Field label="Reason" htmlFor="close-reason" optional hint="Shown to people who applied, e.g. “Position filled”.">
             <input

@@ -41,6 +41,7 @@ import {
   fieldClass,
   outlineButtonClass,
   rowClass,
+  rowHoverClass,
   textButtonClass,
 } from '../components/account/parts';
 import ConfirmDialog from '../components/layout/ConfirmDialog';
@@ -191,8 +192,8 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
 
           {/* For someone here to hire, the header's jobs item is this page: the open list is one link away. */}
           {viewer.employer && (
-            <p className="mt-8 text-sm text-fg-muted" data-all-jobs>
-              <Link to="/jobs" className="underline underline-offset-4 hover:text-fg-default">
+            <p className="mt-8 text-sm text-text-2" data-all-jobs>
+              <Link to="/jobs" className="underline hover:text-text-1">
                 All open jobs
               </Link>
             </p>
@@ -212,10 +213,10 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
 function HiringSwitch() {
   const update = useUpdateProfile();
   return (
-    <div className={cn(cardClass, 'mb-6 flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-hiring-switch>
+    <div className={cn(cardClass, 'mb-6 flex flex-wrap items-center gap-x-4 gap-y-3')} data-hiring-switch>
       <div className="min-w-0 flex-1 basis-56">
-        <p className="text-sm font-medium text-fg-default">This account is set to find a career.</p>
-        <p className="mt-0.5 text-sm text-fg-muted">Set it to hire and this page leads your menu. Nothing is removed.</p>
+        <p className="text-sm text-text-1">This account is set to find a career.</p>
+        <p className="mt-0.5 text-sm text-text-2">Set it to hire and this page leads your menu. Nothing is removed.</p>
         <ErrorNote error={update.error} className="mt-2" />
       </div>
       <Button
@@ -336,7 +337,7 @@ function JobFormPage({ mode, jobId, fromJob }: { mode: 'edit' | 'copy'; jobId: s
             : `Copied from job #${from.serial}, ${from.title}. Posted as a new job, open for 60 days.`
         }
       />
-      <div className={cn(cardClass, 'p-4 sm:p-6')}>
+      <div className={cardClass}>
         <JobForm company={company} mode={mode} source={source} onCancel={() => navigate(back.to)} />
       </div>
     </PageContainer>
@@ -372,10 +373,10 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
         {companies.map((company) => {
           const cancelling = cancel.isPending && cancel.variables === company.companyId;
           return (
-            <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-pending-company={company.companyId}>
+            <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-pending-company={company.companyId}>
               <div className="min-w-0 flex-1 basis-56">
-                <p className="break-words text-sm font-medium text-fg-default">{company.companyName}</p>
-                <p className="mt-0.5 text-sm text-fg-muted">Posting opens once approved.</p>
+                <p className="break-words text-sm text-text-1">{company.companyName}</p>
+                <p className="mt-0.5 text-sm text-text-2">Posting opens once approved.</p>
               </div>
               <Button
                 type="button"
@@ -397,10 +398,10 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
         {requests.map((request) => {
           const withdrawing = withdraw.isPending && withdraw.variables === request.id;
           return (
-            <li key={request.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-company-request-row={request.id}>
+            <li key={request.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-company-request-row={request.id}>
               <div className="min-w-0 flex-1 basis-56">
-                <p className="break-words text-sm font-medium text-fg-default">{requestSubject(request)}</p>
-                <p className="mt-0.5 text-sm text-fg-muted">
+                <p className="break-words text-sm text-text-1">{requestSubject(request)}</p>
+                <p className="mt-0.5 text-sm text-text-2">
                   {request.companyId
                     ? `Asked ${formatOnDay(request.createdAt)} for this plant to be added.`
                     : `Asked ${formatOnDay(request.createdAt)} for this company to be added. Posting opens once it is.`}
@@ -447,10 +448,10 @@ function DeclinedRequests({ companies, requests }: { companies: EmployerCompany[
           const again = canAskAgain(company);
           const asking = request.isPending && request.variables === company.companyId;
           return (
-            <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-declined-company={company.companyId}>
+            <li key={company.companyId} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-declined-company={company.companyId}>
               <div className="min-w-0 flex-1 basis-56">
-                <p className="break-words text-sm font-medium text-fg-default">{company.companyName}</p>
-                <p className="mt-0.5 text-sm text-fg-muted">
+                <p className="break-words text-sm text-text-1">{company.companyName}</p>
+                <p className="mt-0.5 text-sm text-text-2">
                   An admin declined this request{company.decidedAt && ` ${formatOnDay(company.decidedAt)}`}.
                   {!again && company.askAgainAt && ` It can be made again from ${formatDay(company.askAgainAt)}.`}
                 </p>
@@ -475,9 +476,9 @@ function DeclinedRequests({ companies, requests }: { companies: EmployerCompany[
           );
         })}
         {requests.map((asked) => (
-          <li key={asked.id} className={cn(rowClass, 'p-4')} data-company-request-row={asked.id}>
-            <p className="break-words text-sm font-medium text-fg-default">{requestSubject(asked)}</p>
-            <p className="mt-0.5 text-sm text-fg-muted">
+          <li key={asked.id} className={cn(rowClass, 'py-4')} data-company-request-row={asked.id}>
+            <p className="break-words text-sm text-text-1">{requestSubject(asked)}</p>
+            <p className="mt-0.5 text-sm text-text-2">
               An admin declined the request to add this {asked.companyId ? 'plant' : 'company'}
               {asked.decidedAt && ` ${formatOnDay(asked.decidedAt)}`}.
             </p>
@@ -527,7 +528,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
   return (
     <div>
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" />
         <input
           ref={inputRef}
           type="text"
@@ -548,7 +549,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
               setTerm('');
               inputRef.current?.focus();
             }}
-            className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted hover:text-fg-default"
+            className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-text-2 hover:text-text-1"
           >
             {results.isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
           </button>
@@ -556,25 +557,25 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
       </div>
 
       {!showResults ? (
-        <p className="mt-2 text-sm text-fg-muted">Enter at least two letters.</p>
+        <p className="mt-2 text-sm text-text-2">Enter at least two letters.</p>
       ) : (
         <div aria-live="polite">
           {found?.close && (
-            <p className="mt-3 text-sm text-fg-muted" data-company-close>
+            <p className="mt-3 text-sm text-text-2" data-company-close>
               No company is named “{query}”. The closest:
             </p>
           )}
           <div className={cn(cardClass, 'mt-2')}>
             {results.isPending ? (
-              <p className="flex items-center gap-2 p-4 text-sm text-fg-muted">
+              <p className="flex items-center gap-2 py-3 text-sm text-text-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Searching companies
               </p>
             ) : results.isError ? (
-              <ErrorNote error={results.error} className="p-4" />
+              <ErrorNote error={results.error} className="py-3" />
             ) : !found || found.companies.length === 0 ? (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4" data-company-none>
-                <p className="min-w-0 flex-1 basis-48 break-words text-sm text-fg-muted">No company matches “{query}”.</p>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3" data-company-none>
+                <p className="min-w-0 flex-1 basis-48 break-words text-sm text-text-2">No company matches “{query}”.</p>
                 {askToAdd}
               </div>
             ) : (
@@ -583,20 +584,20 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                   const membership = memberships.find((m) => m.companyId === company.id);
                   const busy = request.isPending && request.variables === company.id;
                   return (
-                    <li key={company.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')} data-company-result={company.id}>
+                    <li key={company.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')} data-company-result={company.id}>
                       <div className="flex min-w-0 flex-1 basis-48 items-start gap-3">
-                        <CompanyIcon className="mt-0.5 h-4 w-4 shrink-0 text-fg-muted" />
+                        <CompanyIcon className="mt-0.5 h-4 w-4 shrink-0 text-text-2" />
                         <div className="min-w-0">
                           {/* The company's page, to check it is the right one; in a new tab so the search stays. */}
                           <a
                             href={`/companies/${company.slug ?? company.id}`}
                             target="_blank"
                             rel="noopener"
-                            className="break-words text-sm font-medium text-fg-default underline-offset-4 hover:underline"
+                            className="break-words text-sm font-medium text-text-1 hover:underline"
                           >
                             {company.name}
                           </a>
-                          <p className="mt-0.5 break-words text-xs text-fg-muted">
+                          <p className="mt-0.5 break-words text-xs text-text-3">
                             {[
                               `${company.factoryCount} ${company.factoryCount === 1 ? 'plant' : 'plants'}`,
                               company.where,
@@ -607,7 +608,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                         </div>
                       </div>
                       {membership && !(membership.status === 'declined' && canAskAgain(membership)) ? (
-                        <span className="shrink-0 text-xs text-fg-muted">
+                        <span className="shrink-0 text-xs text-text-3">
                           {membership.status === 'active' ? 'Member' : membership.status === 'declined' ? 'Declined' : 'Waiting for approval'}
                         </span>
                       ) : (
@@ -636,7 +637,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
             )}
           </div>
           {found && found.companies.length > 0 && (
-            <p className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm text-fg-muted">
+            <p className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm text-text-2">
               {!found.close && found.total > found.companies.length && (
                 <span data-company-more>
                   {Math.min(found.companies.length, COMPANY_SEARCH_LIMIT)} of {found.total.toLocaleString('en-US')}. Type more of the name to narrow the list.
@@ -681,7 +682,7 @@ function plantAndTown(job: EmployerJob): string {
   return town && !plant.toLowerCase().includes(town.toLowerCase()) ? `${plant}, ${town}` : plant;
 }
 
-const menuItemClass = 'cursor-pointer px-2.5 py-2.5 text-sm text-fg-default focus:bg-bg-elevated';
+const menuItemClass = 'cursor-pointer px-2.5 py-2.5 text-sm text-text-1 focus:bg-surface-hover';
 
 /**
  * The open jobs a company has here that came from its own careers site: one line, with the way to them. They are
@@ -691,9 +692,9 @@ function ListedJobs({ company, named = false }: { company: EmployerCompany; name
   const listed = company.listedJobs ?? 0;
   if (listed === 0) return null;
   return (
-    <p className="mt-3 text-sm text-fg-muted" data-listed-jobs>
-      {named && <span className="text-fg-default">{company.companyName}: </span>}
-      <Link to={`/companies/${company.companyId}`} className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+    <p className="mt-3 text-sm text-text-2" data-listed-jobs>
+      {named && <span className="text-text-1">{company.companyName}: </span>}
+      <Link to={`/companies/${company.companyId}`} className="font-medium text-text-1 underline hover:no-underline">
         {listed.toLocaleString('en-US')} open {listed === 1 ? 'job' : 'jobs'}
       </Link>{' '}
       {listed === 1 ? 'comes' : 'come'} from the company's careers site and {listed === 1 ? 'is' : 'are'} kept in step with it.
@@ -729,19 +730,19 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
           <li key={job.id} className={cn(rowClass, 'flex items-stretch')} data-job-row={job.id}>
             <Link
               to={`/jobs/${job.id}`}
-              className="grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 py-3 pl-4 pr-2 transition-colors hover:bg-bg-elevated sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+              className={cn(rowHoverClass, 'grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center')}
             >
               <div className="min-w-0">
-                <p className={cn('break-words text-sm font-medium', state === 'Open' ? 'text-fg-default' : 'text-fg-muted')}>{job.title}</p>
-                <p className="mt-0.5 break-words text-sm text-fg-muted">
-                  <span className={cn(state === 'Open' && 'text-fg-default')} data-job-state={state.toLowerCase()}>
+                <p className={cn('break-words text-sm', state === 'Open' ? 'text-text-1' : 'text-text-2')}>{job.title}</p>
+                <p className="mt-0.5 break-words text-sm text-text-2">
+                  <span className={cn(state === 'Open' && 'text-text-1')} data-job-state={state.toLowerCase()}>
                     {state === 'Open' ? openUntil(job.expiresAt) : state}
                   </span>
                   {' · '}
                   {plantAndTown(job)}
                 </p>
               </div>
-              <p className={cn('text-sm sm:text-right', job.newApplicants > 0 ? 'text-fg-default' : 'text-fg-muted')}>
+              <p className={cn('text-sm sm:text-right', job.newApplicants > 0 ? 'text-text-1' : 'text-text-2')}>
                 {job.applicants} {job.applicants === 1 ? 'applicant' : 'applicants'}
                 {job.newApplicants > 0 && `, ${job.newApplicants} new`}
               </p>
@@ -749,11 +750,11 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={`Actions for job #${job.serial}, ${job.title}`}
-                className="flex w-11 shrink-0 items-center justify-center text-fg-muted transition-colors hover:bg-bg-elevated hover:text-fg-default"
+                className="flex w-11 shrink-0 items-center justify-center text-text-2 transition-colors hover:bg-surface-hover hover:text-text-1"
               >
                 <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-xl border-border-strong bg-bg-surface p-1.5">
+              <DropdownMenuContent align="end" className="w-56 rounded-xl border-line-strong bg-surface p-1.5">
                 <DropdownMenuItem className={menuItemClass} onSelect={() => navigate(`/employer?edit=${job.id}`)}>
                   Edit
                 </DropdownMenuItem>
@@ -817,7 +818,7 @@ function PostJob({ user, companies, onCancel }: { user: AccountUser; companies: 
 
   return (
     <>
-      <div className={cn(cardClass, 'p-4 sm:p-6')}>
+      <div className={cardClass}>
         {companies.length > 1 && (
           <Field label="Company" htmlFor="job-company" className="mb-4">
             <Select value={company.companyId} onValueChange={setCompanyId}>
@@ -835,7 +836,7 @@ function PostJob({ user, companies, onCancel }: { user: AccountUser; companies: 
           </Field>
         )}
         {company.factories.length === 0 ? (
-          <p className="text-sm text-fg-muted" data-no-factory>
+          <p className="text-sm text-text-2" data-no-factory>
             {company.companyName} has no plant on record. A job is posted at a plant, so one has to be added first.
           </p>
         ) : (
@@ -852,7 +853,7 @@ function PostJob({ user, companies, onCancel }: { user: AccountUser; companies: 
           />
         </div>
       ) : (
-        <p className="mt-3 text-sm text-fg-muted">
+        <p className="mt-3 text-sm text-text-2">
           {company.factories.length === 0 ? '' : 'Plant not in the list? '}
           <button type="button" onClick={() => setAskingFor(company.companyId)} className={textButtonClass} data-ask-for-plant>
             Ask for {company.factories.length === 0 ? 'a plant' : 'it'} to be added

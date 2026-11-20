@@ -3,134 +3,100 @@
 @tailwind utilities;
 
 /*
- * Theme tokens.
+ * Theme tokens: the token file. Everything a person sees takes its colour
+ * from here, and nothing outside this block names a colour of its own
+ * (`npm run lint` checks: scripts/check-theme-colors.mjs).
  *
  * Two themes, dark (the default) and light, chosen by `data-theme` on <html>
- * (client/src/lib/theme.ts). Every colour in the app comes from here:
+ * (client/src/lib/theme.ts). Each is set by hand; neither is the other
+ * inverted. Eleven tokens:
  *
- *   surfaces   --color-bg-base / surface / elevated
- *   text       --color-fg-default / muted / soft
- *   lines      --color-border-subtle / strong
- *   meaning    --success / --danger / --warning / --info   (text-success, bg-danger/10, ...)
- *   wash       --tint: white on dark, black on light        (bg-tint/5, border-tint/10)
+ *   canvas     --bg                        bg-bg
+ *   raised     --surface                   bg-surface         the ONLY raised fill: fields, menus, the nav's pill
+ *   hover      --surface-hover             bg-surface-hover   a row or tile under the pointer
+ *   lines      --line / --line-strong      border-line / border-line-strong   hairlines; field and tile edges
+ *   ink        --text-1 / -2 / -3          text-text-1 / -2 / -3   headings and values; secondary; meta
+ *   accent     --accent                    outline-accent     focus rings, the selected region, progress, "Viewing as"
+ *   inverse    --inverse-bg / -text        bg-inverse-bg text-inverse-text    primary buttons, the selected segment
  *
- * Components must not name a palette colour (text-emerald-400, bg-white/10):
- * it would be right in one theme and wrong in the other. `npm run lint`
- * checks for it.
- *
- * The first block is the set shadcn/ui's primitives read (HSL channels).
+ * There are two surface levels and no third grey. Beside the eleven:
+ * --danger (an error has to read as one), --logo-backing (a company's mark
+ * is drawn for a white page) and --mask (the opaque stop of a mask: never
+ * painted). tests/unit/theme.unit.ts holds the ink to 4.5:1 on both surfaces.
  */
 @layer base {
   :root {
     color-scheme: dark;
 
-    --background: 0 0% 6%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 9%;
-    --card-foreground: 0 0% 93%;
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 93%;
-    --primary: 0 0% 88%;
-    --primary-foreground: 0 0% 8%;
-    --secondary: 0 0% 16%;
-    --secondary-foreground: 0 0% 88%;
-    --muted: 0 0% 16%;
-    --muted-foreground: 0 0% 70%;
-    --accent: 0 0% 20%;
-    --accent-foreground: 0 0% 93%;
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 96%;
-    --border: 0 0% 24%;
-    /* The edge of a field: 3:1 against the surface it sits on. */
-    --input: 0 0% 40%;
-    --ring: 0 0% 75%;
     --radius: 0.5rem;
 
-    --color-bg-base: #0f0f0f;
-    --color-bg-surface: #161616;
-    --color-bg-elevated: #202020;
+    --bg: #0e0e0f;
+    --surface: #18181a;
+    --surface-hover: #202023;
+    --line: #262628;
+    --line-strong: #3a3a3d;
+    --text-1: #f5f5f5;
+    --text-2: #a1a1a6;
+    /* The spec's value moved the least that reaches 4.5:1 on --surface. */
+    --text-3: #808085;
+    --accent: #5b8cff;
+    --inverse-bg: #f5f5f5;
+    --inverse-text: #0e0e0f;
 
-    /* On --color-bg-surface: default 16:1, muted 8.5:1, soft 5.6:1 (5:1 on elevated). */
-    --color-fg-default: #f2f2f2;
-    --color-fg-muted: #b4b4b4;
-    --color-fg-soft: #8f8f8f;
+    /* The map (components/map/layers.ts reads these when it is built): the country's land,
+       everyone else's, water, state lines and roads. Dark: lights on a dark land. */
+    --map-land: #080808;
+    --map-land-other: #080808;
+    --map-water: #050505;
+    --map-border: var(--line-strong);
+    --map-road: #333333;
 
-    --color-border-subtle: #2b2b2b;
-    --color-border-strong: #424242;
-
-    --color-accent-primary: #e0e0e0;
-
-    /* RGB channels, so Tailwind can apply opacity: text-success, bg-danger/10. */
-    --success: 52 211 153;
-    --danger: 248 113 113;
-    --warning: 251 191 36;
-    --info: 125 211 252;
-    --tint: 255 255 255;
-
-    --shadow-overlay: 0 10px 28px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.5);
-    --shadow-control: 0 2px 6px rgba(0, 0, 0, 0.5);
-    --scrollbar-thumb: #3a3a3a;
+    --danger: #f87171;
+    --logo-backing: #ffffff;
+    --mask: #000000;
   }
 
   :root[data-theme='light'] {
     color-scheme: light;
 
-    --background: 210 14% 97%;
-    --foreground: 210 12% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 210 12% 8%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 12% 8%;
-    --primary: 210 12% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 210 12% 93%;
-    --secondary-foreground: 210 12% 14%;
-    --muted: 210 12% 93%;
-    --muted-foreground: 210 7% 36%;
-    --accent: 210 12% 92%;
-    --accent-foreground: 210 12% 10%;
-    --destructive: 0 72% 42%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 210 10% 82%;
-    --input: 213 7% 57%;
-    --ring: 210 12% 30%;
+    --bg: #ffffff;
+    --surface: #f4f4f4;
+    --surface-hover: #ebebeb;
+    --line: #e5e5e5;
+    --line-strong: #cfcfcf;
+    --text-1: #171a20;
+    --text-2: #5c5e62;
+    --text-3: #6d7075;
+    --accent: #3e6ae1;
+    --inverse-bg: #171a20;
+    --inverse-text: #ffffff;
 
-    --color-bg-base: #f6f7f8;
-    --color-bg-surface: #ffffff;
-    --color-bg-elevated: #f1f3f5;
+    /* Light: ink on white paper. */
+    --map-land: #ffffff;
+    --map-land-other: #f4f4f4;
+    --map-water: #dfe4ea;
+    --map-border: #cfcfcf;
+    --map-road: #e5e5e5;
 
-    /* On --color-bg-surface: default 18:1, muted 8:1, soft 5.7:1 (5.1:1 on elevated). */
-    --color-fg-default: #111418;
-    --color-fg-muted: #4a515a;
-    --color-fg-soft: #5f6772;
-
-    --color-border-subtle: #e4e7ea;
-    --color-border-strong: #cbd0d6;
-
-    --color-accent-primary: #111418;
-
-    --success: 4 120 87;
-    --danger: 185 28 28;
-    --warning: 161 82 6;
-    --info: 3 105 161;
-    --tint: 0 0 0;
-
-    --shadow-overlay: 0 10px 28px rgba(17, 20, 24, 0.14), 0 2px 6px rgba(17, 20, 24, 0.1);
-    --shadow-control: 0 1px 4px rgba(17, 20, 24, 0.14);
-    --scrollbar-thumb: #c3c8cf;
+    --danger: #b91c1c;
   }
 }
 
 /* Global styles */
 * {
-  border-color: hsl(var(--border));
+  border-color: var(--line);
+  /* An underlined link is underlined in its own ink: a 1px line, 3px under the words. */
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: var(--bg);
+  color: var(--text-1);
   font-family: 'Oxanium Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
+  /* Figures keep their columns wherever they are listed. */
+  font-variant-numeric: tabular-nums;
   /* No double-tap zoom (taps stay instant); pinch zoom stays for people who need it. */
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
@@ -170,16 +136,10 @@ a {
   color: inherit;
 }
 
+/* Focus is one thing everywhere: every link, button, field and tile. */
 :focus-visible {
-  outline: 2px solid var(--color-accent-primary);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-/* A text field shows focus on its own edge (border or ring), not with the
-   page's outline. Its box-shadow is left alone: that is where a ring is drawn. */
-input[type="text"]:focus,
-input[type="search"]:focus {
-  outline: none;
 }
 
 /* Remove default input styling */
@@ -197,39 +157,35 @@ input {
  * Map overlay surface.
  *
  * The ONE surface for anything that floats over the map: the hover card, the
- * search box and its dropdown, the context menu, the area chips and label,
- * the reset and zoom buttons. It is nearly opaque with a border and a shadow,
- * so what it says reads the same over dark land, a lit state or a field of
- * pins. Do not hand-roll translucent glass for a map overlay; use this.
+ * search box and its dropdown, the context menu, the area chips, the reset
+ * and zoom buttons. It is the raised fill (--surface) with a hairline, solid:
+ * no shadow and nothing showing through, so what it says reads the same over
+ * land, water or a field of pins in either theme. Do not hand-roll another.
  *
- * Text on it: --color-fg-default (15:1) or --color-fg-muted (7:1);
- * --color-fg-soft (5:1) only for asides.
+ * Text on it: --text-1 or --text-2; --text-3 only for meta.
  */
 @layer components {
   .map-overlay {
-    background-color: var(--color-bg-elevated);
-    background-color: color-mix(in srgb, var(--color-bg-elevated) 97%, transparent);
-    border: 1px solid var(--color-border-strong);
-    color: var(--color-fg-default);
-    box-shadow: var(--shadow-overlay);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--text-1);
   }
 
   /* A control on the surface (or the surface itself, when it is one button). */
   .map-overlay-button {
-    color: var(--color-fg-muted);
-    transition: color 0.15s ease;
+    color: var(--text-1);
+    transition: background-color 0.15s ease;
   }
   .map-overlay-button:hover:not(:disabled),
   .map-overlay-button[aria-pressed='true'] {
-    color: var(--color-fg-default);
-    /* A wash laid over the surface colour, so the surface stays opaque. */
-    background-image: linear-gradient(rgb(var(--tint) / 0.08), rgb(var(--tint) / 0.08));
+    background-color: var(--surface-hover);
   }
   .map-overlay-button:disabled {
-    color: var(--color-fg-soft);
-    cursor: default;
+    cursor: not-allowed;
+  }
+  /* The surface stays solid over the map; what is on it steps back. */
+  .map-overlay-button:disabled > * {
+    opacity: 0.4;
   }
 
   /*
@@ -247,7 +203,7 @@ input {
   }
   /* Type in the map's fields: under 16px, iOS zooms the whole page on focus. */
   .map-field {
-    font-size: 14px;
+    font-size: 15px;
     line-height: 20px;
   }
   .map-row {
@@ -272,19 +228,17 @@ input {
     inset: var(--chip-inset) 0;
     border-radius: 9999px;
     pointer-events: none;
-    /* The lighter of the two shadows: a chip is a control, not a card. */
-    box-shadow: var(--shadow-control);
   }
   .map-chip > button {
     position: relative;
     display: inline-flex;
     align-items: center;
-    color: var(--color-fg-muted);
+    color: var(--text-2);
     transition: color 0.15s ease;
   }
   .map-chip > button:hover,
   .map-chip > button[aria-pressed='true'] {
-    color: var(--color-fg-default);
+    color: var(--text-1);
   }
   .map-chip-close {
     justify-content: center;
@@ -292,17 +246,16 @@ input {
   }
   /*
    * The row of chips scrolls sideways, and a scrolling box clips whatever
-   * leaves it, shadows included: in the light theme that cut the chips'
-   * shadows off in a hard-edged grey rectangle. The row is padded so the
-   * shadows have room, pulled back by the same amount so nothing moves, and
-   * lets the pointer through to the map everywhere but on the chips.
+   * leaves it, a chip's focus ring included. The row is padded so the ring
+   * has room, pulled back by the same amount so nothing moves, and lets the
+   * pointer through to the map everywhere but on the chips.
    */
   .map-chip-row {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    margin: -4px -16px -20px;
-    padding: 12px 16px 20px;
+    margin: -4px -16px -6px;
+    padding: 12px 16px 6px;
     pointer-events: none;
     scrollbar-width: none;
   }
@@ -360,9 +313,10 @@ input {
 
 /*
  * MapLibre attribution. The basemap's terms require it, so it stays, but as
- * a quiet dark "i" that opens on click instead of a white pill. Scoped under
- * .archangel-map so it outranks maplibre-gl.css whichever loads first. The
- * container lifts with the phone sheet so the credit is never covered.
+ * a quiet "i" on the map's own surface that opens on click instead of a white
+ * pill. Scoped under .archangel-map so it outranks maplibre-gl.css whichever
+ * loads first. The container lifts with the phone sheet so the credit is
+ * never covered.
  */
 .archangel-map .maplibregl-ctrl-bottom-left {
   bottom: var(--map-covered-bottom, 0px);
@@ -370,29 +324,28 @@ input {
 }
 .archangel-map .maplibregl-ctrl-attrib.maplibregl-compact {
   margin: 0 0 14px 12px;
-  background-color: var(--color-bg-elevated);
-  border: 1px solid var(--color-border-strong);
-  color: var(--color-fg-muted);
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text-2);
   font-size: 11px;
   line-height: 20px;
-  box-shadow: var(--shadow-control);
 }
 .archangel-map .maplibregl-ctrl-attrib a {
-  color: var(--color-fg-muted);
+  color: var(--text-2);
 }
 .archangel-map .maplibregl-ctrl-attrib a:hover {
-  color: var(--color-fg-default);
+  color: var(--text-1);
 }
 .archangel-map .maplibregl-ctrl-attrib-button {
-  /* The same "i" MapLibre ships, as a mask so it takes --color-fg-muted in either theme. */
+  /* The same "i" MapLibre ships, as a mask so it takes --text-1 in either theme. */
   background-image: none;
-  background-color: var(--color-fg-muted);
+  background-color: var(--text-1);
   -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
   mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
 }
-.archangel-map .maplibregl-ctrl-attrib-button:hover,
+/* MapLibre fades the button while the credit is open; it is a mask here, so it keeps its ink. */
 .archangel-map .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
-  background-color: var(--color-fg-default);
+  background-color: var(--text-1);
 }
 /* The "i" keeps its size; on a touch screen what takes the tap around it is thumb-sized. */
 @media (pointer: coarse) {
@@ -406,8 +359,28 @@ input {
 .archangel-map .maplibregl-ctrl-attrib-button:focus {
   box-shadow: none;
 }
-.archangel-map .maplibregl-ctrl-attrib-button:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-accent-primary);
+
+/*
+ * Focus on the map: every control takes the accent's ring, 2px and 2px off.
+ * Three things draw it elsewhere, because a ring outside them would be cut
+ * off: the search field shows it on the box that holds it, a row in a list
+ * that scrolls draws it just inside its own edge, and so does the map itself.
+ */
+.map-view :focus-visible,
+.map-view input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.map-view .map-search-input:focus-visible {
+  outline: none;
+}
+.map-search-box:has(.map-search-input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.map-view .map-list-row:focus-visible,
+.map-view .maplibregl-canvas:focus-visible {
+  outline-offset: -2px;
 }
 
 /* Scrollbar styling */
@@ -421,12 +394,12 @@ input {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: var(--line-strong);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-fg-soft);
+  background: var(--text-3);
 }
 
 /*
@@ -449,77 +422,58 @@ input {
     max-width: 100%;
     align-items: stretch;
     border-radius: var(--radius);
-    background-color: rgb(var(--tint) / 0.05);
-    color: var(--color-fg-default);
+    background-color: transparent;
+    color: var(--text-1);
   }
-  /* A tag changes softly under the hand that changed it, and at once when the marks first arrive. */
-  .skill-tag:hover,
-  .skill-tag:focus-within {
+  /* A tag has no fill of its own: the pointer is the only thing that gives it one. */
+  .skill-tag:hover {
+    background-color: var(--surface-hover);
     transition: background-color 0.15s ease, color 0.15s ease;
   }
-  /* For a person marking skills: quiet until held. */
+  /* For a person marking skills, the mark and the ink say it: held and learning in full ink, the rest secondary. */
   .skill-tag[data-status='none'] {
-    background-color: rgb(var(--tint) / 0.035);
-    color: var(--color-fg-muted);
-  }
-  .skill-tag[data-status='learning'] {
-    background-color: rgb(var(--tint) / 0.035);
-  }
-  .skill-tag[data-status='held'] {
-    background-color: rgb(var(--tint) / 0.13);
+    color: var(--text-2);
   }
   /* The skill whose page this is, among the others of its group. */
   .skill-tag[data-current] {
-    box-shadow: inset 0 0 0 1px var(--color-fg-soft);
-    color: var(--color-fg-default);
+    color: var(--text-1);
+    font-weight: 600;
   }
+  /* Tags in a row that wraps. A tag's mark (or its name) stands 12px inside it: the row is drawn that far left, so marks and names line up with the heading above them. */
   .skill-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 0 6px;
+    margin-left: -12px;
   }
 
   /*
-   * A skill group: a thin frame that holds the group's tags, with its name
-   * set into the top edge. One skill in a frame costs little more than the
-   * skill alone.
+   * A skill group: its name as one small line (with how much of it is held),
+   * and its skills directly under it. There is no frame: a group is set
+   * apart by its line and the space above it.
    */
   .skill-group {
     min-width: 0;
     margin: 0;
-    padding: 2px 6px 6px;
-    border-radius: 0.75rem;
-    border: 1px solid var(--color-border-subtle);
-  }
-  .skill-group:hover,
-  .skill-group:focus-within {
-    transition: border-color 0.15s ease;
+    padding: 0;
+    border: 0;
   }
   .skill-group-name {
-    max-width: calc(100% - 12px);
-    margin-left: 2px;
-    padding: 0 6px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    line-height: 1rem;
-    color: var(--color-fg-muted);
+    max-width: 100%;
+    padding: 0;
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--text-2);
   }
-  /* A caption inside a frame, where its skills are shown by level. */
+  /* A caption inside a group, where its skills are shown by level. */
   .skill-group-part-label {
-    padding: 8px 6px 4px;
+    padding: 10px 0 2px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.08em;
     line-height: 16px;
     text-transform: uppercase;
-    color: var(--color-fg-soft);
-  }
-  .skill-group-part:first-of-type > .skill-group-part-label {
-    padding-top: 2px;
-  }
-  /* Every skill in it held: the frame itself is lit. */
-  .skill-group[data-complete] {
-    border-color: color-mix(in srgb, var(--color-fg-soft) 60%, var(--color-border-subtle));
+    color: var(--text-2);
   }
 
   /*
@@ -528,7 +482,7 @@ input {
    * is whole however tall the boxes turn out, with nothing to measure.
    */
   .path-flow {
-    --path-line: var(--color-border-strong);
+    --path-line: var(--line-strong);
     --path-x: 8.5px;
     --path-in: 28px;
     --path-gap: 20px;
@@ -573,14 +527,14 @@ input {
   }
   .path-level-head > [data-level-count] {
     margin-left: auto;
-    font-size: 0.8125rem;
+    font-size: 13px;
   }
   .path-level-line {
     display: none;
   }
   .path-level-gloss {
-    font-size: 0.75rem;
-    color: var(--color-fg-soft);
+    font-size: 13px;
+    color: var(--text-3);
   }
   .path-node {
     position: absolute;
@@ -618,11 +572,11 @@ input {
     align-items: center;
     padding-bottom: 4px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.08em;
     line-height: 16px;
     text-transform: uppercase;
-    color: var(--color-fg-soft);
+    color: var(--text-2);
   }
   /* The trunk beside a branch: past it when more follows, turning into the last one where it ends. */
   .path-branch[data-pos='before']::before,
@@ -663,8 +617,8 @@ input {
   .path-empty {
     padding-top: 4px;
     padding-bottom: 2px;
-    font-size: 0.875rem;
-    color: var(--color-fg-soft);
+    font-size: 15px;
+    color: var(--text-2);
   }
 
   /* The ladder: the careers before and after this one, on the same trunk. */
@@ -770,8 +724,7 @@ input {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .skill-tag,
-    .skill-group {
+    .skill-tag {
       transition: none;
     }
   }
@@ -806,37 +759,38 @@ input {
   transition: none;
 }
 .atlas-wash {
-  fill: rgb(var(--tint) / 0.035);
+  fill: var(--text-1);
+  fill-opacity: 0.035;
 }
 .atlas-trunk {
   fill: none;
-  stroke: var(--color-fg-muted);
+  stroke: var(--text-2);
   stroke-opacity: 0.8;
   stroke-width: 1px;
 }
 .atlas-root {
-  fill: var(--color-bg-base);
-  stroke: var(--color-fg-muted);
+  fill: var(--bg);
+  stroke: var(--text-2);
   stroke-opacity: 0.8;
   stroke-width: 1px;
 }
 .atlas-fan {
   fill: none;
-  stroke: var(--color-fg-soft);
+  stroke: var(--text-3);
   stroke-opacity: 0.45;
   stroke-width: 0.5px;
 }
 .atlas-leaf {
-  fill: var(--color-fg-default);
+  fill: var(--text-1);
 }
 .atlas-ring {
   fill: none;
-  stroke: var(--color-fg-soft);
+  stroke: var(--text-3);
   stroke-width: 2.5px;
 }
 .atlas-group-ring {
   fill: none;
-  stroke: var(--color-fg-soft);
+  stroke: var(--text-3);
   stroke-opacity: 0.7;
   stroke-width: 1px;
 }
@@ -857,7 +811,7 @@ input {
 }
 /* A domain is open: the rest of the plate is veiled, in one shape. */
 .atlas-veil {
-  fill: var(--color-bg-base);
+  fill: var(--bg);
   fill-opacity: 0.62;
   pointer-events: none;
   animation: atlas-arrive 0.45s ease 0.25s both;
@@ -866,13 +820,13 @@ input {
   animation: none;
 }
 .atlas-name {
-  fill: var(--color-fg-muted);
+  fill: var(--text-2);
   font-weight: 500;
   letter-spacing: 0.04em;
   transition: opacity 0.25s ease;
 }
 .atlas-name[data-on] {
-  fill: var(--color-fg-default);
+  fill: var(--text-1);
 }
 .atlas-names[data-away] {
   opacity: 0;
@@ -881,24 +835,25 @@ input {
   transition: opacity 0.3s ease;
 }
 .atlas-hover {
-  fill: rgb(var(--tint) / 0.06);
+  fill: var(--text-1);
+  fill-opacity: 0.06;
   pointer-events: none;
 }
 .atlas-label {
-  fill: var(--color-fg-muted);
+  fill: var(--text-2);
 }
 .atlas-label[data-atlas-label='skill'] {
-  fill: var(--color-fg-default);
+  fill: var(--text-1);
 }
 /* A career is laid over the atlas: its skills are the bright ones, the group's others plain. */
 .atlas-plate[data-atlas-over] .atlas-label[data-atlas-label='skill']:not([data-lit]):not([data-on]) {
-  fill: var(--color-fg-muted);
+  fill: var(--text-2);
 }
 .atlas-label[data-step] {
-  fill: var(--color-fg-soft);
+  fill: var(--text-3);
 }
 .atlas-label[data-quiet] {
-  fill: var(--color-fg-soft);
+  fill: var(--text-3);
   fill-opacity: 0.75;
 }
 .atlas-leader[data-quiet] {
@@ -906,21 +861,21 @@ input {
 }
 /* Enlarged, the plate runs past the frame: its edges fade out instead of being cut. */
 .atlas-plate:not([data-atlas-view='whole']) {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 1.75rem), linear-gradient(to bottom, transparent, #000 1.75rem, #000 calc(100% - 1.75rem), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.75rem, var(--mask) calc(100% - 1.75rem), transparent);
   -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, #000 1.75rem), linear-gradient(to bottom, transparent, #000 1.75rem, #000 calc(100% - 1.75rem), transparent);
+  mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.75rem, var(--mask) calc(100% - 1.75rem), transparent);
   mask-composite: intersect;
 }
 .atlas-label[data-on] {
-  fill: var(--color-fg-default);
+  fill: var(--text-1);
   font-weight: 600;
 }
 .atlas-label[data-lit] {
-  fill: rgb(var(--info));
+  fill: var(--accent);
 }
 .atlas-leader {
   fill: none;
-  stroke: var(--color-fg-soft);
+  stroke: var(--text-3);
   stroke-opacity: 0.7;
   stroke-width: 0.75px;
 }
@@ -929,7 +884,7 @@ input {
   stroke-linecap: round;
 }
 .atlas-leader[data-on] {
-  stroke: rgb(var(--info));
+  stroke: var(--accent);
   stroke-opacity: 1;
 }
 .atlas-labels {
@@ -949,7 +904,7 @@ input {
 /* A career laid over the atlas: its branches and its skills, in the accent. */
 .atlas-lit {
   fill: none;
-  stroke: rgb(var(--info));
+  stroke: var(--accent);
   stroke-width: 1.25px;
   stroke-linecap: round;
 }
@@ -961,48 +916,48 @@ input {
   stroke-width: 2px;
 }
 .atlas-lit-dot {
-  fill: rgb(var(--info));
-  stroke: var(--color-bg-base);
+  fill: var(--accent);
+  stroke: var(--bg);
   stroke-width: 0.75px;
 }
 /* The second career's own skills: the same accent, as an open ring. */
 .atlas-lit-dot[data-second] {
-  fill: var(--color-bg-base);
-  stroke: rgb(var(--info));
+  fill: var(--bg);
+  stroke: var(--accent);
   stroke-width: 1.5px;
 }
 /* What both careers share: the disc inside the ring. */
 .atlas-lit-halo {
   fill: none;
-  stroke: rgb(var(--info));
+  stroke: var(--accent);
   stroke-width: 1.25px;
 }
 /* A person's own skills: the product's mark, held filled and bright, learning half. */
 .atlas-mark {
-  fill: var(--color-fg-default);
-  stroke: var(--color-bg-base);
+  fill: var(--text-1);
+  stroke: var(--bg);
   stroke-width: 1px;
 }
 .atlas-mark[data-status='learning'] {
-  fill: var(--color-bg-base);
-  stroke: var(--color-fg-default);
+  fill: var(--bg);
+  stroke: var(--text-1);
   stroke-width: 1.25px;
 }
 .atlas-mark[data-lit] {
-  stroke: rgb(var(--info));
+  stroke: var(--accent);
   stroke-width: 1.75px;
 }
 .atlas-mark-half {
-  fill: var(--color-fg-default);
+  fill: var(--text-1);
 }
 .atlas-chosen {
   fill: none;
-  stroke: rgb(var(--info));
+  stroke: var(--accent);
   stroke-width: 1.5px;
 }
 .atlas-chosen-arc {
   fill: none;
-  stroke: rgb(var(--info));
+  stroke: var(--accent);
   stroke-width: 2.5px;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1036,8 +991,8 @@ input {
  * career is whole. Bright is the person; the accent is the career.
  */
 .atlas-lit-dot[data-ahead] {
-  fill: var(--color-bg-base);
-  stroke: rgb(var(--info));
+  fill: var(--bg);
+  stroke: var(--accent);
   stroke-width: 1.25px;
 }
 /* The career's own branches step back a little under the walked ones. */
@@ -1046,7 +1001,7 @@ input {
 }
 .atlas-walked {
   fill: none;
-  stroke: var(--color-fg-default);
+  stroke: var(--text-1);
   stroke-width: 1.5px;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1081,7 +1036,7 @@ input {
 .atlas-moving .atlas-walk-in {
   vector-effect: none;
   fill: none;
-  stroke: var(--color-fg-default);
+  stroke: var(--text-1);
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 1;
@@ -1092,8 +1047,8 @@ input {
   opacity: 0;
 }
 .atlas-mark-in {
-  fill: var(--color-fg-default);
-  stroke: var(--color-bg-base);
+  fill: var(--text-1);
+  stroke: var(--bg);
   stroke-width: 1px;
   transform-box: fill-box;
   transform-origin: center;
@@ -1101,7 +1056,7 @@ input {
 }
 .atlas-pulse {
   fill: none;
-  stroke: var(--color-fg-default);
+  stroke: var(--text-1);
   stroke-width: 1px;
   transform-box: fill-box;
   transform-origin: center;
@@ -1140,7 +1095,7 @@ input {
 }
 /* The ring at the centre: the same one the career's page carries, in the plate's own units so it can move. */
 .atlas-share-bed {
-  fill: var(--color-bg-base);
+  fill: var(--bg);
 }
 .atlas-moving .atlas-share-track,
 .atlas-moving .atlas-share {
@@ -1148,10 +1103,10 @@ input {
   fill: none;
 }
 .atlas-share-track {
-  stroke: var(--color-border-strong);
+  stroke: var(--line-strong);
 }
 .atlas-share {
-  stroke: var(--color-fg-default);
+  stroke: var(--text-1);
   transition: stroke-dasharray 0.36s cubic-bezier(0.3, 0.1, 0.2, 1), opacity 0.2s ease;
 }
 .atlas-share-whole {
@@ -1161,20 +1116,20 @@ input {
   animation: none;
 }
 .atlas-share-whole circle {
-  fill: var(--color-fg-default);
+  fill: var(--text-1);
 }
 .atlas-moving .atlas-share-whole path {
   vector-effect: none;
   fill: none;
-  stroke: var(--color-bg-base);
+  stroke: var(--bg);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 /* Enlarged, the moving drawing runs past the frame as the plate does, and fades at the same edges. */
 .atlas-moving:not([data-atlas-view='whole']) {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 1.75rem), linear-gradient(to bottom, transparent, #000 1.75rem, #000 calc(100% - 1.75rem), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.75rem, var(--mask) calc(100% - 1.75rem), transparent);
   -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, #000 1.75rem), linear-gradient(to bottom, transparent, #000 1.75rem, #000 calc(100% - 1.75rem), transparent);
+  mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.75rem, var(--mask) calc(100% - 1.75rem), transparent);
   mask-composite: intersect;
 }
 /* With motion off nothing arrives: the line and the mark are simply there, and the ring is where it should be. */
@@ -1196,7 +1151,7 @@ input {
 }
 /* Walked, a skill of the career is the person's: bright, with no rim of the career's colour left on it. */
 .atlas-plate[data-atlas-walking] .atlas-mark[data-lit][data-status='held'] {
-  stroke: var(--color-bg-base);
+  stroke: var(--bg);
   stroke-width: 1px;
 }
 
@@ -1216,7 +1171,7 @@ input {
   z-index: 5;
   margin: 0 -0.25rem;
   padding: 0 0.25rem;
-  background: var(--color-bg-base);
+  background: var(--bg);
 }
 /* The plate is never taller than about half the screen, so tags are always in reach under it. */
 .career-atlas-plate > * {
@@ -1236,7 +1191,7 @@ input {
     right: 0;
     top: 100%;
     height: 0.875rem;
-    background: linear-gradient(to bottom, var(--color-bg-base), transparent);
+    background: linear-gradient(to bottom, var(--bg), transparent);
     pointer-events: none;
   }
 }
@@ -1295,34 +1250,34 @@ input {
   stroke-linejoin: round;
 }
 .goal-plate-ring {
-  stroke: var(--color-fg-soft);
+  stroke: var(--text-3);
   stroke-opacity: 0.7;
   stroke-width: 1.25px;
   stroke-linecap: butt;
 }
 .goal-plate-root {
-  stroke: var(--color-fg-soft);
+  stroke: var(--text-3);
   stroke-opacity: 0.7;
   stroke-width: 1px;
 }
 .goal-plate-career {
-  stroke: rgb(var(--info));
+  stroke: var(--accent);
   stroke-opacity: 0.85;
   stroke-width: 0.75px;
 }
 .goal-plate-walked {
-  stroke: var(--color-fg-default);
+  stroke: var(--text-1);
   stroke-width: 1.25px;
 }
 .goal-plate-ahead {
-  stroke: rgb(var(--info));
+  stroke: var(--accent);
   stroke-width: 2.5px;
 }
 .goal-plate-learning {
-  stroke: var(--color-fg-muted);
+  stroke: var(--text-2);
   stroke-width: 3px;
 }
 .goal-plate-held {
-  stroke: var(--color-fg-default);
+  stroke: var(--text-1);
   stroke-width: 3.5px;
 }

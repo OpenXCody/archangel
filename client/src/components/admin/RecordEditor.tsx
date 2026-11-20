@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ApiError } from '../../lib/http';
 import { editPath, useDeleteRecord, useMergeRecord, useRecord, type FoundRecord, type RecordKind, type RecordView } from '../../lib/records';
-import { CardNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, textButtonClass } from '../account/parts';
+import { CardNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, textButtonClass, rowHoverClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import { useAdminNotice } from './AdminNotice';
 import RecordPicker from './RecordPicker';
@@ -47,7 +47,7 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
   }, [loaded, hash]);
 
   const back = (
-    <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-fg-muted transition-colors hover:text-fg-default">
+    <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-text-2 transition-colors hover:text-text-1">
       <ArrowLeft className="h-4 w-4" />
       {/* The tab above already says Data: this is only the way back to its lists. */}
       Back
@@ -81,15 +81,15 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
     <div data-record-editor={kind}>
       {back}
       <div className="mb-6 min-w-0">
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Correct a {KIND_WORD[kind]}</p>
-        <h2 className="break-words text-xl font-semibold text-fg-default">{data.name}</h2>
-        <Link to={data.href} className="mt-1 inline-block text-sm text-fg-muted underline underline-offset-4 hover:text-fg-default">
+        <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">Correct a {KIND_WORD[kind]}</p>
+        <h2 className="break-words text-xl font-semibold text-text-1">{data.name}</h2>
+        <Link to={data.href} className="mt-1 inline-block text-sm text-text-1 underline">
           {PAGE_WORD[kind]}
         </Link>
       </div>
 
       <PageSection>
-        <div className={cn(cardClass, 'p-4 sm:p-5')}>
+        <div className={cardClass}>
           <RecordForm
             key={round}
             kind={kind}
@@ -129,8 +129,8 @@ function MergeSection({ record }: { record: RecordView }) {
 
   return (
     <PageSection title="Merge" description={`When this is the same ${word} as another. Everything here moves to the other, and this name is kept as another name for it.`}>
-      <div className={cn(cardClass, 'p-4 sm:p-5')}>
-        <label htmlFor="merge-into" className="mb-1.5 block text-sm font-medium text-fg-muted">
+      <div className={cardClass}>
+        <label htmlFor="merge-into" className="mb-1.5 block text-sm font-medium text-text-2">
           Merge into
         </label>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,28rem)_auto]">
@@ -156,7 +156,7 @@ function MergeSection({ record }: { record: RecordView }) {
           description={
             <>
               <p>
-                <span className="font-medium text-fg-default">{record.name}</span> into <span className="font-medium text-fg-default">{into?.name}</span>
+                <span className="font-medium text-text-1">{record.name}</span> into <span className="font-medium text-text-1">{into?.name}</span>
                 {into?.detail ? ` (${into.detail})` : ''}.
               </p>
               <p>{moving ? `Moves to ${into?.name}: ${moving}.` : 'Nothing is attached to it that would move.'}</p>
@@ -208,8 +208,8 @@ function PlantMergeSection({ record }: { record: RecordView }) {
       title="Merge"
       description="When this is the same plant as another row. One row is kept: it takes the facts it lacks from the other, and everything attached moves to it."
     >
-      <div className={cn(cardClass, 'p-4 sm:p-5')} data-plant-merge>
-        <label htmlFor="merge-with" className="mb-1.5 block text-sm font-medium text-fg-muted">
+      <div className={cardClass} data-plant-merge>
+        <label htmlFor="merge-with" className="mb-1.5 block text-sm font-medium text-text-2">
           The other row
         </label>
         <div className="max-w-[28rem]">
@@ -224,18 +224,18 @@ function PlantMergeSection({ record }: { record: RecordView }) {
             excludeId={record.id}
           />
         </div>
-        <p className="mt-1.5 text-xs text-fg-muted">Plants of the same company, and any within two kilometres.</p>
+        <p className="mt-1.5 text-xs text-text-3">Plants of the same company, and any within two kilometres.</p>
         {!other && offered.length > 0 && (
-          <ul className="mt-3 max-w-[28rem] rounded-lg border border-border-subtle" aria-label="Likely rows" data-plant-merge-likely>
+          <ul className="mt-3 max-w-[28rem]" aria-label="Likely rows" data-plant-merge-likely>
             {offered.map((option) => (
-              <li key={option.id} className="border-t border-border-subtle first:border-t-0">
+              <li key={option.id} className="border-t border-line first:border-t-0">
                 <button
                   type="button"
                   onClick={() => setOther(option)}
-                  className="block w-full rounded-lg px-3 py-2 text-left transition-colors hover:bg-bg-elevated"
+                  className={cn(rowHoverClass, 'block w-[calc(100%+1.5rem)] py-2 text-left')}
                 >
-                  <span className="block break-words text-sm text-fg-default">{option.name}</span>
-                  {option.detail && <span className="block break-words text-xs text-fg-muted">{option.detail}</span>}
+                  <span className="block break-words text-sm text-text-1">{option.name}</span>
+                  {option.detail && <span className="block break-words text-xs text-text-3">{option.detail}</span>}
                 </button>
               </li>
             ))}
@@ -292,7 +292,7 @@ function DeleteSection({ record }: { record: RecordView }) {
         description={
           <>
             <p>
-              <span className="font-medium text-fg-default">{record.name}</span>
+              <span className="font-medium text-text-1">{record.name}</span>
             </p>
             <p data-delete-takes>{going ? `Goes with it: ${going}.` : 'Nothing else is attached to it.'}</p>
             <p>Cannot be undone. If it is a duplicate, merge it instead.</p>

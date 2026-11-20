@@ -51,7 +51,7 @@ const ROLES: { value: PeopleRole; label: string }[] = [
 ];
 
 /** A text action inside a panel, tall enough to press on a phone. */
-const panelActionClass = cn(textButtonClass, 'flex min-h-9 items-center aria-disabled:pointer-events-none aria-disabled:opacity-50');
+const panelActionClass = cn(textButtonClass, 'flex min-h-9 items-center aria-disabled:cursor-not-allowed aria-disabled:opacity-40');
 
 /**
  * Everyone with an account: found by name, email or company and by role,
@@ -87,7 +87,7 @@ export default function PeopleTab({ me }: { me: AccountUser }) {
     <PageSection>
       <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_14rem]">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" />
           <input
             type="text"
             role="searchbox"
@@ -97,11 +97,11 @@ export default function PeopleTab({ me }: { me: AccountUser }) {
             autoComplete="off"
             value={term}
             onChange={(e) => setTerm(e.target.value)}
-            className={cn(fieldClass, 'h-11 bg-bg-surface pl-9')}
+            className={cn(fieldClass, 'h-11 pl-9')}
           />
         </div>
         <Select value={role || 'all'} onValueChange={(value) => setParam('role', value === 'all' ? null : value)}>
-          <SelectTrigger aria-label="Role" className={cn(selectTriggerClass, 'h-11 w-full bg-bg-surface')}>
+          <SelectTrigger aria-label="Role" className={cn(selectTriggerClass, 'h-11 w-full')}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent className={selectContentClass}>
@@ -137,7 +137,7 @@ export default function PeopleTab({ me }: { me: AccountUser }) {
             ))}
           </ul>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs tabular-nums text-fg-muted">
+            <p className="text-xs tabular-nums text-text-3">
               {rows.length.toLocaleString('en-US')} of {total.toLocaleString('en-US')}
             </p>
             {people.hasNextPage && (
@@ -174,11 +174,11 @@ function PersonRow({ person, isSelf, open, onToggle }: PersonRowProps) {
   const roles = personRoles(person);
   return (
     <li className={rowClass} data-person-email={person.email}>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 py-3">
         <div className="min-w-0">
-          <p className="break-words text-sm font-medium text-fg-default">{person.name}</p>
-          <p className="break-all text-sm text-fg-muted">{person.email}</p>
-          <p className="mt-1 break-words text-xs text-fg-muted">
+          <p className="break-words text-sm text-text-1">{person.name}</p>
+          <p className="break-all text-sm text-text-2">{person.email}</p>
+          <p className="mt-1 break-words text-xs text-text-3">
             {/* A plain account has no role label: only when it joined. */}
             {roles.length > 0 && (
               <>
@@ -211,7 +211,7 @@ function PersonRow({ person, isSelf, open, onToggle }: PersonRowProps) {
   );
 }
 
-const panelLabelClass = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
+const panelLabelClass = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 
 /** What a confirmation asks, and what runs when it is given. */
 interface Asking {
@@ -238,7 +238,7 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<unknown>(null);
 
-  const who = <span className="font-medium text-fg-default">{person.name}</span>;
+  const who = <span className="font-medium text-text-1">{person.name}</span>;
   const ask = (next: Asking) => {
     setProblem(null);
     setAsking(next);
@@ -269,7 +269,7 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
   ].filter(Boolean);
 
   return (
-    <div id={id} className="space-y-5 border-t border-border-subtle bg-bg-base px-4 py-4" data-person-panel>
+    <div id={id} className="space-y-5 border-t border-line py-4" data-person-panel>
       <CorrectPerson person={person} />
 
       <div>
@@ -340,11 +340,11 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
             </Button>
           )}
           {isSelf ? (
-            <p className="text-xs text-fg-muted">Signed-in account. Its admin role and deletion are locked.</p>
+            <p className="text-xs text-text-3">Signed-in account. Its admin role and deletion are locked.</p>
           ) : (
             person.isAdmin &&
             person.isFirstAdmin && (
-              <p className="text-xs text-fg-muted" data-first-admin>
+              <p className="text-xs text-text-3" data-first-admin>
                 First admin. Another admin cannot remove this role or delete the account.
               </p>
             )
@@ -355,14 +355,14 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
       <div>
         <p className={panelLabelClass}>Companies</p>
         {person.memberships.length === 0 ? (
-          <p className="mt-2 text-sm text-fg-muted">None yet.</p>
+          <p className="mt-2 text-sm text-text-2">None yet.</p>
         ) : (
           <ul className="mt-1">
             {person.memberships.map((membership) => (
               <li key={membership.companyId} className="flex flex-wrap items-center gap-x-3" data-membership={membership.companyId}>
-                <span className="min-w-0 break-words text-sm text-fg-default">{membership.companyName}</span>
-                {membership.status === 'requested' && <span className="text-xs text-fg-muted">Waiting for approval</span>}
-                {membership.status === 'declined' && <span className="text-xs text-fg-muted">Declined</span>}
+                <span className="min-w-0 break-words text-sm text-text-1">{membership.companyName}</span>
+                {membership.status === 'requested' && <span className="text-xs text-text-3">Waiting for approval</span>}
+                {membership.status === 'declined' && <span className="text-xs text-text-3">Declined</span>}
                 {membership.status !== 'active' && (
                   <button
                     type="button"
@@ -388,7 +388,7 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
                       description: (
                         <>
                           <p>
-                            {who} and <span className="font-medium text-fg-default">{membership.companyName}</span>
+                            {who} and <span className="font-medium text-text-1">{membership.companyName}</span>
                           </p>
                           <p>
                             {membership.status === 'active'
@@ -501,7 +501,7 @@ function PersonPanel({ id, person, isSelf }: { id: string; person: AdminUser; is
             {isSelf ? 'Sign out my other sessions' : 'Sign out everywhere'}
           </Button>
         </div>
-        <p className="mt-2 text-xs text-fg-muted">
+        <p className="mt-2 text-xs text-text-3">
           {emailOn ? 'A reset link is emailed to the person, and shown here once.' : 'No email is sent. A reset link is passed on by hand.'}{' '}
           {isSelf ? '' : 'Signing out ends every session; the password stays.'}
         </p>

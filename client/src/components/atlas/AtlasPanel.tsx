@@ -34,7 +34,7 @@ interface AtlasPanelProps {
   className?: string;
 }
 
-const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
+const EYEBROW = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 const ROW = cn(
   'group flex min-h-11 items-baseline justify-between gap-3 py-2.5 text-[15px] leading-snug sm:min-h-0 sm:py-[7px]',
   focusRing
@@ -64,7 +64,7 @@ function litCount(overlay: AtlasOverlay | null, first: number, last: number): nu
  */
 export function LitSign({ kind, className }: { kind: Exclude<Lit, null>; className?: string }) {
   return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" data-lit-sign={kind} className={cn('h-3 w-3 shrink-0 text-info', className)}>
+    <svg viewBox="0 0 16 16" aria-hidden="true" data-lit-sign={kind} className={cn('h-3 w-3 shrink-0 text-accent', className)}>
       {kind === 'second' ? (
         <circle cx="8" cy="8" r="4.25" fill="none" stroke="currentColor" strokeWidth="2" />
       ) : (
@@ -95,7 +95,7 @@ interface RowProps {
 
 function Row({ to, name, figure, quiet, onPreview, data }: RowProps) {
   return (
-    <li className="min-w-0 border-b border-border-subtle">
+    <li className="min-w-0 border-b border-line">
       <Link
         to={to}
         className={ROW}
@@ -105,8 +105,8 @@ function Row({ to, name, figure, quiet, onPreview, data }: RowProps) {
         onBlur={() => onPreview(false)}
         {...data}
       >
-        <span className={cn('min-w-0 underline-offset-4 group-hover:underline', quiet ? 'text-fg-soft' : 'text-fg-default')}>{name}</span>
-        {!quiet && <span className="shrink-0 text-sm tabular-nums text-fg-soft">{figure}</span>}
+        <span className={cn('min-w-0 group-hover:underline', quiet ? 'text-text-3' : 'text-text-1')}>{name}</span>
+        {!quiet && <span className="shrink-0 text-sm tabular-nums text-text-3">{figure}</span>}
       </Link>
     </li>
   );
@@ -115,7 +115,7 @@ function Row({ to, name, figure, quiet, onPreview, data }: RowProps) {
 /** What the figures at the ends of the rows count. */
 function RowsHeading({ left, overlay }: { left: string; overlay: AtlasOverlay | null }) {
   return (
-    <div className={cn(EYEBROW, 'flex items-baseline justify-between gap-3 border-b border-border-subtle pb-2')}>
+    <div className={cn(EYEBROW, 'flex items-baseline justify-between gap-3 border-b border-line pb-2')}>
       <h3>{left}</h3>
       <span aria-hidden="true">{overlay ? (overlay.second ? 'Of these careers' : 'Of this career') : 'Skills'}</span>
     </div>
@@ -148,7 +148,7 @@ function SkillTag({
 }) {
   return (
     // The same tag a career's path uses (`.skill-tag`), here a link that opens the skill on the atlas.
-    <li className={cn('skill-tag', chosen && 'ring-1 ring-inset ring-info')} data-status={mark ?? undefined} data-atlas-markable={marking ? leaf.id : undefined}>
+    <li className={cn('skill-tag', chosen && 'ring-1 ring-inset ring-accent')} data-status={mark ?? undefined} data-atlas-markable={marking ? leaf.id : undefined}>
       {marking && (
         <SkillHeldToggle
           label={leaf.name}
@@ -167,7 +167,7 @@ function SkillTag({
         onFocus={() => onPreview(true)}
         onBlur={() => onPreview(false)}
         className={cn(
-          'flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg py-1.5 pr-3 text-sm leading-snug underline-offset-4 hover:underline focus-visible:[outline-offset:-2px]',
+          'flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg py-1.5 pr-3 text-sm leading-snug hover:underline focus-visible:[outline-offset:-2px]',
           marking ? 'pl-0' : 'pl-3',
           focusRing
         )}
@@ -176,7 +176,7 @@ function SkillTag({
         {lit && sign && <LitSign kind={lit} />}
         <span className="flex min-w-0 flex-col">
           <span className="min-w-0 [overflow-wrap:anywhere]">{leaf.name}</span>
-          {detail && <span className="min-w-0 text-xs text-fg-soft [overflow-wrap:anywhere]">{detail}</span>}
+          {detail && <span className="min-w-0 text-xs text-text-3 [overflow-wrap:anywhere]">{detail}</span>}
         </span>
       </Link>
     </li>
@@ -185,9 +185,9 @@ function SkillTag({
 
 function Crumbs({ domain, group, leaf, state }: { domain: AtlasDomain; group: AtlasGroup | null; leaf: AtlasLeaf | null; state: AtlasState }) {
   const base = { career: state.career, with: state.with, at: state.at };
-  const crumb = cn('inline-flex min-h-11 items-center text-fg-muted underline-offset-4 hover:text-fg-default hover:underline sm:min-h-8', focusRing);
-  const here = 'inline-flex min-h-11 items-center text-fg-default sm:min-h-8';
-  const divider = <ChevronRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-fg-soft" />;
+  const crumb = cn('inline-flex min-h-11 items-center text-text-2 hover:text-text-1 hover:underline sm:min-h-8', focusRing);
+  const here = 'inline-flex min-h-11 items-center text-text-1 sm:min-h-8';
+  const divider = <ChevronRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-text-3" />;
   return (
     <nav aria-label="Atlas" data-atlas-crumbs className="-mt-1 mb-1 text-sm">
       <ol className="flex flex-wrap items-center gap-x-1.5">
@@ -257,10 +257,10 @@ export default function AtlasPanel({ layout, domain, group, leaf, state, overlay
   } else if (!group) {
     body = (
       <>
-        <h2 className="text-xl font-semibold leading-tight text-fg-default" data-atlas-heading>
+        <h2 className="text-xl font-semibold leading-tight text-text-1" data-atlas-heading>
           {domain.name}
         </h2>
-        {domain.description && <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">{domain.description}</p>}
+        {domain.description && <p className="mt-1.5 text-sm leading-relaxed text-text-2">{domain.description}</p>}
         <div className="mt-5">
           <RowsHeading left="Skill groups" overlay={overlay} />
           <Rows>
@@ -290,18 +290,18 @@ export default function AtlasPanel({ layout, domain, group, leaf, state, overlay
     body = (
       <>
         {leaf ? (
-          <div data-atlas-skill={leaf.id} className="mb-5 border-b border-border-subtle pb-5">
+          <div data-atlas-skill={leaf.id} className="mb-5 border-b border-line pb-5">
             <p className={EYEBROW}>Skill</p>
-            <h2 className="mt-1 text-xl font-semibold leading-tight text-fg-default" data-atlas-heading>
+            <h2 className="mt-1 text-xl font-semibold leading-tight text-text-1" data-atlas-heading>
               {leaf.name}
             </h2>
-            <p className="mt-1.5 text-sm text-fg-muted">
+            <p className="mt-1.5 text-sm text-text-2">
               <span data-atlas-level>{LEVEL_NAME[leaf.level]}</span>
               {' · '}
               {leaf.careers > 0 ? `Used by ${plural(leaf.careers, 'career', 'careers')}` : 'No career uses it yet'}
             </p>
             {(mark || lit) && (
-              <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-fg-muted">
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-text-2">
                 {mark && (
                   <span className="inline-flex items-center gap-1.5">
                     <SkillMark status={mark} className="h-4 w-4" />
@@ -320,23 +320,23 @@ export default function AtlasPanel({ layout, domain, group, leaf, state, overlay
               to={`/skills/${leaf.id}`}
               data-atlas-open
               className={cn(
-                'mt-4 inline-flex h-11 items-center gap-1.5 rounded-lg border border-border-strong px-4 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated sm:h-10',
+                'mt-4 inline-flex h-11 items-center gap-1.5 rounded-lg border border-line-strong px-4 text-sm font-medium text-text-1 transition-colors hover:bg-surface-hover sm:h-10',
                 focusRing
               )}
             >
               Open skill
-              <ChevronRight aria-hidden="true" className="h-4 w-4 text-fg-soft" />
+              <ChevronRight aria-hidden="true" className="h-4 w-4 text-text-3" />
             </Link>
           </div>
         ) : null}
         {leaf ? (
-          <h3 className="text-base font-semibold text-fg-default">{group.name}</h3>
+          <h3 className="text-base font-semibold text-text-1">{group.name}</h3>
         ) : (
-          <h2 className="text-xl font-semibold leading-tight text-fg-default" data-atlas-heading>
+          <h2 className="text-xl font-semibold leading-tight text-text-1" data-atlas-heading>
             {group.name}
           </h2>
         )}
-        {group.description && <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">{group.description}</p>}
+        {group.description && <p className="mt-1.5 text-sm leading-relaxed text-text-2">{group.description}</p>}
         {LEVELS.map((level) => {
           const atLevel = leaves.filter((l) => l.level === level.id);
           if (atLevel.length === 0) return null;
@@ -379,7 +379,7 @@ function ListLink({ to, children }: { to: string; children: ReactNode }) {
     <p className="mt-4">
       <Link
         to={to}
-        className={cn('inline-flex min-h-11 items-center text-sm text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default', focusRing)}
+        className={cn('inline-flex min-h-11 items-center text-sm text-text-1 underline transition-colors', focusRing)}
       >
         {children}
       </Link>

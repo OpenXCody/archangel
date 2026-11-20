@@ -29,8 +29,8 @@ export default function ViewAsSign() {
         // The button goes with the view: hand the keyboard to the page.
         document.getElementById('main')?.focus();
       }}
-      className="flex h-11 w-10 min-w-0 items-center justify-center gap-1.5 rounded-full text-sm font-medium text-info transition-colors
-        hover:bg-info/10 xs:w-11 sm:h-9 sm:w-auto sm:border sm:border-info/40 sm:px-3"
+      className="flex h-11 w-10 min-w-0 items-center justify-center gap-1.5 rounded-full text-sm font-medium text-accent transition-colors
+        hover:bg-surface-hover xs:w-11 sm:h-9 sm:w-auto sm:border sm:border-accent sm:px-3"
     >
       <Eye className="h-[18px] w-[18px] shrink-0 sm:h-4 sm:w-4" aria-hidden="true" />
       <span className="hidden min-w-0 truncate sm:inline">Viewing as {viewingAs}</span>

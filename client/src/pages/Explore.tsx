@@ -29,9 +29,9 @@ function Figures() {
   if (counts.isError) return null;
   const parts = counts.data ? FIGURES.filter((key) => counts.data[key] > 0) : [];
   return (
-    <p className="mt-4 text-sm tabular-nums text-fg-muted [text-wrap:balance] sm:mt-5 sm:text-base" data-explore-figures>
+    <p className="mt-4 text-sm tabular-nums text-text-2 [text-wrap:balance] sm:mt-5 sm:text-base" data-explore-figures>
       {!counts.data ? (
-        <span aria-hidden="true" className="inline-block h-3.5 w-72 max-w-full animate-pulse rounded bg-primary/10 align-middle" />
+        <span aria-hidden="true" className="inline-block h-3.5 w-72 max-w-full animate-pulse rounded bg-surface align-middle" />
       ) : (
         parts.map((key, i) => (
           // Each figure stays whole when the line wraps, and no line starts with a separator.

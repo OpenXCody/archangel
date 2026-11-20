@@ -222,14 +222,17 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   return (
     <>
       {/* Backdrop */}
-      <div aria-hidden="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div aria-hidden="true" className="fixed inset-0 z-50 bg-bg/80" onClick={onClose} />
 
       {/* Modal */}
       <div ref={boxRef} role="dialog" aria-modal="true" aria-label="Search" className="fixed inset-x-4 top-[12vh] z-50 mx-auto max-w-[600px]">
-        <div className="overflow-hidden rounded-xl border border-tint/10 bg-bg-surface shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          // The field has no edge of its own: the panel it fills carries the focus ring for it.
+          className="overflow-hidden rounded-xl border border-line-strong bg-bg has-[input:focus-visible]:outline has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-accent"
+          onClick={(e) => e.stopPropagation()}>
           {/* Search input */}
           <div className="flex items-center gap-3 px-4 py-3">
-            <Search className="h-5 w-5 flex-shrink-0 text-fg-soft" aria-hidden="true" />
+            <Search className="h-5 w-5 flex-shrink-0 text-text-3" aria-hidden="true" />
             <input
               ref={inputRef}
               type="text"
@@ -246,10 +249,10 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Company, plant, career or skill"
               aria-label="Company, plant, career or skill"
-              className="min-w-0 flex-1 bg-transparent text-base text-fg-default placeholder:text-fg-soft"
+              className="min-w-0 flex-1 bg-transparent text-base text-text-1 placeholder:text-text-3"
               style={{ outline: 'none', border: 'none', boxShadow: 'none', WebkitAppearance: 'none' }}
             />
-            {isFetching && hasQuery && <Loader2 className="h-4 w-4 animate-spin text-fg-soft" aria-hidden="true" />}
+            {isFetching && hasQuery && <Loader2 className="h-4 w-4 animate-spin text-text-3" aria-hidden="true" />}
             {query && (
               <button
                 type="button"
@@ -258,33 +261,33 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                   setQuery('');
                   inputRef.current?.focus();
                 }}
-                className="-my-2 flex h-11 w-9 items-center justify-center text-fg-soft transition-colors hover:text-fg-default"
+                className="-my-2 flex h-11 w-9 items-center justify-center text-text-3 transition-colors hover:text-text-1"
               >
                 <X className="h-4 w-4" />
               </button>
             )}
-            <kbd className="hidden items-center gap-0.5 rounded border border-tint/10 bg-tint/5 px-1.5 py-0.5 text-xs text-fg-soft sm:flex">esc</kbd>
+            <kbd className="hidden items-center gap-0.5 rounded border border-line bg-surface px-1.5 py-0.5 text-xs text-text-3 sm:flex">esc</kbd>
           </div>
 
           {/* What was searched for before, until something is typed */}
           {showRecent && (
-            <div className="border-t border-tint/10 px-2 py-2">
+            <div className="border-t border-line px-2 py-2">
               <div className="flex items-center justify-between px-2 pb-1">
-                <h4 className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Recent</h4>
-                <button type="button" onClick={clearRecentSearches} className="-my-2 flex h-9 items-center text-xs text-fg-muted transition-colors hover:text-fg-default">
+                <h4 className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">Recent</h4>
+                <button type="button" onClick={clearRecentSearches} className="-my-2 flex h-9 items-center text-xs text-text-2 transition-colors hover:text-text-1">
                   Clear
                 </button>
               </div>
               <ul>
                 {recentSearches.map((search) => (
-                  <li key={search} className="group flex items-center rounded-lg hover:bg-tint/5">
+                  <li key={search} className="group flex items-center rounded-lg hover:bg-surface-hover">
                     <button
                       type="button"
                       onClick={() => {
                         setQuery(search);
                         inputRef.current?.focus();
                       }}
-                      className="min-h-11 min-w-0 flex-1 truncate px-2 text-left text-sm text-fg-default sm:min-h-9"
+                      className="min-h-11 min-w-0 flex-1 truncate px-2 text-left text-sm text-text-1 sm:min-h-9"
                     >
                       {search}
                     </button>
@@ -292,7 +295,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                       type="button"
                       aria-label={`Forget “${search}”`}
                       onClick={() => removeRecentSearch(search)}
-                      className="flex h-11 w-10 shrink-0 items-center justify-center text-fg-soft transition-colors hover:text-fg-default sm:h-9"
+                      className="flex h-11 w-10 shrink-0 items-center justify-center text-text-3 transition-colors hover:text-text-1 sm:h-9"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -308,12 +311,12 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
             role="listbox"
             aria-label="Search results"
             hidden={rows.length === 0}
-            className="max-h-[min(60vh,32rem)] overflow-y-auto border-t border-tint/10"
+            className="max-h-[min(60vh,32rem)] overflow-y-auto border-t border-line"
           >
             <div className="py-1.5">
               {groups.map((group) => (
                 <div key={group.id} role="group" aria-labelledby={`search-group-${group.id}`} className="px-2 py-1.5">
-                  <div id={`search-group-${group.id}`} role="presentation" className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                  <div id={`search-group-${group.id}`} role="presentation" className="px-2 pb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">
                     {groupHeading(group.id)}
                   </div>
                   {group.rows.map((row) => {
@@ -331,12 +334,12 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                         onMouseMove={() => {
                           if (!active) setSelectedIndex(index);
                         }}
-                        className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 sm:min-h-0 ${active ? 'bg-tint/10' : ''}`}
+                        className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 sm:min-h-0 ${active ? 'bg-surface-hover' : ''}`}
                       >
                         {row.kind === 'company' && <CompanyLogo name={row.title} domain={row.domain} size={24} className="rounded" />}
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm text-fg-default">{row.title}</span>
-                          {row.subtitle && <span className="block truncate text-xs text-fg-muted">{row.subtitle}</span>}
+                          <span className="block truncate text-sm text-text-1">{row.title}</span>
+                          {row.subtitle && <span className="block truncate text-xs text-text-3">{row.subtitle}</span>}
                         </span>
                       </div>
                     );
@@ -347,7 +350,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           </div>
 
           {/* Said, not only shown: a screen reader hears how the search came out. */}
-          <p role="status" className={showNoResults ? 'border-t border-tint/10 px-4 py-3 text-sm text-fg-muted' : 'sr-only'}>
+          <p role="status" className={showNoResults ? 'border-t border-line px-4 py-3 text-sm text-text-2' : 'sr-only'}>
             {showNoResults ? noResults(debouncedQuery) : settled ? `${rows.length} ${rows.length === 1 ? 'result' : 'results'}.` : ''}
           </p>
         </div>

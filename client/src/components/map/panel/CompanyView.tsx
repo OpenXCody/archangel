@@ -5,7 +5,7 @@ import { cityState } from '../../../lib/places';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../../CompanyLogo';
 import { leadingIndustry, shownIndustry } from '@shared/industry';
-import { Heading, Section, JobRows, More, RowList, NodeRow, PageLink, Figures } from './parts';
+import { Heading, Section, JobRows, More, RowList, NodeRow, PageLink, Figures, SECONDARY_BUTTON } from './parts';
 
 export default function CompanyView({ company }: { company: CompanyDetail }) {
   const { flyTo, selectFactory, setHoveredFactory } = useMapStore();
@@ -25,7 +25,7 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
       {/* What is this */}
       <Heading
         title={name}
-        logo={<CompanyLogo name={name} domain={company.domain} size={44} className="rounded-lg" />}
+        logo={<CompanyLogo name={name} domain={company.domain} size={44} />}
         // The industry most of its plants are in.
         subtitle={shownIndustry(leadingIndustry(plants.map((plant) => plant.industry))) ?? undefined}
       />
@@ -38,10 +38,10 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
       />
       {company.description && (
         <Section title="About">
-          <p className="text-sm leading-relaxed text-fg-muted">{company.description}</p>
+          <p className="text-[15px] leading-relaxed text-text-2">{company.description}</p>
         </Section>
       )}
-      {plants.length === 0 && <p className="mb-6 text-sm text-fg-muted">No plants are listed for this company.</p>}
+      {plants.length === 0 && <p className="mb-8 text-[15px] text-text-2">No plants are listed for this company.</p>}
 
       {/* What work is here */}
       {jobs.length > 0 && (
@@ -76,7 +76,7 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
             <button
               type="button"
               onClick={() => flyTo({ kind: 'points', points })}
-              className="map-row mt-3 flex w-full items-center justify-center rounded-lg border border-border-strong px-4 py-2.5 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated"
+              className={`mt-3 flex w-full px-4 py-2.5 ${SECONDARY_BUTTON}`}
             >
               Show all {points.length.toLocaleString()} on the map
             </button>

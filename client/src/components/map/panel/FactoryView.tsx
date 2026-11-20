@@ -9,7 +9,7 @@ import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../../CompanyLogo';
 import { shownIndustry } from '@shared/industry';
 import { usePins } from '../../../lib/queries';
-import { Heading, Section, JobRows, MORE_LINK, CareerRows, More, RowList, NodeRow, PageLink, Figures } from './parts';
+import { Heading, Section, JobRows, MORE_LINK, CareerRows, More, RowList, NodeRow, PageLink, Figures, META_IN_ROW } from './parts';
 
 /** How far "nearby" reaches, and how many plants it lists. */
 const NEARBY_MILES = 30;
@@ -89,12 +89,12 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
       {/* What is this */}
       <Heading
         title={factoryName}
-        logo={company ? <CompanyLogo name={companyName ?? factoryName} domain={company.domain} size={44} className="rounded-lg" /> : undefined}
+        logo={company ? <CompanyLogo name={companyName ?? factoryName} domain={company.domain} size={44} /> : undefined}
         subtitle={
           (place || industry || address) && (
             <>
               {(place || industry || underConstruction) && <p>{[place, industry, underConstruction ? 'Under construction' : null].filter(Boolean).join(' · ')}</p>}
-              {address && <p className="mt-0.5 text-xs text-fg-soft">{address}</p>}
+              {address && <p className="mt-0.5 text-[13px] text-text-3">{address}</p>}
             </>
           )
         }
@@ -108,12 +108,12 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
       />
       {factory.products && (
         <Section title="Makes">
-          <p className="text-sm leading-relaxed text-fg-default">{factory.products}</p>
+          <p className="text-[15px] leading-relaxed text-text-1">{factory.products}</p>
         </Section>
       )}
       {factory.description && (
         <Section title="About this plant">
-          <p className="text-sm leading-relaxed text-fg-muted">{factory.description}</p>
+          <p className="text-[15px] leading-relaxed text-text-2">{factory.description}</p>
         </Section>
       )}
 
@@ -123,22 +123,22 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
           <button
             type="button"
             onClick={() => selectEntity('company', company.id, companyName)}
-            className="group w-full rounded-lg border border-border-subtle bg-bg-elevated p-3 text-left transition-colors hover:border-border-strong"
+            className="map-list-row group -mx-4 block w-[calc(100%+2rem)] px-4 py-2 text-left transition-colors hover:bg-surface-hover"
           >
             <span className="flex items-center justify-between gap-3">
               <span className="min-w-0">
-                <span className="block truncate text-sm font-medium text-fg-default">{companyName}</span>
+                <span className="block truncate text-[15px] text-text-1">{companyName}</span>
                 {siteCount > 0 && (
-                  <span className="block text-xs text-fg-muted">
+                  <span className={`block text-[13px] tabular-nums ${META_IN_ROW}`}>
                     {siteCount.toLocaleString()} {siteCount === 1 ? 'plant' : 'plants'}
                     {stateCount > 1 ? ` in ${stateCount} states` : ''}
                   </span>
                 )}
               </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-fg-soft group-hover:text-fg-default" aria-hidden="true" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-text-3 transition-colors group-hover:text-text-1" aria-hidden="true" />
             </span>
             {company.description && (
-              <span className="mt-2 line-clamp-3 block text-sm leading-relaxed text-fg-muted">{company.description}</span>
+              <span className="mt-2 line-clamp-3 block text-[15px] leading-relaxed text-text-2">{company.description}</span>
             )}
           </button>
         </Section>

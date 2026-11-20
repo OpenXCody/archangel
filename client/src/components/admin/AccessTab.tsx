@@ -33,9 +33,9 @@ function DecisionHelp({ request }: { request: AdminMembership }) {
       ? 'Nobody has access yet'
       : `${request.activeMembers.toLocaleString('en-US')} ${request.activeMembers === 1 ? 'person has' : 'people have'} access`;
   return (
-    <p className="mt-1 break-words text-xs text-fg-muted" data-decision-help>
+    <p className="mt-1 break-words text-xs text-text-3" data-decision-help>
       {request.domainMatches === true ? (
-        <span className="text-fg-default" data-domain-match>
+        <span className="text-text-1" data-domain-match>
           Address at the company's domain, {request.companyDomain}
         </span>
       ) : (
@@ -100,7 +100,7 @@ export default function AccessTab() {
   return (
     <>
       <PageSection>
-        <p className="mb-3 text-sm text-fg-muted">Requests to join a company. Approval lets the person post its jobs and read its applicants.</p>
+        <p className="mb-3 text-sm text-text-2">Requests to join a company. Approval lets the person post its jobs and read its applicants.</p>
         {requests.isPending ? (
           <RowsSkeleton rows={2} />
         ) : requests.isError ? (
@@ -112,15 +112,15 @@ export default function AccessTab() {
             {requests.data.map((request) => (
               <li
                 key={`${request.companyId}:${request.userId}`}
-                className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')}
+                className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')}
                 data-request-email={request.userEmail}
                 data-request-row={`${request.companyId}:${request.userId}`}
               >
                 <div className="min-w-0 flex-1 basis-64">
-                  <p className="break-words text-sm font-medium text-fg-default">{request.userName}</p>
-                  <p className="break-all text-sm text-fg-muted">{request.userEmail}</p>
-                  <p className="mt-1 break-words text-xs text-fg-muted">
-                    <Link to={`/companies/${request.companyId}`} className="font-medium text-fg-default underline-offset-4 hover:underline">
+                  <p className="break-words text-sm text-text-1">{request.userName}</p>
+                  <p className="break-all text-sm text-text-2">{request.userEmail}</p>
+                  <p className="mt-1 break-words text-xs text-text-3">
+                    <Link to={`/companies/${request.companyId}`} className="font-medium text-text-1 hover:underline">
                       {request.companyName}
                     </Link>
                     <Dot />
@@ -172,15 +172,15 @@ export default function AccessTab() {
             {declined.data.map((request) => (
               <li
                 key={`${request.companyId}:${request.userId}`}
-                className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')}
+                className={cn(rowClass, 'flex flex-wrap items-center gap-x-4 gap-y-3 py-4')}
                 data-declined-email={request.userEmail}
                 data-request-row={`${request.companyId}:${request.userId}`}
               >
                 <div className="min-w-0 flex-1 basis-64">
-                  <p className="break-words text-sm font-medium text-fg-default">{request.userName}</p>
-                  <p className="break-all text-sm text-fg-muted">{request.userEmail}</p>
-                  <p className="mt-1 break-words text-xs text-fg-muted">
-                    <Link to={`/companies/${request.companyId}`} className="font-medium text-fg-default underline-offset-4 hover:underline">
+                  <p className="break-words text-sm text-text-1">{request.userName}</p>
+                  <p className="break-all text-sm text-text-2">{request.userEmail}</p>
+                  <p className="mt-1 break-words text-xs text-text-3">
+                    <Link to={`/companies/${request.companyId}`} className="font-medium text-text-1 hover:underline">
                       {request.companyName}
                     </Link>
                     {request.decidedAt && (

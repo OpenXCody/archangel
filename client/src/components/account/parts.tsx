@@ -4,7 +4,7 @@ import { AlertCircle, Briefcase, Building2, Factory, Loader2, RotateCw } from 'l
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { cn, labelClass, segmentClass } from '@/lib/utils';
 import { justLeft, signInPath, useAccount, type SignedInAccount } from '../../lib/account';
 import { errorMessage } from '../../lib/http';
 import { applicationStatusLabel } from '../../lib/jobFormat';
@@ -26,33 +26,41 @@ export const KIND_ICON: Record<'company' | 'factory' | 'career', ElementType> = 
  * on focus; `border-solid` undoes the global `input { border: none }`.
  */
 export const fieldClass =
-  'block min-h-[42px] w-full rounded-lg border border-solid border-input bg-bg-elevated px-3 py-2 text-base text-fg-default ' +
-  'placeholder:text-fg-soft transition-colors focus:border-[color:var(--color-fg-muted)] focus:outline-none ' +
-  'disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm';
+  'block min-h-[42px] w-full rounded-lg border border-solid border-line-strong bg-surface px-3 py-2 text-base text-text-1 ' +
+  'placeholder:text-text-3 transition-colors ' +
+  'disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm';
 
 /** A select's trigger and list, matched to the text fields beside them. */
 export const selectTriggerClass =
-  'h-[42px] rounded-lg border-border-strong bg-bg-elevated px-3 text-base text-fg-default shadow-none sm:text-sm';
-export const selectContentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-border-strong bg-bg-surface';
+  'h-[42px] rounded-lg border-line-strong bg-surface px-3 text-base text-text-1 sm:text-sm';
+export const selectContentClass = 'max-w-[calc(100vw-2rem)] rounded-lg border-line-strong bg-surface';
 
 /** A button that is busy keeps focus: it is marked, not disabled. */
-export const busyButtonClass = 'aria-disabled:pointer-events-none aria-disabled:opacity-60';
+export const busyButtonClass = 'aria-disabled:cursor-not-allowed aria-disabled:opacity-40';
 
-export const cardClass = 'rounded-xl border border-border-subtle bg-bg-surface';
+/**
+ * What used to be a card. A section of content is not a card: it has no fill
+ * and no border, and stands apart by the space around it and its heading. The
+ * name is kept so every block that was one says so; it adds nothing.
+ */
+export const cardClass = '';
 
-/** A row inside a card: a hairline between rows, none above the first. */
-export const rowClass = 'border-t border-border-subtle first:border-t-0';
+/** A row of a list: a hairline between rows, none above the first, and no box around the list. */
+export const rowClass = 'border-t border-line first:border-t-0';
 
-/** Outline buttons need a border that shows on the dark surface. */
-export const outlineButtonClass = 'border-border-strong bg-transparent text-fg-default shadow-none hover:bg-bg-elevated';
+/** The fill a row that is one link or button takes under the pointer (`components/layout/Page.tsx`). */
+export { rowHoverClass } from '../layout/Page';
+
+/** A secondary button: a hairline on nothing. The same as the button's `outline` variant; kept for the places that name it. */
+export const outlineButtonClass = 'border-line-strong bg-transparent text-text-1 hover:bg-surface-hover';
 
 /**
  * A plain text action inside a row. Destructive ones look the same: the
  * confirmation, not the button, carries the weight.
  */
 export const textButtonClass =
-  'text-sm font-medium text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default ' +
-  'disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50';
+  'text-sm font-medium text-text-1 underline transition-colors ' +
+  'disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40';
 
 interface FieldProps {
   label: string;
@@ -66,12 +74,12 @@ interface FieldProps {
 export function Field({ label, htmlFor, hint, optional, className, children }: FieldProps) {
   return (
     <div className={cn('min-w-0', className)}>
-      <Label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-fg-muted">
+      <Label htmlFor={htmlFor} className={cn(labelClass, 'mb-2 block')}>
         {label}
-        {optional && <span className="ml-1.5 font-normal text-fg-soft">optional</span>}
+        {optional && <span className="ml-1.5 font-normal normal-case tracking-normal text-text-3">optional</span>}
       </Label>
       {children}
-      {hint && <p className="mt-1.5 text-xs text-fg-muted">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-text-3">{hint}</p>}
     </div>
   );
 }
@@ -100,7 +108,7 @@ export function SegmentedChoice<T extends string>({ options, value, onChange, la
       aria-label={label}
       aria-labelledby={labelledBy}
       onKeyDown={(event) => onGroupArrowKeys(event, options.map((option) => option.value), value, onChange)}
-      className={cn('grid h-[42px] gap-1 rounded-lg border border-border-strong bg-bg-elevated p-1', className)}
+      className={cn('grid h-[42px] gap-0.5 rounded-lg border border-line p-0.5', className)}
     >
       {options.map((option) => (
         <button
@@ -111,9 +119,9 @@ export function SegmentedChoice<T extends string>({ options, value, onChange, la
           tabIndex={value === option.value ? 0 : -1}
           onClick={() => onChange(option.value)}
           className={cn(
-            'rounded-md text-sm font-medium transition-colors',
+            'rounded-md text-sm transition-colors',
             optionClassName,
-            value === option.value ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
+            segmentClass(value === option.value)
           )}
         >
           {option.label}
@@ -156,8 +164,8 @@ export function ErrorNote({ error, className }: { error: unknown; className?: st
 /** A list or section that failed to load, with a way to try again. */
 export function LoadError({ error, onRetry, retrying, className }: { error: unknown; onRetry?: () => void; retrying?: boolean; className?: string }) {
   return (
-    <div role="alert" className={cn(cardClass, 'flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:justify-between', className)}>
-      <p className="flex min-w-0 items-start gap-2 text-sm text-fg-muted">
+    <div role="alert" className={cn(cardClass, 'flex flex-col items-start gap-3 py-2 sm:flex-row sm:items-center sm:justify-between', className)}>
+      <p className="flex min-w-0 items-start gap-2 text-sm text-text-2">
         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
         <span className="min-w-0 break-words">{errorMessage(error)}</span>
       </p>
@@ -186,7 +194,7 @@ export function RowsSkeleton({ rows = 3, className }: { rows?: number; className
   return (
     <div className={cardClass} aria-busy="true" aria-label="Loading">
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className={cn(rowClass, 'flex items-center gap-3 p-4', className)}>
+        <div key={i} className={cn(rowClass, 'flex items-center gap-3 py-4', className)}>
           <div className="min-w-0 flex-1 space-y-2">
             <Skeleton className="h-4 w-2/5" />
             <Skeleton className="h-3 w-3/5" />
@@ -201,39 +209,35 @@ export function RowsSkeleton({ rows = 3, className }: { rows?: number; className
 export function PageLoading({ label = 'Loading' }: { label?: string }) {
   return (
     <div className="flex min-h-[400px] items-center justify-center" role="status" aria-label={label}>
-      <Loader2 className="h-8 w-8 animate-spin text-fg-muted" />
+      <Loader2 className="h-8 w-8 animate-spin text-text-2" />
     </div>
   );
 }
 
-/** A quiet message inside a card: an empty list, or a short notice. */
+/** An empty list, or a short notice in a list's place: one line of secondary text, with no box. */
 export function CardNote({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn(cardClass, 'px-4 py-6 text-center text-sm text-fg-muted', className)}>{children}</div>;
+  return <p className={cn('text-sm text-text-2', className)}>{children}</p>;
 }
 
 /**
- * A stage reads by brightness, not hue: the further along, the brighter, and
- * a finished application that went nowhere steps back.
+ * A stage is a word, read by its ink and never by a fill: the further along,
+ * the brighter, and a finished application that went nowhere steps back.
  */
 const STATUS_STYLE: Record<string, string> = {
-  applied: 'border-border-strong text-fg-muted',
-  reviewing: 'border-border-strong bg-bg-elevated text-fg-muted',
-  interview: 'border-border-strong bg-bg-elevated text-fg-default',
-  offer: 'border-fg-muted bg-bg-elevated text-fg-default',
-  hired: 'border-fg-default bg-fg-default text-bg-base',
-  declined: 'border-border-subtle text-fg-soft',
-  withdrawn: 'border-border-subtle text-fg-soft',
+  applied: 'text-text-2',
+  reviewing: 'text-text-2',
+  interview: 'text-text-1',
+  offer: 'text-text-1',
+  hired: 'font-semibold text-text-1',
+  declined: 'text-text-3',
+  withdrawn: 'text-text-3',
 };
 
 export function ApplicationStatusBadge({ status, className }: { status: string; className?: string }) {
   return (
     <span
       data-status={status}
-      className={cn(
-        'inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium',
-        STATUS_STYLE[status] ?? STATUS_STYLE.applied,
-        className
-      )}
+      className={cn('inline-flex shrink-0 items-center whitespace-nowrap text-xs font-medium', STATUS_STYLE[status] ?? STATUS_STYLE.applied, className)}
     >
       {applicationStatusLabel(status)}
     </span>
@@ -243,10 +247,10 @@ export function ApplicationStatusBadge({ status, className }: { status: string; 
 /** How much is held: the ring every path uses, then "N of M" and what is counted. */
 export function HeldMeter({ held, total, noun, className }: { held: number; total: number; noun: string; className?: string }) {
   return (
-    <p className={cn('flex min-w-0 items-center gap-2 text-sm text-fg-muted', className)}>
+    <p className={cn('flex min-w-0 items-center gap-2 text-sm text-text-2', className)}>
       {total > 0 && <ShareRing share={{ held, learning: 0, total }} />}
       <span className="min-w-0">
-        <span className="font-semibold tabular-nums text-fg-default">
+        <span className="font-semibold tabular-nums text-text-1">
           {held} of {total}
         </span>{' '}
         {noun}

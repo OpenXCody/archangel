@@ -10,8 +10,12 @@ import { writeStored } from './storage';
 export type Theme = 'dark' | 'light';
 
 const STORAGE_KEY = 'archangel.theme';
-/** The browser chrome colour for each theme: --color-bg-base. */
-const CHROME_COLOR: Record<Theme, string> = { dark: '#0f0f0f', light: '#f6f7f8' };
+/** The browser chrome takes the page's canvas, read from the token (`--bg`, globals.css). */
+function paintChrome(): void {
+  const canvas = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  // Before the stylesheet has arrived there is nothing to read: the tag keeps what index.html gave it.
+  if (canvas) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', canvas);
+}
 
 const listeners = new Set<() => void>();
 
@@ -23,7 +27,7 @@ export function setTheme(theme: Theme): void {
   const root = document.documentElement;
   if (theme === 'light') root.setAttribute('data-theme', 'light');
   else root.removeAttribute('data-theme');
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', CHROME_COLOR[theme]);
+  paintChrome();
   // With storage unavailable (private mode) the choice lasts for this page only.
   writeStored(STORAGE_KEY, theme);
   for (const notify of listeners) notify();
@@ -39,5 +43,7 @@ export function useTheme(): Theme {
   return useSyncExternalStore(subscribe, currentTheme, () => 'dark');
 }
 
-// The pre-paint script in index.html runs before the theme-color tag exists.
-document.querySelector('meta[name="theme-color"]')?.setAttribute('content', CHROME_COLOR[currentTheme()]);
+// The pre-paint script in index.html runs before the theme-color tag exists, and in
+// development this module runs before the stylesheet is in the page.
+paintChrome();
+window.addEventListener('load', paintChrome, { once: true });

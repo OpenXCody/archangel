@@ -16,17 +16,20 @@ Archangel is a workforce map of US manufacturing, filled out in depth one focus 
 
 ## Theme and colour
 
-Two themes, dark (default) and light, switched in settings (`/settings`, Appearance, which is shown signed out too) and kept per browser (`client/src/lib/theme.ts` sets `data-theme` on `<html>`; `client/index.html` applies it before first paint). Every colour comes from the tokens in `client/src/styles/globals.css`, exposed as Tailwind classes in `tailwind.config.ts`:
+Two themes, dark (default) and light, switched in settings (`/settings`, Appearance, which is shown signed out too) and kept per browser (`client/src/lib/theme.ts` sets `data-theme` on `<html>`; `client/index.html` applies it before first paint). Each theme is set by hand; neither is the other inverted. Every colour comes from the eleven tokens in the `:root` blocks of `client/src/styles/globals.css` (the token file), exposed as Tailwind classes in `tailwind.config.ts`:
 
-| Use | Classes |
-|-----|---------|
-| Surfaces | `bg-bg-base`, `bg-bg-surface`, `bg-bg-elevated` |
-| Text | `text-fg-default`, `text-fg-muted`, `text-fg-soft` |
-| Lines | `border-border-subtle`, `border-border-strong` |
-| Meaning | `success`, `danger`, `warning`, `info` (`text-success`, `bg-danger/10`) |
-| Wash | `tint`: white on dark, black on light (`bg-tint/5`, `border-tint/10`) |
+| Token | Classes | Use |
+|-------|---------|-----|
+| `--bg` | `bg-bg` | The page |
+| `--surface`, `--surface-hover` | `bg-surface`, `bg-surface-hover` | The only raised fill (inputs, the map's panel and controls); hover on rows and tiles |
+| `--line`, `--line-strong` | `border-line`, `border-line-strong` | Hairlines; the edge of an input, a secondary button, an unselected tile |
+| `--text-1`, `--text-2`, `--text-3` | `text-text-1`, `text-text-2`, `text-text-3` | Headings and values; secondary text; meta |
+| `--accent` | `outline-accent`, `border-accent`, `bg-accent/[0.06]` | See below |
+| `--inverse-bg`, `--inverse-text` | `bg-inverse-bg`, `text-inverse-text` | Primary buttons, the selected segment |
 
-Never name a palette colour in a component (`text-emerald-400`, `bg-white/10`): it is right in one theme and wrong in the other. `npm run lint` fails on it (`scripts/check-theme-colors.mjs`). The app is monochrome: kinds of thing (company, plant, career, skill) are told apart by their word (the kind above a page's name, the heading over a list) and a company by its logo, not by hue. The map has a palette per theme in `layers.ts` and is recreated when the theme changes.
+There are two surface levels and no third grey. Beside the eleven the file holds `--danger` (errors and destructive actions; there is no success or warning colour: a confirmation is ink), `--logo-backing`, `--mask` and the map's five (`--map-land`, `--map-land-other`, `--map-water`, `--map-border`, `--map-road`). The accent is for focus rings (`outline: 2px solid var(--accent); outline-offset: 2px` on every interactive element, one global rule), the selected map region, a focus area's outline, a hiring plant's ring, the Atlas's overlaid career and the "Viewing as" sign: never a heading, body text or a button's fill.
+
+Never name a colour outside the token file: `npm run lint` fails on a hex value, a colour function, a palette class, `white` or `black`, and on the names the tokens replaced, in every client file (`scripts/check-theme-colors.mjs`). `tests/unit/theme.unit.ts` holds the three inks to 4.5:1 on both surfaces. The `theme-color` tag in `client/index.html` and the manifest's two colours are copies of the dark `--bg`, held equal by the lint. The app is monochrome: kinds of thing (company, plant, career, skill) are told apart by their word (the kind above a page's name, the heading over a list) and a company by its logo, not by hue. The map paints only from tokens: `layers.ts` reads them from the page when the map is built and holds no colour; the map is recreated when the theme changes.
 
 ## Project Structure
 
@@ -53,7 +56,7 @@ archangel/
 ├── data/                 # what the generated migrations are built from: careers/ (catalogue: the 156 with homes and ladders; paths: every career's skills; aliases; careers by industry), cleanup/, companies/ (profiles, domains, domains-2, logo-decisions), geo/ (counties and metro areas), employers/ (research files as delivered, corrections.json, and boards.json: the employers whose job postings are read), industries/ (the 21 and their official statistics), paths/, skills/ (the catalogue, the taxonomy and the makes)
 ├── migrations/           # SQL; 0010 onward run through scripts/migrate.mjs
 ├── scripts/              # migrate.mjs, create-db.mjs, ci-local.sh, make-admin.mjs, build-*-sql.mjs, employers-loader.sql, ingest/ (README.md: how a bulk source comes in; run.mjs: the intake runner, with lib/ and sources/; postings/: employers' job postings, with systems/, one adapter per hiring system, and read/, the reading of a posting; qcew.mjs), fetch-logos.mjs, enrich-naics.mjs, check-*.mjs (lint), geo/ (build-reference.mjs, assign-keys.mjs, keys-schema.sql), build-geo-sql.mjs, plant-merge.sql, plant-duplicates.sql, build-duplicates-sql.mjs
-└── tests/                # responsive.spec.ts (Playwright), api/*.sh (local suites: accounts, jobs, seeker, admin, email, industries, careers, versions, loader, catalogue, paths, intake, dupes, postings; lib.sh holds what they share), unit/*.unit.ts (Node's test runner)
+└── tests/                # responsive.spec.ts (Playwright), api/*.sh (local suites: accounts, jobs, seeker, admin, email, industries, careers, versions, loader, catalogue, paths, intake, dupes, postings; lib.sh holds what they share), unit/*.unit.ts (Node's test runner; theme.unit.ts holds the tokens' contrast)
 ```
 
 There are no spec documents: the code and this file say how things are. `README.md` covers running it locally, the checks, how data gets in and how it deploys.
@@ -124,9 +127,9 @@ Career search (`server/lib/careerSearch.ts`, behind `GET /api/occupations`) read
 
 `/me` is called **Profile**: that word stands above the person's name. Applications come first, and only when there are any; then Goals, then Skills, with the person's own skills before the suggested ones.
 
-A skill is marked where it is listed. Wherever skills are shown as a path they are **tags** (`SkillTag` in `components/path/`): the mark (`SkillHeldToggle` in `components/account/SkillStatusButton.tsx`), which sets the skill held or clears it in one tap, then the name, which opens the skill's page. Learning is set on the skill's page. A held tag is lit, one being learned half lit, the rest quiet. The change is optimistic (`useMarkSkill` in `client/src/lib/seeker.ts`), so every figure follows at once. How much is held is always the same ring (`ShareRing` in `components/path/HeldShare.tsx`): bright for held, dimmer for learning, which is never counted in the figure. On a career's Atlas view the ring is the plate's centre, and the groups carry no figure of their own. A page gets the person's marks from `useSkillMarks()` and passes them down; with none (a visitor, someone here to hire) the same parts draw no marks and no progress.
+A skill is marked where it is listed. Wherever skills are shown as a path they are **tags** (`SkillTag` in `components/path/`): the mark (`SkillHeldToggle` in `components/account/SkillStatusButton.tsx`), which sets the skill held or clears it in one tap, then the name, which opens the skill's page. Learning is set on the skill's page. A tag has no fill: a held skill is a filled check in full ink, one being learned the half mark in the same ink, the rest an open circle and secondary ink. The change is optimistic (`useMarkSkill` in `client/src/lib/seeker.ts`), so every figure follows at once. How much is held is always the same ring (`ShareRing` in `components/path/HeldShare.tsx`): bright for held, dimmer for learning, which is never counted in the figure. On a career's Atlas view the ring is the plate's centre, and the groups carry no figure of their own. A page gets the person's marks from `useSkillMarks()` and passes them down; with none (a visitor, someone here to hire) the same parts draw no marks and no progress.
 
-On `/me` a person's skills stand under their domain in group frames, each with how much of the whole group is held; a skill is taken off with its mark and its tag stays, quiet, until the page is left. A goal's next skills are named under their level.
+On `/me` a person's skills stand under their domain, each group under its line, which says how much of the whole group is held ("Shop basics · 1 of 3"); a skill is taken off with its mark and its tag stays, quiet, until the page is left. A goal's next skills are named under their level.
 
 Careers within reach (`GET /api/me/careers/reach`, shown on `/me` under Goals as "Within reach"): careers with a path (`occupations.path_status` is set) of at least five skills of which the person holds at least one, ranked by the share held, each with the next skills to pick up, lowest level first. Held skills count fully; a skill being learned counts as half for the order only, never in the figure. Careers already chosen as goals are left out; goals carry their own `next` skills (`GET /api/me/goals`). A next skill and a suggested skill each carry their `level`.
 
@@ -174,11 +177,11 @@ The skills catalogue is curated in `data/skills/catalogue.json` and loaded by `s
 
 A career's path is its skills laid out by their own levels: a path sets no stage. `occupation_skills.stage` is kept and always equals the skill's level, held so by two triggers that 0042 creates: `occupation_skills_stage_is_level` (a row written to a path takes its skill's level whatever it was given) and `skills_level_moves_paths` (a skill whose level changes moves in every path). A career has a path when `occupations.path_status` is set (`draft` or `approved`). Any career with skills has a path to draw; `path_status` decides only the word "Draft" beside the heading.
 
-A career's path is drawn as a flow (`PathFlow` in `components/path/`, from `buildPath(skills)` in `model.ts`): one trunk through the three levels, a branch for each domain a level draws on, each skill group a frame (`SkillGroupBox`) with its name set into the top edge, holding its skills as tags. It runs down a phone and across a wide screen from the same markup (a container query on `.path-flow` in `globals.css`); the lines are drawn by the layout, never measured. All three levels are always drawn; an empty one says so. `comesFrom` and `leadsTo` on `GET /api/occupations/:id`, when present, are drawn before the first level and after the last. The parts take a path as data, so the same ones draw a skill's group on its page and a person's skills on Profile, and will draw a company's version of a career; a tag can carry a second line (`note`) for a make.
+A career's path is drawn as a flow (`PathFlow` in `components/path/`, from `buildPath(skills)` in `model.ts`): one trunk through the three levels, a branch for each domain a level draws on, each skill group one header line (`SkillGroupBox`: the name and, for a seeker, how much is held) with its skills as tags under it. It runs down a phone and across a wide screen from the same markup (a container query on `.path-flow` in `globals.css`); the lines are drawn by the layout, never measured. All three levels are always drawn; an empty one says so. `comesFrom` and `leadsTo` on `GET /api/occupations/:id`, when present, are drawn before the first level and after the last. The parts take a path as data, so the same ones draw a skill's group on its page and a person's skills on Profile, and will draw a company's version of a career; a tag can carry a second line (`note`) for a make.
 
 A skill carries its `level`, `group` and `domain` (the last two as `{ slug, name }`; `server/lib/taxonomy.ts` reads them) on the skills list, on its own page and in a career's `skills`. All three are null only for a skill no migration placed, as in a local database filled by `npm run db:seed` alone. `GET /api/skills/taxonomy` is the whole tree in one answer: the levels, then every domain with its groups and their skills, each skill with its `level` and how many careers use it (`careers`). The client reads it with `useTaxonomy()` in `lib/queries.ts`, kept for the visit and refreshed when an admin changes a skill, a career or a path (`recordsChanged` in `lib/records.ts`).
 
-The skill page is one request (`GET /api/skills/:id`): the details, its level, group and domain, the other skills of its group (`groupSkills`), the careers that use it, the industries those careers are typical of, the skills whose careers overlap most with its own (`relatedSkills`, each with its level and group) and open jobs that ask for it. Under its name the page links its domain and its group, each into the Skills list narrowed to it, and says its level. Its first section is its group (`#group`): the group's frame with all its skills as tags under their levels, this skill the one that is not a link. `GET /api/skills` lists only skills a career uses, the ones most careers use first (`sort=name` for name order), narrowed by `domain=` and `group=` (slugs) and `level=` (400 unless 1, 2 or 3); with `search` it matches the name, another name (`skill_aliases`) and a tool, and also finds a skill no career uses yet. `/api/search` matches those and the name of a skill's group or domain, and says "Also called …" when it found a skill by another name.
+The skill page is one request (`GET /api/skills/:id`): the details, its level, group and domain, the other skills of its group (`groupSkills`), the careers that use it, the industries those careers are typical of, the skills whose careers overlap most with its own (`relatedSkills`, each with its level and group) and open jobs that ask for it. Under its name the page links its domain and its group, each into the Skills list narrowed to it, and says its level. Its first section is its group (`#group`): the group's line with all its skills as tags under their levels, this skill the one that is not a link. `GET /api/skills` lists only skills a career uses, the ones most careers use first (`sort=name` for name order), narrowed by `domain=` and `group=` (slugs) and `level=` (400 unless 1, 2 or 3); with `search` it matches the name, another name (`skill_aliases`) and a tool, and also finds a skill no career uses yet. `/api/search` matches those and the name of a skill's group or domain, and says "Also called …" when it found a skill by another name.
 
 ## Atlas
 
@@ -201,7 +204,7 @@ Profile shows each goal's career as a small plate (`GoalPlate`: no names, no cam
 Company, plant, career, skill, industry and job are one template, written out at the top of `client/src/components/layout/Page.tsx` and built from `DetailHeader`, `DetailFacts`, `DetailSection`, `RecordList` / `RecordRow` and `ShowAll`:
 - The heading block: the way back alone on the first line (an admin's Edit at its end), the kind in small capitals above the name (a job reads "Job #N" only to people who manage it), the name with the company's mark before it on company, plant and job, one paragraph, one or two quiet lines of facts, then the page's one action: Open on the map (company, plant, industry), Set as goal (career), Not held / Learning / Held (skill). A job's action is a form, so it is the Apply section after the job's terms.
 - Sections, in this order, leaving out what the page does not have: what it is, where, open jobs, companies, plants, careers, skills.
-- A list of records is one card of rows: the name, at most one grey line, a chevron or the row's figure. No icon per row; a company's mark may lead its row and a skill's row may carry its mark. Three other shapes exist, each for one thing: figures by place (`FigureList` in `components/industry/parts.tsx`), chips for states that open on the map, and skills on a path, which are tags in group frames (`components/path/`).
+- A list of records is rows with a hairline between them and no box: the name, at most one grey line, a chevron or the row's figure. No icon per row; a company's mark may lead its row and a skill's row may carry its mark. Three other shapes exist, each for one thing: figures by place (`FigureList` in `components/industry/parts.tsx`), chips for states that open on the map, and skills on a path, which are tags under their group's header line (`components/path/`).
 - A company with one plant leads with that plant's facts and address in place of a list of one.
 
 ## Words
@@ -256,7 +259,7 @@ Sessions are an HttpOnly cookie; only the token's hash is stored. Signed-in resp
 **Without email:**
 - A declined access request is kept: `company_members.status = 'declined'` with `decided_at` / `decided_by`. The employer page says so, the same company cannot be asked again for 7 days (409), and Admin Tools lists the last 30 days of declines with "Approve after all". `decision: 'remove'` on `PATCH /api/admin/memberships` deletes the row, whatever its state.
 - An application's history is in `application_events` (written on apply, on every stage change, on withdrawal). `/api/me/applications` returns each application's `events` and `changed`; `/me` shows the stages with dates and, at Interview and Offer, that the company will contact the person at their account email.
-- The account button shows one accent dot, never a count, when `GET /api/me/news` → `{ applications, applicants, access }` has something true. It is cleared by opening the page that shows it (`POST /api/me/seen`; `users.applications_seen_at`, `applicants_seen_at`, `access_seen_at`): `/me`, the employer page or a job the person manages, the Access tab. In the menu the page with the news stays bright and the rest step back.
+- The account button shows one dot in full ink, never a count, when `GET /api/me/news` → `{ applications, applicants, access }` has something true. It is cleared by opening the page that shows it (`POST /api/me/seen`; `users.applications_seen_at`, `applicants_seen_at`, `access_seen_at`): `/me`, the employer page or a job the person manages, the Access tab. In the menu the page with the news stays bright and the rest step back.
 - Admin Tools opens with a "Waiting" line (access requests, requests to add a company or plant) only when someone waits. Draft career paths are work, not someone waiting: they are listed under Data. An access request shows the person's address beside the company's domain and how many people already have access.
 
 Migration `0024_email_notices.sql` adds all of the above. `tests/api/email.sh` checks it against a server started with `EMAIL_OUTBOX` (give the script the same file as `OUTBOX`, and the same `APP_URL`).
@@ -325,10 +328,11 @@ What the notable ones did:
 ## Map
 
 - All camera movement goes through `client/src/components/map/camera.ts`. Never call `flyTo`/`fitBounds` elsewhere, and never pass `padding` to `flyTo` (MapLibre saves it and `fitBounds` adds it again).
-- Sources, layers and paint values live in `client/src/components/map/layers.ts`. Far out, factories are faint points under a density glow (no clusters, no numbers); from about zoom 5.5 they become pickable pins. Pins sit beneath the basemap's place names.
-- Everything floating over the map uses the one `.map-overlay` surface in `globals.css`. Do not hand-roll translucent glass; its legibility depends on what is behind it.
+- Sources, layers and paint values live in `client/src/components/map/layers.ts`; what differs between the themes besides colour is its `LOOK` record. Dark is lights on a dark land: far out, plants are faint points under a density glow, and states are washed by how many plants they hold. Light is ink on white: every plant is a dot of `--text-1` at 70%, a fifth smaller, with no glow and no shading; US land is white (the `us-land` layer, the states' shapes under the basemap's water), other land `#f4f4f4`; the basemap keeps only water, roads and place names. In both, a selected state or focus area is outlined in `--accent` (light: 2px over a 6% fill), a hiring plant is ringed in it, and pins become pickable from about zoom 5.5 and sit beneath the place names.
+- Everything floating over the map uses the one `.map-overlay` surface in `globals.css`: `--surface` with a `1px --line` border, solid, no shadow. Do not hand-roll another. Every control on the map takes the accent's focus ring (`.map-view :focus-visible`); the search field shows it on its box, and a row in a scrolling list (`.map-list-row`) and the canvas draw it just inside their edge.
+- The panel has no boxes (`components/map/panel/parts.tsx`): figures are one row parted by upright hairlines (`Figures`), a list is rows the panel's width parted by hairlines (`ROW`, `RowList`), sections are parted by space, and names of sections and columns take `LABEL`.
 - Hover cards render from the pin's own properties. No request on hover.
-- With no `VITE_MAP_TOKEN`, or if the basemap fails, the map draws on a plain canvas in the page colour.
+- With no `VITE_MAP_TOKEN`, or if the basemap fails, the map draws on a plain canvas in `--bg`.
 - The attribution control stays (the basemap's and OpenStreetMap's terms require it), collapsed to its "i" button.
 - Pins load once (`usePins` in `lib/queries.ts`); state, industry, company and career are filter and paint expressions set by `setPinView` in `layers.ts`. Never refetch or `setData` for a filter.
 - What the panel shows for each kind of thing is a file in `components/map/panel/`.
@@ -345,10 +349,12 @@ What the notable ones did:
 
 The rule of thumb: it should look like software Tesla would ship on a vehicle screen, not like a consumer phone app.
 
-- Monochrome and quiet, in both themes. One accent (the geofence's blue). No entity colours anywhere.
-- No stars, badges, emoji, counters or "click here" hints. Emphasis comes from order, size and brightness. Application stages and a skill's status read by brightness and shape, not hue; `success` is for success messages only. Section headings on entity pages carry no counts.
+- Monochrome and quiet, in both themes: a near-white or near-black page, one ink, one accent. No entity colours anywhere.
+- Hierarchy comes from type, space and hairlines. A section is not a card; a list is rows with a hairline between them and no box; containment is one level deep at most (Explore's overview tiles are the only cards). No shadows, gradients or glass. A state is carried by ink, a mark or a line, never by a grey fill.
+- Type is one scale: a page's title 40px / 600 (a job's keeps 24px on a phone, `longTitle`), a section heading 20px / 600, labels (field labels, eyebrows, column headings) 11 to 12px / 500 in small capitals and `--text-2`, body 15px, meta 13px in `--text-3`, numbers in lists and stats tabular. Text links are underlined.
+- No stars, badges, emoji, counters or "click here" hints. Emphasis comes from order, size and brightness. Application stages and a skill's status read by brightness and shape, not hue; A confirmation is ink; `danger` is for errors and destructive actions. Section headings on entity pages carry no counts.
 - Nothing on the map that the person did not ask for: no numbered bubbles, no labels on pins. Counts and detail live in the panel they open.
-- Density reads naturally (a glow far out, distinct points close in), not as a chart.
+- Density reads naturally (dark: a glow far out; light: the dots themselves; distinct points close in), not as a chart.
 - Motion is short and purposeful. Nothing flashes a loading state for content the client already has.
 
 ## Code Style
@@ -357,6 +363,7 @@ The rule of thumb: it should look like software Tesla would ship on a vehicle sc
 - Functional components with hooks
 - Tailwind for styling
 - Colours come from theme tokens only (see "Theme and colour")
+- Type and states are written once in `lib/utils.ts`: `labelClass`, `pageTitleClass`, `sectionHeadingClass`, `segmentedClass` / `segmentClass`, `optionTileClass`; `rowHoverClass` is in `components/layout/Page.tsx`. `cardClass` adds nothing and is kept by name. Tailwind's `text-sm` is 15px (body) and `text-xs` 13px (meta). Buttons, inputs and option tiles are 8px at the corner; a primary button is the inverse pair, a secondary one a `--line-strong` hairline, a disabled one the same at 0.4. `CompanyLogo` is 32px in a list and 40px on Explore's cards, on a white backing with a 6px corner and a ring in dark only (a lettermark stays on `--surface`)
 - List and account pages compose `PageContainer` / `PageHeader` / `PageSection` / `EmptyState` from `components/layout/Page.tsx`; detail pages compose the template in the same file (see "Detail pages"); primitives come from `components/ui/` (shadcn)
 - Grids must set a mobile base (`grid-cols-1`) before breakpoint columns, and truncated children need `min-w-0`
 - Env: `DATABASE_URL`, and the MapTiler key `VITE_MAP_TOKEN`; mail takes `RESEND_API_KEY`, `EMAIL_FROM` and `APP_URL` (see "Email and notices"). Locally they live in `.env.local` (copied from `.env.example`); the server reads `.env.local`, then `.env` (`server/loadEnv.ts`)
@@ -388,7 +395,7 @@ npm run db:create -- --sample   # Build the schema and sample data in an EMPTY l
 npm run db:seed -- --yes-wipe   # Sample data. EMPTIES the tables first; refuses any database not on localhost
 node --env-file=.env.local scripts/make-admin.mjs you@example.com   # Make an account that exists an admin
 npm run typecheck    # tsc
-npm run lint         # ESLint (no `any`), .js import endings, theme colours, the page's inline scripts against the policy
+npm run lint         # ESLint (no `any`), .js import endings, no colour named outside the token file, the page's inline scripts against the policy
 npm run test:unit    # Node's test runner over the pure functions and the generated migrations
 bash scripts/ci-local.sh   # What CI's `suites` job runs: an empty local database in, every suite against the built app out
 npm run test:ui      # Playwright responsive suite (7 device profiles)

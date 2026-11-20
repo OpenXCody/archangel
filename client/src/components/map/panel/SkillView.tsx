@@ -1,7 +1,7 @@
 import { type SkillDetail } from '../../../lib/api';
 import { levelName } from '../../../lib/stages';
 import { useMapStore } from '../../../stores/mapStore';
-import { Heading, Section, CareerRows, More, PageLink } from './parts';
+import { Heading, Section, CareerRows, More, PageLink, CHIP } from './parts';
 
 export default function SkillView({ skill }: { skill: SkillDetail }) {
   const selectEntity = useMapStore((s) => s.selectEntity);
@@ -13,7 +13,7 @@ export default function SkillView({ skill }: { skill: SkillDetail }) {
       <Heading title={skill.name} subtitle={[skill.group?.name, levelName(skill.level)].filter(Boolean).join(' · ') || undefined} />
       {skill.description && (
         <Section title="About">
-          <p className="text-sm leading-relaxed text-fg-muted">{skill.description}</p>
+          <p className="text-[15px] leading-relaxed text-text-2">{skill.description}</p>
         </Section>
       )}
 
@@ -32,7 +32,7 @@ export default function SkillView({ skill }: { skill: SkillDetail }) {
                 key={s.id}
                 type="button"
                 onClick={() => selectEntity('skill', s.id)}
-                className="map-row inline-flex items-center rounded-md border border-border-strong px-2.5 text-xs text-fg-muted transition-colors hover:bg-tint/5 hover:text-fg-default"
+                className={CHIP}
               >
                 {s.name}
               </button>

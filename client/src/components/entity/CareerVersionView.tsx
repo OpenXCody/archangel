@@ -49,7 +49,7 @@ export default function CareerVersionView({ data, at, head }: { data: Occupation
   if (version.isPending) {
     return (
       <div className="flex min-h-[400px] items-center justify-center" role="status" aria-label="Loading">
-        <Loader2 className="h-6 w-6 animate-spin text-fg-muted" />
+        <Loader2 className="h-6 w-6 animate-spin text-text-2" />
       </div>
     );
   }
@@ -64,7 +64,7 @@ export default function CareerVersionView({ data, at, head }: { data: Occupation
             title="No version of this career here"
             description="The link may be old, or the company removed its version."
             action={
-              <Link to={standard} className="rounded-lg border border-border-strong px-4 py-2 text-sm font-medium text-fg-default hover:bg-bg-elevated" data-standard-link>
+              <Link to={standard} className="rounded-lg border border-line-strong px-4 py-2 text-sm font-medium text-text-1 hover:bg-surface-hover" data-standard-link>
                 {data.title}
               </Link>
             }
@@ -118,7 +118,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
           canEdit ? (
             <Link
               to={versionEditorPath(company.id, data.id)}
-              className="inline-flex min-h-11 items-center text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline"
               data-version-edit
             >
               Edit
@@ -127,16 +127,16 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         }
         kind="Career"
         title={version.title}
-        mark={<CompanyLogo name={companyName} domain={company.domain} size={44} className="rounded-lg" />}
+        mark={<CompanyLogo name={companyName} domain={company.domain} size={44} />}
         description={data.description}
         action={
           <>
             <GoalButton occupationId={data.id} />
             {whole && (
-              <span className="inline-flex items-center gap-2 text-sm text-fg-muted" data-held-count>
+              <span className="inline-flex items-center gap-2 text-sm text-text-2" data-held-count>
                 <ShareRing share={whole} className="h-5 w-5" />
                 <span>
-                  You have <span className="font-medium tabular-nums text-fg-default">{whole.held}</span> of {whole.total} {whole.total === 1 ? 'skill' : 'skills'}
+                  You have <span className="font-medium tabular-nums text-text-1">{whole.held}</span> of {whole.total} {whole.total === 1 ? 'skill' : 'skills'}
                 </span>
               </span>
             )}
@@ -167,31 +167,31 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         }
       >
         {marks && <ErrorNote error={markError} className="mb-3" />}
-        {skills.length === 0 && <p className="text-sm text-fg-muted">No skills on this path yet.</p>}
+        {skills.length === 0 && <p className="text-sm text-text-2">No skills on this path yet.</p>}
         {hasPath && <PathFlow path={path} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} />}
         {path.unplaced.length > 0 && <SkillGroupBox name={UNPLACED} skills={path.unplaced} marks={marks} className={hasPath ? 'mt-4' : undefined} />}
 
         {/* What the company leaves out of the standard is not drawn: one line says how many, and opens them. */}
         {leftOut.length > 0 && (
           <details className="group mt-4" data-left-out>
-            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-sm text-fg-muted underline decoration-border-strong underline-offset-4 hover:text-fg-default [&::-webkit-details-marker]:hidden">
+            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-sm text-text-1 underline [&::-webkit-details-marker]:hidden">
               {plural(leftOut.length, 'skill', 'skills')} of the standard path left out
             </summary>
             <SkillTags className="mt-1">
               {leftOut.map((skill) => (
-                <SkillTag key={skill.id} skill={{ id: skill.id, name: skill.name }} className="grow-0 text-fg-muted" />
+                <SkillTag key={skill.id} skill={{ id: skill.id, name: skill.name }} className="grow-0 text-text-2" />
               ))}
             </SkillTags>
           </details>
         )}
         {same && skills.length > 0 && (
-          <p className="mt-4 text-sm text-fg-soft" data-version-same>
+          <p className="mt-4 text-sm text-text-3" data-version-same>
             The same skills as the standard path.
           </p>
         )}
         {canSignIn && (
-          <p className="mt-4 text-sm text-fg-soft">
-            <Link to={signInPath(`${pathname}${search}`)} className="text-fg-muted underline underline-offset-2 hover:text-fg-default">
+          <p className="mt-4 text-sm text-text-3">
+            <Link to={signInPath(`${pathname}${search}`)} className="text-text-1 underline">
               Sign in
             </Link>{' '}
             to mark the skills you have.
