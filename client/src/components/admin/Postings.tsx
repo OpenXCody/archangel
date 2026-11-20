@@ -151,7 +151,7 @@ export function PlacesView() {
         ) : places.isError ? (
           <LoadError error={places.error} onRetry={() => void places.refetch()} retrying={places.isFetching} />
         ) : rows.length === 0 ? (
-          <p className={cn(cardClass, 'py-6 text-center text-sm text-text-2')}>None yet.</p>
+          <p className="text-sm text-text-2">None yet.</p>
         ) : (
           <ul className={cardClass} data-posting-places>
             {rows.map((place, index) => (

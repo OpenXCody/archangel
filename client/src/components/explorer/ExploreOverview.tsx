@@ -69,8 +69,10 @@ function CompanyTile({ company, className }: { company: ExploreEmployer; classNa
       {/* Pinned to the foot, so the figures of a row of tiles sit on one line. */}
       <p className="mt-auto pt-3 text-sm text-text-2">
         <span className="whitespace-nowrap">{plural(company.siteCount, 'plant', 'plants')}</span>
+        {/* The two figures may part at the space between them, on the narrowest phones. */}
+        {company.stateCount > 0 && ' '}
         {company.stateCount > 0 && (
-          <span className="whitespace-nowrap"> · {plural(company.stateCount, 'state', 'states')}</span>
+          <span className="whitespace-nowrap">· {plural(company.stateCount, 'state', 'states')}</span>
         )}
       </p>
     </Link>
