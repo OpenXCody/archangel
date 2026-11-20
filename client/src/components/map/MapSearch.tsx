@@ -86,7 +86,7 @@ function Chip({
   removeLabel?: string;
 }) {
   return (
-    <span className="map-chip text-xs font-medium">
+    <span className="map-chip text-[12px] font-medium">
       <span className="map-overlay map-chip-surface" aria-hidden="true" />
       <button
         type="button"
@@ -274,7 +274,7 @@ function Filters({ id }: { id: string }) {
                 type="button"
                 onClick={() => toggleState(code)}
                 aria-label={`Remove ${stateName(code)}`}
-                className="map-row inline-flex items-center gap-1.5 rounded-full border border-line-strong px-3 text-xs text-text-2 transition-colors hover:text-text-1"
+                className="map-row inline-flex items-center gap-1.5 rounded-full border border-line-strong px-3 text-[12px] text-text-2 transition-colors hover:text-text-1"
               >
                 {stateName(code)}
                 <X className="h-3 w-3" aria-hidden="true" />

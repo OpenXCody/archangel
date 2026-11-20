@@ -26,7 +26,7 @@ import { formatPay } from '../../../lib/jobFormat';
  */
 
 /** A label: a section's name, an eyebrow, the word over a column of figures. */
-export const LABEL = 'text-xs font-medium uppercase tracking-[0.08em] text-text-2';
+export const LABEL = 'text-[12px] font-medium uppercase tracking-[0.08em] text-text-2';
 export const LABEL_SMALL = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 
 /** A row of a list: the panel's width, a hairline under every row but the last. Give it its own vertical padding. */
@@ -42,7 +42,7 @@ export const SECONDARY_BUTTON =
 
 /** A small choice that leads elsewhere in the panel: a state, a related skill. */
 export const CHIP =
-  'map-row inline-flex items-center rounded-md border border-line-strong px-2.5 text-xs text-text-2 transition-colors hover:bg-surface-hover hover:text-text-1';
+  'map-row inline-flex items-center rounded-md border border-line-strong px-2.5 text-[12px] text-text-2 transition-colors hover:bg-surface-hover hover:text-text-1';
 
 /** A titled part of a panel. `column` labels the figures down its right edge. */
 export function Section({ title, column, children }: { title: string; column?: string; children: ReactNode }) {
