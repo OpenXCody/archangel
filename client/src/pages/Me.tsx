@@ -135,7 +135,7 @@ function Starter({ onStart }: { onStart: () => void }) {
                     </Link>
                     {/* What the career is, in two lines at most: the whole of it is on the career's page. */}
                     {career.description && <p className="mt-0.5 line-clamp-2 break-words text-sm text-text-2">{career.description}</p>}
-                    <p className="mt-0.5 text-sm text-text-3">{plural(count, 'skill', 'skills')}</p>
+                    <p className="mt-0.5 text-xs text-text-3">{plural(count, 'skill', 'skills')}</p>
                   </div>
                   <Button
                     type="button"

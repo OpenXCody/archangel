@@ -65,7 +65,7 @@ function CompanyTile({ company, className }: { company: ExploreEmployer; classNa
         {name}
       </h3>
       {/* Whole, on two lines if it takes them: half an industry's name says nothing. */}
-      {industry && <p className="mt-1 line-clamp-2 text-sm leading-snug text-text-3">{industry}</p>}
+      {industry && <p className="mt-1 line-clamp-2 text-xs leading-snug text-text-3">{industry}</p>}
       {/* Pinned to the foot, so the figures of a row of tiles sit on one line. */}
       <p className="mt-auto pt-3 text-sm text-text-2">
         <span className="whitespace-nowrap">{plural(company.siteCount, 'plant', 'plants')}</span>
@@ -121,7 +121,7 @@ function Industries({ industries, year }: { industries: ExploreIndustry[]; year:
           <li key={industry.slug} className={cn('min-w-0', i >= 6 && 'hidden sm:block')}>
             <Link to={`/industries/${industry.slug}`} className={LIST_ROW}>
               <span className="min-w-0 truncate text-text-1 group-hover:underline">{industryLabel(industry.name)}</span>
-              <span className="shrink-0 text-sm tabular-nums text-text-3">
+              <span className="shrink-0 text-xs tabular-nums text-text-3">
                 {(byPeople ? (industry.employment ?? 0) : industry.plants).toLocaleString()}
               </span>
             </Link>
@@ -223,7 +223,7 @@ function Skills({ domains }: { domains: ExploreSkillDomain[] }) {
                 <li key={skill.id} className={i >= 4 ? 'hidden sm:block' : undefined}>
                   <Link to={`/skills/${skill.id}`} className={LIST_ROW}>
                     <span className="min-w-0 truncate text-text-1 group-hover:underline">{skill.name}</span>
-                    <span className="shrink-0 text-sm tabular-nums text-text-3">
+                    <span className="shrink-0 text-xs tabular-nums text-text-3">
                       in {plural(skill.careerCount, 'career', 'careers')}
                     </span>
                   </Link>
@@ -333,7 +333,7 @@ function AreaTile({ area }: { area: ExploreArea }) {
         <h3 className="mt-2 text-xl font-semibold leading-snug text-text-1 sm:text-2xl">{area.name}</h3>
         {area.description && <p className="mt-1.5 text-sm text-text-2">{area.description}</p>}
         {area.factoryCount > 0 && (
-          <p className="mt-4 text-sm tabular-nums text-text-3">{plural(area.factoryCount, 'plant', 'plants')}</p>
+          <p className="mt-4 text-xs tabular-nums text-text-3">{plural(area.factoryCount, 'plant', 'plants')}</p>
         )}
       </div>
       <AreaOutline areaId={area.id} />
@@ -368,7 +368,7 @@ function Plants({ areas, states }: { areas: ExploreArea[]; states: ExploreState[
                 <li key={state.code} className="min-w-0">
                   <Link to={`/map?state=${encodeURIComponent(state.code)}`} className={LIST_ROW}>
                     <span className="min-w-0 truncate text-text-1 group-hover:underline">{state.name}</span>
-                    <span className="shrink-0 text-sm tabular-nums text-text-3">{state.factoryCount.toLocaleString()}</span>
+                    <span className="shrink-0 text-xs tabular-nums text-text-3">{state.factoryCount.toLocaleString()}</span>
                   </Link>
                 </li>
               ))}

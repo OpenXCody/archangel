@@ -47,7 +47,7 @@ export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
                         className={cn('group flex min-h-11 items-baseline justify-between gap-4 py-2.5 text-[15px] leading-snug sm:min-h-0 sm:py-2', focusRing)}
                       >
                         <span className="min-w-0 text-text-1 group-hover:underline">{skill.name}</span>
-                        <span className="shrink-0 whitespace-nowrap text-sm text-text-3">
+                        <span className="shrink-0 whitespace-nowrap text-xs text-text-3">
                           <span data-skill-level>{LEVEL_NAME[skill.level]}</span>
                           {/* How many careers use it: on a phone the level alone fits. */}
                           {skill.careers > 0 && <span className="hidden tabular-nums sm:inline">{` · ${plural(skill.careers, 'career', 'careers')}`}</span>}
