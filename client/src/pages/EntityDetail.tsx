@@ -130,7 +130,7 @@ export default function EntityDetail() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-6 h-6 text-fg-muted animate-spin" />
+        <Loader2 className="w-6 h-6 text-text-2 animate-spin" />
       </div>
     );
   }
@@ -147,7 +147,7 @@ export default function EntityDetail() {
           action={
             <Link
               to={`/explore?tab=${entityType}`}
-              className="rounded-lg border border-border-strong px-4 py-2 text-sm font-medium text-fg-default hover:bg-bg-elevated"
+              className="rounded-lg border border-line-strong px-4 py-2 text-sm font-medium text-text-1 hover:bg-surface-hover"
             >
               Browse {BROWSE_WORD[entityType]}
             </Link>
@@ -162,7 +162,7 @@ export default function EntityDetail() {
     edit: canEdit ? (
       <Link
         to={editPath(RECORD_KIND[entityType], data.id)}
-        className="inline-flex min-h-11 items-center text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline"
         data-admin-edit
       >
         Edit

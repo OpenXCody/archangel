@@ -125,17 +125,17 @@ function Starter({ onStart }: { onStart: () => void }) {
               const busy = addGoal.isPending && addGoal.variables === career.id;
               const count = (career.levels ?? []).reduce((sum, level) => sum + level.count, 0);
               return (
-                <li key={career.id} className={cn(rowClass, 'flex items-center gap-3 px-4 py-3')}>
+                <li key={career.id} className={cn(rowClass, 'flex items-center gap-3 py-3')}>
                   <div className="min-w-0 flex-1">
                     <Link
                       to={`/occupations/${career.id}`}
-                      className="block break-words text-sm font-medium text-fg-default underline-offset-4 hover:underline"
+                      className="block break-words text-sm font-medium text-text-1 hover:underline"
                     >
                       {career.title}
                     </Link>
                     {/* What the career is, in two lines at most: the whole of it is on the career's page. */}
-                    {career.description && <p className="mt-0.5 line-clamp-2 break-words text-sm text-fg-muted">{career.description}</p>}
-                    <p className="mt-0.5 text-sm text-fg-soft">{plural(count, 'skill', 'skills')}</p>
+                    {career.description && <p className="mt-0.5 line-clamp-2 break-words text-sm text-text-2">{career.description}</p>}
+                    <p className="mt-0.5 text-xs text-text-3">{plural(count, 'skill', 'skills')}</p>
                   </div>
                   <Button
                     type="button"
@@ -156,7 +156,7 @@ function Starter({ onStart }: { onStart: () => void }) {
           </ul>
         )}
         <ErrorNote error={addGoal.error} className="mt-2" />
-        <p className="mt-3 px-1 text-sm text-fg-muted">
+        <p className="mt-3 text-sm text-text-2">
           <Link to="/explore?tab=occupations" className={linkClass}>
             All careers
           </Link>

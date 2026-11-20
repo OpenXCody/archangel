@@ -49,7 +49,7 @@ export function SkillTag({ skill, marks, current, className }: { skill: PathSkil
           {name}
         </span>
       ) : (
-        <Link to={`/skills/${skill.id}`} className={cn(nameClass, 'rounded-lg underline-offset-4 hover:underline focus-visible:[outline-offset:-2px]')}>
+        <Link to={`/skills/${skill.id}`} className={cn(nameClass, 'rounded-lg hover:underline focus-visible:[outline-offset:-2px]')}>
           {name}
         </Link>
       )}
@@ -61,16 +61,16 @@ export function SkillTag({ skill, marks, current, className }: { skill: PathSkil
 function SecondLine({ skill }: { skill: PathSkillItem }) {
   const makes = skill.makes ?? [];
   if (!skill.added && makes.length === 0) {
-    return skill.note ? <span className="block text-xs font-normal text-fg-soft">{skill.note}</span> : null;
+    return skill.note ? <span className="block text-xs font-normal text-text-3">{skill.note}</span> : null;
   }
   return (
-    <span className="block text-xs font-normal text-fg-soft" data-tag-line>
+    <span className="block text-xs font-normal text-text-3" data-tag-line>
       {skill.added && <span data-tag-added>Added</span>}
       {skill.added && makes.length > 0 && ' · '}
       {makes.map((make, index) => (
         <span key={make.name}>
           {index > 0 && ', '}
-          <span data-tag-make={make.lit ? 'lit' : ''} className={make.lit ? 'font-medium text-fg-default' : undefined}>
+          <span data-tag-make={make.lit ? 'lit' : ''} className={make.lit ? 'font-medium text-text-1' : undefined}>
             {make.name}
           </span>
         </span>

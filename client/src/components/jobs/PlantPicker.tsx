@@ -108,10 +108,10 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
   if (picked) {
     return (
       <div className={cn(fieldClass, 'flex min-h-[42px] items-center gap-2.5')}>
-        <FactoryIcon className="h-4 w-4 shrink-0 text-fg-muted" />
+        <FactoryIcon className="h-4 w-4 shrink-0 text-text-2" />
         <span className="min-w-0 flex-1" data-picked-factory={picked.id}>
-          <span className="block break-words text-fg-default">{plantName(picked)}</span>
-          {plantWhere(picked) && <span className="block break-words text-xs text-fg-muted">{plantWhere(picked)}</span>}
+          <span className="block break-words text-text-1">{plantName(picked)}</span>
+          {plantWhere(picked) && <span className="block break-words text-xs text-text-3">{plantWhere(picked)}</span>}
         </span>
         {factories.length > 1 && (
           <button
@@ -122,7 +122,7 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
               setOpen(true);
               window.setTimeout(() => inputRef.current?.focus(), 0);
             }}
-            className="shrink-0 text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default"
+            className="shrink-0 text-sm font-medium text-text-1 underline"
           >
             Change
           </button>
@@ -138,7 +138,7 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" />
       <input
         ref={inputRef}
         id={id}
@@ -165,8 +165,8 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
       />
 
       {open && (
-        <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border-strong bg-bg-surface p-1 shadow-lg">
-          {options.length === 0 && <p className="px-2.5 py-2.5 text-sm text-fg-muted">No plant matches “{term.trim()}”.</p>}
+        <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-line-strong bg-surface p-1">
+          {options.length === 0 && <p className="px-2.5 py-2.5 text-sm text-text-2">No plant matches “{term.trim()}”.</p>}
           <ul ref={listRef} id={listId} role="listbox" aria-label="Plants">
             {options.map((factory, index) => (
               <li
@@ -178,12 +178,12 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => choose(factory)}
                 onMouseEnter={() => setActiveIndex(index)}
-                className={cn('flex cursor-pointer items-start gap-2.5 rounded-md px-2.5 py-2 text-sm text-fg-default', index === activeIndex && 'bg-bg-elevated')}
+                className={cn('flex cursor-pointer items-start gap-2.5 rounded-md px-2.5 py-2 text-sm text-text-1', index === activeIndex && 'bg-surface-hover')}
               >
-                <FactoryIcon className="mt-0.5 h-4 w-4 shrink-0 text-fg-muted" />
+                <FactoryIcon className="mt-0.5 h-4 w-4 shrink-0 text-text-2" />
                 <span className="min-w-0">
                   <span className="block break-words">{plantName(factory)}</span>
-                  {plantWhere(factory) && <span className="block break-words text-xs text-fg-muted">{plantWhere(factory)}</span>}
+                  {plantWhere(factory) && <span className="block break-words text-xs text-text-3">{plantWhere(factory)}</span>}
                 </span>
               </li>
             ))}

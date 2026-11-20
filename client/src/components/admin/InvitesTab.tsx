@@ -124,7 +124,7 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
   };
 
   return (
-    <form onSubmit={submit} noValidate className={cn(cardClass, 'p-4 sm:p-5')}>
+    <form onSubmit={submit} noValidate className={cardClass}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
         <Field label="Email" htmlFor="invite-email">
           <input
@@ -141,9 +141,9 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
             className={cn(fieldClass, (shown('email') || existing) && 'border-danger/60')}
           />
           {existing ? (
-            <p id="invite-email-error" role="alert" className="mt-1.5 text-xs text-fg-muted" data-invite-existing>
+            <p id="invite-email-error" role="alert" className="mt-1.5 text-xs text-text-3" data-invite-existing>
               That address has an account:{' '}
-              <Link to={`/admin?q=${encodeURIComponent(email.trim())}&open=${existing.id}`} className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+              <Link to={`/admin?q=${encodeURIComponent(email.trim())}&open=${existing.id}`} className="font-medium text-text-1 underline hover:no-underline">
                 {existing.name || email.trim()}
               </Link>
               . Its roles are changed under People.
@@ -157,7 +157,7 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
           )}
         </Field>
         <div className="min-w-0">
-          <p id="invite-role-label" className="mb-1.5 text-sm font-medium text-fg-muted">
+          <p id="invite-role-label" className="mb-1.5 text-sm font-medium text-text-2">
             Role
           </p>
           <SegmentedChoice
@@ -188,7 +188,7 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
         )}
       </div>
       {role === 'admin' && (
-        <p className="mt-3 text-sm text-fg-muted" data-admin-invite-note>
+        <p className="mt-3 text-sm text-text-2" data-admin-invite-note>
           An admin can change every record, decide who gets in, and make or remove other admins. The link lasts 3 days.
         </p>
       )}
@@ -205,7 +205,7 @@ function InviteForm({ onCreated }: { onCreated: (created: CreatedInvite) => void
 function InviteLink({ created }: { created: CreatedInvite }) {
   const emailOn = useEmailOn();
   return (
-    <div className={cn(cardClass, 'mt-3 p-4 sm:p-5')} data-invite-link>
+    <div className={cn(cardClass, 'mt-3')} data-invite-link>
       <CopyLinkField
         id="invite-link"
         label={`Invite link for ${created.invite.email}`}
@@ -261,12 +261,12 @@ function PendingInvites({ onRevoked }: { onRevoked: (inviteId: string) => void }
               {shown.map((invite, index) => (
                 <li
                   key={invite.id}
-                  className={cn(rowClass, 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 px-4 py-3')}
+                  className={cn(rowClass, 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-3')}
                   data-invite-email={invite.email}
                 >
                   <div className="min-w-0">
-                    <p className="break-all text-sm font-medium text-fg-default">{invite.email}</p>
-                    <p className="mt-0.5 break-words text-xs text-fg-muted">
+                    <p className="break-all text-sm text-text-1">{invite.email}</p>
+                    <p className="mt-0.5 break-words text-xs text-text-3">
                       {inviteRoleLabel(invite.role, invite.companyName)}
                       <Dot />
                       Invited {formatDay(invite.createdAt)}
@@ -291,7 +291,7 @@ function PendingInvites({ onRevoked }: { onRevoked: (inviteId: string) => void }
                       });
                     }}
                     aria-label={`Revoke the invite for ${invite.email}`}
-                    className={cn(textButtonClass, 'flex min-h-9 items-center aria-disabled:pointer-events-none aria-disabled:opacity-50')}
+                    className={cn(textButtonClass, 'flex min-h-9 items-center aria-disabled:cursor-not-allowed aria-disabled:opacity-40')}
                   >
                     Revoke
                   </button>
@@ -314,9 +314,9 @@ function EarlierInvites() {
     <PageSection title="Earlier" description="Accepted, or expired without being used. Revoked invites are under History.">
       <ul className={cardClass} data-earlier-invites>
         {past.data.map((invite) => (
-          <li key={invite.id} className={cn(rowClass, 'px-4 py-3')} data-earlier-invite={invite.state}>
-            <p className="break-all text-sm text-fg-default">{invite.email}</p>
-            <p className="mt-0.5 break-words text-xs text-fg-muted">
+          <li key={invite.id} className={cn(rowClass, 'py-3')} data-earlier-invite={invite.state}>
+            <p className="break-all text-sm text-text-1">{invite.email}</p>
+            <p className="mt-0.5 break-words text-xs text-text-3">
               {invite.state === 'accepted' && invite.acceptedAt ? `Accepted ${formatDay(invite.acceptedAt)}` : `Expired ${formatDay(invite.expiresAt)}`}
               <Dot />
               {inviteRoleLabel(invite.role, invite.companyName)}

@@ -25,7 +25,7 @@ export default function HistoryTab() {
   return (
     <PageSection>
       <div className="mb-3 flex flex-wrap items-center gap-3">
-        <p className="min-w-0 flex-1 basis-64 text-sm text-fg-muted">Every change an admin makes is kept here, with who made it and when.</p>
+        <p className="min-w-0 flex-1 basis-64 text-sm text-text-2">Every change an admin makes is kept here, with who made it and when.</p>
         <Select value={kind || 'all'} onValueChange={choose}>
           <SelectTrigger aria-label="Show" className={cn(selectTriggerClass, 'w-full xs:w-48')}>
             <SelectValue />

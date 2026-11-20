@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAdminPaths } from '../../lib/admin';
 import { RECORD_KINDS, editPath, type RecordKind } from '../../lib/records';
-import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass, SegmentedChoice } from '../account/parts';
+import { CardNote, LoadError, RowsSkeleton, cardClass, fieldClass, rowClass, SegmentedChoice, rowHoverClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import Records from './Records';
 import RecordEditor from './RecordEditor';
@@ -100,7 +100,7 @@ function PathsSection() {
           />
         )}
         {paths.data && (
-          <p className="text-xs tabular-nums text-fg-muted" data-path-count>
+          <p className="text-xs tabular-nums text-text-3" data-path-count>
             {total.toLocaleString('en-US')}
           </p>
         )}
@@ -120,10 +120,10 @@ function PathsSection() {
               <li key={path.id} className={rowClass} data-path-row={path.id}>
                 <Link
                   to={`${editPath('career' as RecordKind, path.id)}#path`}
-                  className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-bg-elevated"
+                  className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}
                 >
-                  <span className="min-w-0 break-words text-sm font-medium text-fg-default">{path.title}</span>
-                  <span className="shrink-0 text-xs tabular-nums text-fg-muted">
+                  <span className="min-w-0 break-words text-sm text-text-1">{path.title}</span>
+                  <span className="shrink-0 text-xs tabular-nums text-text-3">
                     {path.skillCount} {path.skillCount === 1 ? 'skill' : 'skills'}
                   </span>
                 </Link>
@@ -134,7 +134,7 @@ function PathsSection() {
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="mt-3 flex min-h-9 items-center text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default"
+              className="mt-3 flex min-h-9 items-center text-sm font-medium text-text-1 underline"
             >
               Show all {matching.length.toLocaleString('en-US')}
             </button>

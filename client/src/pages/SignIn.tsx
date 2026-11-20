@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, optionDetailClass, optionTileClass, optionTitleClass, segmentClass } from '@/lib/utils';
 import {
   inviteRoleLabel,
   safeNextPath,
@@ -219,12 +219,12 @@ export default function SignIn() {
           title={mode === 'create' ? 'Create account' : 'Sign in'}
         />
 
-        <div className={cn(cardClass, 'p-4 sm:p-6')}>
+        <div className={cardClass}>
           <div
             role="tablist"
             aria-label="Sign in or create an account"
             onKeyDown={(event) => onGroupArrowKeys(event, MODES.map((each) => each.value), mode, switchMode)}
-            className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-bg-elevated p-1"
+            className="mb-5 grid grid-cols-2 gap-0.5 rounded-lg border border-line p-0.5"
           >
             {MODES.map(({ value, label }) => (
               <button
@@ -235,8 +235,8 @@ export default function SignIn() {
                 tabIndex={mode === value ? 0 : -1}
                 onClick={() => switchMode(value)}
                 className={cn(
-                  'h-9 rounded-md text-sm font-medium transition-colors',
-                  mode === value ? 'bg-bg-surface text-fg-default' : 'text-fg-muted hover:text-fg-default'
+                  'h-9 rounded-md text-sm transition-colors',
+                  segmentClass(mode === value)
                 )}
               >
                 {label}
@@ -246,21 +246,21 @@ export default function SignIn() {
 
           <form onSubmit={submit} noValidate className="space-y-4">
             {resetToken && resetQuery.isError && (
-              <p role="status" className="text-sm text-fg-muted" data-reset-problem>
+              <p role="status" className="text-sm text-text-2" data-reset-problem>
                 {resetQuery.error instanceof ApiError && resetQuery.error.status === 404
                   ? 'Reset link not valid or expired.'
                   : 'Reset link could not be checked.'}
               </p>
             )}
             {inviteToken && inviteQuery.isError && (
-              <p role="status" className="text-sm text-fg-muted" data-invite-problem>
+              <p role="status" className="text-sm text-text-2" data-invite-problem>
                 {inviteQuery.error instanceof ApiError && inviteQuery.error.status === 404
                   ? inviteProblem(inviteQuery.error)
                   : 'Invite could not be checked.'}
               </p>
             )}
             {invited && (
-              <p className="text-sm text-fg-muted" data-invite-grant>
+              <p className="text-sm text-text-2" data-invite-grant>
                 Invited as {inviteRoleLabel(invited.role, invited.companyName)}
                 {invited.invitedBy ? ` by ${invited.invitedBy}` : ''}
               </p>
@@ -281,16 +281,14 @@ export default function SignIn() {
                     tabIndex={purpose === value ? 0 : -1}
                     onClick={() => setPurpose(value)}
                     className={cn(
-                      'min-w-0 rounded-lg border px-3 py-2.5 text-left transition-colors',
-                      purpose === value
-                        ? 'border-fg-default bg-bg-elevated'
-                        : 'border-border-subtle hover:border-border-strong'
+                      'min-w-0 px-3 py-2.5',
+                      optionTileClass(purpose === value)
                     )}
                   >
-                    <span className={cn('block text-sm font-medium', purpose === value ? 'text-fg-default' : 'text-fg-muted')}>
+                    <span className={cn('block text-sm font-medium', optionTitleClass(purpose === value))}>
                       {label}
                     </span>
-                    <span className="mt-0.5 block text-xs text-fg-muted">{detail}</span>
+                    <span className={cn('mt-0.5 block text-xs', optionDetailClass(purpose === value))}>{detail}</span>
                   </button>
                 ))}
               </div>
@@ -335,7 +333,7 @@ export default function SignIn() {
                   setEmail(e.target.value);
                   clearProblem('email');
                 }}
-                className={cn(fieldClass, invited && 'cursor-default text-fg-muted')}
+                className={cn(fieldClass, invited && 'cursor-default text-text-2')}
               />
               <FieldProblem id="sign-email-problem" problem={problems.email} />
             </Field>
@@ -367,7 +365,7 @@ export default function SignIn() {
               // The address has an account: one press goes to signing in, with what was typed kept.
               <p role="alert" className="text-sm text-danger" data-account-exists>
                 An account with that email already exists.{' '}
-                <button type="button" onClick={() => switchMode('sign-in')} className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+                <button type="button" onClick={() => switchMode('sign-in')} className="font-medium text-text-1 underline hover:no-underline">
                   Sign in instead
                 </button>
               </p>
@@ -402,7 +400,7 @@ export default function SignIn() {
               </button>
             </p>
           ) : (
-            <p className="mt-4 text-center text-sm text-fg-muted" data-forgot-password>
+            <p className="mt-4 text-center text-sm text-text-2" data-forgot-password>
               {/* Two lines on a phone, so the break falls between the sentences. */}
               <span className="block sm:inline">Forgot your password?</span> An admin can give you a reset link.
             </p>
@@ -456,13 +454,13 @@ function ForgotPassword({ initialEmail, onBack }: { initialEmail: string; onBack
       <div className="mx-auto w-full max-w-md">
         <PageHeader title="Reset password" />
         {forgot.isSuccess ? (
-          <div className={cn(cardClass, 'p-4 sm:p-6')} role="status" data-forgot-sent>
-            <p className="text-sm text-fg-default">If that address has an account, a reset link is on its way.</p>
-            <p className="mt-1.5 break-all text-sm text-fg-muted">{forgot.variables}</p>
-            <p className="mt-1.5 text-sm text-fg-muted">The link works once and lasts 24 hours.</p>
+          <div className={cardClass} role="status" data-forgot-sent>
+            <p className="text-sm text-text-1">If that address has an account, a reset link is on its way.</p>
+            <p className="mt-1.5 break-all text-sm text-text-2">{forgot.variables}</p>
+            <p className="mt-1.5 text-sm text-text-2">The link works once and lasts 24 hours.</p>
           </div>
         ) : (
-          <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-forgot-form>
+          <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4')} data-forgot-form>
             <Field label="Email" htmlFor="forgot-email">
               <input
                 ref={fieldRef}
@@ -525,7 +523,7 @@ function ChoosePassword({ email, busy, error, onSubmit }: ChoosePasswordProps) {
     <PageContainer size="narrow">
       <div className="mx-auto w-full max-w-md">
         <PageHeader title="Choose a new password" description={email} />
-        <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-reset-form>
+        <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4')} data-reset-form>
           {/* Not shown: it tells a password manager which account the new password belongs to. */}
           <input type="email" name="email" autoComplete="username" value={email} readOnly hidden />
           <Field label="New password" htmlFor="reset-password" hint="At least 8 characters.">
@@ -567,10 +565,10 @@ function InviteForAnother({ inviteEmail, signedInAs }: { inviteEmail: string; si
     <PageContainer size="narrow">
       <div className="mx-auto w-full max-w-md">
         <PageHeader title="Invite" />
-        <div className={cn(cardClass, 'space-y-4 p-4 sm:p-6')} data-invite-other>
-          <p className="break-words text-sm text-fg-muted">
-            This invite is for <span className="font-medium text-fg-default">{inviteEmail}</span>. You are signed in as{' '}
-            <span className="font-medium text-fg-default">{signedInAs}</span>.
+        <div className={cn(cardClass, 'space-y-4')} data-invite-other>
+          <p className="break-words text-sm text-text-2">
+            This invite is for <span className="font-medium text-text-1">{inviteEmail}</span>. You are signed in as{' '}
+            <span className="font-medium text-text-1">{signedInAs}</span>.
           </p>
           <ErrorNote error={signOut.error} />
           <div className="flex flex-wrap items-center gap-3">
@@ -585,7 +583,7 @@ function InviteForAnother({ inviteEmail, signedInAs }: { inviteEmail: string; si
             >
               Sign out to use it
             </Button>
-            <Link to="/map" className="text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default">
+            <Link to="/map" className="text-sm font-medium text-text-1 underline">
               Stay signed in
             </Link>
           </div>

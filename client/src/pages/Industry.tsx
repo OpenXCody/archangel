@@ -90,12 +90,12 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
       <Figures items={figures} />
       {data.stats && <SourceLine stats={data.stats} />}
       {data.plants === 0 && (
-        <p className="mt-6 text-sm text-fg-muted" data-nothing-listed>
+        <p className="mt-6 text-sm text-text-2" data-nothing-listed>
           No plants in this industry are listed in {placeName}.
           {data.place.kind !== 'country' && (
             <>
               {' '}
-              <Link to={`/industries/${industry.slug}`} className={cn('text-fg-default underline underline-offset-4 hover:no-underline', focusRing)}>
+              <Link to={`/industries/${industry.slug}`} className={cn('text-text-1 underline hover:no-underline', focusRing)}>
                 See it everywhere
               </Link>
             </>
@@ -148,7 +148,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
             ))}
           </RecordList>
           {data.openJobs > data.jobs.length && (
-            <p className="mt-2 text-xs text-fg-soft">and {(data.openJobs - data.jobs.length).toLocaleString()} more</p>
+            <p className="mt-2 text-xs text-text-3">and {(data.openJobs - data.jobs.length).toLocaleString()} more</p>
           )}
         </DetailSection>
       )}
@@ -163,7 +163,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
                 <RecordRow
                   key={employer.id}
                   to={`/companies/${employer.slug ?? employer.id}`}
-                  lead={<CompanyLogo name={name} domain={employer.domain} size={32} className="rounded-md" />}
+                  lead={<CompanyLogo name={name} domain={employer.domain} size={32} />}
                   title={name}
                   subtitle={ranked ? employerLine(employer) : null}
                   figure={ranked ? employer.people : counted ? employer.plants : null}
@@ -338,7 +338,7 @@ export default function Industry() {
         <>
           {header()}
           <div className="flex min-h-[320px] items-center justify-center" aria-busy="true" aria-label="Loading">
-            <Loader2 className="h-6 w-6 animate-spin text-fg-muted" />
+            <Loader2 className="h-6 w-6 animate-spin text-text-2" />
           </div>
         </>
       )}

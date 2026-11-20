@@ -131,7 +131,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
         {...head}
         kind="Company"
         title={name}
-        mark={<CompanyLogo name={name} domain={data.domain} size={44} className="rounded-lg" />}
+        mark={<CompanyLogo name={name} domain={data.domain} size={44} />}
         description={data.description}
         action={
           placed.length > 0 ? (
@@ -171,7 +171,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
           }))}
         >
           {only ? (
-            <ul className="border-t border-border-subtle" data-only-plant>
+            <ul className="border-t border-line" data-only-plant>
               <RecordRow
                 to={`/factories/${only.id}`}
                 label="Plant"
@@ -181,11 +181,11 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
               />
             </ul>
           ) : (
-            <p className="border-t border-border-subtle px-4 py-3 text-sm text-fg-muted sm:px-6">
+            <p className="border-t border-line py-3 text-sm text-text-2">
               {byState.slice(0, 6).map((state, index) => (
                 <span key={state.code}>
                   {index > 0 && ' · '}
-                  <span className="text-fg-default">{state.name}</span> {state.count}
+                  <span className="text-text-1">{state.name}</span> {state.count}
                 </span>
               ))}
               {byState.length > 6 && ` · ${byState.length - 6} more`}

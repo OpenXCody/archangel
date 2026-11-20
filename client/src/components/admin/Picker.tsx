@@ -93,7 +93,7 @@ export default function Picker<T extends { id: string; name: string }>({
   if (value) {
     return (
       <div className={cn(fieldClass, 'flex min-h-[42px] items-center gap-2.5')}>
-        <span className="min-w-0 flex-1 break-words text-fg-default" data-picked={value.id}>
+        <span className="min-w-0 flex-1 break-words text-text-1" data-picked={value.id}>
           {value.name}
         </span>
         <button
@@ -105,7 +105,7 @@ export default function Picker<T extends { id: string; name: string }>({
             setOpen(true);
             window.setTimeout(() => inputRef.current?.focus(), 0);
           }}
-          className="shrink-0 text-sm font-medium text-fg-muted underline underline-offset-4 hover:text-fg-default aria-disabled:opacity-50"
+          className="shrink-0 text-sm font-medium text-text-1 underline aria-disabled:cursor-not-allowed aria-disabled:opacity-40"
         >
           Change
         </button>
@@ -122,7 +122,7 @@ export default function Picker<T extends { id: string; name: string }>({
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" />
       <input
         ref={inputRef}
         id={id}
@@ -149,19 +149,19 @@ export default function Picker<T extends { id: string; name: string }>({
         className={cn(fieldClass, 'pl-9 pr-9', invalid && 'border-danger/60')}
       />
       {waiting && open && (
-        <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-fg-muted" />
+        <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-text-2" />
       )}
 
       {showList && (
-        <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border-strong bg-bg-surface p-1 shadow-lg">
+        <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-line-strong bg-surface p-1">
           {waiting ? (
-            <p className="px-2.5 py-2.5 text-sm text-fg-muted">Searching</p>
+            <p className="px-2.5 py-2.5 text-sm text-text-2">Searching</p>
           ) : results.isError ? (
             <p role="alert" className="px-2.5 py-2.5 text-sm text-danger">
               {errorMessage(results.error)}
             </p>
           ) : options.length === 0 ? (
-            <p className="px-2.5 py-2.5 text-sm text-fg-muted">No match.</p>
+            <p className="px-2.5 py-2.5 text-sm text-text-2">No match.</p>
           ) : null}
           <ul id={listId} role="listbox" aria-label={listLabel}>
             {options.map((option, index) => {
@@ -176,10 +176,10 @@ export default function Picker<T extends { id: string; name: string }>({
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => choose(option)}
                   onMouseEnter={() => setActiveIndex(index)}
-                  className={cn('cursor-pointer rounded-md px-2.5 py-2 text-sm text-fg-default', index === activeIndex && 'bg-bg-elevated')}
+                  className={cn('cursor-pointer rounded-md px-2.5 py-2 text-sm text-text-1', index === activeIndex && 'bg-surface-hover')}
                 >
                   <span className="block break-words">{option.name}</span>
-                  {more && <span className="block break-words text-xs text-fg-muted">{more}</span>}
+                  {more && <span className="block break-words text-xs text-text-3">{more}</span>}
                 </li>
               );
             })}

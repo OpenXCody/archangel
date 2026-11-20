@@ -43,11 +43,11 @@ export default function LeadsToField({ id, value, onChange, excludeId, invalid, 
   return (
     <div className="space-y-2" data-leads-to aria-describedby={describedBy}>
       {value.length > 0 && (
-        <ol className={cn(fieldClass, 'divide-y divide-border-subtle !py-0', invalid && 'border-danger/60')}>
+        <ol className={cn(fieldClass, 'divide-y divide-line !py-0', invalid && 'border-danger/60')}>
           {value.map((career, index) => (
             <li key={career.id} className="flex min-h-11 items-center gap-3 py-1.5" data-leads-to-career={career.id}>
-              <span className="w-4 shrink-0 text-sm tabular-nums text-fg-soft">{index + 1}</span>
-              <span className="min-w-0 flex-1 break-words text-sm text-fg-default">{career.title}</span>
+              <span className="w-4 shrink-0 text-sm tabular-nums text-text-3">{index + 1}</span>
+              <span className="min-w-0 flex-1 break-words text-sm text-text-1">{career.title}</span>
               {index > 0 && (
                 <button type="button" onClick={() => move(index)} aria-label={`Move ${career.title} up`} className={cn(textButtonClass, 'flex min-h-9 shrink-0 items-center')}>
                   Up

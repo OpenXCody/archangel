@@ -36,8 +36,8 @@ export default function CountyLine({ factoryId, className }: { factoryId: string
   const sentence = stats ? countySentence(stats) : null;
   if (!data?.county || !stats || !sentence) return null;
   return (
-    <p className={cn('text-sm leading-relaxed text-fg-muted', className)} data-county-line={data.county.fips}>
-      <span className="text-fg-default">{data.county.name}</span>
+    <p className={cn('text-sm leading-relaxed text-text-2', className)} data-county-line={data.county.fips}>
+      <span className="text-text-1">{data.county.name}</span>
       {': '}
       {sentence}
     </p>

@@ -32,7 +32,7 @@ export interface Head {
 export const CAREERS_SHOWN = 8;
 
 /** A link inside a line of facts. The padding gives a finger room without moving the line. */
-export const factLinkClass = 'py-[15px] underline decoration-border-strong underline-offset-4 transition-colors hover:text-fg-default hover:decoration-fg-muted';
+export const factLinkClass = 'py-[15px] text-text-1 underline';
 
 /** A plant's street address as written: a curated plant's was typed by a person ("1530 FM 973") and is left as it is. */
 export function streetAddress(plant: { address?: string | null; curated?: boolean }): string | null {
@@ -40,11 +40,11 @@ export function streetAddress(plant: { address?: string | null; curated?: boolea
   return plant.curated ? plant.address : titleCase(plant.address);
 }
 
-/** The footprint card: the map, and under it whatever places it. */
+/** The footprint: the map, and under it whatever places it. */
 export function Footprint({ children, ...map }: React.ComponentProps<typeof FootprintMap> & { children?: React.ReactNode }) {
   return (
     <div className={`${recordListClass} mt-6`} data-footprint>
-      <div className="px-3 py-4 sm:px-6 sm:py-6">
+      <div className="py-4">
         <FootprintMap {...map} className="mx-auto max-w-2xl" />
       </div>
       {children}

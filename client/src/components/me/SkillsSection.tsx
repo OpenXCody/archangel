@@ -124,10 +124,10 @@ function MySkillGroups({ skills, taxonomy, marks }: { skills: MySkill[]; taxonom
 
   return (
     // Domains fill two columns where there is room, each kept whole.
-    <div className="gap-x-4 lg:columns-2" data-my-skills>
+    <div className="gap-x-10 lg:columns-2" data-my-skills>
       {domains.map((domain) => (
-        <section key={domain.slug} aria-label={domain.name} data-my-domain={domain.slug} className="mb-4 break-inside-avoid">
-          <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft">{domain.name}</h3>
+        <section key={domain.slug} aria-label={domain.name} data-my-domain={domain.slug} className="mb-6 break-inside-avoid">
+          <h3 className="mb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">{domain.name}</h3>
           <SkillGroups
             groups={domain.groups.map((each) => each.group)}
             marks={marks}
@@ -167,20 +167,20 @@ function SuggestedSkills({ mySkills, onMark }: { mySkills: MySkill[]; onMark: (s
   const hasMore = list.length > shown.length || marked;
 
   return (
-    <div className="mt-5" data-suggested-skills>
-      <h3 className="mb-2 text-sm font-medium text-fg-muted">Suggested</h3>
+    <div className="mt-8" data-suggested-skills>
+      <h3 className="mb-2 text-sm font-medium text-text-2">Suggested</h3>
       <ul className={cn(cardClass, suggested.isPlaceholderData && 'opacity-60')}>
         {shown.map((skill) => (
-          <li key={skill.id} className={cn(rowClass, 'flex items-center gap-1 py-0.5 pl-1 pr-4')}>
-            <SkillHeldToggle value={statusOf.get(skill.id) ?? 'none'} label={skill.name} onChange={(mark) => onMark(skill.id, skill.name, mark)} />
+          <li key={skill.id} className={cn(rowClass, 'flex items-center gap-1 py-0.5')}>
+            <SkillHeldToggle value={statusOf.get(skill.id) ?? 'none'} label={skill.name} onChange={(mark) => onMark(skill.id, skill.name, mark)} className="-ml-3" />
             <Link
               to={`/skills/${skill.id}`}
-              className="min-w-0 flex-1 break-words py-2 text-sm text-fg-default underline-offset-4 hover:underline"
+              className={cn('min-w-0 flex-1 break-words py-2 text-sm hover:underline', statusOf.has(skill.id) ? 'text-text-1' : 'text-text-2')}
             >
               {skill.name}
             </Link>
             {severalCareers && (
-              <span className="hidden max-w-[45%] shrink-0 truncate pl-2 text-xs text-fg-muted xs:block">
+              <span className="hidden max-w-[45%] shrink-0 truncate pl-2 text-xs text-text-3 xs:block">
                 {skill.career}
                 {skill.careers > 1 && ` and ${skill.careers - 1} more`}
               </span>
@@ -199,7 +199,7 @@ function SuggestedSkills({ mySkills, onMark }: { mySkills: MySkill[]; onMark: (s
               void suggested.refetch();
             }
           }}
-          className={cn(textButtonClass, 'mt-3 px-1')}
+          className={cn(textButtonClass, 'mt-3')}
         >
           More
         </button>
@@ -238,7 +238,7 @@ function SkillSearch({ mySkills, onAdd, disabled }: SkillSearchProps) {
   return (
     <div>
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" />
         <input
           ref={inputRef}
           type="text"
@@ -263,7 +263,7 @@ function SkillSearch({ mySkills, onAdd, disabled }: SkillSearchProps) {
               setTerm('');
               inputRef.current?.focus();
             }}
-            className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted hover:text-fg-default"
+            className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-text-2 hover:text-text-1"
           >
             {results.isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
           </button>
@@ -273,26 +273,26 @@ function SkillSearch({ mySkills, onAdd, disabled }: SkillSearchProps) {
       {showResults && (
         <div className={cn(cardClass, 'mt-2')} aria-live="polite">
           {results.isPending ? (
-            <p className="flex items-center gap-2 p-4 text-sm text-fg-muted">
+            <p className="flex items-center gap-2 py-3 text-sm text-text-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               Searching skills
             </p>
           ) : results.isError ? (
-            <ErrorNote error={results.error} className="p-4" />
+            <ErrorNote error={results.error} className="py-3" />
           ) : results.data.data.length === 0 ? (
-            <p className="p-4 text-sm text-fg-muted">No skills match “{query}”. Try a shorter or different word.</p>
+            <p className="py-3 text-sm text-text-2">No skills match “{query}”. Try a shorter or different word.</p>
           ) : (
             <ul>
               {results.data.data.map((skill) => {
                 const status = statusOf(skill.id);
                 return (
-                  <li key={skill.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3')}>
+                  <li key={skill.id} className={cn(rowClass, 'flex flex-wrap items-center gap-x-3 gap-y-2 py-3')}>
                     <div className="min-w-0 flex-1 basis-40">
-                      <p className="break-words text-sm font-medium text-fg-default">{skill.name}</p>
-                      {skill.group && <p className="truncate text-xs text-fg-muted">{skill.group.name}</p>}
+                      <p className="break-words text-sm text-text-1">{skill.name}</p>
+                      {skill.group && <p className="truncate text-xs text-text-3">{skill.group.name}</p>}
                     </div>
                     {status ? (
-                      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-fg-muted">
+                      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-text-3">
                         <Check className="h-3.5 w-3.5" />
                         On your list
                       </span>

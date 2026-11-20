@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 import { RECORD_KINDS, editPath, type RecordKind, type RecordLink } from '../../lib/records';
 import { Field, SegmentedChoice, cardClass } from '../account/parts';
 import { PageSection } from '../layout/Page';
@@ -41,7 +40,7 @@ export default function Records() {
 
   return (
     <PageSection title="Records">
-      <div className={cn(cardClass, 'p-4 sm:p-5')}>
+      <div className={cardClass}>
         <SegmentedChoice
           label="Kind of record"
           options={KIND_OPTIONS}
@@ -55,8 +54,8 @@ export default function Records() {
           <RecordPicker id="record-find" kind={kind} value={null} onChange={(found) => found && navigate(editPath(kind, found.id))} />
         </Field>
 
-        <div className="mt-5 border-t border-border-subtle pt-4">
-          <h3 className="mb-3 text-sm font-semibold text-fg-default">{ADD_LABEL[kind]}</h3>
+        <div className="mt-5 border-t border-line pt-4">
+          <h3 className="mb-3 text-sm font-semibold text-text-1">{ADD_LABEL[kind]}</h3>
           <RecordForm
             key={`${kind}:${round}`}
             kind={kind}
@@ -70,9 +69,9 @@ export default function Records() {
           />
 
           {added && (
-            <p role="status" className="mt-3 text-sm text-fg-muted" data-record-added={added.kind}>
+            <p role="status" className="mt-3 text-sm text-text-2" data-record-added={added.kind}>
               Added{' '}
-              <Link to={added.href} className="font-medium text-fg-default underline underline-offset-4 hover:no-underline">
+              <Link to={added.href} className="font-medium text-text-1 underline hover:no-underline">
                 {added.name}
               </Link>
               .

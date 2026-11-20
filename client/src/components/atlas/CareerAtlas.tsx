@@ -37,7 +37,7 @@ interface CareerAtlasProps {
   marks: SkillMarks | null;
 }
 
-const EYEBROW = 'text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-soft';
+const EYEBROW = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 
 export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
   const { layout, taxonomy } = useAtlasLayout();
@@ -121,7 +121,7 @@ export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
     .map((level) => ({ ...level, groups: domain ? level.groups.filter((group) => group.domain?.slug === domain.slug) : level.groups }))
     .filter((level) => level.groups.length > 0);
   const label = `${career.title} on the Atlas of Manufacturing: ${plural(overlay?.first.size ?? 0, 'skill', 'skills')} across ${plural(reached.length, 'domain', 'domains')}. The skills follow as a list.`;
-  const crumb = cn('inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-fg-default hover:underline sm:min-h-8', focusRing);
+  const crumb = cn('inline-flex min-h-11 items-center transition-colors hover:text-text-1 hover:underline sm:min-h-8', focusRing);
 
   return (
     <div className="career-atlas" data-career-atlas data-career-atlas-domain={domain?.slug}>
@@ -149,7 +149,7 @@ export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
                 to={pathViewSearch(search, 'atlas')}
                 data-career-atlas-whole
                 className={cn(
-                  'absolute left-0 top-0 inline-flex h-11 items-center gap-1.5 rounded-lg bg-bg-base/85 pr-3 text-sm text-fg-muted transition-colors hover:text-fg-default',
+                  'absolute left-0 top-0 inline-flex h-11 items-center gap-1.5 rounded-lg bg-bg/85 pr-3 text-sm text-text-2 transition-colors hover:text-text-1',
                   focusRing
                 )}
               >
@@ -164,10 +164,10 @@ export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
       <div className="career-atlas-list min-w-0" onPointerOver={pointAt} onPointerLeave={() => setPreview(null)} onFocus={pointAt} onBlur={() => setPreview(null)}>
         {/* The domains this career draws on, in the plate's order: the same press in words, for the keyboard and a screen reader. */}
         {reached.length > 1 && (
-          <nav aria-label="Domains of this path" data-career-atlas-domains className="text-sm text-fg-muted">
+          <nav aria-label="Domains of this path" data-career-atlas-domains className="text-sm text-text-2">
             <ul className="flex flex-wrap items-center gap-x-4">
               <li>
-                <Link to={pathViewSearch(search, 'atlas')} aria-current={domain ? undefined : 'true'} className={cn(crumb, !domain && 'font-medium text-fg-default')}>
+                <Link to={pathViewSearch(search, 'atlas')} aria-current={domain ? undefined : 'true'} className={cn(crumb, !domain && 'font-medium text-text-1')}>
                   All
                 </Link>
               </li>
@@ -177,7 +177,7 @@ export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
                     to={pathViewSearch(search, 'atlas', each.slug)}
                     aria-current={domain?.index === each.index ? 'true' : undefined}
                     data-career-atlas-domain-link={each.slug}
-                    className={cn(crumb, domain?.index === each.index && 'font-medium text-fg-default')}
+                    className={cn(crumb, domain?.index === each.index && 'font-medium text-text-1')}
                   >
                     {each.name}
                   </Link>
@@ -217,7 +217,7 @@ export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
           <Link
             to={`/atlas?career=${career.id}`}
             data-atlas-link
-            className={cn('inline-flex min-h-11 items-center text-sm text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default', focusRing)}
+            className={cn('inline-flex min-h-11 items-center text-sm text-text-1 underline transition-colors', focusRing)}
           >
             Open in the atlas
           </Link>

@@ -90,11 +90,11 @@ export function AdminNoticeLine({ className }: { className?: string }) {
         role="status"
         tabIndex={-1}
         data-admin-notice={notice ? '' : undefined}
-        className="min-w-0 break-words text-sm text-fg-muted focus:outline-none"
+        className="min-w-0 break-words text-sm text-text-2 focus:outline-none"
       >
         {notice && (
           <>
-            <span className="text-fg-default">{notice.message}</span>
+            <span className="text-text-1">{notice.message}</span>
             {notice.undo && (
               <button type="button" onClick={notice.undo} className={cn(textButtonClass, 'ml-3')}>
                 Undo

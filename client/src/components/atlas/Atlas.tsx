@@ -50,7 +50,7 @@ function leavesOf(layout: AtlasLayout, career: Pick<OccupationDetail, 'skills'> 
 const domainsOf = (layout: AtlasLayout, leaves: ReadonlySet<number>) => new Set([...leaves].map((index) => layout.leaves[index].domain)).size;
 
 const TEXT_BUTTON = cn(
-  'inline-flex min-h-11 items-center text-sm text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default sm:min-h-9',
+  'inline-flex min-h-11 items-center text-sm text-text-1 underline transition-colors sm:min-h-9',
   focusRing
 );
 
@@ -74,7 +74,7 @@ function CareerLine({ sign, id, career, to, missing = 'That career is not in the
   return (
     <div className="flex min-h-11 items-center gap-2.5 text-sm" data-atlas-career={id}>
       <LitSign kind={sign} />
-      <p className="min-w-0 flex-1 leading-snug text-fg-muted">
+      <p className="min-w-0 flex-1 leading-snug text-text-2">
         {career.isError ? (
           // A link to a career that is gone, or was mistyped: said in the product's own word.
           <span role="alert">
@@ -82,20 +82,20 @@ function CareerLine({ sign, id, career, to, missing = 'That career is not in the
           </span>
         ) : title ? (
           <>
-            <Link to={to ?? `/occupations/${id}`} className={cn('font-medium text-fg-default underline-offset-4 hover:underline', focusRing)}>
+            <Link to={to ?? `/occupations/${id}`} className={cn('font-medium text-text-1 hover:underline', focusRing)}>
               {title}
             </Link>
             {facts && <span data-atlas-career-facts>{` · ${facts}`}</span>}
           </>
         ) : (
-          <span aria-hidden="true" className="inline-block h-3.5 w-44 max-w-full animate-pulse rounded bg-primary/10 align-middle" />
+          <span aria-hidden="true" className="inline-block h-3.5 w-44 max-w-full animate-pulse rounded bg-surface align-middle" />
         )}
       </p>
       <Link
         to={removeTo}
         replace
         aria-label={title ? `Take ${title} off the atlas` : 'Take this career off the atlas'}
-        className={cn('-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-fg-soft transition-colors hover:text-fg-default', focusRing)}
+        className={cn('-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-text-3 transition-colors hover:text-text-1', focusRing)}
       >
         <X aria-hidden="true" className="h-4 w-4" />
       </Link>
@@ -216,7 +216,7 @@ export default function Atlas() {
           ) : !layout ? (
             <PlateSkeleton className="atlas-frame mx-auto" />
           ) : layout.leaves.length === 0 ? (
-            <p className="py-16 text-center text-sm text-fg-muted">None yet.</p>
+            <p className="py-16 text-center text-sm text-text-2">None yet.</p>
           ) : (
             <div className="atlas-frame relative mx-auto">
               <AtlasDrawing
@@ -238,7 +238,7 @@ export default function Atlas() {
                   to={atlasHref({ career: state.career, with: state.with, at: state.at })}
                   data-atlas-whole
                   className={cn(
-                    'absolute left-0 top-0 inline-flex h-11 items-center gap-1.5 rounded-lg bg-bg-base/85 pr-3 text-sm text-fg-muted transition-colors hover:text-fg-default',
+                    'absolute left-0 top-0 inline-flex h-11 items-center gap-1.5 rounded-lg bg-bg/85 pr-3 text-sm text-text-2 transition-colors hover:text-text-1',
                     focusRing
                   )}
                 >
@@ -247,7 +247,7 @@ export default function Atlas() {
                 </Link>
               )}
               {!domain && !overlay && (
-                <p className="mx-auto mt-1 max-w-md text-center text-xs leading-relaxed text-fg-soft [text-wrap:balance]" data-atlas-key>
+                <p className="mx-auto mt-1 max-w-md text-center text-xs leading-relaxed text-text-3 [text-wrap:balance]" data-atlas-key>
                   Fundamentals sit nearest the centre, Advanced at the rim. A stronger mark is a skill more careers use.
                 </p>
               )}
@@ -274,7 +274,7 @@ export default function Atlas() {
               <CareerLine sign="second" id={state.with} career={second} facts={facts.second} removeTo={atlasHref({ ...open, career: state.career, at: state.at })} />
             )}
             {facts.both && (
-              <p className="flex flex-wrap items-center gap-x-2 pb-1 pt-0.5 text-sm text-fg-muted" data-atlas-shared>
+              <p className="flex flex-wrap items-center gap-x-2 pb-1 pt-0.5 text-sm text-text-2" data-atlas-shared>
                 <LitSign kind="shared" />
                 <span>
                   {facts.both.shared === 0 ? 'No skill in common' : `${plural(facts.both.shared, 'skill', 'skills')} in common`}

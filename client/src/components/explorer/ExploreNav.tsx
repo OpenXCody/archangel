@@ -35,9 +35,9 @@ const exploreLabel = (view: ExploreTab) =>
 // width (the hidden copy), so choosing one never nudges its neighbours.
 const ITEM =
   'relative inline-flex h-11 shrink-0 flex-col items-center justify-center border-b-2 text-sm transition-colors ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-primary';
-const ITEM_ON = 'border-fg-default font-semibold text-fg-default';
-const ITEM_OFF = 'border-transparent text-fg-muted hover:text-fg-default';
+  'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent';
+const ITEM_ON = 'border-text-1 font-semibold text-text-1';
+const ITEM_OFF = 'border-transparent text-text-2 hover:text-text-1';
 
 function Reserve({ text }: { text: string }) {
   return (
@@ -49,6 +49,8 @@ function Reserve({ text }: { text: string }) {
 
 /** How far the row fades at an edge it continues past. */
 const FADE = '2.5rem';
+/** The opaque stop of the row's mask: a mask is never painted, so its colour is only how solid it is. */
+const SOLID = 'var(--mask)';
 
 /**
  * The Explore page's own navigation: the overview, then each level of the
@@ -91,12 +93,12 @@ export default function ExploreNav({ active }: { active: ExploreView }) {
 
   const mask =
     more.before || more.after
-      ? `linear-gradient(to right, ${more.before ? 'transparent' : '#000'}, #000 ${FADE}, #000 calc(100% - ${FADE}), ${more.after ? 'transparent' : '#000'})`
+      ? `linear-gradient(to right, ${more.before ? 'transparent' : SOLID}, ${SOLID} ${FADE}, ${SOLID} calc(100% - ${FADE}), ${more.after ? 'transparent' : SOLID})`
       : undefined;
 
   return (
     // The hairline belongs to the frame, so it runs the full width while the labels fade.
-    <div className="border-b border-border-subtle">
+    <div className="border-b border-line">
       <nav
         ref={navRef}
         aria-label="Explore"

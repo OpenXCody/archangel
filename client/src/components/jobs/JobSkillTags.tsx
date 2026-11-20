@@ -95,7 +95,7 @@ export default function JobSkillTags({ id, value, onChange, emptyNote, disabled 
   return (
     <div ref={rootRef} className="min-w-0 space-y-3">
       {value.length === 0 ? (
-        emptyNote && <p className="text-sm text-fg-muted">{emptyNote}</p>
+        emptyNote && <p className="text-sm text-text-2">{emptyNote}</p>
       ) : (
         <>
           <TagGroup label="Required" skills={required} onMove={move} onRemove={remove} disabled={disabled} />
@@ -103,12 +103,12 @@ export default function JobSkillTags({ id, value, onChange, emptyNote, disabled 
         </>
       )}
       {removed && !value.some((skill) => skill.id === removed.skill.id) && (
-        <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-fg-muted" data-skill-removed>
+        <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-text-2" data-skill-removed>
           Removed {removed.skill.name}.
           <button
             type="button"
             onClick={undoRemove}
-            className="text-sm font-medium text-fg-muted underline underline-offset-4 transition-colors hover:text-fg-default"
+            className="text-sm font-medium text-text-1 underline transition-colors"
           >
             Undo
           </button>
@@ -131,8 +131,8 @@ interface TagGroupProps {
 }
 
 const tagButtonClass =
-  'flex w-9 shrink-0 items-center justify-center border-l border-border-subtle text-fg-muted transition-colors ' +
-  'hover:bg-bg-elevated hover:text-fg-default disabled:pointer-events-none disabled:opacity-60';
+  'flex w-9 shrink-0 items-center justify-center text-text-2 transition-colors ' +
+  'hover:bg-surface-hover hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-40';
 
 function TagGroup({ label, skills, onMove, onRemove, disabled }: TagGroupProps) {
   const headingId = useId();
@@ -141,18 +141,18 @@ function TagGroup({ label, skills, onMove, onRemove, disabled }: TagGroupProps) 
 
   return (
     <div className="min-w-0" data-skill-group={label.toLowerCase()}>
-      <p id={headingId} className="mb-1.5 text-xs font-medium text-fg-muted">
+      <p id={headingId} className="mb-1.5 text-xs font-medium text-text-3">
         {label}
       </p>
       {skills.length === 0 ? (
-        <p className="text-sm text-fg-soft">None</p>
+        <p className="text-sm text-text-3">None</p>
       ) : (
         <ul aria-labelledby={headingId} className="flex flex-wrap gap-2">
           {skills.map((skill) => (
             <li
               key={skill.id}
               data-skill-tag={skill.id}
-              className="flex min-h-[38px] max-w-full items-stretch overflow-hidden rounded-md border border-border-strong text-sm text-fg-default"
+              className="flex min-h-[38px] max-w-full items-stretch overflow-hidden rounded-md border border-line-strong text-sm text-text-1"
             >
               <span className="min-w-0 self-center break-words px-2.5 py-1.5">{skill.name}</span>
               <button
@@ -257,7 +257,7 @@ export function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderP
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" />
       <input
         ref={inputRef}
         id={id}
@@ -281,18 +281,18 @@ export function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderP
         onKeyDown={onKeyDown}
         className={cn(fieldClass, 'pl-9 pr-9')}
       />
-      {waiting && open && <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-fg-muted" />}
+      {waiting && open && <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-text-2" />}
 
       {showList && (
-        <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border-strong bg-bg-surface p-1 shadow-lg">
+        <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-line-strong bg-surface p-1">
           {waiting ? (
-            <p className="px-2.5 py-2.5 text-sm text-fg-muted">Searching skills</p>
+            <p className="px-2.5 py-2.5 text-sm text-text-2">Searching skills</p>
           ) : results.isError ? (
             <p role="alert" className="px-2.5 py-2.5 text-sm text-danger">
               {errorMessage(results.error)}
             </p>
           ) : options.length === 0 ? (
-            <p className="px-2.5 py-2.5 text-sm text-fg-muted">
+            <p className="px-2.5 py-2.5 text-sm text-text-2">
               {matches.length > 0 ? `Every match for “${query}” is already tagged.` : `No skills match “${query}”.`}
             </p>
           ) : null}
@@ -308,12 +308,12 @@ export function SkillAdder({ id, inputRef, taken, onAdd, disabled }: SkillAdderP
                 onClick={() => choose(option)}
                 onMouseEnter={() => setActiveIndex(index)}
                 className={cn(
-                  'flex cursor-pointer flex-wrap items-baseline gap-x-2.5 rounded-md px-2.5 py-2.5 text-sm text-fg-default',
-                  index === activeIndex && 'bg-bg-elevated'
+                  'flex cursor-pointer flex-wrap items-baseline gap-x-2.5 rounded-md px-2.5 py-2.5 text-sm text-text-1',
+                  index === activeIndex && 'bg-surface-hover'
                 )}
               >
                 <span className="min-w-0 break-words">{option.name}</span>
-                {option.group && <span className="min-w-0 truncate text-xs text-fg-muted">{option.group.name}</span>}
+                {option.group && <span className="min-w-0 truncate text-xs text-text-3">{option.group.name}</span>}
               </li>
             ))}
           </ul>

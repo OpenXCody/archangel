@@ -65,7 +65,7 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
         {...head}
         kind="Plant"
         title={name}
-        mark={companyName ? <CompanyLogo name={companyName} domain={company?.domain} size={44} className="rounded-lg" /> : undefined}
+        mark={companyName ? <CompanyLogo name={companyName} domain={company?.domain} size={44} /> : undefined}
         description={data.description}
         action={
           located ? (
@@ -97,9 +97,9 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
       {/* Where it is. The town is in the heading; the street is said here, once. */}
       {located && (
         <Footprint points={points} emphasis={data.id}>
-          {street && <p className="border-t border-border-subtle px-4 py-3 text-sm text-fg-muted sm:px-6">{street}</p>}
+          {street && <p className="border-t border-line py-3 text-sm text-text-2">{street}</p>}
           {/* The county it stands in, and manufacturing there: official figures, about the county. */}
-          <CountyLine factoryId={data.id} className="border-t border-border-subtle px-4 py-3 sm:px-6" />
+          <CountyLine factoryId={data.id} className="border-t border-line py-3" />
         </Footprint>
       )}
 
@@ -112,7 +112,7 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
           <RecordList>
             <RecordRow
               to={`/companies/${company.slug ?? company.id}`}
-              lead={<CompanyLogo name={companyName} domain={company.domain} size={32} className="rounded-md" />}
+              lead={<CompanyLogo name={companyName} domain={company.domain} size={32} />}
               title={companyName}
               // One plant is this one: counting it says nothing.
               subtitle={plantCount > 1 ? `${plural(plantCount, 'plant', 'plants')}${stateCount > 1 ? ` in ${stateCount} states` : ''}` : null}

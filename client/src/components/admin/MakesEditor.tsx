@@ -10,8 +10,8 @@ import { useAdminNotice } from './AdminNotice';
 
 const MAKES_MAX = 12;
 const iconButtonClass = cn(
-  'flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-fg-muted transition-colors hover:text-fg-default',
-  'aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:text-fg-muted'
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-text-2 transition-colors hover:text-text-1',
+  'aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:text-text-2'
 );
 
 /**
@@ -65,9 +65,9 @@ export default function MakesEditor({ record, onChanged }: { record: RecordView;
 
   return (
     <PageSection title="Makes" description="The named equipment and software this skill is run on, in the order they are shown. A person who has the skill marks the ones they have run.">
-      <div className={cn(cardClass, 'p-4 sm:p-5')} data-makes-editor>
+      <div className={cardClass} data-makes-editor>
         {makes.length === 0 ? (
-          <p className="text-sm text-fg-muted">None yet.</p>
+          <p className="text-sm text-text-2">None yet.</p>
         ) : (
           <ul>
             {makes.map((make, index) => (
@@ -100,7 +100,7 @@ export default function MakesEditor({ record, onChanged }: { record: RecordView;
                   </form>
                 ) : (
                   <>
-                    <span className="min-w-0 flex-1 basis-20 break-words text-sm text-fg-default">{make.name}</span>
+                    <span className="min-w-0 flex-1 basis-20 break-words text-sm text-text-1">{make.name}</span>
                     <span className="flex shrink-0 items-center">
                       <button
                         type="button"
@@ -154,13 +154,13 @@ export default function MakesEditor({ record, onChanged }: { record: RecordView;
         )}
 
         <form
-          className={cn('pt-4', makes.length > 0 && 'mt-3 border-t border-border-subtle')}
+          className={cn('pt-4', makes.length > 0 && 'mt-3 border-t border-line')}
           onSubmit={(event) => {
             event.preventDefault();
             add();
           }}
         >
-          <label htmlFor="make-add" className="mb-1.5 block text-sm font-medium text-fg-muted">
+          <label htmlFor="make-add" className="mb-1.5 block text-sm font-medium text-text-2">
             Add a make
           </label>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,24rem)_auto]">
@@ -186,7 +186,7 @@ export default function MakesEditor({ record, onChanged }: { record: RecordView;
               Add
             </Button>
           </div>
-          {makes.length >= MAKES_MAX && <p className="mt-1.5 text-xs text-fg-muted">A skill has at most {MAKES_MAX} makes.</p>}
+          {makes.length >= MAKES_MAX && <p className="mt-1.5 text-xs text-text-3">A skill has at most {MAKES_MAX} makes.</p>}
         </form>
         {/* While the question is open the refusal is shown in it. */}
         {!removing && <ErrorNote error={change.error} className="mt-3" />}
@@ -197,7 +197,7 @@ export default function MakesEditor({ record, onChanged }: { record: RecordView;
           description={
             <>
               <p>
-                <span className="font-medium text-fg-default">{removing?.name}</span>, a make of {record.name}.
+                <span className="font-medium text-text-1">{removing?.name}</span>, a make of {record.name}.
               </p>
               <p data-make-people>
                 {removing?.people === 1 ? '1 person has marked it. Their mark goes with it.' : `${(removing?.people ?? 0).toLocaleString('en-US')} people have marked it. Their marks go with it.`}

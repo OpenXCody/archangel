@@ -235,26 +235,26 @@ export default function HistoryList({ filter = {}, ownRecord = false, empty = 'N
           // A record that still exists links to where it is corrected. One deleted since simply will not open.
           const linked = !ownRecord && entry.recordId && isRecordKind(entry.kind) && entry.action !== 'deleted';
           return (
-            <li key={entry.id} className={cn(rowClass, 'px-4 py-3')} data-history-action={entry.action}>
-              <p className="break-words text-sm text-fg-muted">
+            <li key={entry.id} className={cn(rowClass, 'py-3')} data-history-action={entry.action}>
+              <p className="break-words text-sm text-text-2">
                 {ACTION[entry.action] ?? entry.action}
-                {typeof merged === 'string' && <span className="text-fg-default"> {merged}</span>}
+                {typeof merged === 'string' && <span className="text-text-1"> {merged}</span>}
                 {typeof merged === 'string' && (ownRecord ? ' into this' : ' into')}
                 {!ownRecord && (
                   <>
                     {' '}
                     {linked ? (
-                      <Link to={editPath(entry.kind as RecordKind, entry.recordId as string)} className="font-medium text-fg-default underline-offset-4 hover:underline">
+                      <Link to={editPath(entry.kind as RecordKind, entry.recordId as string)} className="font-medium text-text-1 hover:underline">
                         {entry.recordName}
                       </Link>
                     ) : (
-                      <span className="font-medium text-fg-default">{entry.recordName}</span>
+                      <span className="font-medium text-text-1">{entry.recordName}</span>
                     )}
                   </>
                 )}
               </p>
-              {words && <p className="mt-0.5 break-words text-xs text-fg-muted">{words}</p>}
-              <p className="mt-0.5 break-words text-xs text-fg-soft">
+              {words && <p className="mt-0.5 break-words text-xs text-text-3">{words}</p>}
+              <p className="mt-0.5 break-words text-xs text-text-3">
                 {!ownRecord && `${KIND_WORD[entry.kind] ?? entry.kind} · `}
                 {entry.actorName} · {when(entry.at)}
               </p>
