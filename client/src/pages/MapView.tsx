@@ -256,7 +256,7 @@ export default function MapView() {
 
   return (
     <div
-      className="relative w-full h-[calc(100dvh-57px)] overflow-hidden"
+      className="map-view relative w-full h-[calc(100dvh-57px)] overflow-hidden"
       onContextMenu={handleContextMenu}
     >
       {/* Search first, so it is the first thing the Tab key reaches: the way

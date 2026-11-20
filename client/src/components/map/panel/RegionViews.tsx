@@ -12,7 +12,7 @@ import { stateName, titleCase } from '../../../lib/places';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../../CompanyLogo';
 import { industryPath, shownIndustry } from '@shared/industry';
-import { Section, JobRows, MORE_LINK, CareerRows, Heading, PageLink, RowList, NodeRow, More, Figures } from './parts';
+import { Section, JobRows, MORE_LINK, CareerRows, Heading, PageLink, RowList, NodeRow, More, Figures, ROW, META_IN_ROW } from './parts';
 
 /** How many open jobs a region's panel lists before sending the person to the jobs list. */
 const REGION_JOBS_SHOWN = 4;
@@ -39,7 +39,7 @@ function RegionBody({
 }) {
   const selectEntity = useMapStore((s) => s.selectEntity);
   if (data.totalFactories === 0) {
-    return <p className="text-sm text-fg-muted">No plants are listed here.</p>;
+    return <p className="text-[15px] text-text-2">No plants are listed here.</p>;
   }
   const jobs = data.jobs ?? [];
   const openJobs = data.openJobs ?? jobs.length;
@@ -68,7 +68,7 @@ function RegionBody({
       {/* Who is here */}
       {data.topCompanies.length > 0 && (
         <Section title="Companies" column="Plants">
-          <div>
+          <RowList>
             {data.topCompanies.slice(0, 8).map((c) => {
               const name = formatCompanyName(c.name);
               return (
@@ -76,15 +76,15 @@ function RegionBody({
                   key={c.id}
                   type="button"
                   onClick={() => selectEntity('company', c.id, name)}
-                  className="map-row group -mx-2 flex w-[calc(100%+1rem)] items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-tint/5"
+                  className={`${ROW} py-1.5`}
                 >
-                  <CompanyLogo name={name} domain={c.domain} size={28} />
-                  <span className="min-w-0 flex-1 truncate text-fg-default">{name}</span>
-                  <span className="shrink-0 text-xs tabular-nums text-fg-muted">{c.count.toLocaleString()}</span>
+                  <CompanyLogo name={name} domain={c.domain} size={32} />
+                  <span className="min-w-0 flex-1 truncate text-[15px] text-text-1">{name}</span>
+                  <span className={`shrink-0 text-[13px] tabular-nums ${META_IN_ROW}`}>{c.count.toLocaleString()}</span>
                 </button>
               );
             })}
-          </div>
+          </RowList>
         </Section>
       )}
 
@@ -93,7 +93,7 @@ function RegionBody({
       {/* What work is here */}
       {data.topIndustries.length > 0 && (
         <Section title="Industries" column="Plants">
-          <div>
+          <RowList>
             {data.topIndustries.map((industry) => {
               // Each industry opens its page for this place. Only the 21 are industries.
               const page = industryPath(industry.label, industryIn);
@@ -102,14 +102,14 @@ function RegionBody({
                 <Link
                   key={industry.label}
                   to={page}
-                  className="map-row -mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded-md px-2 py-1 text-sm transition-colors hover:bg-tint/5"
+                  className={`${ROW} justify-between py-1`}
                 >
-                  <span className="min-w-0 truncate text-fg-default">{shownIndustry(industry.label)}</span>
-                  <span className="shrink-0 text-xs tabular-nums text-fg-muted">{industry.count.toLocaleString()}</span>
+                  <span className="min-w-0 truncate text-[15px] text-text-1">{shownIndustry(industry.label)}</span>
+                  <span className={`shrink-0 text-[13px] tabular-nums ${META_IN_ROW}`}>{industry.count.toLocaleString()}</span>
                 </Link>
               );
             })}
-          </div>
+          </RowList>
           {/* The panel lists the largest; the rest are a page away, for the same place. */}
           {industryIn && data.topIndustries.length >= 8 && (
             <Link
@@ -175,7 +175,7 @@ export function PlaceView({ place, data }: { place: MapPlace; data: BoundsOvervi
                 return (
                   <NodeRow
                     key={plant.id}
-                    logo={company ? <CompanyLogo name={company} domain={plant.companyDomain} size={24} /> : undefined}
+                    logo={company ? <CompanyLogo name={company} domain={plant.companyDomain} size={32} /> : undefined}
                     icon={Factory}
                     title={name}
                     subtitle={[company && !name.toLowerCase().startsWith(company.toLowerCase()) ? company : null, plant.city ? titleCase(plant.city) : null]

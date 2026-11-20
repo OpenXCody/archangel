@@ -21,6 +21,7 @@ import CompanyView from './panel/CompanyView';
 import OccupationView from './panel/OccupationView';
 import SkillView from './panel/SkillView';
 import { StateView, AreaView, PlaceView } from './panel/RegionViews';
+import { LABEL, SECONDARY_BUTTON } from './panel/parts';
 
 /*
  * The panel beside the map (a sheet on a phone): the frame, the way back and
@@ -140,13 +141,13 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
   const folded = isMobile && detent === 'bar';
   const headerText = folded && name ? name : (kind?.label ?? 'Details');
   const headerButton =
-    'map-search-button flex shrink-0 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-tint/10 hover:text-fg-default';
+    'map-search-button flex shrink-0 items-center justify-center rounded-lg text-text-1 transition-colors hover:bg-surface-hover';
 
   return (
     <aside
       ref={asideRef}
       data-detent={isMobile ? detent : undefined}
-      className={`z-50 flex flex-col overflow-hidden border-border-subtle bg-bg-surface ${
+      className={`z-50 flex flex-col overflow-hidden border-line bg-surface ${
         isMobile
           ? 'map-sheet fixed inset-x-0 bottom-0 rounded-t-2xl border-t animate-in slide-in-from-bottom duration-300'
           : 'absolute right-0 top-0 h-full border-l animate-in slide-in-from-right duration-300'
@@ -163,23 +164,23 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
       >
         {isMobile && (
           <div className="flex justify-center pt-2" aria-hidden="true">
-            <span className="block h-1 w-10 rounded-full bg-tint/25" />
+            <span className="block h-1 w-10 rounded-full bg-line-strong" />
           </div>
         )}
         {/* Header */}
-        <div className={`flex items-center justify-between gap-2 border-b border-border-subtle ${isMobile ? 'px-2 pb-1.5 pt-0.5' : 'p-3'}`}>
+        <div className={`flex items-center justify-between gap-2 border-b border-line ${isMobile ? 'px-2 pb-1.5 pt-0.5' : 'p-3'}`}>
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {canGoBack && (
               <button type="button" onClick={goBack} className={headerButton} aria-label="Back" title="Back">
                 <ArrowLeft className="h-5 w-5" />
               </button>
             )}
-            <Icon className={`h-4 w-4 shrink-0 text-fg-muted ${canGoBack ? '' : 'ml-2'}`} aria-hidden="true" />
+            <Icon className={`h-4 w-4 shrink-0 text-text-2 ${canGoBack ? '' : 'ml-2'}`} aria-hidden="true" />
             <span
               className={
                 folded && name
-                  ? 'min-w-0 truncate text-sm font-medium text-fg-default'
-                  : 'min-w-0 truncate text-xs font-medium uppercase tracking-wider text-fg-muted'
+                  ? 'min-w-0 truncate text-[15px] font-medium text-text-1'
+                  : `min-w-0 truncate ${LABEL}`
               }
             >
               {headerText}
@@ -208,15 +209,15 @@ export default function MapDetailPanel({ isMobile = false }: MapDetailPanelProps
       <div className="flex-1 overflow-y-auto overscroll-contain p-4" hidden={folded}>
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-fg-muted" aria-label="Loading" />
+            <Loader2 className="h-6 w-6 animate-spin text-text-2" aria-label="Loading" />
           </div>
         ) : error && !missing ? (
           <div className="py-10 text-center">
-            <p className="text-sm text-fg-muted">This could not be loaded.</p>
+            <p className="text-[15px] text-text-2">This could not be loaded.</p>
             <button
               type="button"
               onClick={selection.retry}
-              className="map-row mt-3 inline-flex items-center rounded-lg border border-border-strong px-4 text-sm font-medium text-fg-default transition-colors hover:bg-bg-elevated"
+              className={`mt-3 inline-flex px-4 ${SECONDARY_BUTTON}`}
             >
               Try again
             </button>
