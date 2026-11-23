@@ -17,7 +17,8 @@
 #      merge's (dupes): the database's merge, the cleanup migration, the API,
 #      the job postings' (postings): made-up employers' boards from a local
 #      stand-in for the feeds, through the runner, then the API, and the military
-#      careers' (military): the services as the API serves them, and their loader;
+#      careers' (military): the services as the API serves them, their loader, and
+#      where a military career is used (the search rule, reach, Profile's door);
 #   4. runs the Playwright device suite against the built page.
 # Every suite runs even if an earlier one fails; the exit code is non-zero if
 # any did. The servers it started are stopped on the way out.

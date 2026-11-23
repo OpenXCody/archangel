@@ -1904,8 +1904,8 @@ test('Profile\'s second door: a seeker starts with what they have done, and take
     await search.fill('navy hull');
     await page.getByRole('option', { name: /Navy Hull Maintenance Technician/ }).click();
     // The skill held before is not counted, and is not taken back.
-    const mine = (await mySkills()).length;
-    const added = mine - 1;
+    await expect(line.locator('[data-done-notice]')).toContainText(/Marked \d+ skills held\./);
+    const added = (await mySkills()).length - 1;
     await expect(line.locator('[data-done-notice]')).toContainText(`Marked ${added} skills held.`);
     await line.scrollIntoViewIfNeeded();
     await assertHealthyLayout(page, '/me the door at the end of Skills');
