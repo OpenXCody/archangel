@@ -338,8 +338,14 @@ export async function addVersion(actor: SessionUser, companyId: string, occupati
   return db.transaction(async (tx) => {
     const [company] = await tx.select({ id: companies.id, name: companies.name }).from(companies).where(eq(companies.id, companyId)).limit(1);
     if (!company) throw new RecordRefusal(404, 'Company not found');
-    const [career] = await tx.select({ id: occupations.id, title: occupations.title }).from(occupations).where(eq(occupations.id, occupationId)).limit(1);
+    const [career] = await tx
+      .select({ id: occupations.id, title: occupations.title, service: occupations.serviceCompanyId })
+      .from(occupations)
+      .where(eq(occupations.id, occupationId))
+      .limit(1);
     if (!career) throw new RecordRefusal(400, 'That career does not exist.', { field: 'occupationId' });
+    // A military career is its service's own: no company has a version of it.
+    if (career.service) throw new RecordRefusal(400, 'A military career has no company versions.', { field: 'occupationId' });
     const made = await tx
       .insert(companyCareers)
       .values({ companyId, occupationId, origin: await originOf(tx, actor, companyId), createdBy: actor.id, updatedBy: actor.id })

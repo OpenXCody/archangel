@@ -1,0 +1,1705 @@
+{
+  "note": "The military careers: Navy ratings, Army military occupational specialties and Air Force specialties whose work five or more skills of the catalogue describe. Each is a career with a service: `service` is the service's key (the employer is the company of data/careers/military/employers.json), `code` the service's code for the job and `codeSystem` the system it is in, `officialTitle` the service's own name for the job and `title` that name with the service in front, because a title is unique and the civilian catalogue has its own Electronics Technician. `home` is a domain of data/skills/taxonomy.json, `what` one sentence, `was` the other names it is found by, `source` the list the code and title were first read from. The words above the name and the tags are derived from the code system and the service (shared/military.ts); the civilian careers a career reaches are computed from the two paths. Every code and title was checked against the Defense Manpower Data Center's occupation file of July 2024, published with O*NET's crosswalk files: `dropped` lists the delivered codes it marks obsolete, and a title that differed was corrected to the file's, the delivered one kept under `was`. Left out on purpose: operators with no maintenance work, IT and cyber, medical other than biomedical equipment, construction trades with no plant equivalent, supply and administration, explosive ordnance disposal and supervisors' codes. The Marine Corps has no careers yet. scripts/build-military-sql.mjs turns this file into a migration (0063); it has no ladder (`leadsTo`): none is curated.",
+  "dropped": [
+    {
+      "code": "91G",
+      "codeSystem": "army-mos",
+      "title": "Army Fire Control Repairer",
+      "why": "Obsolete since October 2018 in the Defense Manpower Data Center file."
+    },
+    {
+      "code": "2A7X5",
+      "codeSystem": "afsc",
+      "title": "Air Force Low Observable Aircraft Structural Maintenance",
+      "why": "Obsolete since April 2024 in the Defense Manpower Data Center file."
+    }
+  ],
+  "careers": [
+    {
+      "title": "Navy Aviation Machinist's Mate",
+      "officialTitle": "Aviation Machinist's Mate",
+      "service": "navy",
+      "code": "AD",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Maintains aircraft engines, propellers and their fuel and drive systems.",
+      "was": [
+        "Navy AD",
+        "AD Aviation Machinist's Mate"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Aviation Electrician's Mate",
+      "officialTitle": "Aviation Electrician's Mate",
+      "service": "navy",
+      "code": "AE",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Maintains aircraft electrical power, lighting and instrument systems.",
+      "was": [
+        "Navy AE",
+        "AE Aviation Electrician's Mate"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Aviation Structural Mechanic",
+      "officialTitle": "Aviation Structural Mechanic",
+      "service": "navy",
+      "code": "AM",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Repairs airframes and maintains aircraft hydraulics, landing gear and flight controls.",
+      "was": [
+        "Navy AM",
+        "AM Aviation Structural Mechanic"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Aviation Structural Mechanic (Safety Equipment)",
+      "officialTitle": "Aviation Structural Mechanic (Safety Equipment)",
+      "service": "navy",
+      "code": "AME",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Maintains ejection seats and aircraft oxygen, pressurization and air conditioning systems.",
+      "was": [
+        "Navy AME",
+        "AME Aviation Structural Mechanic (Safety Equipment)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Aviation Ordnanceman",
+      "officialTitle": "Aviation Ordnanceman",
+      "service": "navy",
+      "code": "AO",
+      "codeSystem": "navy-rating",
+      "home": "assembly",
+      "what": "Builds up and loads aircraft weapons and maintains the armament systems that carry them.",
+      "was": [
+        "Navy AO",
+        "AO Aviation Ordnanceman"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Aviation Support Equipment Technician",
+      "officialTitle": "Aviation Support Equipment Technician",
+      "service": "navy",
+      "code": "AS",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Repairs the ground equipment that powers, lifts and services aircraft.",
+      "was": [
+        "Navy AS",
+        "AS Aviation Support Equipment Technician"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Aviation Electronics Technician",
+      "officialTitle": "Aviation Electronics Technician",
+      "service": "navy",
+      "code": "AT",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Maintains aircraft radar, communications, navigation and electronic warfare systems, on the aircraft and at the bench.",
+      "was": [
+        "Navy AT",
+        "AT Aviation Electronics Technician"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Aircrew Survival Equipmentman",
+      "officialTitle": "Aircrew Survival Equipmentman",
+      "service": "navy",
+      "code": "PR",
+      "codeSystem": "navy-rating",
+      "home": "assembly",
+      "what": "Packs parachutes and inspects and repairs aircrew survival and flight equipment.",
+      "was": [
+        "Navy PR",
+        "PR Aircrew Survival Equipmentman"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Aviation Boatswain's Mate (Launching and Recovery Equipment)",
+      "officialTitle": "Aviation Boatswain's Mate (Launching and Recovery Equipment)",
+      "service": "navy",
+      "code": "ABE",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Operates and maintains aircraft carrier catapults and arresting gear.",
+      "was": [
+        "Navy Aviation Boatswain's Mate (Launch and Recovery Equipment)",
+        "Navy ABE",
+        "ABE Aviation Boatswain's Mate (Launch and Recovery Equipment)",
+        "ABE Aviation Boatswain's Mate (Launching and Recovery Equipment)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Aviation Boatswain's Mate (Fuels)",
+      "officialTitle": "Aviation Boatswain's Mate (Fuels)",
+      "service": "navy",
+      "code": "ABF",
+      "codeSystem": "navy-rating",
+      "home": "process",
+      "what": "Runs and maintains aviation fuel systems and tests the fuel.",
+      "was": [
+        "Navy ABF",
+        "ABF Aviation Boatswain's Mate (Fuels)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Machinist's Mate",
+      "officialTitle": "Machinist's Mate",
+      "service": "navy",
+      "code": "MM",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Operates and maintains ship propulsion machinery and its auxiliary systems.",
+      "was": [
+        "Navy MM",
+        "MM Machinist's Mate"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Engineman",
+      "officialTitle": "Engineman",
+      "service": "navy",
+      "code": "EN",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Operates, maintains and overhauls diesel engines and auxiliary machinery.",
+      "was": [
+        "Navy EN",
+        "EN Engineman"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Gas Turbine Systems Technician (Mechanical)",
+      "officialTitle": "Gas Turbine Systems Technician (Mechanical)",
+      "service": "navy",
+      "code": "GSM",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Operates and maintains ship gas turbines, reduction gears and propulsion auxiliaries.",
+      "was": [
+        "Navy GSM",
+        "GSM Gas Turbine Systems Technician (Mechanical)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Gas Turbine Systems Technician (Electrical)",
+      "officialTitle": "Gas Turbine Systems Technician (Electrical)",
+      "service": "navy",
+      "code": "GSE",
+      "codeSystem": "navy-rating",
+      "home": "automation",
+      "what": "Maintains the electrical and electronic controls of gas turbine propulsion plants.",
+      "was": [
+        "Navy GSE",
+        "GSE Gas Turbine Systems Technician (Electrical)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Electrician's Mate",
+      "officialTitle": "Electrician's Mate",
+      "service": "navy",
+      "code": "EM",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Operates and maintains ship power generation, distribution, motors and lighting.",
+      "was": [
+        "Navy EM",
+        "EM Electrician's Mate"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Interior Communications Electrician",
+      "officialTitle": "Interior Communications Electrician",
+      "service": "navy",
+      "code": "IC",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Maintains ship interior communication, alarm, indicating and gyrocompass systems.",
+      "was": [
+        "Navy IC",
+        "IC Interior Communications Electrician"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Hull Maintenance Technician",
+      "officialTitle": "Hull Maintenance Technician",
+      "service": "navy",
+      "code": "HT",
+      "codeSystem": "navy-rating",
+      "home": "fabrication",
+      "what": "Welds, brazes, cuts and fabricates ship structure, sheet metal and piping, and tests the repair.",
+      "was": [
+        "Navy HT",
+        "HT Hull Maintenance Technician"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Machinery Repairman",
+      "officialTitle": "Machinery Repairman",
+      "service": "navy",
+      "code": "MR",
+      "codeSystem": "navy-rating",
+      "home": "machining",
+      "what": "Machines and makes replacement parts in a ship or shore machine shop.",
+      "was": [
+        "Navy MR",
+        "MR Machinery Repairman"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Machinist's Mate (Nuclear Power)",
+      "officialTitle": "Machinist's Mate (Nuclear Power)",
+      "service": "navy",
+      "code": "MMN",
+      "codeSystem": "navy-rating",
+      "home": "process",
+      "what": "Operates and maintains the mechanical systems of a naval reactor plant.",
+      "was": [
+        "Navy Machinist's Mate (Nuclear)",
+        "Navy MMN",
+        "MMN Machinist's Mate (Nuclear)",
+        "MMN Machinist's Mate (Nuclear Power)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Electrician's Mate (Nuclear Power)",
+      "officialTitle": "Electrician's Mate (Nuclear Power)",
+      "service": "navy",
+      "code": "EMN",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Operates and maintains the electrical generation and distribution of a naval reactor plant.",
+      "was": [
+        "Navy Electrician's Mate (Nuclear)",
+        "Navy EMN",
+        "EMN Electrician's Mate (Nuclear)",
+        "EMN Electrician's Mate (Nuclear Power)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Electronics Technician (Nuclear Power)",
+      "officialTitle": "Electronics Technician (Nuclear Power)",
+      "service": "navy",
+      "code": "ETN",
+      "codeSystem": "navy-rating",
+      "home": "process",
+      "what": "Operates a naval reactor and maintains its instrumentation and control.",
+      "was": [
+        "Navy Electronics Technician (Nuclear)",
+        "Navy ETN",
+        "ETN Electronics Technician (Nuclear)",
+        "ETN Electronics Technician (Nuclear Power)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Machinist's Mate (Non-Nuclear, Submarine Auxiliary)",
+      "officialTitle": "Machinist's Mate (Non-Nuclear, Submarine Auxiliary)",
+      "service": "navy",
+      "code": "MMA",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Maintains submarine hydraulics, air, refrigeration and the diesel.",
+      "was": [
+        "Navy Machinist's Mate (Auxiliary)",
+        "Navy MMA",
+        "MMA Machinist's Mate (Auxiliary)",
+        "MMA Machinist's Mate (Non-Nuclear, Submarine Auxiliary)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Torpedoman's Mate",
+      "officialTitle": "Torpedoman's Mate",
+      "service": "navy",
+      "code": "TM",
+      "codeSystem": "navy-rating",
+      "home": "assembly",
+      "what": "Maintains submarine torpedoes, missiles and their launch and handling systems.",
+      "was": [
+        "Navy TM",
+        "TM Torpedoman's Mate"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Fire Control Technician",
+      "officialTitle": "Fire Control Technician",
+      "service": "navy",
+      "code": "FT",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Operates and maintains submarine combat control systems.",
+      "was": [
+        "Navy FT",
+        "FT Fire Control Technician"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Missile Technician",
+      "officialTitle": "Missile Technician",
+      "service": "navy",
+      "code": "MT",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Maintains the strategic missiles and launch systems of ballistic missile submarines.",
+      "was": [
+        "Navy MT",
+        "MT Missile Technician"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Sonar Technician (Submarine)",
+      "officialTitle": "Sonar Technician (Submarine)",
+      "service": "navy",
+      "code": "STS",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Operates and maintains submarine sonar.",
+      "was": [
+        "Navy STS",
+        "STS Sonar Technician (Submarine)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Sonar Technician (Surface)",
+      "officialTitle": "Sonar Technician (Surface)",
+      "service": "navy",
+      "code": "STG",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Operates and maintains surface ship sonar and underwater weapon control.",
+      "was": [
+        "Navy STG",
+        "STG Sonar Technician (Surface)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Electronics Technician (Submarine, Navigation)",
+      "officialTitle": "Electronics Technician (Submarine, Navigation)",
+      "service": "navy",
+      "code": "ETV",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Maintains submarine navigation, radar and communication electronics.",
+      "was": [
+        "Navy Electronics Technician (Navigation)",
+        "Navy ETV",
+        "ETV Electronics Technician (Navigation)",
+        "ETV Electronics Technician (Submarine, Navigation)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Electronics Technician",
+      "officialTitle": "Electronics Technician",
+      "service": "navy",
+      "code": "ET",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Maintains ship radar, communication and navigation electronics.",
+      "was": [
+        "Navy ET",
+        "ET Electronics Technician"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Fire Controlman",
+      "officialTitle": "Fire Controlman",
+      "service": "navy",
+      "code": "FC",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Maintains ship weapon control systems and their radars.",
+      "was": [
+        "Navy FC",
+        "FC Fire Controlman"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Fire Controlman (Aegis)",
+      "officialTitle": "Fire Controlman (Aegis)",
+      "service": "navy",
+      "code": "FCA",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Maintains the Aegis weapon system and its phased array radar.",
+      "was": [
+        "Navy FCA",
+        "FCA Fire Controlman (Aegis)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Gunner's Mate",
+      "officialTitle": "Gunner's Mate",
+      "service": "navy",
+      "code": "GM",
+      "codeSystem": "navy-rating",
+      "home": "assembly",
+      "what": "Maintains guns, missile launchers, small arms and magazines.",
+      "was": [
+        "Navy GM",
+        "GM Gunner's Mate"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Mineman",
+      "officialTitle": "Mineman",
+      "service": "navy",
+      "code": "MN",
+      "codeSystem": "navy-rating",
+      "home": "assembly",
+      "what": "Assembles and maintains naval mines and mine countermeasures equipment.",
+      "was": [
+        "Navy MN",
+        "MN Mineman"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Cryptologic Technician (Maintenance)",
+      "officialTitle": "Cryptologic Technician (Maintenance)",
+      "service": "navy",
+      "code": "CTM",
+      "codeSystem": "navy-rating",
+      "home": "electronics",
+      "what": "Installs and maintains signals collection and secure communication systems.",
+      "was": [
+        "Navy CTM",
+        "CTM Cryptologic Technician (Maintenance)"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Construction Electrician",
+      "officialTitle": "Construction Electrician",
+      "service": "navy",
+      "code": "CE",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Installs and maintains power generation, distribution and building electrical systems.",
+      "was": [
+        "Navy CE",
+        "CE Construction Electrician"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Construction Mechanic",
+      "officialTitle": "Construction Mechanic",
+      "service": "navy",
+      "code": "CM",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Repairs construction equipment, trucks and tactical vehicles.",
+      "was": [
+        "Navy CM",
+        "CM Construction Mechanic"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Steelworker",
+      "officialTitle": "Steelworker",
+      "service": "navy",
+      "code": "SW",
+      "codeSystem": "navy-rating",
+      "home": "fabrication",
+      "what": "Fabricates, welds and erects steel structures.",
+      "was": [
+        "Navy SW",
+        "SW Steelworker"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Utilitiesman",
+      "officialTitle": "Utilitiesman",
+      "service": "navy",
+      "code": "UT",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Installs and maintains plumbing, heating, cooling, boilers and water treatment.",
+      "was": [
+        "Navy UT",
+        "UT Utilitiesman"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Navy Robotics Warfare Specialist",
+      "officialTitle": "Robotics Warfare Specialist",
+      "service": "navy",
+      "code": "RW",
+      "codeSystem": "navy-rating",
+      "home": "maintenance",
+      "what": "Operates and maintains unmanned air, surface and undersea systems.",
+      "was": [
+        "Navy RW",
+        "RW Robotics Warfare Specialist"
+      ],
+      "source": "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/NEC_Chap_3_Apr_25.pdf"
+    },
+    {
+      "title": "Army Aircraft Powerplant Repairer",
+      "officialTitle": "Aircraft Powerplant Repairer",
+      "service": "army",
+      "code": "15B",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Repairs and overhauls Army aircraft turbine engines.",
+      "was": [
+        "Army 15B",
+        "15B Aircraft Powerplant Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Aircraft Powertrain Repairer",
+      "officialTitle": "Aircraft Powertrain Repairer",
+      "service": "army",
+      "code": "15D",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Repairs helicopter transmissions, gearboxes, rotor heads and drive shafts.",
+      "was": [
+        "Army 15D",
+        "15D Aircraft Powertrain Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Aircraft Electrician",
+      "officialTitle": "Aircraft Electrician",
+      "service": "army",
+      "code": "15F",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Maintains Army aircraft electrical systems.",
+      "was": [
+        "Army 15F",
+        "15F Aircraft Electrician"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Aircraft Structural Repairer",
+      "officialTitle": "Aircraft Structural Repairer",
+      "service": "army",
+      "code": "15G",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Repairs the sheet metal and composite structure of Army aircraft.",
+      "was": [
+        "Army 15G",
+        "15G Aircraft Structural Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Aircraft Pneudraulics Repairer",
+      "officialTitle": "Aircraft Pneudraulics Repairer",
+      "service": "army",
+      "code": "15H",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Repairs aircraft hydraulic and pneumatic systems and makes their lines.",
+      "was": [
+        "Army 15H",
+        "15H Aircraft Pneudraulics Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army MQ-1 Repairer",
+      "officialTitle": "MQ-1 Repairer",
+      "service": "army",
+      "code": "15M",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Maintains the Gray Eagle unmanned aircraft and its ground equipment.",
+      "was": [
+        "Army MQ-1 (Gray Eagle) Repairer",
+        "Army 15M",
+        "15M MQ-1 (Gray Eagle) Repairer",
+        "15M MQ-1 Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Avionic Mechanic",
+      "officialTitle": "Avionic Mechanic",
+      "service": "army",
+      "code": "15N",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Maintains the communication, navigation and flight control electronics of Army aircraft.",
+      "was": [
+        "Army 15N",
+        "15N Avionic Mechanic"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army AH-64 Attack Helicopter Repairer",
+      "officialTitle": "AH-64 Attack Helicopter Repairer",
+      "service": "army",
+      "code": "15R",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Maintains the AH-64 Apache airframe, rotor, engines and systems.",
+      "was": [
+        "Army 15R",
+        "15R AH-64 Attack Helicopter Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army UH-60 Helicopter Repairer/Aircrew Member",
+      "officialTitle": "UH-60 Helicopter Repairer/Aircrew Member",
+      "service": "army",
+      "code": "15T",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Maintains the UH-60 Black Hawk airframe, rotor, engines and systems.",
+      "was": [
+        "Army UH-60 Helicopter Repairer",
+        "Army 15T",
+        "15T UH-60 Helicopter Repairer",
+        "15T UH-60 Helicopter Repairer/Aircrew Member"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army CH-47 Helicopter Repairer/Aircrew Member",
+      "officialTitle": "CH-47 Helicopter Repairer/Aircrew Member",
+      "service": "army",
+      "code": "15U",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Maintains the CH-47 Chinook airframe, rotors, engines and systems.",
+      "was": [
+        "Army CH-47 Helicopter Repairer",
+        "Army 15U",
+        "15U CH-47 Helicopter Repairer",
+        "15U CH-47 Helicopter Repairer/Aircrew Member"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army AH-64 Armament/Electrical/Avionics Systems Repairer",
+      "officialTitle": "AH-64 Armament/Electrical/Avionics Systems Repairer",
+      "service": "army",
+      "code": "15Y",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Maintains the weapons, electrical and avionic systems of the AH-64 Apache.",
+      "was": [
+        "Army AH-64D Armament/Electrical/Avionic Systems Repairer",
+        "Army 15Y",
+        "15Y AH-64D Armament/Electrical/Avionic Systems Repairer",
+        "15Y AH-64 Armament/Electrical/Avionics Systems Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Plumber",
+      "officialTitle": "Plumber",
+      "service": "army",
+      "code": "12K",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Installs and repairs piping, plumbing and water systems.",
+      "was": [
+        "Army 12K",
+        "12K Plumber"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Prime Power Production Specialist",
+      "officialTitle": "Prime Power Production Specialist",
+      "service": "army",
+      "code": "12P",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Runs and maintains power plants and medium voltage distribution.",
+      "was": [
+        "Army 12P",
+        "12P Prime Power Production Specialist"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Interior Electrician",
+      "officialTitle": "Interior Electrician",
+      "service": "army",
+      "code": "12R",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Installs and maintains building electrical systems.",
+      "was": [
+        "Army 12R",
+        "12R Interior Electrician"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army PATRIOT Fire Control Enhanced Operator/Maintainer",
+      "officialTitle": "PATRIOT Fire Control Enhanced Operator/Maintainer",
+      "service": "army",
+      "code": "14E",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Operates and maintains the Patriot radar and engagement control station.",
+      "was": [
+        "Army 14E",
+        "14E PATRIOT Fire Control Enhanced Operator/Maintainer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army PATRIOT Launching Station Enhanced Operator/Maintainer",
+      "officialTitle": "PATRIOT Launching Station Enhanced Operator/Maintainer",
+      "service": "army",
+      "code": "14T",
+      "codeSystem": "army-mos",
+      "home": "assembly",
+      "what": "Operates and maintains Patriot missile launching stations.",
+      "was": [
+        "Army 14T",
+        "14T PATRIOT Launching Station Enhanced Operator/Maintainer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Biomedical Equipment Specialist",
+      "officialTitle": "Biomedical Equipment Specialist",
+      "service": "army",
+      "code": "68A",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Installs, calibrates and repairs medical equipment.",
+      "was": [
+        "Army 68A",
+        "68A Biomedical Equipment Specialist"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Watercraft Engineer",
+      "officialTitle": "Watercraft Engineer",
+      "service": "army",
+      "code": "88L",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Operates and repairs the engines and auxiliary machinery of Army watercraft.",
+      "was": [
+        "Army 88L",
+        "88L Watercraft Engineer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Ammunition Specialist",
+      "officialTitle": "Ammunition Specialist",
+      "service": "army",
+      "code": "89B",
+      "codeSystem": "army-mos",
+      "home": "assembly",
+      "what": "Receives, stores, inspects and issues ammunition and explosives.",
+      "was": [
+        "Army 89B",
+        "89B Ammunition Specialist"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army M1 Abrams Tank System Maintainer",
+      "officialTitle": "M1 Abrams Tank System Maintainer",
+      "service": "army",
+      "code": "91A",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Maintains the Abrams tank: hull, turret, power pack and fire control.",
+      "was": [
+        "Army 91A",
+        "91A M1 Abrams Tank System Maintainer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Wheeled Vehicle Mechanic",
+      "officialTitle": "Wheeled Vehicle Mechanic",
+      "service": "army",
+      "code": "91B",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Maintains and repairs Army trucks and wheeled vehicles.",
+      "was": [
+        "Army 91B",
+        "91B Wheeled Vehicle Mechanic"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Utilities Equipment Repairer",
+      "officialTitle": "Utilities Equipment Repairer",
+      "service": "army",
+      "code": "91C",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Repairs heating, air conditioning and refrigeration equipment.",
+      "was": [
+        "Army 91C",
+        "91C Utilities Equipment Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Tactical Power Generation Specialist",
+      "officialTitle": "Tactical Power Generation Specialist",
+      "service": "army",
+      "code": "91D",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Repairs tactical generators and their engines.",
+      "was": [
+        "Army Power Generation Equipment Repairer",
+        "Army 91D",
+        "91D Power Generation Equipment Repairer",
+        "91D Tactical Power Generation Specialist"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Allied Trades Specialist",
+      "officialTitle": "Allied Trades Specialist",
+      "service": "army",
+      "code": "91E",
+      "codeSystem": "army-mos",
+      "home": "machining",
+      "what": "Machines and welds parts to repair Army equipment.",
+      "was": [
+        "Army 91E",
+        "91E Allied Trades Specialist"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Small Arms/Towed Artillery Repairer",
+      "officialTitle": "Small Arms/Towed Artillery Repairer",
+      "service": "army",
+      "code": "91F",
+      "codeSystem": "army-mos",
+      "home": "assembly",
+      "what": "Repairs small arms and towed artillery.",
+      "was": [
+        "Army 91F",
+        "91F Small Arms/Towed Artillery Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Tracked Vehicle Repairer",
+      "officialTitle": "Tracked Vehicle Repairer",
+      "service": "army",
+      "code": "91H",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Repairs tracked vehicles and their power packs.",
+      "was": [
+        "Army Track Vehicle Repairer",
+        "Army 91H",
+        "91H Track Vehicle Repairer",
+        "91H Tracked Vehicle Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Quartermaster and Chemical Equipment Repairer",
+      "officialTitle": "Quartermaster and Chemical Equipment Repairer",
+      "service": "army",
+      "code": "91J",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Repairs pumps, water purification, laundry and decontamination equipment.",
+      "was": [
+        "Army 91J",
+        "91J Quartermaster and Chemical Equipment Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Construction Equipment Repairer",
+      "officialTitle": "Construction Equipment Repairer",
+      "service": "army",
+      "code": "91L",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Repairs earthmoving and construction equipment.",
+      "was": [
+        "Army 91L",
+        "91L Construction Equipment Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Bradley Fighting Vehicle System Maintainer",
+      "officialTitle": "Bradley Fighting Vehicle System Maintainer",
+      "service": "army",
+      "code": "91M",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Maintains the Bradley: hull, turret, power pack and fire control.",
+      "was": [
+        "Army 91M",
+        "91M Bradley Fighting Vehicle System Maintainer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Self Propelled Artillery Systems Mechanic",
+      "officialTitle": "Self Propelled Artillery Systems Mechanic",
+      "service": "army",
+      "code": "91P",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Maintains self-propelled howitzers: hull, cannon, power pack and fire control.",
+      "was": [
+        "Army Self Propelled Artillery Systems Maintainer",
+        "Army 91P",
+        "91P Self Propelled Artillery Systems Maintainer",
+        "91P Self Propelled Artillery Systems Mechanic"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Stryker Systems Maintainer",
+      "officialTitle": "Stryker Systems Maintainer",
+      "service": "army",
+      "code": "91S",
+      "codeSystem": "army-mos",
+      "home": "maintenance",
+      "what": "Maintains the Stryker vehicle and its weapon station.",
+      "was": [
+        "Army 91S",
+        "91S Stryker Systems Maintainer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Petroleum Laboratory Specialist",
+      "officialTitle": "Petroleum Laboratory Specialist",
+      "service": "army",
+      "code": "92L",
+      "codeSystem": "army-mos",
+      "home": "process",
+      "what": "Samples and tests fuel and petroleum products.",
+      "was": [
+        "Army 92L",
+        "92L Petroleum Laboratory Specialist"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Parachute Rigger",
+      "officialTitle": "Parachute Rigger",
+      "service": "army",
+      "code": "92R",
+      "codeSystem": "army-mos",
+      "home": "assembly",
+      "what": "Packs and repairs personnel and cargo parachutes and rigs loads for airdrop.",
+      "was": [
+        "Army 92R",
+        "92R Parachute Rigger"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Land Combat Electronic Missile System Repairer",
+      "officialTitle": "Land Combat Electronic Missile System Repairer",
+      "service": "army",
+      "code": "94A",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Repairs the electronics of anti-tank and other land combat missile systems.",
+      "was": [
+        "Army 94A",
+        "94A Land Combat Electronic Missile System Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Air Traffic Control Equipment Repairer",
+      "officialTitle": "Air Traffic Control Equipment Repairer",
+      "service": "army",
+      "code": "94D",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Repairs air traffic control radars, radios and landing systems.",
+      "was": [
+        "Army 94D",
+        "94D Air Traffic Control Equipment Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Radio Equipment Repairer",
+      "officialTitle": "Radio Equipment Repairer",
+      "service": "army",
+      "code": "94E",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Repairs radios and secure communication equipment.",
+      "was": [
+        "Army Radio and Communications Security Equipment Repairer",
+        "Army 94E",
+        "94E Radio and Communications Security Equipment Repairer",
+        "94E Radio Equipment Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Computer/Detection Systems Repairer",
+      "officialTitle": "Computer/Detection Systems Repairer",
+      "service": "army",
+      "code": "94F",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Repairs computers, detection systems and their electronic assemblies.",
+      "was": [
+        "Army 94F",
+        "94F Computer/Detection Systems Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Test, Measurement and Diagnostic Equipment Maintenance Support Specialist",
+      "officialTitle": "Test, Measurement and Diagnostic Equipment Maintenance Support Specialist",
+      "service": "army",
+      "code": "94H",
+      "codeSystem": "army-mos",
+      "home": "quality",
+      "what": "Calibrates and repairs test and measuring equipment.",
+      "was": [
+        "Army 94H",
+        "94H Test, Measurement and Diagnostic Equipment Maintenance Support Specialist"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Radar Repairer",
+      "officialTitle": "Radar Repairer",
+      "service": "army",
+      "code": "94M",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Repairs ground radars.",
+      "was": [
+        "Army 94M",
+        "94M Radar Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Multiple Launch Rocket System Repairer",
+      "officialTitle": "Multiple Launch Rocket System Repairer",
+      "service": "army",
+      "code": "94P",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Repairs the electronics, hydraulics and launcher of rocket artillery systems.",
+      "was": [
+        "Army 94P",
+        "94P Multiple Launch Rocket System Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Avionic and Survivability Equipment Repairer",
+      "officialTitle": "Avionic and Survivability Equipment Repairer",
+      "service": "army",
+      "code": "94R",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Repairs aircraft avionics and survivability equipment at the bench.",
+      "was": [
+        "Army 94R",
+        "94R Avionic and Survivability Equipment Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army PATRIOT System Repairer",
+      "officialTitle": "PATRIOT System Repairer",
+      "service": "army",
+      "code": "94S",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Repairs the Patriot radar, engagement control station and launchers.",
+      "was": [
+        "Army 94S",
+        "94S PATRIOT System Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Short Range Air Defense System Repairer",
+      "officialTitle": "Short Range Air Defense System Repairer",
+      "service": "army",
+      "code": "94T",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Repairs the Avenger air defense system.",
+      "was": [
+        "Army AVENGER System Repairer",
+        "Army 94T",
+        "94T AVENGER System Repairer",
+        "94T Short Range Air Defense System Repairer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Army Automatic Test Systems Operator/Maintainer",
+      "officialTitle": "Automatic Test Systems Operator/Maintainer",
+      "service": "army",
+      "code": "94Y",
+      "codeSystem": "army-mos",
+      "home": "electronics",
+      "what": "Runs and maintains automated test stations to repair electronic assemblies.",
+      "was": [
+        "Army Integrated Family of Test Equipment Operator/Maintainer",
+        "Army 94Y",
+        "94Y Integrated Family of Test Equipment Operator/Maintainer",
+        "94Y Automatic Test Systems Operator/Maintainer"
+      ],
+      "source": "https://cavac.at/cavacopedia/List_of_United_States_Army_careers"
+    },
+    {
+      "title": "Air Force Aircrew Flight Equipment",
+      "officialTitle": "Aircrew Flight Equipment",
+      "service": "air-force",
+      "code": "1P0X1",
+      "codeSystem": "afsc",
+      "home": "assembly",
+      "what": "Inspects, maintains and packs parachutes, helmets, oxygen and survival equipment.",
+      "was": [
+        "Air Force 1P0X1",
+        "1P0X1 Aircrew Flight Equipment"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Avionics Test Station, Components and Electronic Warfare Systems",
+      "officialTitle": "Avionics Test Station, Components and Electronic Warfare Systems",
+      "service": "air-force",
+      "code": "2A0X1",
+      "codeSystem": "afsc",
+      "home": "electronics",
+      "what": "Repairs avionics and electronic warfare units on automated test stations.",
+      "was": [
+        "Air Force Avionics Test Station and Components",
+        "Air Force 2A0X1",
+        "2A0X1 Avionics Test Station and Components",
+        "2A0X1 Avionics Test Station, Components and Electronic Warfare Systems"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Tactical Aircraft Maintenance",
+      "officialTitle": "Tactical Aircraft Maintenance",
+      "service": "air-force",
+      "code": "2A3X3",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Crew chief on fighter aircraft: inspects, services, launches and repairs.",
+      "was": [
+        "Air Force 2A3X3",
+        "2A3X3 Tactical Aircraft Maintenance"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Fighter Aircraft Integrated Avionics",
+      "officialTitle": "Fighter Aircraft Integrated Avionics",
+      "service": "air-force",
+      "code": "2A3X4",
+      "codeSystem": "afsc",
+      "home": "electronics",
+      "what": "Maintains the avionics of A-10, F-15 and F-16 aircraft on the flight line.",
+      "was": [
+        "Air Force 2A3X4",
+        "2A3X4 Fighter Aircraft Integrated Avionics"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Advanced Fighter Aircraft Integrated Avionics",
+      "officialTitle": "Advanced Fighter Aircraft Integrated Avionics",
+      "service": "air-force",
+      "code": "2A3X5",
+      "codeSystem": "afsc",
+      "home": "electronics",
+      "what": "Maintains the avionics of F-22, F-35 and remotely piloted aircraft.",
+      "was": [
+        "Air Force 2A3X5",
+        "2A3X5 Advanced Fighter Aircraft Integrated Avionics"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Tactical Aircraft Maintenance (5th Generation)",
+      "officialTitle": "Tactical Aircraft Maintenance (5th Generation)",
+      "service": "air-force",
+      "code": "2A3X7",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Crew chief on F-22 and F-35 aircraft.",
+      "was": [
+        "Air Force 2A3X7",
+        "2A3X7 Tactical Aircraft Maintenance (5th Generation)"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Remotely Piloted Aircraft Maintenance",
+      "officialTitle": "Remotely Piloted Aircraft Maintenance",
+      "service": "air-force",
+      "code": "2A3X8",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Maintains MQ-9 and RQ-4 remotely piloted aircraft.",
+      "was": [
+        "Air Force 2A3X8",
+        "2A3X8 Remotely Piloted Aircraft Maintenance"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Airlift/Special Mission Aircraft Maintenance",
+      "officialTitle": "Airlift/Special Mission Aircraft Maintenance",
+      "service": "air-force",
+      "code": "2A5X1",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Crew chief on airlift and special mission aircraft.",
+      "was": [
+        "Air Force 2A5X1",
+        "2A5X1 Airlift/Special Mission Aircraft Maintenance"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Helicopter/Tiltrotor Aircraft Maintenance",
+      "officialTitle": "Helicopter/Tiltrotor Aircraft Maintenance",
+      "service": "air-force",
+      "code": "2A5X2",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Maintains helicopters and tiltrotor aircraft.",
+      "was": [
+        "Air Force 2A5X2",
+        "2A5X2 Helicopter/Tiltrotor Aircraft Maintenance"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Refuel/Bomber Aircraft Maintenance",
+      "officialTitle": "Refuel/Bomber Aircraft Maintenance",
+      "service": "air-force",
+      "code": "2A5X4",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Crew chief on tanker and bomber aircraft.",
+      "was": [
+        "Air Force 2A5X4",
+        "2A5X4 Refuel/Bomber Aircraft Maintenance"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Aerospace Propulsion",
+      "officialTitle": "Aerospace Propulsion",
+      "service": "air-force",
+      "code": "2A6X1",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Maintains, removes, tests and repairs aircraft engines.",
+      "was": [
+        "Air Force 2A6X1",
+        "2A6X1 Aerospace Propulsion"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Aerospace Ground Equipment",
+      "officialTitle": "Aerospace Ground Equipment",
+      "service": "air-force",
+      "code": "2A6X2",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Repairs the ground equipment that powers and services aircraft.",
+      "was": [
+        "Air Force 2A6X2",
+        "2A6X2 Aerospace Ground Equipment"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Aircrew Egress Systems",
+      "officialTitle": "Aircrew Egress Systems",
+      "service": "air-force",
+      "code": "2A6X3",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Maintains ejection seats, canopies and their explosive devices.",
+      "was": [
+        "Air Force 2A6X3",
+        "2A6X3 Aircrew Egress Systems"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Aircraft Fuel Systems",
+      "officialTitle": "Aircraft Fuel Systems",
+      "service": "air-force",
+      "code": "2A6X4",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Repairs aircraft fuel tanks, cells and fuel system components.",
+      "was": [
+        "Air Force 2A6X4",
+        "2A6X4 Aircraft Fuel Systems"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Aircraft Hydraulic Systems",
+      "officialTitle": "Aircraft Hydraulic Systems",
+      "service": "air-force",
+      "code": "2A6X5",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Repairs aircraft hydraulic systems and components.",
+      "was": [
+        "Air Force 2A6X5",
+        "2A6X5 Aircraft Hydraulic Systems"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Aircraft Electrical and Environmental Systems",
+      "officialTitle": "Aircraft Electrical and Environmental Systems",
+      "service": "air-force",
+      "code": "2A6X6",
+      "codeSystem": "afsc",
+      "home": "electronics",
+      "what": "Maintains aircraft electrical, pressurization, air conditioning and oxygen systems.",
+      "was": [
+        "Air Force 2A6X6",
+        "2A6X6 Aircraft Electrical and Environmental Systems"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Aircraft Metals Technology",
+      "officialTitle": "Aircraft Metals Technology",
+      "service": "air-force",
+      "code": "2A7X1",
+      "codeSystem": "afsc",
+      "home": "machining",
+      "what": "Machines and welds aircraft and support equipment parts.",
+      "was": [
+        "Air Force 2A7X1",
+        "2A7X1 Aircraft Metals Technology"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Nondestructive Inspection",
+      "officialTitle": "Nondestructive Inspection",
+      "service": "air-force",
+      "code": "2A7X2",
+      "codeSystem": "afsc",
+      "home": "ndt",
+      "what": "Inspects aircraft structure and parts by penetrant, magnetic particle, eddy current, ultrasonic and radiographic methods.",
+      "was": [
+        "Air Force 2A7X2",
+        "2A7X2 Nondestructive Inspection"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Aircraft Structural Maintenance",
+      "officialTitle": "Aircraft Structural Maintenance",
+      "service": "air-force",
+      "code": "2A7X3",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Repairs aircraft sheet metal and composite structure and applies coatings.",
+      "was": [
+        "Air Force 2A7X3",
+        "2A7X3 Aircraft Structural Maintenance"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Heavy Aircraft Integrated Avionics",
+      "officialTitle": "Heavy Aircraft Integrated Avionics",
+      "service": "air-force",
+      "code": "2A9X4",
+      "codeSystem": "afsc",
+      "home": "electronics",
+      "what": "Maintains the avionics and mission systems of heavy aircraft.",
+      "was": [
+        "Air Force 2A9X4",
+        "2A9X4 Heavy Aircraft Integrated Avionics"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Fuels",
+      "officialTitle": "Fuels",
+      "service": "air-force",
+      "code": "2F0X1",
+      "codeSystem": "afsc",
+      "home": "process",
+      "what": "Receives, stores, tests and issues aviation fuel and cryogenic liquids.",
+      "was": [
+        "Air Force 2F0X1",
+        "2F0X1 Fuels"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Missile and Space Systems Electronic Maintenance",
+      "officialTitle": "Missile and Space Systems Electronic Maintenance",
+      "service": "air-force",
+      "code": "2M0X1",
+      "codeSystem": "afsc",
+      "home": "electronics",
+      "what": "Maintains the electronics of ballistic and cruise missiles.",
+      "was": [
+        "Air Force 2M0X1",
+        "2M0X1 Missile and Space Systems Electronic Maintenance"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Missile and Space Systems Maintenance",
+      "officialTitle": "Missile and Space Systems Maintenance",
+      "service": "air-force",
+      "code": "2M0X2",
+      "codeSystem": "afsc",
+      "home": "assembly",
+      "what": "Handles, installs and maintains missiles and their launch facilities.",
+      "was": [
+        "Air Force 2M0X2",
+        "2M0X2 Missile and Space Systems Maintenance"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Missile and Space Facilities",
+      "officialTitle": "Missile and Space Facilities",
+      "service": "air-force",
+      "code": "2M0X3",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Maintains the power, cooling and support systems of missile launch facilities.",
+      "was": [
+        "Air Force 2M0X3",
+        "2M0X3 Missile and Space Facilities"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Precision Measurement Equipment Laboratory",
+      "officialTitle": "Precision Measurement Equipment Laboratory",
+      "service": "air-force",
+      "code": "2P0X1",
+      "codeSystem": "afsc",
+      "home": "quality",
+      "what": "Calibrates and repairs test and measuring equipment.",
+      "was": [
+        "Air Force 2P0X1",
+        "2P0X1 Precision Measurement Equipment Laboratory"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Mission Generation Vehicular Equipment Maintenance",
+      "officialTitle": "Mission Generation Vehicular Equipment Maintenance",
+      "service": "air-force",
+      "code": "2T3X1",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Repairs Air Force vehicles and material handling equipment.",
+      "was": [
+        "Air Force 2T3X1",
+        "2T3X1 Mission Generation Vehicular Equipment Maintenance"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Munitions Systems",
+      "officialTitle": "Munitions Systems",
+      "service": "air-force",
+      "code": "2W0X1",
+      "codeSystem": "afsc",
+      "home": "assembly",
+      "what": "Stores, inspects, assembles and delivers munitions.",
+      "was": [
+        "Air Force 2W0X1",
+        "2W0X1 Munitions Systems"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Aircraft Armament Systems",
+      "officialTitle": "Aircraft Armament Systems",
+      "service": "air-force",
+      "code": "2W1X1",
+      "codeSystem": "afsc",
+      "home": "assembly",
+      "what": "Loads weapons on aircraft and maintains their armament systems.",
+      "was": [
+        "Air Force 2W1X1",
+        "2W1X1 Aircraft Armament Systems"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Nuclear Weapons",
+      "officialTitle": "Nuclear Weapons",
+      "service": "air-force",
+      "code": "2W2X1",
+      "codeSystem": "afsc",
+      "home": "assembly",
+      "what": "Inspects, maintains and handles nuclear weapons.",
+      "was": [
+        "Air Force 2W2X1",
+        "2W2X1 Nuclear Weapons"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Electrical Systems",
+      "officialTitle": "Electrical Systems",
+      "service": "air-force",
+      "code": "3E0X1",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Installs and maintains base electrical distribution and building wiring.",
+      "was": [
+        "Air Force 3E0X1",
+        "3E0X1 Electrical Systems"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Electrical Power Production",
+      "officialTitle": "Electrical Power Production",
+      "service": "air-force",
+      "code": "3E0X2",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Runs and maintains generators and power plants.",
+      "was": [
+        "Air Force 3E0X2",
+        "3E0X2 Electrical Power Production"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Heating, Ventilation, Air Conditioning and Refrigeration",
+      "officialTitle": "Heating, Ventilation, Air Conditioning and Refrigeration",
+      "service": "air-force",
+      "code": "3E1X1",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Installs and repairs heating, cooling and refrigeration systems.",
+      "was": [
+        "Air Force 3E1X1",
+        "3E1X1 Heating, Ventilation, Air Conditioning and Refrigeration"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Water and Fuel Systems Maintenance",
+      "officialTitle": "Water and Fuel Systems Maintenance",
+      "service": "air-force",
+      "code": "3E4X1",
+      "codeSystem": "afsc",
+      "home": "maintenance",
+      "what": "Maintains plumbing, water treatment and fuel distribution systems.",
+      "was": [
+        "Air Force 3E4X1",
+        "3E4X1 Water and Fuel Systems Maintenance"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Biomedical Equipment",
+      "officialTitle": "Biomedical Equipment",
+      "service": "air-force",
+      "code": "4A2X1",
+      "codeSystem": "afsc",
+      "home": "electronics",
+      "what": "Installs, calibrates and repairs medical equipment.",
+      "was": [
+        "Air Force 4A2X1",
+        "4A2X1 Biomedical Equipment"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    },
+    {
+      "title": "Air Force Radar, Airfield and Weather Systems",
+      "officialTitle": "Radar, Airfield and Weather Systems",
+      "service": "air-force",
+      "code": "1C8X3",
+      "codeSystem": "afsc",
+      "home": "electronics",
+      "what": "Maintains ground radar, airfield navigation aids and weather systems.",
+      "was": [
+        "Air Force 1C8X3",
+        "1C8X3 Radar, Airfield and Weather Systems"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Air_Force_Specialty_Code"
+    }
+  ]
+}

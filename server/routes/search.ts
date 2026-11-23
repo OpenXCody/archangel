@@ -4,6 +4,7 @@ import { companies, factories, jobs, occupations, skills } from '../db/schema.js
 import { ilike, or, and, count, eq, sql, type AnyColumn } from 'drizzle-orm';
 import { jobTextFilter } from '../lib/jobSearch.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
+import { civilianCareer } from '../lib/military.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
 import { US_STATES } from '../../shared/states.js';
@@ -261,7 +262,7 @@ router.get('/', async (req: Request, res: Response) => {
             otherName,
           })
           .from(occupations)
-          .where(careerMatches)
+          .where(and(careerMatches, civilianCareer()))
           // A title that matches comes before a career found by another name (the name itself first, then one
           // that starts with the term), and that before one whose description mentions the term.
           .orderBy(
@@ -269,7 +270,7 @@ router.get('/', async (req: Request, res: Response) => {
             byRelevance(occupations.title)
           )
           .limit(maxLimit),
-        db.select({ count: count() }).from(occupations).where(careerMatches),
+        db.select({ count: count() }).from(occupations).where(and(careerMatches, civilianCareer())),
       ]);
 
       const titled = (title: string) => title.toLowerCase().includes(query.toLowerCase());

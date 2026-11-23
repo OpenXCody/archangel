@@ -10,6 +10,7 @@ import { industryByName, industryLabel } from '../../shared/industry.js';
 import { int, rowsOf, text } from '../lib/rows.js';
 import { SKILL_LEVELS } from '../../shared/skillLevels.js';
 import { careerDomains } from '../lib/careers.js';
+import { civilianCareer, civilianPathLine } from '../lib/military.js';
 
 const router = Router();
 
@@ -123,7 +124,7 @@ async function loadCareers(day: string) {
       INNER JOIN occupation_skills os ON os.occupation_id = o.id
       INNER JOIN skills s ON s.id = os.skill_id AND s.level IS NOT NULL
       LEFT JOIN skill_groups sg ON sg.slug = s.group_slug
-      WHERE o.path_status IS NOT NULL
+      WHERE o.path_status IS NOT NULL AND ${civilianCareer('o')}
       GROUP BY o.id
     `)
   ).map((r): CareerCandidate => ({
@@ -176,6 +177,7 @@ async function loadSkillDomains() {
       INNER JOIN skills s ON s.id = os.skill_id
       INNER JOIN skill_groups sg ON sg.slug = s.group_slug
       INNER JOIN skill_domains sd ON sd.slug = sg.domain_slug
+      WHERE ${civilianPathLine('os')}
       GROUP BY s.id, sd.slug
     ), ranked AS (
       SELECT linked.*,
@@ -213,7 +215,7 @@ async function loadSkillFacets() {
       FROM skill_groups sg
       INNER JOIN skill_domains sd ON sd.slug = sg.domain_slug
       WHERE EXISTS (
-        SELECT 1 FROM skills s INNER JOIN occupation_skills os ON os.skill_id = s.id WHERE s.group_slug = sg.slug
+        SELECT 1 FROM skills s INNER JOIN occupation_skills os ON os.skill_id = s.id WHERE s.group_slug = sg.slug AND ${civilianPathLine('os')}
       )
       ORDER BY sd.position, sd.slug, sg.position, sg.slug
     `)

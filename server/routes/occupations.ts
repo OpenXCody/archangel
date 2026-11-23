@@ -13,20 +13,30 @@ import { recordAudit } from '../lib/audit.js';
 import { rowsOf } from '../lib/rows.js';
 import { placeColumns, placeOf } from '../lib/taxonomy.js';
 import { versionsOfCareer } from '../lib/versions.js';
-import { NOT_MILITARY, militaryFacts, militaryOf, serviceColumns, serviceJoin } from '../lib/military.js';
+import { NOT_MILITARY, civilianCareer, militaryCareer, militaryFacts, militaryOf, serviceColumns, serviceJoin } from '../lib/military.js';
+import { isServiceKey } from '../../shared/military.js';
 
 const router = Router();
 router.param('id', uuidParam);
 
-// GET /api/occupations - List occupations with offset-based pagination
+// GET /api/occupations - List occupations with offset-based pagination.
+// The list is of civilian careers: browsing it, searching it, and so the career
+// picker and the job form. Military careers are listed only when asked for:
+// `?military=1` is all of them, `?service=navy` (a service's key) one service's.
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { offset = '0', limit = '20', search, sort, order = 'asc', domain } = req.query;
     const limitNum = pageLimit(limit, 20, 100);
     const offsetNum = pageOffset(offset);
+    const service = req.query.service;
+    if (service !== undefined && service !== '' && !isServiceKey(service)) {
+      res.status(400).json({ error: 'A service is one of navy, army, air-force or marine-corps.' });
+      return;
+    }
+    const which = isServiceKey(service) ? militaryCareer(service) : req.query.military === '1' || req.query.military === 'true' ? militaryCareer(null) : civilianCareer();
     // Narrowed to the careers whose home is one domain (a slug). A slug no
     // domain has matches nothing, as on the skills list.
-    const inDomain = typeof domain === 'string' && domain ? eq(occupations.homeDomain, domain) : undefined;
+    const inDomain = and(which, typeof domain === 'string' && domain ? eq(occupations.homeDomain, domain) : undefined);
 
     // Search reads titles and the other names careers go by, tolerant of
     // "&", punctuation, plurals and word order (see lib/careerSearch.ts). When

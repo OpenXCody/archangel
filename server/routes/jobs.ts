@@ -373,11 +373,13 @@ router.post(
       return res.status(400).json({ error: `Jobs are limited to ${SCOPE.stateName} for now.` });
     }
     const [occupation] = await db
-      .select({ id: occupations.id, title: occupations.title })
+      .select({ id: occupations.id, title: occupations.title, service: occupations.serviceCompanyId })
       .from(occupations)
       .where(eq(occupations.id, occupationId))
       .limit(1);
     if (!occupation) return res.status(400).json({ error: 'That career does not exist.' });
+    // A job is for a civilian career at a plant: the career picker offers no other.
+    if (occupation.service) return res.status(400).json({ error: 'A job cannot be posted for a military career.' });
 
     const parsed = readJobFields(req.body, true);
     if ('error' in parsed) return res.status(400).json({ error: parsed.error });

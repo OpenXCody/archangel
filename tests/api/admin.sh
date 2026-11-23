@@ -139,7 +139,7 @@ check "an alias finds its record"     200 "$(req a GET "/admin/records/company?q
 expect "an unrelated name is not close" 0 "$(req a GET '/admin/records/company/similar?name=Qqzzxxyy%20Widgets' | j records.length)"
 
 # --- Merging a company -------------------------------------------------------
-OCC=$(sql "SELECT occupation_id FROM occupation_skills GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1")
+OCC=$(sql "SELECT os.occupation_id FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id WHERE o.service_company_id IS NULL GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1")
 sql "INSERT INTO jobs (company_id, factory_id, occupation_id, title, expires_at) VALUES ('$CA', '$FA', '$OCC', '$REC Job', now() + interval '30 days')" >/dev/null
 sql "INSERT INTO company_members (company_id, user_id, status) VALUES ('$CA', '$PID', 'active'), ('$CB', '$PID', 'requested'), ('$CA', '$BID', 'active')" >/dev/null
 # What a load of research leaves on a company: people in a state, where its facts came from, and a company that is part of it.
