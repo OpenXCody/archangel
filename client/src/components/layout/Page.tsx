@@ -22,15 +22,20 @@ import { cn, focusRing, labelClass, pageTitleClass, sectionHeadingClass } from '
  *      - the kind, in small capitals above the name: COMPANY, FACTORY, CAREER,
  *        SKILL, INDUSTRY, JOB. Never a pill after the name, never an icon
  *        tile: the word says it once, in the same place on every page;
- *      - the name (h1). A company's mark stands before it on the pages that
- *        belong to one company (company, factory, job): it is who, not what kind;
+ *      - the name (h1). A company's mark stands before it on the company's
+ *        own page: it is who, not what kind;
+ *      - the records the page belongs to, as tags that open them
+ *        (`RecordTag.tsx`): a job's company, factory and career, a factory's
+ *        company, the company and the standard career on a company's version
+ *        of a career. Where a tag names the company its mark is in the tag;
  *      - one paragraph saying what it is, when the record has one;
  *      - one or two quiet lines of facts (where it is, how big, its industry);
  *      - the page's one action, last in the block and always in this place:
  *        Open on the map (company, factory, industry), Set as goal (career),
- *        Not held / Learning / Held (skill). A job's action is a form, so it
- *        is the Apply section that follows the job's terms (for a person
- *        marking skills, the skills first: the company ranks on them).
+ *        Not held / Learning / Held (skill). A job's action is Apply: on
+ *        a job from a company's careers site a button here that opens the
+ *        company's page; on a job posted here a form, so it is the Apply
+ *        section that follows the job's facts.
  *   2. Sections (`DetailSection`: small grey capitals, no counts), always in
  *      this order, leaving out what the page does not have:
  *      a. what it is: the page's own content (a factory's people and what it
