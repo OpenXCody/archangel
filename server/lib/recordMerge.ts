@@ -57,6 +57,13 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
 
     if (kind === 'company') {
       const [gone] = await tx.select().from(companies).where(eq(companies.id, fromId)).limit(1);
+      // A military service is one company. Its careers go to the kept company, which becomes
+      // the service; two different services are never one company.
+      const [keptService] = await tx.select({ service: companies.service }).from(companies).where(eq(companies.id, intoId)).limit(1);
+      if (gone.service && keptService?.service && keptService.service !== gone.service) {
+        throw new RecordRefusal(409, 'These are two different military services. They cannot be merged.');
+      }
+      await tx.execute(sql`UPDATE occupations SET service_company_id = ${intoId} WHERE service_company_id = ${fromId}`);
       await tx.execute(sql`UPDATE factories SET company_id = ${intoId} WHERE company_id = ${fromId}`);
       await tx.execute(sql`UPDATE jobs SET company_id = ${intoId} WHERE company_id = ${fromId}`);
       await tx.execute(sql`UPDATE invites SET company_id = ${intoId} WHERE company_id = ${fromId}`);
@@ -92,6 +99,7 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
             description = COALESCE(NULLIF(btrim(c.description), ''), ${gone.description}),
             industry = CASE WHEN c.industry IS NULL OR lower(btrim(c.industry)) IN ('', 'manufacturing') THEN COALESCE(${gone.industry}, c.industry) ELSE c.industry END,
             featured = c.featured OR ${gone.featured},
+            service = COALESCE(c.service, ${gone.service}),
             slug = COALESCE(c.slug, ${gone.slug}),
             parent_company_id = COALESCE(c.parent_company_id, NULLIF(${gone.parentCompanyId}::uuid, c.id)),
             headquarters_state = CASE WHEN c.headquarters_city IS NULL THEN ${gone.headquartersState} ELSE c.headquarters_state END,
