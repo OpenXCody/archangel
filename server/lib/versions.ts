@@ -61,6 +61,8 @@ export interface VersionMake {
 export interface VersionSkill extends SkillPlace {
   id: string;
   name: string;
+  /** How the skill is learned, in the catalogue's sentence. */
+  howLearned: string | null;
   /** Not on the standard path: the company adds it. */
   added: boolean;
   /** Every make of the skill, in the skill's order, each saying whether the company runs it. */
@@ -198,9 +200,9 @@ export async function readVersion(executor: Executor, companyId: string, occupat
 
   // Every skill the version touches: the standard's, and the ones it adds. In path order.
   const place = placeSql('s');
-  const skillRows = rowsOf<{ id: string; name: string; standard: boolean; change: string | null; level: unknown; group_slug: unknown; group_name: unknown; domain_slug: unknown; domain_name: unknown }>(
+  const skillRows = rowsOf<{ id: string; name: string; how_learned: string | null; standard: boolean; change: string | null; level: unknown; group_slug: unknown; group_name: unknown; domain_slug: unknown; domain_name: unknown }>(
     await executor.execute(sql`
-      SELECT s.id, s.name, ${place.columns}, (os.skill_id IS NOT NULL) AS standard, x.change
+      SELECT s.id, s.name, s.how_learned, ${place.columns}, (os.skill_id IS NOT NULL) AS standard, x.change
       FROM skills s
       LEFT JOIN occupation_skills os ON os.skill_id = s.id AND os.occupation_id = ${occupationId}
       LEFT JOIN company_career_skills x ON x.skill_id = s.id AND x.company_career_id = ${head.id}
@@ -239,6 +241,7 @@ export async function readVersion(executor: Executor, companyId: string, occupat
       id: String(row.id),
       name: String(row.name),
       ...placeOf(row),
+      howLearned: row.how_learned,
       added: !standard,
       // A skill that is left out runs nothing here, whatever was stored before it was.
       makes: out ? makes.map((make) => ({ ...make, runs: false })) : makes,

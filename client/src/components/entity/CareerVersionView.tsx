@@ -94,6 +94,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
     level: skill.level,
     group: skill.group,
     domain: skill.domain,
+    howLearned: skill.howLearned,
     added: skill.added,
     makes: skill.makes.filter((make) => make.runs).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })),
   }));

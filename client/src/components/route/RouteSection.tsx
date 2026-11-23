@@ -13,6 +13,8 @@ interface RouteSectionProps {
   marks: SkillMarks | null;
   /** Whether the route is a seeker's: the section's node is then the ring, even before the marks have arrived. */
   seeker: boolean;
+  /** A route with no trunk (its rows are another control): the line has no node. */
+  plain?: boolean;
   /** The first line of the route, and the last one drawn: where the trunk begins and ends. */
   first: boolean;
   last: boolean;
@@ -26,7 +28,7 @@ interface RouteSectionProps {
  * there ("2 of 4" part done, "4 skills" untouched, nothing when it is whole),
  * then the chevron. Closed, its rows are hidden and out of the tab order.
  */
-export function RouteSection({ section, open, onToggle, marks, seeker, first, last, children }: RouteSectionProps) {
+export function RouteSection({ section, open, onToggle, marks, seeker, plain, first, last, children }: RouteSectionProps) {
   const id = useId();
   const share = marks ? shareOf(section.skills, marks) : null;
   const whole = share !== null && share.held === share.total;
@@ -41,9 +43,11 @@ export function RouteSection({ section, open, onToggle, marks, seeker, first, la
           onClick={onToggle}
           className="route-head-button focus-visible:[outline-offset:-2px]"
         >
-          <span className="route-node" aria-hidden="true">
-            {seeker ? <ShareRing share={share} /> : <span className="route-dot" />}
-          </span>
+          {!plain && (
+            <span className="route-node" aria-hidden="true">
+              {seeker ? <ShareRing share={share} /> : <span className="route-dot" />}
+            </span>
+          )}
           <span className="route-head-name">{section.group.name}</span>
           {!whole && (
             <span className="shrink-0 whitespace-nowrap text-xs tabular-nums text-text-3" data-section-count>

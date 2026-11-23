@@ -145,8 +145,9 @@ export function Route({ skills, marks = null, comesFrom = [], leadsTo = [], rend
       {marks && next.length > 0 && <NextUp skill={next[0]} onGo={goTo} className="route-next" />}
       <div className="route-main">
         <div className="flex min-h-11 items-center justify-between gap-3">
+          {/* Where the rows are switches, the page above says how many are on; the route does not count them again. */}
           <p className={labelClass} data-route-count>
-            {plural(count, 'skill', 'skills')}
+            {plain ? 'Path' : plural(count, 'skill', 'skills')}
           </p>
           {sections.length > 0 && (
             <button
@@ -174,6 +175,7 @@ export function Route({ skills, marks = null, comesFrom = [], leadsTo = [], rend
                 onToggle={() => choose({ [stop.key]: !open })}
                 marks={ready ? marks : null}
                 seeker={Boolean(marks)}
+                plain={plain}
                 first={first}
                 last={last && !open}
               >
