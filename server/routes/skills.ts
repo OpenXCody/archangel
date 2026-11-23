@@ -10,7 +10,7 @@ import { countOpenJobs, listOpenJobs } from '../lib/openJobs.js';
 import { rowsOf } from '../lib/rows.js';
 import { containing } from '../lib/like.js';
 import { findGroup, placeColumns, placeOf, placeSql, readLevel, readTaxonomy } from '../lib/taxonomy.js';
-import { civilianCareer, civilianPathLine } from '../lib/military.js';
+import { civilianCareer, civilianPathLine, militaryCareersUsing } from '../lib/military.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -25,7 +25,8 @@ const onACareer = sql`EXISTS (SELECT 1 FROM occupation_skills WHERE occupation_s
 
 // GET /api/skills/taxonomy - The whole taxonomy in one answer: the three
 // levels, and every domain with its groups and their skills, in the order
-// they are shown. A skill carries its level, how many careers use it and the
+// they are shown. A skill carries its level, how many careers use it
+// (`careers`: civilian careers; `militaryCareers`: military ones) and the
 // names of its makes (`makes`, empty for most).
 // Declared before the routes that take an id.
 router.get('/taxonomy', async (_req: Request, res: Response) => {
@@ -156,8 +157,10 @@ const JOBS_SHOWN = 12;
 // what it is, its level, group and domain, the other skills of its group, its
 // makes (`makes: [{ id, name }]`, the named equipment and software it is run
 // on, in the order they are shown), how it is learned, what it is done with,
-// the careers that use it, the industries those careers work in, the skills
-// that most often share a path with it, and the open jobs that ask for it.
+// the careers that use it (civilian careers; the military careers whose path
+// has it are `militaryOccupations`, each with its kind and code), the
+// industries those careers work in, the skills that most often share a path
+// with it, and the open jobs that ask for it.
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -183,7 +186,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     const { level, groupSlug, groupName, domainSlug, domainName, ...details } = skill;
     const related = placeSql('s');
 
-    const [careers, groupSkills, industryRows, relatedRows, openJobs, makes] = await Promise.all([
+    const [careers, groupSkills, industryRows, relatedRows, openJobs, makes, militaryCareers] = await Promise.all([
       // Every career gives a skill the same level, so they are one list, by title.
       db
         .select({
@@ -237,6 +240,8 @@ router.get('/:id', async (req: Request, res: Response) => {
       `),
       listOpenJobs(sql`EXISTS (SELECT 1 FROM job_skills js WHERE js.job_id = ${jobs.id} AND js.skill_id = ${id})`, JOBS_SHOWN),
       makesOf(db, id),
+      // The military careers whose path has it: listed apart, after everything else on the page.
+      militaryCareersUsing(id),
     ]);
 
     const industries = rowsOf(industryRows);
@@ -248,6 +253,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       groupSkills,
       makes,
       occupations: careers,
+      militaryOccupations: militaryCareers,
       industries: own.slice(0, INDUSTRIES_SHOWN).map((r) => ({ name: String(r.industry), careerCount: Number(r.career_count) || 0 })),
       // Used only by careers found in plants of every industry.
       everywhere: own.length === 0 && industries.length > 0,

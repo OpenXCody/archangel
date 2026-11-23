@@ -2,7 +2,7 @@ import { asc, eq, sql } from 'drizzle-orm';
 import { db, occupationLinks, occupations, skillDomains } from '../db/index.js';
 import type { Executor } from './audit.js';
 import { rowsOf } from './rows.js';
-import { civilianCareer } from './military.js';
+import { civilianCareer, militaryCareer } from './military.js';
 
 /**
  * What a career has beyond its path: a home (the domain most of its work is
@@ -103,11 +103,14 @@ export async function setLeadsTo(executor: Executor, id: string, wanted: string[
 /** The select columns and the join a list of careers reads each row's home with. */
 export const homeColumns = { homeSlug: skillDomains.slug, homeName: skillDomains.name };
 
-/** The domains that are some civilian career's home (the Careers list is of those), in the taxonomy's order. */
-export async function careerDomains(): Promise<CareerHome[]> {
+/**
+ * The domains that are some civilian career's home (the Careers list is of those), in the taxonomy's order;
+ * with `military`, the homes of the military careers, for the list when it was asked for them.
+ */
+export async function careerDomains(military = false): Promise<CareerHome[]> {
   return db
     .select({ slug: skillDomains.slug, name: skillDomains.name })
     .from(skillDomains)
-    .where(sql`EXISTS (SELECT 1 FROM occupations o WHERE o.home_domain = ${skillDomains.slug} AND ${civilianCareer('o')})`)
+    .where(sql`EXISTS (SELECT 1 FROM occupations o WHERE o.home_domain = ${skillDomains.slug} AND ${military ? militaryCareer(null, 'o') : civilianCareer('o')})`)
     .orderBy(asc(skillDomains.position), asc(skillDomains.slug));
 }

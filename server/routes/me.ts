@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { and, eq, sql, type SQL } from 'drizzle-orm';
+import { and, eq, inArray, sql, type SQL } from 'drizzle-orm';
 import {
   db,
   users,
   skills,
   occupations,
+  occupationSkills,
   userSkills,
   userGoals,
   applications,
@@ -20,6 +21,10 @@ import { hasCompanyTie, isPurpose, purposeFrom, type Purpose } from '../lib/purp
 import { rowsOf } from '../lib/rows.js';
 import { pageLimit } from '../lib/paging.js';
 import { markedMakes, setMarkedMakes } from '../lib/makes.js';
+import { jobIsOpen } from '../lib/openJobs.js';
+import { factoryInScope } from '../lib/scope.js';
+import { isUuid } from '../lib/writes.js';
+import { REACH_MIN_PATH } from '../../shared/reach.js';
 
 /** A signed-in person's own data: profile, skills, goals, applications. */
 const router = Router();
@@ -40,8 +45,6 @@ interface NextSkill {
 /** How many careers "within reach" returns, and how many next skills each carries. */
 const REACH_LIMIT = 8;
 const NEXT_SKILLS = 3;
-/** A path shorter than this says too little to rank a career by. */
-const REACH_MIN_PATH = 5;
 
 /**
  * The first skills of a career the person does not hold yet, as a JSON array
@@ -384,7 +387,8 @@ router.delete(
 // holds at least one, and which they have not already chosen as a goal (those
 // are in /goals). `held` counts held skills only, so it is the same figure as
 // the career page's "You have N of M". A skill being learned is not held: it
-// stays in `next`, and counts as half a skill for the order alone.
+// stays in `next`, and counts as half a skill for the order alone. Each career
+// carries `openJobs`, how many jobs are open for it.
 router.get(
   '/careers/reach',
   handle(async (req, res) => {
@@ -415,7 +419,9 @@ router.get(
                  COUNT(*) FILTER (WHERE m.status = 'held') DESC, o.title ASC
         LIMIT ${REACH_LIMIT}
       )
-      SELECT r.id, r.title, r.held, r.total, ${nextSkillsSql(sql`r.id`, userId)} AS next
+      SELECT r.id, r.title, r.held, r.total, ${nextSkillsSql(sql`r.id`, userId)} AS next,
+             (SELECT COUNT(*)::int FROM jobs j INNER JOIN factories f ON f.id = j.factory_id
+               WHERE j.occupation_id = r.id AND ${jobIsOpen('j')} AND ${factoryInScope('f')}) AS open_jobs
       FROM reach r
       ORDER BY (r.held + 0.5 * r.learning) / r.total DESC, r.held DESC, r.title ASC
     `);
@@ -425,8 +431,90 @@ router.get(
       held: Number(row.held),
       total: Number(row.total),
       next: row.next as NextSkill[],
+      // How many jobs are open for it: the row leads to them.
+      openJobs: Number(row.open_jobs) || 0,
     }));
     res.json({ careers });
+  })
+);
+
+// POST /api/me/careers/:occupationId/held - "I have done this": every skill of a
+// military career's path is marked held, in one write. Nothing is kept about
+// which career it was: the person's skills are the record. The answer says
+// what the write changed, which is what its Undo takes back: `added` (skills
+// that were not on the person's list) and `raised` (skills they were learning),
+// by id; a skill already held is in neither. `total` is the path's size.
+// Only a military career is taken this way (400 otherwise): a civilian career
+// is a goal, and its skills are marked one by one.
+router.post(
+  '/careers/:occupationId/held',
+  handle(async (req, res) => {
+    const userId = req.user!.id;
+    const [career] = await db
+      .select({ id: occupations.id, title: occupations.title, service: occupations.serviceCompanyId })
+      .from(occupations)
+      .where(eq(occupations.id, req.params.occupationId))
+      .limit(1);
+    if (!career) return res.status(404).json({ error: 'Career not found' });
+    if (!career.service) return res.status(400).json({ error: 'Only a military career is marked as done. Mark the skills you hold on the career\'s path.' });
+    const changed = rowsOf(
+      await db.execute(sql`
+        WITH path AS (SELECT skill_id FROM occupation_skills WHERE occupation_id = ${career.id}),
+        before AS (
+          SELECT us.skill_id, us.status FROM user_skills us INNER JOIN path p ON p.skill_id = us.skill_id WHERE us.user_id = ${userId}
+        ),
+        written AS (
+          INSERT INTO user_skills (user_id, skill_id, status)
+          SELECT ${userId}, p.skill_id, 'held' FROM path p
+          ON CONFLICT (user_id, skill_id) DO UPDATE SET status = 'held', updated_at = now() WHERE user_skills.status <> 'held'
+          RETURNING skill_id
+        )
+        SELECT w.skill_id, b.status AS was FROM written w LEFT JOIN before b ON b.skill_id = w.skill_id
+      `)
+    );
+    const [path] = await db
+      .select({ total: sql<number>`COUNT(*)::int` })
+      .from(occupationSkills)
+      .where(eq(occupationSkills.occupationId, career.id));
+    res.json({
+      occupationId: career.id,
+      title: career.title,
+      added: changed.filter((row) => row.was === null).map((row) => String(row.skill_id)),
+      raised: changed.filter((row) => row.was !== null).map((row) => String(row.skill_id)),
+      total: path?.total ?? 0,
+    });
+  })
+);
+
+// POST /api/me/careers/:occupationId/held/undo { added: [skill id], raised: [skill id] }
+// - take back what marking the career held changed, as its answer listed it:
+// the skills it added leave the person's list and the ones it raised go back
+// to learning. Only skills of that career's path, and only those still held;
+// a skill the person held before is in neither list and is not touched.
+router.post(
+  '/careers/:occupationId/held/undo',
+  handle(async (req, res) => {
+    const userId = req.user!.id;
+    const ids = (value: unknown): string[] | null =>
+      Array.isArray(value) && value.length <= 500 && value.every(isUuid) ? (value as string[]) : null;
+    const added = ids(req.body?.added ?? []);
+    const raised = ids(req.body?.raised ?? []);
+    if (!added || !raised) return res.status(400).json({ error: 'added and raised are lists of skill ids.' });
+    const onPath = sql`${userSkills.skillId} IN (SELECT os.skill_id FROM occupation_skills os WHERE os.occupation_id = ${req.params.occupationId})`;
+    const stillHeld = and(eq(userSkills.userId, userId), eq(userSkills.status, 'held'), onPath);
+    const removed = await db.transaction(async (tx) => {
+      const gone = added.length > 0 ? await tx.delete(userSkills).where(and(stillHeld, inArray(userSkills.skillId, added))).returning({ skillId: userSkills.skillId }) : [];
+      const back =
+        raised.length > 0
+          ? await tx
+              .update(userSkills)
+              .set({ status: 'learning', updatedAt: new Date() })
+              .where(and(stillHeld, inArray(userSkills.skillId, raised)))
+              .returning({ skillId: userSkills.skillId })
+          : [];
+      return { removed: gone.length, lowered: back.length };
+    });
+    res.json({ occupationId: req.params.occupationId, ...removed });
   })
 );
 

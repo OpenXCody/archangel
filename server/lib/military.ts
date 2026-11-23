@@ -1,7 +1,8 @@
 import { eq, sql, type SQL } from 'drizzle-orm';
-import { companies, occupations } from '../db/index.js';
+import { companies, db, occupations } from '../db/index.js';
 import type { Executor } from './audit.js';
-import { careerKind, isCodeSystem, isServiceKey, type CodeSystemKey, type ServiceKey } from '../../shared/military.js';
+import { rowsOf } from './rows.js';
+import { careerKind, isCodeSystem, isServiceKey, namedCareers, readMilitaryQuery, type CodeSystemKey, type ServiceKey } from '../../shared/military.js';
 
 /**
  * What a military career carries beyond a civilian one, as the API gives it.
@@ -126,4 +127,105 @@ export async function militaryFacts(
 export async function findService(executor: Executor, key: ServiceKey): Promise<CareerService | null> {
   const [row] = await executor.select({ id: companies.id, name: companies.name, slug: companies.slug }).from(companies).where(eq(companies.service, key)).limit(1);
   return row ? { ...row, key } : null;
+}
+
+/** A military career as a list names it: its full title, with what stands in its grey line. */
+export interface MilitaryCareerRow {
+  id: string;
+  title: string;
+  /** "Navy rating", and the service's code for the job. */
+  kind: string | null;
+  code: string | null;
+}
+
+/**
+ * The military careers a search query names, by title: the one exception to
+ * `civilianCareer()` in the site's search. What "names" means is written once,
+ * in shared/military.ts (`readMilitaryQuery`, `namesCareer`): the career's code
+ * typed alone, or its service with words of its title. An ordinary query
+ * ("welder", "electronics technician", "navy") names none, and for most of
+ * those nothing is read here at all.
+ */
+export async function namedMilitaryCareers(query: string): Promise<MilitaryCareerRow[]> {
+  const asked = readMilitaryQuery(query);
+  if (!asked) return [];
+  // The rule is the shared function's; the statement only leaves out careers it could not name:
+  // another service's, or, for a code typed alone, a code of another length.
+  const rows = rowsOf(
+    await db.execute(sql`
+      SELECT o.id, o.title, o.official_title, o.code, o.code_system, c.service,
+             COALESCE((SELECT array_agg(a.alias_text) FROM occupation_aliases a WHERE a.canonical_occupation_id = o.id), '{}') AS names
+      FROM occupations o
+      INNER JOIN companies c ON c.id = o.service_company_id
+      WHERE ${asked.service ? sql`c.service = ${asked.service}` : sql`length(o.code) = ${asked.words[0]?.length ?? 0}`}
+      ORDER BY lower(o.title), o.id
+    `)
+  );
+  return namedCareers(
+    query,
+    rows.map((row) => ({
+      ...asRow(row),
+      service: row.service === null ? null : String(row.service),
+      codeSystem: row.code_system === null ? null : String(row.code_system),
+      officialTitle: row.official_title === null ? null : String(row.official_title),
+      names: Array.isArray(row.names) ? row.names.map(String) : [],
+    }))
+  ).map(({ id, title, kind, code }) => ({ id, title, kind, code }));
+}
+
+function asRow(row: Record<string, unknown>): MilitaryCareerRow {
+  return {
+    id: String(row.id),
+    title: String(row.title),
+    kind: careerKind(row.code_system === null || row.code_system === undefined ? null : String(row.code_system)),
+    code: row.code === null || row.code === undefined ? null : String(row.code),
+  };
+}
+
+/** The military careers whose path has a skill, by title: a skill's page lists them apart from the civilian careers. */
+export async function militaryCareersUsing(skillId: string): Promise<MilitaryCareerRow[]> {
+  return rowsOf(
+    await db.execute(sql`
+      SELECT o.id, o.title, o.code, o.code_system
+      FROM occupation_skills os
+      INNER JOIN occupations o ON o.id = os.occupation_id AND o.service_company_id IS NOT NULL
+      WHERE os.skill_id = ${skillId}
+      ORDER BY lower(o.title), o.id
+    `)
+  ).map(asRow);
+}
+
+/** A service's career, as the service's own page lists it. */
+export interface ServiceCareer extends MilitaryCareerRow {
+  /** The domain most of its work is in, by name. */
+  home: string | null;
+  skillCount: number;
+}
+
+/** A service's careers, by title: what its company page lists in place of plants. */
+export async function careersOfService(companyId: string): Promise<ServiceCareer[]> {
+  return rowsOf(
+    await db.execute(sql`
+      SELECT o.id, o.title, o.code, o.code_system, d.name AS home,
+             (SELECT COUNT(*)::int FROM occupation_skills os WHERE os.occupation_id = o.id) AS skill_count
+      FROM occupations o
+      LEFT JOIN skill_domains d ON d.slug = o.home_domain
+      WHERE o.service_company_id = ${companyId}
+      ORDER BY lower(o.title), o.id
+    `)
+  ).map((row) => ({ ...asRow(row), home: row.home === null ? null : String(row.home), skillCount: Number(row.skill_count) || 0 }));
+}
+
+/**
+ * For a list that was asked for military careers: a career is also found by its
+ * code, typed whole or begun ("ht", "15", "2a3"), which the search of titles and
+ * other names does not read. `where` is the careers whose code begins with the
+ * term; `exact` says the term is the whole code.
+ */
+export function codeMatch(term: string): { where: SQL; exact: SQL } {
+  const code = term.replace(/[^a-z0-9]/gi, '').toLowerCase();
+  return {
+    where: code ? sql`lower(occupations.code) LIKE ${`${code}%`}` : sql`FALSE`,
+    exact: code ? sql`(lower(occupations.code) = ${code})` : sql`FALSE`,
+  };
 }

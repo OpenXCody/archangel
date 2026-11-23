@@ -24,7 +24,7 @@ import { LadderAlone, PathFlow } from '../path/PathFlow';
 import { SkillGroupBox } from '../path/SkillGroupBox';
 import { buildPath, shareOf } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
-import { type Head, UNPLACED, OpenJobsSection, IndustryRows, factLinkClass } from './parts';
+import { type Head, UNPLACED, OpenJobsSection, IndustryRows, MilitaryCareerRows, factLinkClass } from './parts';
 
 // The path on the Atlas arrives with the Atlas's own code, only when that view is asked for.
 const CareerAtlas = lazy(() => import('../atlas/CareerAtlas'));
@@ -55,6 +55,8 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   const onLadder = (data.comesFrom?.length ?? 0) + (data.leadsTo?.length ?? 0) > 0;
   // Companies that say how this career is done with them: each row opens that company's version.
   const versions = data.versions ?? [];
+  // Where people come to this career from the services: computed from the two paths, never stored.
+  const reachedBy = data.reachedBy ?? [];
   const [showAllVersions, setShowAllVersions] = useState(false);
   // The path as a flow, or on the Atlas: from the address, else as last shown in this visit.
   const pathView = usePathView();
@@ -197,6 +199,13 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
               );
             })}
           </RecordList>
+        </DetailSection>
+      )}
+
+      {/* Last, and only when some do: the military careers whose path covers a third or more of this one's. */}
+      {reachedBy.length > 0 && (
+        <DetailSection id="military" title="Military careers that reach this" description="How much of this path each already covers.">
+          <MilitaryCareerRows careers={reachedBy} data-reached-by="" />
         </DetailSection>
       )}
     </>

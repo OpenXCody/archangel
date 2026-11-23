@@ -3,10 +3,9 @@ import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn, focusRing } from '@/lib/utils';
+import { cn, focusRing, plural } from '@/lib/utils';
 import {
   goalNextSkills,
-  nextSkillNames,
   useCareersInReach,
   type NextSkill,
   useAddGoal,
@@ -29,7 +28,7 @@ import GoalPlate, { GoalPlateGround } from '../atlas/GoalPlate';
 import { careerAtlasHref } from '../atlas/pathView';
 import { useAtlasLayout } from '../atlas/useAtlasLayout';
 import { ShareRing } from '../path/HeldShare';
-import { levelName } from '../../lib/stages';
+import { SkillsLine } from '../path/SkillsLine';
 import { accountKeys } from '../../lib/queryKeys';
 import { linkClass, RemovedRow } from './parts';
 
@@ -162,34 +161,9 @@ export default function GoalsSection() {
   );
 }
 
-/**
- * The skills to pick up next for a career, as one line of text under the
- * level they are at: "Next, Fundamentals: Blueprint Reading, Lot Tracking".
- * They come lowest level first, so a second level is named only where the
- * first runs out. Nothing when none are left.
- */
+/** The skills to pick up next for a career: the one line a goal and a career within reach both carry. */
 function NextSkills({ next, className }: { next: NextSkill[]; className?: string }) {
-  if (next.length === 0) return null;
-  const runs: { level: string | null; skills: NextSkill[] }[] = [];
-  for (const skill of next) {
-    const level = levelName(skill.level);
-    const last = runs[runs.length - 1];
-    if (last && last.level === level) last.skills.push(skill);
-    else runs.push({ level, skills: [skill] });
-  }
-  return (
-    <p className={cn('break-words text-sm text-text-1', className)} data-next-skills>
-      {runs.map((run, index) => (
-        <span key={run.level ?? index}>
-          {index > 0 && ' · '}
-          <span className="text-text-2">
-            {index === 0 ? (run.level ? `Next, ${run.level}:` : 'Next') : `${run.level}:`}
-          </span>{' '}
-          {nextSkillNames(run.skills)}
-        </span>
-      ))}
-    </p>
-  );
+  return <SkillsLine lead="Next" skills={next} className={className} />;
 }
 
 /** How many careers within reach are listed before "Show all". */
@@ -234,6 +208,12 @@ function CareersInReach() {
               </span>
             </div>
             <NextSkills next={career.next} className="mt-0.5" />
+            {/* Where the work is: the jobs open for it now. */}
+            {(career.openJobs ?? 0) > 0 && (
+              <Link to={`/jobs?career=${career.id}`} className="mt-0.5 inline-block py-1 text-xs text-text-2 underline hover:text-text-1" data-reach-jobs>
+                {plural(career.openJobs ?? 0, 'open job', 'open jobs')}
+              </Link>
+            )}
           </li>
         ))}
       </ul>

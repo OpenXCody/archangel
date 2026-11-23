@@ -24,6 +24,7 @@ import ApplicationsSection from '../components/me/ApplicationsSection';
 import GoalsSection from '../components/me/GoalsSection';
 import SkillsSection from '../components/me/SkillsSection';
 import { linkClass } from '../components/me/parts';
+import { DoneNotice, ServiceDoorSection, useServiceDoor, type Door } from '../components/me/ServiceDoor';
 
 export default function Me() {
   return <AccountGate>{(account) => <MyPage account={account} />}</AccountGate>;
@@ -38,9 +39,11 @@ export default function Me() {
  *
  * With nothing on it yet (no goal, no skill, no application) the page is one
  * question, which career, in place of three empty lists. Choosing one fills
- * the page: the goal, and its skills to mark off. That question is a
- * seeker's: someone here to hire who opens this page with nothing on it is
- * sent to their own.
+ * the page: the goal, and its skills to mark off. Beside it is a second door,
+ * "Start with what you have done": a person who served chooses their rating,
+ * MOS or specialty and its skills are marked held (components/me/ServiceDoor).
+ * Both questions are a seeker's: someone here to hire who opens this page with
+ * nothing on it is sent to their own.
  *
  * The three sections are files in components/me/.
  */
@@ -50,6 +53,8 @@ function MyPage({ account }: { account: SignedInAccount }) {
   const goals = useMyGoals();
   const skills = useMySkills();
   const applications = useMyApplications();
+  // Held here, so what the door did is still said once the starting page it was used from has gone.
+  const door = useServiceDoor();
 
   // Until all three have answered there is no telling which page to draw.
   const loading = goals.isPending || skills.isPending || applications.isPending;
@@ -75,13 +80,15 @@ function MyPage({ account }: { account: SignedInAccount }) {
           <RowsSkeleton rows={3} />
         </div>
       ) : firstRun ? (
-        <Starter onStart={() => (startedHere.current = true)} />
+        <Starter door={door} onStart={() => (startedHere.current = true)} />
       ) : (
         <>
+          {/* A tap on the starting page filled this one: what it did is said first, with the way back. */}
+          {door.done?.from === 'start' && <DoneNotice done={door.done} onUndo={door.undo} undoing={door.undoing} className="-mt-2 mb-6" />}
           {/* Only when there is one to follow (or the list could not be read). */}
           {(applications.isError || (applications.data?.length ?? 0) > 0) && <ApplicationsSection email={user.email} />}
           <GoalsSection />
-          <SkillsSection />
+          <SkillsSection door={viewer.seeker ? door : undefined} />
         </>
       )}
     </PageContainer>
@@ -96,11 +103,14 @@ function MyPage({ account }: { account: SignedInAccount }) {
 const STARTER_CAREERS = 5;
 
 /**
- * What a page with nothing on it shows: one question. A career is chosen by
- * searching or from a few that have a path; either is one tap, and nothing is
- * typed that the catalogue does not already hold.
+ * What a page with nothing on it shows: two doors, equally quiet, side by
+ * side where there is room and one after the other on a phone. "Start with a
+ * career": one is chosen by searching, or from the few with a path listed
+ * under both doors; either is one tap, and nothing is typed that the
+ * catalogue does not already hold. "Start with what you have done": a rating,
+ * an MOS or a specialty, whose skills are marked held.
  */
-function Starter({ onStart }: { onStart: () => void }) {
+function Starter({ door, onStart }: { door: Door; onStart: () => void }) {
   const queryClient = useQueryClient();
   const addGoal = useAddGoal();
   // The same answer the Explore overview reads, so it is usually already here.
@@ -116,11 +126,19 @@ function Starter({ onStart }: { onStart: () => void }) {
   };
 
   return (
-    <PageSection title="Start with a career" description="Choose one to aim for. Its skills become your list to mark off." className="mb-10">
-      <div data-starter>
-        <CareerPicker id="starter-career" value={null} onChange={(career) => career && choose(career.id)} disabled={addGoal.isPending} />
+    <div data-starter>
+      <div className="grid grid-cols-1 gap-x-12 lg:grid-cols-2">
+        <PageSection title="Start with a career" description="Choose one to aim for. Its skills become your list to mark off." className="mb-8 last:mb-8">
+          <CareerPicker id="starter-career" value={null} onChange={(career) => career && choose(career.id)} disabled={addGoal.isPending} />
+        </PageSection>
+        <ServiceDoorSection door={door} className="mb-8 last:mb-8" />
+      </div>
+      <div className="mb-10">
         {careers.length > 0 && (
-          <ul className={cn(cardClass, 'mt-3')}>
+          <h3 className="mb-1 text-sm font-medium text-text-2">Careers to aim for</h3>
+        )}
+        {careers.length > 0 && (
+          <ul className={cardClass}>
             {careers.map((career) => {
               const busy = addGoal.isPending && addGoal.variables === career.id;
               const count = (career.levels ?? []).reduce((sum, level) => sum + level.count, 0);
@@ -166,6 +184,6 @@ function Starter({ onStart }: { onStart: () => void }) {
           </Link>
         </p>
       </div>
-    </PageSection>
+    </div>
   );
 }

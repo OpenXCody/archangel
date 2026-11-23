@@ -13,7 +13,8 @@ import { recordAudit } from '../lib/audit.js';
 import { rowsOf } from '../lib/rows.js';
 import { placeColumns, placeOf } from '../lib/taxonomy.js';
 import { versionsOfCareer } from '../lib/versions.js';
-import { NOT_MILITARY, civilianCareer, militaryCareer, militaryFacts, militaryOf, serviceColumns, serviceJoin } from '../lib/military.js';
+import { NOT_MILITARY, civilianCareer, codeMatch, militaryCareer, militaryFacts, militaryOf, serviceColumns, serviceJoin } from '../lib/military.js';
+import { civilianCareersWithinReach, militaryCareersReaching } from '../lib/reach.js';
 import { isServiceKey } from '../../shared/military.js';
 
 const router = Router();
@@ -33,7 +34,8 @@ router.get('/', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'A service is one of navy, army, air-force or marine-corps.' });
       return;
     }
-    const which = isServiceKey(service) ? militaryCareer(service) : req.query.military === '1' || req.query.military === 'true' ? militaryCareer(null) : civilianCareer();
+    const military = isServiceKey(service) || req.query.military === '1' || req.query.military === 'true';
+    const which = isServiceKey(service) ? militaryCareer(service) : military ? militaryCareer(null) : civilianCareer();
     // Narrowed to the careers whose home is one domain (a slug). A slug no
     // domain has matches nothing, as on the skills list.
     const inDomain = and(which, typeof domain === 'string' && domain ? eq(occupations.homeDomain, domain) : undefined);
@@ -45,7 +47,19 @@ router.get('/', async (req: Request, res: Response) => {
     const term = readCareerTerm(search);
     const tries: CareerMatch[] = [];
     if (term) {
-      tries.push(careerMatch(term));
+      const typed = careerMatch(term);
+      // Asked for military careers, the list also finds one by its code ("ht", "15t", "2a3"): the whole code
+      // first, then a code the term begins, then the titles and other names as any career is found.
+      const code = codeMatch(term);
+      tries.push(
+        military
+          ? {
+              where: sql`(${typed.where} OR ${code.where})`,
+              relevance: sql`CASE WHEN ${code.exact} THEN -2 WHEN ${code.where} THEN -1 ELSE ${typed.relevance} END`,
+              otherName: sql<string | null>`CASE WHEN ${code.where} THEN NULL ELSE ${typed.otherName} END`,
+            }
+          : typed
+      );
       const plain = withoutLevel(term);
       if (plain) tries.push(careerMatch(plain));
       if (term.length >= 4) tries.push(careerNearMiss(plain ?? term));
@@ -247,6 +261,11 @@ router.get('/:id', async (req: Request, res: Response) => {
     const openJobCount = await countOpenJobs(eq(jobs.occupationId, id));
     // The companies that have their own version of this career.
     const versions = await versionsOfCareer(id, 60);
+    // Reach, computed from the two paths: for a military career the civilian careers its path covers, for a
+    // civilian career the military careers that cover its path. Each is empty on the other kind of page.
+    const [withinReach, reachedBy] = military.service
+      ? [await civilianCareersWithinReach(id), []]
+      : [[], await militaryCareersReaching(id)];
 
     res.json({
       ...occupation,
@@ -260,6 +279,8 @@ router.get('/:id', async (req: Request, res: Response) => {
       // How many are open in all: the page lists the newest few and links to the rest.
       openJobCount,
       versions,
+      withinReach,
+      reachedBy,
       // Where the work is done, by industry. `everywhere` means the career is
       // found in plants of every industry rather than a few.
       industries: ownIndustries.map(({ name, factoryCount }) => ({ name, factoryCount })),

@@ -105,7 +105,9 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
 
   const { data: searchResults, isFetching } = useQuery({
     queryKey: publicKeys.searchFor(debouncedQuery),
-    queryFn: () => searchApi.search(debouncedQuery, { types: ASKED, limit: ROWS_PER_GROUP }),
+    // The one search that lists a military career, and only one the query names: its code, or its service with
+    // words of its title (shared/military.ts). The map's search never asks for them.
+    queryFn: () => searchApi.search(debouncedQuery, { types: ASKED, limit: ROWS_PER_GROUP, namedMilitary: true }),
     enabled: hasQuery,
     staleTime: 30_000,
     // The list being read stays until the next answer is in: nothing flashes between letters.

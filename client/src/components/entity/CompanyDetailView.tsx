@@ -29,6 +29,10 @@ const PLANTS_SHOWN = 12;
  * and the careers at them. About seven companies in ten have one plant: for
  * those the page leads with that plant's own facts and address, in place of
  * counting to one and listing one row.
+ *
+ * A military service is an employer with no plants: its page has no footprint
+ * and no map action, and lists its careers (the ratings, MOS or specialties
+ * that are its own) in place of plants.
  */
 export default function CompanyDetailView({ data, head }: { data: CompanyDetail; head: Head }) {
   const navigate = useNavigate();
@@ -122,6 +126,10 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
     })),
   ];
   const typical = careers.length === 0 ? (data.typicalCareers ?? []) : [];
+  // A military service: its careers are the page. Each keeps its full title, with its code and home in the grey line.
+  const service = data.service ?? null;
+  const serviceCareers = data.serviceCareers ?? [];
+  if (service && serviceCareers.length > 0) facts.unshift(plural(serviceCareers.length, 'career', 'careers'));
   const onlyName = only ? formatFactoryName(only.name) : '';
   const onlyStreet = only ? streetAddress(only) : null;
 
@@ -129,7 +137,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
     <>
       <DetailHeader
         {...head}
-        kind="Company"
+        kind={service ? 'Military service' : 'Company'}
         title={name}
         mark={<CompanyLogo name={name} domain={data.domain} size={44} />}
         description={data.description}
@@ -253,6 +261,33 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
           </RecordList>
           {careers.length > CAREERS_SHOWN && (
             <ShowAll open={showAllCareers} total={careers.length} onToggle={() => setShowAllCareers((value) => !value)} />
+          )}
+        </DetailSection>
+      )}
+      {/* A service's careers: the ratings, MOS or specialties that are its own. One that has none yet says so. */}
+      {service && (
+        <DetailSection id="occupations" title="Careers">
+          {serviceCareers.length === 0 ? (
+            <p className="text-sm text-text-2" data-service-careers="">
+              None yet.
+            </p>
+          ) : (
+            <>
+              <RecordList data-service-careers="">
+                {(showAllCareers ? serviceCareers : serviceCareers.slice(0, CAREERS_SHOWN)).map((career) => (
+                  <RecordRow
+                    key={career.id}
+                    to={`/occupations/${career.id}`}
+                    title={career.title}
+                    subtitle={[career.code, career.home].filter(Boolean).join(' · ') || null}
+                    data-service-career={career.id}
+                  />
+                ))}
+              </RecordList>
+              {serviceCareers.length > CAREERS_SHOWN && (
+                <ShowAll open={showAllCareers} total={serviceCareers.length} onToggle={() => setShowAllCareers((value) => !value)} />
+              )}
+            </>
           )}
         </DetailSection>
       )}

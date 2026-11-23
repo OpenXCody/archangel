@@ -11,6 +11,7 @@ import {
 } from '../../lib/api';
 import { US_STATES, type StateCode } from '@shared/states';
 import { industryByName, industryBySlug, industryLabel, industryPath } from '@shared/industry';
+import { isServiceKey, serviceShortName } from '@shared/military';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '../layout/Page';
 import { LoadError, outlineButtonClass } from '../account/parts';
@@ -35,6 +36,9 @@ type ListParams = {
   industry?: string;
   domain?: string;
   group?: string;
+  /** Careers: the military careers, all (`military`) or one service's (`service`). */
+  military?: number;
+  service?: string;
 };
 
 const LIST: Record<BrowseTab, (params: ListParams) => Promise<PaginatedResponse<BrowseEntity>>> = {
@@ -196,6 +200,9 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
   const industryParam = searchParams.get('industry');
   const domainParam = searchParams.get('domain');
   const groupParam = searchParams.get('group');
+  // Careers: `?military=1` is the military careers, `?service=navy` one service's. Anything else is the civilian list.
+  const serviceParam = searchParams.get('service');
+  const militaryParam = searchParams.get('military');
   // An industry is one of the 21, by the name a plant carries or by its page's slug.
   // Anything else in the address (an old link's free text) is no filter at all.
   const industry = (industryByName(industryParam) ?? industryBySlug(industryParam))?.name;
@@ -206,10 +213,11 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
       // Skills are narrowed to a domain and then a group; careers to the domain that is their home.
       domain: (tab === 'skills' || tab === 'occupations') && domainParam ? domainParam : undefined,
       group: tab === 'skills' && groupParam ? groupParam : undefined,
+      military: tab !== 'occupations' ? undefined : isServiceKey(serviceParam) ? serviceParam : militaryParam === '1' ? 'all' : undefined,
     }),
-    [tab, stateParam, industry, domainParam, groupParam]
+    [tab, stateParam, industry, domainParam, groupParam, serviceParam, militaryParam]
   );
-  const filtered = Boolean(filters.state || filters.industry || filters.domain || filters.group);
+  const filtered = Boolean(filters.state || filters.industry || filters.domain || filters.group || filters.military);
 
   const sortOptions = SORT_OPTIONS[tab];
   const sort = sortOptions.find((o) => o.value === searchParams.get('sort')) ?? sortOptions[0];
@@ -234,6 +242,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
       ...(filters.industry && { industry: filters.industry }),
       ...(filters.domain && { domain: filters.domain }),
       ...(filters.group && { group: filters.group }),
+      ...(filters.military === 'all' ? { military: 1 } : filters.military ? { service: filters.military } : {}),
     }),
     [sort, filters]
   );
@@ -269,7 +278,11 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
   const facets = useExploreFacets();
   // Of the 21: those some plant carries, or those that are some company's industry.
   const industries = tab === 'factories' ? facets.data?.factoryIndustries : (facets.data?.industries?.companies ?? facets.data?.factoryIndustries);
-  const domains = tab === 'occupations' ? facets.data?.careerDomains : facets.data?.skillDomains;
+  const domains =
+    tab !== 'occupations' ? facets.data?.skillDomains : filters.military ? (facets.data?.militaryCareerDomains ?? facets.data?.careerDomains) : facets.data?.careerDomains;
+  // What the count says is listed: careers, or the military ones, or one service's.
+  const service = filters.military && filters.military !== 'all' ? serviceShortName(filters.military) : null;
+  const noun: [string, string] = service ? [`${service} career`, `${service} careers`] : filters.military ? ['military career', 'military careers'] : LIST_NOUN[tab];
 
   const items = useMemo(() => {
     const rows = list.data?.pages.flatMap((page) => page.data) ?? [];
@@ -284,7 +297,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const clearFilters = () => setParam({ state: undefined, industry: undefined, domain: undefined, group: undefined });
+  const clearFilters = () => setParam({ state: undefined, industry: undefined, domain: undefined, group: undefined, military: undefined, service: undefined });
   const industryPage = tab === 'factories' ? industryPath(filters.industry, { state: filters.state }) : null;
 
   return (
@@ -294,7 +307,16 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
         sortValue={sort.value}
         onSortChange={(value) => setParam({ sort: value === sortOptions[0].value ? undefined : value })}
         filters={filters}
-        onFilterChange={(next) => setParam({ state: next.state, industry: next.industry, domain: next.domain, group: next.group })}
+        onFilterChange={(next) =>
+          setParam({
+            state: next.state,
+            industry: next.industry,
+            domain: next.domain,
+            group: next.group,
+            military: next.military === 'all' ? '1' : undefined,
+            service: next.military && next.military !== 'all' ? next.military : undefined,
+          })
+        }
         industries={industries}
         domains={domains}
         leading={tab === 'skills' ? <SkillsViewSwitch current="list" domain={filters.domain} group={filters.group} /> : undefined}
@@ -307,7 +329,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
             {total === undefined ? (
               <span aria-hidden="true" className="inline-block h-3.5 w-28 animate-pulse rounded bg-surface align-middle" />
             ) : (
-              counted(total, LIST_NOUN[tab])
+              counted(total, noun)
             )}
           </p>
           {/* Plants filtered to one industry: that industry has a page of its own, for the same state. */}

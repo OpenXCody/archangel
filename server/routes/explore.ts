@@ -307,12 +307,13 @@ router.get('/overview', async (_req: Request, res: Response) => {
 // - `skillDomains`: the domains with a skill some career uses, each
 //   `{ slug, name, groups: [{ slug, name }] }`, in the taxonomy's order;
 // - `careerDomains`: the domains that are some career's home, each
-//   `{ slug, name }`, in the same order;
+//   `{ slug, name }`, in the same order, and `militaryCareerDomains` the same
+//   for the military careers (the Careers list's Military filter);
 // `factoryIndustries` is the same list as `industries.plants`, kept under its
 // old name for the map's filter and for pages loaded before this.
 router.get('/facets', async (_req: Request, res: Response) => {
   try {
-    const [factoryRows, skillDomains, companyIndustryRows, homes] = await Promise.all([
+    const [factoryRows, skillDomains, companyIndustryRows, homes, militaryHomes] = await Promise.all([
       db.execute(sql`
         SELECT f.primary_naics_description AS value
         FROM factories f
@@ -322,6 +323,7 @@ router.get('/facets', async (_req: Request, res: Response) => {
       loadSkillFacets(),
       db.execute(sql`SELECT DISTINCT ci.industry AS value FROM (${companyIndustries()}) ci`),
       careerDomains(),
+      careerDomains(true),
     ]);
     const values = (result: unknown) =>
       rowsOf(result)
@@ -339,6 +341,7 @@ router.get('/facets', async (_req: Request, res: Response) => {
       factoryIndustries: plantIndustries,
       skillDomains,
       careerDomains: homes,
+      militaryCareerDomains: militaryHomes,
     });
   } catch (error) {
     console.error('Error fetching explore facets:', error);

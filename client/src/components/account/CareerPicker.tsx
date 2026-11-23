@@ -7,12 +7,15 @@ import { errorMessage } from '../../lib/http';
 import { KIND_ICON, fieldClass } from './parts';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { publicKeys } from '../../lib/queryKeys';
+import { kindLine } from '@shared/military';
 
 export interface CareerOption {
   id: string;
   title: string;
   /** The other name a search found it by ("PLC Programmer" for Controls Engineer), said under the title. */
   alsoCalled?: string | null;
+  /** A military career's kind and code ("Navy rating · HT"), said under the title in the list that offers them. */
+  line?: string | null;
 }
 
 interface CareerPickerProps {
@@ -24,6 +27,12 @@ interface CareerPickerProps {
   suggestions?: CareerOption[];
   suggestionsLabel?: string;
   disabled?: boolean;
+  /**
+   * The military careers in place of the civilian ones: a rating, an MOS or a
+   * specialty, found by its code, its title or its service. Only the door a
+   * person starts from what they have done asks for them.
+   */
+  military?: boolean;
 }
 
 /** How many careers the list offers at once. */
@@ -33,7 +42,7 @@ const SHOWN = 8;
  * Pick one career by searching the catalogue. A combobox: type to search,
  * arrow keys to move, Enter to choose, Escape to close.
  */
-export default function CareerPicker({ id, value, onChange, suggestions = [], suggestionsLabel, disabled }: CareerPickerProps) {
+export default function CareerPicker({ id, value, onChange, suggestions = [], suggestionsLabel, disabled, military = false }: CareerPickerProps) {
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const changeRef = useRef<HTMLButtonElement>(null);
@@ -47,8 +56,8 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
   const searching = term.trim().length >= 2;
 
   const results = useQuery({
-    queryKey: publicKeys.picker('occupations', query),
-    queryFn: () => occupationsApi.list({ search: query, limit: SHOWN }),
+    queryKey: publicKeys.picker(military ? 'military-careers' : 'occupations', query),
+    queryFn: () => occupationsApi.list({ search: query, limit: SHOWN, ...(military && { military: 1 }) }),
     enabled: searching && query.length >= 2,
     staleTime: 60_000,
     // Asked even when the browser says it is offline, so the list says so rather than "Searching" for ever.
@@ -59,7 +68,12 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
 
   const waiting = searching && (query !== term.trim() || results.isPending);
   const options: CareerOption[] = searching
-    ? (results.data?.data ?? []).map((occupation) => ({ id: occupation.id, title: occupation.title, alsoCalled: occupation.alsoCalled }))
+    ? (results.data?.data ?? []).map((occupation) => ({
+        id: occupation.id,
+        title: occupation.title,
+        alsoCalled: occupation.alsoCalled,
+        line: kindLine(occupation.kind, occupation.code),
+      }))
     : suggestions;
   const CareerIcon = KIND_ICON.career;
 
@@ -140,7 +154,7 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
         aria-autocomplete="list"
         aria-activedescendant={showList && options[activeIndex] ? `${listId}-${activeIndex}` : undefined}
         autoComplete="off"
-        placeholder="Search careers"
+        placeholder={military ? 'Rating, MOS or specialty' : 'Search careers'}
         disabled={disabled}
         value={term}
         onChange={(e) => {
@@ -170,7 +184,9 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
           ) : searching && options.length === 0 ? (
             // The career is the kind of work; the title is the employer's own words.
             <p className="px-2.5 py-2.5 text-sm text-text-2" data-career-none>
-              No career matches “{query}”. Search for the closest kind of work: the job title can say anything.
+              {military
+                ? `Nothing matches “${query}”. Search by the code, the title or the service.`
+                : `No career matches “${query}”. Search for the closest kind of work: the job title can say anything.`}
             </p>
           ) : null}
           <ul id={listId} role="listbox" aria-label="Careers">
@@ -194,10 +210,16 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
                   <span className="min-w-0 break-words">
                     {option.title}
                     {/* A career found by a name it is also known by says which: the title alone would look like a wrong answer. */}
-                    {option.alsoCalled && (
-                      <span className="block text-xs text-text-3" data-career-also>
-                        Also called {option.alsoCalled}
+                    {option.line ? (
+                      <span className="block text-xs text-text-3" data-career-line>
+                        {option.line}
                       </span>
+                    ) : (
+                      option.alsoCalled && (
+                        <span className="block text-xs text-text-3" data-career-also>
+                          Also called {option.alsoCalled}
+                        </span>
+                      )
                     )}
                   </span>
                 </li>

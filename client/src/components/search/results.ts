@@ -117,7 +117,8 @@ export function recordRows(results: SearchResults | undefined, query: string): P
       id: item.id,
       title: item.name,
       subtitle: item.subtitle || undefined,
-      score: scored(item.name),
+      // A military career is listed only when the query named it, so it answers the query as a name typed whole does.
+      score: item.named ? 4 : scored(item.name),
     })),
     skills: found.skills.items.map((item) => ({
       kind: 'skill',

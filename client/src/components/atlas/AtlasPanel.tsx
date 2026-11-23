@@ -298,7 +298,12 @@ export default function AtlasPanel({ layout, domain, group, leaf, state, overlay
             <p className="mt-1.5 text-sm text-text-2">
               <span data-atlas-level>{LEVEL_NAME[leaf.level]}</span>
               {' · '}
-              {leaf.careers > 0 ? `Used by ${plural(leaf.careers, 'career', 'careers')}` : 'No career uses it yet'}
+              {/* A skill only military careers use says so: they are not counted among the careers, and it is not unused. */}
+              {leaf.careers > 0
+                ? `Used by ${plural(leaf.careers, 'career', 'careers')}`
+                : leaf.militaryCareers > 0
+                  ? `Used by ${plural(leaf.militaryCareers, 'military career', 'military careers')}`
+                  : 'No career uses it yet'}
             </p>
             {(mark || lit) && (
               <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-text-2">
