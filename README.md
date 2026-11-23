@@ -152,7 +152,7 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
 
   ```bash
   node scripts/build-taxonomy-sql.mjs --check    # validates the file against the catalogue; writes nothing
-  node scripts/build-taxonomy-sql.mjs data/skills/taxonomy.json data/skills/catalogue.json migrations/00NN_skill_taxonomy.sql   # a new file once the latest (0049 today) has been applied
+  node scripts/build-taxonomy-sql.mjs data/skills/taxonomy.json data/skills/catalogue.json migrations/00NN_skill_taxonomy.sql   # a new file once the latest (0068 today) has been applied
   ```
 
   The check fails unless every skill of the catalogue is placed exactly once, in a group of 2 to 12 skills, at a level of 1, 2 or 3. When it is applied the migration stops, changing nothing, if the skills in the database are not exactly the ones the file places: a skill an admin has added, renamed, merged or deleted is first brought into the catalogue and the taxonomy. A taxonomy change after 0042 has reached production is a new numbered migration: give the builder its output as the third argument, add the file to the list in `scripts/migrate.mjs`, and point `tests/unit/taxonomy.unit.ts` at it.
