@@ -14,7 +14,7 @@ import { canonical, recordHash } from '../../scripts/ingest/lib/hash.mjs';
 // @ts-expect-error a plain script, no types
 import { diffRun } from '../../scripts/ingest/lib/diff.mjs';
 // @ts-expect-error a plain script, no types
-import { checkDatabase, databaseTarget } from '../../scripts/ingest/lib/safety.mjs';
+import { checkDatabase, connectionString, databaseTarget } from '../../scripts/ingest/lib/safety.mjs';
 // @ts-expect-error a plain script, no types
 import { csvRows, parseCsvRow } from '../../scripts/ingest/lib/csv.mjs';
 // @ts-expect-error a plain script, no types
@@ -326,4 +326,15 @@ test('the workflow that runs intake on production starts by hand only and holds 
   // The database is named by a repository secret, never written here.
   assert.match(workflow, /\$\{\{ secrets\.INGEST_DATABASE_URL \}\}/);
   assert.doesNotMatch(workflow, /postgres(ql)?:\/\/[^\s$]/);
+});
+
+test("a connection string from Neon's console is taken as copied", () => {
+  // channel_binding is libpq's own option; the driver would send it to the server as a setting.
+  const copied = 'postgresql://user:secret@ep-example-123-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+  const used = new URL(connectionString(copied));
+  assert.equal(used.searchParams.get('channel_binding'), null);
+  assert.equal(used.searchParams.get('sslmode'), 'require');
+  assert.deepEqual([used.username, used.password, used.hostname, used.pathname], ['user', 'secret', 'ep-example-123-pooler.us-east-2.aws.neon.tech', '/neondb']);
+  // One without it is left as written.
+  assert.equal(connectionString('postgresql://u:p@localhost:5432/archangel_ci'), 'postgresql://u:p@localhost:5432/archangel_ci');
 });
