@@ -10,6 +10,8 @@ import { adminSetFacts, factsOfFields } from './provenance.js';
 import { LADDER_LOCK, MAX_LEADS_TO, findDomain, ladderFrom, leadsTo, setLeadsTo, type CareerRef } from './careers.js';
 import { skillMakes } from '../db/index.js';
 import { MAKES_MAX, MAKE_NAME_MAX, makeName, makesForEditor, makesOf, type Make } from './makes.js';
+import { findService, militaryFacts, NOT_MILITARY, type MilitaryFacts } from './military.js';
+import { CODE_SYSTEMS, careerKind, codeSystemOf, isCodeSystem, isServiceKey, serviceShortName } from '../../shared/military.js';
 
 /**
  * Correcting the four kinds of record an admin keeps: companies, factories,
@@ -143,7 +145,8 @@ export async function attachedTo(executor: Executor, kind: RecordKind, id: strin
       (SELECT COUNT(*)::int FROM company_members WHERE company_id = ${id} AND status = 'active') AS members,
       (SELECT COUNT(*)::int FROM company_members WHERE company_id = ${id} AND status <> 'active') AS requests,
       (SELECT COUNT(*)::int FROM invites WHERE company_id = ${id} AND accepted_at IS NULL AND expires_at > now()) AS invites,
-      (SELECT COUNT(*)::int FROM company_careers WHERE company_id = ${id}) AS versions`,
+      (SELECT COUNT(*)::int FROM company_careers WHERE company_id = ${id}) AS versions,
+      (SELECT COUNT(*)::int FROM occupations WHERE service_company_id = ${id}) AS careers`,
     factory: sql`SELECT
       (SELECT COUNT(*)::int FROM jobs WHERE factory_id = ${id}) AS jobs,
       (SELECT COUNT(*)::int FROM applications a INNER JOIN jobs j ON j.id = a.job_id WHERE j.factory_id = ${id}) AS applications,
@@ -239,6 +242,8 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
         headquartersCity: row.headquartersCity,
         headquartersState: row.headquartersState,
         headquartersCountry: row.headquartersCountry,
+        // Which military service it is, for the few that are one. Read only: a load sets it.
+        service: row.service,
         parentCompanyId: row.parentCompanyId,
         parentName: row.parentCompanyId
           ? ((await db.select({ name: companies.name }).from(companies).where(eq(companies.id, row.parentCompanyId)).limit(1))[0]?.name ?? null)
@@ -278,6 +283,7 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
   if (kind === 'career') {
     const [row] = await db.select().from(occupations).where(eq(occupations.id, id)).limit(1);
     if (!row) return null;
+    const military = await militaryFacts(db, row);
     return {
       kind,
       id,
@@ -291,6 +297,13 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
         pathStatus: row.pathStatus,
         home: row.homeDomain,
         homeName: (await findDomain(db, row.homeDomain))?.name ?? null,
+        // A military career: `service` is the key the form sends back; the rest are as the API gives them.
+        service: military.service?.key ?? null,
+        serviceName: military.service?.name ?? null,
+        code: military.code,
+        codeSystem: military.codeSystem,
+        kind: military.kind,
+        officialTitle: military.officialTitle,
       },
       aliases: await aliasesOf(db, 'career', id),
       attached,
@@ -625,7 +638,13 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
   const nextIds = leadsToIds(body.leadsTo);
   if (nextIds === false) refuse('leadsTo', `A career leads to at most ${MAX_LEADS_TO} others, each listed once.`);
   if (nextIds?.includes(id)) refuse('leadsTo', 'A career cannot lead to itself.');
-  if (title === undefined && description === undefined && onetCode === undefined && body.aliases === undefined && body.home === undefined && nextIds === undefined) {
+  // What says the career is a service's (see `careerService` below). Left out, nothing of it changes.
+  const code = oneLine(body.code, 20);
+  if (code === false) refuse('code', 'A code is text of up to 20 characters.');
+  const officialTitle = oneLine(body.officialTitle, 200);
+  if (officialTitle === false) refuse('officialTitle', 'The service\'s own title is text of up to 200 characters.');
+  const serviceGiven = body.service !== undefined || code !== undefined || officialTitle !== undefined || body.codeSystem !== undefined;
+  if (title === undefined && description === undefined && onetCode === undefined && body.aliases === undefined && body.home === undefined && nextIds === undefined && !serviceGiven) {
     throw new RecordRefusal(400, 'Nothing to change.');
   }
 
@@ -637,11 +656,17 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
     const homeBefore = await findDomain(tx, before.homeDomain);
     const homeAfter = body.home === undefined ? homeBefore : body.home === null || body.home === '' ? null : await findDomain(tx, body.home);
     if (body.home !== undefined && body.home !== null && body.home !== '' && !homeAfter) refuse('home', 'Choose a domain, or none.');
+    const militaryBefore = await militaryFacts(tx, before);
+    const militaryAfter = serviceGiven ? await careerService(tx, id, militaryBefore, { service: body.service, code, codeSystem: body.codeSystem, officialTitle }) : militaryBefore;
     const after = {
       title: title ?? before.title,
       description: description === undefined ? before.description : description,
       onetCode: onetCode === undefined ? before.onetCode : onetCode,
       homeDomain: homeAfter?.slug ?? null,
+      serviceCompanyId: militaryAfter.service?.id ?? null,
+      code: militaryAfter.code,
+      codeSystem: militaryAfter.codeSystem,
+      officialTitle: militaryAfter.officialTitle,
     };
     if (after.title.toLowerCase() !== before.title.toLowerCase()) {
       const [taken] = await tx
@@ -674,14 +699,19 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
         ladderAfter.push(next);
       }
     }
-    // The log names the home and the ladder as a person reads them.
+    // The log names the home, the ladder and the service as a person reads them.
     const titles = (list: CareerRef[]) => list.map((career) => career.title);
     const changes = changedFields(
-      { ...before, home: homeBefore?.name ?? null, leadsTo: titles(ladderBefore), aliases: aliasesBefore },
-      { ...after, home: homeAfter?.name ?? null, leadsTo: titles(ladderAfter), aliases: aliasesAfter },
-      ['title', 'home', 'description', 'onetCode', 'leadsTo', 'aliases']
+      { ...before, home: homeBefore?.name ?? null, leadsTo: titles(ladderBefore), aliases: aliasesBefore, service: militaryBefore.service?.name ?? null, codeSystem: militaryBefore.kind },
+      { ...after, home: homeAfter?.name ?? null, leadsTo: titles(ladderAfter), aliases: aliasesAfter, service: militaryAfter.service?.name ?? null, codeSystem: militaryAfter.kind },
+      ['title', 'home', 'description', 'onetCode', 'leadsTo', 'aliases', 'service', 'code', 'codeSystem', 'officialTitle']
     );
-    const answer = ({ homeDomain: _slug, ...row }: typeof before): SavedRow => ({ ...row, home: homeAfter, leadsTo: ladderAfter });
+    const answer = ({ homeDomain: _slug, serviceCompanyId: _service, code: _code, codeSystem: _system, officialTitle: _official, ...row }: typeof before): SavedRow => ({
+      ...row,
+      home: homeAfter,
+      ...militaryAfter,
+      leadsTo: ladderAfter,
+    });
     if (!changes) return answer(before);
     if (changes.aliases) await setAliases(tx, 'career', id, aliasesAfter);
     if (changes.leadsTo) await setLeadsTo(tx, id, ladderAfter.map((career) => career.id));
@@ -689,6 +719,48 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
     await recordAudit(tx, { actor, kind: 'career', recordId: id, recordName: saved.title, action: 'edited', detail: { changes } });
     return answer(saved);
   });
+}
+
+/**
+ * A career's service as a change asks for it. `service` is a service's key, or
+ * null or '' for a civilian career; with a service go its code (needed), the
+ * system the code is in (the service's own: it need not be sent) and the
+ * service's own title. What is left out stays as it was. Refuses a service that
+ * is not stored as an employer, a code without a service, and a code another
+ * career of the system has.
+ */
+async function careerService(
+  tx: Executor,
+  id: string,
+  before: MilitaryFacts,
+  given: { service: unknown; code: string | null | undefined; codeSystem: unknown; officialTitle: string | null | undefined }
+): Promise<MilitaryFacts> {
+  const key = given.service === undefined ? (before.service?.key ?? null) : given.service === null || given.service === '' ? null : given.service;
+  const code = given.code === undefined ? before.code : given.code;
+  const officialTitle = given.officialTitle === undefined ? before.officialTitle : given.officialTitle;
+  if (key === null) {
+    // Emptying the service empties what goes with it; a code or a title sent without one is a mistake.
+    if (given.code) refuse('code', 'A code belongs to a military career. Choose its service first.');
+    if (given.officialTitle) refuse('officialTitle', 'A service\'s own title belongs to a military career. Choose its service first.');
+    if (given.codeSystem !== undefined && given.codeSystem !== null && given.codeSystem !== '') refuse('codeSystem', 'A code system belongs to a military career. Choose its service first.');
+    return NOT_MILITARY;
+  }
+  if (!isServiceKey(key)) refuse('service', 'Choose a service, or none for a civilian career.');
+  const system = codeSystemOf(key);
+  if (!system) refuse('service', `${serviceShortName(key)} careers have no code system yet.`);
+  if (given.codeSystem !== undefined && given.codeSystem !== null && given.codeSystem !== '' && given.codeSystem !== system) {
+    refuse('codeSystem', isCodeSystem(given.codeSystem) ? `${careerKind(given.codeSystem)} is not a code of the ${serviceShortName(key)}.` : `A code system is one of: ${CODE_SYSTEMS.map((item) => item.key).join(', ')}.`);
+  }
+  const service = before.service?.key === key ? before.service : await findService(tx, key);
+  if (!service) refuse('service', `The ${serviceShortName(key)} is not stored as an employer.`);
+  if (!code) refuse('code', `Enter the ${careerKind(system)} code.`);
+  const [taken] = await tx
+    .select({ id: occupations.id, name: occupations.title })
+    .from(occupations)
+    .where(and(eq(occupations.codeSystem, system), sql`lower(${occupations.code}) = lower(${code})`, ne(occupations.id, id)))
+    .limit(1);
+  if (taken) throw new RecordRefusal(409, `${taken.name} already has that code.`, { field: 'code', existing: taken });
+  return { service, code, codeSystem: system, kind: careerKind(system), officialTitle: officialTitle ?? null };
 }
 
 async function changeSkill(id: string, body: Body, actor: Actor): Promise<SavedRow> {

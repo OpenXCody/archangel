@@ -26,7 +26,9 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   // The vocabulary pass for reading postings: careers' other names, skills' other names, makes.
   '0056_career_lists_2.sql', '0057_skills_catalogue_3.sql', '0058_skill_makes_2.sql',
   // Military careers. First the skills they need: 66 added to the catalogue, then placed in 11 new groups.
-  '0059_skills_catalogue_4.sql', '0060_skill_taxonomy_3.sql'];
+  '0059_skills_catalogue_4.sql', '0060_skill_taxonomy_3.sql',
+  // What says a career belongs to a service (columns only).
+  '0061_career_service.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 

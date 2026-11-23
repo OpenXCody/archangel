@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { US_STATES } from '@shared/states';
+import { CODE_SYSTEMS, careerKind, codeSystemOf, serviceShortName } from '@shared/military';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -55,6 +56,9 @@ type FieldName =
   | 'home'
   | 'leadsTo'
   | 'onetCode'
+  | 'service'
+  | 'code'
+  | 'officialTitle'
   | 'howLearned'
   | 'tools'
   | 'workforceSize'
@@ -91,6 +95,9 @@ const FIELD_FOCUS: [FieldName, string][] = [
   ['howLearned', 'record-how-learned'],
   ['tools', 'record-tools'],
   ['onetCode', 'record-onet'],
+  ['service', 'record-service'],
+  ['code', 'record-code'],
+  ['officialTitle', 'record-official-title'],
   ['leadsTo', 'record-leads-to'],
   ['domain', 'record-domain'],
   ['aliases', 'record-aliases'],
@@ -203,6 +210,10 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   const [howLearned, setHowLearned] = useState(text(fields.howLearned));
   const [tools, setTools] = useState((record?.tools ?? []).join('\n'));
   const [onetCode, setOnetCode] = useState(text(fields.onetCode));
+  // A military career: its service by key ('' for a civilian career), the service's code and its own title for the job.
+  const [service, setService] = useState(text(fields.service));
+  const [code, setCode] = useState(text(fields.code));
+  const [officialTitle, setOfficialTitle] = useState(text(fields.officialTitle));
   const [hqLatitude, setHqLatitude] = useState(text(fields.headquartersLat));
   const [hqLongitude, setHqLongitude] = useState(text(fields.headquartersLng));
   const [hqCity, setHqCity] = useState(text(fields.headquartersCity));
@@ -242,6 +253,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
     if (!group && (!editing || fields.group)) problems.group = 'Choose the group it belongs to.';
     if (!levelNumber && (!editing || fields.level)) problems.level = 'Choose a level.';
   }
+  if (kind === 'career' && service && !code.trim()) problems.code = 'Enter the code.';
   if (kind === 'factory') {
     // A plant on record without a company can be corrected without being given one.
     if (!company && (!editing || fields.companyId)) problems.company = 'Choose the company that runs it.';
@@ -311,7 +323,16 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
       };
     }
     if (kind === 'career') {
-      return { title: name.trim(), home: home || null, description: orNull(description), onetCode: orNull(onetCode), leadsTo: leads.map((career) => career.id), aliases: aliasList };
+      return {
+        title: name.trim(),
+        home: home || null,
+        description: orNull(description),
+        onetCode: orNull(onetCode),
+        leadsTo: leads.map((career) => career.id),
+        aliases: aliasList,
+        // Sent only when the career has a service or had one: a civilian career's save says nothing of it.
+        ...(service || fields.service ? { service: service || null, code: service ? orNull(code) : null, officialTitle: service ? orNull(officialTitle) : null } : {}),
+      };
     }
     if (kind === 'skill') {
       return {
@@ -783,6 +804,44 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
           {input('record-onet', onetCode, setOnetCode, 'onetCode', { maxLength: 20 })}
           <FieldError id="record-onet-error" message={shown('onetCode')} />
         </Field>
+      )}
+      {kind === 'career' && editing && (
+        // A military career belongs to a service, with the service's code and its own title for the job.
+        <Field label="Service" htmlFor="record-service" optional hint={shown('service') ? undefined : 'For a military career: the service it belongs to.'}>
+          <Select value={service || 'none'} onValueChange={(value) => setService(value === 'none' ? '' : value)}>
+            <SelectTrigger
+              id="record-service"
+              aria-invalid={shown('service') ? true : undefined}
+              aria-describedby={shown('service') ? 'record-service-error' : undefined}
+              className={cn(selectTriggerClass, 'w-full', shown('service') && 'border-danger/60')}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className={selectContentClass}>
+              <SelectItem value="none" className="py-2.5">
+                None
+              </SelectItem>
+              {CODE_SYSTEMS.map((system) => (
+                <SelectItem key={system.service} value={system.service} className="py-2.5">
+                  {serviceShortName(system.service)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FieldError id="record-service-error" message={shown('service')} />
+        </Field>
+      )}
+      {kind === 'career' && editing && service && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)]">
+          <Field label={`${careerKind(codeSystemOf(service)) ?? 'Service'} code`} htmlFor="record-code">
+            {input('record-code', code, setCode, 'code', { maxLength: 20 })}
+            <FieldError id="record-code-error" message={shown('code')} />
+          </Field>
+          <Field label="The service’s title" htmlFor="record-official-title" optional>
+            {input('record-official-title', officialTitle, setOfficialTitle, 'officialTitle', { maxLength: 200 })}
+            <FieldError id="record-official-title-error" message={shown('officialTitle')} />
+          </Field>
+        </div>
       )}
       {kind === 'career' && editing && (
         <Field label="Leads to" htmlFor="record-leads-to" optional hint={shown('leadsTo') ? undefined : 'The next rungs of its ladder. Up to three; the first is the usual next step.'}>

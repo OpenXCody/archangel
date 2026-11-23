@@ -1,5 +1,6 @@
 import { unpackPins, type PinsPayload } from '@shared/pins';
 import type { SkillLevel } from '@shared/skillLevels';
+import type { CodeSystemKey, ServiceKey } from '@shared/military';
 import { API_BASE, fetchWithTimeout, queryString } from './http';
 import type { VersionSummary } from './versions';
 
@@ -317,6 +318,23 @@ export interface Occupation {
   home?: TaxonomyRef | null;
   /** In a search: the other name the career was found by, when its title did not match. */
   alsoCalled?: string | null;
+  /** A military career's service: the employer, and which service it is. Null for a civilian career. */
+  service?: CareerService | null;
+  /** The service's code for the job ("HT", "15T", "2A3X3") and the system it is in. */
+  code?: string | null;
+  codeSystem?: CodeSystemKey | null;
+  /** The words above a military career's name: "Navy rating", "Army MOS", "Air Force specialty". */
+  kind?: string | null;
+  /** The service's own title for the job, without the service in front. */
+  officialTitle?: string | null;
+}
+
+/** The service a military career belongs to. */
+export interface CareerService {
+  id: string;
+  name: string;
+  slug: string | null;
+  key: ServiceKey;
 }
 
 // Occupation with relations
