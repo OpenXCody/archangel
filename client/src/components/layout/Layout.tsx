@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import GlobalSearch from '../search/GlobalSearch';
@@ -7,6 +7,8 @@ import ViewAsSign from '../account/ViewAsSign';
 import { useAccount } from '../../lib/account';
 import { useViewer } from '../../lib/viewer';
 import { SEARCH_SHORTCUT } from '../../lib/shortcut';
+import { EXPLORE_VIEWS, exploreViewAt } from '../explorer/ExploreNav';
+import { cn } from '@/lib/utils';
 
 interface NavItem {
   to: string;
@@ -31,6 +33,83 @@ const employerJobs: NavItem = { to: '/employer', label: 'Your jobs', also: ['/jo
 
 function isAt(pathname: string, path: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
+}
+
+/**
+ * Explore's six views as a menu under its word in the header. It opens when a
+ * mouse is over the word or the keyboard's focus is on it, and is plain links:
+ * Tab goes through them, the down arrow steps into them, Escape closes it. A
+ * tap or a click on the word itself goes to Explore as it always did, and a
+ * finger never opens the menu: the same six are the tab row on the page it
+ * lands on. It is the one overlay surface, with no shadow.
+ */
+function ExploreMenu({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
+  const wrap = useRef<HTMLDivElement>(null);
+  // Escape puts the focus back on the word, and that focus must not open the menu again.
+  const closing = useRef(false);
+  const current = exploreViewAt(location.pathname, new URLSearchParams(location.search).get('tab'));
+  // Going anywhere closes it.
+  useEffect(() => setOpen(false), [location.pathname, location.search]);
+
+  const links = () => Array.from(wrap.current?.querySelectorAll<HTMLAnchorElement>('[data-explore-menu] a') ?? []);
+  return (
+    <div
+      ref={wrap}
+      className="relative"
+      onPointerEnter={(event) => event.pointerType === 'mouse' && setOpen(true)}
+      onPointerLeave={(event) => event.pointerType === 'mouse' && setOpen(false)}
+      // Focus that came by keyboard opens it; a click's focus does not (the click is already going to Explore).
+      onFocus={(event) => {
+        if (closing.current) closing.current = false;
+        else if (event.target.matches(':focus-visible')) setOpen(true);
+      }}
+      onBlur={(event) => !event.currentTarget.contains(event.relatedTarget) && setOpen(false)}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && open) {
+          setOpen(false);
+          const word = wrap.current?.querySelector<HTMLAnchorElement>('a');
+          if (word && document.activeElement !== word) {
+            closing.current = true;
+            word.focus();
+          }
+        } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          const all = links();
+          if (!open || all.length === 0) return;
+          event.preventDefault();
+          const at = all.indexOf(document.activeElement as HTMLAnchorElement);
+          const next = event.key === 'ArrowDown' ? (at + 1) % all.length : at <= 0 ? all.length - 1 : at - 1;
+          all[next].focus();
+        }
+      }}
+    >
+      {children}
+      {open && (
+        // The gap under the word belongs to the wrapper (padding, not margin), so the pointer crosses it without leaving.
+        <div className="absolute left-0 top-full z-50 pt-1.5" data-explore-menu>
+          <ul aria-label="Explore" className="map-overlay min-w-[11rem] rounded-lg py-1">
+            {EXPLORE_VIEWS.map(({ view, label, href }) => (
+              <li key={view}>
+                <Link
+                  to={href}
+                  aria-current={view === current ? 'page' : undefined}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    'flex min-h-9 items-center whitespace-nowrap px-3.5 text-sm transition-colors hover:bg-surface-hover hover:text-text-1',
+                    'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent',
+                    view === current ? 'font-medium text-text-1' : 'text-text-2'
+                  )}
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Layout() {
@@ -101,7 +180,7 @@ export default function Layout() {
               {shownNav.map(({ to, label, also }) => {
                 const isActive = [to, ...(also ?? [])].some((path) => isAt(location.pathname, path));
 
-                return (
+                const link = (
                   <Link
                     key={to}
                     to={to}
@@ -119,6 +198,7 @@ export default function Layout() {
                     {label}
                   </Link>
                 );
+                return to === '/explore' ? <ExploreMenu key={to}>{link}</ExploreMenu> : link;
               })}
             </nav>
 

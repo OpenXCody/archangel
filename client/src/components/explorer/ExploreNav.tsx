@@ -31,6 +31,17 @@ export const exploreHref = (view: ExploreView) =>
 const exploreLabel = (view: ExploreTab) =>
   view === 'overview' ? 'Overview' : view === 'industries' ? 'Industries' : BROWSE_LABEL[view];
 
+/** Explore's six views in their order, each with its word and its address: the tab row here, and the header's menu. */
+export const EXPLORE_VIEWS = VIEWS.map((view) => ({ view, label: exploreLabel(view), href: exploreHref(view) }));
+
+/** Which of the six an address is, or null when it is none of them (the Atlas is the Skills view's). */
+export function exploreViewAt(pathname: string, tab: string | null): ExploreTab | null {
+  if (pathname === '/industries') return 'industries';
+  if (pathname === '/atlas') return 'skills';
+  if (pathname !== '/explore') return null;
+  return isBrowseTab(tab) ? tab : 'overview';
+}
+
 // The current view is heavier and underlined. Every label reserves its heavier
 // width (the hidden copy), so choosing one never nudges its neighbours.
 const ITEM =
