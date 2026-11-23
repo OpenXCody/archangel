@@ -5,14 +5,16 @@ import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { OPEN_JOBS_SHOWN, countOpenJobs, listOpenJobs } from '../lib/openJobs.js';
 import { pageLimit, pageOffset } from '../lib/paging.js';
-import { answerDuplicate, answerWriteError, isUuid, optionalText, refuseDeleteWithJobs, requiredText } from '../lib/writes.js';
-import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
+import { isUuid, refuseDeleteWithJobs } from '../lib/writes.js';
+import { answerRefusal, changeRecord, removeRecord } from '../lib/records.js';
 import { sourcesOf } from '../lib/sources.js';
 import { rowsOf } from '../lib/rows.js';
 import { companyIndustries, companyIndustry } from '../lib/industries.js';
 import { industryByName, industryBySlug } from '../../shared/industry.js';
 import { versionsOfCompany } from '../lib/versions.js';
 import { careersOfService } from '../lib/military.js';
+import { addCompany } from '../lib/companyAdd.js';
+import { clearMark, listMarks, readMark, setMark } from '../lib/marks.js';
 
 const router = Router();
 // A company is addressed by its id, or, for reading, by its slug
@@ -129,6 +131,56 @@ router.get('/', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching companies:', error);
     res.status(500).json({ error: 'Failed to fetch companies' });
+  }
+});
+
+// GET /api/companies/marks - The companies whose mark was set by hand, each
+// with the version its image is served under. Few rows; CompanyLogo reads it once.
+router.get('/marks', async (_req: Request, res: Response) => {
+  try {
+    res.json({ marks: await listMarks() });
+  } catch (error) {
+    console.error('Error listing marks:', error);
+    res.status(500).json({ error: 'Failed to list marks' });
+  }
+});
+
+// GET /api/companies/:id/mark - The image of a mark set by hand. Asked for
+// with `?v=<version>`, it is the same bytes for good and is cached as such.
+router.get('/:id/mark', async (req: Request, res: Response) => {
+  try {
+    const mark = await readMark(req.params.id);
+    if (!mark) {
+      res.status(404).json({ error: 'This company has no mark set by hand.' });
+      return;
+    }
+    res.setHeader('Content-Type', mark.mime);
+    res.setHeader(
+      'Cache-Control',
+      req.query.v === mark.version ? 'public, max-age=31536000, immutable' : 'public, max-age=0, s-maxage=60, stale-while-revalidate=60'
+    );
+    res.send(mark.bytes);
+  } catch (error) {
+    console.error('Error reading a mark:', error);
+    res.status(500).json({ error: 'Failed to read the mark' });
+  }
+});
+
+// PUT /api/companies/:id/mark { image: <base64> } - Set a company's mark by
+// hand (PNG, SVG or JPEG, at most 200 KB). DELETE goes back to the automatic one.
+router.put('/:id/mark', async (req: Request, res: Response) => {
+  try {
+    res.json(await setMark(req.params.id, req.body, req.user!));
+  } catch (error) {
+    answerRefusal(res, error, 'mark');
+  }
+});
+
+router.delete('/:id/mark', async (req: Request, res: Response) => {
+  try {
+    res.json({ cleared: await clearMark(req.params.id, req.user!) });
+  } catch (error) {
+    answerRefusal(res, error, 'mark');
   }
 });
 
@@ -262,45 +314,18 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/companies - Create company
+// POST /api/companies - Add a company, and with `factory` its first factory in
+// the same write: { name, domain?, description?, factory?: { name?, address?,
+// city?, state, zip?, latitude, longitude } }. Either both are added or
+// neither. The answer is the company's row, with `factory` (the row added, or
+// null). A refusal names its field; a factory's is `factory.<field>`.
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { aliases, headquartersLat, headquartersLng } = req.body;
-    const name = requiredText(req.body?.name);
-    const industry = optionalText(req.body?.industry, 80);
-    const description = optionalText(req.body?.description, 600);
-    if (!name) {
-      res.status(400).json({ error: 'A company needs a name of up to 200 characters.' });
-      return;
-    }
-    if (industry === false || description === false) {
-      res.status(400).json({ error: 'Industry is text of up to 80 characters and a description of up to 600.' });
-      return;
-    }
-
-    // The same name in any letter case is the same company (compared as text, not as a pattern).
-    const [existing] = await db.select({ id: companies.id, name: companies.name, slug: companies.slug })
-      .from(companies)
-      .where(sql`lower(${companies.name}) = lower(${name})`)
-      .limit(1);
-    if (existing) {
-      answerDuplicate(res, 'company', existing);
-      return;
-    }
-
-    const result = await db.insert(companies).values({
-      name,
-      aliases: aliases || null,
-      industry,
-      description,
-      headquartersLat,
-      headquartersLng,
-    }).returning();
-
-    await recordAdded('company', result[0], req.user!);
-    res.status(201).json(result[0]);
+    const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? (req.body as Record<string, unknown>) : {};
+    const { company, factory } = await addCompany(body, req.user!);
+    res.status(201).json({ ...company, factory });
   } catch (error) {
-    answerWriteError(res, error, 'company');
+    answerRefusal(res, error, 'company');
   }
 });
 

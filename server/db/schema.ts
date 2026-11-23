@@ -466,6 +466,20 @@ export const loadLog = pgTable('load_log', {
   evidence: jsonb('evidence'),
 });
 
+// A company's mark set by hand (migration 0069): the image as base64 text,
+// served by GET /api/companies/:id/mark. `version` is part of its address.
+export const companyMarks = pgTable('company_marks', {
+  companyId: uuid('company_id')
+    .primaryKey()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  mime: text('mime').notNull(),
+  data: text('data').notNull(),
+  bytes: integer('bytes').notNull(),
+  version: text('version').notNull(),
+  setBy: uuid('set_by').references(() => users.id, { onDelete: 'set null' }),
+  setAt: timestamp('set_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 // ============================================
 // INTAKE (migration 0043; scripts/ingest/README.md)
 // Sources that come in outside the deploy: a source, its runs, what it said
