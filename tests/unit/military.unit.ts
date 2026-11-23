@@ -4,7 +4,12 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { MIGRATIONS } from '../../scripts/migrate.mjs';
+import { SERVICE_KEYS, employerProblems } from '../../scripts/build-military-sql.mjs';
 import {
   CODE_SYSTEMS,
   MILITARY_TAG,
@@ -21,6 +26,32 @@ import {
 } from '../../shared/military';
 
 const COLUMNS = 'migrations/0061_career_service.sql';
+const BUILDER = 'scripts/build-military-sql.mjs';
+const EMPLOYERS = 'data/careers/military/employers.json';
+const EMPLOYERS_MIGRATION = 'migrations/0062_military_employers.sql';
+
+interface Employer {
+  name: string;
+  service: string;
+  slug: string;
+  domain: string;
+  description: string;
+  headquarters: { city: string; state: string; country: string };
+}
+const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
+const employers = read<{ companies: Employer[] }>(EMPLOYERS).companies;
+
+/** What the builder writes for one of its migrations, generated afresh. */
+function generated(what: string): string {
+  const dir = mkdtempSync(path.join(tmpdir(), 'military-sql-'));
+  try {
+    const out = path.join(dir, 'out.sql');
+    execFileSync(process.execPath, [BUILDER, what, out], { stdio: 'pipe' });
+    return readFileSync(out, 'utf8');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
 
 test('the four services and the three code systems', () => {
   assert.deepEqual(SERVICES.map((service) => service.key), ['navy', 'army', 'air-force', 'marine-corps']);
@@ -93,4 +124,52 @@ test('the columns come after the skills and before anything that fills them', ()
   const list = MIGRATIONS as string[];
   assert.ok(list.indexOf('0061_career_service.sql') > list.indexOf('0060_skill_taxonomy_3.sql'));
   for (const later of list.slice(list.indexOf('0061_career_service.sql') + 1)) assert.ok(later > '0061', `${later} follows 0061`);
+});
+
+test('the four services are employers: one company each, named as the code names them', () => {
+  assert.deepEqual(employerProblems({ companies: employers }), []);
+  assert.deepEqual(SERVICE_KEYS, SERVICES.map((service) => service.key));
+  assert.deepEqual(employers.map((company) => company.service), SERVICES.map((service) => service.key));
+  for (const company of employers) assert.equal(company.name, serviceName(company.service), company.service);
+  // Tags are derived and careers are counted: the file carries neither.
+  for (const company of employers) assert.deepEqual(Object.keys(company).sort(), ['description', 'domain', 'headquarters', 'name', 'service', 'slug']);
+});
+
+test('the employers\' migration is what the file generates, and adds no plant', () => {
+  const sql = readFileSync(EMPLOYERS_MIGRATION, 'utf8');
+  assert.equal(generated('employers'), sql, 'run `node scripts/build-military-sql.mjs employers` after editing data/careers/military/employers.json');
+  // A service is found by the key it already carries, else by its exact name in any letter case; never by a name like it.
+  assert.ok(sql.includes('WHERE c.service = e.service'));
+  assert.ok(sql.includes('WHERE lower(c.name) = lower(e.name)'));
+  assert.ok(!/ILIKE|similarity|%/.test(sql.replace(/format\('[^']*(?:''[^']*)*'/g, '')), 'no loose match on the name');
+  assert.ok(!/INSERT INTO factories|UPDATE factories|DELETE FROM/.test(sql), 'it adds, moves and deletes no plant, and deletes nothing');
+  // What it decided is in the log, and the lines to read are marked.
+  for (const action of ['created', 'found', 'kept', 'not set', 'summary']) assert.ok(sql.includes(`pg_temp.mil_log('${action}'`), action);
+  const list = MIGRATIONS as string[];
+  assert.equal(list.indexOf('0062_military_employers.sql'), list.indexOf('0061_career_service.sql') + 1);
+});
+
+test('the check refuses an employers file that is not whole', () => {
+  const copy = () => JSON.parse(JSON.stringify(employers)) as Employer[];
+  const refused = (change: (list: Employer[]) => void, saying: RegExp) => {
+    const list = copy();
+    change(list);
+    assert.match(employerProblems({ companies: list }).join('\n'), saying);
+  };
+  refused((list) => { list[0].service = 'coast-guard'; }, /a service is one of navy, army, air-force, marine-corps/);
+  refused((list) => { list[1].service = 'navy'; }, /the service "navy" is listed twice/);
+  refused((list) => { list[1].name = 'u.s. navy'; }, /is listed twice/);
+  refused((list) => { list[0].domain = 'https://www.navy.mil'; }, /is not a bare domain/);
+  refused((list) => { list[0].slug = 'US Navy'; }, /not lowercase words joined by hyphens/);
+  refused((list) => { list[0].headquarters.state = 'Virginia'; }, /headquarters are a city, a two-letter state and a two-letter country/);
+  refused((list) => { (list[0] as Employer & { tags?: string[] }).tags = ['military']; }, /unknown key "tags"/);
+});
+
+test('a service keeps the lettermark: its emblem is not fetched', () => {
+  const list = read<Record<string, string | null>>('client/src/lib/logos.json');
+  const decisions = read<{ none: Record<string, string> }>('data/companies/logo-decisions.json');
+  for (const company of employers) {
+    assert.equal(list[company.domain], null, `${company.domain} is listed, with no mark`);
+    assert.ok(decisions.none[company.domain]?.includes('military service'), `${company.domain} says why`);
+  }
 });
