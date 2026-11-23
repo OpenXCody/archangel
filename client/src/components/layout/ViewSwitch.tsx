@@ -21,7 +21,7 @@ interface ViewSwitchProps {
 
 /**
  * One quiet switch between two views of one thing: the Skills list and the
- * Atlas, a career's path as a flow and on the Atlas. Each view is an address,
+ * Atlas, a career's path as a route and on the Atlas. Each view is an address,
  * so the switch is two links and the one shown is the current page.
  */
 export default function ViewSwitch({ label, views, current, replace, onChoose, className, data }: ViewSwitchProps) {

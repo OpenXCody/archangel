@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { and, eq, inArray, notInArray, sql } from 'drizzle-orm';
-import { db, companies, occupations, occupationSkills, skills, skillDomains, skillGroups, factoryOccupations, factories, jobs } from '../db/index.js';
+import { db, companies, occupations, occupationSkills, skills, skillDomains, factoryOccupations, factories, jobs } from '../db/index.js';
 import { comesFrom, findDomain, homeColumns, homeOf, leadsTo } from '../lib/careers.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
@@ -11,7 +11,7 @@ import { careerMatch, careerNearMiss, readCareerTerm, withoutLevel, type CareerM
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 import { recordAudit } from '../lib/audit.js';
 import { rowsOf } from '../lib/rows.js';
-import { placeColumns, placeOf } from '../lib/taxonomy.js';
+import { routeOf } from '../lib/route.js';
 import { versionsOfCareer } from '../lib/versions.js';
 import { NOT_MILITARY, civilianCareer, codeMatch, militaryCareer, militaryFacts, militaryOf, namedMilitaryCareers, serviceColumns, serviceJoin } from '../lib/military.js';
 import { civilianCareersWithinReach, militaryCareersReaching } from '../lib/reach.js';
@@ -197,33 +197,9 @@ router.get('/:id', async (req: Request, res: Response) => {
       militaryFacts(db, { serviceCompanyId, code, codeSystem, officialTitle }),
     ]);
 
-    // The career's path: its skills, each with its level, group and domain,
-    // in the order a path is laid out: by level, and within a level by domain
-    // and group as the taxonomy orders them.
-    const occupationSkillsResult = (
-      await db
-        .select({
-          id: skills.id,
-          name: skills.name,
-          importance: occupationSkills.importance,
-          ...placeColumns,
-        })
-        .from(occupationSkills)
-        .innerJoin(skills, eq(occupationSkills.skillId, skills.id))
-        .leftJoin(skillGroups, eq(skillGroups.slug, skills.groupSlug))
-        .leftJoin(skillDomains, eq(skillDomains.slug, skillGroups.domainSlug))
-        .where(eq(occupationSkills.occupationId, id))
-        .orderBy(
-          sql`${skills.level} ASC NULLS LAST`,
-          sql`${skillDomains.position} ASC NULLS LAST`,
-          sql`${skillGroups.position} ASC NULLS LAST`,
-          sql`${skills.groupPosition} ASC NULLS LAST`,
-          skills.name
-        )
-    ).map(({ level, groupSlug, groupName, domainSlug, domainName, ...skill }) => ({
-      ...skill,
-      ...placeOf({ level, groupSlug, groupName, domainSlug, domainName }),
-    }));
+    // The career's path in route order: its skills, each with its level, group and domain
+    // and how it is learned. The order is `routeOf`'s and nobody else's.
+    const occupationSkillsResult = await routeOf(db, id);
 
     // Industries where this work is typically done, with how many in-scope
     // factories each has and the states with the most of them.

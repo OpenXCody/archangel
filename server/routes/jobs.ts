@@ -10,7 +10,6 @@ import {
   companies,
   factories,
   occupations,
-  occupationSkills,
   skills,
 } from '../db/index.js';
 import { canManageCompany, cleanText, getSessionUser, handle, requireUser } from '../lib/auth.js';
@@ -23,6 +22,7 @@ import { factoryInScope, isStateInScope } from '../lib/scope.js';
 import { applicationReceived, applicationStatusChanged } from '../lib/notices.js';
 import { jobTextFilter, milesFromFactory, readNear } from '../lib/jobSearch.js';
 import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
+import { routeOf } from '../lib/route.js';
 import { hasVersionOf, versionPathSkills } from '../lib/versions.js';
 
 /**
@@ -394,10 +394,8 @@ router.post(
       const version = await versionPathSkills(companyId, occupationId);
       const defaults =
         version?.map((row) => ({ skillId: row.skillId, stage: row.level })) ??
-        (await db
-          .select({ skillId: occupationSkills.skillId, stage: occupationSkills.stage })
-          .from(occupationSkills)
-          .where(eq(occupationSkills.occupationId, occupationId)));
+        // In route order, so the cut below keeps the first skills of the path and not whichever came back first.
+        (await routeOf(db, occupationId)).map((skill) => ({ skillId: skill.id, stage: skill.level }));
       skillRows = defaults.slice(0, MAX_JOB_SKILLS).map((row) => ({ skillId: row.skillId, required: row.stage !== 3 }));
     }
 

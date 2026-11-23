@@ -8,6 +8,7 @@ import { RecordRefusal } from './records.js';
 import { rowsOf } from './rows.js';
 import { companyInScope } from './scope.js';
 import { placeOf, placeSql, type SkillPlace } from './taxonomy.js';
+import { routeOrder } from './route.js';
 import { isUuid } from './writes.js';
 import { VERSION_ADDED_MAX, VERSION_MAKES_MAX, versionTitle, type VersionOrigin } from '../../shared/versions.js';
 
@@ -132,8 +133,7 @@ async function listVersions(where: SQL, order: SQL, limit: number): Promise<Vers
         (SELECT COALESCE(json_agg(g.name ORDER BY g.place), '[]'::json) FROM (
            -- Each name once, where it first stands on the path: in the skills' order, then the makes' own.
            SELECT r.name, MIN(r.place) AS place FROM (
-             SELECT m.name, ROW_NUMBER() OVER (ORDER BY s.level NULLS LAST, sd.position NULLS LAST, sg.position NULLS LAST,
-                                                         s.group_position NULLS LAST, s.name, m.position, lower(m.name)) AS place
+             SELECT m.name, ROW_NUMBER() OVER (ORDER BY ${routeOrder()}, m.position, lower(m.name)) AS place
              FROM company_career_makes cm
              INNER JOIN skill_makes m ON m.id = cm.make_id
              INNER JOIN skills s ON s.id = cm.skill_id
@@ -206,7 +206,7 @@ export async function readVersion(executor: Executor, companyId: string, occupat
       LEFT JOIN company_career_skills x ON x.skill_id = s.id AND x.company_career_id = ${head.id}
       ${place.joins}
       WHERE os.skill_id IS NOT NULL OR x.change = 'added'
-      ORDER BY s.level ASC NULLS LAST, sd.position ASC NULLS LAST, sg.position ASC NULLS LAST, s.group_position ASC NULLS LAST, s.name
+      ORDER BY ${routeOrder()}
     `)
   );
   const makeRows = rowsOf<{ id: string; name: string; skill_id: string; runs: boolean }>(

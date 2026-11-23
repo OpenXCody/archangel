@@ -1,10 +1,9 @@
 import { lazy, Suspense, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import DoneButton from '../account/DoneButton';
-import GoalButton from '../account/GoalButton';
 import { ErrorNote } from '../account/parts';
 import { signInPath } from '../../lib/account';
 import { type CareerWithinReach, type OccupationDetail } from '../../lib/api';
+import { useViewer } from '../../lib/viewer';
 import { kindLine } from '@shared/military';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { versionPath } from '@shared/versions';
@@ -23,30 +22,30 @@ import PathViewSwitch, { usePathView } from '../atlas/PathViewSwitch';
 import PlateSkeleton from '../atlas/PlateSkeleton';
 import { atlasHref } from '../atlas/state';
 import { ShareRing } from '../path/HeldShare';
-import { LadderAlone, PathFlow } from '../path/PathFlow';
-import { SkillGroupBox } from '../path/SkillGroupBox';
 import { SkillsLine } from '../path/SkillsLine';
-import { buildPath, shareOf } from '../path/model';
+import { shareOf } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
-import { type Head, UNPLACED, OpenJobsSection, IndustryRows, MilitaryCareerRows, factLinkClass } from './parts';
+import { Route } from '../route/Route';
+import { RouteAlone } from '../route/RouteLadder';
+import { type Head, OpenJobsSection, IndustryRows, MilitaryCareerRows, factLinkClass } from './parts';
 
 // The path on the Atlas arrives with the Atlas's own code, only when that view is asked for.
 const CareerAtlas = lazy(() => import('../atlas/CareerAtlas'));
 
 /**
- * Career (occupation) detail: the path of skills drawn as a flow, where the
+ * Career (occupation) detail: the path of skills drawn as a route, where the
  * work is done, open jobs, and the factories that have it.
  *
- * The path is the page: the heading block's action ("Set as goal") and the
- * person's progress over the whole career sit together directly above it,
- * and the diagram carries the same progress for each level and each group.
+ * The path is the page. It reads a person's marks and changes none: a seeker
+ * sees how much of the career they hold directly above the route, and the
+ * route says what is next and how much of each section is held. Setting a goal
+ * and marking a skill are done on Profile, never here.
  *
  * A military career (a Navy rating, an Army MOS, an Air Force specialty) is
  * the same page. Its kind and code stand above the name ("Navy rating · HT"),
  * the name is the service's own title for the job, and its service is a quiet
  * fact that leads to the service's page. It is where a person comes from, not
- * where they are going: it is no goal, and for a seeker its one action is
- * "I have done this" (its skills marked held in one tap). After the path it
+ * where they are going. After the path it
  * lists the civilian careers within reach, each with the skills missing. It
  * has no ladder, industries, jobs, companies or factories, and draws none.
  */
@@ -54,16 +53,14 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same diagram without them.
   const { marks, canSignIn, error: markError } = useSkillMarks();
   const { pathname, search } = useLocation();
+  const viewer = useViewer();
 
   const skills = data.skills ?? [];
   const jobs = data.jobs ?? [];
   const plants = data.factories ?? [];
   const counted = plants.some((plant) => (plant.headcount ?? 0) > 0);
-  const path = buildPath(skills);
-  // Every skill has its own level and group, so any career with skills has a path to draw, whether or not
-  // anyone has written one for it (`pathStatus`: that only decides the word "Draft"). Only skills that no
-  // taxonomy has placed (a database nothing was loaded into) are left to list by themselves.
-  const hasPath = path.levels.some((level) => level.groups.length > 0);
+  // Any career with skills has a path to draw, whether or not anyone has written one for it (`pathStatus`:
+  // that only decides the word "Draft"). The skills arrive in the route's order and are drawn in it.
   const whole = marks && skills.length > 0 ? shareOf(skills, marks) : null;
   const onLadder = (data.comesFrom?.length ?? 0) + (data.leadsTo?.length ?? 0) > 0;
   // Companies that say how this career is done with them: each row opens that company's version.
@@ -71,7 +68,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   // Where people come to this career from the services: computed from the two paths, never stored.
   const reachedBy = data.reachedBy ?? [];
   const [showAllVersions, setShowAllVersions] = useState(false);
-  // The path as a flow, or on the Atlas: from the address, else as last shown in this visit.
+  // The path as a route, or on the Atlas: from the address, else as last shown in this visit.
   const pathView = usePathView();
   // A military career: the service it belongs to, and the civilian careers its path covers.
   const service = data.service ?? null;
@@ -90,11 +87,10 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
         description={data.description}
         action={
           <>
-            {/* A military career is where a person comes from, never a goal: its action is to say so. */}
-            {service ? <DoneButton occupationId={data.id} whole={whole !== null && whole.held === whole.total} /> : <GoalButton occupationId={data.id} />}
+            {/* The page has no action of its own: goals and marks are made on Profile. A seeker is shown how much of the path they hold. */}
             {whole && (
               <span className="inline-flex items-center gap-2 text-sm text-text-2" data-held-count>
-                <ShareRing share={whole} className="h-5 w-5" />
+                <ShareRing share={whole} className="h-[22px] w-[22px]" />
                 <span>
                   You have <span className="font-medium tabular-nums text-text-1">{whole.held}</span> of {whole.total} {whole.total === 1 ? 'skill' : 'skills'}
                 </span>
@@ -127,9 +123,9 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
         <DetailSection id="skills" title="Path">
           {onLadder ? (
             // No skills to lay out yet, but the career still has its place between others.
-            <LadderAlone comesFrom={data.comesFrom} leadsTo={data.leadsTo}>
+            <RouteAlone comesFrom={data.comesFrom} leadsTo={data.leadsTo}>
               Path not written yet.
-            </LadderAlone>
+            </RouteAlone>
           ) : (
             <p className="text-sm text-text-2">Path not written yet.</p>
           )}
@@ -138,10 +134,10 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       {skills.length > 0 && (
         <DetailSection
           id="skills"
-          title={hasPath ? 'Path' : 'Skills'}
+          title="Path"
           note={
-            hasPath && data.pathStatus === 'draft' ? (
-              // Honest without undermining the page: one quiet word, with the sentence for anyone who asks.
+            data.pathStatus === 'draft' && viewer.admin ? (
+              // For an admin only: whether a person has reviewed the path is the admin's business, not a reader's.
               <details className="group text-xs text-text-3" data-draft-path>
                 <summary className="inline-flex min-h-6 cursor-pointer list-none items-center underline decoration-dotted [&::-webkit-details-marker]:hidden">
                   Draft
@@ -150,27 +146,22 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
               </details>
             ) : undefined
           }
-          action={
-            hasPath ? (
-              // Two views of one path: the flow, and the same skills on the Atlas among all the others.
-              <PathViewSwitch current={pathView} />
-            ) : undefined
-          }
+          // Two views of one path: the route, and the same skills on the Atlas among all the others.
+          action={<PathViewSwitch current={pathView} />}
         >
           {marks && <ErrorNote error={markError} className="mb-3" />}
-          {hasPath && pathView === 'flow' && <PathFlow path={path} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} />}
-          {hasPath && pathView === 'atlas' && (
+          {pathView === 'route' && <Route skills={skills} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} keepAs={data.id} />}
+          {pathView === 'atlas' && (
             <Suspense fallback={<PlateSkeleton className="mx-auto max-w-md" />}>
-              <CareerAtlas career={data} path={path} marks={marks} />
+              <CareerAtlas career={data} marks={marks} />
             </Suspense>
           )}
-          {path.unplaced.length > 0 && <SkillGroupBox name={UNPLACED} skills={path.unplaced} marks={marks} className={hasPath ? 'mt-4' : undefined} />}
           {canSignIn && (
             <p className="mt-4 text-sm text-text-3">
               <Link to={signInPath(`${pathname}${search}`)} className="text-text-1 underline">
                 Sign in
               </Link>{' '}
-              to mark the skills you have.
+              to see which of these skills you have.
             </p>
           )}
         </DetailSection>
@@ -256,7 +247,7 @@ const LONG_TITLE = 40;
  * "Civilian careers within reach": for a military career, the civilian
  * careers whose path it already holds a third or more of. Each row leads to
  * the career and says how much of that career's path this one holds; under
- * it, the skills missing, lowest level first, and the two careers compared on
+ * it, the skills missing, in that path's own order, and the two careers compared on
  * the Atlas. Computed from the two paths: nothing here is a stored link.
  */
 function WithinReach({ career, careers }: { career: OccupationDetail; careers: CareerWithinReach[] }) {

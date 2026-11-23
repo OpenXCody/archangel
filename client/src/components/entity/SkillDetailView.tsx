@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import SkillStatusButton from '../account/SkillStatusButton';
 import { type SkillDetail } from '../../lib/api';
 import {
   DetailFacts,
@@ -74,7 +73,7 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
   const { marks, error: markError } = useSkillMarks();
   return (
     <>
-      <DetailHeader {...head} kind="Skill" title={data.name} description={data.description} action={<SkillStatusButton skillId={data.id} />}>
+      <DetailHeader {...head} kind="Skill" title={data.name} description={data.description}>
         {/* The domain and the group each open the skills list narrowed to it; the level is the skill's own. */}
         {data.group && data.domain && (
           <DetailFacts>
