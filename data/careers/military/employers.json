@@ -1,0 +1,37 @@
+{
+  "note": "The four military services as employers: one company each, with no plants. `service` is the key stored in companies.service (shared/military.ts names the four) and `name` the company's name: a service is found by that name, in any letter case, and created when it is not stored. `slug`, `domain`, `description` and `headquarters` are set only where the stored company has none. Nothing here is a tag or a count: a career's tags are derived from its service and how many careers a service has is counted. scripts/build-military-sql.mjs turns this file into a migration (0062).",
+  "companies": [
+    {
+      "name": "U.S. Navy",
+      "service": "navy",
+      "slug": "us-navy",
+      "domain": "navy.mil",
+      "description": "The naval service. Its enlisted jobs are ratings.",
+      "headquarters": { "city": "Arlington", "state": "VA", "country": "US" }
+    },
+    {
+      "name": "U.S. Army",
+      "service": "army",
+      "slug": "us-army",
+      "domain": "army.mil",
+      "description": "The land service. Its enlisted jobs are military occupational specialties.",
+      "headquarters": { "city": "Arlington", "state": "VA", "country": "US" }
+    },
+    {
+      "name": "U.S. Air Force",
+      "service": "air-force",
+      "slug": "us-air-force",
+      "domain": "af.mil",
+      "description": "The air service. Its enlisted jobs are Air Force specialties.",
+      "headquarters": { "city": "Arlington", "state": "VA", "country": "US" }
+    },
+    {
+      "name": "U.S. Marine Corps",
+      "service": "marine-corps",
+      "slug": "us-marine-corps",
+      "domain": "marines.mil",
+      "description": "The naval expeditionary service. Its enlisted jobs are military occupational specialties.",
+      "headquarters": { "city": "Arlington", "state": "VA", "country": "US" }
+    }
+  ]
+}

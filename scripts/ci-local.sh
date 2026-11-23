@@ -14,9 +14,10 @@
 #      careers, versions), the two that need only the database: the employer
 #      loader's (loader) and the careers catalogue's migration (catalogue),
 #      intake's (intake), which drives the runner and then the API, the plant
-#      merge's (dupes): the database's merge, the cleanup migration, the API, and
+#      merge's (dupes): the database's merge, the cleanup migration, the API,
 #      the job postings' (postings): made-up employers' boards from a local
-#      stand-in for the feeds, through the runner, then the API;
+#      stand-in for the feeds, through the runner, then the API, and the military
+#      careers' (military): the services as the API serves them, and their loader;
 #   4. runs the Playwright device suite against the built page.
 # Every suite runs even if an earlier one fails; the exit code is non-zero if
 # any did. The servers it started are stopped on the way out.
@@ -130,6 +131,7 @@ run_suite intake bash tests/api/intake.sh
 run_suite versions bash tests/api/versions.sh
 run_suite dupes bash tests/api/dupes.sh
 run_suite postings bash tests/api/postings.sh
+run_suite military bash tests/api/military.sh
 
 step "Device suite"
 if BASE_URL=$WEB_URL npx playwright test --trace off > "$LOGS/devices.log" 2>&1; then
