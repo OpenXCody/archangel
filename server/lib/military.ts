@@ -1,6 +1,7 @@
 import { eq, sql, type SQL } from 'drizzle-orm';
 import { companies, db, occupations } from '../db/index.js';
 import type { Executor } from './audit.js';
+import { likeLiteral } from './like.js';
 import { rowsOf } from './rows.js';
 import { careerKind, isCodeSystem, isServiceKey, namedCareers, namesForSure, readMilitaryQuery, type CodeSystemKey, type ServiceKey } from '../../shared/military.js';
 
@@ -263,7 +264,7 @@ export async function careersOfService(companyId: string): Promise<ServiceCareer
 export function codeMatch(term: string): { where: SQL; exact: SQL } {
   const code = term.replace(/[^a-z0-9]/gi, '').toLowerCase();
   return {
-    where: code ? sql`lower(occupations.code) LIKE ${`${code}%`}` : sql`FALSE`,
+    where: code ? sql`lower(occupations.code) LIKE ${`${likeLiteral(code)}%`}` : sql`FALSE`,
     exact: code ? sql`(lower(occupations.code) = ${code})` : sql`FALSE`,
   };
 }
