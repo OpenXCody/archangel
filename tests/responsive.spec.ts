@@ -1743,8 +1743,8 @@ test("a job from a company's careers site, as a visitor: tags, facts, one way to
   await expect(page.locator('[data-job-overlap-sign-in] a')).toHaveAttribute('href', new RegExp(`^/sign-in\\?next=${encodeURIComponent(POSTED_JOB_PATH)}`));
   // The equipment the posting names, each make beside its skill.
   const equipment = page.locator('[data-job-equipment] li');
-  await expect(equipment).toHaveCount(3);
-  await expect(equipment.first()).toContainText('Mazak');
+  await expect(equipment).toHaveCount(1);
+  await expect(equipment.first()).toContainText('Mazak, Okuma, Heidenhain');
   await expect(equipment.first()).toContainText('CNC Control Operation');
   // Other open jobs, each at its own address.
   await expect(page.locator('#more-for-career a[href^="/jobs/space-exploration-technologies/cnc-machinist/"]')).toHaveCount(2);

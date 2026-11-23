@@ -90,8 +90,8 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
   const named = new Set(path.skills.concat(path.alsoNamed).filter((skill) => skill.named).map((skill) => skill.id));
   const tag = (skill: PathSkillItem) => <ReadTag key={skill.id} skill={skill} status={marks?.statusOf(skill.id)} named={named.has(skill.id)} />;
 
-  // The equipment the posting names: each make beside the skill it is a make of.
-  const equipment = path.skills.concat(path.alsoNamed).flatMap((skill) => skill.makes.map((make) => ({ ...make, skill })));
+  // The equipment the posting names: a skill's makes on one row, beside the skill they are makes of.
+  const equipment = path.skills.concat(path.alsoNamed).filter((skill) => skill.makes.length > 0);
 
   // Whose list this is, in one sentence.
   const career = { id: job.occupationId, title: job.occupationTitle };
@@ -162,15 +162,23 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
       {equipment.length > 0 && (
         <DetailSection id="equipment" title="Equipment" description="The machines and software the posting names.">
           <RecordList data-job-equipment="">
-            {equipment.map((make) => (
+            {equipment.map((skill) => (
               <RecordRow
-                key={make.id}
-                to={`/skills/${make.skill.id}`}
-                title={make.name}
-                subtitle={make.skill.name}
-                // One the reader has run stands in full ink among the rest.
-                quiet={Boolean(marks) && !found.ranMakes.has(make.id)}
-                data-make={Boolean(marks) && found.ranMakes.has(make.id) ? 'lit' : ''}
+                key={skill.id}
+                to={`/skills/${skill.id}`}
+                title={skill.makes.map((make, index) => {
+                  // For a seeker, a make they have run stands in full ink among the rest.
+                  const lit = Boolean(marks) && found.ranMakes.has(make.id);
+                  return (
+                    <span key={make.id}>
+                      {index > 0 && <span className={marks ? 'text-text-2' : undefined}>, </span>}
+                      <span data-make={lit ? 'lit' : ''} className={marks ? (lit ? 'font-medium text-text-1' : 'text-text-2') : undefined}>
+                        {make.name}
+                      </span>
+                    </span>
+                  );
+                })}
+                subtitle={skill.name}
               />
             ))}
           </RecordList>
