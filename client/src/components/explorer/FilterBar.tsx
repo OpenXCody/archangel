@@ -3,7 +3,8 @@ import { ChevronDown } from 'lucide-react';
 import { US_STATES, type StateCode } from '@shared/states';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
 import { industryLabel } from '@shared/industry';
-import { CODE_SYSTEMS, serviceShortName, type ServiceKey } from '@shared/military';
+import { SERVICES, serviceShortName, type ServiceKey } from '@shared/military';
+import { SegmentedChoice } from '../account/parts';
 import { cn, focusRing } from '@/lib/utils';
 import type { BrowseTab } from './ExploreNav';
 
@@ -28,9 +29,9 @@ const BY_TITLE: SortOption[] = [
 export const SKILLS_BY_DOMAIN = 'domain';
 
 export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
-  // Most factories first by default, so the big manufacturers come before the
-  // long tail of one-factory companies.
-  companies: [{ value: 'factories-desc', label: 'Most factories', field: 'factoryCount', order: 'desc' }, ...BY_NAME],
+  // Companies have one order and no sort: most people, then open jobs, then
+  // factories (the server's `byCompanyStanding`). A company is found by search.
+  companies: [],
   // Most people first by default: the factories whose size is known lead, the
   // largest first, and the rest follow by name.
   factories: [{ value: 'people-desc', label: 'Most people', field: 'workforceSize', order: 'desc' }, ...BY_NAME],
@@ -60,11 +61,17 @@ export interface FilterState {
 /** What the Careers list's Military filter is set to: every military career, or one service's. */
 export type MilitaryChoice = 'all' | ServiceKey;
 
-/** The services that have careers to list: the ones with a code system. */
-const MILITARY_OPTIONS: { value: MilitaryChoice; label: string }[] = [
-  { value: 'all', label: 'Military' },
-  ...CODE_SYSTEMS.map((system) => ({ value: system.service, label: serviceShortName(system.service) ?? system.service })),
-];
+/** The two sides of the Careers list: the careers of industry (the default) and the military ones. */
+const SIDES = [
+  { value: 'industry', label: 'Industry' },
+  { value: 'military', label: 'Military' },
+] as const;
+
+/** The branches the military side can be narrowed to. */
+const BRANCH_OPTIONS: { value: ServiceKey; label: string }[] = SERVICES.map((service) => ({
+  value: service.key,
+  label: serviceShortName(service.key) ?? service.name,
+}));
 
 /** A domain a list can be narrowed to, in the taxonomy's order: for Skills with its groups, for Careers alone. */
 export interface DomainChoice {
@@ -75,7 +82,8 @@ export interface DomainChoice {
 
 interface FilterBarProps {
   activeTab: BrowseTab;
-  sortValue: string;
+  /** The chosen sort; a list with one order (Companies) has none. */
+  sortValue: string | undefined;
   onSortChange: (value: string) => void;
   filters: FilterState;
   onFilterChange: (filters: FilterState) => void;
@@ -140,8 +148,10 @@ function Choice({
 }
 
 /**
- * Filters on the left, sort on the right, all as plain text. A filter that is
- * set reads as its value; "Clear" puts the list back. How many rows match is
+ * Filters on the left, sort on the right, all as plain text (the Careers
+ * list's two sides are the product's segmented control). Companies have one
+ * order, so their Industry filter stands where the sort would. A filter that
+ * is set reads as its value; "Clear" puts the list back. How many rows match is
  * the list's own line, under this one.
  */
 export default function FilterBar({
@@ -170,23 +180,26 @@ export default function FilterBar({
     [domains, filters.domain]
   );
 
-  // A service that has no careers yet is not offered, but an address may name it (`?service=marine-corps`): the
-  // filter then says so, as the count under it does.
-  const militaryOptions = useMemo(
-    () =>
-      filters.military && !MILITARY_OPTIONS.some((option) => option.value === filters.military)
-        ? [...MILITARY_OPTIONS, { value: filters.military, label: serviceShortName(filters.military) ?? filters.military }]
-        : MILITARY_OPTIONS,
-    [filters.military]
-  );
-
   const showState = activeTab === 'factories';
   const showIndustry = (activeTab === 'companies' || activeTab === 'factories') && industryOptions.length > 0;
   const showDomain = (activeTab === 'skills' || activeTab === 'occupations') && domainOptions.length > 0;
   const showGroup = activeTab === 'skills' && showDomain && groupOptions.length > 0;
   // The Careers list is of civilian careers until it is asked for the military ones, all or one service's.
   const showMilitary = activeTab === 'occupations';
-  const filtered = Boolean(filters.state || filters.industry || filters.domain || filters.group || filters.military);
+  // The switch between the two sides is not a filter to clear: Clear puts back what narrows the side that is on.
+  const filtered = Boolean(filters.state || filters.industry || filters.domain || filters.group || (filters.military && filters.military !== 'all'));
+  // Companies have no sort, so their one filter takes the sort's place on the right.
+  const industryAtEnd = activeTab === 'companies';
+  const industryChoice = showIndustry && (
+    <Choice
+      label="Industry"
+      value={filters.industry}
+      options={industryOptions}
+      onChange={(value) => onFilterChange({ ...filters, industry: value })}
+      allLabel="All industries"
+      align={industryAtEnd ? 'end' : 'start'}
+    />
+  );
 
   return (
     <div className="mt-2 flex flex-wrap items-center justify-between gap-x-6 sm:mt-4">
@@ -201,24 +214,25 @@ export default function FilterBar({
             allLabel="All states"
           />
         )}
-        {showIndustry && (
-          <Choice
-            label="Industry"
-            value={filters.industry}
-            options={industryOptions}
-            onChange={(value) => onFilterChange({ ...filters, industry: value })}
-            allLabel="All industries"
+        {!industryAtEnd && industryChoice}
+        {showMilitary && (
+          <SegmentedChoice
+            label="Careers"
+            options={SIDES}
+            value={filters.military ? 'military' : 'industry'}
+            // The two lists have different homes: a domain chosen for one is not kept for the other.
+            onChange={(side) => onFilterChange({ ...filters, military: side === 'military' ? 'all' : undefined, domain: undefined })}
+            className="my-1 h-9 w-44 shrink-0 grid-cols-2"
           />
         )}
-        {showMilitary && (
+        {showMilitary && filters.military && (
           <Choice
-            label="Careers"
-            value={filters.military}
-            options={militaryOptions}
-            // The two lists have different homes: a domain chosen for one is not kept for the other.
-            onChange={(value) => onFilterChange({ ...filters, military: value as MilitaryChoice | undefined, domain: undefined })}
-            // One word each, so that on a phone the filters and the sort still share a line.
-            allLabel="Civilian"
+            label="Branch"
+            value={filters.military === 'all' ? undefined : filters.military}
+            options={BRANCH_OPTIONS}
+            // A home one branch has may not be another's: the domain is chosen again.
+            onChange={(value) => onFilterChange({ ...filters, military: (value as ServiceKey | undefined) ?? 'all', domain: undefined })}
+            allLabel="All branches"
           />
         )}
         {showDomain && (
@@ -241,13 +255,15 @@ export default function FilterBar({
           />
         )}
         {filtered && (
-          <button type="button" onClick={() => onFilterChange({})} className={cn(TRIGGER, 'text-text-1 underline')}>
+          <button type="button" onClick={() => onFilterChange(filters.military ? { military: 'all' } : {})} className={cn(TRIGGER, 'text-text-1 underline')}>
             Clear
           </button>
         )}
       </div>
 
-      <Choice label="Sort" value={sortValue} options={sortOptions} onChange={(value) => value && onSortChange(value)} align="end" />
+      {industryAtEnd
+        ? industryChoice
+        : sortOptions.length > 0 && <Choice label="Sort" value={sortValue} options={sortOptions} onChange={(value) => value && onSortChange(value)} align="end" />}
     </div>
   );
 }
