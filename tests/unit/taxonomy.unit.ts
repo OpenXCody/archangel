@@ -33,8 +33,8 @@ interface TaxonomyFile {
 const BUILDER = 'scripts/build-taxonomy-sql.mjs';
 const TAXONOMY = 'data/skills/taxonomy.json';
 const CATALOGUE = 'data/skills/catalogue.json';
-// The taxonomy's latest migration. 0042 was the first and 0049 the second; each is as it was applied.
-const MIGRATION = 'migrations/0060_skill_taxonomy_3.sql';
+// The taxonomy's latest migration. 0042 was the first, 0049 the second and 0060 the third; each is as it was applied.
+const MIGRATION = 'migrations/0068_skill_taxonomy_4.sql';
 
 const taxonomy = JSON.parse(readFileSync(TAXONOMY, 'utf8')) as TaxonomyFile;
 const catalogue = JSON.parse(readFileSync(CATALOGUE, 'utf8')) as { skills: { name: string }[] };
@@ -176,13 +176,45 @@ test('the migration is in the runner\'s list', () => {
   // The catalogue's migration comes first: it leaves exactly the skills this one places.
   assert.match(runner, /'0048_skills_catalogue_2\.sql', '0049_skill_taxonomy_2\.sql'/);
   assert.match(runner, /'0059_skills_catalogue_4\.sql', '0060_skill_taxonomy_3\.sql'/);
+  // The fourth changes only the domains' order, so it needs no catalogue pass before it; it follows the third.
+  const list = [...runner.matchAll(/'(\d{4}_[a-z0-9_]+\.sql)'/g)].map((m) => m[1]);
+  assert.ok(list.indexOf('0068_skill_taxonomy_4.sql') > list.indexOf('0060_skill_taxonomy_3.sql'));
 });
 
+test('the fourth taxonomy changes the order of the domains and nothing else: Safety is last', () => {
+  const domains = (sql: string) => [...sql.matchAll(/^ {2}\('([a-z0-9-]+)', '((?:[^']|'')+)', '(?:[^']|'')+', (\d+)\)[,;]$/gm)].map((m) => ({ slug: m[1], name: m[2], position: Number(m[3]) }));
+  const before = readFileSync('migrations/0060_skill_taxonomy_3.sql', 'utf8');
+  const after = readFileSync(MIGRATION, 'utf8');
+  assert.deepEqual(domains(after).map((domain) => domain.name), [
+    'Materials', 'Engineering', 'Production', 'Machining', 'Fabrication', 'Assembly', 'Electronics', 'Automation',
+    'Semiconductor', 'Battery and electric drive', 'Process', 'Test', 'Maintenance', 'Quality', 'Nondestructive testing', 'Safety',
+  ]);
+  assert.deepEqual(domains(after).map((domain) => domain.position), domains(after).map((_, index) => index + 1));
+  assert.deepEqual(taxonomy.domains.map((domain: { slug: string }) => domain.slug), domains(after).map((domain) => domain.slug));
+  // Every group keeps its domain and its place among that domain's groups (a group's stored position
+  // counts across all domains, so the numbers move); every skill keeps its group, level and place.
+  const groupsByDomain = (sql: string) => {
+    const by = new Map<string, string[]>();
+    const rows = [...sql.matchAll(/^ {2}\('([a-z0-9-]+)', '([a-z0-9-]+)', '(?:[^']|'')+', '(?:[^']|'')+', (\d+)\)[,;]$/gm)].sort((a, b) => Number(a[3]) - Number(b[3]));
+    for (const [, slug, domain] of rows) by.set(domain, [...(by.get(domain) ?? []), slug]);
+    return by;
+  };
+  assert.equal([...groupsByDomain(after).values()].flat().length, 143);
+  assert.deepEqual(Object.fromEntries([...groupsByDomain(after)].sort()), Object.fromEntries([...groupsByDomain(before)].sort()));
+  const skillLines = (sql: string) => [...sql.matchAll(/^ {2}\('((?:[^']|'')+)', '([a-z0-9-]+)', ([123]), (\d+)\)[,;]$/gm)].map((m) => m.slice(1).join(' | ')).sort();
+  assert.equal(skillLines(after).length, 722);
+  assert.deepEqual(skillLines(after), skillLines(before));
+  // And the statements around the lists are the same ones.
+  const statements = (sql: string) => sql.split('\n').filter((line) => !line.startsWith('  (') && !line.startsWith('--'));
+  assert.deepEqual(statements(after), statements(before));
+});
+
+// Read from the third's own file: the latest restates it with the domains in another order.
 test('the third taxonomy places the military careers\' skills in eleven new groups and moves no skill that was placed', () => {
   const groups = (sql: string) => new Map([...sql.matchAll(/^ {2}\('([a-z0-9-]+)', '([a-z0-9-]+)', '/gm)].map((m) => [m[1], m[2]]));
   const skillsOf = (sql: string) => new Map([...sql.matchAll(/^ {2}\('((?:[^']|'')+)', '([a-z0-9-]+)', ([123]), \d+\)[,;]$/gm)].map((m) => [m[1], `${m[2]} ${m[3]}`]));
   const before = readFileSync('migrations/0049_skill_taxonomy_2.sql', 'utf8');
-  const after = readFileSync(MIGRATION, 'utf8');
+  const after = readFileSync('migrations/0060_skill_taxonomy_3.sql', 'utf8');
   const added = [...groups(after).keys()].filter((slug) => !groups(before).has(slug));
   assert.deepEqual(added.sort(), ['aircraft-systems', 'engines-and-power-plants', 'fielded-electronic-systems', 'fuels', 'nuclear-plant-operations', 'plant-utilities', 'power-generation-and-distribution', 'shipfitting', 'survival-equipment', 'vehicles-and-heavy-equipment', 'weapons-and-munitions']);
   for (const [slug, domain] of groups(before)) assert.equal(groups(after).get(slug), domain, `${slug} stays in ${domain}`);

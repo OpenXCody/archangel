@@ -330,7 +330,8 @@ test('the careers\' and the paths\' migrations are what the files generate', () 
   assert.ok(pathsSql.includes('WHERE NOT EXISTS (SELECT 1 FROM path_careers k WHERE k.title = o.title) AND o.service_company_id IS NOT NULL'));
   for (const table of ['occupation_links', 'industry_occupations', 'company_careers']) assert.ok(!pathsSql.includes(table), `the paths' migration does not touch ${table}`);
   const list = MIGRATIONS as string[];
-  assert.deepEqual(list.slice(-6), ['0059_skills_catalogue_4.sql', '0060_skill_taxonomy_3.sql', '0061_career_service.sql', '0062_military_employers.sql', '0063_military_careers.sql', '0064_military_paths.sql']);
+  const from = list.indexOf('0059_skills_catalogue_4.sql');
+  assert.deepEqual(list.slice(from, from + 6), ['0059_skills_catalogue_4.sql', '0060_skill_taxonomy_3.sql', '0061_career_service.sql', '0062_military_employers.sql', '0063_military_careers.sql', '0064_military_paths.sql']);
 });
 
 test('the check refuses military files that are not whole', () => {
