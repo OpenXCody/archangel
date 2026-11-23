@@ -14,6 +14,7 @@ import { likeLiteral } from '../lib/like.js';
 import { companyIndustry, searchIndustries } from '../lib/industries.js';
 import { shownIndustry } from '../../shared/industry.js';
 import { formatCompanyName, formatFactoryName } from '../../shared/displayName.js';
+import { jobPath } from '../../shared/jobs.js';
 
 const router = Router();
 
@@ -56,6 +57,8 @@ interface SearchResultItem {
   type: 'companies' | 'factories' | 'occupations' | 'skills' | 'states' | 'jobs' | 'industries';
   subtitle?: string;
   meta?: string;
+  /** Jobs only: the job's address (shared/jobs.ts). */
+  href?: string;
   /** Companies only: the web domain their logo is looked up from. */
   domain?: string | null;
   /** Careers only: a military career the query named. It is first among the careers. */
@@ -410,7 +413,7 @@ router.get('/', async (req: Request, res: Response) => {
       const open = and(jobIsOpen(), factoryInScope(), jobFilter);
       const [jobRows, jobCount] = await Promise.all([
         db
-          .select({ id: jobs.id, title: jobs.title, companyName: companies.name, city: factories.city, state: factories.state })
+          .select({ id: jobs.id, serial: jobs.serial, title: jobs.title, companyName: companies.name, companySlug: companies.slug, occupationTitle: occupations.title, city: factories.city, state: factories.state })
           .from(jobs)
           .innerJoin(companies, eq(companies.id, jobs.companyId))
           .innerJoin(factories, eq(factories.id, jobs.factoryId))
@@ -432,6 +435,7 @@ router.get('/', async (req: Request, res: Response) => {
           id: job.id,
           name: job.title,
           type: 'jobs' as const,
+          href: jobPath(job),
           subtitle: [job.companyName, [job.city, job.state].filter(Boolean).join(', ')].filter(Boolean).join(' · '),
         })),
       };

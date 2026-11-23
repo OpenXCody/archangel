@@ -54,6 +54,8 @@ export async function listOpenJobs(where: SQL, limit = 50) {
       payMax: jobs.payMax,
       payPeriod: jobs.payPeriod,
       companyName: sql<string>`(SELECT name FROM companies WHERE companies.id = ${jobs.companyId})`,
+      // With the number and the career's title, what a job's address is written from (shared/jobs.ts).
+      companySlug: sql<string | null>`(SELECT slug FROM companies WHERE companies.id = ${jobs.companyId})`,
       factoryName: factories.name,
       city: factories.city,
       occupationId: occupations.id,

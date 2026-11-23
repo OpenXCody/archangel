@@ -1,5 +1,5 @@
 import { Router, type Request } from 'express';
-import { and, eq, gt, inArray, sql, type SQL } from 'drizzle-orm';
+import { and, eq, gt, inArray, ne, sql, type SQL } from 'drizzle-orm';
 import {
   db,
   jobs,
@@ -22,8 +22,10 @@ import { SCOPE } from '../../shared/scope.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
 import { applicationReceived, applicationStatusChanged } from '../lib/notices.js';
 import { jobTextFilter, milesFromFactory, readNear } from '../lib/jobSearch.js';
-import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
-import { hasVersionOf, versionPathSkills } from '../lib/versions.js';
+import { countOpenJobs, jobIsOpen, jobsInOrder, listOpenJobs } from '../lib/openJobs.js';
+import { hasVersionOf, readVersion, versionPathSkills } from '../lib/versions.js';
+import { placeOf, placeSql, type SkillPlace } from '../lib/taxonomy.js';
+import { jobPath, readJobNumber } from '../../shared/jobs.js';
 
 /**
  * Jobs and applications.
@@ -66,6 +68,8 @@ const jobSummary = {
   expiresAt: jobs.expiresAt,
   companyId: companies.id,
   companyName: companies.name,
+  // For the job's address (shared/jobs.ts).
+  companySlug: companies.slug,
   // For the company's logo.
   companyDomain: companies.domain,
   factoryId: factories.id,
@@ -158,81 +162,233 @@ router.get(
   })
 );
 
-// GET /api/jobs/:id - one job with its skills. For a signed-in person, each
-// skill says whether they hold it and the response includes their application.
+/** A skill on a job's page: where it stands in the taxonomy, and what this job and this reader say of it. */
+interface JobPathSkill extends SkillPlace {
+  id: string;
+  name: string;
+  /** The job's own words name it: the posting's text was read to ask for it. Always false on a job posted here by hand. */
+  named: boolean;
+  /** On a job posted here by hand, a skill the company marked as good to have and not needed. False everywhere else. */
+  optional: boolean;
+  /** The company's version of the career adds it to the standard path. */
+  added: boolean;
+  /** The signed-in reader holds it; false when signed out. */
+  held: boolean;
+  /** The makes of the skill this job names (the machines or software it is run on). */
+  makes: { id: string; name: string }[];
+}
+
+/**
+ * The skills a job's page draws. A job is an opening for a career, so what it
+ * takes is the career's path, not only the handful of skills a posting's text
+ * happened to name.
+ *
+ * `of` says whose list `skills` is:
+ * - `version`: the job came from the company's careers site and the company has its own version of
+ *   the career. `skills` is that version's path (the standard's skills it keeps and the ones it adds).
+ * - `career`: the job came from the company's careers site and the company has no version. `skills`
+ *   is the career's standard path (`occupation_skills`).
+ * - `job`: the company posted the job here by hand and chose its skills. `skills` is exactly that
+ *   choice (`job_skills`); nothing is added from the career.
+ *
+ * `skills` is always in path order (level, domain, group, the skill's place in its group), each with
+ * its level, group and domain, so the page lays it out as a career's path is laid out. On a job from
+ * a careers site each skill says whether the posting names it (`named`).
+ *
+ * `alsoNamed` is what the posting names that is not on that path: skills in `job_skills` (or the
+ * skill of a make in `job_makes`) that the career's path does not have. Empty for a job posted by hand.
+ *
+ * The response's older `skills` is untouched: the job's own `job_skills` rows, by name.
+ */
+interface JobPath {
+  of: 'version' | 'career' | 'job';
+  skills: JobPathSkill[];
+  alsoNamed: JobPathSkill[];
+}
+
+async function readJobPath(
+  job: { id: string; companyId: string; occupationId: string; fromSource: boolean },
+  own: { id: string; required: boolean }[],
+  makesOf: (skillId: string) => { id: string; name: string }[],
+  makeSkillIds: string[],
+  userId: string | null
+): Promise<JobPath> {
+  const ownIds = new Set(own.map((skill) => skill.id));
+  const optional = new Set(own.filter((skill) => !skill.required).map((skill) => skill.id));
+  let of: JobPath['of'] = 'job';
+  let onPath = ownIds;
+  let added = new Set<string>();
+  if (job.fromSource) {
+    const version = await readVersion(db, job.companyId, job.occupationId);
+    if (version) {
+      of = 'version';
+      onPath = new Set(version.skills.map((skill) => skill.id));
+      added = new Set(version.skills.filter((skill) => skill.added).map((skill) => skill.id));
+    } else {
+      of = 'career';
+      const standard = await db.select({ id: occupationSkills.skillId }).from(occupationSkills).where(eq(occupationSkills.occupationId, job.occupationId));
+      onPath = new Set(standard.map((row) => row.id));
+    }
+  }
+  // What the job's own words name: its skills, and the skill of every make it names.
+  const namedIds = job.fromSource ? new Set([...ownIds, ...makeSkillIds]) : new Set<string>();
+  const all = [...new Set([...onPath, ...namedIds])];
+  if (all.length === 0) return { of, skills: [], alsoNamed: [] };
+
+  const place = placeSql('s');
+  const rows = rowsOf<{ id: string; name: string; held: boolean; level: unknown; group_slug: unknown; group_name: unknown; domain_slug: unknown; domain_name: unknown }>(
+    await db.execute(sql`
+      SELECT s.id, s.name, ${place.columns},
+             ${userId ? sql`EXISTS (SELECT 1 FROM user_skills us WHERE us.skill_id = s.id AND us.user_id = ${userId} AND us.status = 'held')` : sql`false`} AS held
+      FROM skills s
+      ${place.joins}
+      WHERE s.id IN (${sql.join(all.map((id) => sql`${id}`), sql`, `)})
+      ORDER BY s.level ASC NULLS LAST, sd.position ASC NULLS LAST, sg.position ASC NULLS LAST, s.group_position ASC NULLS LAST, s.name
+    `)
+  );
+  const skills: JobPathSkill[] = [];
+  const alsoNamed: JobPathSkill[] = [];
+  for (const row of rows) {
+    const id = String(row.id);
+    const skill: JobPathSkill = {
+      id,
+      name: String(row.name),
+      ...placeOf(row),
+      named: namedIds.has(id),
+      optional: !job.fromSource && optional.has(id),
+      added: added.has(id),
+      held: Boolean(row.held),
+      makes: makesOf(id),
+    };
+    (onPath.has(id) ? skills : alsoNamed).push(skill);
+  }
+  return { of, skills, alsoNamed };
+}
+
+/** How many other open jobs a job's page lists under each heading. */
+const OTHER_JOBS_SHOWN = 5;
+
+/**
+ * One job as its page reads it, found by a condition over `jobs` (its id, or its number).
+ * Null when there is none, or none this reader may see: a closed or expired job stays
+ * visible only to its company and to people who applied.
+ */
+async function readJobPage(req: Request, where: SQL) {
+  const user = await getSessionUser(req);
+  const [job] = await db
+    .select({
+      ...jobSummary,
+      description: jobs.description,
+      applyUrl: jobs.applyUrl,
+      closedReason: jobs.closedReason,
+      // The company has its own version of the job's career: the page links it.
+      hasVersion: hasVersionOf(sql`${jobs.companyId}`, sql`${jobs.occupationId}`),
+      // A job that came from the company's own careers site (migration 0054): kept in step with
+      // it by the intake runner, read-only here. Its level, and what it asks for as facts.
+      fromSource: sql<boolean>`${jobs.source} IS NOT NULL`,
+      levelWord: jobs.levelWord,
+      levelRank: jobs.levelRank,
+      requirements: jobs.requirements,
+      lastSeenAt: jobs.lastSeenAt,
+    })
+    .from(jobs)
+    .innerJoin(companies, eq(companies.id, jobs.companyId))
+    .innerJoin(factories, eq(factories.id, jobs.factoryId))
+    .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
+    .where(where)
+    .limit(1);
+  if (!job || !isStateInScope(job.state)) return null;
+
+  const canManage = user ? await canManageCompany(user, job.companyId) : false;
+  const isOpen = job.status === 'open' && job.expiresAt > new Date();
+  let myApplication: { id: string; status: string; createdAt: Date } | null = null;
+  if (user) {
+    const [mine] = await db
+      .select({ id: applications.id, status: applications.status, createdAt: applications.createdAt })
+      .from(applications)
+      .where(and(eq(applications.jobId, job.id), eq(applications.userId, user.id)))
+      .limit(1);
+    myApplication = mine ?? null;
+  }
+  if (!isOpen && !canManage && !myApplication) return null;
+
+  // The job's own skills: what a posting's text was read to name, or what the company chose here.
+  const skillRows = await db
+    .select({
+      id: skills.id,
+      name: skills.name,
+      required: jobSkills.required,
+      held: user
+        ? sql<boolean>`EXISTS (
+            SELECT 1 FROM user_skills us
+            WHERE us.skill_id = ${skills.id} AND us.user_id = ${user.id} AND us.status = 'held'
+          )`
+        : sql<boolean>`false`,
+    })
+    .from(jobSkills)
+    .innerJoin(skills, eq(skills.id, jobSkills.skillId))
+    .where(eq(jobSkills.jobId, job.id))
+    .orderBy(sql`${jobSkills.required} DESC`, skills.name);
+  // The makes the job names, under the skill each is a make of.
+  const makeRows = await db
+    .select({ skillId: jobMakes.skillId, id: skillMakes.id, name: skillMakes.name })
+    .from(jobMakes)
+    .innerJoin(skillMakes, eq(skillMakes.id, jobMakes.makeId))
+    .where(eq(jobMakes.jobId, job.id))
+    .orderBy(skillMakes.position, skillMakes.name);
+  const makesOf = (skillId: string) => makeRows.filter((make) => make.skillId === skillId).map(({ id, name }) => ({ id, name }));
+
+  const path = await readJobPath(job, skillRows, makesOf, makeRows.map((make) => make.skillId), user?.id ?? null);
+
+  // Other open jobs: for this career at this company, and the rest at this factory.
+  const sameCareer = and(eq(jobs.companyId, job.companyId), eq(jobs.occupationId, job.occupationId), ne(jobs.id, job.id)) as SQL;
+  const sameFactory = and(eq(jobs.factoryId, job.factoryId), ne(jobs.occupationId, job.occupationId)) as SQL;
+  const [careerJobs, careerTotal, factoryJobs, factoryTotal] = await Promise.all([
+    listOpenJobs(sameCareer, OTHER_JOBS_SHOWN),
+    countOpenJobs(sameCareer),
+    listOpenJobs(sameFactory, OTHER_JOBS_SHOWN),
+    countOpenJobs(sameFactory),
+  ]);
+
+  return {
+    // `href` is the job's address as links are written today (shared/jobs.ts): the page puts it in place of an older one.
+    job: { ...job, isOpen, href: jobPath(job) },
+    // The job's own rows (`job_skills`), by name. The page draws `path`; this stays for other readers.
+    skills: skillRows.map((skill) => ({ ...skill, makes: makesOf(skill.id) })),
+    path,
+    others: {
+      // This career at this company, this job left out.
+      career: { jobs: careerJobs, total: careerTotal },
+      // Every other career's open jobs at this factory.
+      factory: { jobs: factoryJobs, total: factoryTotal },
+    },
+    myApplication,
+    canManage,
+  };
+}
+
+// GET /api/jobs/by-number/:serial - the same answer as GET /api/jobs/:id, for the job with that
+// number. A job's address ends in its number (/jobs/caterpillar/cnc-machine-operator/1140) and the
+// number alone finds it: the words before it are never read.
+router.get(
+  '/by-number/:serial',
+  handle(async (req, res) => {
+    const serial = readJobNumber(req.params.serial);
+    const page = serial === null ? null : await readJobPage(req, eq(jobs.serial, serial));
+    if (!page) return res.status(404).json({ error: 'Job not found' });
+    res.json(page);
+  })
+);
+
+// GET /api/jobs/:id - one job as its page reads it: its facts, its own skills (`skills`), the path
+// of its career with what the job names marked (`path`), other open jobs beside it (`others`). For a
+// signed-in person each skill says whether they hold it and the response includes their application.
 router.get(
   '/:id',
   handle(async (req, res) => {
-    const user = await getSessionUser(req);
-    const [job] = await db
-      .select({
-        ...jobSummary,
-        description: jobs.description,
-        applyUrl: jobs.applyUrl,
-        closedReason: jobs.closedReason,
-        // The company has its own version of the job's career: the page links it.
-        hasVersion: hasVersionOf(sql`${jobs.companyId}`, sql`${jobs.occupationId}`),
-        // A job that came from the company's own careers site (migration 0054): kept in step with
-        // it by the intake runner, read-only here. Its level, and what it asks for as facts.
-        fromSource: sql<boolean>`${jobs.source} IS NOT NULL`,
-        levelWord: jobs.levelWord,
-        levelRank: jobs.levelRank,
-        requirements: jobs.requirements,
-        lastSeenAt: jobs.lastSeenAt,
-      })
-      .from(jobs)
-      .innerJoin(companies, eq(companies.id, jobs.companyId))
-      .innerJoin(factories, eq(factories.id, jobs.factoryId))
-      .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
-      .where(eq(jobs.id, req.params.id))
-      .limit(1);
-    if (!job || !isStateInScope(job.state)) return res.status(404).json({ error: 'Job not found' });
-
-    const canManage = user ? await canManageCompany(user, job.companyId) : false;
-    const isOpen = job.status === 'open' && job.expiresAt > new Date();
-    // A closed or expired job stays visible to its company and to people who applied.
-    let myApplication: { id: string; status: string; createdAt: Date } | null = null;
-    if (user) {
-      const [mine] = await db
-        .select({ id: applications.id, status: applications.status, createdAt: applications.createdAt })
-        .from(applications)
-        .where(and(eq(applications.jobId, job.id), eq(applications.userId, user.id)))
-        .limit(1);
-      myApplication = mine ?? null;
-    }
-    if (!isOpen && !canManage && !myApplication) return res.status(404).json({ error: 'Job not found' });
-
-    const skillRows = await db
-      .select({
-        id: skills.id,
-        name: skills.name,
-        required: jobSkills.required,
-        held: user
-          ? sql<boolean>`EXISTS (
-              SELECT 1 FROM user_skills us
-              WHERE us.skill_id = ${skills.id} AND us.user_id = ${user.id} AND us.status = 'held'
-            )`
-          : sql<boolean>`false`,
-      })
-      .from(jobSkills)
-      .innerJoin(skills, eq(skills.id, jobSkills.skillId))
-      .where(eq(jobSkills.jobId, job.id))
-      .orderBy(sql`${jobSkills.required} DESC`, skills.name);
-    // The makes the job names, under the skill each is a make of.
-    const makeRows = await db
-      .select({ skillId: jobMakes.skillId, id: skillMakes.id, name: skillMakes.name })
-      .from(jobMakes)
-      .innerJoin(skillMakes, eq(skillMakes.id, jobMakes.makeId))
-      .where(eq(jobMakes.jobId, job.id))
-      .orderBy(skillMakes.position, skillMakes.name);
-    const makesOf = (skillId: string) => makeRows.filter((make) => make.skillId === skillId).map(({ id, name }) => ({ id, name }));
-
-    res.json({
-      job: { ...job, isOpen },
-      skills: skillRows.map((skill) => ({ ...skill, makes: makesOf(skill.id) })),
-      myApplication,
-      canManage,
-    });
+    const page = await readJobPage(req, eq(jobs.id, req.params.id));
+    if (!page) return res.status(404).json({ error: 'Job not found' });
+    res.json(page);
   })
 );
 

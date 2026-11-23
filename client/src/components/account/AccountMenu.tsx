@@ -20,7 +20,8 @@ import {
   useSignOut,
   type News,
 } from '../../lib/account';
-import { useJob } from '../../lib/jobs';
+import { useJobPage } from '../../lib/jobs';
+import { readJobNumber } from '@shared/jobs';
 import { errorMessage } from '../../lib/http';
 import { useViewer } from '../../lib/viewer';
 
@@ -49,9 +50,11 @@ const itemClass = 'cursor-pointer gap-2.5 px-2.5 py-2.5 text-sm text-text-1 focu
 function useSeenOnVisit(news: News | undefined): void {
   const { pathname, search } = useLocation();
   const { mutate } = useMarkSeen();
-  const jobId = /^\/jobs\/([0-9a-f-]{36})$/i.exec(pathname)?.[1];
+  // A job's page, by the number its address ends in (shared/jobs.ts).
+  const jobNumber = readJobNumber(/^\/jobs\/[^/]+\/[^/]+\/(\d+)$/.exec(pathname)?.[1]);
+  const jobId = jobNumber ?? undefined;
   // The job page's own query, shared: no second request.
-  const job = useJob(news?.applicants ? jobId : undefined);
+  const job = useJobPage(news?.applicants && jobNumber !== null ? { serial: jobNumber } : null);
   const seen: keyof News | null = !news
     ? null
     : news.applicants && (pathname === '/employer' || (jobId !== undefined && job.data?.canManage === true))

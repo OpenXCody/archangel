@@ -41,7 +41,9 @@ export type SearchRow = { key: string; title: string; subtitle?: string; score: 
   | { kind: 'state'; code: string }
   | { kind: 'industry'; slug: string }
   | { kind: 'company'; id: string; domain: string | null }
-  | { kind: 'factory' | 'occupation' | 'skill' | 'job'; id: string }
+  | { kind: 'factory' | 'occupation' | 'skill'; id: string }
+  /** A job opens at its own address, which the search gives (`jobPath` in shared/jobs.ts). */
+  | { kind: 'job'; id: string; href?: string }
   | { kind: 'place'; place: Place }
 );
 
@@ -139,6 +141,7 @@ export function recordRows(results: SearchResults | undefined, query: string): P
       kind: 'job',
       key: `job-${item.id}`,
       id: item.id,
+      href: item.href,
       title: item.name,
       subtitle: item.subtitle || undefined,
       score: scored(item.name),

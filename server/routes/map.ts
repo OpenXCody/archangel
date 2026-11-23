@@ -109,7 +109,8 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
   // there are in all. Empty where nobody is, and the panel then says nothing.
   const openJobs = await db.execute(sql`
     SELECT j.id, j.serial, j.title, j.pay_min, j.pay_max, j.pay_period,
-           c.name AS company_name, f.name AS factory_name, f.city,
+           c.name AS company_name, c.slug AS company_slug, f.name AS factory_name, f.city,
+               (SELECT o.title FROM occupations o WHERE o.id = j.occupation_id) AS occupation_title,
            COUNT(*) OVER ()::int AS total
     FROM jobs j
     INNER JOIN factories f ON f.id = j.factory_id
@@ -130,6 +131,8 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
       payMax: r.pay_max,
       payPeriod: r.pay_period,
       companyName: r.company_name,
+      companySlug: r.company_slug ?? null,
+      occupationTitle: r.occupation_title ?? undefined,
       factoryName: r.factory_name,
       city: r.city ?? null,
     })),

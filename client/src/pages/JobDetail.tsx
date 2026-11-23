@@ -1,22 +1,26 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { ExternalLink, Loader2, Lock, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn, labelClass } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { signInPath, useAccount } from '../lib/account';
-import { useApply, useJob, useUpdateJob, type JobDetail as JobDetailData, type JobDetailResponse, type JobSkill } from '../lib/jobs';
+import { useApply, useJobPage, useUpdateJob, type JobDetail as JobDetailData, type JobDetailResponse } from '../lib/jobs';
+import type { CareerJob } from '../lib/api';
 import { ApiError } from '../lib/http';
+import { accountKeys } from '../lib/queryKeys';
 import { useApplicantList, useDeleteJob, useExtendJob } from '../lib/employerJobs';
-import { useMarkSkill, useMySkills } from '../lib/seeker';
 import { useViewer } from '../lib/viewer';
-import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
+import { formatPay } from '../lib/jobFormat';
+import { cityState } from '../lib/places';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
+import { jobPath, readJobNumber } from '@shared/jobs';
+import { isUuid } from '../lib/validation';
 import {
   ApplicationStatusBadge,
   CardNote,
   ErrorNote,
   Field,
-  HeldMeter,
   LoadError,
   PageLoading,
   RowsSkeleton,
@@ -26,30 +30,50 @@ import {
   textButtonClass,
   busyButtonClass,
 } from '../components/account/parts';
-import { DAY_MS, formatDay, formatDayCapital } from '../lib/dates';
+import { DAY_MS, formatDay } from '../lib/dates';
 import ApplicantList from '../components/jobs/ApplicantList';
 import JobDescription from '../components/jobs/JobDescription';
-import SourcedJob, { SourcedApply } from '../components/jobs/SourcedJob';
-import { SkillHeldToggle } from '../components/account/SkillStatusButton';
+import JobFacts from '../components/jobs/JobFacts';
+import JobSkills from '../components/jobs/JobSkills';
+import { FromSourceNote, SourcedApply } from '../components/jobs/SourcedJob';
 import ConfirmDialog from '../components/layout/ConfirmDialog';
-import {
-  DetailFacts,
-  DetailHeader,
-  DetailSection,
-  EmptyState,
-  PageContainer,
-  RecordList,
-  RecordRow,
-  recordListClass,
-} from '../components/layout/Page';
-import CompanyLogo from '../components/CompanyLogo';
+import { DetailHeader, DetailSection, EmptyState, PageContainer, RecordList, RecordRow, sectionLinkClass } from '../components/layout/Page';
+import { CareerTag, CompanyTag, FactoryTag, RecordTags } from '../components/layout/RecordTag';
 import { versionPath, versionTitle } from '@shared/versions';
 
+/*
+ * A job's page, top to bottom:
+ *
+ * 1. the title, and under it the company, the factory and the career as tags;
+ * 2. the facts the job states (pay where it is stated, level, type, shift, the
+ *    day, what it asks for);
+ * 3. the one action: Apply. On a job from the company's careers site it opens
+ *    the company's page; on a job posted here it is the form;
+ * 4. the skills: the path of the job's career (the skills the company chose,
+ *    for a job posted here), by level and group, with one line above them for
+ *    a seeker ("You hold 5 of 14") and for a visitor (the way to sign in);
+ * 5. the equipment the posting names;
+ * 6. other open jobs for this career at this company, and at this factory.
+ *
+ * The people who manage the job see the company's view first (its state, what
+ * can be done with it, the applicants) and the listing under it.
+ *
+ * The address is /jobs/<company>/<career>/<number> (`jobPath` in
+ * shared/jobs.ts) and only the number is read. An older /jobs/<id>, or an
+ * address whose words are no longer the company's or the career's, opens the
+ * same job and is replaced by the right one.
+ */
+
 export default function JobDetail() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id?: string; serial?: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const account = useAccount();
-  const job = useJob(id);
+  // The address ends in the job's number; an older one is the job's id.
+  const serial = readJobNumber(params.serial);
+  const ref = serial !== null ? { serial } : params.serial === undefined && params.id && isUuid(params.id) ? { id: params.id } : null;
+  const job = useJobPage(ref);
   const signedIn = Boolean(account.data?.user);
   const viewer = useViewer();
   // A person who manages the job sees it as its company does, until they
@@ -60,6 +84,16 @@ export default function JobDetail() {
   useEffect(() => {
     if (title) document.title = `${title} · Archangel`;
   }, [title]);
+
+  // The address the job has today, in place of an older or a mistaken one. The
+  // answer is kept under the number as well, so the page does not ask twice.
+  const loadedJob = job.data;
+  const href = loadedJob?.job.href;
+  useEffect(() => {
+    if (!loadedJob || !href || location.pathname === href) return;
+    queryClient.setQueryData(accountKeys.job(`number:${loadedJob.job.serial}`), loadedJob);
+    navigate(`${href}${location.search}${location.hash}`, { replace: true, state: location.state });
+  }, [loadedJob, href, location.pathname, location.search, location.hash, location.state, navigate, queryClient]);
 
   // A link to a part of the page (#manage-job) arrives before the job has
   // loaded, so the browser finds nothing to scroll to. Go there once it has.
@@ -91,12 +125,12 @@ export default function JobDetail() {
     }
   }, [canManage, recheckAccount]);
 
-  if (job.isPending) return <PageLoading label="Loading job" />;
+  if (ref && job.isPending) return <PageLoading label="Loading job" />;
 
-  const gone = job.error instanceof ApiError && (job.error.status === 404 || job.error.status === 400);
+  const gone = !ref || (job.error instanceof ApiError && (job.error.status === 404 || job.error.status === 400));
   // Only a job that never loaded is "not available". One that was on screen
   // and has since closed stays on screen and says so.
-  if (job.isError && !job.data) {
+  if (!job.data) {
     return (
       <PageContainer size="narrow">
         {gone ? (
@@ -119,6 +153,8 @@ export default function JobDetail() {
 
   const justClosed = job.isError && gone;
   const data = justClosed ? { ...job.data, job: { ...job.data.job, isOpen: false } } : job.data;
+  const here = data.job.href ?? location.pathname;
+  const sourced = Boolean(data.job.fromSource);
   // Whether the company's view is drawn: the server says who can manage the job; an admin
   // looking at the product as someone else sees it as that person would.
   const manages = data.canManage && viewer.manages(data.job.companyId);
@@ -129,26 +165,23 @@ export default function JobDetail() {
   // without it, unless they have an application of their own on this job.
   const applying =
     Boolean(data.myApplication) || (manages ? applyAsManager : !signedIn || viewer.seeker);
-  // Skills are marked against the reader's own only when they are here to apply.
-  const marksHeld = signedIn && applying;
-  const requiredSkills = data.skills.filter((skill) => skill.required);
-  const optionalSkills = data.skills.filter((skill) => !skill.required);
-  // Not every factory has a city on record; its name places it well enough.
-  const place = data.job.city
-    ? formatPlace(formatFactoryName(data.job.city), data.job.state)
-    : [formatFactoryName(data.job.factoryName), data.job.state].filter(Boolean).join(', ');
-  const companyName = formatCompanyName(data.job.companyName);
+  const company = { id: data.job.companyId, slug: data.job.companySlug, name: data.job.companyName, domain: data.job.companyDomain };
+  const career = { id: data.job.occupationId, title: data.job.occupationTitle };
 
-  // A person who can mark skills meets them before the Apply button: the
-  // company ranks applicants by the required skills they hold, so marking
-  // first is what helps them.
-  const applyAfterSkills = marksHeld && !manages && data.job.isOpen && !data.myApplication && requiredSkills.length > 0;
-  const terms = <TermsCard job={data.job} showApplications={manages} />;
+  const facts = (
+    <JobFacts
+      job={data.job}
+      // Applicants meet this as the Apply panel; the company has none.
+      applications={manages && !sourced ? <ApplicationsGoTo job={data.job} /> : undefined}
+    />
+  );
   const apply = (
     <DetailSection id="apply" title="Apply">
-      <ApplyPanel data={data} signedIn={signedIn} />
+      <ApplyPanel data={data} signedIn={signedIn} here={here} />
     </DetailSection>
   );
+  // The company's view of a job it posted here comes first; the listing is then a section of its own.
+  const managesPosted = manages && !sourced;
 
   return (
     <PageContainer size="narrow">
@@ -165,13 +198,23 @@ export default function JobDetail() {
         }
         // The number is the company's own count of its jobs: said to the people who manage it.
         // (A job from the company's careers site is not one of the jobs it posted here: no number.)
-        kind={manages && !data.job.fromSource ? `Job #${data.job.serial}` : 'Job'}
+        kind={managesPosted ? `Job #${data.job.serial}` : 'Job'}
         title={data.job.title}
-        mark={<CompanyLogo name={companyName} domain={data.job.companyDomain} size={44} />}
         // A job from the company's careers site has one action, and it is the page's: Apply, there.
-        action={data.job.fromSource && (manages ? false : !signedIn || viewer.seeker) ? <SourcedApply job={data.job} /> : undefined}
+        action={sourced && (manages ? false : !signedIn || viewer.seeker) ? <SourcedApply job={data.job} /> : undefined}
       >
-        <DetailFacts>{[companyName, place].filter(Boolean).join(' · ')}</DetailFacts>
+        {/* Whose job it is, where, and for which career: each opens its own page. */}
+        <RecordTags data-job-tags="">
+          <CompanyTag company={company} />
+          <FactoryTag factory={{ id: data.job.factoryId, name: data.job.factoryName, city: data.job.city, state: data.job.state }} />
+          {/* Where the company has its own version of the career, the job leads to that. */}
+          {data.job.hasVersion ? (
+            <CareerTag career={{ id: career.id, title: versionTitle(company.name, career.title) }} to={versionPath(career.id, company)} data-job-version="" />
+          ) : (
+            <CareerTag career={career} />
+          )}
+        </RecordTags>
+        {!managesPosted && <div className="mt-5">{facts}</div>}
       </DetailHeader>
 
       {lostAccess && !manages && (
@@ -181,7 +224,7 @@ export default function JobDetail() {
           ) : (
             <>
               You are signed out.{' '}
-              <Link to={signInPath(`/jobs/${data.job.id}`)} className="font-medium underline hover:no-underline">
+              <Link to={signInPath(here)} className="font-medium underline hover:no-underline">
                 Sign in
               </Link>{' '}
               to manage this job.
@@ -190,29 +233,20 @@ export default function JobDetail() {
         </p>
       )}
 
-      {data.job.fromSource ? (
-        // What the posting says, as facts: nothing to manage, nobody to apply to here.
-        <>
-          {!data.job.isOpen && !manages && <ClosedNotice job={data.job} justClosed={justClosed} />}
-          <SourcedJob job={data.job} skills={data.skills} manages={manages} />
-        </>
-      ) : manages ? (
+      {sourced && manages && <FromSourceNote job={data.job} />}
+      {!data.job.isOpen && !manages && <ClosedNotice job={data.job} justClosed={justClosed} />}
+
+      {managesPosted && (
         // The company's view comes first: the job's state, then who applied.
         <>
           <ManageSection job={data.job} />
           <DetailSection title="Listing" description="The job as applicants see it." className="mt-10 border-t border-line pt-8">
-            {terms}
+            {facts}
           </DetailSection>
-        </>
-      ) : (
-        <>
-          {!data.job.isOpen && <ClosedNotice job={data.job} justClosed={justClosed} />}
-          <div className="mt-6">{terms}</div>
-          {applying && !applyAfterSkills && apply}
         </>
       )}
 
-      {!data.job.fromSource && data.job.description && (
+      {!sourced && data.job.description && (
         <DetailSection title="About the job">
           <div className={cn(cardClass, 'text-sm leading-relaxed text-text-1')}>
             <JobDescription text={data.job.description} />
@@ -220,51 +254,12 @@ export default function JobDetail() {
         </DetailSection>
       )}
 
-      {!data.job.fromSource && (
-        <DetailSection
-          title="Required skills"
-          description={requiredSkills.length > 0 && marksHeld ? 'Mark the ones you have. The company sees how many you hold.' : undefined}
-        >
-          {requiredSkills.length === 0 ? (
-            <CardNote>No required skills are listed for this job.</CardNote>
-          ) : (
-            <>
-              {marksHeld ? (
-                <HeldMeter
-                  held={requiredSkills.filter((skill) => skill.held).length}
-                  total={requiredSkills.length}
-                  noun="required skills held"
-                  className="mb-3"
-                />
-              ) : (
-                !signedIn && (
-                  <p className="mb-3 text-sm text-text-2">
-                    <Link
-                      to={signInPath(`/jobs/${data.job.id}`)}
-                      className="font-medium text-text-1 underline hover:no-underline"
-                    >
-                      Sign in
-                    </Link>{' '}
-                    to see which of these you already hold.
-                  </p>
-                )
-              )}
-              <SkillList skills={requiredSkills} marksHeld={marksHeld} />
-            </>
-          )}
-        </DetailSection>
-      )}
+      {/* The one action of a job posted here: the form, or what became of the person's application. */}
+      {!sourced && !manages && applying && apply}
 
-      {!data.job.fromSource && optionalSkills.length > 0 && (
-        <DetailSection title="Optional skills" description="Good to have, not needed to apply.">
-          <SkillList skills={optionalSkills} marksHeld={marksHeld} />
-        </DetailSection>
-      )}
+      <JobSkills job={data.job} path={data.path} forApplicant={!manages} />
 
-      {!data.job.fromSource && applyAfterSkills && apply}
-
-      {manages &&
-        !data.job.fromSource &&
+      {managesPosted &&
         (applying ? (
           apply
         ) : (
@@ -277,12 +272,28 @@ export default function JobDetail() {
             </button>
           )
         ))}
+
+      {/* Other open jobs: this career at this company, then the rest at this factory. */}
+      <OtherJobs
+        id="more-for-career"
+        title={`More ${career.title} jobs at ${formatCompanyName(company.name).replace(/\.$/, '')}`}
+        list={data.others?.career}
+        all={`/jobs?company=${company.id}&career=${career.id}`}
+        line={(other) => [formatFactoryName(other.factoryName), other.city ? cityState(other.city, null) : null]}
+      />
+      <OtherJobs
+        id="more-at-factory"
+        title="Other jobs at this factory"
+        list={data.others?.factory}
+        all={`/jobs?plant=${data.job.factoryId}`}
+        line={(other) => [other.occupationTitle !== other.title ? other.occupationTitle : null]}
+      />
     </PageContainer>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Terms
+// Parts of the listing
 // ---------------------------------------------------------------------------
 
 function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClosed?: boolean }) {
@@ -302,96 +313,55 @@ function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClo
   );
 }
 
-function Term({ label, children }: { label: string; children: ReactNode }) {
+/** Where a job's applications go, said to the people who manage it. */
+function ApplicationsGoTo({ job }: { job: JobDetailData }) {
+  if (!job.applyUrl) return <>In the app</>;
   return (
-    <div className="min-w-0">
-      <dt className={labelClass}>{label}</dt>
-      <dd className="mt-1 break-words text-sm text-text-1">{children}</dd>
-    </div>
+    <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className="break-all underline hover:no-underline">
+      {hostOf(job.applyUrl) ?? job.applyUrl}
+    </a>
   );
 }
 
-/**
- * What the job is, in one block: its terms, then the company, the factory and
- * the career it belongs to, each leading to its own page.
- */
-function TermsCard({ job, showApplications }: { job: JobDetailData; showApplications: boolean }) {
-  const host = job.applyUrl ? hostOf(job.applyUrl) : null;
+/** A few other open jobs under one heading, with the way to all of them. Nothing when there are none. */
+function OtherJobs({
+  id,
+  title,
+  list,
+  all,
+  line,
+}: {
+  id: string;
+  title: string;
+  list: { jobs: CareerJob[]; total: number } | undefined;
+  all: string;
+  /** What a row says under the job's title, before its pay. */
+  line: (job: CareerJob) => (string | null | undefined)[];
+}) {
+  if (!list || list.jobs.length === 0) return null;
   return (
-    <div className={recordListClass} data-job-terms>
-      <dl className="grid grid-cols-1 gap-4 pb-5 xs:grid-cols-2 sm:grid-cols-4">
-        <Term label="Pay">{formatPay(job.payMin, job.payMax, job.payPeriod)}</Term>
-        <Term label="Type">{job.employmentType ? employmentLabel(job.employmentType) : 'Not stated'}</Term>
-        <Term label="Shift">{job.shift || 'Not stated'}</Term>
-        <Term label="Posted">{formatDayCapital(job.postedAt)}</Term>
-        {/* Applicants meet this as the Apply panel; the company has none. */}
-        {showApplications && (
-          <div className="min-w-0 xs:col-span-2 sm:col-span-4">
-            <Term label="Applications">
-              {job.applyUrl ? (
-                <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className="break-all underline hover:no-underline">
-                  {host ?? job.applyUrl}
-                </a>
-              ) : (
-                'In the app'
-              )}
-            </Term>
-          </div>
-        )}
-      </dl>
-      <ul className="border-t border-line">
-        <RecordRow to={`/companies/${job.companyId}`} label="Company" title={formatCompanyName(job.companyName)} />
-        <RecordRow to={`/factories/${job.factoryId}`} label="Factory" title={formatFactoryName(job.factoryName)} />
-        {/* Where the company has its own version of the career, the job leads to that. */}
-        {job.hasVersion ? (
-          <RecordRow
-            to={versionPath(job.occupationId, { id: job.companyId })}
-            label="Career"
-            title={versionTitle(job.companyName, job.occupationTitle)}
-            data-job-version=""
-          />
-        ) : (
-          <RecordRow to={`/occupations/${job.occupationId}`} label="Career" title={job.occupationTitle} />
-        )}
-      </ul>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Skills
-// ---------------------------------------------------------------------------
-
-function SkillList({ skills, marksHeld }: { skills: JobSkill[]; marksHeld: boolean }) {
-  // For a signed-in person each row carries the same mark as a career's path:
-  // one tap says "I have this", and the figure above follows at once.
-  const { data: mySkills } = useMySkills(marksHeld);
-  const markSkill = useMarkSkill();
-  const statusBySkill = new Map((mySkills ?? []).map((s) => [s.skillId, s.status]));
-  return (
-    <>
-      {marksHeld && <ErrorNote error={markSkill.error} className="mb-2" />}
+    <DetailSection
+      id={id}
+      title={title}
+      action={
+        list.total > list.jobs.length ? (
+          <Link to={all} className={sectionLinkClass} data-all-jobs>
+            All {list.total.toLocaleString('en-US')}
+          </Link>
+        ) : undefined
+      }
+    >
       <RecordList>
-        {skills.map((skill) => {
-          // The person's own list is the live answer; the job's copy is the fallback until it loads.
-          const status = (mySkills ? statusBySkill.get(skill.id) : skill.held ? 'held' : undefined) ?? 'none';
-          return (
-            <RecordRow
-              key={skill.id}
-              to={`/skills/${skill.id}`}
-              title={skill.name}
-              control={
-                marksHeld ? (
-                  <SkillHeldToggle value={status} label={skill.name} onChange={(mark) => markSkill.mutate({ skillId: skill.id, name: skill.name, mark })} />
-                ) : undefined
-              }
-              quiet={marksHeld && status === 'none'}
-              data-held={marksHeld ? String(status === 'held') : undefined}
-            />
-          );
-        })}
+        {list.jobs.map((job) => (
+          <RecordRow
+            key={job.id}
+            to={jobPath(job)}
+            title={job.title}
+            subtitle={[...line(job), job.payMin !== null || job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null].filter(Boolean).join(' · ')}
+          />
+        ))}
       </RecordList>
-    </>
+    </DetailSection>
   );
 }
 
@@ -407,7 +377,7 @@ function hostOf(url: string): string | null {
   }
 }
 
-function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boolean }) {
+function ApplyPanel({ data, signedIn, here }: { data: JobDetailResponse; signedIn: boolean; here: string }) {
   const { job, myApplication } = data;
   const apply = useApply(job.id);
   const [note, setNote] = useState('');
@@ -457,7 +427,6 @@ function ApplyPanel({ data, signedIn }: { data: JobDetailResponse; signedIn: boo
   }
 
   if (!signedIn) {
-    const here = `/jobs/${job.id}`;
     return (
       <div className={cardClass}>
         <p className="mb-3 text-sm text-text-2">Apply here with your name, email and the skills on your profile.</p>

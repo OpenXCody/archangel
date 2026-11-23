@@ -15,6 +15,7 @@ import {
   ShowAll,
   recordListClass,
 } from '../layout/Page';
+import { jobPath } from '@shared/jobs';
 
 /*
  * What the four record pages share: the heading block's inputs, the footprint
@@ -86,7 +87,7 @@ export function OpenJobsSection({ jobs, showCareer = false, total, all }: { jobs
         {jobs.map((job) => (
           <RecordRow
             key={job.id}
-            to={`/jobs/${job.id}`}
+            to={jobPath(job)}
             title={job.title}
             subtitle={[
               // The career is said only when the job is not simply named after it.
