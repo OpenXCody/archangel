@@ -4,8 +4,8 @@ import { companies, factories, jobs, occupations, skills } from '../db/schema.js
 import { ilike, or, and, count, eq, sql, type AnyColumn } from 'drizzle-orm';
 import { jobTextFilter } from '../lib/jobSearch.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
-import { civilianCareer, namedMilitaryCareers } from '../lib/military.js';
-import { kindLine } from '../../shared/military.js';
+import { civilianCareer, findService, namedMilitaryCareers } from '../lib/military.js';
+import { kindLine, namedService } from '../../shared/military.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
 import { US_STATES } from '../../shared/states.js';
@@ -58,8 +58,16 @@ interface SearchResultItem {
   meta?: string;
   /** Companies only: the web domain their logo is looked up from. */
   domain?: string | null;
-  /** Careers only: a military career the query named. Its row leads, as a name typed whole does. */
+  /** Careers only: a military career the query named. It is first among the careers. */
   named?: true;
+  /**
+   * A named career the query can be nothing but (its code with a digit in it, or beside its service or its
+   * system's word): its row leads the results, as a name typed whole does. Letters alone do not, since
+   * companies' names begin with them too.
+   */
+  leads?: true;
+  /** Companies only: the company is a military service, listed because the query is its name. */
+  service?: true;
 }
 
 interface SearchResults {
@@ -85,6 +93,11 @@ interface SearchResults {
 // among the careers, its grey line its kind and code ("Navy rating · HT").
 // What names one is `namedMilitaryCareers` (lib/military.ts): its code typed
 // alone, or its service with words of its title, and never a plain title.
+// A named career leads the results (`leads`) only when the query can be
+// nothing else. With the same parameter a query that is a service's name and
+// nothing else ("navy", "U.S. Navy", "usmc") lists the service first among the
+// companies, its grey line "Military service": a service has no plants, so
+// the search of manufacturers never finds it.
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { q, types, limit = '5' } = req.query;
@@ -182,9 +195,16 @@ router.get('/', async (req: Request, res: Response) => {
         domain: c.domain,
       }));
 
+      // The service the query names, and nothing else: its page is what was asked for.
+      const serviceKey = req.query.military === 'named' ? namedService(query) : null;
+      const service = serviceKey ? await findService(db, serviceKey) : null;
+      const serviceItems: SearchResultItem[] = service
+        ? [{ id: service.id, name: service.name, type: 'companies' as const, subtitle: 'Military service', domain: null, service: true as const }]
+        : [];
+
       results.results.companies = {
-        count: companyCount[0]?.count ?? 0,
-        items: companyItems, // already ranked by the database, featured first within a rank
+        count: (companyCount[0]?.count ?? 0) + serviceItems.length,
+        items: serviceItems.concat(companyItems).slice(0, maxLimit), // already ranked by the database, featured first within a rank
       };
     }
 
@@ -300,6 +320,8 @@ router.get('/', async (req: Request, res: Response) => {
         type: 'occupations' as const,
         subtitle: kindLine(career.kind, career.code) ?? undefined,
         named: true as const,
+        // Only a query that can be nothing else puts it ahead of the companies and plants.
+        ...(career.sure && { leads: true as const }),
       }));
       const civilianItems: SearchResultItem[] = sortByRelevance(occupationItems.filter((item) => item.found === 0), query)
         .concat(occupationItems.filter((item) => item.found !== 0).sort((x, y) => x.found - y.found))

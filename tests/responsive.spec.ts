@@ -1804,15 +1804,27 @@ test('military careers stay out of the lists until asked for: the Careers filter
   await section.scrollIntoViewIfNeeded();
   await assertHealthyLayout(page, '/occupations/:id military careers that reach this');
 
-  // The header's search lists a military career when the query is its code, first among the careers.
+  // The header's search lists a military career when the query is its code, with the careers, under its kind and code.
   await page.getByRole('button', { name: 'Search', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Search' });
   await dialog.getByRole('combobox').fill('HT');
   const hit = dialog.getByRole('option', { name: /Navy Hull Maintenance Technician/ });
   await expect(hit).toBeVisible();
   await expect(hit).toContainText('Navy rating · HT');
-  await expect(dialog.getByRole('option').first()).toContainText('Navy Hull Maintenance Technician');
   await assertHealthyLayout(page, '/occupations/:id#search HT');
+  // Letters alone lead nothing: where companies' names begin with them, a company is the first row, which Enter takes.
+  await dialog.getByRole('combobox').fill('ame');
+  await expect(dialog.getByRole('option').filter({ hasText: 'Navy rating · AME' })).toBeVisible();
+  await expect(dialog.getByRole('option').first()).toContainText(/^Ame/);
+  await expect(dialog.getByRole('option').first()).not.toContainText(KIND_LINE);
+  // A code that can be nothing else leads.
+  await dialog.getByRole('combobox').fill('15T');
+  await expect(dialog.getByRole('option').first()).toContainText('Army MOS · 15T');
+  // A service's name is the service: it has no plants, and is found by its name alone.
+  await dialog.getByRole('combobox').fill('navy');
+  await expect(dialog.getByRole('option').first()).toContainText('U.S. Navy');
+  await expect(dialog.getByRole('option').first()).toContainText('Military service');
+  await expect(dialog.getByRole('option').filter({ hasText: KIND_LINE })).toHaveCount(0);
   // A plain title lists civilian careers only.
   await dialog.getByRole('combobox').fill('electronics technician');
   await expect(dialog.getByRole('option', { name: /^Electronics Technician/ }).first()).toBeVisible();

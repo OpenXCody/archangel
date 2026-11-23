@@ -58,6 +58,9 @@ function spoken(name: string): string {
     .trim();
 }
 
+/** What a military career the query named scores at least: with the names that begin with what was typed. */
+const NAMED = 3;
+
 /** How well a name answers what was typed: 4 it is the name, 3 it starts it, 2 it starts a word, 1 it is inside. */
 export function matchScore(name: string, query: string): number {
   const n = name.toLowerCase();
@@ -105,7 +108,9 @@ export function recordRows(results: SearchResults | undefined, query: string): P
     })),
     companies: found.companies.items.map((item) => {
       const title = formatCompanyName(item.name);
-      return { kind: 'company', key: `company-${item.id}`, id: item.id, domain: item.domain ?? null, title, subtitle: item.subtitle || undefined, score: scored(title) };
+      // A service is listed only when the query is its name ("navy" is the U.S. Navy): the name typed whole.
+      const score = item.service ? 4 : scored(title);
+      return { kind: 'company', key: `company-${item.id}`, id: item.id, domain: item.domain ?? null, title, subtitle: item.subtitle || undefined, score };
     }),
     factories: found.factories.items.map((item) => {
       const title = formatFactoryName(item.name);
@@ -117,8 +122,10 @@ export function recordRows(results: SearchResults | undefined, query: string): P
       id: item.id,
       title: item.name,
       subtitle: item.subtitle || undefined,
-      // A military career is listed only when the query named it, so it answers the query as a name typed whole does.
-      score: item.named ? 4 : scored(item.name),
+      // A military career is listed only when the query named it. One the query can be nothing but (`leads`: its
+      // code with a digit, or beside its service or its system's word) answers as a name typed whole does. Any
+      // other stays first among the careers and leads nothing: letters alone also begin companies' names.
+      score: item.leads ? 4 : item.named ? Math.max(NAMED, scored(item.name)) : scored(item.name),
     })),
     skills: found.skills.items.map((item) => ({
       kind: 'skill',

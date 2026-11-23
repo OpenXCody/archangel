@@ -540,6 +540,10 @@ export interface SearchResultItem {
   domain?: string | null;
   /** Careers only: a military career the query named (its code, or its service with words of its title). */
   named?: true;
+  /** A named career the query can be nothing but: it leads the results. */
+  leads?: true;
+  /** Companies only: a military service, listed because the query is its name. */
+  service?: true;
 }
 
 export interface SearchResults {

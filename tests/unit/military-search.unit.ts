@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { reaches } from '../../scripts/build-military-sql.mjs';
-import { isPlainCode, kindLine, namedCareers, namesCareer, readMilitaryQuery, careerKind, type NameableCareer } from '../../shared/military';
+import { isPlainCode, kindLine, namedCareers, namedService, namesCareer, namesForSure, readMilitaryQuery, saidService, careerKind, type NameableCareer } from '../../shared/military';
 import { REACH_MIN_PATH, byReach, reached, withinReach } from '../../shared/reach';
 import { US_STATES } from '../../shared/states';
 
@@ -31,6 +31,13 @@ const careers: (NameableCareer & { title: string })[] = file.map((career) => ({
   names: career.was,
 }));
 const named = (query: string) => namedCareers(query, careers).map((career) => career.title);
+/** The same, as the one search that asks for a military career reads it (Profile's door). */
+const asked = (query: string) => namedCareers(query, careers, { asking: true }).map((career) => career.title);
+/** The careers a query names that it can be nothing but: those lead a search's results. */
+const leading = (query: string) => {
+  const read = readMilitaryQuery(query);
+  return read ? namedCareers(query, careers).filter((career) => namesForSure(read, career)).map((career) => career.title) : [];
+};
 const SHORT: Record<string, string> = { navy: 'Navy', army: 'Army', 'air-force': 'Air Force' };
 
 test('a code typed alone names its career, in any letter case', () => {
@@ -58,7 +65,10 @@ test('letters that ordinarily mean something else name nothing by themselves', (
   const it: NameableCareer = { service: 'navy', code: 'IT', codeSystem: 'navy-rating', officialTitle: 'Information Systems Technician', names: ['Navy IT'] };
   assert.deepEqual(namedCareers('IT', [it]), []);
   assert.deepEqual(namedCareers('navy it', [it]), [it]);
-  assert.deepEqual(namedCareers('IT rating', [it]), [it]);
+  assert.deepEqual(namedCareers('navy IT rating', [it]), [it]);
+  // Nor beside the system's word alone: "IT rating", "IC rating" and "PR rating" are said of other things.
+  assert.deepEqual(namedCareers('IT rating', [it]), []);
+  for (const plain of ['ic rating', 'pr rating', 'as rating', 'at rating', 'ft rating', 'mm rating', 'AM rating']) assert.deepEqual(named(plain), [], plain);
   // A state's postal code is the state, wherever it is typed.
   for (const state of US_STATES) assert.ok(isPlainCode(state.code), state.code);
   for (const code of ['MN', 'MT', 'UT']) assert.deepEqual(named(code), [], code);
@@ -73,11 +83,11 @@ test('which letter codes count alone is a list a person reads, held here', () =>
   assert.equal(new Set(file.map((career) => `${career.codeSystem} ${career.code}`)).size, file.length);
   assert.deepEqual(
     letters.filter((code) => !isPlainCode(code)).sort(),
-    ['ABE', 'ABF', 'AME', 'AO', 'CTM', 'EMN', 'ETN', 'ETV', 'FC', 'FCA', 'GSE', 'GSM', 'HT', 'MMA', 'MMN', 'RW', 'STG', 'STS']
+    ['ABE', 'ABF', 'AME', 'AO', 'CTM', 'EMN', 'ETN', 'ETV', 'FC', 'GSE', 'GSM', 'HT', 'MMN', 'RW', 'STG', 'STS']
   );
   assert.deepEqual(
     letters.filter(isPlainCode).sort(),
-    ['AD', 'AE', 'AM', 'AS', 'AT', 'CE', 'CM', 'EM', 'EN', 'ET', 'FT', 'GM', 'IC', 'MM', 'MN', 'MR', 'MT', 'PR', 'SW', 'TM', 'UT']
+    ['AD', 'AE', 'AM', 'AS', 'AT', 'CE', 'CM', 'EM', 'EN', 'ET', 'FCA', 'FT', 'GM', 'IC', 'MM', 'MMA', 'MN', 'MR', 'MT', 'PR', 'SW', 'TM', 'UT']
   );
   // The catalogue's own other names for skills are the reason for three of them: a skill is found under those letters.
   const skillNames = read<{ skills: { name: string; aliases?: string[]; was?: string[] }[] }>('data/skills/catalogue.json').skills.flatMap((skill) => [
@@ -99,8 +109,14 @@ test('every career is named by its code: alone unless the letters are plain, and
     assert.equal(named(`${SHORT[career.service]} ${career.code}`)[0], career.title, `${SHORT[career.service]} ${career.code}`);
     assert.equal(named(`${career.code} ${SHORT[career.service].toLowerCase()}`)[0], career.title);
     const word = { 'navy-rating': 'rating', 'army-mos': 'MOS', afsc: 'AFSC' }[career.codeSystem] as string;
-    assert.deepEqual(named(`${career.code} ${word}`), [career.title], `${career.code} ${word}`);
-    assert.deepEqual(named(`${word} ${career.code.toLowerCase()}`), [career.title]);
+    // With its system's word and nothing else: unless the letters are plain, which want the service as well.
+    const plain = isPlainCode(career.code);
+    assert.deepEqual(named(`${career.code} ${word}`), plain ? [] : [career.title], `${career.code} ${word}`);
+    assert.deepEqual(named(`${word} ${career.code.toLowerCase()}`), plain ? [] : [career.title]);
+    assert.equal(named(`${SHORT[career.service]} ${career.code} ${word}`)[0], career.title);
+    // The search that asks for a military career takes every code, alone and with its word.
+    assert.deepEqual(asked(career.code), [career.title], `asked ${career.code}`);
+    assert.deepEqual(asked(`${career.code} ${word}`), [career.title], `asked ${career.code} ${word}`);
     // Its whole title names it, and so does every other name it goes by that says its service.
     assert.ok(named(career.title).includes(career.title), career.title);
     for (const other of career.was) if (/^(Navy|Army|Air Force) /.test(other)) assert.ok(named(other).includes(career.title), other);
@@ -125,9 +141,95 @@ test('the service with words of the title names the career', () => {
   assert.deepEqual(named('army hull maintenance'), []);
   assert.deepEqual(named('navy helicopter repairer'), []);
   // The code first: the rating itself before the ratings whose codes begin with its letters.
-  assert.equal(named('Navy ET')[0], 'Navy Electronics Technician');
-  assert.ok(named('Navy ET').length > 1);
-  assert.equal(named('navy am')[0], 'Navy Aviation Structural Mechanic');
+  assert.deepEqual(named('Navy ET'), ['Navy Electronics Technician']);
+  assert.deepEqual(named('navy am'), ['Navy Aviation Structural Mechanic']);
+  // A name typed whole is that career before the ones whose names hold it.
+  assert.equal(named('Navy Electronics Technician')[0], 'Navy Electronics Technician');
+  assert.ok(named('Navy Electronics Technician').includes('Navy Aviation Electronics Technician'));
+});
+
+test('one or two letters begin no word of a title, and joining words are not read', () => {
+  // On the way to "Air Force Plant 42", "Army Corps of Engineers", "Navy Yard": nothing until a word is begun in earnest.
+  for (const query of ['navy a', 'navy e', 'navy m', 'navy hu', 'army c', 'army d', 'army 1', 'army 9', 'air force p', 'air force pl', 'air force 2']) {
+    assert.deepEqual(named(query), [], query);
+  }
+  assert.deepEqual(named('navy hul'), ['Navy Hull Maintenance Technician']);
+  // A whole word of the title counts whatever its length.
+  assert.ok(named('army m1 tank').includes('Army M1 Abrams Tank System Maintainer'));
+  assert.deepEqual(named('navy and'), []);
+  assert.deepEqual(named('navy of the'), []);
+  assert.deepEqual(named('the navy hull'), ['Navy Hull Maintenance Technician']);
+  assert.ok(named("navy aviation boatswain's mate launching and recovery").length === 1);
+});
+
+test('a code as its holder writes it: an Army code with its skill level', () => {
+  assert.deepEqual(named('91B10'), ['Army Wheeled Vehicle Mechanic']);
+  assert.deepEqual(named('91b1o'), ['Army Wheeled Vehicle Mechanic']);
+  assert.deepEqual(named('15T30'), ['Army UH-60 Helicopter Repairer/Aircrew Member']);
+  assert.deepEqual(named('MOS 91B20'), ['Army Wheeled Vehicle Mechanic']);
+  // Not any tail: a level is one to five, and one more character.
+  assert.deepEqual(named('91B1'), []);
+  assert.deepEqual(named('91B99'), []);
+  assert.deepEqual(named('91B100'), []);
+  // A Navy rating has no such form.
+  assert.deepEqual(named('HT10'), []);
+});
+
+test('"specialty" is the Army\'s word as well as the Air Force\'s, and "code" beside it is part of it', () => {
+  assert.deepEqual(named('army specialty 15t'), ['Army UH-60 Helicopter Repairer/Aircrew Member']);
+  assert.deepEqual(named('air force specialty code 2a3x3'), ['Air Force Tactical Aircraft Maintenance']);
+  assert.deepEqual(named('specialty 15t'), ['Army UH-60 Helicopter Repairer/Aircrew Member']);
+  assert.deepEqual(named('navy specialty'), []);
+  assert.deepEqual(named('HT specialty'), []);
+});
+
+test('a named career leads only when the query can be nothing else', () => {
+  // A code with a digit, or a code beside its service or its system's word.
+  assert.deepEqual(leading('15T'), ['Army UH-60 Helicopter Repairer/Aircrew Member']);
+  assert.deepEqual(leading('2a353'), ['Air Force Tactical Aircraft Maintenance']);
+  assert.deepEqual(leading('91B10'), ['Army Wheeled Vehicle Mechanic']);
+  assert.deepEqual(leading('navy ht'), ['Navy Hull Maintenance Technician']);
+  assert.deepEqual(leading('HT rating'), ['Navy Hull Maintenance Technician']);
+  assert.deepEqual(leading('navy am'), ['Navy Aviation Structural Mechanic']);
+  // Letters alone are also how companies' names begin: listed, and leading nothing.
+  for (const career of file) {
+    if (/\d/.test(career.code) || isPlainCode(career.code)) continue;
+    assert.deepEqual(named(career.code), [career.title], career.code);
+    assert.deepEqual(leading(career.code), [], career.code);
+  }
+  // A service's word beside words of a title is also a plant's name ("Army Ammunition Plant").
+  assert.deepEqual(named('army ammunition'), ['Army Ammunition Specialist']);
+  assert.deepEqual(leading('army ammunition'), []);
+  assert.deepEqual(leading('Navy hull'), []);
+  assert.deepEqual(leading('navy ratings'), []);
+});
+
+test('a service\'s name and nothing else names the service, and no career', () => {
+  assert.equal(namedService('navy'), 'navy');
+  assert.equal(namedService('U.S. Navy'), 'navy');
+  assert.equal(namedService('the us army'), 'army');
+  assert.equal(namedService('Air Force'), 'air-force');
+  assert.equal(namedService('usaf'), 'air-force');
+  assert.equal(namedService('marine corps'), 'marine-corps');
+  assert.equal(namedService('USMC'), 'marine-corps');
+  for (const query of ['nav', 'navy yard', 'navy hull', 'navy ratings', 'army ammunition', 'air', 'force', 'marine', 'corps', 'welder', '']) {
+    assert.equal(namedService(query), null, query);
+  }
+});
+
+test('the search that asks for a military career reads the words beside a service among that service\'s careers', () => {
+  assert.deepEqual(saidService('air force crew chief'), { service: 'air-force', rest: 'crew chief' });
+  assert.deepEqual(saidService('usn welding'), { service: 'navy', rest: 'welding' });
+  assert.equal(saidService('navy'), null);
+  assert.equal(saidService('crew chief'), null);
+  // There every code counts: the letters can mean nothing else.
+  assert.deepEqual(asked('am'), ['Navy Aviation Structural Mechanic']);
+  assert.deepEqual(asked('IC rating'), ['Navy Interior Communications Electrician']);
+  assert.deepEqual(asked('2A353'), ['Air Force Tactical Aircraft Maintenance']);
+  assert.deepEqual(asked('usn ht'), ['Navy Hull Maintenance Technician']);
+  assert.deepEqual(asked('army mechanic 91b'), ['Army Wheeled Vehicle Mechanic']);
+  // And a title without its service is still not named by the rule: the list's own search of titles finds it.
+  assert.deepEqual(asked('hull maintenance technician'), []);
 });
 
 test('a service alone, a plain title and an ordinary search name no military career', () => {

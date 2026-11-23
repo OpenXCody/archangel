@@ -135,7 +135,8 @@ expect "not by its code-first name"                0 "$(req anon GET "/occupatio
 expect "nor by the closest titles"                 0 "$(req anon GET "/occupations?search=$(enc 'Navy Hull Maintenance Technican')" | j 'data.filter((c) => c.service !== null).length')"
 expect "Electronics Technician is the civilian career" "Electronics Technician|null" "$(req anon GET "/occupations?search=$(enc 'Electronics Technician')" | j 'data[0].title + "|" + o.data[0].service')"
 expect "asked for, a search finds it"              "Navy Hull Maintenance Technician" "$(req anon GET "/occupations?military=1&search=$(enc 'hull maintenance')" | j 'data[0].title')"
-expect "by another name, which it says"            "Navy Hull Maintenance Technician|Navy HT" "$(req anon GET "/occupations?military=1&search=$(enc 'Navy HT')" | j 'data[0].title + "|" + o.data[0].alsoCalled')"
+expect "by another name, which it says"            "Navy Hull Maintenance Technician|HT Hull Maintenance Technician" "$(req anon GET "/occupations?military=1&search=$(enc 'HT Hull Maintenance')" | j 'data[0].title + "|" + o.data[0].alsoCalled')"
+expect "by its service and code, which its own line says" "Navy Hull Maintenance Technician|null|HT" "$(req anon GET "/occupations?military=1&search=$(enc 'Navy HT')" | j 'data[0].title + "|" + o.data[0].alsoCalled + "|" + o.data[0].code')"
 expect "and never a civilian career"               0 "$(req anon GET "/occupations?military=1&search=welder&limit=100" | j 'data.filter((c) => c.service === null).length')"
 
 # --- Search, counts and Explore are civilian -----------------------------------------------
@@ -225,7 +226,45 @@ for PLAIN in AM ET IT MT UT MM GM; do
   expect "“$PLAIN” alone names no military career"  "" "$(named "$PLAIN" | titles)"
 done
 expect "with the service, such a code names its career first" "Navy Aviation Structural Mechanic" "$(named 'navy am' | j 'results.occupations.items[0].name')"
-expect "and with its system's word, only it"        "Navy Electronics Technician" "$(named 'ET rating' | titles)"
+expect "with its system's word alone it still names none" "" "$(named 'ET rating' | titles)"
+for PLAIN in 'ic rating' 'pr rating' 'mm rating' 'ft rating' 'AM rating'; do
+  expect "“$PLAIN” is said of other things"        "" "$(named "$PLAIN" | titles)"
+done
+expect "with the service and the word, only it"     "Navy Electronics Technician" "$(named 'navy ET rating' | titles)"
+# One or two letters begin no word of a title: nothing on the way to "Air Force Plant 42" or "Army Corps of Engineers".
+for PLAIN in 'navy a' 'navy m' 'army c' 'army 1' 'army 9' 'air force p' 'air force 2' 'navy and'; do
+  expect "“$PLAIN” names no military career"        "" "$(named "$PLAIN" | titles)"
+done
+expect "three letters begin a word"                 "Navy Hull Maintenance Technician" "$(named 'navy hul' | titles)"
+expect "a code as its holder writes it, with the skill level" "Army Wheeled Vehicle Mechanic" "$(named '91B10' | titles)"
+expect "specialty is the Army's word too"           "Army UH-60 Helicopter Repairer/Aircrew Member" "$(named 'army specialty 15t' | titles)"
+expect "a name typed whole is that career, first"   "Navy Electronics Technician" "$(named 'Navy Electronics Technician' | j 'results.occupations.items[0].name')"
+# Naming a career lists it; it leads the results only when the query can be nothing else. Letters alone are also
+# how companies' names begin (AO, FC, HT), and a service's word beside a word of a title is also a plant's.
+leads() { j 'results.occupations.items.filter((c) => c.leads).map((c) => c.name).join("|")'; }
+expect "a code with a digit leads"                  "Army UH-60 Helicopter Repairer/Aircrew Member" "$(named '15T' | leads)"
+expect "so does a code beside its service"          "Navy Hull Maintenance Technician" "$(named 'navy ht' | leads)"
+expect "and beside its system's word"               "Navy Hull Maintenance Technician" "$(named 'HT rating' | leads)"
+for ALONE in HT AO FC RW ABE ABF AME STS; do
+  expect "“$ALONE” alone is listed"                 1 "$(named "$ALONE" | j 'results.occupations.items.filter((c) => c.named).length')"
+  expect "and leads nothing"                        "" "$(named "$ALONE" | leads)"
+done
+for ALONE in FCA MMA; do
+  expect "“$ALONE” is an abbreviation in general use: nothing alone" "" "$(named "$ALONE" | titles)"
+done
+expect "a service and a word of a title is listed"  "Army Ammunition Specialist" "$(named 'army ammunition' | titles)"
+expect "and leads nothing"                          "" "$(named 'army ammunition' | leads)"
+# A service has no plants, so the search of manufacturers never finds it: its name, and nothing else, lists it.
+service() { req anon GET "/search?q=$(enc "$1")&types=companies&military=named" | j 'results.companies.items.filter((c) => c.service).map((c) => c.name + " · " + c.subtitle).join("|")'; }
+expect "a service's name lists the service"         "U.S. Navy · Military service" "$(service 'navy')"
+expect "first among the companies"                  "true" "$(req anon GET '/search?q=navy&military=named' | j 'results.companies.items[0].service === true && o.results.companies.items[0].id.length === 36')"
+expect "by the employer's name"                     "U.S. Navy · Military service" "$(service 'U.S. Navy')"
+expect "by its letters"                             "U.S. Marine Corps · Military service" "$(service 'usmc')"
+expect "two words"                                  "U.S. Air Force · Military service" "$(service 'Air Force')"
+for PLAIN in 'nav' 'navy yard' 'navy hull' 'force' 'corps' 'marine'; do
+  expect "“$PLAIN” lists no service"               "" "$(service "$PLAIN")"
+done
+expect "the map's search, which does not ask, lists no service" 0 "$(req anon GET '/search?q=navy&types=companies,factories,occupations,skills' | j 'results.companies.items.filter((c) => c.service || /^U\.S\. /.test(c.name)).length')"
 OUT=$(named 'navy ratings')
 expect "a service's ratings, when asked for by that word: the first five, and all of them counted" "5 5 $(( $(mil 'careers.filter((c)=>c.service==="navy").length') + $(req anon GET "/search?q=$(enc 'navy ratings')&types=occupations" | j results.occupations.count) ))" "$(printf '%s' "$OUT" | j 'results.occupations.items.filter((c) => c.named).length + " " + o.results.occupations.items.length + " " + o.results.occupations.count')"
 expect "another service's word names none"          "" "$(named 'navy mos' | titles)"
@@ -241,6 +280,22 @@ expect "by the start of a code"                     "true" "$(req anon GET '/occ
 expect "an Air Force code"                          "2A3X3" "$(req anon GET '/occupations?military=1&search=2a3x3' | j 'data[0].code')"
 expect "one service's, by code"                     "HT" "$(req anon GET '/occupations?service=navy&search=HT' | j 'data[0].code')"
 expect "the civilian list is not searched by code"  0 "$(req anon GET '/occupations?search=15t' | j 'data.filter((c) => c.service !== null).length')"
+# The list reads what is typed as the header's rule does, and as its holder writes it: there every code counts.
+door() { req anon GET "/occupations?military=1&limit=8&search=$(enc "$1")${2:-}" | j 'data.length + " " + (o.data[0] ? o.data[0].code : "")'; }
+expect "an Air Force code with its skill level"     "1 2A3X3" "$(door '2A353')"
+expect "another level"                              "1 2A3X3" "$(door '2a373')"
+expect "an Army code with its system's word"        "1 15T" "$(door 'MOS 15T')"
+expect "the word after it"                          "1 15T" "$(door '15T MOS')"
+expect "a rating with its word"                     "1 HT" "$(door 'ht rating')"
+expect "AFSC and the code"                          "1 2A3X3" "$(door 'AFSC 2A3X3')"
+expect "the service's letters and the code"         "1 HT" "$(door 'usn ht')"
+expect "an Army code with its skill level"          "1 91B" "$(door '91B10')"
+expect "the service, a word of the title and the code" "1 91B" "$(door 'army mechanic 91b')"
+expect "letters that are plain elsewhere are a code here" "AM" "$(req anon GET '/occupations?military=1&search=am' | j 'data[0].code')"
+expect "and with their system's word"               "1 IC" "$(door 'ic rating')"
+expect "the words beside a service are looked for among its careers" "true" "$(req anon GET "/occupations?military=1&search=$(enc 'air force maintenance')&limit=100" | j 'data.length > 3 && o.data.every((c) => c.service.key === "air-force")')"
+expect "within one service, another's code is not found" "0 " "$(door 'usn ht' '&service=army')"
+expect "the civilian list reads none of it"         0 "$(req anon GET "/occupations?search=$(enc 'MOS 15T')" | j 'data.filter((c) => c.service !== null).length')"
 expect "the homes the military list is narrowed by" "$(sql "SELECT string_agg(d.slug, '|' ORDER BY d.position) FROM skill_domains d WHERE EXISTS (SELECT 1 FROM occupations o WHERE o.home_domain = d.slug AND o.service_company_id IS NOT NULL)")" "$(req anon GET /explore/facets | j 'militaryCareerDomains.map((d) => d.slug).join("|")')"
 
 # --- Reach, computed from the two paths --------------------------------------------------------

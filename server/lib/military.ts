@@ -2,7 +2,7 @@ import { eq, sql, type SQL } from 'drizzle-orm';
 import { companies, db, occupations } from '../db/index.js';
 import type { Executor } from './audit.js';
 import { rowsOf } from './rows.js';
-import { careerKind, isCodeSystem, isServiceKey, namedCareers, readMilitaryQuery, type CodeSystemKey, type ServiceKey } from '../../shared/military.js';
+import { careerKind, isCodeSystem, isServiceKey, namedCareers, namesForSure, readMilitaryQuery, type CodeSystemKey, type ServiceKey } from '../../shared/military.js';
 
 /**
  * What a military career carries beyond a civilian one, as the API gives it.
@@ -138,26 +138,34 @@ export interface MilitaryCareerRow {
   code: string | null;
 }
 
+/** A military career a query named, and whether the query can be nothing else (it then leads the results). */
+export interface NamedMilitaryCareer extends MilitaryCareerRow {
+  sure: boolean;
+}
+
 /**
  * The military careers a search query names, by title: the one exception to
  * `civilianCareer()` in the site's search. What "names" means is written once,
  * in shared/military.ts (`readMilitaryQuery`, `namesCareer`): the career's code
  * typed alone, or its service with words of its title. An ordinary query
- * ("welder", "electronics technician", "navy") names none, and for most of
- * those nothing is read here at all.
+ * ("welder", "electronics technician", "navy") names none, and for those
+ * nothing is read here at all. `asking` is for the one search that asks for a
+ * military career (Profile's door): there plain letters count as the code they
+ * are. `service` keeps to one service's careers.
  */
-export async function namedMilitaryCareers(query: string): Promise<MilitaryCareerRow[]> {
+export async function namedMilitaryCareers(query: string, options: { asking?: boolean; service?: ServiceKey | null } = {}): Promise<NamedMilitaryCareer[]> {
   const asked = readMilitaryQuery(query);
   if (!asked) return [];
-  // The rule is the shared function's; the statement only leaves out careers it could not name:
-  // another service's, or, for a code typed alone, a code of another length.
+  const service = asked.service ?? options.service ?? null;
+  if (options.service && asked.service && options.service !== asked.service) return [];
+  // The rule is the shared function's; the statement only leaves out another service's careers.
   const rows = rowsOf(
     await db.execute(sql`
       SELECT o.id, o.title, o.official_title, o.code, o.code_system, c.service,
              COALESCE((SELECT array_agg(a.alias_text) FROM occupation_aliases a WHERE a.canonical_occupation_id = o.id), '{}') AS names
       FROM occupations o
       INNER JOIN companies c ON c.id = o.service_company_id
-      WHERE ${asked.service ? sql`c.service = ${asked.service}` : sql`length(o.code) = ${asked.words[0]?.length ?? 0}`}
+      WHERE ${service ? sql`c.service = ${service}` : sql`TRUE`}
       ORDER BY lower(o.title), o.id
     `)
   );
@@ -169,8 +177,9 @@ export async function namedMilitaryCareers(query: string): Promise<MilitaryCaree
       codeSystem: row.code_system === null ? null : String(row.code_system),
       officialTitle: row.official_title === null ? null : String(row.official_title),
       names: Array.isArray(row.names) ? row.names.map(String) : [],
-    }))
-  ).map(({ id, title, kind, code }) => ({ id, title, kind, code }));
+    })),
+    { asking: options.asking }
+  ).map((career) => ({ id: career.id, title: career.title, kind: career.kind, code: career.code, sure: namesForSure(asked, career) }));
 }
 
 function asRow(row: Record<string, unknown>): MilitaryCareerRow {
@@ -188,7 +197,7 @@ export async function militaryCareersUsing(skillId: string): Promise<MilitaryCar
     await db.execute(sql`
       SELECT o.id, o.title, o.code, o.code_system
       FROM occupation_skills os
-      INNER JOIN occupations o ON o.id = os.occupation_id AND o.service_company_id IS NOT NULL
+      INNER JOIN occupations o ON o.id = os.occupation_id AND ${militaryCareer(null, 'o')}
       WHERE os.skill_id = ${skillId}
       ORDER BY lower(o.title), o.id
     `)

@@ -13,9 +13,9 @@ import { recordAudit } from '../lib/audit.js';
 import { rowsOf } from '../lib/rows.js';
 import { placeColumns, placeOf } from '../lib/taxonomy.js';
 import { versionsOfCareer } from '../lib/versions.js';
-import { NOT_MILITARY, civilianCareer, codeMatch, militaryCareer, militaryFacts, militaryOf, serviceColumns, serviceJoin } from '../lib/military.js';
+import { NOT_MILITARY, civilianCareer, codeMatch, militaryCareer, militaryFacts, militaryOf, namedMilitaryCareers, serviceColumns, serviceJoin } from '../lib/military.js';
 import { civilianCareersWithinReach, militaryCareersReaching } from '../lib/reach.js';
-import { isServiceKey } from '../../shared/military.js';
+import { isServiceKey, saidService } from '../../shared/military.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -48,18 +48,35 @@ router.get('/', async (req: Request, res: Response) => {
     const tries: CareerMatch[] = [];
     if (term) {
       const typed = careerMatch(term);
-      // Asked for military careers, the list also finds one by its code ("ht", "15t", "2a3"): the whole code
-      // first, then a code the term begins, then the titles and other names as any career is found.
-      const code = codeMatch(term);
-      tries.push(
-        military
-          ? {
-              where: sql`(${typed.where} OR ${code.where})`,
-              relevance: sql`CASE WHEN ${code.exact} THEN -2 WHEN ${code.where} THEN -1 ELSE ${typed.relevance} END`,
-              otherName: sql<string | null>`CASE WHEN ${code.where} THEN NULL ELSE ${typed.otherName} END`,
-            }
-          : typed
-      );
+      if (military) {
+        // Asked for military careers, the list reads what was typed the way its holder writes it, by the one
+        // rule that says what names a military career (shared/military.ts; here every code counts, since
+        // nothing else can be meant): "2A353", "MOS 15T", "HT rating", "usn ht", "91B10". Those careers come
+        // first, in the rule's order. Then a code typed whole or begun ("ht", "15", "2a3"), which the titles do
+        // not read, then the titles and other names as any career is found.
+        const named = await namedMilitaryCareers(String(search), { asking: true, service: isServiceKey(service) ? service : null });
+        const ids = sql`ARRAY[${sql.join(named.map((career) => sql`${career.id}`), sql`, `)}]::uuid[]`;
+        const isNamed = named.length > 0 ? sql`${occupations.id} = ANY(${ids})` : sql`FALSE`;
+        const code = codeMatch(term);
+        tries.push({
+          where: sql`(${typed.where} OR ${code.where} OR ${isNamed})`,
+          relevance:
+            named.length > 0
+              ? sql`CASE WHEN ${isNamed} THEN array_position(${ids}, ${occupations.id}) - 1000 WHEN ${code.exact} THEN -2 WHEN ${code.where} THEN -1 ELSE ${typed.relevance} END`
+              : sql`CASE WHEN ${code.exact} THEN -2 WHEN ${code.where} THEN -1 ELSE ${typed.relevance} END`,
+          otherName: sql<string | null>`CASE WHEN ${code.where} OR ${isNamed} THEN NULL ELSE ${typed.otherName} END`,
+        });
+        // "Air force crew chief": the service is not a word of what the work is called. The words beside it are
+        // looked for among that service's careers.
+        const said = saidService(String(search));
+        const rest = said && (!isServiceKey(service) || service === said.service) ? readCareerTerm(said.rest) : '';
+        if (said && rest) {
+          const beside = careerMatch(rest);
+          tries.push({ ...beside, where: sql`(${beside.where}) AND ${militaryCareer(said.service)}` });
+        }
+      } else {
+        tries.push(typed);
+      }
       const plain = withoutLevel(term);
       if (plain) tries.push(careerMatch(plain));
       if (term.length >= 4) tries.push(careerNearMiss(plain ?? term));

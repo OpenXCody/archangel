@@ -11,7 +11,9 @@ import { companies } from '../db/schema.js';
  *
  * A military service (`companies.service`, migration 0061) is an employer with
  * careers and no plants. It is not browsed to as a manufacturer: it is left
- * out of the same three, and reached from one of its careers or by its address.
+ * out of the same three, and reached from one of its careers, by its address,
+ * or by its own name typed in the header's search (routes/search.ts, which
+ * lists it apart from this filter).
  */
 export const browsableCompanyFilter: SQL = sql`(
   ${companies.name} ~ '[A-Za-z]{2,}'
