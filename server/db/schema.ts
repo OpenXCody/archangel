@@ -49,11 +49,15 @@ export const companies = pgTable(
     headquartersCity: text('headquarters_city'),
     headquartersState: text('headquarters_state'),
     headquartersCountry: text('headquarters_country'),
+    // Migration 0061. Which military service the company is (`navy`, `army`, `air-force`,
+    // `marine-corps`: shared/military.ts); null for every other company. One company per service.
+    service: text('service'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => ({
     nameIdx: uniqueIndex('companies_name_idx').on(table.name),
+    serviceKey: uniqueIndex('companies_service_key').on(table.service).where(sql`${table.service} IS NOT NULL`),
     // Partial indexes, as migrations 0012 and 0014 made them.
     featuredIdx: index('companies_featured_idx').on(table.featured).where(sql`${table.featured}`),
     slugKey: uniqueIndex('companies_slug_key').on(table.slug).where(sql`${table.slug} IS NOT NULL`),
@@ -160,10 +164,20 @@ export const occupations = pgTable(
     // The career's home: the domain most of its work is in (a skill_domains slug).
     // Curated in data/careers/catalogue.json; a career added by hand may have none.
     homeDomain: text('home_domain').references(() => skillDomains.slug, { onUpdate: 'cascade', onDelete: 'set null' }),
+    // Migration 0061. A military career belongs to a service (a company whose `service` is set):
+    // null for a civilian career. With it go the service's code for the job ("HT", "15T"), the
+    // system that code is in (`navy-rating`, `army-mos`, `afsc`) and the service's own title,
+    // without the service in front. The words above the name and the tags are derived (shared/military.ts).
+    serviceCompanyId: uuid('service_company_id').references(() => companies.id, { onDelete: 'restrict' }),
+    code: text('code'),
+    codeSystem: text('code_system'),
+    officialTitle: text('official_title'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => ({
     titleIdx: uniqueIndex('occupations_title_idx').on(table.title),
+    serviceIdx: index('occupations_service_idx').on(table.serviceCompanyId).where(sql`${table.serviceCompanyId} IS NOT NULL`),
+    codeKey: uniqueIndex('occupations_code_key').on(table.codeSystem, table.code).where(sql`${table.code} IS NOT NULL`),
     onetIdx: index('occupations_onet_idx').on(table.onetCode),
     titleTrgmIdx: index('occupations_title_trgm_idx').using('gin', table.title.op('gin_trgm_ops')),
     homeDomainIdx: index('occupations_home_domain_idx').on(table.homeDomain),

@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
-import { db, companies, factories, jobs } from '../db/index.js';
+import { db, companies, factories, jobs, occupations } from '../db/index.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { OPEN_JOBS_SHOWN, countOpenJobs, listOpenJobs } from '../lib/openJobs.js';
@@ -316,6 +316,15 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     if (await refuseDeleteWithJobs(res, 'company', req.params.id)) return;
+    // A military service is the employer of its careers: they are moved or deleted first.
+    const [{ count: careers }] = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(occupations)
+      .where(eq(occupations.serviceCompanyId, req.params.id));
+    if (careers > 0) {
+      res.status(409).json({ error: `This is the employer of ${careers === 1 ? 'a military career' : `${careers} military careers`}. Delete or move ${careers === 1 ? 'it' : 'them'} first.`, careers });
+      return;
+    }
     const gone = await removeRecord('company', req.params.id, req.user!);
     if (!gone) {
       res.status(404).json({ error: 'Company not found' });

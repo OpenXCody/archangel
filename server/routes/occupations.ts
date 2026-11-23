@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { and, eq, inArray, notInArray, sql } from 'drizzle-orm';
-import { db, occupations, occupationSkills, skills, skillDomains, skillGroups, factoryOccupations, factories, jobs } from '../db/index.js';
+import { db, companies, occupations, occupationSkills, skills, skillDomains, skillGroups, factoryOccupations, factories, jobs } from '../db/index.js';
 import { comesFrom, findDomain, homeColumns, homeOf, leadsTo } from '../lib/careers.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
@@ -13,6 +13,7 @@ import { recordAudit } from '../lib/audit.js';
 import { rowsOf } from '../lib/rows.js';
 import { placeColumns, placeOf } from '../lib/taxonomy.js';
 import { versionsOfCareer } from '../lib/versions.js';
+import { NOT_MILITARY, militaryFacts, militaryOf, serviceColumns, serviceJoin } from '../lib/military.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -93,6 +94,8 @@ router.get('/', async (req: Request, res: Response) => {
         pathStatus: occupations.pathStatus,
         createdAt: occupations.createdAt,
         ...homeColumns,
+        // A military career's service, code and the service's own title; all empty for a civilian career.
+        ...serviceColumns,
         // The other name a search found it by, when its title did not match.
         alsoCalled: match ? match.otherName : sql<string | null>`NULL`,
         skillCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.occupation_id = occupations.id)`,
@@ -105,6 +108,7 @@ router.get('/', async (req: Request, res: Response) => {
       })
       .from(occupations)
       .leftJoin(skillDomains, eq(skillDomains.slug, occupations.homeDomain))
+      .leftJoin(companies, serviceJoin)
       .where(whereClause)
       .orderBy(orderByClause)
       .limit(limitNum)
@@ -113,7 +117,11 @@ router.get('/', async (req: Request, res: Response) => {
     const hasMore = offsetNum + result.length < total;
 
     res.json({
-      data: result.map(({ homeSlug, homeName, ...row }) => ({ ...row, home: homeOf({ homeSlug, homeName }) })),
+      data: result.map(({ homeSlug, homeName, serviceId, serviceName, serviceSlug, serviceKey, code, codeSystem, officialTitle, ...row }) => ({
+        ...row,
+        home: homeOf({ homeSlug, homeName }),
+        ...militaryOf({ serviceId, serviceName, serviceSlug, serviceKey, code, codeSystem, officialTitle }),
+      })),
       total,
       offset: offsetNum,
       limit: limitNum,
@@ -138,9 +146,15 @@ router.get('/:id', async (req: Request, res: Response) => {
       return;
     }
 
-    const { homeDomain, ...occupation } = occupationResult[0];
+    const { homeDomain, serviceCompanyId, code, codeSystem, officialTitle, ...occupation } = occupationResult[0];
     // Its home domain, and its place on a ladder: where a person comes from and where it leads.
-    const [home, ladderOn, ladderBack] = await Promise.all([findDomain(db, homeDomain), leadsTo(db, id), comesFrom(db, id)]);
+    // For a military career, its service, its code and the service's own title.
+    const [home, ladderOn, ladderBack, military] = await Promise.all([
+      findDomain(db, homeDomain),
+      leadsTo(db, id),
+      comesFrom(db, id),
+      militaryFacts(db, { serviceCompanyId, code, codeSystem, officialTitle }),
+    ]);
 
     // The career's path: its skills, each with its level, group and domain,
     // in the order a path is laid out: by level, and within a level by domain
@@ -227,6 +241,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     res.json({
       ...occupation,
       home,
+      ...military,
       leadsTo: ladderOn,
       comesFrom: ladderBack,
       skills: occupationSkillsResult,
@@ -396,8 +411,9 @@ router.post('/', async (req: Request, res: Response) => {
     }).returning();
 
     await recordAdded('career', { id: result[0].id, name: result[0].title }, req.user!);
-    const { homeDomain: _slug, ...added } = result[0];
-    res.status(201).json({ ...added, home });
+    // A career added by hand is a civilian one: its service is set on its record afterwards.
+    const { homeDomain: _slug, serviceCompanyId: _service, code: _code, codeSystem: _system, officialTitle: _official, ...added } = result[0];
+    res.status(201).json({ ...added, home, ...NOT_MILITARY });
   } catch (error) {
     answerWriteError(res, error, 'career');
   }

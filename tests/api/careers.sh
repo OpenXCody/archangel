@@ -29,7 +29,8 @@ cleanup() {
       WHERE o.onet_code LIKE 'E2E-%';
     DELETE FROM audit_log WHERE actor_id IN (SELECT id FROM users WHERE email LIKE '%@careers.test') OR record_name LIKE 'E2E Careers %';
     DELETE FROM users WHERE email LIKE '%@careers.test';
-    DELETE FROM occupations WHERE title LIKE 'E2E Careers %';" >/dev/null
+    DELETE FROM occupations WHERE title LIKE 'E2E Careers %';
+    DELETE FROM companies WHERE name LIKE 'E2E Careers %';" >/dev/null
 }
 cleanup
 trap 'cleanup; rm -rf "$D"' EXIT
@@ -170,6 +171,49 @@ NAMES=$(req a GET /admin/records/career/$MANY | j 'aliases.length + "|" + JSON.s
 check "a career with dozens of other names is saved with them" 200 "$(req a PUT /occupations/$MANY "{\"onetCode\":\"E2E-$RUN\",\"aliases\":${NAMES#*|}}")"
 expect "and keeps every one"                       "${NAMES%%|*}" "$(sql "SELECT COUNT(*) FROM occupation_aliases WHERE canonical_occupation_id = '$MANY'")"
 sql "UPDATE occupations SET onet_code = NULLIF('$ONET', '') WHERE id = '$MANY'" >/dev/null
+
+# --- A career's service --------------------------------------------------------
+# A military career is a career with a service (a company whose `service` is set), the service's
+# code and its own title for the job. The Navy is used: the one that is stored, or one made here.
+NAVY=$(sql "SELECT id FROM companies WHERE service = 'navy'")
+if [ -z "$NAVY" ]; then
+  NAVY=$(sql "INSERT INTO companies (name, service) VALUES ('$REC Navy', 'navy') RETURNING id" | head -n1)
+fi
+OUT=$(req anon GET /occupations/$A)
+expect "a civilian career has no service"          "null null null null null" "$(printf '%s' "$OUT" | j 'service + " " + o.code + " " + o.codeSystem + " " + o.kind + " " + o.officialTitle')"
+expect "and the stored columns are not in the answer" "undefined undefined" "$(printf '%s' "$OUT" | j 'serviceCompanyId + " " + o.code_system')"
+G=$(req a POST /occupations "{\"title\":\"$REC Rating\",\"home\":\"fabrication\"}" | j id)
+check "a service takes a code"                     400 "$(req a PUT /occupations/$G '{"service":"navy"}')" '"field":"code"'
+check "a code takes a service"                     400 "$(req a PUT /occupations/$G '{"code":"E2E"}')" '"field":"code"'
+check "a service is one of the four"               400 "$(req a PUT /occupations/$G '{"service":"coast-guard","code":"E2E"}')" '"field":"service"'
+check "one with no code system yet is refused"     400 "$(req a PUT /occupations/$G '{"service":"marine-corps","code":"E2E"}')" '"field":"service"'
+check "a code system is its service's"             400 "$(req a PUT /occupations/$G '{"service":"navy","code":"E2E","codeSystem":"army-mos"}')" '"field":"codeSystem"'
+expect "a refused change wrote nothing"            "" "$(sql "SELECT COALESCE(code, '') FROM occupations WHERE id = '$G'")"
+OUT=$(req a PUT /occupations/$G "{\"service\":\"navy\",\"code\":\" E2E$RUN \",\"officialTitle\":\"Rating\"}")
+check "a career is given its service"              200 "$OUT" "\"service\":{\"id\":\"$NAVY\""
+expect "the answer derives the system and the kind" "navy navy-rating|Navy rating|E2E$RUN|Rating" "$(printf '%s' "$OUT" | j 'service.key + " " + o.codeSystem + "|" + o.kind + "|" + o.code + "|" + o.officialTitle')"
+OUT=$(req anon GET /occupations/$G)
+expect "its page carries them"                     "navy|Navy rating|E2E$RUN|Rating" "$(printf '%s' "$OUT" | j 'service.key + "|" + o.kind + "|" + o.code + "|" + o.officialTitle')"
+expect "and names the employer"                    "$(sql "SELECT name FROM companies WHERE id = '$NAVY'")" "$(printf '%s' "$OUT" | j 'service.name')"
+OUT=$(req anon GET "/occupations?military=1&search=$(enc "$REC Rating")")
+expect "a list row carries them too"               "navy|Navy rating|E2E$RUN" "$(printf '%s' "$OUT" | j 'data[0].service.key + "|" + o.data[0].kind + "|" + o.data[0].code')"
+OUT=$(req a GET /admin/records/career/$G)
+expect "the editor reads them"                     "navy|E2E$RUN|navy-rating|Navy rating|Rating" "$(printf '%s' "$OUT" | j 'fields.service + "|" + o.fields.code + "|" + o.fields.codeSystem + "|" + o.fields.kind + "|" + o.fields.officialTitle')"
+OUT=$(req a GET "/admin/audit?kind=career&record=$G")
+expect "the history names the service in words"    "$(sql "SELECT name FROM companies WHERE id = '$NAVY'")|Navy rating|E2E$RUN" "$(printf '%s' "$OUT" | j 'entries[0].detail.changes.service[1] + "|" + o.entries[0].detail.changes.codeSystem[1] + "|" + o.entries[0].detail.changes.code[1]')"
+OUT=$(req a PUT /occupations/$B "{\"service\":\"navy\",\"code\":\"e2e$RUN\"}")
+check "a code names one career of its system"      409 "$OUT" '"field":"code"'
+check "and the refusal names the career that has it" 409 "$OUT" "\"existing\":{\"id\":\"$G\""
+check "the code alone can be corrected"            200 "$(req a PUT /occupations/$G "{\"code\":\"E2X$RUN\"}")" "\"code\":\"E2X$RUN\""
+expect "and the service stays"                     "$NAVY" "$(sql "SELECT service_company_id FROM occupations WHERE id = '$G'")"
+check "a service with careers cannot be deleted"   409 "$(req a DELETE /companies/$NAVY)" 'military career'
+expect "the company says it is a service"          navy "$(req anon GET /companies/$NAVY | j service)"
+check "the service is taken off"                   200 "$(req a PUT /occupations/$G '{"service":null}')" '"service":null'
+expect "and its code and title go with it"         "||" "$(sql "SELECT COALESCE(code, '') || '|' || COALESCE(code_system, '') || '|' || COALESCE(official_title, '') FROM occupations WHERE id = '$G'")"
+expect "the database refuses a code with no service" 1 "$(psql "$DB" -qtAc "UPDATE occupations SET code = 'X' WHERE id = '$G'" 2>&1 | grep -c occupations_service_code_check)"
+expect "and a code system that is not one of the three" 1 "$(psql "$DB" -qtAc "UPDATE occupations SET service_company_id = '$NAVY', code = 'X', code_system = 'rating' WHERE id = '$G'" 2>&1 | grep -c occupations_code_system_check)"
+expect "and a service that is not one of the four" 1 "$(psql "$DB" -qtAc "UPDATE companies SET service = 'coast-guard' WHERE id = '$NAVY'" 2>&1 | grep -c companies_service_check)"
+check "delete the career"                          200 "$(req a DELETE /occupations/$G)"
 
 # --- A merge moves the ladder -----------------------------------------------------
 # Operator leads to Specialist and Technician; Specialist leads to Engineer; Fifth leads to CNC Machinist.
