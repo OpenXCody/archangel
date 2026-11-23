@@ -32,7 +32,10 @@ const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T
 const paths = read<PathsFile>(PATHS);
 const careers = read<{ careers: Career[] }>(CAREERS).careers;
 const skills = read<{ skills: { name: string }[] }>(SKILLS).skills;
-const taxonomy = read<{ domains: { slug: string; groups: { skills: { name: string; level: number }[] }[] }[] }>(TAXONOMY);
+const taxonomy = read<{ domains: { slug: string; groups: { slug: string; skills: { name: string; level: number }[] }[] }[] }>(TAXONOMY);
+// The groups added for the military careers (0060). Their skills are on those careers' paths
+// (data/careers/military/), which are not this file's: a civilian path may use one, and none has to.
+const MILITARY_GROUPS = ['aircraft-systems', 'engines-and-power-plants', 'vehicles-and-heavy-equipment', 'power-generation-and-distribution', 'plant-utilities', 'fielded-electronic-systems', 'weapons-and-munitions', 'survival-equipment', 'shipfitting', 'nuclear-plant-operations', 'fuels'];
 const copy = (): PathsFile => JSON.parse(JSON.stringify(paths)) as PathsFile;
 const name = (line: Line) => (typeof line === 'string' ? line : line.skill);
 const entry = (file: PathsFile, title: string) => {
@@ -100,7 +103,9 @@ test('the skills added last round are on a path, so they show in the Skills list
   for (const skill of ['CNC Turning', 'Injection Molding Machine Operation', 'Dial Indicator Measurement', 'SCADA Development', 'Box Build Assembly', 'Control Panel Building', 'Shot Peening', 'Powder Coating', 'CMMS Use', 'Requirements Management']) {
     assert.ok(used.has(skill), `${skill} is on a path`);
   }
-  const unused = skills.map((skill) => skill.name).filter((skill) => !used.has(skill));
+  const military = new Set(taxonomy.domains.flatMap((domain) => domain.groups).filter((group) => MILITARY_GROUPS.includes(group.slug)).flatMap((group) => group.skills.map((skill) => skill.name)));
+  assert.equal(military.size, 66);
+  const unused = skills.map((skill) => skill.name).filter((skill) => !used.has(skill) && !military.has(skill));
   assert.ok(unused.length <= 5, `${unused.length} skills are on no path: ${unused.join(', ')}`);
 });
 

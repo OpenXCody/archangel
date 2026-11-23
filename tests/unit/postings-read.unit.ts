@@ -434,12 +434,18 @@ const gold: Gold[] = JSON.parse(readFileSync(path.join(root, 'tests/fixtures/pos
 // by the labels as frozen they would count as wrong (13 of 15 and 12 of 13 right), so
 // they are named here, counted neither way, and any other unlabelled make is wrong.
 const MAKES_SINCE = ['81 Allen-Bradley>PLC Troubleshooting', '81 Siemens>PLC Troubleshooting', '106 ProtoTRAK>CNC Control Operation'];
+// The same for skills. The labels name only skills the catalogue had when they were
+// written. This one was added since (0059, with the skills of the military careers) and
+// is read from a labelled line that plainly asks for it ("Support maintenance of
+// generators, uninterruptible power supply (UPS) systems"): it is named here, counted
+// neither way, and any other unlabelled skill is wrong as before.
+const SKILLS_SINCE = ['42 Battery and UPS Maintenance'];
 
 function score(split: 'tune' | 'held') {
   const s = {
     kept: 0, right: 0, wrong: [] as string[], notOurs: [] as string[], missed: 0,
     levelStated: 0, levelRight: 0, levelExtra: 0, places: 0, placesRight: 0,
-    skillTp: 0, skillFp: 0, skillFn: 0, makeTp: 0, makeFp: 0, makeFn: 0, makesSince: [] as string[],
+    skillTp: 0, skillFp: 0, skillFn: 0, makeTp: 0, makeFp: 0, makeFn: 0, makesSince: [] as string[], skillsSince: [] as string[],
     stated: {} as Record<string, number>, correct: {} as Record<string, number>, extra: {} as Record<string, number>,
   };
   const fact = (name: string, want: string | undefined | null, got: string | null, same = (w: string, g: string | null) => w === g) => {
@@ -469,7 +475,11 @@ function score(split: 'tune' | 'held') {
     const found = new Set(r.skills.map((x) => x.name));
     const allowed = new Set(g.asks.skills.flatMap((x) => x.any));
     for (const x of g.asks.skills) if (!x.optional) { if (x.any.some((n) => found.has(n))) s.skillTp++; else s.skillFn++; }
-    for (const x of r.skills) if (!allowed.has(x.name)) s.skillFp++;
+    for (const x of r.skills) {
+      if (allowed.has(x.name)) continue;
+      if (SKILLS_SINCE.includes(`${g.n} ${x.name}`)) s.skillsSince.push(`${g.n} ${x.name}`);
+      else s.skillFp++;
+    }
     const made = new Set(r.makes.map((m) => `${m.make}>${m.skill}`));
     const makesAllowed = new Set(g.asks.makes.flatMap((m) => m.any.map((sk) => `${m.make}>${sk}`)));
     for (const m of g.asks.makes) if (!m.optional) { if (m.any.some((sk) => made.has(`${m.make}>${sk}`))) s.makeTp++; else s.makeFn++; }
@@ -529,6 +539,7 @@ for (const split of ['held', 'tune'] as const) {
     assert.ok(ratio(s.makeTp, s.makeFp) >= floor.makePrecision, `makes right: ${s.makeTp} of ${s.makeTp + s.makeFp}, floor ${floor.makePrecision}`);
     assert.ok(ratio(s.makeTp, s.makeFn) >= floor.makeRecall, `makes found: ${s.makeTp} of ${s.makeTp + s.makeFn}, floor ${floor.makeRecall}`);
     assert.deepEqual(s.makesSince, MAKES_SINCE.filter((m) => gold.some((g) => g.split === split && m.startsWith(`${g.n} `))), 'the makes added since the labels were written are read where the lines name them');
+    assert.deepEqual(s.skillsSince, SKILLS_SINCE.filter((m) => gold.some((g) => g.split === split && m.startsWith(`${g.n} `))), 'the skills added since the labels were written are read where the lines name them');
     for (const name of ['years', 'education', 'certifications', 'clearance', 'citizenship', 'shift', 'employmentType', 'pay'] as const) {
       assert.ok((s.correct[name] ?? 0) >= floor[name], `${name} right when stated: ${s.correct[name] ?? 0}, was ${floor[name]}`);
     }
