@@ -46,7 +46,7 @@ enc() { node -e "console.log(encodeURIComponent(process.argv[1]))" "$1"; }
 # --- The catalogue is what is stored ------------------------------------------
 KEPT=$(cat_ 'careers.length')
 expect "every career of the catalogue is stored"   "$KEPT" "$(sql "SELECT COUNT(*) FROM occupations o WHERE o.title IN ($(cat_ 'careers.map((x)=>"\x27"+x.title.replace(/\x27/g,"\x27\x27")+"\x27").join(",")'))")"
-expect "each with its home"                        "$KEPT" "$(sql "SELECT COUNT(*) FROM occupations WHERE home_domain IS NOT NULL AND title NOT LIKE 'E2E %'")"
+expect "each with its home"                        "$KEPT" "$(sql "SELECT COUNT(*) FROM occupations WHERE home_domain IS NOT NULL AND service_company_id IS NULL AND title NOT LIKE 'E2E %'")"
 expect "no folded title is still a career"         0 "$(sql "SELECT COUNT(*) FROM occupations WHERE title IN ('Machinist', 'CNC Mill Operator', 'Cleanroom Technician', 'Certified Welder', 'Sheet Metal Worker')")"
 expect "no removed title is still a career"        0 "$(sql "SELECT COUNT(*) FROM occupations WHERE title IN ('Tanker Boom Operator', 'Firmware Engineer', 'Nadcap Auditor')")"
 expect "the links are the file's"                  "$(cat_ 'careers.reduce((n,x)=>n+x.leadsTo.length,0)')" "$(sql "SELECT COUNT(*) FROM occupation_links l INNER JOIN occupations f ON f.id = l.from_occupation_id WHERE f.title NOT LIKE 'E2E %'")"
@@ -54,7 +54,8 @@ expect "a folded title is another name for its career" "CNC Machinist" "$(sql "S
 expect "a name that is now a title is nobody's other name" 0 "$(sql "SELECT COUNT(*) FROM occupation_aliases a WHERE EXISTS (SELECT 1 FROM occupations o WHERE lower(o.title) = lower(a.alias_text))")"
 expect "a name that meant another job did not follow" "Injection Molding Operator" "$(sql "SELECT o.title FROM occupation_aliases a INNER JOIN occupations o ON o.id = a.canonical_occupation_id WHERE lower(a.alias_text) = 'molder'")"
 expect "nor did the polisher's"                    0 "$(sql "SELECT COUNT(*) FROM occupation_aliases WHERE lower(alias_text) IN ('deburrer', 'polisher', 'finisher')")"
-expect "every career is listed for an industry"    0 "$(sql "SELECT COUNT(*) FROM occupations o WHERE o.title NOT LIKE 'E2E %' AND NOT EXISTS (SELECT 1 FROM industry_occupations io WHERE io.occupation_id = o.id)")"
+expect "every career is listed for an industry"    0 "$(sql "SELECT COUNT(*) FROM occupations o WHERE o.title NOT LIKE 'E2E %' AND o.service_company_id IS NULL AND NOT EXISTS (SELECT 1 FROM industry_occupations io WHERE io.occupation_id = o.id)")"
+expect "and no military career is"                 0 "$(sql "SELECT COUNT(*) FROM industry_occupations io INNER JOIN occupations o ON o.id = io.occupation_id WHERE o.service_company_id IS NOT NULL")"
 expect "a link that followed a folded title where it does not fit is gone" 0 "$(sql "SELECT COUNT(*) FROM industry_occupations io INNER JOIN occupations o ON o.id = io.occupation_id WHERE o.title = 'Wafer Fab Operator' AND io.industry = 'Miscellaneous Manufacturing'")"
 expect "the log has its summary"                   t "$(sql "SELECT COUNT(*) > 0 FROM load_log WHERE load = 'careers-catalogue' AND action = 'summary'")"
 
@@ -89,7 +90,25 @@ expect "a search outside the domain finds nothing in it" 0 "$(req anon GET '/occ
 OUT=$(req anon GET /explore/facets)
 expect "the domains that are a career's home, in the taxonomy's order" "$(cat_ '[...new Set(careers.map((x)=>x.home))].join("|")')" "$(printf '%s' "$OUT" | j 'careerDomains.map((d) => d.slug).join("|")')"
 expect "each with its name"                        "Battery and electric drive" "$(printf '%s' "$OUT" | j 'careerDomains.find((d) => d.slug === "battery").name')"
-expect "the counts follow the data"                "$(sql "SELECT COUNT(*) FROM occupations")" "$(req anon GET /stats/counts | j occupations)"
+expect "the counts follow the data: civilian careers" "$(sql "SELECT COUNT(*) FROM occupations WHERE service_company_id IS NULL")" "$(req anon GET /stats/counts | j occupations)"
+
+# --- The list, the picker, search and the counts are of civilian careers ----------
+# Military careers (data/careers/military/, migrations 0063 and 0064) are careers with a service.
+# They are listed only when asked for; tests/api/military.sh holds the rest of this to the files.
+MILITARY=$(sql "SELECT COUNT(*) FROM occupations WHERE service_company_id IS NOT NULL")
+CIVILIAN=$(sql "SELECT COUNT(*) FROM occupations WHERE service_company_id IS NULL")
+expect "military careers are stored"               true "$([ "$MILITARY" -gt 0 ] && echo true || echo false)"
+OUT=$(req anon GET '/occupations?limit=100')
+expect "the list counts civilian careers"          "$CIVILIAN" "$(printf '%s' "$OUT" | j total)"
+expect "and no row has a service"                  true "$(printf '%s' "$OUT" | j 'data.every((c) => c.service === null && c.kind === null && c.code === null)')"
+expect "asked for, the military careers"           "$MILITARY" "$(req anon GET '/occupations?military=1&limit=1' | j total)"
+expect "or one service's"                          "$(sql "SELECT COUNT(*) FROM occupations o INNER JOIN companies c ON c.id = o.service_company_id WHERE c.service = 'army'")" "$(req anon GET '/occupations?service=army&limit=1' | j total)"
+check "a service that is not one is refused"       400 "$(req anon GET '/occupations?service=space-force')"
+OUT=$(req anon GET "/occupations?search=$(enc 'technician')&limit=100")
+expect "what the career picker searches offers no military career" 0 "$(printf '%s' "$OUT" | j 'data.filter((c) => c.service !== null).length')"
+expect "the site search lists none either"         0 "$(req anon GET "/search?q=$(enc 'aviation machinist')&types=occupations" | j 'results.occupations.count')"
+expect "the homes offered are civilian careers'"   "$(sql "SELECT COUNT(DISTINCT home_domain) FROM occupations WHERE service_company_id IS NULL AND home_domain IS NOT NULL")" "$(req anon GET /explore/facets | j 'careerDomains.length')"
+expect "a skill's count of careers is of civilian ones" "$(sql "SELECT COUNT(*) FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id INNER JOIN skills s ON s.id = os.skill_id WHERE s.name = 'Shop Safety Practices' AND o.service_company_id IS NULL")" "$(req anon GET "/skills?search=$(enc 'Shop Safety Practices')" | j 'data[0].occupationCount')"
 
 # --- Found by a title that was folded in -----------------------------------------
 OUT=$(req anon GET "/occupations?search=$(enc 'Cleanroom Technician')")

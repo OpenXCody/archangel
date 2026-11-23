@@ -4,6 +4,7 @@ import { SKILL_LEVELS, isSkillLevel, type SkillLevel } from '../../shared/skillL
 import type { Executor } from './audit.js';
 import { rowsOf } from './rows.js';
 import { makeNamesBySkill } from './makes.js';
+import { civilianPathLine } from './military.js';
 
 /**
  * The skill taxonomy as the API gives it: every skill is in one skill group,
@@ -96,7 +97,7 @@ export interface TaxonomySkill {
   id: string;
   name: string;
   level: SkillLevel;
-  /** How many careers use it. */
+  /** How many careers use it: civilian careers, as every such figure is. */
   careers: number;
   /** Its makes by name, in the order they are shown: the leaves beyond the skill. Empty for most skills. */
   makes: string[];
@@ -126,7 +127,7 @@ export async function readTaxonomy(): Promise<Taxonomy> {
     db.select().from(skillGroups).orderBy(skillGroups.position, skillGroups.slug),
     db.execute(sql`
       SELECT s.id, s.name, s.level, s.group_slug,
-             (SELECT COUNT(*)::int FROM occupation_skills os WHERE os.skill_id = s.id) AS careers
+             (SELECT COUNT(*)::int FROM occupation_skills os WHERE os.skill_id = s.id AND ${civilianPathLine('os')}) AS careers
       FROM skills s
       WHERE s.group_slug IS NOT NULL AND s.level IS NOT NULL
       ORDER BY s.level, s.group_position NULLS LAST, s.name

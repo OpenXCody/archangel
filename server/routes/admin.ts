@@ -635,6 +635,9 @@ router.get(
         title: occupations.title,
         pathStatus: occupations.pathStatus,
         skillCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills os WHERE os.occupation_id = occupations.id)`,
+        // A military career's service (its key) and code; both null for a civilian career.
+        service: sql<string | null>`(SELECT c.service FROM companies c WHERE c.id = occupations.service_company_id)`,
+        code: occupations.code,
       })
       .from(occupations)
       .where(eq(occupations.pathStatus, status))

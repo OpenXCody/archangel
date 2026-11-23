@@ -105,6 +105,8 @@ test('the skills added last round are on a path, so they show in the Skills list
   }
   const military = new Set(taxonomy.domains.flatMap((domain) => domain.groups).filter((group) => MILITARY_GROUPS.includes(group.slug)).flatMap((group) => group.skills.map((skill) => skill.name)));
   assert.equal(military.size, 66);
+  const onMilitaryPath = new Set(read<{ careers: { skills: string[] }[] }>('data/careers/military/paths.json').careers.flatMap((career) => career.skills));
+  for (const skill of military) assert.ok(onMilitaryPath.has(skill), `${skill} is on a military path`);
   const unused = skills.map((skill) => skill.name).filter((skill) => !used.has(skill) && !military.has(skill));
   assert.ok(unused.length <= 5, `${unused.length} skills are on no path: ${unused.join(', ')}`);
 });

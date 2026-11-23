@@ -34,7 +34,8 @@ TXC=$(psql "$DB" -tAc "SELECT company_id FROM factories WHERE id='$TXF'")
 # A plant of another company: one the Texas plant's company must not be able to post at.
 CAF=$(psql "$DB" -tAc "SELECT id FROM factories WHERE state='CA' AND company_id IS NOT NULL AND company_id <> '$TXC' LIMIT 1")
 CAC=$(psql "$DB" -tAc "SELECT company_id FROM factories WHERE id='$CAF'")
-OCC=$(psql "$DB" -tAc "SELECT occupation_id FROM occupation_skills GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1")
+# The civilian career with the most skills: a job is posted, and a goal set, for a civilian career.
+OCC=$(psql "$DB" -tAc "SELECT os.occupation_id FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id WHERE o.service_company_id IS NULL GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1")
 SK=$(psql "$DB" -tAc "SELECT skill_id FROM occupation_skills WHERE occupation_id='$OCC' AND stage IS DISTINCT FROM 3 ORDER BY skill_id LIMIT 1")
 
 check "me when signed out"            200 "$(req anon GET /auth/me)" '"user":null'
