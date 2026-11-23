@@ -22,6 +22,8 @@ router.use(uuidQuery('parent'));
 /** How many careers list the skill: civilian careers, as every such figure is (lib/military.ts). */
 const careerCount = sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.skill_id = skills.id AND ${civilianPathLine()})`;
 const onACareer = sql`EXISTS (SELECT 1 FROM occupation_skills WHERE occupation_skills.skill_id = skills.id AND ${civilianPathLine()})`;
+/** On some career's path, civilian or military. */
+const onAnyCareer = sql`EXISTS (SELECT 1 FROM occupation_skills WHERE occupation_skills.skill_id = skills.id)`;
 
 // GET /api/skills/taxonomy - The whole taxonomy in one answer: the three
 // levels, and every domain with its groups and their skills, in the order
@@ -75,7 +77,9 @@ router.get('/', async (req: Request, res: Response) => {
           WHEN ${alias} THEN 3
           ELSE 4 END, ${careerCount} DESC, ${skills.name} ASC`;
     } else {
-      conditions.push(onACareer);
+      // The list is of skills a civilian career uses. Narrowed to one group it is that group's skills, whichever
+      // careers use them: a group only military careers use is reached by its own link, and lists what it holds.
+      conditions.push(typeof group === 'string' && group ? onAnyCareer : onACareer);
       orderByClause =
         sort === 'name'
           ? order === 'desc' ? sql`${skills.name} DESC` : sql`${skills.name} ASC`

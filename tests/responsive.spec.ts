@@ -1787,7 +1787,39 @@ test('military careers stay out of the lists until asked for: the Careers filter
   await expect(page).not.toHaveURL(/military=|service=/);
   await expect(page.locator('[data-explore-count]')).toHaveText(`${civilian} careers`);
   // Explore's own count of careers is the civilian one.
-  expect(((await (await request.get(`${API}/stats/counts`)).json()) as { occupations: number }).occupations, "Explore's count is civilian").toBe(civilian);
+  const stats = (await (await request.get(`${API}/stats/counts`)).json()) as { occupations: number; skills: number };
+  expect(stats.occupations, "Explore's count is civilian").toBe(civilian);
+
+  // One service's list offers only the homes that service has a career in: no choice leads to an empty list.
+  const facets = (await (await request.get(`${API}/explore/facets`)).json()) as { militaryCareerDomains: { name: string; services: string[] }[] };
+  await page.goto('/explore?tab=occupations&service=navy', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-explore-count]')).toHaveText(`${navy} Navy careers`);
+  await page.getByRole('button', { name: 'Domain: All domains' }).click();
+  await expect(page.getByRole('menuitemradio').first()).toBeVisible();
+  expect((await page.getByRole('menuitemradio').allInnerTexts()).map((text) => text.trim())).toEqual([
+    'All domains',
+    ...facets.militaryCareerDomains.filter((domain) => domain.services.includes('navy')).map((domain) => domain.name),
+  ]);
+  await page.keyboard.press('Escape');
+  // A service with no careers yet, named by the address: the filter says which service, as the count under it does.
+  await page.goto('/explore?tab=occupations&service=marine-corps', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-explore-count]')).toHaveText('0 Marine Corps careers');
+  await expect(page.getByRole('button', { name: 'Careers: Marine Corps' })).toBeVisible();
+  await assertHealthyLayout(page, '/explore?tab=occupations&service=marine-corps');
+
+  // Skills only military careers use: the Skills list leaves them out and counts what it lists, as Explore does;
+  // narrowed to their own group (where a skill's page and the Atlas lead) it lists them, in every order.
+  await page.goto('/explore?tab=skills', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-explore-count]')).toHaveText(`${stats.skills} skills`);
+  await expect(page.locator('[data-skill-group="weapons-and-munitions"]')).toHaveCount(0);
+  await page.goto('/explore?tab=skills&domain=assembly&group=weapons-and-munitions', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-explore-count]')).toHaveText(/^[1-9]\d* skills$/);
+  const inGroup = await page.locator('[data-explore-count]').innerText();
+  await expect(page.locator('[data-skill-group="weapons-and-munitions"]')).toBeVisible();
+  await page.goto('/explore?tab=skills&domain=assembly&group=weapons-and-munitions&sort=careers-desc', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-explore-count]')).toHaveText(inGroup);
+  await expect(page.getByRole('button', { name: 'Group: Weapons and munitions' })).toBeVisible();
+  await assertHealthyLayout(page, '/explore?tab=skills a group only military careers use');
 
   // A civilian career's page ends in the military careers that reach it, each with how much of the path it holds.
   const welder = await careerByTitle(request, 'Welder');
@@ -1847,6 +1879,15 @@ test('military careers stay out of the lists until asked for: the Careers filter
   await expect(page.getByRole('listbox', { name: 'Search results' }).getByRole('option').first()).toBeVisible();
   await expect(page.getByRole('option').filter({ hasText: /Hull Maintenance|Navy rating/ })).toHaveCount(0);
   await assertHealthyLayout(page, '/map#search HT');
+
+  // Nor is one the map's subject, nor its service: a link that names either is told so, and the address is cleaned.
+  const rating = await militaryCareer(request, 'HT');
+  await page.goto(`/map?career=${rating.id}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByText('That career is not on the map.')).toBeVisible();
+  await expect(page).not.toHaveURL(/career=/);
+  await page.goto(`/map?company=${rating.service.slug}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByText('That company is not on the map.')).toBeVisible();
+  await expect(page).not.toHaveURL(/company=/);
 });
 
 test('Profile\'s second door: a seeker starts with what they have done, and takes it back; nobody else is shown it', async ({ page, baseURL, request }) => {

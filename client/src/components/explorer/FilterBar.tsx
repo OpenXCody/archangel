@@ -170,6 +170,16 @@ export default function FilterBar({
     [domains, filters.domain]
   );
 
+  // A service that has no careers yet is not offered, but an address may name it (`?service=marine-corps`): the
+  // filter then says so, as the count under it does.
+  const militaryOptions = useMemo(
+    () =>
+      filters.military && !MILITARY_OPTIONS.some((option) => option.value === filters.military)
+        ? [...MILITARY_OPTIONS, { value: filters.military, label: serviceShortName(filters.military) ?? filters.military }]
+        : MILITARY_OPTIONS,
+    [filters.military]
+  );
+
   const showState = activeTab === 'factories';
   const showIndustry = (activeTab === 'companies' || activeTab === 'factories') && industryOptions.length > 0;
   const showDomain = (activeTab === 'skills' || activeTab === 'occupations') && domainOptions.length > 0;
@@ -204,7 +214,7 @@ export default function FilterBar({
           <Choice
             label="Careers"
             value={filters.military}
-            options={MILITARY_OPTIONS}
+            options={militaryOptions}
             // The two lists have different homes: a domain chosen for one is not kept for the other.
             onChange={(value) => onFilterChange({ ...filters, military: value as MilitaryChoice | undefined, domain: undefined })}
             // One word each, so that on a phone the filters and the sort still share a line.

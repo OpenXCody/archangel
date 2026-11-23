@@ -755,8 +755,11 @@ export interface ExploreFacets {
   skillDomains: (TaxonomyRef & { groups: TaxonomyRef[] })[];
   /** The domains that are some career's home, in the taxonomy's order. Absent from an answer cached before this field existed. */
   careerDomains?: TaxonomyRef[];
-  /** The same for the military careers: what the Careers list is narrowed by when it lists them. */
-  militaryCareerDomains?: TaxonomyRef[];
+  /**
+   * The same for the military careers: what the Careers list is narrowed by when it lists them. Each says which
+   * services have a career at home in it (`services`; absent from an answer cached before it existed).
+   */
+  militaryCareerDomains?: (TaxonomyRef & { services?: ServiceKey[] })[];
 }
 
 export const exploreApi = {

@@ -2,7 +2,7 @@ import { asc, eq, sql } from 'drizzle-orm';
 import { db, occupationLinks, occupations, skillDomains } from '../db/index.js';
 import type { Executor } from './audit.js';
 import { rowsOf } from './rows.js';
-import { civilianCareer, militaryCareer } from './military.js';
+import { civilianCareer } from './military.js';
 
 /**
  * What a career has beyond its path: a home (the domain most of its work is
@@ -103,14 +103,30 @@ export async function setLeadsTo(executor: Executor, id: string, wanted: string[
 /** The select columns and the join a list of careers reads each row's home with. */
 export const homeColumns = { homeSlug: skillDomains.slug, homeName: skillDomains.name };
 
-/**
- * The domains that are some civilian career's home (the Careers list is of those), in the taxonomy's order;
- * with `military`, the homes of the military careers, for the list when it was asked for them.
- */
-export async function careerDomains(military = false): Promise<CareerHome[]> {
+/** The domains that are some civilian career's home (the Careers list is of those), in the taxonomy's order. */
+export async function careerDomains(): Promise<CareerHome[]> {
   return db
     .select({ slug: skillDomains.slug, name: skillDomains.name })
     .from(skillDomains)
-    .where(sql`EXISTS (SELECT 1 FROM occupations o WHERE o.home_domain = ${skillDomains.slug} AND ${military ? militaryCareer(null, 'o') : civilianCareer('o')})`)
+    .where(sql`EXISTS (SELECT 1 FROM occupations o WHERE o.home_domain = ${skillDomains.slug} AND ${civilianCareer('o')})`)
     .orderBy(asc(skillDomains.position), asc(skillDomains.slug));
+}
+
+/**
+ * The same for the military careers, for the list when it was asked for them:
+ * each home with the services that have a career in it (`services`, by key),
+ * so that a list narrowed to one service offers only that service's homes.
+ */
+export async function militaryCareerDomains(): Promise<(CareerHome & { services: string[] })[]> {
+  const rows = rowsOf(
+    await db.execute(sql`
+      SELECT d.slug, d.name, array_agg(DISTINCT c.service ORDER BY c.service) AS services
+      FROM skill_domains d
+      INNER JOIN occupations o ON o.home_domain = d.slug
+      INNER JOIN companies c ON c.id = o.service_company_id AND c.service IS NOT NULL
+      GROUP BY d.slug, d.name, d.position
+      ORDER BY d.position ASC, d.slug ASC
+    `)
+  );
+  return rows.map((row) => ({ slug: String(row.slug), name: String(row.name), services: Array.isArray(row.services) ? row.services.map(String) : [] }));
 }

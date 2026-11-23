@@ -251,14 +251,26 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
   // rows but the tree itself: every domain, its groups, their skills, from the
   // one answer the Atlas draws.
   const tree = tab === 'skills' && sort.value === SKILLS_BY_DOMAIN;
-  const taxonomy = useTaxonomy(tree);
+  // Choices for the industry, domain and group filters: every value in use,
+  // not just those on the first page of a list.
+  const facets = useExploreFacets();
+  // A group the filter does not offer (only military careers use its skills) is reached by its own link: the
+  // taxonomy names it, so the filter can say what the list is narrowed to.
+  const groupOffered = facets.data?.skillDomains.some((domain) => domain.groups.some((group) => group.slug === filters.group));
+  const groupByLink = tab === 'skills' && Boolean(filters.group) && Boolean(facets.data) && !groupOffered;
+  const taxonomy = useTaxonomy(tree || groupByLink);
   const treeDomains = useMemo(() => {
     if (!tree || !taxonomy.data) return undefined;
     return taxonomy.data.domains
       .filter((domain) => !filters.domain || domain.slug === filters.domain)
       .map((domain) => ({
         ...domain,
-        groups: domain.groups.filter((group) => group.skills.length > 0 && (!filters.group || group.slug === filters.group)),
+        groups: domain.groups
+          .filter((group) => !filters.group || group.slug === filters.group)
+          // The list is of skills a civilian career uses, or none yet, as its other orders are (GET /api/skills):
+          // a skill only military careers use is listed when the list is narrowed to its group, and not before.
+          .map((group) => (filters.group ? group : { ...group, skills: group.skills.filter((skill) => skill.careers > 0 || !skill.militaryCareers) }))
+          .filter((group) => group.skills.length > 0),
       }))
       .filter((domain) => domain.groups.length > 0);
   }, [tree, taxonomy.data, filters.domain, filters.group]);
@@ -273,13 +285,28 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     enabled: !tree,
   });
 
-  // Choices for the industry, domain and group filters: every value in use,
-  // not just those on the first page of a list.
-  const facets = useExploreFacets();
   // Of the 21: those some plant carries, or those that are some company's industry.
   const industries = tab === 'factories' ? facets.data?.factoryIndustries : (facets.data?.industries?.companies ?? facets.data?.factoryIndustries);
-  const domains =
-    tab !== 'occupations' ? facets.data?.skillDomains : filters.military ? (facets.data?.militaryCareerDomains ?? facets.data?.careerDomains) : facets.data?.careerDomains;
+  const taxonomyDomains = taxonomy.data?.domains;
+  const domains = useMemo(() => {
+    const found = facets.data;
+    if (!found) return undefined;
+    if (tab === 'occupations') {
+      if (!filters.military) return found.careerDomains;
+      // Narrowed to one service, only the homes that service has a career in: no choice leads to an empty list.
+      const service = filters.military === 'all' ? null : filters.military;
+      if (!found.militaryCareerDomains) return found.careerDomains;
+      return found.militaryCareerDomains.filter((domain) => !service || !domain.services || domain.services.includes(service));
+    }
+    if (!groupByLink) return found.skillDomains;
+    const home = taxonomyDomains?.find((domain) => domain.groups.some((group) => group.slug === filters.group));
+    const group = home?.groups.find((each) => each.slug === filters.group);
+    if (!home || !group) return found.skillDomains;
+    const named = { slug: group.slug, name: group.name };
+    return found.skillDomains.some((domain) => domain.slug === home.slug)
+      ? found.skillDomains.map((domain) => (domain.slug === home.slug ? { ...domain, groups: [...domain.groups, named] } : domain))
+      : [...found.skillDomains, { slug: home.slug, name: home.name, groups: [named] }];
+  }, [facets.data, tab, filters.military, filters.group, groupByLink, taxonomyDomains]);
   // What the count says is listed: careers, or the military ones, or one service's.
   const service = filters.military && filters.military !== 'all' ? serviceShortName(filters.military) : null;
   const noun: [string, string] = service ? [`${service} career`, `${service} careers`] : filters.military ? ['military career', 'military careers'] : LIST_NOUN[tab];

@@ -31,6 +31,19 @@ export function civilianPathLine(alias = 'occupation_skills'): SQL {
   return sql`NOT EXISTS (SELECT 1 FROM occupations military_o WHERE military_o.id = ${sql.identifier(alias)}.occupation_id AND military_o.service_company_id IS NOT NULL)`;
 }
 
+/**
+ * "Only military careers use this skill": it is on some path, and on no
+ * civilian career's. Such a skill is reached on purpose, like the careers that
+ * use it (their paths, its own page, a search for it, the Atlas, the Skills
+ * list narrowed to its group): the Skills list and Explore's count are of the
+ * rest. `alias` is the name `skills` goes by in the statement.
+ */
+export function militaryOnlySkill(alias = 'skills'): SQL {
+  const skill = sql.identifier(alias);
+  return sql`(EXISTS (SELECT 1 FROM occupation_skills any_os WHERE any_os.skill_id = ${skill}.id)
+    AND NOT EXISTS (SELECT 1 FROM occupation_skills civ_os WHERE civ_os.skill_id = ${skill}.id AND ${civilianPathLine('civ_os')}))`;
+}
+
 /** The military careers, or one service's: what a list shows when it is asked for them. */
 export function militaryCareer(service: ServiceKey | null, alias = 'occupations'): SQL {
   const career = sql.identifier(alias);

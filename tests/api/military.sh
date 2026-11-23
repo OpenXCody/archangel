@@ -163,7 +163,17 @@ OUT=$(req anon GET /skills/taxonomy)
 expect "the taxonomy counts civilian careers"      "0 $CIVIL_PRINT" "$(printf '%s' "$OUT" | j "domains.flatMap((d) => d.groups).flatMap((g) => g.skills).find((s) => s.id === '$TORPEDO').careers + ' ' + o.domains.flatMap((d) => d.groups).flatMap((g) => g.skills).find((s) => s.id === '$PRINT').careers")"
 expect "and still has every skill"                 "$(sql "SELECT COUNT(*) FROM skills WHERE group_slug IS NOT NULL AND level IS NOT NULL")" "$(printf '%s' "$OUT" | j 'domains.flatMap((d) => d.groups).flatMap((g) => g.skills).length')"
 expect "the Skills list is of skills a civilian career uses" "$(sql "SELECT COUNT(*) FROM skills s WHERE EXISTS (SELECT 1 FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id WHERE os.skill_id = s.id AND o.service_company_id IS NULL)")" "$(req anon GET '/skills?limit=1' | j total)"
-expect "a group only military careers use lists none" 0 "$(req anon GET '/skills?group=weapons-and-munitions' | j total)"
+# A skill only military careers use is reached on purpose: the list leaves it out, its domain's list leaves it out,
+# and the list narrowed to its own group (where its page and the Atlas lead) is that group's skills, in every order.
+ONLY_MILITARY="EXISTS (SELECT 1 FROM occupation_skills os WHERE os.skill_id = s.id) AND NOT EXISTS (SELECT 1 FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id WHERE os.skill_id = s.id AND o.service_company_id IS NULL)"
+expect "some skills are used by military careers alone" true "$(sql "SELECT COUNT(*) > 0 FROM skills s WHERE $ONLY_MILITARY" | sed 's/^t$/true/')"
+expect "its domain's list leaves them out"         "$(sql "SELECT COUNT(*) FROM skills s INNER JOIN skill_groups g ON g.slug = s.group_slug WHERE g.domain_slug = 'assembly' AND EXISTS (SELECT 1 FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id WHERE os.skill_id = s.id AND o.service_company_id IS NULL)")" "$(req anon GET '/skills?domain=assembly&limit=1' | j total)"
+GROUP_SIZE=$(sql "SELECT COUNT(*) FROM skills s WHERE s.group_slug = 'weapons-and-munitions' AND EXISTS (SELECT 1 FROM occupation_skills os WHERE os.skill_id = s.id)")
+expect "narrowed to a group only military careers use, the list is that group's skills" "$GROUP_SIZE" "$(req anon GET '/skills?group=weapons-and-munitions' | j total)"
+expect "in name order too"                         "$GROUP_SIZE" "$(req anon GET '/skills?domain=assembly&group=weapons-and-munitions&sort=name' | j total)"
+expect "each with no civilian career to count"     0 "$(req anon GET '/skills?group=weapons-and-munitions&limit=100' | j 'data.filter((s) => s.occupationCount !== 0).length')"
+expect "the group filter still does not offer it"  0 "$(req anon GET /explore/facets | j 'skillDomains.flatMap((d) => d.groups).filter((g) => g.slug === "weapons-and-munitions").length')"
+expect "Explore's count of skills leaves them out" "$(sql "SELECT COUNT(*) FROM skills s WHERE NOT ($ONLY_MILITARY)")" "$(req anon GET /stats/counts | j skills)"
 OUT=$(req anon GET '/skills?search=torpedo')
 expect "a search still finds the skill, used by no civilian career" "Torpedo Maintenance 0" "$(printf '%s' "$OUT" | j 'data[0].name + " " + o.data[0].occupationCount')"
 expect "a row's count is civilian"                 "$CIVIL_PRINT" "$(req anon GET "/skills?search=$(enc 'Blueprint Reading')" | j 'data[0].occupationCount')"
@@ -296,6 +306,8 @@ expect "and with their system's word"               "1 IC" "$(door 'ic rating')"
 expect "the words beside a service are looked for among its careers" "true" "$(req anon GET "/occupations?military=1&search=$(enc 'air force maintenance')&limit=100" | j 'data.length > 3 && o.data.every((c) => c.service.key === "air-force")')"
 expect "within one service, another's code is not found" "0 " "$(door 'usn ht' '&service=army')"
 expect "the civilian list reads none of it"         0 "$(req anon GET "/occupations?search=$(enc 'MOS 15T')" | j 'data.filter((c) => c.service !== null).length')"
+expect "each home says which services have a career in it" "$(sql "SELECT string_agg(x.slug || ':' || x.services, '|' ORDER BY x.position) FROM (SELECT d.slug, d.position, string_agg(DISTINCT c.service, ',' ORDER BY c.service) AS services FROM skill_domains d INNER JOIN occupations o ON o.home_domain = d.slug INNER JOIN companies c ON c.id = o.service_company_id GROUP BY d.slug, d.position) x")" "$(req anon GET /explore/facets | j 'militaryCareerDomains.map((d) => d.slug + ":" + d.services.join(",")).join("|")')"
+expect "and no service is offered a home it has no career in" 0 "$(for KEY in navy army air-force; do for SLUG in $(req anon GET /explore/facets | j "militaryCareerDomains.filter((d) => d.services.includes('$KEY')).map((d) => d.slug).join(' ')"); do [ "$(req anon GET "/occupations?service=$KEY&domain=$SLUG&limit=1" | j total)" = 0 ] && echo empty; done; done | wc -l | tr -d ' ')"
 expect "the homes the military list is narrowed by" "$(sql "SELECT string_agg(d.slug, '|' ORDER BY d.position) FROM skill_domains d WHERE EXISTS (SELECT 1 FROM occupations o WHERE o.home_domain = d.slug AND o.service_company_id IS NOT NULL)")" "$(req anon GET /explore/facets | j 'militaryCareerDomains.map((d) => d.slug).join("|")')"
 
 # --- Reach, computed from the two paths --------------------------------------------------------

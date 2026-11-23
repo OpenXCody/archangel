@@ -9,7 +9,7 @@ import { INDUSTRY_NAME_LIST, companyIndustries, listIndustries } from '../lib/in
 import { industryByName, industryLabel } from '../../shared/industry.js';
 import { int, rowsOf, text } from '../lib/rows.js';
 import { SKILL_LEVELS } from '../../shared/skillLevels.js';
-import { careerDomains } from '../lib/careers.js';
+import { careerDomains, militaryCareerDomains } from '../lib/careers.js';
 import { civilianCareer, civilianPathLine } from '../lib/military.js';
 
 const router = Router();
@@ -308,7 +308,8 @@ router.get('/overview', async (_req: Request, res: Response) => {
 //   `{ slug, name, groups: [{ slug, name }] }`, in the taxonomy's order;
 // - `careerDomains`: the domains that are some career's home, each
 //   `{ slug, name }`, in the same order, and `militaryCareerDomains` the same
-//   for the military careers (the Careers list's Military filter);
+//   for the military careers (the Careers list's Military filter), each with
+//   `services`: the services that have a career at home in it;
 // `factoryIndustries` is the same list as `industries.plants`, kept under its
 // old name for the map's filter and for pages loaded before this.
 router.get('/facets', async (_req: Request, res: Response) => {
@@ -323,7 +324,7 @@ router.get('/facets', async (_req: Request, res: Response) => {
       loadSkillFacets(),
       db.execute(sql`SELECT DISTINCT ci.industry AS value FROM (${companyIndustries()}) ci`),
       careerDomains(),
-      careerDomains(true),
+      militaryCareerDomains(),
     ]);
     const values = (result: unknown) =>
       rowsOf(result)
