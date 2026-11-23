@@ -136,6 +136,22 @@ export async function militaryFacts(
   return service ? militaryOf({ ...service, code: career.code, codeSystem: career.codeSystem, officialTitle: career.officialTitle }) : NOT_MILITARY;
 }
 
+/**
+ * Whether this company is a military service. A service is an employer with
+ * careers and nothing else here: nobody joins it to post jobs, it has no plants
+ * to add and no version of a civilian career. Every write that would give it
+ * one asks this and refuses in `NOT_AN_EMPLOYER_HERE`'s words.
+ */
+export async function isService(executor: Executor, companyId: string): Promise<boolean> {
+  const [row] = await executor.select({ service: companies.service }).from(companies).where(eq(companies.id, companyId)).limit(1);
+  return Boolean(row?.service);
+}
+
+/** Why a service is not joined, given a plant or given a version: said of the service by name. */
+export function notAnEmployerHere(name: string): string {
+  return `${name} is a military service. Its careers are listed on its page; it has no jobs, plants or versions of careers here.`;
+}
+
 /** The company that is this service; null when it is not stored. */
 export async function findService(executor: Executor, key: ServiceKey): Promise<CareerService | null> {
   const [row] = await executor.select({ id: companies.id, name: companies.name, slug: companies.slug }).from(companies).where(eq(companies.service, key)).limit(1);

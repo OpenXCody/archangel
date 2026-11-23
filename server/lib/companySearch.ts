@@ -123,7 +123,7 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
     WITH named AS MATERIALIZED (
       SELECT c.id, c.name, c.slug, c.industry, c.featured, ${norm} AS norm
         FROM companies c
-       WHERE (${candidates}) AND ${sql.raw(browsableCompanyNameSql('c.name'))} AND ${companyInScope('c')}
+       WHERE (${candidates}) AND ${sql.raw(browsableCompanyNameSql('c.name'))} AND c.service IS NULL AND ${companyInScope('c')}
     ), keyed AS MATERIALIZED (
       SELECT n.*, ${coreOf} AS core FROM named n
     )`;

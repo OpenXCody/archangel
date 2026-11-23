@@ -86,7 +86,15 @@ check "the map's pins for a service: none, and no error" 200 "$OUT" '"pins":\[\]
 check "sign-up"                                    201 "$(req p POST /auth/sign-up "{\"email\":\"person-$RUN@military.test\",\"name\":\"Pat Person\",\"purpose\":\"hire\",$PW}")"
 OUT=$(req p GET '/employer/companies?q=U.S.%20Navy')
 check "the employer's company finder answers"      200 "$OUT"
-expect "and finds the service by its name"         "U.S. Navy" "$(printf '%s' "$OUT" | j 'companies[0].name')"
+# A service is an employer with careers and nothing else here: nobody joins it to post jobs, so the finder that
+# leads to "request access" does not offer it, by its name, a part of it or the closest match.
+expect "and does not offer the service"            0 "$(printf '%s' "$OUT" | j 'companies.filter((c) => /^U\.S\. (Navy|Army|Air Force|Marine Corps)$/.test(c.name)).length')"
+for TERM in 'nav' 'navy' 'usn' 'navy yard' 'force' 'corps' 'U.S. Army' 'air force'; do
+  expect "nor for “$TERM”"                          0 "$(req p GET "/employer/companies?q=$(enc "$TERM")" | j 'companies.filter((c) => /^U\.S\. (Navy|Army|Air Force|Marine Corps)$/.test(c.name)).length')"
+done
+check "a service is not asked to be joined"        400 "$(req p POST /employer/memberships "{\"companyId\":\"$NAVY\"}")" 'is a military service'
+check "asking for it to be added says what it is"  400 "$(req p POST /employer/company-requests '{"name":"u.s. navy","place":"Norfolk, VA"}')" 'is a military service'
+expect "nothing was asked of the admins"           "0 0" "$(sql "SELECT (SELECT COUNT(*) FROM company_members WHERE company_id = '$NAVY') || ' ' || (SELECT COUNT(*) FROM company_requests r INNER JOIN users u ON u.id = r.user_id WHERE u.email = 'person-$RUN@military.test')")"
 
 # --- The careers are stored, each with its service, its code and a draft path ----------
 MIL="o.service_company_id IS NOT NULL AND o.title NOT LIKE '% E2E %'"
@@ -203,6 +211,36 @@ expect "make-admin made the admin"                 0 "$?"
 PLANT=$(sql "SELECT f.id || ' ' || f.company_id FROM factories f WHERE f.company_id IS NOT NULL ORDER BY f.id LIMIT 1")
 check "a job for a military career is refused"     400 "$(req a POST /jobs "{\"companyId\":\"${PLANT#* }\",\"factoryId\":\"${PLANT% *}\",\"occupationId\":\"$HT\",\"payMin\":20,\"payMax\":30}")" 'military career'
 check "so is a company's version of one"           400 "$(req a POST /companies/${PLANT#* }/careers "{\"occupationId\":\"$HT\"}")" 'military career'
+# Nor does a service have what a manufacturer has: people who post for it, plants, or a version of a civilian
+# career (which would list the service on that career's page). Each is refused, an admin's hand included.
+PERSON=$(sql "SELECT id FROM users WHERE email = 'person-$RUN@military.test'")
+CIVIL=$(sql "SELECT id FROM occupations WHERE title = 'Welder'")
+check "an admin does not join a service"           400 "$(req a POST /employer/memberships "{\"companyId\":\"$NAVY\"}")" 'is a military service'
+check "nor add a person to one"                    400 "$(req a POST /admin/memberships "{\"companyId\":\"$NAVY\",\"userId\":\"$PERSON\"}")" 'is a military service'
+check "a plant is not asked for it"                400 "$(req a POST /employer/company-requests "{\"companyId\":\"$NAVY\",\"place\":\"Norfolk, VA\"}")" 'is a military service'
+check "a plant is not added to it"                 400 "$(req a POST /factories "{\"companyId\":\"$NAVY\",\"name\":\"E2E Mil Yard\",\"state\":\"VA\",\"latitude\":36.85,\"longitude\":-76.3}")" '"field":"company"'
+check "nor moved to it"                            400 "$(req a PUT /factories/${PLANT% *} "{\"companyId\":\"$NAVY\"}")" 'is a military service'
+check "a service has no version of a civilian career" 400 "$(req a POST /companies/$NAVY/careers "{\"occupationId\":\"$CIVIL\"}")" 'is a military service'
+expect "none of it was written"                    "0 0 0 0" "$(sql "SELECT (SELECT COUNT(*) FROM company_members WHERE company_id = '$NAVY') || ' ' || (SELECT COUNT(*) FROM factories WHERE company_id = '$NAVY') || ' ' || (SELECT COUNT(*) FROM company_careers WHERE company_id = '$NAVY') || ' ' || (SELECT COUNT(*) FROM company_requests WHERE company_id = '$NAVY')")"
+expect "and the civilian career lists no service"  0 "$(req anon GET /occupations/$CIVIL | j 'versions.filter((v) => /^U\.S\. /.test(v.companyName || v.name || "")).length')"
+# An admin's writes keep a military career where it is: on no ladder at either end, nobody's goal, and never
+# merged with a civilian career (which would hand it that career's goals, jobs, industries and ladder).
+LADDER=$(req anon GET /occupations/$CIVIL | j 'leadsTo.map((c) => c.id).join(",")')
+check "a civilian career does not lead to a military one" 400 "$(req a PUT /occupations/$CIVIL "{\"leadsTo\":[\"$HT\"]}")" '"field":"leadsTo"'
+check "nor a military career to a civilian one"    400 "$(req a PUT /occupations/$HT "{\"leadsTo\":[\"$CIVIL\"]}")" 'is on no ladder'
+expect "the ladder is as it was"                   "$LADDER|" "$(req anon GET /occupations/$CIVIL | j 'leadsTo.map((c) => c.id).join(",")')|$(req anon GET /occupations/$HT | j 'leadsTo.concat(o.comesFrom).map((c) => c.id).join(",")')"
+AIMED=$(req a POST /occupations "{\"title\":\"E2E Mil Aimed $RUN\"}" | j id)
+SERVED=$(req a POST /occupations "{\"title\":\"E2E Mil Served $RUN\"}" | j id)
+check "a test career is made a military one"       200 "$(req a PUT /occupations/$SERVED "{\"service\":\"navy\",\"code\":\"ZZ$RUN\",\"officialTitle\":\"Served $RUN\"}")" '"kind":"Navy rating"'
+check "another is a person's goal"                 200 "$(req p PUT /me/goals/$AIMED)"
+check "a career that is somebody's goal is not made a military one" 400 "$(req a PUT /occupations/$AIMED "{\"service\":\"navy\",\"code\":\"ZY$RUN\",\"officialTitle\":\"Aimed $RUN\"}")" '1 goal'
+check "it is not merged into a military career"    409 "$(req a POST /admin/records/career/$AIMED/merge "{\"into\":\"$SERVED\"}")" 'are not merged'
+check "nor a military career into it"              409 "$(req a POST /admin/records/career/$SERVED/merge "{\"into\":\"$AIMED\"}")" 'are not merged'
+expect "the person's goal is still the civilian career" "E2E Mil Aimed $RUN|null" "$(req p GET /me/goals | j 'goals.map((g) => g.title).join(",")')|$(req anon GET /occupations/$AIMED | j service)"
+expect "both careers are still there"              2 "$(sql "SELECT COUNT(*) FROM occupations WHERE id IN ('$AIMED', '$SERVED')")"
+req p DELETE /me/goals/$AIMED > /dev/null
+check "the test careers are removed"               200 "$(req a DELETE /occupations/$AIMED)"
+check "both"                                       200 "$(req a DELETE /occupations/$SERVED)"
 expect "the career picker offers none"             0 "$(req a GET "/occupations?search=$(enc 'technician')&limit=100" | j 'data.filter((c) => c.service !== null).length')"
 OUT=$(req a GET '/admin/paths?status=draft')
 expect "the admin's draft paths include them, each with its service and code" "navy HT" "$(printf '%s' "$OUT" | j "paths.find((p) => p.id === '$HT').service + ' ' + o.paths.find((p) => p.id === '$HT').code")"
