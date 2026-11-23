@@ -1776,13 +1776,14 @@ test('military careers stay out of the lists until asked for: the Careers filter
   await expect(page.locator('[data-explore-count]')).toHaveText(`${civilian} careers`);
   await expect(page.locator('main a[href^="/occupations/"]').first()).toBeVisible();
   await expect(page.locator('main a[href^="/occupations/"]').filter({ hasText: KIND_LINE })).toHaveCount(0);
-  const filter = page.getByRole('button', { name: 'Careers: Civilian' });
-  await expect(filter).toBeVisible();
+  // A two-sided switch, Industry (the default) and Military; the branch is offered only on the military side.
+  const sides = page.getByRole('radiogroup', { name: 'Careers' });
+  await expect(sides.getByRole('radio', { name: 'Industry' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('button', { name: /^Branch: / })).toHaveCount(0);
   await assertHealthyLayout(page, '/explore?tab=occupations');
 
   // Asked for, the list is the military careers alone, each row with its kind and code; the address says so.
-  await filter.click();
-  await page.getByRole('menuitemradio', { name: 'Military', exact: true }).click();
+  await sides.getByRole('radio', { name: 'Military' }).click();
   await expect(page).toHaveURL(/tab=occupations&military=1$/);
   await expect(page.locator('[data-explore-count]')).toHaveText(`${military} military careers`);
   const rows = page.locator('main a[href^="/occupations/"]');
@@ -1791,14 +1792,18 @@ test('military careers stay out of the lists until asked for: the Careers filter
   await assertHealthyLayout(page, '/explore?tab=occupations&military=1');
 
   // Narrowed to one service, and back.
-  await page.getByRole('button', { name: 'Careers: Military' }).click();
+  await page.getByRole('button', { name: 'Branch: All branches' }).click();
+  expect((await page.getByRole('menuitemradio').allInnerTexts()).map((text) => text.trim())).toEqual(['All branches', 'Navy', 'Army', 'Air Force', 'Marine Corps']);
   await page.getByRole('menuitemradio', { name: 'Navy', exact: true }).click();
   await expect(page).toHaveURL(/tab=occupations&service=navy$/);
   await expect(page.locator('[data-explore-count]')).toHaveText(`${navy} Navy careers`);
   await expect(rows.first()).toContainText(/Navy rating · [A-Z]+/);
   for (const text of await rows.allInnerTexts()) expect(text, 'every row is a Navy rating').toContain('Navy rating · ');
   await assertHealthyLayout(page, '/explore?tab=occupations&service=navy');
+  // Clear puts back what narrows the side that is on; the switch goes back to the careers of industry.
   await page.getByRole('button', { name: 'Clear', exact: true }).click();
+  await expect(page).toHaveURL(/tab=occupations&military=1$/);
+  await sides.getByRole('radio', { name: 'Industry' }).click();
   await expect(page).not.toHaveURL(/military=|service=/);
   await expect(page.locator('[data-explore-count]')).toHaveText(`${civilian} careers`);
   // Explore's own count of careers is the civilian one.
@@ -1819,7 +1824,7 @@ test('military careers stay out of the lists until asked for: the Careers filter
   // A service with no careers yet, named by the address: the filter says which service, as the count under it does.
   await page.goto('/explore?tab=occupations&service=marine-corps', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-explore-count]')).toHaveText('0 Marine Corps careers');
-  await expect(page.getByRole('button', { name: 'Careers: Marine Corps' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Branch: Marine Corps' })).toBeVisible();
   await assertHealthyLayout(page, '/explore?tab=occupations&service=marine-corps');
 
   // Skills only military careers use: the Skills list leaves them out and counts what it lists, as Explore does;
@@ -1905,163 +1910,113 @@ test('military careers stay out of the lists until asked for: the Careers filter
   await expect(page).not.toHaveURL(/company=/);
 });
 
-test('Profile\'s second door: a seeker starts with what they have done, and takes it back; nobody else is shown it', async ({ page, baseURL, request }) => {
-  // Writes: it makes two accounts, marks skills and deletes them. Never against a deployed copy.
+test('Profile asks nothing about military service: one question on an empty page, no door at the end of Skills', async ({ page, baseURL, request }) => {
+  // Writes: it makes an account, marks skills and deletes it. Never against a deployed copy.
   test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
   const password = 'correct horse battery';
   const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
   const ht = await militaryCareer(request, 'HT');
-  const mySkills = async () => ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: { skillId: string; status: string }[] }).skills;
-
-  // A visitor is asked to sign in: there is no door to see.
-  await page.goto('/me', { waitUntil: 'domcontentloaded' });
-  await expect(page).toHaveURL(/\/sign-in/);
-  await expect(page.locator('[data-service-door]')).toHaveCount(0);
+  const noDoor = async () => {
+    await expect(page.getByText('Start with what you have done')).toHaveCount(0);
+    await expect(page.locator('[data-service-door], #door-career')).toHaveCount(0);
+  };
 
   const made = await page.request.post(`${API}/auth/sign-up`, { data: { email: `door-work-${stamp}@device.test`, name: 'Door Seeker', password, purpose: 'work' } });
   expect(made.status(), 'seeker: account made').toBe(201);
   try {
-    // With nothing on the page: two doors, the second as quiet as the first.
+    // With nothing on the page: the one question, and its search lists no military career.
     await page.goto('/me', { waitUntil: 'domcontentloaded' });
-    const first = page.getByRole('heading', { name: 'Start with a career' });
-    const second = page.getByRole('heading', { name: 'Start with what you have done' });
-    await expect(first).toBeVisible();
-    await expect(second).toBeVisible();
-    const size = (heading: typeof first) => heading.evaluate((el) => getComputedStyle(el).fontSize + ' ' + getComputedStyle(el).fontWeight);
-    expect(await size(second), 'the two questions are set alike').toBe(await size(first));
-    await assertHealthyLayout(page, '/me two doors');
+    await expect(page.getByRole('heading', { name: 'Start with a career' })).toBeVisible();
+    await noDoor();
+    await page.locator('#starter-career').fill('Navy Hull');
+    await expect(page.getByRole('option', { name: /Navy Hull Maintenance Technician/ })).toHaveCount(0);
+    await assertHealthyLayout(page, '/me one question');
 
-    // The door's search does list military careers: by code, with the kind and code under the title.
-    const search = page.locator('#door-career');
-    await search.fill('HT');
-    const option = page.getByRole('option', { name: /Navy Hull Maintenance Technician/ });
-    await expect(option).toBeVisible();
-    await expect(option).toContainText('Navy rating · HT');
-    // One tap marks every skill of its path held, says so, and the page is the person's own from there.
-    await option.click();
-    const notice = page.locator('[data-done-notice]');
-    await expect(notice).toContainText(`Marked ${ht.skillCount} skills held.`);
-    expect((await mySkills()).filter((skill) => skill.status === 'held').length, 'every skill of the path is held').toBe(ht.skillCount);
-    // What they then see: civilian careers within reach, never a military one, and no goal was made of it.
+    // The route the door used is kept (a military career's own page writes through it): with its skills held,
+    // Profile lists civilian careers within reach, never a military one, and still has no door.
+    const held = await page.request.post(`${API}/me/careers/${ht.id}/held`);
+    expect(held.ok(), 'the route is kept').toBe(true);
+    await page.goto('/me', { waitUntil: 'domcontentloaded' });
     const reach = page.locator('[data-careers-in-reach]');
     await expect(reach.locator('li').first()).toBeVisible();
-    await expect(reach).toContainText(/Welder/);
-    await expect(reach.locator('li').filter({ hasText: SERVICE_TITLE })).toHaveCount(0);
-    // "Within reach" is said by the rule the rating's own page lists civilian careers by: a third of the path, no less.
     await expect(reach.getByRole('heading', { name: 'Within reach' })).toBeVisible();
-    for (const figure of await reach.locator('li [aria-label$="skills held"]').allInnerTexts()) {
-      const [held, total] = figure.split(' of ').map(Number);
-      expect(held * 3, `${figure} is a third or more`).toBeGreaterThanOrEqual(total);
-    }
-    await expect(page.locator('[data-goal]')).toHaveCount(0);
-    expect(((await (await page.request.get(`${API}/me/goals`)).json()) as { goals: unknown[] }).goals.length).toBe(0);
-    await notice.scrollIntoViewIfNeeded();
-    await assertHealthyLayout(page, '/me after the door');
-    // The keyboard is on Undo: the field the career was chosen in is gone. When Undo cannot be done it says so beside itself.
-    await expect(notice.getByRole('button', { name: 'Undo' })).toBeFocused();
-    await page.route('**/api/me/careers/*/held/undo', (route) => route.fulfill({ status: 500, json: { error: 'Internal Server Error' } }));
-    await page.keyboard.press('Enter');
-    const problem = page.getByRole('alert').first();
-    await expect(problem).toBeVisible();
-    const gap = ((await problem.boundingBox())?.y ?? Infinity) - ((await notice.boundingBox())?.y ?? 0);
-    expect(gap, 'the problem is said under the notice, not at the end of the page').toBeLessThan(120);
-    await page.unroute('**/api/me/careers/*/held/undo');
-    // Undo takes all of it back: the page is the two doors again, and the keyboard is in the door it came from.
-    await page.keyboard.press('Enter');
-    await expect(first).toBeVisible();
-    await expect(search).toBeFocused();
-    expect((await mySkills()).length, 'nothing is left').toBe(0);
-
-    // A rating that reaches no civilian career by a third: Profile says what it lists, the closest careers.
-    const none = await militaryCareer(request, '91B');
-    const noneRecord = (await (await request.get(`${API}/occupations/${none.id}`)).json()) as { withinReach: unknown[] };
-    if (noneRecord.withinReach.length === 0) {
-      await search.fill('91B10');
-      await page.getByRole('option', { name: /Wheeled Vehicle Mechanic/ }).click();
-      await expect(reach.locator('li').first()).toBeVisible();
-      await expect(reach.getByRole('heading', { name: 'Closest careers' })).toBeVisible();
-      await expect(reach.getByRole('heading', { name: 'Within reach' })).toHaveCount(0);
-      await page.locator('[data-done-notice]').getByRole('button', { name: 'Undo' }).click();
-      await expect(first).toBeVisible();
-    }
-
-    // On a Profile that has something: one line at the end of Skills, under everything else.
-    const own = ((await (await request.get(`${API}/skills?limit=1`)).json()) as { data: { id: string }[] }).data[0];
-    expect((await page.request.put(`${API}/me/skills/${own.id}`, { data: { status: 'held' } })).ok()).toBe(true);
-    await page.goto('/me', { waitUntil: 'domcontentloaded' });
-    const line = page.locator('[data-service-door="skills"]');
-    const open = line.getByRole('button', { name: 'Start with what you have done' });
-    await expect(open).toBeVisible();
-    const below = async (heading: string) => ((await open.boundingBox())?.y ?? 0) > ((await page.getByRole('heading', { name: heading, exact: true }).boundingBox())?.y ?? Infinity);
-    expect(await below('Goals'), 'it is under Goals').toBe(true);
-    expect(await below('Skills'), 'and under Skills').toBe(true);
-    expect((await open.boundingBox())?.y ?? 0, 'and under the person\'s own skills').toBeGreaterThan((await page.locator('[data-my-skills]').boundingBox())?.y ?? Infinity);
-    // The line is the last thing on the page, so it is pressed with the page at its end: the careers it finds are
-    // listed on the screen, not under it.
+    await expect(reach.locator('li').filter({ hasText: SERVICE_TITLE })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Skills', exact: true })).toBeVisible();
+    await noDoor();
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await open.click();
-    await expect(search).toBeFocused();
-    await search.fill('navy hull');
-    const found = page.getByRole('option', { name: /Navy Hull Maintenance Technician/ });
-    await expect(found).toBeVisible();
-    const screen = page.viewportSize()?.height ?? 0;
-    const place = await found.boundingBox();
-    expect(place?.y ?? -1, 'the option is on the screen').toBeGreaterThanOrEqual(0);
-    expect((place?.y ?? 0) + (place?.height ?? 0), 'all of it').toBeLessThanOrEqual(screen);
-    await page.keyboard.press('Enter');
-    // The skill held before is not counted, and is not taken back.
-    const said = line.locator('[data-done-notice]');
-    await expect(said).toContainText(/Marked \d+ skills held\./);
-    const added = (await mySkills()).length - 1;
-    await expect(said).toContainText(`Marked ${added} skills held.`);
-    await expect(line.getByRole('button', { name: 'Undo' })).toBeFocused();
-    await line.scrollIntoViewIfNeeded();
-    await assertHealthyLayout(page, '/me the door at the end of Skills');
-    // A second rating keeps the first one's Undo: each tap is taken back by itself, the latest first.
-    await open.click();
-    await search.fill('SW');
-    await page.getByRole('option', { name: /Navy Steelworker/ }).click();
-    await expect(said).not.toContainText(`Marked ${added} skills held.`);
-    const more = (await mySkills()).length - 1 - added;
-    expect(more, "the second rating added skills of its own").toBeGreaterThan(0);
-    await expect(said).toContainText(`Marked ${more} ${more === 1 ? "skill" : "skills"} held.`);
-    await expect(line.getByRole('button', { name: 'Undo' })).toBeFocused();
-    await page.keyboard.press('Enter');
-    await expect(said).toContainText(`Marked ${added} skills held.`);
-    await expect.poll(async () => (await mySkills()).length, { message: 'the second tap is taken back, the first stands' }).toBe(added + 1);
-    await expect(line.getByRole('button', { name: 'Undo' })).toBeFocused();
-    // The same rating again changes nothing, says so, and costs the first tap nothing.
-    await open.click();
-    await search.fill('HT');
-    await page.getByRole('option', { name: /Navy Hull Maintenance Technician/ }).click();
-    await expect(line.locator('[data-done-nothing]')).toContainText(`You already hold all ${ht.skillCount} skills of its path.`);
-    await expect(open).toBeFocused();
-    await expect(said).toContainText(`Marked ${added} skills held.`);
-    await line.getByRole('button', { name: 'Undo' }).focus();
-    await page.keyboard.press('Enter');
-    await expect(said).toHaveCount(0);
-    await expect.poll(async () => (await mySkills()).map((skill) => skill.skillId), { message: 'only the skill held before is left' }).toEqual([own.id]);
-    // The keyboard is on the line again, not at the top of the page.
-    await expect(open).toBeFocused();
+    await assertHealthyLayout(page, '/me with skills, no door');
   } finally {
     expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'seeker: account removed').toBe(true);
   }
+});
 
-  // Someone here to hire: with nothing on the page they are sent to their own, and with a skill on it there is still no door.
-  const hire = await page.request.post(`${API}/auth/sign-up`, { data: { email: `door-hire-${stamp}@device.test`, name: 'Door Hirer', password, purpose: 'hire' } });
-  expect(hire.status(), 'employer: account made').toBe(201);
-  try {
-    await page.goto('/me', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/\/employer/);
-    await expect(page.locator('[data-service-door]')).toHaveCount(0);
-    const own = ((await (await request.get(`${API}/skills?limit=1`)).json()) as { data: { id: string }[] }).data[0];
-    expect((await page.request.put(`${API}/me/skills/${own.id}`, { data: { status: 'held' } })).ok()).toBe(true);
-    await page.goto('/me', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: 'Skills', exact: true })).toBeVisible();
-    await expect(page.locator('[data-service-door]')).toHaveCount(0);
-    await expect(page.getByText('Start with what you have done')).toHaveCount(0);
-  } finally {
-    expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'employer: account removed').toBe(true);
+test('what the owner asked for: one order of companies with no sort, Safety last, the credit on Settings, the header menu, a wider Factories list', async ({ page, request }) => {
+  const width = page.viewportSize()?.width ?? 0;
+  const touch = test.info().project.use.hasTouch === true;
+
+  // Companies: no sort to choose, the one filter where the sort was, and an old ?sort= is not read.
+  await page.goto('/explore?tab=companies&sort=name-asc', { waitUntil: 'domcontentloaded' });
+  const firstRow = page.locator('main a[href^="/companies/"]').first();
+  await expect(firstRow).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Sort: / })).toHaveCount(0);
+  const industry = page.getByRole('button', { name: 'Industry: All industries' });
+  await expect(industry).toBeVisible();
+  const box = await industry.boundingBox();
+  if (width >= 640) expect((box?.x ?? 0) + (box?.width ?? 0), 'the filter stands at the right').toBeGreaterThan(width / 2);
+  const listed = (await (await request.get(`${API}/companies?limit=1`)).json()) as { data: { name: string; people: number | null; openJobCount: number; factoryCount: number }[] };
+  const lead = listed.data[0];
+  await expect(firstRow).toContainText(lead.people ? `${lead.people.toLocaleString('en-US')} people` : lead.openJobCount ? 'open job' : 'factor');
+  await assertHealthyLayout(page, '/explore?tab=companies');
+
+  // Domains in the taxonomy's order wherever they are listed: Safety is last, never first.
+  const taxonomy = (await (await request.get(`${API}/skills/taxonomy`)).json()) as { domains: { name: string }[] };
+  expect(taxonomy.domains.at(-1)?.name).toBe('Safety');
+  expect(taxonomy.domains[0].name).toBe('Materials');
+  await page.goto('/explore?tab=skills', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-skill-domain]').first()).toHaveAttribute('data-skill-domain', 'materials');
+
+  // The basemap's credit: off the map, on Settings with both links.
+  await page.goto('/settings', { waitUntil: 'domcontentloaded' });
+  const credits = page.locator('[data-map-credits]');
+  await expect(credits.getByRole('link', { name: '© MapTiler' })).toHaveAttribute('href', 'https://www.maptiler.com/copyright/');
+  await expect(credits.getByRole('link', { name: '© OpenStreetMap contributors' })).toHaveAttribute('href', 'https://www.openstreetmap.org/copyright');
+  await page.goto('/map', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+  await expect(page.locator('.maplibregl-ctrl-attrib')).toHaveCount(0);
+
+  // The Factories list: one column on a phone, three from 1280 px, four from 1600 px.
+  await page.goto('/explore?tab=factories', { waitUntil: 'domcontentloaded' });
+  const rows = page.locator('main a[href^="/factories/"]');
+  await expect(rows.nth(4)).toBeVisible();
+  const top = (await rows.first().boundingBox())?.y ?? 0;
+  const tops = await rows.evaluateAll((all) => all.slice(0, 5).map((row) => Math.round(row.getBoundingClientRect().top)));
+  expect(tops.filter((y) => Math.abs(y - Math.round(top)) < 2).length, `columns at ${width}px`).toBe(width >= 1600 ? 4 : width >= 1280 ? 3 : width >= 1024 ? 2 : 1);
+  await assertHealthyLayout(page, '/explore?tab=factories');
+
+  // Explore in the header: a mouse over it, or the keyboard on it, opens its six views; a tap just goes to Explore.
+  const explore = page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Explore', exact: true });
+  const menu = page.locator('[data-explore-menu]');
+  if (touch) {
+    await explore.tap();
+    await expect(page).toHaveURL(/\/explore$/);
+    await expect(menu).toHaveCount(0);
+  } else {
+    await explore.hover();
+    expect((await menu.getByRole('link').allInnerTexts()).map((text) => text.trim())).toEqual(['Overview', 'Industries', 'Companies', 'Factories', 'Careers', 'Skills']);
+    expect(await menu.locator('ul').evaluate((el) => getComputedStyle(el).boxShadow), 'no shadow').toBe('none');
+    await menu.getByRole('link', { name: 'Careers' }).click();
+    await expect(page).toHaveURL(/\/explore\?tab=occupations$/);
+    await page.mouse.move(width / 2, 400);
+    await expect(menu).toHaveCount(0);
+    await explore.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(menu).toBeVisible();
+    await page.keyboard.press('ArrowDown');
+    await expect(menu.getByRole('link', { name: 'Overview' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(explore).toBeFocused();
   }
 });
 

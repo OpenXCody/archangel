@@ -63,8 +63,15 @@ if [ -n "$ONE" ]; then
 else
   echo "ok    (no one-plant company with an address and an industry in this database: skipped)"
 fi
-MANY=$(psql "$DB" -tAc "SELECT company_id FROM factories WHERE company_id IS NOT NULL GROUP BY 1 HAVING COUNT(*) > 1 ORDER BY 1 LIMIT 1")
-[ -n "$MANY" ] && check "a company with several plants lists no typical careers" 200 "$(req anon GET "/companies/$MANY")" '"typicalCareers":\[\]'
+# A company with several plants carries the careers typical of the industry most of them are in: its page lists them beside its factories.
+MANY=$(psql "$DB" -tAc "SELECT f.company_id FROM factories f WHERE f.company_id IS NOT NULL GROUP BY 1 HAVING COUNT(*) > 1 AND COUNT(*) FILTER (WHERE f.primary_naics_description IN (SELECT industry FROM industry_occupations)) = COUNT(*) AND COUNT(DISTINCT f.primary_naics_description) = 1 ORDER BY 1 LIMIT 1")
+if [ -n "$MANY" ]; then
+  OUT=$(req anon GET "/companies/$MANY")
+  check "a company with several plants lists its industry's careers" 200 "$OUT" '"typicalCareers":\[{"id":"'
+  expect "they are the careers of that industry, in its order" "$(psql "$DB" -tAc "SELECT o.title FROM industry_occupations io JOIN occupations o ON o.id = io.occupation_id WHERE io.industry = (SELECT primary_naics_description FROM factories WHERE company_id = '$MANY' LIMIT 1) ORDER BY io.rank, o.title LIMIT 1")" "$(printf '%s' "$OUT" | j 'typicalCareers[0].title')"
+else
+  echo "ok    (no company with several plants in one listed industry in this database: skipped)"
+fi
 # A career's plants say which town they are in.
 WITH_PLANTS=$(psql "$DB" -tAc "SELECT occupation_id FROM factory_occupations ORDER BY 1 LIMIT 1")
 [ -n "$WITH_PLANTS" ] && check "a career's plants carry their town" 200 "$(req anon GET "/occupations/$WITH_PLANTS")" '"factories":\[{"id":"[^"]*","name":"[^"]*","city":'
