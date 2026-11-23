@@ -666,6 +666,8 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
       await expect(row(single).locator('[data-tag-note]')).toHaveText(single.group!.name);
       await expect(row(sections[0].skills[0]).locator('[data-tag-note]')).toHaveCount(0);
       await flow.locator('[data-route-open-all]').click();
+      // What a person opened and closed holds for the visit: forgotten here, so the next reads are a fresh visit's.
+      await page.evaluate(() => sessionStorage.clear());
       if (wide) {
         const [second, third] = nextOf(held).slice(1);
         await expect(beside).toContainText(new RegExp(`Next[\\s\\S]*${first.name}[\\s\\S]*Then[\\s\\S]*${second.name}[\\s\\S]*${third.name}`));
@@ -677,8 +679,9 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
 
       // Skills marked elsewhere (Profile; here, the API): the first skill, then the whole of the first section, and one being learned.
       const section = sections[0];
-      const head = flow.locator('[data-route-section]').filter({ has: row(section.skills[0]) }).getByRole('button').first();
-      const place = flow.locator('[data-route-section]').filter({ has: row(section.skills[0]) });
+      const sectionOf = (skill: { id: string }) => flow.locator('[data-route-section]').filter({ has: page.locator(`[data-skill-tag="${skill.id}"]`) });
+      const place = sectionOf(section.skills[0]);
+      const head = place.getByRole('button').first();
       await hold(path[0]);
       await hold(section.skills[0]);
       held = new Set([path[0].id, section.skills[0].id]);
@@ -688,7 +691,7 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
       // A section's figure: "1 of N" part done, its size untouched, nothing when it is whole.
       expect(await figure(place.locator('[data-section-count]'))).toEqual([path[0].group?.slug === section.skills[0].group?.slug && section.skills.includes(path[0]) ? 2 : 1, section.skills.length]);
       const untouched = sections[sections.length - 1];
-      await expect(flow.locator('[data-route-section]').filter({ has: row(untouched.skills[0]) }).locator('[data-section-count]')).toHaveText(`${untouched.skills.length} skills`);
+      await expect(sectionOf(untouched.skills[0]).locator('[data-section-count]')).toHaveText(`${untouched.skills.length} skills`);
       for (const skill of section.skills) await hold(skill);
       const learning = path.find((skill) => !held.has(skill.id) && !section.skills.includes(skill))!;
       await hold(learning, 'learning');
@@ -747,6 +750,8 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
       await expect(atlasTags).toHaveCount(path.length);
       await expect(page.locator(`[data-career-atlas] [data-skill-tag="${path[0].id}"]`)).toHaveAttribute('data-status', 'held');
       await expect(page.locator('[data-career-atlas] [data-skill-tag] button')).toHaveCount(0);
+      // The view is kept for the visit: forgotten, so the next person here starts on the route.
+      await page.evaluate(() => sessionStorage.clear());
     } finally {
       const gone = await page.request.delete(`${API}/me`, { data: { password } });
       expect(gone.ok(), `${purpose}: account removed`).toBe(true);
