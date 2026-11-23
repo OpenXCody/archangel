@@ -8,9 +8,9 @@ import { pageLimit, pageOffset } from '../lib/paging.js';
 import { answerDuplicate, answerWriteError, isUuid, optionalText, refuseDeleteWithJobs, requiredText } from '../lib/writes.js';
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 import { sourcesOf } from '../lib/sources.js';
-import { rowsOf } from '../lib/rows.js';
-import { companyIndustries, companyIndustry } from '../lib/industries.js';
-import { industryByName, industryBySlug } from '../../shared/industry.js';
+import { int, rowsOf, text, type Row } from '../lib/rows.js';
+import { byCompanyStanding, companyIndustries, companyIndustry, companyStandings, standingOf } from '../lib/industries.js';
+import { industryByName, industryBySlug, leadingIndustry } from '../../shared/industry.js';
 import { versionsOfCompany } from '../lib/versions.js';
 import { careersOfService } from '../lib/military.js';
 
@@ -43,7 +43,7 @@ router.param('id', async (req: Request, res: Response, next: NextFunction, raw: 
 // GET /api/companies - List companies with offset-based pagination
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { offset = '0', limit = '20', search, industry, sort = 'name', order = 'asc' } = req.query;
+    const { offset = '0', limit = '20', search, industry, sort, order = 'asc' } = req.query;
     const limitNum = pageLimit(limit, 20, 100);
     const offsetNum = pageOffset(offset);
 
@@ -79,21 +79,14 @@ router.get('/', async (req: Request, res: Response) => {
       .where(whereClause);
     const total = countResult[0]?.count ?? 0;
 
-    // Build order by clause
-    let orderByClause;
-    if (sort === 'factoryCount') {
-      orderByClause = order === 'desc'
-        ? sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()}) DESC, ${companies.name} ASC`
-        : sql`(SELECT COUNT(*) FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()}) ASC, ${companies.name} ASC`;
-    } else {
-      // By name, with featured employers first: the list opens on companies
-      // people recognise instead of on whatever sorts first alphabetically.
-      orderByClause = order === 'desc'
-        ? sql`${companies.featured} DESC, ${companies.name} DESC`
-        : sql`${companies.featured} DESC, ${companies.name} ASC`;
-    }
+    // The order: the one every list of companies has (most people, then most open jobs, then most
+    // factories, then name), unless the list was asked for by name.
+    const orderByClause =
+      sort === 'name'
+        ? order === 'desc' ? sql`${companies.name} DESC` : sql`${companies.name} ASC`
+        : byCompanyStanding('cs', sql`${companies.name}`);
 
-    // Query with factory count
+    // Each company with its figures over all of its in-scope factories.
     const result = await db
       .select({
         id: companies.id,
@@ -107,11 +100,15 @@ router.get('/', async (req: Request, res: Response) => {
         headquartersLat: companies.headquartersLat,
         headquartersLng: companies.headquartersLng,
         createdAt: companies.createdAt,
-        factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()})`,
-        totalWorkforce: sql<number>`(SELECT COALESCE(SUM(workforce_size), 0)::int FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()})`,
+        factoryCount: sql<number>`COALESCE(cs.factories, 0)::int`,
+        totalWorkforce: sql<number>`COALESCE(cs.people, 0)::int`,
+        // People is null where no factory of the company has a recorded headcount: unknown, never zero.
+        people: sql<number | null>`cs.people`,
+        openJobCount: sql<number>`COALESCE(cs.open_jobs, 0)::int`,
         occupationCount: sql<number>`(SELECT COUNT(DISTINCT fo.occupation_id)::int FROM factory_occupations fo INNER JOIN factories f ON f.id = fo.factory_id WHERE f.company_id = companies.id AND ${factoryInScope('f')})`,
       })
       .from(companies)
+      .leftJoin(sql`(${companyStandings()}) cs`, sql`cs.company_id = ${companies.id}`)
       .where(whereClause)
       .orderBy(orderByClause)
       .limit(limitNum)
@@ -180,18 +177,25 @@ router.get('/:id', async (req: Request, res: Response) => {
           .from(companies)
           .where(eq(companies.id, company.parentCompanyId))
       : [];
-    const subsidiaries = await db
-      .select({
-        id: companies.id,
-        name: companies.name,
-        slug: companies.slug,
-        domain: companies.domain,
-        industry: companies.industry,
-        factoryCount: sql<number>`(SELECT COUNT(*)::int FROM factories WHERE factories.company_id = companies.id AND ${factoryInScope()})`,
-      })
-      .from(companies)
-      .where(eq(companies.parentCompanyId, id))
-      .orderBy(sql`6 DESC`, companies.name);
+    // In the order every list of companies has.
+    const subsidiaries = rowsOf<Row>(
+      await db.execute(sql`
+        SELECT c.id, c.name, c.slug, c.domain, c.industry, cs.factories, cs.people, cs.open_jobs
+        FROM companies c
+        LEFT JOIN LATERAL (${companyStandings({ of: sql`c.id` })}) cs ON TRUE
+        WHERE c.parent_company_id = ${id}
+        ORDER BY ${byCompanyStanding('cs', sql`c.name`)}
+      `)
+    ).map((r) => ({
+      id: String(r.id),
+      name: String(r.name),
+      slug: text(r.slug),
+      domain: text(r.domain),
+      industry: text(r.industry),
+      factoryCount: int(r.factories),
+      people: standingOf(r).people,
+      openJobCount: int(r.open_jobs),
+    }));
 
     // People in a state, where a source says how many.
     const peopleByState = rowsOf<{ state: string; people: number; year: number | null; source: string | null; note: string | null }>(
@@ -216,22 +220,23 @@ router.get('/:id', async (req: Request, res: Response) => {
     `);
 
     const occupationRows = rowsOf(companyOccupations);
-    // A company with one plant and no careers recorded there: the careers
-    // typical of that plant's industry, as the plant's own page lists them.
-    const onlyIndustry = companyFactories.length === 1 ? companyFactories[0].industry : null;
-    const typicalCareers =
-      occupationRows.length === 0 && onlyIndustry
-        ? rowsOf(
-            await db.execute(sql`
-              SELECT o.id, o.title
-              FROM industry_occupations io
-              INNER JOIN occupations o ON o.id = io.occupation_id
-              WHERE io.industry = ${onlyIndustry}
-              ORDER BY io.rank ASC
-              LIMIT 10
-            `)
-          ).map((r) => ({ id: String(r.id), title: String(r.title) }))
-        : [];
+    // The careers typical of the company's industry (the one most of its
+    // factories are in), in the industry's own order: what kind of work a
+    // company like this has, never a claim about it. The page lists them
+    // after the company's own careers, leaving out any it already lists.
+    const industry = leadingIndustry(companyFactories.map((factory) => factory.industry));
+    const typicalCareers = industry
+      ? rowsOf(
+          await db.execute(sql`
+            SELECT o.id, o.title
+            FROM industry_occupations io
+            INNER JOIN occupations o ON o.id = io.occupation_id
+            WHERE io.industry = ${industry}
+            ORDER BY io.rank ASC, o.title ASC
+            LIMIT 24
+          `)
+        ).map((r) => ({ id: String(r.id), title: String(r.title) }))
+      : [];
 
     res.json({
       ...company,

@@ -199,6 +199,9 @@ export interface Company {
   createdAt: string;
   factoryCount?: number;
   totalWorkforce?: number;
+  /** People at its factories whose headcount is recorded; null when none is. */
+  people?: number | null;
+  openJobCount?: number;
   occupationCount?: number;
 }
 
@@ -597,6 +600,10 @@ export interface TopCompany {
   count: number;
   /** Factories nationwide. */
   sites: number;
+  /** Here: people at its factories whose headcount is recorded (null when none is), its open jobs and its factories. */
+  people?: number | null;
+  openJobs?: number;
+  factories?: number;
 }
 
 /** The totals and rankings the panel shows for a region. */
@@ -686,6 +693,9 @@ export interface ExploreEmployer {
   industry: string | null;
   siteCount: number;
   stateCount: number;
+  /** People at its factories whose headcount is recorded (null when none is), and its open jobs. */
+  people?: number | null;
+  openJobs?: number;
 }
 
 /** One level of a career's path: how many of its skills are at it and the first few by name. */
@@ -823,6 +833,8 @@ export interface IndustryEmployer {
   /** People at those of them whose headcount is recorded (`counted` factories), or null when none is. */
   people: number | null;
   counted: number;
+  /** Open jobs at those factories. */
+  openJobs?: number;
 }
 
 export interface IndustryPlant {

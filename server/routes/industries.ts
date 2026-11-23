@@ -4,7 +4,7 @@ import { db } from '../db/index.js';
 import { browsableCompanyNameSql } from '../lib/companyFilters.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
 import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
-import { inPlace, known, listIndustries, placeOut, statsKey, statsOf, type Place } from '../lib/industries.js';
+import { byCompanyStanding, companyStandings, inPlace, known, listIndustries, placeOut, statsKey, statsOf, type Place } from '../lib/industries.js';
 import { int, rowsOf, text, type Row } from '../lib/rows.js';
 import { SCOPE, focusArea } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
@@ -132,33 +132,24 @@ router.get('/:slug', async (req: Request, res: Response) => {
           AND s.year = (SELECT MAX(year) FROM industry_stats WHERE industry_code = ${industry.code})
       `),
 
-      // Leading employers: by people at their plants of this industry here,
-      // where a headcount is recorded, then by how many plants they have here.
-      // `counted` is how many of those plants the people are summed over, so
-      // the page can say when a figure covers only some of them. Equal
-      // companies open on the featured employer, then the larger company.
+      // Leading employers, in the order every list of companies has, counted
+      // over their plants of this industry here: most people (where a
+      // headcount is recorded), then most open jobs, then most plants, then
+      // name. `counted` is how many of those plants the people are summed
+      // over, so the page can say when a figure covers only some of them.
       db.execute(sql`
-        WITH here AS (
-          SELECT f.company_id,
-                 COUNT(*)::int AS plants,
-                 COUNT(*) FILTER (WHERE f.workforce_size > 0)::int AS counted,
-                 SUM(f.workforce_size) FILTER (WHERE f.workforce_size > 0)::int AS people
-          FROM factories f
-          WHERE ${here('f')} AND f.company_id IS NOT NULL
-          GROUP BY f.company_id
-        ), named AS (
+        WITH named AS (
           -- OFFSET 0 keeps the name test below to these companies; without it
           -- the planner runs it over every company in the table first.
-          SELECT c.id, c.name, c.slug, c.domain, c.featured, here.plants, here.counted, here.people
-          FROM here
+          SELECT c.id, c.name, c.slug, c.domain, here.factories, here.counted, here.people, here.open_jobs
+          FROM (${companyStandings({ inSet: here })}) here
           INNER JOIN companies c ON c.id = here.company_id
           OFFSET 0
         )
-        SELECT c.id, c.name, c.slug, c.domain, c.plants, c.counted, c.people
+        SELECT c.id, c.name, c.slug, c.domain, c.factories AS plants, c.counted, c.people, c.open_jobs
         FROM named c
         WHERE ${sql.raw(browsableCompanyNameSql('c.name'))}
-        ORDER BY c.people DESC NULLS LAST, c.plants DESC, c.featured DESC,
-                 (SELECT COUNT(*) FROM factories site WHERE site.company_id = c.id) DESC, c.name ASC
+        ORDER BY ${byCompanyStanding('c', sql`c.name`)}
         LIMIT ${EMPLOYER_LIMIT}
       `),
 
@@ -260,6 +251,7 @@ router.get('/:slug', async (req: Request, res: Response) => {
         // People at the plants whose headcount is recorded, and how many plants that is.
         people: known(r.people),
         counted: int(r.counted),
+        openJobs: int(r.open_jobs),
       })),
       largestPlants: rowsOf(plantRows).map((r) => ({
         id: String(r.id),

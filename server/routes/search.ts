@@ -11,7 +11,7 @@ import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
 import { US_STATES } from '../../shared/states.js';
 import { pageLimit } from '../lib/paging.js';
 import { likeLiteral } from '../lib/like.js';
-import { companyIndustry, searchIndustries } from '../lib/industries.js';
+import { byCompanyStanding, companyIndustry, companyStandings, searchIndustries } from '../lib/industries.js';
 import { shownIndustry } from '../../shared/industry.js';
 import { formatCompanyName, formatFactoryName } from '../../shared/displayName.js';
 
@@ -161,6 +161,7 @@ router.get('/', async (req: Request, res: Response) => {
             domain: companies.domain,
           })
           .from(companies)
+          .leftJoinLateral(sql`(${companyStandings({ of: sql`${companies.id}` })}) cs`, sql`TRUE`)
           .where(
             and(
               browsableCompanyFilter,
@@ -170,7 +171,8 @@ router.get('/', async (req: Request, res: Response) => {
               )
             )
           )
-          .orderBy(byRelevanceRank(companies.name), sql`${companies.featured} DESC`, sql`length(${companies.name})`, companies.name)
+          // Names that answer the term equally well stand in the order every list of companies has.
+          .orderBy(byRelevanceRank(companies.name), byCompanyStanding('cs', sql`${companies.name}`))
           .limit(maxLimit),
         db
           .select({ count: count() })
@@ -204,7 +206,7 @@ router.get('/', async (req: Request, res: Response) => {
 
       results.results.companies = {
         count: (companyCount[0]?.count ?? 0) + serviceItems.length,
-        items: serviceItems.concat(companyItems).slice(0, maxLimit), // already ranked by the database, featured first within a rank
+        items: serviceItems.concat(companyItems).slice(0, maxLimit), // already ranked by the database, the larger company first within a rank
       };
     }
 

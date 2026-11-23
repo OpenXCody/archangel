@@ -61,3 +61,16 @@ export const optionDetailClass = (selected: boolean): string => (selected ? 'tex
 export function plural(n: number, one: string, many: string): string {
   return `${n.toLocaleString()} ${n === 1 ? one : many}`;
 }
+
+/**
+ * What a row says about a company's size, wherever companies are listed: its
+ * people where a headcount is recorded, else its open jobs, else its
+ * factories. The same three figures, in the same order, that rank the list
+ * (`byCompanyStanding` on the server). Null when there is nothing to say.
+ */
+export function companyFigure(company: { people?: number | null; openJobs?: number | null; factories?: number | null }): string | null {
+  if (company.people) return `${company.people.toLocaleString()} people`;
+  if (company.openJobs) return plural(company.openJobs, 'open job', 'open jobs');
+  if (company.factories) return plural(company.factories, 'factory', 'factories');
+  return null;
+}
