@@ -14,7 +14,7 @@ interface CompanyPickerProps {
 /** What tells one company from a near namesake: its domain and how many factories it has. */
 function companyDetail(company: AdminCompany): string {
   const count = company.factoryCount ?? 0;
-  return [company.domain, `${count.toLocaleString('en-US')} ${count === 1 ? 'plant' : 'plants'}`].filter(Boolean).join(' · ');
+  return [company.domain, `${count.toLocaleString('en-US')} ${count === 1 ? 'factory' : 'factories'}`].filter(Boolean).join(' · ');
 }
 
 /** Pick one company by name. */

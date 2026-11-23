@@ -25,7 +25,7 @@ import SkillDetailView from '../components/entity/SkillDetailView';
 /** What each kind of record is called at the head of its page. */
 const KIND_LABEL: Record<EntityType, string> = {
   companies: 'Company',
-  factories: 'Plant',
+  factories: 'Factory',
   occupations: 'Career',
   skills: 'Skill',
 };
@@ -48,10 +48,10 @@ function getEntityType(pathname: string): EntityType {
 
 // What a missing record is called, and the list to go to instead.
 const NOT_LISTED: Record<EntityType, string> = {
-  companies: 'company', factories: 'plant', occupations: 'career', skills: 'skill',
+  companies: 'company', factories: 'factory', occupations: 'career', skills: 'skill',
 };
 const BROWSE_WORD: Record<EntityType, string> = {
-  companies: 'companies', factories: 'plants', occupations: 'careers', skills: 'skills',
+  companies: 'companies', factories: 'factories', occupations: 'careers', skills: 'skills',
 };
 
 // Union type for all entity details
@@ -76,7 +76,7 @@ function isSkillDetail(data: AnyEntityDetail): data is SkillDetail {
 }
 
 /**
- * The page of one company, plant, career or skill. The address says which
+ * The page of one company, factory, career or skill. The address says which
  * kind it is and that alone picks the view; each view is a file in
  * components/entity/.
  */
@@ -108,7 +108,7 @@ export default function EntityDetail() {
     if (slug && id !== slug) navigate(`/companies/${slug}${window.location.hash}`, { replace: true });
   }, [slug, id, navigate]);
 
-  // A plant that was merged into another is shown under the one kept: its old address leads there.
+  // A factory that was merged into another is shown under the one kept: its old address leads there.
   const keptId = data && entityType === 'factories' && 'id' in data ? data.id : null;
   useEffect(() => {
     if (keptId && id && keptId !== id) navigate(`/factories/${keptId}${window.location.hash}`, { replace: true });

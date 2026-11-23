@@ -17,7 +17,7 @@ interface NavItem {
 
 // The three places, by their words at every width: the header says where you
 // are. The map and Explore are for everyone; Explore stands for everything
-// reached through it (the industries and every company, plant, career and
+// reached through it (the industries and every company, factory, career and
 // skill page). Jobs is the list of open jobs for a visitor and a seeker; for
 // someone here to hire it is "Your jobs", their own, with the open list one
 // link below them. A person's own page, settings and Admin Tools are in the

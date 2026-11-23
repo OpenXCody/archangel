@@ -254,18 +254,18 @@ router.get('/bounds/overview', async (req: Request, res: Response) => {
 router.get('/factories/:id/county', async (req: Request, res: Response) => {
   const id = String(req.params.id);
   if (!isUuid(id)) {
-    res.status(400).json({ error: 'Invalid plant id' });
+    res.status(400).json({ error: 'Invalid factory id' });
     return;
   }
   try {
     const found = await plantCounty(id);
     if (!found) {
-      res.status(404).json({ error: 'Plant not found' });
+      res.status(404).json({ error: 'Factory not found' });
       return;
     }
     res.json(found);
   } catch (error) {
-    console.error('Error fetching plant county:', error);
+    console.error('Error fetching factory county:', error);
     res.status(500).json({ error: 'Failed to fetch county' });
   }
 });

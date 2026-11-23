@@ -128,7 +128,7 @@ function AtlasView() {
 /**
  * Explore: an overview of what is here (/explore), and behind it each level
  * of the product as a tab: the industries (/industries), then a list of every
- * company, plant, career and skill (/explore?tab=companies, factories,
+ * company, factory, career and skill (/explore?tab=companies, factories,
  * occupations, skills). The skills are also drawn, as the Atlas (/atlas),
  * under the Skills tab. One heading and one tab row for all of them; the tab
  * row sits straight under the heading, so it is in the same place on every

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { cn, focusRing } from '@/lib/utils';
 import { useDataQuality, type QualityRow } from '../../lib/admin';
 import { stateName } from '../../lib/places';
@@ -8,10 +8,10 @@ import { Link } from 'react-router-dom';
 import { pairsPath } from './PlantPairs';
 
 /**
- * How complete the plant data is, state by state and in all: the owner's
+ * How complete the factory data is, state by state and in all: the owner's
  * instrument for "how clear is the database". One table, one request
  * (`GET /api/admin/quality`), counted when the tab is opened. Every cell is
- * an exact count or the share it makes of the state's plants; what each
+ * an exact count or the share it makes of the state's factories; what each
  * column counts is written under the table, in the words of
  * server/lib/quality.ts.
  */
@@ -19,16 +19,16 @@ import { pairsPath } from './PlantPairs';
 type Column = Exclude<keyof QualityRow, 'state' | 'duplicateGroups'>;
 type SortKey = Column | 'state';
 
-/** The columns, in the order read. `share`: the count is a part of the state's plants and can be shown as a percentage. */
+/** The columns, in the order read. `share`: the count is a part of the state's factories and can be shown as a percentage. */
 const COLUMNS: readonly { key: Column; label: string; share: boolean }[] = [
-  { key: 'plants', label: 'Plants', share: false },
+  { key: 'plants', label: 'Factories', share: false },
   { key: 'industry', label: 'Industry', share: true },
   { key: 'code', label: 'Code', share: true },
   { key: 'county', label: 'County', share: true },
   { key: 'people', label: 'People', share: true },
   { key: 'address', label: 'Address', share: true },
   { key: 'outsideId', label: 'Outside id', share: true },
-  { key: 'onePlantCompanies', label: 'One-plant companies', share: false },
+  { key: 'onePlantCompanies', label: 'One-factory companies', share: false },
   { key: 'duplicates', label: 'Duplicates', share: false },
 ];
 
@@ -94,7 +94,15 @@ export default function QualityTable() {
           focusRing
         )}
       >
-        {label}
+        {/* On a phone a heading breaks between its words, never at a hyphen: "One-factory" stays whole. */}
+        <span>
+          {label.split(' ').map((word, index) => (
+            <Fragment key={word}>
+              {index > 0 && ' '}
+              <span className="whitespace-nowrap">{word}</span>
+            </Fragment>
+          ))}
+        </span>
       </button>
     </th>
   );
@@ -102,7 +110,7 @@ export default function QualityTable() {
   return (
     <PageSection
       title="Data quality"
-      description="How complete the plant data is, by state. Counted now, from the database."
+      description="How complete the factory data is, by state. Counted now, from the database."
     >
       {quality.isPending ? (
         <RowsSkeleton rows={4} />
@@ -130,7 +138,7 @@ export default function QualityTable() {
                   {COLUMNS.map((column) => (
                     <td key={column.key} className="px-2.5 py-2.5 text-right" data-quality={column.key}>
                       {column.key === 'duplicates' && total.duplicates > 0 ? (
-                        <Link to={pairsPath('spot')} className={cn('underline', focusRing)} aria-label="Plants on one spot, every state">
+                        <Link to={pairsPath('spot')} className={cn('underline', focusRing)} aria-label="Factories on one spot, every state">
                           {cellText(total, column, shown)}
                         </Link>
                       ) : (
@@ -153,16 +161,16 @@ export default function QualityTable() {
                     </th>
                     {COLUMNS.map((column) => {
                       const value = row[column.key];
-                      // Nothing there reads quieter than something; the plant count leads.
+                      // Nothing there reads quieter than something; the factory count leads.
                       const tone = column.key === 'plants' ? 'text-text-1' : value === 0 ? 'text-text-3' : 'text-text-2';
                       return (
                         <td key={column.key} className={cn('px-2.5 py-2 text-right', tone)}>
-                          {/* The count opens the plants it counts, so they can be worked through. */}
+                          {/* The count opens the factories it counts, so they can be worked through. */}
                           {column.key === 'duplicates' && value > 0 ? (
                             <Link
                               to={pairsPath('spot', row.state ?? 'none')}
                               className={cn('underline hover:text-text-1', focusRing)}
-                              aria-label={`Plants on one spot in ${row.state ? stateName(row.state) : 'no state'}`}
+                              aria-label={`Factories on one spot in ${row.state ? stateName(row.state) : 'no state'}`}
                               data-quality-duplicates={row.state ?? ''}
                             >
                               {cellText(row, column, shown)}
@@ -195,21 +203,21 @@ export default function QualityTable() {
 /** What each column counts. The same definitions as server/lib/quality.ts: change one, change the other. */
 function definitions(total: QualityRow & { companies: number }): [string, string][] {
   return [
-    ['Plants', 'every plant in the database, under the state it is filed in.'],
-    ['Industry', 'plants whose industry is one of the 21.'],
-    ['Code', 'plants whose stored NAICS code means exactly one 2022 national industry (six digits).'],
-    ['County', 'plants placed in a county from their coordinates. A plant whose coordinates fall in another state than the one it is filed under is not placed.'],
-    ['People', 'plants with a recorded headcount.'],
-    ['Address', 'plants with a street address: one that is not blank and is not just the city again.'],
-    ['Outside id', "plants that carry an outside register's id for the site (today the EPA registry id)."],
+    ['Factories', 'every factory in the database, under the state it is filed in.'],
+    ['Industry', 'factories whose industry is one of the 21.'],
+    ['Code', 'factories whose stored NAICS code means exactly one 2022 national industry (six digits).'],
+    ['County', 'factories placed in a county from their coordinates. A factory whose coordinates fall in another state than the one it is filed under is not placed.'],
+    ['People', 'factories with a recorded headcount.'],
+    ['Address', 'factories with a street address: one that is not blank and is not just the city again.'],
+    ['Outside id', "factories that carry an outside register's id for the site (today the EPA registry id)."],
     [
-      'One-plant companies',
-      `companies with one plant in the whole country, counted in that plant's state: ${count(total.onePlantCompanies)} of ${count(total.companies)} companies.`,
+      'One-factory companies',
+      `companies with one factory in the whole country, counted in that factory's state: ${count(total.onePlantCompanies)} of ${count(total.companies)} companies.`,
     ],
     [
       'Duplicates',
-      `plants that share their company and their spot (coordinates equal to three decimal places, about a hundred metres) with another plant, unless an admin has said the two are separate plants: ${count(total.duplicates)} plants at ${count(total.duplicateGroups)} ${total.duplicateGroups === 1 ? 'spot' : 'spots'}. A count opens them.`,
+      `factories that share their company and their spot (coordinates equal to three decimal places, about a hundred metres) with another factory, unless an admin has said the two are separate factories: ${count(total.duplicates)} factories at ${count(total.duplicateGroups)} ${total.duplicateGroups === 1 ? 'spot' : 'spots'}. A count opens them.`,
     ],
-    ['Shares', 'a part of the state’s plants, to one decimal place. 100% means every plant, 0% none.'],
+    ['Shares', 'a part of the state’s factories, to one decimal place. 100% means every factory, 0% none.'],
   ];
 }

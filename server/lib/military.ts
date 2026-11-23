@@ -150,7 +150,7 @@ export async function isService(executor: Executor, companyId: string): Promise<
 
 /** Why a service is not joined, given a plant or given a version: said of the service by name. */
 export function notAnEmployerHere(name: string): string {
-  return `${name} is a military service. Its careers are listed on its page; it has no jobs, plants or versions of careers here.`;
+  return `${name} is a military service. Its careers are listed on its page; it has no jobs, factories or versions of careers here.`;
 }
 
 /** The company that is this service; null when it is not stored. */

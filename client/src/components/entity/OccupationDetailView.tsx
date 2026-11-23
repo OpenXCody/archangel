@@ -35,7 +35,7 @@ const CareerAtlas = lazy(() => import('../atlas/CareerAtlas'));
 
 /**
  * Career (occupation) detail: the path of skills drawn as a flow, where the
- * work is done, open jobs, and the plants that have it.
+ * work is done, open jobs, and the factories that have it.
  *
  * The path is the page: the heading block's action ("Set as goal") and the
  * person's progress over the whole career sit together directly above it,
@@ -48,7 +48,7 @@ const CareerAtlas = lazy(() => import('../atlas/CareerAtlas'));
  * where they are going: it is no goal, and for a seeker its one action is
  * "I have done this" (its skills marked held in one tap). After the path it
  * lists the civilian careers within reach, each with the skills missing. It
- * has no ladder, industries, jobs, companies or plants, and draws none.
+ * has no ladder, industries, jobs, companies or factories, and draws none.
  */
 export default function OccupationDetailView({ data, head }: { data: OccupationDetail; head: Head }) {
   // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same diagram without them.
@@ -181,7 +181,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
 
       <WhereWorkIsDone data={data} />
 
-      {/* Like the company and plant pages: a section only when there is a job to show. */}
+      {/* Like the company and factory pages: a section only when there is a job to show. */}
       {jobs.length > 0 && <OpenJobsSection jobs={jobs} total={data.openJobCount} all={`/jobs?career=${data.id}`} />}
 
       {/* Companies with their own version of this career: the page stays the standard, and says where it differs. */}
@@ -208,9 +208,9 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
         </DetailSection>
       )}
 
-      {/* Plants where this career is on record */}
+      {/* Factories where this career is on record */}
       {plants.length > 0 && (
-        <DetailSection id="factories" title="Plants with this career" column={counted ? 'People' : undefined}>
+        <DetailSection id="factories" title="Factories with this career" column={counted ? 'People' : undefined}>
           <RecordList>
             {plants.map((plant) => {
               const plantName = formatFactoryName(plant.name);
@@ -220,7 +220,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
                   key={plant.id}
                   to={`/factories/${plant.id}`}
                   title={plantName}
-                  // The company is said only when the plant is not simply named after it.
+                  // The company is said only when the factory is not simply named after it.
                   subtitle={
                     [company && !plantName.toLowerCase().startsWith(company.toLowerCase()) ? company : null, cityState(plant.city, plant.state)]
                       .filter(Boolean)
@@ -311,24 +311,24 @@ const placeChipClass =
 
 /**
  * Where a career's work is done: the industries that typically have it, with
- * how many plants each has, and the states with the most of them (each opens
- * on the map). It describes industries, not what any one plant employs.
+ * how many factories each has, and the states with the most of them (each opens
+ * on the map). It describes industries, not what any one factory employs.
  */
 function WhereWorkIsDone({ data }: { data: OccupationDetail }) {
   const industries = data.industries ?? [];
   const states = data.topStates ?? [];
   if (industries.length === 0 && !data.everywhere) return null;
   return (
-    <DetailSection id="where" title="Where this work is done" column={data.everywhere ? undefined : 'Plants'}>
+    <DetailSection id="where" title="Where this work is done" column={data.everywhere ? undefined : 'Factories'}>
       {data.everywhere ? (
-        <p className="text-sm text-text-2">Plants of every industry.</p>
+        <p className="text-sm text-text-2">Factories of every industry.</p>
       ) : (
         <>
           <IndustryRows industries={industries} />
-          {data.elsewhereToo && <p className="mt-2 text-xs text-text-3">And plants of every other industry.</p>}
+          {data.elsewhereToo && <p className="mt-2 text-xs text-text-3">And factories of every other industry.</p>}
           {states.length > 0 && (
             <div className="mt-4">
-              <p className="mb-2 text-xs text-text-3">Most plants in these industries</p>
+              <p className="mb-2 text-xs text-text-3">Most factories in these industries</p>
               <div className="flex flex-wrap gap-2">
                 {states.map((state) => (
                   <Link key={state.code} to={`/map?state=${state.code}`} className={placeChipClass}>

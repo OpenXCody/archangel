@@ -148,8 +148,8 @@ expect "by id, by rule, queued, to add, held" '2 1 2 3 1' "$(sql "SELECT concat_
 expect "an id match is the plant that carries the id" "$MAIN id" "$(sql "SELECT entity_id || ' ' || resolution FROM intake_links WHERE source_id = 'E2E-1' AND source = 'e2e-intake'")"
 expect "a company's other name finds its plant" "$FOUNDRY matched" "$(sql "SELECT entity_id || ' ' || resolution FROM intake_links WHERE source_id = 'E2E-2' AND source = 'e2e-intake'")"
 expect "the match says how it was made"     t "$(sql "SELECT detail LIKE 'same name: \"E2E INTAKE ACME FOUNDRY\" at % m' FROM load_log WHERE run_id = $R1 AND source_id = 'E2E-2' AND action = 'matched'")"
-expect "a plant filed under a stranger is queued" 'the plant is filed under another company' "$(sql "SELECT reason FROM intake_review WHERE source = 'e2e-intake' AND source_id = 'E2E-3'")"
-expect "two plants that fit equally are queued" '2 plants fit equally|2' "$(sql "SELECT reason || '|' || jsonb_array_length(candidates) FROM intake_review WHERE source = 'e2e-intake' AND source_id = 'E2E-9'")"
+expect "a plant filed under a stranger is queued" 'the factory is filed under another company' "$(sql "SELECT reason FROM intake_review WHERE source = 'e2e-intake' AND source_id = 'E2E-3'")"
+expect "two plants that fit equally are queued" '2 factories fit equally|2' "$(sql "SELECT reason || '|' || jsonb_array_length(candidates) FROM intake_review WHERE source = 'e2e-intake' AND source_id = 'E2E-9'")"
 expect "a record with no place is held"     held "$(sql "SELECT resolution FROM intake_links WHERE source_id = 'E2E-7' AND source = 'e2e-intake'")"
 expect "resolving touches no plant"         '' "$(plant 'E2E INTAKE ACME MAIN PLANT' "coalesce(address, '')")"
 OUT=$(ingest apply "$R1")
@@ -222,7 +222,11 @@ expect "a source's latest run: matched, added, changed, queued" "$R4 applied 3 2
 expect "and what waits on it"               '9 2' "$(printf '%s' "$OUT" | j "sources.filter((s) => s.slug === 'e2e-intake').map((s) => s.staged + ' ' + s.waiting)[0]")"
 expect "the overview counts matches waiting" 2 "$(( $(req a GET /admin/overview | j waitingMatches) - WAITING0 ))"
 OUT=$(req a GET '/admin/intake/review?limit=50')
-check "the queue"                           200 "$OUT" '"reason":"the plant is filed under another company"'
+check "the queue"                           200 "$OUT" '"reason":"the factory is filed under another company"'
+# A reason stored by a run before the screen said factory is restated when it is read; what is stored stays.
+sql "UPDATE intake_review SET reason = '2 plants fit equally; the plant is filed under another company' WHERE source = 'e2e-intake' AND source_id = 'E2E-3'" >/dev/null
+expect "an earlier run's reason is read in the screen's words" '2 factories fit equally; the factory is filed under another company' "$(req a GET '/admin/intake/review?limit=50' | j "items.find((i) => i.sourceId === 'E2E-3').reason")"
+sql "UPDATE intake_review SET reason = 'the factory is filed under another company' WHERE source = 'e2e-intake' AND source_id = 'E2E-3'" >/dev/null
 Q3=$(printf '%s' "$OUT" | j "items.find((i) => i.sourceId === 'E2E-3').id")
 Q9=$(printf '%s' "$OUT" | j "items.find((i) => i.sourceId === 'E2E-9').id")
 expect "a match sets the two records side by side" 'E2E Intake Acme Street Depot|3 Depot St|E2E INTAKE ACME WAREHOUSE|E2E Intake Stranger|near|100' "$(printf '%s' "$OUT" | j "items.filter((i) => i.id === $Q3).map((i) => [i.record.name, i.record.address, i.candidates[0].name, i.candidates[0].company, i.candidates[0].rule, i.candidates[0].metres].join('|'))[0]")"
@@ -230,8 +234,8 @@ expect "and says what Different would do"   add "$(printf '%s' "$OUT" | j "items
 expect "the first match waiting comes first" "$Q3" "$(printf '%s' "$OUT" | j "items.filter((i) => i.source === 'e2e-intake')[0].id")"
 
 check "a decision that is not one"          400 "$(req a POST /admin/intake/review/$Q9 '{"decision":"maybe"}')" 'same, different or skip'
-check "Same needs a plant"                  400 "$(req a POST /admin/intake/review/$Q9 '{"decision":"same"}')" 'Choose one of the plants shown'
-check "Same with a plant that was not proposed" 400 "$(req a POST /admin/intake/review/$Q9 "{\"decision\":\"same\",\"plantId\":\"$FOUNDRY\"}")" 'Choose one of the plants shown'
+check "Same needs a plant"                  400 "$(req a POST /admin/intake/review/$Q9 '{"decision":"same"}')" 'Choose one of the factories shown'
+check "Same with a plant that was not proposed" 400 "$(req a POST /admin/intake/review/$Q9 "{\"decision\":\"same\",\"plantId\":\"$FOUNDRY\"}")" 'Choose one of the factories shown'
 check "a match that does not exist"         404 "$(req a POST /admin/intake/review/999999999 '{"decision":"skip"}')"
 check "a match id that is not a number"     404 "$(req a POST /admin/intake/review/abc '{"decision":"skip"}')"
 

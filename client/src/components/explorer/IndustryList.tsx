@@ -23,11 +23,11 @@ import { publicKeys } from '../../lib/queryKeys';
 function Body({ data, place }: { data: Industries; place: PagePlace }) {
   const figures = [
     ...officialFigures(data.manufacturing),
-    ...(data.plants > 0 ? [{ label: 'Plants listed', value: data.plants.toLocaleString() }] : []),
+    ...(data.plants > 0 ? [{ label: 'Factories listed', value: data.plants.toLocaleString() }] : []),
   ];
   const search = placeSearch(place);
   if (data.industries.length === 0) {
-    return <p className="mt-6 text-sm text-text-2">No plants are listed in {data.place.name}.</p>;
+    return <p className="mt-6 text-sm text-text-2">No factories are listed in {data.place.name}.</p>;
   }
   return (
     <>

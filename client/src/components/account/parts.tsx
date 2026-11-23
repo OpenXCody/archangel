@@ -14,7 +14,7 @@ import { ShareRing } from '../path/HeldShare';
 
 /** Small shared pieces for the account, jobs, employer and admin pages. */
 
-/** The icon a picker shows beside a company, a plant or a career. The app is monochrome: an icon is never coloured by kind. */
+/** The icon a picker shows beside a company, a factory or a career. The app is monochrome: an icon is never coloured by kind. */
 export const KIND_ICON: Record<'company' | 'factory' | 'career', ElementType> = {
   company: Building2,
   factory: Factory,

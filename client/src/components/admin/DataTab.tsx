@@ -16,11 +16,11 @@ import { isUuid } from '../../lib/validation';
 
 /**
  * Data upkeep. With a record in the address (`kind` and `id`) the tab is that
- * record's editor, and with `pairs` a list of rows that may be one plant
+ * record's editor, and with `pairs` a list of rows that may be one factory
  * (`PlantPairs.tsx`); otherwise the matches a source's run was not sure of (when
- * any wait), the way into the plants listed twice (when any wait), finding or adding a record, the career paths waiting for review,
+ * any wait), the way into the factories listed twice (when any wait), finding or adding a record, the career paths waiting for review,
  * the sources that come in through the intake runner, and how complete the
- * plant data is, state by state (`QualityTable`). (Counts of people, requests, jobs and applications are
+ * factory data is, state by state (`QualityTable`). (Counts of people, requests, jobs and applications are
  * not data upkeep and are not here: People and Access are a tab away.)
  */
 export default function DataTab() {
@@ -28,18 +28,18 @@ export default function DataTab() {
   const kind = RECORD_KINDS.find((option) => option.kind === searchParams.get('kind'))?.kind;
   const id = searchParams.get('id');
   if (kind && id && isUuid(id)) return <RecordEditor key={`${kind}:${id}`} kind={kind} id={id} />;
-  // Rows that may be one plant, worked through as a list: `pairs=id` (one registry id) or `pairs=spot` (one company, one spot).
+  // Rows that may be one factory, worked through as a list: `pairs=id` (one registry id) or `pairs=spot` (one company, one spot).
   const pairs = searchParams.get('pairs');
   if (pairs === 'id' || pairs === 'spot') return <PairsView key={`${pairs}:${searchParams.get('state') ?? ''}`} list={pairs} />;
-  // The places employers' postings name where we list no plant of theirs, worked through as a list.
+  // The places employers' postings name where we list no factory of theirs, worked through as a list.
   if (searchParams.get('postings') === 'places') return <PlacesView />;
   return (
     <>
       {/* Matches a source's run was not sure of come first, and only when some wait: someone's load is held up on them. */}
       <MatchReview />
-      {/* Then rows that carry one registry id and may be one plant: again only while some wait. */}
+      {/* Then rows that carry one registry id and may be one factory: again only while some wait. */}
       <PairsWaiting />
-      {/* The way into the places employers' postings name where we list no plant of theirs: only while some wait. */}
+      {/* The way into the places employers' postings name where we list no factory of theirs: only while some wait. */}
       <PlacesWaiting />
       <Records />
       <PathsSection />

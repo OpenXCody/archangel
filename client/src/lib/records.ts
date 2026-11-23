@@ -15,8 +15,8 @@ export type RecordKind = 'company' | 'factory' | 'career' | 'skill';
 
 export const RECORD_KINDS: { kind: RecordKind; label: string }[] = [
   { kind: 'company', label: 'Company' },
-  // On screen a factory is a plant; the kind, the route and the audit line keep `factory`.
-  { kind: 'factory', label: 'Plant' },
+  // The kind, the route and the audit line say `factory`, and so does the screen.
+  { kind: 'factory', label: 'Factory' },
   { kind: 'career', label: 'Career' },
   { kind: 'skill', label: 'Skill' },
 ];
@@ -166,7 +166,7 @@ export interface RecordView {
   /** Other names it is known by. */
   aliases: string[];
   attached: Attached;
-  /** Factories: the industries a plant can be filed under. */
+  /** Factories: the industries a factory can be filed under. */
   industries?: string[];
   /** Careers: the skills on the path, each with its own level and group. */
   path?: PathSkill[];
@@ -203,7 +203,7 @@ export interface MergeResult {
   kept: { id: string; name: string; href: string };
   merged: { id: string; name: string };
   moved: Attached;
-  /** Plants: the facts the kept row took from the other. */
+  /** Factories: the facts the kept row took from the other. */
   took?: string[];
 }
 
@@ -222,7 +222,7 @@ export interface AuditEntry {
 
 export const AUDIT_KINDS: { kind: string; label: string }[] = [
   { kind: 'company', label: 'Companies' },
-  { kind: 'factory', label: 'Plants' },
+  { kind: 'factory', label: 'Factories' },
   { kind: 'career', label: 'Careers' },
   { kind: 'skill', label: 'Skills' },
   { kind: 'person', label: 'People' },

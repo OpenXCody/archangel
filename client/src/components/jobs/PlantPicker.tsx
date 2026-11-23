@@ -7,12 +7,12 @@ import type { EmployerFactory } from '../../lib/employer';
 import { formatPlace } from '../../lib/jobFormat';
 import { KIND_ICON, fieldClass } from '../account/parts';
 
-/** A plant's name as it reads everywhere else: not the raw upper-case record. */
+/** A factory's name as it reads everywhere else: not the raw upper-case record. */
 export function plantName(factory: Pick<EmployerFactory, 'name'>): string {
   return formatFactoryName(factory.name) || factory.name;
 }
 
-/** Where a plant is: its street when on record, then the city and state. */
+/** Where a factory is: its street when on record, then the city and state. */
 export function plantWhere(factory: Pick<EmployerFactory, 'address' | 'city' | 'state'>): string {
   // In an address "ST" is Street, not the company the name formatter knows by those letters.
   const street = factory.address ? formatFactoryName(factory.address).replace(/\bST\b/g, 'St') : '';
@@ -21,7 +21,7 @@ export function plantWhere(factory: Pick<EmployerFactory, 'address' | 'city' | '
   return [street, formatPlace(city, factory.state)].filter(Boolean).join(' · ');
 }
 
-/** Everything a plant can be found by, lower case. */
+/** Everything a factory can be found by, lower case. */
 function searchText(factory: EmployerFactory): string {
   // A code that is not a state comes back as itself, which the text already holds.
   const state = factory.state ? stateName(factory.state.toUpperCase()) : '';
@@ -32,7 +32,7 @@ interface PlantPickerProps {
   /** Id for the text input, so a label can point at it. */
   id: string;
   factories: EmployerFactory[];
-  /** The chosen plant's id, or '' for none. */
+  /** The chosen factory's id, or '' for none. */
   value: string;
   onChange: (factoryId: string) => void;
   invalid?: boolean;
@@ -40,10 +40,10 @@ interface PlantPickerProps {
 }
 
 /**
- * Pick one of a company's plants. A combobox like the career field: the whole
+ * Pick one of a company's factories. A combobox like the career field: the whole
  * list opens on focus, typing narrows it by name, street, city or state, the
  * arrow keys move, Enter chooses, Escape closes. Works the same for three
- * plants and for ninety.
+ * factories and for ninety.
  */
 export default function PlantPicker({ id, factories, value, onChange, invalid, describedBy }: PlantPickerProps) {
   const listId = useId();
@@ -151,7 +151,7 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
         aria-invalid={invalid ? true : undefined}
         aria-describedby={describedBy}
         autoComplete="off"
-        placeholder={factories.length > 8 ? 'Search by name, city or street' : 'Choose a plant'}
+        placeholder={factories.length > 8 ? 'Search by name, city or street' : 'Choose a factory'}
         value={term}
         onChange={(e) => {
           setTerm(e.target.value);
@@ -166,8 +166,8 @@ export default function PlantPicker({ id, factories, value, onChange, invalid, d
 
       {open && (
         <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-line-strong bg-surface p-1">
-          {options.length === 0 && <p className="px-2.5 py-2.5 text-sm text-text-2">No plant matches “{term.trim()}”.</p>}
-          <ul ref={listRef} id={listId} role="listbox" aria-label="Plants">
+          {options.length === 0 && <p className="px-2.5 py-2.5 text-sm text-text-2">No factory matches “{term.trim()}”.</p>}
+          <ul ref={listRef} id={listId} role="listbox" aria-label="Factories">
             {options.map((factory, index) => (
               <li
                 key={factory.id}

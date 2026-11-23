@@ -94,14 +94,14 @@ export const OCCUPATIONS_DATA = [
   // Supervision and Management
   { title: 'Production Supervisor', onetCode: '51-1011.00', description: 'Supervise and coordinate activities of production workers' },
   { title: 'Manufacturing Supervisor', onetCode: '51-1011.01', description: 'Oversee manufacturing operations and personnel' },
-  { title: 'Plant Manager', onetCode: '11-3051.00', description: 'Direct and coordinate plant operations' },
+  { title: 'Plant Manager', onetCode: '11-3051.00', description: 'Direct and coordinate factory operations' },
   { title: 'Operations Manager', onetCode: '11-1021.00', description: 'Plan and direct manufacturing operations' },
   { title: 'Lean Manufacturing Specialist', onetCode: '17-2112.02', description: 'Implement lean manufacturing and continuous improvement' },
   { title: 'Safety Manager', onetCode: '11-9199.00', description: 'Develop and implement workplace safety programs' },
 
   // Material Handling and Logistics
-  { title: 'Forklift Operator', onetCode: '53-7051.00', description: 'Operate forklifts to move materials in warehouses and plants' },
-  { title: 'Materials Handler', onetCode: '53-7062.00', description: 'Move materials within plants and warehouses' },
+  { title: 'Forklift Operator', onetCode: '53-7051.00', description: 'Operate forklifts to move materials in warehouses and factories' },
+  { title: 'Materials Handler', onetCode: '53-7062.00', description: 'Move materials within factories and warehouses' },
   { title: 'Shipping and Receiving Clerk', onetCode: '43-5071.00', description: 'Verify and maintain records on incoming and outgoing shipments' },
   { title: 'Supply Chain Coordinator', onetCode: '13-1081.00', description: 'Coordinate supply chain logistics and procurement' },
   { title: 'Inventory Control Specialist', onetCode: '43-5081.00', description: 'Manage inventory levels and material tracking' },

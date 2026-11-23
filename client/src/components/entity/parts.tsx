@@ -35,7 +35,7 @@ export const CAREERS_SHOWN = 8;
 /** A link inside a line of facts. The padding gives a finger room without moving the line. */
 export const factLinkClass = 'py-[15px] text-text-1 underline';
 
-/** A plant's street address as written: a curated plant's was typed by a person ("1530 FM 973") and is left as it is. */
+/** A factory's street address as written: a curated factory's was typed by a person ("1530 FM 973") and is left as it is. */
 export function streetAddress(plant: { address?: string | null; curated?: boolean }): string | null {
   if (!plant.address) return null;
   return plant.curated ? plant.address : titleCase(plant.address);
@@ -53,7 +53,7 @@ export function Footprint({ children, ...map }: React.ComponentProps<typeof Foot
   );
 }
 
-/** Careers typical of a plant's industry: what kind of work a plant like this has, never a claim about it. */
+/** Careers typical of a factory's industry: what kind of work a factory like this has, never a claim about it. */
 export function TypicalCareers({ careers }: { careers: { id: string; title: string }[] }) {
   return (
     <DetailSection id="occupations" title="Careers in this industry">
@@ -66,7 +66,7 @@ export function TypicalCareers({ careers }: { careers: { id: string; title: stri
   );
 }
 
-/** Open jobs at a company, a plant, for a career or asking for a skill. Drawn only when there is one. */
+/** Open jobs at a company, a factory, for a career or asking for a skill. Drawn only when there is one. */
 export function OpenJobsSection({ jobs, showCareer = false, total, all }: { jobs: CareerJob[]; showCareer?: boolean; total?: number; all?: string }) {
   // The page lists the newest few. When more are open, one link leads to all of them on Jobs.
   const more = all && typeof total === 'number' && total > jobs.length;
@@ -110,7 +110,7 @@ export const UNPLACED = 'Not yet placed';
 /** How many industries are listed before "Show all". */
 const INDUSTRIES_SHOWN = 4;
 
-/** Industries as rows, each leading to its page; with a figure (plants) when there is one to give. */
+/** Industries as rows, each leading to its page; with a figure (factories) when there is one to give. */
 export function IndustryRows({ industries }: { industries: { name: string; factoryCount?: number }[] }) {
   const [showAll, setShowAll] = useState(false);
   // A list a row or two longer than the cut is shown whole.
@@ -124,7 +124,7 @@ export function IndustryRows({ industries }: { industries: { name: string; facto
             to={industryPath(industry.name) ?? '/industries'}
             title={industryLabel(industry.name)}
             figure={industry.factoryCount}
-            figureLabel="plants"
+            figureLabel="factories"
           />
         ))}
       </RecordList>

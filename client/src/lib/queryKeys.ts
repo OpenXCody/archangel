@@ -65,10 +65,10 @@ export const accountKeys = {
   adminAuditFor: (filter: object, pages: number) => ['admin', 'audit', filter, pages] as const,
   adminIntakeSources: ['admin', 'intake', 'sources'] as const,
   adminIntakeReview: ['admin', 'intake', 'review'] as const,
-  /** Employers' job postings: each employer's latest run, and the places that wait for a plant. */
+  /** Employers' job postings: each employer's latest run, and the places that wait for a factory. */
   adminPostings: ['admin', 'postings'] as const,
   adminPostingPlaces: ['admin', 'postings', 'places'] as const,
-  /** Everything read about pairs of plants that may be one: the lists, one pair, the plants near one. */
+  /** Everything read about pairs of factories that may be one: the lists, one pair, the factories near one. */
   adminPlantPairs: ['admin', 'plants'] as const,
   adminPlantPairList: (list: string, state: string | null, offset: number) => ['admin', 'plants', 'pairs', list, state, offset] as const,
   adminPlantPair: (a: string, b: string) => ['admin', 'plants', 'pair', a, b] as const,
@@ -79,7 +79,7 @@ export const accountKeys = {
 export const publicKeys = {
   /** Every record of a kind that is cached, under the kind's plural: ['companies']. */
   records: (entity: EntityType) => [entity] as const,
-  /** One company, plant, career or skill: its page, the map's panel and a list row's prefetch read it here. */
+  /** One company, factory, career or skill: its page, the map's panel and a list row's prefetch read it here. */
   record: (entity: EntityType, id: string | null | undefined) => [entity, id] as const,
   counts: ['entity-counts'] as const,
   /** The whole skill taxonomy: every domain, group and skill. */
@@ -114,7 +114,7 @@ export const publicKeys = {
   areaOverviews: ['area-overview'] as const,
   areaOverview: (id: string | null) => ['area-overview', id] as const,
   boundsOverview: (id: string | null) => ['bounds-overview', id] as const,
-  /** The county a plant stands in and its official figures. Under the plant's own key, so a correction to the plant refreshes it. */
+  /** The county a factory stands in and its official figures. Under the factory's own key, so a correction to the factory refreshes it. */
   plantCounty: (factoryId: string) => ['factories', factoryId, 'county'] as const,
   /** Static files: the states' outline and the focus areas' boundaries. */
   statesOutline: ['states-geojson'] as const,

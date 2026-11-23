@@ -56,7 +56,7 @@ function TextLink({ to, children }: { to: string; children: ReactNode }) {
 
 function CompanyTile({ company, className }: { company: ExploreEmployer; className?: string }) {
   const name = formatCompanyName(company.name);
-  // The industry most of its plants are in.
+  // The industry most of its factories are in.
   const industry = shownIndustry(company.industry);
   return (
     <Link to={`/companies/${company.slug ?? company.id}`} className={cn(TILE, 'flex-col p-4 sm:p-5', className)}>
@@ -68,7 +68,7 @@ function CompanyTile({ company, className }: { company: ExploreEmployer; classNa
       {industry && <p className="mt-1 line-clamp-2 text-xs leading-snug text-text-3">{industry}</p>}
       {/* Pinned to the foot, so the figures of a row of tiles sit on one line. */}
       <p className="mt-auto pt-3 text-sm text-text-2">
-        <span className="whitespace-nowrap">{plural(company.siteCount, 'plant', 'plants')}</span>
+        <span className="whitespace-nowrap">{plural(company.siteCount, 'factory', 'factories')}</span>
         {/* The two figures may part at the space between them, on the narrowest phones. */}
         {company.stateCount > 0 && ' '}
         {company.stateCount > 0 && (
@@ -79,7 +79,7 @@ function CompanyTile({ company, className }: { company: ExploreEmployer; classNa
   );
 }
 
-/** The featured companies, most plants first. */
+/** The featured companies, most factories first. */
 function Companies({ companies }: { companies: ExploreEmployer[] }) {
   if (companies.length === 0) return null;
   return (
@@ -100,7 +100,7 @@ function Companies({ companies }: { companies: ExploreEmployer[] }) {
 
 /**
  * The largest industries, each to its own page: by people employed where
- * the official figure is published, else by the plants listed.
+ * the official figure is published, else by the factories listed.
  */
 function Industries({ industries, year }: { industries: ExploreIndustry[]; year: number | null }) {
   if (industries.length === 0) return null;
@@ -109,7 +109,7 @@ function Industries({ industries, year }: { industries: ExploreIndustry[]; year:
   return (
     <PageSection title="Industries" actions={<TextLink to={exploreHref('industries')}>All industries</TextLink>} className={SECTION}>
       <h3 className={cn(EYEBROW, 'mb-1 border-b border-line pb-2.5 sm:mb-2')}>
-        {byPeople ? `People employed${year ? `, ${year}` : ''}` : 'Plants'}
+        {byPeople ? `People employed${year ? `, ${year}` : ''}` : 'Factories'}
       </h3>
       {/* One column on a phone; from there, ranked down the first column, then down the second. */}
       <ul
@@ -238,8 +238,8 @@ function Skills({ domains }: { domains: ExploreSkillDomain[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Plants: where they are. Each place opens on the map; the list of every
-// plant is the Plants tab.
+// Factories: where they are. Each place opens on the map; the list of every
+// factory is the Factories tab.
 // ---------------------------------------------------------------------------
 
 type Ring = [number, number][];
@@ -333,7 +333,7 @@ function AreaTile({ area }: { area: ExploreArea }) {
         <h3 className="mt-2 text-xl font-semibold leading-snug text-text-1 sm:text-2xl">{area.name}</h3>
         {area.description && <p className="mt-1.5 text-sm text-text-2">{area.description}</p>}
         {area.factoryCount > 0 && (
-          <p className="mt-4 text-xs tabular-nums text-text-3">{plural(area.factoryCount, 'plant', 'plants')}</p>
+          <p className="mt-4 text-xs tabular-nums text-text-3">{plural(area.factoryCount, 'factory', 'factories')}</p>
         )}
       </div>
       <AreaOutline areaId={area.id} />
@@ -345,7 +345,7 @@ function Plants({ areas, states }: { areas: ExploreArea[]; states: ExploreState[
   if (areas.length === 0 && states.length === 0) return null;
   const rows = Math.ceil(states.length / 2);
   return (
-    <PageSection title="Plants" actions={<TextLink to={exploreHref('factories')}>All plants</TextLink>} className={SECTION}>
+    <PageSection title="Factories" actions={<TextLink to={exploreHref('factories')}>All factories</TextLink>} className={SECTION}>
       <div
         className={cn(
           'grid grid-cols-1 gap-x-12 gap-y-8',

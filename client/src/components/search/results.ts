@@ -14,7 +14,7 @@ import type { Place } from '../../lib/geocode';
 type SearchGroupId = 'regions' | 'industries' | 'companies' | 'factories' | 'occupations' | 'skills' | 'jobs' | 'places';
 
 /**
- * The groups, widest thing first: a state, an industry, a company, a plant,
+ * The groups, widest thing first: a state, an industry, a company, a factory,
  * a career, a skill, then one open job. Places are towns, counties and ZIP
  * codes from the geocoder, which only the map asks: they arrive a moment
  * after everything else, so they come last.
@@ -23,7 +23,7 @@ const SEARCH_GROUPS: { id: SearchGroupId; heading: string }[] = [
   { id: 'regions', heading: 'States and areas' },
   { id: 'industries', heading: 'Industries' },
   { id: 'companies', heading: 'Companies' },
-  { id: 'factories', heading: 'Plants' },
+  { id: 'factories', heading: 'Factories' },
   { id: 'occupations', heading: 'Careers' },
   { id: 'skills', heading: 'Skills' },
   { id: 'jobs', heading: 'Jobs' },

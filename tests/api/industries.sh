@@ -106,6 +106,7 @@ check "search finds an industry by name"      200 "$R" '"type":"industries"'
 expect "its id is its page address"           "chemicals Chemicals" "$(printf '%s' "$R" | j '(i=>i.id+" "+i.name)(o.results.industries.items[0])')"
 expect "and by what it makes"                 "glass-cement" "$(get '/search?q=cement&types=industries' | j 'o.results.industries.items.map(i=>i.id).join()')"
 expect "not by a word every industry has"     0 "$(get '/search?q=plants&types=industries' | j 'o.results.industries.count')"
+expect "nor by the word the screen uses for it" 0 "$(get '/search?q=factories&types=industries' | j 'o.results.industries.count')"
 expect "asked for other kinds, none are sent" 0 "$(get '/search?q=chem&types=companies' | j 'o.results.industries.count')"
 expect "the Explore overview lists the largest" true "$(get /explore/overview | j 'o.industries.length>=5 && o.industries.every(x=>x.slug&&x.name) && (o.industriesYear===null||o.industriesYear>=2024)')"
 
@@ -229,7 +230,7 @@ expect "changing something else keeps the county" 48453 "$(sql "UPDATE factories
 expect "moving the plant clears its county and metro" "none none" "$(sql "UPDATE factories SET latitude = '32.7767', longitude = '-96.7970' WHERE id='$KEYS' RETURNING COALESCE(county_fips, 'none') || ' ' || COALESCE(cbsa_code, 'none')")"
 expect "moved and placed in one statement keeps the new county" "48113 19100" "$(sql "UPDATE factories SET latitude = '32.78', county_fips = '48113', cbsa_code = '19100' WHERE id='$KEYS' RETURNING county_fips || ' ' || cbsa_code")"
 expect "a county that does not exist is refused" 1 "$(sql "UPDATE factories SET county_fips = '48999' WHERE id='$KEYS'" 2>&1 | grep -c 'foreign key')"
-check "a plant that does not exist"           404 "$(get /map/factories/00000000-0000-4000-8000-000000000000/county)" 'Plant not found'
+check "a plant that does not exist"           404 "$(get /map/factories/00000000-0000-4000-8000-000000000000/county)" 'Factory not found'
 check "an id that is not one"                 400 "$(get /map/factories/giga-texas/county)"
 
 cleanup

@@ -227,7 +227,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
   const link = applyIn === 'link' ? normalizeLink(applyUrl) : null;
 
   const problems: Partial<Record<FieldName, string>> = {};
-  if (!editing && !factoryId) problems.factory = 'Choose a plant.';
+  if (!editing && !factoryId) problems.factory = 'Choose a factory.';
   if (!career) problems.career = 'Choose a career.';
   if (title.trim().length === 1) problems.title = 'Use at least two characters, or leave it empty for the career name.';
   const payError = pay.minError ?? pay.maxError ?? pay.rangeError;
@@ -324,14 +324,14 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
       {editing && from ? (
         <div>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Fixed label="Plant">{[plantName({ name: from.factoryName }), plantWhere({ city: from.city, state: from.state })].filter(Boolean).join(' · ')}</Fixed>
+            <Fixed label="Factory">{[plantName({ name: from.factoryName }), plantWhere({ city: from.city, state: from.state })].filter(Boolean).join(' · ')}</Fixed>
             <Fixed label="Career">{from.occupationTitle}</Fixed>
           </dl>
-          <p className="mt-1.5 text-xs text-text-3">Fixed once posted. For another plant or career, post another like this.</p>
+          <p className="mt-1.5 text-xs text-text-3">Fixed once posted. For another factory or career, post another like this.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Plant" htmlFor="job-factory">
+          <Field label="Factory" htmlFor="job-factory">
             <PlantPicker
               id="job-factory"
               factories={company.factories}
@@ -348,7 +348,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
               value={career}
               onChange={pickCareer}
               suggestions={suggestions}
-              suggestionsLabel={recorded.length > 0 ? 'Careers at this plant' : 'Careers in this industry'}
+              suggestionsLabel={recorded.length > 0 ? 'Careers at this factory' : 'Careers in this industry'}
             />
             <FieldError id="job-career-error" message={shown('career')} />
           </Field>

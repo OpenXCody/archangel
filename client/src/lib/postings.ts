@@ -6,7 +6,7 @@ import { recordsChanged } from './records';
 /**
  * Employers' job postings in Admin Tools: each employer whose board the
  * intake runner reads, with what its latest run did, and the places their
- * postings name where we list no plant of theirs, which a person decides.
+ * postings name where we list no factory of theirs, which a person decides.
  */
 
 export interface PostingRun {
@@ -45,7 +45,7 @@ export interface WaitingPlace {
   state: string;
   postings: number;
   titles: string[];
-  /** The company's plants in that state: what the place may be. */
+  /** The company's factories in that state: what the place may be. */
   plants: { id: string; name: string; city: string | null; company: string }[];
 }
 
@@ -78,7 +78,7 @@ export function useDecidePlace() {
   return useMutation({
     mutationFn: postingsApi.decide,
     onSuccess: (outcome) => {
-      // Jobs appeared at a plant, or left it: every page that lists open jobs shows it.
+      // Jobs appeared at a factory, or left it: every page that lists open jobs shows it.
       if (outcome.jobs > 0) recordsChanged(queryClient, 'factory');
     },
     onSettled: () => invalidate(queryClient, accountKeys.adminPostings, accountKeys.jobs, accountKeys.adminOverview, accountKeys.adminAudit),

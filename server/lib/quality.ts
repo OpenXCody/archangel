@@ -4,13 +4,13 @@ import { INDUSTRY_NAME_LIST } from './industries.js';
 import { int, rowsOf, text } from './rows.js';
 
 /**
- * How complete the plant data is, state by state: one pass over the plants,
+ * How complete the factory data is, state by state: one pass over the factories,
  * computed when asked. Every figure is a count of rows, so the states add up
  * to the total and a share is worked out from two exact numbers. What each
  * count means is written here once and said under the table in Admin Tools
  * (`components/admin/QualityTable.tsx`): change one, change the other.
  *
- * - plants: every row in factories, filed under its `state` (null when it has none).
+ * - plants (on screen, Factories): every row in factories, filed under its `state` (null when it has none).
  * - industry: its industry is one of the 21 (`primary_naics_description`).
  * - code: it has a clean NAICS code (`naics`: the stored code means one 2022 national industry).
  * - county: it has been placed in a county (`county_fips`).
@@ -18,11 +18,11 @@ import { int, rowsOf, text } from './rows.js';
  * - address: it has a street address: `address` is not blank and is not just the city again.
  * - outsideId: an outside register's id is kept for it (a row in `external_references`
  *   that is not a source address; today that is the EPA registry id).
- * - onePlantCompanies: plants that are their company's only plant in the country,
+ * - onePlantCompanies: factories that are their company's only factory in the country,
  *   which is also the number of such companies.
- * - duplicates: plants that share their company and their spot (coordinates equal
- *   to three decimal places, about a hundred metres) with another plant, unless an
- *   admin has said the two are separate plants (`plants_apart`); duplicateGroups
+ * - duplicates: factories that share their company and their spot (coordinates equal
+ *   to three decimal places, about a hundred metres) with another factory, unless an
+ *   admin has said the two are separate factories (`plants_apart`); duplicateGroups
  *   is how many spots that is. Admin Tools lists them pair by pair
  *   (`GET /api/admin/plants/pairs?list=spot`, server/lib/plantPairs.ts): when
  *   that list is empty this is zero.

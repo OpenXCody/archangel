@@ -51,12 +51,12 @@ const LIST: Record<BrowseTab, (params: ListParams) => Promise<PaginatedResponse<
 /** What each list holds, in the words the tabs use. */
 export const LIST_NOUN: Record<BrowseTab, [one: string, many: string]> = {
   companies: ['company', 'companies'],
-  factories: ['plant', 'plants'],
+  factories: ['factory', 'factories'],
   occupations: ['career', 'careers'],
   skills: ['skill', 'skills'],
 };
 
-/** "1 plant", "43,914 plants". */
+/** "1 factory", "43,914 factories". */
 export const counted = (n: number, [one, many]: [string, string]) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
 /** Row height before it is measured: two or three lines of text (a phone gives a description two lines). */
@@ -186,7 +186,7 @@ function VirtualRows({
 }
 
 /**
- * A browse list behind the overview: every company, plant, career or
+ * A browse list behind the overview: every company, factory, career or
  * skill, filtered and sorted from the address (?state=, ?industry=, ?domain=,
  * ?group=, ?sort=), so a filtered list can be linked to and survives Back. Between the
  * filters and the rows is one line: how many the list holds, filters applied.
@@ -203,7 +203,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
   // Careers: `?military=1` is the military careers, `?service=navy` one service's. Anything else is the civilian list.
   const serviceParam = searchParams.get('service');
   const militaryParam = searchParams.get('military');
-  // An industry is one of the 21, by the name a plant carries or by its page's slug.
+  // An industry is one of the 21, by the name a factory carries or by its page's slug.
   // Anything else in the address (an old link's free text) is no filter at all.
   const industry = (industryByName(industryParam) ?? industryBySlug(industryParam))?.name;
   const filters: FilterState = useMemo(
@@ -285,7 +285,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     enabled: !tree,
   });
 
-  // Of the 21: those some plant carries, or those that are some company's industry.
+  // Of the 21: those some factory carries, or those that are some company's industry.
   const industries = tab === 'factories' ? facets.data?.factoryIndustries : (facets.data?.industries?.companies ?? facets.data?.factoryIndustries);
   const taxonomyDomains = taxonomy.data?.domains;
   const domains = useMemo(() => {
@@ -359,7 +359,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
               counted(total, noun)
             )}
           </p>
-          {/* Plants filtered to one industry: that industry has a page of its own, for the same state. */}
+          {/* Factories filtered to one industry: that industry has a page of its own, for the same state. */}
           {industryPage && filters.industry && (
             <Link to={industryPage} className="inline-flex min-h-11 items-center underline hover:text-text-1 sm:min-h-0">
               About {industryLabel(filters.industry)}

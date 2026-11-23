@@ -109,7 +109,7 @@ export async function postingSources(): Promise<PostingSource[]> {
 }
 
 // ---------------------------------------------------------------------------
-// Postings with no plant
+// Postings with no factory
 // ---------------------------------------------------------------------------
 
 export interface WaitingPlace {
@@ -213,8 +213,8 @@ export async function decidePlace(source: string, placeKey: string, decision: Pl
       const [plant] = rowsOf<{ id: string; name: string; state: string | null }>(
         await tx.execute(sql`SELECT id, name, state FROM factories WHERE id = ${plantId}`)
       );
-      if (!plant) throw new RecordRefusal(400, 'Choose a plant.', { field: 'plantId' });
-      if (plant.state !== place.state) throw new RecordRefusal(400, `That plant is not in ${place.state}.`, { field: 'plantId' });
+      if (!plant) throw new RecordRefusal(400, 'Choose a factory.', { field: 'plantId' });
+      if (plant.state !== place.state) throw new RecordRefusal(400, `That factory is not in ${place.state}.`, { field: 'plantId' });
       await tx.execute(sql`
         UPDATE posting_places SET status = 'pointed', factory_id = ${plant.id}, decided_by = ${actor.id}, decided_at = now()
         WHERE source = ${source} AND place_key = ${placeKey}`);

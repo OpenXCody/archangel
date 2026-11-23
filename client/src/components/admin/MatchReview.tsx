@@ -26,7 +26,7 @@ export const FACT_WORD: Record<string, string> = {
 
 const labelClass = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 
-/** One side of the comparison: the name, then the lines that tell one plant from another. */
+/** One side of the comparison: the name, then the lines that tell one factory from another. */
 export function PlantFacts({ plant, name }: { plant: ReviewPlant; name: React.ReactNode }) {
   const place = [plant.address, [cityState(plant.city, plant.state), plant.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
   const industry = plant.industry ? shownIndustry(plant.industry) ?? plant.industry : null;
@@ -78,9 +78,9 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
             decision === 'skip'
               ? `Skipped ${recordName}. It is still waiting.`
               : outcome.status === 'same'
-                ? `${recordName} is ${outcome.plant?.name ?? 'that plant'}.${outcome.filled.length > 0 ? ` Filled: ${outcome.filled.map((fact) => FACT_WORD[fact] ?? fact).join(', ')}.` : ''}`
+                ? `${recordName} is ${outcome.plant?.name ?? 'that factory'}.${outcome.filled.length > 0 ? ` Filled: ${outcome.filled.map((fact) => FACT_WORD[fact] ?? fact).join(', ')}.` : ''}`
                 : outcome.added
-                  ? `Added ${outcome.plant?.name ?? recordName} as a new plant.`
+                  ? `Added ${outcome.plant?.name ?? recordName} as a new factory.`
                   : `Kept ${recordName} apart.`;
           // The row leaves, or goes to the end: focus goes to the one that takes its place.
           notice.say(said, { focus: next ? `[data-match="${next.id}"] button` : undefined });
@@ -113,9 +113,9 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
           />
         </div>
         <div className="min-w-0" data-match-ours>
-          <p className={cn(labelClass, 'mb-1.5')}>{item.candidates.length > 1 ? 'Our plants' : 'Our plant'}</p>
+          <p className={cn(labelClass, 'mb-1.5')}>{item.candidates.length > 1 ? 'Our factories' : 'Our factory'}</p>
           {item.candidates.length === 0 ? (
-            <p className="text-sm text-text-2">The plant it might have been is no longer there.</p>
+            <p className="text-sm text-text-2">The factory it might have been is no longer there.</p>
           ) : item.candidates.length === 1 ? (
             <div>
               <PlantFacts plant={item.candidates[0]} name={<PlantLink candidate={item.candidates[0]} />} />
@@ -124,7 +124,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
           ) : (
             <div
               role="radiogroup"
-              aria-label={`Which plant ${recordName} is`}
+              aria-label={`Which factory ${recordName} is`}
               className="space-y-2"
               onKeyDown={(event) => onGroupArrowKeys(event, item.candidates.map((option) => option.id), chosen, setChosen)}
             >
@@ -156,7 +156,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
           aria-busy={doing('same')}
           aria-disabled={decide.isPending || !candidate}
           onClick={() => act('same')}
-          aria-label={candidate ? `${recordName} is the same plant as ${candidate.name}` : 'Same'}
+          aria-label={candidate ? `${recordName} is the same factory as ${candidate.name}` : 'Same'}
           className={cn('h-10 px-4 sm:h-9', busyButtonClass)}
         >
           {doing('same') && <Loader2 className="animate-spin" />}
@@ -169,7 +169,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
           aria-busy={doing('different')}
           aria-disabled={decide.isPending}
           onClick={() => act('different')}
-          aria-label={`${recordName} is a different plant`}
+          aria-label={`${recordName} is a different factory`}
           className={cn('h-10 px-4 sm:h-9', outlineButtonClass, busyButtonClass)}
         >
           {doing('different') && <Loader2 className="animate-spin" />}
@@ -189,7 +189,7 @@ function MatchRow({ item, next }: { item: ReviewItem; next: ReviewItem | undefin
           Skip
         </Button>
         <p className="min-w-0 basis-full text-xs text-text-3 sm:ml-2 sm:basis-auto">
-          {item.ifDifferent === 'add' ? 'Different adds it as a new plant.' : 'Different keeps it out: this source adds no plants.'}
+          {item.ifDifferent === 'add' ? 'Different adds it as a new factory.' : 'Different keeps it out: this source adds no factories.'}
         </p>
       </div>
       <ErrorNote error={decide.error} className="mt-2" />
@@ -207,9 +207,9 @@ function PlantLink({ candidate }: { candidate: ReviewCandidate }) {
 
 /**
  * Matches waiting for a person: a source's record that may be one of our
- * plants, set beside the plant, with how far apart they are and why the run
- * was not sure. Same ties the record to the plant: the source's id is kept
- * against it and the record's facts fill what the plant lacks. Different
+ * factories, set beside the factory, with how far apart they are and why the run
+ * was not sure. Same ties the record to the factory: the source's id is kept
+ * against it and the record's facts fill what the factory lacks. Different
  * keeps them apart for good. Skip leaves it for later, after the rest.
  * Drawn only when something waits.
  */
@@ -228,7 +228,7 @@ export default function MatchReview() {
   return (
     <PageSection
       title="Matches to review"
-      description="A source's record that may be one of our plants. Same keeps the source's id against the plant and fills what the plant lacks."
+      description="A source's record that may be one of our factories. Same keeps the source's id against the factory and fills what the factory lacks."
     >
       <div id="matches" className="scroll-mt-24">
         {items.length === 0 ? (

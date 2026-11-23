@@ -112,7 +112,7 @@ const FIELD_FOCUS: [FieldName, string][] = [
 const NAME_LABEL: Record<RecordKind, string> = { company: 'Name', factory: 'Name', career: 'Title', skill: 'Name' };
 const NAME_PROBLEM: Record<RecordKind, string> = {
   company: 'Enter the company’s name.',
-  factory: 'Enter the plant’s name.',
+  factory: 'Enter the factory’s name.',
   career: 'Enter the career’s title.',
   skill: 'Enter the skill’s name.',
 };
@@ -173,7 +173,7 @@ interface RecordFormProps {
 }
 
 /**
- * The one form for a company, a plant, a career or a skill: adding one
+ * The one form for a company, a factory, a career or a skill: adding one
  * asks for the few fields that make it; correcting one shows all it has.
  * Each problem is said beside its field, the first takes focus, and a name
  * close to one already listed says so before anything is saved.
@@ -255,7 +255,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   }
   if (kind === 'career' && service && !code.trim()) problems.code = 'Enter the code.';
   if (kind === 'factory') {
-    // A plant on record without a company can be corrected without being given one.
+    // A factory on record without a company can be corrected without being given one.
     if (!company && (!editing || fields.companyId)) problems.company = 'Choose the company that runs it.';
     if (!state) problems.state = 'Choose a state.';
     if (lat === null) problems.latitude = 'A number from -90 to 90.';
@@ -309,7 +309,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
     if (kind === 'company') {
       return {
         name: name.trim(),
-        // A company's industries are read from its plants; its own free-text label is no longer shown or edited.
+        // A company's industries are read from its factories; its own free-text label is no longer shown or edited.
         description: orNull(description),
         domain: cleanedDomain,
         featured,
@@ -643,7 +643,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
           {editing && (
             <>
               <div className="grid grid-cols-1 gap-4 xs:grid-cols-2">
-                <Field label="People" htmlFor="record-people" optional hint={shown('workforceSize') ? undefined : 'Working at this plant.'}>
+                <Field label="People" htmlFor="record-people" optional hint={shown('workforceSize') ? undefined : 'Working at this factory.'}>
                   {input('record-people', people, setPeople, 'workforceSize', { inputMode: 'numeric', maxLength: 10 })}
                   <FieldError id="record-people-error" message={shown('workforceSize')} />
                 </Field>

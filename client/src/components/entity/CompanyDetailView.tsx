@@ -21,18 +21,18 @@ import {
 import { plural } from '@/lib/utils';
 import { type Head, streetAddress, factLinkClass, Footprint, OpenJobsSection, CAREERS_SHOWN, TypicalCareers } from './parts';
 
-/** How many plants are listed before "Show all". */
+/** How many factories are listed before "Show all". */
 const PLANTS_SHOWN = 12;
 
 /**
- * A company's page. Who it is, where it is, whether it is hiring, its plants
- * and the careers at them. About seven companies in ten have one plant: for
- * those the page leads with that plant's own facts and address, in place of
+ * A company's page. Who it is, where it is, whether it is hiring, its factories
+ * and the careers at them. About seven companies in ten have one factory: for
+ * those the page leads with that factory's own facts and address, in place of
  * counting to one and listing one row.
  *
- * A military service is an employer with no plants: its page has no footprint
+ * A military service is an employer with no factories: its page has no footprint
  * and no map action, and lists its careers (the ratings, MOS or specialties
- * that are its own) in place of plants.
+ * that are its own) in place of factories.
  */
 export default function CompanyDetailView({ data, head }: { data: CompanyDetail; head: Head }) {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
   const jobs = data.jobs ?? [];
   const only = plants.length === 1 ? plants[0] : null;
 
-  // Plants that can be placed, for the footprint and for framing them on the map.
+  // Factories that can be placed, for the footprint and for framing them on the map.
   const placed = useMemo(
     () =>
       plants
@@ -52,7 +52,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
     [plants]
   );
 
-  // Plants per state, most first: "Texas 6 · California 2".
+  // Factories per state, most first: "Texas 6 · California 2".
   const byState = useMemo(() => {
     const counts = new Map<string, number>();
     for (const plant of plants) if (plant.state) counts.set(plant.state, (counts.get(plant.state) ?? 0) + 1);
@@ -61,7 +61,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
   }, [plants]);
 
-  // Plants whose size is known come first, the largest first; the rest by state and name.
+  // Factories whose size is known come first, the largest first; the rest by state and name.
   const sortedPlants = useMemo(
     () =>
       [...plants].sort(
@@ -72,12 +72,12 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
       ),
     [plants]
   );
-  // People are counted at the plants that state a figure, and said so when that is not all of them.
+  // People are counted at the factories that state a figure, and said so when that is not all of them.
   const sized = plants.filter((plant) => (plant.workforceSize ?? 0) > 0).length;
   const shownPlants = showAllPlants ? sortedPlants : sortedPlants.slice(0, PLANTS_SHOWN);
 
-  // A company's industries are the ones its plants are in (the 21), the one
-  // with most of its plants first. Each is a page of its own; where the plants
+  // A company's industries are the ones its factories are in (the 21), the one
+  // with most of its factories first. Each is a page of its own; where the factories
   // are all in one state, that state's page of it.
   const industries = useMemo(() => {
     const counts = new Map<string, number>();
@@ -92,14 +92,14 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
   const facts = only
     ? [cityState(only.city, only.state), only.status === 'under construction' ? 'Under construction' : null].filter(Boolean)
     : [
-        plants.length > 0 ? plural(plants.length, 'plant', 'plants') : null,
+        plants.length > 0 ? plural(plants.length, 'factory', 'factories') : null,
         byState.length > 1 ? `${byState.length} states` : byState.length === 1 ? byState[0].name : null,
         (data.totalWorkforce ?? 0) > 0
-          ? `${peopleCount(data.totalWorkforce ?? 0)}${sized > 0 && sized < plants.length ? ` at ${plural(sized, 'plant', 'plants')}` : ''}`
+          ? `${peopleCount(data.totalWorkforce ?? 0)}${sized > 0 && sized < plants.length ? ` at ${plural(sized, 'factory', 'factories')}` : ''}`
           : null,
       ].filter(Boolean);
 
-  // Show only this company's plants on the map, framed. The map reads both
+  // Show only this company's factories on the map, framed. The map reads both
   // from its store when it mounts.
   const openOnMap = () => {
     const store = useMapStore.getState();
@@ -111,7 +111,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
   };
 
   // The careers the company has its own version of come first, each opening that version; then the
-  // careers on record at its plants that it has said nothing about.
+  // careers on record at its factories that it has said nothing about.
   const versions = data.versions ?? [];
   const versioned = new Set(versions.map((version) => version.occupation.id));
   const recorded = (data.occupations ?? []).filter((career) => !versioned.has(career.id));
@@ -121,7 +121,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
       id: career.id,
       title: career.title,
       to: `/occupations/${career.id}`,
-      line: [only ? null : plural(career.factoryCount, 'plant', 'plants'), career.headcount ? peopleCount(career.headcount) : null].filter(Boolean).join(' · ') || null,
+      line: [only ? null : plural(career.factoryCount, 'factory', 'factories'), career.headcount ? peopleCount(career.headcount) : null].filter(Boolean).join(' · ') || null,
       version: false,
     })),
   ];
@@ -165,10 +165,10 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
         <CompanyStanding data={data} />
       </DetailHeader>
 
-      {/* One plant: its own facts stand where a list of one would. */}
+      {/* One factory: its own facts stand where a list of one would. */}
       {only && <PlantFacts factory={only} />}
 
-      {/* Where: the footprint, and how many plants in each state (or the one plant, leading to its page) */}
+      {/* Where: the footprint, and how many factories in each state (or the one factory, leading to its page) */}
       {placed.length > 0 && (
         <Footprint
           points={placed.map((entry) => ({
@@ -182,8 +182,8 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
             <ul className="border-t border-line" data-only-plant>
               <RecordRow
                 to={`/factories/${only.id}`}
-                label="Plant"
-                // A plant that carries the company's own name is told by its address.
+                label="Factory"
+                // A factory that carries the company's own name is told by its address.
                 title={onlyName.toLowerCase() === name.toLowerCase() ? (onlyStreet ?? onlyName) : onlyName}
                 subtitle={onlyName.toLowerCase() === name.toLowerCase() ? null : onlyStreet}
               />
@@ -203,7 +203,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
       )}
       {only && placed.length === 0 && (
         <RecordList className="mt-6" data-only-plant="">
-          <RecordRow to={`/factories/${only.id}`} label="Plant" title={onlyName} subtitle={onlyStreet} />
+          <RecordRow to={`/factories/${only.id}`} label="Factory" title={onlyName} subtitle={onlyStreet} />
         </RecordList>
       )}
 
@@ -217,9 +217,9 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
         </DetailSection>
       )}
 
-      {/* Every plant: where it is and what it makes */}
+      {/* Every factory: where it is and what it makes */}
       {plants.length > 1 && (
-        <DetailSection id="factories" title="Plants">
+        <DetailSection id="factories" title="Factories">
           <RecordList>
             {shownPlants.map((plant) => (
               <RecordRow
@@ -245,7 +245,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
         </DetailSection>
       )}
 
-      {/* Its careers: the ones it has its own version of, then those recorded across its plants */}
+      {/* Its careers: the ones it has its own version of, then those recorded across its factories */}
       {careers.length > 0 && (
         <DetailSection id="occupations" title="Careers">
           <RecordList>
@@ -291,7 +291,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
           )}
         </DetailSection>
       )}
-      {/* With none recorded, the one plant's industry says what kind of work there is. */}
+      {/* With none recorded, the one factory's industry says what kind of work there is. */}
       {typical.length > 0 && <TypicalCareers careers={typical} />}
 
     </>

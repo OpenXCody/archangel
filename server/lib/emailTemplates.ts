@@ -108,7 +108,7 @@ export function inviteEmail(input: { to: string; role: 'user' | 'employer' | 'ad
       ? `You are invited to Archangel to post jobs for ${oneLine(input.companyName)} and read its applicants.`
       : input.role === 'admin'
         ? 'You are invited to Archangel as an admin.'
-        : 'You are invited to Archangel, a map of US manufacturing: companies, plants, careers and the skills they take.';
+        : 'You are invited to Archangel, a map of US manufacturing: companies, factories, careers and the skills they take.';
   return build({
     kind: 'invite',
     to: input.to,
@@ -215,23 +215,23 @@ export function accessDeclinedEmail(input: { to: string; companyName: string; as
   });
 }
 
-/** To the admins: a person asked for a company, or a plant of one, to be added. */
+/** To the admins: a person asked for a company, or a factory of one, to be added. */
 export function companyRequestedEmail(input: {
   to: string;
   requesterName: string;
   requesterEmail: string;
-  /** The company's name as the person wrote it, or the company the plant belongs to. */
+  /** The company's name as the person wrote it, or the company the factory belongs to. */
   name: string;
   website: string | null;
   place: string;
-  /** True when the company is in the data and a plant of it is missing. */
+  /** True when the company is in the data and a factory of it is missing. */
   plant: boolean;
 }): EmailMessage {
   const name = oneLine(input.name);
   const who = `${oneLine(input.requesterName, 80)} (${input.requesterEmail})`;
   const body = [
     input.plant
-      ? `${who} asked for a plant of ${name} to be added, so they can post jobs there.`
+      ? `${who} asked for a factory of ${name} to be added, so they can post jobs there.`
       : `${who} asked for ${name} to be added, so they can post its jobs.`,
     `Where: ${oneLine(input.place, 160)}`,
   ];
@@ -239,7 +239,7 @@ export function companyRequestedEmail(input: {
   return build({
     kind: 'company-requested',
     to: input.to,
-    subject: input.plant ? `Request to add a plant of ${name}` : `Request to add ${name}`,
+    subject: input.plant ? `Request to add a factory of ${name}` : `Request to add ${name}`,
     body,
     action: { label: 'Review the request', url: appUrl('/admin?tab=access') },
     why: 'you are an Archangel admin',
@@ -247,7 +247,7 @@ export function companyRequestedEmail(input: {
   });
 }
 
-/** To the person: their request for a missing plant was met, or a request was declined. */
+/** To the person: their request for a missing factory was met, or a request was declined. */
 export function companyRequestAnsweredEmail(input: {
   to: string;
   name: string;
@@ -262,19 +262,19 @@ export function companyRequestAnsweredEmail(input: {
     kind: added ? 'plant-added' : 'company-request-declined',
     to: input.to,
     subject: added
-      ? `A plant of ${name} was added`
+      ? `A factory of ${name} was added`
       : input.plant
-        ? `Your request for a plant of ${name} was declined`
+        ? `Your request for a factory of ${name} was declined`
         : `Your request to add ${name} was declined`,
     body: [
       added
-        ? `The plant you asked for (${place}) is now listed for ${name}. You can post jobs there.`
+        ? `The factory you asked for (${place}) is now listed for ${name}. You can post jobs there.`
         : input.plant
-          ? `An admin declined your request to add a plant of ${name} (${place}). Nothing else about your account has changed.`
+          ? `An admin declined your request to add a factory of ${name} (${place}). Nothing else about your account has changed.`
           : `An admin declined your request to add ${name}. Nothing else about your account has changed.`,
     ],
     action: { label: 'Open your jobs', url: appUrl('/employer') },
-    why: input.plant ? `you asked for a plant of ${name} to be added on Archangel` : `you asked for ${name} to be added on Archangel`,
+    why: input.plant ? `you asked for a factory of ${name} to be added on Archangel` : `you asked for ${name} to be added on Archangel`,
     notice: true,
   });
 }

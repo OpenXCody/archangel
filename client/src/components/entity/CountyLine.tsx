@@ -23,11 +23,11 @@ export function countySentence(stats: NonNullable<PlantCounty['manufacturing']>)
 }
 
 /**
- * The county a plant stands in and manufacturing as a whole there, from the
+ * The county a factory stands in and manufacturing as a whole there, from the
  * official statistics: a fact about the county, said as one. Where it was read
- * is not shown (no public page names a source). It is never a figure about the plant, so it sits apart from
- * the plant's own people and is worded "in manufacturing". Nothing is drawn
- * until the answer is in, and nothing at all for a plant with no county or a
+ * is not shown (no public page names a source). It is never a figure about the factory, so it sits apart from
+ * the factory's own people and is worded "in manufacturing". Nothing is drawn
+ * until the answer is in, and nothing at all for a factory with no county or a
  * county with no published figure.
  */
 export default function CountyLine({ factoryId, className }: { factoryId: string; className?: string }) {

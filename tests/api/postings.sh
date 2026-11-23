@@ -375,7 +375,7 @@ expect "the employer, the place, how many postings and their titles" 'E2E Postin
 expect "and the company's plants in that state to choose from" 'true' "$(printf '%s' "$OUT" | j "places.find((x) => x.source === 'postings-e2e-acme').plants.some((x) => x.id === '$YARD')")"
 PLACE='{"source":"postings-e2e-acme","placeKey":"nowhere springs|NV"'
 check "a decision that is not one"          400 "$(req a POST /admin/postings/places "$PLACE,\"decision\":\"maybe\"}")" 'point, leave or wait'
-check "pointing needs a plant"              400 "$(req a POST /admin/postings/places "$PLACE,\"decision\":\"point\"}")" 'Choose a plant'
+check "pointing needs a plant"              400 "$(req a POST /admin/postings/places "$PLACE,\"decision\":\"point\"}")" 'Choose a factory'
 check "a place that is not on the list"     404 "$(req a POST /admin/postings/places '{"source":"postings-e2e-acme","placeKey":"atlantis|NV","decision":"leave"}')"
 OUT=$(req a POST /admin/postings/places "$PLACE,\"decision\":\"point\",\"plantId\":\"$YARD\"}")
 check "point the place at a plant"          200 "$OUT" '"status":"pointed"'

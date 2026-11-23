@@ -110,7 +110,7 @@ function pinInfo(properties: Record<string, unknown> | null): PinInfo | null {
     typeof value === 'string' && value.trim() !== '' && value !== 'null' ? value : null;
   return {
     id,
-    name: text(properties.name) ?? 'Plant',
+    name: text(properties.name) ?? 'Factory',
     companyName: text(properties.companyName),
     tier: Number(properties.tier) || 0,
     city: text(properties.city),
@@ -180,7 +180,7 @@ export default function Map({ onViewChange }: MapProps) {
   // zooming and filtering never refetch (filters are expressions: layers.ts).
   const { data: factoriesGeoJSON } = usePins();
 
-  // The map's subject, if it has one: a company (its plants alone) or a
+  // The map's subject, if it has one: a company (its factories alone) or a
   // career (the industries where its work is done). The panel and the
   // record's own page read the same records under the same keys, so each is
   // fetched once.
@@ -200,7 +200,7 @@ export default function Map({ onViewChange }: MapProps) {
   const nameSubject = useMapStore((s) => s.nameSubject);
   const notFound = useMapStore((s) => s.notFound);
   // A military career is never the map's subject, and neither is a service: the map is where work is, and
-  // they have no plants.
+  // they have no factories.
   const careerOffMap = Boolean(filters.career && subjectCareer?.service);
   const serviceOffMap = Boolean(filters.company && subjectCompany?.service);
   const subjectOffMap = careerOffMap || serviceOffMap;
@@ -250,7 +250,7 @@ export default function Map({ onViewChange }: MapProps) {
     return index;
   }, [factoriesGeoJSON]);
 
-  // The states' shapes with their plant counts, and the focus areas' boundaries (mapData.ts).
+  // The states' shapes with their factory counts, and the focus areas' boundaries (mapData.ts).
   const statesWithCounts = useStatesWithCounts();
   const { data: areaBoundaries } = useAreaBoundaries();
 
@@ -404,7 +404,7 @@ export default function Map({ onViewChange }: MapProps) {
         }
 
         // Far out, pins are a texture and the state or area under them takes
-        // the pointer; with one company's plants on the map they are the subject.
+        // the pointer; with one company's factories on the map they are the subject.
         const pinsPickable = zoom >= PIN_INTERACTIVE_MIN_ZOOM || view.companyPlants !== null;
         if (!pinsPickable || !currentMap.getLayer(LAYER.pins)) return hit;
 
@@ -692,8 +692,8 @@ export default function Map({ onViewChange }: MapProps) {
     }
   }, [pinView, hasSubject, mapLoaded]);
 
-  // A company that has just become the subject is framed: all of its plants,
-  // wherever they are. Not while one of its plants is being looked at, and
+  // A company that has just become the subject is framed: all of its factories,
+  // wherever they are. Not while one of its factories is being looked at, and
   // not over a camera that came with the link.
   const framedCompanyRef = useRef<string | null>(null);
   const flyTo = useMapStore((s) => s.flyTo);
@@ -712,7 +712,7 @@ export default function Map({ onViewChange }: MapProps) {
     if (points.length > 0) flyTo({ kind: 'points', points });
   }, [filters.company, subjectCompany, mapLoaded, flyTo]);
 
-  // A career's plants are everywhere, so choosing one does not move the
+  // A career's factories are everywhere, so choosing one does not move the
   // camera. The one case: the home view on a desktop, where the panel that
   // has just opened covers the east coast. The country is framed again in
   // the room that is left.

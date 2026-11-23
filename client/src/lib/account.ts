@@ -51,7 +51,7 @@ export interface Account {
   isEmployer: boolean;
   /** Set in this browser only: when the person signed out, or deleted their account, here (ms since the epoch). */
   leftAt?: number;
-  /** The person asked for a company or a plant to be added and an admin has not answered yet. */
+  /** The person asked for a company or a factory to be added and an admin has not answered yet. */
   hasCompanyRequest?: boolean;
 }
 

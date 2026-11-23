@@ -57,7 +57,7 @@ export const optionTileClass = (selected: boolean): string =>
 export const optionTitleClass = (selected: boolean): string => (selected ? 'text-text-1' : 'text-text-2');
 export const optionDetailClass = (selected: boolean): string => (selected ? 'text-text-2' : 'text-text-3');
 
-/** "1 plant", "2,340 plants". */
+/** "1 factory", "2,340 factories". */
 export function plural(n: number, one: string, many: string): string {
   return `${n.toLocaleString()} ${n === 1 ? one : many}`;
 }

@@ -39,9 +39,9 @@ interface RowProps {
   facts?: Part[];
   /** Leads the row (a company's logo). */
   leading?: ReactNode;
-  /** Leads the facts line (a plant's company logo). */
+  /** Leads the facts line (a factory's company logo). */
   factsLeading?: ReactNode;
-  /** Ends the facts line and is never cut short (a plant's people). */
+  /** Ends the facts line and is never cut short (a factory's people). */
   factsEnd?: string | null;
   onMouseEnter?: () => void;
 }
@@ -80,8 +80,8 @@ function CompanyRow({ data, onMouseEnter }: Props<Company>) {
       to={`/companies/${data.slug ?? data.id}`}
       name={name}
       leading={<CompanyLogo name={name} domain={data.domain} size={32} />}
-      // The industry most of its plants are in, when they carry one.
-      facts={[count(data.factoryCount, 'plant', 'plants'), shownIndustry(data.industry)]}
+      // The industry most of its factories are in, when they carry one.
+      facts={[count(data.factoryCount, 'factory', 'factories'), shownIndustry(data.industry)]}
       onMouseEnter={onMouseEnter}
     />
   );
@@ -90,7 +90,7 @@ function CompanyRow({ data, onMouseEnter }: Props<Company>) {
 function FactoryRow({ data, onMouseEnter }: Props<Factory>) {
   const name = formatFactoryName(data.name);
   const company = data.companyName ? formatCompanyName(data.companyName) : null;
-  // Most plants are named after their company ("10 Star Coatings, LLC" of 10 Star Coatings): the line does not say it twice.
+  // Most factories are named after their company ("10 Star Coatings, LLC" of 10 Star Coatings): the line does not say it twice.
   const named = company !== null && name.toLowerCase().startsWith(company.toLowerCase());
   // Cities arrive in capitals ("ROUND ROCK").
   const city = data.city ? formatCompanyName(data.city) : null;

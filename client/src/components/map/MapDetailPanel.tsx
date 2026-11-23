@@ -30,7 +30,7 @@ import { LABEL, SECONDARY_BUTTON } from './panel/parts';
  */
 
 const KIND: Record<MapEntityType, { icon: typeof Factory; label: string; missing: string }> = {
-  factory: { icon: Factory, label: 'Plant', missing: 'That plant is not listed.' },
+  factory: { icon: Factory, label: 'Factory', missing: 'That factory is not listed.' },
   company: { icon: Building2, label: 'Company', missing: 'That company is not listed.' },
   occupation: { icon: Briefcase, label: 'Career', missing: 'That career is not listed.' },
   skill: { icon: Wrench, label: 'Skill', missing: 'That skill is not listed.' },

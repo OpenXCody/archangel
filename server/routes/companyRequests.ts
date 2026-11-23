@@ -103,7 +103,7 @@ companyRequestsRouter.post(
       const [company] = await db.select({ id: companies.id, name: companies.name }).from(companies).where(eq(companies.id, companyId)).limit(1);
       if (!company) return res.status(404).json({ error: 'Company not found' });
       if (!(await canManageCompany(user, company.id))) {
-        return res.status(403).json({ error: 'Only people who post jobs for a company can ask for its plants to be added.' });
+        return res.status(403).json({ error: 'Only people who post jobs for a company can ask for its factories to be added.' });
       }
       // A military service has no plants to add.
       if (await isService(db, company.id)) return res.status(400).json({ error: notAnEmployerHere(company.name) });
@@ -223,7 +223,7 @@ adminCompanyRequestsRouter.patch(
         kind: 'access',
         recordId: request.companyId,
         recordName: request.name,
-        action: plant ? 'plant request declined' : 'company request declined',
+        action: plant ? 'factory request declined' : 'company request declined',
         detail: { place: request.place, askedBy: request.userId },
       });
       await companyRequestAnswered({ userId: request.userId, name: request.name, place: request.place, plant, outcome: 'declined', byUserId: admin.id });
@@ -242,7 +242,7 @@ adminCompanyRequestsRouter.patch(
         kind: 'access',
         recordId: request.companyId,
         recordName: request.name,
-        action: 'plant request marked added',
+        action: 'factory request marked added',
         detail: { place: request.place, askedBy: request.userId },
       });
       await companyRequestAnswered({ userId: request.userId, name: request.name, place: request.place, plant, outcome: 'added', byUserId: admin.id });

@@ -12,9 +12,9 @@
  * field of them.
  *
  * Two themes, two pictures, hand-set (neither is the other inverted):
- *   dark   lights on a dark land. Far out every plant is a faint point and
+ *   dark   lights on a dark land. Far out every factory is a faint point and
  *          places with many of them glow.
- *   light  ink on white paper. Every plant is a dot of the text colour, and
+ *   light  ink on white paper. Every factory is a dot of the text colour, and
  *          density is the dots themselves: no glow, no shading.
  * There are no counted bubbles and no numbers on the map; a count belongs in
  * the panel a person opens, not on the surface they are trying to read.
@@ -74,10 +74,10 @@ interface MapColors {
   water: string;
   border: string;
   road: string;
-  /** --text-1 and --text-2: plants, place names, the wash on a state. */
+  /** --text-1 and --text-2: factories, place names, the wash on a state. */
   ink: string;
   inkQuiet: string;
-  /** --accent: the geofence, what is selected, a plant that is hiring. */
+  /** --accent: the geofence, what is selected, a factory that is hiring. */
   accent: string;
 }
 
@@ -99,7 +99,7 @@ interface MapLook {
   pinTiersByTone: boolean;
   /** A thin edge in the land's tone keeps neighbouring pins apart. */
   pinEdge: boolean;
-  /** States are shaded by how many plants they hold. */
+  /** States are shaded by how many factories they hold. */
   stateShading: boolean;
 }
 
@@ -352,7 +352,7 @@ const OPACITY_STOPS: Array<[zoom: number, featured: number, established: number,
   [7.5, 1, 1, 0.9],
 ];
 
-/** Zoom stops of the radius of a company's plants while it is the map's subject. */
+/** Zoom stops of the radius of a company's factories while it is the map's subject. */
 const SUBJECT_RADIUS_STOPS: Array<[zoom: number, radius: number]> = [
   [2, 4],
   [6, 5.5],
@@ -390,7 +390,7 @@ function pinRadius(extra = 0, focus?: ExpressionSpecification): ExpressionSpecif
   return ['interpolate', ['linear'], ['zoom'], ...stops] as ExpressionSpecification;
 }
 
-/** The radius of a company's plants while it is the map's subject: full dots at any zoom. */
+/** The radius of a company's factories while it is the map's subject: full dots at any zoom. */
 function subjectRadius(): ExpressionSpecification {
   const stops = SUBJECT_RADIUS_STOPS.flatMap(([zoom, radius]) => [zoom, radius * LOOKS.pinScale]);
   return ['interpolate', ['linear'], ['zoom'], ...stops] as ExpressionSpecification;
@@ -441,7 +441,7 @@ function pinEdgeWidth(subject: boolean): ExpressionSpecification | number {
 }
 
 /**
- * The ring that says a plant is hiring. On the dark map it is a disc under
+ * The ring that says a factory is hiring. On the dark map it is a disc under
  * the pin, whose dark edge parts the two; on the light map, where a dot has
  * no edge, it is a line around it with the land showing between.
  */
@@ -460,9 +460,9 @@ export interface PinView {
   /** Draw only pins of this industry. */
   industry: string | null;
   /**
-   * One company is the subject: draw only these plants, as full dots at any
+   * One company is the subject: draw only these factories, as full dots at any
    * zoom. An empty list (the company's record has not loaded, or it has no
-   * plants) draws none. null: no company.
+   * factories) draws none. null: no company.
    */
   companyPlants: string[] | null;
   /**
@@ -508,9 +508,9 @@ export function setPinView(map: MapLibreMap, view: PinView): void {
         : ['==', ['get', 'id'], '']
       : undefined;
 
-  // While one company is the subject its few plants are the whole picture:
+  // While one company is the subject its few factories are the whole picture:
   // full dots at any zoom, and no density glow, which says nothing about a
-  // handful of points. A career's plants are thousands: they are drawn as
+  // handful of points. A career's factories are thousands: they are drawn as
   // they always are and keep the glow, now weighted to them alone, while
   // every other pin steps back.
   const stepsBack: ExpressionSpecification | number = focus ? ['case', focus, 1, 0.25] : 1;
@@ -567,7 +567,7 @@ export function addAppLayers(map: MapLibreMap, slots: BasemapSlots = {}): void {
     type: 'fill',
     source: SOURCE.states,
     paint: {
-      // Dark: one wash of the quiet ink, stronger where there are more plants.
+      // Dark: one wash of the quiet ink, stronger where there are more factories.
       // Light: nothing, but the accent on the selected state and ink under the pointer.
       'fill-color': LOOKS.stateShading ? color.inkQuiet : ['case', STATE_SELECTED, color.accent, color.ink],
       'fill-opacity': stateFillOpacity(false),

@@ -128,7 +128,7 @@ export default function MapContextMenu({ x, y, onClose, onSearch }: MapContextMe
             "
           >
             <FilterX className="w-4 h-4 text-text-2" />
-            <span>Show every plant</span>
+            <span>Show every factory</span>
           </button>
         </>
       )}

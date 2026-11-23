@@ -16,7 +16,7 @@ import { FACT_WORD, PlantFacts } from './MatchReview';
 
 /** Why the cleanup left a pair for a person, as a person would say it. */
 const REASON: Record<string, string> = {
-  'two companies': 'One plant under two companies',
+  'two companies': 'One factory under two companies',
   'far apart': 'Far apart',
   'names and addresses differ': 'The names and addresses differ',
   'two states': 'Filed under two states',
@@ -44,15 +44,15 @@ interface PairCardProps {
   pair: PlantPair;
   /** Where the keyboard goes when a decision takes this card away. */
   nextFocus?: string;
-  /** After a merge: the plant kept and the one that went. */
+  /** After a merge: the factory kept and the one that went. */
   onMerged?: (kept: { id: string; name: string }, merged: { id: string; name: string }) => void;
 }
 
 /**
- * Two rows that may be one plant, side by side. The row that is kept is
+ * Two rows that may be one factory, side by side. The row that is kept is
  * chosen here (the rule's choice to begin with): it keeps its name, its
  * company and its place, and takes from the other what it lacks. Merge folds
- * the other into it; Two plants keeps both and stops offering them as one.
+ * the other into it; Two factories keeps both and stops offering them as one.
  */
 export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
   const merge = useMergePlants();
@@ -81,7 +81,7 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
       { a: pair.a.id, b: pair.b.id, apart: value },
       {
         onSuccess: () =>
-          notice.say(value ? `Kept ${pair.a.name} and ${pair.b.name} as two plants.` : `${pair.a.name} and ${pair.b.name} are offered as one plant again.`, {
+          notice.say(value ? `Kept ${pair.a.name} and ${pair.b.name} as two factories.` : `${pair.a.name} and ${pair.b.name} are offered as one factory again.`, {
             undo: value ? () => keepApart(false) : undefined,
             focus: nextFocus,
           }),
@@ -151,7 +151,7 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
       <p className="mt-3 break-words text-xs text-text-3" data-pair-takes>
         {mustKeep ? 'The row written from sources is the one kept. ' : ''}
         {taken ? `It takes from the other: ${taken}.` : 'It takes nothing from the other: it has every fact the other has.'}
-        {/* Under two companies the row kept decides which the plant is filed under. */}
+        {/* Under two companies the row kept decides which the factory is filed under. */}
         {kept.companyId !== gone.companyId && kept.company ? ` It stays under ${kept.company.replace(/\.$/, '')}.` : ''}
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -177,19 +177,19 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
           aria-busy={apart.isPending}
           aria-disabled={busy}
           onClick={() => keepApart(!pair.apart)}
-          aria-label={pair.apart ? `Offer ${pair.a.name} and ${pair.b.name} as one plant again` : `${pair.a.name} and ${pair.b.name} are two plants`}
+          aria-label={pair.apart ? `Offer ${pair.a.name} and ${pair.b.name} as one factory again` : `${pair.a.name} and ${pair.b.name} are two factories`}
           className={cn('h-10 px-4 sm:h-9', outlineButtonClass, busyButtonClass)}
           data-pair-apart
         >
           {apart.isPending && <Loader2 className="animate-spin" />}
-          {pair.apart ? 'Not two plants' : 'Two plants'}
+          {pair.apart ? 'Not two factories' : 'Two factories'}
         </Button>
-        {pair.apart && <p className="min-w-0 basis-full text-xs text-text-3 sm:ml-2 sm:basis-auto">An admin said these are two plants.</p>}
+        {pair.apart && <p className="min-w-0 basis-full text-xs text-text-3 sm:ml-2 sm:basis-auto">An admin said these are two factories.</p>}
       </div>
       <ErrorNote error={apart.error} className="mt-2" />
       <ConfirmDialog
         open={confirming}
-        title="Merge plants"
+        title="Merge factories"
         description={
           <>
             <p>
@@ -227,13 +227,13 @@ export function PairCard({ pair, nextFocus, onMerged }: PairCardProps) {
 /** What each list is, in a heading and a sentence. */
 const LISTS: Record<PairList, { title: string; description: string; none: string }> = {
   id: {
-    title: 'Plants listed twice',
-    description: 'Two rows that carry one registry id, which the cleanup was not sure are one plant. Merge keeps one row; Two plants keeps both.',
+    title: 'Factories listed twice',
+    description: 'Two rows that carry one registry id, which the cleanup was not sure are one factory. Merge keeps one row; Two factories keeps both.',
     none: 'No two rows carry one registry id.',
   },
   spot: {
-    title: 'Plants on one spot',
-    description: 'Two rows of one company at the same place on the map. Merge keeps one row; Two plants keeps both, as two buildings of one site.',
+    title: 'Factories on one spot',
+    description: 'Two rows of one company at the same place on the map. Merge keeps one row; Two factories keeps both, as two buildings of one site.',
     none: 'No two rows of one company share a spot.',
   },
 };
@@ -324,7 +324,7 @@ export function PairsWaiting() {
   const total = page.data?.total ?? 0;
   if (total === 0) return null;
   return (
-    <PageSection title={LISTS.id.title} description="Two rows that carry one registry id, which the cleanup was not sure are one plant.">
+    <PageSection title={LISTS.id.title} description="Two rows that carry one registry id, which the cleanup was not sure are one factory.">
       <Link
         to={pairsPath('id')}
         className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}

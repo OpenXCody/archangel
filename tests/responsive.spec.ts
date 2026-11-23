@@ -62,12 +62,12 @@ test('entity detail pages render without overflow', async ({ page, request }) =>
     await expect(view, `${base}/:id draws its own view`).toHaveCount(1);
     expect(await view.locator('section, h2, h3').count(), `${base}/:id has content`).toBeGreaterThan(0);
     // Every detail page says what kind of thing it is in the same place: one word above the name.
-    const kind = { '/companies': 'Company', '/factories': 'Plant', '/skills': 'Skill', '/occupations': 'Career' }[base];
+    const kind = { '/companies': 'Company', '/factories': 'Factory', '/skills': 'Skill', '/occupations': 'Career' }[base];
     await expect(view.locator('[data-detail-kind]'), `${base}/:id names its kind`).toHaveText(kind as string);
   }
 });
 
-test('a career page shows its path, a company page its plants', async ({ page, request }) => {
+test('a career page shows its path, a company page its factories', async ({ page, request }) => {
   const career = await firstId(request, '/occupations');
   expect(career, 'the API returned a career to open').toBeTruthy();
   await page.goto(`/occupations/${career}`, { waitUntil: 'domcontentloaded' });
@@ -246,12 +246,12 @@ test('industry pages render without overflow', async ({ page, request }) => {
   await expect(page.locator('[data-industries-view] [data-figure-list] a').first(), 'the list of industries is drawn').toBeVisible();
   await assertHealthyLayout(page, '/industries');
 
-  // The industry with the most plants in the sample's fullest state: a page with every part.
+  // The industry with the most factories in the sample's fullest state: a page with every part.
   const res = await request.get(`${API}/industries?state=TX`);
   expect(res.ok(), 'the API lists industries for a state').toBe(true);
   const list = (await res.json()) as { industries: { slug: string; plants: number }[] };
   const fullest = [...list.industries].sort((a, b) => b.plants - a.plants)[0];
-  expect(fullest?.plants ?? 0, 'the sample has plants with an industry in Texas').toBeGreaterThan(0);
+  expect(fullest?.plants ?? 0, 'the sample has factories with an industry in Texas').toBeGreaterThan(0);
   await page.goto(`/industries/${fullest.slug}?state=TX`, { waitUntil: 'domcontentloaded' });
   const view = page.locator('[data-industry-view]');
   await expect(view.locator('[data-figures]'), 'the figures are drawn').toBeVisible();
@@ -283,7 +283,7 @@ test('global search opens and is usable', async ({ page }) => {
   // The groups come in the one order every search here uses, under its words.
   await expect(dialog.getByRole('option').first()).toBeVisible();
   const headings = await dialog.locator('[role="group"] > [role="presentation"]').allInnerTexts();
-  const order = ['States and areas', 'Industries', 'Companies', 'Plants', 'Careers', 'Skills', 'Jobs'];
+  const order = ['States and areas', 'Industries', 'Companies', 'Factories', 'Careers', 'Skills', 'Jobs'];
   const found = headings.map((heading) => order.findIndex((word) => word.toLowerCase() === heading.trim().toLowerCase()));
   expect(found.every((at) => at !== -1), `group headings are the shared words: ${headings.join(', ')}`).toBe(true);
   expect(found, 'groups are in the shared order').toEqual([...found].sort((a, b) => a - b));
@@ -297,11 +297,26 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   // By their names: each label also holds an unseen copy of itself, which keeps its width when it turns bold.
   await expect(tabs.getByRole('link').first()).toBeVisible();
   const names = await tabs.getByRole('link').evaluateAll((links) => links.map((link) => (link as HTMLElement).innerText.trim()));
-  expect(names).toEqual(['Overview', 'Industries', 'Companies', 'Plants', 'Careers', 'Skills']);
+  expect(names).toEqual(['Overview', 'Industries', 'Companies', 'Factories', 'Careers', 'Skills']);
   await expect(tabs.locator('[aria-current="page"]')).toHaveAccessibleName('Overview');
+  // Six labels do not fit a phone, and the row scrolls. At rest on a 375 px phone the first four are whole:
+  // "Factories" is not cut at the row's edge.
+  const screen = page.viewportSize();
+  if (screen && screen.width >= 375 && screen.width < 640) {
+    await page.setViewportSize({ width: 375, height: screen.height });
+    await expect
+      .poll(() =>
+        tabs.evaluate((row) => {
+          const edge = row.getBoundingClientRect().right;
+          return [...row.querySelectorAll('a')].filter((link) => link.getBoundingClientRect().right <= edge + 0.5).map((link) => (link as HTMLElement).innerText.trim());
+        })
+      )
+      .toEqual(['Overview', 'Industries', 'Companies', 'Factories']);
+    await page.setViewportSize(screen);
+  }
   // The overview's sections are the tabs' words in the tabs' order.
   // (Asked until it is so: the page holds its place with three of them while the answer loads.)
-  await expect.poll(() => page.locator('main h2').allInnerTexts()).toEqual(['Industries', 'Companies', 'Plants', 'Careers', 'Skills']);
+  await expect.poll(() => page.locator('main h2').allInnerTexts()).toEqual(['Industries', 'Companies', 'Factories', 'Careers', 'Skills']);
 
   // The header names its three places in words at every width, and lights the one this page belongs to.
   const main = page.getByRole('navigation', { name: 'Main' });
@@ -361,9 +376,9 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   await expect(page.locator('main a[href^="/skills/"]').first()).toContainText(new RegExp(`${group.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} · (Fundamentals|Intermediate|Advanced)`));
   await expect(page.locator('[data-skill-tree]')).toHaveCount(0);
 
-  // The plants list says plants, and a list's own count follows its filters.
+  // The factories list says factories, and a list's own count follows its filters.
   await page.goto('/explore?tab=factories&state=TX', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-explore-count]')).toHaveText(/^[\d,]+ plants?$/);
+  await expect(page.locator('[data-explore-count]')).toHaveText(/^[\d,]+ (factory|factories)$/);
   await assertHealthyLayout(page, '/explore?tab=factories&state=TX');
 
   // A record's page belongs to Explore; the wordmark, where there is room for it, leads to the map.
@@ -757,7 +772,7 @@ test('a read that gets no answer gives up and says so', async ({ page, baseURL, 
 test("an admin's change reaches the map's panel", async ({ page, request }) => {
   // Nothing is written: the account, Admin Tools' answers and the add itself are stood in for here.
   const plant = await firstId(request, '/factories');
-  expect(plant, 'the API returned a plant to open').toBeTruthy();
+  expect(plant, 'the API returned a factory to open').toBeTruthy();
   let changed = false;
   await page.route('**/api/auth/me', (route) =>
     route.fulfill({
@@ -781,7 +796,7 @@ test("an admin's change reaches the map's panel", async ({ page, request }) => {
     changed = true;
     return route.fulfill({ status: 201, json: { id: '00000000-0000-4000-8000-000000000002', name: 'Changed By The Check', slug: null } });
   });
-  // The plant itself, under another name once an admin has changed something.
+  // The factory itself, under another name once an admin has changed something.
   await page.route(`**/api/factories/${plant}`, async (route) => {
     const response = await route.fetch();
     const record = (await response.json()) as { name: string };
@@ -801,16 +816,16 @@ test("an admin's change reaches the map's panel", async ({ page, request }) => {
   await page.getByRole('button', { name: 'Add company' }).click();
   await expect(page.locator('[data-record-added]')).toBeVisible();
 
-  // Back to the plant on the map: it is read again, not shown as it was before the change.
+  // Back to the factory on the map: it is read again, not shown as it was before the change.
   for (let step = 0; step < 4 && !/\/map\?/.test(page.url()); step++) await page.goBack();
   expect(page.url(), 'back on the map').toContain(`/map?factory=${plant}`);
   await expect(page).toHaveTitle('Renamed Works · Archangel');
 });
 
-test("a plant's page says its county, with the official figures and no source", async ({ page, request }) => {
+test("a factory's page says its county, with the official figures and no source", async ({ page, request }) => {
   // The county is worked out from coordinates by a script, outside the app: its answer is stood in for here.
   const plant = await firstId(request, '/factories');
-  expect(plant, 'the API returned a plant to open').toBeTruthy();
+  expect(plant, 'the API returned a factory to open').toBeTruthy();
   let answer: unknown = {
     county: { fips: '48453', name: 'Travis County', state: 'TX' },
     metro: { code: '12420', name: 'Austin-Round Rock-San Marcos, TX', kind: 'metropolitan' },
@@ -832,11 +847,11 @@ test("a plant's page says its county, with the official figures and no source", 
   await page.goto(`/factories/${plant}`, { waitUntil: 'domcontentloaded' });
   await expect(line).toHaveText('Bullock County: 6 establishments in manufacturing.');
 
-  // A plant with no county, or a county with nothing published, says nothing.
+  // A factory with no county, or a county with nothing published, says nothing.
   for (const none of [{ county: null, metro: null, manufacturing: null }, { county: { fips: '15005', name: 'Kalawao County', state: 'HI' }, metro: null, manufacturing: null }]) {
     answer = none;
     await page.goto(`/factories/${plant}`, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('[data-entity-view="factories"] [data-detail-kind]')).toHaveText('Plant');
+    await expect(page.locator('[data-entity-view="factories"] [data-detail-kind]')).toHaveText('Factory');
     await page.waitForTimeout(600);
     await expect(line).toHaveCount(0);
   }
@@ -854,7 +869,7 @@ test('the data quality table fits the screen, and says what it counts', async ({
     })
   );
   await page.route('**/api/me/news', (route) => route.fulfill({ json: { applications: false, applicants: false, access: false } }));
-  // Fifty-one states' worth of counts, shaped like production's: Texas largest, most plants without a headcount.
+  // Fifty-one states' worth of counts, shaped like production's: Texas largest, most factories without a headcount.
   const codes = 'TX CA OH IL PA MI NY IN WI NC GA FL TN MN MO NJ MA AL SC KY VA WA IA LA OR AR OK KS MS AZ CO CT MD UT NE WV NH ME ID NV NM DE SD RI ND MT VT AK HI WY DC'.split(' ');
   const states = codes.map((state, i) => {
     const plants = Math.round(4300 / (1 + i * 0.35)) + 3;
@@ -882,12 +897,12 @@ test('the data quality table fits the screen, and says what it counts', async ({
   await expect(table.locator('tbody tr')).toHaveCount(states.length + 1);
   const cells = table.locator('[data-quality-total] td');
   const count = (n: number) => n.toLocaleString('en-US');
-  // Shares first: a part of the plants as a percentage; plants and the two tallies stay counts.
+  // Shares first: a part of the factories as a percentage; factories and the two tallies stay counts.
   await expect(cells.nth(0)).toHaveText(count(total.plants));
   await expect(cells.nth(1)).toHaveText(`${((total.industry / total.plants) * 100).toFixed(1)}%`);
   await expect(cells.nth(7)).toHaveText(count(total.onePlantCompanies));
   await expect(cells.nth(8)).toHaveText(count(total.duplicates));
-  // "100%" only when it is every plant: Texas is two short of it.
+  // "100%" only when it is every factory: Texas is two short of it.
   const texas = table.locator('[data-quality-row="TX"] td');
   await expect(texas.nth(3)).not.toHaveText('100%');
   await expect(table.locator('[data-quality-row="CA"] td').nth(3)).toHaveText('100%');
@@ -904,7 +919,7 @@ test('the data quality table fits the screen, and says what it counts', async ({
   // What each column counts is written under the table, with the two figures the table cannot show.
   const definitions = page.locator('[data-quality-definitions]');
   await expect(definitions).toContainText(`${count(total.onePlantCompanies)} of ${count(total.companies)} companies`);
-  await expect(definitions).toContainText(`${count(total.duplicates)} plants at ${count(total.duplicateGroups)} spots`);
+  await expect(definitions).toContainText(`${count(total.duplicates)} factories at ${count(total.duplicateGroups)} spots`);
   await definitions.scrollIntoViewIfNeeded();
   await assertHealthyLayout(page, '/admin?tab=data:quality-definitions');
 });
@@ -1191,7 +1206,7 @@ test("an employer edits the company's version of a career with a thumb: a tap le
   await expect(page.locator('[data-version-page]')).toHaveAttribute('href', new RegExp(`/occupations/${occupation.id}\\?at=`));
 });
 
-test('two rows that may be one plant are set side by side, and merged or kept apart', async ({ page }) => {
+test('two rows that may be one factory are set side by side, and merged or kept apart', async ({ page }) => {
   // Nothing is written and no account is made: the admin, the pairs and the answers are stood in for here.
   await page.route('**/api/auth/me', (route) =>
     route.fulfill({
@@ -1255,7 +1270,7 @@ test('two rows that may be one plant are set side by side, and merged or kept ap
   const card = page.locator(`[data-pair="${A}:${B}"]`);
   await expect(card).toBeVisible();
   await expect(card.locator('[data-pair-reason]')).toContainText('EPA registry id 110000460466');
-  await expect(card.locator('[data-pair-reason]')).toContainText('One plant under two companies');
+  await expect(card.locator('[data-pair-reason]')).toContainText('One factory under two companies');
   await assertHealthyLayout(page, '/admin?tab=data&pairs=id');
   // The two rows stand side by side on a wide screen and one above the other on a phone, never past the edge.
   const edges = await card.locator('[data-pair-side]').evaluateAll((sides) => sides.map((el) => el.getBoundingClientRect().right));
@@ -1278,10 +1293,10 @@ test('two rows that may be one plant are set side by side, and merged or kept ap
   await expect(locked.locator(`[data-pair-side="${E}"]`)).toHaveAttribute('aria-checked', 'true');
   await expect(locked.locator('[data-pair-takes]')).toContainText('The row written from sources is the one kept.');
 
-  // Two plants: said in one press, with a way back.
+  // Two factories: said in one press, with a way back.
   await locked.locator('[data-pair-apart]').click();
   await expect.poll(() => apart).toEqual({ a: C, b: E, apart: true });
-  await expect(page.getByText('Kept FMC TECHNOLOGIES INC and TechnipFMC Stephenville as two plants.')).toBeVisible();
+  await expect(page.getByText('Kept FMC TECHNOLOGIES INC and TechnipFMC Stephenville as two factories.')).toBeVisible();
 
   // Merge asks first, naming both rows; then says what it did.
   await card.locator('[data-pair-merge]').click();
@@ -1852,7 +1867,7 @@ test('military careers stay out of the lists until asked for: the Careers filter
   // A code that can be nothing else leads.
   await dialog.getByRole('combobox').fill('15T');
   await expect(dialog.getByRole('option').first()).toContainText('Army MOS · 15T');
-  // A service's name is the service: it has no plants, and is found by its name alone.
+  // A service's name is the service: it has no factories, and is found by its name alone.
   await dialog.getByRole('combobox').fill('navy');
   await expect(dialog.getByRole('option').first()).toContainText('U.S. Navy');
   await expect(dialog.getByRole('option').first()).toContainText('Military service');
@@ -2083,7 +2098,7 @@ test("a military career's page: its kind and code above the service's own title,
   await expect(view.locator('[data-path-flow] [data-skill-tag]')).toHaveCount(record.skills.length);
   await expect(view.locator('[data-draft-path]')).toBeVisible();
   await expect(view.getByRole('link', { name: 'Atlas', exact: true }).or(view.getByRole('button', { name: 'Atlas', exact: true })).or(view.getByRole('radio', { name: 'Atlas', exact: true })).first()).toBeVisible();
-  // It has no ladder, industries, jobs, companies or plants: none of those sections is drawn, and none is empty.
+  // It has no ladder, industries, jobs, companies or factories: none of those sections is drawn, and none is empty.
   await expect(view.locator('#where, #jobs, #companies, #factories, #military')).toHaveCount(0);
   await expect(view.getByText(/Comes from|Leads to/)).toHaveCount(0);
   expect(await view.locator('section').evaluateAll((sections) => sections.map((section) => section.id))).toEqual(['skills', 'reach']);

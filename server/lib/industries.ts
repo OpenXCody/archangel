@@ -190,7 +190,7 @@ export async function plantCounty(factoryId: string) {
 }
 
 /** Words in an industry's sentence that say nothing about which industry it is. */
-const PLAIN_WORDS = new Set(['plants', 'plant', 'make', 'makes', 'that', 'turn', 'into', 'other', 'products', 'goods', 'from', 'them', 'work', 'shops', 'mills', 'parts']);
+const PLAIN_WORDS = new Set(['factories', 'factory', 'plants', 'plant', 'make', 'makes', 'that', 'turn', 'into', 'other', 'products', 'goods', 'from', 'them', 'work', 'shops', 'mills', 'parts']);
 
 /**
  * Industries a search term names, best first: by the name it goes by on

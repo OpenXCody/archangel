@@ -13,13 +13,13 @@ import { useAdminNotice } from './AdminNotice';
 const n = (value: number) => value.toLocaleString('en-US');
 
 // ---------------------------------------------------------------------------
-// Postings with no plant
+// Postings with no factory
 // ---------------------------------------------------------------------------
 
 /**
- * One place an employer's postings name where we list no plant of that
- * employer. Pointing it at a plant makes a job of every posting that names
- * it, at once; leaving it says it is not a plant we list (an office, a
+ * One place an employer's postings name where we list no factory of that
+ * employer. Pointing it at a factory makes a job of every posting that names
+ * it, at once; leaving it says it is not a factory we list (an office, a
  * customer's site), and it is not asked about again. Both can be taken back.
  */
 function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: string }) {
@@ -64,10 +64,10 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
         {place.plants.length > 0 ? (
           <>
             <label htmlFor={selectId} className="sr-only">
-              The plant {where} is
+              The factory {where} is
             </label>
             <select id={selectId} value={plantId} onChange={(event) => setPlantId(event.target.value)} className={cn(fieldClass, 'w-full min-w-0 sm:w-auto sm:max-w-md sm:flex-1')}>
-              <option value="">Choose a plant</option>
+              <option value="">Choose a factory</option>
               {place.plants.map((plant) => (
                 <option key={plant.id} value={plant.id}>
                   {[formatFactoryName(plant.name), plant.city ? formatFactoryName(plant.city) : null].filter(Boolean).join(', ')}
@@ -88,7 +88,7 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
           </>
         ) : (
           <p className="min-w-0 basis-full text-xs text-text-3">
-            The company has no plant in {place.state} in our data. Add the plant, and the next run places these postings.
+            The company has no factory in {place.state} in our data. Add the factory, and the next run places these postings.
           </p>
         )}
         <button type="button" onClick={leave} className={cn(textButtonClass, 'ml-1 min-h-[42px]')}>
@@ -104,7 +104,7 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
 export const PLACES_PATH = '/admin?tab=data&postings=places';
 
 /**
- * The way into the places employers' postings name where we list no plant of
+ * The way into the places employers' postings name where we list no factory of
  * theirs. Drawn only while some wait, and as one line: a first run leaves
  * dozens, and the tab is for more than them.
  */
@@ -113,7 +113,7 @@ export function PlacesWaiting() {
   const total = places.data?.total ?? 0;
   if (total === 0) return null;
   return (
-    <PageSection title="Postings with no plant" description="Places employers' postings name where we list no plant of theirs.">
+    <PageSection title="Postings with no factory" description="Places employers' postings name where we list no factory of theirs.">
       <Link
         to={PLACES_PATH}
         className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}
@@ -130,7 +130,7 @@ export function PlacesWaiting() {
 
 /**
  * The places themselves, the ones most postings name first: it is also the
- * best report of plants the data is missing.
+ * best report of factories the data is missing.
  */
 export function PlacesView() {
   const places = useWaitingPlaces();
@@ -143,8 +143,8 @@ export function PlacesView() {
         Back
       </Link>
       <PageSection
-        title="Postings with no plant"
-        description="Employers' postings that name a place where we list no plant of theirs. Point the place at a plant, and every posting naming it becomes a job there."
+        title="Postings with no factory"
+        description="Employers' postings that name a place where we list no factory of theirs. Point the place at a factory, and every posting naming it becomes a job there."
       >
         {places.isLoading ? (
           <RowsSkeleton />
@@ -223,7 +223,7 @@ function RunLine({ source }: { source: PostingSource }) {
 /**
  * Every employer whose public postings the intake runner reads, with its
  * latest run: postings read and kept, jobs new, changed and closed, postings
- * waiting for a plant; or what refused. Drawn once a run has been made.
+ * waiting for a factory; or what refused. Drawn once a run has been made.
  */
 export function PostingRuns() {
   const sources = usePostingSources();

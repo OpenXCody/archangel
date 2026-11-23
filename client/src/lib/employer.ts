@@ -5,7 +5,7 @@ import type { JobStatus } from './jobs';
 import { accountKeys, invalidate } from './queryKeys';
 
 /**
- * The employer page's own data: a person's companies with their plants and
+ * The employer page's own data: a person's companies with their factories and
  * jobs, and asking to join a company or leaving one. Finding a company and
  * asking for a missing one are in `employerCompanies.ts`; a job's edits and
  * applicants in `employerJobs.ts`.

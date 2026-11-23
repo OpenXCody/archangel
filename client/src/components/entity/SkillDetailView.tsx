@@ -132,7 +132,7 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
       {/* Where: the industries its careers are typical of */}
       {(industries.length > 0 || data.everywhere) && (
         <DetailSection id="industries" title="Where it is used">
-          {industries.length > 0 ? <IndustryRows industries={industries} /> : <p className="text-sm text-text-2">Plants of every industry.</p>}
+          {industries.length > 0 ? <IndustryRows industries={industries} /> : <p className="text-sm text-text-2">Factories of every industry.</p>}
         </DetailSection>
       )}
 

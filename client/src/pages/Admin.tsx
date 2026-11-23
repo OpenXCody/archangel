@@ -58,7 +58,7 @@ const waitingLinkClass = 'font-medium text-text-1 underline hover:no-underline';
 
 /**
  * What is waiting on an admin, above the tabs: requests to join a company,
- * requests to add a company or a plant, and matches a source's run was not
+ * requests to add a company or a factory, and matches a source's run was not
  * sure of. Each links to where
  * it is answered. Nothing is drawn when nobody waits, or before the counts
  * are known, so the line means something when it is there. (Draft career
@@ -75,7 +75,7 @@ function Waiting() {
   }, [refused, queryClient]);
 
   const requests = overview.data?.pendingMemberships ?? 0;
-  // Companies and plants people asked to have added: answered on the Access tab too.
+  // Companies and factories people asked to have added: answered on the Access tab too.
   const toAdd = useAdminCompanyRequests().data?.length ?? 0;
   // Matches a source's run was not sure of: decided under Data.
   const matches = overview.data?.waitingMatches ?? 0;
@@ -90,7 +90,7 @@ function Waiting() {
       )}
       {toAdd > 0 && (
         <Link to="/admin?tab=access" className={waitingLinkClass} data-waiting-to-add>
-          {toAdd.toLocaleString('en-US')} {toAdd === 1 ? 'request' : 'requests'} to add a company or plant
+          {toAdd.toLocaleString('en-US')} {toAdd === 1 ? 'request' : 'requests'} to add a company or factory
         </Link>
       )}
       {matches > 0 && (

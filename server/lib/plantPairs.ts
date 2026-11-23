@@ -212,6 +212,13 @@ export async function plantsNear(id: string, term: string, limit = 8): Promise<N
 /** What the database's own refusals mean to the person who asked (plant_merge raises them). */
 const REFUSED: Record<string, number> = { PM400: 400, PM404: 404, PM409: 409 };
 
+/** The database's refusals say "plant" (its migration is never edited); the screen says factory. */
+const SAID: Record<string, string> = {
+  'Plant not found': 'Factory not found',
+  'The plant to merge into was not found.': 'The factory to merge into was not found.',
+  'Choose a different plant to merge into.': 'Choose a different factory to merge into.',
+};
+
 /** What plant_merge answers. */
 export interface MergeOutcome {
   kept: { id: string; name: string };
@@ -227,7 +234,7 @@ export interface MergeOutcome {
  * not there, 409 for a plant written from sources into one that was not.
  */
 export async function mergePlants(fromId: string, intoId: string, actor: Actor): Promise<MergeOutcome> {
-  if (fromId === intoId) throw new RecordRefusal(400, 'Choose a different plant to merge into.');
+  if (fromId === intoId) throw new RecordRefusal(400, 'Choose a different factory to merge into.');
   try {
     return await db.transaction(async (tx) => {
       const [row] = rowsOf<{ merged: MergeOutcome }>(
@@ -251,12 +258,12 @@ export async function mergePlants(fromId: string, intoId: string, actor: Actor):
       return outcome;
     });
   } catch (error) {
-    // The database's own refusal, as it worded it (the driver's error, or one wrapped around it).
+    // The database's own refusal, in the screen's words (the driver's error, or one wrapped around it).
     const raised = [error, (error as { cause?: unknown }).cause].find(
       (candidate): candidate is { code: string; message: string } =>
         typeof (candidate as { code?: unknown } | undefined)?.code === 'string' && (candidate as { code: string }).code in REFUSED
     );
-    if (raised) throw new RecordRefusal(REFUSED[raised.code], raised.message);
+    if (raised) throw new RecordRefusal(REFUSED[raised.code], SAID[raised.message] ?? raised.message);
     throw error;
   }
 }
@@ -275,7 +282,7 @@ async function namesOf(executor: Executor, aId: string, bId: string): Promise<{ 
  * by the lists in Admin Tools or by a later cleanup. Audited as a `factory` line.
  */
 export async function setApart(aId: string, bId: string, apart: boolean, actor: Actor): Promise<{ apart: boolean }> {
-  if (aId === bId) throw new RecordRefusal(400, 'Two different plants are needed.');
+  if (aId === bId) throw new RecordRefusal(400, 'Two different factories are needed.');
   const [low, high] = aId < bId ? [aId, bId] : [bId, aId];
   return db.transaction(async (tx) => {
     const { a, b } = await namesOf(tx, aId, bId);

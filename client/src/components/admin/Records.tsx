@@ -10,13 +10,13 @@ const KIND_OPTIONS = RECORD_KINDS.map((option) => ({ value: option.kind, label: 
 
 const FIND_LABEL: Record<RecordKind, string> = {
   company: 'Find a company to correct',
-  factory: 'Find a plant to correct',
+  factory: 'Find a factory to correct',
   career: 'Find a career to correct',
   skill: 'Find a skill to correct',
 };
 const ADD_LABEL: Record<RecordKind, string> = {
   company: 'Add a company',
-  factory: 'Add a plant',
+  factory: 'Add a factory',
   career: 'Add a career',
   skill: 'Add a skill',
 };

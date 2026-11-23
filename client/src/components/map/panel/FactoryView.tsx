@@ -11,7 +11,7 @@ import { shownIndustry } from '@shared/industry';
 import { usePins } from '../../../lib/queries';
 import { Heading, Section, JobRows, MORE_LINK, CareerRows, More, RowList, NodeRow, PageLink, Figures, META_IN_ROW } from './parts';
 
-/** How far "nearby" reaches, and how many plants it lists. */
+/** How far "nearby" reaches, and how many factories it lists. */
 const NEARBY_MILES = 30;
 const NEARBY_COUNT = 5;
 
@@ -25,7 +25,7 @@ interface NearbyPlant {
 }
 
 /**
- * The plants closest to one plant, from the pins the map already holds: the
+ * The factories closest to one factory, from the pins the map already holds: the
  * same query the map reads, so nothing is requested and the list is there
  * with the panel.
  */
@@ -64,9 +64,9 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
   const factoryName = formatFactoryName(factory.name);
   const companyName = company ? formatCompanyName(company.name) : null;
   const place = cityState(factory.city, factory.state);
-  // What the plant makes: its industry, else what its own record says it does. Never the company's free text.
+  // What the factory makes: its industry, else what its own record says it does. Never the company's free text.
   const industry = shownIndustry(factory.industry) ?? (factory.specialization || null);
-  // A curated plant's address was written by a person ("1530 FM 973") and is left as it is.
+  // A curated factory's address was written by a person ("1530 FM 973") and is left as it is.
   const street = factory.address?.trim() ?? '';
   const address = street && street.toLowerCase() !== (factory.city ?? '').trim().toLowerCase() ? (factory.curated ? street : titleCase(street)) : null;
   const jobs = factory.jobs ?? [];
@@ -80,7 +80,7 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
   const typical = factory.typicalCareers ?? [];
   const sisters = new Set(nearby.map((site) => site.id));
   const neighbours = useNearbyPlants(factory.id, factory.latitude, factory.longitude).filter((plant) => !sisters.has(plant.id));
-  // A company whose one plant this is, under the same name, would only repeat the heading.
+  // A company whose one factory this is, under the same name, would only repeat the heading.
   const companyIsThisPlant =
     companyName !== null && siteCount <= 1 && !company?.description && factoryName.toLowerCase().startsWith(companyName.toLowerCase());
 
@@ -112,7 +112,7 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
         </Section>
       )}
       {factory.description && (
-        <Section title="About this plant">
+        <Section title="About this factory">
           <p className="text-[15px] leading-relaxed text-text-2">{factory.description}</p>
         </Section>
       )}
@@ -130,7 +130,7 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
                 <span className="block truncate text-[15px] text-text-1">{companyName}</span>
                 {siteCount > 0 && (
                   <span className={`block text-[13px] tabular-nums ${META_IN_ROW}`}>
-                    {siteCount.toLocaleString()} {siteCount === 1 ? 'plant' : 'plants'}
+                    {siteCount.toLocaleString()} {siteCount === 1 ? 'factory' : 'factories'}
                     {stateCount > 1 ? ` in ${stateCount} states` : ''}
                   </span>
                 )}
@@ -165,11 +165,11 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
             }))}
             limit={4}
           />
-          <More shown={Math.min(4, recorded.length)} total={recorded.length} noun="on the plant's page" />
+          <More shown={Math.min(4, recorded.length)} total={recorded.length} noun="on the factory's page" />
         </Section>
       ) : (
         typical.length > 0 && (
-          // With none recorded for the plant, the careers typical of its industry.
+          // With none recorded for the factory, the careers typical of its industry.
           <Section title="Careers in this industry">
             <CareerRows careers={typical} limit={6} />
           </Section>
@@ -178,7 +178,7 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
 
       {/* Where next */}
       {nearby.length > 0 && companyName && (
-        <Section title={`Other ${companyName} plants`}>
+        <Section title={`Other ${companyName} factories`}>
           <RowList>
             {nearby.map((site) => (
               <NodeRow
@@ -197,7 +197,7 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
         </Section>
       )}
       {neighbours.length > 0 && (
-        <Section title="Plants nearby">
+        <Section title="Factories nearby">
           <RowList>
             {neighbours.map((plant) => {
               const name = formatFactoryName(plant.name);
@@ -219,7 +219,7 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
           </RowList>
         </Section>
       )}
-      <PageLink to={`/factories/${factory.id}`}>Plant page</PageLink>
+      <PageLink to={`/factories/${factory.id}`}>Factory page</PageLink>
     </>
   );
 }

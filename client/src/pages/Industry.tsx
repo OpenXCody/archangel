@@ -41,17 +41,17 @@ const STATES_SHOWN = 6;
 
 /**
  * What stands under an employer's name. A headcount recorded for only some of
- * its plants is said to be that, so the figure beside it is never read as the
+ * its factories is said to be that, so the figure beside it is never read as the
  * company's size here.
  */
 function employerLine(employer: IndustryEmployer): string {
   if (employer.people !== null && employer.counted < employer.plants) {
-    return `People at ${employer.counted} of ${plural(employer.plants, 'plant', 'plants')}`;
+    return `People at ${employer.counted} of ${plural(employer.plants, 'factory', 'factories')}`;
   }
-  return plural(employer.plants, 'plant', 'plants');
+  return plural(employer.plants, 'factory', 'factories');
 }
 
-/** The industry's plants on the map, in this place. */
+/** The industry's factories on the map, in this place. */
 function mapPath(industryName: string, place: PagePlace): string {
   const query = new URLSearchParams({ industry: industryName, ...placeQuery(place) });
   return `/map?${query}`;
@@ -65,14 +65,14 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
 
   const figures = [
     ...officialFigures(data.stats),
-    ...(data.plants > 0 ? [{ label: 'Plants listed', value: data.plants.toLocaleString() }] : []),
+    ...(data.plants > 0 ? [{ label: 'Factories listed', value: data.plants.toLocaleString() }] : []),
   ];
   // With no official figures the product's own count stands alone, beside how many companies it covers.
   if (figures.length < 3 && data.companies > 1) figures.push({ label: 'Companies', value: data.companies.toLocaleString() });
 
-  // People are ranked on only when somebody's are recorded; otherwise this is who has the most plants.
+  // People are ranked on only when somebody's are recorded; otherwise this is who has the most factories.
   const ranked = data.employers.some((employer) => employer.people !== null);
-  // Unranked, the figure is each company's plants; a column of ones says nothing and is left out.
+  // Unranked, the figure is each company's factories; a column of ones says nothing and is left out.
   const counted = ranked || data.employers.some((employer) => employer.plants > 1);
   // A list a couple of rows longer than the cut is shown whole: "Show all 9" under eight rows is noise.
   const careersCut = data.careers.length > CAREERS_SHOWN + 2;
@@ -91,7 +91,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
       {data.stats && <SourceLine stats={data.stats} />}
       {data.plants === 0 && (
         <p className="mt-6 text-sm text-text-2" data-nothing-listed>
-          No plants in this industry are listed in {placeName}.
+          No factories in this industry are listed in {placeName}.
           {data.place.kind !== 'country' && (
             <>
               {' '}
@@ -124,7 +124,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
             rows={(allStates ? cities : cities.slice(0, STATES_SHOWN)).map((city) => {
               const name = titleCase(city.name);
               const within = city.state ? stateName(city.state) : placeName;
-              // The map, on this city, showing this industry's plants.
+              // The map, on this city, showing this industry's factories.
               const query = new URLSearchParams({ industry: industry.name, place: name, in: within, box: (city.box ?? []).flat().join('_') });
               return { key: `${city.name}-${city.state ?? ''}`, to: `/map?${query}`, label: name, plants: city.plants };
             })}
@@ -153,9 +153,9 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
         </DetailSection>
       )}
 
-      {/* Who is here. The column says how they are ranked: by people where that is recorded, else by plants. */}
+      {/* Who is here. The column says how they are ranked: by people where that is recorded, else by factories. */}
       {data.employers.length > 0 && (
-        <DetailSection id="employers" title="Companies" column={ranked ? 'People' : counted ? 'Plants' : undefined}>
+        <DetailSection id="employers" title="Companies" column={ranked ? 'People' : counted ? 'Factories' : undefined}>
           <RecordList>
             {data.employers.map((employer) => {
               const name = formatCompanyName(employer.name);
@@ -167,7 +167,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
                   title={name}
                   subtitle={ranked ? employerLine(employer) : null}
                   figure={ranked ? employer.people : counted ? employer.plants : null}
-                  figureLabel={ranked ? 'people' : 'plants'}
+                  figureLabel={ranked ? 'people' : 'factories'}
                 />
               );
             })}
@@ -175,16 +175,16 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
         </DetailSection>
       )}
 
-      {/* The largest plants where people are recorded, and the way to all of them */}
+      {/* The largest factories where people are recorded, and the way to all of them */}
       {(data.largestPlants.length > 0 || plantsLink) && (
         <DetailSection
           id="plants"
-          title="Plants"
+          title="Factories"
           column={data.largestPlants.length > 0 ? 'People' : undefined}
           action={
             plantsLink ? (
               <Link to={plantsLink} className={sectionLinkClass} data-all-plants>
-                All {plural(data.plants, 'plant', 'plants')}
+                All {plural(data.plants, 'factory', 'factories')}
               </Link>
             ) : undefined
           }
@@ -200,7 +200,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
                     key={plant.id}
                     to={`/factories/${plant.id}`}
                     title={name}
-                    // The company is said only when the plant is not simply named after it.
+                    // The company is said only when the factory is not simply named after it.
                     subtitle={[company && !name.toLowerCase().startsWith(company.toLowerCase()) ? company : null, where].filter(Boolean).join(' · ') || null}
                     figure={plant.people}
                     figureLabel="people"
@@ -211,7 +211,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
           )}
           {data.largestPlants.length > 0 && plantsLink && (
             <Link to={plantsLink} className={cn(sectionLinkClass, 'mt-1 inline-flex min-h-11 items-center')}>
-              All {plural(data.plants, 'plant', 'plants')}
+              All {plural(data.plants, 'factory', 'factories')}
             </Link>
           )}
         </DetailSection>
@@ -235,7 +235,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
 /**
  * An industry's page: one of the 21, for the country or narrowed to a state
  * or a focus area from the address (?state=TX, ?area=austin). What it is and
- * how big, where it is, open jobs, its companies, its largest plants and its
+ * how big, where it is, open jobs, its companies, its largest factories and its
  * careers. A part with nothing to say is left out.
  */
 export default function Industry() {

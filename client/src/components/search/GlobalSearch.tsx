@@ -249,8 +249,8 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
               enterKeyHint="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Company, plant, career or skill"
-              aria-label="Company, plant, career or skill"
+              placeholder="Company, factory, career or skill"
+              aria-label="Company, factory, career or skill"
               className="min-w-0 flex-1 bg-transparent text-base text-text-1 placeholder:text-text-3"
               style={{ outline: 'none', border: 'none', boxShadow: 'none', WebkitAppearance: 'none' }}
             />

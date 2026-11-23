@@ -182,6 +182,13 @@ export async function waitingMatches(): Promise<number> {
 }
 
 /**
+ * A match's reason as the screen says it. A run words it (scripts/ingest/lib/pipeline.mjs)
+ * and says factory; one stored by a run before the screen did still says plant. A
+ * reason is the runner's own phrases and holds no name, so the word is safe to restate.
+ */
+const reasonSaid = (reason: string): string => reason.replace(/\bplants\b/g, 'factories').replace(/\bplant\b/g, 'factory');
+
+/**
  * The matches waiting for a person: the ones nobody has looked at first,
  * oldest first, then the ones skipped. Each carries the source's record and
  * our candidate plants as they are now (a candidate deleted since is left out).
@@ -227,7 +234,7 @@ export async function reviewQueue(limit: number, offset: number): Promise<{ item
       sourceName: row.source_name,
       sourceId: row.source_id,
       sourceUrl: text(row.facts.url),
-      reason: row.reason,
+      reason: reasonSaid(row.reason),
       ifDifferent: row.unmatched,
       record: {
         name: text(row.facts.name),
@@ -297,9 +304,9 @@ export async function decideReview(id: number, decision: ReviewDecision, candida
     }
 
     if (decision === 'same') {
-      if (!candidateId || !candidates.includes(candidateId)) throw new RecordRefusal(400, 'Choose one of the plants shown.');
+      if (!candidateId || !candidates.includes(candidateId)) throw new RecordRefusal(400, 'Choose one of the factories shown.');
       const [plant] = rowsOf<{ id: string; name: string }>(await tx.execute(sql`SELECT id, name FROM factories WHERE id = ${candidateId} FOR UPDATE`));
-      if (!plant) throw new RecordRefusal(409, 'That plant is no longer there.');
+      if (!plant) throw new RecordRefusal(409, 'That factory is no longer there.');
       // One record of a source per plant: a plant that has taken another id of this source since is not this record.
       const [taken] = rowsOf<{ external_id: string }>(
         await tx.execute(sql`
@@ -307,7 +314,7 @@ export async function decideReview(id: number, decision: ReviewDecision, candida
           WHERE s.slug = ${item.source} AND x.entity_type = 'factories' AND x.entity_id = ${candidateId} AND NOT x.duplicate AND x.external_id <> ${item.source_id}
           LIMIT 1`)
       );
-      if (taken) throw new RecordRefusal(409, `That plant already carries another record of this source (${taken.external_id}).`);
+      if (taken) throw new RecordRefusal(409, `That factory already carries another record of this source (${taken.external_id}).`);
       await tx.execute(sql`
         UPDATE intake_links SET entity_id = ${candidateId}, resolution = 'matched', resolved_run_id = ${runId}
         WHERE source = ${item.source} AND source_id = ${item.source_id}`);
