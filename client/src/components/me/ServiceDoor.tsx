@@ -1,127 +1,18 @@
-import { useEffect, useRef, useState, type MutableRefObject, type ReactNode } from 'react';
-import { cn, labelClass, plural } from '@/lib/utils';
-import { useCareerDone, type DoneCareer } from '../../lib/seeker';
-import CareerPicker from '../account/CareerPicker';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { cn, plural } from '@/lib/utils';
+import type { DoneCareer } from '../../lib/seeker';
 import { ErrorNote, textButtonClass } from '../account/parts';
-import { PageSection } from '../layout/Page';
 
 /*
- * "Start with what you have done": the door a person who served comes in by.
- * They choose their rating, MOS or specialty (the one search that offers
- * military careers) and every skill of its path is marked held in that one
- * tap. What was done is said in the product's way, with Undo, which takes
- * back exactly what the tap changed. Nothing is kept about which career it
- * was: the person's skills are the record, and from them Profile lists the
- * civilian careers within reach.
+ * What is said after a person marks a military career as done ("I have done
+ * this" on the career's page, components/account/DoneButton): every skill of
+ * its path was marked held in one write, and Undo takes back exactly that.
  *
- * On a Profile with nothing on it the door is a section beside "Start with a
- * career"; on one that has goals or skills it is one line at the end of
- * Skills, which opens in place. It is a seeker's: nobody else is shown it.
+ * Profile itself asks nothing about military service: it had a second door
+ * here, "Start with what you have done", which mixed a question for people
+ * who served into every civilian's page. The way to the military careers is
+ * the Careers list (Industry | Military).
  */
-
-/** Where on Profile the door was used: the starting page, or the line at the end of Skills. */
-type DoorPlace = 'start' | 'skills';
-
-/** One tap in the door: what it changed, and where it was made. */
-type Tap = DoneCareer & { from: DoorPlace };
-
-/** The door's state, held by the page so it outlasts the starting page it may be used from. */
-export interface Door {
-  /**
-   * The taps of this visit that changed something and have not been taken back, oldest first. Each keeps its
-   * own Undo: a second rating chosen does not cost the first its way back.
-   */
-  taps: Tap[];
-  /** The last answer, when it changed nothing: said, with nothing to undo, until the next tap or Undo. */
-  nothing: Tap | null;
-  /** How many taps have been answered this visit: the search at the end of Skills closes when one is. */
-  answers: number;
-  choose: (occupationId: string, from: DoorPlace) => void;
-  undo: (tap: Tap) => void;
-  marking: boolean;
-  undoing: boolean;
-  /** Why the last tap, or the last Undo, did not go through. Each is said beside its own control. */
-  markError: Error | null;
-  undoError: Error | null;
-  /**
-   * When what held the keyboard's focus went with nothing said to take it (the last Undo pressed, an answer
-   * with no Undo): the moment, or 0. Whichever of the door's own controls is on the page takes the focus, and
-   * for a moment after: the page may still be changing from the one the door filled to the one it started
-   * on, and the control that took the focus first may go with it.
-   */
-  focusDoor: MutableRefObject<number>;
-}
-
-export function useServiceDoor(): Door {
-  const { mark, undo } = useCareerDone();
-  const [taps, setTaps] = useState<Tap[]>([]);
-  const [nothing, setNothing] = useState<Tap | null>(null);
-  const [answers, setAnswers] = useState(0);
-  // Two taps in one frame are one: `isPending` is only as new as the last render.
-  const writing = useRef(false);
-  const focusDoor = useRef(0);
-  return {
-    taps,
-    nothing,
-    answers,
-    choose: (occupationId, from) => {
-      if (writing.current) return;
-      writing.current = true;
-      undo.reset();
-      mark.mutate(occupationId, {
-        onSuccess: (answer) => {
-          const tap = { ...answer, from };
-          setAnswers((count) => count + 1);
-          if (answer.added.length + answer.raised.length > 0) {
-            setTaps((before) => [...before, tap]);
-            setNothing(null);
-          } else {
-            setNothing(tap);
-            focusDoor.current = Date.now();
-          }
-        },
-        onSettled: () => {
-          writing.current = false;
-        },
-      });
-    },
-    undo: (tap) => {
-      if (writing.current) return;
-      writing.current = true;
-      undo.mutate(tap, {
-        onSuccess: () => {
-          // An earlier tap made in the same place takes the focus with its own Undo; with none, the door does.
-          if (!taps.some((other) => other !== tap && other.from === tap.from)) focusDoor.current = Date.now();
-          setTaps((before) => before.filter((other) => other !== tap));
-          setNothing(null);
-        },
-        onSettled: () => {
-          writing.current = false;
-        },
-      });
-    },
-    marking: mark.isPending,
-    undoing: undo.isPending,
-    markError: mark.error,
-    undoError: undo.error,
-    focusDoor,
-  };
-}
-
-/** How long the door goes on asking for the focus: the page it stands on settles well within it. */
-const FOCUS_WINDOW_MS = 1500;
-
-/** Give the keyboard's focus to one of the door's controls when the door asked for it (`Door.focusDoor`). */
-function useDoorFocus(door: Door, target: () => HTMLElement | null) {
-  // After every render: the control may only just have come back.
-  useEffect(() => {
-    if (Date.now() - door.focusDoor.current > FOCUS_WINDOW_MS) return;
-    // Only focus that was lost: nothing is taken from wherever the person has gone since.
-    const active = document.activeElement;
-    if (active && active !== document.body && active.isConnected) return;
-    target()?.focus();
-  });
-}
 
 /** What a tap did, in the product's words. */
 function doneSentence(done: DoneCareer): string {
@@ -176,89 +67,6 @@ export function DoneNotice({
         {children}
       </p>
       <ErrorNote error={error ?? null} />
-    </div>
-  );
-}
-
-/**
- * What the door did in one place on Profile: the latest tap made there that
- * still stands, with its Undo, and under it an answer that changed nothing.
- * Undoing a tap brings the one before it back with its own Undo.
- */
-export function DoorNotice({ door, place, className }: { door: Door; place: DoorPlace; className?: string }) {
-  const tap = [...door.taps].reverse().find((made) => made.from === place);
-  const nothing = door.nothing?.from === place ? door.nothing : null;
-  if (!tap && !nothing) return null;
-  return (
-    <div className={className}>
-      {tap && <DoneNotice done={tap} onUndo={() => door.undo(tap)} undoing={door.undoing} error={door.undoError} />}
-      {nothing && (
-        <p role="status" className="flex min-h-11 items-center text-sm text-text-2" data-done-nothing>
-          {doneSentence(nothing)}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/** The door on a Profile with nothing on it: a second question beside "Start with a career". */
-export function ServiceDoorSection({ door, className }: { door: Door; className?: string }) {
-  useDoorFocus(door, () => document.getElementById('door-career'));
-  return (
-    <PageSection
-      title="Start with what you have done"
-      description="Choose your rating, MOS or specialty. Its skills are marked held."
-      className={className}
-    >
-      <div data-service-door="start">
-        {/* Never disabled while the write runs: a disabled field drops the keyboard's focus. The door takes one tap at a time. */}
-        <CareerPicker id="door-career" military value={null} onChange={(career) => career && door.choose(career.id, 'start')} />
-        <ErrorNote error={door.markError} className="mt-2" />
-        {/* A tap that changed something fills the page, and is said there; one that changed nothing is said here. */}
-        {door.nothing?.from === 'start' && (
-          <p role="status" className="mt-1 flex min-h-11 items-center text-sm text-text-2" data-done-nothing>
-            {doneSentence(door.nothing)}
-          </p>
-        )}
-      </div>
-    </PageSection>
-  );
-}
-
-/**
- * The door on a Profile that already has goals or skills: one line at the end
- * of Skills, which opens the search in its place. After a tap made here the
- * line says what was done, and the door stays under it for another. It is the
- * last thing on the page, so its list opens above the field when there is no
- * room under it (`flip`).
- */
-export function ServiceDoorLine({ door, className }: { door: Door; className?: string }) {
-  // Open until a tap is answered: what was done is then said in the search's place, in the same render.
-  const [openedAt, setOpenedAt] = useState<number | null>(null);
-  const open = openedAt === door.answers;
-  const lineRef = useRef<HTMLButtonElement>(null);
-  // The search takes the focus when it opens: the line that was pressed is gone.
-  useEffect(() => {
-    if (open) document.getElementById('door-career')?.focus();
-  }, [open]);
-  useDoorFocus(door, () => lineRef.current ?? document.getElementById('door-career'));
-
-  return (
-    <div className={cn('mt-8', className)} data-service-door="skills">
-      <DoorNotice door={door} place="skills" className="mb-1" />
-      {open ? (
-        <div>
-          <label htmlFor="door-career" className={cn(labelClass, 'mb-2 block')}>
-            Your rating, MOS or specialty
-          </label>
-          <CareerPicker id="door-career" military flip value={null} onChange={(career) => career && door.choose(career.id, 'skills')} />
-        </div>
-      ) : (
-        <button ref={lineRef} type="button" onClick={() => setOpenedAt(door.answers)} className={cn(textButtonClass, 'min-h-11 text-left')} data-door-open>
-          Start with what you have done
-        </button>
-      )}
-      <ErrorNote error={door.markError} className="mt-2" />
     </div>
   );
 }
