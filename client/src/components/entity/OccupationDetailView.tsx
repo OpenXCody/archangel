@@ -1,9 +1,11 @@
 import { lazy, Suspense, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import DoneButton from '../account/DoneButton';
 import GoalButton from '../account/GoalButton';
 import { ErrorNote } from '../account/parts';
 import { signInPath } from '../../lib/account';
-import { type OccupationDetail } from '../../lib/api';
+import { type CareerWithinReach, type OccupationDetail } from '../../lib/api';
+import { kindLine } from '@shared/military';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { versionPath } from '@shared/versions';
 import CompanyLogo from '../CompanyLogo';
@@ -19,9 +21,11 @@ import {
 } from '../layout/Page';
 import PathViewSwitch, { usePathView } from '../atlas/PathViewSwitch';
 import PlateSkeleton from '../atlas/PlateSkeleton';
+import { atlasHref } from '../atlas/state';
 import { ShareRing } from '../path/HeldShare';
 import { LadderAlone, PathFlow } from '../path/PathFlow';
 import { SkillGroupBox } from '../path/SkillGroupBox';
+import { SkillsLine } from '../path/SkillsLine';
 import { buildPath, shareOf } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
 import { type Head, UNPLACED, OpenJobsSection, IndustryRows, MilitaryCareerRows, factLinkClass } from './parts';
@@ -36,6 +40,15 @@ const CareerAtlas = lazy(() => import('../atlas/CareerAtlas'));
  * The path is the page: the heading block's action ("Set as goal") and the
  * person's progress over the whole career sit together directly above it,
  * and the diagram carries the same progress for each level and each group.
+ *
+ * A military career (a Navy rating, an Army MOS, an Air Force specialty) is
+ * the same page. Its kind and code stand above the name ("Navy rating · HT"),
+ * the name is the service's own title for the job, and its service is a quiet
+ * fact that leads to the service's page. It is where a person comes from, not
+ * where they are going: it is no goal, and for a seeker its one action is
+ * "I have done this" (its skills marked held in one tap). After the path it
+ * lists the civilian careers within reach, each with the skills missing. It
+ * has no ladder, industries, jobs, companies or plants, and draws none.
  */
 export default function OccupationDetailView({ data, head }: { data: OccupationDetail; head: Head }) {
   // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same diagram without them.
@@ -60,18 +73,25 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   const [showAllVersions, setShowAllVersions] = useState(false);
   // The path as a flow, or on the Atlas: from the address, else as last shown in this visit.
   const pathView = usePathView();
+  // A military career: the service it belongs to, and the civilian careers its path covers.
+  const service = data.service ?? null;
+  const withinReach = data.withinReach ?? [];
 
   return (
     <>
       <DetailHeader
         {...head}
-        kind="Career"
-        title={data.title}
+        // "Navy rating · HT" says the service once, so the name under it is the service's own title for the job.
+        kind={service ? (kindLine(data.kind, data.code) ?? 'Career') : 'Career'}
+        title={service ? (data.officialTitle ?? data.title) : data.title}
+        // A service's title for a job can run far past any career's of the catalogue ("Test, Measurement and
+        // Diagnostic Equipment Maintenance Support Specialist"): at the page-title size it fills a phone's screen.
+        longTitle={Boolean(service) && (data.officialTitle ?? data.title).length > LONG_TITLE}
         description={data.description}
         action={
           <>
-            {/* A military career is where a person comes from, never a goal. */}
-            {!data.service && <GoalButton occupationId={data.id} />}
+            {/* A military career is where a person comes from, never a goal: its action is to say so. */}
+            {service ? <DoneButton occupationId={data.id} whole={whole !== null && whole.held === whole.total} /> : <GoalButton occupationId={data.id} />}
             {whole && (
               <span className="inline-flex items-center gap-2 text-sm text-text-2" data-held-count>
                 <ShareRing share={whole} className="h-5 w-5" />
@@ -83,12 +103,21 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           </>
         }
       >
-        {/* Its home: the domain most of its work is in, which opens the Careers list narrowed to it. */}
-        {data.home && (
+        {/* Its service, which leads to the service's page; then its home: the domain most of its work is in,
+            which opens the Careers list narrowed to it (for a military career, the military careers of that home). */}
+        {(service || data.home) && (
           <DetailFacts>
-            <Link to={`/explore?tab=occupations&domain=${data.home.slug}`} className={factLinkClass} data-career-home>
-              {data.home.name}
-            </Link>
+            {service && (
+              <Link to={`/companies/${service.slug ?? service.id}`} className={factLinkClass} data-career-service>
+                {service.name}
+              </Link>
+            )}
+            {service && data.home && ' · '}
+            {data.home && (
+              <Link to={`/explore?tab=occupations${service ? '&military=1' : ''}&domain=${data.home.slug}`} className={factLinkClass} data-career-home>
+                {data.home.name}
+              </Link>
+            )}
           </DetailFacts>
         )}
       </DetailHeader>
@@ -146,6 +175,9 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           )}
         </DetailSection>
       )}
+
+      {/* A military career: where it leads. The civilian careers its path covers a third or more of, the most covered first. */}
+      {service && withinReach.length > 0 && <WithinReach career={data} careers={withinReach} />}
 
       <WhereWorkIsDone data={data} />
 
@@ -210,6 +242,63 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
         </DetailSection>
       )}
     </>
+  );
+}
+
+/** How many civilian careers within reach are listed before "Show all", and how many missing skills a row names. */
+const REACH_SHOWN = 5;
+const MISSING_NAMED = 4;
+
+/** The longest title a career of the catalogue has, in letters: a military career's own title past this is set smaller on a phone. */
+const LONG_TITLE = 40;
+
+/**
+ * "Civilian careers within reach": for a military career, the civilian
+ * careers whose path it already holds a third or more of. Each row leads to
+ * the career and says how much of that career's path this one holds; under
+ * it, the skills missing, lowest level first, and the two careers compared on
+ * the Atlas. Computed from the two paths: nothing here is a stored link.
+ */
+function WithinReach({ career, careers }: { career: OccupationDetail; careers: CareerWithinReach[] }) {
+  const [showAll, setShowAll] = useState(false);
+  // A list a row or two longer than the cut is shown whole.
+  const cut = careers.length > REACH_SHOWN + 2;
+  return (
+    <DetailSection id="reach" title="Civilian careers within reach" description="How much of each career's path this one already covers, and the skills missing.">
+      <RecordList data-within-reach="">
+        {(showAll || !cut ? careers : careers.slice(0, REACH_SHOWN)).map((other) => (
+          <RecordRow
+            key={other.id}
+            to={`/occupations/${other.id}`}
+            title={other.title}
+            subtitle={`${other.held} of ${other.total} skills`}
+            data-reach-career={other.id}
+            below={
+              <>
+                <SkillsLine
+                  lead="Missing"
+                  skills={other.missing.slice(0, MISSING_NAMED)}
+                  more={Math.max(0, other.missing.length - MISSING_NAMED)}
+                  // No wider than a line reads: on a wide screen it does not run under the row's chevron.
+                  className="max-w-prose text-xs leading-relaxed"
+                />
+                {/* The two paths on one plate: this career's skills a disc, the other's a ring. */}
+                <Link
+                  to={atlasHref({ career: career.id, with: other.id })}
+                  className="mt-0.5 inline-block py-1 text-xs text-text-2 underline hover:text-text-1"
+                  // The same words under every row: said with the career's name to someone who hears the links alone.
+                  aria-label={`Compare with ${other.title} on the atlas`}
+                  data-reach-compare
+                >
+                  Compare on the atlas
+                </Link>
+              </>
+            }
+          />
+        ))}
+      </RecordList>
+      {cut && <ShowAll open={showAll} total={careers.length} onToggle={() => setShowAll((value) => !value)} />}
+    </DetailSection>
   );
 }
 

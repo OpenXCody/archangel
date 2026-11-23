@@ -2049,3 +2049,150 @@ test('Profile\'s second door: a seeker starts with what they have done, and take
     expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'employer: account removed').toBe(true);
   }
 });
+
+test("a military career's page: its kind and code above the service's own title, no goal, one action, and the civilian careers within reach", async ({ page, baseURL, request }) => {
+  // Writes: it makes two accounts, marks skills and deletes them. Never against a deployed copy.
+  test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
+  const password = 'correct horse battery';
+  const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
+  const ht = await militaryCareer(request, 'HT');
+  const record = (await (await request.get(`${API}/occupations/${ht.id}`)).json()) as {
+    withinReach: { id: string; title: string; held: number; total: number; missing: { name: string }[] }[];
+    skills: unknown[];
+  };
+  expect(record.withinReach.length, 'the rating reaches civilian careers').toBeGreaterThan(0);
+
+  // A visitor: the career page, with the kind and code where "Career" stands and the service's own title under it.
+  await page.goto(`/occupations/${ht.id}`, { waitUntil: 'domcontentloaded' });
+  const view = page.locator('[data-entity-view="occupations"]');
+  await expect(view.locator('[data-detail-kind]')).toHaveText('Navy rating · HT');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(ht.officialTitle);
+  expect(ht.title, 'lists keep the full title').toBe(`Navy ${ht.officialTitle}`);
+  await expect(page).toHaveTitle(`${ht.title} · Archangel`);
+  // Its service is a quiet fact that leads to the service's page.
+  const service = view.locator('[data-career-service]');
+  await expect(service).toHaveText(ht.service.name);
+  await expect(service).toHaveAttribute('href', `/companies/${ht.service.slug}`);
+  // It is no goal: the way in is to sign in and say it was done.
+  await expect(view.getByRole('button', { name: /goal/i })).toHaveCount(0);
+  await expect(view.getByRole('link', { name: /goal/i })).toHaveCount(0);
+  const signIn = view.locator('[data-done-sign-in]');
+  await expect(signIn).toHaveText('Sign in to mark its skills held');
+  expect(await signIn.getAttribute('href')).toContain(encodeURIComponent(`/occupations/${ht.id}`));
+  // Its path draws from the same parts as any career's, a draft; the Atlas view is one press away.
+  await expect(view.locator('[data-path-flow] [data-skill-tag]')).toHaveCount(record.skills.length);
+  await expect(view.locator('[data-draft-path]')).toBeVisible();
+  await expect(view.getByRole('link', { name: 'Atlas', exact: true }).or(view.getByRole('button', { name: 'Atlas', exact: true })).or(view.getByRole('radio', { name: 'Atlas', exact: true })).first()).toBeVisible();
+  // It has no ladder, industries, jobs, companies or plants: none of those sections is drawn, and none is empty.
+  await expect(view.locator('#where, #jobs, #companies, #factories, #military')).toHaveCount(0);
+  await expect(view.getByText(/Comes from|Leads to/)).toHaveCount(0);
+  expect(await view.locator('section').evaluateAll((sections) => sections.map((section) => section.id))).toEqual(['skills', 'reach']);
+  // The one new section: the civilian careers its path covers most, each with how much and the skills missing.
+  const reach = view.locator('#reach');
+  await expect(reach.getByRole('heading', { name: 'Civilian careers within reach' })).toBeVisible();
+  const rows = reach.locator('[data-reach-career]');
+  const closest = record.withinReach[0];
+  await expect(rows.first()).toContainText(closest.title);
+  await expect(rows.first()).toContainText(`${closest.held} of ${closest.total} skills`);
+  await expect(rows.first()).toContainText(`Missing`);
+  await expect(rows.first()).toContainText(closest.missing[0].name);
+  await expect(rows.first().locator('a').first()).toHaveAttribute('href', `/occupations/${closest.id}`);
+  await expect(rows.first().locator('[data-reach-compare]')).toHaveAttribute('href', `/atlas?career=${ht.id}&with=${closest.id}`);
+  for (const text of await rows.allInnerTexts()) expect(text, 'no military career is within reach of one').not.toMatch(KIND_LINE);
+  await reach.scrollIntoViewIfNeeded();
+  await assertHealthyLayout(page, '/occupations/:id military, within reach');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await assertHealthyLayout(page, '/occupations/:id military');
+  // Each "Compare on the atlas" says which career it compares with, to someone who hears the links alone.
+  await expect(rows.first().locator('[data-reach-compare]')).toHaveAttribute('aria-label', `Compare with ${closest.title} on the atlas`);
+  // A service's title that runs past any career's of the catalogue is set smaller on a phone, as a job's long title is.
+  const titleSize = () => page.getByRole('heading', { level: 1 }).evaluate((heading) => parseFloat(getComputedStyle(heading).fontSize));
+  const usual = await titleSize();
+  const all = (await (await request.get(`${API}/occupations?military=1&limit=100`)).json()) as { data: { id: string; officialTitle: string }[] };
+  const longest = all.data.reduce((a, b) => (b.officialTitle.length > a.officialTitle.length ? b : a));
+  expect(longest.officialTitle.length, 'a military title longer than any civilian career\'s').toBeGreaterThan(40);
+  await page.goto(`/occupations/${longest.id}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(longest.officialTitle);
+  if ((page.viewportSize()?.width ?? 0) < 640) expect(await titleSize(), 'a long title is smaller on a phone').toBe(24);
+  else expect(await titleSize(), 'and the usual size from a tablet up').toBe(usual);
+  await assertHealthyLayout(page, '/occupations/:id military, a long title');
+  // The path on the Atlas, for the same career.
+  await page.goto(`/occupations/${ht.id}?path=atlas`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.atlas-plate .atlas-leaf').first()).toBeAttached();
+  await expect(view.locator('[data-detail-kind]')).toHaveText('Navy rating · HT');
+  await assertHealthyLayout(page, '/occupations/:id military on the atlas');
+
+  // A seeker: one action, "I have done this". One tap marks the path held, says so with Undo, and leads to Profile.
+  const made = await page.request.post(`${API}/auth/sign-up`, { data: { email: `mil-work-${stamp}@device.test`, name: 'Mil Seeker', password, purpose: 'work' } });
+  expect(made.status(), 'seeker: account made').toBe(201);
+  try {
+    await page.goto(`/occupations/${ht.id}`, { waitUntil: 'domcontentloaded' });
+    const action = view.locator('[data-detail-action]');
+    const done = action.getByRole('button', { name: 'I have done this' });
+    await expect(done).toBeVisible();
+    await expect(action.getByRole('button')).toHaveCount(1);
+    await expect(view.getByRole('button', { name: /goal/i })).toHaveCount(0);
+    await expect(page.locator('[data-held-count]')).toContainText(`0 of ${record.skills.length}`);
+    // Two presses in one frame are one write: the second is not answered "You already hold all".
+    let writes = 0;
+    page.on('request', (sent) => {
+      if (sent.method() === 'POST' && /\/held$/.test(sent.url())) writes += 1;
+    });
+    await done.evaluate((button: HTMLElement) => {
+      button.click();
+      button.click();
+    });
+    const notice = action.locator('[data-done-notice]');
+    await expect(notice).toContainText(`Marked ${record.skills.length} skills held.`);
+    expect(writes, 'one write for two presses').toBe(1);
+    await expect(page.locator('[data-held-count]')).toContainText(`${record.skills.length} of ${record.skills.length}`);
+    await expect(notice.getByRole('link', { name: 'Open Profile' })).toHaveAttribute('href', '/me');
+    await assertHealthyLayout(page, '/occupations/:id military, done');
+    // The keyboard is on Undo, since the button that was pressed is gone. Undo takes it back, the action is there
+    // again, and the keyboard is on it.
+    await expect(notice.getByRole('button', { name: 'Undo' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(done).toBeVisible();
+    await expect(done).toBeFocused();
+    await expect(page.locator('[data-held-count]')).toContainText(`0 of ${record.skills.length}`);
+    await expect.poll(async () => ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: unknown[] }).skills.length, { message: 'nothing is left held' }).toBe(0);
+    // Done again, the way on is Profile: the civilian careers within reach are listed there.
+    await done.click();
+    await action.locator('[data-done-notice]').getByRole('link', { name: 'Profile' }).click();
+    await expect(page).toHaveURL(/\/me$/);
+    await expect(page.locator('[data-careers-in-reach]')).toContainText(closest.title);
+    // Back on the career, held whole: nothing is left to press.
+    await page.goto(`/occupations/${ht.id}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-held-count]')).toContainText(`${record.skills.length} of ${record.skills.length}`);
+    await expect(action.getByRole('button')).toHaveCount(0);
+  } finally {
+    expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'seeker: account removed').toBe(true);
+  }
+
+  // Someone here to hire reads the same page with no action at all.
+  const hire = await page.request.post(`${API}/auth/sign-up`, { data: { email: `mil-hire-${stamp}@device.test`, name: 'Mil Hirer', password, purpose: 'hire' } });
+  expect(hire.status(), 'employer: account made').toBe(201);
+  try {
+    await page.goto(`/occupations/${ht.id}`, { waitUntil: 'domcontentloaded' });
+    await expect(view.locator('[data-detail-kind]')).toHaveText('Navy rating · HT');
+    await expect(view.locator('#reach [data-reach-career]').first()).toBeVisible();
+    await expect(view.locator('[data-detail-action] button, [data-detail-action] a')).toHaveCount(0);
+    await expect(page.getByText('I have done this')).toHaveCount(0);
+    await expect(page.locator('[data-held-count]')).toHaveCount(0);
+  } finally {
+    expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'employer: account removed').toBe(true);
+  }
+
+  // The service's page lists its careers and has no map action; a service with none says so.
+  await page.goto(`/companies/${ht.service.slug}`, { waitUntil: 'domcontentloaded' });
+  const company = page.locator('[data-entity-view="companies"]');
+  await expect(company.locator('[data-detail-kind]')).toHaveText('Military service');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(ht.service.name);
+  await expect(company.locator('[data-open-map]')).toHaveCount(0);
+  await expect(company.locator('[data-service-career]').first()).toContainText(/^Navy /);
+  await assertHealthyLayout(page, '/companies/us-navy');
+  await page.goto('/companies/us-marine-corps', { waitUntil: 'domcontentloaded' });
+  await expect(company.locator('#occupations')).toContainText('None yet.');
+  await expect(company.locator('[data-service-career]')).toHaveCount(0);
+  await assertHealthyLayout(page, '/companies/us-marine-corps');
+});
