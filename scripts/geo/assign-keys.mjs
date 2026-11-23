@@ -39,6 +39,7 @@ import postgres from 'postgres';
 import { dbfRows, shpPolygons, unzip } from './lib/files.mjs';
 import { areaIndex } from './lib/locate.mjs';
 import { DEFAULT_DIR, SOURCES, sourceFile } from './lib/sources.mjs';
+import { connectionString } from '../ingest/lib/safety.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const BATCH = 5000;
@@ -294,7 +295,7 @@ async function main() {
     `  boundaries: ${SOURCES.boundaries.name}; ${areas.length} outlines; of ${listed.length} listed counties ${checked.inside} hold their own inside point and ${checked.offshore} have it in their own waters (${((Date.now() - loading) / 1000).toFixed(1)} s)`
   );
 
-  const sql = postgres(url, { max: 1, connect_timeout: 15, onnotice: () => {} });
+  const sql = postgres(connectionString(url), { max: 1, connect_timeout: 15, onnotice: () => {} });
   try {
     const report = await assignKeys(sql, { areas, index, apply, nearKm });
     const file = option('--report');

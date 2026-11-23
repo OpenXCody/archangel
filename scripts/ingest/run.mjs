@@ -33,7 +33,7 @@ import { writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { checkDatabase } from './lib/safety.mjs';
+import { checkDatabase, connectionString } from './lib/safety.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..', '..');
@@ -169,7 +169,7 @@ async function main() {
   const pipeline = await import('./lib/pipeline.mjs');
   const { report } = await import('./lib/report.mjs');
   // One connection; unnamed statements, so a pooled address works too.
-  const sql = postgres(process.env.DATABASE_URL, { max: 1, prepare: false, connect_timeout: 20, onnotice: () => {} });
+  const sql = postgres(connectionString(process.env.DATABASE_URL), { max: 1, prepare: false, connect_timeout: 20, onnotice: () => {} });
   const startedBy = process.env.GITHUB_ACTIONS ? `github-actions:${process.env.GITHUB_RUN_ID ?? ''}` : 'cli';
   const finish = async (text) => {
     say('');

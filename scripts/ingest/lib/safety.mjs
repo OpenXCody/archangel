@@ -37,3 +37,15 @@ export function checkDatabase(url, yesThisDatabase) {
   }
   return target;
 }
+
+/**
+ * The connection string as the driver takes it. Neon's console adds
+ * `channel_binding=require`, which is an instruction to libpq: this driver
+ * would send it to the server as a setting, and the server knows none by that
+ * name. It is dropped; everything else stays as written.
+ */
+export function connectionString(url) {
+  const parsed = new URL(url);
+  parsed.searchParams.delete('channel_binding');
+  return parsed.toString();
+}
