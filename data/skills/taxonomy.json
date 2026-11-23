@@ -418,7 +418,7 @@
     {
       "slug": "fabrication",
       "name": "Fabrication",
-      "what": "Shaping and joining metal and plastic: welding, brazing, cutting, sheet metal, stamping and dies, casting, molding and additive manufacturing.",
+      "what": "Shaping and joining metal and plastic: welding, brazing, cutting, sheet metal, shipfitting, stamping and dies, casting, molding and additive manufacturing.",
       "groups": [
         {
           "slug": "arc-welding",
@@ -628,6 +628,25 @@
             {
               "name": "Cryogenic Tank Welding",
               "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "shipfitting",
+          "name": "Shipfitting",
+          "what": "Fitting pipe and structure in a ship or plant.",
+          "skills": [
+            {
+              "name": "Pipe Fitting and Layout",
+              "level": 2
+            },
+            {
+              "name": "Carbon Arc Gouging",
+              "level": 2
+            },
+            {
+              "name": "Stud Welding",
+              "level": 2
             }
           ]
         },
@@ -1153,7 +1172,7 @@
     {
       "slug": "assembly",
       "name": "Assembly",
-      "what": "Putting hardware together: fastening, fits and alignment, and the assembly of machines, vehicles, aircraft, rocket engines and spacecraft.",
+      "what": "Putting hardware together: fastening, fits and alignment, the assembly of machines, vehicles, aircraft, rocket engines and spacecraft, and building up and maintaining munitions, weapons and survival equipment.",
       "groups": [
         {
           "slug": "assembly-practice",
@@ -1530,13 +1549,79 @@
               "level": 3
             }
           ]
+        },
+        {
+          "slug": "survival-equipment",
+          "name": "Survival equipment",
+          "what": "Sewing, inspecting and servicing the gear that keeps aircrew alive.",
+          "skills": [
+            {
+              "name": "Industrial Sewing",
+              "level": 2
+            },
+            {
+              "name": "Survival Equipment Inspection",
+              "level": 2
+            },
+            {
+              "name": "Oxygen Equipment Servicing",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "weapons-and-munitions",
+          "name": "Weapons and munitions",
+          "what": "Building up, inspecting and maintaining guns, missiles, torpedoes and ammunition.",
+          "skills": [
+            {
+              "name": "Munitions Assembly",
+              "level": 2
+            },
+            {
+              "name": "Munitions Serviceability Inspection",
+              "level": 2
+            },
+            {
+              "name": "Aircraft Weapons Loading",
+              "level": 2
+            },
+            {
+              "name": "Weapons Release System Testing",
+              "level": 2
+            },
+            {
+              "name": "Gun System Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Small Arms Repair",
+              "level": 2
+            },
+            {
+              "name": "Missile System Maintenance",
+              "level": 3
+            },
+            {
+              "name": "Torpedo Maintenance",
+              "level": 3
+            },
+            {
+              "name": "Launcher System Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Nuclear Weapons Maintenance",
+              "level": 3
+            }
+          ]
         }
       ]
     },
     {
       "slug": "electronics",
       "name": "Electronics",
-      "what": "Building electronics and wiring: soldering and board assembly, rework, harnesses and cabling, power electronics, servers and devices.",
+      "what": "Building electronics and wiring, and keeping fielded systems working: soldering and board assembly, rework, harnesses and cabling, power electronics, servers and devices, and the upkeep of radar, radio and navigation equipment.",
       "groups": [
         {
           "slug": "soldering-and-rework",
@@ -1784,6 +1869,57 @@
             },
             {
               "name": "Laser Communication Terminal Assembly",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "fielded-electronic-systems",
+          "name": "Fielded electronic systems",
+          "what": "Keeping radar, sonar, radio, navigation and weapon electronics working after they leave the factory.",
+          "skills": [
+            {
+              "name": "Radar System Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Sonar System Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Radio Communication System Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Antenna and Waveguide Installation",
+              "level": 2
+            },
+            {
+              "name": "Electronic Warfare System Maintenance",
+              "level": 3
+            },
+            {
+              "name": "Weapon Control System Maintenance",
+              "level": 3
+            },
+            {
+              "name": "Inertial Navigation System Maintenance",
+              "level": 3
+            },
+            {
+              "name": "Avionics Line Troubleshooting",
+              "level": 2
+            },
+            {
+              "name": "Automatic Test Equipment Operation",
+              "level": 2
+            },
+            {
+              "name": "Cryptographic Equipment Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Biomedical Equipment Repair",
               "level": 3
             }
           ]
@@ -2286,7 +2422,7 @@
     {
       "slug": "process",
       "name": "Process",
-      "what": "Food, beverage, pharmaceutical and chemical processing: batching, filling, sterilization, aseptic work and laboratory analysis under GMP, and running a chemical plant.",
+      "what": "Food, beverage, pharmaceutical and chemical processing: batching, filling, sterilization, aseptic work and laboratory analysis under GMP, running a chemical plant, handling fuels, and operating a nuclear plant.",
       "groups": [
         {
           "slug": "gmp-and-sanitation",
@@ -2488,6 +2624,44 @@
             },
             {
               "name": "Distributed Control System Operation",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "fuels",
+          "name": "Fuels and cryogenics",
+          "what": "Proving fuel fit to use, and making and storing liquid oxygen and nitrogen.",
+          "skills": [
+            {
+              "name": "Fuel Quality Testing",
+              "level": 2
+            },
+            {
+              "name": "Liquid Oxygen and Nitrogen Production",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "nuclear-plant-operations",
+          "name": "Nuclear plant operations",
+          "what": "Running a reactor plant and controlling its radiation and chemistry.",
+          "skills": [
+            {
+              "name": "Reactor Plant Operation",
+              "level": 3
+            },
+            {
+              "name": "Radiological Controls",
+              "level": 2
+            },
+            {
+              "name": "Plant Water Chemistry Control",
+              "level": 2
+            },
+            {
+              "name": "Reactor Instrumentation Maintenance",
               "level": 3
             }
           ]
@@ -3158,7 +3332,7 @@
     {
       "slug": "maintenance",
       "name": "Maintenance",
-      "what": "Keeping machines and aircraft running: mechanical and electrical maintenance, fluid power, reliability methods, vacuum and utilities, and aircraft maintenance.",
+      "what": "Keeping machines, vehicles, ships and aircraft running: mechanical and electrical maintenance, power generation, fluid power, reliability methods, plant utilities, engines, vehicles and aircraft.",
       "groups": [
         {
           "slug": "equipment-maintenance",
@@ -3239,6 +3413,33 @@
             {
               "name": "480 V Power Distribution",
               "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "power-generation-and-distribution",
+          "name": "Power generation and distribution",
+          "what": "Making electrical power and getting it to the load.",
+          "skills": [
+            {
+              "name": "Generator Paralleling and Load Control",
+              "level": 2
+            },
+            {
+              "name": "Switchgear Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Medium Voltage Distribution",
+              "level": 3
+            },
+            {
+              "name": "Battery and UPS Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Motor Rewinding",
+              "level": 3
             }
           ]
         },
@@ -3340,6 +3541,95 @@
           ]
         },
         {
+          "slug": "plant-utilities",
+          "name": "Plant utilities",
+          "what": "The steam, cooling and water a plant runs on.",
+          "skills": [
+            {
+              "name": "Refrigeration System Repair",
+              "level": 2
+            },
+            {
+              "name": "Boiler Operation",
+              "level": 2
+            },
+            {
+              "name": "Water Treatment System Operation",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "engines-and-power-plants",
+          "name": "Engines and power plants",
+          "what": "Running and repairing the engines and plants that drive ships, vehicles and generators.",
+          "skills": [
+            {
+              "name": "Diesel Engine Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Diesel Engine Overhaul",
+              "level": 3
+            },
+            {
+              "name": "Marine Gas Turbine Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Steam Plant Operation",
+              "level": 2
+            },
+            {
+              "name": "Generator Set Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Valve Maintenance and Repair",
+              "level": 2
+            },
+            {
+              "name": "Reduction Gear Maintenance",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "vehicles-and-heavy-equipment",
+          "name": "Vehicles and heavy equipment",
+          "what": "Repairing wheeled and tracked vehicles and earthmoving equipment.",
+          "skills": [
+            {
+              "name": "Brake System Repair",
+              "level": 2
+            },
+            {
+              "name": "Steering and Suspension Repair",
+              "level": 2
+            },
+            {
+              "name": "Vehicle Drivetrain Repair",
+              "level": 2
+            },
+            {
+              "name": "Vehicle Electrical Diagnostics",
+              "level": 2
+            },
+            {
+              "name": "Tracked Vehicle Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Heavy Equipment Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Turret and Fire Control Maintenance",
+              "level": 3
+            }
+          ]
+        },
+        {
           "slug": "aircraft-maintenance",
           "name": "Aircraft maintenance",
           "what": "Servicing an aircraft's systems to its maintenance manual, running its engines and signing the work off.",
@@ -3371,6 +3661,57 @@
             {
               "name": "Aircraft Maintenance Record Entries",
               "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "aircraft-systems",
+          "name": "Aircraft systems",
+          "what": "Keeping an aircraft and its engines, fuel, electrical and air systems serviceable, on the line and in the shop.",
+          "skills": [
+            {
+              "name": "Aircraft Turbine Engine Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Aircraft Engine Removal and Installation",
+              "level": 2
+            },
+            {
+              "name": "Aircraft Fuel System Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Aircraft Electrical System Troubleshooting",
+              "level": 2
+            },
+            {
+              "name": "Aircraft Environmental System Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Helicopter Rotor and Drive System Maintenance",
+              "level": 3
+            },
+            {
+              "name": "Propeller Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Egress System Maintenance",
+              "level": 3
+            },
+            {
+              "name": "Aircraft Phase Inspection",
+              "level": 2
+            },
+            {
+              "name": "Ground Support Equipment Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Unmanned Aircraft System Maintenance",
+              "level": 2
             }
           ]
         },

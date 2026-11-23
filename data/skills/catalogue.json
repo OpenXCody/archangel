@@ -1,5 +1,5 @@
 {
-  "note": "The skills catalogue. Every skill the product keeps is listed with what it is, how it is learned or shown, and what it is done with. \"was\" names the stored skills that became it (the first is renamed when the name is new; the rest are merged and kept as other names). \"removed\" lists every stored skill that is deleted, by reason. scripts/build-skills-sql.mjs turns this file into a migration that restates the whole catalogue (0033 first, 0048 after the pass that added the trades it lacked and folded brand names and course topics); a skill's group and level are in taxonomy.json, and the makes it is run on in makes.json.",
+  "note": "The skills catalogue. Every skill the product keeps is listed with what it is, how it is learned or shown, and what it is done with. \"was\" names the stored skills that became it (the first is renamed when the name is new; the rest are merged and kept as other names). \"removed\" lists every stored skill that is deleted, by reason. scripts/build-skills-sql.mjs turns this file into a migration that restates the whole catalogue (0033 first, 0048 after the pass that added the trades it lacked and folded brand names and course topics, 0057 the other names postings use, 0059 the skills of the military careers); a skill's group and level are in taxonomy.json, and the makes it is run on in makes.json.",
   "categories": [
     "Shop Fundamentals",
     "Safety",
@@ -9635,7 +9635,8 @@
       "aliases": [
         "Tank Farm Operation",
         "Railcar Loading and Unloading",
-        "Truck Loading and Unloading"
+        "Truck Loading and Unloading",
+        "Bulk Fuel Handling"
       ],
       "what": "Moving liquids and gases between trucks, railcars, tanks and process: lining up valves, connecting and grounding hoses, starting pumps and watching levels. A person who has it walks the line before starting, never leaves a transfer unattended and knows what to do when a hose or a level alarm fails.",
       "learned": "On the job as an outside operator; process technology programs at community colleges. Loading and unloading hazardous materials needs training under 49 CFR 172.",
@@ -9697,6 +9698,696 @@
         "Process and instrumentation diagrams",
         "Operating procedures",
         "Radios"
+      ]
+    },
+    {
+      "name": "Aircraft Turbine Engine Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Inspecting, servicing and repairing a turbine engine installed on or removed from an aircraft. A person who has it can find a fault from engine indications and change the modules and accessories the manual allows.",
+      "learned": "Military aircraft powerplant schools and qualification on the engine; an FAA Part 147 school and the powerplant rating of the FAA mechanic certificate. Engine makers run type courses.",
+      "tools": [
+        "Engine stands",
+        "Borescopes",
+        "Engine trim equipment"
+      ]
+    },
+    {
+      "name": "Aircraft Engine Removal and Installation",
+      "category": "Maintenance & Repair",
+      "what": "Taking an engine off an aircraft and putting one on: disconnects, hoisting, mounts, rigging and leak checks. A person who has it can change an engine and ready it for its ground run.",
+      "learned": "Military aircraft maintenance schools; FAA Airframe and Powerplant training; on the job on the aircraft type.",
+      "tools": [
+        "Engine trailers and hoists",
+        "Torque tools"
+      ]
+    },
+    {
+      "name": "Aircraft Fuel System Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Finding and repairing faults in aircraft fuel tanks, cells, pumps, valves and plumbing. A person who has it can open a tank safely, repair a leak and return the system to service.",
+      "learned": "Military aircraft fuel systems schools; FAA Airframe and Powerplant training. Tank entry takes the employer's confined space and fuel cell qualification.",
+      "tools": [
+        "Fuel cell entry equipment",
+        "Fuel leak detectors",
+        "Sealants"
+      ]
+    },
+    {
+      "name": "Aircraft Electrical System Troubleshooting",
+      "category": "Maintenance & Repair",
+      "what": "Tracing faults in aircraft power generation, distribution, lighting and control circuits. A person who has it can isolate a fault with the wiring diagram and repair or replace the part.",
+      "learned": "Military aircraft electrician schools; FAA Airframe and Powerplant training; on the job.",
+      "tools": [
+        "Aircraft wiring diagrams",
+        "Multimeters",
+        "Breakout boxes"
+      ]
+    },
+    {
+      "name": "Aircraft Environmental System Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Servicing cabin pressurization, air conditioning and anti-ice systems. A person who has it can test the system, find the leak or failed valve and restore it.",
+      "learned": "Military aircraft electrical and environmental systems schools; FAA Airframe and Powerplant training; on the job on the aircraft type.",
+      "tools": [
+        "Pressurization test sets",
+        "Leak detectors"
+      ]
+    },
+    {
+      "name": "Helicopter Rotor and Drive System Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Maintaining rotor heads, blades, transmissions and drive shafts, including track and balance. A person who has it can change a dynamic component and bring vibration within limits.",
+      "learned": "Military helicopter repairer schools; FAA Airframe and Powerplant training, then the helicopter maker's course. Track and balance is learned on the job.",
+      "tools": [
+        "Vibration analyzers",
+        "Blade tracking equipment"
+      ]
+    },
+    {
+      "name": "Propeller Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Inspecting, servicing, removing and balancing aircraft propellers. A person who has it can change a propeller and set its controls.",
+      "learned": "Military aircraft propulsion schools; FAA powerplant training. Major repair is done at an FAA propeller repair station.",
+      "tools": [
+        "Propeller slings",
+        "Propeller balancing equipment"
+      ]
+    },
+    {
+      "name": "Egress System Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Removing, inspecting and installing ejection seats, canopies and their explosive devices. A person who has it can make a seat safe, service it and certify it armed.",
+      "learned": "Military egress and aircrew escape systems schools, with explosives safety certification; the seat makers' courses.",
+      "tools": [
+        "Seat safety pins and maintenance stands",
+        "Time-change records"
+      ]
+    },
+    {
+      "name": "Aircraft Phase Inspection",
+      "category": "Maintenance & Repair",
+      "what": "Carrying out the scheduled inspection of an aircraft by its work cards and writing up what is found. A person who has it can open, inspect and close an inspection zone to the manual.",
+      "learned": "Military aircraft maintenance schools and on the job in an inspection crew; FAA Airframe and Powerplant training. A civil aircraft's annual inspection is signed by a mechanic with inspection authorization.",
+      "tools": [
+        "Inspection work cards",
+        "Borescopes",
+        "Flashlights and mirrors"
+      ]
+    },
+    {
+      "name": "Ground Support Equipment Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Repairing the carts that power, cool, lift and service aircraft on the ground. A person who has it can fault-find a power cart, hydraulic test stand or air start unit.",
+      "learned": "Military ground support equipment schools; diesel, hydraulic and electrical programs, then on the job at an airline, airport or ground handler.",
+      "tools": [
+        "Ground power units",
+        "Portable hydraulic test stands",
+        "Air start carts"
+      ]
+    },
+    {
+      "name": "Unmanned Aircraft System Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Servicing an unmanned aircraft, its payloads, ground control station and data links. A person who has it can turn the system around between flights and replace failed units.",
+      "learned": "Military unmanned aircraft repairer schools; the maker's courses on the system; on the job.",
+      "tools": [
+        "Ground control stations",
+        "Payload test sets"
+      ]
+    },
+    {
+      "name": "Diesel Engine Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Servicing and repairing diesel engines: fuel, air, cooling and lubrication systems, injectors and valve adjustment. A person who has it can keep an engine in service and fix its common faults.",
+      "learned": "Diesel technology programs at community colleges and trade schools; military mechanic and engineman schools; on the job. ASE certifies diesel engine technicians (test T2).",
+      "tools": [
+        "Injector testers",
+        "Compression testers",
+        "Diagnostic software"
+      ]
+    },
+    {
+      "name": "Diesel Engine Overhaul",
+      "category": "Maintenance & Repair",
+      "what": "Tearing a diesel engine down, measuring its parts, fitting new ones and testing it. A person who has it can rebuild an engine to specification.",
+      "learned": "On the job in a rebuild shop, dealer or shipyard after diesel training; military engine overhaul courses. Engine makers certify their dealers' technicians.",
+      "tools": [
+        "Micrometers and bore gauges",
+        "Engine stands",
+        "Dynamometers"
+      ]
+    },
+    {
+      "name": "Marine Gas Turbine Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Operating, inspecting and repairing gas turbines that drive ships and generators. A person who has it can run the plant, borescope the engine and change its accessories.",
+      "learned": "Navy gas turbine systems technician schools and watch qualification; the engine maker's courses. Civilian work is at shipyards, power plants and pipeline stations.",
+      "tools": [
+        "Borescopes",
+        "Engine control consoles",
+        "Water wash rigs"
+      ]
+    },
+    {
+      "name": "Steam Plant Operation",
+      "category": "Maintenance & Repair",
+      "what": "Running the steam side of a ship or power plant: turbines, condensers and the feed and condensate systems that return water to the boiler or steam generator. A person who has it can warm up, roll, operate and secure a turbine plant and hold it within limits.",
+      "learned": "Navy machinist's mate and nuclear power schools and watch qualification; maritime academies; on the job at a power plant. Some states and cities license stationary engineers.",
+      "tools": [
+        "Turbines",
+        "Condensers",
+        "Feed and condensate pumps"
+      ]
+    },
+    {
+      "name": "Generator Set Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Maintaining an engine-driven generator: the engine, the alternator, its controls and protection. A person who has it can service a set and find why it will not start or hold load.",
+      "learned": "Military power generation schools; diesel and electrical programs; on the job with a generator dealer. The Electrical Generating Systems Association certifies generator technicians.",
+      "tools": [
+        "Load banks",
+        "Multimeters",
+        "Generator control panels"
+      ]
+    },
+    {
+      "name": "Valve Maintenance and Repair",
+      "category": "Maintenance & Repair",
+      "what": "Taking valves apart, lapping seats, repacking and testing them. A person who has it can restore a leaking or stuck valve.",
+      "learned": "On the job aboard ship or in a shipyard, power plant or valve shop; pipefitter and millwright apprenticeships. Shops that repair relief valves hold the National Board's VR authorization.",
+      "tools": [
+        "Lapping tools",
+        "Packing tools",
+        "Hydrostatic test pumps"
+      ]
+    },
+    {
+      "name": "Reduction Gear Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Inspecting and maintaining main reduction gears, bearings and shafting. A person who has it can read tooth contact and bearing wear and say what must be done.",
+      "learned": "On the job in a ship's engineering department or a shipyard; gear makers' field service training.",
+      "tools": [
+        "Depth micrometers",
+        "Borescopes",
+        "Lube oil analysis"
+      ]
+    },
+    {
+      "name": "Steering and Suspension Repair",
+      "category": "Maintenance & Repair",
+      "what": "Repairing the steering and suspension of trucks and other wheeled vehicles: steering gear and linkage, springs, shock absorbers, axles, wheel bearings and alignment. A person who has it can find why a vehicle wanders, pulls or wears its tires and put it right to the manual.",
+      "learned": "Automotive and diesel technology programs; military wheeled vehicle mechanic schools; on the job. ASE tests it (T5 for trucks, A4 for cars).",
+      "tools": [
+        "Alignment racks",
+        "Lifts and jacks",
+        "Ball joint and bearing presses"
+      ]
+    },
+    {
+      "name": "Tracked Vehicle Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Repairing tracked vehicles: track, suspension, final drives and power packs. A person who has it can change a power pack and keep track and suspension in service.",
+      "learned": "Army and Marine Corps tracked vehicle repairer schools; on the job at a depot or with a vehicle maker. Equipment dealers teach the same undercarriage work.",
+      "tools": [
+        "Power pack slings",
+        "Track tools",
+        "Diagnostic test sets"
+      ]
+    },
+    {
+      "name": "Vehicle Drivetrain Repair",
+      "category": "Maintenance & Repair",
+      "what": "Repairing what carries power from a vehicle's engine to its wheels or tracks: clutches, transmissions, transfer cases, axles and drive shafts. A person who has it can remove, repair and refit a drivetrain assembly.",
+      "learned": "Diesel and automotive technology programs; military vehicle mechanic schools; on the job. ASE tests it (T3 for trucks).",
+      "tools": [
+        "Transmission jacks",
+        "Pullers and presses",
+        "Dial indicators"
+      ]
+    },
+    {
+      "name": "Brake System Repair",
+      "category": "Maintenance & Repair",
+      "what": "Repairing hydraulic and air brake systems. A person who has it can inspect, rebuild and bleed a brake system.",
+      "learned": "Diesel and automotive technology programs; military vehicle mechanic schools; on the job. ASE tests it (T4 for trucks); 49 CFR 396.25 sets who may inspect a commercial vehicle's brakes.",
+      "tools": [
+        "Brake lathes",
+        "Pressure bleeders",
+        "Air system gauges"
+      ]
+    },
+    {
+      "name": "Vehicle Electrical Diagnostics",
+      "category": "Maintenance & Repair",
+      "what": "Finding faults in vehicle starting, charging, lighting and electronic control circuits. A person who has it can trace a fault with a meter and the wiring diagram.",
+      "learned": "Automotive and diesel technology programs; military vehicle mechanic schools; on the job. ASE tests it (T6 for trucks, A6 for cars).",
+      "tools": [
+        "Multimeters",
+        "Scan tools",
+        "Wiring diagrams"
+      ]
+    },
+    {
+      "name": "Heavy Equipment Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Repairing dozers, loaders, cranes and excavators: undercarriage, booms, buckets and blades and the hydraulics that work them. A person who has it can keep earthmoving and lifting equipment working.",
+      "learned": "Diesel and heavy equipment programs, many run with dealers; operating engineers' apprenticeships; military construction equipment repairer schools.",
+      "tools": [
+        "Hydraulic test gauges",
+        "Service trucks",
+        "Diagnostic software"
+      ]
+    },
+    {
+      "name": "Turret and Fire Control Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Maintaining a combat vehicle turret: its drives, stabilization, sights and firing circuits. A person who has it can fault-find the turret and bring the sights into alignment.",
+      "learned": "Army and Marine Corps tank, fighting vehicle and artillery maintainer schools; on the job at a depot or with the vehicle maker.",
+      "tools": [
+        "Boresight equipment",
+        "Turret test sets"
+      ]
+    },
+    {
+      "name": "Generator Paralleling and Load Control",
+      "category": "Maintenance & Repair",
+      "what": "Bringing generators on line, paralleling them and sharing load. A person who has it can run a plant of several generators without dropping the load.",
+      "learned": "Navy electrician's mate and military power plant operator schools, then watch qualification; on the job at a power plant or data center.",
+      "tools": [
+        "Synchroscopes",
+        "Governors and voltage regulators"
+      ]
+    },
+    {
+      "name": "Switchgear Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Inspecting, cleaning and testing switchboards, breakers and protective relays. A person who has it can rack out, service and test a breaker.",
+      "learned": "Electrical apprenticeships and military electrician schools; on the job with a utility or testing company. The InterNational Electrical Testing Association certifies test technicians.",
+      "tools": [
+        "Breaker test sets",
+        "Insulation resistance testers",
+        "Infrared cameras"
+      ]
+    },
+    {
+      "name": "Medium Voltage Distribution",
+      "category": "Maintenance & Repair",
+      "what": "Building and maintaining power distribution above 600 volts: cables, transformers and terminations. A person who has it can switch, ground and work a medium voltage circuit safely.",
+      "learned": "Lineworker and electrical apprenticeships; military power distribution schools. Done under the employer's qualified-person rules, built on OSHA 1910.269 and NFPA 70E.",
+      "tools": [
+        "Hot sticks",
+        "Grounding sets",
+        "Cable fault locators"
+      ]
+    },
+    {
+      "name": "Battery and UPS Maintenance",
+      "category": "Maintenance & Repair",
+      "what": "Servicing storage batteries and uninterruptible power supplies. A person who has it can test capacity, replace cells and keep the system ready.",
+      "learned": "Military electrician schools; battery and UPS makers' service courses; on the job at a utility, telephone exchange or data center.",
+      "tools": [
+        "Battery load testers",
+        "Hydrometers"
+      ]
+    },
+    {
+      "name": "Motor Rewinding",
+      "category": "Maintenance & Repair",
+      "what": "Stripping and rewinding the coils of motors and generators and testing the result. A person who has it can return a burnt-out motor to service.",
+      "learned": "On the job in a motor repair shop; the Navy's rewind course for electrician's mates. The Electrical Apparatus Service Association trains to its repair standard, AR100.",
+      "tools": [
+        "Coil winders",
+        "Bake ovens",
+        "Surge testers"
+      ]
+    },
+    {
+      "name": "Refrigeration System Repair",
+      "category": "Maintenance & Repair",
+      "what": "Finding leaks, recovering and charging refrigerant and replacing compressors and controls. A person who has it can restore a refrigeration or air conditioning plant.",
+      "learned": "HVAC and refrigeration programs and apprenticeships; military utilities schools. Opening a refrigerant circuit takes EPA Section 608 certification.",
+      "tools": [
+        "Manifold gauges",
+        "Recovery machines",
+        "Vacuum pumps"
+      ]
+    },
+    {
+      "name": "Boiler Operation",
+      "category": "Maintenance & Repair",
+      "what": "Lighting off, running and securing a boiler and treating its water. A person who has it can hold steam pressure safely and test the safeties.",
+      "learned": "On the job under a licensed operator; stationary engineer apprenticeships; military utilities schools. Many states and cities license boiler operators by examination.",
+      "tools": [
+        "Burner controls",
+        "Water test kits"
+      ]
+    },
+    {
+      "name": "Water Treatment System Operation",
+      "category": "Maintenance & Repair",
+      "what": "Running the equipment that purifies, softens or treats water, and testing the product. A person who has it can keep water within specification.",
+      "learned": "Water technology programs at community colleges; military water treatment schools; on the job. States certify the operators of public water systems.",
+      "tools": [
+        "Reverse osmosis purification units",
+        "Chemical feed pumps",
+        "Water test kits"
+      ]
+    },
+    {
+      "name": "Radar System Maintenance",
+      "category": "Electronics Assembly",
+      "what": "Aligning, testing and repairing radar transmitters, receivers, antennas and displays. A person who has it can find the failed unit from the symptoms and restore performance.",
+      "learned": "Military electronics schools for the system; an electronics technology degree; on the job. Repairing marine radar takes the FCC radiotelephone license with the ship radar endorsement.",
+      "tools": [
+        "Power meters",
+        "Spectrum analyzers",
+        "Dummy loads"
+      ]
+    },
+    {
+      "name": "Sonar System Maintenance",
+      "category": "Electronics Assembly",
+      "what": "Testing and repairing sonar transmitters, receivers, arrays and processors. A person who has it can isolate a fault to a unit or hydrophone and replace it.",
+      "learned": "Navy sonar technician schools and on the job aboard ship; civilian work is at Navy maintenance centers, shipyards and the systems' makers.",
+      "tools": [
+        "Built-in test",
+        "Oscilloscopes",
+        "Hydrophone test sets"
+      ]
+    },
+    {
+      "name": "Radio Communication System Maintenance",
+      "category": "Electronics Assembly",
+      "what": "Aligning and repairing radios, satellite terminals and their antennas. A person who has it can test a set against its specification and fix what fails.",
+      "learned": "Military electronics schools; electronics technology programs; on the job. Repairing aviation and marine transmitters takes the FCC General Radiotelephone Operator License.",
+      "tools": [
+        "Radio test sets",
+        "Power meters",
+        "Antenna analyzers"
+      ]
+    },
+    {
+      "name": "Antenna and Waveguide Installation",
+      "category": "Electronics Assembly",
+      "what": "Installing, pressurizing and testing antennas, transmission lines and waveguide. A person who has it can put up an antenna system and prove its match.",
+      "learned": "Military electronics schools and on the job with an installation team; employers' tower climbing and rigging training.",
+      "tools": [
+        "Antenna analyzers",
+        "Waveguide flanges and gaskets"
+      ]
+    },
+    {
+      "name": "Electronic Warfare System Maintenance",
+      "category": "Electronics Assembly",
+      "what": "Maintaining receivers, jammers and countermeasures dispensers. A person who has it can test the system against simulated signals and repair it.",
+      "learned": "Military avionics and electronic warfare schools, which need a security clearance; on the job at a depot or with the system's maker.",
+      "tools": [
+        "Signal simulators",
+        "Spectrum analyzers"
+      ]
+    },
+    {
+      "name": "Weapon Control System Maintenance",
+      "category": "Electronics Assembly",
+      "what": "Maintaining the computers, consoles and interfaces that aim and fire weapons. A person who has it can run the system tests and trace a fault through it.",
+      "learned": "Military fire control schools for the system; on the job at a depot, shipyard or the system's maker.",
+      "tools": [
+        "Weapon system test software",
+        "Fire control alignment equipment"
+      ]
+    },
+    {
+      "name": "Inertial Navigation System Maintenance",
+      "category": "Electronics Assembly",
+      "what": "Aligning and repairing gyrocompasses and inertial navigators. A person who has it can align the system and replace failed assemblies.",
+      "learned": "Military avionics and navigation equipment schools; avionics programs; the maker's courses at a repair station or depot.",
+      "tools": [
+        "Alignment fixtures",
+        "Built-in test"
+      ]
+    },
+    {
+      "name": "Avionics Line Troubleshooting",
+      "category": "Electronics Assembly",
+      "what": "Finding which avionics unit has failed on the aircraft and replacing it. A person who has it can work a fault from the pilot report to the box using built-in test and the wiring diagram.",
+      "learned": "Military avionics schools and on the job on the flight line; avionics programs. Civilian credentials are the NCATT Aircraft Electronics Technician certification and the FCC radiotelephone license.",
+      "tools": [
+        "Built-in test",
+        "Pitot-static and bus test sets"
+      ]
+    },
+    {
+      "name": "Automatic Test Equipment Operation",
+      "category": "Electronics Assembly",
+      "what": "Running automated test stations to test and fault-isolate electronic assemblies. A person who has it can load a test program, connect the unit and act on the result.",
+      "learned": "Military avionics test station schools; electronics technology programs; on the job at a depot, repair station or electronics plant.",
+      "tools": [
+        "Automated test stations",
+        "Interface test adapters"
+      ]
+    },
+    {
+      "name": "Cryptographic Equipment Maintenance",
+      "category": "Electronics Assembly",
+      "what": "Testing and repairing secure communications equipment and handling it to its rules. A person who has it can restore a secure circuit.",
+      "learned": "Military communications security maintenance courses, open only with a security clearance; on the job for the government or a cleared contractor.",
+      "tools": [
+        "Fill devices",
+        "Radio test sets"
+      ]
+    },
+    {
+      "name": "Biomedical Equipment Repair",
+      "category": "Electronics Assembly",
+      "what": "Installing, calibrating and repairing medical equipment such as monitors, imaging and laboratory analyzers. A person who has it can return a device to service and document it safe.",
+      "learned": "Biomedical equipment technology associate programs; the military's biomedical equipment technician school; on the job. The AAMI Credentials Institute's CBET is the technician credential.",
+      "tools": [
+        "Electrical safety analyzers",
+        "Patient simulators"
+      ]
+    },
+    {
+      "name": "Munitions Assembly",
+      "category": "Mechanical Assembly",
+      "aliases": [
+        "Naval Mine Assembly"
+      ],
+      "what": "Building up bombs, rockets, mines and other munitions from their components and fuzing them. A person who has it can assemble a munition to its technical order and test its firing circuit.",
+      "learned": "Military munitions and ordnance schools, with explosives safety certification; on the job at an ammunition plant or depot.",
+      "tools": [
+        "Munitions assembly stands",
+        "Torque tools"
+      ]
+    },
+    {
+      "name": "Munitions Serviceability Inspection",
+      "category": "Mechanical Assembly",
+      "what": "Inspecting ammunition and explosives for condition and serviceability and keeping their records. A person who has it can sentence a lot as serviceable or not.",
+      "learned": "Military ammunition schools and on the job; the Army trains civilian ammunition surveillance specialists in a career program of its own.",
+      "tools": [
+        "Ammunition gauges",
+        "Ammunition lot records"
+      ]
+    },
+    {
+      "name": "Aircraft Weapons Loading",
+      "category": "Mechanical Assembly",
+      "what": "Loading and unloading munitions on aircraft and checking the stations. A person who has it can lead a load to its checklist.",
+      "learned": "Military aircraft armament and aviation ordnance schools, then load crew certification on each aircraft and weapon, renewed on a schedule.",
+      "tools": [
+        "Bomb lift trucks",
+        "Loading checklists"
+      ]
+    },
+    {
+      "name": "Weapons Release System Testing",
+      "category": "Mechanical Assembly",
+      "what": "Testing the racks, launchers and circuits that carry and release weapons. A person who has it can prove a station will release and find why one will not.",
+      "learned": "Military aircraft armament and aviation ordnance schools; on the job at a depot or an aircraft maker.",
+      "tools": [
+        "Stray voltage testers",
+        "Release test sets"
+      ]
+    },
+    {
+      "name": "Gun System Maintenance",
+      "category": "Mechanical Assembly",
+      "what": "Disassembling, inspecting and repairing gun systems and their feed and drive mechanisms. A person who has it can time and gauge a gun and return it to service.",
+      "learned": "Military armament, gunner's mate and artillery repairer schools; on the job at an arsenal, depot or gun maker.",
+      "tools": [
+        "Headspace and timing gauges",
+        "Boresights"
+      ]
+    },
+    {
+      "name": "Small Arms Repair",
+      "category": "Mechanical Assembly",
+      "what": "Inspecting, gauging and repairing rifles, pistols and machine guns. A person who has it can find the worn part and replace it.",
+      "learned": "Military small arms repairer schools; gunsmithing programs at community colleges and trade schools; makers' armorer courses.",
+      "tools": [
+        "Armorer gauges",
+        "Punches and bench blocks"
+      ]
+    },
+    {
+      "name": "Missile System Maintenance",
+      "category": "Mechanical Assembly",
+      "what": "Testing, handling and maintaining guided missiles and their support equipment. A person who has it can test a missile, read the result and replace sections.",
+      "learned": "Military missile maintenance schools for the system, with explosives safety certification; on the job at a depot or the missile's maker.",
+      "tools": [
+        "Missile test sets",
+        "Missile handling equipment"
+      ]
+    },
+    {
+      "name": "Torpedo Maintenance",
+      "category": "Mechanical Assembly",
+      "what": "Preparing, testing and overhauling torpedoes. A person who has it can turn a torpedo around from recovery to ready.",
+      "learned": "Navy torpedo maintenance schools; on the job at a Navy undersea weapons facility or with the torpedo's maker.",
+      "tools": [
+        "Torpedo test equipment",
+        "Torpedo handling gear"
+      ]
+    },
+    {
+      "name": "Launcher System Maintenance",
+      "category": "Mechanical Assembly",
+      "what": "Maintaining missile, rocket and torpedo launchers: their mechanical, hydraulic and electrical parts. A person who has it can test a launcher and repair it.",
+      "learned": "Military gunner's mate, missile and launcher repairer schools for the system; on the job at a shipyard, depot or the launcher's maker.",
+      "tools": [
+        "Launcher test sets",
+        "Hydraulic test gauges"
+      ]
+    },
+    {
+      "name": "Nuclear Weapons Maintenance",
+      "category": "Mechanical Assembly",
+      "what": "Inspecting, maintaining and handling nuclear weapons under two-person control. A person who has it can carry out a maintenance procedure exactly as written.",
+      "learned": "Taught only in the services and at the Department of Energy's weapons plants, to people certified under a personnel reliability program.",
+      "tools": [
+        "Special tools and test equipment"
+      ]
+    },
+    {
+      "name": "Industrial Sewing",
+      "category": "Mechanical Assembly",
+      "what": "Running industrial sewing machines to make and repair fabric and webbing items. A person who has it can sew a seam to a specified stitch and strength.",
+      "learned": "On the job at a cut-and-sew plant or canvas shop; military aircrew survival equipment and parachute rigger schools.",
+      "tools": [
+        "Industrial sewing machines",
+        "Webbing and thread"
+      ]
+    },
+    {
+      "name": "Survival Equipment Inspection",
+      "category": "Mechanical Assembly",
+      "what": "Inspecting and repacking life rafts, life preservers, helmets and survival kits on their schedule. A person who has it can certify an item ready for use.",
+      "learned": "Military aircrew survival and flight equipment schools; on the job at an FAA repair station. Parachutes are packed by FAA certificated parachute riggers.",
+      "tools": [
+        "Raft and vest leak test rigs",
+        "Repack records"
+      ]
+    },
+    {
+      "name": "Oxygen Equipment Servicing",
+      "category": "Mechanical Assembly",
+      "what": "Testing and servicing oxygen masks, regulators and converters. A person who has it can test a regulator and keep oxygen equipment clean.",
+      "learned": "Military aircrew survival and flight equipment schools; on the job at an FAA repair station, with oxygen cleanliness training.",
+      "tools": [
+        "Oxygen test stands",
+        "Oxygen-safe leak test compound"
+      ]
+    },
+    {
+      "name": "Pipe Fitting and Layout",
+      "category": "Welding & Fabrication",
+      "what": "Measuring, cutting, bending and fitting pipe to a drawing. A person who has it can make up a piping run and prove its fit before joining.",
+      "learned": "Pipefitter apprenticeships, shipyard apprentice schools and Navy schools; pipefitting programs at trade schools. NCCER certifies pipefitters.",
+      "tools": [
+        "Pipe benders",
+        "Levels and squares",
+        "Pipe threaders"
+      ]
+    },
+    {
+      "name": "Carbon Arc Gouging",
+      "category": "Welding & Fabrication",
+      "what": "Removing metal and weld defects with a carbon arc and compressed air. A person who has it can back-gouge a weld or cut out a defect cleanly.",
+      "learned": "Welding programs and shipyard welding schools, beside stick welding; on the job.",
+      "tools": [
+        "Gouging torches",
+        "Carbon electrodes"
+      ]
+    },
+    {
+      "name": "Stud Welding",
+      "category": "Welding & Fabrication",
+      "what": "Welding studs and fasteners to plate with a stud gun. A person who has it can set the gun and prove the weld by bend test.",
+      "learned": "On the job, with the equipment maker's training; shipyard and structural welding schools. Qualified by the bend tests in AWS D1.1.",
+      "tools": [
+        "Stud welding guns",
+        "Ferrules"
+      ]
+    },
+    {
+      "name": "Reactor Plant Operation",
+      "category": "Chemical Processing",
+      "what": "Operating a nuclear reactor and its control systems within its limits. A person who has it can start up, operate and shut down the plant by procedure.",
+      "learned": "The Navy's nuclear power school and prototype training, then watch qualification. A commercial plant's operators hold a Nuclear Regulatory Commission license.",
+      "tools": [
+        "Reactor control panels",
+        "Reactor plant procedures"
+      ]
+    },
+    {
+      "name": "Radiological Controls",
+      "category": "Chemical Processing",
+      "what": "Surveying for radiation and contamination and controlling work so exposure stays low. A person who has it can survey an area, post it and control a job in it.",
+      "learned": "Navy nuclear and engineering laboratory technician training; radiation protection programs at community colleges; on the job. The National Registry of Radiation Protection Technologists registers technicians.",
+      "tools": [
+        "Radiation survey meters",
+        "Dosimetry"
+      ]
+    },
+    {
+      "name": "Plant Water Chemistry Control",
+      "category": "Chemical Processing",
+      "what": "Sampling and analyzing plant water and adding chemicals to hold it in specification. A person who has it can keep a steam or reactor plant from corroding.",
+      "learned": "Navy engineering laboratory technician training; chemistry technician programs; on the job in a power plant's laboratory.",
+      "tools": [
+        "Sample sinks",
+        "Water chemistry analyzers"
+      ]
+    },
+    {
+      "name": "Reactor Instrumentation Maintenance",
+      "category": "Chemical Processing",
+      "what": "Calibrating and repairing the instruments that measure and protect a reactor. A person who has it can test a protection channel and restore it.",
+      "learned": "The Navy's nuclear power school and prototype training; instrumentation programs, then a nuclear plant's own training for instrument and control technicians.",
+      "tools": [
+        "Calibrators",
+        "Test signal sources"
+      ]
+    },
+    {
+      "name": "Fuel Quality Testing",
+      "category": "Chemical Processing",
+      "what": "Sampling fuel and testing it for water, sediment and specification. A person who has it can say whether fuel is fit to use.",
+      "learned": "Military fuels and petroleum laboratory schools; on the job at a refinery, terminal or airport fuel farm. The tests are ASTM methods.",
+      "tools": [
+        "Fuel sample bottles",
+        "Water detection kits",
+        "Fuel laboratory test apparatus"
+      ]
+    },
+    {
+      "name": "Liquid Oxygen and Nitrogen Production",
+      "category": "Chemical Processing",
+      "what": "Running the plant that liquefies air and separates it into oxygen and nitrogen, storing the product and testing its purity. A person who has it can start the plant, hold it in production, fill storage and transfer tanks and sample the product.",
+      "learned": "Military cryogenics schools; on the job at an industrial gas company's air separation plant, with its cryogenic and oxygen safety training.",
+      "tools": [
+        "Cryogenic storage tanks",
+        "Oxygen purity analyzers"
       ]
     }
   ],
