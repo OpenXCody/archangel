@@ -312,8 +312,9 @@ input {
 }
 
 /*
- * MapLibre attribution. The basemap's terms require it, so it stays, but as
- * a quiet "i" on the map's own surface that opens on click instead of a white
+ * MapLibre attribution, when it is drawn on the map (`CREDIT_ON_MAP` in
+ * Map.tsx; off for the prototype, the credits are on the Settings page): a
+ * quiet "i" on the map's own surface that opens on click instead of a white
  * pill. Scoped under .archangel-map so it outranks maplibre-gl.css whichever
  * loads first. The container lifts with the phone sheet so the credit is
  * never covered.

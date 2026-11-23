@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { cn, labelClass, optionDetailClass, optionTileClass, optionTitleClass } from '@/lib/utils';
+import { cn, focusRing, labelClass, optionDetailClass, optionTileClass, optionTitleClass } from '@/lib/utils';
 import {
   useChangeEmail,
   justLeft,
@@ -596,12 +596,33 @@ const THEMES: Choice<Theme>[] = [
   { value: 'light', label: 'Light' },
 ];
 
+/**
+ * Who the map's basemap is by: the credits the map's own "i" button carried,
+ * with the same links, while that button is off the map (`CREDIT_ON_MAP` in
+ * components/map/Map.tsx).
+ */
+function MapCredits() {
+  const link = cn('underline hover:text-text-1', focusRing);
+  return (
+    <p className="mt-4 text-xs text-text-3" data-map-credits>
+      Map:{' '}
+      <a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener noreferrer" className={link}>
+        © MapTiler
+      </a>{' '}
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className={link}>
+        © OpenStreetMap contributors
+      </a>
+    </p>
+  );
+}
+
 /** Dark or light, kept in this browser. */
 function AppearanceSection() {
   const theme = useTheme();
   return (
     <PageSection title="Appearance">
       <ChoiceGroup label="Theme" name="theme" choices={THEMES} value={theme} onChange={setTheme} />
+      <MapCredits />
     </PageSection>
   );
 }

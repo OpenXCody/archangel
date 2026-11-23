@@ -121,6 +121,16 @@ function pinInfo(properties: Record<string, unknown> | null): PinInfo | null {
 }
 
 /**
+ * Whether the basemap's credit is drawn on the map (MapLibre's attribution
+ * control, bottom left, folded to its "i"). Off for the prototype, at the
+ * owner's request: the same credits, with their links, stand on the Settings
+ * page under Appearance (`MapCredits`). MapTiler's free plan asks for the
+ * credit on the map itself, so before a public launch this goes back to true
+ * or the plan changes.
+ */
+const CREDIT_ON_MAP: boolean = false;
+
+/**
  * MapLibre shows its attribution opened out the first time it has something
  * to credit. Fold it to the small "i" button that once; after that only the
  * visitor opens or closes it.
@@ -291,7 +301,7 @@ export default function Map({ onViewChange }: MapProps) {
           dragRotate: false,
           pitchWithRotate: false,
           touchPitch: false,
-          // Added below, bottom-left, so the panel and the zoom buttons never cover it.
+          // Added below when it is on (`CREDIT_ON_MAP`), bottom-left, so the panel and the zoom buttons never cover it.
           attributionControl: false,
           renderWorldCopies: false,
         });
@@ -309,10 +319,10 @@ export default function Map({ onViewChange }: MapProps) {
       const currentMap = map.current;
       if (import.meta.env.DEV) window.__archangelMap = currentMap;
 
-      // The basemap provider's and OpenStreetMap's terms require the credit.
-      // It stays, folded to its "i" button until someone asks for it.
-      currentMap.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
-      collapseAttribution(currentMap);
+      if (CREDIT_ON_MAP) {
+        currentMap.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
+        collapseAttribution(currentMap);
+      }
 
       // Handle map errors with auto-retry
       currentMap.on('error', (e) => {
