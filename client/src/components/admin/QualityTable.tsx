@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { cn, focusRing } from '@/lib/utils';
 import { useDataQuality, type QualityRow } from '../../lib/admin';
 import { stateName } from '../../lib/places';
@@ -94,7 +94,15 @@ export default function QualityTable() {
           focusRing
         )}
       >
-        {label}
+        {/* On a phone a heading breaks between its words, never at a hyphen: "One-factory" stays whole. */}
+        <span>
+          {label.split(' ').map((word, index) => (
+            <Fragment key={word}>
+              {index > 0 && ' '}
+              <span className="whitespace-nowrap">{word}</span>
+            </Fragment>
+          ))}
+        </span>
       </button>
     </th>
   );

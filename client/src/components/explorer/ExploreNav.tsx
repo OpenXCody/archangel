@@ -106,8 +106,9 @@ export default function ExploreNav({ active }: { active: ExploreView }) {
         data-more-before={more.before || undefined}
         data-more-after={more.after || undefined}
         style={mask ? { maskImage: mask, WebkitMaskImage: mask } : undefined}
-        // The current view's underline sits on the frame's hairline.
-        className="-mb-px flex items-center justify-between gap-x-6 overflow-x-auto [scrollbar-width:none] sm:justify-start sm:gap-x-8 [&::-webkit-scrollbar]:hidden"
+        // The current view's underline sits on the frame's hairline. On a phone the labels stand a little
+        // closer, so on a 375 px screen the row rests with its first four whole: "Factories" is not cut at the edge.
+        className="-mb-px flex items-center justify-between gap-x-4 overflow-x-auto [scrollbar-width:none] sm:justify-start sm:gap-x-8 [&::-webkit-scrollbar]:hidden"
       >
         {VIEWS.map((view) => {
           // The Atlas is the skills, drawn: the Skills tab is where it lives.

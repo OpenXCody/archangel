@@ -216,6 +216,7 @@ const REFUSED: Record<string, number> = { PM400: 400, PM404: 404, PM409: 409 };
 const SAID: Record<string, string> = {
   'Plant not found': 'Factory not found',
   'The plant to merge into was not found.': 'The factory to merge into was not found.',
+  'Choose a different plant to merge into.': 'Choose a different factory to merge into.',
 };
 
 /** What plant_merge answers. */

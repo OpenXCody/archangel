@@ -204,7 +204,7 @@ export function FigureList({ rows, state: navState }: { rows: FigureRow[]; state
   const withPeople = rows.some((row) => (row.people ?? null) !== null);
   const withPlants = rows.some((row) => (row.plants ?? 0) > 0);
   // The last column is as wide as its heading, "Factories", in the label's letterspaced capitals.
-  const columns = cn('grid items-baseline gap-x-3', withPeople && withPlants ? 'grid-cols-[minmax(0,1fr)_5.75rem_4.5rem]' : 'grid-cols-[minmax(0,1fr)_5.75rem]');
+  const columns = cn('grid items-baseline gap-x-3', withPeople && withPlants ? 'grid-cols-[minmax(0,1fr)_5.75rem_4.25rem]' : 'grid-cols-[minmax(0,1fr)_5.75rem]');
   return (
     <div data-figure-list>
       <div aria-hidden="true" className={cn(columns, 'border-b border-line pb-2 text-right text-[11px] font-medium uppercase tracking-[0.08em] text-text-2')}>

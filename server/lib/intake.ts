@@ -182,6 +182,13 @@ export async function waitingMatches(): Promise<number> {
 }
 
 /**
+ * A match's reason as the screen says it. A run words it (scripts/ingest/lib/pipeline.mjs)
+ * and says factory; one stored by a run before the screen did still says plant. A
+ * reason is the runner's own phrases and holds no name, so the word is safe to restate.
+ */
+const reasonSaid = (reason: string): string => reason.replace(/\bplants\b/g, 'factories').replace(/\bplant\b/g, 'factory');
+
+/**
  * The matches waiting for a person: the ones nobody has looked at first,
  * oldest first, then the ones skipped. Each carries the source's record and
  * our candidate plants as they are now (a candidate deleted since is left out).
@@ -227,7 +234,7 @@ export async function reviewQueue(limit: number, offset: number): Promise<{ item
       sourceName: row.source_name,
       sourceId: row.source_id,
       sourceUrl: text(row.facts.url),
-      reason: row.reason,
+      reason: reasonSaid(row.reason),
       ifDifferent: row.unmatched,
       record: {
         name: text(row.facts.name),

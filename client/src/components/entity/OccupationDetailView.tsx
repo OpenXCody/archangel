@@ -210,7 +210,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
 
       {/* Factories where this career is on record */}
       {plants.length > 0 && (
-        <DetailSection id="plants" title="Factories with this career" column={counted ? 'People' : undefined}>
+        <DetailSection id="factories" title="Factories with this career" column={counted ? 'People' : undefined}>
           <RecordList>
             {plants.map((plant) => {
               const plantName = formatFactoryName(plant.name);

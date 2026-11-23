@@ -299,6 +299,21 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   const names = await tabs.getByRole('link').evaluateAll((links) => links.map((link) => (link as HTMLElement).innerText.trim()));
   expect(names).toEqual(['Overview', 'Industries', 'Companies', 'Factories', 'Careers', 'Skills']);
   await expect(tabs.locator('[aria-current="page"]')).toHaveAccessibleName('Overview');
+  // Six labels do not fit a phone, and the row scrolls. At rest on a 375 px phone the first four are whole:
+  // "Factories" is not cut at the row's edge.
+  const screen = page.viewportSize();
+  if (screen && screen.width >= 375 && screen.width < 640) {
+    await page.setViewportSize({ width: 375, height: screen.height });
+    await expect
+      .poll(() =>
+        tabs.evaluate((row) => {
+          const edge = row.getBoundingClientRect().right;
+          return [...row.querySelectorAll('a')].filter((link) => link.getBoundingClientRect().right <= edge + 0.5).map((link) => (link as HTMLElement).innerText.trim());
+        })
+      )
+      .toEqual(['Overview', 'Industries', 'Companies', 'Factories']);
+    await page.setViewportSize(screen);
+  }
   // The overview's sections are the tabs' words in the tabs' order.
   // (Asked until it is so: the page holds its place with three of them while the answer loads.)
   await expect.poll(() => page.locator('main h2').allInnerTexts()).toEqual(['Industries', 'Companies', 'Factories', 'Careers', 'Skills']);
@@ -2084,7 +2099,7 @@ test("a military career's page: its kind and code above the service's own title,
   await expect(view.locator('[data-draft-path]')).toBeVisible();
   await expect(view.getByRole('link', { name: 'Atlas', exact: true }).or(view.getByRole('button', { name: 'Atlas', exact: true })).or(view.getByRole('radio', { name: 'Atlas', exact: true })).first()).toBeVisible();
   // It has no ladder, industries, jobs, companies or factories: none of those sections is drawn, and none is empty.
-  await expect(view.locator('#where, #jobs, #companies, #plants, #military')).toHaveCount(0);
+  await expect(view.locator('#where, #jobs, #companies, #factories, #military')).toHaveCount(0);
   await expect(view.getByText(/Comes from|Leads to/)).toHaveCount(0);
   expect(await view.locator('section').evaluateAll((sections) => sections.map((section) => section.id))).toEqual(['skills', 'reach']);
   // The one new section: the civilian careers its path covers most, each with how much and the skills missing.

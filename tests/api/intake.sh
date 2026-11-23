@@ -223,6 +223,10 @@ expect "and what waits on it"               '9 2' "$(printf '%s' "$OUT" | j "sou
 expect "the overview counts matches waiting" 2 "$(( $(req a GET /admin/overview | j waitingMatches) - WAITING0 ))"
 OUT=$(req a GET '/admin/intake/review?limit=50')
 check "the queue"                           200 "$OUT" '"reason":"the factory is filed under another company"'
+# A reason stored by a run before the screen said factory is restated when it is read; what is stored stays.
+sql "UPDATE intake_review SET reason = '2 plants fit equally; the plant is filed under another company' WHERE source = 'e2e-intake' AND source_id = 'E2E-3'" >/dev/null
+expect "an earlier run's reason is read in the screen's words" '2 factories fit equally; the factory is filed under another company' "$(req a GET '/admin/intake/review?limit=50' | j "items.find((i) => i.sourceId === 'E2E-3').reason")"
+sql "UPDATE intake_review SET reason = 'the factory is filed under another company' WHERE source = 'e2e-intake' AND source_id = 'E2E-3'" >/dev/null
 Q3=$(printf '%s' "$OUT" | j "items.find((i) => i.sourceId === 'E2E-3').id")
 Q9=$(printf '%s' "$OUT" | j "items.find((i) => i.sourceId === 'E2E-9').id")
 expect "a match sets the two records side by side" 'E2E Intake Acme Street Depot|3 Depot St|E2E INTAKE ACME WAREHOUSE|E2E Intake Stranger|near|100' "$(printf '%s' "$OUT" | j "items.filter((i) => i.id === $Q3).map((i) => [i.record.name, i.record.address, i.candidates[0].name, i.candidates[0].company, i.candidates[0].rule, i.candidates[0].metres].join('|'))[0]")"

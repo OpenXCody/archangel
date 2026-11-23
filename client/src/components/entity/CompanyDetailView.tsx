@@ -219,7 +219,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
 
       {/* Every factory: where it is and what it makes */}
       {plants.length > 1 && (
-        <DetailSection id="plants" title="Factories">
+        <DetailSection id="factories" title="Factories">
           <RecordList>
             {shownPlants.map((plant) => (
               <RecordRow
