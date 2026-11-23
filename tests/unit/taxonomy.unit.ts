@@ -33,8 +33,8 @@ interface TaxonomyFile {
 const BUILDER = 'scripts/build-taxonomy-sql.mjs';
 const TAXONOMY = 'data/skills/taxonomy.json';
 const CATALOGUE = 'data/skills/catalogue.json';
-// The taxonomy's latest migration. 0042 was the first and is as it was applied.
-const MIGRATION = 'migrations/0049_skill_taxonomy_2.sql';
+// The taxonomy's latest migration. 0042 was the first and 0049 the second; each is as it was applied.
+const MIGRATION = 'migrations/0060_skill_taxonomy_3.sql';
 
 const taxonomy = JSON.parse(readFileSync(TAXONOMY, 'utf8')) as TaxonomyFile;
 const catalogue = JSON.parse(readFileSync(CATALOGUE, 'utf8')) as { skills: { name: string }[] };
@@ -175,4 +175,22 @@ test('the migration is in the runner\'s list', () => {
   assert.match(runner, /'0041_largest_plants\.sql', '0042_skill_taxonomy\.sql'/);
   // The catalogue's migration comes first: it leaves exactly the skills this one places.
   assert.match(runner, /'0048_skills_catalogue_2\.sql', '0049_skill_taxonomy_2\.sql'/);
+  assert.match(runner, /'0059_skills_catalogue_4\.sql', '0060_skill_taxonomy_3\.sql'/);
+});
+
+test('the third taxonomy places the military careers\' skills in eleven new groups and moves no skill that was placed', () => {
+  const groups = (sql: string) => new Map([...sql.matchAll(/^ {2}\('([a-z0-9-]+)', '([a-z0-9-]+)', '/gm)].map((m) => [m[1], m[2]]));
+  const skillsOf = (sql: string) => new Map([...sql.matchAll(/^ {2}\('((?:[^']|'')+)', '([a-z0-9-]+)', ([123]), \d+\)[,;]$/gm)].map((m) => [m[1], `${m[2]} ${m[3]}`]));
+  const before = readFileSync('migrations/0049_skill_taxonomy_2.sql', 'utf8');
+  const after = readFileSync(MIGRATION, 'utf8');
+  const added = [...groups(after).keys()].filter((slug) => !groups(before).has(slug));
+  assert.deepEqual(added.sort(), ['aircraft-systems', 'engines-and-power-plants', 'fielded-electronic-systems', 'fuels', 'nuclear-plant-operations', 'plant-utilities', 'power-generation-and-distribution', 'shipfitting', 'survival-equipment', 'vehicles-and-heavy-equipment', 'weapons-and-munitions']);
+  for (const [slug, domain] of groups(before)) assert.equal(groups(after).get(slug), domain, `${slug} stays in ${domain}`);
+  // A skill that was placed keeps its group and its level.
+  const was = skillsOf(before);
+  const now = skillsOf(after);
+  assert.equal(was.size, 656);
+  assert.equal(now.size, 722);
+  for (const [name, place] of was) assert.equal(now.get(name), place, `${name} stays where it was`);
+  for (const [name, place] of now) if (!was.has(name)) assert.ok(added.includes(place.split(' ')[0]), `${name} is new and in a new group`);
 });

@@ -24,8 +24,10 @@ interface Catalogue {
 }
 
 const catalogue = JSON.parse(readFileSync('data/skills/catalogue.json', 'utf8')) as Catalogue;
-// The catalogue's latest migration. 0033 was the first and 0048 the second; each is as it was applied.
-const MIGRATION = 'migrations/0057_skills_catalogue_3.sql';
+// The catalogue's latest migration. 0033 was the first, 0048 the second and 0057 the third; each is as it was applied.
+const MIGRATION = 'migrations/0059_skills_catalogue_4.sql';
+/** The skills a catalogue migration keeps, by name as its SQL writes them. */
+const keptBy = (sql: string) => new Set([...sql.matchAll(/^INSERT INTO skills \(name, category\) SELECT '((?:[^']|'')+)',/gm)].map((m) => m[1]));
 
 test('the skills migration is what the catalogue generates', () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'skills-sql-'));
@@ -99,15 +101,17 @@ test('the migration knows every stored name before it changes anything, adds wha
   at("IF to_regclass('public.skill_makes') IS NOT NULL THEN");
   // Next to each other, the catalogue first: the taxonomy places exactly the skills this one leaves.
   assert.match(readFileSync('scripts/migrate.mjs', 'utf8'), /'0048_skills_catalogue_2\.sql', '0049_skill_taxonomy_2\.sql'/);
-  // The latest restates the catalogue after the paths: it adds other names and no skill, so no taxonomy follows it.
+  // The third restated the catalogue after the paths: it added other names and no skill, so no taxonomy follows it.
   const list = MIGRATIONS as string[];
   assert.ok(list.indexOf('0057_skills_catalogue_3.sql') > list.indexOf('0052_career_paths.sql'));
+  // The fourth adds skills, so the taxonomy that places them is the next migration.
+  assert.match(readFileSync('scripts/migrate.mjs', 'utf8'), /'0059_skills_catalogue_4\.sql', '0060_skill_taxonomy_3\.sql'/);
 });
 
-test('the latest migration adds other names only: every skill it keeps was kept by the one before', () => {
+test('the third migration added other names only: every skill it keeps was kept by the one before', () => {
   const before = readFileSync('migrations/0048_skills_catalogue_2.sql', 'utf8');
-  const after = readFileSync(MIGRATION, 'utf8');
-  const kept = (sql: string) => new Set([...sql.matchAll(/^INSERT INTO skills \(name, category\) SELECT '((?:[^']|'')+)',/gm)].map((m) => m[1]));
+  const after = readFileSync('migrations/0057_skills_catalogue_3.sql', 'utf8');
+  const kept = keptBy;
   assert.deepEqual([...kept(after)].sort(), [...kept(before)].sort());
   const lines = new Set(before.split('\n'));
   const fresh = after.split('\n').filter((line) => !lines.has(line));
@@ -117,6 +121,38 @@ test('the latest migration adds other names only: every skill it keeps was kept 
   for (const line of fresh) assert.ok(!/^(UPDATE skills SET|DELETE FROM skills|SELECT pg_temp\.rename_skill)/.test(line), `nothing but names is new: ${line}`);
   // Said in the log: each name added, each one stored for another skill, and anything a restated catalogue put back.
   for (const action of ['name added', 'name not added', 'details restated', 'renamed, merged or removed']) assert.ok(after.includes(`'skills-catalogue', 'skill', '${action}'`), action);
+});
+
+test('the fourth migration adds the skills of the military careers and changes no skill that was there', () => {
+  const before = readFileSync('migrations/0057_skills_catalogue_3.sql', 'utf8');
+  const after = readFileSync(MIGRATION, 'utf8');
+  const was = keptBy(before);
+  const now = keptBy(after);
+  for (const name of was) assert.ok(now.has(name), `${name} is still kept`);
+  const added = [...now].filter((name) => !was.has(name));
+  assert.equal(added.length, 66);
+  assert.equal(catalogue.skills.length, 722);
+  // Nothing is renamed, merged or removed that was not before: the lines that do so are the same lines.
+  const acts = (sql: string) => sql.split('\n').filter((line) => /^(DELETE FROM skills WHERE name IN|SELECT pg_temp\.rename_skill)/.test(line));
+  assert.deepEqual(acts(after), acts(before));
+  // No skill that was there has its details restated: every new UPDATE is one of the added skills'.
+  const lines = new Set(before.split('\n'));
+  const fresh = after.split('\n').filter((line) => !lines.has(line));
+  const updates = fresh.filter((line) => line.startsWith('  WHERE name = '));
+  assert.equal(updates.length, 66);
+  for (const line of updates) assert.ok(added.some((name) => line === `  WHERE name = '${name}'`), `only an added skill is described: ${line}`);
+  // Two delivered skills were another name of one the catalogue has or adds: kept as other names.
+  const also = (name: string) => catalogue.skills.find((skill) => skill.name === name)?.aliases ?? [];
+  assert.ok(also('Bulk Chemical Transfer').includes('Bulk Fuel Handling'));
+  assert.ok(also('Munitions Assembly').includes('Naval Mine Assembly'));
+  // Each says how it is learned in its own words: the delivered file gave all of them one sentence.
+  const learned = new Set(added.map((name) => catalogue.skills.find((skill) => skill.name === name.replace(/''/g, "'"))?.learned));
+  assert.equal(learned.size, 66);
+  for (const name of ['Diesel Engine Maintenance', 'Refrigeration System Repair', 'Radar System Maintenance', 'Steering and Suspension Repair', 'Munitions Serviceability Inspection']) {
+    assert.ok(now.has(name), `${name} is in the catalogue`);
+  }
+  // The broad or misnamed ones were narrowed before they were loaded.
+  for (const name of ['Wheeled Vehicle Maintenance', 'Powertrain and Drivetrain Repair', 'Munitions Inspection']) assert.ok(!now.has(name), `${name} is not a skill`);
 });
 
 test('the pass kept every name it folded or renamed, as an earlier name of the skill it became', () => {
