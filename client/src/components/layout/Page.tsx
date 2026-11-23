@@ -301,6 +301,12 @@ interface RecordRowProps {
   figureLabel?: string;
   /** The name in secondary ink: a skill the person does not hold, among ones they do. */
   quiet?: boolean;
+  /**
+   * What stands under the link, in the row and not part of it: a line that is
+   * not cut short, which may hold a link of its own (the skills a career within
+   * reach still asks for, and the way to compare the two). Not for a row with a `control`.
+   */
+  below?: ReactNode;
   className?: string;
 }
 
@@ -316,11 +322,12 @@ export function RecordRow({
   figure,
   figureLabel,
   quiet,
+  below,
   className,
   ...rest
 }: RecordRowProps & Record<`data-${string}`, string | undefined>) {
   return (
-    <li className={cn('flex items-stretch border-t border-line first:border-t-0', className)} {...rest}>
+    <li className={cn('border-t border-line first:border-t-0', below ? 'block' : 'flex items-stretch', className)} {...rest}>
       {/* A mark stands 12px inside its button: the button is drawn that far left, so the mark sits on the page's edge. */}
       {control && <span className="-ml-3 flex shrink-0 items-center">{control}</span>}
       <Link
@@ -346,6 +353,7 @@ export function RecordRow({
           <ChevronRight className="h-4 w-4 shrink-0 text-text-3 group-hover:text-text-1" aria-hidden="true" />
         )}
       </Link>
+      {below && <div className="-mt-1 min-w-0 pb-3">{below}</div>}
     </li>
   );
 }
