@@ -173,21 +173,36 @@ router.post(
 );
 
 // DELETE /api/employer/memberships/:companyId - leave a company, or cancel a
-// request. A declined request is not the person's to remove: it is the record
-// that keeps them from asking again at once.
+// request: a person's own access is theirs to give up, an admin's included.
+// A declined request is not the person's to remove: it is the record that
+// keeps them from asking again at once. An admin who leaves a company has
+// changed their own access, as joining did: that goes in the audit log.
 router.delete(
   '/memberships/:companyId',
   handle(async (req, res) => {
-    await db
+    const user = req.user!;
+    const removed = await db
       .delete(companyMembers)
       .where(
         and(
           eq(companyMembers.companyId, req.params.companyId),
-          eq(companyMembers.userId, req.user!.id),
+          eq(companyMembers.userId, user.id),
           inArray(companyMembers.status, ['requested', 'active'])
         )
-      );
-    res.json({ ok: true });
+      )
+      .returning({ status: companyMembers.status });
+    if (user.isAdmin && removed.some((row) => row.status === 'active')) {
+      const [company] = await db.select({ name: companies.name }).from(companies).where(eq(companies.id, req.params.companyId)).limit(1);
+      await recordAudit(db, {
+        actor: user,
+        kind: 'access',
+        recordId: user.id,
+        recordName: `${user.email} · ${company?.name ?? 'a company'}`,
+        action: 'removed from company',
+        detail: { companyId: req.params.companyId, by: 'themselves' },
+      });
+    }
+    res.json({ ok: true, left: removed.length > 0 });
   })
 );
 
