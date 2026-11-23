@@ -55,8 +55,10 @@ async function seed() {
     await db.delete(occupationSkills);
     await db.delete(factoryOccupations);
     await db.delete(factories);
-    await db.delete(companies);
+    // Careers before companies: a military career belongs to a service, which is a company
+    // (occupations.service_company_id, migration 0061), and a service with careers cannot be deleted.
     await db.delete(occupations);
+    await db.delete(companies);
     await db.delete(skills);
     console.log('Existing data cleared.\n');
 

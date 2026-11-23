@@ -74,7 +74,8 @@ CANAME=$(sql "SELECT name FROM companies WHERE id='$CA'")
 CB=$(sql "SELECT id FROM companies WHERE id <> '$CA' ORDER BY id LIMIT 1 OFFSET 0")
 CC=$(sql "SELECT id FROM companies WHERE id <> '$CA' ORDER BY id LIMIT 1 OFFSET 1")
 CD=$(sql "SELECT id FROM companies WHERE id <> '$CA' ORDER BY id LIMIT 1 OFFSET 2")
-OCC=$(sql "SELECT occupation_id FROM occupation_skills GROUP BY 1 ORDER BY COUNT(*) DESC, 1 LIMIT 1")
+# The civilian career with the most skills: a job is for a civilian career.
+OCC=$(sql "SELECT os.occupation_id FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id WHERE o.service_company_id IS NULL GROUP BY 1 ORDER BY COUNT(*) DESC, 1 LIMIT 1")
 R1=$(sql "SELECT id FROM skills ORDER BY name, id LIMIT 1 OFFSET 0")
 R2=$(sql "SELECT id FROM skills ORDER BY name, id LIMIT 1 OFFSET 1")
 # Every link in an email starts here: the API's APP_URL, or its default.

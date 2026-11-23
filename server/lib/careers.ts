@@ -2,6 +2,7 @@ import { asc, eq, sql } from 'drizzle-orm';
 import { db, occupationLinks, occupations, skillDomains } from '../db/index.js';
 import type { Executor } from './audit.js';
 import { rowsOf } from './rows.js';
+import { civilianCareer } from './military.js';
 
 /**
  * What a career has beyond its path: a home (the domain most of its work is
@@ -102,11 +103,11 @@ export async function setLeadsTo(executor: Executor, id: string, wanted: string[
 /** The select columns and the join a list of careers reads each row's home with. */
 export const homeColumns = { homeSlug: skillDomains.slug, homeName: skillDomains.name };
 
-/** The domains that are some career's home, in the taxonomy's order. */
+/** The domains that are some civilian career's home (the Careers list is of those), in the taxonomy's order. */
 export async function careerDomains(): Promise<CareerHome[]> {
   return db
     .select({ slug: skillDomains.slug, name: skillDomains.name })
     .from(skillDomains)
-    .where(sql`EXISTS (SELECT 1 FROM occupations o WHERE o.home_domain = ${skillDomains.slug})`)
+    .where(sql`EXISTS (SELECT 1 FROM occupations o WHERE o.home_domain = ${skillDomains.slug} AND ${civilianCareer('o')})`)
     .orderBy(asc(skillDomains.position), asc(skillDomains.slug));
 }

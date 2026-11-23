@@ -54,8 +54,8 @@ cite() { sql "INSERT INTO external_references (entity_type, entity_id, source, e
 # ---------------------------------------------------------------------------
 sql "INSERT INTO companies (name) VALUES ('E2E Dupes Acme'), ('E2E Dupes Other')" >/dev/null
 sql "INSERT INTO users (email, name, password_hash) VALUES ('poster@dupes.test', 'Pat Poster', 'x')" >/dev/null
-CAREER=$(sql "SELECT id FROM occupations ORDER BY title LIMIT 1")
-CAREER2=$(sql "SELECT id FROM occupations ORDER BY title OFFSET 1 LIMIT 1")
+CAREER=$(sql "SELECT id FROM occupations WHERE service_company_id IS NULL ORDER BY title LIMIT 1")
+CAREER2=$(sql "SELECT id FROM occupations WHERE service_company_id IS NULL ORDER BY title OFFSET 1 LIMIT 1")
 # KEEP has a name, an address and a place; its ZIP, industry, people and opening year are empty, and an admin emptied what it makes.
 KEEP=$(add 'E2E Dupes Acme' 'E2E DUPES ACME MILL' 39.5000 -116.5000 'address, city' "'1 Mill Rd', 'ELKO'")
 # GONE is the same mill from another list: another address, and the facts KEEP lacks.

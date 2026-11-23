@@ -2,7 +2,10 @@
 // migrations.
 //
 //   node scripts/build-military-sql.mjs --check            validate the files; writes nothing
+//   node scripts/build-military-sql.mjs --report           the same check, then the figures behind it
 //   node scripts/build-military-sql.mjs employers [out]    the four services as companies (0062)
+//   node scripts/build-military-sql.mjs careers [out]      the careers, each with its service and code (0063)
+//   node scripts/build-military-sql.mjs paths [out]        each career's skills, every path a draft (0064)
 //
 // A military job (a Navy rating, an Army MOS, an Air Force specialty) is a
 // career, and each service is an employer: a row in `companies` whose
@@ -13,6 +16,25 @@
 // employers.json: the four services. --check fails unless each has a name, a
 // service key that is one of the four (once each), a bare domain, a well
 // formed slug, a description and a headquarters of city, state and country.
+//
+// careers.json: the careers. --check fails unless:
+//   - every career has a title, a `what`, a home that is a domain of the
+//     taxonomy, a service that has a code system, that system, a code and the
+//     service's own title, and its title is that title with the service in
+//     front ("Navy Electronics Technician");
+//   - a title or other name appears once in the file, in any letter case, and
+//     is not a title, a folded title, a removed title or an everyday name of
+//     the civilian catalogue (data/careers/catalogue.json, aliases.json);
+//   - a code appears once within its system;
+//   - no career has `leadsTo`, `tags`, `kind`, `employer` or `reaches`: a
+//     ladder is curated and none is yet, and the rest are derived or computed.
+//
+// paths.json: one path per career. --check fails unless every career has
+// exactly one entry and no entry names anything else; every skill is a kept
+// skill of the skills catalogue, placed in the taxonomy, once; a path has at
+// least PATH_FLOOR skills (a military career is listed when five apply) and
+// one from the career's home domain; and every entry says where it was read
+// from (`basis`).
 //
 // Each migration cannot see the database it will run on, so it decides there,
 // in SQL, and writes each decision to load_log (look = true on the lines a
@@ -28,16 +50,51 @@
 //   - a company that carries a different service under one of these names is
 //     left alone, and said;
 //   - it adds no plant: a service has none.
+//
+// The careers' migration (load 'military-careers'):
+//   - a career is the stored career that already carries its code in its
+//     system, else the one with exactly its title in any letter case, else a
+//     new career. One found by title that is a civilian career (no service) is
+//     left alone, and said: a military career never takes a civilian one over;
+//   - it takes the file's title, `what`, home, service, code and the service's
+//     own title. Its path, its path's state, its goals and jobs are not touched;
+//   - each other name is added unless it is some career's title or another
+//     career's other name, which is said;
+//   - a career whose service is not stored is said and skipped; a stored
+//     military career the file does not name is left alone, and said;
+//   - it writes no ladder link and no industry: a military career is typical
+//     of no industry, and is on no ladder until one is curated.
+//
+// The paths' migration (load 'military-paths') is the civilian paths' own
+// (scripts/build-career-paths-sql.mjs): each career of the file gets exactly
+// the file's skills and becomes a draft; a path a person approved is left
+// exactly as it is and the log says what the file would change.
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathSql } from './build-career-paths-sql.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const MILITARY_DIR = 'data/careers/military';
 /** The services a company can be, as migration 0061's check and shared/military.ts name them. */
 export const SERVICE_KEYS = ['navy', 'army', 'air-force', 'marine-corps'];
 
+/**
+ * The systems a career's code can be in, each one service's, with the service
+ * as it stands in front of a title. As migration 0061's check and
+ * shared/military.ts name them (a unit check holds the three together).
+ */
+export const CODE_SYSTEMS = [
+  { key: 'navy-rating', service: 'navy', short: 'Navy' },
+  { key: 'army-mos', service: 'army', short: 'Army' },
+  { key: 'afsc', service: 'air-force', short: 'Air Force' },
+];
+/** The fewest skills a military career's path has: it is listed when five catalogue skills apply. */
+export const PATH_FLOOR = 5;
+
 const text = (value) => typeof value === 'string' && value.trim().length > 0 && value === value.trim();
+const sentence = (value) => text(value) && !/[\r\n]/.test(value);
+const lower = (value) => String(value).toLowerCase();
 const BARE_DOMAIN = /^(?!www\.)[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -73,6 +130,146 @@ export function employerProblems(file) {
     if (extra.length > 0) problems.push(`${where}: unknown key ${extra.map((key) => `"${key}"`).join(', ')} (tags are derived from the service, and careers are counted)`);
   }
   return problems;
+}
+
+/** Every name the civilian catalogue uses for a career, in lower case: titles, folded titles, removed titles and everyday names. */
+export function civilianNames(catalogue, aliases) {
+  const names = new Set();
+  for (const career of catalogue?.careers ?? []) {
+    names.add(lower(career.title));
+    for (const was of career.was ?? []) names.add(lower(was));
+  }
+  for (const group of catalogue?.removed ?? []) for (const title of group.titles ?? []) names.add(lower(title));
+  for (const entry of aliases?.careers ?? []) {
+    for (const key of ['names', 'aliases', 'not']) for (const name of Array.isArray(entry?.[key]) ? entry[key] : []) names.add(lower(name));
+  }
+  return names;
+}
+
+/** Everything wrong with the careers file, as sentences. None means it can be loaded. */
+export function careerProblems(file, taxonomy, employers, civilian) {
+  const problems = [];
+  const careers = Array.isArray(file?.careers) ? file.careers : [];
+  if (careers.length === 0) problems.push('"careers" is empty');
+  const domains = new Set((taxonomy?.domains ?? []).map((domain) => domain.slug));
+  const services = new Set((employers?.companies ?? []).map((company) => company.service));
+  const used = new Map();
+  const use = (name, where) => {
+    if (!text(name)) {
+      problems.push(`${where}: ${JSON.stringify(name)} is not a name`);
+      return;
+    }
+    if (used.has(lower(name))) problems.push(`"${name}" is used twice: ${used.get(lower(name))} and ${where}`);
+    else used.set(lower(name), where);
+    if (civilian.has(lower(name))) problems.push(`"${name}" (${where}) is a name of the civilian catalogue: a military career's names are its own`);
+  };
+  const codes = new Set();
+  for (const career of careers) {
+    if (!text(career?.title)) {
+      problems.push(`a career has no title: ${JSON.stringify(career?.title)}`);
+      continue;
+    }
+    const where = `"${career.title}"`;
+    use(career.title, 'a career');
+    if (!text(career.what)) problems.push(`${where} needs a "what"`);
+    if (!domains.has(career.home)) problems.push(`${where} has home ${JSON.stringify(career.home)}, which is not a domain of the taxonomy`);
+    const system = CODE_SYSTEMS.find((item) => item.key === career.codeSystem);
+    if (!system) problems.push(`${where} has code system ${JSON.stringify(career.codeSystem)}: a code system is one of ${CODE_SYSTEMS.map((item) => item.key).join(', ')}`);
+    else if (system.service !== career.service) problems.push(`${where}: the code system "${career.codeSystem}" is not the service "${career.service}"'s`);
+    if (!services.has(career.service)) problems.push(`${where} has service ${JSON.stringify(career.service)}, which is not an employer of employers.json`);
+    if (!text(career.code) || career.code.length > 20) problems.push(`${where} needs a code of up to 20 characters`);
+    else if (codes.has(`${career.codeSystem} ${lower(career.code)}`)) problems.push(`${where}: the code "${career.code}" is used twice in ${career.codeSystem}`);
+    codes.add(`${career.codeSystem} ${lower(career.code ?? '')}`);
+    if (!text(career.officialTitle)) problems.push(`${where} needs "officialTitle": the service's own name for the job`);
+    else if (system && career.title !== `${system.short} ${career.officialTitle}`) problems.push(`${where}: a title is the service in front of the service's own title, "${system.short} ${career.officialTitle}"`);
+    if (!Array.isArray(career.was)) problems.push(`${where}: "was" must be a list (an empty one when it has no other name)`);
+    else for (const was of career.was) use(was, `"was" of ${where}`);
+    if (career.source !== undefined && !sentence(career.source)) problems.push(`${where}: "source" is where the code and title were read from`);
+    const extra = Object.keys(career).filter((key) => !['title', 'officialTitle', 'service', 'code', 'codeSystem', 'home', 'what', 'was', 'source'].includes(key));
+    if (extra.length > 0) problems.push(`${where}: unknown key ${extra.map((key) => `"${key}"`).join(', ')} (tags and the words above the name are derived, the careers it reaches are computed, and it has no ladder)`);
+  }
+  for (const gone of Array.isArray(file?.dropped) ? file.dropped : []) {
+    if (!text(gone?.code) || !text(gone?.why)) problems.push('an entry under "dropped" needs a code and a "why"');
+    else if (codes.has(`${gone.codeSystem} ${lower(gone.code)}`)) problems.push(`"${gone.code}" is dropped and is also a career`);
+  }
+  return problems;
+}
+
+/** Each skill's level and domain, from the taxonomy. */
+function placed(taxonomy) {
+  const place = new Map();
+  for (const domain of taxonomy?.domains ?? []) {
+    for (const group of domain.groups ?? []) for (const skill of group.skills ?? []) place.set(skill.name, { level: skill.level, domain: domain.slug });
+  }
+  return place;
+}
+
+/** Everything wrong with the paths file, as sentences. None means it can be loaded. */
+export function militaryPathProblems(paths, careers, skills, taxonomy) {
+  const problems = [];
+  const entries = Array.isArray(paths?.careers) ? paths.careers : null;
+  if (!entries) return ['"careers" must be a list of { title, basis, skills }'];
+  const home = new Map((careers?.careers ?? []).map((career) => [career.title, career.home]));
+  const known = new Set((skills?.skills ?? []).map((skill) => skill.name));
+  const place = placed(taxonomy);
+  const seen = new Set();
+  for (const entry of entries) {
+    const title = entry?.title;
+    if (!text(title)) {
+      problems.push('an entry has no "title"');
+      continue;
+    }
+    const where = `"${title}"`;
+    if (!home.has(title)) problems.push(`${where} is not a career of careers.json`);
+    if (seen.has(title)) problems.push(`${where} has two entries`);
+    seen.add(title);
+    if (!sentence(entry.basis)) problems.push(`${where} does not say where its path was read from ("basis")`);
+    const list = Array.isArray(entry.skills) ? entry.skills : null;
+    if (!list) {
+      problems.push(`${where} has no "skills" list`);
+      continue;
+    }
+    const names = new Set();
+    let atHome = 0;
+    for (const name of list) {
+      if (!text(name)) {
+        problems.push(`${where}: ${JSON.stringify(name)} is not a skill name`);
+        continue;
+      }
+      if (names.has(name)) problems.push(`${where} lists "${name}" twice`);
+      names.add(name);
+      if (!known.has(name)) problems.push(`${where}: "${name}" is not a skill in the catalogue`);
+      else if (!place.has(name)) problems.push(`${where}: "${name}" is not placed in the taxonomy`);
+      else if (place.get(name).domain === home.get(title)) atHome += 1;
+    }
+    if (names.size < PATH_FLOOR) problems.push(`${where} has ${names.size} skills; a military career is listed when at least ${PATH_FLOOR} apply`);
+    if (home.has(title) && atHome === 0) problems.push(`${where} has no skill from its home domain, "${home.get(title)}"`);
+    const extra = Object.keys(entry).filter((key) => !['title', 'basis', 'skills'].includes(key));
+    if (extra.length > 0) problems.push(`${where}: unknown key ${extra.map((key) => `"${key}"`).join(', ')} (every path loads as a draft)`);
+  }
+  for (const title of home.keys()) if (!seen.has(title)) problems.push(`"${title}" is a career of careers.json and has no path`);
+  return problems;
+}
+
+/**
+ * The civilian careers each military career's path covers most: the share of
+ * the civilian career's path its skills are on, as skills held of skills on
+ * that path. Computed, never stored: the page computes the same from the
+ * database. `top` is how many to give for each.
+ */
+export function reaches(militaryPaths, civilianPaths, top = 3) {
+  const nameOf = (entry) => (typeof entry === 'string' ? entry : entry?.skill);
+  const civilian = (civilianPaths?.careers ?? []).map((entry) => ({ career: entry.title, skills: new Set(entry.skills.map(nameOf)) }));
+  const result = new Map();
+  for (const entry of militaryPaths?.careers ?? []) {
+    const mine = new Set(entry.skills);
+    const ranked = civilian
+      .map(({ career, skills }) => ({ career, held: [...skills].filter((skill) => mine.has(skill)).length, of: skills.size }))
+      .filter((reach) => reach.held > 0)
+      .sort((a, b) => b.held / b.of - a.held / a.of || b.held - a.held || a.career.localeCompare(b.career));
+    result.set(entry.title, ranked.slice(0, top));
+  }
+  return result;
 }
 
 const q = (value) => `'${String(value).replace(/'/g, "''")}'`;
@@ -203,32 +400,241 @@ END $load$;`,
   ].join('\n');
 }
 
+/** The careers' migration. `source` is the file's name, for the header. */
+export function careersSql(file, source) {
+  const insert = (table, columns, rows) => (rows.length > 0 ? [`INSERT INTO ${table} (${columns}) VALUES`, ...values(rows), ''] : []);
+  const careerRows = file.careers.map((career, i) => [
+    i + 1,
+    q(career.title),
+    q(career.officialTitle),
+    q(career.service),
+    q(career.code),
+    q(career.codeSystem),
+    q(career.home),
+    q(career.what.trim()),
+  ]);
+  const wasRows = file.careers.flatMap((career) => career.was.map((was) => [q(career.title), q(was)]));
+  return [
+    `-- The military careers, generated from ${source}`,
+    '-- by scripts/build-military-sql.mjs. Edit the JSON and regenerate; do not edit this file by hand.',
+    '-- Idempotent: applied a second time it changes nothing.',
+    '--',
+    `-- ${careerRows.length} careers, each with its service, its code and the service's own title (migration 0061), and`,
+    `-- ${wasRows.length} other names. Applied after the services (0062). A career is the stored career that already`,
+    '-- carries its code, else the one with exactly its title in any letter case, else a new career. It writes',
+    '-- no path (0064 does), no ladder link and no industry. What it decided on this database is in load_log',
+    "-- (load 'military-careers'; the lines with look = true are the ones to read).",
+    '',
+    '-- The file, as rows -------------------------------------------------------------',
+    '',
+    'DROP TABLE IF EXISTS pg_temp.mil_careers, pg_temp.mil_was;',
+    'CREATE TEMP TABLE mil_careers (position integer PRIMARY KEY, title text NOT NULL UNIQUE, official_title text NOT NULL, service text NOT NULL,',
+    '  code text NOT NULL, code_system text NOT NULL, home text NOT NULL, what text NOT NULL, UNIQUE (code_system, code));',
+    'CREATE TEMP TABLE mil_was (title text NOT NULL, was text NOT NULL);',
+    '',
+    ...insert('mil_careers', 'position, title, official_title, service, code, code_system, home, what', careerRows),
+    ...insert('mil_was', 'title, was', wasRows),
+    '-- One line of the log.',
+    `CREATE OR REPLACE FUNCTION pg_temp.mil_log(p_action text, p_look boolean, p_detail text, p_id uuid) RETURNS void LANGUAGE sql AS $f$
+  INSERT INTO load_log (load, kind, action, look, detail, entity_id) VALUES ('military-careers', 'career', p_action, p_look, p_detail, p_id)
+$f$;`,
+    '',
+    '-- The careers -------------------------------------------------------------------',
+    '',
+    `DO $load$
+DECLARE
+  c record;
+  m record;
+  v_id uuid;
+  v_title text;
+  v_service uuid;
+  v_employer uuid;
+  v_other uuid;
+  v_changed integer;
+  -- A database with no military career is being loaded for the first time: a new career is nothing to look at.
+  n_created integer := 0;
+  n_found integer := 0;
+  n_same integer := 0;
+  n_skipped integer := 0;
+  n_names integer := 0;
+BEGIN
+  FOR c IN SELECT * FROM mil_careers ORDER BY position LOOP
+    -- Its employer: the company that is the service.
+    v_employer := NULL;
+    SELECT s.id INTO v_employer FROM companies s WHERE s.service = c.service;
+    IF v_employer IS NULL THEN
+      n_skipped := n_skipped + 1;
+      PERFORM pg_temp.mil_log('no service', true, format('%s: no company is stored as the service "%s". The career was not written', c.title, c.service), NULL);
+      CONTINUE;
+    END IF;
+
+    -- The career that already carries the code, else the one with exactly the title, in any letter case.
+    v_id := NULL;
+    SELECT o.id, o.title, o.service_company_id INTO v_id, v_title, v_service FROM occupations o
+      WHERE o.code_system = c.code_system AND lower(o.code) = lower(c.code);
+    IF v_id IS NULL THEN
+      SELECT o.id, o.title, o.service_company_id INTO v_id, v_title, v_service FROM occupations o
+        WHERE lower(o.title) = lower(c.title)
+        ORDER BY (o.title = c.title) DESC, o.id LIMIT 1;
+      IF v_id IS NOT NULL AND v_service IS NULL THEN
+        -- A civilian career has the title. A military career never takes one over.
+        n_skipped := n_skipped + 1;
+        PERFORM pg_temp.mil_log('title taken', true, format('"%s" is stored as a civilian career. It was left as it is, and %s %s was not written', v_title, c.code_system, c.code), v_id);
+        CONTINUE;
+      END IF;
+    ELSE
+      -- It carries the code under another title. The file's title is taken unless another career has it.
+      SELECT o.id INTO v_other FROM occupations o WHERE lower(o.title) = lower(c.title) AND o.id <> v_id LIMIT 1;
+      IF v_other IS NOT NULL THEN
+        n_skipped := n_skipped + 1;
+        PERFORM pg_temp.mil_log('title taken', true, format('"%s" carries %s %s, and another career is titled "%s". Neither was changed', v_title, c.code_system, c.code, c.title), v_id);
+        CONTINUE;
+      END IF;
+    END IF;
+
+    IF v_id IS NULL THEN
+      INSERT INTO occupations (title, description, home_domain, service_company_id, code, code_system, official_title)
+        VALUES (c.title, c.what, (SELECT slug FROM skill_domains WHERE slug = c.home), v_employer, c.code, c.code_system, c.official_title)
+        RETURNING id INTO v_id;
+      n_created := n_created + 1;
+      PERFORM pg_temp.mil_log('created', false, format('%s (%s %s)', c.title, c.code_system, c.code), v_id);
+    ELSE
+      UPDATE occupations o SET title = c.title, description = c.what, home_domain = (SELECT slug FROM skill_domains WHERE slug = c.home),
+          service_company_id = v_employer, code = c.code, code_system = c.code_system, official_title = c.official_title
+        WHERE o.id = v_id
+          AND (o.title, o.description, o.home_domain, o.service_company_id, o.code, o.code_system, o.official_title)
+            IS DISTINCT FROM (c.title, c.what, (SELECT slug FROM skill_domains WHERE slug = c.home), v_employer, c.code, c.code_system, c.official_title);
+      GET DIAGNOSTICS v_changed = ROW_COUNT;
+      IF v_changed = 0 THEN
+        n_same := n_same + 1;
+      ELSE
+        n_found := n_found + 1;
+        PERFORM pg_temp.mil_log('found', true, format('%s (%s %s) was stored already%s. Its title, description, home, service and code are now the file''s', c.title, c.code_system, c.code,
+          CASE WHEN v_title <> c.title THEN format(' as "%s"', v_title) ELSE '' END), v_id);
+      END IF;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM skill_domains WHERE slug = c.home) THEN
+      PERFORM pg_temp.mil_log('no home', true, format('%s: the domain "%s" is not stored', c.title, c.home), v_id);
+    END IF;
+
+    -- Its other names. One that is a career's title, or another career's other name, stays where it is.
+    FOR m IN SELECT w.was FROM mil_was w WHERE w.title = c.title ORDER BY w.was COLLATE "C" LOOP
+      IF EXISTS (SELECT 1 FROM occupation_aliases a WHERE lower(a.alias_text) = lower(m.was) AND a.canonical_occupation_id = v_id) THEN
+        CONTINUE;
+      ELSIF EXISTS (SELECT 1 FROM occupations o WHERE lower(o.title) = lower(m.was)) THEN
+        PERFORM pg_temp.mil_log('name not added', true, format('"%s" was not added to %s: it is a career''s own title', m.was, c.title), v_id);
+      ELSIF EXISTS (SELECT 1 FROM occupation_aliases a WHERE lower(a.alias_text) = lower(m.was)) THEN
+        PERFORM pg_temp.mil_log('name not added', true, format('"%s" was not added to %s: it is another name of %s', m.was, c.title,
+          (SELECT o.title FROM occupation_aliases a INNER JOIN occupations o ON o.id = a.canonical_occupation_id WHERE lower(a.alias_text) = lower(m.was) LIMIT 1)), v_id);
+      ELSE
+        INSERT INTO occupation_aliases (alias_text, canonical_occupation_id) VALUES (m.was, v_id);
+        n_names := n_names + 1;
+      END IF;
+    END LOOP;
+  END LOOP;
+
+  -- A military career the file does not name is left alone, and said.
+  PERFORM pg_temp.mil_log('not in the file', true, format('"%s" (%s %s) is a military career the file does not name. Left as it is', o.title, o.code_system, o.code), o.id)
+    FROM occupations o
+    WHERE o.service_company_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM mil_careers k WHERE k.title = o.title)
+    ORDER BY o.title COLLATE "C";
+
+  PERFORM pg_temp.mil_log('summary', false, format(
+    '%s careers of the file: %s created, %s found and brought to the file''s, %s already as the file has them, %s not written; other names added: %s; military careers stored: %s, of them not in the file: %s; civilian careers: %s',
+    (SELECT COUNT(*) FROM mil_careers), n_created, n_found, n_same, n_skipped, n_names,
+    (SELECT COUNT(*) FROM occupations WHERE service_company_id IS NOT NULL),
+    (SELECT COUNT(*) FROM occupations o WHERE o.service_company_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM mil_careers k WHERE k.title = o.title)),
+    (SELECT COUNT(*) FROM occupations WHERE service_company_id IS NULL)), NULL);
+END $load$;`,
+    '',
+    'DROP FUNCTION pg_temp.mil_log(text, boolean, text, uuid);',
+    'DROP TABLE pg_temp.mil_careers, pg_temp.mil_was;',
+    '',
+  ].join('\n');
+}
+
+/** The paths' migration: the civilian paths' own statements, logged as 'military-paths'. */
+export function militaryPathsSql(paths, source) {
+  const lines = paths.careers.reduce((sum, career) => sum + career.skills.length, 0);
+  return pathSql(paths, source, {
+    load: 'military-paths',
+    military: true,
+    header: [
+      `-- The skill path of every military career, generated from ${source}`,
+      '-- by scripts/build-military-sql.mjs. Edit the JSON and regenerate; do not edit this file by hand.',
+      '-- Idempotent: applied a second time it changes nothing.',
+      '--',
+      `-- ${paths.careers.length} careers, ${lines} path lines. Every path is written as a draft; one a person has approved is left`,
+      '-- exactly as it is. A path names skills and sets no level: each line takes its skill\'s level from the',
+      '-- trigger occupation_skills_stage_is_level (0042). Applied after the military careers (0063) and the',
+      '-- skills catalogue and taxonomy that hold their skills (0059, 0060). The statements are the civilian',
+      "-- paths' own (scripts/build-career-paths-sql.mjs). What it decided on this database is in load_log",
+      "-- (load 'military-paths'; the lines with look = true are the ones to read).",
+    ],
+  });
+}
+
 const json = async (file) => JSON.parse(await readFile(path.join(ROOT, file), 'utf8'));
-const DEFAULT_OUTPUT = { employers: 'migrations/0062_military_employers.sql' };
+const DEFAULT_OUTPUT = {
+  employers: 'migrations/0062_military_employers.sql',
+  careers: 'migrations/0063_military_careers.sql',
+  paths: 'migrations/0064_military_paths.sql',
+};
 
 async function main() {
   const args = process.argv.slice(2);
-  const checkOnly = args.includes('--check');
+  const report = args.includes('--report');
+  const checkOnly = args.includes('--check') || report;
   const [what, output] = args.filter((arg) => !arg.startsWith('--'));
-  const employersFile = `${MILITARY_DIR}/employers.json`;
-  const employers = await json(employersFile);
-  const problems = employerProblems(employers).map((problem) => `${employersFile}: ${problem}`);
+  const files = { employers: `${MILITARY_DIR}/employers.json`, careers: `${MILITARY_DIR}/careers.json`, paths: `${MILITARY_DIR}/paths.json` };
+  const [employers, careers, paths, taxonomy, skills, catalogue, aliases, civilianPaths] = await Promise.all([
+    json(files.employers),
+    json(files.careers),
+    json(files.paths),
+    json('data/skills/taxonomy.json'),
+    json('data/skills/catalogue.json'),
+    json('data/careers/catalogue.json'),
+    json('data/careers/aliases.json'),
+    json('data/careers/paths.json'),
+  ]);
+  const problems = [
+    ...employerProblems(employers).map((problem) => `${files.employers}: ${problem}`),
+    ...careerProblems(careers, taxonomy, employers, civilianNames(catalogue, aliases)).map((problem) => `${files.careers}: ${problem}`),
+    ...militaryPathProblems(paths, careers, skills, taxonomy).map((problem) => `${files.paths}: ${problem}`),
+  ];
   if (problems.length > 0) {
     console.error(problems.join('\n'));
     console.error(`${problems.length} problem${problems.length === 1 ? '' : 's'}.`);
     process.exit(1);
   }
-  const summary = `${employers.companies.length} services`;
+  const sizes = paths.careers.map((career) => career.skills.length).sort((a, b) => a - b);
+  const lines = sizes.reduce((sum, size) => sum + size, 0);
+  const perService = employers.companies.map((company) => `${careers.careers.filter((career) => career.service === company.service).length} ${company.name}`).join(', ');
+  const summary = `${employers.companies.length} services; ${careers.careers.length} careers (${perService}), ${careers.careers.reduce((sum, career) => sum + career.was.length, 0)} other names; ${lines} path lines (${sizes[0]} to ${sizes[sizes.length - 1]} a path)`;
+  if (report) {
+    const reach = reaches(paths, civilianPaths);
+    const pct = (r) => `${Math.round((r.held / r.of) * 100)}%`.padStart(4);
+    const third = [...reach].filter(([, list]) => list.length > 0 && list[0].held / list[0].of >= 1 / 3).length;
+    const used = new Set(paths.careers.flatMap((career) => career.skills));
+    const civilianUsed = new Set(civilianPaths.careers.flatMap((career) => career.skills.map((skill) => (typeof skill === 'string' ? skill : skill.skill))));
+    console.log(`${MILITARY_DIR}: valid. ${summary}.\n`);
+    console.log(`Skills on a military path: ${used.size}, of them on no civilian path: ${[...used].filter((name) => !civilianUsed.has(name)).length}\n`);
+    console.log(`Careers that reach a civilian career by a third of its path: ${third} of ${reach.size}\n`);
+    console.log(`The civilian careers each covers most, as skills held of skills on that path:\n${[...reach]
+      .map(([title, list]) => `  ${title}\n${list.map((r) => `    ${pct(r)}  ${r.held} of ${r.of}  ${r.career}`).join('\n') || '    none'}`)
+      .join('\n')}`);
+    return;
+  }
   if (checkOnly) {
     console.log(`${MILITARY_DIR}: valid. ${summary}.`);
     return;
   }
-  if (what !== 'employers') {
-    console.error('usage: node scripts/build-military-sql.mjs --check | employers [output.sql]');
+  if (!(what in DEFAULT_OUTPUT)) {
+    console.error('usage: node scripts/build-military-sql.mjs --check | --report | employers|careers|paths [output.sql]');
     process.exit(1);
   }
   const out = output ?? DEFAULT_OUTPUT[what];
-  const sql = employersSql(employers, employersFile);
+  const sql = what === 'employers' ? employersSql(employers, files.employers) : what === 'careers' ? careersSql(careers, files.careers) : militaryPathsSql(paths, files.paths);
   await writeFile(out, sql);
   console.log(`${out}: ${sql.split('\n').length} lines. ${summary}.`);
 }

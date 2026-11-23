@@ -13,6 +13,7 @@ import {
   factories,
 } from '../db/index.js';
 import { cleanText, clearAttempts, endSession, handle, requireUser, tooManyAttempts, verifyPassword } from '../lib/auth.js';
+import { civilianCareer } from '../lib/military.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { newsFor } from '../lib/notices.js';
 import { hasCompanyTie, isPurpose, purposeFrom, type Purpose } from '../lib/purpose.js';
@@ -213,7 +214,7 @@ router.get(
         FROM user_goals g
         JOIN occupation_skills os ON os.occupation_id = g.occupation_id
         JOIN occupations o ON o.id = g.occupation_id
-        WHERE g.user_id = ${userId}
+        WHERE g.user_id = ${userId} AND ${civilianCareer('o')}
           AND NOT EXISTS (SELECT 1 FROM mine m WHERE m.skill_id = os.skill_id)
         GROUP BY os.skill_id
       ),
@@ -230,7 +231,7 @@ router.get(
           AND NOT EXISTS (
                 SELECT 1 FROM user_goals g WHERE g.user_id = ${userId} AND g.occupation_id = os.occupation_id
               )
-          AND o.path_status IS NOT NULL
+          AND o.path_status IS NOT NULL AND ${civilianCareer('o')}
         GROUP BY os.occupation_id, o.title
         HAVING COUNT(*) >= ${REACH_MIN_PATH}
         ORDER BY share DESC, o.title ASC
@@ -353,11 +354,13 @@ router.put(
   '/goals/:occupationId',
   handle(async (req, res) => {
     const [occupation] = await db
-      .select({ id: occupations.id })
+      .select({ id: occupations.id, service: occupations.serviceCompanyId })
       .from(occupations)
       .where(eq(occupations.id, req.params.occupationId))
       .limit(1);
     if (!occupation) return res.status(404).json({ error: 'Career not found' });
+    // A military career is where a person comes from, not a goal.
+    if (occupation.service) return res.status(400).json({ error: 'A military career cannot be set as a goal.' });
     await db.insert(userGoals).values({ userId: req.user!.id, occupationId: occupation.id }).onConflictDoNothing();
     res.json({ occupationId: occupation.id });
   })
@@ -405,7 +408,7 @@ router.get(
           AND NOT EXISTS (
                 SELECT 1 FROM user_goals g WHERE g.user_id = ${userId} AND g.occupation_id = os.occupation_id
               )
-          AND o.path_status IS NOT NULL
+          AND o.path_status IS NOT NULL AND ${civilianCareer('o')}
         GROUP BY o.id, o.title
         HAVING COUNT(*) >= ${REACH_MIN_PATH}
         ORDER BY (COUNT(*) FILTER (WHERE m.status = 'held') + 0.5 * COUNT(*) FILTER (WHERE m.status = 'learning')) / COUNT(*) DESC,

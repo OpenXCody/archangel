@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, sql, type SQL } from 'drizzle-orm';
 import { companies, occupations } from '../db/index.js';
 import type { Executor } from './audit.js';
 import { careerKind, isCodeSystem, isServiceKey, type CodeSystemKey, type ServiceKey } from '../../shared/military.js';
@@ -9,6 +9,40 @@ import { careerKind, isCodeSystem, isServiceKey, type CodeSystemKey, type Servic
  * (`companies.service`). The columns are migration 0061's; the words above the
  * name are derived from the code system (shared/military.ts).
  */
+
+/**
+ * "This career is a civilian one." Military careers are an entry for a veteran,
+ * not a destination: every default list, count, search and suggestion is of
+ * civilian careers, and a military career is reached on purpose (the Careers
+ * list asked for them, its own page, a service's careers). `alias` is the name
+ * `occupations` goes by in the statement.
+ */
+export function civilianCareer(alias = 'occupations'): SQL {
+  return sql`${sql.identifier(alias)}.service_company_id IS NULL`;
+}
+
+/**
+ * The same for a path line: `alias` is the name `occupation_skills` goes by in
+ * a statement that does not have the career itself. "How many careers use this
+ * skill" counts lines of civilian careers.
+ */
+export function civilianPathLine(alias = 'occupation_skills'): SQL {
+  return sql`NOT EXISTS (SELECT 1 FROM occupations military_o WHERE military_o.id = ${sql.identifier(alias)}.occupation_id AND military_o.service_company_id IS NOT NULL)`;
+}
+
+/** The military careers, or one service's: what a list shows when it is asked for them. */
+export function militaryCareer(service: ServiceKey | null, alias = 'occupations'): SQL {
+  const career = sql.identifier(alias);
+  return service
+    ? sql`${career}.service_company_id = (SELECT service_c.id FROM companies service_c WHERE service_c.service = ${service})`
+    : sql`${career}.service_company_id IS NOT NULL`;
+}
+
+/** Whether this career is a military one. */
+export async function isMilitaryCareer(executor: Executor, id: string): Promise<boolean> {
+  const [row] = await executor.select({ service: occupations.serviceCompanyId }).from(occupations).where(eq(occupations.id, id)).limit(1);
+  return Boolean(row?.service);
+}
 
 /** The service a career belongs to: the employer, and which service it is. */
 export interface CareerService {

@@ -4,12 +4,22 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { MIGRATIONS } from '../../scripts/migrate.mjs';
-import { SERVICE_KEYS, employerProblems } from '../../scripts/build-military-sql.mjs';
+import {
+  CODE_SYSTEMS as BUILDER_CODE_SYSTEMS,
+  PATH_FLOOR,
+  SERVICE_KEYS,
+  careerProblems,
+  civilianNames,
+  employerProblems,
+  militaryPathProblems,
+  reaches,
+} from '../../scripts/build-military-sql.mjs';
+import { loadVocabulary, readPosting } from '../../scripts/ingest/postings/read/index.mjs';
 import {
   CODE_SYSTEMS,
   MILITARY_TAG,
@@ -40,6 +50,44 @@ interface Employer {
 }
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
 const employers = read<{ companies: Employer[] }>(EMPLOYERS).companies;
+
+interface MilitaryCareer {
+  title: string;
+  officialTitle: string;
+  service: string;
+  code: string;
+  codeSystem: string;
+  home: string;
+  what: string;
+  was: string[];
+  source?: string;
+}
+interface MilitaryPath {
+  title: string;
+  basis: string;
+  skills: string[];
+}
+interface CivilianCareer {
+  title: string;
+  home: string;
+  was: string[];
+}
+type PathEntry = string | { skill: string };
+const CAREERS = 'data/careers/military/careers.json';
+const PATHS = 'data/careers/military/paths.json';
+const CAREERS_MIGRATION = 'migrations/0063_military_careers.sql';
+const PATHS_MIGRATION = 'migrations/0064_military_paths.sql';
+const careersFile = read<{ careers: MilitaryCareer[]; dropped: { code: string; codeSystem: string; why: string }[] }>(CAREERS);
+const pathsFile = read<{ careers: MilitaryPath[] }>(PATHS);
+const careers = careersFile.careers;
+const paths = pathsFile.careers;
+const taxonomy = read<{ domains: { slug: string; groups: { slug: string; skills: { name: string; level: number }[] }[] }[] }>('data/skills/taxonomy.json');
+const skillsCatalogue = read<{ skills: { name: string }[] }>('data/skills/catalogue.json');
+const civilianCatalogue = read<{ careers: CivilianCareer[] }>('data/careers/catalogue.json');
+const civilianAliases = read<{ careers: { title: string; aliases?: string[]; not?: string[] }[] }>('data/careers/aliases.json');
+const civilianPaths = read<{ careers: { title: string; skills: PathEntry[] }[] }>('data/careers/paths.json');
+const civilian = civilianNames(civilianCatalogue, civilianAliases);
+const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 /** What the builder writes for one of its migrations, generated afresh. */
 function generated(what: string): string {
@@ -171,5 +219,163 @@ test('a service keeps the lettermark: its emblem is not fetched', () => {
   for (const company of employers) {
     assert.equal(list[company.domain], null, `${company.domain} is listed, with no mark`);
     assert.ok(decisions.none[company.domain]?.includes('military service'), `${company.domain} says why`);
+  }
+});
+
+test('the builder names the code systems as the code does', () => {
+  assert.deepEqual(
+    BUILDER_CODE_SYSTEMS.map((system) => ({ key: system.key, service: system.service, short: system.short })),
+    CODE_SYSTEMS.map((system) => ({ key: system.key, service: system.service, short: serviceShortName(system.service) }))
+  );
+  assert.equal(PATH_FLOOR, 5);
+});
+
+test('the military files pass the builder\'s check', () => {
+  const run = spawnSync(process.execPath, [BUILDER, '--check'], { encoding: 'utf8' });
+  assert.equal(run.status, 0, `${run.stdout}${run.stderr}`);
+  assert.match(run.stdout, /valid\. 4 services; 118 careers \(39 U\.S\. Navy, 44 U\.S\. Army, 35 U\.S\. Air Force, 0 U\.S\. Marine Corps\)/);
+  assert.deepEqual(careerProblems(careersFile, taxonomy, { companies: employers }, civilian), []);
+  assert.deepEqual(militaryPathProblems(pathsFile, careersFile, skillsCatalogue, taxonomy), []);
+});
+
+test('a military career is a title with the service in front, a code of its service\'s system and a home', () => {
+  const codes = new Set<string>();
+  for (const career of careers) {
+    assert.ok(isServiceKey(career.service), career.title);
+    assert.equal(career.title, militaryTitle(career.service, career.officialTitle), career.title);
+    assert.equal(career.codeSystem, codeSystemOf(career.service), `${career.title}: the code system is its service's`);
+    assert.ok(careerKind(career.codeSystem), `${career.title} has words to stand above its name`);
+    assert.ok(!codes.has(`${career.codeSystem} ${career.code}`), `${career.code} is used once in ${career.codeSystem}`);
+    codes.add(`${career.codeSystem} ${career.code}`);
+    // Derived or computed, never written: tags, the words above the name, the employer's name, the careers it reaches, a ladder.
+    assert.deepEqual(Object.keys(career).filter((key) => ['tags', 'kind', 'employer', 'reaches', 'leadsTo'].includes(key)), [], career.title);
+  }
+  // The two the Defense Manpower Data Center's file marks obsolete are not careers, and the file says why.
+  assert.deepEqual(careersFile.dropped.map((gone) => gone.code).sort(), ['2A7X5', '91G']);
+  for (const gone of careersFile.dropped) assert.ok(!codes.has(`${gone.codeSystem} ${gone.code}`) && gone.why.length > 20, gone.code);
+});
+
+test('the civilian catalogue is untouched, and no name is shared with it', () => {
+  assert.equal(civilianCatalogue.careers.length, 156);
+  assert.equal(civilianPaths.careers.length, 156);
+  const military = new Set(careers.flatMap((career) => [career.title, ...career.was]).map((name) => name.toLowerCase()));
+  for (const name of military) assert.ok(!civilian.has(name), `${name} is a civilian name`);
+  for (const career of civilianCatalogue.careers) assert.ok(!military.has(career.title.toLowerCase()), career.title);
+  for (const entry of civilianPaths.careers) assert.ok(!military.has(entry.title.toLowerCase()), `${entry.title} has a civilian path`);
+  // The civilian Electronics Technician and the Navy's are two careers.
+  assert.ok(civilian.has('electronics technician'));
+  assert.ok(careers.some((career) => career.title === 'Navy Electronics Technician' && career.code === 'ET'));
+});
+
+test('every military career has a path of five or more catalogue skills, one of them from its home', () => {
+  const known = new Set(skillsCatalogue.skills.map((skill) => skill.name));
+  const domainOf = new Map(taxonomy.domains.flatMap((domain) => domain.groups.flatMap((group) => group.skills.map((skill) => [skill.name, domain.slug] as const))));
+  const byTitle = new Map(paths.map((entry) => [entry.title, entry]));
+  assert.equal(byTitle.size, careers.length);
+  for (const career of careers) {
+    const entry = byTitle.get(career.title);
+    assert.ok(entry, `${career.title} has a path`);
+    assert.ok(entry.skills.length >= PATH_FLOOR, `${career.title} has ${entry.skills.length} skills`);
+    assert.equal(new Set(entry.skills).size, entry.skills.length, `${career.title} lists no skill twice`);
+    for (const skill of entry.skills) assert.ok(known.has(skill), `${career.title}: ${skill} is a catalogue skill`);
+    assert.ok(entry.skills.some((skill) => domainOf.get(skill) === career.home), `${career.title} has a skill from ${career.home}`);
+    assert.ok(entry.basis.trim().endsWith('.'), `${career.title} says where its path was read from`);
+  }
+  // The skills added for these careers (0059) are each on one of their paths, under the names step 1 left them.
+  const used = new Set(paths.flatMap((entry) => entry.skills));
+  const groups = ['aircraft-systems', 'engines-and-power-plants', 'vehicles-and-heavy-equipment', 'power-generation-and-distribution', 'plant-utilities', 'fielded-electronic-systems', 'weapons-and-munitions', 'survival-equipment', 'shipfitting', 'nuclear-plant-operations', 'fuels'];
+  const added = taxonomy.domains.flatMap((domain) => domain.groups).filter((group) => groups.includes(group.slug)).flatMap((group) => group.skills.map((skill) => skill.name));
+  assert.equal(added.length, 66);
+  for (const skill of added) assert.ok(used.has(skill), `${skill} is on a military path`);
+  for (const gone of ['Bulk Fuel Handling', 'Naval Mine Assembly', 'Wheeled Vehicle Maintenance', 'Powertrain and Drivetrain Repair', 'Munitions Inspection']) assert.ok(!used.has(gone), `${gone} is not a skill`);
+  assert.ok(byTitle.get('Navy Mineman')?.skills.includes('Munitions Assembly'));
+  assert.ok(byTitle.get('Air Force Fuels')?.skills.includes('Bulk Chemical Transfer'));
+});
+
+test('the civilian careers a military career reaches are computed from the two paths', () => {
+  const reach = reaches(pathsFile, civilianPaths);
+  // The owner's own test of the rule: the Hull Maintenance Technician, read against the Navy's standard.
+  const ht = reach.get('Navy Hull Maintenance Technician') ?? [];
+  assert.deepEqual(ht.map((r) => `${r.career} ${r.held}/${r.of}`), ['MIG Welder 10/14', 'Metal Fabricator 13/19', 'Welder 12/19']);
+  for (const [title, list] of reach) {
+    assert.ok(list.length <= 3, title);
+    for (const r of list) assert.ok(r.held >= 1 && r.held <= r.of, `${title} reaches ${r.career}`);
+    // Most covered first.
+    for (let i = 1; i < list.length; i += 1) assert.ok(list[i - 1].held / list[i - 1].of >= list[i].held / list[i].of, title);
+  }
+  // Fuel is handled as any bulk liquid is: the fuels careers reach the chemical operator by that skill too.
+  assert.equal(reach.get('Air Force Fuels')?.find((r) => r.career === 'Chemical Operator')?.held, 4);
+});
+
+test('the careers\' and the paths\' migrations are what the files generate', () => {
+  const careersSql = readFileSync(CAREERS_MIGRATION, 'utf8');
+  const pathsSql = readFileSync(PATHS_MIGRATION, 'utf8');
+  assert.equal(generated('careers'), careersSql, 'run `node scripts/build-military-sql.mjs careers` after editing data/careers/military/careers.json');
+  assert.equal(generated('paths'), pathsSql, 'run `node scripts/build-military-sql.mjs paths` after editing data/careers/military/paths.json');
+  // A career is found by its code, else by its exact title; a civilian career is never taken over.
+  assert.ok(careersSql.includes('WHERE o.code_system = c.code_system AND lower(o.code) = lower(c.code)'));
+  assert.ok(careersSql.includes('WHERE lower(o.title) = lower(c.title)'));
+  assert.ok(careersSql.includes("pg_temp.mil_log('title taken', true"));
+  // It writes no path, no ladder, no industry, no company's version, and deletes nothing.
+  for (const table of ['occupation_skills', 'occupation_links', 'industry_occupations', 'company_careers', 'company_career_skills', 'user_goals', 'jobs']) {
+    assert.ok(!new RegExp(`(INSERT INTO|UPDATE|DELETE FROM) ${table}\\b`).test(careersSql), `the careers' migration does not write ${table}`);
+  }
+  assert.ok(!/DELETE FROM/.test(careersSql));
+  // Every path is written as a draft, and one a person approved is left exactly as it is.
+  assert.ok(pathsSql.includes("UPDATE occupations SET path_status = 'draft' WHERE id = v_id AND path_status IS DISTINCT FROM 'draft';"));
+  assert.ok(pathsSql.includes("IF v_status = 'approved' THEN"));
+  assert.ok(!pathsSql.includes("'approved' WHERE"), 'no path is approved by a load');
+  assert.ok(pathsSql.includes("VALUES ('military-paths', 'career'"));
+  // Only military careers are said to be "not in the file": the civilian ones are not this file's.
+  assert.ok(pathsSql.includes('WHERE NOT EXISTS (SELECT 1 FROM path_careers k WHERE k.title = o.title) AND o.service_company_id IS NOT NULL'));
+  for (const table of ['occupation_links', 'industry_occupations', 'company_careers']) assert.ok(!pathsSql.includes(table), `the paths' migration does not touch ${table}`);
+  const list = MIGRATIONS as string[];
+  assert.deepEqual(list.slice(-6), ['0059_skills_catalogue_4.sql', '0060_skill_taxonomy_3.sql', '0061_career_service.sql', '0062_military_employers.sql', '0063_military_careers.sql', '0064_military_paths.sql']);
+});
+
+test('the check refuses military files that are not whole', () => {
+  const refusedCareer = (change: (list: MilitaryCareer[]) => void, saying: RegExp) => {
+    const file = copy(careersFile);
+    change(file.careers);
+    assert.match(careerProblems(file, taxonomy, { companies: employers }, civilian).join('\n'), saying);
+  };
+  refusedCareer((list) => { list[0].title = 'Electronics Technician'; }, /is a name of the civilian catalogue/);
+  refusedCareer((list) => { list[0].was.push('CNC Machinist'); }, /is a name of the civilian catalogue/);
+  refusedCareer((list) => { list[1].title = list[0].title.toUpperCase(); }, /is used twice/);
+  refusedCareer((list) => { list[1].code = list[0].code; }, /is used twice in navy-rating/);
+  refusedCareer((list) => { list[0].codeSystem = 'army-mos'; }, /is not the service "navy"'s/);
+  refusedCareer((list) => { list[0].service = 'marine-corps'; }, /is not the service "marine-corps"'s/);
+  refusedCareer((list) => { list[0].service = 'coast-guard'; }, /is not an employer of employers\.json/);
+  refusedCareer((list) => { list[0].home = 'aviation'; }, /is not a domain of the taxonomy/);
+  refusedCareer((list) => { list[0].officialTitle = 'Machinist'; }, /a title is the service in front of the service's own title/);
+  refusedCareer((list) => { (list[0] as MilitaryCareer & { tags?: string[] }).tags = ['military']; }, /unknown key "tags"/);
+  refusedCareer((list) => { (list[0] as MilitaryCareer & { leadsTo?: string[] }).leadsTo = ['Welder']; }, /unknown key "leadsTo"/);
+  const refusedPath = (change: (list: MilitaryPath[]) => void, saying: RegExp) => {
+    const file = copy(pathsFile);
+    change(file.careers);
+    assert.match(militaryPathProblems(file, careersFile, skillsCatalogue, taxonomy).join('\n'), saying);
+  };
+  refusedPath((list) => { list[0].skills = list[0].skills.slice(0, 4); }, /a military career is listed when at least 5 apply/);
+  refusedPath((list) => { list[0].skills.push('Wheeled Vehicle Maintenance'); }, /is not a skill in the catalogue/);
+  refusedPath((list) => { list[0].skills.push(list[0].skills[0]); }, /twice/);
+  refusedPath((list) => { list.pop(); }, /has no path/);
+  refusedPath((list) => { list[0].title = 'CNC Machinist'; }, /is not a career of careers\.json/);
+  refusedPath((list) => { (list[0] as MilitaryPath & { status?: string }).status = 'approved'; }, /unknown key "status"/);
+});
+
+test('the posting reader knows the civilian careers only', () => {
+  const root = path.resolve('.');
+  const vocab = loadVocabulary(root) as { careers: Map<string, unknown> };
+  assert.equal(vocab.careers.size, 156);
+  const military = new Set(careers.map((career) => career.title));
+  for (const title of vocab.careers.keys()) assert.ok(!military.has(title), `${title} is in the reader's vocabulary`);
+  const career = (title: string): string | null =>
+    (readPosting({ employer: 'Acme Aerospace', title, location: 'Austin, TX', text: 'Requirements:\n- Read schematics' }, vocab) as { career: { title: string } | null }).career?.title ?? null;
+  // A posting titled "Electronics Technician" is the civilian career, with or without a service's name in front.
+  assert.equal(career('Electronics Technician'), 'Electronics Technician');
+  assert.equal(career('Navy Electronics Technician'), 'Electronics Technician');
+  // No title, a service's own or ours, is read as a military career.
+  for (const item of careers) {
+    for (const title of [item.title, item.officialTitle]) assert.ok(!military.has(career(title) ?? ''), `${title} was read as a military career`);
   }
 });

@@ -10,6 +10,7 @@ import { countOpenJobs, listOpenJobs } from '../lib/openJobs.js';
 import { rowsOf } from '../lib/rows.js';
 import { containing } from '../lib/like.js';
 import { findGroup, placeColumns, placeOf, placeSql, readLevel, readTaxonomy } from '../lib/taxonomy.js';
+import { civilianCareer, civilianPathLine } from '../lib/military.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -18,9 +19,9 @@ router.use(uuidQuery('parent'));
 
 // These name the table outright: in a select list a column reference is
 // written bare, and inside a subquery "id" could then mean another table's.
-/** How many careers list the skill. */
-const careerCount = sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.skill_id = skills.id)`;
-const onACareer = sql`EXISTS (SELECT 1 FROM occupation_skills WHERE occupation_skills.skill_id = skills.id)`;
+/** How many careers list the skill: civilian careers, as every such figure is (lib/military.ts). */
+const careerCount = sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.skill_id = skills.id AND ${civilianPathLine()})`;
+const onACareer = sql`EXISTS (SELECT 1 FROM occupation_skills WHERE occupation_skills.skill_id = skills.id AND ${civilianPathLine()})`;
 
 // GET /api/skills/taxonomy - The whole taxonomy in one answer: the three
 // levels, and every domain with its groups and their skills, in the order
@@ -193,7 +194,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         })
         .from(occupationSkills)
         .innerJoin(occupations, eq(occupationSkills.occupationId, occupations.id))
-        .where(eq(occupationSkills.skillId, id))
+        .where(and(eq(occupationSkills.skillId, id), civilianCareer()))
         .orderBy(sql`lower(${occupations.title})`),
       // The other skills of its group, in the group's order.
       groupSlug
@@ -218,7 +219,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       // how much of the two skills' careers overlap, so a companion found on
       // the same few paths comes before one that is simply on every path.
       db.execute(sql`
-        WITH mine AS (SELECT occupation_id FROM occupation_skills WHERE skill_id = ${id}),
+        WITH mine AS (SELECT occupation_id FROM occupation_skills os WHERE os.skill_id = ${id} AND ${civilianPathLine('os')}),
         shared AS (
           SELECT os.skill_id, COUNT(*)::int AS together
           FROM occupation_skills os INNER JOIN mine ON mine.occupation_id = os.occupation_id
@@ -229,7 +230,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         FROM shared
         INNER JOIN skills s ON s.id = shared.skill_id
         ${related.joins}
-        CROSS JOIN LATERAL (SELECT COUNT(*)::int AS n FROM occupation_skills t WHERE t.skill_id = s.id) theirs
+        CROSS JOIN LATERAL (SELECT COUNT(*)::int AS n FROM occupation_skills t WHERE t.skill_id = s.id AND ${civilianPathLine('t')}) theirs
         ORDER BY shared.together::float / ((SELECT COUNT(*) FROM mine) + theirs.n - shared.together) DESC,
                  shared.together DESC, s.name ASC
         LIMIT ${RELATED_SHOWN}

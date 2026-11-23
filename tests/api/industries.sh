@@ -139,7 +139,8 @@ check "the lists' filters"                    200 "$R" '"industries":{"plants":\
 expect "companies are offered the 21 only"    true "$(printf '%s' "$R" | j "o.industries.companies.includes('$IND') && !o.industries.companies.includes('Robots & Lasers') && o.industries.companies.length<=21 && o.industries.plants.length<=21")"
 expect "plants too, under the older name"     true "$(printf '%s' "$R" | j 'o.factoryIndustries.join()===o.industries.plants.join()')"
 # The skills list filters by domain, then group: the domains with a skill some career uses, each with such groups, in the taxonomy's order.
-IN_USE="FROM skill_groups g WHERE EXISTS (SELECT 1 FROM skills s JOIN occupation_skills os ON os.skill_id=s.id WHERE s.group_slug=g.slug)"
+# (A civilian career: the lists, the filters and the counts are of those.)
+IN_USE="FROM skill_groups g WHERE EXISTS (SELECT 1 FROM skills s JOIN occupation_skills os ON os.skill_id=s.id JOIN occupations o ON o.id=os.occupation_id WHERE s.group_slug=g.slug AND o.service_company_id IS NULL)"
 expect "the skill domains in use"             "$(sql "SELECT COUNT(DISTINCT g.domain_slug) $IN_USE")" "$(printf '%s' "$R" | j 'o.skillDomains.length')"
 expect "each with its groups in use"          "$(sql "SELECT COUNT(*) $IN_USE")" "$(printf '%s' "$R" | j 'o.skillDomains.reduce((n,d)=>n+d.groups.length,0)')"
 expect "in the taxonomy's order"              "$(sql "SELECT string_agg(slug, ',' ORDER BY position) FROM skill_domains d WHERE EXISTS (SELECT 1 $IN_USE AND g.domain_slug=d.slug)")" "$(printf '%s' "$R" | j 'o.skillDomains.map(d=>d.slug).join()')"
@@ -156,9 +157,9 @@ expect "the overview's companies carry one of the 21, or none" true "$(get /expl
 R=$(get '/occupations?limit=100')
 expect "careers with a path, then the most skills" ok "$(printf '%s' "$R" | j "o.data.every((c,i,a)=>i===0||(!a[i-1].pathStatus)<(!c.pathStatus)||((!a[i-1].pathStatus)===(!c.pathStatus)&&a[i-1].skillCount>=c.skillCount))?'ok':'out of order'")"
 expect "a career with a path counts its skills at each level" true "$(printf '%s' "$R" | j "o.data.some(c=>c.pathStatus) && o.data.filter(c=>c.pathStatus).every(c=>Array.isArray(c.levelCounts)&&c.levelCounts.length===3&&c.levelCounts.reduce((a,b)=>a+b,0)===c.skillCount)")"
-expect "the last page is the career with the fewest skills" "$(sql "SELECT n FROM (SELECT o.path_status, (SELECT COUNT(*) FROM occupation_skills os WHERE os.occupation_id=o.id) AS n FROM occupations o) x ORDER BY (path_status IS NULL) DESC, n LIMIT 1")" "$(get "/occupations?limit=1&offset=$(( $(sql 'SELECT COUNT(*) FROM occupations') - 1 ))" | j 'o.data[0].skillCount')"
-expect "sort=name is the plain name order"    "$(sql "SELECT title FROM occupations ORDER BY lower(title), id LIMIT 1")" "$(get '/occupations?sort=name&limit=1' | j 'o.data[0].title')"
-expect "and backwards"                        "$(sql "SELECT title FROM occupations ORDER BY lower(title) DESC, id LIMIT 1")" "$(get '/occupations?sort=name&order=desc&limit=1' | j 'o.data[0].title')"
+expect "the last page is the career with the fewest skills" "$(sql "SELECT n FROM (SELECT o.path_status, (SELECT COUNT(*) FROM occupation_skills os WHERE os.occupation_id=o.id) AS n FROM occupations o WHERE o.service_company_id IS NULL) x ORDER BY (path_status IS NULL) DESC, n LIMIT 1")" "$(get "/occupations?limit=1&offset=$(( $(sql 'SELECT COUNT(*) FROM occupations WHERE service_company_id IS NULL') - 1 ))" | j 'o.data[0].skillCount')"
+expect "sort=name is the plain name order"    "$(sql "SELECT title FROM occupations WHERE service_company_id IS NULL ORDER BY lower(title), id LIMIT 1")" "$(get '/occupations?sort=name&limit=1' | j 'o.data[0].title')"
+expect "and backwards"                        "$(sql "SELECT title FROM occupations WHERE service_company_id IS NULL ORDER BY lower(title) DESC, id LIMIT 1")" "$(get '/occupations?sort=name&order=desc&limit=1' | j 'o.data[0].title')"
 
 # ── A focus area on the map ─────────────────────────────────────────────────
 # GET /api/map/areas/:id/overview is the panel a focus area opens: what a

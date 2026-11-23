@@ -37,7 +37,8 @@ FA=$(sql "SELECT id FROM factories WHERE company_id IS NOT NULL ORDER BY id LIMI
 CA=$(sql "SELECT company_id FROM factories WHERE id='$FA'")
 FB=$(sql "SELECT id FROM factories WHERE company_id IS NOT NULL AND company_id <> '$CA' ORDER BY id LIMIT 1")
 CB=$(sql "SELECT company_id FROM factories WHERE id='$FB'")
-OCC=$(sql "SELECT occupation_id FROM occupation_skills GROUP BY 1 ORDER BY COUNT(*) DESC, 1 LIMIT 1")
+# The civilian career with the most skills: a job is for a civilian career.
+OCC=$(sql "SELECT os.occupation_id FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id WHERE o.service_company_id IS NULL GROUP BY 1 ORDER BY COUNT(*) DESC, 1 LIMIT 1")
 OCC_SKILLS=$(sql "SELECT COUNT(*) FROM occupation_skills WHERE occupation_id='$OCC'")
 # Four skills: R1 and R2 required, O1 optional, X1 swapped in later.
 R1=$(sql "SELECT id FROM skills ORDER BY name, id LIMIT 1 OFFSET 0")

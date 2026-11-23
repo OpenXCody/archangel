@@ -53,7 +53,7 @@ Four kinds. Run all of them before merging.
 |---|---|---|
 | Static | `npm run typecheck` and `npm run lint` | Types; ESLint with no `any`; `.js` endings on server imports; colours from theme tokens only; the page's inline scripts against the Content-Security-Policy |
 | Unit | `npm run test:unit` | The pure functions: pins packed and unpacked, names, industries and a company's industry, paging, LIKE escaping and reading rows, account purpose and View as, when a build migrates, the statistics adapter, the employer loader's generator, the skill taxonomy's check. Also that the migration list is in order, and that the skills catalogue, the skill taxonomy, the company domains and the stored logos agree with what was generated from them |
-| API | `bash tests/api/accounts.sh`, `jobs.sh`, `seeker.sh`, `admin.sh`, `email.sh`, `industries.sh`, `careers.sh`, `versions.sh`, `intake.sh`, `dupes.sh`, `postings.sh`, `loader.sh`, `catalogue.sh`, `paths.sh` | Accounts, roles, invites, records, jobs, applications, reach, the industry pages, and the email and notices people get, end to end over HTTP, including every refusal; and the employer loader, research files in, companies and plants out |
+| API | `bash tests/api/accounts.sh`, `jobs.sh`, `seeker.sh`, `admin.sh`, `email.sh`, `industries.sh`, `careers.sh`, `versions.sh`, `intake.sh`, `dupes.sh`, `postings.sh`, `military.sh`, `loader.sh`, `catalogue.sh`, `paths.sh` | Accounts, roles, invites, records, jobs, applications, reach, the industry pages, and the email and notices people get, end to end over HTTP, including every refusal; and the employer loader, research files in, companies and plants out |
 | Pages | `npm run test:ui` | Playwright: the map, Explore and its tabs, the header, jobs, sign-in, settings signed out, each kind of record's page, the industry pages, search, the tools a seeker and an employer are each given, a read that gets no answer giving up, and an admin's change reaching the map's panel, on seven device sizes, with no sideways scroll and no crash |
 
 The API suites are local only. They need the dev server running against a database with data in it, and `psql`, `curl` and `node` on the PATH; they create and remove their own accounts and records. `loader.sh`, `catalogue.sh` and `paths.sh` are the exceptions: they need only the database (`DB`), not the server. What the suites share (one request, a check, the refusal of an API that is not on this machine) is in `tests/api/lib.sh`.
@@ -137,10 +137,13 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   | The skills catalogue | `data/skills/catalogue.json` | `build-skills-sql.mjs` |
   | The skill taxonomy: domains, groups, each skill's group and level | `data/skills/taxonomy.json` | `build-taxonomy-sql.mjs` |
   | Cleanups: records deleted, merged, renamed | `data/cleanup/*.json` | `build-cleanup-sql.mjs` |
+  | Military services, careers and paths | `data/careers/military/*.json` | `build-military-sql.mjs` |
 
   ```bash
   node scripts/build-career-paths-sql.mjs --check
   node scripts/build-career-paths-sql.mjs data/careers/paths.json data/careers/catalogue.json data/skills/catalogue.json data/skills/taxonomy.json migrations/00NN_career_paths.sql   # never changes a path a person approved
+  node scripts/build-military-sql.mjs --check                               # the military employers, careers and paths; --report prints each career's reach
+  node scripts/build-military-sql.mjs employers|careers|paths migrations/00NN_….sql
   ```
 
   The path, profile and domain migrations match records by exact name, create no companies or careers, and never overwrite a value set by hand or a path a person has approved. A migration that has been applied is not edited: a later change is a change to the JSON and a new generated migration.
