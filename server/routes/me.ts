@@ -443,7 +443,8 @@ router.get(
 // which career it was: the person's skills are the record. The answer says
 // what the write changed, which is what its Undo takes back: `added` (skills
 // that were not on the person's list) and `raised` (skills they were learning),
-// by id; a skill already held is in neither. `total` is the path's size.
+// by id; a skill already held is in neither. `at` is the moment the write
+// stamped on every row it changed, and `total` the path's size.
 // Only a military career is taken this way (400 otherwise): a civilian career
 // is a goal, and its skills are marked one by one.
 router.post(
@@ -469,7 +470,7 @@ router.post(
           ON CONFLICT (user_id, skill_id) DO UPDATE SET status = 'held', updated_at = now() WHERE user_skills.status <> 'held'
           RETURNING skill_id
         )
-        SELECT w.skill_id, b.status AS was FROM written w LEFT JOIN before b ON b.skill_id = w.skill_id
+        SELECT w.skill_id, b.status AS was, now()::timestamp::text AS at FROM written w LEFT JOIN before b ON b.skill_id = w.skill_id
       `)
     );
     const [path] = await db
@@ -481,16 +482,18 @@ router.post(
       title: career.title,
       added: changed.filter((row) => row.was === null).map((row) => String(row.skill_id)),
       raised: changed.filter((row) => row.was !== null).map((row) => String(row.skill_id)),
+      at: changed.length > 0 ? String(changed[0].at) : null,
       total: path?.total ?? 0,
     });
   })
 );
 
-// POST /api/me/careers/:occupationId/held/undo { added: [skill id], raised: [skill id] }
+// POST /api/me/careers/:occupationId/held/undo { at, added: [skill id], raised: [skill id] }
 // - take back what marking the career held changed, as its answer listed it:
 // the skills it added leave the person's list and the ones it raised go back
-// to learning. Only skills of that career's path, and only those still held;
-// a skill the person held before is in neither list and is not touched.
+// to learning. Only a row that write itself stamped (`at`) is touched, so a
+// skill the person held before, or has marked again since, stays as it is
+// whatever the lists say.
 router.post(
   '/careers/:occupationId/held/undo',
   handle(async (req, res) => {
@@ -500,8 +503,12 @@ router.post(
     const added = ids(req.body?.added ?? []);
     const raised = ids(req.body?.raised ?? []);
     if (!added || !raised) return res.status(400).json({ error: 'added and raised are lists of skill ids.' });
+    const at: unknown = req.body?.at;
+    if (typeof at !== 'string' || !/^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d(\.\d{1,6})?$/.test(at)) {
+      return res.status(400).json({ error: 'at is the moment the skills were marked, as that answer gave it.' });
+    }
     const onPath = sql`${userSkills.skillId} IN (SELECT os.skill_id FROM occupation_skills os WHERE os.occupation_id = ${req.params.occupationId})`;
-    const stillHeld = and(eq(userSkills.userId, userId), eq(userSkills.status, 'held'), onPath);
+    const stillHeld = and(eq(userSkills.userId, userId), eq(userSkills.status, 'held'), onPath, sql`${userSkills.updatedAt} = ${at}::timestamp`);
     const removed = await db.transaction(async (tx) => {
       const gone = added.length > 0 ? await tx.delete(userSkills).where(and(stillHeld, inArray(userSkills.skillId, added))).returning({ skillId: userSkills.skillId }) : [];
       const back =

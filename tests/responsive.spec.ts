@@ -1736,3 +1736,201 @@ test("a job from a company's careers site, as a seeker and as the company: marks
   await expect(page.getByRole('heading', { name: 'Post a job' })).toBeVisible();
   await assertHealthyLayout(page, '/employer with listed jobs and none posted');
 });
+
+// ─── Military careers: reached on purpose ──────────────────────────────────────
+
+/** A military career by its code, as the Careers list gives it when asked for them. */
+async function militaryCareer(request: APIRequestContext, code: string) {
+  const list = (await (await request.get(`${API}/occupations?military=1&search=${encodeURIComponent(code)}&limit=5`)).json()) as {
+    data: Array<{ id: string; title: string; code: string; kind: string; officialTitle: string; skillCount: number; service: { slug: string; name: string } }>;
+  };
+  const found = list.data.find((career) => career.code === code);
+  expect(found, `the military careers have ${code}`).toBeTruthy();
+  return found!;
+}
+
+const SERVICE_TITLE = /^(Navy|Army|Air Force) /;
+const KIND_LINE = /(Navy rating|Army MOS|Air Force specialty) · [A-Z0-9]+/;
+
+test('military careers stay out of the lists until asked for: the Careers filter, a civilian career, the header search and the map search', async ({ page, request }) => {
+  const counts = async (query: string) => ((await (await request.get(`${API}/occupations?${query}limit=1`)).json()) as { total: number }).total;
+  const [civilian, military, navy] = [await counts(''), await counts('military=1&'), await counts('service=navy&')];
+
+  // The Careers list is of civilian careers, and says so in the filter that asks for the others.
+  await page.goto('/explore?tab=occupations', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-explore-count]')).toHaveText(`${civilian} careers`);
+  await expect(page.locator('main a[href^="/occupations/"]').first()).toBeVisible();
+  await expect(page.locator('main a[href^="/occupations/"]').filter({ hasText: KIND_LINE })).toHaveCount(0);
+  const filter = page.getByRole('button', { name: 'Careers: Civilian' });
+  await expect(filter).toBeVisible();
+  await assertHealthyLayout(page, '/explore?tab=occupations');
+
+  // Asked for, the list is the military careers alone, each row with its kind and code; the address says so.
+  await filter.click();
+  await page.getByRole('menuitemradio', { name: 'Military', exact: true }).click();
+  await expect(page).toHaveURL(/tab=occupations&military=1$/);
+  await expect(page.locator('[data-explore-count]')).toHaveText(`${military} military careers`);
+  const rows = page.locator('main a[href^="/occupations/"]');
+  await expect(rows.first()).toContainText(KIND_LINE);
+  for (const text of await rows.allInnerTexts()) expect(text, 'every row is a military career').toMatch(KIND_LINE);
+  await assertHealthyLayout(page, '/explore?tab=occupations&military=1');
+
+  // Narrowed to one service, and back.
+  await page.getByRole('button', { name: 'Careers: Military' }).click();
+  await page.getByRole('menuitemradio', { name: 'Navy', exact: true }).click();
+  await expect(page).toHaveURL(/tab=occupations&service=navy$/);
+  await expect(page.locator('[data-explore-count]')).toHaveText(`${navy} Navy careers`);
+  await expect(rows.first()).toContainText(/Navy rating · [A-Z]+/);
+  for (const text of await rows.allInnerTexts()) expect(text, 'every row is a Navy rating').toContain('Navy rating · ');
+  await assertHealthyLayout(page, '/explore?tab=occupations&service=navy');
+  await page.getByRole('button', { name: 'Clear', exact: true }).click();
+  await expect(page).not.toHaveURL(/military=|service=/);
+  await expect(page.locator('[data-explore-count]')).toHaveText(`${civilian} careers`);
+  // Explore's own count of careers is the civilian one.
+  expect(((await (await request.get(`${API}/stats/counts`)).json()) as { occupations: number }).occupations, "Explore's count is civilian").toBe(civilian);
+
+  // A civilian career's page ends in the military careers that reach it, each with how much of the path it holds.
+  const welder = await careerByTitle(request, 'Welder');
+  await page.goto(`/occupations/${welder.id}`, { waitUntil: 'domcontentloaded' });
+  const section = page.locator('#military');
+  await expect(section.getByRole('heading', { name: 'Military careers that reach this' })).toBeVisible();
+  const reaching = section.locator('[data-military-career]');
+  await expect(reaching.first()).toBeVisible();
+  for (const text of await reaching.allInnerTexts()) {
+    expect(text, 'a row is a military career by its full title').toMatch(SERVICE_TITLE);
+    expect(text, 'with its kind, its code and its share of this path').toMatch(new RegExp(`${KIND_LINE.source} · \\d+ of ${welder.skills.length} skills`));
+  }
+  expect(await page.locator('[data-entity-view] section').last().getAttribute('id'), 'it is the last section').toBe('military');
+  await section.scrollIntoViewIfNeeded();
+  await assertHealthyLayout(page, '/occupations/:id military careers that reach this');
+
+  // The header's search lists a military career when the query is its code, first among the careers.
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Search' });
+  await dialog.getByRole('combobox').fill('HT');
+  const hit = dialog.getByRole('option', { name: /Navy Hull Maintenance Technician/ });
+  await expect(hit).toBeVisible();
+  await expect(hit).toContainText('Navy rating · HT');
+  await expect(dialog.getByRole('option').first()).toContainText('Navy Hull Maintenance Technician');
+  await assertHealthyLayout(page, '/occupations/:id#search HT');
+  // A plain title lists civilian careers only.
+  await dialog.getByRole('combobox').fill('electronics technician');
+  await expect(dialog.getByRole('option', { name: /^Electronics Technician/ }).first()).toBeVisible();
+  await expect(dialog.getByRole('option').filter({ hasText: KIND_LINE })).toHaveCount(0);
+  await dialog.getByRole('combobox').fill('welder');
+  await expect(dialog.getByRole('option', { name: /^Welder/ }).first()).toBeVisible();
+  await expect(dialog.getByRole('option').filter({ hasText: KIND_LINE })).toHaveCount(0);
+  await page.keyboard.press('Escape');
+
+  // The map's search never lists one: the same code, asked there, brings no career of a service.
+  await page.goto('/map', { waitUntil: 'domcontentloaded' });
+  const field = page.getByRole('combobox', { name: 'Place, company or career' });
+  await expect(field).toBeVisible();
+  const answered = page.waitForResponse((response) => /\/api\/search\?/.test(response.url()) && /[?&]q=HT(&|$)/.test(response.url()));
+  await field.fill('HT');
+  const answer = await answered;
+  expect(answer.url(), 'the map does not ask for military careers').not.toContain('military=');
+  const found = (await answer.json()) as { results: { occupations: { items: { name: string; named?: boolean }[] } } };
+  expect(found.results.occupations.items.filter((item) => item.named || SERVICE_TITLE.test(item.name))).toEqual([]);
+  await expect(page.getByRole('listbox', { name: 'Search results' }).getByRole('option').first()).toBeVisible();
+  await expect(page.getByRole('option').filter({ hasText: /Hull Maintenance|Navy rating/ })).toHaveCount(0);
+  await assertHealthyLayout(page, '/map#search HT');
+});
+
+test('Profile\'s second door: a seeker starts with what they have done, and takes it back; nobody else is shown it', async ({ page, baseURL, request }) => {
+  // Writes: it makes two accounts, marks skills and deletes them. Never against a deployed copy.
+  test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
+  const password = 'correct horse battery';
+  const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
+  const ht = await militaryCareer(request, 'HT');
+  const mySkills = async () => ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: { skillId: string; status: string }[] }).skills;
+
+  // A visitor is asked to sign in: there is no door to see.
+  await page.goto('/me', { waitUntil: 'domcontentloaded' });
+  await expect(page).toHaveURL(/\/sign-in/);
+  await expect(page.locator('[data-service-door]')).toHaveCount(0);
+
+  const made = await page.request.post(`${API}/auth/sign-up`, { data: { email: `door-work-${stamp}@device.test`, name: 'Door Seeker', password, purpose: 'work' } });
+  expect(made.status(), 'seeker: account made').toBe(201);
+  try {
+    // With nothing on the page: two doors, the second as quiet as the first.
+    await page.goto('/me', { waitUntil: 'domcontentloaded' });
+    const first = page.getByRole('heading', { name: 'Start with a career' });
+    const second = page.getByRole('heading', { name: 'Start with what you have done' });
+    await expect(first).toBeVisible();
+    await expect(second).toBeVisible();
+    const size = (heading: typeof first) => heading.evaluate((el) => getComputedStyle(el).fontSize + ' ' + getComputedStyle(el).fontWeight);
+    expect(await size(second), 'the two questions are set alike').toBe(await size(first));
+    await assertHealthyLayout(page, '/me two doors');
+
+    // The door's search does list military careers: by code, with the kind and code under the title.
+    const search = page.locator('#door-career');
+    await search.fill('HT');
+    const option = page.getByRole('option', { name: /Navy Hull Maintenance Technician/ });
+    await expect(option).toBeVisible();
+    await expect(option).toContainText('Navy rating · HT');
+    // One tap marks every skill of its path held, says so, and the page is the person's own from there.
+    await option.click();
+    const notice = page.locator('[data-done-notice]');
+    await expect(notice).toContainText(`Marked ${ht.skillCount} skills held.`);
+    expect((await mySkills()).filter((skill) => skill.status === 'held').length, 'every skill of the path is held').toBe(ht.skillCount);
+    // What they then see: civilian careers within reach, never a military one, and no goal was made of it.
+    const reach = page.locator('[data-careers-in-reach]');
+    await expect(reach.locator('li').first()).toBeVisible();
+    await expect(reach).toContainText(/Welder/);
+    await expect(reach.locator('li').filter({ hasText: SERVICE_TITLE })).toHaveCount(0);
+    await expect(page.locator('[data-goal]')).toHaveCount(0);
+    expect(((await (await page.request.get(`${API}/me/goals`)).json()) as { goals: unknown[] }).goals.length).toBe(0);
+    await notice.scrollIntoViewIfNeeded();
+    await assertHealthyLayout(page, '/me after the door');
+    // Undo takes all of it back: the page is the two doors again.
+    await notice.getByRole('button', { name: 'Undo' }).click();
+    await expect(first).toBeVisible();
+    expect((await mySkills()).length, 'nothing is left').toBe(0);
+
+    // On a Profile that has something: one line at the end of Skills, under everything else.
+    const own = ((await (await request.get(`${API}/skills?limit=1`)).json()) as { data: { id: string }[] }).data[0];
+    expect((await page.request.put(`${API}/me/skills/${own.id}`, { data: { status: 'held' } })).ok()).toBe(true);
+    await page.goto('/me', { waitUntil: 'domcontentloaded' });
+    const line = page.locator('[data-service-door="skills"]');
+    const open = line.getByRole('button', { name: 'Start with what you have done' });
+    await expect(open).toBeVisible();
+    const below = async (heading: string) => ((await open.boundingBox())?.y ?? 0) > ((await page.getByRole('heading', { name: heading, exact: true }).boundingBox())?.y ?? Infinity);
+    expect(await below('Goals'), 'it is under Goals').toBe(true);
+    expect(await below('Skills'), 'and under Skills').toBe(true);
+    expect((await open.boundingBox())?.y ?? 0, 'and under the person\'s own skills').toBeGreaterThan((await page.locator('[data-my-skills]').boundingBox())?.y ?? Infinity);
+    await open.click();
+    await expect(search).toBeFocused();
+    await search.fill('navy hull');
+    await page.getByRole('option', { name: /Navy Hull Maintenance Technician/ }).click();
+    // The skill held before is not counted, and is not taken back.
+    const mine = (await mySkills()).length;
+    const added = mine - 1;
+    await expect(line.locator('[data-done-notice]')).toContainText(`Marked ${added} skills held.`);
+    await line.scrollIntoViewIfNeeded();
+    await assertHealthyLayout(page, '/me the door at the end of Skills');
+    await line.getByRole('button', { name: 'Undo' }).click();
+    await expect(line.locator('[data-done-notice]')).toHaveCount(0);
+    await expect.poll(async () => (await mySkills()).map((skill) => skill.skillId), { message: 'only the skill held before is left' }).toEqual([own.id]);
+    await expect(open).toBeVisible();
+  } finally {
+    expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'seeker: account removed').toBe(true);
+  }
+
+  // Someone here to hire: with nothing on the page they are sent to their own, and with a skill on it there is still no door.
+  const hire = await page.request.post(`${API}/auth/sign-up`, { data: { email: `door-hire-${stamp}@device.test`, name: 'Door Hirer', password, purpose: 'hire' } });
+  expect(hire.status(), 'employer: account made').toBe(201);
+  try {
+    await page.goto('/me', { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/\/employer/);
+    await expect(page.locator('[data-service-door]')).toHaveCount(0);
+    const own = ((await (await request.get(`${API}/skills?limit=1`)).json()) as { data: { id: string }[] }).data[0];
+    expect((await page.request.put(`${API}/me/skills/${own.id}`, { data: { status: 'held' } })).ok()).toBe(true);
+    await page.goto('/me', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('heading', { name: 'Skills', exact: true })).toBeVisible();
+    await expect(page.locator('[data-service-door]')).toHaveCount(0);
+    await expect(page.getByText('Start with what you have done')).toHaveCount(0);
+  } finally {
+    expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'employer: account removed').toBe(true);
+  }
+});

@@ -4,6 +4,9 @@
 # (0064), all from scripts/build-military-sql.mjs, as the database holds them and
 # as the API serves them: a military career has its page and is listed when asked
 # for, and every default list, count, search and suggestion is of civilian careers.
+# Then where a military career is used: the site's search when the query names it,
+# reach between a military career's path and a civilian one's, a skill's and a
+# service's careers, and Profile's door (its skills marked held, and the Undo).
 # Prints one line per check and exits non-zero if any fail.
 #
 # It reads what the migrations loaded (data/careers/military/: the database must
@@ -194,6 +197,136 @@ OUT=$(req a GET '/admin/paths?status=draft')
 expect "the admin's draft paths include them, each with its service and code" "navy HT" "$(printf '%s' "$OUT" | j "paths.find((p) => p.id === '$HT').service + ' ' + o.paths.find((p) => p.id === '$HT').code")"
 expect "and a civilian draft says it has neither"  "null null" "$(printf '%s' "$OUT" | j 'paths.find((p) => !/^(Navy|Army|Air Force) /.test(p.title)).service + " " + o.paths.find((p) => !/^(Navy|Army|Air Force) /.test(p.title)).code')"
 check "the admin's record search finds one to correct" 200 "$(req a GET "/admin/records/career?q=$(enc 'Navy Hull')")" 'Navy Hull Maintenance Technician'
+
+# --- The site's search lists a military career only when the query names it ------------------
+# `military=named` is what the header's search sends; the map's search never sends it.
+named() { req anon GET "/search?q=$(enc "$1")&types=occupations&military=named${2:-}"; }
+titles() { j 'results.occupations.items.filter((c) => c.named).map((c) => c.name).join("|")'; }
+OUT=$(named 'HT')
+check "a code typed alone names its career"         200 "$OUT" '"named":true'
+expect "the career, first, with its kind and code"  "Navy Hull Maintenance Technician|Navy rating · HT|true" "$(printf '%s' "$OUT" | j 'results.occupations.items[0].name + "|" + o.results.occupations.items[0].subtitle + "|" + o.results.occupations.items[0].named')"
+expect "and it is counted with the civilian careers found" "$(( $(req anon GET '/search?q=HT&types=occupations' | j results.occupations.count) + 1 ))" "$(printf '%s' "$OUT" | j results.occupations.count)"
+expect "the civilian careers follow it"             true "$(printf '%s' "$OUT" | j 'results.occupations.items.slice(1).every((c) => !c.named)')"
+expect "in any letter case"                         "Navy Hull Maintenance Technician" "$(named 'ht' | titles)"
+expect "an Army code"                               "Army UH-60 Helicopter Repairer/Aircrew Member" "$(named '15t' | titles)"
+expect "an Air Force code"                          "Air Force Tactical Aircraft Maintenance" "$(named '2A3X3' | titles)"
+expect "with a skill level where it has its X"      "Air Force Tactical Aircraft Maintenance" "$(named '2a353' | titles)"
+expect "the service with a word of the title"       "Navy Hull Maintenance Technician" "$(named 'Navy hull' | titles)"
+expect "and nothing else is listed for it"          1 "$(named 'Navy hull' | j results.occupations.items.length)"
+expect "the service with the code"                  "Navy Hull Maintenance Technician" "$(named 'navy ht' | titles)"
+expect "the employer's name with words of the title" "Navy Hull Maintenance Technician" "$(named 'U.S. Navy hull maintenance' | titles)"
+expect "a code with its system's word"              "Army UH-60 Helicopter Repairer/Aircrew Member" "$(named 'MOS 15T' | titles)"
+for PLAIN in 'welder' 'electronics technician' 'hull maintenance technician' 'navy' 'air force' 'technician' 'rating' 'navy yard'; do
+  expect "“$PLAIN” names no military career"        "" "$(named "$PLAIN" | titles)"
+done
+expect "a plain title finds the civilian career first" "Electronics Technician" "$(named 'electronics technician' | j 'results.occupations.items[0].name')"
+# Codes that are also a word, a state, a unit or another name of a skill: nothing by themselves.
+for PLAIN in AM ET IT MT UT MM GM; do
+  expect "“$PLAIN” alone names no military career"  "" "$(named "$PLAIN" | titles)"
+done
+expect "with the service, such a code names its career first" "Navy Aviation Structural Mechanic" "$(named 'navy am' | j 'results.occupations.items[0].name')"
+expect "and with its system's word, only it"        "Navy Electronics Technician" "$(named 'ET rating' | titles)"
+OUT=$(named 'navy ratings')
+expect "a service's ratings, when asked for by that word: the first five, and all of them counted" "5 5 $(( $(mil 'careers.filter((c)=>c.service==="navy").length') + $(req anon GET "/search?q=$(enc 'navy ratings')&types=occupations" | j results.occupations.count) ))" "$(printf '%s' "$OUT" | j 'results.occupations.items.filter((c) => c.named).length + " " + o.results.occupations.items.length + " " + o.results.occupations.count')"
+expect "another service's word names none"          "" "$(named 'navy mos' | titles)"
+expect "as production sends it, with the path the rewrite adds" "Navy Hull Maintenance Technician" "$(named 'HT' '&path=search' | titles)"
+expect "the map's search, which does not ask, lists none for a code" 0 "$(req anon GET '/search?q=HT&types=companies,factories,occupations,skills' | j 'results.occupations.items.filter((c) => c.named || /^(Navy|Army|Air Force) /.test(c.name)).length')"
+expect "nor for a service and a title"              0 "$(req anon GET "/search?q=$(enc 'navy hull')&types=companies,factories,occupations,skills" | j 'results.occupations.count')"
+expect "nor for any other value of the parameter"   0 "$(req anon GET '/search?q=HT&types=occupations&military=1' | j 'results.occupations.items.filter((c) => c.named).length')"
+
+# --- The list that was asked for military careers finds one by its code ------------------------
+OUT=$(req anon GET '/occupations?military=1&search=ht&limit=5')
+expect "by its whole code, first"                   "Navy Hull Maintenance Technician|HT" "$(printf '%s' "$OUT" | j 'data[0].title + "|" + o.data[0].code')"
+expect "by the start of a code"                     "true" "$(req anon GET '/occupations?military=1&search=15&limit=100' | j 'data.length > 5 && o.data.every((c) => c.code.startsWith("15"))')"
+expect "an Air Force code"                          "2A3X3" "$(req anon GET '/occupations?military=1&search=2a3x3' | j 'data[0].code')"
+expect "one service's, by code"                     "HT" "$(req anon GET '/occupations?service=navy&search=HT' | j 'data[0].code')"
+expect "the civilian list is not searched by code"  0 "$(req anon GET '/occupations?search=15t' | j 'data.filter((c) => c.service !== null).length')"
+expect "the homes the military list is narrowed by" "$(sql "SELECT string_agg(d.slug, '|' ORDER BY d.position) FROM skill_domains d WHERE EXISTS (SELECT 1 FROM occupations o WHERE o.home_domain = d.slug AND o.service_company_id IS NOT NULL)")" "$(req anon GET /explore/facets | j 'militaryCareerDomains.map((d) => d.slug).join("|")')"
+
+# --- Reach, computed from the two paths --------------------------------------------------------
+# A hand count: the skills of a civilian career's path that are on a military career's, of how many the path has.
+shared() { sql "SELECT COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM occupation_skills m WHERE m.occupation_id = (SELECT id FROM occupations WHERE title = '$1') AND m.skill_id = c.skill_id)) || ' of ' || COUNT(*) FROM occupation_skills c WHERE c.occupation_id = (SELECT id FROM occupations WHERE title = '$2')"; }
+expect "the hand count for MIG Welder"              "10 of 14" "$(shared 'Navy Hull Maintenance Technician' 'MIG Welder')"
+expect "for Metal Fabricator"                       "13 of 19" "$(shared 'Navy Hull Maintenance Technician' 'Metal Fabricator')"
+expect "for Welder"                                 "12 of 19" "$(shared 'Navy Hull Maintenance Technician' 'Welder')"
+OUT=$(req anon GET /occupations/$HT)
+expect "a military career's civilian careers within reach, the most covered first" "MIG Welder 10 of 14|Metal Fabricator 13 of 19|Welder 12 of 19" "$(printf '%s' "$OUT" | j 'withinReach.slice(0, 3).map((c) => c.title + " " + c.held + " of " + c.total).join("|")')"
+# The floor: a third of the civilian career's path, which is written and has five skills or more.
+FLOOR="WITH pairs AS (SELECT c.id, (SELECT COUNT(*) FROM occupation_skills x WHERE x.occupation_id = c.id) AS total, (SELECT COUNT(*) FROM occupation_skills x INNER JOIN occupation_skills y ON y.skill_id = x.skill_id AND y.occupation_id = '$HT' WHERE x.occupation_id = c.id) AS held FROM occupations c WHERE c.service_company_id IS NULL AND c.path_status IS NOT NULL) SELECT COUNT(*) FROM pairs WHERE total >= 5 AND held * 3 >= total"
+expect "every career of the floor, and no other"    "$(sql "$FLOOR")" "$(printf '%s' "$OUT" | j withinReach.length)"
+expect "each holds a third or more of a path of five or more" true "$(printf '%s' "$OUT" | j 'withinReach.every((c) => c.total >= 5 && c.held * 3 >= c.total)')"
+expect "in order of the share held"                 true "$(printf '%s' "$OUT" | j 'withinReach.every((c, i, all) => i === 0 || all[i - 1].held * c.total >= c.held * all[i - 1].total)')"
+expect "each names the skills missing, all of them, lowest level first" true "$(printf '%s' "$OUT" | j 'withinReach.every((c) => c.missing.length === c.total - c.held && c.missing.every((s, i, all) => s.id && s.name && (i === 0 || all[i - 1].level <= s.level)))')"
+expect "Welder's missing skills are the ones the rating's path lacks" "$(sql "SELECT string_agg(s.name, '|' ORDER BY c.stage, s.name) FROM occupation_skills c INNER JOIN skills s ON s.id = c.skill_id WHERE c.occupation_id = (SELECT id FROM occupations WHERE title = 'Welder') AND NOT EXISTS (SELECT 1 FROM occupation_skills m WHERE m.occupation_id = '$HT' AND m.skill_id = c.skill_id)")" "$(printf '%s' "$OUT" | j 'withinReach.find((c) => c.title === "Welder").missing.map((s) => s.name).join("|")')"
+expect "none of them a military career"             0 "$(sql "SELECT COUNT(*) FROM occupations WHERE service_company_id IS NOT NULL AND id IN ($(printf '%s' "$OUT" | j 'withinReach.map((c) => "\x27" + c.id + "\x27").join(",")'))")"
+expect "and it is reached by none"                  0 "$(printf '%s' "$OUT" | j reachedBy.length)"
+WELDER=$(id_of 'Welder')
+OUT=$(req anon GET /occupations/$WELDER)
+expect "a civilian career's military careers that reach it" "Navy Hull Maintenance Technician|Navy rating|HT|12 of 19" "$(printf '%s' "$OUT" | j 'reachedBy.filter((c) => c.code === "HT").map((c) => c.title + "|" + c.kind + "|" + c.code + "|" + c.held + " of " + c.total).join("")')"
+expect "every one of the floor"                     "$(sql "WITH pairs AS (SELECT m.id, (SELECT COUNT(*) FROM occupation_skills x WHERE x.occupation_id = '$WELDER') AS total, (SELECT COUNT(*) FROM occupation_skills x INNER JOIN occupation_skills y ON y.skill_id = x.skill_id AND y.occupation_id = m.id WHERE x.occupation_id = '$WELDER') AS held FROM occupations m WHERE m.service_company_id IS NOT NULL) SELECT COUNT(*) FROM pairs WHERE total >= 5 AND held * 3 >= total")" "$(printf '%s' "$OUT" | j reachedBy.length)"
+expect "the most covering first, each a military career with its kind and code" true "$(printf '%s' "$OUT" | j 'reachedBy.length > 0 && o.reachedBy.every((c, i, all) => c.kind && c.code && c.total === 19 && c.held * 3 >= c.total && (i === 0 || all[i - 1].held >= c.held))')"
+expect "and nothing within its own reach is listed" 0 "$(printf '%s' "$OUT" | j withinReach.length)"
+NONE=$(sql "SELECT c.id FROM occupations c WHERE c.service_company_id IS NULL AND c.path_status IS NOT NULL AND NOT EXISTS (SELECT 1 FROM occupations m WHERE m.service_company_id IS NOT NULL AND 3 * (SELECT COUNT(*) FROM occupation_skills x INNER JOIN occupation_skills y ON y.skill_id = x.skill_id AND y.occupation_id = m.id WHERE x.occupation_id = c.id) >= (SELECT COUNT(*) FROM occupation_skills x WHERE x.occupation_id = c.id)) ORDER BY c.title LIMIT 1")
+expect "a civilian career no military career reaches lists none" 0 "$(req anon GET /occupations/$NONE | j reachedBy.length)"
+
+# --- A skill's military careers, and a service's ------------------------------------------------
+OUT=$(req anon GET /skills/$TORPEDO)
+expect "a skill only military careers use lists them" "Navy Torpedoman's Mate|Navy rating|TM" "$(printf '%s' "$OUT" | j 'militaryOccupations.map((c) => c.title + "|" + c.kind + "|" + c.code).join(";")')"
+expect "apart from its careers, of which it has none" 0 "$(printf '%s' "$OUT" | j occupations.length)"
+expect "a shared skill lists its military careers too" "$(sql "SELECT COUNT(*) FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id WHERE os.skill_id = '$PRINT' AND o.service_company_id IS NOT NULL")" "$(req anon GET /skills/$PRINT | j militaryOccupations.length)"
+expect "the taxonomy says how many military careers use a skill" "0 1" "$(req anon GET /skills/taxonomy | j "domains.flatMap((d) => d.groups).flatMap((g) => g.skills).filter((s) => s.id === '$TORPEDO').map((s) => s.careers + ' ' + s.militaryCareers).join('')")"
+OUT=$(req anon GET /companies/us-navy)
+expect "a service's page lists its careers"         "$(mil 'careers.filter((c)=>c.service==="navy").length')" "$(printf '%s' "$OUT" | j serviceCareers.length)"
+expect "each with its code, its home and its path"  true "$(printf '%s' "$OUT" | j 'serviceCareers.every((c) => /^Navy /.test(c.title) && c.kind === "Navy rating" && c.code && c.home && c.skillCount >= 5)')"
+expect "the Marine Corps has none to list"          "marine-corps 0" "$(req anon GET /companies/us-marine-corps | j 'service + " " + o.serviceCareers.length')"
+expect "a company that is not a service lists none" 0 "$(req anon GET "/companies/$(sql "SELECT id FROM companies WHERE service IS NULL ORDER BY name LIMIT 1")" | j serviceCareers.length)"
+
+# --- Profile's door: a military career's skills marked held in one write, and its Undo ---------
+check "sign-up for the door"                        201 "$(req d POST /auth/sign-up "{\"email\":\"door-$RUN@military.test\",\"name\":\"Dee Door\",\"purpose\":\"work\",$PW}")"
+MIG=$(sql "SELECT s.id FROM skills s INNER JOIN occupation_skills os ON os.skill_id = s.id WHERE os.occupation_id = '$HT' AND s.name = 'MIG Welding'")
+TIG=$(sql "SELECT s.id FROM skills s INNER JOIN occupation_skills os ON os.skill_id = s.id WHERE os.occupation_id = '$HT' AND s.name = 'TIG Welding'")
+OTHER=$(sql "SELECT id FROM skills WHERE id NOT IN (SELECT skill_id FROM occupation_skills WHERE occupation_id = '$HT') ORDER BY name LIMIT 1")
+req d PUT /me/skills/$MIG '{"status":"held"}' > /dev/null
+req d PUT /me/skills/$TIG '{"status":"learning"}' > /dev/null
+req d PUT /me/skills/$OTHER '{"status":"held"}' > /dev/null
+PATH_SIZE=$(mil 'path("Navy Hull Maintenance Technician").skills.length')
+check "signed out, nothing is marked"               401 "$(req anon POST /me/careers/$HT/held)"
+check "a civilian career is not marked this way"    400 "$(req d POST /me/careers/$WELDER/held)" 'Only a military career'
+check "nor a career that does not exist"            404 "$(req d POST /me/careers/00000000-0000-4000-8000-000000000000/held)"
+expect "and nothing was marked by those"            3 "$(req d GET /me/skills | j skills.length)"
+DONE=$(req d POST /me/careers/$HT/held)
+check "I have done this"                            200 "$DONE" '"added"'
+expect "it added the skills that were not on the list, and raised the one being learned" "$((PATH_SIZE - 2)) 1 $PATH_SIZE" "$(printf '%s' "$DONE" | j 'added.length + " " + o.raised.length + " " + o.total')"
+expect "the raised one is the skill that was being learned" "$TIG" "$(printf '%s' "$DONE" | j 'raised[0]')"
+expect "a skill held before is in neither list"     false "$(printf '%s' "$DONE" | j "added.concat(o.raised).includes('$MIG')")"
+expect "every skill of the path is held now"        "$PATH_SIZE" "$(sql "SELECT COUNT(*) FROM user_skills us INNER JOIN users u ON u.id = us.user_id WHERE u.email = 'door-$RUN@military.test' AND us.status = 'held' AND us.skill_id IN (SELECT skill_id FROM occupation_skills WHERE occupation_id = '$HT')")"
+expect "nothing is kept about which career it was"  0 "$(sql "SELECT (SELECT COUNT(*) FROM user_goals g INNER JOIN users u ON u.id = g.user_id WHERE u.email = 'door-$RUN@military.test') + (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'users' AND column_name ~ 'military|service|rating')")"
+OUT=$(req d GET /me/careers/reach)
+expect "what follows is civilian careers within reach" "true 0" "$(printf '%s' "$OUT" | j 'careers.length > 0') $(sql "SELECT COUNT(*) FROM occupations WHERE service_company_id IS NOT NULL AND id IN ($(printf '%s' "$OUT" | j 'careers.map((c) => "\x27" + c.id + "\x27").join(",")'))")"
+expect "Welder among them, with the page's own figure" "12 of 19" "$(printf '%s' "$OUT" | j 'careers.filter((c) => c.title === "Welder").map((c) => c.held + " of " + c.total).join("")')"
+expect "each says how many jobs are open for it"    true "$(printf '%s' "$OUT" | j 'careers.every((c) => Number.isInteger(c.openJobs) && c.openJobs >= 0)')"
+expect "and its count is the Jobs list's"           "$(req anon GET "/jobs?occupationId=$WELDER&limit=1" | j total)" "$(printf '%s' "$OUT" | j 'careers.find((c) => c.title === "Welder").openJobs')"
+check "the rating is still no goal"                 400 "$(req d PUT /me/goals/$HT)" 'cannot be set as a goal'
+expect "and no goal offers one"                     0 "$(req d GET /me/goals | j goals.length)"
+expect "suggested skills come from civilian careers" 0 "$(req d GET '/me/skills/suggested?limit=30' | j 'skills.filter((s) => /^(Navy|Army|Air Force) /.test(s.career)).length')"
+AGAIN=$(req d POST /me/careers/$HT/held)
+expect "marked again, it changes nothing"           "0 0 null" "$(printf '%s' "$AGAIN" | j 'added.length + " " + o.raised.length + " " + o.at')"
+UNDO=$(printf '%s' "$DONE" | sed '$d' | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s);console.log(JSON.stringify({at:o.at,added:o.added,raised:o.raised}))})")
+# A list that names skills the write did not change: one held before, on the path and off it.
+FORGED=$(printf '%s' "$UNDO" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s);console.log(JSON.stringify({at:o.at,added:['$MIG','$OTHER'],raised:[]}))})")
+check "an Undo that names skills held before"       200 "$(req d POST /me/careers/$HT/held/undo "$FORGED")" '"removed":0'
+check "an Undo without the moment of the write"     400 "$(req d POST /me/careers/$HT/held/undo '{"added":[],"raised":[]}')"
+check "an Undo with a list that is not ids"         400 "$(req d POST /me/careers/$HT/held/undo '{"at":"2026-01-01 00:00:00","added":["x"],"raised":[]}')"
+check "Undo"                                        200 "$(req d POST /me/careers/$HT/held/undo "$UNDO")" "\"removed\":$((PATH_SIZE - 2)),\"lowered\":1"
+expect "takes back exactly what the tap added: the three from before are left" "held|learning|held" "$(req d GET /me/skills | j "skills.length === 3 && ['$MIG', '$TIG', '$OTHER'].map((id) => o.skills.find((s) => s.skillId === id).status).join('|')")"
+check "a second Undo finds nothing to take back"    200 "$(req d POST /me/careers/$HT/held/undo "$UNDO")" '"removed":0,"lowered":0'
+# A skill the person marks again after the tap is theirs: Undo leaves it.
+DONE=$(req d POST /me/careers/$HT/held)
+KEPT=$(printf '%s' "$DONE" | j 'added[0]')
+req d PUT /me/skills/$KEPT '{"status":"held"}' > /dev/null
+UNDO=$(printf '%s' "$DONE" | sed '$d' | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s);console.log(JSON.stringify({at:o.at,added:o.added,raised:o.raised}))})")
+check "Undo after one was marked again by hand"     200 "$(req d POST /me/careers/$HT/held/undo "$UNDO")" "\"removed\":$((PATH_SIZE - 3)),\"lowered\":1"
+expect "leaves that one held"                       "held 4" "$(req d GET /me/skills | j "skills.find((s) => s.skillId === '$KEPT').status + ' ' + o.skills.length")"
 
 # --- The loader, on rows as production might hold them --------------------------------
 cat > "$D/employers.json" <<'JSON'

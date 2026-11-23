@@ -70,7 +70,8 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
         description={data.description}
         action={
           <>
-            <GoalButton occupationId={data.id} />
+            {/* A military career is where a person comes from, never a goal. */}
+            {!data.service && <GoalButton occupationId={data.id} />}
             {whole && (
               <span className="inline-flex items-center gap-2 text-sm text-text-2" data-held-count>
                 <ShareRing share={whole} className="h-5 w-5" />

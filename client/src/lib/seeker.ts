@@ -212,6 +212,8 @@ export interface DoneCareer {
   title: string;
   added: string[];
   raised: string[];
+  /** The moment the write stamped on the rows it changed: Undo touches only those. Null when it changed none. */
+  at: string | null;
   /** How many skills the career's path has. */
   total: number;
 }
@@ -236,7 +238,7 @@ export function useCareerDone() {
     mutationFn: (done: DoneCareer) =>
       request<{ removed: number; lowered: number }>(`/me/careers/${done.occupationId}/held/undo`, {
         method: 'POST',
-        body: { added: done.added, raised: done.raised },
+        body: { at: done.at, added: done.added, raised: done.raised },
       }),
     onSuccess: () => pathMarked(queryClient),
   });
