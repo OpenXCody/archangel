@@ -12,12 +12,12 @@ import CompanyPicker from './CompanyPicker';
 
 /**
  * Requests to add what is not in the data: a company (from someone who could
- * not find theirs on the employer page), or a plant of a company (from one of
+ * not find theirs on the employer page), or a factory of a company (from one of
  * its members). Shown on the Access tab under the requests to join, and only
  * when there is one.
  *
- * A company is added under Data (company, then its plant), then chosen here:
- * that gives the person access to it. A plant is added under Data and the
+ * A company is added under Data (company, then its factory), then chosen here:
+ * that gives the person access to it. A factory is added under Data and the
  * request marked added. Either can be declined. The person is told by email.
  */
 export default function CompanyRequests() {
@@ -25,7 +25,7 @@ export default function CompanyRequests() {
   if (!requests.data || requests.data.length === 0) return null;
   return (
     <PageSection
-      title="Companies and plants to add"
+      title="Companies and factories to add"
       description={
         <>
           Asked for by people who could not find them. Add the record under{' '}
@@ -63,7 +63,7 @@ function RequestRow({ request }: { request: AdminCompanyRequest }) {
         <p className="break-words text-sm text-text-1">
           {plant ? (
             <>
-              Plant for{' '}
+              Factory for{' '}
               <Link to={`/companies/${request.companyId}`} className="hover:underline">
                 {request.companyName ?? request.name}
               </Link>
@@ -106,7 +106,7 @@ function RequestRow({ request }: { request: AdminCompanyRequest }) {
           aria-busy={doing('add')}
           aria-disabled={answer.isPending || (!plant && !company)}
           onClick={add}
-          aria-label={plant ? `Mark the plant for ${request.name} as added` : `Give ${request.userName} access to the chosen company`}
+          aria-label={plant ? `Mark the factory for ${request.name} as added` : `Give ${request.userName} access to the chosen company`}
           className={cn('h-[42px] px-4', busyButtonClass)}
         >
           {doing('add') && <Loader2 className="animate-spin" />}

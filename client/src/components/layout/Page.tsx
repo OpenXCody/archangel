@@ -14,32 +14,32 @@ import { cn, focusRing, labelClass, pageTitleClass, sectionHeadingClass } from '
  *   Admin Tools, sign-in): `PageHeader`, then `PageSection`s with
  *   sentence-case headings. These are places a person works in.
  *
- * - THE DETAIL PAGE: a company, a plant, a career, a skill, an industry, a
+ * - THE DETAIL PAGE: a company, a factory, a career, a skill, an industry, a
  *   job. All six are one template, top to bottom:
  *
  *   1. `DetailHeader`
  *      - the way back, alone on the first line (an admin's Edit at its end);
- *      - the kind, in small capitals above the name: COMPANY, PLANT, CAREER,
+ *      - the kind, in small capitals above the name: COMPANY, FACTORY, CAREER,
  *        SKILL, INDUSTRY, JOB. Never a pill after the name, never an icon
  *        tile: the word says it once, in the same place on every page;
  *      - the name (h1). A company's mark stands before it on the pages that
- *        belong to one company (company, plant, job): it is who, not what kind;
+ *        belong to one company (company, factory, job): it is who, not what kind;
  *      - one paragraph saying what it is, when the record has one;
  *      - one or two quiet lines of facts (where it is, how big, its industry);
  *      - the page's one action, last in the block and always in this place:
- *        Open on the map (company, plant, industry), Set as goal (career),
+ *        Open on the map (company, factory, industry), Set as goal (career),
  *        Not held / Learning / Held (skill). A job's action is a form, so it
  *        is the Apply section that follows the job's terms (for a person
  *        marking skills, the skills first: the company ranks on them).
  *   2. Sections (`DetailSection`: small grey capitals, no counts), always in
  *      this order, leaving out what the page does not have:
- *      a. what it is: the page's own content (a plant's people and what it
+ *      a. what it is: the page's own content (a factory's people and what it
  *         makes, a career's path, how a skill is learned, an industry's
  *         figures, a job's terms);
  *      b. where: the footprint and address, or the places and industries;
  *      c. open jobs;
  *      d. the records it leads to, in the product's own order (the order
- *         of Explore's tabs): companies, plants, careers, skills;
+ *         of Explore's tabs): companies, factories, careers, skills;
  *      (Where a fact was read is not shown on the page.)
  *   3. Every list of records is a `RecordList` of `RecordRow`s: rows with a
  *      hairline between them and no box around them, the name, at most one
@@ -169,7 +169,7 @@ export const detailActionClass = cn(
 interface DetailHeaderProps {
   /** The way back: a named link, or the history with a fallback. */
   back: { to: string; label: string } | { fallback: string };
-  /** What kind of thing the page is about, said once: "Company", "Plant", "Job". */
+  /** What kind of thing the page is about, said once: "Company", "Factory", "Job". */
   kind: ReactNode;
   title: ReactNode;
   /** A company's mark, on the pages that belong to one company. */
@@ -232,7 +232,7 @@ interface DetailSectionProps {
   note?: ReactNode;
   /** Labels the figures down the right edge of the section's rows ("People"). */
   column?: ReactNode;
-  /** A link at the right of the heading ("All 230 plants"). */
+  /** A link at the right of the heading ("All 230 factories"). */
   action?: ReactNode;
   /** One sentence under the heading, for a section that needs explaining. */
   description?: ReactNode;
@@ -290,7 +290,7 @@ interface RecordRowProps {
   lead?: ReactNode;
   /** A control that is not part of the link, before it: the mark a person sets on a skill. */
   control?: ReactNode;
-  /** A small word above the name, where rows of different kinds share a list ("Company", "Plant"). */
+  /** A small word above the name, where rows of different kinds share a list ("Company", "Factory"). */
   label?: string;
   title: ReactNode;
   /** One grey line of facts. Two lines at most on a phone. */

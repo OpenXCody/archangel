@@ -742,7 +742,7 @@ router.post(
     if (decision !== 'same' && decision !== 'different' && decision !== 'skip') {
       return res.status(400).json({ error: 'decision is same, different or skip.' });
     }
-    if (decision === 'same' && !isUuid(plantId)) return res.status(400).json({ error: 'Choose one of the plants shown.' });
+    if (decision === 'same' && !isUuid(plantId)) return res.status(400).json({ error: 'Choose one of the factories shown.' });
     try {
       res.json(await decideReview(Number(req.params.match), decision, decision === 'same' ? plantId : null, req.user!));
     } catch (error) {
@@ -791,7 +791,7 @@ router.post(
     if (decision !== 'point' && decision !== 'leave' && decision !== 'wait') {
       return res.status(400).json({ error: 'decision is point, leave or wait.' });
     }
-    if (decision === 'point' && !isUuid(plantId)) return res.status(400).json({ error: 'Choose a plant.', field: 'plantId' });
+    if (decision === 'point' && !isUuid(plantId)) return res.status(400).json({ error: 'Choose a factory.', field: 'plantId' });
     try {
       res.json(await decidePlace(source, placeKey, decision, decision === 'point' ? plantId : null, req.user!));
     } catch (error) {
@@ -877,7 +877,7 @@ router.post(
 );
 
 // ---------------------------------------------------------------------------
-// Plants listed twice: pairs for a person to decide
+// Factories listed twice: pairs for a person to decide
 // ---------------------------------------------------------------------------
 
 // GET /api/admin/plants/pairs?list=id|spot&state=&limit=&offset= - rows that
@@ -906,9 +906,9 @@ router.get(
   '/plants/pair',
   handle(async (req, res) => {
     const { a, b } = req.query;
-    if (!isUuid(a) || !isUuid(b) || a === b) return res.status(400).json({ error: 'a and b are two plants.' });
+    if (!isUuid(a) || !isUuid(b) || a === b) return res.status(400).json({ error: 'a and b are two factories.' });
     const pair = await plantPair(a, b);
-    if (!pair) return res.status(404).json({ error: 'Plant not found' });
+    if (!pair) return res.status(404).json({ error: 'Factory not found' });
     res.json(pair);
   })
 );
@@ -930,7 +930,7 @@ router.post(
   '/plants/apart',
   handle(async (req, res) => {
     const { a, b, apart } = req.body ?? {};
-    if (!isUuid(a) || !isUuid(b) || a === b) return res.status(400).json({ error: 'a and b are two plants.' });
+    if (!isUuid(a) || !isUuid(b) || a === b) return res.status(400).json({ error: 'a and b are two factories.' });
     try {
       res.json(await setApart(a, b, apart !== false, req.user!));
     } catch (error) {

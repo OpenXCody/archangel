@@ -13,12 +13,12 @@ type ExploreTab = Exclude<ExploreView, 'atlas'>;
 
 const BROWSE_LABEL: Record<BrowseTab, string> = {
   companies: 'Companies',
-  factories: 'Plants',
+  factories: 'Factories',
   occupations: 'Careers',
   skills: 'Skills',
 };
 
-// The order the product is explored in: an industry, its companies, their plants, the careers there, their skills.
+// The order the product is explored in: an industry, its companies, their factories, the careers there, their skills.
 const VIEWS: ExploreTab[] = ['overview', 'industries', 'companies', 'factories', 'occupations', 'skills'];
 
 export const isBrowseTab = (value: string | null): value is BrowseTab =>

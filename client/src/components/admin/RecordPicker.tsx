@@ -3,11 +3,11 @@ import Picker from './Picker';
 
 const KIND_PLACEHOLDER: Record<RecordKind, string> = {
   company: 'Company name',
-  factory: 'Plant name',
+  factory: 'Factory name',
   career: 'Career title',
   skill: 'Skill name',
 };
-const KIND_LIST: Record<RecordKind, string> = { company: 'Companies', factory: 'Plants', career: 'Careers', skill: 'Skills' };
+const KIND_LIST: Record<RecordKind, string> = { company: 'Companies', factory: 'Factories', career: 'Careers', skill: 'Skills' };
 
 interface RecordPickerProps {
   id: string;

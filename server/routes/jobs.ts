@@ -356,7 +356,7 @@ router.post(
     const user = req.user!;
     const { companyId, factoryId, occupationId } = req.body ?? {};
     if (!isUuid(companyId) || !isUuid(factoryId) || !isUuid(occupationId)) {
-      return res.status(400).json({ error: 'Choose a company, a plant and a career.' });
+      return res.status(400).json({ error: 'Choose a company, a factory and a career.' });
     }
     if (!(await canManageCompany(user, companyId))) {
       return res.status(403).json({ error: 'You can only post jobs for a company you belong to.' });
@@ -367,7 +367,7 @@ router.post(
       .where(eq(factories.id, factoryId))
       .limit(1);
     if (!factory || factory.companyId !== companyId) {
-      return res.status(400).json({ error: 'That plant does not belong to the company.' });
+      return res.status(400).json({ error: 'That factory does not belong to the company.' });
     }
     if (!isStateInScope(factory.state)) {
       return res.status(400).json({ error: `Jobs are limited to ${SCOPE.stateName} for now.` });

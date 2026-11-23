@@ -56,9 +56,9 @@ function SourceRow({ source }: { source: IntakeSource }) {
       <p className="mt-0.5 break-words text-xs text-text-3">
         {source.publisher}
         {source.publisher && <Dot />}
-        {source.fill === 'empty' ? 'Fills only what a plant lacks' : 'Replaces older and lower-ranked values'}
+        {source.fill === 'empty' ? 'Fills only what a factory lacks' : 'Replaces older and lower-ranked values'}
         <Dot />
-        {source.unmatched === 'add' ? 'Adds plants it finds no match for' : 'Adds no plants'}
+        {source.unmatched === 'add' ? 'Adds factories it finds no match for' : 'Adds no factories'}
       </p>
       {source.runs.length > 0 && (
         <ul className="mt-3 space-y-1.5" aria-label={`Latest runs of ${source.name}`}>
@@ -86,7 +86,7 @@ function SourceRow({ source }: { source: IntakeSource }) {
 /**
  * The sources that come in through the intake runner, outside the site's
  * deploy, each with its latest runs: when, and how many records matched a
- * plant, how many plants changed, how many were added, how many matches went
+ * factory, how many factories changed, how many were added, how many matches went
  * to review. A source appears here once it has been run.
  */
 export default function IntakeSources() {

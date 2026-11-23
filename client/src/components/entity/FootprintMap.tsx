@@ -3,14 +3,14 @@ import { cn } from '@/lib/utils';
 import { useStatesOutline } from '../../lib/queries';
 
 /**
- * Where a company's plants are: the lower 48 states as hairlines, one dot of
- * ink per plant. A quiet picture of a footprint, not an interactive map (the
+ * Where a company's factories are: the lower 48 states as hairlines, one dot of
+ * ink per factory. A quiet picture of a footprint, not an interactive map (the
  * map page is one tap away). It is plain SVG: the state shapes the map already
  * uses, projected here with an Albers equal-area conic, so it needs no map
  * library and no tiles. Its colours are theme tokens: the land is the page.
  *
- * Plants outside the lower 48 (Alaska, Hawaii) are not drawn; the
- * caller lists every plant beside it.
+ * Factories outside the lower 48 (Alaska, Hawaii) are not drawn; the
+ * caller lists every factory beside it.
  */
 
 interface FootprintPoint {
@@ -22,7 +22,7 @@ interface FootprintPoint {
 
 interface FootprintMapProps {
   points: FootprintPoint[];
-  /** One point to mark as the subject (a plant among its company's others). */
+  /** One point to mark as the subject (a factory among its company's others). */
   emphasis?: string;
   className?: string;
 }
@@ -111,14 +111,14 @@ export default function FootprintMap({ points, emphasis, className }: FootprintM
     [points]
   );
 
-  // Fewer sites, larger dots: three plants should not look like three specks.
+  // Fewer sites, larger dots: three factories should not look like three specks.
   const radius = dots.length > 150 ? 3.5 : dots.length > 40 ? 5 : dots.length > 10 ? 6.5 : 9;
 
   return (
     <svg
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       role="img"
-      aria-label={`Map of ${dots.length} ${dots.length === 1 ? 'plant' : 'plants'} across the United States`}
+      aria-label={`Map of ${dots.length} ${dots.length === 1 ? 'factory' : 'factories'} across the United States`}
       className={cn('block h-auto w-full', className)}
     >
       <path
@@ -152,7 +152,7 @@ export default function FootprintMap({ points, emphasis, className }: FootprintM
       {dots
         .filter((dot) => dot.id === emphasis)
         .map((dot) => (
-          // The plant this page is about: ink, ringed in the accent.
+          // The factory this page is about: ink, ringed in the accent.
           <circle
             key={dot.id}
             cx={dot.position[0]}

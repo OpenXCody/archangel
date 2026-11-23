@@ -23,11 +23,11 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
       {/* What is this */}
       <Heading title={occupation.title} subtitle={occupation.description || undefined} />
 
-      {/* Where the work is done: by industry, since few plants list their careers. */}
+      {/* Where the work is done: by industry, since few factories list their careers. */}
       {(industries.length > 0 || occupation.everywhere) && (
-        <Section title="Where this work is done" column={occupation.everywhere ? undefined : 'Plants'}>
+        <Section title="Where this work is done" column={occupation.everywhere ? undefined : 'Factories'}>
           {occupation.everywhere ? (
-            <p className="text-[15px] text-text-2">Plants of every industry.</p>
+            <p className="text-[15px] text-text-2">Factories of every industry.</p>
           ) : (
             <RowList>
               {industries.map((industry) => (
@@ -40,20 +40,20 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
               ))}
             </RowList>
           )}
-          {occupation.elsewhereToo && <p className="mt-2 text-[13px] text-text-3">And plants of every other industry.</p>}
+          {occupation.elsewhereToo && <p className="mt-2 text-[13px] text-text-3">And factories of every other industry.</p>}
           {!occupation.everywhere && industries.length > 0 && (
-            <p className="mt-2 text-[13px] text-text-3">Plants in these industries are lit on the map.</p>
+            <p className="mt-2 text-[13px] text-text-3">Factories in these industries are lit on the map.</p>
           )}
           {states.length > 0 && (
             <div className="mt-4">
-              <p className="mb-1.5 text-[13px] text-text-2">States with the most of these plants</p>
+              <p className="mb-1.5 text-[13px] text-text-2">States with the most of these factories</p>
               <div className="flex flex-wrap gap-1.5">
                 {states.map((state) => (
                   <button
                     key={state.code}
                     type="button"
                     onClick={() => selectState(state.code)}
-                    title={`${state.factoryCount.toLocaleString()} plants in these industries`}
+                    title={`${state.factoryCount.toLocaleString()} factories in these industries`}
                     className={`${CHIP} font-medium`}
                   >
                     {stateName(state.code)}
@@ -65,9 +65,9 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
         </Section>
       )}
 
-      {/* Plants that record this career */}
+      {/* Factories that record this career */}
       {plants.length > 0 && (
-        <Section title="Plants that list this career">
+        <Section title="Factories that list this career">
           <RowList>
             {plants.slice(0, 3).map((plant) => (
               <NodeRow

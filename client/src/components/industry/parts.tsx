@@ -15,7 +15,7 @@ import type { IndustryStats } from '../../lib/api';
 
 /*
  * Pieces the industry pages share. Words, as everywhere: people (how many
- * work somewhere), plants (what the product lists), establishments (what the
+ * work somewhere), factories (what the product lists), establishments (what the
  * official statistics count). Every number sits under or beside a label, and
  * a figure nobody knows is left out, never shown as 0.
  */
@@ -191,25 +191,26 @@ interface FigureRow {
   label: string;
   /** Official: people employed. Null when not published. */
   people?: number | null;
-  /** Plants the product lists. Zero is left blank. */
+  /** Factories the product lists. Zero is left blank. */
   plants?: number;
 }
 
 /**
  * Rows that lead somewhere, each with its figures in columns: people
- * (official) and plants (listed). A column nobody has a figure for is not
+ * (official) and factories (listed). A column nobody has a figure for is not
  * drawn; a figure one row lacks is left blank.
  */
 export function FigureList({ rows, state: navState }: { rows: FigureRow[]; state?: unknown }) {
   const withPeople = rows.some((row) => (row.people ?? null) !== null);
   const withPlants = rows.some((row) => (row.plants ?? 0) > 0);
-  const columns = cn('grid items-baseline gap-x-3', withPeople && withPlants ? 'grid-cols-[minmax(0,1fr)_5.75rem_3.5rem]' : 'grid-cols-[minmax(0,1fr)_5.75rem]');
+  // The last column is as wide as its heading, "Factories", in the label's letterspaced capitals.
+  const columns = cn('grid items-baseline gap-x-3', withPeople && withPlants ? 'grid-cols-[minmax(0,1fr)_5.75rem_4.5rem]' : 'grid-cols-[minmax(0,1fr)_5.75rem]');
   return (
     <div data-figure-list>
       <div aria-hidden="true" className={cn(columns, 'border-b border-line pb-2 text-right text-[11px] font-medium uppercase tracking-[0.08em] text-text-2')}>
         <span />
         {withPeople && <span>People</span>}
-        {withPlants && <span>Plants</span>}
+        {withPlants && <span>Factories</span>}
       </div>
       <ul>
         {rows.map((row) => (
@@ -231,7 +232,7 @@ export function FigureList({ rows, state: navState }: { rows: FigureRow[]; state
                   {(row.plants ?? 0) > 0 && (
                     <>
                       {row.plants?.toLocaleString()}
-                      <span className="sr-only"> plants</span>
+                      <span className="sr-only"> factories</span>
                     </>
                   )}
                 </span>

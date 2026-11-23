@@ -38,7 +38,7 @@ export interface RelatedFactory {
   curated?: boolean;
 }
 
-/** Whether a plant is running yet. */
+/** Whether a factory is running yet. */
 export type FactoryStatus = 'operating' | 'under construction';
 
 /** Where a record's facts came from: a site's name and the page. */
@@ -227,13 +227,13 @@ export interface CompanyDetail extends Company {
   /** People in a state, where a source says how many. */
   peopleByState?: { state: string; people: number; year: number | null; source: string | null; note: string | null }[];
   sources?: RecordSource[];
-  /** For a company with one plant and no careers recorded there: the careers typical of that plant's industry. */
+  /** For a company with one factory and no careers recorded there: the careers typical of that factory's industry. */
   typicalCareers?: { id: string; title: string }[];
   /** The careers the company has its own version of. */
   versions?: VersionSummary[];
   /** Which military service the company is; null for every other company. */
   service?: ServiceKey | null;
-  /** A service's careers, by title: its page lists them in place of plants. Empty for every other company. */
+  /** A service's careers, by title: its page lists them in place of factories. Empty for every other company. */
   serviceCareers?: ServiceCareer[];
 }
 
@@ -316,10 +316,10 @@ export interface FactoryDetail extends Factory {
   company: FactoryCompany | null;
   /** The company's other sites, closest first (up to five). */
   nearby?: SisterSite[];
-  /** Careers typical of this plant's industry, when none are recorded for the plant itself. */
+  /** Careers typical of this factory's industry, when none are recorded for the factory itself. */
   typicalCareers?: { id: string; title: string }[];
   occupations: RelatedOccupation[];
-  /** Where the plant's facts came from. */
+  /** Where the factory's facts came from. */
   sources?: RecordSource[];
 }
 
@@ -368,7 +368,7 @@ export interface OccupationDetail extends Occupation {
   openJobCount?: number;
   /** Industries where this work is typically done, with their factory counts. */
   industries?: { name: string; factoryCount: number }[];
-  /** True when the career is found in plants of every industry rather than a few. */
+  /** True when the career is found in factories of every industry rather than a few. */
   everywhere?: boolean;
   /** True when it is listed for some industries and found in the others as well. */
   elsewhereToo?: boolean;
@@ -427,7 +427,7 @@ export interface SkillDetail extends Skill {
   militaryOccupations?: MilitaryCareerRow[];
   /** Industries those careers are typical of, the ones with most of them first. */
   industries?: { name: string; careerCount: number }[];
-  /** True when its careers are found in plants of every industry rather than a few. */
+  /** True when its careers are found in factories of every industry rather than a few. */
   everywhere?: boolean;
   /** The skills that most often share a path with it. */
   relatedSkills: RelatedSkill[];
@@ -608,7 +608,7 @@ export interface RegionOverview {
   topIndustries: { label: string; count: number }[];
   /** Careers typical of the industries found here, the most characteristic first. */
   careers?: { id: string; title: string }[];
-  /** How many jobs are open at the plants here. */
+  /** How many jobs are open at the factories here. */
   openJobs?: number;
   /** The newest of them: a short list, not all. */
   jobs?: CareerJob[];
@@ -625,7 +625,7 @@ export interface AreaOverview extends RegionOverview {
   bounds: [[number, number], [number, number]];
 }
 
-/** A plant in a place's panel. */
+/** A factory in a place's panel. */
 export interface PlacePlant {
   id: string;
   name: string;
@@ -641,7 +641,7 @@ export interface PlacePlant {
 /** What a box on the map holds: a place found by search. */
 export interface BoundsOverview extends RegionOverview {
   bounds: [[number, number], [number, number]];
-  /** The plants inside, the best-known companies' first; a short list, not all of them. */
+  /** The factories inside, the best-known companies' first; a short list, not all of them. */
   plants: PlacePlant[];
 }
 
@@ -659,15 +659,15 @@ export const mapApi = {
   /** Panel data for any box: [[west, south], [east, north]]. */
   boundsOverview: ([[west, south], [east, north]]: [[number, number], [number, number]]) =>
     apiFetch<BoundsOverview>(`/map/bounds/overview${queryString({ west, south, east, north })}`),
-  /** The county a plant stands in, with the official figures for manufacturing there. */
+  /** The county a factory stands in, with the official figures for manufacturing there. */
   plantCounty: (factoryId: string) =>
     apiFetch<PlantCounty>(`/map/factories/${encodeURIComponent(factoryId)}/county`),
 };
 
 /**
- * The county a plant's coordinates fall in, its metro area, and the official
+ * The county a factory's coordinates fall in, its metro area, and the official
  * figures for manufacturing as a whole in that county. `county` is null for a
- * plant not yet placed; `manufacturing` where nothing is published.
+ * factory not yet placed; `manufacturing` where nothing is published.
  */
 export interface PlantCounty {
   county: { fips: string; name: string; state: string } | null;
@@ -744,9 +744,9 @@ export interface ExploreOverview {
 /** What the browse lists can be filtered by, from every row. */
 export interface ExploreFacets {
   /**
-   * Of the 21 industries, those some plant carries and those that are some
-   * company's industry (the one most of its plants are in), by the name a
-   * plant carries. Absent from an answer cached before this field existed.
+   * Of the 21 industries, those some factory carries and those that are some
+   * company's industry (the one most of its factories are in), by the name a
+   * factory carries. Absent from an answer cached before this field existed.
    */
   industries?: { plants: string[]; companies: string[] };
   /** The same list as `industries.plants`, under its older name. */
@@ -794,9 +794,9 @@ export interface IndustryStats {
 export interface IndustrySummary {
   slug: string;
   code: string;
-  /** The title a plant carries; `industryLabel` gives the short form. */
+  /** The title a factory carries; `industryLabel` gives the short form. */
   name: string;
-  /** Plants the product lists. */
+  /** Factories the product lists. */
   plants: number;
   /** Official: people employed and establishments, where published. */
   employment: number | null;
@@ -805,7 +805,7 @@ export interface IndustrySummary {
 
 export interface IndustryList {
   place: IndustryPlace;
-  /** Every plant listed in the place. */
+  /** Every factory listed in the place. */
   plants: number;
   /** The official figure for manufacturing as a whole. */
   manufacturing: IndustryStats | null;
@@ -818,9 +818,9 @@ export interface IndustryEmployer {
   name: string;
   slug: string | null;
   domain: string | null;
-  /** Its plants of this industry in the place. */
+  /** Its factories of this industry in the place. */
   plants: number;
-  /** People at those of them whose headcount is recorded (`counted` plants), or null when none is. */
+  /** People at those of them whose headcount is recorded (`counted` factories), or null when none is. */
   people: number | null;
   counted: number;
 }
@@ -839,18 +839,18 @@ export interface IndustryDetail {
   industry: { slug: string; code: string; name: string; summary: string | null };
   place: IndustryPlace;
   stats: IndustryStats | null;
-  /** What the product lists: plants of this industry in the place, and their companies. */
+  /** What the product lists: factories of this industry in the place, and their companies. */
   plants: number;
   companies: number;
   employers: IndustryEmployer[];
-  /** Plants whose headcount is recorded, largest first. */
+  /** Factories whose headcount is recorded, largest first. */
   largestPlants: IndustryPlant[];
   careers: { id: string; title: string }[];
   openJobs: number;
   jobs: CareerJob[];
   /** For the country: the states, largest first. */
   states?: { code: string; name: string; plants: number; employment: number | null }[];
-  /** For a state or a focus area: its cities, most plants first, each with a box around its plants for the map. */
+  /** For a state or a focus area: its cities, most factories first, each with a box around its factories for the map. */
   cities?: { name: string; state: string | null; plants: number; box: [[number, number], [number, number]] | null }[];
 }
 

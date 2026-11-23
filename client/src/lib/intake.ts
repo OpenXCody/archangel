@@ -37,7 +37,7 @@ export interface IntakeSource {
   runs: IntakeRun[];
 }
 
-/** A plant as a source's record gives it, or as we have it. */
+/** A factory as a source's record gives it, or as we have it. */
 export interface ReviewPlant {
   name: string | null;
   company: string | null;
@@ -108,7 +108,7 @@ export function useDecideReview() {
   return useMutation({
     mutationFn: intakeApi.decide,
     onSuccess: (outcome) => {
-      // A plant that took a source's facts, or was added, shows them wherever it is shown.
+      // A factory that took a source's facts, or was added, shows them wherever it is shown.
       if (outcome.plant) recordsChanged(queryClient, 'factory');
     },
     onSettled: () => invalidate(queryClient, accountKeys.adminIntakeReview, accountKeys.adminIntakeSources, accountKeys.adminOverview, accountKeys.adminAudit),

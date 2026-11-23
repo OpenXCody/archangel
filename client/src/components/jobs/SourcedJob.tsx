@@ -14,7 +14,7 @@ import { useSkillMarks } from '../path/useSkillMarks';
 /*
  * A job that came from the company's own careers site: what the posting says
  * as facts, and the way to it. The same heading as any job; under it the
- * terms that were stated, what it asks for, the company, plant and career it
+ * terms that were stated, what it asks for, the company, factory and career it
  * belongs to, and its skills as the tags a path uses. There is no
  * description (the company's wording stays on the company's site), nothing to
  * manage and nobody to apply to here: the one action is Apply, which opens
@@ -126,7 +126,7 @@ export default function SourcedJob({ job, skills, manages }: SourcedJobProps) {
         </dl>
         <ul className="border-t border-line">
           <RecordRow to={`/companies/${job.companyId}`} label="Company" title={formatCompanyName(job.companyName)} />
-          <RecordRow to={`/factories/${job.factoryId}`} label="Plant" title={formatFactoryName(job.factoryName)} />
+          <RecordRow to={`/factories/${job.factoryId}`} label="Factory" title={formatFactoryName(job.factoryName)} />
           {job.hasVersion ? (
             <RecordRow to={versionPath(job.occupationId, { id: job.companyId })} label="Career" title={versionTitle(job.companyName, job.occupationTitle)} data-job-version="" />
           ) : (

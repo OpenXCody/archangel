@@ -466,12 +466,12 @@ export async function resolve(db, runId, { log = console.log, again = false } = 
       WITH unsure AS (
         SELECT b.*,
                concat_ws('; ',
-                 CASE WHEN b.takers > 1 THEN 'another record of this source fits the same plant' END,
-                 CASE WHEN b.of_class > 1 THEN b.of_class || ' plants fit equally' END,
-                 CASE WHEN b.has_company AND b.rel = 2 THEN 'the plant is filed under the parent company'
-                      WHEN b.has_company AND b.rel = 3 THEN 'the plant is filed under another company'
-                      WHEN b.has_company AND b.rel = 1 THEN 'the plant is filed under a company that is part of this one' END,
-                 CASE WHEN b.curated AND b.class <> 0 THEN 'the plant is already described under another name' END,
+                 CASE WHEN b.takers > 1 THEN 'another record of this source fits the same factory' END,
+                 CASE WHEN b.of_class > 1 THEN b.of_class || ' factories fit equally' END,
+                 CASE WHEN b.has_company AND b.rel = 2 THEN 'the factory is filed under the parent company'
+                      WHEN b.has_company AND b.rel = 3 THEN 'the factory is filed under another company'
+                      WHEN b.has_company AND b.rel = 1 THEN 'the factory is filed under a company that is part of this one' END,
+                 CASE WHEN b.curated AND b.class <> 0 THEN 'the factory is already described under another name' END,
                  CASE WHEN b.class = 3 AND NOT b.refers AND b.d > 500 THEN 'the names have nothing in common' END,
                  CASE WHEN NOT b.has_company AND b.class <> 0 THEN 'the names differ' END,
                  CASE WHEN b.d > 1500 OR (NOT b.has_company AND b.d > 250) THEN b.d || ' m apart' END) AS why

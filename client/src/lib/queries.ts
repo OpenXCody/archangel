@@ -36,7 +36,7 @@ const GET_RECORD: { [E in EntityType]: (id: string) => Promise<RecordOf[E]> } = 
 };
 
 /**
- * One company, plant, career or skill, by id (or a company's slug). Spread
+ * One company, factory, career or skill, by id (or a company's slug). Spread
  * into `useQuery` or `prefetchQuery`; the caller adds what is its own
  * (`enabled`, `retry`, `staleTime`).
  */
@@ -47,7 +47,7 @@ export function recordQuery<E extends EntityType>(entity: E, id: string | null |
   };
 }
 
-/** Every plant in the country as the map's pins. Loaded once; filters never refetch it. */
+/** Every factory in the country as the map's pins. Loaded once; filters never refetch it. */
 export function usePins() {
   return useQuery({
     queryKey: publicKeys.pins,
@@ -95,8 +95,8 @@ export function useExploreOverview() {
 }
 
 /**
- * The county a plant stands in, with the official figures for manufacturing
- * there. Read by the plant's page and its panel on the map; it changes with a
+ * The county a factory stands in, with the official figures for manufacturing
+ * there. Read by the factory's page and its panel on the map; it changes with a
  * yearly load, so it is kept for the visit.
  */
 export function usePlantCounty(factoryId: string) {

@@ -29,7 +29,7 @@ export interface MapPlace {
   name: string;
   /** "Williamson County, TX" */
   context: string;
-  /** The box the panel counts plants in and the camera frames. */
+  /** The box the panel counts factories in and the camera frames. */
   bounds: Bounds;
 }
 
@@ -38,7 +38,7 @@ export interface MapPlace {
  *
  * `states` and `industry` are filters from the filter button: pins outside
  * them are not drawn. `company` and `career` are the map's subject, at most
- * one at a time: a company's plants alone, or a career's industries at full
+ * one at a time: a company's factories alone, or a career's industries at full
  * strength with the rest stepped back. Every one of them is applied to the
  * one pin source with filter and paint expressions (layers.ts); none refetches.
  */
@@ -290,7 +290,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
   setSidebarOpen: (open) => set((state) => {
     if (open) return { sidebarOpen: true };
     // Closing the subject's own panel is being done with it: the rest of the
-    // map comes back. Closing a plant's or a state's panel leaves the subject
+    // map comes back. Closing a factory's or a state's panel leaves the subject
     // on; its chip under the search is how it is turned off.
     const closingSubject =
       (state.selectedEntityType === 'company' && state.filters.company === state.selectedEntityId) ||

@@ -28,10 +28,10 @@ const BY_TITLE: SortOption[] = [
 export const SKILLS_BY_DOMAIN = 'domain';
 
 export const SORT_OPTIONS: Record<BrowseTab, SortOption[]> = {
-  // Most plants first by default, so the big manufacturers come before the
-  // long tail of one-plant companies.
-  companies: [{ value: 'factories-desc', label: 'Most plants', field: 'factoryCount', order: 'desc' }, ...BY_NAME],
-  // Most people first by default: the plants whose size is known lead, the
+  // Most factories first by default, so the big manufacturers come before the
+  // long tail of one-factory companies.
+  companies: [{ value: 'factories-desc', label: 'Most factories', field: 'factoryCount', order: 'desc' }, ...BY_NAME],
+  // Most people first by default: the factories whose size is known lead, the
   // largest first, and the rest follow by name.
   factories: [{ value: 'people-desc', label: 'Most people', field: 'workforceSize', order: 'desc' }, ...BY_NAME],
   // Careers with a path first, the fullest first: the list opens on the ones
@@ -79,7 +79,7 @@ interface FilterBarProps {
   onSortChange: (value: string) => void;
   filters: FilterState;
   onFilterChange: (filters: FilterState) => void;
-  /** Industries to offer, by the name a plant carries; shown by their short names. */
+  /** Industries to offer, by the name a factory carries; shown by their short names. */
   industries?: string[];
   /** Skills: the domains to offer, each with its groups. Careers: the domains that are some career's home. */
   domains?: DomainChoice[];

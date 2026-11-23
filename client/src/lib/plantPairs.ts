@@ -4,9 +4,9 @@ import { accountKeys, invalidate } from './queryKeys';
 import { recordsChanged, type FoundRecord, type MergeResult } from './records';
 
 /**
- * Two rows that may be one plant, in Admin Tools: the pairs that wait for a
+ * Two rows that may be one factory, in Admin Tools: the pairs that wait for a
  * person (rows that carry one outside id, rows of one company on one spot),
- * two plants side by side for the merge on a plant's record, merging them
+ * two factories side by side for the merge on a factory's record, merging them
  * and keeping them apart. The server decides which row the rule would keep
  * and what it would take (server/lib/plantPairs.ts).
  */
@@ -78,7 +78,7 @@ export function usePairList(list: PairList, state: string | null, offset: number
   });
 }
 
-/** Two plants side by side. */
+/** Two factories side by side. */
 export function usePlantPair(a: string, b: string | null) {
   return useQuery({
     queryKey: accountKeys.adminPlantPair(a, b ?? ''),
@@ -89,7 +89,7 @@ export function usePlantPair(a: string, b: string | null) {
   });
 }
 
-/** The plants one could be merged with: its company's and the ones near it. With no term, the likeliest first. */
+/** The factories one could be merged with: its company's and the ones near it. With no term, the likeliest first. */
 export function usePlantsNear(id: string, q: string, enabled = true) {
   return useQuery({
     queryKey: accountKeys.adminPlantsNear(id, q),
@@ -100,7 +100,7 @@ export function usePlantsNear(id: string, q: string, enabled = true) {
   });
 }
 
-/** Merge one plant into another. Everything that lists or shows plants is refreshed. */
+/** Merge one factory into another. Everything that lists or shows factories is refreshed. */
 export function useMergePlants() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -112,7 +112,7 @@ export function useMergePlants() {
   });
 }
 
-/** Say two rows are two plants, or take that back. */
+/** Say two rows are two factories, or take that back. */
 export function useKeepApart() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -7,7 +7,7 @@ import { accountKeys, invalidate } from './queryKeys';
  * Admin Tools' own data: what is waiting, company access, people, invites,
  * password reset links, career paths by state and the company type-ahead.
  * Records (add, correct, merge, delete, history) are in `records.ts`;
- * requests to add a company or plant in `employerCompanies.ts`.
+ * requests to add a company or factory in `employerCompanies.ts`.
  */
 
 // ---------------------------------------------------------------------------
@@ -73,12 +73,12 @@ export interface AdminUser {
 }
 
 /**
- * How complete the plant data is in one state (or with no state): counts of
- * plants. What each one means is written in server/lib/quality.ts and under
+ * How complete the factory data is in one state (or with no state): counts of
+ * factories. What each one means is written in server/lib/quality.ts and under
  * the table that shows them.
  */
 export interface QualityRow {
-  /** The two-letter code; null for plants filed under no state. */
+  /** The two-letter code; null for factories filed under no state. */
   state: string | null;
   plants: number;
   industry: number;
@@ -93,7 +93,7 @@ export interface QualityRow {
 }
 
 export interface DataQuality {
-  /** Every state added up, and how many companies have a plant. */
+  /** Every state added up, and how many companies have a factory. */
   total: QualityRow & { companies: number };
   /** Largest first. */
   states: QualityRow[];
@@ -390,7 +390,7 @@ export function useAdminPaths(status: 'draft' | 'approved', enabled = true) {
   });
 }
 
-/** How complete the plant data is, by state. Computed when asked, so it is asked for again each time the table is opened. */
+/** How complete the factory data is, by state. Computed when asked, so it is asked for again each time the table is opened. */
 export function useDataQuality() {
   return useQuery({
     queryKey: accountKeys.adminQuality,

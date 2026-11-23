@@ -133,7 +133,7 @@ export default function JobDetail() {
   const marksHeld = signedIn && applying;
   const requiredSkills = data.skills.filter((skill) => skill.required);
   const optionalSkills = data.skills.filter((skill) => !skill.required);
-  // Not every plant has a city on record; its name places it well enough.
+  // Not every factory has a city on record; its name places it well enough.
   const place = data.job.city
     ? formatPlace(formatFactoryName(data.job.city), data.job.state)
     : [formatFactoryName(data.job.factoryName), data.job.state].filter(Boolean).join(', ');
@@ -312,7 +312,7 @@ function Term({ label, children }: { label: string; children: ReactNode }) {
 }
 
 /**
- * What the job is, in one block: its terms, then the company, the plant and
+ * What the job is, in one block: its terms, then the company, the factory and
  * the career it belongs to, each leading to its own page.
  */
 function TermsCard({ job, showApplications }: { job: JobDetailData; showApplications: boolean }) {
@@ -341,7 +341,7 @@ function TermsCard({ job, showApplications }: { job: JobDetailData; showApplicat
       </dl>
       <ul className="border-t border-line">
         <RecordRow to={`/companies/${job.companyId}`} label="Company" title={formatCompanyName(job.companyName)} />
-        <RecordRow to={`/factories/${job.factoryId}`} label="Plant" title={formatFactoryName(job.factoryName)} />
+        <RecordRow to={`/factories/${job.factoryId}`} label="Factory" title={formatFactoryName(job.factoryName)} />
         {/* Where the company has its own version of the career, the job leads to that. */}
         {job.hasVersion ? (
           <RecordRow

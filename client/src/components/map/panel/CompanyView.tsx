@@ -26,12 +26,12 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
       <Heading
         title={name}
         logo={<CompanyLogo name={name} domain={company.domain} size={44} />}
-        // The industry most of its plants are in.
+        // The industry most of its factories are in.
         subtitle={shownIndustry(leadingIndustry(plants.map((plant) => plant.industry))) ?? undefined}
       />
       <Figures
         items={[
-          ...(plants.length > 0 ? [{ label: 'Plants', value: plants.length }] : []),
+          ...(plants.length > 0 ? [{ label: 'Factories', value: plants.length }] : []),
           ...(states.size > 1 ? [{ label: 'States', value: states.size }] : []),
           ...(openJobs > 0 ? [{ label: 'Open jobs', value: openJobs }] : []),
         ]}
@@ -41,7 +41,7 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
           <p className="text-[15px] leading-relaxed text-text-2">{company.description}</p>
         </Section>
       )}
-      {plants.length === 0 && <p className="mb-8 text-[15px] text-text-2">No plants are listed for this company.</p>}
+      {plants.length === 0 && <p className="mb-8 text-[15px] text-text-2">No factories are listed for this company.</p>}
 
       {/* What work is here */}
       {jobs.length > 0 && (
@@ -53,7 +53,7 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
 
       {/* Where */}
       {plants.length > 0 && (
-        <Section title="Plants">
+        <Section title="Factories">
           <RowList>
             {plants.slice(0, 6).map((plant) => (
               <NodeRow

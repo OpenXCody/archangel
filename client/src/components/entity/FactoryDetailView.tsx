@@ -20,8 +20,8 @@ import { plural } from '@/lib/utils';
 import { type Head, streetAddress, factLinkClass, Footprint, OpenJobsSection, CAREERS_SHOWN, TypicalCareers } from './parts';
 
 /**
- * A plant's page: where it is, how many people, what it makes, who runs it,
- * whether it is hiring, the company's other plants and the careers there.
+ * A factory's page: where it is, how many people, what it makes, who runs it,
+ * whether it is hiring, the company's other factories and the careers there.
  * The same story its panel on the map tells, with room for all of it.
  */
 export default function FactoryDetailView({ data, head }: { data: FactoryDetail; head: Head }) {
@@ -31,7 +31,7 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
   const companyName = company ? formatCompanyName(company.name) : null;
   const place = cityState(data.city, data.state);
   const industry = data.industry ? industryLabel(data.industry) : data.specialization;
-  // The plant's industry is a page of its own, for the plant's state.
+  // The factory's industry is a page of its own, for the factory's state.
   const industryPage = industryPath(data.industry, { state: data.state });
   const underConstruction = data.status === 'under construction';
   const jobs = data.jobs ?? [];
@@ -41,14 +41,14 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
   const located = Number.isFinite(latitude) && Number.isFinite(longitude);
   const plantCount = company?.siteCount ?? 0;
   const stateCount = company?.stateCount ?? 0;
-  // A company whose one plant this is, under the same name, would only repeat the heading.
+  // A company whose one factory this is, under the same name, would only repeat the heading.
   const companyIsThisPlant =
     companyName !== null && plantCount <= 1 && !company?.description && name.toLowerCase().startsWith(companyName.toLowerCase());
   const street = streetAddress(data);
   const careers = data.occupations ?? [];
   const counted = careers.some((career) => (career.headcount ?? 0) > 0);
 
-  // This plant, marked, among the company's nearest others.
+  // This factory, marked, among the company's nearest others.
   const points = useMemo(
     () => [
       ...(located ? [{ id: data.id, latitude, longitude, label: formatFactoryName(data.name) }] : []),
@@ -63,7 +63,7 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
     <>
       <DetailHeader
         {...head}
-        kind="Plant"
+        kind="Factory"
         title={name}
         mark={companyName ? <CompanyLogo name={companyName} domain={company?.domain} size={44} /> : undefined}
         description={data.description}
@@ -114,16 +114,16 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
               to={`/companies/${company.slug ?? company.id}`}
               lead={<CompanyLogo name={companyName} domain={company.domain} size={32} />}
               title={companyName}
-              // One plant is this one: counting it says nothing.
-              subtitle={plantCount > 1 ? `${plural(plantCount, 'plant', 'plants')}${stateCount > 1 ? ` in ${stateCount} states` : ''}` : null}
+              // One factory is this one: counting it says nothing.
+              subtitle={plantCount > 1 ? `${plural(plantCount, 'factory', 'factories')}${stateCount > 1 ? ` in ${stateCount} states` : ''}` : null}
             />
           </RecordList>
         </DetailSection>
       )}
 
-      {/* The company's other plants, closest first */}
+      {/* The company's other factories, closest first */}
       {nearby.length > 0 && companyName && (
-        <DetailSection title={`Other ${companyName} plants`}>
+        <DetailSection title={`Other ${companyName} factories`}>
           <RecordList>
             {nearby.map((plant) => (
               <RecordRow key={plant.id} to={`/factories/${plant.id}`} title={formatFactoryName(plant.name)} subtitle={cityState(plant.city, plant.state) || null} />
@@ -132,7 +132,7 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
         </DetailSection>
       )}
 
-      {/* Careers recorded at this plant, with how many people where that is known; else its industry's */}
+      {/* Careers recorded at this factory, with how many people where that is known; else its industry's */}
       {careers.length > 0 && (
         <DetailSection id="occupations" title="Careers here" column={counted ? 'People' : undefined}>
           <RecordList>

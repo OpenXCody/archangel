@@ -6,7 +6,7 @@ import CompanyLogo from '../CompanyLogo';
 import { RecordList, RecordRow } from '../layout/Page';
 
 /**
- * The deeper facts a plant or a company has when its record was written from
+ * The deeper facts a factory or a company has when its record was written from
  * sources: how many people, what is made, when it opened, what it is part of.
  * Every piece shows only when it is known, so a bare record's page is as it
  * was. Where a fact was read is kept with the record (the API still gives it,
@@ -20,7 +20,7 @@ export function peopleCount(people: number): string {
   return `${people.toLocaleString()} ${people === 1 ? 'person' : 'people'}`;
 }
 
-/** A plant's facts, said plainly: "4,500 people, 2024", then what it makes and the year it opened. */
+/** A factory's facts, said plainly: "4,500 people, 2024", then what it makes and the year it opened. */
 export function PlantFacts({
   factory,
 }: {
@@ -103,7 +103,7 @@ export function CompanyStanding({ data }: { data: CompanyDetail }) {
   );
 }
 
-/** The companies that are part of this one, each with how many plants it has. */
+/** The companies that are part of this one, each with how many factories it has. */
 export function CompanyFamily({ companies }: { companies: NonNullable<CompanyDetail['subsidiaries']> }) {
   return (
     <RecordList data-company-family="">
@@ -115,7 +115,7 @@ export function CompanyFamily({ companies }: { companies: NonNullable<CompanyDet
             to={`/companies/${company.slug ?? company.id}`}
             lead={<CompanyLogo name={name} domain={company.domain} size={32} />}
             title={name}
-            subtitle={company.factoryCount > 0 ? `${company.factoryCount.toLocaleString()} ${company.factoryCount === 1 ? 'plant' : 'plants'}` : null}
+            subtitle={company.factoryCount > 0 ? `${company.factoryCount.toLocaleString()} ${company.factoryCount === 1 ? 'factory' : 'factories'}` : null}
           />
         );
       })}

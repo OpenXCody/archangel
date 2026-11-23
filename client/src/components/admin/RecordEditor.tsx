@@ -18,8 +18,8 @@ import Picker from './Picker';
 import { PairCard } from './PlantPairs';
 import { usePlantPair, usePlantsNear } from '../../lib/plantPairs';
 
-const KIND_WORD: Record<RecordKind, string> = { company: 'company', factory: 'plant', career: 'career', skill: 'skill' };
-const PAGE_WORD: Record<RecordKind, string> = { company: 'Company page', factory: 'Plant page', career: 'Career page', skill: 'Skill page' };
+const KIND_WORD: Record<RecordKind, string> = { company: 'company', factory: 'factory', career: 'career', skill: 'skill' };
+const PAGE_WORD: Record<RecordKind, string> = { company: 'Company page', factory: 'Factory page', career: 'Career page', skill: 'Skill page' };
 
 /** What moves with a merge: a job's applications follow the job, so they are not counted apart. */
 function movedWords(record: RecordView): string {
@@ -29,7 +29,7 @@ function movedWords(record: RecordView): string {
 
 /**
  * One record, corrected in one place: its fields, a career's path, a skill's makes, merging
- * it into another (a plant: with another row of the same plant, side by
+ * it into another (a factory: with another row of the same factory, side by
  * side), deleting it, and the history of what admins did to it.
  * Opened from Admin Tools → Data, or by Edit on the record's own page.
  */
@@ -189,10 +189,10 @@ function MergeSection({ record }: { record: RecordView }) {
 const LIKELY_SHOWN = 3;
 
 /**
- * Merging a plant with another row that is the same plant. The other row is
- * found among the company's plants and the ones near by (the likeliest are
+ * Merging a factory with another row that is the same factory. The other row is
+ * found among the company's factories and the ones near by (the likeliest are
  * offered at once); then both are set side by side, with the row to keep
- * chosen there. A plant has no other names: the row that is kept keeps its
+ * chosen there. A factory has no other names: the row that is kept keeps its
  * own name and takes the facts it lacks.
  */
 function PlantMergeSection({ record }: { record: RecordView }) {
@@ -206,7 +206,7 @@ function PlantMergeSection({ record }: { record: RecordView }) {
   return (
     <PageSection
       title="Merge"
-      description="When this is the same plant as another row. One row is kept: it takes the facts it lacks from the other, and everything attached moves to it."
+      description="When this is the same factory as another row. One row is kept: it takes the facts it lacks from the other, and everything attached moves to it."
     >
       <div className={cardClass} data-plant-merge>
         <label htmlFor="merge-with" className="mb-1.5 block text-sm font-medium text-text-2">
@@ -218,13 +218,13 @@ function PlantMergeSection({ record }: { record: RecordView }) {
             value={other}
             onChange={setOther}
             useOptions={useOptions}
-            placeholder="Plant name"
-            listLabel="Plants"
+            placeholder="Factory name"
+            listLabel="Factories"
             detail={(option) => option.detail}
             excludeId={record.id}
           />
         </div>
-        <p className="mt-1.5 text-xs text-text-3">Plants of the same company, and any within two kilometres.</p>
+        <p className="mt-1.5 text-xs text-text-3">Factories of the same company, and any within two kilometres.</p>
         {!other && offered.length > 0 && (
           <ul className="mt-3 max-w-[28rem]" aria-label="Likely rows" data-plant-merge-likely>
             {offered.map((option) => (

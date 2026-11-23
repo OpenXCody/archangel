@@ -83,7 +83,7 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
   const active = companies.filter((company) => company.status === 'active');
   const pending = companies.filter((company) => company.status === 'requested');
   const declined = companies.filter((company) => company.status === 'declined');
-  // Companies and plants the person asked to have added.
+  // Companies and factories the person asked to have added.
   const requests = asked.data ?? [];
   const waiting = requests.filter((request) => request.status === 'requested');
   const refused = requests.filter((request) => request.status === 'declined');
@@ -119,7 +119,7 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
             ? active[0].companyName
             : active.length > 1
               ? `${active.length} companies`
-              : "Post jobs at a company's plants and review applicants."
+              : "Post jobs at a company's factories and review applicants."
         }
         actions={
           hasJobs ? (
@@ -313,12 +313,12 @@ function JobFormPage({ mode, jobId, fromJob }: { mode: 'edit' | 'copy'; jobId: s
       </PageContainer>
     );
   }
-  // A copy needs the company's plants; an edit keeps the job's own.
+  // A copy needs the company's factories; an edit keeps the job's own.
   if (!source || (mode === 'copy' && employer.isPending)) return <PageLoading label="Loading job" />;
 
   const { job: from } = source;
   const membership = (employer.data ?? []).find((company) => company.companyId === from.companyId && company.status === 'active');
-  // An admin can manage a job without belonging to its company: the copy then stays at the same plant.
+  // An admin can manage a job without belonging to its company: the copy then stays at the same factory.
   const company: JobFormCompany = membership ?? {
     companyId: from.companyId,
     companyName: from.companyName,
@@ -348,16 +348,16 @@ function JobFormPage({ mode, jobId, fromJob }: { mode: 'edit' | 'copy'; jobId: s
 // Requests waiting for an admin
 // ---------------------------------------------------------------------------
 
-/** What a request to add something is about: the company, or a plant of it and where. */
+/** What a request to add something is about: the company, or a factory of it and where. */
 function requestSubject(request: CompanyRequest): string {
-  return request.companyId ? `${request.name}, plant at ${request.place}` : request.name;
+  return request.companyId ? `${request.name}, factory at ${request.place}` : request.name;
 }
 
 interface PendingRequestsProps {
   user: AccountUser;
   /** Companies the person asked to join. */
   companies: EmployerCompany[];
-  /** Companies and plants the person asked to have added. */
+  /** Companies and factories the person asked to have added. */
   requests: CompanyRequest[];
 }
 
@@ -403,7 +403,7 @@ function PendingRequests({ user, companies, requests }: PendingRequestsProps) {
                 <p className="break-words text-sm text-text-1">{requestSubject(request)}</p>
                 <p className="mt-0.5 text-sm text-text-2">
                   {request.companyId
-                    ? `Asked ${formatOnDay(request.createdAt)} for this plant to be added.`
+                    ? `Asked ${formatOnDay(request.createdAt)} for this factory to be added.`
                     : `Asked ${formatOnDay(request.createdAt)} for this company to be added. Posting opens once it is.`}
                 </p>
               </div>
@@ -479,7 +479,7 @@ function DeclinedRequests({ companies, requests }: { companies: EmployerCompany[
           <li key={asked.id} className={cn(rowClass, 'py-4')} data-company-request-row={asked.id}>
             <p className="break-words text-sm text-text-1">{requestSubject(asked)}</p>
             <p className="mt-0.5 text-sm text-text-2">
-              An admin declined the request to add this {asked.companyId ? 'plant' : 'company'}
+              An admin declined the request to add this {asked.companyId ? 'factory' : 'company'}
               {asked.decidedAt && ` ${formatOnDay(asked.decidedAt)}`}.
             </p>
           </li>
@@ -599,7 +599,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                           </a>
                           <p className="mt-0.5 break-words text-xs text-text-3">
                             {[
-                              `${company.factoryCount} ${company.factoryCount === 1 ? 'plant' : 'plants'}`,
+                              `${company.factoryCount} ${company.factoryCount === 1 ? 'factory' : 'factories'}`,
                               company.where,
                             ]
                               .filter(Boolean)
@@ -675,7 +675,7 @@ function openUntil(expiresAt: string): string {
   return days <= 1 ? 'Open, closes tomorrow' : `Open, closes in ${days} days`;
 }
 
-/** The plant a job is at, with its town when the plant's name does not already say it: "North Campus, Dallas". */
+/** The factory a job is at, with its town when the factory's name does not already say it: "North Campus, Dallas". */
 function plantAndTown(job: EmployerJob): string {
   const plant = formatFactoryName(job.factoryName);
   const town = job.city ? formatFactoryName(job.city) : null;
@@ -812,7 +812,7 @@ function PostJob({ user, companies, onCancel }: { user: AccountUser; companies: 
     () => latestDraftCompany(user.id, companies.map((c) => c.companyId)) ?? companies[0].companyId
   );
   const company = companies.find((c) => c.companyId === companyId) ?? companies[0];
-  // The form that asks for a plant that is not in the list.
+  // The form that asks for a factory that is not in the list.
   const [askingFor, setAskingFor] = useState<string | null>(null);
   const asking = askingFor === company.companyId;
 
@@ -837,10 +837,10 @@ function PostJob({ user, companies, onCancel }: { user: AccountUser; companies: 
         )}
         {company.factories.length === 0 ? (
           <p className="text-sm text-text-2" data-no-factory>
-            {company.companyName} has no plant on record. A job is posted at a plant, so one has to be added first.
+            {company.companyName} has no factory on record. A job is posted at a factory, so one has to be added first.
           </p>
         ) : (
-          // A form per company: its plants differ. What was typed for each is kept.
+          // A form per company: its factories differ. What was typed for each is kept.
           <JobForm key={company.companyId} company={company} mode="post" onCancel={onCancel} />
         )}
       </div>
@@ -854,9 +854,9 @@ function PostJob({ user, companies, onCancel }: { user: AccountUser; companies: 
         </div>
       ) : (
         <p className="mt-3 text-sm text-text-2">
-          {company.factories.length === 0 ? '' : 'Plant not in the list? '}
+          {company.factories.length === 0 ? '' : 'Factory not in the list? '}
           <button type="button" onClick={() => setAskingFor(company.companyId)} className={textButtonClass} data-ask-for-plant>
-            Ask for {company.factories.length === 0 ? 'a plant' : 'it'} to be added
+            Ask for {company.factories.length === 0 ? 'a factory' : 'it'} to be added
           </button>
         </p>
       )}

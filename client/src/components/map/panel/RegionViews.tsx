@@ -39,7 +39,7 @@ function RegionBody({
 }) {
   const selectEntity = useMapStore((s) => s.selectEntity);
   if (data.totalFactories === 0) {
-    return <p className="text-[15px] text-text-2">No plants are listed here.</p>;
+    return <p className="text-[15px] text-text-2">No factories are listed here.</p>;
   }
   const jobs = data.jobs ?? [];
   const openJobs = data.openJobs ?? jobs.length;
@@ -47,7 +47,7 @@ function RegionBody({
     <>
       <Figures
         items={[
-          { label: 'Plants', value: data.totalFactories },
+          { label: 'Factories', value: data.totalFactories },
           ...(data.totalCompanies > 0 ? [{ label: 'Companies', value: data.totalCompanies }] : []),
           ...(openJobs > 0 ? [{ label: 'Open jobs', value: openJobs }] : []),
         ]}
@@ -67,7 +67,7 @@ function RegionBody({
 
       {/* Who is here */}
       {data.topCompanies.length > 0 && (
-        <Section title="Companies" column="Plants">
+        <Section title="Companies" column="Factories">
           <RowList>
             {data.topCompanies.slice(0, 8).map((c) => {
               const name = formatCompanyName(c.name);
@@ -92,7 +92,7 @@ function RegionBody({
 
       {/* What work is here */}
       {data.topIndustries.length > 0 && (
-        <Section title="Industries" column="Plants">
+        <Section title="Industries" column="Factories">
           <RowList>
             {data.topIndustries.map((industry) => {
               // Each industry opens its page for this place. Only the 21 are industries.
@@ -137,7 +137,7 @@ export function StateView({ data }: { data: StateOverview }) {
     <>
       <Heading title={name} />
       <RegionBody data={data} jobsLink={`/jobs?state=${data.code}`} industryIn={{ state: data.code }} />
-      {data.totalFactories > 0 && <PageLink to={`/explore?tab=factories&state=${data.code}`}>All plants in {name}</PageLink>}
+      {data.totalFactories > 0 && <PageLink to={`/explore?tab=factories&state=${data.code}`}>All factories in {name}</PageLink>}
     </>
   );
 }
@@ -155,7 +155,7 @@ export function AreaView({ data }: { data: AreaOverview }) {
   );
 }
 
-/** What a place found by search holds: the same overview, and the plants themselves. */
+/** What a place found by search holds: the same overview, and the factories themselves. */
 export function PlaceView({ place, data }: { place: MapPlace; data: BoundsOverview }) {
   const { selectFactory, flyTo, setHoveredFactory } = useMapStore();
   const shown = data.plants.slice(0, 8);
@@ -167,7 +167,7 @@ export function PlaceView({ place, data }: { place: MapPlace; data: BoundsOvervi
         jobsLink={jobsNear((data.bounds[0][1] + data.bounds[1][1]) / 2, (data.bounds[0][0] + data.bounds[1][0]) / 2, place.name)}
       >
         {shown.length > 0 && (
-          <Section title="Plants">
+          <Section title="Factories">
             <RowList>
               {shown.map((plant) => {
                 const company = plant.companyName ? formatCompanyName(plant.companyName) : null;

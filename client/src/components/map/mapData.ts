@@ -12,7 +12,7 @@ import { publicKeys } from '../../lib/queryKeys';
  */
 
 /**
- * The states' outline with each state's code and plant count on it, so the
+ * The states' outline with each state's code and factory count on it, so the
  * fill layer can key off `properties.factoryCount`. The upstream GeoJSON uses
  * full names on `properties.name`; STATE_CODE_BY_NAME gives each its
  * 2-letter code. The shapes do not wait for the counts: a slow or failed

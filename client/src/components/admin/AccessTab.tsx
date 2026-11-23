@@ -162,7 +162,7 @@ export default function AccessTab() {
         <ErrorNote error={decide.error} className="mt-2" />
       </PageSection>
 
-      {/* Companies and plants people asked to have added (its own component and API). */}
+      {/* Companies and factories people asked to have added (its own component and API). */}
       <CompanyRequests />
 
       {/* Only when there is one: an empty "Declined" heading says nothing. */}

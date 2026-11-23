@@ -8,11 +8,11 @@ import { formatPay } from '../../../lib/jobFormat';
 
 /*
  * Words, the same in every panel:
- *   plant   a factory, wherever the panel speaks about a place of work
+ *   factory   wherever the panel speaks about a place of work (never "plant")
  *   people  how many work somewhere (never "workforce", "workers", "headcount", "positions")
  *   career  an occupation
  *   industry  one of the 21, by its short name (`shownIndustry`); a company's is the
- *             one most of its plants are in, never the free text on its record
+ *             one most of its factories are in, never the free text on its record
  * Every number sits under or beside a label, and a section with nothing to
  * say is left out rather than shown as "0".
  *
@@ -85,7 +85,7 @@ export function Heading({ title, subtitle, logo }: { title: string; subtitle?: R
   );
 }
 
-/** A row that leads somewhere in the panel: a company, a career, a skill, a plant. */
+/** A row that leads somewhere in the panel: a company, a career, a skill, a factory. */
 export function NodeRow({
   icon: Icon,
   logo,

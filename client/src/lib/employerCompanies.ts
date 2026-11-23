@@ -4,7 +4,7 @@ import { ApiError, request } from './http';
 
 /**
  * Finding a company to post jobs for, and asking for one that is not in the
- * data (or a missing plant of one) to be added. The admin's side of those
+ * data (or a missing factory of one) to be added. The admin's side of those
  * requests is here too, so everything about them is in one file.
  */
 
@@ -18,7 +18,7 @@ export interface FoundCompany {
   slug: string | null;
   industry: string | null;
   factoryCount: number;
-  /** Where its plants are: "Austin, TX" for one, the states with the most for several. */
+  /** Where its factories are: "Austin, TX" for one, the states with the most for several. */
   where: string | null;
 }
 
@@ -47,16 +47,16 @@ export function useCompanySearch(q: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Requests to add a company or a plant
+// Requests to add a company or a factory
 // ---------------------------------------------------------------------------
 
 export type CompanyRequestStatus = 'requested' | 'added' | 'declined';
 
 export interface CompanyRequest {
   id: string;
-  /** Set when the request is for a plant of a company already in the data. */
+  /** Set when the request is for a factory of a company already in the data. */
   companyId: string | null;
-  /** The company's name: as the person wrote it, or the company the plant belongs to. */
+  /** The company's name: as the person wrote it, or the company the factory belongs to. */
   name: string;
   website: string | null;
   place: string;
@@ -70,13 +70,13 @@ export interface NewCompanyRequest {
   name?: string;
   website?: string;
   place: string;
-  /** For a plant of a company the person posts jobs for. */
+  /** For a factory of a company the person posts jobs for. */
   companyId?: string;
 }
 
 /** A request as an admin reads it: with who asked. */
 export interface AdminCompanyRequest extends CompanyRequest {
-  /** For a plant: the company it belongs to. */
+  /** For a factory: the company it belongs to. */
   companyName: string | null;
   userId: string;
   userName: string;
@@ -134,7 +134,7 @@ export function useAdminCompanyRequests(enabled = true) {
 
 /**
  * Answer a request. `add` with a company gives the person access to it; `add`
- * for a plant marks it done; `decline` refuses it.
+ * for a factory marks it done; `decline` refuses it.
  */
 export function useAnswerCompanyRequest() {
   const queryClient = useQueryClient();

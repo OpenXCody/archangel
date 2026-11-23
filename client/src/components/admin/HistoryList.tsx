@@ -36,11 +36,14 @@ const ACTION: Record<string, string> = {
   invited: 'Invited',
   'invite revoked': 'Invite revoked',
   'company request declined': 'Company request declined',
-  'plant request declined': 'Plant request declined',
-  'plant request marked added': 'Plant request marked added',
+  'factory request declined': 'Factory request declined',
+  'factory request marked added': 'Factory request marked added',
+  // The same two as they were stored before the screen said factory.
+  'plant request declined': 'Factory request declined',
+  'plant request marked added': 'Factory request marked added',
   'company request answered, access given': 'Company added, access given',
-  'kept apart': 'Kept as a separate plant:',
-  'no longer kept apart': 'No longer kept as a separate plant:',
+  'kept apart': 'Kept as a separate factory:',
+  'no longer kept apart': 'No longer kept as a separate factory:',
 };
 
 const FIELD: Record<string, string> = {
@@ -94,7 +97,7 @@ const FIELD: Record<string, string> = {
 
 /** What a count of attached things is called, one and many. */
 const ATTACHED: Record<string, [string, string]> = {
-  factories: ['plant', 'plants'],
+  factories: ['factory', 'factories'],
   jobs: ['job', 'jobs'],
   applications: ['application', 'applications'],
   members: ['person with access', 'people with access'],
@@ -110,13 +113,13 @@ const ATTACHED: Record<string, [string, string]> = {
   // Companies' versions of careers: a company's own, a career's, or the ones that add or leave out a skill.
   versions: ['version of a career', 'versions of careers'],
   memberships: ['company membership', 'company memberships'],
-  // What a plant merge gathers on the kept plant.
+  // What a factory merge gathers on the kept factory.
   citations: ['source', 'sources'],
   ids: ['outside id', 'outside ids'],
   records: ['staged record', 'staged records'],
 };
 
-/** The facts a kept plant takes in a merge, as the audit line names them. */
+/** The facts a kept factory takes in a merge, as the audit line names them. */
 const FACT: Record<string, string> = {
   address: 'address',
   city: 'city',
@@ -127,7 +130,7 @@ const FACT: Record<string, string> = {
   opened: 'year opened',
 };
 
-/** "12 plants, 3 jobs": what hangs from a record, in words. Empty when nothing does. */
+/** "12 factories, 3 jobs": what hangs from a record, in words. Empty when nothing does. */
 export function attachedWords(attached: Record<string, number> | null | undefined): string {
   return Object.entries(attached ?? {})
     .filter(([, count]) => count > 0)
@@ -163,7 +166,7 @@ function detailWords(entry: AuditEntry): string | null {
       parts.push(`${FIELD[field] ?? field}: ${value(pair[0])} → ${value(pair[1])}`);
     }
   }
-  // A plant merge: what the kept row took from the other. Kept apart: the plant it is not.
+  // A factory merge: what the kept row took from the other. Kept apart: the factory it is not.
   if (Array.isArray(detail.took) && detail.took.length > 0) parts.push(`took ${detail.took.map((fact) => FACT[String(fact)] ?? String(fact)).join(', ')}`);
   const other = (detail.other as { name?: unknown } | undefined)?.name;
   if (typeof other === 'string') parts.push(`from ${other}`);
@@ -190,7 +193,7 @@ function detailWords(entry: AuditEntry): string | null {
 
 const KIND_WORD: Record<string, string> = {
   company: 'Company',
-  factory: 'Plant',
+  factory: 'Factory',
   career: 'Career',
   skill: 'Skill',
   person: 'Person',

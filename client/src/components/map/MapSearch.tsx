@@ -38,7 +38,7 @@ import { publicKeys } from '../../lib/queryKeys';
 
 /** The sentence a first visit is given, once. */
 // client/index.html carries the same sentence as the page's description.
-const INTRODUCTION = 'Plants, careers and the skills they take, across US manufacturing.';
+const INTRODUCTION = 'Factories, careers and the skills they take, across US manufacturing.';
 /** Set in this browser once the map has been used, so the introduction is not said again. */
 const SEEN_KEY = 'archangel.map.seen';
 /** Storage can be unavailable (private mode): then the introduction is said once per page load. */
@@ -145,7 +145,7 @@ function Chips() {
             <Chip
               label={industryLabel(filters.industry)}
               pressed
-              title={`Only ${industryLabel(filters.industry)} plants`}
+              title={`Only ${industryLabel(filters.industry)} factories`}
               onRemove={() => setFilters({ industry: null })}
               removeLabel={`Show every industry, not only ${industryLabel(filters.industry)}`}
             />
@@ -155,7 +155,7 @@ function Chips() {
               key={code}
               label={stateName(code)}
               pressed
-              title={`Only plants in ${stateName(code)}`}
+              title={`Only factories in ${stateName(code)}`}
               onRemove={() => setFilters({ states: filters.states.filter((s) => s !== code) })}
               removeLabel={`Stop limiting the map to ${stateName(code)}`}
             />
@@ -178,7 +178,7 @@ function Chips() {
 }
 
 /**
- * The filter panel: which plants are drawn at all. States (any number) and
+ * The filter panel: which factories are drawn at all. States (any number) and
  * one industry. Both are applied to pins the map already holds.
  */
 function Filters({ id }: { id: string }) {
@@ -186,7 +186,7 @@ function Filters({ id }: { id: string }) {
   const setFilters = useMapStore((s) => s.setFilters);
   const [stateQuery, setStateQuery] = useState('');
 
-  // The industries plants are filed under, from the same list Explore filters by.
+  // The industries factories are filed under, from the same list Explore filters by.
   const { data: facets } = useExploreFacets();
   const industries = facets?.factoryIndustries ?? [];
 
@@ -312,7 +312,7 @@ export default function MapSearch() {
   const filtersActive = useMapStore((s) => s.filters.industry !== null || s.filters.states.length > 0);
 
   // The introduction is for the country with nothing chosen. A first visit
-  // that arrives on a state, a company or a plant (a shared link) has a panel
+  // that arrives on a state, a company or a factory (a shared link) has a panel
   // saying what it is looking at; the sentence waits for the bare map. The
   // address is read as well as the store, which takes it up a moment after
   // the first paint.
@@ -443,7 +443,7 @@ export default function MapSearch() {
           selectFactory(row.id);
           return;
         case 'company':
-          // The company becomes the map's subject: its plants alone, framed.
+          // The company becomes the map's subject: its factories alone, framed.
           selectEntity('company', row.id, row.title);
           return;
         case 'occupation':
@@ -585,7 +585,7 @@ export default function MapSearch() {
               setShowFilters((open) => !open);
               setQuery('');
             }}
-            aria-label="Filter plants by industry and state"
+            aria-label="Filter factories by industry and state"
             title="Filter"
             aria-expanded={showFilters}
             aria-controls={filtersId}

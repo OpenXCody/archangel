@@ -7,7 +7,7 @@ import { requestField, useAskForCompany } from '../../lib/employerCompanies';
 import { ErrorNote, Field, busyButtonClass, cardClass, fieldClass, outlineButtonClass } from './parts';
 
 interface CompanyRequestFormProps {
-  /** A plant of this company; without it, a company that is not listed. */
+  /** A factory of this company; without it, a company that is not listed. */
   company?: { id: string; name: string };
   /** What was searched for, as a start for the name. */
   initialName?: string;
@@ -19,7 +19,7 @@ type FieldName = 'name' | 'place' | 'website';
 
 /**
  * Ask for a company that is not in the data to be added, or, for a company
- * the person already posts for, a plant that is missing. Three short fields at most;
+ * the person already posts for, a factory that is missing. Three short fields at most;
  * an admin does the rest. Each problem is named beside its field.
  */
 export default function CompanyRequestForm({ company, initialName = '', onDone, onCancel }: CompanyRequestFormProps) {
@@ -96,9 +96,9 @@ export default function CompanyRequestForm({ company, initialName = '', onDone, 
   return (
     <form onSubmit={submit} noValidate className={cn(cardClass, 'space-y-4')} data-company-request={company ? 'plant' : 'company'}>
       <div>
-        <p className="text-sm text-text-1">{company ? `Ask for a plant of ${company.name} to be added` : 'Ask for a company to be added'}</p>
+        <p className="text-sm text-text-1">{company ? `Ask for a factory of ${company.name} to be added` : 'Ask for a company to be added'}</p>
         <p className="mt-0.5 text-sm text-text-2">
-          {company ? 'An admin adds the plant.' : 'An admin adds the company and gives you access.'}
+          {company ? 'An admin adds the factory.' : 'An admin adds the company and gives you access.'}
           {emailOn && ' You get an email when it is done.'}
         </p>
       </div>
@@ -108,10 +108,10 @@ export default function CompanyRequestForm({ company, initialName = '', onDone, 
         </Field>
       )}
       <div className={cn('grid grid-cols-1 gap-4', !company && 'sm:grid-cols-2')}>
-        <Field label={company ? 'Where the plant is' : 'Where it is'} htmlFor={`${prefix}-place`}>
+        <Field label={company ? 'Where the factory is' : 'Where it is'} htmlFor={`${prefix}-place`}>
           {input('place', place, setPlace, { maxLength: 160, placeholder: company ? 'Street, city and state' : 'City and state' })}
         </Field>
-        {/* A plant belongs to a company already on record: its website is known. */}
+        {/* A factory belongs to a company already on record: its website is known. */}
         {!company && (
           <Field label="Website" htmlFor={`${prefix}-website`} optional>
             {input('website', website, setWebsite, { maxLength: 300, placeholder: 'example.com', url: true })}

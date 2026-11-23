@@ -46,7 +46,7 @@ function milesAway(miles: number): string {
  *
  * Two fields: what (a job, a company or a career, typed) and where. A career
  * is narrowed to by its page's link (`?career=`), and the line above the list
- * then names it; a company's, a plant's and a skill's page link to all of
+ * then names it; a company's, a factory's and a skill's page link to all of
  * their open jobs the same way (`?company=`, `?plant=`, `?skill=`). With no open job anywhere there is nothing to filter: the
  * page is one sentence and the way on.
  */
@@ -59,7 +59,7 @@ export default function Jobs() {
   const q = searchParams.get('q')?.trim() ?? '';
   const careerParam = searchParams.get('career') ?? '';
   const career = isUuid(careerParam) ? careerParam : '';
-  // A company's, a plant's and a skill's page link here the same way, for all of their open jobs.
+  // A company's, a factory's and a skill's page link here the same way, for all of their open jobs.
   const linked = (name: string) => {
     const value = searchParams.get(name) ?? '';
     return isUuid(value) ? value : '';
@@ -345,7 +345,7 @@ export default function Jobs() {
 }
 
 function JobCard({ job, from }: { job: JobSummary; from?: string }) {
-  // Not every plant has a city on record; its name places it well enough.
+  // Not every factory has a city on record; its name places it well enough.
   // (A city is stored as its source wrote it, often in capitals: it is read as a name.)
   const town = job.city ? formatPlace(formatFactoryName(job.city), job.state) : [formatFactoryName(job.factoryName), job.state].filter(Boolean).join(', ');
   // Near a chosen place, how far the job is from it.
