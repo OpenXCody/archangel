@@ -2,7 +2,7 @@
 
 A workforce map of US manufacturing, live at [o-10.com](https://www.o-10.com).
 
-People explore **Industries → Companies → Plants → Jobs → Careers → Skills** on a map and through pages for each. Every skill sits in a group inside a domain and has one level: Fundamentals, Intermediate or Advanced. A career's path is its skills laid out by those levels. All of the skills are drawn as one radial tree, the Atlas of Manufacturing (`/atlas`), which a career can be laid over. Someone looking for work marks the skills they have, sees which careers are within reach, and applies to jobs. A company's people post jobs and read applicants. Admins look after accounts and data. The whole country is covered; Austin, TX is the first area being filled out in depth.
+People explore **Industries → Companies → Factories → Jobs → Careers → Skills** on a map and through pages for each. Every skill sits in a group inside a domain and has one level: Fundamentals, Intermediate or Advanced. A career's path is its skills laid out by those levels. All of the skills are drawn as one radial tree, the Atlas of Manufacturing (`/atlas`), which a career can be laid over. Someone looking for work marks the skills they have, sees which careers are within reach, and applies to jobs. A company's people post jobs and read applicants. Admins look after accounts and data. The whole country is covered; Austin, TX is the first area being filled out in depth.
 
 React, TypeScript, Vite and Tailwind in `client/`; Express and Drizzle in `server/`; PostgreSQL. `CLAUDE.md` describes how the code is laid out and the rules it follows.
 
@@ -19,7 +19,7 @@ You need Node 20 or later (`.nvmrc`) and PostgreSQL 14 or later, with `psql` on 
 
    Use a local database or your own Neon branch, never production's. Without a MapTiler key the map draws on a plain canvas. Mail is off unless its settings are given (see Email); nothing else needs them.
 
-2. Create the database: an empty one, then its schema and sample data (companies, plants, careers and skills).
+2. Create the database: an empty one, then its schema and sample data (companies, factories, careers and skills).
 
    ```bash
    set -a; source .env.local; set +a      # puts DATABASE_URL in this shell
@@ -52,8 +52,8 @@ Four kinds. Run all of them before merging.
 | Check | Command | What it covers |
 |---|---|---|
 | Static | `npm run typecheck` and `npm run lint` | Types; ESLint with no `any`; `.js` endings on server imports; colours from theme tokens only; the page's inline scripts against the Content-Security-Policy |
-| Unit | `npm run test:unit` | The pure functions: pins packed and unpacked, names, industries and a company's industry, paging, LIKE escaping and reading rows, account purpose and View as, when a build migrates, the statistics adapter, the employer loader's generator, the skill taxonomy's check. Also that the migration list is in order, and that the skills catalogue, the skill taxonomy, the company domains and the stored logos agree with what was generated from them |
-| API | `bash tests/api/accounts.sh`, `jobs.sh`, `seeker.sh`, `admin.sh`, `email.sh`, `industries.sh`, `careers.sh`, `versions.sh`, `intake.sh`, `dupes.sh`, `postings.sh`, `military.sh`, `loader.sh`, `catalogue.sh`, `paths.sh` | Accounts, roles, invites, records, jobs, applications, reach, the industry pages, and the email and notices people get, end to end over HTTP, including every refusal; and the employer loader, research files in, companies and plants out |
+| Unit | `npm run test:unit` | The pure functions: pins packed and unpacked, names, industries and a company's industry, paging, LIKE escaping and reading rows, account purpose and View as, when a build migrates, the statistics adapter, the employer loader's generator, the skill taxonomy's check, and the words on screen (a factory is never called a plant). Also that the migration list is in order, and that the skills catalogue, the skill taxonomy, the company domains and the stored logos agree with what was generated from them |
+| API | `bash tests/api/accounts.sh`, `jobs.sh`, `seeker.sh`, `admin.sh`, `email.sh`, `industries.sh`, `careers.sh`, `versions.sh`, `intake.sh`, `dupes.sh`, `postings.sh`, `military.sh`, `loader.sh`, `catalogue.sh`, `paths.sh` | Accounts, roles, invites, records, jobs, applications, reach, the industry pages, and the email and notices people get, end to end over HTTP, including every refusal; and the employer loader, research files in, companies and factories out |
 | Pages | `npm run test:ui` | Playwright: the map, Explore and its tabs, the header, jobs, sign-in, settings signed out, each kind of record's page, the industry pages, search, the tools a seeker and an employer are each given, a read that gets no answer giving up, and an admin's change reaching the map's panel, on seven device sizes, with no sideways scroll and no crash |
 
 The API suites are local only. They need the dev server running against a database with data in it, and `psql`, `curl` and `node` on the PATH; they create and remove their own accounts and records. `loader.sh`, `catalogue.sh` and `paths.sh` are the exceptions: they need only the database (`DB`), not the server. What the suites share (one request, a check, the refusal of an API that is not on this machine) is in `tests/api/lib.sh`. `military.sh` also holds the header search's rule for a military career, reach between a military and a civilian career, and Profile's "Start with what you have done" with its Undo.
@@ -91,9 +91,9 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
 
   `scripts/enrich-naics.mjs` filled in missing industry codes from EPA's public export; the intake runner's `epa-echo` source below replaces it.
 
-- **Plants listed twice** are merged by migration 0051 where it is certain (one plant and one company) and listed in Admin Tools, Data, where it is not. Before it ships, and after any change to its rules, rehearse it on a copy of production: `node scripts/build-duplicates-sql.mjs --rehearse --out rehearsal.sql`, run the file on one connection, read the summary and the lines marked for a look. It undoes itself.
+- **Factories listed twice** are merged by migration 0051 where it is certain (one factory and one company) and listed in Admin Tools, Data, where it is not. Before it ships, and after any change to its rules, rehearse it on a copy of production: `node scripts/build-duplicates-sql.mjs --rehearse --out rehearsal.sql`, run the file on one connection, read the summary and the lines marked for a look. It undoes itself.
 
-- **Large public sources**, through the intake runner, outside the deploy: `scripts/ingest/run.mjs` stages what a source says, decides which plant each record is (by the source's own id first), writes ids and facts by rank, and can take a run back. A rehearsal does the whole run in a transaction that is rolled back and prints what it would do.
+- **Large public sources**, through the intake runner, outside the deploy: `scripts/ingest/run.mjs` stages what a source says, decides which factory each record is (by the source's own id first), writes ids and facts by rank, and can take a run back. A rehearsal does the whole run in a transaction that is rolled back and prints what it would do.
 
   ```bash
   node scripts/ingest/run.mjs list
@@ -103,9 +103,9 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   node scripts/ingest/run.mjs undo epa-echo <run>
   ```
 
-  On production it is run by hand from GitHub: add the repository secret `INGEST_DATABASE_URL` (Settings, Secrets and variables, Actions) with the production connection string, then Actions, Ingest, Run workflow, with the source and the mode (`rehearse`, then `apply`; `undo` with the run's number). The report is the run's artifact. Matches a run was not sure of wait in Admin Tools, Data. After a load that adds or moves plants, run the same workflow with the source `counties` (`scripts/geo/assign-keys.mjs`: each plant's county and metro area from its coordinates; `rehearse` says what it would write, `apply` writes). `scripts/ingest/README.md` has the design and the adapter's contract.
+  On production it is run by hand from GitHub: add the repository secret `INGEST_DATABASE_URL` (Settings, Secrets and variables, Actions) with the production connection string, then Actions, Ingest, Run workflow, with the source and the mode (`rehearse`, then `apply`; `undo` with the run's number). The report is the run's artifact. Matches a run was not sure of wait in Admin Tools, Data. After a load that adds or moves factories, run the same workflow with the source `counties` (`scripts/geo/assign-keys.mjs`: each factory's county and metro area from its coordinates; `rehearse` says what it would write, `apply` writes). `scripts/ingest/README.md` has the design and the adapter's contract.
 
-- **Open jobs, from employers' own public postings**, every day. `data/employers/boards.json` has one line per employer (the company as our data names it, the hiring system, its board), and for an employer left out, why. The runner reads each board politely (the site's robots file first, one user agent that says what it is, a pace, and a full stop at the first refusal), keeps only postings whose title is one of our careers, reads each for its level, place, skills, makes, requirements and pay, and writes it as a job at the plant it names. It stores facts and the link to apply at, never the posting's text.
+- **Open jobs, from employers' own public postings**, every day. `data/employers/boards.json` has one line per employer (the company as our data names it, the hiring system, its board), and for an employer left out, why. The runner reads each board politely (the site's robots file first, one user agent that says what it is, a pace, and a full stop at the first refusal), keeps only postings whose title is one of our careers, reads each for its level, place, skills, makes, requirements and pay, and writes it as a job at the factory it names. It stores facts and the link to apply at, never the posting's text.
 
   ```bash
   node scripts/ingest/run.mjs postings --check                 # the registry is usable
@@ -113,9 +113,9 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   node scripts/ingest/run.mjs postings --only spacex,anduril   # some employers, by their slug in the registry
   ```
 
-  On production it runs by itself: `.github/workflows/postings.yml`, daily at 09:23 UTC, and by hand from Actions, Postings, Run workflow (`apply`, `rehearse`, or `undo` with a run's number). It needs the same repository secret as the Ingest workflow, `INGEST_DATABASE_URL`; until that is set the run says so and ends green. A run ends with its requests by platform, which boards were listed in full, which were cut short and why, and what the day's budget did not reach; the report is the run's artifact, and Admin Tools, Data shows each employer's latest run and the places postings name where we list no plant of that employer (point one at a plant, or leave it). Adding an employer is a line in `boards.json`. `scripts/ingest/README.md`, "Employers' job postings", has the design; `tests/api/postings.sh` runs the whole of it over made-up boards served on this machine (it needs port 5999, or `FEEDS_PORT`).
+  On production it runs by itself: `.github/workflows/postings.yml`, daily at 09:23 UTC, and by hand from Actions, Postings, Run workflow (`apply`, `rehearse`, or `undo` with a run's number). It needs the same repository secret as the Ingest workflow, `INGEST_DATABASE_URL`; until that is set the run says so and ends green. A run ends with its requests by platform, which boards were listed in full, which were cut short and why, and what the day's budget did not reach; the report is the run's artifact, and Admin Tools, Data shows each employer's latest run and the places postings name where we list no factory of that employer (point one at a factory, or leave it). Adding an employer is a line in `boards.json`. `scripts/ingest/README.md`, "Employers' job postings", has the design; `tests/api/postings.sh` runs the whole of it over made-up boards served on this machine (it needs port 5999, or `FEEDS_PORT`).
 
-- **Researched employers and plants**, with their sources: how many people work at a plant, what it makes, when it opened, which company a company is part of. Research files in `data/employers/` (and our corrections to them, in `corrections.json`) are turned into one migration by `scripts/build-employers-sql.mjs`. The loader decides in SQL, when the migration is applied, which company and which plant each entry already is, and writes every decision to `load_log`. A new file is checked, then rehearsed on a copy of production, before its migration is generated:
+- **Researched employers and factories**, with their sources: how many people work at a factory, what it makes, when it opened, which company a company is part of. Research files in `data/employers/` (and our corrections to them, in `corrections.json`) are turned into one migration by `scripts/build-employers-sql.mjs`. The loader decides in SQL, when the migration is applied, which company and which factory each entry already is, and writes every decision to `load_log`. A new file is checked, then rehearsed on a copy of production, before its migration is generated:
 
   ```bash
   node scripts/build-employers-sql.mjs --check data/employers/*.json
@@ -170,7 +170,7 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
   node scripts/build-industry-stats-sql.mjs data/industries/industries.json data/industries/qcew-2025.json migrations/00NN_industry_stats.sql
   ```
 
-- **One record at a time**, by an admin: Admin Tools → Data → Records finds a company, plant, career or skill to correct, or adds one (a skill into a group, at a level). The record's editor sets a company's logo domain, featured flag, description, parent and headquarters, and a plant's people, products and opening year; the same tab approves draft career paths.
+- **One record at a time**, by an admin: Admin Tools → Data → Records finds a company, factory, career or skill to correct, or adds one (a skill into a group, at a level). The record's editor sets a company's logo domain, featured flag, description, parent and headquarters, and a factory's people, products and opening year; the same tab approves draft career paths.
 
 ## Logos
 
