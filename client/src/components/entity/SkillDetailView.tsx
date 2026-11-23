@@ -16,7 +16,7 @@ import { ErrorNote } from '../account/parts';
 import { SkillGroupBox } from '../path/SkillGroupBox';
 import type { SkillMarks } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
-import { CAREERS_SHOWN, type Head, factLinkClass, IndustryRows, OpenJobsSection } from './parts';
+import { CAREERS_SHOWN, type Head, factLinkClass, IndustryRows, MilitaryCareerRows, OpenJobsSection } from './parts';
 import SkillMakes from './SkillMakes';
 
 /** The careers that use a skill: the first few, and the rest on request. A skill sits at its own level in each. */
@@ -62,14 +62,15 @@ function SkillGroup({ data, marks }: { data: SkillDetail; marks: SkillMarks | nu
  * A skill's page: what it is (the heading, with its domain, group and level,
  * then its group: the skills it stands among, then its makes), how it is
  * learned and what it is done with, the industries it is used in, open jobs that ask for it, the
- * careers that use it, and the skills that go with it. A part with nothing
- * to say is not drawn.
+ * careers that use it, the skills that go with it, and last the military
+ * careers that use it. A part with nothing to say is not drawn.
  */
 export default function SkillDetailView({ data, head }: { data: SkillDetail; head: Head }) {
   const careers = data.occupations ?? [];
   const tools = data.tools ?? [];
   const industries = data.industries ?? [];
   const jobs = data.jobs ?? [];
+  const military = data.militaryOccupations ?? [];
   const { marks, error: markError } = useSkillMarks();
   return (
     <>
@@ -162,6 +163,13 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
               />
             ))}
           </RecordList>
+        </DetailSection>
+      )}
+
+      {/* Last: the military careers whose path has it. For a skill no other career uses, they are the careers it has. */}
+      {military.length > 0 && (
+        <DetailSection id="military" title="Military careers that use it">
+          <MilitaryCareerRows careers={military} data-skill-military="" />
         </DetailSection>
       )}
     </>

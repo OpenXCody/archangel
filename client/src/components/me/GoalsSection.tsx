@@ -3,10 +3,9 @@ import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn, focusRing } from '@/lib/utils';
+import { cn, focusRing, plural } from '@/lib/utils';
 import {
   goalNextSkills,
-  nextSkillNames,
   useCareersInReach,
   type NextSkill,
   useAddGoal,
@@ -29,8 +28,9 @@ import GoalPlate, { GoalPlateGround } from '../atlas/GoalPlate';
 import { careerAtlasHref } from '../atlas/pathView';
 import { useAtlasLayout } from '../atlas/useAtlasLayout';
 import { ShareRing } from '../path/HeldShare';
-import { levelName } from '../../lib/stages';
+import { SkillsLine } from '../path/SkillsLine';
 import { accountKeys } from '../../lib/queryKeys';
+import { reachOrClosest } from '@shared/reach';
 import { linkClass, RemovedRow } from './parts';
 
 export default function GoalsSection() {
@@ -162,43 +162,20 @@ export default function GoalsSection() {
   );
 }
 
-/**
- * The skills to pick up next for a career, as one line of text under the
- * level they are at: "Next, Fundamentals: Blueprint Reading, Lot Tracking".
- * They come lowest level first, so a second level is named only where the
- * first runs out. Nothing when none are left.
- */
+/** The skills to pick up next for a career: the one line a goal and a career within reach both carry. */
 function NextSkills({ next, className }: { next: NextSkill[]; className?: string }) {
-  if (next.length === 0) return null;
-  const runs: { level: string | null; skills: NextSkill[] }[] = [];
-  for (const skill of next) {
-    const level = levelName(skill.level);
-    const last = runs[runs.length - 1];
-    if (last && last.level === level) last.skills.push(skill);
-    else runs.push({ level, skills: [skill] });
-  }
-  return (
-    <p className={cn('break-words text-sm text-text-1', className)} data-next-skills>
-      {runs.map((run, index) => (
-        <span key={run.level ?? index}>
-          {index > 0 && ' · '}
-          <span className="text-text-2">
-            {index === 0 ? (run.level ? `Next, ${run.level}:` : 'Next') : `${run.level}:`}
-          </span>{' '}
-          {nextSkillNames(run.skills)}
-        </span>
-      ))}
-    </p>
-  );
+  return <SkillsLine lead="Next" skills={next} className={className} />;
 }
 
 /** How many careers within reach are listed before "Show all". */
 const REACH_SHOWN = 4;
 
 /**
- * Careers the person's held skills already cover part of, closest first.
- * Renders nothing until there is something to show: a person with no held
- * skills sees no heading and no placeholder.
+ * Careers the person's held skills already cover a third of, closest first:
+ * the same rule a military career's page lists civilian careers by. With none
+ * that near, the closest careers under their own heading. Renders nothing
+ * until there is something to show: a person with no held skills sees no
+ * heading and no placeholder.
  */
 function CareersInReach() {
   const reach = useCareersInReach();
@@ -213,11 +190,14 @@ function CareersInReach() {
     );
   }
   if (!reach.data || reach.data.length === 0) return null;
-  const careers = showAll ? reach.data : reach.data.slice(0, REACH_SHOWN);
+  // "Within reach" means one thing wherever it is said: a third of a path of five skills or more (shared/reach.ts).
+  // A person whose skills reach no career yet is shown the closest ones, under those words.
+  const listed = reachOrClosest(reach.data);
+  const careers = showAll ? listed.careers : listed.careers.slice(0, REACH_SHOWN);
 
   return (
-    <div className="mt-8" data-careers-in-reach>
-      <h3 className="mb-2 text-sm font-medium text-text-2">Within reach</h3>
+    <div className="mt-8" data-careers-in-reach={listed.within ? 'within' : 'closest'}>
+      <h3 className="mb-2 text-sm font-medium text-text-2">{listed.within ? 'Within reach' : 'Closest careers'}</h3>
       <ul className={cardClass}>
         {careers.map((career) => (
           <li key={career.id} className={cn(rowClass, 'py-3')}>
@@ -234,10 +214,16 @@ function CareersInReach() {
               </span>
             </div>
             <NextSkills next={career.next} className="mt-0.5" />
+            {/* Where the work is: the jobs open for it now. */}
+            {(career.openJobs ?? 0) > 0 && (
+              <Link to={`/jobs?career=${career.id}`} className="mt-0.5 inline-block py-1 text-xs text-text-2 underline hover:text-text-1" data-reach-jobs>
+                {plural(career.openJobs ?? 0, 'open job', 'open jobs')}
+              </Link>
+            )}
           </li>
         ))}
       </ul>
-      {!showAll && reach.data.length > REACH_SHOWN && (
+      {!showAll && listed.careers.length > REACH_SHOWN && (
         <button type="button" onClick={() => setShowAll(true)} className={cn(textButtonClass, 'mt-3')}>
           Show all
         </button>

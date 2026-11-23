@@ -118,7 +118,7 @@ expect "short path left out"          false "$(printf '%s' "$OUT" | j "careers.s
 expect "a career with no path left out" false "$(printf '%s' "$OUT" | j "careers.some(c=>c.id==='$UNWRITTEN')")"
 expect "next skills, lowest level first" "S03:2 S04:2 S05:3" "$(printf '%s' "$OUT" | nextOf $A)"
 expect "next skills carry id, name, level" "id,level,name" "$(printf '%s' "$OUT" | j "careers[0].next.map(n=>Object.keys(n).sort().join(','))[0]")"
-expect "career carries only what is shown" "held,id,next,title,total" "$(printf '%s' "$OUT" | j "careers.map(c=>Object.keys(c).sort().join(','))[0]")"
+expect "career carries only what is shown" "held,id,next,openJobs,title,total" "$(printf '%s' "$OUT" | j "careers.map(c=>Object.keys(c).sort().join(','))[0]")"
 expect "the figure is the held skills on record" 2 "$(sql "SELECT COUNT(*) FROM occupation_skills os JOIN user_skills us ON us.skill_id=os.skill_id AND us.status='held' JOIN users u ON u.id=us.user_id WHERE os.occupation_id='$A' AND u.email='reach-$RUN@seeker.test'")"
 check "another person's list is their own" 200 "$(req o GET /me/careers/reach)" '"careers":\[\]'
 
@@ -281,7 +281,7 @@ check "the taxonomy in one answer"    200 "$OUT" '"levels":\[{"id":1,"name":"Fun
 expect "every domain, in the taxonomy's order" "$(sql "SELECT string_agg(slug, ',' ORDER BY position, slug) FROM skill_domains")" "$(printf '%s' "$OUT" | j "domains.map(d=>d.slug).join()")"
 expect "every group"                  "$(sql "SELECT COUNT(*) FROM skill_groups")" "$(printf '%s' "$OUT" | j "domains.reduce((n,d)=>n+d.groups.length,0)")"
 expect "every placed skill, once"     "$(sql "SELECT COUNT(DISTINCT id) || ' ' || COUNT(*) FROM skills WHERE group_slug IS NOT NULL AND level IS NOT NULL")" "$(printf '%s' "$OUT" | j "domains.flatMap(d=>d.groups.flatMap(g=>g.skills.map(s=>s.id))).reduce((seen,id)=>seen.add(id),new Set()).size+' '+o.domains.flatMap(d=>d.groups.flatMap(g=>g.skills)).length")"
-expect "a domain carries what is drawn" "description,groups,name,slug|description,name,skills,slug|careers,id,level,makes,name" "$(printf '%s' "$OUT" | j "domains.filter(d=>d.slug==='$TD').flatMap(d=>[d, d.groups[0], d.groups[0].skills[0]]).map(x=>Object.keys(x).sort().join()).join('|')")"
+expect "a domain carries what is drawn" "description,groups,name,slug|description,name,skills,slug|careers,id,level,makes,militaryCareers,name" "$(printf '%s' "$OUT" | j "domains.filter(d=>d.slug==='$TD').flatMap(d=>[d, d.groups[0], d.groups[0].skills[0]]).map(x=>Object.keys(x).sort().join()).join('|')")"
 expect "our domain: its groups, their skills by level then order, each with how many careers use it" "$TD-one=S01:1:12 S02:1:4|$TD-two=S04:2:3 S03:2:3 S05:3:2" "$(printf '%s' "$OUT" | j "domains.find(d=>d.slug==='$TD').groups.map(g=>g.slug+'='+g.skills.map(s=>[s.name.replace('$P ',''),s.level,s.careers].join(':')).join(' ')).join('|')")"
 expect "every skill's level is 1, 2 or 3" true "$(printf '%s' "$OUT" | j "domains.every(d=>d.groups.every(g=>g.skills.every(s=>[1,2,3].includes(s.level)&&Number.isInteger(s.careers))))")"
 expect "the parameter Vercel's rewrite adds changes nothing" "$(printf '%s' "$OUT" | sed '$d' | wc -c)" "$(req anon GET '/skills/taxonomy?path=skills/taxonomy' | sed '$d' | wc -c)"

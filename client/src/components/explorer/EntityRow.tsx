@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { Company, Factory, Occupation, Skill } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { shownIndustry } from '@shared/industry';
+import { kindLine } from '@shared/military';
 import { Skeleton } from '@/components/ui/skeleton';
 import CompanyLogo from '../CompanyLogo';
 import type { BrowseTab } from './ExploreNav';
@@ -108,12 +109,13 @@ function FactoryRow({ data, onMouseEnter }: Props<Factory>) {
 
 function OccupationRow({ data, onMouseEnter }: Props<Occupation>) {
   // "Machining · 17 skills": its home and the size of its path. How the skills fall by level is the career's page.
+  // A military career, listed only when the list was asked for them, says its kind and code first: "Navy rating · HT".
   return (
     <Row
       to={`/occupations/${data.id}`}
       name={data.title}
       summary={data.description}
-      facts={[data.home?.name, count(data.skillCount, 'skill', 'skills')]}
+      facts={[kindLine(data.kind, data.code), data.home?.name, count(data.skillCount, 'skill', 'skills')]}
       onMouseEnter={onMouseEnter}
     />
   );

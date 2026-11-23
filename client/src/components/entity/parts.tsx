@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatPay } from '../../lib/jobFormat';
-import { type CareerJob } from '../../lib/api';
+import { type CareerJob, type MilitaryCareerRow } from '../../lib/api';
 import { formatCompanyName } from '@shared/displayName';
 import { industryLabel, industryPath } from '@shared/industry';
+import { kindLine } from '@shared/military';
 import FootprintMap from './FootprintMap';
 import { titleCase } from '../../lib/places';
 import {
@@ -128,6 +129,37 @@ export function IndustryRows({ industries }: { industries: { name: string; facto
         ))}
       </RecordList>
       {cut && <ShowAll open={showAll} total={industries.length} onToggle={() => setShowAll((value) => !value)} />}
+    </>
+  );
+}
+
+/** How many military careers a section lists before "Show all". */
+const MILITARY_SHOWN = 5;
+
+/**
+ * Military careers as rows, each under its full title with its kind and code
+ * in the grey line ("Navy rating · HT") and, where the section says how much
+ * of a path each holds, that after it ("12 of 19 skills"). The page's last
+ * section wherever it stands: a military career is where a person comes from.
+ */
+export function MilitaryCareerRows({ careers, ...rest }: { careers: (MilitaryCareerRow & { held?: number; total?: number })[] } & Record<`data-${string}`, string>) {
+  const [showAll, setShowAll] = useState(false);
+  // A list a row or two longer than the cut is shown whole.
+  const cut = careers.length > MILITARY_SHOWN + 2;
+  return (
+    <>
+      <RecordList {...rest}>
+        {(showAll || !cut ? careers : careers.slice(0, MILITARY_SHOWN)).map((career) => (
+          <RecordRow
+            key={career.id}
+            to={`/occupations/${career.id}`}
+            title={career.title}
+            subtitle={[kindLine(career.kind, career.code), career.total ? `${career.held ?? 0} of ${career.total} skills` : null].filter(Boolean).join(' · ') || null}
+            data-military-career={career.id}
+          />
+        ))}
+      </RecordList>
+      {cut && <ShowAll open={showAll} total={careers.length} onToggle={() => setShowAll((value) => !value)} />}
     </>
   );
 }

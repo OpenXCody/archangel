@@ -13,8 +13,9 @@ import { recordAudit } from '../lib/audit.js';
 import { rowsOf } from '../lib/rows.js';
 import { placeColumns, placeOf } from '../lib/taxonomy.js';
 import { versionsOfCareer } from '../lib/versions.js';
-import { NOT_MILITARY, civilianCareer, militaryCareer, militaryFacts, militaryOf, serviceColumns, serviceJoin } from '../lib/military.js';
-import { isServiceKey } from '../../shared/military.js';
+import { NOT_MILITARY, civilianCareer, codeMatch, militaryCareer, militaryFacts, militaryOf, namedMilitaryCareers, serviceColumns, serviceJoin } from '../lib/military.js';
+import { civilianCareersWithinReach, militaryCareersReaching } from '../lib/reach.js';
+import { isServiceKey, saidService } from '../../shared/military.js';
 
 const router = Router();
 router.param('id', uuidParam);
@@ -33,7 +34,8 @@ router.get('/', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'A service is one of navy, army, air-force or marine-corps.' });
       return;
     }
-    const which = isServiceKey(service) ? militaryCareer(service) : req.query.military === '1' || req.query.military === 'true' ? militaryCareer(null) : civilianCareer();
+    const military = isServiceKey(service) || req.query.military === '1' || req.query.military === 'true';
+    const which = isServiceKey(service) ? militaryCareer(service) : military ? militaryCareer(null) : civilianCareer();
     // Narrowed to the careers whose home is one domain (a slug). A slug no
     // domain has matches nothing, as on the skills list.
     const inDomain = and(which, typeof domain === 'string' && domain ? eq(occupations.homeDomain, domain) : undefined);
@@ -45,7 +47,36 @@ router.get('/', async (req: Request, res: Response) => {
     const term = readCareerTerm(search);
     const tries: CareerMatch[] = [];
     if (term) {
-      tries.push(careerMatch(term));
+      const typed = careerMatch(term);
+      if (military) {
+        // Asked for military careers, the list reads what was typed the way its holder writes it, by the one
+        // rule that says what names a military career (shared/military.ts; here every code counts, since
+        // nothing else can be meant): "2A353", "MOS 15T", "HT rating", "usn ht", "91B10". Those careers come
+        // first, in the rule's order. Then a code typed whole or begun ("ht", "15", "2a3"), which the titles do
+        // not read, then the titles and other names as any career is found.
+        const named = await namedMilitaryCareers(String(search), { asking: true, service: isServiceKey(service) ? service : null });
+        const ids = sql`ARRAY[${sql.join(named.map((career) => sql`${career.id}`), sql`, `)}]::uuid[]`;
+        const isNamed = named.length > 0 ? sql`${occupations.id} = ANY(${ids})` : sql`FALSE`;
+        const code = codeMatch(term);
+        tries.push({
+          where: sql`(${typed.where} OR ${code.where} OR ${isNamed})`,
+          relevance:
+            named.length > 0
+              ? sql`CASE WHEN ${isNamed} THEN array_position(${ids}, ${occupations.id}) - 1000 WHEN ${code.exact} THEN -2 WHEN ${code.where} THEN -1 ELSE ${typed.relevance} END`
+              : sql`CASE WHEN ${code.exact} THEN -2 WHEN ${code.where} THEN -1 ELSE ${typed.relevance} END`,
+          otherName: sql<string | null>`CASE WHEN ${code.where} OR ${isNamed} THEN NULL ELSE ${typed.otherName} END`,
+        });
+        // "Air force crew chief": the service is not a word of what the work is called. The words beside it are
+        // looked for among that service's careers.
+        const said = saidService(String(search));
+        const rest = said && (!isServiceKey(service) || service === said.service) ? readCareerTerm(said.rest) : '';
+        if (said && rest) {
+          const beside = careerMatch(rest);
+          tries.push({ ...beside, where: sql`(${beside.where}) AND ${militaryCareer(said.service)}` });
+        }
+      } else {
+        tries.push(typed);
+      }
       const plain = withoutLevel(term);
       if (plain) tries.push(careerMatch(plain));
       if (term.length >= 4) tries.push(careerNearMiss(plain ?? term));
@@ -247,6 +278,11 @@ router.get('/:id', async (req: Request, res: Response) => {
     const openJobCount = await countOpenJobs(eq(jobs.occupationId, id));
     // The companies that have their own version of this career.
     const versions = await versionsOfCareer(id, 60);
+    // Reach, computed from the two paths: for a military career the civilian careers its path covers, for a
+    // civilian career the military careers that cover its path. Each is empty on the other kind of page.
+    const [withinReach, reachedBy] = military.service
+      ? [await civilianCareersWithinReach(id), []]
+      : [[], await militaryCareersReaching(id)];
 
     res.json({
       ...occupation,
@@ -260,6 +296,8 @@ router.get('/:id', async (req: Request, res: Response) => {
       // How many are open in all: the page lists the newest few and links to the rest.
       openJobCount,
       versions,
+      withinReach,
+      reachedBy,
       // Where the work is done, by industry. `everywhere` means the career is
       // found in plants of every industry rather than a few.
       industries: ownIndustries.map(({ name, factoryCount }) => ({ name, factoryCount })),

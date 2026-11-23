@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { and, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { db, factories, companies, factoryOccupations, occupations, jobs } from '../db/index.js';
+import { notAnEmployerHere } from '../lib/military.js';
 import { uuidParam, uuidQuery } from '../middleware/validateUuid.js';
 import { factoryInScope } from '../lib/scope.js';
 import { OPEN_JOBS_SHOWN, countOpenJobs, jobIsOpen, listOpenJobs } from '../lib/openJobs.js';
@@ -386,6 +387,13 @@ router.post('/', async (req: Request, res: Response) => {
     }
     if (workforce === false || openings === false) {
       res.status(400).json({ error: 'Workforce and open positions are whole numbers from 0 up.' });
+      return;
+    }
+
+    // A military service has no plants: the map is where work is done, and a plant is a manufacturer's.
+    const [runBy] = await db.select({ name: companies.name, service: companies.service }).from(companies).where(eq(companies.id, companyId)).limit(1);
+    if (runBy?.service) {
+      res.status(400).json({ error: notAnEmployerHere(runBy.name), field: 'company' });
       return;
     }
 

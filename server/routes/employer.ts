@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { db, companies, companyMembers, factories, jobs } from '../db/index.js';
+import { isService, notAnEmployerHere } from '../lib/military.js';
 import { handle, requireUser } from '../lib/auth.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { isUuid } from '../lib/writes.js';
@@ -127,6 +128,8 @@ router.post(
     }
     const [company] = await db.select({ id: companies.id, name: companies.name }).from(companies).where(eq(companies.id, companyId)).limit(1);
     if (!company) return res.status(404).json({ error: 'Company not found' });
+    // A military service is not joined: it posts no jobs here.
+    if (await isService(db, company.id)) return res.status(400).json({ error: notAnEmployerHere(company.name) });
 
     const mine = and(eq(companyMembers.companyId, companyId), eq(companyMembers.userId, user.id));
     const status = user.isAdmin ? 'active' : 'requested';

@@ -1,5 +1,6 @@
 import { and, eq, sql, type SQL } from 'drizzle-orm';
 import { db, companies, companyCareers, companyMembers, jobs, occupations } from '../db/index.js';
+import { isService, notAnEmployerHere } from './military.js';
 import { recordAudit, type Executor } from './audit.js';
 import type { SessionUser } from './auth.js';
 import { listOpenJobs } from './openJobs.js';
@@ -338,6 +339,8 @@ export async function addVersion(actor: SessionUser, companyId: string, occupati
   return db.transaction(async (tx) => {
     const [company] = await tx.select({ id: companies.id, name: companies.name }).from(companies).where(eq(companies.id, companyId)).limit(1);
     if (!company) throw new RecordRefusal(404, 'Company not found');
+    // A service's careers are its own: it says nothing of how a civilian career is done.
+    if (await isService(tx, company.id)) throw new RecordRefusal(400, notAnEmployerHere(company.name));
     const [career] = await tx
       .select({ id: occupations.id, title: occupations.title, service: occupations.serviceCompanyId })
       .from(occupations)

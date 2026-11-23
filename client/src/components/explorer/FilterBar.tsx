@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import { US_STATES, type StateCode } from '@shared/states';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
 import { industryLabel } from '@shared/industry';
+import { CODE_SYSTEMS, serviceShortName, type ServiceKey } from '@shared/military';
 import { cn, focusRing } from '@/lib/utils';
 import type { BrowseTab } from './ExploreNav';
 
@@ -52,7 +53,18 @@ export interface FilterState {
   /** Skills: a domain's slug, and the slug of one of its groups. Careers: the slug of their home domain. */
   domain?: string;
   group?: string;
+  /** Careers: the military careers in place of the civilian ones, all of them or one service's. */
+  military?: MilitaryChoice;
 }
+
+/** What the Careers list's Military filter is set to: every military career, or one service's. */
+export type MilitaryChoice = 'all' | ServiceKey;
+
+/** The services that have careers to list: the ones with a code system. */
+const MILITARY_OPTIONS: { value: MilitaryChoice; label: string }[] = [
+  { value: 'all', label: 'Military' },
+  ...CODE_SYSTEMS.map((system) => ({ value: system.service, label: serviceShortName(system.service) ?? system.service })),
+];
 
 /** A domain a list can be narrowed to, in the taxonomy's order: for Skills with its groups, for Careers alone. */
 export interface DomainChoice {
@@ -158,11 +170,23 @@ export default function FilterBar({
     [domains, filters.domain]
   );
 
+  // A service that has no careers yet is not offered, but an address may name it (`?service=marine-corps`): the
+  // filter then says so, as the count under it does.
+  const militaryOptions = useMemo(
+    () =>
+      filters.military && !MILITARY_OPTIONS.some((option) => option.value === filters.military)
+        ? [...MILITARY_OPTIONS, { value: filters.military, label: serviceShortName(filters.military) ?? filters.military }]
+        : MILITARY_OPTIONS,
+    [filters.military]
+  );
+
   const showState = activeTab === 'factories';
   const showIndustry = (activeTab === 'companies' || activeTab === 'factories') && industryOptions.length > 0;
   const showDomain = (activeTab === 'skills' || activeTab === 'occupations') && domainOptions.length > 0;
   const showGroup = activeTab === 'skills' && showDomain && groupOptions.length > 0;
-  const filtered = Boolean(filters.state || filters.industry || filters.domain || filters.group);
+  // The Careers list is of civilian careers until it is asked for the military ones, all or one service's.
+  const showMilitary = activeTab === 'occupations';
+  const filtered = Boolean(filters.state || filters.industry || filters.domain || filters.group || filters.military);
 
   return (
     <div className="mt-2 flex flex-wrap items-center justify-between gap-x-6 sm:mt-4">
@@ -184,6 +208,17 @@ export default function FilterBar({
             options={industryOptions}
             onChange={(value) => onFilterChange({ ...filters, industry: value })}
             allLabel="All industries"
+          />
+        )}
+        {showMilitary && (
+          <Choice
+            label="Careers"
+            value={filters.military}
+            options={militaryOptions}
+            // The two lists have different homes: a domain chosen for one is not kept for the other.
+            onChange={(value) => onFilterChange({ ...filters, military: value as MilitaryChoice | undefined, domain: undefined })}
+            // One word each, so that on a phone the filters and the sort still share a line.
+            allLabel="Civilian"
           />
         )}
         {showDomain && (

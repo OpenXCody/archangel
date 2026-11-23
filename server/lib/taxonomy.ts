@@ -99,6 +99,8 @@ export interface TaxonomySkill {
   level: SkillLevel;
   /** How many careers use it: civilian careers, as every such figure is. */
   careers: number;
+  /** How many military careers use it: said only for a skill no civilian career uses. */
+  militaryCareers: number;
   /** Its makes by name, in the order they are shown: the leaves beyond the skill. Empty for most skills. */
   makes: string[];
 }
@@ -127,7 +129,8 @@ export async function readTaxonomy(): Promise<Taxonomy> {
     db.select().from(skillGroups).orderBy(skillGroups.position, skillGroups.slug),
     db.execute(sql`
       SELECT s.id, s.name, s.level, s.group_slug,
-             (SELECT COUNT(*)::int FROM occupation_skills os WHERE os.skill_id = s.id AND ${civilianPathLine('os')}) AS careers
+             (SELECT COUNT(*)::int FROM occupation_skills os WHERE os.skill_id = s.id AND ${civilianPathLine('os')}) AS careers,
+             (SELECT COUNT(*)::int FROM occupation_skills os WHERE os.skill_id = s.id AND NOT ${civilianPathLine('os')}) AS military_careers
       FROM skills s
       WHERE s.group_slug IS NOT NULL AND s.level IS NOT NULL
       ORDER BY s.level, s.group_position NULLS LAST, s.name
@@ -146,7 +149,7 @@ export async function readTaxonomy(): Promise<Taxonomy> {
     const level = Number(row.level);
     if (!isSkillLevel(level)) continue;
     const id = String(row.id);
-    groups.get(String(row.group_slug))?.skills.push({ id, name: String(row.name), level, careers: Number(row.careers) || 0, makes: makes.get(id) ?? [] });
+    groups.get(String(row.group_slug))?.skills.push({ id, name: String(row.name), level, careers: Number(row.careers) || 0, militaryCareers: Number(row.military_careers) || 0, makes: makes.get(id) ?? [] });
   }
   return { levels: SKILL_LEVELS.map(({ id, name }) => ({ id, name })), domains: [...domains.values()] };
 }
