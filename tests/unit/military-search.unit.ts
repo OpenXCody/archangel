@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { reaches } from '../../scripts/build-military-sql.mjs';
 import { isPlainCode, kindLine, namedCareers, namedService, namesCareer, namesForSure, readMilitaryQuery, saidService, careerKind, type NameableCareer } from '../../shared/military';
-import { REACH_MIN_PATH, byReach, reached, withinReach } from '../../shared/reach';
+import { REACH_MIN_PATH, byReach, reachOrClosest, reached, withinReach } from '../../shared/reach';
 import { US_STATES } from '../../shared/states';
 
 interface FileCareer {
@@ -291,6 +291,22 @@ test('within reach: a third of a path of five skills or more', () => {
   assert.equal(withinReach(2, 5), true);
   assert.equal(withinReach(0, 5), false);
   assert.equal(withinReach(0, 0), false);
+});
+
+test('Profile says "within reach" by the same rule, and lists the closest careers when none is', () => {
+  const closest = [
+    { title: 'Maintenance Technician', held: 6, total: 22 },
+    { title: 'Robotics Technician', held: 4, total: 15 },
+    { title: 'Laser Technician', held: 3, total: 14 },
+  ];
+  // A rating that reaches nothing by a third: the same careers, said to be the closest and not within reach.
+  assert.deepEqual(reachOrClosest(closest), { within: false, careers: closest });
+  // With some within reach, only those, in the order given.
+  const mixed = [{ title: 'MIG Welder', held: 10, total: 14 }, closest[0], { title: 'Welder', held: 12, total: 19 }, closest[1]];
+  assert.deepEqual(reachOrClosest(mixed), { within: true, careers: [mixed[0], mixed[2]] });
+  assert.deepEqual(reachOrClosest([]), { within: false, careers: [] });
+  // Whatever is listed as within reach passes the rule the two pages' sections are held to.
+  assert.ok(reachOrClosest(mixed).careers.every((career) => withinReach(career.held, career.total)));
 });
 
 test('reach is listed by the share held, then the skills held, then the title', () => {

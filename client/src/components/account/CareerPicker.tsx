@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -33,16 +33,43 @@ interface CareerPickerProps {
    * person starts from what they have done asks for them.
    */
   military?: boolean;
+  /**
+   * Open the list above the field when there is not room for it under the field and more above: for a
+   * picker that stands at the end of a page, whose list would otherwise open below the screen.
+   */
+  flip?: boolean;
 }
 
 /** How many careers the list offers at once. */
 const SHOWN = 8;
 
+/** The most room the list takes (Tailwind's max-h-72), with its margin, and the least it is worth opening in. */
+const LIST_ROOM = 296;
+const LIST_LEAST = 120;
+
+/**
+ * Where a list that may open above its field goes: under it while it fits there, or when there is no more
+ * room above; otherwise above it, no taller than the room there. Read against what is on screen, which on a
+ * phone ends where the keyboard begins.
+ */
+function listPlace(field: HTMLElement): { above: boolean; room: number } {
+  const box = field.getBoundingClientRect();
+  const view = window.visualViewport;
+  const top = view?.offsetTop ?? 0;
+  const bottom = top + (view?.height ?? window.innerHeight);
+  // The page's header stands over the top of the screen.
+  const header = document.querySelector('header')?.getBoundingClientRect().bottom ?? 0;
+  const under = bottom - box.bottom;
+  const over = box.top - Math.max(top, header);
+  const above = under < LIST_ROOM && over > under;
+  return { above, room: Math.max(LIST_LEAST, Math.min(LIST_ROOM, above ? over : under) - 8) };
+}
+
 /**
  * Pick one career by searching the catalogue. A combobox: type to search,
  * arrow keys to move, Enter to choose, Escape to close.
  */
-export default function CareerPicker({ id, value, onChange, suggestions = [], suggestionsLabel, disabled, military = false }: CareerPickerProps) {
+export default function CareerPicker({ id, value, onChange, suggestions = [], suggestionsLabel, disabled, military = false, flip = false }: CareerPickerProps) {
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const changeRef = useRef<HTMLButtonElement>(null);
@@ -52,6 +79,8 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
   const [term, setTerm] = useState('');
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  // Where the list opens, for a picker that may open it above the field (`flip`); null is under it, as ever.
+  const [place, setPlace] = useState<{ above: boolean; room: number } | null>(null);
   const query = useDebouncedValue(term.trim());
   const searching = term.trim().length >= 2;
 
@@ -76,6 +105,23 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
       }))
     : suggestions;
   const CareerIcon = KIND_ICON.career;
+
+  const showList = open && !disabled && (searching || options.length > 0);
+  // Measured when the list opens and as it fills: by then a phone's keyboard has taken its part of the screen.
+  const optionCount = options.length;
+  useLayoutEffect(() => {
+    if (!flip || !showList || !inputRef.current) return;
+    const field = inputRef.current;
+    const measure = () => {
+      const next = listPlace(field);
+      setPlace((current) => (current && current.above === next.above && current.room === next.room ? current : next));
+    };
+    measure();
+    const view = window.visualViewport;
+    view?.addEventListener('resize', measure);
+    return () => view?.removeEventListener('resize', measure);
+  }, [flip, showList, optionCount, waiting]);
+  const above = flip && place?.above;
 
   const pickedId = value?.id;
   useEffect(() => {
@@ -134,7 +180,6 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
     );
   }
 
-  const showList = open && !disabled && (searching || options.length > 0);
 
   return (
     <div
@@ -170,7 +215,12 @@ export default function CareerPicker({ id, value, onChange, suggestions = [], su
 
       {showList && (
         <div
-          className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-line-strong bg-surface p-1"
+          className={cn(
+            'absolute inset-x-0 z-30 max-h-72 overflow-y-auto rounded-lg border border-line-strong bg-surface p-1',
+            above ? 'bottom-full mb-1' : 'top-full mt-1'
+          )}
+          style={flip && place ? { maxHeight: place.room } : undefined}
+          data-career-list={above ? 'above' : 'under'}
         >
           {!searching && suggestionsLabel && options.length > 0 && (
             <p className="px-2.5 pb-1 pt-1.5 text-xs text-text-3">{suggestionsLabel}</p>

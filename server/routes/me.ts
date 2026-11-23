@@ -5,7 +5,6 @@ import {
   users,
   skills,
   occupations,
-  occupationSkills,
   userSkills,
   userGoals,
   applications,
@@ -14,7 +13,7 @@ import {
   factories,
 } from '../db/index.js';
 import { cleanText, clearAttempts, endSession, handle, requireUser, tooManyAttempts, verifyPassword } from '../lib/auth.js';
-import { civilianCareer } from '../lib/military.js';
+import { civilianCareer, isMilitaryCareer } from '../lib/military.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { newsFor } from '../lib/notices.js';
 import { hasCompanyTie, isPurpose, purposeFrom, type Purpose } from '../lib/purpose.js';
@@ -388,7 +387,10 @@ router.delete(
 // are in /goals). `held` counts held skills only, so it is the same figure as
 // the career page's "You have N of M". A skill being learned is not held: it
 // stays in `next`, and counts as half a skill for the order alone. Each career
-// carries `openJobs`, how many jobs are open for it.
+// carries `openJobs`, how many jobs are open for it. These are the closest
+// careers, whatever share is held: Profile says "Within reach" only of those
+// that pass the one rule (`withinReach` in shared/reach.ts), and lists the rest
+// as the closest careers when none does.
 router.get(
   '/careers/reach',
   handle(async (req, res) => {
@@ -415,7 +417,10 @@ router.get(
           AND o.path_status IS NOT NULL AND ${civilianCareer('o')}
         GROUP BY o.id, o.title
         HAVING COUNT(*) >= ${REACH_MIN_PATH}
-        ORDER BY (COUNT(*) FILTER (WHERE m.status = 'held') + 0.5 * COUNT(*) FILTER (WHERE m.status = 'learning')) / COUNT(*) DESC,
+        -- The careers within reach by the rule (a third of the path held: shared/reach.ts) are never cut off by
+        -- the limit in favour of ones that are only being learned toward.
+        ORDER BY (COUNT(*) FILTER (WHERE m.status = 'held') * 3 >= COUNT(*)) DESC,
+                 (COUNT(*) FILTER (WHERE m.status = 'held') + 0.5 * COUNT(*) FILTER (WHERE m.status = 'learning')) / COUNT(*) DESC,
                  COUNT(*) FILTER (WHERE m.status = 'held') DESC, o.title ASC
         LIMIT ${REACH_LIMIT}
       )
@@ -452,13 +457,17 @@ router.post(
   handle(async (req, res) => {
     const userId = req.user!.id;
     const [career] = await db
-      .select({ id: occupations.id, title: occupations.title, service: occupations.serviceCompanyId })
+      .select({ id: occupations.id, title: occupations.title })
       .from(occupations)
       .where(eq(occupations.id, req.params.occupationId))
       .limit(1);
     if (!career) return res.status(404).json({ error: 'Career not found' });
-    if (!career.service) return res.status(400).json({ error: 'Only a military career is marked as done. Mark the skills you hold on the career\'s path.' });
-    const changed = rowsOf(
+    if (!(await isMilitaryCareer(db, career.id))) {
+      return res.status(400).json({ error: 'Only a military career is marked as done. Mark the skills you hold on the career\'s path.' });
+    }
+    // One statement: the write, what it changed and the path's size. Nothing can fail between the skills being
+    // marked and the answer that Undo needs.
+    const [answer] = rowsOf(
       await db.execute(sql`
         WITH path AS (SELECT skill_id FROM occupation_skills WHERE occupation_id = ${career.id}),
         before AS (
@@ -470,20 +479,21 @@ router.post(
           ON CONFLICT (user_id, skill_id) DO UPDATE SET status = 'held', updated_at = now() WHERE user_skills.status <> 'held'
           RETURNING skill_id
         )
-        SELECT w.skill_id, b.status AS was, now()::timestamp::text AS at FROM written w LEFT JOIN before b ON b.skill_id = w.skill_id
+        SELECT (SELECT COUNT(*)::int FROM path) AS total,
+               now()::timestamp::text AS at,
+               COALESCE((SELECT json_agg(w.skill_id) FROM written w WHERE NOT EXISTS (SELECT 1 FROM before b WHERE b.skill_id = w.skill_id)), '[]'::json) AS added,
+               COALESCE((SELECT json_agg(w.skill_id) FROM written w WHERE EXISTS (SELECT 1 FROM before b WHERE b.skill_id = w.skill_id)), '[]'::json) AS raised
       `)
     );
-    const [path] = await db
-      .select({ total: sql<number>`COUNT(*)::int` })
-      .from(occupationSkills)
-      .where(eq(occupationSkills.occupationId, career.id));
+    const added = (answer.added as string[]).map(String);
+    const raised = (answer.raised as string[]).map(String);
     res.json({
       occupationId: career.id,
       title: career.title,
-      added: changed.filter((row) => row.was === null).map((row) => String(row.skill_id)),
-      raised: changed.filter((row) => row.was !== null).map((row) => String(row.skill_id)),
-      at: changed.length > 0 ? String(changed[0].at) : null,
-      total: path?.total ?? 0,
+      added,
+      raised,
+      at: added.length + raised.length > 0 ? String(answer.at) : null,
+      total: Number(answer.total) || 0,
     });
   })
 );
@@ -493,7 +503,8 @@ router.post(
 // the skills it added leave the person's list and the ones it raised go back
 // to learning. Only a row that write itself stamped (`at`) is touched, so a
 // skill the person held before, or has marked again since, stays as it is
-// whatever the lists say.
+// whatever the lists say; so does an added skill they have since marked a
+// make on.
 router.post(
   '/careers/:occupationId/held/undo',
   handle(async (req, res) => {
@@ -504,13 +515,19 @@ router.post(
     const raised = ids(req.body?.raised ?? []);
     if (!added || !raised) return res.status(400).json({ error: 'added and raised are lists of skill ids.' });
     const at: unknown = req.body?.at;
-    if (typeof at !== 'string' || !/^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d(\.\d{1,6})?$/.test(at)) {
+    // A moment as that answer wrote it, and one that exists: "2026-13-45 99:99:99" has the shape and is none.
+    if (typeof at !== 'string' || !/^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d(\.\d{1,6})?$/.test(at) || !isMoment(at)) {
       return res.status(400).json({ error: 'at is the moment the skills were marked, as that answer gave it.' });
     }
     const onPath = sql`${userSkills.skillId} IN (SELECT os.skill_id FROM occupation_skills os WHERE os.occupation_id = ${req.params.occupationId})`;
     const stillHeld = and(eq(userSkills.userId, userId), eq(userSkills.status, 'held'), onPath, sql`${userSkills.updatedAt} = ${at}::timestamp`);
     const removed = await db.transaction(async (tx) => {
-      const gone = added.length > 0 ? await tx.delete(userSkills).where(and(stillHeld, inArray(userSkills.skillId, added))).returning({ skillId: userSkills.skillId }) : [];
+      // A skill the person has since marked a make on is theirs by their own hand: it stays, with its makes.
+      const noMakes = sql`NOT EXISTS (SELECT 1 FROM user_skill_makes usm WHERE usm.user_id = ${userId} AND usm.skill_id = ${userSkills.skillId})`;
+      const gone =
+        added.length > 0
+          ? await tx.delete(userSkills).where(and(stillHeld, noMakes, inArray(userSkills.skillId, added))).returning({ skillId: userSkills.skillId })
+          : [];
       const back =
         raised.length > 0
           ? await tx
@@ -524,6 +541,21 @@ router.post(
     res.json({ occupationId: req.params.occupationId, ...removed });
   })
 );
+
+/** Whether a timestamp of the right shape is a moment that exists. */
+function isMoment(at: string): boolean {
+  const [, year, month, day, hour, minute, second] = /^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)/.exec(at)!.map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  return (
+    year >= 2000 &&
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day &&
+    date.getUTCHours() === hour &&
+    date.getUTCMinutes() === minute &&
+    date.getUTCSeconds() === second
+  );
+}
 
 /** One step in an application's history. */
 interface ApplicationEvent {

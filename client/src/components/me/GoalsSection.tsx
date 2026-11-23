@@ -30,6 +30,7 @@ import { useAtlasLayout } from '../atlas/useAtlasLayout';
 import { ShareRing } from '../path/HeldShare';
 import { SkillsLine } from '../path/SkillsLine';
 import { accountKeys } from '../../lib/queryKeys';
+import { reachOrClosest } from '@shared/reach';
 import { linkClass, RemovedRow } from './parts';
 
 export default function GoalsSection() {
@@ -170,9 +171,11 @@ function NextSkills({ next, className }: { next: NextSkill[]; className?: string
 const REACH_SHOWN = 4;
 
 /**
- * Careers the person's held skills already cover part of, closest first.
- * Renders nothing until there is something to show: a person with no held
- * skills sees no heading and no placeholder.
+ * Careers the person's held skills already cover a third of, closest first:
+ * the same rule a military career's page lists civilian careers by. With none
+ * that near, the closest careers under their own heading. Renders nothing
+ * until there is something to show: a person with no held skills sees no
+ * heading and no placeholder.
  */
 function CareersInReach() {
   const reach = useCareersInReach();
@@ -187,11 +190,14 @@ function CareersInReach() {
     );
   }
   if (!reach.data || reach.data.length === 0) return null;
-  const careers = showAll ? reach.data : reach.data.slice(0, REACH_SHOWN);
+  // "Within reach" means one thing wherever it is said: a third of a path of five skills or more (shared/reach.ts).
+  // A person whose skills reach no career yet is shown the closest ones, under those words.
+  const listed = reachOrClosest(reach.data);
+  const careers = showAll ? listed.careers : listed.careers.slice(0, REACH_SHOWN);
 
   return (
-    <div className="mt-8" data-careers-in-reach>
-      <h3 className="mb-2 text-sm font-medium text-text-2">Within reach</h3>
+    <div className="mt-8" data-careers-in-reach={listed.within ? 'within' : 'closest'}>
+      <h3 className="mb-2 text-sm font-medium text-text-2">{listed.within ? 'Within reach' : 'Closest careers'}</h3>
       <ul className={cardClass}>
         {careers.map((career) => (
           <li key={career.id} className={cn(rowClass, 'py-3')}>
@@ -217,7 +223,7 @@ function CareersInReach() {
           </li>
         ))}
       </ul>
-      {!showAll && reach.data.length > REACH_SHOWN && (
+      {!showAll && listed.careers.length > REACH_SHOWN && (
         <button type="button" onClick={() => setShowAll(true)} className={cn(textButtonClass, 'mt-3')}>
           Show all
         </button>

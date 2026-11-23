@@ -372,6 +372,7 @@ FORGED=$(printf '%s' "$UNDO" | node -e "let s='';process.stdin.on('data',d=>s+=d
 check "an Undo that names skills held before"       200 "$(req d POST /me/careers/$HT/held/undo "$FORGED")" '"removed":0'
 check "an Undo without the moment of the write"     400 "$(req d POST /me/careers/$HT/held/undo '{"added":[],"raised":[]}')"
 check "an Undo with a list that is not ids"         400 "$(req d POST /me/careers/$HT/held/undo '{"at":"2026-01-01 00:00:00","added":["x"],"raised":[]}')"
+check "an Undo with a moment that is none"          400 "$(req d POST /me/careers/$HT/held/undo "{\"at\":\"2026-13-45 99:99:99\",\"added\":[\"$MIG\"],\"raised\":[]}")" 'at is the moment'
 check "Undo"                                        200 "$(req d POST /me/careers/$HT/held/undo "$UNDO")" "\"removed\":$((PATH_SIZE - 2)),\"lowered\":1"
 expect "takes back exactly what the tap added: the three from before are left" "held|learning|held" "$(req d GET /me/skills | j "skills.length === 3 && ['$MIG', '$TIG', '$OTHER'].map((id) => o.skills.find((s) => s.skillId === id).status).join('|')")"
 check "a second Undo finds nothing to take back"    200 "$(req d POST /me/careers/$HT/held/undo "$UNDO")" '"removed":0,"lowered":0'
@@ -382,6 +383,16 @@ req d PUT /me/skills/$KEPT '{"status":"held"}' > /dev/null
 UNDO=$(printf '%s' "$DONE" | sed '$d' | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s);console.log(JSON.stringify({at:o.at,added:o.added,raised:o.raised}))})")
 check "Undo after one was marked again by hand"     200 "$(req d POST /me/careers/$HT/held/undo "$UNDO")" "\"removed\":$((PATH_SIZE - 3)),\"lowered\":1"
 expect "leaves that one held"                       "held 4" "$(req d GET /me/skills | j "skills.find((s) => s.skillId === '$KEPT').status + ' ' + o.skills.length")"
+# A make marked on a skill the tap added is the person's own hand on it too: Undo leaves the skill, with its make.
+MADE=$(sql "SELECT o.id || ' ' || sm.skill_id || ' ' || sm.id FROM skill_makes sm INNER JOIN occupation_skills os ON os.skill_id = sm.skill_id INNER JOIN occupations o ON o.id = os.occupation_id WHERE o.service_company_id IS NOT NULL AND sm.skill_id NOT IN (SELECT us.skill_id FROM user_skills us INNER JOIN users u ON u.id = us.user_id WHERE u.email = 'door-$RUN@military.test') ORDER BY o.title, sm.name LIMIT 1")
+MAKE_CAREER=${MADE%% *}; MAKE=${MADE##* }; MAKE_SKILL=${MADE#* }; MAKE_SKILL=${MAKE_SKILL% *}
+DONE=$(req d POST /me/careers/$MAKE_CAREER/held)
+ADDED=$(printf '%s' "$DONE" | j added.length)
+expect "the tap added the skill that has makes"     true "$(printf '%s' "$DONE" | j "added.includes('$MAKE_SKILL')")"
+check "a make is marked on it"                      200 "$(req d PUT /me/skills/$MAKE_SKILL/makes "{\"makes\":[\"$MAKE\"]}")"
+UNDO=$(printf '%s' "$DONE" | sed '$d' | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s);console.log(JSON.stringify({at:o.at,added:o.added,raised:o.raised}))})")
+check "Undo after a make was marked"                200 "$(req d POST /me/careers/$MAKE_CAREER/held/undo "$UNDO")" "\"removed\":$((ADDED - 1)),"
+expect "leaves that skill held, with its make"      "held $MAKE" "$(req d GET /me/skills | j "skills.filter((s) => s.skillId === '$MAKE_SKILL').map((s) => s.status + ' ' + (s.makes || []).map((m) => m.id || m).join(','))[0]")"
 
 # --- The loader, on rows as production might hold them --------------------------------
 cat > "$D/employers.json" <<'JSON'

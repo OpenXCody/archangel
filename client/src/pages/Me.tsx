@@ -24,7 +24,7 @@ import ApplicationsSection from '../components/me/ApplicationsSection';
 import GoalsSection from '../components/me/GoalsSection';
 import SkillsSection from '../components/me/SkillsSection';
 import { linkClass } from '../components/me/parts';
-import { DoneNotice, ServiceDoorSection, useServiceDoor, type Door } from '../components/me/ServiceDoor';
+import { DoorNotice, ServiceDoorSection, useServiceDoor, type Door } from '../components/me/ServiceDoor';
 
 export default function Me() {
   return <AccountGate>{(account) => <MyPage account={account} />}</AccountGate>;
@@ -84,7 +84,7 @@ function MyPage({ account }: { account: SignedInAccount }) {
       ) : (
         <>
           {/* A tap on the starting page filled this one: what it did is said first, with the way back. */}
-          {door.done?.from === 'start' && <DoneNotice done={door.done} onUndo={door.undo} undoing={door.undoing} className="-mt-2 mb-6" />}
+          <DoorNotice door={door} place="start" className="-mt-2 mb-6" />
           {/* Only when there is one to follow (or the list could not be read). */}
           {(applications.isError || (applications.data?.length ?? 0) > 0) && <ApplicationsSection email={user.email} />}
           <GoalsSection />

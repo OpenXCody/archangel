@@ -3,7 +3,10 @@
  * arithmetic over paths, never a stored link: a person's held skills against a
  * career (Profile's "Within reach"), and a military career's path against a
  * civilian career's ("Civilian careers within reach" on the one page, "Military
- * careers that reach this" on the other). One rule decides what is listed.
+ * careers that reach this" on the other). One rule, `withinReach`, decides what
+ * those words are said of, wherever they are said. Profile also has something
+ * to show a person whose skills reach no career yet: the closest ones, which
+ * it calls that (`reachOrClosest`).
  */
 
 /** A path shorter than this says too little to rank a career by. */
@@ -34,4 +37,15 @@ export function byReach(a: Reach, b: Reach): number {
 /** The careers of a list that are within reach, closest first. */
 export function reached<T extends Reach>(careers: readonly T[]): T[] {
   return careers.filter((career) => withinReach(career.held, career.total)).sort(byReach);
+}
+
+/**
+ * What Profile lists from the careers closest to a person's skills (each with
+ * at least one of them held): the ones within reach, in the order given; and
+ * when none is, the closest as they are, which the page then heads "Closest
+ * careers". The words "within reach" are never said of a career under the rule.
+ */
+export function reachOrClosest<T extends { held: number; total: number }>(careers: readonly T[]): { within: boolean; careers: T[] } {
+  const within = careers.filter((career) => withinReach(career.held, career.total));
+  return within.length > 0 ? { within: true, careers: within } : { within: false, careers: [...careers] };
 }

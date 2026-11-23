@@ -1815,7 +1815,7 @@ test('military careers stay out of the lists until asked for: the Careers filter
   // Letters alone lead nothing: where companies' names begin with them, a company is the first row, which Enter takes.
   await dialog.getByRole('combobox').fill('ame');
   await expect(dialog.getByRole('option').filter({ hasText: 'Navy rating · AME' })).toBeVisible();
-  await expect(dialog.getByRole('option').first()).toContainText(/^Ame/);
+  await expect(dialog.getByRole('option').first()).toContainText('American');
   await expect(dialog.getByRole('option').first()).not.toContainText(KIND_LINE);
   // A code that can be nothing else leads.
   await dialog.getByRole('combobox').fill('15T');
@@ -1891,14 +1891,43 @@ test('Profile\'s second door: a seeker starts with what they have done, and take
     await expect(reach.locator('li').first()).toBeVisible();
     await expect(reach).toContainText(/Welder/);
     await expect(reach.locator('li').filter({ hasText: SERVICE_TITLE })).toHaveCount(0);
+    // "Within reach" is said by the rule the rating's own page lists civilian careers by: a third of the path, no less.
+    await expect(reach.getByRole('heading', { name: 'Within reach' })).toBeVisible();
+    for (const figure of await reach.locator('li [aria-label$="skills held"]').allInnerTexts()) {
+      const [held, total] = figure.split(' of ').map(Number);
+      expect(held * 3, `${figure} is a third or more`).toBeGreaterThanOrEqual(total);
+    }
     await expect(page.locator('[data-goal]')).toHaveCount(0);
     expect(((await (await page.request.get(`${API}/me/goals`)).json()) as { goals: unknown[] }).goals.length).toBe(0);
     await notice.scrollIntoViewIfNeeded();
     await assertHealthyLayout(page, '/me after the door');
-    // Undo takes all of it back: the page is the two doors again.
-    await notice.getByRole('button', { name: 'Undo' }).click();
+    // The keyboard is on Undo: the field the career was chosen in is gone. When Undo cannot be done it says so beside itself.
+    await expect(notice.getByRole('button', { name: 'Undo' })).toBeFocused();
+    await page.route('**/api/me/careers/*/held/undo', (route) => route.fulfill({ status: 500, json: { error: 'Internal Server Error' } }));
+    await page.keyboard.press('Enter');
+    const problem = page.getByRole('alert').first();
+    await expect(problem).toBeVisible();
+    const gap = ((await problem.boundingBox())?.y ?? Infinity) - ((await notice.boundingBox())?.y ?? 0);
+    expect(gap, 'the problem is said under the notice, not at the end of the page').toBeLessThan(120);
+    await page.unroute('**/api/me/careers/*/held/undo');
+    // Undo takes all of it back: the page is the two doors again, and the keyboard is in the door it came from.
+    await page.keyboard.press('Enter');
     await expect(first).toBeVisible();
+    await expect(search).toBeFocused();
     expect((await mySkills()).length, 'nothing is left').toBe(0);
+
+    // A rating that reaches no civilian career by a third: Profile says what it lists, the closest careers.
+    const none = await militaryCareer(request, '91B');
+    const noneRecord = (await (await request.get(`${API}/occupations/${none.id}`)).json()) as { withinReach: unknown[] };
+    if (noneRecord.withinReach.length === 0) {
+      await search.fill('91B10');
+      await page.getByRole('option', { name: /Wheeled Vehicle Mechanic/ }).click();
+      await expect(reach.locator('li').first()).toBeVisible();
+      await expect(reach.getByRole('heading', { name: 'Closest careers' })).toBeVisible();
+      await expect(reach.getByRole('heading', { name: 'Within reach' })).toHaveCount(0);
+      await page.locator('[data-done-notice]').getByRole('button', { name: 'Undo' }).click();
+      await expect(first).toBeVisible();
+    }
 
     // On a Profile that has something: one line at the end of Skills, under everything else.
     const own = ((await (await request.get(`${API}/skills?limit=1`)).json()) as { data: { id: string }[] }).data[0];
@@ -1911,20 +1940,53 @@ test('Profile\'s second door: a seeker starts with what they have done, and take
     expect(await below('Goals'), 'it is under Goals').toBe(true);
     expect(await below('Skills'), 'and under Skills').toBe(true);
     expect((await open.boundingBox())?.y ?? 0, 'and under the person\'s own skills').toBeGreaterThan((await page.locator('[data-my-skills]').boundingBox())?.y ?? Infinity);
+    // The line is the last thing on the page, so it is pressed with the page at its end: the careers it finds are
+    // listed on the screen, not under it.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await open.click();
     await expect(search).toBeFocused();
     await search.fill('navy hull');
-    await page.getByRole('option', { name: /Navy Hull Maintenance Technician/ }).click();
+    const found = page.getByRole('option', { name: /Navy Hull Maintenance Technician/ });
+    await expect(found).toBeVisible();
+    const screen = page.viewportSize()?.height ?? 0;
+    const place = await found.boundingBox();
+    expect(place?.y ?? -1, 'the option is on the screen').toBeGreaterThanOrEqual(0);
+    expect((place?.y ?? 0) + (place?.height ?? 0), 'all of it').toBeLessThanOrEqual(screen);
+    await page.keyboard.press('Enter');
     // The skill held before is not counted, and is not taken back.
-    await expect(line.locator('[data-done-notice]')).toContainText(/Marked \d+ skills held\./);
+    const said = line.locator('[data-done-notice]');
+    await expect(said).toContainText(/Marked \d+ skills held\./);
     const added = (await mySkills()).length - 1;
-    await expect(line.locator('[data-done-notice]')).toContainText(`Marked ${added} skills held.`);
+    await expect(said).toContainText(`Marked ${added} skills held.`);
+    await expect(line.getByRole('button', { name: 'Undo' })).toBeFocused();
     await line.scrollIntoViewIfNeeded();
     await assertHealthyLayout(page, '/me the door at the end of Skills');
-    await line.getByRole('button', { name: 'Undo' }).click();
-    await expect(line.locator('[data-done-notice]')).toHaveCount(0);
+    // A second rating keeps the first one's Undo: each tap is taken back by itself, the latest first.
+    await open.click();
+    await search.fill('SW');
+    await page.getByRole('option', { name: /Navy Steelworker/ }).click();
+    await expect(said).not.toContainText(`Marked ${added} skills held.`);
+    const more = (await mySkills()).length - 1 - added;
+    expect(more, "the second rating added skills of its own").toBeGreaterThan(0);
+    await expect(said).toContainText(`Marked ${more} ${more === 1 ? "skill" : "skills"} held.`);
+    await expect(line.getByRole('button', { name: 'Undo' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(said).toContainText(`Marked ${added} skills held.`);
+    await expect.poll(async () => (await mySkills()).length, { message: 'the second tap is taken back, the first stands' }).toBe(added + 1);
+    await expect(line.getByRole('button', { name: 'Undo' })).toBeFocused();
+    // The same rating again changes nothing, says so, and costs the first tap nothing.
+    await open.click();
+    await search.fill('HT');
+    await page.getByRole('option', { name: /Navy Hull Maintenance Technician/ }).click();
+    await expect(line.locator('[data-done-nothing]')).toContainText(`You already hold all ${ht.skillCount} skills of its path.`);
+    await expect(open).toBeFocused();
+    await expect(said).toContainText(`Marked ${added} skills held.`);
+    await line.getByRole('button', { name: 'Undo' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(said).toHaveCount(0);
     await expect.poll(async () => (await mySkills()).map((skill) => skill.skillId), { message: 'only the skill held before is left' }).toEqual([own.id]);
-    await expect(open).toBeVisible();
+    // The keyboard is on the line again, not at the top of the page.
+    await expect(open).toBeFocused();
   } finally {
     expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'seeker: account removed').toBe(true);
   }

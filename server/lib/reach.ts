@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { rowsOf } from './rows.js';
+import { civilianCareer, militaryCareer } from './military.js';
 import { careerKind } from '../../shared/military.js';
 import { reached } from '../../shared/reach.js';
 import { isSkillLevel, type SkillLevel } from '../../shared/skillLevels.js';
@@ -58,7 +59,7 @@ export async function civilianCareersWithinReach(militaryId: string): Promise<Ca
       INNER JOIN occupation_skills cs ON cs.occupation_id = c.id
       INNER JOIN skills s ON s.id = cs.skill_id
       LEFT JOIN occupation_skills mine ON mine.occupation_id = ${militaryId} AND mine.skill_id = cs.skill_id
-      WHERE c.service_company_id IS NULL AND c.path_status IS NOT NULL
+      WHERE ${civilianCareer('c')} AND c.path_status IS NOT NULL
       GROUP BY c.id, c.title
       HAVING COUNT(mine.skill_id) > 0
     `)
@@ -86,9 +87,9 @@ export async function militaryCareersReaching(civilianId: string): Promise<Reach
              COUNT(*)::int AS held,
              (SELECT COUNT(*)::int FROM occupation_skills whole WHERE whole.occupation_id = ${civilianId}) AS total
       FROM occupation_skills cs
-      INNER JOIN occupations c ON c.id = cs.occupation_id AND c.service_company_id IS NULL AND c.path_status IS NOT NULL
+      INNER JOIN occupations c ON c.id = cs.occupation_id AND ${civilianCareer('c')} AND c.path_status IS NOT NULL
       INNER JOIN occupation_skills ms ON ms.skill_id = cs.skill_id
-      INNER JOIN occupations m ON m.id = ms.occupation_id AND m.service_company_id IS NOT NULL
+      INNER JOIN occupations m ON m.id = ms.occupation_id AND ${militaryCareer(null, 'm')}
       WHERE cs.occupation_id = ${civilianId}
       GROUP BY m.id, m.title, m.code, m.code_system
     `)
