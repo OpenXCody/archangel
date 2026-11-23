@@ -133,7 +133,8 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
           </p>
         )}
 
-        <div className="space-y-7" data-job-path={path.of}>
+        {/* A group's skills stand one under another here: two groups share a row, and a column reads down. */}
+        <div className="space-y-7 [&_.skill-group_.skill-tags]:flex-col" data-job-path={path.of}>
           {levels.map((level) => (
             <div key={level.level} data-job-level={level.level}>
               <h3 className={cn(labelClass, 'mb-2 text-[11px]')}>{level.name}</h3>
