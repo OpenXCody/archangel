@@ -52,6 +52,17 @@ export async function mergeRecords(kind: RecordKind, fromId: string, intoId: str
     const into = locked.find((row) => row.id === intoId);
     if (!from) throw new RecordRefusal(404, NOT_FOUND[kind]);
     if (!into) throw new RecordRefusal(404, 'The record to merge into was not found.');
+    // A military career and a civilian one are two things: merged, the goals, jobs, industries and ladder of the
+    // one would become the other's, and a military career has none of them.
+    if (kind === 'career') {
+      const sides = rowsOf<{ id: string; military: boolean }>(
+        await tx.execute(sql`SELECT id, service_company_id IS NOT NULL AS military FROM occupations WHERE id IN (${fromId}, ${intoId})`)
+      );
+      const military = (id: string) => Boolean(sides.find((side) => side.id === id)?.military);
+      if (military(fromId) !== military(intoId)) {
+        throw new RecordRefusal(409, 'A military career and a civilian career are not merged into one another.');
+      }
+    }
     const moved = await attachedTo(tx, kind, fromId);
     let href = `/${kind === 'career' ? 'occupations' : 'skills'}/${intoId}`;
 

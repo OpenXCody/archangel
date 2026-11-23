@@ -10,7 +10,7 @@ import { adminSetFacts, factsOfFields } from './provenance.js';
 import { LADDER_LOCK, MAX_LEADS_TO, findDomain, ladderFrom, leadsTo, setLeadsTo, type CareerRef } from './careers.js';
 import { skillMakes } from '../db/index.js';
 import { MAKES_MAX, MAKE_NAME_MAX, makeName, makesForEditor, makesOf, type Make } from './makes.js';
-import { findService, militaryFacts, NOT_MILITARY, type MilitaryFacts } from './military.js';
+import { findService, isService, militaryFacts, notAnEmployerHere, NOT_MILITARY, type MilitaryFacts } from './military.js';
 import { CODE_SYSTEMS, careerKind, codeSystemOf, isCodeSystem, isServiceKey, serviceShortName } from '../../shared/military.js';
 
 /**
@@ -531,6 +531,8 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
     if (after.companyId !== before.companyId) {
       const moved = await companyName(after.companyId);
       if (!moved) refuse('company', 'That company does not exist.');
+      // A military service has no plants.
+      if (after.companyId && (await isService(tx, after.companyId))) refuse('company', notAnEmployerHere(moved));
       company = [await companyName(before.companyId), moved];
     }
     if (after.primaryNaicsDescription && after.primaryNaicsDescription !== before.primaryNaicsDescription) {
@@ -658,6 +660,14 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
     if (body.home !== undefined && body.home !== null && body.home !== '' && !homeAfter) refuse('home', 'Choose a domain, or none.');
     const militaryBefore = await militaryFacts(tx, before);
     const militaryAfter = serviceGiven ? await careerService(tx, id, militaryBefore, { service: body.service, code, codeSystem: body.codeSystem, officialTitle }) : militaryBefore;
+    // A career that becomes a military one may hold nothing a military career never has: a goal would turn
+    // into a military career on somebody's Profile, a job or an industry into one in the lists.
+    if (militaryAfter.service && !militaryBefore.service) {
+      const ties = await civilianTies(tx, id);
+      if (ties.length > 0) {
+        refuse('service', `A military career is nobody's goal and has no jobs, industries, ladder or companies' versions. This career has ${ties.join(', ')}: take those away first, or add the military career as a new one.`);
+      }
+    }
     const after = {
       title: title ?? before.title,
       description: description === undefined ? before.description : description,
@@ -688,10 +698,19 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
     const ladderBefore = await leadsTo(tx, id);
     let ladderAfter = ladderBefore;
     if (nextIds !== undefined && nextIds.join() !== ladderBefore.map((career) => career.id).join()) {
+      // A military career is on no ladder, at either end: it is where a person comes from, and the civilian
+      // careers within its reach are worked out from its path.
+      if (militaryAfter.service && nextIds.length > 0) refuse('leadsTo', 'A military career is on no ladder. The civilian careers within its reach are worked out from its path.');
       ladderAfter = [];
       for (const nextId of nextIds) {
-        const [next] = await tx.select({ id: occupations.id, title: occupations.title }).from(occupations).where(eq(occupations.id, nextId)).limit(1);
-        if (!next) refuse('leadsTo', 'One of those careers does not exist.');
+        const [found] = await tx
+          .select({ id: occupations.id, title: occupations.title, service: occupations.serviceCompanyId })
+          .from(occupations)
+          .where(eq(occupations.id, nextId))
+          .limit(1);
+        if (!found) refuse('leadsTo', 'One of those careers does not exist.');
+        if (found.service) refuse('leadsTo', `${found.title} is a military career: no career leads to it.`);
+        const next = { id: found.id, title: found.title };
         const back = await ladderFrom(tx, nextId, id);
         if (back) {
           refuse('leadsTo', `${next.title} already leads to ${after.title} (${back.join(' → ')}). A ladder cannot come back to where it started.`);
@@ -719,6 +738,29 @@ async function changeCareer(id: string, body: Body, actor: Actor): Promise<Saved
     await recordAudit(tx, { actor, kind: 'career', recordId: id, recordName: saved.title, action: 'edited', detail: { changes } });
     return answer(saved);
   });
+}
+
+/** What a career holds that a military career never has, in words ("2 goals", "1 job"); empty when it holds none. */
+async function civilianTies(tx: Executor, id: string): Promise<string[]> {
+  const [row] = rowsOf(
+    await tx.execute(sql`
+      SELECT (SELECT COUNT(*)::int FROM user_goals WHERE occupation_id = ${id}) AS goals,
+             (SELECT COUNT(*)::int FROM jobs WHERE occupation_id = ${id}) AS jobs,
+             (SELECT COUNT(*)::int FROM industry_occupations WHERE occupation_id = ${id}) AS industries,
+             (SELECT COUNT(*)::int FROM factory_occupations WHERE occupation_id = ${id}) AS plants,
+             (SELECT COUNT(*)::int FROM occupation_links WHERE from_occupation_id = ${id} OR to_occupation_id = ${id}) AS links,
+             (SELECT COUNT(*)::int FROM company_careers WHERE occupation_id = ${id}) AS versions
+    `)
+  );
+  const said = (count: unknown, one: string, many: string) => (Number(count) > 0 ? [`${Number(count)} ${Number(count) === 1 ? one : many}`] : []);
+  return [
+    ...said(row.goals, 'goal', 'goals'),
+    ...said(row.jobs, 'job', 'jobs'),
+    ...said(row.industries, 'industry', 'industries'),
+    ...said(row.plants, 'plant', 'plants'),
+    ...said(row.links, 'ladder link', 'ladder links'),
+    ...said(row.versions, "company's version", "companies' versions"),
+  ];
 }
 
 /**

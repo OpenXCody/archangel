@@ -111,3 +111,22 @@ export async function careerDomains(): Promise<CareerHome[]> {
     .where(sql`EXISTS (SELECT 1 FROM occupations o WHERE o.home_domain = ${skillDomains.slug} AND ${civilianCareer('o')})`)
     .orderBy(asc(skillDomains.position), asc(skillDomains.slug));
 }
+
+/**
+ * The same for the military careers, for the list when it was asked for them:
+ * each home with the services that have a career in it (`services`, by key),
+ * so that a list narrowed to one service offers only that service's homes.
+ */
+export async function militaryCareerDomains(): Promise<(CareerHome & { services: string[] })[]> {
+  const rows = rowsOf(
+    await db.execute(sql`
+      SELECT d.slug, d.name, array_agg(DISTINCT c.service ORDER BY c.service) AS services
+      FROM skill_domains d
+      INNER JOIN occupations o ON o.home_domain = d.slug
+      INNER JOIN companies c ON c.id = o.service_company_id AND c.service IS NOT NULL
+      GROUP BY d.slug, d.name, d.position
+      ORDER BY d.position ASC, d.slug ASC
+    `)
+  );
+  return rows.map((row) => ({ slug: String(row.slug), name: String(row.name), services: Array.isArray(row.services) ? row.services.map(String) : [] }));
+}

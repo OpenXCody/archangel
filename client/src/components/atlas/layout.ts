@@ -81,6 +81,8 @@ export interface AtlasLeaf {
   level: SkillLevel;
   /** How many careers use the skill. */
   careers: number;
+  /** How many military careers use it: said in the panel for a skill no other career uses. */
+  militaryCareers: number;
   angle: number;
   radius: number;
   /** Positions in `groups` and `domains`. */
@@ -214,6 +216,7 @@ export function layoutAtlas(taxonomy: Pick<Taxonomy, 'domains'>, geometry: Atlas
           name: skill.name,
           level: skill.level,
           careers: skill.careers,
+          militaryCareers: skill.militaryCareers ?? 0,
           angle: (cursor + 0.5) * step,
           radius: leafRadius(geometry, skill.level, run),
           group: group.index,

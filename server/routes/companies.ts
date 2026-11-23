@@ -12,6 +12,7 @@ import { rowsOf } from '../lib/rows.js';
 import { companyIndustries, companyIndustry } from '../lib/industries.js';
 import { industryByName, industryBySlug } from '../../shared/industry.js';
 import { versionsOfCompany } from '../lib/versions.js';
+import { careersOfService } from '../lib/military.js';
 
 const router = Router();
 // A company is addressed by its id, or, for reading, by its slug
@@ -249,6 +250,8 @@ router.get('/:id', async (req: Request, res: Response) => {
       typicalCareers,
       // The careers the company has its own version of.
       versions: await versionsOfCompany(id),
+      // A military service has no plants: its page lists its careers. Empty for every other company.
+      serviceCareers: company.service ? await careersOfService(id) : [],
       factoryCount: companyFactories.length,
       occupationCount: occupationRows.length,
       totalWorkforce: companyFactories.reduce((sum, f) => sum + (f.workforceSize || 0), 0),

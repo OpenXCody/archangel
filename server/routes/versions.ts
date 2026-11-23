@@ -26,7 +26,9 @@ import { uuidParam } from '../middleware/validateUuid.js';
 const router = Router({ mergeParams: true });
 router.param('occupationId', uuidParam);
 
-// The company, by id or slug, swapped for its id: the handlers below only see ids.
+// The company, by id or slug, found once: the handlers below read its id from `companyOf`, never from the
+// address. (A parameter of the path this router is mounted on is set afresh for each handler, so an id written
+// to `req.params` here does not reach them: a slug used to arrive at the statement as if it were an id.)
 router.use(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const raw = req.params.company;
@@ -39,7 +41,6 @@ router.use(async (req: Request, res: Response, next: NextFunction) => {
       res.status(isUuid(raw) || /^[a-z0-9][a-z0-9-]{0,79}$/i.test(raw) ? 404 : 400).json({ error: 'Company not found' });
       return;
     }
-    req.params.company = company.id;
     res.locals.company = company;
     next();
   } catch (error) {
@@ -47,19 +48,22 @@ router.use(async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
+/** The id of the company the address names, as the middleware above found it. */
+const companyOf = (res: Response): string => (res.locals.company as { id: string }).id;
+
 /** Continue only for someone who may act for the company: 401 signed out, 403 otherwise. */
 function requireCompanyWriter(req: Request, res: Response, next: NextFunction): void {
   getSessionUser(req).then(async (user) => {
     if (!user) res.status(401).json({ error: 'Sign in required' });
-    else if (!(await canManageCompany(user, req.params.company))) res.status(403).json({ error: "Only the company's own people can change its careers." });
+    else if (!(await canManageCompany(user, companyOf(res)))) res.status(403).json({ error: "Only the company's own people can change its careers." });
     else next();
   }, next).catch(next);
 }
 
 router.get(
   '/',
-  handle(async (req: Request, res) => {
-    res.json({ company: res.locals.company, versions: await versionsOfCompany(req.params.company) });
+  handle(async (_req: Request, res) => {
+    res.json({ company: res.locals.company, versions: await versionsOfCompany(companyOf(res)) });
   })
 );
 
@@ -67,15 +71,15 @@ router.get(
   '/:occupationId',
   handle(async (req: Request, res) => {
     const occupationId = req.params.occupationId;
-    const version = await readVersion(db, req.params.company, occupationId);
+    const version = await readVersion(db, companyOf(res), occupationId);
     if (!version) return res.status(404).json({ error: 'This company has no version of that career.' });
-    res.json({ ...version, jobs: await versionJobs(req.params.company, occupationId) });
+    res.json({ ...version, jobs: await versionJobs(companyOf(res), occupationId) });
   })
 );
 
 router.post('/', requireCompanyWriter, async (req: Request, res: Response) => {
   try {
-    res.status(201).json(await addVersion(req.user!, req.params.company, req.body?.occupationId));
+    res.status(201).json(await addVersion(req.user!, companyOf(res), req.body?.occupationId));
   } catch (error) {
     answerRefusal(res, error, 'career version');
   }
@@ -83,7 +87,7 @@ router.post('/', requireCompanyWriter, async (req: Request, res: Response) => {
 
 router.put('/:occupationId', requireCompanyWriter, async (req: Request, res: Response) => {
   try {
-    res.json(await changeVersion(req.user!, req.params.company, req.params.occupationId, req.body));
+    res.json(await changeVersion(req.user!, companyOf(res), req.params.occupationId, req.body));
   } catch (error) {
     answerRefusal(res, error, 'career version');
   }
@@ -91,7 +95,7 @@ router.put('/:occupationId', requireCompanyWriter, async (req: Request, res: Res
 
 router.delete('/:occupationId', requireCompanyWriter, async (req: Request, res: Response) => {
   try {
-    const gone = await removeVersion(req.user!, req.params.company, req.params.occupationId);
+    const gone = await removeVersion(req.user!, companyOf(res), req.params.occupationId);
     if (!gone) {
       res.status(404).json({ error: 'This company has no version of that career.' });
       return;

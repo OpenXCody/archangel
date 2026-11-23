@@ -32,8 +32,10 @@ import { shareOf, type SkillMarks } from '../path/model';
 import { useTaxonomy } from '../../lib/queries';
 import { publicKeys } from '../../lib/queryKeys';
 import { linkClass } from './parts';
+import { ServiceDoorLine, type Door } from './ServiceDoor';
 
-export default function SkillsSection() {
+/** `door` is "Start with what you have done", for a seeker: one line at the end of the section, under everything else. */
+export default function SkillsSection({ door }: { door?: Door }) {
   const skills = useMySkills();
   const markSkill = useMarkSkill();
   // Where each skill sits: the person's list says only which skills, the taxonomy says in which group and domain.
@@ -90,6 +92,7 @@ export default function SkillsSection() {
       </div>
       <ErrorNote error={markSkill.error} className="mt-2" />
       <SuggestedSkills mySkills={mine} onMark={mark} />
+      {door && <ServiceDoorLine door={door} />}
     </PageSection>
   );
 }

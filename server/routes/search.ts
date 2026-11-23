@@ -4,7 +4,8 @@ import { companies, factories, jobs, occupations, skills } from '../db/schema.js
 import { ilike, or, and, count, eq, sql, type AnyColumn } from 'drizzle-orm';
 import { jobTextFilter } from '../lib/jobSearch.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
-import { civilianCareer } from '../lib/military.js';
+import { civilianCareer, findService, namedMilitaryCareers } from '../lib/military.js';
+import { kindLine, namedService } from '../../shared/military.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
 import { US_STATES } from '../../shared/states.js';
@@ -57,6 +58,16 @@ interface SearchResultItem {
   meta?: string;
   /** Companies only: the web domain their logo is looked up from. */
   domain?: string | null;
+  /** Careers only: a military career the query named. It is first among the careers. */
+  named?: true;
+  /**
+   * A named career the query can be nothing but (its code with a digit in it, or beside its service or its
+   * system's word): its row leads the results, as a name typed whole does. Letters alone do not, since
+   * companies' names begin with them too.
+   */
+  leads?: true;
+  /** Companies only: the company is a military service, listed because the query is its name. */
+  service?: true;
 }
 
 interface SearchResults {
@@ -76,6 +87,17 @@ interface SearchResults {
 // GET /api/search - Search across companies, factories, careers, skills and states.
 // Companies and factories only match in scope, so a hit never links to a
 // detail page that would 404.
+// Careers are civilian careers. With `military=named` (the header's search
+// sends it; the map's never does: the map is where work is, and a military
+// career has no plants) a military career the query names is listed too, first
+// among the careers, its grey line its kind and code ("Navy rating · HT").
+// What names one is `namedMilitaryCareers` (lib/military.ts): its code typed
+// alone, or its service with words of its title, and never a plain title.
+// A named career leads the results (`leads`) only when the query can be
+// nothing else. With the same parameter a query that is a service's name and
+// nothing else ("navy", "U.S. Navy", "usmc") lists the service first among the
+// companies, its grey line "Military service": a service has no plants, so
+// the search of manufacturers never finds it.
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { q, types, limit = '5' } = req.query;
@@ -173,9 +195,16 @@ router.get('/', async (req: Request, res: Response) => {
         domain: c.domain,
       }));
 
+      // The service the query names, and nothing else: its page is what was asked for.
+      const serviceKey = req.query.military === 'named' ? namedService(query) : null;
+      const service = serviceKey ? await findService(db, serviceKey) : null;
+      const serviceItems: SearchResultItem[] = service
+        ? [{ id: service.id, name: service.name, type: 'companies' as const, subtitle: 'Military service', domain: null, service: true as const }]
+        : [];
+
       results.results.companies = {
-        count: companyCount[0]?.count ?? 0,
-        items: companyItems, // already ranked by the database, featured first within a rank
+        count: (companyCount[0]?.count ?? 0) + serviceItems.length,
+        items: serviceItems.concat(companyItems).slice(0, maxLimit), // already ranked by the database, featured first within a rank
       };
     }
 
@@ -253,7 +282,8 @@ router.get('/', async (req: Request, res: Response) => {
         sql`EXISTS (SELECT 1 FROM occupation_aliases a WHERE a.canonical_occupation_id = occupations.id AND ${nameStarts})`,
         ilike(occupations.description, searchPattern)
       );
-      const [occupationResults, occupationCount] = await Promise.all([
+      const [named, occupationResults, occupationCount] = await Promise.all([
+        req.query.military === 'named' ? namedMilitaryCareers(query) : [],
         db
           .select({
             id: occupations.id,
@@ -283,11 +313,22 @@ router.get('/', async (req: Request, res: Response) => {
         found: titled(o.title) ? 0 : o.otherName ? (o.otherName.toLowerCase() === query.toLowerCase() ? 1 : 2) : 3,
       }));
 
+      // The military careers the query named come first: they are what was asked for.
+      const namedItems: SearchResultItem[] = named.map((career) => ({
+        id: career.id,
+        name: career.title,
+        type: 'occupations' as const,
+        subtitle: kindLine(career.kind, career.code) ?? undefined,
+        named: true as const,
+        // Only a query that can be nothing else puts it ahead of the companies and plants.
+        ...(career.sure && { leads: true as const }),
+      }));
+      const civilianItems: SearchResultItem[] = sortByRelevance(occupationItems.filter((item) => item.found === 0), query)
+        .concat(occupationItems.filter((item) => item.found !== 0).sort((x, y) => x.found - y.found))
+        .map(({ found: _found, ...item }) => item);
       results.results.occupations = {
-        count: occupationCount[0]?.count ?? 0,
-        items: sortByRelevance(occupationItems.filter((item) => item.found === 0), query)
-          .concat(occupationItems.filter((item) => item.found !== 0).sort((x, y) => x.found - y.found))
-          .map(({ found: _found, ...item }) => item),
+        count: (occupationCount[0]?.count ?? 0) + named.length,
+        items: namedItems.concat(civilianItems).slice(0, maxLimit),
       };
     }
 

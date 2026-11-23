@@ -79,6 +79,10 @@ check "the career's own answer says the same"      200 "$(req anon GET /occupati
 check "a version that is not there"                404 "$(req anon GET $V/$O)" 'no version of that career'
 check "a company that is not there"                404 "$(req anon GET /companies/$NOBODY/careers)" 'Company not found'
 check "a slug no company has"                      404 "$(req anon GET /companies/no-such-company-$RUN/careers)"
+# A company that has a slug is read by it, as its page is: the same answer as by its id.
+psql "$DB" -qtAc "UPDATE companies SET slug = 'e2e-versions-$RUN' WHERE id = '$CA'" >/dev/null
+check "a company's versions by its slug"           200 "$(req anon GET /companies/e2e-versions-$RUN/careers)" "\"id\":\"$CA\""
+check "by its slug, a version that is not there"   404 "$(req anon GET /companies/e2e-versions-$RUN/careers/$O)" 'no version of that career'
 check "something that is neither an id nor a slug" 400 "$(req anon GET '/companies/Not%20A%20Slug!/careers')"
 check "a career id that is not one"                400 "$(req anon GET $V/not-an-id)"
 check "the reads are not cached"                   200 "$(curl -s -D - -o /dev/null -w '\n%{http_code}' "$API$V" | grep -i '^cache-control\|^[0-9]')" 'no-store'
@@ -98,6 +102,8 @@ check "a member adds the company's version"        201 "$OUT" '"origin":"member"
 expect "titled with the company as it is said"     "$REC Alpha $REC Operator" "$(printf '%s' "$OUT" | j title)"
 expect "it starts as the standard path"            "01,02,03,04|" "$(printf '%s' "$OUT" | names skills)|$(printf '%s' "$OUT" | names leftOut)"
 expect "each skill with its place"                 "1 $GRP" "$(printf '%s' "$OUT" | j 'skills[0].level + " " + o.skills[0].group.slug')"
+expect "one version by the company's slug is the one by its id" "$(req anon GET $V/$O | j 'title + " " + o.skills.length')" "$(req anon GET /companies/e2e-versions-$RUN/careers/$O | j 'title + " " + o.skills.length')"
+expect "and the list by slug has it"               1 "$(req anon GET /companies/e2e-versions-$RUN/careers | j versions.length)"
 expect "and its makes, none run yet"               "Haas:false,Okuma:false" "$(printf '%s' "$OUT" | j 'skills[1].makes.map((m) => m.name + ":" + m.runs).join(",")')"
 OUT=$(req m POST $V "{\"occupationId\":\"$O\"}")
 check "the same career again"                      409 "$OUT" "\"existing\":{\"companyId\":\"$CA\",\"occupationId\":\"$O\""

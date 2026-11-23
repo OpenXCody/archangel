@@ -101,6 +101,8 @@ export interface TaxonomySkill {
   level: SkillLevel;
   /** How many careers use it. */
   careers: number;
+  /** How many military careers use it: said only for a skill no other career uses. Absent from an answer cached before it existed. */
+  militaryCareers?: number;
   /** Its makes by name, in the order they are shown: the leaves beyond the skill. Empty for most skills. */
   makes: string[];
 }
@@ -229,6 +231,25 @@ export interface CompanyDetail extends Company {
   typicalCareers?: { id: string; title: string }[];
   /** The careers the company has its own version of. */
   versions?: VersionSummary[];
+  /** Which military service the company is; null for every other company. */
+  service?: ServiceKey | null;
+  /** A service's careers, by title: its page lists them in place of plants. Empty for every other company. */
+  serviceCareers?: ServiceCareer[];
+}
+
+/** A military career as a list names it: its full title, with its kind and code for the grey line. */
+export interface MilitaryCareerRow {
+  id: string;
+  title: string;
+  kind: string | null;
+  code: string | null;
+}
+
+/** A service's career on the service's own page. */
+export interface ServiceCareer extends MilitaryCareerRow {
+  /** The domain most of its work is in, by name. */
+  home: string | null;
+  skillCount: number;
 }
 
 export interface Factory {
@@ -359,6 +380,26 @@ export interface OccupationDetail extends Occupation {
   leadsTo?: { id: string; title: string }[];
   /** The companies that have their own version of this career. */
   versions?: VersionSummary[];
+  /** On a military career: the civilian careers its path covers at least a third of, the most covered first. */
+  withinReach?: CareerWithinReach[];
+  /** On a civilian career: the military careers whose path covers at least a third of its own, the most covering first. */
+  reachedBy?: ReachingCareer[];
+}
+
+/** A civilian career within a military career's reach: how much of its path the military career holds, and the rest. */
+export interface CareerWithinReach {
+  id: string;
+  title: string;
+  held: number;
+  total: number;
+  /** The skills of its path the military career does not have, lowest level first. */
+  missing: { id: string; name: string; level: SkillLevel | null }[];
+}
+
+/** A military career that reaches a civilian one: how much of the civilian path it holds. */
+export interface ReachingCareer extends MilitaryCareerRow {
+  held: number;
+  total: number;
 }
 
 export interface Skill extends SkillPlace {
@@ -382,6 +423,8 @@ export interface SkillDetail extends Skill {
   makes?: Make[];
   /** The careers that use it, by title. The skill sits at its own level in each. */
   occupations: RelatedOccupationWithImportance[];
+  /** The military careers whose path has it, by title. */
+  militaryOccupations?: MilitaryCareerRow[];
   /** Industries those careers are typical of, the ones with most of them first. */
   industries?: { name: string; careerCount: number }[];
   /** True when its careers are found in plants of every industry rather than a few. */
@@ -495,6 +538,12 @@ export interface SearchResultItem {
   meta?: string;
   /** Companies only: the web domain their logo is looked up from. */
   domain?: string | null;
+  /** Careers only: a military career the query named (its code, or its service with words of its title). */
+  named?: true;
+  /** A named career the query can be nothing but: it leads the results. */
+  leads?: true;
+  /** Companies only: a military service, listed because the query is its name. */
+  service?: true;
 }
 
 export interface SearchResults {
@@ -516,6 +565,8 @@ export interface SearchResults {
 export interface SearchOptions {
   types?: SearchEntityType[];
   limit?: number;
+  /** Also list a military career the query names. The header's search asks; the map's never does. */
+  namedMilitary?: boolean;
 }
 
 export const searchApi = {
@@ -526,6 +577,9 @@ export const searchApi = {
     }
     if (options.limit) {
       params.limit = options.limit;
+    }
+    if (options.namedMilitary) {
+      params.military = 'named';
     }
     return apiFetch<SearchResults>(`/search${queryString(params)}`);
   },
@@ -701,6 +755,11 @@ export interface ExploreFacets {
   skillDomains: (TaxonomyRef & { groups: TaxonomyRef[] })[];
   /** The domains that are some career's home, in the taxonomy's order. Absent from an answer cached before this field existed. */
   careerDomains?: TaxonomyRef[];
+  /**
+   * The same for the military careers: what the Careers list is narrowed by when it lists them. Each says which
+   * services have a career at home in it (`services`; absent from an answer cached before it existed).
+   */
+  militaryCareerDomains?: (TaxonomyRef & { services?: ServiceKey[] })[];
 }
 
 export const exploreApi = {

@@ -199,10 +199,19 @@ export default function Map({ onViewChange }: MapProps) {
   // named that does not exist is said so.
   const nameSubject = useMapStore((s) => s.nameSubject);
   const notFound = useMapStore((s) => s.notFound);
-  const subjectName = subjectCompany ? formatCompanyName(subjectCompany.name) : (subjectCareer?.title ?? null);
+  // A military career is never the map's subject, and neither is a service: the map is where work is, and
+  // they have no plants.
+  const careerOffMap = Boolean(filters.career && subjectCareer?.service);
+  const serviceOffMap = Boolean(filters.company && subjectCompany?.service);
+  const subjectOffMap = careerOffMap || serviceOffMap;
+  const subjectName = subjectOffMap ? null : subjectCompany ? formatCompanyName(subjectCompany.name) : (subjectCareer?.title ?? null);
   useEffect(() => {
     if (subjectName) nameSubject(subjectName);
   }, [subjectName, nameSubject]);
+  useEffect(() => {
+    if (careerOffMap) notFound('That career is not on the map.');
+    else if (serviceOffMap) notFound('That company is not on the map.');
+  }, [careerOffMap, serviceOffMap, notFound]);
   const subjectMissing = filters.company
     ? isNotFound(subjectCompanyError)
     : filters.career

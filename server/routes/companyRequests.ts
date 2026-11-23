@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { and, desc, eq, gt, or, sql } from 'drizzle-orm';
 import { db, users, companies, companyMembers, companyRequests } from '../db/index.js';
+import { isService, notAnEmployerHere } from '../lib/military.js';
 import { canManageCompany, cleanText, handle } from '../lib/auth.js';
 import { HOSTNAME, isUuid } from '../lib/writes.js';
 import { accessDecided, companyAddRequested, companyRequestAnswered } from '../lib/notices.js';
@@ -104,6 +105,8 @@ companyRequestsRouter.post(
       if (!(await canManageCompany(user, company.id))) {
         return res.status(403).json({ error: 'Only people who post jobs for a company can ask for its plants to be added.' });
       }
+      // A military service has no plants to add.
+      if (await isService(db, company.id)) return res.status(400).json({ error: notAnEmployerHere(company.name) });
       name = company.name;
     } else {
       const typed = cleanText(req.body?.name, 120, 2);
@@ -115,6 +118,8 @@ companyRequestsRouter.post(
         .from(companies)
         .where(sql`lower(${companies.name}) = lower(${name})`)
         .limit(1);
+      // A service is listed, but not to be joined: saying "request access" would send the person nowhere.
+      if (listed && (await isService(db, listed.id))) return res.status(400).json({ error: notAnEmployerHere(listed.name), field: 'name' });
       if (listed) {
         return res.status(409).json({ error: `${listed.name} is already listed. Search for it and request access.`, field: 'name', company: listed });
       }

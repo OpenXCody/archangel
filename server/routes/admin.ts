@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { and, desc, eq, gt, ilike, inArray, isNotNull, isNull, lte, ne, or, sql, type SQL } from 'drizzle-orm';
 import { db, users, companies, companyMembers, invites, occupations, passwordResets, sessions, auditLog } from '../db/index.js';
+import { isService, notAnEmployerHere } from '../lib/military.js';
 import { cleanText, currentSessionHash, handle, newToken, hashToken, normalizeEmail } from '../lib/auth.js';
 import { changedFields, isAuditKind, recordAudit, type Executor } from '../lib/audit.js';
 import { inviteDays, invitePath, isInviteRole } from '../lib/invites.js';
@@ -152,6 +153,8 @@ router.post(
       .where(eq(companies.id, companyId))
       .limit(1);
     if (!company) return res.status(404).json({ error: 'Company not found' });
+    // A military service is not joined, by an admin's hand either: it posts no jobs here.
+    if (await isService(db, company.id)) return res.status(400).json({ error: notAnEmployerHere(company.name) });
     const match = and(eq(companyMembers.companyId, companyId), eq(companyMembers.userId, userId));
     const [before] = await db.select({ status: companyMembers.status }).from(companyMembers).where(match).limit(1);
     const decidedAt = new Date();
