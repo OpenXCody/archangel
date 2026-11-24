@@ -35,7 +35,11 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   '0068_skill_taxonomy_4.sql',
 
   // A company's mark set by hand (one table, no rows).
-  '0069_company_marks.sql'];
+  '0069_company_marks.sql',
+  // The trades of the industries the catalogue lacked: the skills, placed in their groups, and their makes;
+  '0070_skills_catalogue_5.sql', '0071_skill_taxonomy_5.sql', '0072_skill_makes_3.sql',
+  // then the careers, their industries and other names, and every career's path.
+  '0073_careers_catalogue_2.sql', '0074_career_lists_3.sql', '0075_career_paths_2.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 
