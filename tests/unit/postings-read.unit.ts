@@ -204,13 +204,18 @@ test('the places the work is at, from the field as each feed writes it', () => {
   assert.deepEqual(places('Auburn AL USA'), ['Auburn, AL']);
   assert.deepEqual(places('Saint George UT US 1'), ['Saint George, UT']);
   assert.deepEqual(places('Grand Rapids MI US 1; Indianapolis IN US 2'), ['Grand Rapids, MI', 'Indianapolis, IN']);
+  // The two cities named as a state are cities in this form too.
+  assert.deepEqual(places('Washington DC USA'), ['Washington, DC']);
+  assert.deepEqual(places('New York NY USA'), ['New York, NY']);
   // A part that says there are more places is not the city.
   assert.deepEqual(places('Dallas, Multiple Locations, TX'), ['Dallas, TX']);
   // No place: remote, a country alone, and abroad, even where a country's code is a state's; a town with no state; a
-  // count of places; a site abroad named the same way.
+  // count of places; a site abroad named the same way; and a site named with spaces whose city is not one (a count of
+  // places, a building or a site, a way of working, a state's name), held as the comma form's city is.
   for (const none of ['Remote', 'Remote (Houston, TX)', 'United States', 'Auckland, NZ', 'Toronto, CAN', 'Munich, BY', 'Laval, Canada',
     'Altona, Manitoba, CA, R0G 0B0', 'Bruchsal, BW, DE, 76646', 'GRANADERO BAIGORRIA, Santa Fe, AR, S2152FXA', 'Dublin, Dublin, Ireland',
-    'Evendale', 'Lynn', '2 Locations', 'Istanbul TR 6', 'Carrara IT 2', 'Changwon 48 KR 6', 'Perth WA', 'Chennai TN']) {
+    'Evendale', 'Lynn', '2 Locations', 'Istanbul TR 6', 'Carrara IT 2', 'Changwon 48 KR 6', 'Perth WA', 'Chennai TN',
+    'Multiple Locations TX USA', 'Plant TX USA', 'Site AL USA', 'Building TX USA', 'Virtual TX USA', 'Texas TX USA']) {
     assert.deepEqual(places(none), [], none);
   }
   // A feed that knows the country says so: abroad there is no place, whatever the field looks like.

@@ -25,7 +25,7 @@ import { countryOf, dayOf } from '../../scripts/ingest/postings/systems/successf
 // @ts-expect-error a plain script, no types
 import { listAll, unescapeHtml, webAddress } from '../../scripts/ingest/postings/systems/shared.mjs';
 // @ts-expect-error a plain script, no types
-import { beforeText, collect, inTurn, report, siteNames } from '../../scripts/ingest/postings/jobs.mjs';
+import { beforeText, collect, inTurn, report, siteNames, stage } from '../../scripts/ingest/postings/jobs.mjs';
 // @ts-expect-error a plain script, no types
 import { TITLES_KEPT, titleKey, titleLines, titleTally } from '../../scripts/ingest/postings/titles.mjs';
 // @ts-expect-error a plain script, no types
@@ -582,6 +582,9 @@ test('a title turned away is counted by what the job is: its level, shift, codes
   assert.equal(key('Automation & Controls Engineer'), 'automation and controls engineer');
   assert.equal(key('Assembler / Machine Operator'), 'assembler / machine operator');
   assert.equal(key('Texas'), '', 'nothing but a place');
+  assert.equal(key('Production Mgr - Austin, TX', 'Austin, TX'), 'production mgr', '"Mgr" is a job word as "Manager" is');
+  assert.equal(key('Mgr, Quality'), 'quality mgr', 'and a bare one takes its kind from beside it');
+  for (const letter of ['X', 'A - Remote', 'B (Austin, TX)']) assert.equal(key(letter, 'Austin, TX'), '', `a letter alone is no title: ${letter}`);
 
   // The tally: the commonest first, then by title; the postings counted whatever their title came to.
   const tally = titleTally();
@@ -688,6 +691,30 @@ test('where the text costs a request it is asked for only postings whose title i
   assert.equal(third.collected.stopped.outcome, 'cut');
   assert.equal(third.collected.complete, true, 'the listing itself was read to its end');
   assert.deepEqual([...third.collected.present], ['JR2026516085-1'], 'listed, so not gone');
+});
+
+test('the titles turned away are the report\'s alone: staging writes none of them to the database', async () => {
+  const session: Session = createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session('boeing', { pace: 0 });
+  const entry = { slug: 'boeing', employer: 'Boeing', company: 'Boeing', system: 'workday', board: 'https://boeing.wd1.myworkdayjobs.com/wday/cxs/boeing/EXTERNAL_CAREERS' };
+  const collected = await collect(noRows, entry, { session, reader, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' });
+  const turnedAway = collected.titles.top.map(([title]: [string, number]) => title);
+  assert.ok(turnedAway.length > 0, 'the run turned titles away');
+  // Every statement stage() sends, with what it sends: the run's counts are what note() writes to intake_runs.
+  const sent: { sql: string; values: unknown[] }[] = [];
+  const db = Object.assign(async (strings: TemplateStringsArray, ...values: unknown[]) => {
+    sent.push({ sql: strings.join('$'), values });
+    return [];
+  }, { json: (value: unknown) => value });
+  await stage(db, 7, collected, { log: () => {} });
+  const noted = sent.filter(({ sql }) => /UPDATE intake_runs SET\s+state/.test(sql));
+  assert.equal(noted.length, 1, 'note() wrote the run\'s row once');
+  const counts = noted[0].values.find((value) => value && typeof value === 'object' && 'read' in value) as Record<string, unknown>;
+  assert.equal(counts.read, collected.counts.read);
+  assert.ok(!('titles' in counts), 'the run\'s counts carry no titles');
+  assert.ok('unknown' in counts && 'unplaced' in counts, 'what is kept in the run\'s row is kept');
+  // Nor is any title turned away in anything else staging sent.
+  const everything = JSON.stringify(sent.map(({ values }) => values)).toLowerCase();
+  for (const title of turnedAway) assert.ok(!everything.includes(title), `"${title}" is not written`);
 });
 
 // --- Sites named by their town alone ---------------------------------------------------

@@ -19,20 +19,35 @@ function tidyCity(city) {
   return c;
 }
 
+/** A part that says there are other places, and is no place itself: "Multiple Locations", "2 Locations". */
+const MORE_PLACES = /^(multiple|various|several|\d+) locations?$/i;
+
+/**
+ * What stands where a city would and is not one: a state's name (but the two cities named as one), a number, a
+ * building or a site of the employer's ("Fab 6", "Plant"), a count of places, a way of working. Every form of a
+ * location line holds its city to this.
+ */
+function notACity(city) {
+  const lower = city.toLowerCase();
+  if (STATE_BY_NAME.has(lower) && lower !== 'washington' && lower !== 'new york') return true;
+  return /^\d|^(fab|bldg|building|site|plant)\b/i.test(city) || MORE_PLACES.test(city) || /^(hybrid|virtual|various)$/i.test(city);
+}
+
 function onePlace(raw) {
   let s = String(raw).split('~')[0].replace(/\s+/g, ' ').trim();
   if (!s || /^remote\b/i.test(s) || /^(hybrid|virtual|various|multiple locations?)$/i.test(s)) return null;
   s = s.replace(/\((?:remote|hybrid|onsite|on-site)\)/gi, '').trim();
   // "Auburn AL USA", "Saint George UT US 1": a site named by its town, its state's letters and the country with
-  // spaces between, and the site's number after.
+  // spaces between, and the site's number after. Its city is held to what the comma form's is: "Multiple Locations
+  // TX USA", "Plant TX USA" and "Texas TX USA" are no place.
   const spaced = /^([A-Za-z][A-Za-z .'-]*?)\s+([A-Z]{2})\s+(?:US|USA)(?:\s+\d{1,3})?$/.exec(s);
-  if (spaced && STATE_CODES.has(spaced[2])) return { city: tidyCity(spaced[1]), state: spaced[2] };
+  if (spaced && STATE_CODES.has(spaced[2])) return notACity(spaced[1].trim()) ? null : { city: tidyCity(spaced[1]), state: spaced[2] };
   const lower = s.toLowerCase();
   if (ABROAD_NAMES.some((n) => lower.includes(n))) return null;
   // "United States-Utah-Salt Lake City", "US-NC-WILSON-4200": parts joined by bare hyphens. A part that only says
   // there are other places ("Dallas, Multiple Locations, TX") is not the city.
   const bare = /^(US|USA|United States)-\S/.test(s);
-  const parts = (bare ? s.split('-') : s.split(/,|\s+-\s+/)).map((p) => p.trim()).filter((p) => p && !/^(multiple|various|several|\d+) locations?$/i.test(p));
+  const parts = (bare ? s.split('-') : s.split(/,|\s+-\s+/)).map((p) => p.trim()).filter((p) => p && !MORE_PLACES.test(p));
   if (!parts.length) return null;
   // "City, Region, CC, postcode": the third part is the country, whatever state shares its letters.
   if (parts.length >= 3 && !US.test(parts[0]) && /^[A-Z]{2}$/.test(parts[2]) && !US.test(parts[2]) && !STATE_BY_NAME.has(parts[1].toLowerCase()) && !STATE_CODES.has(parts[1])) return null;
@@ -50,8 +65,7 @@ function onePlace(raw) {
   const isState = (p) => STATE_CODES.has(p) || STATE_BY_NAME.has(p.toLowerCase());
   const before = rest.slice(0, stateAt).filter((p) => !isState(p) || /^(washington|new york)$/i.test(p));
   const city = before.length ? before[before.length - 1] : rest.slice(stateAt + 1).find((p) => !isState(p));
-  if (!city || STATE_BY_NAME.has(city.toLowerCase()) && city.toLowerCase() !== 'washington' && city.toLowerCase() !== 'new york') return null;
-  if (/^\d|^(fab|bldg|building|site|plant)\b/i.test(city)) return null;
+  if (!city || notACity(city)) return null;
   return { city: tidyCity(city), state };
 }
 

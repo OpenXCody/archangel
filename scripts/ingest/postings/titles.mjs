@@ -33,7 +33,7 @@ const LEAD_AS_JOB = /\blead(?=\s*(?:$|[-–—,;:|/(\[]))/gi;
 const LEAD_HELD = 'leadasthejob';
 /** The words that say a part of a title is the job: the reader's job words, and the ones it refuses a title for. */
 const JOB_WORDS = new Set([
-  ...ROLE_NOUNS, LEAD_HELD, 'manager', 'supervisor', 'director', 'head', 'chief', 'vp', 'president', 'superintendent', 'foreman', 'leader',
+  ...ROLE_NOUNS, LEAD_HELD, 'manager', 'mgr', 'supervisor', 'director', 'head', 'chief', 'vp', 'president', 'superintendent', 'foreman', 'leader',
   'coordinator', 'planner', 'scheduler', 'buyer', 'recruiter', 'intern', 'interns', 'internship', 'internships', 'coop', 'administrator', 'architect', 'scientist', 'developer', 'trainer',
   'instructor', 'writer', 'pilot', 'driver', 'officer', 'counsel', 'attorney', 'accountant', 'advisor', 'representative', 'clerk', 'assistant',
   'dispatcher', 'estimator', 'expeditor', 'generalist', 'partner', 'controller', 'auditor', 'strategist', 'consultant', 'paralegal', 'nurse', 'agent',
@@ -58,7 +58,7 @@ const namesAJob = (part) => part.split(' ').some((word) => JOB_WORDS.has(word));
  * a level or a team, and is the job only when nothing outside the brackets names
  * one ("(Toolmaker)"). A bare job word takes its kind from the part beside it:
  * "Technician, Composites" is a composites technician. Where no part names a
- * job, the leading part is the title.
+ * job, the leading part is the title. A key of one letter is none.
  */
 export function titleKey(title, location = '') {
   const here = new Set(titleWords(String(location ?? '')));
@@ -77,6 +77,8 @@ export function titleKey(title, location = '') {
   else if (jobs.length === 1 && !jobs[0].includes(' ')) key = [[...parts, ...brackets].find((part) => !namesAJob(part)), jobs[0]].filter(Boolean).join(' ');
   else key = jobs.join(' / ');
   key = key.replaceAll(LEAD_HELD, 'lead').replace(/\bcoop\b/g, 'co-op');
+  // A letter alone ("A - Remote", "Team B" cut to its letter) says nothing of the job.
+  if ((key.match(/[a-z]/g) ?? []).length < 2) return '';
   return key.length > LONGEST ? key.slice(0, LONGEST).replace(/\s+\S*$/, '') : key;
 }
 
