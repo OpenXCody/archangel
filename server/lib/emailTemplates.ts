@@ -176,7 +176,7 @@ export function accessRequestedEmail(input: {
     to: input.to,
     subject: `Access request for ${company}`,
     body,
-    action: { label: 'Review the request', url: appUrl('/admin?tab=access') },
+    action: { label: 'Review the request', url: appUrl('/admin/access') },
     why: 'you are an Archangel admin',
     notice: true,
   });
@@ -241,7 +241,7 @@ export function companyRequestedEmail(input: {
     to: input.to,
     subject: input.plant ? `Request to add a factory of ${name}` : `Request to add ${name}`,
     body,
-    action: { label: 'Review the request', url: appUrl('/admin?tab=access') },
+    action: { label: 'Review the request', url: appUrl('/admin/access') },
     why: 'you are an Archangel admin',
     notice: true,
   });

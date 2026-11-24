@@ -970,9 +970,9 @@ test("an admin's change reaches the map's panel", async ({ page, request }) => {
   // To Admin Tools without loading the app again, so what the map read is still held.
   await page.getByRole('button', { name: /Account menu/ }).click();
   await page.getByRole('menuitem', { name: 'Admin Tools' }).click();
-  await page.getByRole('tab', { name: 'Data' }).click();
-  await page.locator('#record-name').fill('Changed By The Check');
-  await page.getByRole('button', { name: 'Add company' }).click();
+  await page.locator('[data-admin-page="add"]').click();
+  await page.locator('#company-name').fill('Changed By The Check');
+  await page.getByRole('button', { name: 'Add without a factory' }).click();
   await expect(page.locator('[data-record-added]')).toBeVisible();
 
   // Back to the factory on the map: it is read again, not shown as it was before the change.
@@ -1016,6 +1016,139 @@ test("a factory's page says its county, with the official figures and no source"
   }
 });
 
+test('Admin Tools: an index of pages, a company added by its address, one notice', async ({ page }) => {
+  // Nothing is written and no account is made: the admin, the geocoder and the add itself are stood in for here.
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({
+      json: {
+        user: { id: '00000000-0000-4000-8000-000000000001', email: 'admin@device.test', name: 'Device Admin', isAdmin: true, homeZip: null, about: null, emailNotices: true, purpose: 'work' },
+        memberships: [],
+        isEmployer: false,
+      },
+    })
+  );
+  await page.route('**/api/me/news', (route) => route.fulfill({ json: { applications: false, applicants: false, access: false } }));
+  await page.route('**/api/admin/**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/overview')) return route.fulfill({ json: { users: 1, pendingMemberships: 2, openJobs: 0, applications: 0, draftPaths: 3, waitingMatches: 1 } });
+    if (path.endsWith('/plants/pairs')) return route.fulfill({ json: { pairs: [], total: 5 } });
+    if (path.endsWith('/postings/places')) return route.fulfill({ json: { places: [], total: 4 } });
+    if (path.endsWith('/records/company')) return route.fulfill({ json: { records: [{ id: '00000000-0000-4000-8000-0000000000c1', name: 'Device Works', detail: 'deviceworks.example · 1 factory', href: '/companies/x' }] } });
+    if (path.endsWith('/records/skill')) return route.fulfill({ json: { records: [{ id: '00000000-0000-4000-8000-0000000000c2', name: 'Device Calibration', detail: 'Metrology', href: '/skills/x' }] } });
+    return route.fulfill({ json: { users: [], total: 0, memberships: [], requests: [], paths: [], records: [], entries: [], hasMore: false } });
+  });
+  // The geocoder: the address is known; anything else is not.
+  await page.route('https://api.maptiler.com/geocoding/**', (route) => {
+    const known = decodeURIComponent(new URL(route.request().url()).pathname).includes('1 Tesla Road');
+    return route.fulfill({
+      json: {
+        features: known
+          ? [{ id: 'address.1', text: 'Tesla Road', place_name: '1 Tesla Road, Travis, Texas 78725, United States', center: [-97.613429, 30.224096], place_type: ['address'], relevance: 0.79, context: [{ id: 'postal_code.1', text: '78725' }, { id: 'county.1', text: 'Travis' }, { id: 'region.1', text: 'Texas' }] }]
+          : [],
+      },
+    });
+  });
+  let sent: unknown = null;
+  await page.route('**/api/companies', (route) => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    sent = route.request().postDataJSON();
+    return route.fulfill({
+      status: 201,
+      json: { id: '00000000-0000-4000-8000-0000000000c1', name: 'Device Works', slug: null, factory: { id: '00000000-0000-4000-8000-0000000000f1', name: 'Device Works Austin', city: 'Austin', state: 'TX' } },
+    });
+  });
+
+  // The index: each page a row with what it is for, and a count where something waits.
+  await page.goto('/admin', { waitUntil: 'domcontentloaded' });
+  const index = page.locator('[data-admin-index]');
+  await expect(index.locator('[data-admin-page]')).toHaveCount(7);
+  await expect(index.locator('[data-admin-page="review"]')).toContainText('13 waiting');
+  await expect(index.locator('[data-admin-page="access"]')).toContainText('2 waiting');
+  await expect(index.locator('[data-admin-page="add"]')).not.toContainText('waiting');
+  await assertHealthyLayout(page, '/admin');
+
+  // Review is the four lists with their counts, and nothing else.
+  await index.locator('[data-admin-page="review"]').click();
+  await expect(page).toHaveURL(/\/admin\/review$/);
+  const review = page.locator('[data-review]');
+  await expect(review.locator('[data-review-row]')).toHaveCount(4);
+  await expect(review.locator('[data-review-row="paths"]')).toHaveAttribute('data-review-count', '3');
+  await expect(review.locator('[data-review-row="places"]')).toHaveAttribute('data-review-count', '4');
+  await expect(page.locator('[data-admin-panel]')).toHaveCount(1);
+
+  // Add: a company and its first factory, the address looked up by the form.
+  await page.goto('/admin/add', { waitUntil: 'domcontentloaded' });
+  const form = page.locator('[data-company-add]');
+  await expect(form).toBeVisible();
+  // Every field of the form is inside one edged panel, under its heading.
+  await expect(page.locator('[data-admin-panel][data-add="company"] h2')).toHaveText('Add a company');
+  await expect(form.getByLabel('Latitude')).toHaveCount(0);
+  await form.locator('#company-name').fill('Device Works');
+  await form.locator('#company-website').fill('https://www.deviceworks.example/about');
+  await form.locator('#company-place-street').fill('1 Tesla Road');
+  await form.locator('#company-place-city').fill('Austin');
+  await form.locator('#company-place-state').click();
+  await page.getByRole('option', { name: 'Texas', exact: true }).click();
+  await form.locator('#company-place-zip').fill('78725');
+  await expect(form.locator('[data-place-label]')).toHaveText('Found: 1 Tesla Road, Travis County, TX 78725');
+  await expect(form.locator('#company-factory-name')).toHaveAttribute('placeholder', 'Device Works Austin');
+  await assertHealthyLayout(page, '/admin/add:found');
+  await form.locator('[data-add-with-factory]').click();
+  await expect.poll(() => sent).toEqual({
+    name: 'Device Works',
+    domain: 'deviceworks.example',
+    factory: { address: '1 Tesla Road', city: 'Austin', state: 'TX', zip: '78725', latitude: 30.224096, longitude: -97.613429 },
+  });
+
+  // What it did is said in one bar, with a link to each thing made, inside the screen; it closes.
+  const notice = page.locator('[data-admin-notice]');
+  await expect(notice.locator('[data-admin-notice-message]')).toHaveText('Added Device Works and its factory in Austin, TX.');
+  await expect(notice.locator('[data-admin-notice-link]')).toHaveText(['Device Works', 'Device Works Austin']);
+  const bar = await notice.boundingBox();
+  const screen = page.viewportSize()!;
+  expect(bar && bar.x >= 0 && bar.x + bar.width <= screen.width && bar.y >= 0 && bar.y + bar.height <= screen.height, 'the notice is on the screen').toBe(true);
+  // On a phone it stands above the bottom edge; on a wide screen under the header.
+  if (screen.width < 640) expect(bar!.y, 'the notice is at the bottom of a phone').toBeGreaterThan(screen.height / 2);
+  else expect(bar!.y, 'the notice is at the top of a wide screen').toBeLessThan(screen.height / 3);
+  await assertHealthyLayout(page, '/admin/add:added');
+  await notice.locator('[data-admin-notice-close]').click();
+  await expect(notice).toHaveCount(0);
+  await expect(page.locator('[data-record-added]')).toContainText('Added Device Works and its factory in Austin, TX.');
+
+  // An address that is not found says so and offers the coordinates; with none, the company alone can still be added.
+  await form.locator('#company-name').fill('Device Works Two');
+  await form.locator('#company-place-street').fill('9 Nowhere Lane');
+  await form.locator('#company-place-city').fill('Austin');
+  await form.locator('#company-place-state').click();
+  await page.getByRole('option', { name: 'Texas', exact: true }).click();
+  await expect(form.locator('[data-place-missing]')).toContainText('That address was not found.');
+  await form.locator('[data-place-by-hand]').click();
+  await expect(form.getByLabel('Latitude')).toBeVisible();
+  await assertHealthyLayout(page, '/admin/add:coordinates');
+  sent = null;
+  await form.locator('[data-add-without-factory]').click();
+  await expect.poll(() => sent).toEqual({ name: 'Device Works Two' });
+
+  // Records: one field across every kind, the kind a quiet word on each result.
+  await page.goto('/admin/records', { waitUntil: 'domcontentloaded' });
+  await page.locator('#record-find').fill('device');
+  const results = page.locator('[data-record-result]');
+  await expect(results).toHaveCount(2);
+  await expect(results.nth(0)).toContainText('Device Works');
+  await expect(results.nth(0)).toContainText('Company');
+  await expect(results.nth(1)).toContainText('Skill');
+  await expect(results.nth(0)).toHaveAttribute('href', '/admin/records?kind=company&id=00000000-0000-4000-8000-0000000000c1');
+  await assertHealthyLayout(page, '/admin/records');
+
+  // Addresses from before the pages still lead somewhere.
+  for (const [old, now] of [['/admin?tab=access', '/admin/access'], ['/admin?tab=history&show=company', '/admin/activity?show=company'], ['/admin?tab=data', '/admin/records'], ['/admin?tab=people&q=ana', '/admin/people?q=ana']]) {
+    await page.goto(old, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-admin-home]')).toBeVisible();
+    expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(now);
+  }
+  await assertHealthyLayout(page, '/admin/people');
+});
+
 test('the data quality table fits the screen, and says what it counts', async ({ page }) => {
   // Nothing is written and no account is made: the admin and the counts are stood in for here.
   await page.route('**/api/auth/me', (route) =>
@@ -1047,12 +1180,12 @@ test('the data quality table fits the screen, and says what it counts', async ({
     return route.fulfill({ json: { users: [], total: 0, memberships: [], requests: [], paths: [], records: [], entries: [], hasMore: false } });
   });
 
-  await page.goto('/admin?tab=data', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin/activity?view=quality', { waitUntil: 'domcontentloaded' });
   const table = page.locator('[data-quality-table]');
   await expect(table).toBeVisible();
   await table.scrollIntoViewIfNeeded();
   // The table may be wider than a phone: it scrolls inside its own card, never the page.
-  await assertHealthyLayout(page, '/admin?tab=data:quality');
+  await assertHealthyLayout(page, '/admin/activity?view=quality');
   await expect(table.locator('tbody tr')).toHaveCount(states.length + 1);
   const cells = table.locator('[data-quality-total] td');
   const count = (n: number) => n.toLocaleString('en-US');
@@ -1080,7 +1213,7 @@ test('the data quality table fits the screen, and says what it counts', async ({
   await expect(definitions).toContainText(`${count(total.onePlantCompanies)} of ${count(total.companies)} companies`);
   await expect(definitions).toContainText(`${count(total.duplicates)} factories at ${count(total.duplicateGroups)} spots`);
   await definitions.scrollIntoViewIfNeeded();
-  await assertHealthyLayout(page, '/admin?tab=data:quality-definitions');
+  await assertHealthyLayout(page, '/admin/activity?view=quality:definitions');
 });
 
 // ---------------------------------------------------------------------------
@@ -1423,11 +1556,16 @@ test('two rows that may be one factory are set side by side, and merged or kept 
     return route.fulfill({ json: { users: [], total: 0, memberships: [], requests: [], paths: [], records: [], entries: [], hasMore: false } });
   });
 
-  // The Data tab says some wait, and leads to them; the quality table's count leads to the ones on one spot.
-  await page.goto('/admin?tab=data', { waitUntil: 'domcontentloaded' });
-  const way = page.locator('[data-pairs-waiting]');
-  await expect(way).toContainText('991 pairs');
-  await expect(page.locator('[data-quality-duplicates="TX"]')).toHaveAttribute('href', '/admin?tab=data&pairs=spot&state=TX');
+  // The quality table's count leads to the ones on one spot.
+  await page.goto('/admin/activity?view=quality', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-quality-duplicates="TX"]')).toHaveAttribute('href', '/admin/review?pairs=spot&state=TX');
+  // Review says some wait, and leads to them. (An address from before the pages lands there.)
+  await page.goto('/admin?tab=data&pairs=spot&state=TX', { waitUntil: 'domcontentloaded' });
+  await expect(page).toHaveURL(/\/admin\/review\?pairs=spot&state=TX$/);
+  await page.goto('/admin/review', { waitUntil: 'domcontentloaded' });
+  const way = page.locator('[data-review-row="pairs"]');
+  await expect(way).toContainText('991');
+  await assertHealthyLayout(page, '/admin/review');
   await way.click();
   await expect(page).toHaveURL(/pairs=id/);
 
@@ -1435,7 +1573,7 @@ test('two rows that may be one factory are set side by side, and merged or kept 
   await expect(card).toBeVisible();
   await expect(card.locator('[data-pair-reason]')).toContainText('EPA registry id 110000460466');
   await expect(card.locator('[data-pair-reason]')).toContainText('One factory under two companies');
-  await assertHealthyLayout(page, '/admin?tab=data&pairs=id');
+  await assertHealthyLayout(page, '/admin/review?pairs=id');
   // The two rows stand side by side on a wide screen and one above the other on a phone, never past the edge.
   const edges = await card.locator('[data-pair-side]').evaluateAll((sides) => sides.map((el) => el.getBoundingClientRect().right));
   for (const right of edges) expect(right, 'a row of the pair runs past the screen').toBeLessThanOrEqual(page.viewportSize()!.width);
@@ -1467,7 +1605,7 @@ test('two rows that may be one factory are set side by side, and merged or kept 
   const dialog = page.getByRole('alertdialog');
   await expect(dialog).toContainText('ATLANTIC INERTIAL SYSTEMS INC. PART OF UTC AEROSPACE SYSTEMS');
   await expect(dialog).toContainText('Cannot be undone.');
-  await assertHealthyLayout(page, '/admin?tab=data&pairs=id:confirm');
+  await assertHealthyLayout(page, '/admin/review?pairs=id:confirm');
   await dialog.getByRole('button', { name: 'Merge' }).click();
   await expect.poll(() => merged).toEqual({ into: B });
   await expect(page.getByText(/^Merged ATLANTIC INERTIAL SYSTEMS INC\. PART OF UTC/)).toBeVisible();

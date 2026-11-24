@@ -26,7 +26,7 @@ import NotFound from './NotFound';
  * to do, at its own address: `/admin` is the index, and `/admin/add`,
  * `/admin/records`, `/admin/review`, `/admin/people`, `/admin/access`,
  * `/admin/invites` and `/admin/activity` the pages (`ADMIN_PAGES` in
- * lib/admin.ts). An address from before the pages (`/admin?tab=data…`) is
+ * lib/adminPages.ts). An address from before the pages (`/admin?tab=data…`) is
  * sent to the page that does what its tab did.
  *
  * Signed out, the gate sends the person to sign in. Signed in without the

@@ -178,7 +178,7 @@ expect "the admin is emailed"         1 "$(mail adm "Access request for $CANAME"
 expect "an admin with notices off is not" 0 "$(mail adm2 'Access request')"
 expect "the requester is not"         0 "$(mail r '')"
 expect "request email names the person" true "$(mail adm 'Access request' "m.text.includes('Rae Requester ($(addr r))')")"
-expect "request email links to the requests" "$APP_URL/admin?tab=access" "$(mail adm 'Access request' "$LINK")"
+expect "request email links to the requests" "$APP_URL/admin/access" "$(mail adm 'Access request' "$LINK")"
 expect "request email says where to turn it off" true "$(mail adm 'Access request' "m.text.includes('turn them off in settings: $APP_URL/settings')")"
 check "asking twice is one request"   201 "$(req r POST /employer/memberships "{\"companyId\":\"$CA\"}")" '"status":"requested"'
 expect "and one email"                1 "$(mail adm 'Access request')"
@@ -353,7 +353,7 @@ check "ask for a company to be added" 201 "$OUT" '"website":"emailtest-forge.exa
 CR=$(printf '%s' "$OUT" | j request.id)
 expect "the admin is emailed about it" 1 "$(mail adm "Request to add $FORGE")"
 expect "it says who asked and where"  1 "$(mail adm "Request to add $FORGE" "m.text.includes('$(addr s4)') && m.text.includes('Waco, TX') ? 1 : 0")"
-expect "its action opens the access requests" "$APP_URL/admin?tab=access" "$(mail adm "Request to add $FORGE" "$LINK")"
+expect "its action opens the access requests" "$APP_URL/admin/access" "$(mail adm "Request to add $FORGE" "$LINK")"
 check "the admin has news of it"      200 "$(req adm GET /me/news)" '"access":true'
 check "the admin declines it"         200 "$(req adm PATCH /admin/company-requests/$CR '{"decision":"decline"}')" '"status":"declined"'
 expect "the person is told of the decline" 1 "$(mail s4 "Your request to add $FORGE was declined")"
