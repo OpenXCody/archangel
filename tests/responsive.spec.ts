@@ -1158,9 +1158,10 @@ test("a company's version of a career, as a visitor: the same page, its changes 
 
   // One tap returns to the standard, which says the company has its own version; the row opens it again.
   const standard = page.locator('[data-standard-link]');
-  await expect(standard).toHaveText(`Standard ${occupation.title}`);
+  // It is a tag in the heading, as the company is (components/layout/RecordTag.tsx): a full finger tall on a phone.
+  await expect(standard).toContainText(`Standard ${occupation.title}`);
   const reach = await standard.boundingBox();
-  expect(reach?.height ?? 0, 'the way back to the standard is a full finger tall').toBeGreaterThanOrEqual(44);
+  expect(reach?.height ?? 0, 'the way back to the standard is a full finger tall').toBeGreaterThanOrEqual((page.viewportSize()?.width ?? 0) < 640 ? 44 : 36);
   await standard.click();
   await expect(page).toHaveURL(new RegExp(`/occupations/${occupation.id}$`));
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(occupation.title);
@@ -1739,6 +1740,8 @@ test("a seeker's career on the Atlas: read on its page, filled in on /atlas, a s
 // ---------------------------------------------------------------------------
 
 const POSTED_JOB = '00000000-0000-4000-8000-00000000a0b1';
+// The job's address: its company, its career and its number (shared/jobs.ts).
+const POSTED_JOB_PATH = '/jobs/space-exploration-technologies/cnc-machinist/1000';
 const SKILL = (n: number) => `00000000-0000-4000-8000-0000000005${String(n).padStart(2, '0')}`;
 
 function postedJobs(offset: number, limit: number) {
@@ -1771,25 +1774,47 @@ async function standInForPostedJobs(page: Page, options: { total?: number; canMa
     const limit = Number(query.get('limit') ?? 40);
     return route.fulfill({ json: { jobs: postedJobs(offset, Math.min(limit, total - offset)), total, limit, offset } });
   });
-  await page.route(`**/api/jobs/${POSTED_JOB}`, (route) =>
-    route.fulfill({
-      json: {
-        job: {
-          ...postedJobs(0, 1)[0], description: null, applyUrl: 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002', closedReason: null, isOpen: true,
-          hasVersion: false, fromSource: true, levelWord: 'Senior', levelRank: 3, lastSeenAt: new Date().toISOString(),
-          requirements: { yearsMin: 5, education: 'High school diploma or equivalent', certifications: ['NIMS Machining Level I', 'AWS D17.1'], clearance: 'Secret clearance', citizenship: 'US person (ITAR)' },
-        },
-        skills: [
-          { id: SKILL(1), name: 'CNC Control Operation', required: true, held: false, makes: [{ id: 'm1', name: 'Mazak' }, { id: 'm2', name: 'Okuma' }, { id: 'm3', name: 'Heidenhain' }] },
-          { id: SKILL(2), name: 'Blueprint Reading', required: true, held: false, makes: [] },
-          { id: SKILL(3), name: 'Coordinate Measuring Machine Operation and Programming', required: true, held: false, makes: [] },
-          { id: SKILL(4), name: 'GD&T Interpretation', required: true, held: false, makes: [] },
-        ],
-        myApplication: null,
-        canManage: Boolean(options.canManage),
-      },
-    })
-  );
+  // The page reads the job by the number its address ends in; an older link reads it by id.
+  const place = (level: number, group: string, domain: string) => ({ level, group: { slug: group.toLowerCase().replace(/ /g, '-'), name: group }, domain: { slug: domain.toLowerCase(), name: domain } });
+  const on = (n: number, name: string, where: ReturnType<typeof place>, more: Record<string, unknown> = {}) => ({ id: SKILL(n), name, ...where, named: false, optional: false, added: false, held: false, makes: [], ...more });
+  const answer = {
+    job: {
+      ...postedJobs(0, 1)[0], companySlug: null, description: null, applyUrl: 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002', closedReason: null, isOpen: true,
+      hasVersion: false, fromSource: true, levelWord: 'Senior', levelRank: 3, lastSeenAt: new Date().toISOString(),
+      requirements: { yearsMin: 5, education: 'High school diploma or equivalent', certifications: ['NIMS Machining Level I', 'AWS D17.1'], clearance: 'Secret clearance', citizenship: 'US person (ITAR)' },
+      href: POSTED_JOB_PATH,
+    },
+    // What the posting's text was read to name: four skills, one of them not on the career's path.
+    skills: [
+      { id: SKILL(1), name: 'CNC Control Operation', required: true, held: false, makes: [{ id: 'm1', name: 'Mazak' }, { id: 'm2', name: 'Okuma' }, { id: 'm3', name: 'Heidenhain' }] },
+      { id: SKILL(2), name: 'Blueprint Reading', required: true, held: false, makes: [] },
+      { id: SKILL(3), name: 'Coordinate Measuring Machine Operation and Programming', required: true, held: false, makes: [] },
+      { id: SKILL(4), name: 'GD&T Interpretation', required: true, held: false, makes: [] },
+    ],
+    // What the page draws: the career's whole path, with what the posting names marked.
+    path: {
+      of: 'career',
+      skills: [
+        on(2, 'Blueprint Reading', place(1, 'Shop basics', 'Production'), { named: true }),
+        on(5, 'Shop Math', place(1, 'Shop basics', 'Production')),
+        on(6, 'Micrometer Measurement', place(1, 'Measurement tools', 'Quality')),
+        on(1, 'CNC Control Operation', place(2, 'CNC setup', 'Machining'), { named: true, makes: [{ id: 'm1', name: 'Mazak' }, { id: 'm2', name: 'Okuma' }, { id: 'm3', name: 'Heidenhain' }] }),
+        on(7, 'Tool and Work Offsets', place(2, 'CNC setup', 'Machining')),
+        on(8, 'CNC Milling', place(2, 'CNC machining', 'Machining')),
+        on(4, 'GD&T Interpretation', place(2, 'Part inspection', 'Quality'), { named: true }),
+        on(9, 'Five-Axis Machining Setup and First-Article Prove-Out', place(3, 'CNC machining', 'Machining')),
+      ],
+      alsoNamed: [on(3, 'Coordinate Measuring Machine Operation and Programming', place(2, 'Coordinate measuring', 'Quality'), { named: true })],
+    },
+    others: {
+      career: { jobs: postedJobs(6, 2).map((job) => ({ ...job, companySlug: null })), total: 9 },
+      factory: { jobs: postedJobs(2, 1).map((job) => ({ ...job, companySlug: null, occupationTitle: 'Welder' })), total: 1 },
+    },
+    myApplication: null,
+    canManage: Boolean(options.canManage),
+  };
+  await page.route(`**/api/jobs/${POSTED_JOB}`, (route) => route.fulfill({ json: answer }));
+  await page.route('**/api/jobs/by-number/1000', (route) => route.fulfill({ json: answer }));
 }
 
 test('the Jobs list at volume: two fields, how many match in all, and a page at a time', async ({ page }) => {
@@ -1820,11 +1845,28 @@ test('the Jobs list at volume: two fields, how many match in all, and a page at 
   await expect(page.getByRole('status').filter({ hasText: 'match' })).toHaveText(/4,812 jobs match/);
 });
 
-test("a job from a company's careers site, as a visitor: facts, tags and one way to apply", async ({ page }) => {
+test("a job from a company's careers site, as a visitor: tags, facts, one way to apply and the career's whole path", async ({ page }) => {
   await standInForPostedJobs(page);
+  // An older link, by the job's id, opens the job and is replaced by its address.
   await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('CNC Machinist, Tool & Die - Level 4/5');
+  await expect(page).toHaveURL(new RegExp(`${POSTED_JOB_PATH}$`));
+  // Under the title, the company, the factory and the career as tags, each opening its page.
+  const tags = page.locator('[data-job-tags] a');
+  await expect(tags).toHaveCount(3);
+  await expect(tags.nth(0)).toHaveAttribute('href', /^\/companies\//);
+  await expect(tags.nth(0)).toContainText('Space Exploration Technologies');
+  await expect(tags.nth(1)).toHaveAttribute('href', /^\/factories\//);
+  await expect(tags.nth(1)).toContainText('Bastrop, TX');
+  await expect(tags.nth(2)).toHaveAttribute('href', /^\/occupations\//);
+  await expect(tags.nth(2)).toContainText('CNC Machinist');
+  const narrow = (page.viewportSize()?.width ?? 0) < 640;
+  for (let i = 0; i < 3; i += 1) {
+    const box = await tags.nth(i).boundingBox();
+    expect(box?.height ?? 0, 'a tag is a full finger tall on a phone').toBeGreaterThanOrEqual(narrow ? 44 : 36);
+    expect(await tags.nth(i).evaluate((node) => getComputedStyle(node).borderRadius)).toBe('8px');
+  }
   // The one action: Apply, on the company's own page, in a new tab.
   const apply = page.locator('[data-apply-on-site]');
   await expect(apply).toHaveCount(1);
@@ -1835,26 +1877,57 @@ test("a job from a company's careers site, as a visitor: facts, tags and one way
   // Beside it, whose page that is, by the company's name: never the hiring system's host.
   await expect(page.locator('[data-apply-where]')).toHaveText(/^On .+ careers site$/);
   await expect(page.locator('main')).not.toContainText('boards.greenhouse.io');
-  // The terms that were stated, and what it asks for as two quiet lines.
+  // The facts the posting states, each under its word; nothing for what it does not say.
   const terms = page.locator('[data-job-terms]');
   await expect(terms).toContainText('$28–$42 an hour');
   await expect(terms).toContainText('Senior');
-  const asks = page.locator('[data-job-requirements] dd');
-  await expect(asks).toHaveText(['5 years or more · High school diploma or equivalent', 'NIMS Machining Level I · AWS D17.1 · Secret clearance · US person (ITAR)']);
-  await expect(terms.getByRole('link', { name: /Career/ })).toHaveAttribute('href', /\/occupations\//);
-  // Its skills are the tags a path uses; a make the posting names is the tag's second line. No marks for a visitor.
-  const tags = page.locator('[data-skill-tag]');
-  await expect(tags).toHaveCount(4);
-  await expect(tags.first()).toContainText('Mazak, Okuma, Heidenhain');
-  await expect(tags.first().locator('button')).toHaveCount(0);
+  await expect(terms.locator('[data-job-requirement="experience"]')).toHaveText('5 years or more');
+  await expect(terms.locator('[data-job-requirement="schooling"]')).toHaveText('High school diploma or equivalent');
+  await expect(terms.locator('[data-job-requirement="certificates"]')).toHaveText('NIMS Machining Level I, AWS D17.1');
+  await expect(terms.locator('[data-job-requirement="clearance"]')).toHaveText('Secret clearance');
+  await expect(terms.locator('[data-job-requirement="citizenship"]')).toHaveText('US person (ITAR)');
+  // The skills are the career's path, by level and group: eight, of which the posting names three, and one more after them.
+  const path = page.locator('[data-job-path="career"]');
+  await expect(path.locator('[data-job-level]')).toHaveCount(3);
+  await expect(path.locator('[data-group-box] [data-skill-tag]')).toHaveCount(8);
+  await expect(path.locator('[data-group-box] [data-skill-tag][data-named]')).toHaveCount(3);
+  await expect(path.locator(`[data-skill-tag="${SKILL(2)}"]`)).toContainText('Named in the posting');
+  await expect(path.locator(`[data-skill-tag="${SKILL(5)}"]`)).not.toContainText('Named in the posting');
+  await expect(page.locator('[data-job-also-named]')).toContainText('Also named in the posting');
+  // One sentence says how much of the path the posting itself names.
+  await expect(page.locator('[data-job-named-count]')).toHaveText('The posting names 3 of these 8, and 1 more.');
+  // The way out is one button in the facts panel; for a visitor it is Apply, and there is no second one.
+  await expect(page.locator('[data-job-panel] [data-job-action] [data-apply-on-site]')).toHaveCount(1);
+  await expect(page.locator('[data-view-on-site]')).toHaveCount(0);
+  await expect(page.locator('[data-job-also-named] [data-skill-tag]')).toHaveCount(1);
+  // Read, not worked on: no mark and no control on a tag; a visitor is shown the way to sign in, and back.
+  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
+  await expect(page.locator('[data-job-overlap]')).toHaveCount(0);
+  await expect(page.locator('[data-job-overlap-sign-in] a')).toHaveAttribute('href', new RegExp(`^/sign-in\\?next=${encodeURIComponent(POSTED_JOB_PATH)}`));
+  // The equipment the posting names, each make beside its skill.
+  const equipment = page.locator('[data-job-equipment] li');
+  await expect(equipment).toHaveCount(1);
+  await expect(equipment.first()).toContainText('Mazak, Okuma, Heidenhain');
+  await expect(equipment.first()).toContainText('CNC Control Operation');
+  // Other open jobs, each at its own address.
+  await expect(page.locator('#more-for-career a[href^="/jobs/space-exploration-technologies/cnc-machinist/"]')).toHaveCount(2);
+  await expect(page.locator('#more-for-career [data-all-jobs]')).toHaveText('All 9');
+  await expect(page.locator('#more-at-factory li')).toHaveCount(1);
   // Nothing of a job posted here: no description, no form, nothing to manage.
   await expect(page.getByText('About the job')).toHaveCount(0);
   await expect(page.locator('#apply, #applicants, #manage-job')).toHaveCount(0);
   await expect(page.getByText(/Post another like this|Sign in to apply/)).toHaveCount(0);
-  await assertHealthyLayout(page, '/jobs/:id from a posting');
+  await assertHealthyLayout(page, '/jobs/:company/:career/:number from a posting');
+  // An address whose words are wrong, with the right number, is the same job at the right address.
+  await page.goto('/jobs/some-other-company/a-renamed-career/1000', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('CNC Machinist, Tool & Die - Level 4/5');
+  await expect(page).toHaveURL(new RegExp(`${POSTED_JOB_PATH}$`));
+  // The jobs list writes the same address.
+  await page.goto('/jobs', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('a[href^="/jobs/"]').first()).toHaveAttribute('href', POSTED_JOB_PATH);
 });
 
-test("a job from a company's careers site, as a seeker and as the company: marks and a count for one, a line and nothing to edit for the other", async ({ page }) => {
+test("a job from a company's careers site, as a seeker and as the company: a count and ticks for one, a line and nothing to edit for the other", async ({ page }) => {
   const person = (purpose: 'work' | 'hire', memberships: unknown[] = []) => ({
     user: { id: '00000000-0000-4000-8000-000000000002', email: 'person@device.test', name: 'Device Person', isAdmin: false, homeZip: null, about: null, emailNotices: true, purpose },
     memberships, isEmployer: memberships.length > 0,
@@ -1864,33 +1937,61 @@ test("a job from a company's careers site, as a seeker and as the company: marks
     route.fulfill({ json: { skills: [
       { skillId: SKILL(1), name: 'CNC Control Operation', status: 'held', updatedAt: new Date().toISOString(), makes: [{ id: 'm1', name: 'Mazak' }] },
       { skillId: SKILL(2), name: 'Blueprint Reading', status: 'learning', updatedAt: new Date().toISOString(), makes: [] },
+      { skillId: SKILL(6), name: 'Micrometer Measurement', status: 'held', updatedAt: new Date().toISOString(), makes: [] },
     ] } })
   );
-  // A seeker: which of the job's skills they hold, and the count; a make they have run is brighter.
+  // A seeker: one line with the ring says how many of the path's skills they hold, and those are ticked. Nothing is marked here.
   await page.route('**/api/auth/me', (route) => route.fulfill({ json: person('work') }));
   await standInForPostedJobs(page);
-  await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
-  await expect(page.getByText('1 of 4 skills held')).toBeVisible();
+  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
+  const overlap = page.locator('[data-job-overlap]');
+  await expect(overlap).toHaveText('You hold 2 of 8');
+  await expect(overlap.locator('[data-share-ring]')).toHaveCount(1);
+  await expect(page.locator('[data-job-overlap-sign-in]')).toHaveCount(0);
   await expect(page.locator(`[data-skill-tag="${SKILL(1)}"]`)).toHaveAttribute('data-status', 'held');
+  await expect(page.locator(`[data-skill-tag="${SKILL(1)}"] [data-skill-mark="held"]`)).toHaveCount(1);
   await expect(page.locator(`[data-skill-tag="${SKILL(2)}"]`)).toHaveAttribute('data-status', 'learning');
-  await expect(page.locator(`[data-skill-tag="${SKILL(1)}"] [data-tag-make="lit"]`)).toHaveText('Mazak');
+  await expect(page.locator(`[data-skill-tag="${SKILL(5)}"]`)).toHaveAttribute('data-status', 'none');
+  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
+  // A make they have run stands in full ink among the equipment.
+  await expect(page.locator('[data-job-equipment] [data-make="lit"]')).toContainText('Mazak');
+  await expect(page.locator('[data-job-equipment] [data-make="lit"]')).toHaveCount(1);
   await expect(page.locator('[data-apply-on-site]')).toHaveCount(1);
-  await assertHealthyLayout(page, '/jobs/:id from a posting, a seeker');
+  await assertHealthyLayout(page, 'a job from a posting, a seeker');
 
-  // Someone who manages the company's jobs: told where it comes from, with nothing to change and nothing to apply to.
+  // Someone who manages the company's jobs: told where it comes from, with nothing to change, nothing to apply to and no count.
   await page.unroute('**/api/auth/me');
   await page.unroute(`**/api/jobs/${POSTED_JOB}`);
+  await page.unroute('**/api/jobs/by-number/1000');
   await page.route('**/api/auth/me', (route) =>
     route.fulfill({ json: person('hire', [{ companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', role: 'member', status: 'active' }]) })
   );
   await standInForPostedJobs(page, { canManage: true });
-  await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-job-from-source]')).toContainText("careers site and is kept in step with it");
+  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
+  // One quiet line in the facts panel, beside the button that opens the posting on the company's site.
+  await expect(page.locator('[data-job-panel] [data-job-from-source]')).toContainText("careers site and is kept in step with it");
+  const view = page.locator('[data-job-panel] [data-view-on-site]');
+  await expect(view).toHaveText(/^View on Space Exploration Technologies' careers site/);
+  await expect(view).toHaveAttribute('href', 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002');
+  await expect(view).toHaveAttribute('target', '_blank');
+  expect((await view.boundingBox())?.height ?? 0, 'the way to the posting is a button').toBeGreaterThanOrEqual(40);
   await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
   await expect(page.locator('[data-apply-on-site], #applicants, #manage-job')).toHaveCount(0);
   await expect(page.getByRole('link', { name: /^Edit$|Post another like this/ })).toHaveCount(0);
+  await expect(page.locator('[data-job-overlap], [data-job-overlap-sign-in], [data-skill-mark]')).toHaveCount(0);
+  await expect(page.locator('[data-job-path] [data-skill-tag]')).toHaveCount(9);
   await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
-  await assertHealthyLayout(page, '/jobs/:id from a posting, the company');
+  await assertHealthyLayout(page, 'a job from a posting, the company');
+
+  // Someone here to hire who is not of this company: the same button to the posting, no line about managing, no Apply.
+  await page.unroute('**/api/auth/me');
+  await page.unroute(`**/api/jobs/${POSTED_JOB}`);
+  await page.unroute('**/api/jobs/by-number/1000');
+  await page.route('**/api/auth/me', (route) => route.fulfill({ json: person('hire') }));
+  await standInForPostedJobs(page);
+  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-view-on-site]')).toHaveCount(1);
+  await expect(page.locator('[data-apply-on-site], [data-job-from-source], [data-job-overlap], [data-job-overlap-sign-in]')).toHaveCount(0);
 
   // Your jobs, for a member who has posted nothing: what is already listed from the company's site is said before the form.
   await page.route('**/api/employer', (route) =>

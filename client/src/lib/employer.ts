@@ -35,6 +35,10 @@ export interface EmployerJob {
   expiresAt: string;
   factoryName: string;
   city: string | null;
+  /** With the number, what the job's address is written from. */
+  companyName?: string;
+  companySlug?: string | null;
+  occupationTitle?: string;
   applicants: number;
   newApplicants: number;
 }

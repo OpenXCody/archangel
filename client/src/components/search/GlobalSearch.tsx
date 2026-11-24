@@ -34,7 +34,7 @@ function pageOf(row: SearchRow): string | null {
     case 'skill':
       return `/skills/${row.id}`;
     case 'job':
-      return `/jobs/${row.id}`;
+      return row.href ?? `/jobs/${row.id}`;
     case 'place':
       return null;
   }

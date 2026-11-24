@@ -19,6 +19,7 @@ import { useDebouncedValue } from '../lib/useDebouncedValue';
 import { EmptyState, PageContainer, PageHeader } from '../components/layout/Page';
 import { isUuid } from '../lib/validation';
 import { publicKeys } from '../lib/queryKeys';
+import { jobPath } from '@shared/jobs';
 
 /** `?near=30.5083,-97.6789`: a point, as latitude then longitude. */
 function readPoint(raw: string | null): { lat: number; lng: number } | null {
@@ -352,7 +353,7 @@ function JobCard({ job, from }: { job: JobSummary; from?: string }) {
   const place = [town, typeof job.miles === 'number' ? milesAway(job.miles) : null].filter(Boolean).join(' · ');
   return (
     <Link
-      to={`/jobs/${job.id}`}
+      to={jobPath(job)}
       state={from ? { from } : undefined}
       className={cn(rowHoverClass, 'flex h-full flex-col py-4')}
     >

@@ -54,6 +54,9 @@ export interface MyApplication {
   events: ApplicationEvent[];
   jobId: string;
   jobSerial: number;
+  /** With the number, what the job's address is written from. */
+  companySlug?: string | null;
+  occupationTitle?: string;
   jobTitle: string;
   jobStatus: JobStatus;
   companyId: string;

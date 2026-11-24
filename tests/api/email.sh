@@ -271,7 +271,10 @@ expect "the applicant is not"         0 "$(mail s1 'New applicant')"
 expect "an approved member of the company is" 1 "$(mail r "$SUBJ")"
 expect "the admin is not"             0 "$(mail adm 'New applicant')"
 expect "it gives the required-skills figure" true "$(mail emp "$SUBJ" "m.text.includes('Sam Seeker applied for Email Test Welder') && m.text.includes('1 of the 2 required skills')")"
-expect "it links to the job's applicants" "$APP_URL/jobs/$JOB" "$(mail emp "$SUBJ" "$LINK")"
+# The link is the job's address as the app writes it: /jobs/<company>/<career>/<number>.
+JOB_SERIAL=$(sql "SELECT serial FROM jobs WHERE id='$JOB'")
+expect "it links to the job's applicants" "$APP_URL$(req emp GET /jobs/$JOB | j job.href)" "$(mail emp "$SUBJ" "$LINK")"
+expect "by the job's number"          true "$(mail emp "$SUBJ" "$LINK" | grep -Eq "/jobs/[a-z0-9-]+/[a-z0-9-]+/$JOB_SERIAL$" && echo true)"
 check "that page lists the applicant" 200 "$(req emp GET /jobs/$JOB/applications)" "\"id\":\"$APP1\""
 expect "it says where to turn it off" true "$(mail emp "$SUBJ" "m.text.includes('turn them off in settings: $APP_URL/settings')")"
 expect "the application has its first event" "applied|$(uid s1)" "$(sql "SELECT string_agg(status || '|' || by_user, ',' ORDER BY at) FROM application_events WHERE application_id='$APP1'")"

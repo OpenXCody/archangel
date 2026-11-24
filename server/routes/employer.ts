@@ -73,6 +73,10 @@ router.get(
             expiresAt: jobs.expiresAt,
             factoryName: factories.name,
             city: factories.city,
+            // With the number, what the job's address is written from (shared/jobs.ts).
+            companyName: sql<string>`(SELECT c.name FROM companies c WHERE c.id = ${jobs.companyId})`,
+            companySlug: sql<string | null>`(SELECT c.slug FROM companies c WHERE c.id = ${jobs.companyId})`,
+            occupationTitle: sql<string>`(SELECT o.title FROM occupations o WHERE o.id = ${jobs.occupationId})`,
             applicants: sql<number>`(SELECT COUNT(*)::int FROM applications a WHERE a.job_id = ${jobs.id})`,
             newApplicants: sql<number>`(
               SELECT COUNT(*)::int FROM applications a WHERE a.job_id = ${jobs.id} AND a.status = 'applied'

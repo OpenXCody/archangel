@@ -2,20 +2,19 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { cn, plural } from '@/lib/utils';
-import { formatCompanyName } from '@shared/displayName';
-import CompanyLogo from '../CompanyLogo';
 import { ErrorNote, LoadError } from '../account/parts';
 import { signInPath, useAccount } from '../../lib/account';
 import { type OccupationDetail } from '../../lib/api';
 import { isNoVersion, useVersion, type Version } from '../../lib/versions';
 import { useViewer } from '../../lib/viewer';
-import { BackLink, DetailFacts, DetailHeader, DetailSection, EmptyState, sectionLinkClass } from '../layout/Page';
+import { BackLink, DetailHeader, DetailSection, EmptyState, sectionLinkClass } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
 import { SkillTag, SkillTags } from '../path/SkillTag';
 import { shareOf, type PlacedSkill } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
 import { Route } from '../route/Route';
-import { type Head, OpenJobsSection, factLinkClass } from './parts';
+import { type Head, OpenJobsSection } from './parts';
+import { CareerTag, CompanyTag, RecordTags } from '../layout/RecordTag';
 
 /** Where a company's people change its version of a career: Your jobs, with the version in the address. */
 export function versionEditorPath(companyId: string, occupationId: string): string {
@@ -84,7 +83,6 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
   const viewer = useViewer();
 
   const company = version.company;
-  const companyName = formatCompanyName(company.name);
   const standard = `/occupations/${data.id}`;
 
   // The version's path: each skill with the makes the company runs, the person's own among them lit.
@@ -125,7 +123,6 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         }
         kind="Career"
         title={version.title}
-        mark={<CompanyLogo name={companyName} domain={company.domain} size={44} />}
         description={data.description}
         action={
           <>
@@ -141,15 +138,10 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         }
       >
         {/* Whose version this is, and the one tap back to the standard. */}
-        <DetailFacts>
-          <Link to={`/companies/${company.slug ?? company.id}`} className={factLinkClass} data-version-company>
-            {companyName}
-          </Link>
-          {' · '}
-          <Link to={standard} className={factLinkClass} data-standard-link>
-            Standard {data.title}
-          </Link>
-        </DetailFacts>
+        <RecordTags>
+          <CompanyTag company={company} data-version-company="" />
+          <CareerTag career={{ id: data.id, title: `Standard ${data.title}` }} to={standard} data-standard-link="" />
+        </RecordTags>
       </DetailHeader>
 
       <DetailSection

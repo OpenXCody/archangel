@@ -16,7 +16,7 @@ import {
   ShowAll,
   detailActionClass,
 } from '../layout/Page';
-import { plural } from '@/lib/utils';
+import { CompanyTag, RecordTags } from '../layout/RecordTag';
 import { type Head, streetAddress, factLinkClass, Footprint, OpenJobsSection, CAREERS_SHOWN, TypicalCareers } from './parts';
 
 /**
@@ -40,7 +40,6 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
   const longitude = parseFloat(data.longitude);
   const located = Number.isFinite(latitude) && Number.isFinite(longitude);
   const plantCount = company?.siteCount ?? 0;
-  const stateCount = company?.stateCount ?? 0;
   // A company whose one factory this is, under the same name, would only repeat the heading.
   const companyIsThisPlant =
     companyName !== null && plantCount <= 1 && !company?.description && name.toLowerCase().startsWith(companyName.toLowerCase());
@@ -65,7 +64,8 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
         {...head}
         kind="Factory"
         title={name}
-        mark={companyName ? <CompanyLogo name={companyName} domain={company?.domain} size={44} /> : undefined}
+        // The company's mark stands before the name only where no tag under it names the company.
+        mark={companyName && companyIsThisPlant ? <CompanyLogo name={companyName} domain={company?.domain} size={44} /> : undefined}
         description={data.description}
         action={
           located ? (
@@ -89,6 +89,12 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
             {underConstruction ? `${place || industry ? ' · ' : ''}Under construction` : ''}
           </DetailFacts>
         )}
+        {/* Who runs it: the company, as the tag every heading names a company with. */}
+        {company && !companyIsThisPlant && (
+          <RecordTags>
+            <CompanyTag company={company} data-factory-company="" />
+          </RecordTags>
+        )}
       </DetailHeader>
 
       {/* What it is: how many people, what it makes, since when */}
@@ -105,21 +111,6 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
 
       {/* Open jobs: said only when there are some */}
       {jobs.length > 0 && <OpenJobsSection jobs={jobs} showCareer total={data.openJobCount} all={`/jobs?plant=${data.id}`} />}
-
-      {/* Who runs it */}
-      {company && companyName && !companyIsThisPlant && (
-        <DetailSection title="Company">
-          <RecordList>
-            <RecordRow
-              to={`/companies/${company.slug ?? company.id}`}
-              lead={<CompanyLogo name={companyName} domain={company.domain} size={32} />}
-              title={companyName}
-              // One factory is this one: counting it says nothing.
-              subtitle={plantCount > 1 ? `${plural(plantCount, 'factory', 'factories')}${stateCount > 1 ? ` in ${stateCount} states` : ''}` : null}
-            />
-          </RecordList>
-        </DetailSection>
-      )}
 
       {/* The company's other factories, closest first */}
       {nearby.length > 0 && companyName && (

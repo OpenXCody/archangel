@@ -164,6 +164,8 @@ export interface CareerJob {
   payMax: number | null;
   payPeriod: 'hour' | 'year';
   companyName: string;
+  /** The company's slug, for the job's address. */
+  companySlug?: string | null;
   factoryName: string;
   city: string | null;
   occupationId?: string;
@@ -538,6 +540,8 @@ export interface SearchResultItem {
   type: SearchEntityType;
   subtitle?: string;
   meta?: string;
+  /** Jobs only: the job's address. */
+  href?: string;
   /** Companies only: the web domain their logo is looked up from. */
   domain?: string | null;
   /** Careers only: a military career the query named (its code, or its service with words of its title). */
