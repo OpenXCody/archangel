@@ -713,19 +713,14 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
   // By group: each group one section, where the route first reaches it.
   const sections = groupsOf(path);
   expect(sections.length, 'the path has groups').toBeGreaterThan(2);
-  /** The groups a person would see open: the ones that hold one of the first three skills not held. */
+  /** The first skills not held, in the route's order (the page names none of them next). */
   const nextOf = (held: Set<string>) => path.filter((skill) => !held.has(skill.id)).slice(0, 3);
-  const opened = (held: Set<string>) => {
-    const next = nextOf(held);
-    return sections.filter((group) => group.skills.some((skill) => next.includes(skill))).map((group) => group.name.toLowerCase());
-  };
   /** "2 of 6" (with or without the words around it) as [2, 6]. */
   const figure = async (locator: Locator): Promise<[number, number]> => {
     const match = /(\d+) of (\d+)/.exec((await locator.textContent()) ?? '');
     expect(match, 'the figure reads "N of M"').toBeTruthy();
     return [Number(match?.[1]), Number(match?.[2])];
   };
-  const wide = (page.viewportSize()?.width ?? 0) >= 1024;
 
   for (const purpose of ['work', 'hire'] as const) {
     const made = await page.request.post(`${API}/auth/sign-up`, {
@@ -757,34 +752,25 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
       const hold = async (skill: { id: string }, status: 'held' | 'learning' = 'held') =>
         expect((await page.request.put(`${API}/me/skills/${skill.id}`, { data: { status } })).ok(), 'the skill was marked through the API').toBe(true);
 
-      // A seeker with nothing held: no "0 of" anywhere. The first three skills are next: the first says NEXT, the two after THEN.
+      // A seeker with nothing held: no "0 of" anywhere. The page names no skill next: no NEXT or THEN, no column
+      // beside the route and nothing above it, and every group arrives closed (the owner's call).
       const whole = page.locator('[data-held-count]');
       await expect(whole).toHaveCount(0);
       let held = new Set<string>();
       const check = async (label: string) => {
-        const next = nextOf(held);
-        await expect(flow.locator('[data-next="next"]'), `${label}: one skill is next`).toHaveCount(next.length > 0 ? 1 : 0);
-        await expect(flow.locator('[data-next="then"]')).toHaveCount(Math.max(0, next.length - 1));
-        for (const [at, skill] of next.entries()) await expect(row(skill), `${label}: ${skill.name}`).toHaveAttribute('data-next', at === 0 ? 'next' : 'then');
-        // The sections open are the ones that hold a next skill, and no other, at every width.
-        expect(await openSections(), `${label}: the open sections`).toEqual(opened(held));
+        await expect(flow.locator('[data-next], .route-row-word'), `${label}: no skill is called next`).toHaveCount(0);
+        await expect(page.locator('[data-next-up], [data-route-aside]'), `${label}: nothing beside or above the route`).toHaveCount(0);
+        expect(await openSections(), `${label}: every group arrives closed`).toEqual([]);
         // The heading's line says how many are held, once one is; never "0 of".
         if (held.size > 0) expect(await figure(whole), `${label}: the figure`).toEqual([held.size, path.length]);
         else await expect(whole).toHaveCount(0);
         for (const id of held) await expect(row({ id })).toHaveAttribute('data-status', 'held');
-        // Next in words: above the route on a narrow screen, in the column beside it from 1024px. One or the other.
-        await expect(wide ? beside : above).toBeVisible();
-        await expect(wide ? above : beside).toBeHidden();
-        await expect(wide ? beside : above).toContainText(next[0].name);
         await expectOneRoute(flow, label);
         await noControls();
       };
-      const above = page.locator('[data-next-up]');
-      const beside = page.locator('[data-route-aside]');
       await check('nothing held');
       const first = nextOf(held)[0];
-      await expect(row(first).locator('.route-row-word')).toHaveText('Next');
-      await expect(row(first).locator('[data-row-said]')).toHaveText('Not held, next');
+      await expect(row(first).locator('[data-row-said]')).toHaveText('Not held');
       await expect(row(first).locator('a')).toHaveAttribute('href', `/skills/${first.id}`);
       // Inside its group a row does not say its group again.
       await flow.locator('[data-route-open-all]').click();
@@ -792,14 +778,6 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
       await flow.locator('[data-route-open-all]').click();
       // What a person opened and closed holds for the visit: forgotten here, so the next reads are a fresh visit's.
       await page.evaluate(() => sessionStorage.clear());
-      if (wide) {
-        const [second, third] = nextOf(held).slice(1);
-        await expect(beside).toContainText(new RegExp(`Next[\\s\\S]*${first.name}[\\s\\S]*Then[\\s\\S]*${second.name}[\\s\\S]*${third.name}`));
-        // The route does not run across: the column beside it is to its right, and the rows are still one column.
-        const [left, right] = [await flow.locator('.route-main').boundingBox(), await beside.boundingBox()];
-        expect(right?.x ?? 0, 'the side column stands to the right of the route').toBeGreaterThanOrEqual((left?.x ?? 0) + (left?.width ?? 0));
-        expect(Math.round(right?.width ?? 0)).toBe(288);
-      }
 
       // Skills marked elsewhere (Profile; here, the API): the first skill, then the whole of the first section, and one being learned.
       const section = sections[0];
@@ -830,14 +808,9 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
       await check('a section whole');
       await expect(place).toHaveAttribute('data-complete', 'true');
       await expect(place.locator('[data-section-count]')).toHaveCount(0);
-      // A skill being learned is not held: it keeps its half mark, is not in the figure, and is still next where the route has it.
+      // A skill being learned is not held: it keeps its half mark and is not in the figure.
       await expect(row(learning)).toHaveAttribute('data-status', 'learning');
       await expect(row(learning).locator('[data-row-said]')).toContainText('Learning');
-
-      // Next in words leads to its row: the row's name takes focus.
-      const next = nextOf(held)[0];
-      await (wide ? beside.locator('[data-side-next]') : above.getByRole('button')).click();
-      await expect(row(next).locator('a')).toBeFocused();
 
       // A section opens and closes by keyboard, and closed its rows are out of the tab order.
       const inside = place.locator('[data-skill-tag]');
