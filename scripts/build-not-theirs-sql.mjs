@@ -13,10 +13,20 @@
 //              letter case; created bare when there is none.
 //   mergeInto  the id of the row that is the same plant: the row is folded into
 //              it by the database's plant merge (plant_merge, migration 0051).
+// A row moves only to the owner the research names, and only when it is a
+// working plant the product covers. A dealer, an office, a warehouse, a cell
+// site, ready-mix or asphalt (NOT_COVERED), a demolished plant, or a business
+// sold long ago whose owner today nobody sourced is never given a company of
+// its own name: it goes in `leftInPlace`, with `leftBecause`, and nothing is
+// built from it (the owner decides). The check refuses a `to` whose own `why`
+// says the row is one of those.
 // The migration decides in SQL on the database it meets and writes each
 // decision to load_log (load `not-theirs`): a row is moved or merged only while
 // it still carries the file's name and is filed under `from`; a row that is not
 // there, or no longer as the file says, is left alone and said once, with look.
+// A row written from sources (curated) is not moved: its company came from a
+// source too, and a person looks. A move is a line in the audit log with no
+// person named, as a data decision is (History reads it as "The data").
 // Nothing is deleted. Run twice, the second run changes nothing.
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -28,6 +38,12 @@ export const MIGRATION = path.join(HERE, '..', 'migrations', '0066_rows_not_thei
 export const LOAD = 'not-theirs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+/**
+ * What a row's own `why` says when it is no plant the product covers: a row so described is never moved to a company
+ * of its own (it is left in place for the owner). Ready-mix concrete and asphalt paving are NOT_COVERED in
+ * scripts/build-employers-sql.mjs.
+ */
+export const NOT_A_PLANT = /\bnot a plant\b|\bnot one of its plants\b|outside what we cover|\bready-mix\b|\basphalt\b|\bdealer\b|\bdealership\b|\bwarehouse\b|\bcell site\b|\bproperty firm\b|\bdistributor\b|\bdemolished\b/i;
 const text = (value) => (typeof value === 'string' && value.trim() ? value.trim() : null);
 
 /** What is wrong with the file, one line each: nothing when it can be built. */
@@ -50,12 +66,27 @@ export function checkRows(file) {
     if (to && to.toLowerCase() === String(row.from ?? '').toLowerCase()) problems.push(`${where}: "to" is the company it is already under`);
     if (into && (!UUID.test(String(into)) || into === row.id)) problems.push(`${where}: mergeInto is not another row's id`);
     if (into && !text(row?.intoName)) problems.push(`${where}: says no name for the row it is merged into ("intoName")`);
+    if (to && NOT_A_PLANT.test(String(row?.why ?? ''))) problems.push(`${where}: its why says it is no plant the product covers, so it is not moved to a company: put it in leftInPlace`);
     for (const source of Array.isArray(row?.sources) ? row.sources : []) {
       if (!/^https?:\/\/\S+$/.test(String(source))) problems.push(`${where}: source "${source}" is not an address`);
     }
   });
   const merged = new Set(rows.filter((row) => row?.mergeInto).map((row) => row.id));
   for (const row of rows) if (row?.mergeInto && merged.has(row.mergeInto)) problems.push(`${row.name}: is merged into a row that is itself merged away`);
+  // Rows the research looked at and that stay where they are: each says why, and none is also moved or merged.
+  const left = file?.leftInPlace === undefined ? [] : file.leftInPlace;
+  if (!Array.isArray(left)) problems.push('leftInPlace is not a list');
+  else {
+    left.forEach((row, i) => {
+      const where = `left in place ${i + 1} (${row?.name ?? row?.id ?? '?'})`;
+      if (!UUID.test(String(row?.id ?? ''))) problems.push(`${where}: id is not an id`);
+      if (seen.has(row?.id)) problems.push(`${where}: the same row is in the file twice`);
+      seen.add(row?.id);
+      if (!text(row?.from) || !text(row?.name)) problems.push(`${where}: says no company it is filed under or no name`);
+      if (!text(row?.leftBecause)) problems.push(`${where}: says no leftBecause`);
+      if (row?.to || row?.mergeInto) problems.push(`${where}: a row left in place is neither moved nor merged`);
+    });
+  }
   return problems;
 }
 
@@ -135,12 +166,20 @@ BEGIN
       PERFORM pg_temp.nt_log('left', true, f.company, f.name, format('no longer the row the file names ("%s" under "%s"): left as it is', r->>'name', r->>'from'), v_id, true);
       CONTINUE;
     END IF;
+    IF f.curated THEN
+      PERFORM pg_temp.nt_log('left', true, f.company, f.name, format('written from sources under "%s": not moved to "%s"; a person looks', f.company, r->>'to'), v_id, true);
+      CONTINUE;
+    END IF;
     IF v_to IS NULL THEN
       INSERT INTO companies (name) VALUES (r->>'to') RETURNING id INTO v_to;
       PERFORM pg_temp.nt_log('company created', false, r->>'to', NULL, 'with no profile, for a row that is its', v_to, false);
     END IF;
     UPDATE factories SET company_id = v_to, updated_at = now() WHERE id = v_id;
     PERFORM pg_temp.nt_log('moved', false, r->>'to', f.name, format('from "%s": %s', f.company, r->>'why'), v_id, false);
+    -- On the plant's History as an admin's change of company reads, with no person: the data's decision.
+    INSERT INTO audit_log (actor_id, actor_name, kind, record_id, record_name, action, detail)
+      VALUES (NULL, '', 'factory', v_id, f.name, 'edited',
+              jsonb_build_object('changes', jsonb_build_object('company', jsonb_build_array(f.company, (SELECT name FROM companies WHERE id = v_to)))));
   END LOOP;
 END $f$;
 `;

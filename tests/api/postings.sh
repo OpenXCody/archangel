@@ -440,12 +440,17 @@ expect "a place a person left is not changed by the file"  'mirage flats|NV left
 expect "and the file says so"               'left as a person decided' "$(sql "SELECT action FROM load_log WHERE load = 'posting-places' AND source_id = 'postings-e2e-acme' AND detail LIKE 'Nowhere Springs%'")"
 check "the person takes it back"            200 "$(req a POST /admin/postings/places "$PLACE,\"decision\":\"wait\"}")" '"status":"waiting"'
 places "$D/places.json"
+expect "a place a person took back is not changed by the file either: taking back is a decision" 'mirage flats|NV left true true; nowhere springs|NV waiting true false' "$(check_places)"
+# On a database where no person has touched the place (their lines are not there), the file decides it.
+sql "DELETE FROM audit_log WHERE action LIKE 'postings %' AND detail->>'place' = 'Nowhere Springs, NV' AND actor_id IS NOT NULL" >/dev/null
+places "$D/places.json"
 expect "a place no person decided is pointed by the file, and named as nobody's decision" 'mirage flats|NV left true true; nowhere springs|NV pointed true true true' "$(check_places)"
 expect "the act is on record, made by the data" 'postings pointed here||Nowhere Springs, NV' "$(req a GET '/admin/audit?kind=factory&limit=20' | j "entries.filter((e) => e.recordId === '$YARD').map((e) => [e.action, e.actorName, e.detail.place].join('|'))[0]")"
 expect "and so is the place left"           'postings place left||Mirage Flats, NV' "$(req a GET '/admin/audit?kind=company&limit=20' | j "entries.filter((e) => e.recordId === '$ACME' && e.actorName === '').map((e) => [e.action, e.actorName, e.detail.place].join('|'))[0]")"
 expect "neither waits"                      'undefined' "$(req a GET /admin/postings/places | j "places.find((x) => x.source === 'postings-e2e-acme')")"
+expect "its postings are jobs at the plant the file names at once, as when a person points it" 'Manufacturing Engineer, Production Operator' "$(sql "SELECT string_agg(j.title, ', ' ORDER BY j.title) FROM jobs j WHERE j.source = 'postings-e2e-acme' AND j.source_id IN ('105', '109') AND j.factory_id = '$YARD' AND j.status = 'open'")"
 ingest load postings-e2e-acme >/dev/null
-expect "the next run makes its postings jobs at the plant the file names" 'Manufacturing Engineer, Production Operator' "$(sql "SELECT string_agg(j.title, ', ' ORDER BY j.title) FROM jobs j WHERE j.source = 'postings-e2e-acme' AND j.source_id IN ('105', '109') AND j.factory_id = '$YARD' AND j.status = 'open'")"
+expect "and the next run leaves them there" 'Manufacturing Engineer, Production Operator' "$(sql "SELECT string_agg(j.title, ', ' ORDER BY j.title) FROM jobs j WHERE j.source = 'postings-e2e-acme' AND j.source_id IN ('105', '109') AND j.factory_id = '$YARD' AND j.status = 'open'")"
 LINES=$(sql "SELECT count(*) FROM load_log WHERE load = 'posting-places'")
 BEFORE=$(sql "SELECT md5(string_agg(row(place_key, status, factory_id, decided_at)::text, ';' ORDER BY place_key)) FROM posting_places WHERE source = 'postings-e2e-acme'")
 places "$D/places.json"

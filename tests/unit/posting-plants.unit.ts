@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { checkRows, buildSql as notTheirsSql } from '../../scripts/build-not-theirs-sql.mjs';
-import { checkPlaces, cityKey, researchPlants, buildSql as placesSql } from '../../scripts/build-posting-places-sql.mjs';
+import { checkPlaces, cityKey, researchPlants, sourcesForSql, buildSql as placesSql } from '../../scripts/build-posting-places-sql.mjs';
 import { MIGRATIONS } from '../../scripts/migrate.mjs';
 
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
@@ -70,15 +70,24 @@ test('the four employers the registry named and we did not list are companies of
 });
 
 test('the rows that are not the employers\' are moved or merged as the migration says', () => {
-  const file = read<{ rows: Record<string, unknown>[] }>(NOT_THEIRS);
+  const file = read<{ rows: Record<string, unknown>[]; leftInPlace: Record<string, unknown>[] }>(NOT_THEIRS);
   assert.deepEqual(checkRows(file), []);
-  assert.equal(readFileSync(NOT_THEIRS_MIGRATION, 'utf8'), notTheirsSql(file), `run: node scripts/build-not-theirs-sql.mjs --out ${NOT_THEIRS_MIGRATION}`);
-  assert.equal(/DELETE FROM factories/i.test(readFileSync(NOT_THEIRS_MIGRATION, 'utf8')), false, 'no plant is deleted');
+  const migration = readFileSync(NOT_THEIRS_MIGRATION, 'utf8');
+  assert.equal(migration, notTheirsSql(file), `run: node scripts/build-not-theirs-sql.mjs --out ${NOT_THEIRS_MIGRATION}`);
+  assert.equal(/DELETE FROM factories/i.test(migration), false, 'no plant is deleted');
+  // A row left in place for the owner (a dealer, an office, ready-mix, a business sold long ago) is not in the migration at all.
+  assert.ok(file.leftInPlace.length > 0);
+  for (const row of file.leftInPlace) assert.equal(migration.includes(String(row.id)), false, `${String(row.name)} is left in place`);
 });
 
-test('a row file is refused when it is not one decision per row', () => {
-  const row = { id: '00000000-0000-4000-8000-000000000001', from: 'General Motors', name: 'BOB MYERS BUICK', why: 'A dealer.' };
-  assert.deepEqual(checkRows({ rows: [{ ...row, to: 'Bob Myers Buick' }] }), []);
+test('a row file is refused when it is not one decision per row, or moves a row that is no plant', () => {
+  const row = { id: '00000000-0000-4000-8000-000000000001', from: 'General Motors', name: 'CADILLAC CASTING, INCORPORATED', why: 'A foundry of its own.' };
+  assert.deepEqual(checkRows({ rows: [{ ...row, to: 'Cadillac Casting' }] }), []);
+  assert.equal(checkRows({ rows: [{ ...row, why: 'A car dealer.', to: 'Bob Myers Buick' }] }).length, 1, 'a dealer is not given a company of its own');
+  assert.equal(checkRows({ rows: [{ ...row, why: 'Its ready-mix plant.', to: 'Concrete Supply Co' }] }).length, 1, 'nor ready-mix');
+  assert.deepEqual(checkRows({ rows: [], leftInPlace: [{ ...row, why: 'A car dealer.', leftBecause: 'a dealer, for the owner' }] }), [], 'it is left in place');
+  assert.equal(checkRows({ rows: [], leftInPlace: [{ ...row }] }).length, 1, 'a row left in place says why');
+  assert.equal(checkRows({ rows: [{ ...row, to: 'Cadillac Casting' }], leftInPlace: [{ ...row, leftBecause: 'x' }] }).length, 1, 'not both');
   assert.equal(checkRows({ rows: [row] }).length, 1, 'neither to nor mergeInto');
   assert.equal(checkRows({ rows: [{ ...row, to: 'X', mergeInto: '00000000-0000-4000-8000-000000000002', intoName: 'X' }] }).length, 1, 'both');
   assert.equal(checkRows({ rows: [{ ...row, to: 'general motors' }] }).length, 1, 'to the company it is under');
@@ -131,9 +140,25 @@ test('the three stand in order in the runner\'s list, after the migrations they 
   assert.ok(at('0067_posting_places.sql') < at('0068_skill_taxonomy_4.sql'));
 });
 
-test('a place decided by the data names no person and never overrides one a person decided', () => {
+test('a place decided by the data names no person and never overrides one a person decided, or took back', () => {
   const sql = readFileSync(PLACES_MIGRATION, 'utf8');
-  assert.match(sql, /IF r\.decided_by IS NOT NULL THEN/);
+  assert.match(sql, /IF r\.decided_by IS NOT NULL OR pg_temp\.pp_person_decided\(/);
+  assert.match(sql, /'postings place waits again'/, 'taking a decision back is a decision');
+  assert.equal(sql.match(/WHERE posting_places\.decided_by IS NULL;/g)?.length, 2, 'nor one a person makes while it runs');
   assert.doesNotMatch(sql, /decided_by = [^N]/);
   assert.match(sql, /VALUES \(NULL, '', 'factory'/, 'the audit line names no person');
+});
+
+test('the places migration sets a place aside from the near rule, and registers the sources it needs as the runner would', () => {
+  const sql = readFileSync(PLACES_MIGRATION, 'utf8');
+  assert.match(sql, /CREATE OR REPLACE FUNCTION posting_decide\(/);
+  assert.match(sql, /x\.place_key = rp\.place_key AND x\.status = 'left'/);
+  assert.ok(sql.includes(readFileSync('scripts/posting-decide.sql', 'utf8').trimEnd()), 'the function is scripts/posting-decide.sql');
+  const file = read<{ places: { employer: string }[] }>(PLACES);
+  const registry = read<Registry>('data/employers/boards.json');
+  const sources = sourcesForSql(file, registry) as { slug: string; kind: string; company: string }[];
+  const named = new Set(file.places.map((p) => registry.employers.find((e) => e.employer === p.employer)?.slug));
+  assert.deepEqual(sources.map((s) => s.slug).sort(), [...named].map((slug) => `postings-${slug}`).sort());
+  for (const s of sources) assert.equal(s.kind, 'job', s.slug);
+  assert.match(sql, /ON CONFLICT \(slug\) DO NOTHING/, 'an existing source is never changed');
 });

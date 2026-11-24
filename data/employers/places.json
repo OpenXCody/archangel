@@ -264,7 +264,7 @@
       "plantCity": "Merritt Island",
       "stored": true,
       "kind": "rocket factory; launch complex",
-      "why": "Right that Space Coast is no town and that Rocket Park (6b432a81-92e3-49d4-8504-dccd3ea7f513) is the plant for the factory postings; wrong to put Lunar Plant 1 at Rocket Park, since no source read says where it is.",
+      "why": "Right that Space Coast is no town and that Rocket Park (6b432a81-92e3-49d4-8504-dccd3ea7f513) is the plant for the factory postings; wrong to put Lunar Plant 1 at Rocket Park, since no source read says where it is. A pointed place takes every posting that names it, so the launch-crew postings (Launch Complex 36, 15 km away) and any of Lunar Plant 1 show at Rocket Park too: the owner is told.",
       "sources": [
         "https://blueorigin.wd5.myworkdayjobs.com/BlueOrigin/job/Space-Coast-FL/CNC-Machinist--New-Glenn-_R76134",
         "https://blueorigin.wd5.myworkdayjobs.com/BlueOrigin/job/Space-Coast-FL/Launch---Test-Ops-Technician---All-Shifts-All-Levels_R74718",
@@ -360,7 +360,7 @@
       "state": "MI",
       "decision": "leave",
       "kind": "engineering offices and test laboratories, with the pilot plant where new models are first built",
-      "why": "Not a plant stands, and the doubt the researcher left about the Pilot Plant is answered as far as it can be from outside: Ford itself files the building as engineering services, not as a plant. What Ford Racing may build in the new low-volume shop is still a plan in its own posting.",
+      "why": "Not a plant stands, and the doubt the researcher left about the Pilot Plant is answered as far as it can be from outside: Ford itself files the building as engineering services, not as a plant. What Ford Racing may build in the new low-volume shop is still a plan in its own posting. The rule for a site that is both (scripts/ingest/README.md): a headquarters or engineering site is a plant only when what the company sells is built there now; prototype, pilot or racing builds of a product made at scale elsewhere do not make it one.",
       "sources": [
         "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/73862",
         "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/69891",
@@ -462,10 +462,10 @@
       "state": "CA",
       "decision": "point",
       "company": "Hermeus",
-      "plant": "Hermeus Headquarters",
+      "plant": "Hermeus El Segundo",
       "plantCity": "El Segundo",
       "kind": "headquarters with the prototype shop in the same buildings (engineering, prototyping, component and subassembly builds)",
-      "why": "Right: the board's Los Angeles is the El Segundo headquarters by the company's own page, and the place will wait until it is pointed at the new plant, exactly as said.",
+      "why": "Right: the board's Los Angeles is the El Segundo headquarters by the company's own page, and the place will wait until it is pointed at the new plant, exactly as said. Under the rule for a site that is both (scripts/ingest/README.md) it is a plant: the Quarterhorse aircraft Hermeus delivers are built there now (\"the fourth Quarterhorse will be built in El Segundo\").",
       "sources": [
         "https://www.hermeus.com/careers",
         "https://www.hermeus.com/article/350m-to-build-the-fastest-aircraft-in-the-world-for-the-american-warfighter",
@@ -538,7 +538,7 @@
       "state": "CA",
       "decision": "leave",
       "kind": "headquarters, with engineering offices, the design studio, test laboratories and prototype shops (which also built Lucid's racing drive units for Formula E's 2023 to 2026 cars)",
-      "why": "Still not a plant, but the reason is corrected: the claim that nothing is made in Newark for sale is not true of 2023 to 2026, when Lucid by its own account built its Formula E front drive units at the headquarters. The supply of one racing series from engineering shops does not make the headquarters a factory, Lucid files the building as engineering services, and nothing I could read says the work goes on today.",
+      "why": "Still not a plant, but the reason is corrected: the claim that nothing is made in Newark for sale is not true of 2023 to 2026, when Lucid by its own account built its Formula E front drive units at the headquarters. The supply of one racing series from engineering shops does not make the headquarters a factory, Lucid files the building as engineering services, and nothing I could read says the work goes on today. The rule for a site that is both (scripts/ingest/README.md): a headquarters or engineering site is a plant only when what the company sells is built there now; prototype, pilot or racing builds of a product made at scale elsewhere do not make it one.",
       "sources": [
         "https://www.just-auto.com/news/lucid-opens-new-global-headquarters-in-california",
         "https://electrek.co/2017/11/27/lucid-motors-new-headquarters-electric-car-factory/",
@@ -660,7 +660,7 @@
       "state": "CA",
       "decision": "leave",
       "kind": "headquarters and engineering offices, with prototype shops",
-      "why": "A headquarters with engineering offices and prototype shops: nothing is built there for sale, by Rivian's own list of sites, its annual report and its postings.",
+      "why": "A headquarters with engineering offices and prototype shops: nothing is built there for sale, by Rivian's own list of sites, its annual report and its postings. The rule for a site that is both (scripts/ingest/README.md): a headquarters or engineering site is a plant only when what the company sells is built there now; prototype, pilot or racing builds of a product made at scale elsewhere do not make it one.",
       "sources": [
         "https://rivian.com/our-company",
         "https://www.ocbj.com/manufacturing/rivian-charges-irvine-presence/",

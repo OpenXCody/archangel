@@ -116,7 +116,6 @@
           "latitude": 33.6731,
           "longitude": -117.8484,
           "subsector": "Computer and Electronic Product Manufacturing",
-          "products": "Sentry surveillance towers and electronic-warfare systems: assembly and test",
           "status": "operating",
           "sources": [
             "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070901825",
@@ -136,8 +135,7 @@
           "latitude": 33.69903,
           "longitude": -117.91368,
           "subsector": "Transportation Equipment Manufacturing",
-          "products": "Assembly and test of maritime systems, drones, missiles, engines and sensor systems: Anduril's production in Santa Ana, which is in several buildings",
-          "opened": 2025,
+          "products": "Assembly and light manufacturing, the use the campus's three buildings were built for",
           "status": "operating",
           "sources": [
             "https://www.ocbj.com/oc-homepage/anduril-adds-to-oc-presence-with-new-65m-campus-in-santa-ana/",
@@ -1698,7 +1696,7 @@
           "name": "Kokomo Operations",
           "city": "Kokomo",
           "state": "IN",
-          "address": "2603 South Goyer Rd",
+          "address": "2100 E Lincoln Rd",
           "zip": "46902",
           "latitude": 40.45534,
           "longitude": -86.10347,
@@ -1855,7 +1853,7 @@
           "longitude": -83.03163,
           "subsector": "Transportation Equipment Manufacturing",
           "naics": "336110",
-          "products": "The Cadillac Celestiq, hand-built at the campus's Artisan Center; also GM's engineering and design centre",
+          "products": "The Cadillac Celestiq, hand-built at the campus's Artisan Center",
           "status": "operating",
           "sources": [
             "https://www.gm.com/company/us-operations",
@@ -3277,7 +3275,7 @@
           "employees": 219,
           "employeesYear": 2024,
           "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-          "employeesNote": "OSHA Form 300A for 2024, filed by Collins Aerospace as 'Hamilton Sundstrand Aviation Services Inc', 3601 Flamingo Road, Miramar: annual average employees. The employer's own people at the site; contractors are not counted. Read in the copies of the files this project already held (osha.gov refused another researcher today and was not asked). No filing under this establishment is in the 2025 file as held.",
+          "employeesNote": "OSHA Form 300A for 2024, filed by Collins Aerospace as 'Hamilton Sundstrand Aviation Services Inc', 3601 Flamingo Road, Miramar: annual average employees. The employer's own people at the site; contractors are not counted. Read in the copies of the files this project already held (osha.gov refused another researcher today and was not asked). No filing under this establishment is in the 2025 file as held. Reviewer: the same filing gives 890,698 hours worked, about 4,070 hours a person, which does not fit 219 people working a year; the figure is as filed, and may be wrong in the filing.",
           "status": "operating",
           "sources": [
             "https://globalhr.wd5.myworkdayjobs.com/REC_RTX_Ext_Gateway/job/US-FL-MIRAMAR-3601--3601-Flamingo-Rd--FLAMINGO/XMLNAME-2nd-Shift-Mechanical-Repair-Technician-II--Onsite-_01885616",
@@ -3456,7 +3454,7 @@
             "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
             "https://data.epa.gov/efservice/tri_facility/tri_facility_id/80916MNDST1275N/JSON"
           ],
-          "sameAs": "AMI INDUSTRIES INC"
+          "isNew": true
         },
         {
           "name": "Collins Aerospace Burnsville",
@@ -4142,7 +4140,7 @@
       ],
       "plants": [
         {
-          "name": "Hermeus Headquarters",
+          "name": "Hermeus El Segundo",
           "city": "El Segundo",
           "state": "CA",
           "address": "888 North Douglas Street, Building 200",
@@ -4177,6 +4175,10 @@
           "subsector": "Transportation Equipment Manufacturing",
           "naics": "336411",
           "products": "Quarterhorse unmanned high-speed aircraft: airframe structures, subsystems and aircraft assembly",
+          "employees": 274,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A for 2025, filed by Hermeus as 'Hermeus', 3960 Dekalb Technology Pkwy, Atlanta, GA 30340, aircraft manufacturing (336411): annual average employees (200 for 2024). The employer's own people at the site. Read in the copy of OSHA's 2025 file this project already held (filed 17 February 2026); osha.gov was not asked.",
           "opened": 2021,
           "status": "operating",
           "sources": [
@@ -4190,7 +4192,8 @@
             "https://www.hermeus.com/article/quarterhorse-roadmap",
             "https://data.epa.gov/efservice/frs.frs_facility_site/primary_name/contains/HERMEUS/JSON",
             "https://data.epa.gov/efservice/frs.frs_program_facility/primary_name/contains/HERMEUS/JSON",
-            "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=3960%20DeKalb%20Technology%20Pkwy%2C%20Atlanta%2C%20GA%2030340&f=json"
+            "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=3960%20DeKalb%20Technology%20Pkwy%2C%20Atlanta%2C%20GA%2030340&f=json",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
           ]
         }
       ]

@@ -396,15 +396,20 @@ only, and says what was missing.
    street address and department;
 4. none in that city: the company's nearest plant in the state within 10 km of
    the city's centre, the centre being the middle of every plant we list there
-   (no outside geocoder). Marked for a look;
+   (no outside geocoder). Marked for a look. Never for a place set aside as no
+   plant (`left`, by a person or by the data), and never for a posting another
+   of whose places has its plant by rule 1 to 3: the near rule is a fallback
+   for a posting that has no plant otherwise, not a second job at whatever
+   plant stands nearest a town in its list;
 5. none: the posting waits, and its place goes on the list an admin sees. A
    plant is never added and a state is never guessed.
 
 A place can also be decided ahead of a run, by the data rather than by a
-person: see "Places decided by the data", below. A `left` place keeps a posting
-off the list only while no plant is found for it: rule 4 still reads a place
-that was left, so a posting at an office 10 km from a plant becomes a job there,
-marked for a look.
+person: see "Places decided by the data", below. A `left` place makes no job by
+rule 4 (since migration 0067, `scripts/posting-decide.sql`); a plant of the
+company in that very city still wins by rule 2, so a factory added later in a
+town set aside (Blue Origin's Hutto) takes its postings with nobody's hand in
+it.
 
 A posting at several places is a job at each place that has a plant, and one
 job at a plant: where two of its places come to the same plant (the plant's
@@ -431,15 +436,47 @@ research file added it) needs no entry: the next run finds it.
 employer is in the registry, every pointed plant is named exactly once in the
 research files or is marked `stored`, no place twice) and generates the
 migration (`0067_posting_places.sql`). The migration writes `posting_places`
-rows as Admin Tools does, with `decided_at` set and no `decided_by`: a place a
-person decided is never changed, a plant that is not found (or is in another
-state) is said with `look = true` and the place keeps waiting, and an employer
-whose postings have not been run on that database has no source yet, so nothing
-is written for it. It writes the audit line a person's decision writes, with no
-person named (History reads "The data"), and `load_log` (load
-`posting-places`). Run twice, it writes nothing. The jobs follow at the next
-run. A change to the decisions is a change to the file and a new generated
-migration (the builder's `--out`).
+rows as Admin Tools does, with `decided_at` set and no `decided_by`. A place a
+person decided is never changed: one with `decided_by` set, and one a person
+pointed, left or took back before (Admin Tools writes an audit line by the
+person for each; taking a decision back is a decision too), and a row a person
+writes while the migration runs is not overwritten. A pointed plant is found
+only among the employer's own companies (`posting_companies`) and in the
+place's state; one that is not found is said with `look = true` and the place
+keeps waiting. An employer whose postings have never been run on that database
+has its source written first, exactly as the runner writes it (`sourceOf` in
+`postings/registry.mjs`; an existing source is never changed), so its places
+are decided all the same. It writes the audit line a person's decision writes,
+with no person named (History reads "The data"), and `load_log` (load
+`posting-places`). It also replaces `posting_decide` with
+`scripts/posting-decide.sql` (the two near-rule limits above). Then it brings
+the jobs in line with the data as it stands, as Admin Tools does when a person
+points a place: for each employer with an applied run, `posting_resolve` and,
+for every place whose postings would now be placed otherwise than their jobs
+are, `posting_apply` with that place (which closes nothing and moves no
+last-seen day), journalled under that run, so undoing the run takes them back
+too. A job still on a plant that is not the employer's afterwards is said with
+`look`; the next run closes or moves it. Run twice, it writes nothing. A change
+to the decisions is a change to the file and a new generated migration (the
+builder's `--out`).
+
+Taking back a place the data decided is not on a screen yet: Review lists only
+the places that wait. Until it is, a wrong decision of the data is put right in
+the file and a new generated migration, or by a person in SQL.
+
+**What counts, where the research has to judge.** A site that is both an
+office and a workshop (a headquarters, an engineering campus) is a plant only
+when what the company sells is built there now: GM's Global Technical Center
+(the Celestiq is assembled on the campus), Hermeus El Segundo (Quarterhorse
+aircraft are built there), Apptronik's Austin building (its robots). A shop
+that builds prototypes, pilot units or racing parts of a product made at scale
+elsewhere does not make one: Ford Allen Park, Lucid Newark, Rivian Irvine. An
+engine or vehicle test site is a plant when the company files it with OSHA as
+manufacturing, with its own crew there (Relativity Space at Stennis, 336414,
+227 people; Rocket Lab at Stennis, 336412, 50 people); one it files as research
+and development (541715) is not (Hermeus at Jacksonville, "Hermeus - HEAT", 22
+people). Rocket Lab's Stennis stand is left out only because no source read
+gives its own position.
 
 ### A listing read to its end
 
@@ -773,19 +810,27 @@ true company (`sameAs`), which writes that plant from sources. A row filed
 under an employer that is not its plant at all is moved by
 `data/employers/not-theirs.json` instead: each row by its id, with the company
 it is filed under today (`from`), its stored name, and either `to`, the company
-it is (the firm the research names, or the firm the row's own name names: a car
-dealer, a namesake, a business sold long ago; found by exact name or by exactly
-one other name, created bare when there is none), or `mergeInto`, the id of the
+the research names as its owner today (found by exact name or by exactly one
+other name, created bare when there is none), or `mergeInto`, the id of the
 row that is the same plant written twice (folded into it by `plant_merge`).
+A row moves only when the research names its owner and it is a working plant
+the product covers. A dealer, an office, a warehouse, a cell site, ready-mix
+concrete or asphalt paving (outside coverage), a demolished plant, or a
+business sold long ago whose owner today nobody sourced is never given a
+company of its own name, which would put it on the map as a factory under a
+firm that does not exist: such a row is in `leftInPlace`, with `leftBecause`,
+and nothing is built from it; it stays where it is until the owner decides.
+The check refuses a `to` whose own `why` says the row is one of those.
 `scripts/build-not-theirs-sql.mjs` checks the file (`--check`) and generates
 the migration (`0066_rows_not_theirs.sql`), which decides in SQL: a row is moved
 or merged only while it still carries the file's name and is filed under
 `from`; a row that is not there, or is no longer as the file says, is left and
-said once with `look = true` (load `not-theirs`). Nothing is deleted: a dealer is
-not a plant, and stays, under a company of its own name, until the owner decides
-to remove it. A job filed under the employer at a moved row follows at the next
-postings run, which places the posting again. Run twice, the migration writes
-nothing.
+said once with `look = true` (load `not-theirs`); a row written from sources
+(curated) is not moved and is said the same way. A move is a line on the
+plant's History with no person named, as an admin's change of company reads.
+Nothing is deleted. A job filed under the employer at a moved row is put right
+by the places migration that follows (0067, above). Run twice, the migration
+writes nothing.
 
 `places.json` and `not-theirs.json` are not research files: the employer
 loader does not read them (`NOT_RESEARCH` in `scripts/build-employers-sql.mjs`).
@@ -795,7 +840,12 @@ loader does not read them (`NOT_RESEARCH` in `scripts/build-employers-sql.mjs`).
 **Company.** Found by exact name, in any letter case: its name or one of its
 `alsoKnownAs`, against a row's name or a row's `aliases`. Rows found under
 several names are merged into one (plants, jobs, members, requests, sources
-move), named as the file names it, the other names kept as aliases. Created
+move; a mark set by hand goes with the row merged away, as in an admin's merge),
+named as the file names it, the other names kept as aliases. A row to be merged
+away that carries anything else that would go with it (a version of a career)
+stops the migration, changing nothing, and says to merge the two in Admin Tools
+first: the loader's merge does not carry it (`el_merge_guard`, which
+`scripts/build-employers-sql.mjs` puts around the load). Created
 when there is none. Never a partial or similar name; and a name that is
 another company or a parent in any research file is never used as an alias,
 whatever a file says. Then: domain (kept when the row has one), industry and

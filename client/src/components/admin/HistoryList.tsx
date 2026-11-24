@@ -206,7 +206,11 @@ function detailWords(entry: AuditEntry): string | null {
   if (typeof detail.ended === 'number') parts.push(`${detail.ended} ${detail.ended === 1 ? 'session' : 'sessions'}`);
   if (typeof detail.name === 'string' && entry.kind === 'person') parts.push(detail.name);
   // A place employers' postings name: where, and whose postings; what kind of site a place left is, where the data says.
-  if (typeof detail.place === 'string') parts.push([detail.place, typeof detail.employer === 'string' ? detail.employer : null, typeof detail.kind === 'string' ? detail.kind : null].filter(Boolean).join(', '));
+  // On a company's line the record already is the employer, so it is not said twice.
+  if (typeof detail.place === 'string') {
+    const employer = typeof detail.employer === 'string' && entry.kind !== 'company' ? detail.employer : null;
+    parts.push([detail.place, employer, typeof detail.kind === 'string' ? detail.kind : null].filter(Boolean).join(', '));
+  }
   if (typeof detail.jobs === 'number' && detail.jobs > 0) parts.push(`${detail.jobs} ${detail.jobs === 1 ? 'job' : 'jobs'}`);
   return parts.length > 0 ? parts.join('; ') : null;
 }

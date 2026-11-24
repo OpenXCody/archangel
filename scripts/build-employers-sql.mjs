@@ -431,6 +431,37 @@ const quote = (body, tag) => {
   return `$${tag}$${body}$${tag}$`;
 };
 
+/**
+ * While a load runs, a company the loader merges away is checked as it is deleted: the merge
+ * (el_merge_company in scripts/employers-loader.sql, whose text is also part of migration 0051 and so
+ * is not changed) moves plants, jobs, members, invites, requests and people by state, and a row of any
+ * other table that would go with the company (a version of a career, migration 0053, and whatever comes
+ * after) stops the migration, changing nothing, with what to do. A mark set by hand goes with the
+ * company, as it does in an admin's merge. The trigger is dropped when the load is done.
+ */
+const MERGE_GUARD = String.raw`
+CREATE OR REPLACE FUNCTION pg_temp.el_merge_guard() RETURNS trigger LANGUAGE plpgsql AS $f$
+DECLARE
+  k record;
+  n bigint;
+BEGIN
+  FOR k IN SELECT c.conrelid::regclass::text AS tbl, a.attname AS col
+           FROM pg_constraint c JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY (c.conkey)
+           WHERE c.confrelid = 'companies'::regclass AND c.contype = 'f' AND c.confdeltype = 'c'
+             AND c.conrelid::regclass::text NOT IN ('factories', 'company_members', 'jobs', 'invites', 'company_requests',
+                                                    'company_state_headcounts', 'company_marks')
+           ORDER BY 1 LOOP
+    EXECUTE format('SELECT count(*) FROM %s WHERE %I = $1', k.tbl, k.col) INTO n USING OLD.id;
+    IF n > 0 THEN
+      RAISE EXCEPTION 'The employer loader would merge away the company "%" (%), which has % % in %, and its merge does not carry them. Merge the two companies in Admin Tools (Records, Merge), then apply this migration again.',
+        OLD.name, OLD.id, n, CASE WHEN n = 1 THEN 'row' ELSE 'rows' END, k.tbl;
+    END IF;
+  END LOOP;
+  RETURN OLD;
+END $f$;
+DROP TRIGGER IF EXISTS el_merge_guard ON companies;
+CREATE TRIGGER el_merge_guard BEFORE DELETE ON companies FOR EACH ROW EXECUTE FUNCTION pg_temp.el_merge_guard();`;
+
 /** The SQL for a load, or for its rehearsal. */
 export function buildSql({ files, known = [], states, loaderSql, sources = [], rehearse = false, everything = false, schemaSql = null }) {
   const data = {
@@ -452,8 +483,10 @@ export function buildSql({ files, known = [], states, loaderSql, sources = [], r
       '-- What it decided is in load_log (the lines with look = true are the ones to read).',
       '',
       loaderSql.trim(),
+      MERGE_GUARD,
       '',
       `SELECT pg_temp.el_load(${json}::jsonb);`,
+      'DROP TRIGGER el_merge_guard ON companies;',
       '',
     ].join('\n');
   }
