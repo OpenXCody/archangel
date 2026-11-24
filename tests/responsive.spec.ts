@@ -2516,10 +2516,11 @@ test("a military career's page: its kind and code above the service's own title,
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(ht.officialTitle);
   expect(ht.title, 'lists keep the full title').toBe(`Navy ${ht.officialTitle}`);
   await expect(page).toHaveTitle(`${ht.title} · Archangel`);
-  // Its service is a quiet fact that leads to the service's page.
+  // Its service is the record the page belongs to: a tag under the title that leads to the service's page.
   const service = view.locator('[data-career-service]');
-  await expect(service).toHaveText(ht.service.name);
+  await expect(service).toContainText(ht.service.name);
   await expect(service).toHaveAttribute('href', `/companies/${ht.service.slug}`);
+  await expect(service).toHaveAttribute('data-record-tag', 'military service');
   // It is no goal, and its page has no action: nothing here sets a goal or marks a skill, for anyone.
   await expect(view.getByRole('button', { name: /goal/i })).toHaveCount(0);
   await expect(view.getByRole('link', { name: /goal/i })).toHaveCount(0);
@@ -2534,26 +2535,29 @@ test("a military career's page: its kind and code above the service's own title,
   // It has no ladder, industries, jobs, companies or factories: none of those sections is drawn, and none is empty.
   await expect(view.locator('#where, #jobs, #companies, #factories, #military')).toHaveCount(0);
   await expect(view.getByText(/Comes from|Leads to/)).toHaveCount(0);
-  expect(await view.locator('section').evaluateAll((sections) => sections.map((section) => section.id))).toEqual(['skills', 'reach']);
-  // The one new section: the civilian careers its path covers most, each with how much and the skills missing.
+  // Where it leads comes first, then its path.
+  expect(await view.locator('section').evaluateAll((sections) => sections.map((section) => section.id))).toEqual(['reach', 'skills']);
+  // The civilian careers its path covers most, each with how much; the closest is chosen and says what carries over and what is missing.
   const reach = view.locator('#reach');
   await expect(reach.getByRole('heading', { name: 'Civilian careers within reach' })).toBeVisible();
   const rows = reach.locator('[data-reach-career]');
   const closest = record.withinReach[0];
   await expect(rows.first()).toContainText(closest.title);
   await expect(rows.first()).toContainText(`${closest.held} of ${closest.total} skills`);
+  await expect(rows.first()).toHaveAttribute('aria-checked', 'true');
+  const panel = reach.locator(`[data-reach-panel="${closest.id}"]`);
   // The skills missing are named in the civilian career's own order, and no level is named with them.
-  await expect(rows.first().locator('[data-next-skills]')).toContainText(`Missing: ${closest.missing.slice(0, 4).map((skill) => skill.name).join(', ')}`);
+  await expect(panel.locator('[data-next-skills] li')).toHaveText(closest.missing.map((skill) => skill.name));
   await expect(reach).not.toContainText(/Fundamentals|Intermediate|Advanced/);
-  await expect(rows.first().locator('a').first()).toHaveAttribute('href', `/occupations/${closest.id}`);
-  await expect(rows.first().locator('[data-reach-compare]')).toHaveAttribute('href', `/atlas?career=${ht.id}&with=${closest.id}`);
+  await expect(panel.locator('[data-reach-open]')).toHaveAttribute('href', `/occupations/${closest.id}`);
+  await expect(panel.locator('[data-reach-compare]')).toHaveAttribute('href', `/atlas?career=${ht.id}&with=${closest.id}`);
   for (const text of await rows.allInnerTexts()) expect(text, 'no military career is within reach of one').not.toMatch(KIND_LINE);
   await reach.scrollIntoViewIfNeeded();
   await assertHealthyLayout(page, '/occupations/:id military, within reach');
   await page.evaluate(() => window.scrollTo(0, 0));
   await assertHealthyLayout(page, '/occupations/:id military');
-  // Each "Compare on the atlas" says which career it compares with, to someone who hears the links alone.
-  await expect(rows.first().locator('[data-reach-compare]')).toHaveAttribute('aria-label', `Compare with ${closest.title} on the atlas`);
+  // "Compare on the atlas" says which career it compares with, to someone who hears the links alone.
+  await expect(panel.locator('[data-reach-compare]')).toHaveAttribute('aria-label', `Compare with ${closest.title} on the atlas`);
   // A service's title that runs past any career's of the catalogue is set smaller on a phone, as a job's long title is.
   const titleSize = () => page.getByRole('heading', { level: 1 }).evaluate((heading) => parseFloat(getComputedStyle(heading).fontSize));
   const usual = await titleSize();
@@ -2635,4 +2639,76 @@ test("a military career's page: its kind and code above the service's own title,
   await expect(company.locator('#occupations')).toContainText('None yet.');
   await expect(company.locator('[data-service-career]')).toHaveCount(0);
   await assertHealthyLayout(page, '/companies/us-marine-corps');
+});
+
+test("a military career's flow into industry: drawn from a tablet up, a list on a phone, one career chosen at a time and from the keyboard", async ({ page, request }) => {
+  const ht = await militaryCareer(request, 'HT');
+  const record = (await (await request.get(`${API}/occupations/${ht.id}`)).json()) as {
+    withinReach: { id: string; title: string; held: number; total: number; shared: string[]; missing: { name: string }[]; industries: string[]; everywhere: boolean }[];
+    skills: { id: string; name: string }[];
+  };
+  const careers = record.withinReach;
+  expect(careers.length, 'the rating reaches more than one civilian career').toBeGreaterThan(2);
+  // A list a row or two longer than twelve is drawn whole; a longer one is cut at twelve.
+  const shown = careers.length > 14 ? careers.slice(0, 12) : careers;
+  const linksOf = (career: (typeof careers)[number]) => career.industries.length || (career.everywhere ? 1 : 0);
+  const nameOf = new Map(record.skills.map((skill) => [skill.id, skill.name]));
+
+  await page.goto(`/occupations/${ht.id}`, { waitUntil: 'domcontentloaded' });
+  const reach = page.locator('#reach');
+  const radios = reach.getByRole('radio');
+  await expect(radios).toHaveCount(shown.length);
+  const wide = (page.viewportSize()?.width ?? 0) >= 768;
+  const flow = reach.locator('[data-reach-flow]');
+  if (wide) {
+    // The drawing: one image with a name, a line for every skill shared and one for every career's industry.
+    await expect(flow).toBeVisible();
+    await expect(flow.getByRole('img')).toHaveAttribute('aria-label', new RegExp(`${shown.length} civilian careers`));
+    await expect(flow.locator('path.reach-line')).toHaveCount(shown.reduce((sum, career) => sum + career.held + linksOf(career), 0));
+    // The chosen career's lines are the ones drawn in the accent.
+    await expect(flow.locator('path.reach-line[data-on]')).toHaveCount(careers[0].held + linksOf(careers[0]));
+    // The careers are buttons over their rows, and the names on either side keep clear of them.
+    const first = await radios.first().boundingBox();
+    const last = await radios.last().boundingBox();
+    expect(first && first.height >= 36, 'a career is a button a pointer can press').toBe(true);
+    for (const right of await flow.locator('.reach-flow-group').evaluateAll((names) => names.map((name) => name.getBoundingClientRect().right))) {
+      expect(right, "a group's name stands left of the careers").toBeLessThanOrEqual(first!.x);
+    }
+    for (const left of await flow.locator('.reach-flow-industry').evaluateAll((names) => names.map((name) => name.getBoundingClientRect().left))) {
+      expect(left, "an industry's name stands right of the careers").toBeGreaterThanOrEqual(last!.x + last!.width);
+    }
+  } else {
+    // On a phone the same careers are a list, the chosen one open under its button: no drawing.
+    await expect(flow).toHaveCount(0);
+    await expect(reach.locator('[data-reach-list]')).toBeVisible();
+    for (const height of await radios.evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height))) {
+      expect(height, 'a career is a full finger tall').toBeGreaterThanOrEqual(44);
+    }
+  }
+  await assertHealthyLayout(page, '/occupations/:id military, the flow');
+
+  // The keyboard: the careers are one stop, on the chosen one; the arrows move the choice.
+  await expect(radios.first()).toHaveAttribute('aria-checked', 'true');
+  await page.locator('[data-career-home]').focus();
+  await page.keyboard.press('Tab');
+  await expect(radios.first()).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  const second = careers[1];
+  await expect(radios.nth(1)).toBeFocused();
+  await expect(radios.nth(1)).toHaveAttribute('aria-checked', 'true');
+  await expect(radios.first()).toHaveAttribute('aria-checked', 'false');
+  // Chosen, it says the skills it shares with the rating, by group, and the ones still missing, in its own order.
+  const panel = reach.locator(`[data-reach-panel="${second.id}"]`);
+  await expect(panel).toBeVisible();
+  for (const id of second.shared) await expect(panel.locator('[data-reach-shared]')).toContainText(nameOf.get(id)!);
+  await expect(panel.locator('[data-next-skills] li')).toHaveText(second.missing.map((skill) => skill.name));
+  await expect(panel.locator('[data-reach-open]')).toHaveAttribute('href', `/occupations/${second.id}`);
+  await expect(panel.locator('[data-reach-compare]')).toHaveAttribute('href', `/atlas?career=${ht.id}&with=${second.id}`);
+  if (wide) await expect(flow.locator('path.reach-line[data-on]')).toHaveCount(second.held + linksOf(second));
+  // A press chooses as well.
+  await radios.nth(2).click();
+  await expect(radios.nth(2)).toHaveAttribute('aria-checked', 'true');
+  await expect(reach.locator(`[data-reach-panel="${careers[2].id}"]`)).toBeVisible();
+  await expect(reach.locator('[data-reach-panel]')).toHaveCount(1);
+  await assertHealthyLayout(page, '/occupations/:id military, a career chosen');
 });

@@ -715,13 +715,12 @@ input {
  * when they are not the chosen career's. Theme tokens only.
  */
 @layer components {
-  /* From 1280px the drawing is wider than the detail page's column, about its middle, as a career's atlas view is. */
+  /* From 1280px the drawing is wider than the detail page's column, about its middle, as a career's atlas view is; the words under it keep to the column. */
   .reach-flow {
     margin-top: 0.5rem;
   }
   @media (min-width: 1280px) {
-    .reach-flow,
-    .reach-panel[data-headed] {
+    .reach-flow {
       --reach-wide: min(64rem, calc(100vw - 6rem));
       width: var(--reach-wide);
       margin-inline: calc((100% - var(--reach-wide)) / 2);

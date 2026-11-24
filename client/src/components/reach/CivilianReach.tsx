@@ -7,9 +7,6 @@ import { useMediaQuery } from '../../lib/media';
 import { onGroupArrowKeys } from '../../lib/roving';
 import { DetailSection, ShowAll, detailActionClass } from '../layout/Page';
 import { atlasHref } from '../atlas/state';
-import { SkillGroupBox } from '../path/SkillGroupBox';
-import { SkillTag, SkillTags } from '../path/SkillTag';
-import type { SkillMarks } from '../path/model';
 import { EVERY_INDUSTRY, FLOW, curve, industriesOf, layoutFlow, type FlowLayout } from './flow';
 
 /**
@@ -34,7 +31,6 @@ export function CivilianReach({
   careerTitle,
   skills,
   careers,
-  marks,
 }: {
   careerId: string;
   /** The military career's own title, as its page is headed. */
@@ -42,7 +38,6 @@ export function CivilianReach({
   /** Its path, in the route's order. */
   skills: PathSkill[];
   careers: CareerWithinReach[];
-  marks: SkillMarks | null;
 }) {
   const wide = useMediaQuery(WIDE);
   const [showAll, setShowAll] = useState(false);
@@ -60,7 +55,6 @@ export function CivilianReach({
       careerId={careerId}
       skills={skills}
       career={chosen}
-      marks={marks}
       headed={wide}
     />
   );
@@ -68,7 +62,7 @@ export function CivilianReach({
     <DetailSection
       id="reach"
       title="Civilian careers within reach"
-      description="Where this path's skills carry: each civilian career whose path it covers a third or more of, and the industries those careers are typical of."
+      description="Where its skills carry: the civilian careers whose path it covers a third or more of, and the industries they are in."
     >
       {wide ? (
         <>
@@ -104,12 +98,12 @@ function arrowKeys(careers: CareerWithinReach[], chosen: string, onChoose: (id: 
   };
 }
 
-/** "10 of 14", said in full to a screen reader. */
-function Covers({ career, className }: { career: CareerWithinReach; className?: string }) {
+/** "10 of 14 skills": the last word on screen only where there is room for it, and always to a screen reader. */
+function Covers({ career, said, className }: { career: CareerWithinReach; said?: boolean; className?: string }) {
   return (
     <span className={cn('shrink-0 tabular-nums', className)}>
       {career.held} of {career.total}
-      <span className="sr-only"> skills</span>
+      <span className={said ? undefined : 'sr-only'}> skills</span>
     </span>
   );
 }
@@ -266,7 +260,7 @@ function ReachList({
   panel: ReactNode;
 }) {
   return (
-    <div role="radiogroup" aria-label="Civilian careers within reach" onKeyDown={arrowKeys(careers, chosen, onChoose)} className="grid grid-cols-1 gap-2" data-reach-list>
+    <div role="radiogroup" aria-label="Civilian careers within reach" onKeyDown={arrowKeys(careers, chosen, onChoose)} className="grid grid-cols-1 gap-1.5" data-reach-list>
       {careers.map((career) => {
         const on = career.id === chosen;
         return (
@@ -278,15 +272,12 @@ function ReachList({
               aria-controls={on ? controls : undefined}
               tabIndex={on ? 0 : -1}
               onClick={() => onChoose(career.id)}
-              className={cn('flex min-h-[52px] w-full min-w-0 items-center gap-3 px-3 py-2', optionTileClass(on))}
+              className={cn('flex min-h-12 w-full min-w-0 items-center gap-3 px-3 py-2', optionTileClass(on))}
               data-reach-career={career.id}
               data-on={on || undefined}
             >
               <span className={cn('min-w-0 flex-1 break-words text-sm leading-snug', optionTitleClass(on), on && 'font-medium')}>{career.title}</span>
-              <span className={cn('text-xs', optionDetailClass(on))}>
-                <Covers career={career} />
-                <span aria-hidden="true"> skills</span>
-              </span>
+              <Covers career={career} said className={cn('text-xs', optionDetailClass(on))} />
             </button>
             {on && panel}
           </div>
@@ -306,14 +297,12 @@ function ReachPanel({
   careerId,
   skills,
   career,
-  marks,
   headed,
 }: {
   id: string;
   careerId: string;
   skills: PathSkill[];
   career: CareerWithinReach;
-  marks: SkillMarks | null;
   /** Under the flow the panel names its career; on a phone the button above it already does. */
   headed: boolean;
 }) {
@@ -344,19 +333,23 @@ function ReachPanel({
       <div className="reach-panel-parts">
         <div className="reach-panel-part" data-reach-shared>
           <h4 className={labelClass}>Carries over</h4>
-          <div className="mt-2 grid grid-cols-1 gap-3">
-            {groups.map((group) => (
-              <SkillGroupBox key={group.key} name={group.name} skills={group.skills} marks={marks} readOnly />
-            ))}
-          </div>
+          {groups.map((group) => (
+            <p key={group.key} className="mt-2 break-words text-sm text-text-1">
+              <span className="block text-xs text-text-3">{group.name}</span>
+              <Names names={group.skills.map((skill) => skill.name)} />
+            </p>
+          ))}
         </div>
         <div className="reach-panel-part" data-reach-missing>
           <h4 className={labelClass}>Missing</h4>
-          <SkillTags className="mt-2">
+          {/* In the civilian career's own order, as its route stands; no level is named. One a line: what is left to learn. */}
+          <ul className="mt-2 text-sm text-text-1" data-next-skills>
             {career.missing.map((skill) => (
-              <SkillTag key={skill.id} skill={skill} marks={marks} readOnly />
+              <li key={skill.id} className="break-words py-px">
+                {skill.name}
+              </li>
             ))}
-          </SkillTags>
+          </ul>
         </div>
         <div className="reach-panel-part" data-reach-industries>
           <h4 className={labelClass}>Industries</h4>
@@ -370,11 +363,11 @@ function ReachPanel({
                 return (
                   <li key={industry} className="text-sm text-text-1">
                     {to ? (
-                      <Link to={to} className="inline-flex min-h-11 items-center underline sm:min-h-9">
+                      <Link to={to} className="inline-flex min-h-11 items-center underline md:min-h-8">
                         {name}
                       </Link>
                     ) : (
-                      <span className="inline-flex min-h-11 items-center sm:min-h-9">{name}</span>
+                      <span className="inline-flex min-h-11 items-center md:min-h-8">{name}</span>
                     )}
                   </li>
                 );
@@ -385,6 +378,20 @@ function ReachPanel({
       </div>
       {!headed && <PanelLinks careerId={careerId} career={career} className="mt-5" />}
     </div>
+  );
+}
+
+/** Names in a line, each kept whole: a line breaks between two names, never at a name's own hyphen. */
+function Names({ names }: { names: string[] }) {
+  return (
+    <>
+      {names.map((name, at) => (
+        <span key={name}>
+          <span className="whitespace-nowrap">{name}</span>
+          {at < names.length - 1 ? ', ' : ''}
+        </span>
+      ))}
+    </>
   );
 }
 
