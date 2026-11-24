@@ -31,7 +31,7 @@ expect() { # name wanted got
 (cd "$ROOT" && node scripts/build-career-paths-sql.mjs --check) > "$D/check.log" 2>&1
 expect "the paths file passes its check" 0 "$?"
 expect "and the migration in the repository is what it generates" "" \
-  "$(cd "$ROOT" && node scripts/build-career-paths-sql.mjs data/careers/paths.json data/careers/catalogue.json data/skills/catalogue.json data/skills/taxonomy.json "$D/real.sql" > /dev/null 2>&1; cmp -s "$D/real.sql" migrations/0052_career_paths.sql || echo stale)"
+  "$(cd "$ROOT" && node scripts/build-career-paths-sql.mjs data/careers/paths.json data/careers/catalogue.json data/skills/catalogue.json data/skills/taxonomy.json "$D/real.sql" > /dev/null 2>&1; cmp -s "$D/real.sql" migrations/0075_career_paths_2.sql || echo stale)"
 
 # --- A small file ------------------------------------------------------------------
 # Twelve skills: S01-S04 at Fundamentals, S05-S09 at Intermediate, S10-S12 at Advanced.
