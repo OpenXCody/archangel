@@ -18,6 +18,7 @@ import { BudgetSpent, CeilingReached, FeedError, Refusal } from './fetch.mjs';
 import { siteKey, sourceOf } from './registry.mjs';
 import { SYSTEMS } from './systems/index.mjs';
 import { isUnitedStates } from './systems/shared.mjs';
+import { titleLines, titleTally } from './titles.mjs';
 
 /** Raise it when what is staged for a posting changes shape: every posting is staged again. */
 const VERSION = 2;
@@ -51,7 +52,7 @@ function placesOf(places) {
 /** Every location line a feed gives for a posting. */
 const linesOf = (posting) => (posting.locations?.length ? posting.locations : [posting.location]).filter(Boolean);
 /** The same as the one line the reader takes: semicolons between places. */
-const locationLine = (posting) => linesOf(posting).join('; ');
+export const locationLine = (posting) => linesOf(posting).join('; ');
 
 /**
  * The board's sites as its line in the registry writes them out (`sites`): a
@@ -119,6 +120,8 @@ async function resumeOf(db, source, adapter) {
  *   spared      read at an earlier run and not kept, their listing as it was: not asked about again
  *   complete    the listing was read to its end. Only then is a posting that is missing counted as missing
  *
+ * `titles` is the titles counted under notCareer, by what the job is (titles.mjs): for the run's report only.
+ *
  * A listing that is cut short (a refusal, a site that stopped answering, the
  * platform's budget for the run) is still read as far as it went: what it
  * listed is staged, and nothing it did not list is taken to be gone. Where
@@ -165,6 +168,12 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
       unplaced.set(line, (unplaced.get(line) ?? 0) + 1);
     }
   };
+  // The titles turned away as not one of our careers: the catalogue's gaps, for the report and nowhere else.
+  const titles = titleTally();
+  const notOurs = (posting) => {
+    counts.notCareer += 1;
+    titles.add(posting.title, locationLine(posting));
+  };
   let stopped = null;
   // Set once no more texts may be asked for in this run: enough for one run, a ceiling, a budget, or the site's own refusal.
   let spent = false;
@@ -195,7 +204,7 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
     if (adapter.text) {
       const before = beforeText(reader, posting, base, vocab);
       if (!before.could) {
-        counts.notCareer += 1;
+        notOurs(posting);
         return;
       }
       // A listing that says where the work is, and it is nowhere in the United States, is not asked about further.
@@ -253,7 +262,7 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
     }, vocab);
     // Nothing of a reading that has no career is used.
     if (!reading?.career) {
-      counts.notCareer += 1;
+      notOurs(posting);
       if (mark) passes.set(posting.id, mark);
       return;
     }
@@ -336,7 +345,7 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   return {
     source, kept, deferred, present, passes, today, complete, resume, resumed: Boolean(from), stopped, counts,
     unknown: commonest(unknown, UNKNOWN_KEPT), unplaced: commonest(unplaced, UNPLACED_KEPT),
-    requests: session.requests, seconds: seconds(started),
+    titles: titles.summary(), requests: session.requests, seconds: seconds(started),
   };
 }
 
@@ -533,8 +542,12 @@ export async function apply(db, runId, { log = console.log } = {}) {
   return applied;
 }
 
-/** What a run of a job source did, as text a person reads. */
-export async function report(db, runId, { everything = false, rehearsal = false } = {}) {
+/**
+ * What a run of a job source did, as text a person reads. `titles` is the run's tally of the titles it turned away
+ * (collect's `titles`): given only by the run itself, which writes it into this text and nowhere else, so a report
+ * read again later from the database has no such lines.
+ */
+export async function report(db, runId, { everything = false, rehearsal = false, titles = null } = {}) {
   const [run] = await db`
     SELECT r.*, s.name AS source_name, s.system, s.company FROM intake_runs r JOIN intake_sources s ON s.slug = r.source WHERE r.id = ${runId}`;
   if (!run) throw new Error(`There is no run ${runId}.`);
@@ -572,6 +585,8 @@ export async function report(db, runId, { everything = false, rehearsal = false 
     out.push(`  places named and not read as a US city and state (the ${c.unplaced.length} commonest, with how many postings; ` +
       `a site named by its town alone is written out under "sites" on the board's line): ${c.unplaced.map(([line, count]) => `${line} ${count}`).join('; ')}`);
   }
+  // The titles the board listed that are not one of our careers: where the catalogue has no career, or no name for one.
+  out.push(...titleLines(titles));
   const stages = ['write', 'resolve', 'apply', 'undo'].filter((stage) => t[stage] !== undefined);
   if (stages.length > 0) out.push(`  seconds: ${stages.map((stage) => `${stage} ${t[stage]}`).join(', ')}`);
 
@@ -647,7 +662,10 @@ export async function runEmployer(db, entry, { fetcher, reader, vocab, today, ag
     const counts = await stage(tx, runId, collected, { log });
     if (upTo !== 'stage') Object.assign(counts, await resolve(tx, runId, { log }));
     if (upTo === 'apply') Object.assign(counts, await apply(tx, runId, { log }));
-    return { runId, outcome: counts.outcome, counts, why: collected.stopped?.why ?? null, text: await report(tx, runId, { rehearsal: rehearse, everything }) };
+    return {
+      runId, outcome: counts.outcome, counts, why: collected.stopped?.why ?? null,
+      text: await report(tx, runId, { rehearsal: rehearse, everything, titles: collected.titles }),
+    };
   };
 
   if (!rehearse) return steps(db);

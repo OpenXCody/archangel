@@ -258,6 +258,26 @@ Tools calls the same functions.
   alone (a Workday tenant's "Evendale") is what a person writes out next on
   the board's line in the registry (`sites`); the rest are abroad, remote or
   a form the reader does not know.
+- **Titles turned away.** The titles a board listed that are not one of our
+  careers are counted by what the job is (`postings/titles.mjs`, `titleKey`):
+  lower case, with the level words, numerals, shift and employment words set
+  aside as the reader sets them aside, and requisition numbers and the parts
+  that only say where (the posting's own location line, a state, "Remote")
+  stripped; a programme or a team in brackets or after a dash is not the job,
+  and a bare job word takes its kind from beside it ("Sr. Propulsion
+  Technician II - Hawthorne, CA (R1234)" is "propulsion technician";
+  "Technician, Composites" is "composite technician"). Each board's part of the
+  run's report says how many postings were turned away under how many distinct
+  titles, and names the 25 commonest with how many postings each. **The report
+  holds titles only**: a title is a heading the employer published; no
+  posting's text, id or address is in it. The tally is kept in the runner's
+  memory and written into the report the run prints (and `--report` saves, the
+  workflow's artifact), and nowhere else: not in staging, not in the run's row,
+  so `report <run>` read again later has no such lines. It is how the
+  catalogue's gaps are seen: a title a career has no name for, or work the
+  catalogue has no career for. `fetch postings-<slug>` (no database) prints
+  the same count for the titles that could not be one of our careers on the
+  title alone.
 - **Read and not kept.** A posting whose text was asked for and which was
   then not kept (not ours once read, or at no US place) is noted in
   `posting_passes`: its id, a hash of its line in the listing and the day.
@@ -553,7 +573,7 @@ all).
 
 ```bash
 node scripts/ingest/run.mjs postings --check                  # the registry alone
-node scripts/ingest/run.mjs fetch postings-spacex             # read one board and count; no database
+node scripts/ingest/run.mjs fetch postings-spacex             # read one board, count it and its titles turned away; no database
 node scripts/ingest/run.mjs rehearse postings-spacex          # everything, rolled back
 node scripts/ingest/run.mjs postings --rehearse               # every employer, rolled back
 node scripts/ingest/run.mjs postings [--only spacex,boeing]   # every employer, one run each

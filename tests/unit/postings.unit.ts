@@ -27,6 +27,8 @@ import { listAll, unescapeHtml, webAddress } from '../../scripts/ingest/postings
 // @ts-expect-error a plain script, no types
 import { beforeText, collect, inTurn, report, siteNames } from '../../scripts/ingest/postings/jobs.mjs';
 // @ts-expect-error a plain script, no types
+import { TITLES_KEPT, titleKey, titleLines, titleTally } from '../../scripts/ingest/postings/titles.mjs';
+// @ts-expect-error a plain script, no types
 import * as reader from '../../scripts/ingest/postings/read/index.mjs';
 // @ts-expect-error a plain script, no types
 import { checkSource } from '../../scripts/ingest/lib/pipeline.mjs';
@@ -555,6 +557,60 @@ test('before a text is asked for: a title that is a career, one that could be, a
   assert.equal(siteNames({}).key, null);
 });
 
+test('a title turned away is counted by what the job is: its level, shift, codes and places set aside', () => {
+  const key = (title: string, location = '') => titleKey(title, location);
+  // Level words and numerals as the reader sets them aside; the place, where the location line or a state says it; a requisition.
+  assert.equal(key('Sr. Propulsion Technician II - Hawthorne, CA (R10260434)', 'Hawthorne, CA'), 'propulsion technician');
+  assert.equal(key('Propulsion Technician (Night Shift)', 'McGregor, TX'), 'propulsion technician');
+  assert.equal(key('Mechanisms Technician 4th shift'), 'mechanisms technician');
+  assert.equal(key('Test Operations Engineer II/Senior Test Operations Engineer'), 'test operations engineer', 'the same job said twice is one');
+  assert.equal(key('Avionics Technician 2/3 - Starbase', 'Starbase, TX'), 'avionics technician');
+  assert.equal(key('Battery Cell Production Technician (2nd shift) - De Soto, KS', 'De Soto, Kansas'), 'battery cell production technician');
+  assert.equal(key('Req #12345 Welder - Texas'), 'welder');
+  // A programme or a team in brackets or after a dash is not the job; a bare job word takes its kind from beside it.
+  assert.equal(key('Launch Vehicle Integration Technician - Starship (Falcon)'), 'launch vehicle integration technician');
+  assert.equal(key('Technician, Composites (Level 3)'), 'composite technician');
+  assert.equal(key('Technician (Composites)'), 'composite technician');
+  assert.equal(key('(Toolmaker)'), 'toolmaker');
+  assert.equal(key('Procurement Agent (Procurement Agent-General)', 'USA - Hazelwood, MO'), 'procurement agent');
+  assert.equal(key('Senior Staff Assembly, Integration & Test (AIT) Engineer'), 'integration and test engineer', 'a bracket inside a part does not cut it');
+  // Work the reader refuses a title for is still counted as what it is: a lead, a manager, a co-op.
+  assert.equal(key('Avionics Lead', 'Starbase, TX'), 'avionics lead');
+  assert.equal(key('Lead Technician, Propulsion & Fluids'), 'propulsion and fluids technician', '"lead" before a job is its level');
+  assert.equal(key('Senior Manager, Supply Chain - Remote'), 'supply chain manager');
+  assert.equal(key('Manufacturing Engineering Co-op', 'Austin, TX'), 'manufacturing engineering co-op');
+  assert.equal(key('Automation & Controls Engineer'), 'automation and controls engineer');
+  assert.equal(key('Assembler / Machine Operator'), 'assembler / machine operator');
+  assert.equal(key('Texas'), '', 'nothing but a place');
+
+  // The tally: the commonest first, then by title; the postings counted whatever their title came to.
+  const tally = titleTally();
+  for (const [title, location] of [
+    ['Software Engineer II', 'Hawthorne, CA'], ['Senior Software Engineer', 'Redmond, WA'], ['Software Engineer (Starlink)', ''],
+    ['Propulsion Technician - Hawthorne', 'Hawthorne, CA'], ['Avionics Lead', ''], ['Propulsion Technician (Raptor)', 'McGregor, TX'], ['Texas', ''],
+  ]) tally.add(title, location);
+  assert.deepEqual(tally.summary(), { postings: 7, distinct: 3, top: [['software engineer', 3], ['propulsion technician', 2], ['avionics lead', 1]] });
+  assert.deepEqual(tally.summary(2).top.map(([title]: [string, number]) => title), ['software engineer', 'propulsion technician']);
+  // A board's part of the report names the 25 commonest and how many distinct there are.
+  assert.equal(TITLES_KEPT, 25);
+  const many = titleTally();
+  // Forty titles, a word of two letters apart ("Widget aa Specialist"), each listed one to four times.
+  const word = (n: number) => String.fromCharCode(97 + Math.floor(n / 26), 97 + (n % 26));
+  for (let n = 0; n < 40; n += 1) for (let times = 0; times <= n % 4; times += 1) many.add(`Widget ${word(n)} Specialist`, '');
+  const summary = many.summary();
+  assert.equal(summary.distinct, 40);
+  assert.equal(summary.top.length, 25);
+  assert.ok(summary.top.every(([, count]: [string, number], at: number) => at === 0 || count <= summary.top[at - 1][1]), 'the commonest first');
+  assert.deepEqual(titleLines(tally.summary()), [
+    '  turned away as not one of our careers: 7 postings under 3 distinct titles; all 3, with how many postings:',
+    '    3  software engineer',
+    '    2  propulsion technician',
+    '    1  avionics lead',
+  ]);
+  assert.match(titleLines(summary)[0], /: \d+ postings under 40 distinct titles; the 25 commonest, with how many postings:$/);
+  assert.deepEqual(titleLines(titleTally().summary()), [], 'nothing turned away, nothing said');
+});
+
 test('only postings that are one of our careers at a US place are kept, as facts and a link: never the text', async () => {
   const session: Session = createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session('saronic', { pace: 0 });
   const entry = { slug: 'saronic', employer: 'Saronic', company: 'Saronic', system: 'ashby', board: 'saronic' };
@@ -565,6 +621,18 @@ test('only postings that are one of our careers at a US place are kept, as facts
   assert.deepEqual(countries, ['United States', 'United States', 'United States', 'United States'], 'each posting is read once, with its country');
   const collected = await collect(noRows, entry, { session, reader, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' });
   assert.deepEqual(collected.counts, { read: 4, abroad: 0, notCareer: 1, noPlace: 0, noAddress: 0, vanished: 0, texts: 0, spared: 0, kept: 3 });
+  // The title turned away is counted for the report, by what the job is; the counts that go into the run's row do not carry it.
+  assert.deepEqual(collected.titles, { postings: 1, distinct: 1, top: [['deputy program manager', 1]] });
+  const run = {
+    id: 7, source: 'postings-saronic', source_name: 'Saronic job postings', system: 'ashby', input: 'https://api.ashbyhq.com/posting-api/job-board/saronic',
+    state: 'staged', note: null, counts: { ...collected.counts, complete: true }, timings: { fetch: 1 },
+  };
+  let asked = 0;
+  const one = Object.assign(async () => (asked++ === 0 ? [run] : []), { json: (value: unknown) => value });
+  const text = await report(one, 7, { titles: collected.titles });
+  assert.match(text, /\n {2}turned away as not one of our careers: 1 posting under 1 distinct title; the one, with how many postings:\n {4}1 {2}deputy program manager/);
+  asked = 0;
+  assert.doesNotMatch(await report(one, 7), /turned away/, 'read again later from the database, a report has no titles: they were kept nowhere');
   const welder = [...collected.kept.values()].find((record: { facts: { title: string } }) => record.facts.title === 'Welder');
   assert.equal(welder.facts.reading.career.title, 'Welder');
   assert.deepEqual(welder.facts.reading.places, [{ city: 'Franklin', state: 'LA' }]);
@@ -599,6 +667,8 @@ test('where the text costs a request it is asked for only postings whose title i
   const first = await run([]);
   assert.equal(first.collected.counts.read, 4);
   assert.equal(first.collected.counts.notCareer, 3, 'three titles are not ours: their text is never asked for');
+  assert.deepEqual(first.collected.titles.top, [['procurement agent', 1], ['safety specialist', 1], ['supplier program management specialist', 1]],
+    'turned away on the title alone, and counted all the same');
   assert.equal(first.collected.counts.texts, 1);
   assert.equal(first.session.requests, 4, 'robots, the list twice (the filter), and one text');
   const record = first.collected.kept.get('JR2026516085-1');
