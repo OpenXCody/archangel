@@ -26,16 +26,20 @@ const PATHS = 'data/careers/paths.json';
 const CAREERS = 'data/careers/catalogue.json';
 const SKILLS = 'data/skills/catalogue.json';
 const TAXONOMY = 'data/skills/taxonomy.json';
-const MIGRATION = 'migrations/0052_career_paths.sql';
+// The paths' latest migration. 0052 was the first and is as it was applied.
+const MIGRATION = 'migrations/0075_career_paths_2.sql';
 
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
 const paths = read<PathsFile>(PATHS);
 const careers = read<{ careers: Career[] }>(CAREERS).careers;
 const skills = read<{ skills: { name: string }[] }>(SKILLS).skills;
 const taxonomy = read<{ domains: { slug: string; groups: { slug: string; skills: { name: string; level: number }[] }[] }[] }>(TAXONOMY);
-// The groups added for the military careers (0060). Their skills are on those careers' paths
-// (data/careers/military/), which are not this file's: a civilian path may use one, and none has to.
+// The groups added for the military careers (0060). Their skills, as that migration placed them, are on
+// those careers' paths (data/careers/military/), which are not this file's: a civilian path may use one,
+// and none has to. Skills placed in those groups since are civilian ones, and a civilian path holds each.
 const MILITARY_GROUPS = ['aircraft-systems', 'engines-and-power-plants', 'vehicles-and-heavy-equipment', 'power-generation-and-distribution', 'plant-utilities', 'fielded-electronic-systems', 'weapons-and-munitions', 'survival-equipment', 'shipfitting', 'nuclear-plant-operations', 'fuels'];
+const MILITARY_SKILLS = new Set([...readFileSync('migrations/0060_skill_taxonomy_3.sql', 'utf8').matchAll(/^ {2}\('((?:[^']|'')+)', '([a-z0-9-]+)', [123], \d+\)[,;]$/gm)]
+  .filter((m) => MILITARY_GROUPS.includes(m[2])).map((m) => m[1].replace(/''/g, "'")));
 const copy = (): PathsFile => JSON.parse(JSON.stringify(paths)) as PathsFile;
 const name = (line: Line) => (typeof line === 'string' ? line : line.skill);
 const entry = (file: PathsFile, title: string) => {
@@ -72,7 +76,7 @@ test('the paths migration is what the paths file generates', () => {
 test('the paths file passes its own check, and every career has one path', () => {
   const result = check(paths);
   assert.ok(result.ok, result.said);
-  assert.match(result.said, /valid\. 156 careers/);
+  assert.match(result.said, /valid\. 231 careers/);
   assert.deepEqual(paths.careers.map((career) => career.title), careers.map((career) => career.title), 'one entry per career, in the catalogue order');
 });
 
@@ -103,7 +107,7 @@ test('the skills added last round are on a path, so they show in the Skills list
   for (const skill of ['CNC Turning', 'Injection Molding Machine Operation', 'Dial Indicator Measurement', 'SCADA Development', 'Box Build Assembly', 'Control Panel Building', 'Shot Peening', 'Powder Coating', 'CMMS Use', 'Requirements Management']) {
     assert.ok(used.has(skill), `${skill} is on a path`);
   }
-  const military = new Set(taxonomy.domains.flatMap((domain) => domain.groups).filter((group) => MILITARY_GROUPS.includes(group.slug)).flatMap((group) => group.skills.map((skill) => skill.name)));
+  const military = MILITARY_SKILLS;
   assert.equal(military.size, 66);
   const onMilitaryPath = new Set(read<{ careers: { skills: string[] }[] }>('data/careers/military/paths.json').careers.flatMap((career) => career.skills));
   for (const skill of military) assert.ok(onMilitaryPath.has(skill), `${skill} is on a military path`);
@@ -139,7 +143,7 @@ test('the check refuses a paths file that is not whole', async (t) => {
   await refused('a lack the catalogue has', (file) => { file.careers[0].lacks = ['CNC Turning']; }, /says the catalogue lacks "CNC Turning", which is a skill in it/);
   await refused('a foundation pasted onto every career', (file) => {
     for (const career of file.careers) if (!career.skills.map(name).includes('Shop Safety Practices') && career.skills.length < 24) career.skills.push('Shop Safety Practices');
-  }, /"Shop Safety Practices" is on \d+ of 156 paths: more than half/);
+  }, /"Shop Safety Practices" is on \d+ of 231 paths: more than half/);
   await refused('a ladder that does not show in the skills', (file) => {
     // The machinist's path replaced by a painter's: nothing of the operator carries.
     entry(file, 'CNC Machinist').skills = [...entry(file, 'Industrial Painter').skills, 'CNC Milling'];
@@ -197,6 +201,10 @@ test('the migration finds by name, leaves an approved path alone, and writes exa
 test("the migration is in the runner's list after the makes'", () => {
   const list = MIGRATIONS as string[];
   assert.ok(list.includes('0052_career_paths.sql'));
+  // The second after the careers' second catalogue and lists, which store the careers it names, and the skills' fifth pass.
+  for (const before of ['0070_skills_catalogue_5.sql', '0071_skill_taxonomy_5.sql', '0072_skill_makes_3.sql', '0073_careers_catalogue_2.sql', '0074_career_lists_3.sql']) {
+    assert.ok(list.indexOf('0075_career_paths_2.sql') > list.indexOf(before), `0075 comes after ${before}`);
+  }
   // After the careers catalogue (which stores the careers) and the skills catalogue and taxonomy (which store and place the skills).
   for (const before of ['0046_careers_catalogue.sql', '0048_skills_catalogue_2.sql', '0049_skill_taxonomy_2.sql', '0050_skill_makes.sql']) {
     assert.ok(list.indexOf('0052_career_paths.sql') > list.indexOf(before), `0052 comes after ${before}`);

@@ -162,7 +162,7 @@
     { "title": "PCB Rework Technician", "aliases": ["SMT rework technician"] },
     { "title": "SMT Line Operator", "aliases": ["SMT production technician", "SMT specialist"] },
     { "title": "Mechanical Engineer", "aliases": ["design and build engineer", "launch mechanical engineer", "thermal engineer", "mechanisms engineer", "vehicle mechanisms engineer"] },
-    { "title": "Semiconductor Equipment Engineer", "aliases": ["PVD equipment engineer", "wet process equipment engineer", "diffusion equipment engineer", "epi equipment engineer", "screen printing equipment engineer", "chemical texturing equipment engineer"] },
+    { "title": "Semiconductor Equipment Engineer", "aliases": ["PVD equipment engineer", "wet process equipment engineer", "diffusion equipment engineer", "screen printing equipment engineer", "chemical texturing equipment engineer"] },
     { "title": "Battery Pack Engineer", "aliases": ["battery systems engineer", "vehicle battery systems engineer", "battery design engineer"] },
     { "title": "Tooling Engineer", "aliases": ["tool design engineer", "tooling mechanical engineer", "tooling designer"] },
     { "title": "Thin Film Process Engineer", "aliases": ["PECVD process engineer", "PVD manufacturing process engineer"] },
@@ -170,7 +170,7 @@
     { "title": "Product Reliability Engineer", "aliases": ["powertrain reliability engineer"] },
     { "title": "Systems Engineer", "aliases": ["avionics systems engineer", "air vehicle systems engineer"] },
     { "title": "Semiconductor Packaging Engineer", "aliases": ["IC package design engineer"] },
-    { "title": "Aerospace Engineer", "aliases": ["structural analysis engineer", "loads engineer", "vehicle structures engineer", "structures design engineer", "vehicle structures design engineer", "structural stress engineer", "spacecraft structural engineer", "structural analyst", "structures analyst"] },
+    { "title": "Aerospace Engineer", "aliases": ["structural analysis engineer", "loads engineer", "vehicle structures engineer", "structures design engineer", "structural stress engineer", "spacecraft structural engineer", "structural analyst", "structures analyst"] },
     { "title": "Propulsion Engineer", "aliases": ["turbomachinery engineer", "combustion devices engineer", "propulsion components engineer", "stage fluid systems engineer", "propulsion fluids analyst", "propulsion systems analyst"] },
     { "title": "Automotive Engineer", "aliases": ["design release engineer", "body structures engineer", "chassis structures engineer"] }
   ]

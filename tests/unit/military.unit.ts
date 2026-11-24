@@ -256,8 +256,9 @@ test('a military career is a title with the service in front, a code of its serv
 });
 
 test('the civilian catalogue is untouched, and no name is shared with it', () => {
-  assert.equal(civilianCatalogue.careers.length, 156);
-  assert.equal(civilianPaths.careers.length, 156);
+  // The civilian catalogue is its own file's: 156 careers, 231 since its second pass (0073); none of them is a military one.
+  assert.equal(civilianCatalogue.careers.length, 231);
+  assert.equal(civilianPaths.careers.length, 231);
   const military = new Set(careers.flatMap((career) => [career.title, ...career.was]).map((name) => name.toLowerCase()));
   for (const name of military) assert.ok(!civilian.has(name), `${name} is a civilian name`);
   for (const career of civilianCatalogue.careers) assert.ok(!military.has(career.title.toLowerCase()), career.title);
@@ -283,8 +284,10 @@ test('every military career has a path of five or more catalogue skills, one of 
   }
   // The skills added for these careers (0059) are each on one of their paths, under the names step 1 left them.
   const used = new Set(paths.flatMap((entry) => entry.skills));
+  // As 0060 placed them: the civilian skills placed in those groups since (0071) are on civilian paths.
   const groups = ['aircraft-systems', 'engines-and-power-plants', 'vehicles-and-heavy-equipment', 'power-generation-and-distribution', 'plant-utilities', 'fielded-electronic-systems', 'weapons-and-munitions', 'survival-equipment', 'shipfitting', 'nuclear-plant-operations', 'fuels'];
-  const added = taxonomy.domains.flatMap((domain) => domain.groups).filter((group) => groups.includes(group.slug)).flatMap((group) => group.skills.map((skill) => skill.name));
+  const added = [...readFileSync('migrations/0060_skill_taxonomy_3.sql', 'utf8').matchAll(/^ {2}\('((?:[^']|'')+)', '([a-z0-9-]+)', [123], \d+\)[,;]$/gm)]
+    .filter((m) => groups.includes(m[2])).map((m) => m[1].replace(/''/g, "'"));
   assert.equal(added.length, 66);
   for (const skill of added) assert.ok(used.has(skill), `${skill} is on a military path`);
   for (const gone of ['Bulk Fuel Handling', 'Naval Mine Assembly', 'Wheeled Vehicle Maintenance', 'Powertrain and Drivetrain Repair', 'Munitions Inspection']) assert.ok(!used.has(gone), `${gone} is not a skill`);
@@ -296,15 +299,19 @@ test('the civilian careers a military career reaches are computed from the two p
   const reach = reaches(pathsFile, civilianPaths);
   // The owner's own test of the rule: the Hull Maintenance Technician, read against the Navy's standard.
   const ht = reach.get('Navy Hull Maintenance Technician') ?? [];
-  assert.deepEqual(ht.map((r) => `${r.career} ${r.held}/${r.of}`), ['MIG Welder 10/14', 'Metal Fabricator 13/19', 'Welder 12/19']);
+  // Shipfitter, the rating's own trade ashore (0073), stands above Welder, whose path took Forklift Operation.
+  assert.deepEqual(ht.map((r) => `${r.career} ${r.held}/${r.of}`), ['MIG Welder 10/14', 'Metal Fabricator 13/19', 'Shipfitter 13/20']);
   for (const [title, list] of reach) {
     assert.ok(list.length <= 3, title);
     for (const r of list) assert.ok(r.held >= 1 && r.held <= r.of, `${title} reaches ${r.career}`);
     // Most covered first.
     for (let i = 1; i < list.length; i += 1) assert.ok(list[i - 1].held / list[i - 1].of >= list[i].held / list[i].of, title);
   }
-  // Fuel is handled as any bulk liquid is: the fuels careers reach the chemical operator by that skill too.
-  assert.equal(reach.get('Air Force Fuels')?.find((r) => r.career === 'Chemical Operator')?.held, 4);
+  // Fuel is handled as any bulk liquid is: the fuels careers reach the chemical operator by that skill too,
+  // and, nearest since it was added (0073), the refinery operator, who moves the same liquids.
+  const fuels = reaches(pathsFile, civilianPaths, 8).get('Air Force Fuels') ?? [];
+  assert.equal(fuels.find((r) => r.career === 'Chemical Operator')?.held, 4);
+  assert.equal(reach.get('Air Force Fuels')?.[0].career, 'Refinery Operator');
 });
 
 test('the careers\' and the paths\' migrations are what the files generate', () => {
@@ -367,7 +374,7 @@ test('the check refuses military files that are not whole', () => {
 test('the posting reader knows the civilian careers only', () => {
   const root = path.resolve('.');
   const vocab = loadVocabulary(root) as { careers: Map<string, unknown> };
-  assert.equal(vocab.careers.size, 156);
+  assert.equal(vocab.careers.size, 231);
   const military = new Set(careers.map((career) => career.title));
   for (const title of vocab.careers.keys()) assert.ok(!military.has(title), `${title} is in the reader's vocabulary`);
   const career = (title: string): string | null =>

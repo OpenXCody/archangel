@@ -335,17 +335,20 @@ test('the rule lists what the paths say: the Hull Maintenance Technician against
   const all = reaches(militaryPaths, civilianPaths, 1000) as Map<string, { career: string; held: number; of: number }[]>;
   const within = (title: string) => reached((all.get(title) ?? []).map((reach) => ({ title: reach.career, held: reach.held, total: reach.of })));
   const ht = within('Navy Hull Maintenance Technician');
-  assert.deepEqual(ht.slice(0, 3).map((career) => `${career.title} ${career.held}/${career.total}`), ['MIG Welder 10/14', 'Metal Fabricator 13/19', 'Welder 12/19']);
+  // Shipfitter, the rating's own trade ashore, stands third since it was added (0073), above Welder, whose path took Forklift Operation.
+  assert.deepEqual(ht.slice(0, 3).map((career) => `${career.title} ${career.held}/${career.total}`), ['MIG Welder 10/14', 'Metal Fabricator 13/19', 'Shipfitter 13/20']);
+  assert.ok(ht.some((career) => career.title === 'Welder' && career.held === 12 && career.total === 20));
+  assert.ok(ht.some((career) => career.title === 'Pipefitter'));
   assert.ok(ht.every((career) => career.held * 3 >= career.total && career.total >= 5));
   // The other way: the careers that reach Welder, the most covering first.
   const welder = reached(
     [...all].flatMap(([title, list]) => list.filter((reach) => reach.career === 'Welder').map((reach) => ({ title, held: reach.held, total: reach.of })))
   );
   assert.deepEqual(welder.map((career) => `${career.title} ${career.held}/${career.total}`), [
-    'Army Allied Trades Specialist 14/19',
-    'Navy Steelworker 13/19',
-    'Navy Hull Maintenance Technician 12/19',
-    'Air Force Aircraft Metals Technology 11/19',
+    'Army Allied Trades Specialist 14/20',
+    'Navy Steelworker 13/20',
+    'Navy Hull Maintenance Technician 12/20',
+    'Air Force Aircraft Metals Technology 11/20',
   ]);
   // Some military careers reach no civilian career by a third: the catalogue has no career for that work.
   const none = [...all.keys()].filter((title) => within(title).length === 0);

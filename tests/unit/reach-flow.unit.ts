@@ -99,8 +99,16 @@ test('groups whose skills carry stand where their lines go; a group that carries
   const idle = flow.groups.filter((group) => group.lines === 0);
   const carrying = flow.groups.filter((group) => group.lines > 0);
   assert.deepEqual(flow.groups, [...carrying, ...idle]);
-  // Shipfitting is the rating's own: no civilian career within reach asks for it.
-  assert.ok(idle.some((group) => group.key === 'shipfitting'), 'shipfitting carries into no civilian career');
+  // Shipfitting carries now that the trade ashore is a career (0073): the shipfitter's path takes it.
+  assert.ok(carrying.some((group) => group.key === 'shipfitting'), 'shipfitting carries into the shipfitter');
+  assert.ok(flow.lines.some((line) => line.group === 'shipfitting' && line.career === 'Shipfitter'));
+  // Every group of the Hull Maintenance Technician carries now. A sonar rating's fielded systems are its own:
+  // no civilian career within reach asks for them, and they stand after every group that carries.
+  const sonar = flowOf('Navy Sonar Technician (Surface)');
+  const sonarFlow = layoutFlow(sonar.path, sonar.careers);
+  const sonarIdle = sonarFlow.groups.filter((group) => group.lines === 0);
+  assert.ok(sonarIdle.some((group) => group.key === 'fielded-electronic-systems'), 'fielded electronic systems carry into no civilian career');
+  assert.deepEqual(sonarFlow.groups, [...sonarFlow.groups.filter((group) => group.lines > 0), ...sonarIdle]);
   // Arc welding carries into the welders at the top of the list, so it stands above shop basics, which goes everywhere.
   const at = (key: string) => flow.groups.findIndex((group) => group.key === key);
   assert.ok(at('arc-welding') >= 0 && at('arc-welding') < at('shop-basics'));
