@@ -710,6 +710,14 @@ One JSON file per source or research brief, in `data/employers/`.
   (of the plant, not the town) and a `subsector`, one of the 21 in
   `SUBSECTORS` (`scripts/build-employers-sql.mjs`). `status` is `operating`,
   `under construction`, `announced` or `closed`; the last two are not loaded.
+- The point comes from a source whose terms let it be kept: the Census
+  Bureau's geocoder (an answer for the same house number and street), a
+  county's own address points, the EPA registry's facility at the address, or
+  the row the plant fills. The ArcGIS World Geocoding Service forbids storing
+  an answer asked for without a paid token (`forStorage`), so its points are
+  never written; it may say which public point is right, never be one. A plant
+  with no public point waits in the file's `unplaced` (`texas-hubs.json` holds
+  thirteen so).
 - Not loaded either, and logged as such: a plant in Puerto Rico, and
   construction materials, which are not manufacturing here (NAICS 32732
   ready-mix, 32733 concrete pipe, brick and block, 32739 other concrete
