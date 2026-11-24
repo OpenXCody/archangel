@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { useAdminPaths } from '../../lib/admin';
 import { editPath, useSavePath, type FoundRecord, type PathSkill, type RecordView } from '../../lib/records';
 import { ErrorNote, busyButtonClass, cardClass, outlineButtonClass, textButtonClass } from '../account/parts';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import { useAdminNotice } from './AdminNotice';
 import RecordPicker from './RecordPicker';
 import { LEVELS } from '../../lib/stages';
@@ -87,7 +87,7 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
   const statusWord = status === 'approved' ? 'Approved' : status === 'draft' ? 'Draft, not yet reviewed' : 'No path yet';
 
   return (
-    <PageSection
+    <Panel
       title="Path"
       description={`${statusWord}. ${total.toLocaleString('en-US')} ${total === 1 ? 'skill' : 'skills'}, each under its own level.`}
       className="scroll-mt-20"
@@ -183,6 +183,6 @@ export default function PathEditor({ record, onChanged }: { record: RecordView; 
           )}
         </div>
       </div>
-    </PageSection>
+    </Panel>
   );
 }

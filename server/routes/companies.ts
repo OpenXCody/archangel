@@ -157,7 +157,7 @@ router.get('/:id/mark', async (req: Request, res: Response) => {
     res.setHeader('Content-Type', mark.mime);
     res.setHeader(
       'Cache-Control',
-      req.query.v === mark.version ? 'public, max-age=31536000, immutable' : 'public, max-age=0, s-maxage=60, stale-while-revalidate=60'
+      req.query.v === mark.version ? 'public, max-age=31536000, s-maxage=31536000, immutable' : 'public, max-age=0, s-maxage=60, stale-while-revalidate=60'
     );
     res.send(mark.bytes);
   } catch (error) {

@@ -1,7 +1,7 @@
 import { useIntakeSources, type IntakeRun, type IntakeSource } from '../../lib/intake';
 import { formatDayCapital } from '../../lib/dates';
 import { CardNote, Dot, LoadError, RowsSkeleton, cardClass, rowClass } from '../account/parts';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import { cn } from '@/lib/utils';
 
 /** A run's state in a word a person reads. */
@@ -92,7 +92,7 @@ function SourceRow({ source }: { source: IntakeSource }) {
 export default function IntakeSources() {
   const sources = useIntakeSources();
   return (
-    <PageSection title="Sources" description="Large sources are loaded by the intake runner, outside the site. Each is listed with its latest runs.">
+    <Panel title="Sources" description="Large sources are loaded by the intake runner, outside the site. Each is listed with its latest runs.">
       {sources.isPending ? (
         <RowsSkeleton rows={1} />
       ) : sources.isError ? (
@@ -106,6 +106,6 @@ export default function IntakeSources() {
           ))}
         </ul>
       )}
-    </PageSection>
+    </Panel>
   );
 }

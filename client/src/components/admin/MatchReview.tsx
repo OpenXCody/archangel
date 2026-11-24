@@ -7,8 +7,8 @@ import { REVIEW_PAGE, distance, useDecideReview, useReviewQueue, type ReviewCand
 import { cityState } from '../../lib/places';
 import { onGroupArrowKeys } from '../../lib/roving';
 import { shownIndustry } from '@shared/industry';
-import { Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass } from '../account/parts';
-import { PageSection } from '../layout/Page';
+import { CardNote, Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass } from '../account/parts';
+import Panel from './Panel';
 import { useAdminNotice } from './AdminNotice';
 
 /** The facts a source fills, in the words the pages use for them. */
@@ -211,23 +211,29 @@ function PlantLink({ candidate }: { candidate: ReviewCandidate }) {
  * was not sure. Same ties the record to the factory: the source's id is kept
  * against it and the record's facts fill what the factory lacks. Different
  * keeps them apart for good. Skip leaves it for later, after the rest.
- * Drawn only when something waits.
+ * Drawn only when something waits, unless `always`: Review's own list says when none does.
  */
-export default function MatchReview() {
+export default function MatchReview({ always = false }: { always?: boolean } = {}) {
   const queue = useReviewQueue();
-  if (queue.isPending) return null;
+  if (queue.isPending) return always ? <RowsSkeleton rows={2} /> : null;
   if (queue.isError) {
     return (
-      <PageSection title="Matches to review">
+      <Panel title="Uncertain matches">
         <LoadError error={queue.error} onRetry={() => void queue.refetch()} retrying={queue.isFetching} />
-      </PageSection>
+      </Panel>
     );
   }
   const { items, total } = queue.data;
-  if (total === 0) return null;
+  if (total === 0) {
+    return always ? (
+      <Panel title="Uncertain matches">
+        <CardNote>None waiting.</CardNote>
+      </Panel>
+    ) : null;
+  }
   return (
-    <PageSection
-      title="Matches to review"
+    <Panel
+      title="Uncertain matches"
       description="A source's record that may be one of our factories. Same keeps the source's id against the factory and fills what the factory lacks."
     >
       <div id="matches" className="scroll-mt-24">
@@ -247,6 +253,6 @@ export default function MatchReview() {
           </p>
         )}
       </div>
-    </PageSection>
+    </Panel>
   );
 }

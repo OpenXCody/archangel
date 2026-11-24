@@ -6,13 +6,14 @@ import { cn } from '@/lib/utils';
 import { ApiError } from '../../lib/http';
 import { editPath, useDeleteRecord, useMergeRecord, useRecord, type FoundRecord, type RecordKind, type RecordView } from '../../lib/records';
 import { CardNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, textButtonClass, rowHoverClass } from '../account/parts';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import { useAdminNotice } from './AdminNotice';
 import RecordPicker from './RecordPicker';
 import ConfirmDialog from '../layout/ConfirmDialog';
 import HistoryList, { attachedWords } from './HistoryList';
 import PathEditor from './PathEditor';
 import MakesEditor from './MakesEditor';
+import MarkEditor from './MarkEditor';
 import RecordForm from './RecordForm';
 import Picker from './Picker';
 import { PairCard } from './PlantPairs';
@@ -31,7 +32,7 @@ function movedWords(record: RecordView): string {
  * One record, corrected in one place: its fields, a career's path, a skill's makes, merging
  * it into another (a factory: with another row of the same factory, side by
  * side), deleting it, and the history of what admins did to it.
- * Opened from Admin Tools → Data, or by Edit on the record's own page.
+ * Opened from Admin Tools, Records, or by Edit on the record's own page.
  */
 export default function RecordEditor({ kind, id }: { kind: RecordKind; id: string }) {
   const record = useRecord(kind, id);
@@ -47,10 +48,9 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
   }, [loaded, hash]);
 
   const back = (
-    <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-text-2 transition-colors hover:text-text-1">
+    <Link to="/admin/records" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-text-2 transition-colors hover:text-text-1" data-editor-back>
       <ArrowLeft className="h-4 w-4" />
-      {/* The tab above already says Data: this is only the way back to its lists. */}
-      Back
+      Find another record
     </Link>
   );
 
@@ -88,7 +88,7 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
         </Link>
       </div>
 
-      <PageSection>
+      <Panel title="Details">
         <div className={cardClass}>
           <RecordForm
             key={round}
@@ -101,7 +101,9 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
             }}
           />
         </div>
-      </PageSection>
+      </Panel>
+
+      {kind === 'company' && <MarkEditor record={data} />}
 
       {kind === 'career' && <PathEditor record={data} onChanged={() => record.refetch()} />}
 
@@ -109,9 +111,9 @@ export default function RecordEditor({ kind, id }: { kind: RecordKind; id: strin
 
       {kind === 'factory' ? <PlantMergeSection record={data} /> : <MergeSection record={data} />}
 
-      <PageSection title="History">
+      <Panel title="History">
         <HistoryList filter={{ kind, record: id }} ownRecord />
-      </PageSection>
+      </Panel>
 
       <DeleteSection record={data} />
     </div>
@@ -128,7 +130,7 @@ function MergeSection({ record }: { record: RecordView }) {
   const moving = movedWords(record);
 
   return (
-    <PageSection title="Merge" description={`When this is the same ${word} as another. Everything here moves to the other, and this name is kept as another name for it.`}>
+    <Panel title="Merge" description={`When this is the same ${word} as another. Everything here moves to the other, and this name is kept as another name for it.`}>
       <div className={cardClass}>
         <label htmlFor="merge-into" className="mb-1.5 block text-sm font-medium text-text-2">
           Merge into
@@ -181,7 +183,7 @@ function MergeSection({ record }: { record: RecordView }) {
           onCancel={() => setConfirming(false)}
         />
       </div>
-    </PageSection>
+    </Panel>
   );
 }
 
@@ -204,7 +206,7 @@ function PlantMergeSection({ record }: { record: RecordView }) {
   const offered = (likely.data ?? []).slice(0, LIKELY_SHOWN);
 
   return (
-    <PageSection
+    <Panel
       title="Merge"
       description="When this is the same factory as another row. One row is kept: it takes the facts it lacks from the other, and everything attached moves to it."
     >
@@ -261,7 +263,7 @@ function PlantMergeSection({ record }: { record: RecordView }) {
           )}
         </div>
       )}
-    </PageSection>
+    </Panel>
   );
 }
 
@@ -274,7 +276,7 @@ function DeleteSection({ record }: { record: RecordView }) {
   const going = attachedWords(record.attached);
 
   return (
-    <PageSection>
+    <Panel title="Delete" description={`Removes this ${word} for good. If it is a duplicate, merge it instead.`}>
       <button
         type="button"
         onClick={() => {
@@ -305,13 +307,13 @@ function DeleteSection({ record }: { record: RecordView }) {
           remove.mutate(undefined, {
             onSuccess: () => {
               setConfirming(false);
-              navigate('/admin?tab=data', { replace: true });
+              navigate('/admin/records', { replace: true });
               notice.say(`Deleted ${record.name}.`);
             },
           })
         }
         onCancel={() => setConfirming(false)}
       />
-    </PageSection>
+    </Panel>
   );
 }

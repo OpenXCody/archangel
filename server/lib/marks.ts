@@ -23,7 +23,7 @@ type Mime = (typeof MIMES)[number];
 function sniff(bytes: Buffer): Mime | null {
   if (bytes.length >= 8 && bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg';
-  const head = bytes.subarray(0, 2048).toString('utf8').replace(/^﻿/, '');
+  const head = bytes.subarray(0, 2048).toString('utf8');
   if (/^\s*(<\?xml[^>]*\?>\s*)?(<!--[\s\S]*?-->\s*)*(<!DOCTYPE[^>]*>\s*)?<svg[\s>]/i.test(head)) return 'image/svg+xml';
   return null;
 }

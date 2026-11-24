@@ -33,6 +33,8 @@ import {
 } from '../account/parts';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import CompanyPicker from './CompanyPicker';
+import PlaceFields, { placeProblems, type PlaceField, type PlaceValue } from './PlaceFields';
+import { bareDomain } from './domain';
 import LeadsToField, { type LadderCareer } from './LeadsToField';
 import { useTaxonomy } from '../../lib/queries';
 import { LEVELS } from '../../lib/stages';
@@ -51,6 +53,7 @@ type FieldName =
   | 'headquartersLng'
   | 'city'
   | 'address'
+  | 'zip'
   | 'group'
   | 'level'
   | 'home'
@@ -80,11 +83,12 @@ const FIELD_FOCUS: [FieldName, string][] = [
   ['group', 'record-group'],
   ['level', 'record-level'],
   ['home', 'record-home'],
-  ['state', 'record-state'],
-  ['latitude', 'record-latitude'],
-  ['longitude', 'record-longitude'],
-  ['city', 'record-city'],
-  ['address', 'record-address'],
+  ['address', 'record-place-street'],
+  ['city', 'record-place-city'],
+  ['state', 'record-place-state'],
+  ['zip', 'record-place-zip'],
+  ['latitude', 'record-place-street'],
+  ['longitude', 'record-place-street'],
   ['workforceSize', 'record-people'],
   ['workforceYear', 'record-people-year'],
   ['workforceSource', 'record-people-source'],
@@ -144,21 +148,6 @@ const STATUSES = [
   { value: 'under construction', label: 'Under construction' },
 ];
 
-const HOSTNAME = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
-
-/** What a pasted web address comes down to, as the server will store it; null when it is not a domain. */
-function bareDomain(text: string): string | null {
-  const host = text
-    .trim()
-    .toLowerCase()
-    .replace(/^[a-z][a-z0-9+.-]*:\/\//, '')
-    .split(/[/?#]/)[0]
-    .replace(/:\d+$/, '')
-    .replace(/^www\./, '')
-    .replace(/\.$/, '');
-  return HOSTNAME.test(host) ? host : null;
-}
-
 function text(value: unknown): string {
   return typeof value === 'string' ? value : typeof value === 'number' ? String(value) : '';
 }
@@ -191,11 +180,16 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
       : null
   );
   const [name, setName] = useState(text(kind === 'career' ? fields.title : fields.name));
-  const [state, setState] = useState(text(fields.state));
-  const [latitude, setLatitude] = useState(text(fields.latitude));
-  const [longitude, setLongitude] = useState(text(fields.longitude));
-  const [city, setCity] = useState(text(fields.city));
-  const [address, setAddress] = useState(text(fields.address));
+  // A factory's place: its address as people write one, and the point found from it.
+  const [place, setPlace] = useState<PlaceValue>(() => ({
+    street: text(fields.address),
+    city: text(fields.city),
+    state: text(fields.state),
+    zip: text(fields.zip),
+    latitude: coordinate(text(fields.latitude), 90),
+    longitude: coordinate(text(fields.longitude), 180),
+  }));
+  const { state, city } = place;
   const [industry, setIndustry] = useState(text(fields.industry));
   // A skill's group, by its slug, and its level as the select holds it: '1', '2' or '3'.
   const [group, setGroup] = useState(text(fields.group));
@@ -238,8 +232,11 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   const groupDomain = taxonomy.data?.domains.find((domain) => domain.groups.some((item) => item.slug === group));
   const levelNumber = level === '1' ? 1 : level === '2' ? 2 : level === '3' ? 3 : null;
 
-  const lat = coordinate(latitude, 90);
-  const lng = coordinate(longitude, 180);
+  const lat = place.latitude;
+  const lng = place.longitude;
+  // A factory with no name typed is named for its company and town: "Acme Austin".
+  const defaultName = kind === 'factory' && !editing ? [company?.name, city.trim()].filter(Boolean).join(' ') : '';
+  const ofPlace: Partial<Record<PlaceField, string>> = kind === 'factory' ? placeProblems(place) : {};
   const hqLat = coordinate(hqLatitude, 90);
   const hqLng = coordinate(hqLongitude, 180);
   const cleanedDomain = domain.trim() ? bareDomain(domain) : null;
@@ -247,7 +244,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   const previewDomain = useDebouncedValue(cleanedDomain, 400);
 
   const problems: Partial<Record<FieldName, string>> = {};
-  if (!name.trim()) problems.name = NAME_PROBLEM[kind];
+  if (!name.trim() && !(company && city.trim() && defaultName)) problems.name = NAME_PROBLEM[kind];
   if (kind === 'skill') {
     // A skill on record with neither (a database no taxonomy was loaded into) can be corrected without them.
     if (!group && (!editing || fields.group)) problems.group = 'Choose the group it belongs to.';
@@ -257,9 +254,10 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
   if (kind === 'factory') {
     // A factory on record without a company can be corrected without being given one.
     if (!company && (!editing || fields.companyId)) problems.company = 'Choose the company that runs it.';
-    if (!state) problems.state = 'Choose a state.';
-    if (lat === null) problems.latitude = 'A number from -90 to 90.';
-    if (lng === null) problems.longitude = 'A number from -180 to 180.';
+    if (ofPlace.city) problems.city = ofPlace.city;
+    if (ofPlace.state) problems.state = ofPlace.state;
+    if (ofPlace.zip) problems.zip = ofPlace.zip;
+    if (ofPlace.point) problems.latitude = ofPlace.point;
     if (editing) {
       // A year, a source and a note describe a headcount: they need one.
       const about = Boolean(peopleYear.trim() || peopleSource.trim() || peopleNote.trim());
@@ -301,7 +299,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
     if (kind === 'career') return { kind, title: name.trim(), description: given(description), home: home || undefined };
     if (kind === 'skill') return levelNumber ? { kind, name: name.trim(), group, level: levelNumber, description: given(description) } : null;
     if (!company || lat === null || lng === null) return null;
-    return { kind, companyId: company.id, name: name.trim(), state, latitude: lat, longitude: lng, city: given(city), address: given(address) };
+    return { kind, companyId: company.id, name: name.trim() || defaultName, state, latitude: lat, longitude: lng, city: given(city), address: given(place.street), zip: given(place.zip) };
   };
 
   /** What correcting sends: every field the form shows; the server changes the ones that differ. */
@@ -352,7 +350,8 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
       latitude: lat,
       longitude: lng,
       city: orNull(city),
-      address: orNull(address),
+      address: orNull(place.street),
+      zip: orNull(place.zip),
       industry: orNull(industry),
       workforceSize: peopleOf(people),
       workforceYear: yearOf(peopleYear, 1900),
@@ -423,7 +422,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
     value: string,
     onChange: (value: string) => void,
     field?: FieldName,
-    extra?: { maxLength?: number; list?: string; inputMode?: 'decimal' | 'url' | 'numeric'; autoCapitalize?: 'none'; spellCheck?: boolean }
+    extra?: { maxLength?: number; placeholder?: string; list?: string; inputMode?: 'decimal' | 'url' | 'numeric'; autoCapitalize?: 'none'; spellCheck?: boolean }
   ) => (
     <input
       id={id}
@@ -470,7 +469,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label={NAME_LABEL[kind]} htmlFor="record-name">
-          {input('record-name', name, setName, 'name', { maxLength: kind === 'factory' ? 300 : 200 })}
+          {input('record-name', name, setName, 'name', { maxLength: kind === 'factory' ? 300 : 200, placeholder: defaultName || undefined })}
           <FieldError id="record-name-error" message={shown('name')} />
         </Field>
 
@@ -554,28 +553,6 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
           </Field>
         )}
 
-        {kind === 'factory' && (
-          <Field label="State" htmlFor="record-state">
-            <Select value={state} onValueChange={setState}>
-              <SelectTrigger
-                id="record-state"
-                aria-invalid={shown('state') ? true : undefined}
-                aria-describedby={shown('state') ? 'record-state-error' : undefined}
-                className={cn(selectTriggerClass, shown('state') && 'border-danger/60')}
-              >
-                <SelectValue placeholder="Choose a state" />
-              </SelectTrigger>
-              <SelectContent className={cn(selectContentClass, 'max-h-72')}>
-                {US_STATES.map((option) => (
-                  <SelectItem key={option.code} value={option.code} className="py-2.5">
-                    {option.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FieldError id="record-state-error" message={shown('state')} />
-          </Field>
-        )}
       </div>
 
       {near.length > 0 && (
@@ -595,26 +572,14 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
 
       {kind === 'factory' && (
         <>
-          <div className="grid grid-cols-1 gap-4 xs:grid-cols-2">
-            <Field label="Latitude" htmlFor="record-latitude" hint={shown('latitude') ? undefined : 'Decimal degrees.'}>
-              {input('record-latitude', latitude, setLatitude, 'latitude', { inputMode: 'decimal', maxLength: 20 })}
-              <FieldError id="record-latitude-error" message={shown('latitude')} />
-            </Field>
-            <Field label="Longitude" htmlFor="record-longitude" hint={shown('longitude') ? undefined : 'West is negative.'}>
-              {input('record-longitude', longitude, setLongitude, 'longitude', { inputMode: 'decimal', maxLength: 20 })}
-              <FieldError id="record-longitude-error" message={shown('longitude')} />
-            </Field>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="City" htmlFor="record-city" optional>
-              {input('record-city', city, setCity, 'city', { maxLength: 120 })}
-              <FieldError id="record-city-error" message={shown('city')} />
-            </Field>
-            <Field label="Address" htmlFor="record-address" optional>
-              {input('record-address', address, setAddress, 'address', { maxLength: 300 })}
-              <FieldError id="record-address-error" message={shown('address')} />
-            </Field>
-          </div>
+          <PlaceFields
+            idPrefix="record-place"
+            value={place}
+            onChange={(patch) => setPlace((current) => ({ ...current, ...patch }))}
+            problems={{ street: shown('address'), city: shown('city'), state: shown('state'), zip: shown('zip'), point: shown('latitude') ?? shown('longitude') }}
+            // A factory already on the map stays where it is until its address is looked up on purpose.
+            lookUp={editing && lat !== null && lng !== null ? 'when-asked' : 'as-typed'}
+          />
           {editing && (
             <Field label="Industry" htmlFor="record-industry" optional>
               <Select value={industry || 'none'} onValueChange={(value) => setIndustry(value === 'none' ? '' : value)}>

@@ -15,7 +15,7 @@ import {
   Dot,
 } from '../account/parts';
 import { formatDay, formatOnDay } from '../../lib/dates';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import CompanyRequests from './CompanyRequests';
 import { useAdminNotice } from './AdminNotice';
 
@@ -99,8 +99,7 @@ export default function AccessTab() {
 
   return (
     <>
-      <PageSection>
-        <p className="mb-3 text-sm text-text-2">Requests to join a company. Approval lets the person post its jobs and read its applicants.</p>
+      <Panel title="Requests to join a company" description="Approval lets the person post the company’s jobs and read its applicants.">
         {requests.isPending ? (
           <RowsSkeleton rows={2} />
         ) : requests.isError ? (
@@ -160,14 +159,14 @@ export default function AccessTab() {
           </ul>
         )}
         <ErrorNote error={decide.error} className="mt-2" />
-      </PageSection>
+      </Panel>
 
       {/* Companies and factories people asked to have added (its own component and API). */}
       <CompanyRequests />
 
       {/* Only when there is one: an empty "Declined" heading says nothing. */}
       {declined.data && declined.data.length > 0 && (
-        <PageSection title="Declined" description="In the last 30 days. The person can ask again a week after a decline.">
+        <Panel title="Declined" description="In the last 30 days. The person can ask again a week after a decline.">
           <ul className={cardClass}>
             {declined.data.map((request) => (
               <li
@@ -207,7 +206,7 @@ export default function AccessTab() {
               </li>
             ))}
           </ul>
-        </PageSection>
+        </Panel>
       )}
     </>
   );

@@ -3,7 +3,7 @@ import { cn, focusRing } from '@/lib/utils';
 import { useDataQuality, type QualityRow } from '../../lib/admin';
 import { stateName } from '../../lib/places';
 import { LoadError, RowsSkeleton, SegmentedChoice, cardClass } from '../account/parts';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import { Link } from 'react-router-dom';
 import { pairsPath } from './PlantPairs';
 
@@ -108,7 +108,7 @@ export default function QualityTable() {
   );
 
   return (
-    <PageSection
+    <Panel
       title="Data quality"
       description="How complete the factory data is, by state. Counted now, from the database."
     >
@@ -196,7 +196,7 @@ export default function QualityTable() {
           </dl>
         </>
       )}
-    </PageSection>
+    </Panel>
   );
 }
 

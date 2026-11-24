@@ -57,7 +57,7 @@ function App() {
               <Route path="/tree" element={<Navigate to="/map" replace />} />
               <Route path="/explore" element={<PageBoundary><Explore /></PageBoundary>} />
               {/* The import pages are gone; records are added from Admin Tools. */}
-              <Route path="/import/*" element={<Navigate to="/admin?tab=data" replace />} />
+              <Route path="/import/*" element={<Navigate to="/admin/add" replace />} />
               <Route path="/companies/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/factories/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
               <Route path="/occupations/:id" element={<PageBoundary><EntityDetail /></PageBoundary>} />
@@ -73,7 +73,8 @@ function App() {
               <Route path="/jobs/:id" element={<PageBoundary><JobDetail /></PageBoundary>} />
               <Route path="/employer" element={<PageBoundary><Employer /></PageBoundary>} />
               <Route path="/settings" element={<PageBoundary><Settings /></PageBoundary>} />
-              <Route path="/admin" element={<PageBoundary><Admin /></PageBoundary>} />
+              {/* Admin Tools: the index and a page for each thing an admin comes to do (pages/Admin.tsx). */}
+              <Route path="/admin/*" element={<PageBoundary><Admin /></PageBoundary>} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

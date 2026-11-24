@@ -1,42 +1,36 @@
 import { useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, NavLink, useLocation } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn, labelClass, pageTitleClass } from '@/lib/utils';
 import { type AccountUser } from '../lib/account';
 import { accountKeys } from '../lib/queryKeys';
-import { useAdminOverview } from '../lib/admin';
+import { ADMIN_PAGES, adminPath, fromOldAdminAddress, useAdminOverview, type AdminPage } from '../lib/admin';
 import { ApiError } from '../lib/http';
-import { useAdminCompanyRequests } from '../lib/employerCompanies';
 import { AccountGate } from '../components/account/parts';
-import { PageContainer, PageHeader } from '../components/layout/Page';
+import { PageContainer } from '../components/layout/Page';
 import AccessTab from '../components/admin/AccessTab';
-import { AdminNoticeLine, AdminNoticeProvider, useAdminNotice } from '../components/admin/AdminNotice';
-import DataTab from '../components/admin/DataTab';
-import HistoryTab from '../components/admin/HistoryTab';
+import ActivityPage from '../components/admin/ActivityPage';
+import AddPage from '../components/admin/AddPage';
+import AdminIndex, { useWaitingCounts } from '../components/admin/AdminIndex';
+import { AdminNoticeBar, AdminNoticeProvider } from '../components/admin/AdminNotice';
 import InvitesTab from '../components/admin/InvitesTab';
 import PeopleTab from '../components/admin/PeopleTab';
+import RecordsPage from '../components/admin/RecordsPage';
+import ReviewPage from '../components/admin/ReviewPage';
 import NotFound from './NotFound';
 
-type TabValue = 'people' | 'access' | 'invites' | 'data' | 'history';
-
-/** One name each, at every width: five short words fit across a phone. */
-const TABS: { value: TabValue; label: string }[] = [
-  { value: 'people', label: 'People' },
-  { value: 'access', label: 'Access' },
-  { value: 'invites', label: 'Invites' },
-  { value: 'data', label: 'Data' },
-  { value: 'history', label: 'History' },
-];
-
-/** What belongs to one tab only, dropped from the address when another is chosen. */
-const TAB_PARAMS = ['q', 'role', 'open', 'kind', 'id', 'show'];
-
 /**
- * Admin Tools: people, company access, invites, data upkeep and the history
- * of what admins changed, for a signed-in admin. Signed out, the gate sends
- * the person to sign in. Signed in without the role, the page is the same as
- * one that does not exist. The API enforces the same rule on every
- * /api/admin route.
+ * Admin Tools, for a signed-in admin. Each page is one thing a person comes
+ * to do, at its own address: `/admin` is the index, and `/admin/add`,
+ * `/admin/records`, `/admin/review`, `/admin/people`, `/admin/access`,
+ * `/admin/invites` and `/admin/activity` the pages (`ADMIN_PAGES` in
+ * lib/admin.ts). An address from before the pages (`/admin?tab=data…`) is
+ * sent to the page that does what its tab did.
+ *
+ * Signed out, the gate sends the person to sign in. Signed in without the
+ * role, every one of these addresses is the same as one that does not exist.
+ * The API enforces the same rule on every /api/admin route.
  */
 export default function Admin() {
   return (
@@ -54,118 +48,104 @@ export default function Admin() {
   );
 }
 
-const waitingLinkClass = 'font-medium text-text-1 underline hover:no-underline';
-
-/**
- * What is waiting on an admin, above the tabs: requests to join a company,
- * requests to add a company or a factory, and matches a source's run was not
- * sure of. Each links to where
- * it is answered. Nothing is drawn when nobody waits, or before the counts
- * are known, so the line means something when it is there. (Draft career
- * paths are work, not someone waiting: they are counted where they are
- * reviewed, under Data.)
- */
-function Waiting() {
+/** The role was taken away while a page was open: ask again who is signed in, and the page goes with the role. */
+function useRoleStillHeld() {
   const overview = useAdminOverview();
   const queryClient = useQueryClient();
-  // The role was taken away while this page was open: ask again who is signed in, and the page goes with the role.
   const refused = overview.error instanceof ApiError && overview.error.status === 403;
   useEffect(() => {
     if (refused) void queryClient.invalidateQueries({ queryKey: accountKeys.account });
   }, [refused, queryClient]);
+}
 
-  const requests = overview.data?.pendingMemberships ?? 0;
-  // Companies and factories people asked to have added: answered on the Access tab too.
-  const toAdd = useAdminCompanyRequests().data?.length ?? 0;
-  // Matches a source's run was not sure of: decided under Data.
-  const matches = overview.data?.waitingMatches ?? 0;
-  if (requests === 0 && toAdd === 0 && matches === 0) return null;
+/**
+ * The pages as one row of words, from a tablet up: where you are is in full
+ * ink with a line under it, and a page where something waits says how many.
+ * On a phone seven words do not fit, and the way between pages is the index.
+ */
+function AdminNav({ current }: { current: AdminPage }) {
+  const waiting = useWaitingCounts();
   return (
-    <div className="mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-sm sm:mb-8" data-admin-waiting>
-      <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">Waiting</span>
-      {requests > 0 && (
-        <Link to="/admin?tab=access" className={waitingLinkClass}>
-          {requests.toLocaleString('en-US')} access {requests === 1 ? 'request' : 'requests'}
-        </Link>
-      )}
-      {toAdd > 0 && (
-        <Link to="/admin?tab=access" className={waitingLinkClass} data-waiting-to-add>
-          {toAdd.toLocaleString('en-US')} {toAdd === 1 ? 'request' : 'requests'} to add a company or factory
-        </Link>
-      )}
-      {matches > 0 && (
-        <Link to="/admin?tab=data#matches" className={waitingLinkClass} data-waiting-matches>
-          {matches.toLocaleString('en-US')} {matches === 1 ? 'match' : 'matches'} to review
-        </Link>
-      )}
-    </div>
+    <nav aria-label="Admin Tools" className="mb-6 hidden border-b border-line sm:block" data-admin-nav>
+      <ul className="flex gap-6">
+        {ADMIN_PAGES.map((page) => {
+          const count = waiting[page.slug];
+          return (
+            <li key={page.slug}>
+              <NavLink
+                to={adminPath(page.slug)}
+                aria-current={page.slug === current ? 'page' : undefined}
+                className={cn(
+                  '-mb-px flex items-baseline gap-1.5 border-b-2 px-1 pb-3 pt-1.5 text-sm font-medium transition-colors focus-visible:-outline-offset-2',
+                  page.slug === current ? 'border-[color:var(--text-1)] text-text-1' : 'border-transparent text-text-2 hover:text-text-1'
+                )}
+              >
+                {page.label}
+                {count ? <span className="text-xs tabular-nums text-text-2">{count.toLocaleString('en-US')}</span> : null}
+              </NavLink>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
 
 function AdminTools({ me }: { me: AccountUser }) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const notice = useAdminNotice();
-  const requested = searchParams.get('tab');
-  const tab: TabValue = TABS.find((t) => t.value === requested)?.value ?? 'people';
-
-  const selectTab = (value: string) => {
-    const params = new URLSearchParams(searchParams);
-    for (const name of TAB_PARAMS) params.delete(name);
-    if (value === 'people') params.delete('tab');
-    else params.set('tab', value);
-    notice.clear();
-    // A tab is a place: Back returns to the one before.
-    setSearchParams(params);
-  };
+  const { pathname, search, hash } = useLocation();
+  useRoleStillHeld();
+  const slug = pathname.replace(/^\/admin\/?/, '').replace(/\/$/, '');
+  const page = ADMIN_PAGES.find((option) => option.slug === slug);
 
   // The browser tab names the place: "Admin Tools · Invites".
-  const label = TABS.find((t) => t.value === tab)?.label ?? 'People';
+  const label = page?.label;
   useEffect(() => {
     // After the layout has named the page, which it does on arrival.
     const timer = window.setTimeout(() => {
-      document.title = `Admin Tools · ${label} · Archangel`;
+      document.title = label ? `Admin Tools · ${label} · Archangel` : 'Admin Tools · Archangel';
     }, 0);
     return () => window.clearTimeout(timer);
   }, [label]);
 
+  // An address from before the pages lands on the page that does what its tab did.
+  const moved = slug === '' ? fromOldAdminAddress(search, hash) : null;
+  if (moved) return <Navigate to={moved} replace />;
+  if (slug !== '' && !page) return <NotFound />;
+
   return (
     <PageContainer>
-      <PageHeader title="Admin Tools" />
-      <Waiting />
-      <Tabs value={tab} onValueChange={selectTab}>
-        <TabsList className="flex h-auto w-full justify-start gap-4 overflow-x-auto rounded-none border-b border-line bg-transparent p-0 text-text-2 sm:gap-6">
-          {TABS.map(({ value, label: tabLabel }) => (
-            <TabsTrigger
-              key={value}
-              value={value}
-              // The ring is drawn inside the tab: the scrolling list would clip one drawn outside.
-              className="-mb-px rounded-none border-b-2 border-transparent px-1 pb-3 pt-1.5 text-sm font-medium text-text-2 transition-colors
-                hover:text-text-1 focus-visible:-outline-offset-2
-                data-[state=active]:border-[color:var(--text-1)] data-[state=active]:bg-transparent
-                data-[state=active]:text-text-1 data-[state=active]:shadow-none"
+      <header className="mb-5 sm:mb-6">
+        {page ? (
+          <>
+            <Link
+              to="/admin"
+              className={cn(labelClass, '-mt-2 mb-1 inline-flex min-h-11 items-center gap-2 pr-2 transition-colors hover:text-text-1')}
+              data-admin-home
             >
-              {tabLabel}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {/* What the last action did, between the tabs and what they show. */}
-        <AdminNoticeLine />
-        <TabsContent value="people" className="mt-0">
-          <PeopleTab me={me} />
-        </TabsContent>
-        <TabsContent value="access" className="mt-0">
-          <AccessTab />
-        </TabsContent>
-        <TabsContent value="invites" className="mt-0">
-          <InvitesTab />
-        </TabsContent>
-        <TabsContent value="data" className="mt-0">
-          <DataTab />
-        </TabsContent>
-        <TabsContent value="history" className="mt-0">
-          <HistoryTab />
-        </TabsContent>
-      </Tabs>
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Admin Tools
+            </Link>
+            <h1 className={pageTitleClass}>{page.label}</h1>
+            <p className="mt-2 max-w-prose text-sm text-text-2">{page.says}</p>
+          </>
+        ) : (
+          <>
+            <h1 className={pageTitleClass}>Admin Tools</h1>
+            <p className="mt-2 max-w-prose text-sm text-text-2">Choose what you came to do.</p>
+          </>
+        )}
+      </header>
+      {page && <AdminNav current={page.slug} />}
+      {/* What the last action did: one bar, pinned over the page. */}
+      <AdminNoticeBar />
+      {!page && <AdminIndex />}
+      {page?.slug === 'add' && <AddPage />}
+      {page?.slug === 'records' && <RecordsPage />}
+      {page?.slug === 'review' && <ReviewPage />}
+      {page?.slug === 'people' && <PeopleTab me={me} />}
+      {page?.slug === 'access' && <AccessTab />}
+      {page?.slug === 'invites' && <InvitesTab />}
+      {page?.slug === 'activity' && <ActivityPage />}
     </PageContainer>
   );
 }

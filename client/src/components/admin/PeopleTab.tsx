@@ -37,7 +37,7 @@ import {
 } from '../account/parts';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { formatDay } from '../../lib/dates';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import { useAdminNotice } from './AdminNotice';
 import CompanyPicker from './CompanyPicker';
 import ConfirmDialog from '../layout/ConfirmDialog';
@@ -84,7 +84,7 @@ export default function PeopleTab({ me }: { me: AccountUser }) {
   const total = people.data?.pages[0]?.total ?? 0;
 
   return (
-    <PageSection>
+    <Panel title="Everyone with an account" description="Open a person to change their roles and company access, correct their name or email, or sign them out.">
       <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_14rem]">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-2" />
@@ -158,7 +158,7 @@ export default function PeopleTab({ me }: { me: AccountUser }) {
           </div>
         </>
       )}
-    </PageSection>
+    </Panel>
   );
 }
 
