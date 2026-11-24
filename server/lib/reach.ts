@@ -30,8 +30,14 @@ export interface CareerWithinReach {
   /** Skills of the civilian career's path that are on the military career's, and how many the path has. */
   held: number;
   total: number;
+  /** Those `held` skills by id, in the route's order: the part of the military path that carries into this career. */
+  shared: string[];
   /** The rest of the civilian path, in that path's own order (`routeOrder`). */
   missing: MissingSkill[];
+  /** The industries the civilian career is typical of (`industry_occupations`, its own, not those it is common to), in the list's order. */
+  industries: string[];
+  /** True when it is typical of no industry in particular and found in all of them. */
+  everywhere: boolean;
 }
 
 /** A military career that reaches a civilian one. */
@@ -46,16 +52,24 @@ export interface ReachingCareer {
   total: number;
 }
 
-/** The civilian careers a military career's path covers at least a third of, the most covered first. */
+/**
+ * The civilian careers a military career's path covers at least a third of, the most covered first: each with
+ * the skills that carry and the ones missing, both in the route's order, and the industries it is typical of,
+ * which is what the page's flow draws (skills by group, to careers, to industries). One statement.
+ */
 export async function civilianCareersWithinReach(militaryId: string): Promise<CareerWithinReach[]> {
   const rows = rowsOf(
     await db.execute(sql`
       SELECT c.id, c.title, COUNT(*)::int AS total, COUNT(mine.skill_id)::int AS held,
+             COALESCE(json_agg(s.id ORDER BY ${routeOrder()}) FILTER (WHERE mine.skill_id IS NOT NULL), '[]'::json) AS shared,
              COALESCE(
                json_agg(json_build_object('id', s.id, 'name', s.name, 'level', cs.stage) ORDER BY ${routeOrder()})
                  FILTER (WHERE mine.skill_id IS NULL),
                '[]'::json
-             ) AS missing
+             ) AS missing,
+             (SELECT COALESCE(json_agg(io.industry ORDER BY io.rank, io.industry), '[]'::json)
+                FROM industry_occupations io WHERE io.occupation_id = c.id AND NOT io.common) AS industries,
+             EXISTS (SELECT 1 FROM industry_occupations io WHERE io.occupation_id = c.id AND io.common) AS common
       FROM occupations c
       INNER JOIN occupation_skills cs ON cs.occupation_id = c.id
       INNER JOIN skills s ON s.id = cs.skill_id
@@ -67,17 +81,24 @@ export async function civilianCareersWithinReach(militaryId: string): Promise<Ca
     `)
   );
   return reached(
-    rows.map((row) => ({
-      id: String(row.id),
-      title: String(row.title),
-      held: Number(row.held),
-      total: Number(row.total),
-      missing: (row.missing as { id: string; name: string; level: number | null }[]).map((skill) => ({
-        id: skill.id,
-        name: skill.name,
-        level: isSkillLevel(skill.level) ? skill.level : null,
-      })),
-    }))
+    rows.map((row) => {
+      const industries = (row.industries as string[]).map(String);
+      return {
+        id: String(row.id),
+        title: String(row.title),
+        held: Number(row.held),
+        total: Number(row.total),
+        shared: (row.shared as string[]).map(String),
+        missing: (row.missing as { id: string; name: string; level: number | null }[]).map((skill) => ({
+          id: skill.id,
+          name: skill.name,
+          level: isSkillLevel(skill.level) ? skill.level : null,
+        })),
+        industries,
+        // As on the career's own page: found everywhere only when it is typical of no industry of its own.
+        everywhere: industries.length === 0 && Boolean(row.common),
+      };
+    })
   );
 }
 
