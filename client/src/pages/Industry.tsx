@@ -118,7 +118,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
               plants: state.plants,
             }))}
           />
-          {states.length > STATES_SHOWN && <ShowAll open={allStates} total={states.length} onToggle={() => setAllStates((value) => !value)} />}
+          {states.length > STATES_SHOWN && <ShowAll alone open={allStates} total={states.length} onToggle={() => setAllStates((value) => !value)} />}
         </DetailSection>
       )}
       {cities.length > 0 && (
@@ -132,7 +132,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
               return { key: `${city.name}-${city.state ?? ''}`, to: `/map?${query}`, label: name, plants: city.plants };
             })}
           />
-          {cities.length > STATES_SHOWN && <ShowAll open={allStates} total={cities.length} onToggle={() => setAllStates((value) => !value)} />}
+          {cities.length > STATES_SHOWN && <ShowAll alone open={allStates} total={cities.length} onToggle={() => setAllStates((value) => !value)} />}
         </DetailSection>
       )}
 
@@ -223,12 +223,11 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
       {/* What work is here */}
       {data.careers.length > 0 && (
         <DetailSection id="careers" title="Careers in this industry">
-          <RecordList>
+          <RecordList footer={careersCut && <ShowAll open={allCareers} total={data.careers.length} onToggle={() => setAllCareers((value) => !value)} />}>
             {careers.map((career) => (
               <RecordRow key={career.id} to={`/occupations/${career.id}`} title={career.title} />
             ))}
           </RecordList>
-          {careersCut && <ShowAll open={allCareers} total={data.careers.length} onToggle={() => setAllCareers((value) => !value)} />}
         </DetailSection>
       )}
     </>

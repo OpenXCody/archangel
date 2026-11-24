@@ -1,18 +1,22 @@
-import { useEffect, useId } from 'react';
+import { useEffect, useId, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { plural } from '@/lib/utils';
+import { cn, plural } from '@/lib/utils';
 import { ErrorNote, LoadError } from '../account/parts';
 import { signInPath, useAccount } from '../../lib/account';
 import { type OccupationDetail } from '../../lib/api';
 import { isNoVersion, useVersion, type Version } from '../../lib/versions';
 import { useViewer } from '../../lib/viewer';
-import { BackLink, DetailHeader, EmptyState } from '../layout/Page';
+import { BackLink, DetailHeader, DetailSection, DetailWithRail, EmptyState } from '../layout/Page';
+import { secondaryActionClass } from '../layout/Panel';
 import { SkillTag, SkillTags } from '../path/SkillTag';
-import { shareOf, type PlacedSkill } from '../path/model';
+import { type PlacedSkill } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
-import { Route } from '../route/Route';
-import { type Head, OpenJobsSection, SkillsHeading } from './parts';
+import { SkillGroups } from '../route/SkillGroups';
+import { SkillPreview } from '../route/SkillPreview';
+import { useSkillChoice } from '../route/useSkillChoice';
+import { YourSkills } from '../route/YourSkills';
+import { type Head, OpenJobsSection } from './parts';
 import { CareerTag, CompanyTag, RecordTags } from '../layout/RecordTag';
 
 /** Where a company's people change its version of a career: Your jobs, with the version in the address. */
@@ -85,17 +89,23 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
   const standard = `/occupations/${data.id}`;
 
   // The version's path: each skill with the makes the company runs, the person's own among them lit.
-  const skills: PlacedSkill[] = version.skills.map((skill) => ({
-    id: skill.id,
-    name: skill.name,
-    level: skill.level,
-    group: skill.group,
-    domain: skill.domain,
-    howLearned: skill.howLearned,
-    added: skill.added,
-    makes: skill.makes.filter((make) => make.runs).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })),
-  }));
-  const whole = marks && !marks.pending && skills.length > 0 ? shareOf(skills, marks) : null;
+  const skills: PlacedSkill[] = useMemo(
+    () =>
+      version.skills.map((skill) => ({
+        id: skill.id,
+        name: skill.name,
+        level: skill.level,
+        group: skill.group,
+        domain: skill.domain,
+        howLearned: skill.howLearned,
+        added: skill.added,
+        makes: skill.makes.filter((make) => make.runs).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })),
+      })),
+    [version.skills, ranMakes]
+  );
+  const choice = useSkillChoice(skills, marks);
+  const signIn = canSignIn ? signInPath(`${pathname}${search}`) : null;
+  const you = skills.length > 0 ? <YourSkills total={skills.length} share={choice.share} signIn={signIn} next={choice.next} /> : null;
   const headingId = useId();
   const leftOut = version.leftOut;
   const same = leftOut.length === 0 && !skills.some((skill) => skill.added);
@@ -113,7 +123,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
           canEdit ? (
             <Link
               to={versionEditorPath(company.id, data.id)}
-              className="inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline"
+              className={cn(secondaryActionClass, 'h-9 px-3 sm:h-9')}
               data-version-edit
             >
               Edit
@@ -131,55 +141,59 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         </RecordTags>
       </DetailHeader>
 
-      <section id="skills" aria-labelledby={headingId} className="mt-12 scroll-mt-20">
-        {marks && <ErrorNote error={markError} className="mb-3" />}
-        {skills.length === 0 && (
-          <>
-            <SkillsHeading id={headingId} held={null} />
-            <p className="mt-3 text-sm text-text-2">None yet.</p>
-          </>
-        )}
-        {/* The same skills by group as the standard's page, the company's changes applied. */}
-        <Route
-          grouped
-          skills={skills}
-          marks={marks}
-          comesFrom={data.comesFrom}
-          leadsTo={data.leadsTo}
-          keepAs={`${data.id}@${company.id}`}
-          heading={<SkillsHeading id={headingId} held={whole} />}
-        />
+      <DetailWithRail
+        label="Your skills, and the skill chosen"
+        rail={
+          skills.length > 0 ? (
+            <>
+              {you}
+              <SkillPreview skill={choice.shown} next={choice.showingNext} />
+            </>
+          ) : undefined
+        }
+      >
+        {skills.length === 0 ? (
+          <DetailSection id="skills" title="Skills">
+            <p className="text-sm text-text-2">None yet.</p>
+          </DetailSection>
+        ) : (
+          <section id="skills" aria-labelledby={headingId} className="mt-14 scroll-mt-20">
+            {marks && <ErrorNote error={markError} className="mb-3" />}
+            {/* The same skills by group as the standard's page, the company's changes applied. */}
+            <SkillGroups
+              skills={skills}
+              marks={marks}
+              keepAs={`${data.id}@${company.id}`}
+              headingId={headingId}
+              onSelect={choice.wide ? choice.choose : undefined}
+              selected={choice.wide ? (choice.shown?.id ?? null) : null}
+              lead={you && <div className="mb-4 lg:hidden">{you}</div>}
+            />
 
-        {/* What the company leaves out of the standard is not drawn: one line says how many, and opens them. */}
-        {leftOut.length > 0 && (
-          <details className="group mt-4" data-left-out>
-            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-sm text-text-1 underline [&::-webkit-details-marker]:hidden">
-              {plural(leftOut.length, 'skill', 'skills')} of the standard path left out
-            </summary>
-            <SkillTags className="mt-1">
-              {leftOut.map((skill) => (
-                <SkillTag key={skill.id} skill={{ id: skill.id, name: skill.name }} className="grow-0 text-text-2" />
-              ))}
-            </SkillTags>
-          </details>
+            {/* What the company leaves out of the standard is not drawn: one line says how many, and opens them. */}
+            {leftOut.length > 0 && (
+              <details className="group mt-4" data-left-out>
+                <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-sm text-text-1 underline [&::-webkit-details-marker]:hidden">
+                  {plural(leftOut.length, 'skill', 'skills')} of the standard path left out
+                </summary>
+                <SkillTags className="mt-1">
+                  {leftOut.map((skill) => (
+                    <SkillTag key={skill.id} skill={{ id: skill.id, name: skill.name }} className="grow-0 text-text-2" />
+                  ))}
+                </SkillTags>
+              </details>
+            )}
+            {same && (
+              <p className="mt-4 text-sm text-text-3" data-version-same>
+                The same skills as the standard path.
+              </p>
+            )}
+          </section>
         )}
-        {same && skills.length > 0 && (
-          <p className="mt-4 text-sm text-text-3" data-version-same>
-            The same skills as the standard path.
-          </p>
-        )}
-        {canSignIn && (
-          <p className="mt-4 text-sm text-text-3">
-            <Link to={signInPath(`${pathname}${search}`)} className="text-text-1 underline">
-              Sign in
-            </Link>{' '}
-            to see which of these skills you have.
-          </p>
-        )}
-      </section>
 
-      {/* Open jobs for this career at this company. */}
-      {(version.jobs?.length ?? 0) > 0 && <OpenJobsSection jobs={version.jobs ?? []} showCareer />}
+        {/* Open jobs for this career at this company. */}
+        {(version.jobs?.length ?? 0) > 0 && <OpenJobsSection jobs={version.jobs ?? []} showCareer />}
+      </DetailWithRail>
     </>
   );
 }

@@ -14,6 +14,8 @@ import {
 } from '../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { EmptyState, BackLink, PageContainer } from '../components/layout/Page';
+import { secondaryActionClass } from '../components/layout/Panel';
+import { cn } from '@/lib/utils';
 import { recordQuery } from '../lib/queries';
 import type { Head } from '../components/entity/parts';
 import CompanyDetailView from '../components/entity/CompanyDetailView';
@@ -174,7 +176,7 @@ export default function EntityDetail() {
     edit: canEdit ? (
       <Link
         to={editPath(RECORD_KIND[entityType], data.id)}
-        className="inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline"
+        className={cn(secondaryActionClass, 'h-9 px-3 sm:h-9')}
         data-admin-edit
       >
         Edit
@@ -183,7 +185,8 @@ export default function EntityDetail() {
   };
 
   return (
-    <PageContainer size="narrow">
+    // A career's page has a column beside its sections from 1024 px (the person's panel, a skill's preview): it takes the list pages' width.
+    <PageContainer size={entityType === 'occupations' ? 'default' : 'narrow'}>
       {/* The address says which kind of record this is; the shape checks only
           narrow the type. A response that gains a field can then never draw
           another kind's page. `data-entity-view` names the view for tests. */}

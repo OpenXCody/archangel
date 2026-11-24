@@ -138,6 +138,8 @@ export interface PathSkill extends SkillPlace {
   importance?: 'required' | 'preferred' | 'nice_to_have';
   /** How the skill is learned, in the catalogue's sentence. */
   howLearned?: string | null;
+  /** What the skill is, in the catalogue's words (a career's path carries it). */
+  description?: string | null;
 }
 
 /** A skill that shares careers with another (GET /api/skills/:id → `relatedSkills`). */

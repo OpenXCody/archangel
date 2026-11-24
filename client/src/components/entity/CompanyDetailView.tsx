@@ -187,7 +187,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
               />
             </ul>
           ) : (
-            <p className="border-t border-line py-3 text-sm text-text-2">
+            <p className="border-t border-line px-4 py-3 text-sm text-text-2">
               {byState.slice(0, 6).map((state, index) => (
                 <span key={state.code}>
                   {index > 0 && ' · '}
@@ -251,7 +251,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
             {/* Its careers: the ones it has its own version of, then those recorded across its factories */}
             {careers.length > 0 && (
               <DetailSection id="occupations" title="Careers">
-                <RecordList>
+                <RecordList footer={careers.length > CAREERS_SHOWN && <ShowAll open={showAllCareers} total={careers.length} onToggle={() => setShowAllCareers((value) => !value)} />}>
                   {(showAllCareers ? careers : careers.slice(0, CAREERS_SHOWN)).map((career) => (
                     <RecordRow
                       key={career.id}
@@ -262,9 +262,6 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
                     />
                   ))}
                 </RecordList>
-                {careers.length > CAREERS_SHOWN && (
-                  <ShowAll open={showAllCareers} total={careers.length} onToggle={() => setShowAllCareers((value) => !value)} />
-                )}
               </DetailSection>
             )}
           </div>
@@ -279,7 +276,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
             </p>
           ) : (
             <>
-              <RecordList data-service-careers="">
+              <RecordList data-service-careers="" footer={serviceCareers.length > CAREERS_SHOWN && <ShowAll open={showAllCareers} total={serviceCareers.length} onToggle={() => setShowAllCareers((value) => !value)} />}>
                 {(showAllCareers ? serviceCareers : serviceCareers.slice(0, CAREERS_SHOWN)).map((career) => (
                   <RecordRow
                     key={career.id}
@@ -290,9 +287,6 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
                   />
                 ))}
               </RecordList>
-              {serviceCareers.length > CAREERS_SHOWN && (
-                <ShowAll open={showAllCareers} total={serviceCareers.length} onToggle={() => setShowAllCareers((value) => !value)} />
-              )}
             </>
           )}
         </DetailSection>

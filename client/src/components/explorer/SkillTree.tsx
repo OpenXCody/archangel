@@ -1,66 +1,99 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
-import { cn, focusRing, plural } from '@/lib/utils';
+import { ArrowUpRight } from 'lucide-react';
+import { cn, plural } from '@/lib/utils';
 import type { TaxonomyDomain } from '../../lib/api';
 import { LEVEL_NAME } from '../../lib/stages';
+import { readStored, writeStored } from '../../lib/storage';
+import { Band, Panel, PanelHead, panelRowClass, secondaryActionClass } from '../layout/Panel';
 
 /**
- * The Skills list in the taxonomy's own order: the Atlas, as a list. Each
- * domain is a heading with its sentence, each skill group a small heading
- * over its skills, and each skill a row with its level; the order is the
- * order the drawing runs in, clockwise from the top. A domain's heading
- * leads to that domain on the atlas.
+ * The Skills list in the taxonomy's own order: the Atlas, as a list, in the
+ * contained system (`components/layout/Panel.tsx`).
+ *
+ * Each domain is a `Band`: a raised bar with its name at section size and how
+ * many groups and skills it holds, closed when the page arrives, so the list
+ * opens as an index of the sixteen domains. Opened, the bar holds under the
+ * header while its domain is on screen, its sentence and the way to it on the
+ * atlas stand under it, and its skill groups follow as panels, each the
+ * group's name and size over its skills, set in two balanced columns from a
+ * laptop up (no group waits beside a longer one, so the columns leave no
+ * holes). A skill is a row: its name, and its level in meta ink. The next
+ * domain begins with its own bar, which nobody can miss.
  */
 export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
+  // A list narrowed to one domain is that domain, open.
+  const one = domains.length === 1;
+  const [open, setOpen] = useState<Record<string, boolean>>(() => readOpen());
+  const isOpen = (state: Record<string, boolean>, slug: string) => state[slug] ?? one;
+  const toggle = (slug: string) =>
+    setOpen((current) => {
+      const next = { ...current, [slug]: !isOpen(current, slug) };
+      writeStored(STORE, JSON.stringify(next), 'session');
+      return next;
+    });
+
   return (
-    <div data-skill-tree>
-      {domains.map((domain) => (
-        <section
-          key={domain.slug}
-          data-skill-domain={domain.slug}
-          // Sections below the fold are laid out when they are scrolled to: 643 rows, drawn as they are needed.
-          className="border-t border-line pb-8 pt-6 first:border-t-0 first:pt-3 [contain-intrinsic-size:auto_60rem] [content-visibility:auto] sm:pb-10"
-        >
-          <div className="flex flex-wrap items-baseline justify-between gap-x-6">
-            <h2 className="text-xl font-semibold text-text-1">{domain.name}</h2>
-            <Link
-              to={`/atlas?domain=${encodeURIComponent(domain.slug)}`}
-              className={cn(
-                'inline-flex min-h-11 items-center gap-1 text-sm text-text-2 transition-colors hover:text-text-1 hover:underline sm:min-h-0',
-                focusRing
-              )}
-            >
-              On the atlas
-              <ChevronRight aria-hidden="true" className="h-3.5 w-3.5 text-text-3" />
-            </Link>
-          </div>
-          {domain.description && <p className="max-w-3xl text-sm leading-relaxed text-text-2 sm:mt-1">{domain.description}</p>}
-          <div className="mt-5 grid grid-cols-1 gap-x-12 gap-y-7 lg:grid-cols-2">
-            {domain.groups.map((group) => (
-              <div key={group.slug} data-skill-group={group.slug} className="min-w-0">
-                <h3 className="border-b border-line pb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-text-2">{group.name}</h3>
-                <ul>
-                  {group.skills.map((skill) => (
-                    <li key={skill.id} className="border-b border-line">
-                      <Link
-                        to={`/skills/${skill.id}`}
-                        className={cn('group flex min-h-11 items-baseline justify-between gap-4 py-2.5 text-[15px] leading-snug sm:min-h-0 sm:py-2', focusRing)}
-                      >
-                        <span className="min-w-0 text-text-1 group-hover:underline">{skill.name}</span>
-                        <span className="shrink-0 whitespace-nowrap text-xs text-text-3">
-                          <span data-skill-level>{LEVEL_NAME[skill.level]}</span>
-                          {/* How many careers use it: on a phone the level alone fits. */}
-                          {skill.careers > 0 && <span className="hidden tabular-nums sm:inline">{` · ${plural(skill.careers, 'career', 'careers')}`}</span>}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
+    <div className="space-y-2" data-skill-tree>
+      {domains.map((domain) => {
+        const skills = domain.groups.reduce((sum, group) => sum + group.skills.length, 0);
+        return (
+          <Band
+            key={domain.slug}
+            title={domain.name}
+            meta={
+              <>
+                <span className="block text-text-2">{plural(skills, 'skill', 'skills')}</span>
+                <span className="block">{plural(domain.groups.length, 'group', 'groups')}</span>
+              </>
+            }
+            description={domain.description}
+            open={isOpen(open, domain.slug)}
+            onToggle={() => toggle(domain.slug)}
+            actions={
+              <Link to={`/atlas?domain=${encodeURIComponent(domain.slug)}`} className={cn(secondaryActionClass, 'h-9 px-3 sm:h-9')}>
+                On the atlas
+                <ArrowUpRight aria-hidden="true" className="h-4 w-4 text-text-2" />
+              </Link>
+            }
+            data-skill-domain={domain.slug}
+          >
+            {/* Columns, not a grid: a short group never stands beside a long one with a hole under it. */}
+            <div className="gap-3 lg:columns-2">
+              {domain.groups.map((group) => (
+                <Panel key={group.slug} className="mb-3 break-inside-avoid" data-skill-group={group.slug}>
+                  <PanelHead title={group.name} meta={plural(group.skills.length, 'skill', 'skills')} />
+                  <ul>
+                    {group.skills.map((skill) => (
+                      <li key={skill.id} className="border-t border-line first:border-t-0">
+                        <Link to={`/skills/${skill.id}`} className={cn(panelRowClass, 'min-h-11 justify-between gap-4 py-2')}>
+                          <span className="min-w-0 break-words text-sm leading-snug text-text-1">{skill.name}</span>
+                          <span className="shrink-0 whitespace-nowrap text-[13px] text-text-3" data-skill-level>
+                            {LEVEL_NAME[skill.level]}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </Panel>
+              ))}
+            </div>
+          </Band>
+        );
+      })}
     </div>
   );
+}
+
+/** Where the domains a person opened are kept for the visit. */
+const STORE = 'archangel.skillTree.open';
+
+function readOpen(): Record<string, boolean> {
+  try {
+    const stored: unknown = JSON.parse(readStored(STORE, 'session') ?? '{}');
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return {};
+    return Object.fromEntries(Object.entries(stored).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean'));
+  } catch {
+    return {};
+  }
 }

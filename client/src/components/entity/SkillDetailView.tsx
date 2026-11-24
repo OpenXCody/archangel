@@ -23,12 +23,11 @@ function SkillCareers({ careers }: { careers: SkillDetail['occupations'] }) {
   const shown = showAll ? careers : careers.slice(0, CAREERS_SHOWN);
   return (
     <div className="min-w-0" data-skill-careers>
-      <RecordList>
+      <RecordList footer={careers.length > CAREERS_SHOWN && <ShowAll open={showAll} total={careers.length} onToggle={() => setShowAll((value) => !value)} />}>
         {shown.map((career) => (
           <RecordRow key={career.id} to={`/occupations/${career.id}`} title={career.title} />
         ))}
       </RecordList>
-      {careers.length > CAREERS_SHOWN && <ShowAll open={showAll} total={careers.length} onToggle={() => setShowAll((value) => !value)} />}
     </div>
   );
 }

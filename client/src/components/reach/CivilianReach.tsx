@@ -1,18 +1,19 @@
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown } from 'lucide-react';
 import { cn, focusRing, labelClass } from '@/lib/utils';
 import type { CareerWithinReach } from '../../lib/api';
-import { DetailSection, ShowAll, detailActionClass, rowHoverClass } from '../layout/Page';
+import { DetailSection, ShowAll } from '../layout/Page';
+import { Disclosure, secondaryActionClass } from '../layout/Panel';
 
 /**
  * "Civilian careers within reach", on a military career's page, after its
  * skills: what else a person can do with them. Each civilian career whose
- * path this one covers a third or more of is a row ("CNC Machine Operator ·
- * 11 of 14 skills"), the closest first, five and then "Show all", at every
- * width. A row is a button that opens in place, one at a time and none on
- * arrival, to what the civilian career asks that this path does not (the
- * first five, then the rest behind "N more") and one button to its page.
+ * path this one covers a third or more of is one `Disclosure` panel, the same
+ * part a skill group is ("CNC Machine Operator", "11 of 14 skills"), the
+ * closest first, five and then "Show all", at every width. Each opens in
+ * place, one at a time and none on arrival, to what the civilian career asks
+ * that this path does not (the first five, then the rest behind "N more") and
+ * one button to its page.
  * What carries over is not listed again: the skills above are this path's.
  * Computed from the two paths: nothing here is a stored link.
  */
@@ -41,43 +42,28 @@ function covers(career: CareerWithinReach): string {
   return `${career.held} of ${career.total} ${career.total === 1 ? 'skill' : 'skills'}`;
 }
 
-/** The careers as rows, each opening in place: one at a time, none to begin with. */
+/** The careers as panels, each opening in place: one at a time, none to begin with. */
 function ReachRows({ careers }: { careers: CareerWithinReach[] }) {
   const [all, setAll] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const { shown, cut } = cutAt(careers, LISTED, all);
-  const base = useId();
   return (
     <>
-      <ul data-reach-list>
-        {shown.map((career) => {
-          const on = career.id === open;
-          const id = `${base}-${career.id}`;
-          return (
-            <li key={career.id} className="border-t border-line first:border-t-0">
-              <button
-                type="button"
-                aria-expanded={on}
-                aria-controls={id}
-                onClick={() => setOpen(on ? null : career.id)}
-                className={cn('flex min-h-12 w-full min-w-0 items-center gap-3 py-2 text-left', rowHoverClass, focusRing)}
-                data-reach-career={career.id}
-                data-open={on || undefined}
-              >
-                <span className="min-w-0 flex-1 break-words text-sm leading-snug">
-                  <span className={cn('text-text-1', on && 'font-medium')}>{career.title}</span>
-                  <span className="whitespace-nowrap text-[13px] tabular-nums text-text-3"> · {covers(career)}</span>
-                </span>
-                <ChevronDown aria-hidden="true" className={cn('h-4 w-4 shrink-0 text-text-3 transition-transform motion-reduce:transition-none', on && 'rotate-180')} />
-              </button>
-              <div id={id} hidden={!on}>
-                {on && <ReachDetail career={career} className="pb-4 pt-1" />}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-      {cut && <ShowAll open={all} total={careers.length} onToggle={() => setAll((value) => !value)} />}
+      <div className="space-y-2" data-reach-list>
+        {shown.map((career) => (
+          <Disclosure
+            key={career.id}
+            title={career.title}
+            meta={covers(career)}
+            open={career.id === open}
+            onToggle={() => setOpen(career.id === open ? null : career.id)}
+            data-reach-career={career.id}
+          >
+            <ReachDetail career={career} className="px-4 pb-4 pt-3" />
+          </Disclosure>
+        ))}
+      </div>
+      {cut && <ShowAll alone open={all} total={careers.length} onToggle={() => setAll((value) => !value)} />}
     </>
   );
 }
@@ -92,7 +78,7 @@ function ReachDetail({ career, className }: { career: CareerWithinReach; classNa
   const shown = all || missing.length <= MISSING_SHOWN + 1 ? missing : missing.slice(0, MISSING_SHOWN);
   const more = missing.length - shown.length;
   return (
-    <div role="region" aria-label={career.title} className={cn('min-w-0', className)} data-reach-panel={career.id}>
+    <div className={cn('min-w-0', className)} data-reach-panel={career.id}>
       {missing.length > 0 && (
         <div data-reach-missing>
           <h4 className={labelClass}>Missing</h4>
@@ -115,7 +101,7 @@ function ReachDetail({ career, className }: { career: CareerWithinReach; classNa
           )}
         </div>
       )}
-      <Link to={`/occupations/${career.id}`} className={cn(detailActionClass, 'mt-4')} data-reach-open>
+      <Link to={`/occupations/${career.id}`} className={cn(secondaryActionClass, 'mt-4')} data-reach-open>
         <span className="sr-only">{career.title}: </span>
         Career page
       </Link>
