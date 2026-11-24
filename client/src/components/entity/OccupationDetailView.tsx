@@ -123,7 +123,8 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       {/* A military career: where it leads, first, since that is what its page is read for. Its skills by group, the
           civilian careers its path covers a third or more of (the most covered first), and their industries. */}
       {service && withinReach.length > 0 && (
-        <CivilianReach careerId={data.id} careerTitle={data.officialTitle ?? data.title} skills={skills} careers={withinReach} />
+        // Keyed by the career: going from one military career to another starts again at the closest.
+        <CivilianReach key={data.id} careerId={data.id} careerTitle={data.officialTitle ?? data.title} skills={skills} careers={withinReach} />
       )}
 
       {/* What it is: the path, from the foundation to the specialties */}
