@@ -152,15 +152,15 @@ export default function FootprintMap({ points, emphasis, className }: FootprintM
       {dots
         .filter((dot) => dot.id === emphasis)
         .map((dot) => (
-          // The factory this page is about: ink, ringed in the accent.
+          // The factory this page is about: the same dot in full ink, a little larger. No ring and no second colour.
           <circle
             key={dot.id}
             cx={dot.position[0]}
             cy={dot.position[1]}
-            r={radius * 1.05}
+            r={radius * 1.15}
             fill="var(--text-1)"
-            stroke="var(--accent)"
-            strokeWidth={2}
+            stroke="var(--bg)"
+            strokeWidth={1}
             vectorEffect="non-scaling-stroke"
           >
             {dot.label && <title>{dot.label}</title>}
