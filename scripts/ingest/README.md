@@ -794,6 +794,13 @@ One JSON file per source or research brief, in `data/employers/`.
   never written; it may say which public point is right, never be one, and
   neither is a building OpenStreetMap's search finds. A plant with no public
   point waits in the file's `unplaced` (`texas-hubs.json` holds thirteen so).
+  `tests/unit/points.unit.ts` fails on a research file or a correction whose
+  `sources` or `coordinatesFrom` name the World Geocoder, Esri, Nominatim,
+  Photon or OpenStreetMap (`FORBIDDEN` in `scripts/build-points-sql.mjs`); a
+  government's own service on ArcGIS software (Williamson County's address
+  locator, a state's address points) is that government's data and passes.
+  The points `posting-employers.json` took from the World Geocoder are put
+  right by migration 0079 (below).
 - A site counts as a factory as CLAUDE.md says ("What counts as
   manufacturing"): aircraft and engine overhaul on the operator's own site,
   filed under 336411 to 336413, does; a crew inside another's site (a hangar on
@@ -853,8 +860,43 @@ Nothing is deleted. A job filed under the employer at a moved row is put right
 by the places migration that follows (0067, above). Run twice, the migration
 writes nothing.
 
-`places.json` and `not-theirs.json` are not research files: the employer
-loader does not read them (`NOT_RESEARCH` in `scripts/build-employers-sql.mjs`).
+## Points put right (`points-replaced.json`)
+
+`posting-employers.json` placed thirteen plants at the ArcGIS World Geocoding
+Service's answer for their address (the nine of Rocket Lab, Hermeus's two,
+Apptronik's, and Relativity's Wormhole, which cites no geocoder but was placed
+by it). Migration 0065 is generated from the file and applied, so neither is
+edited, and loading another file cannot replace a point: `el_apply` keeps one
+of two points by their order, not their source. So
+`data/employers/points-replaced.json` names each plant with `was` (the point
+0065 wrote) and either the point of an allowed source, with its `source` and
+`coordinatesFrom` (the Census Bureau's geocoder for the same house number and
+street, else the EPA registry's facility at the address, by `registryId`), or
+`left`, why no allowed source places it. `scripts/build-points-sql.mjs` checks
+it against the research file (`--check`: the plant exists and holds `was`, the
+new point is the Census geocoder's or the registry's and within a kilometre of
+the old, and every plant of the research file that names the World Geocoder is
+listed), rehearses it (`--rehearse --out rehearsal.sql`, rolled back, the
+decisions printed) and generates `0079_points_replaced.sql`, which decides in
+SQL (load `points-replaced`): a row is found by a citation 0065 wrote for that
+plant alone, and its point changes only while it is still the point 0065
+wrote and no admin set it (`fact_sources`); otherwise it is left and said once
+with `look = true`. A plant left keeps its point and is said with
+`look = true`: Geost (3855 W River Rd, Tucson) and the Integration and Control
+Facility at Wallops, which neither the Census geocoder nor the registry
+places. A changed point is a line on the factory's History with no person
+named, the new source is cited, and the county is cleared (the
+`factories_keys` trigger): run `scripts/geo/assign-keys.mjs` after it. Every
+citation of the World Geocoder then leaves `external_references`. Run twice,
+it writes nothing. `checked` records the file's four other citations of
+services on ArcGIS software (Vermont's E911 address points, MassGIS's parcels,
+Tempe's permits, the Texas Geographic Information Office's parcels): a
+government's own data, which `tests/unit/points.unit.ts` lets through while it
+holds every research file to the rule.
+
+`places.json`, `not-theirs.json` and `points-replaced.json` are not research
+files: the employer loader does not read them (`NOT_RESEARCH` in
+`scripts/build-employers-sql.mjs`).
 
 ## What the loader decides (scripts/employers-loader.sql)
 
