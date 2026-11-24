@@ -672,7 +672,7 @@
     "Wilsonart": {
       "why": "Two Temple rows are Wilsonart's own sites filed under former owners: 'WILSONART LLC-ADHESIVE DIV' under Clayton Dubilier & Rice (its private-equity owner) and 'WILSONART INTERNATIONALGIBRALT AR' under Illinois Tool Works (which sold Wilsonart in 2012). Wilsonart's ISO 9001 certificate (revised 2025-01-10) lists its Temple sites as Temple North, the Adhesive Plant at 10601 NW H K Dodgen Loop and the Specialty Products Center at 3301 Center St; the Gibraltar row is 240 to 410 m from the Center St address, the only listed site near it.",
       "plants": {
-        "Wilsonart Adhesive Plant": {
+        "Wilsonart Temple Adhesives": {
           "sameAs": "WILSONART LLC-ADHESIVE DIV"
         },
         "Wilsonart Specialty Products Center": {
@@ -683,7 +683,7 @@
     "Lehigh White Cement": {
       "why": "The plant's row is filed as 'LEHIGH PORTLAND CEMENT - WACO PLANT' under a company named Lehigh Portland Cement, 153 m from the point on the plant's state air permit (Lehigh White Cement Company, LLC, 100 S Wickson Rd, Woodway). It is the same cement plant, but neither its company nor its name is this company's, so the loader would not take it unless told to.",
       "plants": {
-        "Lehigh White Cement Waco Plant": {
+        "Lehigh White Cement Waco": {
           "sameAs": "LEHIGH PORTLAND CEMENT - WACO PLANT"
         }
       }
@@ -902,7 +902,7 @@
     "Seadrift Coke": {
       "why": "Wrong company today: the row SEADRIFT COKE LP, 191 m from the EPA registry's point for the plant, is filed under Coca-Cola (the word coke); it is the petroleum coke plant at 8618 State Highway 185 N.",
       "plants": {
-        "Seadrift Coke Plant": {
+        "Seadrift Coke Port Lavaca": {
           "sameAs": "SEADRIFT COKE LP"
         }
       }
@@ -910,7 +910,7 @@
     "LiquidPower Specialty Products": {
       "why": "Wrong company today: the row CONOCOPHILLIPS LIQUIDPOWER FLOW IMPROVER PLANT, at 1331 Independence Ave (33 m), is filed under Phillips 66; LiquidPower Specialty Products files with OSHA for that address as 'LSPI Bryan Manufacturing Plant'.",
       "plants": {
-        "LiquidPower Bryan Plant": {
+        "LiquidPower Bryan": {
           "sameAs": "CONOCOPHILLIPS LIQUIDPOWER FLOW IMPROVER PLANT"
         }
       }

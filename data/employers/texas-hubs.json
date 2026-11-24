@@ -3069,7 +3069,7 @@
       ],
       "plants": [
         {
-          "name": "Wilsonart Adhesive Plant",
+          "name": "Wilsonart Temple Adhesives",
           "city": "Temple",
           "state": "TX",
           "address": "10601 NW H K Dodgen Loop",
@@ -3179,7 +3179,7 @@
       ],
       "plants": [
         {
-          "name": "Lehigh White Cement Waco Plant",
+          "name": "Lehigh White Cement Waco",
           "city": "Woodway",
           "state": "TX",
           "address": "100 S Wickson Rd",
@@ -3351,7 +3351,7 @@
       "parent": "ENF Technology",
       "domain": null,
       "industry": "Chemicals",
-      "description": "Makes specialty process chemicals for chip and display makers; the US plant of ENF Technology of Korea.",
+      "description": "Makes specialty process chemicals for chip and display makers; the US factory of ENF Technology of Korea.",
       "headquarters": null,
       "stateEmployees": null,
       "sources": [
@@ -3589,7 +3589,7 @@
       ],
       "plants": [
         {
-          "name": "Elgin Butler Plant",
+          "name": "Elgin Butler Elgin",
           "city": "Elgin",
           "state": "TX",
           "address": "365 FM 696",
@@ -3774,7 +3774,7 @@
           "longitude": -95.10278,
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
-          "products": "Acrylic acid, acrylates and methacrylates (the former Rohm and Haas plant)",
+          "products": "Acrylic acid, acrylates and methacrylates (the former Rohm and Haas factory)",
           "employees": 2145,
           "employeesYear": 2025,
           "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
@@ -3883,7 +3883,7 @@
       "parent": null,
       "domain": "smurfitwestrock.com",
       "industry": "Paper Packaging",
-      "description": "Makes paperboard at the Evadale mill and corrugated boxes at plants across Texas.",
+      "description": "Makes paperboard at the Evadale mill and corrugated boxes at factories across Texas.",
       "headquarters": {
         "city": "Dublin",
         "state": null,
@@ -4170,7 +4170,7 @@
           "coordinatesFrom": "EPA registry facility 110040834274 (\"SAM\", 6401 W SAM HOUSTON PKWY; ours 6401 W. Sam Houston Pkwy)"
         },
         {
-          "name": "Cameron Brookshire Elastomers Plant",
+          "name": "Cameron Brookshire Elastomers",
           "city": "Katy",
           "state": "TX",
           "address": "29501 Katy Fwy",
@@ -4213,7 +4213,7 @@
       "parent": null,
       "domain": "bakerhughes.com",
       "industry": "Oilfield Equipment",
-      "description": "Makes drill bits and downhole drilling and completion tools at plants around Houston.",
+      "description": "Makes drill bits and downhole drilling and completion tools at factories around Houston.",
       "headquarters": {
         "city": "Houston",
         "state": "TX",
@@ -4290,7 +4290,7 @@
       "parent": null,
       "domain": "nov.com",
       "industry": "Oilfield Equipment",
-      "description": "Makes drilling rig equipment, pressure-control systems, drill pipe and downhole tools at many plants around Houston.",
+      "description": "Makes drilling rig equipment, pressure-control systems, drill pipe and downhole tools at many factories around Houston.",
       "headquarters": {
         "city": "Houston",
         "state": "TX",
@@ -5009,7 +5009,7 @@
       "parent": null,
       "domain": "methanex.com",
       "industry": "Methanol",
-      "description": "Makes methanol; bought OCI Global's Beaumont methanol and ammonia plant in June 2025.",
+      "description": "Makes methanol; bought OCI Global's methanol and ammonia factory in Beaumont in June 2025.",
       "headquarters": {
         "city": "Vancouver",
         "state": null,
@@ -5191,7 +5191,7 @@
       "parent": null,
       "domain": "siemens-energy.com",
       "industry": "Power Equipment",
-      "description": "Makes gas turbine generator sets at its Telge Road plant in Houston.",
+      "description": "Makes gas turbine generator sets at its Telge Road factory in Houston.",
       "headquarters": {
         "city": "Munich",
         "state": null,
@@ -7825,7 +7825,7 @@
       "parent": null,
       "domain": null,
       "industry": "Defense Metal Parts",
-      "description": "Makes metal parts for defense and aerospace; bought the Garland plant of General Dynamics OTS in 2025.",
+      "description": "Makes metal parts for defense and aerospace; bought the Garland factory of General Dynamics OTS in 2025.",
       "headquarters": null,
       "stateEmployees": null,
       "sources": [
@@ -8203,7 +8203,7 @@
           "longitude": -97.16049,
           "subsector": "Transportation Equipment Manufacturing",
           "naics": "336411",
-          "products": "Headquarters and main plant: engineering, parts and sub-assemblies for Bell helicopters and tiltrotors",
+          "products": "Headquarters and main factory: engineering, parts and sub-assemblies for Bell helicopters and tiltrotors",
           "employees": null,
           "employeesYear": null,
           "employeesSource": null,
@@ -11431,7 +11431,7 @@
       "parent": null,
       "domain": "indoramaventures.com",
       "industry": "Ethylene Oxide & Surfactants",
-      "description": "Makes ethylene oxide, glycols, propylene oxide and surfactants at the former Huntsman plant in Port Neches.",
+      "description": "Makes ethylene oxide, glycols, propylene oxide and surfactants at the former Huntsman factory in Port Neches.",
       "headquarters": {
         "city": "Bangkok",
         "state": null,
@@ -12810,7 +12810,7 @@
           "longitude": -98.54726,
           "subsector": "Transportation Equipment Manufacturing",
           "naics": "336360",
-          "products": "Vehicle seats and interior systems for Toyota's San Antonio truck plant",
+          "products": "Vehicle seats and interior systems for Toyota's San Antonio truck factory",
           "employees": 1100,
           "employeesYear": 2025,
           "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
@@ -15259,7 +15259,7 @@
       ],
       "plants": [
         {
-          "name": "LiquidPower Bryan Plant",
+          "name": "LiquidPower Bryan",
           "city": "Bryan",
           "state": "TX",
           "address": "1331 Independence Ave",
@@ -16718,7 +16718,7 @@
       "parent": null,
       "domain": null,
       "industry": "Direct Air Capture",
-      "description": "Builds and runs direct air capture plants that take carbon dioxide out of the air and store it underground.",
+      "description": "Builds and runs direct air capture facilities that take carbon dioxide out of the air and store it underground.",
       "headquarters": null,
       "stateEmployees": null,
       "sources": [
@@ -16726,7 +16726,7 @@
       ],
       "plants": [
         {
-          "name": "Stratos Direct Air Capture Plant",
+          "name": "Stratos",
           "city": "Notrees",
           "state": "TX",
           "address": "14991 South Wheeler Road",
@@ -16968,7 +16968,7 @@
       ],
       "plants": [
         {
-          "name": "Seadrift Coke Plant",
+          "name": "Seadrift Coke Port Lavaca",
           "city": "Port Lavaca",
           "state": "TX",
           "address": "8618 State Highway 185 N",
