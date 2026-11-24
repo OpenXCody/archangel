@@ -19,6 +19,10 @@
 //   --with <file>     another research file whose companies are known but not
 //                     loaded here; repeatable. Every other .json beside an input
 //                     file is read this way without being asked.
+//   --known <file>    the research files known for their names are these alone
+//                     (repeatable), not every .json beside an input: what a
+//                     migration was generated with, so a research file added
+//                     later does not change it (tests/unit/posting-plants.unit.ts)
 //
 // The database is production's, which this script cannot see, so the SQL makes
 // every decision when it runs (scripts/employers-loader.sql). What is decided
@@ -513,6 +517,7 @@ async function main() {
   const inputs = [];
   const withFiles = [];
   const schemas = [];
+  const knownOnly = [];
   let out = null;
   let rehearse = false;
   let everything = false;
@@ -521,6 +526,7 @@ async function main() {
     const arg = args[i];
     if (arg === '--out') out = args[++i];
     else if (arg === '--with') withFiles.push(args[++i]);
+    else if (arg === '--known') knownOnly.push(args[++i]);
     else if (arg === '--schema') schemas.push(args[++i]);
     else if (arg === '--rehearse') rehearse = true;
     else if (arg === '--all') everything = true;
@@ -531,19 +537,19 @@ async function main() {
     else if (!NOT_RESEARCH.includes(path.basename(arg))) inputs.push(arg);
   }
   if (inputs.length === 0) {
-    console.error('usage: node scripts/build-employers-sql.mjs [--out file.sql] [--check | --rehearse [--all] [--schema file.sql]] [--with file.json] <file.json...>');
+    console.error('usage: node scripts/build-employers-sql.mjs [--out file.sql] [--check | --rehearse [--all] [--schema file.sql]] [--with file.json | --known file.json] <file.json...>');
     process.exit(1);
   }
 
-  // Every other research file beside an input is known, though not loaded.
+  // Every other research file beside an input is known, though not loaded (with --known, only the files it names).
   const inputPaths = new Set(inputs.map((file) => path.resolve(file)));
-  const knownPaths = new Set(withFiles.map((file) => path.resolve(file)));
+  const knownPaths = new Set([...withFiles, ...knownOnly].map((file) => path.resolve(file)));
   const correctionPaths = new Set();
   for (const dir of new Set([...inputPaths].map((file) => path.dirname(file)))) {
     for (const name of await readdir(dir)) {
       const file = path.join(dir, name);
       if (name === 'corrections.json') correctionPaths.add(file);
-      else if (name.endsWith('.json') && !NOT_RESEARCH.includes(name) && !inputPaths.has(file)) knownPaths.add(file);
+      else if (knownOnly.length === 0 && name.endsWith('.json') && !NOT_RESEARCH.includes(name) && !inputPaths.has(file)) knownPaths.add(file);
     }
   }
   // Our corrections to the research (data/employers/corrections.json), laid over every file.

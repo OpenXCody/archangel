@@ -1,7 +1,10 @@
 // Unit checks for the pure functions the app leans on. Node's own test
 // runner, through tsx: `npm run test:unit`. No browser, no database.
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { packPins, unpackPins, type PinSource } from '../../shared/pins.js';
 import { industryLabel } from '../../shared/industry.js';
 import { formatCompanyName, formatFactoryName } from '../../shared/displayName.js';
@@ -11,6 +14,8 @@ import { containing, likeLiteral } from '../../server/lib/like.js';
 import { int, rowsOf, text } from '../../server/lib/rows.js';
 // @ts-expect-error a plain script, no types
 import { buildDecision, MIGRATIONS } from '../../scripts/migrate.mjs';
+
+const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const pin = (over: Partial<PinSource>): PinSource => ({
   id: '00000000-0000-4000-8000-000000000001',
@@ -97,6 +102,42 @@ test('focus areas are found by id, and distance is in miles', () => {
   assert.equal(focusArea('nowhere'), undefined);
   const austinToDallas = milesBetween(30.2672, -97.7431, 32.7767, -96.797);
   assert.ok(austinToDallas > 175 && austinToDallas < 195, `Austin to Dallas is about 182 miles, got ${austinToDallas}`);
+});
+
+test("a focus area is its metro area's counties, and the ring the server counts with is the line the map draws", () => {
+  type County = { fips: string; cbsa: string | null; lat: number; lng: number };
+  const counties = (JSON.parse(readFileSync(path.join(ROOT, 'data/geo/counties.json'), 'utf8')) as { counties: County[] }).counties;
+  const inside = ([x, y]: [number, number], ring: [number, number][]) => {
+    let c = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i];
+      const [xj, yj] = ring[j];
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  };
+  assert.deepEqual(FOCUS_AREAS.map((a) => a.id), ['austin', 'houston', 'dfw', 'san-antonio']);
+  for (const area of FOCUS_AREAS) {
+    const feature = JSON.parse(readFileSync(path.join(ROOT, 'client/public', area.boundaryUrl), 'utf8')).features[0];
+    assert.equal(feature.id, area.id);
+    assert.equal(feature.properties.name, area.name);
+    const polygons = feature.geometry.coordinates as [number, number][][][];
+    assert.equal(polygons.length, 1, `${area.id}: one outline, which the server counts with`);
+    assert.deepEqual(area.ring, polygons[0][0], `${area.id}: the ring in shared/scope.ts is the file's outline`);
+    const points = polygons.flat(2);
+    const xs = points.map((p) => p[0]);
+    const ys = points.map((p) => p[1]);
+    assert.deepEqual(area.bounds, [[Math.min(...xs), Math.min(...ys)], [Math.max(...xs), Math.max(...ys)]], `${area.id}: the box is the outline's`);
+    assert.ok(inside([area.center.longitude, area.center.latitude], area.ring), `${area.id}: its centre is inside it`);
+    // Its counties are one metro area's, all of them, as the Census Bureau delineates it (data/geo): the
+    // outline holds the inside point of each of them and of no other county.
+    const fips: string[] = [...feature.properties.fips].sort();
+    const metros = new Set(counties.filter((c) => fips.includes(c.fips)).map((c) => c.cbsa));
+    assert.equal(metros.size, 1, `${area.id}: its counties are of one metro area`);
+    const [cbsa] = [...metros];
+    assert.deepEqual(counties.filter((c) => c.cbsa === cbsa).map((c) => c.fips).sort(), fips, `${area.id}: every county of metro ${cbsa}`);
+    assert.deepEqual(counties.filter((c) => inside([c.lng, c.lat], area.ring)).map((c) => c.fips).sort(), fips, `${area.id}: the outline holds its counties and no other`);
+  }
 });
 
 test('a build migrates only when it is the production build on Vercel', () => {

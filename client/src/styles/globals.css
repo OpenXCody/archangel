@@ -303,8 +303,22 @@ input {
   .map-chip-row::-webkit-scrollbar {
     display: none;
   }
-  .map-chip-row > * {
+  .map-chip-row .map-chip {
     pointer-events: auto;
+  }
+  /*
+   * From a tablet up the row is not swiped (a mouse cannot): the chips wrap
+   * onto a second line instead, so every focus area is in sight. Only the
+   * chips take the pointer, not the space beside them on a short line.
+   */
+  @media (min-width: 640px) {
+    .map-chip-row,
+    .map-chip-row > * {
+      flex-wrap: wrap;
+    }
+    .map-chip-row {
+      overflow-x: visible;
+    }
   }
 
   /*
