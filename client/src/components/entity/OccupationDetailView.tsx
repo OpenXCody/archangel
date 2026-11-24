@@ -129,7 +129,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       )}
 
       {/* A military career: what else its skills are for, the civilian careers they reach. */}
-      {service && <CivilianReach key={data.id} careerTitle={data.officialTitle ?? data.title} skills={skills} careers={withinReach} />}
+      {service && <CivilianReach key={data.id} careers={withinReach} />}
 
       {/* Like the company and factory pages: a section only when there is a job to show. */}
       {jobs.length > 0 && <OpenJobsSection jobs={jobs} total={data.openJobCount} all={`/jobs?career=${data.id}`} />}
