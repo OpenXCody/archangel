@@ -4,7 +4,7 @@ import { Loader2, MoreHorizontal, Search, SearchX, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import { cn, companyFigure } from '@/lib/utils';
 import { useEmailOn, useUpdateProfile, type AccountUser } from '../lib/account';
 import { useCancelMembership, useEmployer, useRequestMembership, type EmployerCompany, type EmployerJob } from '../lib/employer';
 import { useJob, type JobDetailResponse } from '../lib/jobs';
@@ -48,6 +48,7 @@ import ConfirmDialog from '../components/layout/ConfirmDialog';
 import { useDebouncedValue } from '../lib/useDebouncedValue';
 import { DAY_MS, formatDay, formatOnDay } from '../lib/dates';
 import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
+import { jobPath } from '@shared/jobs';
 
 export default function Employer() {
   return <AccountGate>{(account) => <EmployerPage user={account.user} />}</AccountGate>;
@@ -179,14 +180,17 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
               <CompanySearch memberships={companies} instant={user.isAdmin} />
             </PageSection>
           ) : (
-            <PageSection title="Other companies">
-              {joiningAnother ? (
-                <CompanySearch memberships={companies} instant={user.isAdmin} />
-              ) : (
-                <Button type="button" variant="outline" onClick={() => setJoiningAnother(true)} className={cn('h-10 rounded-lg', outlineButtonClass)}>
-                  Add a company
-                </Button>
-              )}
+            <PageSection title="Company access" description="The companies you post jobs and read applicants for.">
+              <YourCompanies companies={active} instant={user.isAdmin} />
+              <div className="mt-4">
+                {joiningAnother ? (
+                  <CompanySearch memberships={companies} instant={user.isAdmin} />
+                ) : (
+                  <Button type="button" variant="outline" onClick={() => setJoiningAnother(true)} className={cn('h-10 rounded-lg', outlineButtonClass)}>
+                    Add a company
+                  </Button>
+                )}
+              </div>
             </PageSection>
           )}
 
@@ -201,6 +205,57 @@ function EmployerHome({ user, posting }: { user: AccountUser; posting: boolean }
         </>
       )}
     </PageContainer>
+  );
+}
+
+/**
+ * The companies a person has access to, each with the way out: a quiet
+ * "Leave", asked about first. Leaving removes only the person's own access:
+ * the company's jobs and their applicants stay with the company. `instant`
+ * is an admin, who can join again at once.
+ */
+function YourCompanies({ companies, instant }: { companies: EmployerCompany[]; instant: boolean }) {
+  const leave = useCancelMembership();
+  const [leaving, setLeaving] = useState<EmployerCompany | null>(null);
+  return (
+    <>
+      <ul className={cardClass} data-company-access>
+        {companies.map((company) => (
+          <li key={company.companyId} className={cn(rowClass, 'flex min-h-11 items-center justify-between gap-4 py-1')} data-access-row={company.companyId}>
+            <Link to={`/companies/${company.companyId}`} className="min-w-0 break-words text-sm text-text-1 hover:underline">
+              {company.companyName}
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                leave.reset();
+                setLeaving(company);
+              }}
+              className={cn(textButtonClass, 'min-h-11 shrink-0')}
+              data-leave-company
+            >
+              Leave<span className="sr-only"> {company.companyName}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <ConfirmDialog
+        open={leaving !== null}
+        title={`Leave ${leaving?.companyName ?? 'this company'}?`}
+        description={
+          instant
+            ? 'You will no longer post its jobs or read its applicants from Your jobs. Its jobs and applicants stay. As an admin you can add it again at once.'
+            : 'You will no longer post its jobs or read its applicants. Its jobs and applicants stay with the company. To come back you ask for access again, and an admin approves it.'
+        }
+        confirmLabel="Leave"
+        busy={leave.isPending}
+        error={leave.error}
+        onConfirm={() => {
+          if (leaving && !leave.isPending) leave.mutate(leaving.companyId, { onSuccess: () => setLeaving(null) });
+        }}
+        onCancel={() => setLeaving(null)}
+      />
+    </>
   );
 }
 
@@ -290,7 +345,7 @@ function JobFormPage({ mode, jobId, fromJob }: { mode: 'edit' | 'copy'; jobId: s
     if (job.data) setSource((current) => current ?? job.data);
   }, [job.data]);
 
-  const back = fromJob ? { to: `/jobs/${jobId}`, label: 'Job' } : { to: '/employer', label: 'Your jobs' };
+  const back = fromJob ? { to: job.data ? jobPath(job.data.job) : `/jobs/${jobId}`, label: 'Job' } : { to: '/employer', label: 'Your jobs' };
 
   if (job.isError || (job.data && !job.data.canManage)) {
     const gone = !job.isError || (job.error instanceof ApiError && (job.error.status === 404 || job.error.status === 400));
@@ -599,7 +654,7 @@ function CompanySearch({ memberships, instant }: { memberships: EmployerCompany[
                           </a>
                           <p className="mt-0.5 break-words text-xs text-text-3">
                             {[
-                              `${company.factoryCount} ${company.factoryCount === 1 ? 'factory' : 'factories'}`,
+                              companyFigure({ people: company.people, openJobs: company.openJobs, factories: company.factoryCount }),
                               company.where,
                             ]
                               .filter(Boolean)
@@ -729,7 +784,7 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
         {jobs.map(({ job, state }) => (
           <li key={job.id} className={cn(rowClass, 'flex items-stretch')} data-job-row={job.id}>
             <Link
-              to={`/jobs/${job.id}`}
+              to={jobPath(job)}
               className={cn(rowHoverClass, 'grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center')}
             >
               <div className="min-w-0">

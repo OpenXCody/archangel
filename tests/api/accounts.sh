@@ -59,12 +59,11 @@ ONE=$(psql "$DB" -tAc "SELECT f.company_id FROM factories f WHERE f.primary_naic
 if [ -n "$ONE" ]; then
   OUT=$(req anon GET "/companies/$ONE")
   check "a one-plant company carries the plant's address" 200 "$OUT" '"factories":\[{[^]]*"address":"'
-  check "and the careers of the plant's industry"          200 "$OUT" '"typicalCareers":\[{"id":"'
+  check "and its own careers, never its industry's"        200 "$OUT" '"careers":\['
+  expect "the company's answer has no typical careers"     "undefined" "$(printf '%s' "$OUT" | j 'typicalCareers === undefined ? "undefined" : "present"')"
 else
   echo "ok    (no one-plant company with an address and an industry in this database: skipped)"
 fi
-MANY=$(psql "$DB" -tAc "SELECT company_id FROM factories WHERE company_id IS NOT NULL GROUP BY 1 HAVING COUNT(*) > 1 ORDER BY 1 LIMIT 1")
-[ -n "$MANY" ] && check "a company with several plants lists no typical careers" 200 "$(req anon GET "/companies/$MANY")" '"typicalCareers":\[\]'
 # A career's plants say which town they are in.
 WITH_PLANTS=$(psql "$DB" -tAc "SELECT occupation_id FROM factory_occupations ORDER BY 1 LIMIT 1")
 [ -n "$WITH_PLANTS" ] && check "a career's plants carry their town" 200 "$(req anon GET "/occupations/$WITH_PLANTS")" '"factories":\[{"id":"[^"]*","name":"[^"]*","city":'

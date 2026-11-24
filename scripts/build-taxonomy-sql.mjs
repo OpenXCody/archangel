@@ -34,7 +34,7 @@
 // Every step is a no-op once it has been done.
 //
 // The migration restates the whole taxonomy, so a later one (0049 after 0042,
-// 0060 after 0049) changes only what the file changed: a skill moved to another group or level,
+// 0060 after 0049, 0068 after 0060) changes only what the file changed: the domains' order, a skill moved to another group or level,
 // a group renamed, added or dropped. It follows the catalogue's migration
 // (scripts/build-skills-sql.mjs), which leaves exactly the skills placed here.
 import { readFile, writeFile } from 'node:fs/promises';
@@ -42,7 +42,7 @@ import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
-const [input = 'data/skills/taxonomy.json', catalogueFile = 'data/skills/catalogue.json', output = 'migrations/0060_skill_taxonomy_3.sql'] = args.filter((arg) => arg !== '--check');
+const [input = 'data/skills/taxonomy.json', catalogueFile = 'data/skills/catalogue.json', output = 'migrations/0068_skill_taxonomy_4.sql'] = args.filter((arg) => arg !== '--check');
 
 export const LEVEL_NAMES = ['Fundamentals', 'Intermediate', 'Advanced'];
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;

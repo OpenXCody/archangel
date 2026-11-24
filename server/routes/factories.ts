@@ -11,6 +11,7 @@ import { answerDuplicate, answerWriteError, coordinate, count, isUuid, optionalT
 import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/records.js';
 import { rowsOf } from '../lib/rows.js';
 import { sourcesOf } from '../lib/sources.js';
+import { ownCareers } from '../lib/careers.js';
 import { adminSetFacts } from '../lib/provenance.js';
 import { refuseDeleteWithJobs } from '../lib/writes.js';
 
@@ -326,8 +327,10 @@ router.get('/:id', async (req: Request, res: Response) => {
       .innerJoin(occupations, eq(factoryOccupations.occupationId, occupations.id))
       .where(eq(factoryOccupations.factoryId, id));
 
-    // With no careers recorded for this plant, the careers typical of its
-    // industry: what kind of work a plant like this has, not a claim about it.
+    // The careers typical of its industry, when none is recorded for it. No
+    // public surface about the factory shows them (its page and its panel
+    // list only its own careers, `careers` below): they are what the job form
+    // offers first to someone posting a job at a factory with none recorded.
     const industryName = factory.industry;
     const typicalCareers =
       factoryOccupationsResult.length === 0 && industryName
@@ -351,6 +354,8 @@ router.get('/:id', async (req: Request, res: Response) => {
       nearby,
       typicalCareers,
       occupations: factoryOccupationsResult,
+      // The careers it has, its own only: those of its open jobs, its company's versions, those recorded for it.
+      careers: await ownCareers({ factoryId: id, companyId: factory.companyId ?? null }),
       jobs: await listOpenJobs(eq(jobs.factoryId, id), OPEN_JOBS_SHOWN),
       // How many are open in all: the page lists the newest few and links to the rest.
       openJobCount: await countOpenJobs(eq(jobs.factoryId, id)),

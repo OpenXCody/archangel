@@ -7,7 +7,7 @@ import { industryBySlug, industryLabel } from '@shared/industry';
 import { stateName, titleCase } from '../lib/places';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
 import { formatPay } from '../lib/jobFormat';
-import { cn, focusRing, plural } from '@/lib/utils';
+import { cn, companyFigure, focusRing, plural } from '@/lib/utils';
 import CompanyLogo from '../components/CompanyLogo';
 import {
   BackLink,
@@ -34,6 +34,7 @@ import {
   type PagePlace,
 } from '../components/industry/parts';
 import { publicKeys } from '../lib/queryKeys';
+import { jobPath } from '@shared/jobs';
 
 const CAREERS_SHOWN = 8;
 /** The states (or a state's towns) listed before "Show all": the section sits near the top of the page, so it starts short. */
@@ -42,13 +43,17 @@ const STATES_SHOWN = 6;
 /**
  * What stands under an employer's name. A headcount recorded for only some of
  * its factories is said to be that, so the figure beside it is never read as the
- * company's size here.
+ * company's size here. A company with no headcount says its open jobs here, or
+ * its factories.
  */
-function employerLine(employer: IndustryEmployer): string {
-  if (employer.people !== null && employer.counted < employer.plants) {
-    return `People at ${employer.counted} of ${plural(employer.plants, 'factory', 'factories')}`;
+function employerLine(employer: IndustryEmployer): string | null {
+  if (employer.people !== null) {
+    return employer.counted < employer.plants
+      ? `People at ${employer.counted} of ${plural(employer.plants, 'factory', 'factories')}`
+      : plural(employer.plants, 'factory', 'factories');
   }
-  return plural(employer.plants, 'factory', 'factories');
+  // No headcount: the next thing the list is ranked on, its open jobs here, else its factories here.
+  return companyFigure({ openJobs: employer.openJobs, factories: employer.plants });
 }
 
 /** The industry's factories on the map, in this place. */
@@ -70,10 +75,8 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
   // With no official figures the product's own count stands alone, beside how many companies it covers.
   if (figures.length < 3 && data.companies > 1) figures.push({ label: 'Companies', value: data.companies.toLocaleString() });
 
-  // People are ranked on only when somebody's are recorded; otherwise this is who has the most factories.
+  // The People column stands only when somebody's are recorded; a company with none says its open jobs or factories under its name.
   const ranked = data.employers.some((employer) => employer.people !== null);
-  // Unranked, the figure is each company's factories; a column of ones says nothing and is left out.
-  const counted = ranked || data.employers.some((employer) => employer.plants > 1);
   // A list a couple of rows longer than the cut is shown whole: "Show all 9" under eight rows is noise.
   const careersCut = data.careers.length > CAREERS_SHOWN + 2;
   const careers = allCareers || !careersCut ? data.careers : data.careers.slice(0, CAREERS_SHOWN);
@@ -139,7 +142,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
             {data.jobs.map((job) => (
               <RecordRow
                 key={job.id}
-                to={`/jobs/${job.id}`}
+                to={jobPath(job)}
                 title={job.title}
                 subtitle={[formatCompanyName(job.companyName), job.city ? titleCase(job.city) : null, job.payMin !== null && job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null]
                   .filter(Boolean)
@@ -153,9 +156,9 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
         </DetailSection>
       )}
 
-      {/* Who is here. The column says how they are ranked: by people where that is recorded, else by factories. */}
+      {/* Who is here, in the order every list of companies has: people, then open jobs, then factories. */}
       {data.employers.length > 0 && (
-        <DetailSection id="employers" title="Companies" column={ranked ? 'People' : counted ? 'Factories' : undefined}>
+        <DetailSection id="employers" title="Companies" column={ranked ? 'People' : undefined}>
           <RecordList>
             {data.employers.map((employer) => {
               const name = formatCompanyName(employer.name);
@@ -165,9 +168,9 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
                   to={`/companies/${employer.slug ?? employer.id}`}
                   lead={<CompanyLogo name={name} domain={employer.domain} size={32} />}
                   title={name}
-                  subtitle={ranked ? employerLine(employer) : null}
-                  figure={ranked ? employer.people : counted ? employer.plants : null}
-                  figureLabel={ranked ? 'people' : 'factories'}
+                  subtitle={employerLine(employer)}
+                  figure={employer.people}
+                  figureLabel="people"
                 />
               );
             })}

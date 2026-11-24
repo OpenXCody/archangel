@@ -30,8 +30,9 @@ const PAGE_SIZE = 20;
 type ListParams = {
   offset: number;
   limit: number;
-  sort: string;
-  order: 'asc' | 'desc';
+  /** Not sent for a list with one order (Companies). */
+  sort?: string;
+  order?: 'asc' | 'desc';
   state?: string;
   industry?: string;
   domain?: string;
@@ -69,18 +70,36 @@ const ROW_ESTIMATE: Record<BrowseTab, number> = {
 
 const isStateCode = (value: string | null): value is StateCode => US_STATES.some((s) => s.code === value);
 
-/** One column on a phone or tablet, two from a laptop up (Tailwind's lg). */
-function useColumnCount() {
-  const [columns, setColumns] = useState(() => (window.innerWidth >= 1024 ? 2 : 1));
+/**
+ * How many columns a list stands in at a width: one on a phone or tablet, two
+ * from a laptop up (Tailwind's lg). The Factories list, whose rows are a name
+ * and one short line, takes three from 1280 px and four from 1600 px, where
+ * the page is also wider for it (`Explore`), so a column never gets narrower
+ * than a phone's.
+ */
+const WIDE_FACTORIES = [
+  { from: 1600, columns: 4 },
+  { from: 1280, columns: 3 },
+];
+function columnsAt(tab: BrowseTab, width: number): number {
+  const wide = tab === 'factories' ? WIDE_FACTORIES.find((step) => width >= step.from) : undefined;
+  return wide ? wide.columns : width >= 1024 ? 2 : 1;
+}
+
+function useColumnCount(tab: BrowseTab) {
+  const [columns, setColumns] = useState(() => columnsAt(tab, window.innerWidth));
   useEffect(() => {
-    const update = () => setColumns(window.innerWidth >= 1024 ? 2 : 1);
+    const update = () => setColumns(columnsAt(tab, window.innerWidth));
+    update();
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
-  }, []);
+  }, [tab]);
   return columns;
 }
 
+/** The same steps as `columnsAt`, for the stylesheet. */
 const GRID = 'grid grid-cols-1 gap-x-12 lg:grid-cols-2';
+const GRID_FACTORIES = `${GRID} xl:grid-cols-3 min-[1600px]:grid-cols-4`;
 
 function VirtualRows({
   tab,
@@ -96,7 +115,8 @@ function VirtualRows({
   onLoadMore: () => void;
 }) {
   const listRef = useRef<HTMLDivElement>(null);
-  const columns = useColumnCount();
+  const columns = useColumnCount(tab);
+  const grid = tab === 'factories' ? GRID_FACTORIES : GRID;
 
   const rows = useMemo(() => {
     const result: BrowseEntity[][] = [];
@@ -155,13 +175,13 @@ function VirtualRows({
               }}
             >
               {row ? (
-                <div className={GRID}>
+                <div className={grid}>
                   {row.map((item) => (
                     <EntityRow key={item.id} type={tab} data={item} />
                   ))}
                 </div>
               ) : isLoadingMore ? (
-                <div className={GRID} aria-busy="true" aria-label="Loading">
+                <div className={grid} aria-busy="true" aria-label="Loading">
                   {Array.from({ length: columns }, (_, i) => (
                     <EntityRowSkeleton key={i} type={tab} index={i} />
                   ))}
@@ -220,7 +240,8 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
   const filtered = Boolean(filters.state || filters.industry || filters.domain || filters.group || filters.military);
 
   const sortOptions = SORT_OPTIONS[tab];
-  const sort = sortOptions.find((o) => o.value === searchParams.get('sort')) ?? sortOptions[0];
+  // A list with one order (Companies) has no sort: a `?sort=` an old link carries is not read.
+  const sort = sortOptions.find((o) => o.value === searchParams.get('sort')) ?? sortOptions.at(0);
 
   const setParam = useCallback(
     (changes: Record<string, string | undefined>) => {
@@ -236,8 +257,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
 
   const params = useMemo(
     () => ({
-      sort: sort.field,
-      order: sort.order,
+      ...(sort && { sort: sort.field, order: sort.order }),
       ...(filters.state && { state: filters.state }),
       ...(filters.industry && { industry: filters.industry }),
       ...(filters.domain && { domain: filters.domain }),
@@ -250,7 +270,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
   // The Skills list opens in the taxonomy's own order, which is not a sort of
   // rows but the tree itself: every domain, its groups, their skills, from the
   // one answer the Atlas draws.
-  const tree = tab === 'skills' && sort.value === SKILLS_BY_DOMAIN;
+  const tree = tab === 'skills' && sort?.value === SKILLS_BY_DOMAIN;
   // Choices for the industry, domain and group filters: every value in use,
   // not just those on the first page of a list.
   const facets = useExploreFacets();
@@ -331,8 +351,8 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
     <>
       <FilterBar
         activeTab={tab}
-        sortValue={sort.value}
-        onSortChange={(value) => setParam({ sort: value === sortOptions[0].value ? undefined : value })}
+        sortValue={sort?.value}
+        onSortChange={(value) => setParam({ sort: value === sortOptions.at(0)?.value ? undefined : value })}
         filters={filters}
         onFilterChange={(next) =>
           setParam({
@@ -394,7 +414,7 @@ export default function BrowseList({ tab }: { tab: BrowseTab }) {
           <SkillTree domains={treeDomains} />
         )
       ) : list.isLoading ? (
-        <div className={GRID} aria-busy="true" aria-label="Loading">
+        <div className={tab === 'factories' ? GRID_FACTORIES : GRID} aria-busy="true" aria-label="Loading">
           {Array.from({ length: 12 }, (_, i) => (
             <EntityRowSkeleton key={i} type={tab} index={i} />
           ))}

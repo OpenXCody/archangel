@@ -23,7 +23,7 @@ j() { node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=J
 
 # The test rows: leather plants in Alaska, where the sample data has none of its own.
 ST=AK; IND='Leather and Allied Product Manufacturing'; SLUG=leather
-cleanup() { sql "DELETE FROM factories WHERE name LIKE 'E2E Industry %'; DELETE FROM companies WHERE name LIKE 'E2E Industry %'" >/dev/null; }
+cleanup() { sql "DELETE FROM company_careers WHERE company_id IN (SELECT id FROM companies WHERE name LIKE 'E2E Industry %'); DELETE FROM factory_occupations WHERE factory_id IN (SELECT id FROM factories WHERE name LIKE 'E2E Industry %'); DELETE FROM jobs WHERE company_id IN (SELECT id FROM companies WHERE name LIKE 'E2E Industry %'); DELETE FROM factories WHERE name LIKE 'E2E Industry %'; DELETE FROM companies WHERE name LIKE 'E2E Industry %'" >/dev/null; }
 trap cleanup EXIT
 cleanup
 BASE=$(sql "SELECT COUNT(*) FROM factories WHERE state='$ST' AND primary_naics_description='$IND'")
@@ -232,6 +232,72 @@ expect "moved and placed in one statement keeps the new county" "48113 19100" "$
 expect "a county that does not exist is refused" 1 "$(sql "UPDATE factories SET county_fips = '48999' WHERE id='$KEYS'" 2>&1 | grep -c 'foreign key')"
 check "a plant that does not exist"           404 "$(get /map/factories/00000000-0000-4000-8000-000000000000/county)" 'Factory not found'
 check "an id that is not one"                 400 "$(get /map/factories/giga-texas/county)"
+
+# ── The one order of companies ──────────────────────────────────────────────
+# Wherever companies are listed: most people first (recorded at the factories the list is of), then
+# most open jobs there, then most factories, then name. Five companies in Hawaii, each ahead of the
+# next by one of the four: People (a headcount), Jobs (two open jobs), Sites (three factories), then
+# Tie A and Tie B (one factory each, told apart by name alone). Sites has the most factories of all:
+# under the old order it led.
+RST=HI
+rank_company() { sql "INSERT INTO companies (name) VALUES ('E2E Industry Rank $1') RETURNING id"; }
+rank_plant() { # name company workforce -> id
+  sql "INSERT INTO factories (name, company_id, latitude, longitude, state, city, primary_naics, primary_naics_description, workforce_size)
+       VALUES ('E2E Industry Rank $1', '$2', '21.31', '-157.86', '$RST', 'HONOLULU', '316', '$IND', $3) RETURNING id"
+}
+RP=$(rank_company People); RJ=$(rank_company Jobs); RS=$(rank_company Sites); RA=$(rank_company 'Tie A'); RB=$(rank_company 'Tie B')
+rank_plant 'People 1' "$RP" 900 >/dev/null
+RJP=$(rank_plant 'Jobs 1' "$RJ" NULL)
+rank_plant 'Sites 1' "$RS" NULL >/dev/null; rank_plant 'Sites 2' "$RS" NULL >/dev/null; rank_plant 'Sites 3' "$RS" 0 >/dev/null
+rank_plant 'Tie B 1' "$RB" NULL >/dev/null; rank_plant 'Tie A 1' "$RA" NULL >/dev/null
+CAREER=$(sql "SELECT id FROM occupations WHERE service_company_id IS NULL ORDER BY title LIMIT 1")
+sql "INSERT INTO jobs (company_id, factory_id, occupation_id, title, expires_at) VALUES
+       ('$RJ', '$RJP', '$CAREER', 'E2E Industry Rank job 1', now() + interval '30 days'),
+       ('$RJ', '$RJP', '$CAREER', 'E2E Industry Rank job 2', now() + interval '30 days'),
+       ('$RJ', '$RJP', '$CAREER', 'E2E Industry Rank job, expired', now() - interval '1 day')" >/dev/null
+sql "INSERT INTO jobs (company_id, factory_id, occupation_id, title, expires_at, status) VALUES ('$RJ', '$RJP', '$CAREER', 'E2E Industry Rank job, closed', now() + interval '30 days', 'closed')" >/dev/null
+ORDER='People,Jobs,Sites,Tie A,Tie B'
+ranked() { j "o.$1.filter(c=>c.name.startsWith('E2E Industry Rank ')).map(c=>c.name.slice(18)).join()"; }
+R=$(get '/companies?search=E2E%20Industry%20Rank&limit=20')
+expect "the Companies list: people, then open jobs, then factories, then name" "$ORDER" "$(printf '%s' "$R" | ranked data)"
+expect "a row carries the three figures, an unknown headcount null" "900 0 1|null 2 1|null 0 3|null 0 1" "$(printf '%s' "$R" | j "o.data.slice(0,4).map(c=>c.people+' '+c.openJobCount+' '+c.factoryCount).join('|')")"
+expect "an old sort in the address changes nothing" "$ORDER" "$(get '/companies?search=E2E%20Industry%20Rank&limit=20&sort=factoryCount&order=desc' | ranked data)"
+expect "paged in the same order"              "Sites,Tie A" "$(get '/companies?search=E2E%20Industry%20Rank&limit=2&offset=2' | ranked data)"
+expect "the whole list opens on people, never on a company with none while one has some" true "$(get '/companies?limit=50' | j 'o.data.every((c,i,a)=>i===0||(a[i-1].people??-1)>=(c.people??-1))')"
+R=$(get "/map/states/$RST/overview")
+# The panel lists twelve, and the state has other companies of one factory whose names sort before "E2E": the first three are held.
+expect "a state's panel, by what is in the state" "People,Jobs,Sites" "$(printf '%s' "$R" | ranked topCompanies | cut -d, -f1-3)"
+expect "its rows carry people, open jobs and factories there" "900 0 1|null 2 1|null 0 3" "$(printf '%s' "$R" | j "o.topCompanies.filter(c=>c.name.startsWith('E2E Industry Rank ')).slice(0,3).map(c=>c.people+' '+c.openJobs+' '+c.factories).join('|')")"
+expect "a town's panel (any box on the map)"  "$ORDER" "$(get '/map/bounds/overview?west=-157.9&south=21.3&east=-157.8&north=21.32' | ranked topCompanies)"
+expect "a focus area's panel is in the same order" true "$(get '/map/areas/austin/overview' | j 'o.topCompanies.every((c,i,a)=>i===0||(a[i-1].people??-1)>(c.people??-1)||((a[i-1].people??-1)===(c.people??-1)&&(a[i-1].openJobs>c.openJobs||(a[i-1].openJobs===c.openJobs&&(a[i-1].factories>c.factories||(a[i-1].factories===c.factories&&a[i-1].name<c.name))))))')"
+R=$(get "/industries/$SLUG?state=$RST")
+expect "an industry's page"                   "$ORDER" "$(printf '%s' "$R" | ranked employers)"
+expect "with the open jobs that rank it"      "null 2 1" "$(printf '%s' "$R" | j "(e=>e.people+' '+e.openJobs+' '+e.plants)(o.employers.find(e=>e.name==='E2E Industry Rank Jobs'))")"
+expect "search: equal matches in the same order" "$ORDER" "$(get '/search?q=E2E%20Industry%20Rank&limit=10' | ranked results.companies.items)"
+expect "Explore's overview: its companies by people first" true "$(get /explore/overview | j 'o.employers.every((c,i,a)=>i===0||(a[i-1].people??-1)>=(c.people??-1))')"
+# People are counted where the list is: a headcount in another state does not rank a company in this one.
+sql "INSERT INTO factories (name, company_id, latitude, longitude, state, city, primary_naics, primary_naics_description, workforce_size) VALUES ('E2E Industry Rank Tie B elsewhere', '$RB', '61.2', '-149.9', 'AK', 'ANCHORAGE', '316', '$IND', 5000)" >/dev/null
+expect "a headcount elsewhere does not rank a company here" "$ORDER" "$(get '/map/bounds/overview?west=-157.9&south=21.3&east=-157.8&north=21.32' | ranked topCompanies)"
+expect "but it does in the list of all companies" "Tie B,People,Jobs,Sites,Tie A" "$(get '/companies?search=E2E%20Industry%20Rank&limit=20' | ranked data)"
+
+# ── A company's and a factory's own careers ─────────────────────────────────
+# A page about one company or one factory lists the careers it has and no others: those of its open
+# jobs first (with how many are open), then the ones the company has its own version of, then those
+# recorded for the factory. The careers typical of its industry are not its own and are not listed.
+C2=$(sql "SELECT id FROM occupations WHERE service_company_id IS NULL AND id <> '$CAREER' ORDER BY title LIMIT 1 OFFSET 1")
+C3=$(sql "SELECT id FROM occupations WHERE service_company_id IS NULL AND id NOT IN ('$CAREER', '$C2') ORDER BY title LIMIT 1 OFFSET 2")
+sql "INSERT INTO company_careers (company_id, occupation_id, origin) VALUES ('$RJ', '$C2', 'admin')" >/dev/null
+sql "INSERT INTO factory_occupations (factory_id, occupation_id, headcount) VALUES ('$RJP', '$C3', 7)" >/dev/null
+OWN="$CAREER 2 false|$C2 0 true|$C3 0 false"
+own() { j "o.careers.map(c=>c.id+' '+c.openJobs+' '+c.version).join('|')"; }
+R=$(get "/factories/$RJP")
+expect "a factory's careers: its open jobs', its company's versions, those recorded for it" "$OWN" "$(printf '%s' "$R" | own)"
+expect "a recorded career says its people"    "7" "$(printf '%s' "$R" | j "o.careers[2].people")"
+R=$(get "/companies/$RJ")
+expect "a company's careers, in the same order" "$OWN" "$(printf '%s' "$R" | own)"
+expect "a company's answer carries no careers of its industry" "undefined" "$(printf '%s' "$R" | j 'typeof o.typicalCareers')"
+expect "a company with none of its own has none, whatever its industry" "0 true" "$(get "/companies/$RS" | j "o.careers.length+' '+(o.factories.length>1)")"
+expect "nor has a factory with none" "0" "$(get "/factories/$(sql "SELECT id FROM factories WHERE company_id='$RS' LIMIT 1")" | j 'o.careers.length')"
 
 cleanup
 expect "test companies and plants removed"    0 "$(sql "SELECT (SELECT COUNT(*) FROM companies WHERE name LIKE 'E2E Industry %') + (SELECT COUNT(*) FROM factories WHERE name LIKE 'E2E Industry %')")"

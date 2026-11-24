@@ -31,6 +31,7 @@ import {
 import { arrowKeyChoice } from '../../lib/roving';
 import { publicKeys } from '../../lib/queryKeys';
 import { useCompanyVersions, versionsApi } from '../../lib/versions';
+import { jobPath } from '@shared/jobs';
 
 const PAY_PERIODS: readonly { value: PayPeriod; label: string }[] = [
   { value: 'hour', label: 'Per hour' },
@@ -283,7 +284,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
         {
           onSuccess: () => {
             done();
-            navigate(`/jobs/${from.id}`);
+            navigate(jobPath(from));
           },
           onSettled: settled,
         }
@@ -301,7 +302,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
         {
           onSuccess: (created) => {
             done();
-            navigate(`/jobs/${created.id}`);
+            navigate(jobPath({ ...created, companySlug: null, companyName: company.companyName, occupationTitle: career.title }));
           },
           onSettled: settled,
         }

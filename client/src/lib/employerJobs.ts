@@ -91,7 +91,7 @@ export function useDeleteJob() {
     mutationFn: (jobId: string) => request<{ ok: true }>(`/jobs/${jobId}`, { method: 'DELETE', plain401: true }),
     onSuccess: (_result, jobId) => {
       // Nothing is left to refetch for the job itself.
-      queryClient.removeQueries({ queryKey: accountKeys.job(jobId) });
+      queryClient.removeQueries({ queryKey: accountKeys.jobDetails });
       queryClient.removeQueries({ queryKey: accountKeys.applicants(jobId) });
       return invalidate(queryClient, accountKeys.jobLists, accountKeys.employer, accountKeys.adminOverview);
     },

@@ -31,6 +31,9 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   '0061_career_service.sql', '0062_military_employers.sql',
   // The military careers, then their paths, every one a draft.
   '0063_military_careers.sql', '0064_military_paths.sql',
+  // The domains in a new order, Safety last. No group or skill moves.
+  '0068_skill_taxonomy_4.sql',
+
   // A company's mark set by hand (one table, no rows).
   '0069_company_marks.sql'];
 

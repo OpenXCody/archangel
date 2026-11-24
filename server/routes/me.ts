@@ -610,6 +610,9 @@ router.get(
         jobStatus: jobs.status,
         companyId: companies.id,
         companyName: companies.name,
+        // With the number, what the job's address is written from (shared/jobs.ts).
+        companySlug: companies.slug,
+        occupationTitle: sql<string>`(SELECT o.title FROM occupations o WHERE o.id = ${jobs.occupationId})`,
         city: factories.city,
         state: factories.state,
       })

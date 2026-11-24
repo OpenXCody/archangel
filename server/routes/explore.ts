@@ -5,9 +5,9 @@ import { browsableCompanyNameSql } from '../lib/companyFilters.js';
 import { factoryInArea, factoryInScope } from '../lib/scope.js';
 import { FOCUS_AREAS } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
-import { INDUSTRY_NAME_LIST, companyIndustries, listIndustries } from '../lib/industries.js';
+import { INDUSTRY_NAME_LIST, byCompanyStanding, companyIndustries, companyStandings, listIndustries, standingOf } from '../lib/industries.js';
 import { industryByName, industryLabel } from '../../shared/industry.js';
-import { int, rowsOf, text } from '../lib/rows.js';
+import { int, rowsOf, text, type Row } from '../lib/rows.js';
 import { SKILL_LEVELS } from '../../shared/skillLevels.js';
 import { careerDomains, militaryCareerDomains } from '../lib/careers.js';
 import { civilianCareer, civilianPathLine } from '../lib/military.js';
@@ -85,23 +85,24 @@ function pickCareers(candidates: CareerCandidate[], day: string, count: number):
   return picked;
 }
 
-// Featured employers with a plant in scope, most plants first. Each with the
-// industry most of its plants are in (one of the 21, or none).
+// Featured employers with a plant in scope, in the order every list of
+// companies has (most people, then open jobs, then factories, then name).
+// Each with the industry most of its plants are in (one of the 21, or none).
 async function loadEmployers() {
   const result = await db.execute(sql`
     SELECT c.id, c.name, c.slug, c.domain,
-           mode() WITHIN GROUP (ORDER BY f.primary_naics_description COLLATE "C")
-             FILTER (WHERE f.primary_naics_description IN (${INDUSTRY_NAME_LIST})) AS industry,
-           COUNT(*)::int AS site_count,
-           COUNT(DISTINCT f.state)::int AS state_count
+           (SELECT mode() WITHIN GROUP (ORDER BY f.primary_naics_description COLLATE "C")
+              FROM factories f
+             WHERE f.company_id = c.id AND ${factoryInScope('f')} AND f.primary_naics_description IN (${INDUSTRY_NAME_LIST})) AS industry,
+           cs.factories AS site_count, cs.factories, cs.people, cs.open_jobs,
+           (SELECT COUNT(DISTINCT f.state)::int FROM factories f WHERE f.company_id = c.id AND ${factoryInScope('f')}) AS state_count
     FROM companies c
-    INNER JOIN factories f ON f.company_id = c.id AND ${factoryInScope('f')}
+    INNER JOIN LATERAL (${companyStandings({ of: sql`c.id` })}) cs ON TRUE
     WHERE c.featured AND ${sql.raw(browsableCompanyNameSql('c.name'))}
-    GROUP BY c.id
-    ORDER BY site_count DESC, state_count DESC, c.name ASC
+    ORDER BY ${byCompanyStanding('cs', sql`c.name`)}
     LIMIT ${EMPLOYER_COUNT}
   `);
-  return rowsOf(result).map((r) => ({
+  return rowsOf<Row>(result).map((r) => ({
     id: String(r.id),
     name: String(r.name),
     slug: text(r.slug),
@@ -109,6 +110,8 @@ async function loadEmployers() {
     industry: text(r.industry),
     siteCount: int(r.site_count),
     stateCount: int(r.state_count),
+    people: standingOf(r).people,
+    openJobs: standingOf(r).openJobs,
   }));
 }
 
@@ -168,40 +171,44 @@ async function loadCareers(day: string) {
   }));
 }
 
-// The skills the most careers call for, in the domains careers draw on most.
+// The skills the most careers call for, in the domains careers draw on most:
+// which domains are shown is decided by use, the order they stand in is the taxonomy's own.
 async function loadSkillDomains() {
   const result = await db.execute(sql`
     WITH linked AS (
-      SELECT s.id, s.name, sd.slug, sd.name AS domain, COUNT(*)::int AS career_count
+      SELECT s.id, s.name, sd.slug, sd.name AS domain, sd.position, COUNT(*)::int AS career_count
       FROM occupation_skills os
       INNER JOIN skills s ON s.id = os.skill_id
       INNER JOIN skill_groups sg ON sg.slug = s.group_slug
       INNER JOIN skill_domains sd ON sd.slug = sg.domain_slug
       WHERE ${civilianPathLine('os')}
-      GROUP BY s.id, sd.slug
+      GROUP BY s.id, sd.slug, sd.name, sd.position
     ), ranked AS (
       SELECT linked.*,
              ROW_NUMBER() OVER (PARTITION BY slug ORDER BY career_count DESC, name ASC) AS rank,
              SUM(career_count) OVER (PARTITION BY slug)::int AS domain_total
       FROM linked
     )
-    SELECT id, name, slug, domain, career_count, domain_total
+    SELECT id, name, slug, domain, position, career_count, domain_total
     FROM ranked
     WHERE rank <= ${SKILLS_PER_DOMAIN}
     ORDER BY domain_total DESC, domain ASC, rank ASC
   `);
 
-  const domains: { slug: string; name: string; skills: { id: string; name: string; careerCount: number }[] }[] = [];
+  const domains: { slug: string; name: string; position: number; skills: { id: string; name: string; careerCount: number }[] }[] = [];
   for (const r of rowsOf(result)) {
     const slug = String(r.slug);
     let domain = domains[domains.length - 1];
     if (!domain || domain.slug !== slug) {
-      domain = { slug, name: String(r.domain), skills: [] };
+      domain = { slug, name: String(r.domain), position: int(r.position), skills: [] };
       domains.push(domain);
     }
     domain.skills.push({ id: String(r.id), name: String(r.name), careerCount: int(r.career_count) });
   }
-  return domains.slice(0, SKILL_DOMAIN_COUNT);
+  return domains
+    .slice(0, SKILL_DOMAIN_COUNT)
+    .sort((a, b) => a.position - b.position)
+    .map(({ position: _position, ...domain }) => domain);
 }
 
 /**

@@ -19,6 +19,7 @@ import {
 } from '../account/parts';
 import { formatDay } from '../../lib/dates';
 import { PageSection } from '../layout/Page';
+import { jobPath } from '@shared/jobs';
 
 export default function ApplicationsSection({ email }: { email: string }) {
   const applications = useMyApplications();
@@ -103,7 +104,7 @@ function ApplicationRow({ application, email }: { application: MyApplication; em
         <div className="min-w-0 flex-1">
           <Link
             ref={jobRef}
-            to={`/jobs/${application.jobId}`}
+            to={jobPath({ id: application.jobId, serial: application.jobSerial, companySlug: application.companySlug, companyName: application.companyName, occupationTitle: application.occupationTitle })}
             className="block break-words text-sm font-medium text-text-1 hover:underline"
           >
             {application.jobTitle}

@@ -2,6 +2,7 @@ import { sql, type SQL } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { browsableCompanyNameSql } from './companyFilters.js';
 import { companyInScope, factoryInScope } from './scope.js';
+import { byCompanyStanding, companyStandings } from './industries.js';
 import { rowsOf } from './rows.js';
 import { likeLiteral } from './like.js';
 
@@ -68,6 +69,9 @@ export interface FoundCompany {
   slug: string | null;
   industry: string | null;
   factoryCount: number;
+  /** People at its factories where a headcount is recorded (null when none is), and its open jobs. */
+  people: number | null;
+  openJobs: number;
   /** Where its plants are: "Austin, TX" for one, the states with the most for several. */
   where: string | null;
 }
@@ -86,6 +90,8 @@ interface Row {
   slug: string | null;
   industry: string | null;
   factory_count: number;
+  people: number | null;
+  open_jobs: number | null;
   city: string | null;
   states: string[] | null;
   total: number;
@@ -142,12 +148,13 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
     ${keyedFrom(candidates)}, matched AS MATERIALIZED (${matched}),
     counted AS (
       SELECT m.*, COUNT(*) OVER ()::int AS total,
-             (SELECT COUNT(*)::int FROM factories f WHERE f.company_id = m.id AND ${factoryInScope('f')}) AS factory_count
+             COALESCE(cs.factories, 0) AS factory_count, cs.factories, cs.people, cs.open_jobs
         FROM matched m
+        LEFT JOIN LATERAL (${companyStandings({ of: sql`m.id` })}) cs ON TRUE
     ), shown AS (
       SELECT * FROM counted m ORDER BY ${order} LIMIT ${limit}
     )
-    SELECT m.id, m.name, m.slug, m.industry, m.total, m.factory_count,
+    SELECT m.id, m.name, m.slug, m.industry, m.total, m.factory_count, m.people, m.open_jobs,
            (SELECT f.city FROM factories f WHERE f.company_id = m.id AND ${factoryInScope('f')} ORDER BY f.id LIMIT 1) AS city,
            (SELECT array_agg(s.state ORDER BY s.n DESC, s.state)
               FROM (SELECT f.state, COUNT(*) AS n FROM factories f
@@ -170,7 +177,7 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
     ) r
     WHERE r.rank IS NOT NULL`;
   const found = rowsOf<Row>(
-    await db.execute(withPlaces(couldMatch, ranked, sql`m.rank, m.featured DESC, m.factory_count DESC, length(m.name), m.name`))
+    await db.execute(withPlaces(couldMatch, ranked, sql`m.rank, ${byCompanyStanding('m', sql`m.name`)}`))
   );
   if (found.length > 0) {
     return { companies: found.map(toCompany), total: found[0].total, close: false };
@@ -191,7 +198,7 @@ export async function searchCompanies(term: CompanyTerm, limit: number): Promise
     ORDER BY s.sim DESC, s.featured DESC, length(s.name), s.name
     LIMIT 3`;
   try {
-    const close = rowsOf<Row>(await db.execute(withPlaces(couldBeNear, near, sql`m.sim DESC, m.featured DESC, length(m.name), m.name`)));
+    const close = rowsOf<Row>(await db.execute(withPlaces(couldBeNear, near, sql`m.sim DESC, ${byCompanyStanding('m', sql`m.name`)}`)));
     return { companies: close.map(toCompany), total: close.length, close: close.length > 0 };
   } catch (error) {
     // The closest names need the pg_trgm extension. Without it the answer is
@@ -208,6 +215,8 @@ function toCompany(row: Row): FoundCompany {
     slug: row.slug,
     industry: row.industry,
     factoryCount: row.factory_count,
+    people: row.people === null || Number(row.people) <= 0 ? null : Number(row.people),
+    openJobs: Number(row.open_jobs) || 0,
     where: whereOf(row),
   };
 }

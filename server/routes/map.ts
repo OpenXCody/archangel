@@ -4,10 +4,10 @@ import { db, factories } from '../db/index.js';
 import { factoryInArea, factoryInBox, factoryInScope, isStateInScope } from '../lib/scope.js';
 import { focusArea } from '../../shared/scope.js';
 import { STATE_CODE_TO_NAME } from '../../shared/states.js';
-import { INDUSTRY_NAME_LIST, plantCounty } from '../lib/industries.js';
+import { INDUSTRY_NAME_LIST, byCompanyStanding, companyStandings, plantCounty, standingOf } from '../lib/industries.js';
 import { isUuid } from '../lib/writes.js';
 import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
-import { rowsOf } from '../lib/rows.js';
+import { rowsOf, type Row } from '../lib/rows.js';
 
 const router = Router();
 
@@ -42,14 +42,13 @@ router.get('/state-counts', async (_req: Request, res: Response) => {
 });
 
 /**
- * Panel data for a set of factories: totals, the companies with the most
- * factories in the set, and its largest industries. `inSet` is given the name
- * the factories table goes by in each query.
+ * Panel data for a set of factories: totals, its leading companies and its
+ * largest industries. `inSet` is given the name the factories table goes by
+ * in each query.
  *
- * Companies are listed by how many factories they have in the set, so the
- * list reads as what it is: who is here, the largest presence first. Where
- * two have the same number, the featured employer and then the company with
- * more factories nationwide comes first, so ties open on names people know.
+ * Companies are in the one order every list of companies has
+ * (`byCompanyStanding`), counted over the factories of the set: most people
+ * here, then most open jobs here, then most factories here, then name.
  */
 async function buildOverview(inSet: (factoryTable: string) => SQL) {
   const [totalsRow] = await db
@@ -62,17 +61,15 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
     .where(sql`${inSet('factories')} AND ${factoryInScope()}`);
 
   const topCompanies = await db.execute(sql`
-    SELECT c.id, c.name, c.domain, c.featured, COUNT(*)::int AS count,
+    SELECT c.id, c.name, c.domain, c.featured, here.factories AS count, here.factories, here.people, here.open_jobs,
            (SELECT COUNT(*)::int FROM factories site WHERE site.company_id = c.id) AS sites
-    FROM factories f
-    INNER JOIN companies c ON c.id = f.company_id
-    WHERE ${inSet('f')} AND ${factoryInScope('f')}
-      AND c.name ~ '[A-Za-z]{2,}'
+    FROM (${companyStandings({ inSet })}) here
+    INNER JOIN companies c ON c.id = here.company_id
+    WHERE c.name ~ '[A-Za-z]{2,}'
       AND c.name !~ '^[#(]'
       AND c.name !~ '^\\d+\\s'
       AND c.name !~ '^\\d+/\\d'
-    GROUP BY c.id, c.name, c.domain, c.featured
-    ORDER BY count DESC, c.featured DESC, sites DESC, c.name ASC
+    ORDER BY ${byCompanyStanding('here', sql`c.name`)}
     LIMIT 12
   `);
 
@@ -109,7 +106,8 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
   // there are in all. Empty where nobody is, and the panel then says nothing.
   const openJobs = await db.execute(sql`
     SELECT j.id, j.serial, j.title, j.pay_min, j.pay_max, j.pay_period,
-           c.name AS company_name, f.name AS factory_name, f.city,
+           c.name AS company_name, c.slug AS company_slug, f.name AS factory_name, f.city,
+               (SELECT o.title FROM occupations o WHERE o.id = j.occupation_id) AS occupation_title,
            COUNT(*) OVER ()::int AS total
     FROM jobs j
     INNER JOIN factories f ON f.id = j.factory_id
@@ -130,6 +128,8 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
       payMax: r.pay_max,
       payPeriod: r.pay_period,
       companyName: r.company_name,
+      companySlug: r.company_slug ?? null,
+      occupationTitle: r.occupation_title ?? undefined,
       factoryName: r.factory_name,
       city: r.city ?? null,
     })),
@@ -137,13 +137,14 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
     totalFactories: totalsRow?.totalFactories ?? 0,
     totalCompanies: totalsRow?.totalCompanies ?? 0,
     totalWorkforce: totalsRow?.totalWorkforce ?? 0,
-    topCompanies: rowsOf(topCompanies).map((r) => ({
+    topCompanies: rowsOf<Row>(topCompanies).map((r) => ({
       id: r.id,
       name: r.name,
       domain: r.domain ?? null,
       featured: Boolean(r.featured),
       count: r.count,
       sites: r.sites,
+      ...standingOf(r),
     })),
     topIndustries: rowsOf(topIndustries).map((r) => ({
       label: r.label,

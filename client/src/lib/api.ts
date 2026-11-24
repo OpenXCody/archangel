@@ -164,6 +164,8 @@ export interface CareerJob {
   payMax: number | null;
   payPeriod: 'hour' | 'year';
   companyName: string;
+  /** The company's slug, for the job's address. */
+  companySlug?: string | null;
   factoryName: string;
   city: string | null;
   occupationId?: string;
@@ -201,6 +203,9 @@ export interface Company {
   createdAt: string;
   factoryCount?: number;
   totalWorkforce?: number;
+  /** People at its factories whose headcount is recorded; null when none is. */
+  people?: number | null;
+  openJobCount?: number;
   occupationCount?: number;
 }
 
@@ -212,6 +217,20 @@ export interface CompanyOccupation {
   /** How many of the company's factories employ this occupation. */
   factoryCount: number;
   headcount: number;
+}
+
+/**
+ * A career a company, or one of its factories, has: of its open jobs (with how many are open), one the
+ * company has its own version of, or one recorded at its factories. Never a career that is only typical
+ * of its industry.
+ */
+export interface OwnCareer {
+  id: string;
+  title: string;
+  openJobs: number;
+  version: boolean;
+  factories: number | null;
+  people: number | null;
 }
 
 export interface CompanyDetail extends Company {
@@ -229,8 +248,8 @@ export interface CompanyDetail extends Company {
   /** People in a state, where a source says how many. */
   peopleByState?: { state: string; people: number; year: number | null; source: string | null; note: string | null }[];
   sources?: RecordSource[];
-  /** For a company with one factory and no careers recorded there: the careers typical of that factory's industry. */
-  typicalCareers?: { id: string; title: string }[];
+  /** The careers it has: of its open jobs, its versions, those recorded at its factories. Its own only. */
+  careers?: OwnCareer[];
   /** The careers the company has its own version of. */
   versions?: VersionSummary[];
   /** Which military service the company is; null for every other company. */
@@ -318,8 +337,10 @@ export interface FactoryDetail extends Factory {
   company: FactoryCompany | null;
   /** The company's other sites, closest first (up to five). */
   nearby?: SisterSite[];
-  /** Careers typical of this factory's industry, when none are recorded for the factory itself. */
+  /** Careers typical of this factory's industry, when none are recorded for it. Shown on no page: the job form offers them. */
   typicalCareers?: { id: string; title: string }[];
+  /** The careers it has: of its open jobs, its company's versions, those recorded for it. Its own only. */
+  careers?: OwnCareer[];
   occupations: RelatedOccupation[];
   /** Where the factory's facts came from. */
   sources?: RecordSource[];
@@ -538,6 +559,8 @@ export interface SearchResultItem {
   type: SearchEntityType;
   subtitle?: string;
   meta?: string;
+  /** Jobs only: the job's address. */
+  href?: string;
   /** Companies only: the web domain their logo is looked up from. */
   domain?: string | null;
   /** Careers only: a military career the query named (its code, or its service with words of its title). */
@@ -599,6 +622,10 @@ export interface TopCompany {
   count: number;
   /** Factories nationwide. */
   sites: number;
+  /** Here: people at its factories whose headcount is recorded (null when none is), its open jobs and its factories. */
+  people?: number | null;
+  openJobs?: number;
+  factories?: number;
 }
 
 /** The totals and rankings the panel shows for a region. */
@@ -688,6 +715,9 @@ export interface ExploreEmployer {
   industry: string | null;
   siteCount: number;
   stateCount: number;
+  /** People at its factories whose headcount is recorded (null when none is), and its open jobs. */
+  people?: number | null;
+  openJobs?: number;
 }
 
 /** One level of a career's path: how many of its skills are at it and the first few by name. */
@@ -825,6 +855,8 @@ export interface IndustryEmployer {
   /** People at those of them whose headcount is recorded (`counted` factories), or null when none is. */
   people: number | null;
   counted: number;
+  /** Open jobs at those factories. */
+  openJobs?: number;
 }
 
 export interface IndustryPlant {

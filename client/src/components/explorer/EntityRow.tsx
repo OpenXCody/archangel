@@ -8,7 +8,7 @@ import { kindLine } from '@shared/military';
 import { Skeleton } from '@/components/ui/skeleton';
 import CompanyLogo from '../CompanyLogo';
 import type { BrowseTab } from './ExploreNav';
-import { focusRing, plural } from '@/lib/utils';
+import { companyFigure, focusRing, plural } from '@/lib/utils';
 import { levelName } from '../../lib/stages';
 import { recordQuery } from '../../lib/queries';
 
@@ -81,7 +81,7 @@ function CompanyRow({ data, onMouseEnter }: Props<Company>) {
       name={name}
       leading={<CompanyLogo name={name} domain={data.domain} size={32} />}
       // The industry most of its factories are in, when they carry one.
-      facts={[count(data.factoryCount, 'factory', 'factories'), shownIndustry(data.industry)]}
+      facts={[companyFigure({ people: data.people, openJobs: data.openJobCount, factories: data.factoryCount }), shownIndustry(data.industry)]}
       onMouseEnter={onMouseEnter}
     />
   );

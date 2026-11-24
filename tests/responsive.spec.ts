@@ -689,7 +689,7 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
       await expect(whole).toContainText(`${held.size} of ${path.length} skills`);
       await check('two held');
       // A section's figure: "1 of N" part done, its size untouched, nothing when it is whole.
-      expect(await figure(place.locator('[data-section-count]'))).toEqual([path[0].group?.slug === section.skills[0].group?.slug && section.skills.includes(path[0]) ? 2 : 1, section.skills.length]);
+      expect(await figure(place.locator('[data-section-count]'))).toEqual([section.skills.filter((skill) => held.has(skill.id)).length, section.skills.length]);
       const untouched = sections[sections.length - 1];
       await expect(sectionOf(untouched.skills[0]).locator('[data-section-count]')).toHaveText(`${untouched.skills.length} skills`);
       for (const skill of section.skills) await hold(skill);
@@ -1291,9 +1291,10 @@ test("a company's version of a career, as a visitor: the same page, its changes 
 
   // One tap returns to the standard, which says the company has its own version; the row opens it again.
   const standard = page.locator('[data-standard-link]');
-  await expect(standard).toHaveText(`Standard ${occupation.title}`);
+  // It is a tag in the heading, as the company is (components/layout/RecordTag.tsx): a full finger tall on a phone.
+  await expect(standard).toContainText(`Standard ${occupation.title}`);
   const reach = await standard.boundingBox();
-  expect(reach?.height ?? 0, 'the way back to the standard is a full finger tall').toBeGreaterThanOrEqual(44);
+  expect(reach?.height ?? 0, 'the way back to the standard is a full finger tall').toBeGreaterThanOrEqual((page.viewportSize()?.width ?? 0) < 640 ? 44 : 36);
   await standard.click();
   await expect(page).toHaveURL(new RegExp(`/occupations/${occupation.id}$`));
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(occupation.title);
@@ -1877,6 +1878,8 @@ test("a seeker's career on the Atlas: read on its page, filled in on /atlas, a s
 // ---------------------------------------------------------------------------
 
 const POSTED_JOB = '00000000-0000-4000-8000-00000000a0b1';
+// The job's address: its company, its career and its number (shared/jobs.ts).
+const POSTED_JOB_PATH = '/jobs/space-exploration-technologies/cnc-machinist/1000';
 const SKILL = (n: number) => `00000000-0000-4000-8000-0000000005${String(n).padStart(2, '0')}`;
 
 function postedJobs(offset: number, limit: number) {
@@ -1909,25 +1912,47 @@ async function standInForPostedJobs(page: Page, options: { total?: number; canMa
     const limit = Number(query.get('limit') ?? 40);
     return route.fulfill({ json: { jobs: postedJobs(offset, Math.min(limit, total - offset)), total, limit, offset } });
   });
-  await page.route(`**/api/jobs/${POSTED_JOB}`, (route) =>
-    route.fulfill({
-      json: {
-        job: {
-          ...postedJobs(0, 1)[0], description: null, applyUrl: 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002', closedReason: null, isOpen: true,
-          hasVersion: false, fromSource: true, levelWord: 'Senior', levelRank: 3, lastSeenAt: new Date().toISOString(),
-          requirements: { yearsMin: 5, education: 'High school diploma or equivalent', certifications: ['NIMS Machining Level I', 'AWS D17.1'], clearance: 'Secret clearance', citizenship: 'US person (ITAR)' },
-        },
-        skills: [
-          { id: SKILL(1), name: 'CNC Control Operation', required: true, held: false, makes: [{ id: 'm1', name: 'Mazak' }, { id: 'm2', name: 'Okuma' }, { id: 'm3', name: 'Heidenhain' }] },
-          { id: SKILL(2), name: 'Blueprint Reading', required: true, held: false, makes: [] },
-          { id: SKILL(3), name: 'Coordinate Measuring Machine Operation and Programming', required: true, held: false, makes: [] },
-          { id: SKILL(4), name: 'GD&T Interpretation', required: true, held: false, makes: [] },
-        ],
-        myApplication: null,
-        canManage: Boolean(options.canManage),
-      },
-    })
-  );
+  // The page reads the job by the number its address ends in; an older link reads it by id.
+  const place = (level: number, group: string, domain: string) => ({ level, group: { slug: group.toLowerCase().replace(/ /g, '-'), name: group }, domain: { slug: domain.toLowerCase(), name: domain } });
+  const on = (n: number, name: string, where: ReturnType<typeof place>, more: Record<string, unknown> = {}) => ({ id: SKILL(n), name, ...where, named: false, optional: false, added: false, held: false, makes: [], ...more });
+  const answer = {
+    job: {
+      ...postedJobs(0, 1)[0], companySlug: null, description: null, applyUrl: 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002', closedReason: null, isOpen: true,
+      hasVersion: false, fromSource: true, levelWord: 'Senior', levelRank: 3, lastSeenAt: new Date().toISOString(),
+      requirements: { yearsMin: 5, education: 'High school diploma or equivalent', certifications: ['NIMS Machining Level I', 'AWS D17.1'], clearance: 'Secret clearance', citizenship: 'US person (ITAR)' },
+      href: POSTED_JOB_PATH,
+    },
+    // What the posting's text was read to name: four skills, one of them not on the career's path.
+    skills: [
+      { id: SKILL(1), name: 'CNC Control Operation', required: true, held: false, makes: [{ id: 'm1', name: 'Mazak' }, { id: 'm2', name: 'Okuma' }, { id: 'm3', name: 'Heidenhain' }] },
+      { id: SKILL(2), name: 'Blueprint Reading', required: true, held: false, makes: [] },
+      { id: SKILL(3), name: 'Coordinate Measuring Machine Operation and Programming', required: true, held: false, makes: [] },
+      { id: SKILL(4), name: 'GD&T Interpretation', required: true, held: false, makes: [] },
+    ],
+    // What the page draws: the career's whole path, with what the posting names marked.
+    path: {
+      of: 'career',
+      skills: [
+        on(2, 'Blueprint Reading', place(1, 'Shop basics', 'Production'), { named: true }),
+        on(5, 'Shop Math', place(1, 'Shop basics', 'Production')),
+        on(6, 'Micrometer Measurement', place(1, 'Measurement tools', 'Quality')),
+        on(1, 'CNC Control Operation', place(2, 'CNC setup', 'Machining'), { named: true, makes: [{ id: 'm1', name: 'Mazak' }, { id: 'm2', name: 'Okuma' }, { id: 'm3', name: 'Heidenhain' }] }),
+        on(7, 'Tool and Work Offsets', place(2, 'CNC setup', 'Machining')),
+        on(8, 'CNC Milling', place(2, 'CNC machining', 'Machining')),
+        on(4, 'GD&T Interpretation', place(2, 'Part inspection', 'Quality'), { named: true }),
+        on(9, 'Five-Axis Machining Setup and First-Article Prove-Out', place(3, 'CNC machining', 'Machining')),
+      ],
+      alsoNamed: [on(3, 'Coordinate Measuring Machine Operation and Programming', place(2, 'Coordinate measuring', 'Quality'), { named: true })],
+    },
+    others: {
+      career: { jobs: postedJobs(6, 2).map((job) => ({ ...job, companySlug: null })), total: 9 },
+      factory: { jobs: postedJobs(2, 1).map((job) => ({ ...job, companySlug: null, occupationTitle: 'Welder' })), total: 1 },
+    },
+    myApplication: null,
+    canManage: Boolean(options.canManage),
+  };
+  await page.route(`**/api/jobs/${POSTED_JOB}`, (route) => route.fulfill({ json: answer }));
+  await page.route('**/api/jobs/by-number/1000', (route) => route.fulfill({ json: answer }));
 }
 
 test('the Jobs list at volume: two fields, how many match in all, and a page at a time', async ({ page }) => {
@@ -1958,11 +1983,28 @@ test('the Jobs list at volume: two fields, how many match in all, and a page at 
   await expect(page.getByRole('status').filter({ hasText: 'match' })).toHaveText(/4,812 jobs match/);
 });
 
-test("a job from a company's careers site, as a visitor: facts, tags and one way to apply", async ({ page }) => {
+test("a job from a company's careers site, as a visitor: tags, facts, one way to apply and the career's whole path", async ({ page }) => {
   await standInForPostedJobs(page);
+  // An older link, by the job's id, opens the job and is replaced by its address.
   await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('CNC Machinist, Tool & Die - Level 4/5');
+  await expect(page).toHaveURL(new RegExp(`${POSTED_JOB_PATH}$`));
+  // Under the title, the company, the factory and the career as tags, each opening its page.
+  const tags = page.locator('[data-job-tags] a');
+  await expect(tags).toHaveCount(3);
+  await expect(tags.nth(0)).toHaveAttribute('href', /^\/companies\//);
+  await expect(tags.nth(0)).toContainText('Space Exploration Technologies');
+  await expect(tags.nth(1)).toHaveAttribute('href', /^\/factories\//);
+  await expect(tags.nth(1)).toContainText('Bastrop, TX');
+  await expect(tags.nth(2)).toHaveAttribute('href', /^\/occupations\//);
+  await expect(tags.nth(2)).toContainText('CNC Machinist');
+  const narrow = (page.viewportSize()?.width ?? 0) < 640;
+  for (let i = 0; i < 3; i += 1) {
+    const box = await tags.nth(i).boundingBox();
+    expect(box?.height ?? 0, 'a tag is a full finger tall on a phone').toBeGreaterThanOrEqual(narrow ? 44 : 36);
+    expect(await tags.nth(i).evaluate((node) => getComputedStyle(node).borderRadius)).toBe('8px');
+  }
   // The one action: Apply, on the company's own page, in a new tab.
   const apply = page.locator('[data-apply-on-site]');
   await expect(apply).toHaveCount(1);
@@ -1973,26 +2015,57 @@ test("a job from a company's careers site, as a visitor: facts, tags and one way
   // Beside it, whose page that is, by the company's name: never the hiring system's host.
   await expect(page.locator('[data-apply-where]')).toHaveText(/^On .+ careers site$/);
   await expect(page.locator('main')).not.toContainText('boards.greenhouse.io');
-  // The terms that were stated, and what it asks for as two quiet lines.
+  // The facts the posting states, each under its word; nothing for what it does not say.
   const terms = page.locator('[data-job-terms]');
   await expect(terms).toContainText('$28–$42 an hour');
   await expect(terms).toContainText('Senior');
-  const asks = page.locator('[data-job-requirements] dd');
-  await expect(asks).toHaveText(['5 years or more · High school diploma or equivalent', 'NIMS Machining Level I · AWS D17.1 · Secret clearance · US person (ITAR)']);
-  await expect(terms.getByRole('link', { name: /Career/ })).toHaveAttribute('href', /\/occupations\//);
-  // Its skills are the tags a path uses; a make the posting names is the tag's second line. No marks for a visitor.
-  const tags = page.locator('[data-skill-tag]');
-  await expect(tags).toHaveCount(4);
-  await expect(tags.first()).toContainText('Mazak, Okuma, Heidenhain');
-  await expect(tags.first().locator('button')).toHaveCount(0);
+  await expect(terms.locator('[data-job-requirement="experience"]')).toHaveText('5 years or more');
+  await expect(terms.locator('[data-job-requirement="schooling"]')).toHaveText('High school diploma or equivalent');
+  await expect(terms.locator('[data-job-requirement="certificates"]')).toHaveText('NIMS Machining Level I, AWS D17.1');
+  await expect(terms.locator('[data-job-requirement="clearance"]')).toHaveText('Secret clearance');
+  await expect(terms.locator('[data-job-requirement="citizenship"]')).toHaveText('US person (ITAR)');
+  // The skills are the career's path, by level and group: eight, of which the posting names three, and one more after them.
+  const path = page.locator('[data-job-path="career"]');
+  await expect(path.locator('[data-job-level]')).toHaveCount(3);
+  await expect(path.locator('[data-group-box] [data-skill-tag]')).toHaveCount(8);
+  await expect(path.locator('[data-group-box] [data-skill-tag][data-named]')).toHaveCount(3);
+  await expect(path.locator(`[data-skill-tag="${SKILL(2)}"]`)).toContainText('Named in the posting');
+  await expect(path.locator(`[data-skill-tag="${SKILL(5)}"]`)).not.toContainText('Named in the posting');
+  await expect(page.locator('[data-job-also-named]')).toContainText('Also named in the posting');
+  // One sentence says how much of the path the posting itself names.
+  await expect(page.locator('[data-job-named-count]')).toHaveText('The posting names 3 of these 8, and 1 more.');
+  // The way out is one button in the facts panel; for a visitor it is Apply, and there is no second one.
+  await expect(page.locator('[data-job-panel] [data-job-action] [data-apply-on-site]')).toHaveCount(1);
+  await expect(page.locator('[data-view-on-site]')).toHaveCount(0);
+  await expect(page.locator('[data-job-also-named] [data-skill-tag]')).toHaveCount(1);
+  // Read, not worked on: no mark and no control on a tag; a visitor is shown the way to sign in, and back.
+  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
+  await expect(page.locator('[data-job-overlap]')).toHaveCount(0);
+  await expect(page.locator('[data-job-overlap-sign-in] a')).toHaveAttribute('href', new RegExp(`^/sign-in\\?next=${encodeURIComponent(POSTED_JOB_PATH)}`));
+  // The equipment the posting names, each make beside its skill.
+  const equipment = page.locator('[data-job-equipment] li');
+  await expect(equipment).toHaveCount(1);
+  await expect(equipment.first()).toContainText('Mazak, Okuma, Heidenhain');
+  await expect(equipment.first()).toContainText('CNC Control Operation');
+  // Other open jobs, each at its own address.
+  await expect(page.locator('#more-for-career a[href^="/jobs/space-exploration-technologies/cnc-machinist/"]')).toHaveCount(2);
+  await expect(page.locator('#more-for-career [data-all-jobs]')).toHaveText('All 9');
+  await expect(page.locator('#more-at-factory li')).toHaveCount(1);
   // Nothing of a job posted here: no description, no form, nothing to manage.
   await expect(page.getByText('About the job')).toHaveCount(0);
   await expect(page.locator('#apply, #applicants, #manage-job')).toHaveCount(0);
   await expect(page.getByText(/Post another like this|Sign in to apply/)).toHaveCount(0);
-  await assertHealthyLayout(page, '/jobs/:id from a posting');
+  await assertHealthyLayout(page, '/jobs/:company/:career/:number from a posting');
+  // An address whose words are wrong, with the right number, is the same job at the right address.
+  await page.goto('/jobs/some-other-company/a-renamed-career/1000', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('CNC Machinist, Tool & Die - Level 4/5');
+  await expect(page).toHaveURL(new RegExp(`${POSTED_JOB_PATH}$`));
+  // The jobs list writes the same address.
+  await page.goto('/jobs', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('a[href^="/jobs/"]').first()).toHaveAttribute('href', POSTED_JOB_PATH);
 });
 
-test("a job from a company's careers site, as a seeker and as the company: marks and a count for one, a line and nothing to edit for the other", async ({ page }) => {
+test("a job from a company's careers site, as a seeker and as the company: a count and ticks for one, a line and nothing to edit for the other", async ({ page }) => {
   const person = (purpose: 'work' | 'hire', memberships: unknown[] = []) => ({
     user: { id: '00000000-0000-4000-8000-000000000002', email: 'person@device.test', name: 'Device Person', isAdmin: false, homeZip: null, about: null, emailNotices: true, purpose },
     memberships, isEmployer: memberships.length > 0,
@@ -2002,33 +2075,61 @@ test("a job from a company's careers site, as a seeker and as the company: marks
     route.fulfill({ json: { skills: [
       { skillId: SKILL(1), name: 'CNC Control Operation', status: 'held', updatedAt: new Date().toISOString(), makes: [{ id: 'm1', name: 'Mazak' }] },
       { skillId: SKILL(2), name: 'Blueprint Reading', status: 'learning', updatedAt: new Date().toISOString(), makes: [] },
+      { skillId: SKILL(6), name: 'Micrometer Measurement', status: 'held', updatedAt: new Date().toISOString(), makes: [] },
     ] } })
   );
-  // A seeker: which of the job's skills they hold, and the count; a make they have run is brighter.
+  // A seeker: one line with the ring says how many of the path's skills they hold, and those are ticked. Nothing is marked here.
   await page.route('**/api/auth/me', (route) => route.fulfill({ json: person('work') }));
   await standInForPostedJobs(page);
-  await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
-  await expect(page.getByText('1 of 4 skills held')).toBeVisible();
+  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
+  const overlap = page.locator('[data-job-overlap]');
+  await expect(overlap).toHaveText('You hold 2 of 8');
+  await expect(overlap.locator('[data-share-ring]')).toHaveCount(1);
+  await expect(page.locator('[data-job-overlap-sign-in]')).toHaveCount(0);
   await expect(page.locator(`[data-skill-tag="${SKILL(1)}"]`)).toHaveAttribute('data-status', 'held');
+  await expect(page.locator(`[data-skill-tag="${SKILL(1)}"] [data-skill-mark="held"]`)).toHaveCount(1);
   await expect(page.locator(`[data-skill-tag="${SKILL(2)}"]`)).toHaveAttribute('data-status', 'learning');
-  await expect(page.locator(`[data-skill-tag="${SKILL(1)}"] [data-tag-make="lit"]`)).toHaveText('Mazak');
+  await expect(page.locator(`[data-skill-tag="${SKILL(5)}"]`)).toHaveAttribute('data-status', 'none');
+  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
+  // A make they have run stands in full ink among the equipment.
+  await expect(page.locator('[data-job-equipment] [data-make="lit"]')).toContainText('Mazak');
+  await expect(page.locator('[data-job-equipment] [data-make="lit"]')).toHaveCount(1);
   await expect(page.locator('[data-apply-on-site]')).toHaveCount(1);
-  await assertHealthyLayout(page, '/jobs/:id from a posting, a seeker');
+  await assertHealthyLayout(page, 'a job from a posting, a seeker');
 
-  // Someone who manages the company's jobs: told where it comes from, with nothing to change and nothing to apply to.
+  // Someone who manages the company's jobs: told where it comes from, with nothing to change, nothing to apply to and no count.
   await page.unroute('**/api/auth/me');
   await page.unroute(`**/api/jobs/${POSTED_JOB}`);
+  await page.unroute('**/api/jobs/by-number/1000');
   await page.route('**/api/auth/me', (route) =>
     route.fulfill({ json: person('hire', [{ companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', role: 'member', status: 'active' }]) })
   );
   await standInForPostedJobs(page, { canManage: true });
-  await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-job-from-source]')).toContainText("careers site and is kept in step with it");
+  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
+  // One quiet line in the facts panel, beside the button that opens the posting on the company's site.
+  await expect(page.locator('[data-job-panel] [data-job-from-source]')).toContainText("careers site and is kept in step with it");
+  const view = page.locator('[data-job-panel] [data-view-on-site]');
+  await expect(view).toHaveText(/^View on Space Exploration Technologies' careers site/);
+  await expect(view).toHaveAttribute('href', 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002');
+  await expect(view).toHaveAttribute('target', '_blank');
+  expect((await view.boundingBox())?.height ?? 0, 'the way to the posting is a button').toBeGreaterThanOrEqual(40);
   await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
   await expect(page.locator('[data-apply-on-site], #applicants, #manage-job')).toHaveCount(0);
   await expect(page.getByRole('link', { name: /^Edit$|Post another like this/ })).toHaveCount(0);
+  await expect(page.locator('[data-job-overlap], [data-job-overlap-sign-in], [data-skill-mark]')).toHaveCount(0);
+  await expect(page.locator('[data-job-path] [data-skill-tag]')).toHaveCount(9);
   await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
-  await assertHealthyLayout(page, '/jobs/:id from a posting, the company');
+  await assertHealthyLayout(page, 'a job from a posting, the company');
+
+  // Someone here to hire who is not of this company: the same button to the posting, no line about managing, no Apply.
+  await page.unroute('**/api/auth/me');
+  await page.unroute(`**/api/jobs/${POSTED_JOB}`);
+  await page.unroute('**/api/jobs/by-number/1000');
+  await page.route('**/api/auth/me', (route) => route.fulfill({ json: person('hire') }));
+  await standInForPostedJobs(page);
+  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-view-on-site]')).toHaveCount(1);
+  await expect(page.locator('[data-apply-on-site], [data-job-from-source], [data-job-overlap], [data-job-overlap-sign-in]')).toHaveCount(0);
 
   // Your jobs, for a member who has posted nothing: what is already listed from the company's site is said before the form.
   await page.route('**/api/employer', (route) =>
@@ -2072,13 +2173,14 @@ test('military careers stay out of the lists until asked for: the Careers filter
   await expect(page.locator('[data-explore-count]')).toHaveText(`${civilian} careers`);
   await expect(page.locator('main a[href^="/occupations/"]').first()).toBeVisible();
   await expect(page.locator('main a[href^="/occupations/"]').filter({ hasText: KIND_LINE })).toHaveCount(0);
-  const filter = page.getByRole('button', { name: 'Careers: Civilian' });
-  await expect(filter).toBeVisible();
+  // A two-sided switch, Industry (the default) and Military; the branch is offered only on the military side.
+  const sides = page.getByRole('radiogroup', { name: 'Careers' });
+  await expect(sides.getByRole('radio', { name: 'Industry' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('button', { name: /^Branch: / })).toHaveCount(0);
   await assertHealthyLayout(page, '/explore?tab=occupations');
 
   // Asked for, the list is the military careers alone, each row with its kind and code; the address says so.
-  await filter.click();
-  await page.getByRole('menuitemradio', { name: 'Military', exact: true }).click();
+  await sides.getByRole('radio', { name: 'Military' }).click();
   await expect(page).toHaveURL(/tab=occupations&military=1$/);
   await expect(page.locator('[data-explore-count]')).toHaveText(`${military} military careers`);
   const rows = page.locator('main a[href^="/occupations/"]');
@@ -2087,14 +2189,18 @@ test('military careers stay out of the lists until asked for: the Careers filter
   await assertHealthyLayout(page, '/explore?tab=occupations&military=1');
 
   // Narrowed to one service, and back.
-  await page.getByRole('button', { name: 'Careers: Military' }).click();
+  await page.getByRole('button', { name: 'Branch: All branches' }).click();
+  expect((await page.getByRole('menuitemradio').allInnerTexts()).map((text) => text.trim())).toEqual(['All branches', 'Navy', 'Army', 'Air Force', 'Marine Corps']);
   await page.getByRole('menuitemradio', { name: 'Navy', exact: true }).click();
   await expect(page).toHaveURL(/tab=occupations&service=navy$/);
   await expect(page.locator('[data-explore-count]')).toHaveText(`${navy} Navy careers`);
   await expect(rows.first()).toContainText(/Navy rating · [A-Z]+/);
   for (const text of await rows.allInnerTexts()) expect(text, 'every row is a Navy rating').toContain('Navy rating · ');
   await assertHealthyLayout(page, '/explore?tab=occupations&service=navy');
+  // Clear puts back what narrows the side that is on; the switch goes back to the careers of industry.
   await page.getByRole('button', { name: 'Clear', exact: true }).click();
+  await expect(page).toHaveURL(/tab=occupations&military=1$/);
+  await sides.getByRole('radio', { name: 'Industry' }).click();
   await expect(page).not.toHaveURL(/military=|service=/);
   await expect(page.locator('[data-explore-count]')).toHaveText(`${civilian} careers`);
   // Explore's own count of careers is the civilian one.
@@ -2115,7 +2221,7 @@ test('military careers stay out of the lists until asked for: the Careers filter
   // A service with no careers yet, named by the address: the filter says which service, as the count under it does.
   await page.goto('/explore?tab=occupations&service=marine-corps', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-explore-count]')).toHaveText('0 Marine Corps careers');
-  await expect(page.getByRole('button', { name: 'Careers: Marine Corps' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Branch: Marine Corps' })).toBeVisible();
   await assertHealthyLayout(page, '/explore?tab=occupations&service=marine-corps');
 
   // Skills only military careers use: the Skills list leaves them out and counts what it lists, as Explore does;
@@ -2201,163 +2307,113 @@ test('military careers stay out of the lists until asked for: the Careers filter
   await expect(page).not.toHaveURL(/company=/);
 });
 
-test('Profile\'s second door: a seeker starts with what they have done, and takes it back; nobody else is shown it', async ({ page, baseURL, request }) => {
-  // Writes: it makes two accounts, marks skills and deletes them. Never against a deployed copy.
+test('Profile asks nothing about military service: one question on an empty page, no door at the end of Skills', async ({ page, baseURL, request }) => {
+  // Writes: it makes an account, marks skills and deletes it. Never against a deployed copy.
   test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
   const password = 'correct horse battery';
   const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
   const ht = await militaryCareer(request, 'HT');
-  const mySkills = async () => ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: { skillId: string; status: string }[] }).skills;
-
-  // A visitor is asked to sign in: there is no door to see.
-  await page.goto('/me', { waitUntil: 'domcontentloaded' });
-  await expect(page).toHaveURL(/\/sign-in/);
-  await expect(page.locator('[data-service-door]')).toHaveCount(0);
+  const noDoor = async () => {
+    await expect(page.getByText('Start with what you have done')).toHaveCount(0);
+    await expect(page.locator('[data-service-door], #door-career')).toHaveCount(0);
+  };
 
   const made = await page.request.post(`${API}/auth/sign-up`, { data: { email: `door-work-${stamp}@device.test`, name: 'Door Seeker', password, purpose: 'work' } });
   expect(made.status(), 'seeker: account made').toBe(201);
   try {
-    // With nothing on the page: two doors, the second as quiet as the first.
+    // With nothing on the page: the one question, and its search lists no military career.
     await page.goto('/me', { waitUntil: 'domcontentloaded' });
-    const first = page.getByRole('heading', { name: 'Start with a career' });
-    const second = page.getByRole('heading', { name: 'Start with what you have done' });
-    await expect(first).toBeVisible();
-    await expect(second).toBeVisible();
-    const size = (heading: typeof first) => heading.evaluate((el) => getComputedStyle(el).fontSize + ' ' + getComputedStyle(el).fontWeight);
-    expect(await size(second), 'the two questions are set alike').toBe(await size(first));
-    await assertHealthyLayout(page, '/me two doors');
+    await expect(page.getByRole('heading', { name: 'Start with a career' })).toBeVisible();
+    await noDoor();
+    await page.locator('#starter-career').fill('Navy Hull');
+    await expect(page.getByRole('option', { name: /Navy Hull Maintenance Technician/ })).toHaveCount(0);
+    await assertHealthyLayout(page, '/me one question');
 
-    // The door's search does list military careers: by code, with the kind and code under the title.
-    const search = page.locator('#door-career');
-    await search.fill('HT');
-    const option = page.getByRole('option', { name: /Navy Hull Maintenance Technician/ });
-    await expect(option).toBeVisible();
-    await expect(option).toContainText('Navy rating · HT');
-    // One tap marks every skill of its path held, says so, and the page is the person's own from there.
-    await option.click();
-    const notice = page.locator('[data-done-notice]');
-    await expect(notice).toContainText(`Marked ${ht.skillCount} skills held.`);
-    expect((await mySkills()).filter((skill) => skill.status === 'held').length, 'every skill of the path is held').toBe(ht.skillCount);
-    // What they then see: civilian careers within reach, never a military one, and no goal was made of it.
+    // The route the door used is kept (a military career's own page writes through it): with its skills held,
+    // Profile lists civilian careers within reach, never a military one, and still has no door.
+    const held = await page.request.post(`${API}/me/careers/${ht.id}/held`);
+    expect(held.ok(), 'the route is kept').toBe(true);
+    await page.goto('/me', { waitUntil: 'domcontentloaded' });
     const reach = page.locator('[data-careers-in-reach]');
     await expect(reach.locator('li').first()).toBeVisible();
-    await expect(reach).toContainText(/Welder/);
-    await expect(reach.locator('li').filter({ hasText: SERVICE_TITLE })).toHaveCount(0);
-    // "Within reach" is said by the rule the rating's own page lists civilian careers by: a third of the path, no less.
     await expect(reach.getByRole('heading', { name: 'Within reach' })).toBeVisible();
-    for (const figure of await reach.locator('li [aria-label$="skills held"]').allInnerTexts()) {
-      const [held, total] = figure.split(' of ').map(Number);
-      expect(held * 3, `${figure} is a third or more`).toBeGreaterThanOrEqual(total);
-    }
-    await expect(page.locator('[data-goal]')).toHaveCount(0);
-    expect(((await (await page.request.get(`${API}/me/goals`)).json()) as { goals: unknown[] }).goals.length).toBe(0);
-    await notice.scrollIntoViewIfNeeded();
-    await assertHealthyLayout(page, '/me after the door');
-    // The keyboard is on Undo: the field the career was chosen in is gone. When Undo cannot be done it says so beside itself.
-    await expect(notice.getByRole('button', { name: 'Undo' })).toBeFocused();
-    await page.route('**/api/me/careers/*/held/undo', (route) => route.fulfill({ status: 500, json: { error: 'Internal Server Error' } }));
-    await page.keyboard.press('Enter');
-    const problem = page.getByRole('alert').first();
-    await expect(problem).toBeVisible();
-    const gap = ((await problem.boundingBox())?.y ?? Infinity) - ((await notice.boundingBox())?.y ?? 0);
-    expect(gap, 'the problem is said under the notice, not at the end of the page').toBeLessThan(120);
-    await page.unroute('**/api/me/careers/*/held/undo');
-    // Undo takes all of it back: the page is the two doors again, and the keyboard is in the door it came from.
-    await page.keyboard.press('Enter');
-    await expect(first).toBeVisible();
-    await expect(search).toBeFocused();
-    expect((await mySkills()).length, 'nothing is left').toBe(0);
-
-    // A rating that reaches no civilian career by a third: Profile says what it lists, the closest careers.
-    const none = await militaryCareer(request, '91B');
-    const noneRecord = (await (await request.get(`${API}/occupations/${none.id}`)).json()) as { withinReach: unknown[] };
-    if (noneRecord.withinReach.length === 0) {
-      await search.fill('91B10');
-      await page.getByRole('option', { name: /Wheeled Vehicle Mechanic/ }).click();
-      await expect(reach.locator('li').first()).toBeVisible();
-      await expect(reach.getByRole('heading', { name: 'Closest careers' })).toBeVisible();
-      await expect(reach.getByRole('heading', { name: 'Within reach' })).toHaveCount(0);
-      await page.locator('[data-done-notice]').getByRole('button', { name: 'Undo' }).click();
-      await expect(first).toBeVisible();
-    }
-
-    // On a Profile that has something: one line at the end of Skills, under everything else.
-    const own = ((await (await request.get(`${API}/skills?limit=1`)).json()) as { data: { id: string }[] }).data[0];
-    expect((await page.request.put(`${API}/me/skills/${own.id}`, { data: { status: 'held' } })).ok()).toBe(true);
-    await page.goto('/me', { waitUntil: 'domcontentloaded' });
-    const line = page.locator('[data-service-door="skills"]');
-    const open = line.getByRole('button', { name: 'Start with what you have done' });
-    await expect(open).toBeVisible();
-    const below = async (heading: string) => ((await open.boundingBox())?.y ?? 0) > ((await page.getByRole('heading', { name: heading, exact: true }).boundingBox())?.y ?? Infinity);
-    expect(await below('Goals'), 'it is under Goals').toBe(true);
-    expect(await below('Skills'), 'and under Skills').toBe(true);
-    expect((await open.boundingBox())?.y ?? 0, 'and under the person\'s own skills').toBeGreaterThan((await page.locator('[data-my-skills]').boundingBox())?.y ?? Infinity);
-    // The line is the last thing on the page, so it is pressed with the page at its end: the careers it finds are
-    // listed on the screen, not under it.
+    await expect(reach.locator('li').filter({ hasText: SERVICE_TITLE })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Skills', exact: true })).toBeVisible();
+    await noDoor();
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await open.click();
-    await expect(search).toBeFocused();
-    await search.fill('navy hull');
-    const found = page.getByRole('option', { name: /Navy Hull Maintenance Technician/ });
-    await expect(found).toBeVisible();
-    const screen = page.viewportSize()?.height ?? 0;
-    const place = await found.boundingBox();
-    expect(place?.y ?? -1, 'the option is on the screen').toBeGreaterThanOrEqual(0);
-    expect((place?.y ?? 0) + (place?.height ?? 0), 'all of it').toBeLessThanOrEqual(screen);
-    await page.keyboard.press('Enter');
-    // The skill held before is not counted, and is not taken back.
-    const said = line.locator('[data-done-notice]');
-    await expect(said).toContainText(/Marked \d+ skills held\./);
-    const added = (await mySkills()).length - 1;
-    await expect(said).toContainText(`Marked ${added} skills held.`);
-    await expect(line.getByRole('button', { name: 'Undo' })).toBeFocused();
-    await line.scrollIntoViewIfNeeded();
-    await assertHealthyLayout(page, '/me the door at the end of Skills');
-    // A second rating keeps the first one's Undo: each tap is taken back by itself, the latest first.
-    await open.click();
-    await search.fill('SW');
-    await page.getByRole('option', { name: /Navy Steelworker/ }).click();
-    await expect(said).not.toContainText(`Marked ${added} skills held.`);
-    const more = (await mySkills()).length - 1 - added;
-    expect(more, "the second rating added skills of its own").toBeGreaterThan(0);
-    await expect(said).toContainText(`Marked ${more} ${more === 1 ? "skill" : "skills"} held.`);
-    await expect(line.getByRole('button', { name: 'Undo' })).toBeFocused();
-    await page.keyboard.press('Enter');
-    await expect(said).toContainText(`Marked ${added} skills held.`);
-    await expect.poll(async () => (await mySkills()).length, { message: 'the second tap is taken back, the first stands' }).toBe(added + 1);
-    await expect(line.getByRole('button', { name: 'Undo' })).toBeFocused();
-    // The same rating again changes nothing, says so, and costs the first tap nothing.
-    await open.click();
-    await search.fill('HT');
-    await page.getByRole('option', { name: /Navy Hull Maintenance Technician/ }).click();
-    await expect(line.locator('[data-done-nothing]')).toContainText(`You already hold all ${ht.skillCount} skills of its path.`);
-    await expect(open).toBeFocused();
-    await expect(said).toContainText(`Marked ${added} skills held.`);
-    await line.getByRole('button', { name: 'Undo' }).focus();
-    await page.keyboard.press('Enter');
-    await expect(said).toHaveCount(0);
-    await expect.poll(async () => (await mySkills()).map((skill) => skill.skillId), { message: 'only the skill held before is left' }).toEqual([own.id]);
-    // The keyboard is on the line again, not at the top of the page.
-    await expect(open).toBeFocused();
+    await assertHealthyLayout(page, '/me with skills, no door');
   } finally {
     expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'seeker: account removed').toBe(true);
   }
+});
 
-  // Someone here to hire: with nothing on the page they are sent to their own, and with a skill on it there is still no door.
-  const hire = await page.request.post(`${API}/auth/sign-up`, { data: { email: `door-hire-${stamp}@device.test`, name: 'Door Hirer', password, purpose: 'hire' } });
-  expect(hire.status(), 'employer: account made').toBe(201);
-  try {
-    await page.goto('/me', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/\/employer/);
-    await expect(page.locator('[data-service-door]')).toHaveCount(0);
-    const own = ((await (await request.get(`${API}/skills?limit=1`)).json()) as { data: { id: string }[] }).data[0];
-    expect((await page.request.put(`${API}/me/skills/${own.id}`, { data: { status: 'held' } })).ok()).toBe(true);
-    await page.goto('/me', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: 'Skills', exact: true })).toBeVisible();
-    await expect(page.locator('[data-service-door]')).toHaveCount(0);
-    await expect(page.getByText('Start with what you have done')).toHaveCount(0);
-  } finally {
-    expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'employer: account removed').toBe(true);
+test('what the owner asked for: one order of companies with no sort, Safety last, the credit on Settings, the header menu, a wider Factories list', async ({ page, request }) => {
+  const width = page.viewportSize()?.width ?? 0;
+  const touch = test.info().project.use.hasTouch === true;
+
+  // Companies: no sort to choose, the one filter where the sort was, and an old ?sort= is not read.
+  await page.goto('/explore?tab=companies&sort=name-asc', { waitUntil: 'domcontentloaded' });
+  const firstRow = page.locator('main a[href^="/companies/"]').first();
+  await expect(firstRow).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Sort: / })).toHaveCount(0);
+  const industry = page.getByRole('button', { name: 'Industry: All industries' });
+  await expect(industry).toBeVisible();
+  const box = await industry.boundingBox();
+  if (width >= 640) expect((box?.x ?? 0) + (box?.width ?? 0), 'the filter stands at the right').toBeGreaterThan(width / 2);
+  const listed = (await (await request.get(`${API}/companies?limit=1`)).json()) as { data: { name: string; people: number | null; openJobCount: number; factoryCount: number }[] };
+  const lead = listed.data[0];
+  await expect(firstRow).toContainText(lead.people ? `${lead.people.toLocaleString('en-US')} people` : lead.openJobCount ? 'open job' : 'factor');
+  await assertHealthyLayout(page, '/explore?tab=companies');
+
+  // Domains in the taxonomy's order wherever they are listed: Safety is last, never first.
+  const taxonomy = (await (await request.get(`${API}/skills/taxonomy`)).json()) as { domains: { name: string }[] };
+  expect(taxonomy.domains.at(-1)?.name).toBe('Safety');
+  expect(taxonomy.domains[0].name).toBe('Materials');
+  await page.goto('/explore?tab=skills', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-skill-domain]').first()).toHaveAttribute('data-skill-domain', 'materials');
+
+  // The basemap's credit: off the map, on Settings with both links.
+  await page.goto('/settings', { waitUntil: 'domcontentloaded' });
+  const credits = page.locator('[data-map-credits]');
+  await expect(credits.getByRole('link', { name: '© MapTiler' })).toHaveAttribute('href', 'https://www.maptiler.com/copyright/');
+  await expect(credits.getByRole('link', { name: '© OpenStreetMap contributors' })).toHaveAttribute('href', 'https://www.openstreetmap.org/copyright');
+  await page.goto('/map', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+  await expect(page.locator('.maplibregl-ctrl-attrib')).toHaveCount(0);
+
+  // The Factories list: one column on a phone, three from 1280 px, four from 1600 px.
+  await page.goto('/explore?tab=factories', { waitUntil: 'domcontentloaded' });
+  const rows = page.locator('main a[href^="/factories/"]');
+  await expect(rows.nth(4)).toBeVisible();
+  const top = (await rows.first().boundingBox())?.y ?? 0;
+  const tops = await rows.evaluateAll((all) => all.slice(0, 5).map((row) => Math.round(row.getBoundingClientRect().top)));
+  expect(tops.filter((y) => Math.abs(y - Math.round(top)) < 2).length, `columns at ${width}px`).toBe(width >= 1600 ? 4 : width >= 1280 ? 3 : width >= 1024 ? 2 : 1);
+  await assertHealthyLayout(page, '/explore?tab=factories');
+
+  // Explore in the header: a mouse over it, or the keyboard on it, opens its six views; a tap just goes to Explore.
+  const explore = page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Explore', exact: true });
+  const menu = page.locator('[data-explore-menu]');
+  if (touch) {
+    await explore.tap();
+    await expect(page).toHaveURL(/\/explore$/);
+    await expect(menu).toHaveCount(0);
+  } else {
+    await explore.hover();
+    expect((await menu.getByRole('link').allInnerTexts()).map((text) => text.trim())).toEqual(['Overview', 'Industries', 'Companies', 'Factories', 'Careers', 'Skills']);
+    expect(await menu.locator('ul').evaluate((el) => getComputedStyle(el).boxShadow), 'no shadow').toBe('none');
+    await menu.getByRole('link', { name: 'Careers' }).click();
+    await expect(page).toHaveURL(/\/explore\?tab=occupations$/);
+    await page.mouse.move(width / 2, 400);
+    await expect(menu).toHaveCount(0);
+    await explore.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(menu).toBeVisible();
+    await page.keyboard.press('ArrowDown');
+    await expect(menu.getByRole('link', { name: 'Overview' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(explore).toBeFocused();
   }
 });
 
@@ -2435,7 +2491,7 @@ test("a military career's page: its kind and code above the service's own title,
   await expect(view.locator('[data-detail-kind]')).toHaveText('Navy rating · HT');
   await assertHealthyLayout(page, '/occupations/:id military on the atlas');
 
-  // A seeker: the page says how much of the path they hold and has no action. "I have done this" is Profile's.
+  // A seeker: the page says how much of the path they hold and has no action.
   const made = await page.request.post(`${API}/auth/sign-up`, { data: { email: `mil-work-${stamp}@device.test`, name: 'Mil Seeker', password, purpose: 'work' } });
   expect(made.status(), 'seeker: account made').toBe(201);
   try {

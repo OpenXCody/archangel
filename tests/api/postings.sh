@@ -323,6 +323,24 @@ expect "it carries facts and a link, no description" 'Welder II||https://jobs.as
 expect "its requirements, in the reader's words" '2|4|high school|AWS D1.1|U.S. person' "$(printf '%s' "$OUT" | j "job && [o.job.requirements.yearsMin, o.job.requirements.yearsMax, o.job.requirements.education, o.job.requirements.certifications[0], o.job.requirements.citizenship].join('|')")"
 expect "its skills"                         'Flux-Cored Welding, MIG Welding' "$(printf '%s' "$OUT" | j "skills.map((x) => x.name).sort().join(', ')")"
 expect "a make is under the skill it is a make of" 'CNC Milling: Haas; PLC Programming: Studio 5000' "$(req anon GET /jobs/$J102 | j "skills.map((x) => x.name + ': ' + x.makes.map((m) => m.name).join(', ')).sort().join('; ')")"
+# The page draws the career's whole path, not only what the posting names: each skill says whether the posting names it.
+WELDER_PATH=$(sql "SELECT COUNT(*) FROM occupation_skills WHERE occupation_id = '$WELDER'")
+expect "a sourced job's path is its career's" "career $WELDER_PATH" "$(printf '%s' "$OUT" | j "path.of + ' ' + o.path.skills.length")"
+expect "more than the posting names"        'true' "$(printf '%s' "$OUT" | j "path.skills.length > o.skills.length")"
+expect "what the posting names is marked, on the path or after it" 'Flux-Cored Welding, MIG Welding' "$(printf '%s' "$OUT" | j "path.skills.concat(o.path.alsoNamed).filter((x) => x.named).map((x) => x.name).sort().join(', ')")"
+expect "what is after the path is not on it" "$(sql "SELECT COUNT(*) FROM job_skills js WHERE js.job_id = '$J101' AND NOT EXISTS (SELECT 1 FROM occupation_skills os WHERE os.occupation_id = '$WELDER' AND os.skill_id = js.skill_id)")" "$(printf '%s' "$OUT" | j "path.alsoNamed.length")"
+expect "the path is in order, each skill with its group" 'true' "$(printf '%s' "$OUT" | j "path.skills.every((x, i, all) => x.group && x.domain && (i === 0 || all[i - 1].level <= x.level))")"
+expect "the makes stand beside their skills there too" 'CNC Milling: Haas; PLC Programming: Studio 5000' "$(req anon GET /jobs/$J102 | j "path.skills.concat(o.path.alsoNamed).filter((x) => x.makes.length).map((x) => x.name + ': ' + x.makes.map((m) => m.name).join(', ')).sort().join('; ')")"
+S101=$(sql "SELECT serial FROM jobs WHERE id = '$J101'")
+expect "its address ends in its number"     "/jobs/e2e-postings-acme/welder/$S101" "$(printf '%s' "$OUT" | j job.href)"
+check "and the number finds it"             200 "$(req anon GET /jobs/by-number/$S101)" "\"id\":\"$J101\""
+expect "other open jobs for the career at the company, this one left out" 'true' "$(printf '%s' "$OUT" | j "others.career.total >= 1 && o.others.career.jobs.every((x) => x.id !== '$J101' && x.occupationTitle === 'Welder')")"
+# Where the company has its own version of the career, the path is the version's.
+LEFT=$(sql "SELECT skill_id FROM occupation_skills WHERE occupation_id = '$WELDER' AND skill_id <> '$MIG' ORDER BY skill_id LIMIT 1")
+sql "INSERT INTO company_careers (company_id, occupation_id, origin) VALUES ('$ACME', '$WELDER', 'admin')" >/dev/null
+sql "INSERT INTO company_career_skills (company_career_id, skill_id, change) SELECT id, '$LEFT', 'left_out' FROM company_careers WHERE company_id = '$ACME' AND occupation_id = '$WELDER'" >/dev/null
+expect "the company's version of the career is the path" "version $((WELDER_PATH - 1)) false" "$(req anon GET /jobs/$J101 | j "path.of + ' ' + o.path.skills.length + ' ' + o.path.skills.some((x) => x.id === '$LEFT')")"
+sql "DELETE FROM company_careers WHERE company_id = '$ACME' AND occupation_id = '$WELDER'" >/dev/null
 expect "the company's page lists its jobs"  'true' "$(req anon GET /companies/$ACME | j "jobs.some((x) => x.id === '$J101')")"
 expect "the plant's page lists its jobs"    'true' "$(req anon GET /factories/$PLANT | j "jobs.some((x) => x.id === '$J101')")"
 # Thirteen welders' jobs are open; a page lists the first twelve in the list's order and says how many there are.
@@ -338,6 +356,7 @@ expect "the map's pins count it"            'true' "$(req anon GET /factories/pi
 check "sign-up seeker"                      201 "$(req s POST /auth/sign-up "{\"email\":\"seeker-$RUN@postings.test\",\"name\":\"Sam Seeker\",$PW}")"
 check "the seeker holds a skill"            200 "$(req s PUT /me/skills/$MIG '{"status":"held"}')"
 expect "the job says which of its skills the person holds" 'Flux-Cored Welding:false MIG Welding:true' "$(req s GET /jobs/$J101 | j "skills.map((x) => x.name + ':' + x.held).sort().join(' ')")"
+expect "and so does the path"               'true 1' "$(req s GET /jobs/$J101 | j "path.skills.concat(o.path.alsoNamed).find((x) => x.name === 'MIG Welding').held + ' ' + o.path.skills.concat(o.path.alsoNamed).filter((x) => x.held).length")"
 check "applying is on the company's own site" 400 "$(req s POST /jobs/$J101/apply '{}')" "own site"
 
 # A member of the company

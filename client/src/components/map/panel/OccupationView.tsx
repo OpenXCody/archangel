@@ -5,7 +5,7 @@ import { stateName } from '../../../lib/places';
 import { formatFactoryName } from '@shared/displayName';
 import { shownIndustry } from '@shared/industry';
 import { LEVEL_NAME } from '../../../lib/stages';
-import { Heading, Section, RowList, NodeRow, More, JobRows, PageLink, CHIP } from './parts';
+import { Heading, Section, RowList, NodeRow, More, JobRows, PageLinks, CHIP } from './parts';
 
 export default function OccupationView({ occupation }: { occupation: OccupationDetail }) {
   const { selectState, selectEntity, selectFactory, flyTo, setHoveredFactory } = useMapStore();
@@ -22,6 +22,8 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
     <>
       {/* What is this */}
       <Heading title={occupation.title} subtitle={occupation.description || undefined} />
+      {/* The way on, at the top, named for where it goes. */}
+      <PageLinks links={[{ to: `/occupations/${occupation.id}`, label: 'Career page' }]} />
 
       {/* Where the work is done: by industry, since few factories list their careers. */}
       {(industries.length > 0 || occupation.everywhere) && (
@@ -128,8 +130,6 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
         </Section>
       )}
 
-      {/* Where next */}
-      <PageLink to={`/occupations/${occupation.id}`}>Career page</PageLink>
     </>
   );
 }

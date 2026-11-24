@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { type FactoryDetail } from '../../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { industryLabel, industryPath } from '@shared/industry';
+import { versionPath } from '@shared/versions';
 import CompanyLogo from '../CompanyLogo';
+import { ownCareerLine } from './RecordFacts';
 import { PlantFacts } from './RecordFacts';
 import CountyLine from './CountyLine';
 import { cityState } from '../../lib/places';
@@ -16,13 +18,18 @@ import {
   ShowAll,
   detailActionClass,
 } from '../layout/Page';
-import { plural } from '@/lib/utils';
-import { type Head, streetAddress, factLinkClass, Footprint, OpenJobsSection, CAREERS_SHOWN, TypicalCareers } from './parts';
+import { CompanyTag, RecordTags } from '../layout/RecordTag';
+import { type Head, streetAddress, factLinkClass, Footprint, OpenJobsSection, CAREERS_SHOWN } from './parts';
 
 /**
- * A factory's page: where it is, how many people, what it makes, who runs it,
- * whether it is hiring, the company's other factories and the careers there.
- * The same story its panel on the map tells, with room for all of it.
+ * A factory's page. It is about this factory and shows only what is known of
+ * it: headed Factory, with its company as a tag under the name (the way to
+ * the company's page); how many people, what it makes; where it is, drawn
+ * alone on the map so the page is not taken for the company's; its open jobs;
+ * its own careers (of its open jobs, its company's versions, those recorded
+ * for it); more of the company's factories. Nothing about its industry in
+ * general, and nothing about other companies. The same story its panel on the
+ * map tells, with room for all of it.
  */
 export default function FactoryDetailView({ data, head }: { data: FactoryDetail; head: Head }) {
   const [showAllCareers, setShowAllCareers] = useState(false);
@@ -40,23 +47,16 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
   const longitude = parseFloat(data.longitude);
   const located = Number.isFinite(latitude) && Number.isFinite(longitude);
   const plantCount = company?.siteCount ?? 0;
-  const stateCount = company?.stateCount ?? 0;
   // A company whose one factory this is, under the same name, would only repeat the heading.
   const companyIsThisPlant =
     companyName !== null && plantCount <= 1 && !company?.description && name.toLowerCase().startsWith(companyName.toLowerCase());
   const street = streetAddress(data);
-  const careers = data.occupations ?? [];
-  const counted = careers.some((career) => (career.headcount ?? 0) > 0);
+  const careers = data.careers ?? [];
 
-  // This factory, marked, among the company's nearest others.
+  // This factory alone: a map of the company's factories is the company's page.
   const points = useMemo(
-    () => [
-      ...(located ? [{ id: data.id, latitude, longitude, label: formatFactoryName(data.name) }] : []),
-      ...nearby
-        .map((plant) => ({ id: plant.id, latitude: parseFloat(plant.latitude), longitude: parseFloat(plant.longitude), label: formatFactoryName(plant.name) }))
-        .filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude)),
-    ],
-    [data.id, data.name, located, latitude, longitude, nearby]
+    () => (located ? [{ id: data.id, latitude, longitude, label: formatFactoryName(data.name) }] : []),
+    [data.id, data.name, located, latitude, longitude]
   );
 
   return (
@@ -65,7 +65,8 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
         {...head}
         kind="Factory"
         title={name}
-        mark={companyName ? <CompanyLogo name={companyName} domain={company?.domain} size={44} /> : undefined}
+        // The company's mark stands before the name only where no tag under it names the company.
+        mark={companyName && companyIsThisPlant ? <CompanyLogo name={companyName} domain={company?.domain} size={44} /> : undefined}
         description={data.description}
         action={
           located ? (
@@ -89,6 +90,12 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
             {underConstruction ? `${place || industry ? ' · ' : ''}Under construction` : ''}
           </DetailFacts>
         )}
+        {/* Who runs it: the company, as the tag every heading names a company with. */}
+        {company && !companyIsThisPlant && (
+          <RecordTags>
+            <CompanyTag company={company} data-factory-company="" />
+          </RecordTags>
+        )}
       </DetailHeader>
 
       {/* What it is: how many people, what it makes, since when */}
@@ -106,43 +113,16 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
       {/* Open jobs: said only when there are some */}
       {jobs.length > 0 && <OpenJobsSection jobs={jobs} showCareer total={data.openJobCount} all={`/jobs?plant=${data.id}`} />}
 
-      {/* Who runs it */}
-      {company && companyName && !companyIsThisPlant && (
-        <DetailSection title="Company">
-          <RecordList>
-            <RecordRow
-              to={`/companies/${company.slug ?? company.id}`}
-              lead={<CompanyLogo name={companyName} domain={company.domain} size={32} />}
-              title={companyName}
-              // One factory is this one: counting it says nothing.
-              subtitle={plantCount > 1 ? `${plural(plantCount, 'factory', 'factories')}${stateCount > 1 ? ` in ${stateCount} states` : ''}` : null}
-            />
-          </RecordList>
-        </DetailSection>
-      )}
-
-      {/* The company's other factories, closest first */}
-      {nearby.length > 0 && companyName && (
-        <DetailSection title={`Other ${companyName} factories`}>
-          <RecordList>
-            {nearby.map((plant) => (
-              <RecordRow key={plant.id} to={`/factories/${plant.id}`} title={formatFactoryName(plant.name)} subtitle={cityState(plant.city, plant.state) || null} />
-            ))}
-          </RecordList>
-        </DetailSection>
-      )}
-
-      {/* Careers recorded at this factory, with how many people where that is known; else its industry's */}
+      {/* Its own careers: of its open jobs (with how many are open), its company's versions, those recorded for it */}
       {careers.length > 0 && (
-        <DetailSection id="occupations" title="Careers here" column={counted ? 'People' : undefined}>
+        <DetailSection id="occupations" title="Careers here">
           <RecordList>
             {(showAllCareers ? careers : careers.slice(0, CAREERS_SHOWN)).map((career) => (
               <RecordRow
                 key={career.id}
-                to={`/occupations/${career.id}`}
+                to={career.version && company ? versionPath(career.id, company) : `/occupations/${career.id}`}
                 title={career.title}
-                figure={counted ? (career.headcount ?? 0) || null : undefined}
-                figureLabel="people"
+                subtitle={ownCareerLine(career)}
               />
             ))}
           </RecordList>
@@ -151,8 +131,17 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
           )}
         </DetailSection>
       )}
-      {careers.length === 0 && (data.typicalCareers?.length ?? 0) > 0 && <TypicalCareers careers={data.typicalCareers ?? []} />}
 
+      {/* More of the same company, nearest first. Never another company's. */}
+      {nearby.length > 0 && companyName && (
+        <DetailSection title={`More ${companyName} factories`}>
+          <RecordList>
+            {nearby.map((plant) => (
+              <RecordRow key={plant.id} to={`/factories/${plant.id}`} title={formatFactoryName(plant.name)} subtitle={cityState(plant.city, plant.state) || null} />
+            ))}
+          </RecordList>
+        </DetailSection>
+      )}
     </>
   );
 }
