@@ -39,10 +39,7 @@
   { "from": "Shipfitter", "to": "CAD Designer", "why": "The shipyard's way up from the trades: fitters become the marine designers who draw the structure they built; the drawing carries, the CAD is new." },
   { "from": "Pipefitter", "to": "CAD Designer", "why": "The same for piping: the pipefitter becomes the piping designer; the drawing and the P&ID carry, the CAD is new." },
   { "from": "Brazer", "to": "TIG Welder", "why": "Brazers move on to fusion welding: the joint preparation, the weld symbols, the print and the leak test carry; the arc is new." },
-  { "from": "Welder", "to": "Pipefitter", "why": "The welder takes on laying out and fitting the pipe they weld: the drawing, the cut, the fit-up and the pipe weld carry; supports, valves and the piping systems are new." },
-  { "from": "Casting Finisher", "to": "Welder", "why": "Foundries train their casting welders in the cleaning room: the cutting, the stick rod and the crane carry; the other processes and positions are new." },
-  { "from": "Foundry Molder", "to": "Melter", "why": "The melt deck is the next rung of the same foundry: the floor and its records carry; the furnaces, the treatment of the iron and the ladle are new." },
-  { "from": "Machine Builder", "to": "Equipment Field Service Technician", "why": "The builder goes out to install and service what the shop built: leveling, alignment, bearings and commissioning carry; the drives, the controls and troubleshooting in the field are new." }
+  { "from": "Casting Finisher", "to": "Welder", "why": "Foundries train their casting welders in the cleaning room: the cutting, the stick rod and the crane carry; the other processes and positions are new." }
  ],
  "careers": [
   {
@@ -1181,6 +1178,7 @@
     "Work Instruction Reading",
     "Lot Tracking",
     "Overhead Crane Operation",
+    { "skill": "Forklift Operation", "why": "Charge material and, in many shops, the pouring ladle are moved by forklift." },
     "Molten Metal Sampling",
     "Oxy-Fuel Cutting",
     "Material Traceability Records",
@@ -1318,6 +1316,7 @@
     "Bolted Flange Joint Assembly",
     "Proof Pressure and Leak Testing",
     "Valve Maintenance and Repair",
+    { "skill": "Stick Welding", "why": "The pipefitter-welder's root and fill on carbon steel pipe." },
     { "skill": "Pipe Welding", "why": "Pipe Welding is on the path for the pipefitter-welder of most factories and many yards; a yard where only welders weld would leave it out of its own version." }
    ]
   },
@@ -4738,6 +4737,7 @@
     "Rigging and Slinging",
     "Machine Leveling",
     "Bearing Installation",
+    { "skill": "Torque Wrench Use", "why": "Anchors, couplings and the machine's own bolted joints are torqued to the builder's figures at installation." },
     "Preventive Maintenance",
     "Pneumatic System Repair",
     "Motor Control Troubleshooting",

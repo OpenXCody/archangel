@@ -228,12 +228,12 @@ test('the fifth taxonomy places the new skills, most in 51 new groups, and moves
   const was = skillsOf(before);
   const now = skillsOf(after);
   assert.equal(was.size, 722);
-  assert.equal(now.size, 1024);
+  assert.equal(now.size, 1023);
   const moved = [...was].filter(([name, place]) => now.get(name) !== place).map(([name]) => `${name}: ${was.get(name)} to ${now.get(name)}`);
   assert.deepEqual(moved, ['Industrial Sewing: survival-equipment 2 to cut-and-sew 2']);
-  // Safety is ancillary: it gains one skill, in a group it had.
+  // Safety is ancillary: it gains no skill.
   const safety = (sql: string) => [...skillsOf(sql).values()].filter((place) => ['workplace-safety', 'hazardous-energy', 'hazardous-materials'].includes(place.split(' ')[0])).length;
-  assert.equal(safety(after) - safety(before), 1);
+  assert.equal(safety(after) - safety(before), 0);
 });
 
 // Read from the third's own file: the latest restates it with the domains in another order.

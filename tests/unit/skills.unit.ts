@@ -164,8 +164,8 @@ test('the fifth migration adds the trades of the industries the catalogue lacked
   const now = keptBy(after);
   for (const name of was) assert.ok(now.has(name), `${name} is still kept`);
   const added = [...now].filter((name) => !was.has(name));
-  assert.equal(added.length, 302);
-  assert.equal(catalogue.skills.length, 1024);
+  assert.equal(added.length, 301);
+  assert.equal(catalogue.skills.length, 1023);
   // Five names come back from the removed list, three as skills of their own and two as earlier names
   // (renamed if a database still stores them); nothing else is renamed, merged or removed.
   const back = ['Sensory Evaluation', 'Capsule Filling', 'Shelf Life Testing', 'Extrusion Food', 'Mass Properties'];
@@ -189,7 +189,7 @@ test('the fifth migration adds the trades of the industries the catalogue lacked
     .map(({ line }) => line.slice("  WHERE name = '".length, -1).replace(/''/g, "'"));
   assert.deepEqual(described.filter((name) => !added.includes(name.replace(/'/g, "''"))), ['Industrial Network Troubleshooting']);
   // The owner's word: a safety skill is not added (safety is ancillary).
-  for (const name of ['Combustible Dust Control', 'Molten Metal Safety', 'Job Hazard Analysis']) assert.ok(!now.has(name), `${name} is held back`);
+  for (const name of ['Combustible Dust Control', 'Molten Metal Safety', 'Job Hazard Analysis', 'Process Hazard Analysis']) assert.ok(!now.has(name), `${name} is held back`);
   // A skill is the standard one; a brand is a make of it.
   for (const name of ['Banbury Mixing', 'Ultrasonic Welding', 'CNC Routing']) assert.ok(!now.has(name), `${name} is not a skill of its own`);
 });

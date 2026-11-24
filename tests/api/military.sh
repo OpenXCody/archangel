@@ -355,7 +355,7 @@ expect "the hand count for MIG Welder"              "10 of 14" "$(shared 'Navy H
 expect "for Metal Fabricator"                       "13 of 19" "$(shared 'Navy Hull Maintenance Technician' 'Metal Fabricator')"
 expect "for Welder"                                 "12 of 20" "$(shared 'Navy Hull Maintenance Technician' 'Welder')"
 OUT=$(req anon GET /occupations/$HT)
-expect "a military career's civilian careers within reach, the most covered first" "MIG Welder 10 of 14|Metal Fabricator 13 of 19|Shipfitter 13 of 20" "$(printf '%s' "$OUT" | j 'withinReach.slice(0, 3).map((c) => c.title + " " + c.held + " of " + c.total).join("|")')"
+expect "a military career's civilian careers within reach, the most covered first" "MIG Welder 10 of 14|Metal Fabricator 13 of 19|Shipfitter 12 of 18" "$(printf '%s' "$OUT" | j 'withinReach.slice(0, 3).map((c) => c.title + " " + c.held + " of " + c.total).join("|")')"
 # The floor: a third of the civilian career's path, which is written and has five skills or more.
 FLOOR="WITH pairs AS (SELECT c.id, (SELECT COUNT(*) FROM occupation_skills x WHERE x.occupation_id = c.id) AS total, (SELECT COUNT(*) FROM occupation_skills x INNER JOIN occupation_skills y ON y.skill_id = x.skill_id AND y.occupation_id = '$HT' WHERE x.occupation_id = c.id) AS held FROM occupations c WHERE c.service_company_id IS NULL AND c.path_status IS NOT NULL) SELECT COUNT(*) FROM pairs WHERE total >= 5 AND held * 3 >= total"
 expect "every career of the floor, and no other"    "$(sql "$FLOOR")" "$(printf '%s' "$OUT" | j withinReach.length)"

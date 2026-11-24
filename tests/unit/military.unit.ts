@@ -330,7 +330,8 @@ test('the civilian careers a military career reaches are computed from the two p
   // The owner's own test of the rule: the Hull Maintenance Technician, read against the Navy's standard.
   const ht = reach.get('Navy Hull Maintenance Technician') ?? [];
   // Shipfitter, the rating's own trade ashore (0073), stands above Welder, whose path took Forklift Operation.
-  assert.deepEqual(ht.map((r) => `${r.career} ${r.held}/${r.of}`), ['MIG Welder 10/14', 'Metal Fabricator 13/19', 'Shipfitter 13/20']);
+  // Its path has no PPE Selection or Fall Protection, so it is 12 of 18.
+  assert.deepEqual(ht.map((r) => `${r.career} ${r.held}/${r.of}`), ['MIG Welder 10/14', 'Metal Fabricator 13/19', 'Shipfitter 12/18']);
   for (const [title, list] of reach) {
     assert.ok(list.length <= 3, title);
     for (const r of list) assert.ok(r.held >= 1 && r.held <= r.of, `${title} reaches ${r.career}`);
@@ -338,10 +339,13 @@ test('the civilian careers a military career reaches are computed from the two p
     for (let i = 1; i < list.length; i += 1) assert.ok(list[i - 1].held / list[i - 1].of >= list[i].held / list[i].of, title);
   }
   // Fuel is handled as any bulk liquid is: the fuels careers reach the chemical operator by that skill too,
-  // and, nearest since it was added (0073), the refinery operator, who moves the same liquids.
+  // and the refinery operator (0073) by it and the P&IDs. Nearest is the industrial refrigeration technician,
+  // by the pumps, valves and P&IDs and the one hazardous liquid each handles; the refinery operator's path is
+  // its units, with none of the chemical safety basics the two shared before.
   const fuels = reaches(pathsFile, civilianPaths, 8).get('Air Force Fuels') ?? [];
   assert.equal(fuels.find((r) => r.career === 'Chemical Operator')?.held, 4);
-  assert.equal(reach.get('Air Force Fuels')?.[0].career, 'Refinery Operator');
+  assert.deepEqual(fuels.filter((r) => r.career === 'Refinery Operator').map((r) => `${r.held}/${r.of}`), ['2/10']);
+  assert.equal(reach.get('Air Force Fuels')?.[0].career, 'Industrial Refrigeration Technician');
 });
 
 test('the careers\' and the paths\' migrations are what the files generate', () => {

@@ -441,13 +441,14 @@ const MAKES_SINCE = ['81 Allen-Bradley>PLC Troubleshooting', '81 Siemens>PLC Tro
 // from a labelled line that plainly asks for it ("Support maintenance of generators,
 // uninterruptible power supply (UPS) systems"; "APQP, PPAP, FMEA"; "Conduct trade studies";
 // "hand calculations and finite element methods"; "IPC-7711/7721 certification"): each is
-// named here, counted neither way, and any other unlabelled skill is wrong as before.
+// named here, counted neither way, and any other unlabelled skill is wrong as before. A skill read from a
+// tool in a list of shop tools ("table saws" at a metal fabricator, 202) is not asked for, and counts wrong.
 const SKILLS_SINCE = [
   '20 Advanced Product Quality Planning', '24 Engineering Change Management', '35 Environmental Chamber Testing',
   '42 Battery and UPS Maintenance',
   '44 Serial Bus Diagnostics', '44 Environmental Chamber Testing', '81 Equipment Commissioning', '93 Materials Selection',
   '122 Trade Studies', '130 Board Bring-Up', '130 Trade Studies', '156 Trade Studies', '161 Structural Hand Calculations',
-  '189 Structural Hand Calculations', '202 Stationary Woodworking Machine Operation', '223 PCB Rework and Repair',
+  '189 Structural Hand Calculations', '223 PCB Rework and Repair',
 ];
 
 function score(split: 'tune' | 'held') {
