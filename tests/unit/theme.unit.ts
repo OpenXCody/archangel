@@ -94,12 +94,13 @@ function oklab(hex: string): [number, number, number] {
 const apart = (a: string, b: string) => Math.hypot(...oklab(a).map((value, i) => value - oklab(b)[i]));
 
 for (const theme of ['dark', 'light'] as const) {
-  test(`${theme}: every domain of the taxonomy has a hue, legible as its 10px name on the rim on both surfaces`, () => {
+  test(`${theme}: every domain of the taxonomy has a hue, as plain as the ink on both surfaces`, () => {
     const found = tokens(theme);
     for (const slug of DOMAINS) {
       const hue = found.get(`--domain-${slug}`);
       assert.ok(hue, `${theme} has no --domain-${slug}`);
-      // A domain's name is small text (10 to 12.5px) in its hue: 4.5:1, as for the ink.
+      // A hue is drawn as a 1.5px hairline on the rim, a 3px swatch and a mark of a few pixels: no text is set in it,
+      // but a line that thin has to read as plainly as small text does, so it is held to 4.5:1, as the ink is.
       for (const ground of ['--bg', '--surface']) {
         const ratio = contrast(hue, found.get(ground)!);
         assert.ok(ratio >= 4.5, `${theme}: --domain-${slug} on ${ground} is ${ratio.toFixed(2)}:1, under 4.5:1`);

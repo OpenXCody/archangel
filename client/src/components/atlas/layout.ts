@@ -20,12 +20,25 @@ import type { SkillLevel, Taxonomy } from '../../lib/api';
  *
  * The tree is: centre → domain → skill group → skill. Every skill is a leaf
  * and takes one step of angle; a gap separates two groups and a wider one two
- * domains. A branch is an arc at the parent's radius and a spoke out to the
- * child. A skill's level sets how far out its leaf sits: Fundamentals nearest
- * the centre, Advanced nearest the rim.
+ * domains, so the sectors read with nothing drawn between them. A skill's
+ * level sets how far out its leaf sits: Fundamentals nearest the centre,
+ * Advanced nearest the rim, each level a band of a few rows.
+ *
+ * The branches are smooth curves (`linkPath`): each leaves its parent along
+ * the radius and arrives at its child along the radius, the way a radial
+ * tree is drawn. The plate draws them only as far as the groups (the
+ * skeleton, `skeletonPath`); a career laid over it draws them on to its
+ * skills (`branchPath`).
  */
 
 export const TAU = Math.PI * 2;
+
+/** A level's band: where its leaves sit, from the inner row to the outer, and in how many rows. */
+export interface AtlasBand {
+  from: number;
+  to: number;
+  rows: number;
+}
 
 export interface AtlasGeometry {
   /** Where the seam between the last domain and the first is: radians clockwise from twelve o'clock. */
@@ -34,25 +47,22 @@ export interface AtlasGeometry {
   groupGap: number;
   /** The gap between two domains, in leaf steps. */
   domainGap: number;
-  /** How far a domain's outer arc reaches past its first and last leaf, in leaf steps. */
+  /** How far a domain's rim arc reaches past its first and last leaf, in leaf steps. */
   ringPad: number;
   /** The small ring the trunks leave from. */
   root: number;
-  /** The radius of a domain's arc, where its groups branch. */
+  /** Where a domain's trunk ends and its groups' branches begin. */
   domain: number;
-  /** The radius of a group's arc, where its skills branch. */
+  /** Where a group's branch ends, under its skills. */
   group: number;
-  /** The middle of a level's band: where its leaves sit, Fundamentals nearest the centre. */
-  level: Record<SkillLevel, number>;
   /**
-   * Leaves of one level in one group sit in three rows, a step of `lattice`
-   * apart, taking the rows in turn: 643 skills on one ring would run together
-   * into a line, and in rows each keeps a mark of its own.
+   * The level's bands, Fundamentals nearest the centre. Leaves of one level
+   * in one group take the band's rows in turn, so 722 skills keep a mark of
+   * their own: on one ring they would run together into a line. Intermediate
+   * holds most of the skills and has the deepest band.
    */
-  lattice: number;
-  /** A ring of short arcs, one per group, just inside the outer ring. */
-  groupRing: number;
-  /** The outer ring: one arc per domain. */
+  bands: Record<SkillLevel, AtlasBand>;
+  /** The rim: one arc per domain. */
   ring: number;
 }
 
@@ -61,30 +71,30 @@ export const START = (Math.PI * 5) / 4;
 
 export const GEOMETRY: AtlasGeometry = {
   start: START,
-  groupGap: 1,
-  domainGap: 4,
-  ringPad: 1.25,
-  root: 0.04,
-  domain: 0.22,
-  group: 0.47,
-  level: { 1: 0.565, 2: 0.665, 3: 0.765 },
-  lattice: 0.02,
-  groupRing: 0.826,
-  ring: 0.865,
+  groupGap: 1.6,
+  domainGap: 6,
+  ringPad: 1.5,
+  root: 0.035,
+  domain: 0.14,
+  group: 0.4,
+  bands: {
+    1: { from: 0.465, to: 0.53, rows: 4 },
+    2: { from: 0.58, to: 0.71, rows: 4 },
+    3: { from: 0.76, to: 0.85, rows: 3 },
+  },
+  ring: 0.905,
 };
-
-/** How many rows a level's band has. */
-const ROWS = 3;
 
 /**
  * The radius of a leaf: its level's band, and within the band the row it
- * takes (`turnInRun` counts the leaves of that level in its group, from 0).
+ * takes (`turn` counts the leaves of that level round the plate, from 0).
  * Every Fundamentals leaf is nearer the centre than every Intermediate one,
  * and those nearer than every Advanced one.
  */
-export function leafRadius(geometry: AtlasGeometry, level: SkillLevel, turnInRun = 1): number {
-  const middle = geometry.level[level] ?? geometry.level[2];
-  return middle + ((turnInRun % ROWS) - (ROWS - 1) / 2) * geometry.lattice;
+export function leafRadius(geometry: AtlasGeometry, level: SkillLevel, turn = 0): number {
+  const band = geometry.bands[level] ?? geometry.bands[2];
+  if (band.rows <= 1) return (band.from + band.to) / 2;
+  return band.from + ((turn % band.rows) / (band.rows - 1)) * (band.to - band.from);
 }
 
 export interface AtlasLeaf {
@@ -113,7 +123,7 @@ export interface AtlasGroup {
   /** Its leaves are `leaves[first..last]`. */
   first: number;
   last: number;
-  /** The angles of its first and last leaf, and where its spoke meets its arc. */
+  /** The angles of its first and last leaf, and where its branch ends. */
   a0: number;
   a1: number;
   angle: number;
@@ -132,7 +142,7 @@ export interface AtlasDomain {
   /** The angles of its first and last leaf. */
   a0: number;
   a1: number;
-  /** Where its outer arc starts and ends: a little past its leaves. */
+  /** Where its rim arc starts and ends: a little past its leaves. */
   from: number;
   to: number;
   /** Where its trunk leaves the centre: the middle of its sector. */
@@ -185,6 +195,8 @@ export function layoutAtlas(taxonomy: Pick<Taxonomy, 'domains'>, geometry: Atlas
   const groups: AtlasGroup[] = [];
   const leaves: AtlasLeaf[] = [];
   let maxCareers = 0;
+  // The leaves of each level take their band's rows in turn round the whole plate: two that share a row have a band's worth of rows of others between them.
+  const turns: Record<SkillLevel, number> = { 1: 0, 2: 0, 3: 0 };
   // The seam between the last domain and the first is centred on `start`.
   const origin = step > 0 ? geometry.start / step : 0;
   let cursor = origin + geometry.domainGap / 2;
@@ -219,11 +231,7 @@ export function layoutAtlas(taxonomy: Pick<Taxonomy, 'domains'>, geometry: Atlas
         a1: 0,
         angle: 0,
       };
-      let runLevel: SkillLevel | null = null;
-      let run = 0;
       for (const skill of g.skills) {
-        run = skill.level === runLevel ? run + 1 : 0;
-        runLevel = skill.level;
         // A leaf sits in the middle of its step.
         leaves.push({
           index: leaves.length,
@@ -233,11 +241,12 @@ export function layoutAtlas(taxonomy: Pick<Taxonomy, 'domains'>, geometry: Atlas
           careers: skill.careers,
           militaryCareers: skill.militaryCareers ?? 0,
           angle: (cursor + 0.5) * step,
-          radius: leafRadius(geometry, skill.level, run),
+          radius: leafRadius(geometry, skill.level, turns[skill.level] ?? 0),
           group: group.index,
           domain: domain.index,
         });
         if (skill.careers > maxCareers) maxCareers = skill.careers;
+        if (skill.level in turns) turns[skill.level] += 1;
         cursor += 1;
       }
       group.a0 = leaves[group.first].angle;
@@ -303,12 +312,21 @@ export function arcPathReversed(radius: number, a0: number, a1: number, scale: n
   return `M${at(a1, radius, scale)}A${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 0 ${at(a0, radius, scale)}`;
 }
 
-/** "M … L …": a spoke at `angle` from radius `r0` out to `r1`. */
-export function spokePath(angle: number, r0: number, r1: number, scale: number): string {
-  return `M${at(angle, r0, scale)}L${at(angle, r1, scale)}`;
+/**
+ * One branch, from a parent at (`a0`, `r0`) to a child at (`a1`, `r1`): a
+ * straight run when the two share an angle, else a cubic curve whose control
+ * points stand at the middle radius on each one's angle, so it leaves the
+ * parent and reaches the child along the radius. `continued` leaves out the
+ * move to its start, for a line that goes on from where the pen is.
+ */
+export function linkPath(a0: number, r0: number, a1: number, r1: number, scale: number, continued = false): string {
+  const start = continued ? '' : `M${at(a0, r0, scale)}`;
+  if (Math.abs(a1 - a0) < 1e-9) return `${start}L${at(a1, r1, scale)}`;
+  const middle = (r0 + r1) / 2;
+  return `${start}C${at(a0, middle, scale)} ${at(a1, middle, scale)} ${at(a1, r1, scale)}`;
 }
 
-/** A closed sector of an annulus, for a domain's wash. */
+/** A closed sector of an annulus: what the pointer is on. */
 export function sectorPath(r0: number, r1: number, a0: number, a1: number, scale: number): string {
   const large = a1 - a0 > Math.PI ? 1 : 0;
   const inner = n(r0 * scale);
@@ -319,65 +337,48 @@ export function sectorPath(r0: number, r1: number, a0: number, a1: number, scale
   );
 }
 
-/** A group's branches: its arc, and a spoke out to each of its skills. */
-export function groupPath(layout: AtlasLayout, group: AtlasGroup, scale: number): string {
+/** The plate's own branches, as one path: each domain's trunk from the centre and a curve from it to each of its groups. No skill has a stem of its own. */
+export function skeletonPath(layout: AtlasLayout, scale: number): string {
   const g = layout.geometry;
-  let d = arcPath(g.group, group.a0, group.a1, scale);
-  for (let i = group.first; i <= group.last; i++) d += spokePath(layout.leaves[i].angle, g.group, layout.leaves[i].radius, scale);
+  let d = '';
+  for (const domain of layout.domains) {
+    d += linkPath(domain.angle, g.root, domain.angle, g.domain, scale);
+    for (let i = domain.firstGroup; i <= domain.lastGroup; i++) d += linkPath(domain.angle, g.domain, layout.groups[i].angle, g.group, scale);
+  }
   return d;
 }
 
-/** A domain's branches: its trunk from the centre, its arc, and a spoke out to each of its groups. */
-export function domainPath(layout: AtlasLayout, domain: AtlasDomain, scale: number): string {
+/** A group's branches on to its skills: what an open group draws. */
+export function stemsPath(layout: AtlasLayout, group: AtlasGroup, scale: number): string {
   const g = layout.geometry;
-  const first = layout.groups[domain.firstGroup];
-  const last = layout.groups[domain.lastGroup];
-  let d = spokePath(domain.angle, g.root, g.domain, scale) + arcPath(g.domain, first.angle, last.angle, scale);
-  for (let i = domain.firstGroup; i <= domain.lastGroup; i++) d += spokePath(layout.groups[i].angle, g.domain, g.group, scale);
+  let d = '';
+  for (let i = group.first; i <= group.last; i++) d += linkPath(group.angle, g.group, layout.leaves[i].angle, layout.leaves[i].radius, scale);
   return d;
 }
 
 /**
  * The branches that lead from the centre to a set of skills, as one path:
- * each skill's spoke, the part of its group's arc between that spoke and the
- * group's own, the group's spoke, the part of the domain's arc that reaches
- * it, and the trunk. What a career laid over the atlas lights.
+ * each domain's trunk, the curve to each group, and the curve on to each
+ * skill, every one drawn once however many skills share it. What a career
+ * laid over the atlas lights.
  */
 export function branchPath(layout: AtlasLayout, leafIndexes: Iterable<number>, scale: number): string {
   const g = layout.geometry;
-  // Per group and per domain: how far along the parent's arc the lit children reach.
-  const groupReach = new Map<number, [number, number]>();
+  const groups = new Set<number>();
   let d = '';
   for (const index of leafIndexes) {
     const leaf = layout.leaves[index];
     if (!leaf) continue;
-    d += spokePath(leaf.angle, g.group, leaf.radius, scale);
-    const reach = groupReach.get(leaf.group);
-    if (reach) {
-      reach[0] = Math.min(reach[0], leaf.angle);
-      reach[1] = Math.max(reach[1], leaf.angle);
-    } else {
-      groupReach.set(leaf.group, [leaf.angle, leaf.angle]);
-    }
+    groups.add(leaf.group);
+    d += linkPath(layout.groups[leaf.group].angle, g.group, leaf.angle, leaf.radius, scale);
   }
-  const domainReach = new Map<number, [number, number]>();
-  for (const [index, [low, high]] of groupReach) {
+  const domains = new Set<number>();
+  for (const index of groups) {
     const group = layout.groups[index];
-    d += arcPath(g.group, Math.min(low, group.angle), Math.max(high, group.angle), scale);
-    d += spokePath(group.angle, g.domain, g.group, scale);
-    const reach = domainReach.get(group.domain);
-    if (reach) {
-      reach[0] = Math.min(reach[0], group.angle);
-      reach[1] = Math.max(reach[1], group.angle);
-    } else {
-      domainReach.set(group.domain, [group.angle, group.angle]);
-    }
+    domains.add(group.domain);
+    d += linkPath(layout.domains[group.domain].angle, g.domain, group.angle, g.group, scale);
   }
-  for (const [index, [low, high]] of domainReach) {
-    const domain = layout.domains[index];
-    d += arcPath(g.domain, Math.min(low, domain.angle), Math.max(high, domain.angle), scale);
-    d += spokePath(domain.angle, g.root, g.domain, scale);
-  }
+  for (const index of domains) d += linkPath(layout.domains[index].angle, g.root, layout.domains[index].angle, g.domain, scale);
   return d;
 }
 
@@ -490,17 +491,40 @@ export function spreadRound(wanted: number[], sizes: number[]): { placed: number
   return best;
 }
 
-/** A label beside the enlarged plate: a group's name, or a skill's in the open group. */
+/**
+ * `spread` inside a span: rows along a line from `low` to `high`, none on
+ * another, each as near where it asks to be as the others allow, and all of
+ * them inside. Where the span is too short for them all they are set closer.
+ */
+export function spreadWithin(wanted: number[], sizes: number[], low: number, high: number): number[] {
+  const count = wanted.length;
+  if (count === 0) return [];
+  const total = sizes.reduce((sum, size) => sum + size, 0);
+  const fit = total > high - low ? (high - low) / total : 1;
+  const fitted = sizes.map((size) => size * fit);
+  // Each asks for no more than leaves room for those before it above and those after it below: then all of them fit.
+  let before = 0;
+  let after = fitted.reduce((sum, size) => sum + size, 0);
+  const asked = wanted.map((value, i) => {
+    after -= fitted[i];
+    const lowest = low + before + fitted[i] / 2;
+    const highest = high - after - fitted[i] / 2;
+    before += fitted[i];
+    return Math.min(highest, Math.max(lowest, value));
+  });
+  return spread(asked, fitted);
+}
+
+/** A name beside the open domain: a group's, or a skill's of the open group, set level in a column right of the rim. */
 export interface AtlasLabel {
   kind: 'group' | 'skill';
   /** Its place in `groups` or in `leaves`. */
   index: number;
   text: string;
-  /** The angle of what it names, and the angle it is set at once its neighbours have had their room. */
+  /** The angle of what it names. */
   from: number;
-  angle: number;
-  /** It names a group of a neighbouring domain, in sight beside the open one. */
-  far: boolean;
+  /** Where its line is set: frame units (plate radii) from the frame's middle, downward. */
+  y: number;
 }
 
 /** The signed way from angle `b` round to angle `a`, the short way: in [-π, π). */
@@ -509,47 +533,37 @@ export function between(a: number, b: number): number {
 }
 
 /**
- * The labels beside an open domain: a name for each of its groups, and for
- * the open group a name for each of its skills in the group's place. The
- * groups of the neighbouring domains that are in sight (within `reach` of
- * the open domain's middle) are named too, so the rim reads on past the
- * domain's edge. `pitch` is the angle a line of each kind takes at the radius
- * the labels are set at. The labels come back in order round the plate.
+ * The names beside an open domain, in order down the column: one for each of
+ * its groups, and for the open group one for each of its skills in the
+ * group's place. Each asks to stand level with its place on the rim as the
+ * camera shows it; neighbours make room (`spreadWithin`), the rows `pitch`
+ * apart, all between `top` and `bottom` (frame units). No other domain's
+ * groups are named.
  */
 export function placeLabels(
   layout: AtlasLayout,
   domain: AtlasDomain,
   open: AtlasGroup | null,
-  pitch: { group: number; skill: number },
-  reach = 0
+  camera: AtlasCamera,
+  rows: { group: number; skill: number; top: number; bottom: number }
 ): AtlasLabel[] {
-  // Measured from the open domain's middle, so the plate's seam is no seam here.
-  const inSight = layout.groups
-    .map((group) => ({ group, offset: between(group.angle, domain.angle) }))
-    .filter(({ group, offset }) => group.domain === domain.index || Math.abs(offset) <= reach)
-    .sort((a, b) => a.offset - b.offset);
-
   const labels: AtlasLabel[] = [];
   const sizes: number[] = [];
-  const wanted: number[] = [];
-  for (const { group, offset } of inSight) {
-    const far = group.domain !== domain.index;
+  for (let i = domain.firstGroup; i <= domain.lastGroup; i++) {
+    const group = layout.groups[i];
     if (open && open.index === group.index) {
-      const count = group.last - group.first + 1;
       for (let leaf = group.first; leaf <= group.last; leaf++) {
-        labels.push({ kind: 'skill', index: leaf, text: layout.leaves[leaf].name, from: layout.leaves[leaf].angle, angle: 0, far });
-        // The skills fan out about the middle of their group.
-        wanted.push(offset + (leaf - group.first - (count - 1) / 2) * pitch.skill);
-        sizes.push(pitch.skill);
+        labels.push({ kind: 'skill', index: leaf, text: layout.leaves[leaf].name, from: layout.leaves[leaf].angle, y: 0 });
+        sizes.push(rows.skill);
       }
     } else {
-      labels.push({ kind: 'group', index: group.index, text: group.name, from: group.angle, angle: 0, far });
-      wanted.push(offset);
-      sizes.push(pitch.group);
+      labels.push({ kind: 'group', index: group.index, text: group.name, from: group.angle, y: 0 });
+      sizes.push(rows.group);
     }
   }
-  spread(wanted, sizes).forEach((offset, i) => {
-    labels[i].angle = domain.angle + offset;
+  const wanted = labels.map((label) => project(camera, label.from, layout.geometry.ring)[1]);
+  spreadWithin(wanted, sizes, rows.top, rows.bottom).forEach((y, i) => {
+    labels[i].y = y;
   });
   return labels;
 }
@@ -588,6 +602,12 @@ export function cameraOn(angle: number, scale: number, anchor: number, anchorX: 
 /** The whole atlas, reached by the shortest turn from `from`. */
 export function cameraWhole(from = 0): AtlasCamera {
   return { rotate: Math.round(from / TAU) * TAU, scale: 1, x: 0, y: 0 };
+}
+
+/** Where a point of the plate is in the frame (plate radii from the frame's centre), as the camera shows it. */
+export function project(camera: AtlasCamera, angle: number, radius: number): [x: number, y: number] {
+  const [x, y] = point(angle + camera.rotate, radius);
+  return [x * camera.scale + camera.x, y * camera.scale + camera.y];
 }
 
 /** Where a point of the frame (plate radii from the frame's centre) is on the plate: its angle and radius. */

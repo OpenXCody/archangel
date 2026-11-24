@@ -32,12 +32,12 @@ const layout = layoutAtlas({
 const S = 500;
 const near = (a: number, b: number, epsilon = 0.011) => Math.abs(a - b) <= epsilon;
 
-/** The points a path passes through, in order: where it starts, and where each line and arc ends. */
+/** The points a path passes through, in order: where it starts, and where each line and curve ends. */
 function points(d: string): [number, number][] {
   const found: [number, number][] = [];
-  for (const [, command, rest] of d.matchAll(/([MLA])([^MLA]*)/g)) {
+  for (const [, command, rest] of d.matchAll(/([MLC])([^MLC]*)/g)) {
     const numbers = rest.trim().split(/[\s,]+/).map(Number);
-    found.push(command === 'A' ? [numbers[5], numbers[6]] : [numbers[0], numbers[1]]);
+    found.push(command === 'C' ? [numbers[4], numbers[5]] : [numbers[0], numbers[1]]);
   }
   return found;
 }
@@ -47,8 +47,9 @@ test('the way to a skill is one unbroken line from the centre to its leaf, along
     const d = routePath(layout, leaf, S);
     // One pen stroke: it can be drawn in from the centre outward.
     assert.equal((d.match(/M/g) ?? []).length, 1, `${leaf.name}: one stroke`);
-    assert.equal((d.match(/L/g) ?? []).length, 3, `${leaf.name}: the trunk, the group's spoke and its own`);
-    assert.ok((d.match(/A/g) ?? []).length <= 2, `${leaf.name}: at most the domain's arc and the group's`);
+    assert.equal((d.match(/[LC]/g) ?? []).length, 3, `${leaf.name}: the trunk, the curve to its group and the curve on to it`);
+    assert.ok(/^M[-\d. ]+L/.test(d), `${leaf.name}: up the trunk, straight`);
+    assert.ok(!/A/.test(d), `${leaf.name}: no arcs, no elbows`);
     const way = points(d);
     const domain = layout.domains[leaf.domain];
     const group = layout.groups[leaf.group];
@@ -59,21 +60,24 @@ test('the way to a skill is one unbroken line from the centre to its leaf, along
     const [ex, ey] = point(leaf.angle, leaf.radius);
     const end = way[way.length - 1];
     assert.ok(near(end[0], ex * S) && near(end[1], ey * S), `${leaf.name}: ends on its leaf`);
-    // Every turn on the way is at the domain's arc or the group's, never across the plate.
-    for (const [x, y] of way.slice(1, -1)) {
-      const radius = Math.hypot(x, y) / S;
-      assert.ok(near(radius, GEOMETRY.domain, 1e-3) || near(radius, GEOMETRY.group, 1e-3), `${leaf.name}: turns only where the plate branches`);
-    }
-    // It passes the foot of the group's spoke.
+    // It passes the end of its domain's trunk and the tip of its group's branch, where the plate's own branches are.
+    const [dx, dy] = point(domain.angle, GEOMETRY.domain);
+    assert.ok(near(way[1][0], dx * S) && near(way[1][1], dy * S), `${leaf.name}: by its domain's trunk`);
     const [gx, gy] = point(group.angle, GEOMETRY.group);
-    assert.ok(way.some(([x, y]) => near(x, gx * S) && near(y, gy * S)), `${leaf.name}: by its group's spoke`);
+    assert.ok(near(way[2][0], gx * S) && near(way[2][1], gy * S), `${leaf.name}: by its group's branch`);
   }
 });
 
-test('the way never goes the long way round an arc', () => {
+test('the way never doubles back: each curve\'s guides stand between the radii it joins', () => {
   for (const leaf of layout.leaves) {
-    for (const [, flags] of routePath(layout, leaf, S).matchAll(/A[\d.]+ [\d.]+ 0 (\d) \d/g)) {
-      assert.equal(flags, '0', `${leaf.name}: the short arc`);
+    let from = Math.hypot(...points(routePath(layout, leaf, S))[0]) / S;
+    for (const [, rest] of routePath(layout, leaf, S).matchAll(/[LC]([^LC]*)/g)) {
+      const numbers = rest.trim().split(/\s+/).map(Number);
+      const radii: number[] = [];
+      for (let i = 0; i < numbers.length; i += 2) radii.push(Math.hypot(numbers[i], numbers[i + 1]) / S);
+      const to = radii[radii.length - 1];
+      for (const radius of radii) assert.ok(radius >= from - 1e-3 && radius <= to + 1e-3, `${leaf.name}: outward all the way`);
+      from = to;
     }
   }
 });

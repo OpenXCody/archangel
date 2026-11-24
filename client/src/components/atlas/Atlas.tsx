@@ -248,7 +248,7 @@ export default function Atlas() {
               )}
               {!domain && !overlay && (
                 <p className="mx-auto mt-1 max-w-md text-center text-xs leading-relaxed text-text-3 [text-wrap:balance]" data-atlas-key>
-                  Fundamentals sit nearest the centre, Advanced at the rim. A stronger mark is a skill more careers use.
+                  Fundamentals sit nearest the centre, Advanced at the rim. A brighter mark is a skill more careers use.
                 </p>
               )}
             </div>

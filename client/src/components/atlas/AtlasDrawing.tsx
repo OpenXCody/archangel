@@ -1,21 +1,20 @@
 import { memo, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent } from 'react';
 import {
-  TAU,
   arcPath,
   arcPathReversed,
   between,
   branchPath,
   cameraOn,
   cameraWhole,
-  domainPath,
-  groupPath,
   leafWeight,
   locate,
   placeLabels,
   point,
+  project,
   sectorPath,
-  spokePath,
+  skeletonPath,
   spreadRound,
+  stemsPath,
   turn,
   unproject,
   type AtlasCamera,
@@ -31,12 +30,18 @@ import { routePath, shareDash, walkOf } from './walk';
  * The Atlas as a drawing: one SVG, drawn from the layout's arithmetic.
  *
  * It is built in layers so that nothing but the layer concerned is rendered
- * again: the plate itself (`Plate`: every branch and every leaf) is rendered
- * once per taxonomy; turning and enlarging is one transform on the group that
- * holds it; a career laid over it, a person's marks, the labels of the open
- * domain and what the pointer is over are each a handful of elements drawn on
- * top. The pointer is read with arithmetic (which angle, which radius), so
- * no leaf carries a listener.
+ * again: the plate itself (`Plate`: the skeleton of branches, the rim and
+ * every leaf) is rendered once per taxonomy; turning and enlarging is one
+ * transform on the group that holds it; a career laid over it, a person's
+ * marks, the names beside the open domain and what the pointer is over are
+ * each a handful of elements drawn on top. The pointer is read with
+ * arithmetic (which angle, which radius, which row of names), so no leaf
+ * carries a listener.
+ *
+ * The plate is quiet on purpose: the branches are one faint skeleton of
+ * curves from the centre to the groups, the skills are small marks of nearly
+ * one size, brighter the more careers use them, and colour is a legend: each
+ * domain's hairline on the rim, and a tint on its leaves.
  *
  * To a screen reader the drawing is one image; the tree itself is the panel
  * beside it (`AtlasPanel`), which is also what the keyboard uses.
@@ -47,12 +52,12 @@ const S = 500;
 
 /**
  * How much wider than the plate the frame is: half the frame, in plate radii.
- * The domains' names take two rows outside the ring, and a row is as tall on
- * a small phone as on a large one, so a narrow frame leaves the plate a
- * little less of itself.
+ * The domains' names take one line outside the rim, two for a long name on a
+ * narrow plate, and a line is as tall on a small phone as on a large one, so
+ * a narrow frame leaves the plate a little less of itself.
  */
 function frameFor(width: number, ring: number): number {
-  return Math.max(1.02, ring / (1 - 58 / Math.max(width, 200)));
+  return Math.max(1.03, ring / (1 - 64 / Math.max(width, 200)));
 }
 
 /** What a press or the pointer lands on. */
@@ -105,9 +110,17 @@ interface AtlasDrawingProps {
 const deg = (radians: number) => (radians * 180) / Math.PI;
 const fixed = (value: number, digits = 2) => Number(value.toFixed(digits));
 
-/** A leaf's radius on the plate, by how many careers use the skill. */
+/**
+ * A leaf's radius on the plate. A skill more careers use is a little larger
+ * and much brighter (`leafOpacity`): the sizes stay in a narrow range, so no
+ * mark covers its neighbours.
+ */
 function dotRadius(layout: AtlasLayout, leaf: AtlasLeaf): number {
-  return 0.0048 + 0.01 * Math.pow(leafWeight(leaf.careers, layout.maxCareers), 1.6);
+  return 0.0052 + 0.0026 * leafWeight(leaf.careers, layout.maxCareers);
+}
+
+function leafOpacity(layout: AtlasLayout, leaf: AtlasLeaf): number {
+  return 0.5 + 0.5 * leafWeight(leaf.careers, layout.maxCareers);
 }
 
 // ---------------------------------------------------------------------------
@@ -116,37 +129,19 @@ function dotRadius(layout: AtlasLayout, leaf: AtlasLeaf): number {
 
 const Plate = memo(function Plate({ layout }: { layout: AtlasLayout }) {
   const g = layout.geometry;
-  const shapes = useMemo(() => {
-    let wash = '';
-    let trunks = '';
-    let fans = '';
-    let groupRing = '';
-    for (const domain of layout.domains) {
-      // Every other sector carries a faint wash, so the sixteen read as sixteen.
-      if (domain.index % 2 === 1) wash += sectorPath(g.root, g.ring - 0.012, domain.from, domain.to, S);
-      trunks += domainPath(layout, domain, S);
-    }
-    for (const group of layout.groups) {
-      fans += groupPath(layout, group, S);
-      groupRing += arcPath(g.groupRing, group.a0 - 0.35 * layout.step, group.a1 + 0.35 * layout.step, S);
-    }
-    return { wash, trunks, fans, groupRing };
-  }, [layout, g]);
+  const skeleton = useMemo(() => skeletonPath(layout, S), [layout]);
 
   return (
     <>
-      <path className="atlas-wash" d={shapes.wash} />
-      <path className="atlas-fan" d={shapes.fans} />
-      <path className="atlas-trunk" d={shapes.trunks} />
+      {/* The branches from the centre to every group, as one faint path: the tree is there, and stays behind its skills. */}
+      <path className="atlas-skeleton" d={skeleton} />
       <circle className="atlas-root" r={g.root * S} />
-      <path className="atlas-group-ring" d={shapes.groupRing} />
-      {/* A domain's rim arc and its leaves take the domain's hue (`[data-domain]` in globals.css). */}
+      {/* A domain's rim hairline and its leaves take the domain's hue (`[data-domain]` in globals.css). */}
       {layout.domains.map((domain) => (
         <g key={domain.slug} data-domain={domain.slug}>
           <path className="atlas-ring" d={arcPath(g.ring, domain.from, domain.to, S)} />
           {layout.leaves.slice(domain.first, domain.last + 1).map((leaf) => {
             const [x, y] = point(leaf.angle, leaf.radius);
-            const weight = leafWeight(leaf.careers, layout.maxCareers);
             return (
               <circle
                 key={leaf.id}
@@ -154,13 +149,45 @@ const Plate = memo(function Plate({ layout }: { layout: AtlasLayout }) {
                 cx={fixed(x * S)}
                 cy={fixed(y * S)}
                 r={fixed(dotRadius(layout, leaf) * S)}
-                opacity={fixed(0.5 + 0.5 * weight)}
+                opacity={fixed(leafOpacity(layout, leaf))}
               />
             );
           })}
         </g>
       ))}
     </>
+  );
+});
+
+/**
+ * An open domain, drawn again over the plate, which steps back to a whisper
+ * under it: its rim and its skills, and, when one of its groups is open, that
+ * group's skills at full strength over the rest of it. Under a career it is
+ * ink, as the plate is. A few dozen elements; the plate itself is not drawn
+ * again, it only fades (one opacity on its group), so nothing is cut in two.
+ */
+const OpenDomain = memo(function OpenDomain({ layout, domain, group, hued }: { layout: AtlasLayout; domain: AtlasDomain; group: AtlasGroup | null; hued: boolean }) {
+  const g = layout.geometry;
+  const leaves = (first: number, last: number, className: string, grow = 0) =>
+    layout.leaves.slice(first, last + 1).map((leaf) => {
+      const [x, y] = point(leaf.angle, leaf.radius);
+      return (
+        <circle
+          key={leaf.id}
+          className={className}
+          cx={fixed(x * S)}
+          cy={fixed(y * S)}
+          r={fixed((dotRadius(layout, leaf) + grow) * S)}
+          opacity={className === 'atlas-leaf' ? fixed(leafOpacity(layout, leaf)) : undefined}
+        />
+      );
+    });
+  return (
+    <g className="atlas-open-domain" data-domain={hued ? domain.slug : undefined} data-atlas-open={domain.slug} data-group={group ? true : undefined}>
+      <path className="atlas-ring" d={arcPath(g.ring, domain.from, domain.to, S)} />
+      <g className="atlas-open-rest">{leaves(domain.first, domain.last, 'atlas-leaf')}</g>
+      {group && <g data-atlas-open-group={group.slug}>{leaves(group.first, group.last, 'atlas-open-leaf', 0.0008)}</g>}
+    </g>
   );
 });
 
@@ -193,10 +220,10 @@ const Overlay = memo(function Overlay({ layout, overlay, ahead }: { layout: Atla
   const dot = (index: number, kind: 'first' | 'second' | 'shared') => {
     const leaf = layout.leaves[index];
     const [x, y] = point(leaf.angle, leaf.radius);
-    const r = Math.max(dotRadius(layout, leaf) + 0.002, 0.0085);
+    const r = Math.max(dotRadius(layout, leaf) + 0.0018, 0.0085);
     return (
       <g key={leaf.id} data-atlas-lit={kind}>
-        {kind === 'shared' && <circle className="atlas-lit-halo" cx={fixed(x * S)} cy={fixed(y * S)} r={fixed((r + 0.007) * S)} />}
+        {kind === 'shared' && <circle className="atlas-lit-halo" cx={fixed(x * S)} cy={fixed(y * S)} r={fixed((r + 0.0062) * S)} />}
         {/* While a person fills the career in, a skill of it is an open mark until it is held: the Marks layer fills it. */}
         <circle className="atlas-lit-dot" data-second={kind === 'second' || undefined} data-ahead={ahead || undefined} cx={fixed(x * S)} cy={fixed(y * S)} r={fixed(r * S)} />
       </g>
@@ -396,85 +423,112 @@ interface NamesProps {
   reached: ReadonlySet<number> | null;
 }
 
+/** The font size of the domains' names: as large as the plate's rim gives them room for. */
+function nameSize(radiusPx: number): number {
+  return radiusPx < 200 ? 10 : radiusPx < 290 ? 11 : 12.5;
+}
+
+/** A name of more than one word broken into two lines at the space nearest its middle. */
+function twoLines(name: string): string[] {
+  const spaces = [...name.matchAll(/ /g)].map((match) => match.index ?? 0);
+  if (spaces.length === 0) return [name];
+  const cut = spaces.reduce((best, at) => (Math.abs(at - name.length / 2) < Math.abs(best - name.length / 2) ? at : best));
+  return [name.slice(0, cut), name.slice(cut + 1)];
+}
+
 /**
- * A name is set along the rim over its own domain, in the domain's hue, and
- * no name runs into another: neighbours make room for each other along the
- * row (`spreadRound`), and where one row is too short for them all (a phone)
- * the names that do not fit their own arcs are shared between two rows, the
- * second outside the first. Of every way to share them the one kept moves
- * the names least from the middle of their domains.
+ * The names are set along the rim, each over its own domain, in ink: the
+ * domain's hue is the hairline under it. None runs into another: neighbours
+ * make room for each other along the row (`spreadRound`). They are one row
+ * wherever they fit one: where they do not (a phone), a long name of several
+ * words takes two lines in its own place, the longest first, until they fit.
+ * On a plate smaller still, a career laid over it has only the domains it
+ * reaches named; and with no career the names take two rows, every other
+ * name on the outer one, so a name's neighbours on its row are two domains
+ * away.
  */
 const Names = memo(function Names({ layout, radiusPx, away, on, reached }: NamesProps) {
   const id = useId().replace(/:/g, '');
   const fonts = useFontsLoaded();
-  const fontPx = radiusPx < 240 ? 10 : radiusPx < 320 ? 11.5 : 12.5;
+  const fontPx = nameSize(radiusPx);
   const names = useMemo(() => {
     const cap = 0.72 * fontPx;
-    const rowRadius = (row: number) => layout.geometry.ring * radiusPx + 6 + row * fontPx * 1.35;
-    const widths = layout.domains.map((domain) => textWidth(domain.name, fontPx, 500, NAME_TRACKING));
-    // The angle a name takes on a row, with air between it and the next.
-    const size = (index: number, row: number) => (widths[index] + fontPx * 1.1) / rowRadius(row);
-    const rows = layout.domains.map(() => 0);
-    const angles = layout.domains.map((domain) => domain.angle);
-    // Where the names of each row come to rest, and what the arrangement costs, in pixels moved.
-    const settle = (keep: boolean) => {
-      let cost = 0;
-      for (const row of [0, 1]) {
-        const members = layout.domains.filter((domain) => rows[domain.index] === row);
-        if (members.length === 0) continue;
-        const result = spreadRound(members.map((domain) => domain.angle), members.map((domain) => size(domain.index, row)));
-        cost += (result.moved + result.overlap * 40) * rowRadius(row) + row * members.length * fontPx * 6;
-        if (keep) members.forEach((domain, i) => (angles[domain.index] = result.placed[i]));
+    const lineGap = fontPx * 1.18;
+    // The baseline nearest the rim, in pixels from the centre.
+    const rim = layout.geometry.ring * radiusPx + 7;
+    const width = (text: string) => textWidth(text, fontPx, 500, NAME_TRACKING);
+    const air = fontPx * 1.2;
+
+    /** One row of these domains' names round the rim, long names broken onto two lines until they fit. */
+    const oneRow = (members: AtlasDomain[]) => {
+      const lines = new Map(members.map((domain) => [domain.index, [domain.name]]));
+      const sizes = () => members.map((domain) => (Math.max(...(lines.get(domain.index) ?? []).map(width)) + air) / rim);
+      let placed = spreadRound(members.map((domain) => domain.angle), sizes());
+      const breakable = members.filter((domain) => domain.name.includes(' ')).sort((a, b) => width(b.name) - width(a.name));
+      for (const domain of breakable) {
+        if (placed.overlap < 1e-6) break;
+        lines.set(domain.index, twoLines(domain.name));
+        placed = spreadRound(members.map((each) => each.angle), sizes());
       }
-      return cost;
+      return { fits: placed.overlap < 1e-6, set: members.map((domain, i) => ({ domain, lines: lines.get(domain.index) ?? [domain.name], angle: placed.placed[i], row: 0 })) };
     };
-    // Only a name longer than its own arc is ever moved out to the second row.
-    const loose = layout.domains.filter((domain) => size(domain.index, 0) > domain.to - domain.from + layout.geometry.domainGap * layout.step).slice(0, 10);
-    // One row is the plainest: where every name fits on it without touching another, that is the arrangement.
-    let best = { cost: Infinity, choice: 0 };
-    const oneRow = spreadRound(angles, layout.domains.map((domain) => size(domain.index, 0))).overlap < 1e-6;
-    for (let choice = 0; choice < (oneRow ? 1 : 1 << loose.length); choice++) {
-      loose.forEach((domain, bit) => (rows[domain.index] = (choice >> bit) & 1));
-      const cost = settle(false);
-      if (cost < best.cost - 1e-6) best = { cost, choice };
+
+    const all = oneRow(layout.domains);
+    let set = all.set;
+    if (!all.fits) {
+      const own = reached ? layout.domains.filter((domain) => reached.has(domain.index)) : [];
+      const named = own.length > 0 ? oneRow(own) : null;
+      if (named?.fits) set = named.set;
+      else {
+        // Two rows, the names taking them in turn round the rim.
+        set = [];
+        for (const row of [0, 1]) {
+          const members = layout.domains.filter((domain) => domain.index % 2 === row);
+          const radius = rim + row * lineGap * 1.3;
+          const placed = spreadRound(members.map((domain) => domain.angle), members.map((domain) => (width(domain.name) + air) / radius));
+          members.forEach((domain, i) => set.push({ domain, lines: [domain.name], angle: placed.placed[i], row }));
+        }
+        set.sort((a, b) => a.domain.index - b.domain.index);
+      }
     }
-    loose.forEach((domain, bit) => (rows[domain.index] = (best.choice >> bit) & 1));
-    settle(true);
-    return layout.domains.map((domain) => {
-      const row = rows[domain.index];
-      const angle = angles[domain.index];
-      // On the lower half the text runs the other way round the circle, so it is never upside down.
+
+    return set.map(({ domain, lines, angle, row }) => {
+      // On the lower half the text runs the other way round the circle, so it is never upside down: there the first line is the inner one.
       const lower = turn(angle) > Math.PI / 2 && turn(angle) < (3 * Math.PI) / 2;
-      const baseline = (rowRadius(row) + (lower ? cap : 0)) / radiusPx;
-      const reach = Math.min(Math.PI * 0.9, (widths[domain.index] / 2 + fontPx) / (baseline * radiusPx));
-      const d = lower ? arcPathReversed(baseline, angle - reach, angle + reach, S) : arcPath(baseline, angle - reach, angle + reach, S);
-      return { domain, d, row };
+      const base = rim + row * lineGap * 1.3;
+      const paths = lines.map((line, k) => {
+        const baseline = (lower ? base + cap + k * lineGap : base + (lines.length - 1 - k) * lineGap) / radiusPx;
+        const reach = Math.min(Math.PI * 0.9, (width(line) / 2 + fontPx) / (baseline * radiusPx));
+        return lower ? arcPathReversed(baseline, angle - reach, angle + reach, S) : arcPath(baseline, angle - reach, angle + reach, S);
+      });
+      return { domain, lines, paths, row };
     });
     // `fonts`: measured again once the font is in.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layout, radiusPx, fontPx, fonts]);
+  }, [layout, radiusPx, fontPx, fonts, reached]);
 
   return (
     <g className="atlas-names" data-away={away || undefined} fontSize={fixed((fontPx / radiusPx) * S)}>
       <defs>
-        {names.map(({ domain, d }) => (
-          <path key={domain.slug} id={`${id}-${domain.index}`} d={d} />
-        ))}
+        {names.flatMap(({ domain, paths }) => paths.map((d, k) => <path key={`${domain.slug}-${k}`} id={`${id}-${domain.index}-${k}`} d={d} />))}
       </defs>
-      {names.map(({ domain, row }) => (
+      {names.map(({ domain, lines, row }) => (
         <text
           key={domain.slug}
           className="atlas-name"
           data-atlas-domain={domain.slug}
-          data-domain={domain.slug}
           data-row={row}
+          data-lines={lines.length}
           data-on={on?.index === domain.index || undefined}
-          // A career is laid over the atlas: the domains it does not reach are named in plain ink.
+          // A career is laid over the atlas: the domains it does not reach step back.
           data-off={(reached && !reached.has(domain.index)) || undefined}
         >
-          <textPath href={`#${id}-${domain.index}`} startOffset="50%" textAnchor="middle">
-            {domain.name}
-          </textPath>
+          {lines.map((line, k) => (
+            <textPath key={k} href={`#${id}-${domain.index}-${k}`} startOffset="50%" textAnchor="middle">
+              {/* The space between two lines stays in the text, so the name reads whole to a screen reader and a test. */}
+              {k < lines.length - 1 ? `${line} ` : line}
+            </textPath>
+          ))}
         </text>
       ))}
     </g>
@@ -482,37 +536,53 @@ const Names = memo(function Names({ layout, radiusPx, away, on, reached }: Names
 });
 
 // ---------------------------------------------------------------------------
-// The labels of the open domain
+// The names beside the open domain
 // ---------------------------------------------------------------------------
 
-/** How the enlarged plate is framed, by the room there is. */
+/** How the enlarged plate is framed, by the room there is. Lengths in frame units (plate radii) unless they say px. */
 interface Zoom {
   scale: number;
-  /** Where the outer ring is brought to, in plate radii from the frame's centre. */
+  /** Where the rim, at the open domain's middle, is brought to: right of the frame's centre, left of the names. */
   anchorX: number;
-  /** The radius the labels start at, and the room a label has, in CSS pixels. */
-  labelRadius: number;
-  labelRoomPx: number;
+  /** Where the column of names starts, and how wide it is. */
+  labelX: number;
+  labelPx: number;
   fontPx: number;
   groupPitchPx: number;
   skillPitchPx: number;
+  /** The rows the names are kept between. */
+  top: number;
+  bottom: number;
 }
 
-function zoomFor(layout: AtlasLayout, radiusPx: number, frame: number): Zoom {
+/**
+ * The open domain turned to three o'clock and enlarged so the whole of it,
+ * from its groups' branches out to the rim, stands in the frame's left part
+ * and its full height, and its names have a column of their own to the right
+ * of the rim.
+ */
+function zoomFor(layout: AtlasLayout, domain: AtlasDomain | null, radiusPx: number, frame: number): Zoom {
   const phone = radiusPx < 240;
-  // A phone shows the open domain from its groups' arcs outward; a wider frame from the domain's own arc.
-  const innermost = phone ? layout.geometry.group - 0.02 : layout.geometry.domain - 0.05;
-  const labelRoomPx = phone ? 188 : Math.min(250, radiusPx * 0.72);
-  const anchorX = frame - labelRoomPx / radiusPx;
-  const scale = (anchorX + frame) / (layout.geometry.ring - innermost);
+  const g = layout.geometry;
+  const labelPx = phone ? Math.min(168, radiusPx * 0.96) : Math.min(250, radiusPx * 0.78);
+  const gap = phone ? 14 : 22;
+  const edge = 16 / radiusPx;
+  const anchorX = frame - (labelPx + gap) / radiusPx;
+  // From just inside the Fundamentals' band to the rim, across the frame's left part: every skill of the domain is in sight.
+  let scale = (anchorX + frame - edge) / (g.ring - (g.bands[1].from - 0.045));
+  // And the domain's whole sweep inside the frame's height.
+  const half = domain ? Math.min(Math.PI / 2, Math.max(0.05, (domain.to - domain.from) / 2)) : 0.3;
+  scale = Math.min(scale, (frame - 3 * edge) / (g.ring * Math.sin(half)));
   return {
     scale,
     anchorX,
-    labelRadius: layout.geometry.ring + 15 / (radiusPx * scale),
-    labelRoomPx: labelRoomPx - 20,
+    labelX: anchorX + gap / radiusPx,
+    labelPx,
     fontPx: phone ? 11 : 12,
-    groupPitchPx: phone ? 14 : 16,
-    skillPitchPx: phone ? 15 : 17,
+    groupPitchPx: phone ? 17 : 19,
+    skillPitchPx: phone ? 17 : 19,
+    top: -frame + 30 / radiusPx,
+    bottom: frame - 30 / radiusPx,
   };
 }
 
@@ -520,22 +590,31 @@ interface LabelsProps {
   layout: AtlasLayout;
   labels: AtlasLabel[];
   zoom: Zoom;
+  camera: AtlasCamera;
   radiusPx: number;
   leaf: AtlasLeaf | null;
   preview: AtlasTarget | null;
   overlay: AtlasOverlay | null;
 }
 
-const Labels = memo(function Labels({ layout, labels, zoom, radiusPx, leaf, preview, overlay }: LabelsProps) {
+/**
+ * The names beside the open domain, set level in one column to the right of
+ * the rim, never turned with the plate: they are drawn in the frame's own
+ * units, where the camera has put the plate. A group's name is joined to its
+ * place on the rim by one smooth hairline. An open group's skills are named
+ * in its place, and only the skill under the pointer, or chosen, is joined to
+ * its leaf.
+ */
+const Labels = memo(function Labels({ layout, labels, zoom, camera, radiusPx, leaf, preview, overlay }: LabelsProps) {
   const g = layout.geometry;
   const fonts = useFontsLoaded();
   const texts = useMemo(
-    () => labels.map((label) => fitted(label.text, zoom.labelRoomPx - (label.kind === 'skill' ? 10 : 0), zoom.fontPx, 600)),
+    () => labels.map((label) => fitted(label.text, zoom.labelPx - 6, zoom.fontPx, 500)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [labels, zoom.labelRoomPx, zoom.fontPx, fonts]
+    [labels, zoom.labelPx, zoom.fontPx, fonts]
   );
-  // A pixel on screen, in plate radii, at this enlargement.
-  const px = 1 / (radiusPx * zoom.scale);
+  // A pixel on screen, in frame units.
+  const px = 1 / radiusPx;
   const lit = (index: number) => Boolean(overlay && (overlay.first.has(index) || overlay.second?.has(index)));
   const groupLit = (group: AtlasGroup) => {
     for (let i = group.first; i <= group.last; i++) if (lit(i)) return true;
@@ -543,35 +622,42 @@ const Labels = memo(function Labels({ layout, labels, zoom, radiusPx, leaf, prev
   };
   // A group is open: its skills are named, and the other groups' names step back.
   const opened = labels.some((label) => label.kind === 'skill');
+  const end = zoom.labelX - 5 * px;
+  /** A hairline from a point of the plate to a row of the column, leaving and arriving level. */
+  const leader = (x: number, y: number, rowY: number) => {
+    const reach = Math.max(6 * px, (end - x) * 0.55);
+    return `M${fixed(x * S)} ${fixed(y * S)}C${fixed((x + reach) * S)} ${fixed(y * S)} ${fixed((end - reach) * S)} ${fixed(rowY * S)} ${fixed(end * S)} ${fixed(rowY * S)}`;
+  };
 
   return (
-    <g className="atlas-labels" fontSize={fixed((zoom.fontPx / (radiusPx * zoom.scale)) * S, 3)}>
+    <g className="atlas-labels" fontSize={fixed(zoom.fontPx * px * S, 3)}>
       {labels.map((label, i) => {
         const skill = label.kind === 'skill';
         const chosen = skill && leaf?.index === label.index;
         const pointed = skill ? preview?.leaf?.index === label.index : !preview?.leaf && preview?.group?.index === label.index;
         // Under a career, the groups it does not reach step back. The open group's skills stay readable: the career's are in the accent.
-        const quiet = label.far || (!skill && overlay ? !groupLit(layout.groups[label.index]) : false);
-        // From the ring out to the label: a short stroke that leans to wherever the label found room.
-        // A skill's name is set a step further out than a group's: it is one level down the tree.
-        const radius = zoom.labelRadius + (skill ? 10 * px : 0);
-        let leader = `M${at(label.from, g.ring + 4 * px)}L${at(label.angle, radius - 4 * px)}`;
-        // A skill is tied to its leaf by a dotted line, as far as the ring of groups.
-        const dotted = skill ? spokePath(label.from, layout.leaves[label.index].radius + 0.014, g.groupRing - 0.006, S) : '';
-        if (!skill) leader = spokePath(label.from, g.groupRing + 2 * px, g.ring - 3 * px, S) + leader;
+        const quiet = !skill && overlay ? !groupLit(layout.groups[label.index]) : false;
+        let line = '';
+        if (!skill) {
+          const [x, y] = project(camera, label.from, g.ring + 3 / (radiusPx * camera.scale));
+          line = leader(x, y, label.y);
+        } else if (chosen || pointed) {
+          const named = layout.leaves[label.index];
+          const [x, y] = project(camera, named.angle, named.radius);
+          line = leader(x + dotRadius(layout, named) * camera.scale + 4 * px, y, label.y);
+        }
         return (
           <g key={`${label.kind}-${label.index}`}>
-            {dotted && <path className="atlas-leader" data-dotted data-on={chosen || undefined} d={dotted} />}
-            <path className="atlas-leader" data-on={chosen || undefined} data-quiet={label.far || undefined} d={leader} />
+            {line && <path className="atlas-leader" data-on={chosen || pointed || undefined} data-step={(!skill && opened) || undefined} d={line} />}
             <text
               className="atlas-label"
               data-atlas-label={label.kind}
-              data-far={label.far || undefined}
               data-on={chosen || pointed || undefined}
               data-lit={(chosen || (skill && lit(label.index))) || undefined}
               data-quiet={quiet || undefined}
-              data-step={(!skill && opened && !label.far) || undefined}
-              transform={`rotate(${fixed(deg(label.angle) - 90, 3)}) translate(${fixed(radius * S)} 0)`}
+              data-step={(!skill && opened) || undefined}
+              x={fixed(zoom.labelX * S)}
+              y={fixed(label.y * S)}
               dy="0.35em"
             >
               {texts[i]}
@@ -582,11 +668,6 @@ const Labels = memo(function Labels({ layout, labels, zoom, radiusPx, leaf, prev
     </g>
   );
 });
-
-const at = (angle: number, radius: number) => {
-  const [x, y] = point(angle, radius);
-  return `${fixed(x * S)} ${fixed(y * S)}`;
-};
 
 // ---------------------------------------------------------------------------
 // The drawing
@@ -618,36 +699,25 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
   const frame = frameFor(width, layout.geometry.ring);
   const box = S * frame;
   const radiusPx = width / (2 * frame);
-  const zoom = useMemo(() => zoomFor(layout, radiusPx, frame), [layout, radiusPx, frame]);
+  const zoom = useMemo(() => zoomFor(layout, domain, radiusPx, frame), [layout, domain, radiusPx, frame]);
 
-  // As far round the rim as the frame shows, from its middle to its top or bottom edge.
-  const inSight = Math.asin(Math.min(1, frame / (zoom.labelRadius * zoom.scale)));
-  const labelRadiusPx = zoom.labelRadius * radiusPx * zoom.scale;
-  const labels = useMemo(() => {
-    if (!domain) return [];
-    // Named a little past the frame's edge, so a small turn of the plate does not run out of names.
-    return placeLabels(layout, domain, group, { group: zoom.groupPitchPx / labelRadiusPx, skill: zoom.skillPitchPx / labelRadiusPx }, inSight * 1.5);
-  }, [layout, domain, group, zoom, labelRadiusPx, inSight]);
-
-  // The camera: the whole plate, or the open domain turned to three o'clock and
-  // enlarged. An open group at the edge of a wide domain would name its skills
-  // past the frame: the plate then turns just far enough to bring them in.
-  const lean = useMemo(() => {
-    if (!domain || !group) return 0;
-    const named = labels.filter((label) => label.kind === 'skill');
-    if (named.length === 0) return 0;
-    // A name near the top or bottom of the frame runs out of it as it goes: the names are kept to the middle half.
-    const edge = inSight * 0.5;
-    const first = between(named[0].angle, domain.angle);
-    const last = between(named[named.length - 1].angle, domain.angle);
-    return first < -edge ? first + edge : last > edge ? last - edge : 0;
-  }, [domain, group, labels, inSight]);
+  // The camera: the whole plate, or the open domain turned to three o'clock and enlarged.
   const turned = useRef(0);
   const camera: AtlasCamera = useMemo(() => {
-    const next = domain ? cameraOn(domain.angle + lean, zoom.scale, layout.geometry.ring, zoom.anchorX, turned.current) : cameraWhole(turned.current);
+    const next = domain ? cameraOn(domain.angle, zoom.scale, layout.geometry.ring, zoom.anchorX, turned.current) : cameraWhole(turned.current);
     turned.current = next.rotate;
     return next;
-  }, [domain, lean, zoom, layout]);
+  }, [domain, zoom, layout]);
+
+  const labels = useMemo(() => {
+    if (!domain) return [];
+    return placeLabels(layout, domain, group, camera, {
+      group: zoom.groupPitchPx / radiusPx,
+      skill: zoom.skillPitchPx / radiusPx,
+      top: zoom.top,
+      bottom: zoom.bottom,
+    });
+  }, [layout, domain, group, camera, zoom, radiusPx]);
 
   /** What is at a point of the screen. */
   const targetAt = (clientX: number, clientY: number, fine: boolean): AtlasTarget | null => {
@@ -657,33 +727,29 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
     if (rect.width === 0) return null;
     const x = (((clientX - rect.left) / rect.width) * 2 - 1) * frame;
     const y = (((clientY - rect.top) / rect.height) * 2 - 1) * frame;
-    const where = unproject(camera, x, y);
     const g = layout.geometry;
+    const where = unproject(camera, x, y);
     if (!domain) {
       if (where.radius > 1 || where.radius < g.root) return null;
       const hit = locate(layout, where.angle);
       return hit && { domain: hit.domain };
     }
-    if (where.radius > g.ring + 6 / (radiusPx * zoom.scale)) {
-      // Among the labels: the nearest one, if the point is on its line.
-      const pitch = zoom.skillPitchPx / (zoom.labelRadius * radiusPx * zoom.scale);
+    if (x >= zoom.labelX - 8 / radiusPx) {
+      // In the column of names: the row the point is on.
       let nearest: AtlasLabel | null = null;
-      for (const candidate of labels) {
-        if (!nearest || Math.abs(between(candidate.angle, where.angle)) < Math.abs(between(nearest.angle, where.angle))) nearest = candidate;
-      }
-      if (nearest && Math.abs(between(nearest.angle, where.angle)) <= pitch * 0.75) {
-        return nearest.kind === 'skill'
-          ? { domain, group: layout.groups[layout.leaves[nearest.index].group], leaf: layout.leaves[nearest.index] }
-          : { domain, group: layout.groups[nearest.index] };
-      }
+      for (const candidate of labels) if (!nearest || Math.abs(candidate.y - y) < Math.abs(nearest.y - y)) nearest = candidate;
+      if (!nearest || Math.abs(nearest.y - y) > (zoom.skillPitchPx * 0.55) / radiusPx) return null;
+      return nearest.kind === 'skill'
+        ? { domain, group: layout.groups[layout.leaves[nearest.index].group], leaf: layout.leaves[nearest.index] }
+        : { domain, group: layout.groups[nearest.index] };
     }
     const hit = locate(layout, where.angle);
     if (!hit) return null;
     if (hit.domain.index !== domain.index) return where.radius > 1.25 ? null : { domain: hit.domain };
-    // Inside the groups' arcs is the domain itself.
+    // Inside the groups' tips is the domain itself.
     if (where.radius < g.group - 0.03) return { domain };
     // A mouse can pick one leaf of the open group; a finger picks the group, and its skills from the panel.
-    if (fine && group && hit.group.index === group.index && where.radius < g.groupRing) {
+    if (fine && group && hit.group.index === group.index && where.radius < g.ring) {
       let best = hit.leaf;
       let bestDistance = Infinity;
       for (let i = group.first; i <= group.last; i++) {
@@ -730,7 +796,8 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
   const pointed = preview && (!domain || preview.domain.index !== domain.index) ? preview.domain : null;
   const pointedGroup = domain && preview?.group && preview.domain.index === domain.index && !preview.leaf ? preview.group : null;
   const ringed = preview?.leaf ?? leaf;
-  const half = (g.domainGap / 2) * layout.step;
+  // A group's own share of the plate, from its branch's tip to the rim.
+  const groupSector = (each: AtlasGroup) => sectorPath(g.group, g.ring, each.a0 - 0.5 * layout.step, each.a1 + 0.5 * layout.step, S);
 
   const view = leaf ? 'skill' : group ? 'group' : domain ? 'domain' : 'whole';
   const viewBox = `${fixed(-box)} ${fixed(-box)} ${fixed(2 * box)} ${fixed(2 * box)}`;
@@ -758,30 +825,30 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
         <g className="atlas-base" data-dim={overlay ? true : undefined} data-marked={marks && marks.size > 0 ? true : undefined}>
           <Plate layout={layout} />
         </g>
-        {pointed && <path className="atlas-hover" d={sectorPath(g.root, g.ring - 0.012, pointed.from, pointed.to, S)} />}
-        {/* Everything but the open domain, veiled. */}
-        {domain && <path key={`veil-${domain.slug}`} className="atlas-veil" d={sectorPath(0.0001, 3, domain.a1 + half, domain.a0 - half + TAU, S)} />}
+        {pointed && <path className="atlas-hover" d={sectorPath(g.group, g.ring, pointed.from, pointed.to, S)} />}
+        {/* An open domain over the plate, which steps back under it; an open group's own branches on from its tip to each of its skills. */}
+        {domain && <OpenDomain key={domain.slug} layout={layout} domain={domain} group={group} hued={!overlay} />}
+        {group && <path key={`stems-${group.slug}`} className="atlas-stems" d={stemsPath(layout, group, S)} />}
         {overlay && <Overlay layout={layout} overlay={overlay} ahead={walking} />}
         {walking && overlay && <Walk layout={layout} career={overlay.first} marks={marks} arriving={arriving} />}
         {marks && marks.size > 0 && <Marks layout={layout} marks={marks} overlay={overlay} fresh={arriving} />}
-        {pointedGroup && (
-          <path className="atlas-hover" d={sectorPath(g.group, g.ring - 0.012, pointedGroup.a0 - 0.5 * layout.step, pointedGroup.a1 + 0.5 * layout.step, S)} />
-        )}
-        {group && <path className="atlas-chosen-arc" d={arcPath(g.groupRing, group.a0 - 0.35 * layout.step, group.a1 + 0.35 * layout.step, S)} />}
+        {pointedGroup && <path className="atlas-hover" d={groupSector(pointedGroup)} />}
+        {group && <path className="atlas-chosen-arc" d={arcPath(g.ring, group.a0 - 0.5 * layout.step, group.a1 + 0.5 * layout.step, S)} />}
         {ringed && (
           <circle
             className="atlas-chosen"
             data-atlas-chosen={ringed.id}
             cx={fixed(point(ringed.angle, ringed.radius)[0] * S)}
             cy={fixed(point(ringed.angle, ringed.radius)[1] * S)}
-            r={fixed((dotRadius(layout, ringed) + (domain ? 0.007 : 0.014)) * S)}
+            r={fixed((dotRadius(layout, ringed) + (domain ? 0.006 : 0.012)) * S)}
           />
         )}
         <Names layout={layout} radiusPx={radiusPx} away={Boolean(domain)} on={pointed} reached={reached} />
-        {domain && (
-          <Labels key={domain.slug} layout={layout} labels={labels} zoom={zoom} radiusPx={radiusPx} leaf={leaf} preview={preview} overlay={overlay} />
-        )}
       </g>
+      {/* The names beside the open domain stand level, in the frame's own units: they never turn with the plate. */}
+      {domain && (
+        <Labels key={domain.slug} layout={layout} labels={labels} zoom={zoom} camera={camera} radiusPx={radiusPx} leaf={leaf} preview={preview} overlay={overlay} />
+      )}
     </svg>
     {/* What moves while a career is filled in: a drawing of its own over the plate, under the same camera. */}
     {walking && overlay && (
