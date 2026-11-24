@@ -1,37 +1,88 @@
 {
-  "note": "The four military services as employers: one company each, with no plants. `service` is the key stored in companies.service (shared/military.ts names the four) and `name` the company's name: a service is found by that name, in any letter case, and created when it is not stored. `slug`, `domain`, `description` and `headquarters` are set only where the stored company has none. Nothing here is a tag or a count: a career's tags are derived from its service and how many careers a service has is counted. scripts/build-military-sql.mjs turns this file into a migration (0062).",
+  "note": "The four military services as employers: one company each, with no plants. `service` is the key stored in companies.service (shared/military.ts names the four) and `name` the company's name: a service is found by that name, in any letter case, and created when it is not stored. `slug`, `domain`, `description` and `headquarters` are set only where the stored company has none, and `description` also where the stored one is still one of the file's earlier descriptions (`descriptionWas`): a description a person wrote is kept. `sources` are the services' own pages each description was read from, with what was read there: a note for the data, never shown. Nothing here is a tag or a count: a career's tags are derived from its service and how many careers a service has is counted. A service's mark is in client/public/logos/ under its domain (data/companies/logo-decisions.json says where each came from). scripts/build-military-sql.mjs turns this file into a migration (0062 first, 0077_military_employers_2.sql now).",
   "companies": [
     {
       "name": "U.S. Navy",
       "service": "navy",
       "slug": "us-navy",
       "domain": "navy.mil",
-      "description": "The naval service. Its enlisted jobs are ratings.",
-      "headquarters": { "city": "Arlington", "state": "VA", "country": "US" }
+      "description": "The Navy is the nation's force at sea, operating on, above and below the oceans and in cyberspace. Its mission is to defend the nation, preserve global stability and defeat adversaries when it must. Its enlisted jobs are ratings, among more than 150 roles in fields from aviation and construction to electronics, industrial and mechanical work, and nuclear power.",
+      "descriptionWas": [
+        "The naval service. Its enlisted jobs are ratings."
+      ],
+      "headquarters": {
+        "city": "Arlington",
+        "state": "VA",
+        "country": "US"
+      },
+      "sources": [
+        "https://www.navy.com/navy-life/who-we-are (read 2026-11-24): a global force operating on, above and below the sea; patrolling every ocean, securing cyberspace; the mission: defend America, preserve global stability and provide lethal power when necessary to defeat adversaries",
+        "https://www.navy.com/careers-benefits/careers (read 2026-11-24): over 150 roles; the career fields (Aviation; Construction; Electronics & Technology; Industrial & Mechanical; Science, Engineering & Nuclear; and others); an enlisted job is a rating (\"the Navy's oldest rating\")",
+        "No headcount: www.navy.mil refuses automated requests and was not asked, and navy.com states none"
+      ]
     },
     {
       "name": "U.S. Army",
       "service": "army",
       "slug": "us-army",
       "domain": "army.mil",
-      "description": "The land service. Its enlisted jobs are military occupational specialties.",
-      "headquarters": { "city": "Arlington", "state": "VA", "country": "US" }
+      "description": "The Army is the nation's land force: it deploys, fights and wins the nation's wars as part of the joint force. About 450,000 Soldiers serve in the Regular Army, 330,000 in the Army National Guard and 170,000 in the Army Reserve. Its enlisted jobs are military occupational specialties (MOS), each with a code such as 15T: more than 200 of them, in six career categories from aviation and ground forces to mechanics and engineering.",
+      "descriptionWas": [
+        "The land service. Its enlisted jobs are military occupational specialties."
+      ],
+      "headquarters": {
+        "city": "Arlington",
+        "state": "VA",
+        "country": "US"
+      },
+      "sources": [
+        "https://www.army.mil/e2/downloads/rv7/about/ARMY_101.pdf, linked from https://www.army.mil/about/ (read 2026-11-24): the mission (deploy, fight and win our nation's wars ... as part of the Joint Force); Army end strength FY25, figures rounded: Regular Army 450,000, Army National Guard 330,000, Army Reserve 170,000",
+        "https://www.goarmy.com/careers-and-jobs/find-your-path/enlisted-soldiers (read 2026-11-24): more than 200 jobs",
+        "https://www.goarmy.com/how-to-join/steps/asvab (read 2026-11-24): MOS; line scores open jobs across career categories",
+        "https://www.goarmy.com/sitemap.xml and https://www.goarmy.com/careers-and-jobs/aviation/repairing-aircraft/15t-uh-60-helicopter-repairer (read 2026-11-24): the six categories of careers-and-jobs (aviation, ground-forces, mechanics-engineering, science-medicine, signal-intelligence, support-logistics); MOS 15T in Aviation & Aerial Defense"
+      ]
     },
     {
       "name": "U.S. Air Force",
       "service": "air-force",
       "slug": "us-air-force",
       "domain": "af.mil",
-      "description": "The air service. Its enlisted jobs are Air Force specialties.",
-      "headquarters": { "city": "Arlington", "state": "VA", "country": "US" }
+      "description": "The Air Force is the nation's air service: its mission is to fly, fight and win, with airpower anytime, anywhere. Its enlisted jobs are Air Force specialties, each with a code (AFSC) such as 3E0X2, in career areas from aviation and flight to maintenance and repair, science and technology, and cyber and intelligence.",
+      "descriptionWas": [
+        "The air service. Its enlisted jobs are Air Force specialties."
+      ],
+      "headquarters": {
+        "city": "Arlington",
+        "state": "VA",
+        "country": "US"
+      },
+      "sources": [
+        "https://www.airforce.com/mission (read 2026-11-24): the mission of the United States Air Force is to fly, fight and win - airpower anytime, anywhere",
+        "https://www.airforce.com/careers (read 2026-11-24): the career areas (Healthcare; Maintenance and Repair; Science and Technology; Aviation and Flight; Logistics and Administration; Cyber and Intelligence; Special Warfare and Combat Support; Law and Order)",
+        "https://www.airforce.com/careers/maintenance-and-repair/electrical-power-production (read 2026-11-24): Enlisted, AFSC 3E0X2",
+        "No headcount: www.af.mil refused the request, and airforce.com states none"
+      ]
     },
     {
       "name": "U.S. Marine Corps",
       "service": "marine-corps",
       "slug": "us-marine-corps",
       "domain": "marines.mil",
-      "description": "The naval expeditionary service. Its enlisted jobs are military occupational specialties.",
-      "headquarters": { "city": "Arlington", "state": "VA", "country": "US" }
+      "description": "The Marine Corps deploys rapidly to fight and win the nation's battles on land and at sea, with air, ground and logistics forces under one command. Every Marine is a rifleman first. Its enlisted jobs are military occupational specialties (MOS) in occupational fields: an enlistee names a preferred job category, such as aviation mechanic, vehicle mechanic or machinist, and is assigned a specialty in it after becoming a Marine.",
+      "descriptionWas": [
+        "The naval expeditionary service. Its enlisted jobs are military occupational specialties."
+      ],
+      "headquarters": {
+        "city": "Arlington",
+        "state": "VA",
+        "country": "US"
+      },
+      "sources": [
+        "https://www.marines.com/mission (read 2026-11-24): Marines rapidly deploy, fight, and win the Nation's battles on land and at sea",
+        "https://www.marines.com/mission/air-ground-task-force (read 2026-11-24): the MAGTF brings together air, ground, and logistics forces under one command",
+        "https://www.marines.com/mission/roles (read 2026-11-24): every Marine is a rifleman first; roles, occupational fields and Military Occupational Specialties (MOS); a preferred job category is indicated on enlisting (AF: Aviation Mechanic, CX: Vehicle Mechanic, MA: Machinist, among others), and its specialties are assigned after you become a Marine",
+        "No headcount: www.marines.mil refused the request, and marines.com states none"
+      ]
     }
   ]
 }

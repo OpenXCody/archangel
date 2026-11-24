@@ -25,7 +25,6 @@ import {
 } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import GoalPlate, { GoalPlateGround } from '../atlas/GoalPlate';
-import { careerAtlasHref } from '../atlas/pathView';
 import { useAtlasLayout } from '../atlas/useAtlasLayout';
 import { ShareRing } from '../path/HeldShare';
 import { SkillsLine } from '../path/SkillsLine';
@@ -94,11 +93,11 @@ export default function GoalsSection() {
             const removing = removeGoal.isPending && removeGoal.variables === goal.occupationId;
             return (
               <li key={goal.occupationId} className={cn(rowClass, 'flex items-center gap-3 py-4')} data-goal={goal.occupationId}>
-                {/* The career on the Atlas, small: how much of it is filled. It opens the career's page on that view. */}
+                {/* The career on the Atlas, small: how much of it is filled. It opens the career's page at its path, the route. */}
                 {layout && goal.skillIds && goal.skillIds.length > 0 && (
                   <Link
-                    to={careerAtlasHref(goal.occupationId)}
-                    aria-label={`${goal.title} on the atlas`}
+                    to={`/occupations/${goal.occupationId}#skills`}
+                    aria-label={`Path of ${goal.title}`}
                     data-goal-plate-link
                     className={cn('-my-1 -ml-1 shrink-0 self-start rounded-full p-1 transition-opacity hover:opacity-80', focusRing)}
                   >

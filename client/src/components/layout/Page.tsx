@@ -28,7 +28,7 @@ import { cn, focusRing, labelClass, pageTitleClass, sectionHeadingClass } from '
  *        (`RecordTag.tsx`): a job's company, factory and career, a factory's
  *        company, the company and the standard career on a company's version
  *        of a career, a military career's service. Where a tag names the
- *        company its mark is in the tag (a service's is a lettermark, so not);
+ *        company or a service its mark is in the tag;
  *      - one paragraph saying what it is, when the record has one;
  *      - one or two quiet lines of facts (where it is, how big, its industry);
  *      - the page's one action, last in the block and always in this place:

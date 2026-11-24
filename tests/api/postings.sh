@@ -44,7 +44,7 @@ open_jobs() { sql "SELECT count(*) FROM jobs WHERE source = 'postings-e2e-$1' AN
 cleanup() {
   psql "$DB" -qtA >/dev/null 2>&1 <<'SQL'
 DELETE FROM audit_log WHERE actor_id IN (SELECT id FROM users WHERE email LIKE '%@postings.test') OR record_name LIKE 'E2E Postings %' OR record_name LIKE 'E2E POSTINGS %';
-DELETE FROM load_log WHERE load LIKE 'postings-e2e-%';
+DELETE FROM load_log WHERE load LIKE 'postings-e2e-%' OR (load = 'posting-places' AND source_id LIKE 'postings-e2e-%');
 DELETE FROM intake_changes WHERE run_id IN (SELECT id FROM intake_runs WHERE source LIKE 'postings-e2e-%');
 DELETE FROM external_references WHERE source LIKE 'POSTINGS_E2E_%';
 DELETE FROM jobs WHERE source LIKE 'postings-e2e-%' OR company_id IN (SELECT id FROM companies WHERE name LIKE 'E2E Postings %');
@@ -419,6 +419,46 @@ expect "a place that was left is not asked about again" 'undefined' "$(req a GET
 ingest load postings-e2e-acme >/dev/null
 expect "nor by the next run"                'left' "$(sql "SELECT status FROM posting_places WHERE source = 'postings-e2e-acme'")"
 expect "leaving is on record too"           'postings place left, postings place waits again' "$(req a GET '/admin/audit?kind=company&limit=20' | j "entries.filter((e) => e.recordId === '$ACME').map((e) => e.action).sort().join(', ')")"
+
+# --- Places decided by the data (data/employers/places.json, scripts/build-posting-places-sql.mjs) ------------------
+# The file points Nowhere Springs at the yard and leaves Mirage Flats, an office no plant stands in. Its SQL is run as
+# the migration runs it.
+places() { # file: the places, as data/employers/places.json holds them
+  node "$ROOT/scripts/build-posting-places-sql.mjs" --registry "$ROOT/tests/api/postings/boards.json" --out "$D/places.sql" "$1" 2>/dev/null && psql "$DB" -qtA -f "$D/places.sql" >/dev/null 2>&1
+}
+cat > "$D/places.json" <<'JSON'
+{ "places": [
+  { "employer": "E2E Postings Acme", "city": "Nowhere Springs", "state": "NV", "decision": "point", "company": "E2E Postings Acme",
+    "plant": "E2E POSTINGS ACME PALISADE YARD", "stored": true, "why": "The yard is over the town line.", "sources": ["https://example.com/yard"] },
+  { "employer": "E2E Postings Acme", "city": "Mirage Flats", "state": "NV", "decision": "leave", "kind": "sales office",
+    "why": "An office; nothing is made there.", "sources": ["https://example.com/office"] }
+] }
+JSON
+check_places() { sql "SELECT string_agg(concat_ws(' ', place_key, status, (factory_id = '$YARD')::text, (decided_by IS NULL)::text, (decided_at IS NOT NULL)::text), '; ' ORDER BY place_key) FROM posting_places WHERE source = 'postings-e2e-acme'"; }
+places "$D/places.json"
+expect "a place a person left is not changed by the file"  'mirage flats|NV left true true; nowhere springs|NV left false true' "$(check_places)"
+expect "and the file says so"               'left as a person decided' "$(sql "SELECT action FROM load_log WHERE load = 'posting-places' AND source_id = 'postings-e2e-acme' AND detail LIKE 'Nowhere Springs%'")"
+check "the person takes it back"            200 "$(req a POST /admin/postings/places "$PLACE,\"decision\":\"wait\"}")" '"status":"waiting"'
+places "$D/places.json"
+expect "a place a person took back is not changed by the file either: taking back is a decision" 'mirage flats|NV left true true; nowhere springs|NV waiting true false' "$(check_places)"
+# On a database where no person has touched the place (their lines are not there), the file decides it.
+sql "DELETE FROM audit_log WHERE action LIKE 'postings %' AND detail->>'place' = 'Nowhere Springs, NV' AND actor_id IS NOT NULL" >/dev/null
+places "$D/places.json"
+expect "a place no person decided is pointed by the file, and named as nobody's decision" 'mirage flats|NV left true true; nowhere springs|NV pointed true true true' "$(check_places)"
+expect "the act is on record, made by the data" 'postings pointed here||Nowhere Springs, NV' "$(req a GET '/admin/audit?kind=factory&limit=20' | j "entries.filter((e) => e.recordId === '$YARD').map((e) => [e.action, e.actorName, e.detail.place].join('|'))[0]")"
+expect "and so is the place left"           'postings place left||Mirage Flats, NV' "$(req a GET '/admin/audit?kind=company&limit=20' | j "entries.filter((e) => e.recordId === '$ACME' && e.actorName === '').map((e) => [e.action, e.actorName, e.detail.place].join('|'))[0]")"
+expect "neither waits"                      'undefined' "$(req a GET /admin/postings/places | j "places.find((x) => x.source === 'postings-e2e-acme')")"
+expect "its postings are jobs at the plant the file names at once, as when a person points it" 'Manufacturing Engineer, Production Operator' "$(sql "SELECT string_agg(j.title, ', ' ORDER BY j.title) FROM jobs j WHERE j.source = 'postings-e2e-acme' AND j.source_id IN ('105', '109') AND j.factory_id = '$YARD' AND j.status = 'open'")"
+ingest load postings-e2e-acme >/dev/null
+expect "and the next run leaves them there" 'Manufacturing Engineer, Production Operator' "$(sql "SELECT string_agg(j.title, ', ' ORDER BY j.title) FROM jobs j WHERE j.source = 'postings-e2e-acme' AND j.source_id IN ('105', '109') AND j.factory_id = '$YARD' AND j.status = 'open'")"
+LINES=$(sql "SELECT count(*) FROM load_log WHERE load = 'posting-places'")
+BEFORE=$(sql "SELECT md5(string_agg(row(place_key, status, factory_id, decided_at)::text, ';' ORDER BY place_key)) FROM posting_places WHERE source = 'postings-e2e-acme'")
+places "$D/places.json"
+expect "the file again changes nothing and writes nothing" "$LINES $BEFORE" "$(sql "SELECT count(*) FROM load_log WHERE load = 'posting-places'") $(sql "SELECT md5(string_agg(row(place_key, status, factory_id, decided_at)::text, ';' ORDER BY place_key)) FROM posting_places WHERE source = 'postings-e2e-acme'")"
+# A plant the file names that is not there: the place is left waiting, and the line is marked for a look.
+sed 's/ACME PALISADE YARD/ACME NO SUCH YARD/; s/Nowhere Springs/Dry Wash/' "$D/places.json" > "$D/places-missing.json"
+places "$D/places-missing.json"
+expect "a plant that is not found is said, with look, and nothing is written" 'plant not found t 0' "$(sql "SELECT concat_ws(' ', action, look) FROM load_log WHERE load = 'posting-places' AND source_id = 'postings-e2e-acme' AND detail LIKE 'Dry Wash%'") $(sql "SELECT count(*) FROM posting_places WHERE source = 'postings-e2e-acme' AND place_key = 'dry wash|NV'")"
 
 # A plant that goes takes its jobs' ids with it; the next run does not trip on them.
 sql "DELETE FROM jobs WHERE id = '$J102'" >/dev/null

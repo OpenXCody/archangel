@@ -8,12 +8,10 @@ export interface ViewChoice {
 }
 
 interface ViewSwitchProps {
-  /** What the two are views of, said to a screen reader: "Skills as", "Path as". */
+  /** What the two are views of, said to a screen reader: "Skills as". */
   label: string;
   views: readonly ViewChoice[];
   current: string;
-  /** A view of the same page takes the other's place in the history; two pages do not. */
-  replace?: boolean;
   onChoose?: (key: string) => void;
   className?: string;
   data?: Record<`data-${string}`, string>;
@@ -21,10 +19,10 @@ interface ViewSwitchProps {
 
 /**
  * One quiet switch between two views of one thing: the Skills list and the
- * Atlas, a career's path as a route and on the Atlas. Each view is an address,
- * so the switch is two links and the one shown is the current page.
+ * Atlas. Each view is an address, so the switch is two links and the one
+ * shown is the current page.
  */
-export default function ViewSwitch({ label, views, current, replace, onChoose, className, data }: ViewSwitchProps) {
+export default function ViewSwitch({ label, views, current, onChoose, className, data }: ViewSwitchProps) {
   return (
     <nav aria-label={label} className={cn('inline-flex shrink-0', segmentedClass, className)} {...data}>
       {views.map((view) => {
@@ -33,7 +31,6 @@ export default function ViewSwitch({ label, views, current, replace, onChoose, c
           <Link
             key={view.key}
             to={view.to}
-            replace={replace}
             aria-current={on ? 'page' : undefined}
             onClick={onChoose ? () => onChoose(view.key) : undefined}
             className={cn(

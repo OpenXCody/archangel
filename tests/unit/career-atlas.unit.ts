@@ -1,12 +1,10 @@
-// A career on the Atlas, part walked (client/src/components/atlas/walk.ts) and
-// the career page's two views of a path (pathView.ts), over the curated
-// taxonomy itself. `npm run test:unit`. No browser, no database.
+// A career on the Atlas, part walked (client/src/components/atlas/walk.ts),
+// over the curated taxonomy itself. `npm run test:unit`. No browser, no database.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { GEOMETRY, layoutAtlas, point } from '../../client/src/components/atlas/layout';
 import { dotsPath, routePath, shareDash, walkOf } from '../../client/src/components/atlas/walk';
-import { careerAtlasHref, namedPathView, pathViewSearch, readPathView } from '../../client/src/components/atlas/pathView';
 
 interface FileTaxonomy {
   domains: { slug: string; name: string; what: string; groups: { slug: string; name: string; what: string; skills: { name: string; level: 1 | 2 | 3 }[] }[] }[];
@@ -126,35 +124,4 @@ test('the ring at the centre draws the held share of its circle, and the whole c
   assert.ok(dash(20, 17) <= length + 0.011, 'never more than the circle');
   // The gap after the drawn part is the whole circle, so the dash never repeats.
   assert.ok(near(Number(shareDash({ held: 5, learning: 0, total: 17 }, radius).dash.split(' ')[1]), length));
-});
-
-test('the view of a path is the address\'s, else the one last shown in the visit, else the route', () => {
-  assert.equal(readPathView('atlas', null), 'atlas');
-  assert.equal(readPathView('route', 'atlas'), 'route', 'the address wins over what was kept');
-  assert.equal(readPathView(null, 'atlas'), 'atlas');
-  assert.equal(readPathView(null, null), 'route');
-  assert.equal(readPathView('sideways', 'atlas'), 'atlas', 'a word that is no view is no word');
-  assert.equal(readPathView(null, 'sideways'), 'route');
-});
-
-test('the route was the flow: an old address and a view kept from before still read', () => {
-  assert.equal(readPathView('flow', null), 'route');
-  assert.equal(readPathView('flow', 'atlas'), 'route', 'an old address still wins over what was kept');
-  assert.equal(readPathView(null, 'flow'), 'route');
-  assert.equal(namedPathView('flow'), 'route');
-  assert.equal(namedPathView('route'), 'route');
-  assert.equal(namedPathView('atlas'), 'atlas');
-  assert.equal(namedPathView('levels'), null);
-  assert.equal(namedPathView(null), null);
-});
-
-test('the address carries the view and the open domain, and keeps what else it had', () => {
-  assert.equal(pathViewSearch('', 'atlas'), '?path=atlas');
-  assert.equal(pathViewSearch('?path=route', 'atlas', 'quality'), '?path=atlas&domain=quality');
-  assert.equal(pathViewSearch('?path=flow', 'atlas'), '?path=atlas', 'an old word is written over');
-  assert.equal(pathViewSearch('?path=atlas&domain=quality', 'atlas'), '?path=atlas', 'back to the whole path');
-  assert.equal(pathViewSearch('?path=atlas&domain=quality', 'route'), '?path=route', 'the route has no open domain');
-  assert.equal(pathViewSearch('?path=atlas&domain=quality', 'route', 'quality'), '?path=route');
-  assert.equal(pathViewSearch('?from=search', 'atlas', 'safety'), '?from=search&path=atlas&domain=safety');
-  assert.equal(careerAtlasHref('abc'), '/occupations/abc?path=atlas#skills');
 });

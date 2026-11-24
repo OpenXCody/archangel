@@ -31,6 +31,9 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   '0061_career_service.sql', '0062_military_employers.sql',
   // The military careers, then their paths, every one a draft.
   '0063_military_careers.sql', '0064_military_paths.sql',
+  // The plants behind employers' postings: the plants we lacked and four employers we did not list (a research file),
+  // rows filed under an employer that are another firm's, and the places postings name that are decided by the data.
+  '0065_posting_employers.sql', '0066_rows_not_theirs.sql', '0067_posting_places.sql',
   // The domains in a new order, Safety last. No group or skill moves.
   '0068_skill_taxonomy_4.sql',
 
@@ -39,7 +42,9 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   // The trades of the industries the catalogue lacked: the skills, placed in their groups, and their makes;
   '0070_skills_catalogue_5.sql', '0071_skill_taxonomy_5.sql', '0072_skill_makes_3.sql',
   // then the careers, their industries and other names, and every career's path.
-  '0073_careers_catalogue_2.sql', '0074_career_lists_3.sql', '0075_career_paths_2.sql'];
+  '0073_careers_catalogue_2.sql', '0074_career_lists_3.sql', '0075_career_paths_2.sql',
+  // The four services' descriptions, replaced where each is still the file's earlier one.
+  '0077_military_employers_2.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 
