@@ -796,7 +796,7 @@ test("a skill's makes are plain chips to a visitor, after its group", async ({ p
   await expect(page.locator('#makes')).toHaveCount(0);
 });
 
-test('a seeker who has the skill marks the makes they have run, and Profile says them under the skill', async ({ page, baseURL, request }) => {
+test("a skill's page shows a seeker the makes they have run and marks nothing, and Profile says them under the skill", async ({ page, baseURL, request }) => {
   // Writes: it makes two accounts, marks a skill and two makes and deletes them. Never against a deployed copy.
   test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
   const found = await skillsByMakes(request);
@@ -824,39 +824,43 @@ test('a seeker who has the skill marks the makes they have run, and Profile says
       await expect(page.locator('[data-detail-action] button, [data-detail-action] a')).toHaveCount(0);
       await expect(page.getByText(/Sign in to track this skill/)).toHaveCount(0);
 
-      // Holding the skill (marked elsewhere: here, through the API) turns each chip into a toggle, with the few words that say what it asks.
+      // Holding the skill (marked elsewhere: here, through the API) changes no chip into a control: the page marks nothing.
       const setStatus = async (status: 'held' | 'learning' | null) => {
         const answer = status ? await page.request.put(`${API}/me/skills/${skill.id}`, { data: { status } }) : await page.request.delete(`${API}/me/skills/${skill.id}`);
         expect(answer.ok(), 'the skill was marked through the API').toBe(true);
         await page.reload({ waitUntil: 'domcontentloaded' });
       };
+      const noControls = async () => {
+        await expect(list.locator('button, [aria-pressed]')).toHaveCount(0);
+        await expect(page.locator('#makes')).not.toContainText('Mark the ones');
+        // Nor is any tag of its group, or any skill that goes with it, a toggle: their marks are read.
+        await expect(page.locator('#group button, #group [aria-pressed], #related button, #related [aria-pressed]')).toHaveCount(0);
+      };
       await setStatus('held');
-      const chips = list.locator('button[data-make]');
+      const chips = list.locator('[data-make]');
       await expect(chips).toHaveText(skill.makes);
-      await expect(page.locator('#makes')).toContainText('Mark the ones you have run');
-      await expect(list.locator('button[aria-pressed="true"]')).toHaveCount(0);
-      const size = await chips.first().boundingBox();
-      const touch = await page.evaluate(() => matchMedia('(pointer: coarse)').matches);
-      expect(size?.height ?? 0, 'a chip is a full finger tall on a touch screen').toBeGreaterThanOrEqual(touch ? 44 : 36);
-      // Two taps: both are pressed at once, and saved.
-      await chips.nth(0).click();
-      await chips.nth(2).click();
-      await expect(chips.nth(0)).toHaveAttribute('aria-pressed', 'true');
-      await expect(chips.nth(2)).toHaveAttribute('aria-pressed', 'true');
-      await expect(chips.nth(1)).toHaveAttribute('aria-pressed', 'false');
-      const saved = async () =>
-        ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: { skillId: string; makes: { name: string }[] }[] }).skills
-          .find((each) => each.skillId === skill.id)
-          ?.makes.map((make) => make.name)
-          .join('|');
-      await expect.poll(saved, { message: 'the marks were saved' }).toBe(`${skill.makes[0]}|${skill.makes[2]}`);
+      await expect(list.locator('[data-ran]')).toHaveCount(0);
+      await noControls();
+      // The group's tags show the person's mark, this skill's among them, held.
+      if ((await page.locator('#group').count()) > 0) {
+        await expect(page.locator(`#group [data-skill-tag="${skill.id}"]`)).toHaveAttribute('data-status', 'held');
+        await expect(page.locator(`#group [data-skill-tag="${skill.id}"] [data-skill-mark="held"]`)).toHaveCount(1);
+      }
+      // Two makes marked as run (through the API): both chips are brighter, and still no chip is a control.
+      const all = ((await (await page.request.get(`${API}/skills/${skill.id}`)).json()) as { makes: { id: string; name: string }[] }).makes;
+      const run = async (makes: { id: string }[]) => {
+        expect((await page.request.put(`${API}/me/skills/${skill.id}/makes`, { data: { makes: makes.map((make) => make.id) } })).ok(), 'the makes were marked through the API').toBe(true);
+        await page.reload({ waitUntil: 'domcontentloaded' });
+      };
+      await run([all[0], all[2]]);
+      await expect(list.locator('[data-ran]')).toHaveCount(2);
+      await expect(chips.nth(0)).toHaveAttribute('data-ran', 'true');
+      await expect(chips.nth(2)).toHaveAttribute('data-ran', 'true');
+      await expect(chips.nth(1)).not.toHaveAttribute('data-ran', 'true');
+      const weight = (at: number) => chips.nth(at).evaluate((chip) => getComputedStyle(chip).fontWeight);
+      expect(Number(await weight(0)), 'a make the person has run is heavier').toBeGreaterThan(Number(await weight(1)));
+      await noControls();
       await assertHealthyLayout(page, '/skills/:id makes marked');
-      // One more tap takes one off.
-      await chips.nth(2).click();
-      await expect(chips.nth(2)).toHaveAttribute('aria-pressed', 'false');
-      await expect.poll(saved).toBe(skill.makes[0]);
-      await chips.nth(2).click();
-      await expect.poll(saved).toBe(`${skill.makes[0]}|${skill.makes[2]}`);
 
       // Profile: the skill's tag carries the makes as its second line.
       await page.goto('/me', { waitUntil: 'domcontentloaded' });
@@ -865,15 +869,16 @@ test('a seeker who has the skill marks the makes they have run, and Profile says
       await expect(tag).toContainText(`${skill.makes[0]}, ${skill.makes[2]}`);
       await assertHealthyLayout(page, '/me makes');
 
-      // Off the list, the skill's makes go with it: the chips are plain again, and nothing is pressed when it comes back.
+      // Off the list, the skill's makes go with it: no chip is brighter, and none is when the skill comes back.
       await page.goto(`/skills/${skill.id}`, { waitUntil: 'domcontentloaded' });
-      await expect(list.locator('button[aria-pressed="true"]')).toHaveCount(2);
+      await expect(list.locator('[data-ran]')).toHaveCount(2);
       await setStatus(null);
-      await expect(list.locator('[data-make]')).toHaveText(skill.makes);
-      await expect(list.locator('button')).toHaveCount(0);
+      await expect(list.locator('[data-make]')).toHaveCount(skill.makes.length);
+      await expect(list.locator('[data-ran]')).toHaveCount(0);
       await setStatus('learning');
-      await expect(list.locator('button[data-make]')).toHaveCount(skill.makes.length);
-      await expect(list.locator('button[aria-pressed="true"]')).toHaveCount(0);
+      await expect(list.locator('[data-make]')).toHaveCount(skill.makes.length);
+      await expect(list.locator('[data-ran]')).toHaveCount(0);
+      await noControls();
     } finally {
       const gone = await page.request.delete(`${API}/me`, { data: { password } });
       expect(gone.ok(), `${purpose}: account removed`).toBe(true);
