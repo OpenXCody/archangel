@@ -50,7 +50,9 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   // The four services' descriptions, replaced where each is still the file's earlier one.
   '0077_military_employers_2.sql',
   // The military careers' paths again, with the skills the catalogue gained in 0070 (data/careers/military/paths.json).
-  '0078_military_paths_2.sql'];
+  '0078_military_paths_2.sql',
+  // The points 0065 took from the ArcGIS World Geocoding Service, put right (data/employers/points-replaced.json).
+  '0079_points_replaced.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 

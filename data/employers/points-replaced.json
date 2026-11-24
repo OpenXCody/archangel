@@ -1,0 +1,210 @@
+{
+  "brief": "points-replaced",
+  "retrieved": "2026-11-24",
+  "about": "Points that data/employers/posting-employers.json gave its plants from the ArcGIS World Geocoding Service, whose terms forbid storing an answer asked for without a paid token (scripts/ingest/README.md, \"The contract\"). Migration 0065 is generated from that file and applied, and the employer loader keeps one of two files' points by their order, not their source, so the points are put right here, by scripts/build-points-sql.mjs (migration 0079_points_replaced.sql): each row that still holds the point 0065 wrote takes the point of an allowed source, the Census Bureau's geocoder for the same house number and street, else the EPA registry's facility at the address; a plant no allowed source places keeps its point and is listed (`left`). The research file itself is not edited (0065 is held to it); `was` is the point it holds.",
+  "plants": [
+    {
+      "company": "Rocket Lab",
+      "plant": "Rocket Lab Headquarters and Production Complex",
+      "address": "3881 McGowen Street, Long Beach, CA 90808",
+      "was": {
+        "latitude": 33.83087,
+        "longitude": -118.14899
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 33.83026,
+      "longitude": -118.14906,
+      "coordinatesFrom": "U.S. Census Bureau geocoder, interpolated along the street for the street address; matched as 3881 MCGOWEN ST, LONG BEACH, CA, 90808",
+      "source": "https://geocoding.geo.census.gov/geocoder/locations/address?street=3881+McGowen+Street&city=Long+Beach&state=CA&zip=90808&benchmark=Public_AR_Current&format=json"
+    },
+    {
+      "company": "Rocket Lab",
+      "plant": "Rocket Lab Engine Development Center",
+      "address": "4022 E Conant Street, Long Beach, CA 90808",
+      "was": {
+        "latitude": 33.82418,
+        "longitude": -118.14682
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 33.82492,
+      "longitude": -118.14753,
+      "coordinatesFrom": "U.S. Census Bureau geocoder, interpolated along the street for the street address; matched as 4022 E CONANT ST, LONG BEACH, CA, 90808",
+      "source": "https://geocoding.geo.census.gov/geocoder/locations/address?street=4022+E+Conant+Street&city=Long+Beach&state=CA&zip=90808&benchmark=Public_AR_Current&format=json"
+    },
+    {
+      "company": "Rocket Lab",
+      "plant": "Rocket Lab Space Structures Complex",
+      "address": "605 Chesapeake Park Plaza, Middle River, MD 21220",
+      "was": {
+        "latitude": 39.32963,
+        "longitude": -76.42971
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 39.33303,
+      "longitude": -76.42803,
+      "coordinatesFrom": "U.S. Census Bureau geocoder, interpolated along the street for the street address; matched as 605 CHESAPEAKE PARK PLZ, MIDDLE RIVER, MD, 21220",
+      "source": "https://geocoding.geo.census.gov/geocoder/locations/address?street=605+Chesapeake+Park+Plaza&city=Middle+River&state=MD&zip=21220&benchmark=Public_AR_Current&format=json"
+    },
+    {
+      "company": "Rocket Lab",
+      "plant": "SolAero by Rocket Lab",
+      "address": "10420 Research Road SE, Albuquerque, NM 87123",
+      "was": {
+        "latitude": 35.05479,
+        "longitude": -106.53118
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 35.05536,
+      "longitude": -106.53191,
+      "coordinatesFrom": "U.S. Census Bureau geocoder, interpolated along the street for the street address; matched as 10420 RESEARCH RD SE, ALBUQUERQUE, NM, 87123",
+      "source": "https://geocoding.geo.census.gov/geocoder/locations/address?street=10420+Research+Road+SE&city=Albuquerque&state=NM&zip=87123&benchmark=Public_AR_Current&format=json"
+    },
+    {
+      "company": "Rocket Lab",
+      "plant": "Planetary Systems Corporation",
+      "address": "2303 Kansas Avenue, Silver Spring, MD 20910",
+      "was": {
+        "latitude": 39.00303,
+        "longitude": -77.04919
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 39.00291,
+      "longitude": -77.04904,
+      "coordinatesFrom": "U.S. Census Bureau geocoder, interpolated along the street for the street address; matched as 2303 KANSAS AVE, SILVER SPRING, MD, 20910",
+      "source": "https://geocoding.geo.census.gov/geocoder/locations/address?street=2303+Kansas+Avenue&city=Silver+Spring&state=MD&zip=20910&benchmark=Public_AR_Current&format=json"
+    },
+    {
+      "company": "Rocket Lab",
+      "plant": "Geost",
+      "address": "3855 W River Road, Tucson, AZ 85741",
+      "was": {
+        "latitude": 32.32212,
+        "longitude": -111.04739
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "left": "The Census geocoder finds no match for 3855 W River Rd, Tucson, and the EPA registry has no facility at the address (nothing under Geost or Rocket Lab in Arizona). No allowed source places it: the point stays, listed for a person."
+    },
+    {
+      "company": "Rocket Lab",
+      "plant": "Rocket Lab Robotics",
+      "address": "350 N Halstead Street, Pasadena, CA 91107",
+      "was": {
+        "latitude": 34.15234,
+        "longitude": -118.07934
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 34.15248,
+      "longitude": -118.07963,
+      "coordinatesFrom": "U.S. Census Bureau geocoder, interpolated along the street for the street address; matched as 350 N HALSTEAD ST, PASADENA, CA, 91107",
+      "source": "https://geocoding.geo.census.gov/geocoder/locations/address?street=350+N+Halstead+Street&city=Pasadena&state=CA&zip=91107&benchmark=Public_AR_Current&format=json"
+    },
+    {
+      "company": "Rocket Lab",
+      "plant": "Rocket Lab Neutron Assembly and Integration Complex",
+      "address": "32355 Wallops Island Road, Temperanceville, VA 23442",
+      "was": {
+        "latitude": 37.86713,
+        "longitude": -75.5083
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 37.8657,
+      "longitude": -75.5087,
+      "coordinatesFrom": "EPA registry facility 110071508807 (MARS AIT FACILITY - BUILDING 1 MASS GRADING, 32355 WALLOPS ISLAND RD, TEMPERANCEVILLE, VA 23442): the entrance point its stormwater permit (VAR10R406) gives; the Census geocoder finds no match for the address",
+      "registryId": "110071508807",
+      "source": "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071508807"
+    },
+    {
+      "company": "Rocket Lab",
+      "plant": "Rocket Lab Integration and Control Facility",
+      "address": "7396 Aerospace Gateway, Wallops Island, VA 23337",
+      "was": {
+        "latitude": 37.93677,
+        "longitude": -75.48712
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "left": "The Census geocoder finds no match for 7396 Aerospace Gateway, Wallops Island, and the EPA registry has no facility at the address (its Wallops Island entries are NASA's, the Navy's, the spaceport authority's at 7414 Atlantic Rd and contractors' portables). No allowed source places it: the point stays, listed for a person."
+    },
+    {
+      "company": "Hermeus",
+      "plant": "Hermeus El Segundo",
+      "address": "888 North Douglas Street, Building 200, El Segundo, CA 90245",
+      "was": {
+        "latitude": 33.9292,
+        "longitude": -118.38055
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 33.9303,
+      "longitude": -118.38308,
+      "coordinatesFrom": "U.S. Census Bureau geocoder, interpolated along the street for the street address; matched as 888 N DOUGLAS ST, EL SEGUNDO, CA, 90245",
+      "source": "https://geocoding.geo.census.gov/geocoder/locations/address?street=888+North+Douglas+Street&city=El+Segundo&state=CA&zip=90245&benchmark=Public_AR_Current&format=json"
+    },
+    {
+      "company": "Hermeus",
+      "plant": "Hermeus Atlanta Factory",
+      "address": "3960 DeKalb Technology Parkway, Atlanta, GA 30340",
+      "was": {
+        "latitude": 33.89064,
+        "longitude": -84.26638
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 33.89043,
+      "longitude": -84.26532,
+      "coordinatesFrom": "U.S. Census Bureau geocoder, interpolated along the street for the street address; matched as 3960 DEKALB TECHNOLOGY PKWY, ATLANTA, GA, 30340",
+      "source": "https://geocoding.geo.census.gov/geocoder/locations/address?street=3960+DeKalb+Technology+Parkway&city=Atlanta&state=GA&zip=30340&benchmark=Public_AR_Current&format=json"
+    },
+    {
+      "company": "Apptronik",
+      "plant": "Apptronik Austin",
+      "address": "11701 Stonehollow Drive, Suite 150, Austin, TX 78758",
+      "was": {
+        "latitude": 30.39758,
+        "longitude": -97.70954
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 30.39715,
+      "longitude": -97.71027,
+      "coordinatesFrom": "U.S. Census Bureau geocoder, interpolated along the street for the street address; matched as 11701 STONEHOLLOW DR, AUSTIN, TX, 78758",
+      "source": "https://geocoding.geo.census.gov/geocoder/locations/address?street=11701+Stonehollow+Drive&city=Austin&state=TX&zip=78758&benchmark=Public_AR_Current&format=json"
+    },
+    {
+      "company": "Relativity Space",
+      "plant": "Relativity Space Wormhole",
+      "address": "2400 E Wardlow Road, Long Beach, CA 90807",
+      "was": {
+        "latitude": 33.81766,
+        "longitude": -118.16183
+      },
+      "wasFrom": "the ArcGIS World Geocoding Service (geocode.arcgis.com, findAddressCandidates): the address point, as the research notes of 2026-11-24 say",
+      "latitude": 33.81887,
+      "longitude": -118.16516,
+      "coordinatesFrom": "U.S. Census Bureau geocoder, interpolated along the street for the street address; matched as 2400 E WARDLOW RD, LONG BEACH, CA, 90807",
+      "source": "https://geocoding.geo.census.gov/geocoder/locations/address?street=2400+E+Wardlow+Road&city=Long+Beach&state=CA&zip=90807&benchmark=Public_AR_Current&format=json"
+    }
+  ],
+  "checked": [
+    {
+      "company": "GlobalFoundries",
+      "plant": "GlobalFoundries Fab 9",
+      "source": "https://services1.arcgis.com/BkFxaEFNwHqX3tAw/arcgis/rest/services/FS_VCGI_OPENDATA_Emergency_SiteStructureAddressPoint_point_SP_v1_VIEW/FeatureServer/0",
+      "found": "Vermont's own E911 address point for 1000 River St, Essex Junction (site type Manufacturing Facility), served by the state's geographic information centre (VCGI) on ArcGIS Online: the stored point is that address point, to 1 m. A state's own address points are a public point: kept."
+    },
+    {
+      "company": "Applied Materials",
+      "plant": "Gloucester campus (Varian Semiconductor Equipment)",
+      "source": "https://services1.arcgis.com/hGdibHYSPO59RG1h/ArcGIS/rest/services/Massachusetts_Property_Tax_Parcels/FeatureServer/0",
+      "found": "MassGIS's assessors' parcel for 35 Dory Rd, Gloucester (owner Varian Semiconductor Equipment Assoc.): the stored point is that parcel's centroid, to 1 m. The Commonwealth's own parcel record: kept."
+    },
+    {
+      "company": "Applied Materials",
+      "plant": "Tempe spares manufacturing (Hardy Drive)",
+      "source": "https://services.arcgis.com/lQySeXwbBg53XWDi/arcgis/rest/services/building_permits/FeatureServer/0",
+      "found": "The City of Tempe's building permits for 8175 S Hardy Dr carry a point 18 m from the stored one; the Maricopa County Assessor's parcel point is 41 m off, the Census geocoder's 46 m and the EPA registry's (110070861847) 65 m. The stored point is none of them, and the file does not say where it came from: for the owner to read in the research notes. Not changed."
+    },
+    {
+      "company": "Saronic",
+      "plant": "Port Alpha",
+      "source": "https://feature.geographic.texas.gov/arcgis/rest/services/Parcels/stratmap_land_parcels_48_most_recent/MapServer",
+      "found": "The Texas Geographic Information Office's own parcel service (StratMap, on the state's server): the stored point lies inside Cameron County parcel 171770, the port land the citation names, 1.6 km from its centroid. The site has no street address, so no geocoder answered it. Not changed."
+    }
+  ]
+}
