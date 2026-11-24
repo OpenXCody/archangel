@@ -108,6 +108,18 @@ export default function EntityDetail() {
     if (slug && id !== slug) navigate(`/companies/${slug}${window.location.hash}`, { replace: true });
   }, [slug, id, navigate]);
 
+  // A career's path is drawn as its route alone. An address from when it had views (`?path=route|atlas|flow`, and
+  // `&domain=` for a domain opened on the atlas) is read as the route and loses those words; the rest is kept.
+  const oldPathView = entityType === 'occupations' && /(?:^|[?&])(?:path|domain)=/.test(search);
+  useEffect(() => {
+    if (!oldPathView) return;
+    const params = new URLSearchParams(search);
+    params.delete('path');
+    params.delete('domain');
+    const rest = params.toString();
+    navigate(`${pathname}${rest ? `?${rest}` : ''}${window.location.hash}`, { replace: true });
+  }, [oldPathView, search, pathname, navigate]);
+
   // A factory that was merged into another is shown under the one kept: its old address leads there.
   const keptId = data && entityType === 'factories' && 'id' in data ? data.id : null;
   useEffect(() => {

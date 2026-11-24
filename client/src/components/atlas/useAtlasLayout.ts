@@ -4,8 +4,7 @@ import { layoutAtlas, type AtlasLayout } from './layout';
 
 /*
  * The plate's arithmetic, worked out once per taxonomy answer however many
- * things draw from it: the Atlas, a career's path on it, a small plate per
- * goal on Profile.
+ * things draw from it: the Atlas and a small plate per goal on Profile.
  */
 const layouts = new WeakMap<Taxonomy, AtlasLayout>();
 

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ErrorNote } from '../account/parts';
 import { signInPath } from '../../lib/account';
@@ -18,8 +18,6 @@ import {
   RecordRow,
   ShowAll,
 } from '../layout/Page';
-import PathViewSwitch, { usePathView } from '../atlas/PathViewSwitch';
-import PlateSkeleton from '../atlas/PlateSkeleton';
 import { RecordTag, RecordTags } from '../layout/RecordTag';
 import { ShareRing } from '../path/HeldShare';
 import { shareOf } from '../path/model';
@@ -28,9 +26,6 @@ import { useSkillMarks } from '../path/useSkillMarks';
 import { Route } from '../route/Route';
 import { RouteAlone } from '../route/RouteLadder';
 import { type Head, OpenJobsSection, IndustryRows, MilitaryCareerRows, factLinkClass } from './parts';
-
-// The path on the Atlas arrives with the Atlas's own code, only when that view is asked for.
-const CareerAtlas = lazy(() => import('../atlas/CareerAtlas'));
 
 /**
  * Career (occupation) detail: the path of skills drawn as a route, where the
@@ -69,8 +64,6 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   // Where people come to this career from the services: computed from the two paths, never stored.
   const reachedBy = data.reachedBy ?? [];
   const [showAllVersions, setShowAllVersions] = useState(false);
-  // The path as a route, or on the Atlas: from the address, else as last shown in this visit.
-  const pathView = usePathView();
   // A military career: the service it belongs to, and the civilian careers its path covers.
   const service = data.service ?? null;
   const withinReach = data.withinReach ?? [];
@@ -155,16 +148,10 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
               </details>
             ) : undefined
           }
-          // Two views of one path: the route, and the same skills on the Atlas among all the others.
-          action={<PathViewSwitch current={pathView} />}
         >
           {marks && <ErrorNote error={markError} className="mb-3" />}
-          {pathView === 'route' && <Route skills={skills} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} keepAs={data.id} />}
-          {pathView === 'atlas' && (
-            <Suspense fallback={<PlateSkeleton className="mx-auto max-w-md" />}>
-              <CareerAtlas career={data} marks={marks} />
-            </Suspense>
-          )}
+          {/* The path is the route alone: its stops in the order to learn them. */}
+          <Route skills={skills} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} keepAs={data.id} />
           {canSignIn && (
             <p className="mt-4 text-sm text-text-3">
               <Link to={signInPath(`${pathname}${search}`)} className="text-text-1 underline">

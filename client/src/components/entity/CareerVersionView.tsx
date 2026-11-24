@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { cn, plural } from '@/lib/utils';
+import { plural } from '@/lib/utils';
 import { ErrorNote, LoadError } from '../account/parts';
 import { signInPath, useAccount } from '../../lib/account';
 import { type OccupationDetail } from '../../lib/api';
 import { isNoVersion, useVersion, type Version } from '../../lib/versions';
 import { useViewer } from '../../lib/viewer';
-import { BackLink, DetailHeader, DetailSection, EmptyState, sectionLinkClass } from '../layout/Page';
+import { BackLink, DetailHeader, DetailSection, EmptyState } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
 import { SkillTag, SkillTags } from '../path/SkillTag';
 import { shareOf, type PlacedSkill } from '../path/model';
@@ -96,7 +96,6 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
     added: skill.added,
     makes: skill.makes.filter((make) => make.runs).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })),
   }));
-  const hasPath = skills.length > 0;
   const whole = marks && skills.length > 0 ? shareOf(skills, marks) : null;
   const leftOut = version.leftOut;
   const same = leftOut.length === 0 && !skills.some((skill) => skill.added);
@@ -144,17 +143,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         </RecordTags>
       </DetailHeader>
 
-      <DetailSection
-        id="skills"
-        title="Path"
-        action={
-          hasPath ? (
-            <Link to={`/atlas?career=${data.id}&at=${encodeURIComponent(company.slug ?? company.id)}`} className={cn(sectionLinkClass, '-my-3 py-3')} data-atlas-link>
-              See on the atlas
-            </Link>
-          ) : undefined
-        }
-      >
+      <DetailSection id="skills" title="Path">
         {marks && <ErrorNote error={markError} className="mb-3" />}
         {skills.length === 0 && <p className="text-sm text-text-2">No skills on this path yet.</p>}
         <Route skills={skills} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} keepAs={`${data.id}@${company.id}`} />
