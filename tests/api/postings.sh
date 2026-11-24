@@ -128,6 +128,12 @@ case "$OUT" in *"a rehearsal: nothing was kept"*"listing: read to its end"*"read
 hashes > "$D/rehearsed.txt"
 expect "a rehearsal leaves every table as it was" '' "$(diff "$D/before.txt" "$D/rehearsed.txt")"
 
+# --- A board the budget does not reach is a source all the same ----------------------
+# One request to Workday: the robots file spends it, and the listing is not asked for.
+OUT=$(ingest postings --only e2e-long --budget 1)
+case "$OUT" in *"not reached, first in line next run (1): e2e-long"*) echo "ok    a board the budget does not reach has no run";; *) echo "FAIL  not reached before its first run: $OUT"; fail=1;; esac
+expect "and is a source from the first run that names it, so Admin Tools lists it as not run yet" '1 0' "$(sql "SELECT concat_ws(' ', (SELECT count(*) FROM intake_sources WHERE slug = 'postings-e2e-long'), (SELECT count(*) FROM intake_runs WHERE source = 'postings-e2e-long'))")"
+
 # --- A first run -------------------------------------------------------------------
 OUT=$(ingest postings)
 R1=$(last_run acme)

@@ -19,9 +19,13 @@ import { SYSTEMS } from '../../scripts/ingest/postings/systems/index.mjs';
 // @ts-expect-error a plain script, no types
 import { countryFacet, postedDay } from '../../scripts/ingest/postings/systems/workday.mjs';
 // @ts-expect-error a plain script, no types
+import { placeOf } from '../../scripts/ingest/postings/systems/icims.mjs';
+// @ts-expect-error a plain script, no types
+import { countryOf, dayOf } from '../../scripts/ingest/postings/systems/successfactors-site.mjs';
+// @ts-expect-error a plain script, no types
 import { listAll, unescapeHtml, webAddress } from '../../scripts/ingest/postings/systems/shared.mjs';
 // @ts-expect-error a plain script, no types
-import { beforeText, collect } from '../../scripts/ingest/postings/jobs.mjs';
+import { beforeText, collect, inTurn } from '../../scripts/ingest/postings/jobs.mjs';
 // @ts-expect-error a plain script, no types
 import * as reader from '../../scripts/ingest/postings/read/index.mjs';
 // @ts-expect-error a plain script, no types
@@ -235,6 +239,18 @@ test('requests to one host keep their distance: the longer of our pace and the r
   await assert.rejects(fetcher.session('crawl').get(feed('crawl.test')), (error: Error) => error instanceof Refusal && /600 s between requests/.test(error.message));
 });
 
+test('a platform with a budget keeps its distance across its tenants: one board after another is still four seconds apart', async () => {
+  const waits: number[] = [];
+  let clock = 2_000_000;
+  const fetcher = fetcherHere({ pace: 1000, budgets: { 'spaced.test': 20 }, now: () => clock, sleep: async (ms: number) => { waits.push(ms); clock += ms; } });
+  await fetcher.session('first', { pace: 4000 }).get(feed('a.spaced.test'));
+  await fetcher.session('second', { pace: 4000 }).get(feed('b.spaced.test'));
+  assert.deepEqual(waits, [4000, 4000, 4000], 'the first board\'s feed, then the second board\'s robots file and feed: each 4 s after the one before');
+  waits.length = 0;
+  await fetcher.session('elsewhere', { pace: 4000 }).get(feed('c.unbudgeted.test'));
+  assert.deepEqual(waits, [4000], 'a host with no budget is paced on its own: its robots file goes at once');
+});
+
 test('an employer has a ceiling of requests for a run', async () => {
   const session: Session = fetcherHere().session('acme', { ceiling: 3 });
   await session.get(feed('ceiling.test'));
@@ -380,6 +396,90 @@ test('SuccessFactors: one feed with every posting; the place in the title is tak
   assert.match(listed[0].text ?? '', /^<p>/);
 });
 
+test('iCIMS portals: the search pages are the listing, a place is "City, ST", and the text is the posting\'s own data on its page', async () => {
+  const { listed, session, tools } = await read('icims', 'careers-northyard.icims.com');
+  wellFormed(listed, false);
+  assert.equal(session.requests, 3, 'the robots file and the two pages of the search');
+  assert.deepEqual(listed.map((posting) => posting.id), ['1001', '1002', '1003']);
+  assert.equal(listed[0].title, 'Welder - Structural (2nd Shift)');
+  assert.equal(listed[0].location, 'Groton, CT');
+  assert.equal(listed[0].country, 'US');
+  assert.equal(listed[0].department, 'Trades & Operations');
+  assert.equal(listed[0].url, 'https://careers-northyard.icims.com/jobs/1001/welder---structural-%282nd-shift%29/job', "the posting's page, without the frame's word");
+  assert.deepEqual(listed[1].locations, ['North Kingstown, RI', 'Groton, CT'], 'a place above the title, and two in one line');
+  assert.deepEqual(placeOf('US-ME-Bath'), { place: 'Bath, ME', country: 'US' });
+  assert.deepEqual(placeOf('Bath Shipyard'), { place: 'Bath Shipyard', country: null });
+  const detail = await SYSTEMS.icims.text('careers-northyard.icims.com', listed[0], tools);
+  assert.match(detail.text, /^<h2>Overview<\/h2>/);
+  assert.equal(detail.address, '40 Harbor Point Road, 06340');
+  assert.equal(detail.postedAt, '2026-11-12');
+  assert.deepEqual(detail.hints, { employmentType: 'full-time' });
+  // A posting that left between the list and its text is a 404 the run survives.
+  await assert.rejects(SYSTEMS.icims.text('careers-northyard.icims.com', listed[1], tools), (error: FeedError & { status?: number }) => error.status === 404);
+  assert.equal(session.stopped, null);
+});
+
+test('SuccessFactors career sites: the search pages are the listing, as a table or as tiles, and the text is the posting\'s page', async () => {
+  const table = await read('successfactors-site', 'careers.northyard.example');
+  wellFormed(table.listed, false);
+  assert.equal(table.session.requests, 3, 'the robots file and the two pages of the search');
+  const asked = saved.requests.filter((request) => request.host === 'careers.northyard.example' && request.path === '/search/').slice(-2).map((request) => request.query);
+  assert.deepEqual(asked, ['?startrow=0', '?startrow=2'], 'no keyword is sent, and the next page starts where the last ended');
+  const [one, two, three] = table.listed;
+  assert.equal(one.id, '2000001');
+  assert.equal(one.title, 'SHIPFITTER - EXPERIENCED (3+ YEARS)');
+  assert.equal(one.location, 'Newport News, Virginia, United States');
+  assert.equal(one.url, 'https://careers.northyard.example/job/Newport-News-SHIPFITTER-EXPERIENCED-3%2B-YEARS-Virg/2000001/');
+  assert.equal(one.postedAt, '2026-11-17');
+  assert.equal(one.department, 'Trades & Production');
+  assert.deepEqual([one.country, two.country, three.country], ['US', 'US', null], 'a place that does not say the United States is left to the reader');
+  const detail = await SYSTEMS['successfactors-site'].text('careers.northyard.example', one, table.tools);
+  assert.match(detail.text, /^<p>Req ID: 70001/);
+  assert.match(detail.text, /GED<\/li><\/ul>\s*$/, 'the whole description, to its own end, with the spans inside it');
+  assert.equal(detail.postedAt, '2026-11-17');
+  assert.deepEqual(detail.locations, ['Newport News, Virginia, United States']);
+  await assert.rejects(SYSTEMS['successfactors-site'].text('careers.northyard.example', two, table.tools), (error: FeedError & { status?: number }) => error.status === 404);
+
+  const tiled = await read('successfactors-site', 'jobs.tilebrook.example');
+  wellFormed(tiled.listed, false);
+  assert.equal(tiled.session.requests, 3);
+  assert.deepEqual(tiled.listed.map((posting) => [posting.id, posting.title, posting.location, posting.country]), [
+    ['3000001', 'Maintenance Technician - 2nd Shift', 'Lafayette, IN', null],
+    ['3000002', 'Production Supervisor', 'Friona, Texas, US United States, 79035', 'US'],
+    ['3000003', 'Tool & Die Maker', 'Lafayette, IN', null],
+  ]);
+  assert.equal(tiled.listed[0].department, 'Manufacturing');
+  assert.equal(tiled.listed[1].postedAt, '2026-11-20');
+  assert.equal(dayOf('Mon Oct 26 00:00:00 UTC 2026'), '2026-10-26');
+  assert.equal(dayOf('soon'), null);
+  // A place abroad is said by its country, so it is not read as a state and costs no request for its text.
+  const lines: [string, string | null][] = [
+    ['Arden Hills, MN, US, 55112', 'US'], ['Newport News, Virginia, United States', 'US'], ['Manhattan, NY, US +3 more', 'US'],
+    ['Bangalore, KA, IN, 560066', 'IN'], ['Pune, MH, IN', 'IN'], ['Hyderabad, IN, 500 008', 'IN'], ['Giron, Santander, CO Colombia, 687541', 'CO'],
+    ['Oakville, ON, CA', 'CA'], ['Curitiba, BR, 81260-900', 'BR'],
+    ['Lafayette, IN', null], ['Kingsport, TN, 37660', null], ['Dallas, Multiple Locations, TX', null], ['Wenzhou, CN', null],
+  ];
+  for (const [line, country] of lines) assert.equal(countryOf(line), country, line);
+});
+
+test('a portal or a career site whose pages give no count is read until a page shows nothing new, never taken to end at its first page', async () => {
+  const portal = await read('icims', 'careers-quietyard.icims.com');
+  assert.deepEqual(portal.listed.map((posting) => posting.id), ['4001', '4002', '4003']);
+  assert.equal(portal.session.requests, 4, 'the robots file, two pages, and the page past the end that repeats the last');
+  const site = await read('successfactors-site', 'careers.quietyard.example');
+  assert.deepEqual(site.listed.map((posting) => posting.id), ['5000001', '5000002', '5000003']);
+  assert.equal(site.session.requests, 4, 'the robots file, two pages, and the empty page past the end');
+});
+
+test('a career site that answers with a challenge page where its listing was asked for is a refusal, not a changed shape', async () => {
+  put('refuse/careers-walled.icims.com', 'challenge after 1');
+  const session: Session = fetcherHere().session('walled');
+  await assert.rejects(
+    listAll(SYSTEMS.icims, 'careers-walled.icims.com', { get: session.get, post: session.post, today: '2026-11-19' }),
+    (error: Refusal) => error instanceof Refusal && /challenge page/.test(error.message)
+  );
+});
+
 test('a feed whose shape changed fails for that employer and says what was missing', async () => {
   put('greenhouse/changed.json', JSON.stringify({ postings: [] }));
   const session: Session = fetcherHere().session('changed');
@@ -519,6 +619,25 @@ function longBoard(tenant: string, count: number, without: number[] = []) {
   }
   put(`workday/${tenant}/list.json`, JSON.stringify({ jobPostings, facets: [] }));
 }
+
+test('the budget is spent where it is most needed: a cut listing, then a board a week past its last whole listing, then one never read', async () => {
+  const day = 86_400_000;
+  const now = Date.parse('2026-11-24T09:23:00Z');
+  const history: Record<string, { cut?: boolean; whole?: number }> = {
+    'postings-fresh': { whole: now - 2 * day },
+    'postings-never': {},
+    'postings-stale': { whole: now - 9 * day },
+    'postings-cut': { cut: true, whole: now - 3 * day },
+  };
+  const db = async (strings: TemplateStringsArray, slug: string) => {
+    const known = history[slug] ?? {};
+    if (strings.join('').includes('max(started_at)')) return [{ at: known.whole ? new Date(known.whole) : null }];
+    return known.cut ? [{ counts: { read: 40, resume: { next: { offset: 40 } } } }] : [];
+  };
+  const entry = (slug: string, system: string) => ({ slug, employer: slug, company: slug, system, board: slug });
+  const order = await inTurn(db, [entry('fresh', 'workday'), entry('one', 'greenhouse'), entry('never', 'workday'), entry('stale', 'workday'), entry('cut', 'workday')], { now });
+  assert.deepEqual(order.map((line: { slug: string }) => line.slug), ['one', 'cut', 'stale', 'never', 'fresh'], 'a board with no budget first; jobs already on the lists are kept before new boards are read in');
+});
 
 test('a listing cut by the budget has read everything up to the cut, and the next run takes it up there', async () => {
   longBoard('cut', 85);

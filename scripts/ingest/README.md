@@ -295,7 +295,9 @@ list has no text, `text(board, posting)`:
 |--------|------------|--------------------|
 | `greenhouse`, `lever`, `ashby` | its token | 1: the whole board with text |
 | `successfactors` | the address of its feed | 1: every posting with text (John Deere) |
+| `successfactors-site` (SAP SuccessFactors career sites) | the career site's host | 1 per page of the site's own search (10 to 100 postings), then 1 per posting that could be ours and is new or changed |
 | `jibe` (iCIMS career sites) | the career site's host | 1 per 100 postings, text included |
+| `icims` (iCIMS career portals, `<name>.icims.com`) | the portal's host | 1 per page of the portal's own search (20 to 50 postings), then 1 per posting that could be ours and is new or changed |
 | `oracle` | `<host>/<site number>` | 1 per 100 postings, then 1 per posting that could be ours and is new or changed |
 | `workday` | its address under `/wday/cxs` | 1 per 20 postings (narrowed to the United States where the board offers that filter), then 1 per posting that could be ours and is new or changed |
 
@@ -308,6 +310,21 @@ one again (after the reader changed). An adapter decides nothing: a field the
 feed states on its own (Lever's and Ashby's pay, a shift, full-time) is
 passed as a hint and used where the text says nothing.
 
+Two adapters read web pages, where the system publishes no feed a robot may
+read: `successfactors-site` (the listing is `/search/?startrow=<n>`, as a
+table or as tiles, and a posting's text is its page; a place is written
+"City, Region, CC, postal code" and the country it names is passed on, so
+"Bangalore, KA, IN, 560066" is abroad and not in Indiana, while a line that
+does not say, "Lafayette, IN", is left to the reader; the feed under
+`/services/` is disallowed by these sites' robots files and is never asked
+for, and no keyword is sent, which some of them disallow too) and `icims`
+(the listing is `/jobs/search?pr=<page>`, a place is written `US-CT-Groton`,
+and a posting's text is the schema.org data on its page). They ask the
+fetcher for pages (`accept: 'html'`), so a challenge page in place of the
+listing is a refusal and not a changed shape. Both take 60 texts a board a
+run, as Oracle does. A site whose robots file disallows its search (Lam
+Research's) or that answers 403 (Gulfstream's) is left out like any other.
+
 ### The fetcher's manners
 
 One user agent that says what it is
@@ -318,25 +335,37 @@ seconds is kept, a longer one leaves the employer for a person). A host with
 no robots file (any answer but 200, 403, 429 or a server error) is taken to
 allow. Requests to one host are at least a second apart: 1.5 for Oracle, two
 for Jibe (five where its robots file asks, as Rivian's and Panasonic's do),
-four for Workday. An employer has a ceiling of 400 requests a run, and Oracle
-of 60 texts a board a run: postings past either wait for the next run, staged
-as they were.
+for iCIMS portals and for SuccessFactors career sites, four for Workday. A
+platform with a budget is paced as one site: its requests keep that distance
+whichever of its tenants they are for, the robots files included, so one
+Workday board after another is still four seconds apart. An employer has a
+ceiling of 400 requests a run, and Oracle, iCIMS portals and SuccessFactors
+career sites of 60 texts a board a run: postings past either wait for the next
+run, staged as they were.
 
 **A platform's budget.** Every Workday board is a tenant of one platform, and
 the platform turns a busy robot away (it reset the scout after about 870
 requests in an hour, and answered 429 to a first request the same day). So
 the platform has a budget for the whole run, across all of its boards: 300
 requests (`budget` in `systems/workday.mjs`; `--budget <n>` for another
-number), four seconds apart, twenty minutes. The boards without a budget are
+number), four seconds apart whichever board they are for, twenty minutes. The boards without a budget are
 read first, in the registry's order. Then the budget is spent where it is
 most needed (`inTurn` in `jobs.mjs`): a listing an earlier run left cut first,
-then a board never listed to its end, then the board whose last complete
-listing is oldest; the registry's order settles a tie. A board the budget did
-not reach has no run that day and is said in the summary. Listing all twelve
-Workday boards is about 930 requests, so in the steady state each is listed
-in full every three to four days; while they are first read in, the texts
-(about one posting in five could be ours) take most of the budget, and the
-first pass over all of them takes about two weeks.
+then a board whose last complete listing is a week old or more (its jobs
+expire a week after that, and must not leave the lists while new boards are
+read in), then a board never listed to its end, then the board whose last
+complete listing is oldest; the registry's order settles a tie. A board the
+budget did not reach has no run that day and is said in the summary; it is a
+source all the same (every line of the registry is registered when a run
+starts), so Admin Tools lists it as not run yet. The workflow reads Workday's
+boards alone three more times a day (`postings --system workday`), each run
+with the same budget: 1,200 requests a day at most, never more than 300 in an
+hour. Listing all twelve Workday boards is about 930 requests, so in the
+steady state each is listed in full daily; while they are first read in, the
+texts (about one posting in five could be ours) take most of the budget, and
+the first pass over all of them takes three or four days. (With one run a
+day it was about two weeks, as long as a job lasts: five days after the first
+run on production eight of the twelve boards had not had a run.)
 
 **The stop rule.** A 401, 403 or 429, a challenge page, or a connection reset
 ends that employer for the run. It is written to the run (`refused`, with what
@@ -402,10 +431,11 @@ present everything the listing showed over all of its runs. Any other system
 starts its listing again.
 
 A job from a source expires 14 days after the last complete listing that
-included it. Fourteen because a board on a budgeted platform is listed in
-full every three to four days once it is read in, and about every two weeks
-while all of them are first read in: an expiry shorter than the slowest cycle
-would take a job off the lists between two listings that both had it. The
+included it. Fourteen because a board on a budgeted platform can wait
+days for its turn while other boards are first read in (one a week past its
+last complete listing goes ahead of the new ones): an expiry shorter than the
+slowest cycle would take a job off the lists between two listings that both
+had it. The
 other boards are listed in full daily, so for them 14 days is how long jobs
 stay if runs stop altogether.
 
@@ -434,6 +464,7 @@ node scripts/ingest/run.mjs fetch postings-spacex             # read one board a
 node scripts/ingest/run.mjs rehearse postings-spacex          # everything, rolled back
 node scripts/ingest/run.mjs postings --rehearse               # every employer, rolled back
 node scripts/ingest/run.mjs postings [--only spacex,boeing]   # every employer, one run each
+node scripts/ingest/run.mjs postings --system workday         # only the boards on the systems named
 node scripts/ingest/run.mjs report 31 --all
 node scripts/ingest/run.mjs undo 31
 ```
@@ -448,13 +479,17 @@ for runs over saved boards; `--registry <file.json>` is another registry,
 (against the budget where there is one), the boards listed in full, the ones
 cut short and why (and whether each is taken up there or started again), and
 the ones the budget did not reach; then a line per employer and each run's
-report. A day's run of every employer is under half an hour: twenty minutes
-of it is Workday's budget, about four are Oracle's texts while those boards
-are first read in, a minute and a half the two Jibe sites, and the rest
-seconds.
+report. A day's run of every employer is under an hour: twenty minutes of it
+is Workday's budget, and about a quarter of an hour the listings of the other
+boards (Cargill's 77 pages of SuccessFactors search, two seconds apart, are
+the longest). While boards are first read in, their texts add up to half an
+hour more: the 27 employers added in November 2026 took 29 minutes the first
+time (962 requests, 700 of them texts), with no refusal. A run of Workday's
+boards alone is about twenty minutes.
 
 **On production** the workflow `.github/workflows/postings.yml` runs every
-employer daily (09:23 UTC) and by hand, against `INGEST_DATABASE_URL`, and
+employer daily (09:23 UTC), Workday's boards alone three more times a day
+(03:23, 15:23, 21:23 UTC), and by hand, against `INGEST_DATABASE_URL`, and
 keeps the report as an artifact. Without the secret it says so and ends
 green. A refusal or a site that does not answer is recorded and is not a red
 run; a changed feed is. Admin Tools, Activity shows each employer's latest run
@@ -466,7 +501,8 @@ job there at once, or leave it.
 `tests/unit/postings.unit.ts` checks the registry, the fetcher against a
 local server that plays each refusal, a platform's budget, a listing cut and
 taken up again, and every adapter against a reduced copy of what its system
-answered (`tests/fixtures/postings/`); `tests/api/postings.sh` runs made-up
+answered (`tests/fixtures/postings/`; the two that read web pages against
+made-up postings in the pages' shape); `tests/api/postings.sh` runs made-up
 boards, written as an employer writes a posting, through all of it with the
 reader that ships.
 
