@@ -773,7 +773,7 @@ input {
 .atlas-skeleton {
   fill: none;
   stroke: var(--text-2);
-  stroke-opacity: 0.26;
+  stroke-opacity: 0.22;
   stroke-width: 0.75px;
 }
 .atlas-root {

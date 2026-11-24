@@ -808,7 +808,7 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
         <g className="atlas-base" data-dim={overlay ? true : undefined} data-marked={marks && marks.size > 0 ? true : undefined}>
           <Plate layout={layout} />
         </g>
-        {pointed && <path className="atlas-hover" d={sectorPath(g.domain, g.ring, pointed.from, pointed.to, S)} />}
+        {pointed && <path className="atlas-hover" d={sectorPath(g.group, g.ring, pointed.from, pointed.to, S)} />}
         {/* Everything but the open domain, veiled. */}
         {domain && <path key={`veil-${domain.slug}`} className="atlas-veil" d={sectorPath(0.0001, 3, domain.a1 + half, domain.a0 - half + TAU, S)} />}
         {/* An open group: its own branches, on from its tip to each of its skills, and its skills at full strength over the stepped-back plate. */}
