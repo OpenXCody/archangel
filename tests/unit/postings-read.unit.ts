@@ -200,9 +200,17 @@ test('the places the work is at, from the field as each feed writes it', () => {
   assert.deepEqual(places('Manassas, VA -  Fab 6'), ['Manassas, VA']);
   assert.deepEqual(places('Washington, District of Columbia, United States'), ['Washington, DC']);
   assert.deepEqual(places('Costa Mesa, California, United States; Remote'), ['Costa Mesa, CA']);
-  // No place: remote, a country alone, and abroad, even where a country's code is a state's.
+  // A Workday site named with spaces: its town, its state's letters, the country and the site's number.
+  assert.deepEqual(places('Auburn AL USA'), ['Auburn, AL']);
+  assert.deepEqual(places('Saint George UT US 1'), ['Saint George, UT']);
+  assert.deepEqual(places('Grand Rapids MI US 1; Indianapolis IN US 2'), ['Grand Rapids, MI', 'Indianapolis, IN']);
+  // A part that says there are more places is not the city.
+  assert.deepEqual(places('Dallas, Multiple Locations, TX'), ['Dallas, TX']);
+  // No place: remote, a country alone, and abroad, even where a country's code is a state's; a town with no state; a
+  // count of places; a site abroad named the same way.
   for (const none of ['Remote', 'Remote (Houston, TX)', 'United States', 'Auckland, NZ', 'Toronto, CAN', 'Munich, BY', 'Laval, Canada',
-    'Altona, Manitoba, CA, R0G 0B0', 'Bruchsal, BW, DE, 76646', 'GRANADERO BAIGORRIA, Santa Fe, AR, S2152FXA', 'Dublin, Dublin, Ireland']) {
+    'Altona, Manitoba, CA, R0G 0B0', 'Bruchsal, BW, DE, 76646', 'GRANADERO BAIGORRIA, Santa Fe, AR, S2152FXA', 'Dublin, Dublin, Ireland',
+    'Evendale', 'Lynn', '2 Locations', 'Istanbul TR 6', 'Carrara IT 2', 'Changwon 48 KR 6', 'Perth WA', 'Chennai TN']) {
     assert.deepEqual(places(none), [], none);
   }
   // A feed that knows the country says so: abroad there is no place, whatever the field looks like.

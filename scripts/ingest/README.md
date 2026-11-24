@@ -249,6 +249,15 @@ Tools calls the same functions.
   in its own row (`intake_runs.counts.unknown`) and its report, by employer.
   They are staged nowhere and are on no job: it is how the catalogue learns,
   not the employer's wording in bulk.
+- **Where no place was read.** The same for places: the location lines of the
+  postings that could be ours and name no place we read as a US city and
+  state, and the lines of a posting kept at its other places that read as
+  none, the thirty commonest with how many postings name each
+  (`intake_runs.counts.unplaced` and the report's "places named and not
+  read"). A line there that is one of the board's sites named by its town
+  alone (a Workday tenant's "Evendale") is what a person writes out next on
+  the board's line in the registry (`sites`); the rest are abroad, remote or
+  a form the reader does not know.
 - **Read and not kept.** A posting whose text was asked for and which was
   then not kept (not ours once read, or at no US place) is noted in
   `posting_passes`: its id, a hash of its line in the listing and the day.
@@ -272,9 +281,25 @@ Tools calls the same functions.
 board calls itself, the `company` exactly as our data names it, `also` for
 other companies we list under their own names whose plants the same board
 hires for, the `system`, the `board`'s token or address, optionally a
-`ceiling` of requests and a `note`) and `leftOut` (the `employer`, `why`:
-`refused`, `not verified` or `no adapter`, `what` refused or is missing, and
-`when`). Adding an employer is a line.
+`ceiling` of requests, `sites` and a `note`) and `leftOut` (the `employer`,
+`why`: `refused`, `not verified` or `no adapter`, `what` refused or is
+missing, and `when`). Adding an employer is a line.
+
+`sites` is for a board that names its sites by their town alone and says no
+state anywhere: GE Aerospace's Workday tenant writes "Evendale", "Lynn",
+"Loves Park" in its list and in a posting's own record (`location`,
+`additionalLocations`), and nothing else it answers carries the state. A
+person writes each such site out, `{ "Evendale": "Evendale, OH" }`, and the
+runner reads a location line that is one of them (in any letter case) as the
+place beside it, in the listing and in the posting's record alike, before the
+reader sees it. A site not written out has no place: a state is never
+guessed, and its name is in the run's report under "places named and not
+read" until someone writes it out. The check holds each place to exactly one
+US city and state written "City, ST". A posting whose places are only in its
+own record ("2 Locations") is read again when the board's sites change; one
+listed at a site that is written out is read the first time its site is.
+GE Aerospace's line writes out the towns where we list a factory of the
+board's companies; the others wait for a person.
 
 ```bash
 node scripts/ingest/postings/registry.mjs --check     # or: node scripts/ingest/run.mjs postings --check
@@ -1163,7 +1188,7 @@ const reading = readPosting({ employer, title, location, department, text, count
 - A make is written as its maker writes it and is not the employer's own name. It goes to its skill the posting names (the same line first), else to its one skill on the career's path, else nowhere; an everyday word or a few capitals ("Star", "NI") only beside its skill.
 - `unknown` holds up to eight codes and names per posting that nothing matched, from requirement lines: the catalogue's next pass.
 
-**Facts** (`facts.mjs`). Places from the location field in each feed's form ("Bastrop, TX", "US-TX-Austin", "United States-Utah-Salt Lake City", "City, Region, CC, postcode"); the text only when the field is empty; remote and abroad are no place. A posting that carries a `country` other than the United States has no place whatever its location looks like ("Amsterdam, NH" is North Holland): an adapter passes the feed's country where it has one, and leaves it out where it has none. Years: the first requirement stated, a range as min and max. Education: the least that qualifies. Certificates by name (NADCAP is a company's, not a person's). Clearance by the level named. A U.S. citizen where citizenship is required; a U.S. person where the export rules are cited. Pay as dollars and a period; where a band is given per level the title's level picks it, and with no level the span.
+**Facts** (`facts.mjs`). Places from the location field in each feed's form ("Bastrop, TX", "US-TX-Austin", "United States-Utah-Salt Lake City", "City, Region, CC, postcode", a Workday site written "Auburn AL USA" or "Saint George UT US 1"); a part that only says there are more places ("Dallas, Multiple Locations, TX") is not the city; a town alone ("Evendale") is no place, since it says no state (the registry's `sites` write such a site out before the reader sees it); the text only when the field is empty; remote and abroad are no place. A posting that carries a `country` other than the United States has no place whatever its location looks like ("Amsterdam, NH" is North Holland): an adapter passes the feed's country where it has one, and leaves it out where it has none. Years: the first requirement stated, a range as min and max. Education: the least that qualifies. Certificates by name (NADCAP is a company's, not a person's). Clearance by the level named. A U.S. citizen where citizenship is required; a U.S. person where the export rules are cited. Pay as dollars and a period; where a band is given per level the title's level picks it, and with no level the span.
 
 **Measured.** `tests/fixtures/postings/gold.json` is 480 hand-labelled postings (half a naive word match would keep, half it would refuse), in reduced form: title, department, location, a few lines, the labels. Half was tuned on; half was not looked at until the reader was done. `tests/unit/postings-read.unit.ts` holds the figures as a floor and names every trap. The labels are as they were written; the figures were raised once, after the vocabulary pass below. On the held-out half, whole text: no wrong career among 62 kept, nothing kept of 127 that are plainly not ours, and 11 of 84 of ours refused where refusing is not accepted (17 before the pass). On the labelled lines: of the skills read 89 in 100 are ones the lines ask for, and of those they ask for 75 in 100 are read.
 

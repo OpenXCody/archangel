@@ -1,0 +1,38 @@
+{
+ "jobPostingInfo": {
+  "id": "a0500000700000000000000000000000",
+  "title": "CNC Machinist",
+  "jobDescription": "<p>Set up and run CNC lathes and mills for engine parts.</p><h3>Basic Qualifications</h3><ul><li>Experience with CNC machining</li><li>Able to read blueprints and use micrometers</li></ul>",
+  "location": "Bohemia",
+  "additionalLocations": [
+   "Norwich"
+  ],
+  "postedOn": "Posted 6 Days Ago",
+  "startDate": "2026-11-18",
+  "timeType": "Full time",
+  "jobReqId": "R5000007",
+  "jobPostingId": "CNC-Machinist_R5000007-1",
+  "jobPostingSiteId": "Careers",
+  "country": {
+   "descriptor": "United States of America",
+   "id": "bc33aa3152ec42d4995f4791a106ed09"
+  },
+  "canApply": true,
+  "posted": true,
+  "includeResumeParsing": true,
+  "jobRequisitionLocation": {
+   "descriptor": "Bohemia",
+   "country": {
+    "descriptor": "United States of America",
+    "id": "bc33aa3152ec42d4995f4791a106ed09",
+    "alpha2Code": "US"
+   }
+  },
+  "externalUrl": "https://townsites.wd5.myworkdayjobs.com/Careers/job/Bohemia/CNC-Machinist_R5000007-1"
+ },
+ "hiringOrganization": {
+  "name": "Townsites Works",
+  "url": ""
+ },
+ "userAuthenticated": false
+}
