@@ -2594,13 +2594,14 @@ test("a military career's page: its kind and code above the service's own title,
     expect((await page.request.delete(`${API}/me`, { data: { password } })).ok(), 'seeker: account removed').toBe(true);
   }
 
-  // An admin is the one person shown that the path is a draft.
+  // Not even an admin is shown on the page that the path is a draft: that is said inside Edit, in the record's editor.
   const account = { id: '00000000-0000-4000-8000-000000000009', email: 'admin@device.test', name: 'Device Admin', isAdmin: true, homeZip: null, about: null, emailNotices: true, purpose: 'work' };
   await page.route('**/api/auth/me', (route) => route.fulfill({ json: { user: account, memberships: [], isEmployer: false } }));
   await page.route('**/api/me/**', (route) => route.fulfill({ json: { skills: [], goals: [], careers: [], applications: false, applicants: false, access: false } }));
   await page.goto(`/occupations/${ht.id}`, { waitUntil: 'domcontentloaded' });
-  await expect(view.locator('[data-draft-path]')).toBeVisible();
-  await expect(view.locator('[data-draft-path]')).toHaveText(/^Draft/);
+  await expect(page.locator('[data-admin-edit]')).toBeVisible();
+  await expect(view.locator('[data-draft-path]')).toHaveCount(0);
+  await expect(view.locator('#skills').getByText(/^Draft$/)).toHaveCount(0);
   await page.unroute('**/api/auth/me');
   await page.unroute('**/api/me/**');
 

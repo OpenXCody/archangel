@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { ErrorNote } from '../account/parts';
 import { signInPath } from '../../lib/account';
 import { type CareerService, type OccupationDetail } from '../../lib/api';
-import { useViewer } from '../../lib/viewer';
 import { cn, focusRing } from '@/lib/utils';
 import { serviceShortName } from '@shared/military';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
@@ -49,15 +48,15 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same skills without them.
   const { marks, canSignIn, error: markError } = useSkillMarks();
   const { pathname, search } = useLocation();
-  const viewer = useViewer();
   const headingId = useId();
 
   const skills = data.skills ?? [];
   const jobs = data.jobs ?? [];
   const plants = data.factories ?? [];
   const counted = plants.some((plant) => (plant.headcount ?? 0) > 0);
-  // Any career with skills has a path to draw, whether or not anyone has written one for it (`pathStatus`:
-  // that only decides the word "Draft"). The skills arrive in the route's order.
+  // Any career with skills has a path to draw, whether or not anyone has written one for it. Whether a
+  // person has reviewed it (`pathStatus`) is said inside the admin's editor, behind Edit, never on the page.
+  // The skills arrive in the route's order.
   const held = marks && !marks.pending && skills.length > 0 ? shareOf(skills, marks) : null;
   const onLadder = (data.comesFrom?.length ?? 0) + (data.leadsTo?.length ?? 0) > 0;
   // Companies that say how this career is done with them: each row opens that company's version.
@@ -69,16 +68,6 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   const service = data.service ?? null;
   const withinReach = data.withinReach ?? [];
 
-  const draft =
-    data.pathStatus === 'draft' && viewer.admin ? (
-      // For an admin only: whether a person has reviewed the path is the admin's business, not a reader's.
-      <details className="group text-xs text-text-3" data-draft-path>
-        <summary className="inline-flex min-h-6 cursor-pointer list-none items-center underline decoration-dotted [&::-webkit-details-marker]:hidden">
-          Draft
-        </summary>
-        <p className="mt-1 max-w-prose text-sm text-text-2">A starting point that has not been reviewed by a person yet.</p>
-      </details>
-    ) : null;
 
   return (
     <>
@@ -115,7 +104,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
             comesFrom={data.comesFrom}
             leadsTo={data.leadsTo}
             keepAs={data.id}
-            heading={<SkillsHeading id={headingId} held={held} note={draft} />}
+            heading={<SkillsHeading id={headingId} held={held} />}
           />
           {canSignIn && (
             <p className="mt-4 text-sm text-text-3">
