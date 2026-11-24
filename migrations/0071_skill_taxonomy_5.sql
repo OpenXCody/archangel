@@ -427,7 +427,7 @@ INSERT INTO taxonomy_skills (name, group_slug, level, position) VALUES
   ('Jig Grinding', 'grinding', 3, 5),
   ('Lumber Sorting and Stacking', 'sawmilling', 1, 1),
   ('Edging and Trimming', 'sawmilling', 2, 2),
-  ('Log Breakdown Sawing', 'sawmilling', 2, 3),
+  ('Log Breakdown Sawing', 'sawmilling', 3, 3),
   ('Saw Grinding', 'saw-filing', 2, 1),
   ('Saw Swaging and Shaping', 'saw-filing', 2, 2),
   ('Saw Tipping', 'saw-filing', 2, 3),
@@ -1250,8 +1250,7 @@ INSERT INTO taxonomy_skills (name, group_slug, level, position) VALUES
   ('Composite Material Safety', 'hazardous-materials', 1, 3),
   ('Hazardous Materials Handling', 'hazardous-materials', 2, 4),
   ('Specialty Gas Handling', 'hazardous-materials', 2, 5),
-  ('Ordnance Handling', 'hazardous-materials', 2, 6),
-  ('Process Hazard Analysis', 'hazardous-materials', 3, 7);
+  ('Ordnance Handling', 'hazardous-materials', 2, 6);
 
 -- The stored skills must be exactly the file's ------------------------------------
 -- Checked before anything is changed. A skill the file names and the table lacks,
