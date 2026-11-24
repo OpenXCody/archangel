@@ -293,14 +293,23 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
 }
 
 /**
+ * How long a board that has been listed in full may wait while boards that never have are first read in: days.
+ * Half of what a job from a source lasts after its last complete listing (14 days, posting_apply), so the jobs a
+ * board already gave do not leave the lists while the budget is spent on new boards.
+ */
+const KEEP_DAYS = 7;
+
+/**
  * The order boards are read in. Those with no budget first, as the registry
  * lists them. Then the boards of a platform that has a budget for the run,
  * which is spent where it is most needed: a listing an earlier run left cut
- * first (it is taken up where it stopped), then a board never listed to its
- * end, then the board whose last complete listing is oldest. The registry's
- * order settles a tie, so the order is the same for the same history.
+ * first (it is taken up where it stopped), then a board whose last complete
+ * listing is a week old or more (its jobs expire a week after that), then a
+ * board never listed to its end, then the board whose last complete listing
+ * is oldest. The registry's order settles a tie, so the order is the same
+ * for the same history.
  */
-export async function inTurn(db, entries) {
+export async function inTurn(db, entries, { now = Date.now() } = {}) {
   const free = [];
   const held = [];
   for (const [at, entry] of entries.entries()) {
@@ -313,9 +322,10 @@ export async function inTurn(db, entries) {
       SELECT counts FROM intake_runs WHERE source = ${slug} AND state <> 'undone' AND counts ? 'read' ORDER BY id DESC LIMIT 1`;
     const [whole] = await db`
       SELECT max(started_at) AS at FROM intake_runs WHERE source = ${slug} AND state <> 'undone' AND counts->>'complete' = 'true'`;
-    held.push({ entry, at, cut: last?.counts?.resume?.next ? 1 : 0, whole: whole?.at ? new Date(whole.at).getTime() : 0 });
+    const listed = whole?.at ? new Date(whole.at).getTime() : 0;
+    held.push({ entry, at, cut: last?.counts?.resume?.next ? 1 : 0, due: listed > 0 && now - listed >= KEEP_DAYS * 86_400_000 ? 1 : 0, whole: listed });
   }
-  held.sort((a, b) => b.cut - a.cut || a.whole - b.whole || a.at - b.at);
+  held.sort((a, b) => b.cut - a.cut || b.due - a.due || a.whole - b.whole || a.at - b.at);
   return [...free, ...held.map((board) => board.entry)];
 }
 

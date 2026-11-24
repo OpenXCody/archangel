@@ -172,7 +172,7 @@ export function platformOf(host) {
 
 /**
  * One fetcher per run. Options (all optional; tests set the last four):
- *   pace       the least milliseconds between two requests to one host
+ *   pace       the least milliseconds between two requests to one host (to one platform, for a platform with a budget)
  *   ceiling    the most requests for one employer in one run
  *   budgets    { '<platform>': n }: the most requests to a platform (platformOf a host) in the whole run, across employers
  *   timeout    milliseconds to wait for an answer
@@ -185,7 +185,7 @@ export function createFetcher({
   rewrite = null, unpaced = false, fetchImpl = globalThis.fetch, sleep = (ms) => new Promise((done) => setTimeout(done, ms)), now = Date.now,
 } = {}) {
   const robots = new Map();      // host -> Promise of rules
-  const lastAt = new Map();      // host -> when the last request to it was sent
+  const lastAt = new Map();      // host, or a platform with a budget -> when the last request to it was sent
   const turnedAway = new Map();  // platform -> the refusal that stopped it
   const totals = { requests: 0, bytes: 0, refusals: 0, platforms: {} };
   /** How many requests a platform has left in this run; Infinity for one with no budget. */
@@ -197,15 +197,19 @@ export function createFetcher({
     const platform = platformOf(host);
     if (budgetLeft(platform) <= 0) throw new BudgetSpent(platform, budgets[platform]);
     if (session.requests >= session.ceiling) throw new CeilingReached(session.ceiling);
-    const since = now() - (lastAt.get(host) ?? -Infinity);
+    // A platform with a budget is one site to be polite to, whichever of its tenants a board is on: its requests keep
+    // their distance across boards, the robots files included.
+    const spacing = platform in budgets ? `platform ${platform}` : host;
+    const since = now() - (lastAt.get(spacing) ?? -Infinity);
     if (since < wait && !(unpaced && rewrite)) await sleep(wait - since);
-    lastAt.set(host, now());
+    lastAt.set(spacing, now());
     session.requests += 1;
     totals.requests += 1;
     totals.platforms[platform] = (totals.platforms[platform] ?? 0) + 1;
     const headers = {
       'User-Agent': userAgent,
-      Accept: accept === 'json' ? 'application/json' : accept === 'xml' ? 'application/xml, text/xml;q=0.9, */*;q=0.1' : 'text/plain, */*;q=0.1',
+      Accept: accept === 'json' ? 'application/json' : accept === 'xml' ? 'application/xml, text/xml;q=0.9, */*;q=0.1'
+        : accept === 'html' ? 'text/html, */*;q=0.1' : 'text/plain, */*;q=0.1',
     };
     if (body !== null) headers['Content-Type'] = 'application/json';
     let response;
@@ -230,7 +234,7 @@ export function createFetcher({
     if (!robots.has(host)) {
       robots.set(host, (async () => {
         const address = `${protocol}//${host}/robots.txt`;
-        const answer = await send(session, address, { accept: 'text' }, pace);
+        const answer = await send(session, address, { accept: 'text' }, session.pace);
         // The stop rule holds for the robots file as for anything else.
         if (answer.status === 403 || answer.status === 429) throw new Refusal(`${shown(address)} answered ${answer.status}`, { url: address, status: answer.status });
         if (answer.status >= 500) throw new FeedError(`${shown(address)} answered ${answer.status}: the site's rules cannot be read, so nothing is asked of it`, { url: address, status: answer.status });
@@ -277,7 +281,8 @@ export function createFetcher({
           }
           if (status === 404 || status === 410) throw new FeedError(`${shown(url)} answered ${status}`, { url, status });
           if (status < 200 || status >= 300) throw new FeedError(`${shown(url)} answered ${status}`, { url, status });
-          if (html && (opts.accept ?? 'json') !== 'text') throw new FeedError(`${shown(url)} answered with a web page where the feed was expected`, { url, status });
+          // A career site whose listing is its pages (accept 'html') is expected to answer with one: a challenge page is still a refusal.
+          if (html && !['text', 'html'].includes(opts.accept ?? 'json')) throw new FeedError(`${shown(url)} answered with a web page where the feed was expected`, { url, status });
           if ((opts.accept ?? 'json') === 'json') {
             try {
               return { status, text, json: JSON.parse(text) };
