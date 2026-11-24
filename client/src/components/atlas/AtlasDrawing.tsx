@@ -502,7 +502,7 @@ function zoomFor(layout: AtlasLayout, radiusPx: number, frame: number): Zoom {
   const phone = radiusPx < 240;
   // A phone shows the open domain from its groups' arcs outward; a wider frame from the domain's own arc.
   const innermost = phone ? layout.geometry.group - 0.02 : layout.geometry.domain - 0.05;
-  const labelRoomPx = phone ? 172 : Math.min(250, radiusPx * 0.72);
+  const labelRoomPx = phone ? 188 : Math.min(250, radiusPx * 0.72);
   const anchorX = frame - labelRoomPx / radiusPx;
   const scale = (anchorX + frame) / (layout.geometry.ring - innermost);
   return {
