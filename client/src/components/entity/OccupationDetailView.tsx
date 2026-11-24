@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ErrorNote } from '../account/parts';
 import { signInPath } from '../../lib/account';
-import { type CareerWithinReach, type OccupationDetail } from '../../lib/api';
+import { type OccupationDetail } from '../../lib/api';
 import { useViewer } from '../../lib/viewer';
 import { kindLine } from '@shared/military';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
@@ -20,10 +20,10 @@ import {
 } from '../layout/Page';
 import PathViewSwitch, { usePathView } from '../atlas/PathViewSwitch';
 import PlateSkeleton from '../atlas/PlateSkeleton';
-import { atlasHref } from '../atlas/state';
+import { RecordTag, RecordTags } from '../layout/RecordTag';
 import { ShareRing } from '../path/HeldShare';
-import { SkillsLine } from '../path/SkillsLine';
 import { shareOf } from '../path/model';
+import { CivilianReach } from '../reach/CivilianReach';
 import { useSkillMarks } from '../path/useSkillMarks';
 import { Route } from '../route/Route';
 import { RouteAlone } from '../route/RouteLadder';
@@ -43,11 +43,12 @@ const CareerAtlas = lazy(() => import('../atlas/CareerAtlas'));
  *
  * A military career (a Navy rating, an Army MOS, an Air Force specialty) is
  * the same page. Its kind and code stand above the name ("Navy rating · HT"),
- * the name is the service's own title for the job, and its service is a quiet
- * fact that leads to the service's page. It is where a person comes from, not
- * where they are going. After the path it
- * lists the civilian careers within reach, each with the skills missing. It
- * has no ladder, industries, jobs, companies or factories, and draws none.
+ * the name is the service's own title for the job, and its service is the tag
+ * under it, which leads to the service's page. It is where a person comes
+ * from, not where they are going, so where it leads comes first: the civilian
+ * careers within reach, as a flow from its skills to those careers to their
+ * industries (`CivilianReach`), then its path. It has no ladder, industries,
+ * jobs, companies or factories of its own, and draws none.
  */
 export default function OccupationDetailView({ data, head }: { data: OccupationDetail; head: Head }) {
   // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same diagram without them.
@@ -84,6 +85,15 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
         // A service's title for a job can run far past any career's of the catalogue ("Test, Measurement and
         // Diagnostic Equipment Maintenance Support Specialist"): at the page-title size it fills a phone's screen.
         longTitle={Boolean(service) && (data.officialTitle ?? data.title).length > LONG_TITLE}
+        // A military career belongs to its service: named under the title as the record the page belongs to, the way
+        // a factory names its company. No mark: a service's is a lettermark on purpose, and three of them are a "U".
+        qualifier={
+          service && (
+            <RecordTags>
+              <RecordTag to={`/companies/${service.slug ?? service.id}`} kind="Military service" name={service.name} data-career-service="" />
+            </RecordTags>
+          )
+        }
         description={data.description}
         action={
           <>
@@ -99,24 +109,22 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           </>
         }
       >
-        {/* Its service, which leads to the service's page; then its home: the domain most of its work is in,
-            which opens the Careers list narrowed to it (for a military career, the military careers of that home). */}
-        {(service || data.home) && (
+        {/* Its home: the domain most of its work is in, which opens the Careers list narrowed to it (for a
+            military career, the military careers of that home). */}
+        {data.home && (
           <DetailFacts>
-            {service && (
-              <Link to={`/companies/${service.slug ?? service.id}`} className={factLinkClass} data-career-service>
-                {service.name}
-              </Link>
-            )}
-            {service && data.home && ' · '}
-            {data.home && (
-              <Link to={`/explore?tab=occupations${service ? '&military=1' : ''}&domain=${data.home.slug}`} className={factLinkClass} data-career-home>
-                {data.home.name}
-              </Link>
-            )}
+            <Link to={`/explore?tab=occupations${service ? '&military=1' : ''}&domain=${data.home.slug}`} className={factLinkClass} data-career-home>
+              {data.home.name}
+            </Link>
           </DetailFacts>
         )}
       </DetailHeader>
+
+      {/* A military career: where it leads, first, since that is what its page is read for. Its skills by group, the
+          civilian careers its path covers a third or more of (the most covered first), and their industries. */}
+      {service && withinReach.length > 0 && (
+        <CivilianReach careerId={data.id} careerTitle={data.officialTitle ?? data.title} skills={skills} careers={withinReach} marks={marks} />
+      )}
 
       {/* What it is: the path, from the foundation to the specialties */}
       {skills.length === 0 && (
@@ -166,9 +174,6 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           )}
         </DetailSection>
       )}
-
-      {/* A military career: where it leads. The civilian careers its path covers a third or more of, the most covered first. */}
-      {service && withinReach.length > 0 && <WithinReach career={data} careers={withinReach} />}
 
       <WhereWorkIsDone data={data} />
 
@@ -236,62 +241,8 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   );
 }
 
-/** How many civilian careers within reach are listed before "Show all", and how many missing skills a row names. */
-const REACH_SHOWN = 5;
-const MISSING_NAMED = 4;
-
 /** The longest title a career of the catalogue has, in letters: a military career's own title past this is set smaller on a phone. */
 const LONG_TITLE = 40;
-
-/**
- * "Civilian careers within reach": for a military career, the civilian
- * careers whose path it already holds a third or more of. Each row leads to
- * the career and says how much of that career's path this one holds; under
- * it, the skills missing, in that path's own order, and the two careers compared on
- * the Atlas. Computed from the two paths: nothing here is a stored link.
- */
-function WithinReach({ career, careers }: { career: OccupationDetail; careers: CareerWithinReach[] }) {
-  const [showAll, setShowAll] = useState(false);
-  // A list a row or two longer than the cut is shown whole.
-  const cut = careers.length > REACH_SHOWN + 2;
-  return (
-    <DetailSection id="reach" title="Civilian careers within reach" description="How much of each career's path this one already covers, and the skills missing.">
-      <RecordList data-within-reach="">
-        {(showAll || !cut ? careers : careers.slice(0, REACH_SHOWN)).map((other) => (
-          <RecordRow
-            key={other.id}
-            to={`/occupations/${other.id}`}
-            title={other.title}
-            subtitle={`${other.held} of ${other.total} skills`}
-            data-reach-career={other.id}
-            below={
-              <>
-                <SkillsLine
-                  lead="Missing"
-                  skills={other.missing.slice(0, MISSING_NAMED)}
-                  more={Math.max(0, other.missing.length - MISSING_NAMED)}
-                  // No wider than a line reads: on a wide screen it does not run under the row's chevron.
-                  className="max-w-prose text-xs leading-relaxed"
-                />
-                {/* The two paths on one plate: this career's skills a disc, the other's a ring. */}
-                <Link
-                  to={atlasHref({ career: career.id, with: other.id })}
-                  className="mt-0.5 inline-block py-1 text-xs text-text-2 underline hover:text-text-1"
-                  // The same words under every row: said with the career's name to someone who hears the links alone.
-                  aria-label={`Compare with ${other.title} on the atlas`}
-                  data-reach-compare
-                >
-                  Compare on the atlas
-                </Link>
-              </>
-            }
-          />
-        ))}
-      </RecordList>
-      {cut && <ShowAll open={showAll} total={careers.length} onToggle={() => setShowAll((value) => !value)} />}
-    </DetailSection>
-  );
-}
 
 /** How many companies with a version are listed before "Show all". */
 const VERSIONS_SHOWN = 8;

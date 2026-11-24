@@ -9,23 +9,9 @@ import { useMapStore, placeKey, type MapAddress, type MapPlace } from '../stores
 import { PHONE_LAYOUT_QUERY } from '../components/map/camera';
 import { useSelection } from '../components/map/selection';
 import { useTheme } from '../lib/theme';
+import { useMediaQuery } from '../lib/media';
 import { focusArea, type Bounds } from '@shared/scope';
 import { US_STATES } from '@shared/states';
-
-// Custom hook for responsive detection
-function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
-
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    setMatches(media.matches);
-    const listener = () => setMatches(media.matches);
-    media.addEventListener('change', listener);
-    return () => media.removeEventListener('change', listener);
-  }, [query]);
-
-  return matches;
-}
 
 // ─── The map in the address ────────────────────────────────────────────────
 //
