@@ -17,10 +17,14 @@ import {
   leafRadius,
   leafWeight,
   locate,
+  linkPath,
   placeLabels,
   point,
+  project,
+  skeletonPath,
   spread,
   spreadRound,
+  spreadWithin,
   turn,
   unproject,
 } from '../../client/src/components/atlas/layout';
@@ -119,17 +123,17 @@ test('no two leaves overlap', () => {
     const gap = layout.leaves[i].angle - layout.leaves[i - 1].angle;
     assert.ok(gap >= layout.step - 1e-9, `${layout.leaves[i].name} has its own step of angle`);
   }
-  // Nor two marks: neighbours along a row of a level's band are further apart than two of the smallest marks are wide.
+  // Nor two marks: any two leaves near each other round the plate are further apart than two of the smallest marks are wide (radius 0.0052).
   for (let i = 0; i < total; i++) {
-    for (let j = i + 1; j < Math.min(total, i + 4); j++) {
+    for (let j = i + 1; j < Math.min(total, i + 12); j++) {
       const a = layout.leaves[i];
       const b = layout.leaves[j];
       const [ax, ay] = point(a.angle, a.radius);
       const [bx, by] = point(b.angle, b.radius);
-      assert.ok(Math.hypot(ax - bx, ay - by) > 0.0048 * 1.5, `${a.name} and ${b.name} are apart`);
+      assert.ok(Math.hypot(ax - bx, ay - by) > 0.0052 * 2, `${a.name} and ${b.name} are apart`);
     }
   }
-  // A domain's outer arc ends before the next one's begins, all the way round.
+  // A domain's rim arc ends before the next one's begins, all the way round.
   layout.domains.forEach((domain, i) => {
     const following = layout.domains[(i + 1) % layout.domains.length];
     assert.ok(between(following.from, domain.to) > 0, `${domain.slug} and ${following.slug} do not touch`);
@@ -144,19 +148,29 @@ test('no two leaves overlap', () => {
   }
 });
 
-test('a level maps to its radius: Fundamentals nearest the centre, Advanced at the rim', () => {
-  for (const level of [1, 2, 3] as const) assert.equal(leafRadius(GEOMETRY, level, 1), GEOMETRY.level[level]);
+test('a level maps to its band: Fundamentals nearest the centre, Advanced at the rim', () => {
+  for (const level of [1, 2, 3] as const) {
+    const band = GEOMETRY.bands[level];
+    assert.equal(leafRadius(GEOMETRY, level, 0), band.from);
+    assert.equal(leafRadius(GEOMETRY, level, band.rows - 1), band.to);
+    assert.equal(leafRadius(GEOMETRY, level, band.rows), band.from, 'the rows are taken in turn');
+  }
   const reach = { 1: [Infinity, -Infinity], 2: [Infinity, -Infinity], 3: [Infinity, -Infinity] };
+  const rows = { 1: new Set<number>(), 2: new Set<number>(), 3: new Set<number>() };
   for (const leaf of layout.leaves) {
-    assert.ok(Math.abs(leaf.radius - GEOMETRY.level[leaf.level]) <= GEOMETRY.lattice + 1e-9, `${leaf.name} is in its level's band`);
+    const band = GEOMETRY.bands[leaf.level];
+    assert.ok(leaf.radius >= band.from - 1e-9 && leaf.radius <= band.to + 1e-9, `${leaf.name} is in its level's band`);
     reach[leaf.level][0] = Math.min(reach[leaf.level][0], leaf.radius);
     reach[leaf.level][1] = Math.max(reach[leaf.level][1], leaf.radius);
+    rows[leaf.level].add(Number(leaf.radius.toFixed(6)));
   }
-  // The three bands do not meet, and all of them lie between the groups' arcs and the rings.
+  // Every row of every band is used.
+  for (const level of [1, 2, 3] as const) assert.equal(rows[level].size, GEOMETRY.bands[level].rows);
+  // The three bands do not meet, and all of them lie between the groups' tips and the rim.
   assert.ok(GEOMETRY.group < reach[1][0]);
   assert.ok(reach[1][1] < reach[2][0]);
   assert.ok(reach[2][1] < reach[3][0]);
-  assert.ok(reach[3][1] < GEOMETRY.groupRing && GEOMETRY.groupRing < GEOMETRY.ring && GEOMETRY.ring < 1);
+  assert.ok(reach[3][1] < GEOMETRY.ring && GEOMETRY.ring < 1);
   assert.ok(GEOMETRY.root < GEOMETRY.domain && GEOMETRY.domain < GEOMETRY.group);
 });
 
@@ -169,19 +183,42 @@ test('a skill more careers use is a stronger mark', () => {
   assert.equal(layout.maxCareers, 40);
 });
 
-test('the branches to a skill run from the centre: three spokes and the arcs between them', () => {
+test('a branch is a curve that leaves its parent and reaches its child along the radius', () => {
+  // On one angle it is a straight run.
+  assert.match(linkPath(1, 0.1, 1, 0.3, 500), /^M[-\d. ]+L[-\d. ]+$/);
+  // Across angles, a cubic whose two control points stand on the parent's angle and the child's, at the middle radius.
+  const d = linkPath(1, 0.2, 1.3, 0.6, 500);
+  const numbers = d.replace(/[MC]/g, ' ').trim().split(/\s+/).map(Number);
+  assert.equal(numbers.length, 8);
+  const at = (i: number) => [numbers[i] / 500, numbers[i + 1] / 500];
+  const [c1, c2, end] = [at(2), at(4), at(6)];
+  const [p1, p2, p3] = [point(1, 0.4), point(1.3, 0.4), point(1.3, 0.6)];
+  for (const [got, want] of [[c1, p1], [c2, p2], [end, p3]]) assert.ok(near(got[0], want[0], 0.01) && near(got[1], want[1], 0.01));
+  // Going on from where the pen is: no move.
+  assert.ok(linkPath(1, 0.2, 1.3, 0.6, 500, true).startsWith('C'));
+});
+
+test('the plate draws its branches as far as the groups; a career draws them on to its skills, each once', () => {
+  // The skeleton: a trunk per domain and a curve per group, and no stem to any skill.
+  const skeleton = skeletonPath(layout, 500);
+  assert.equal((skeleton.match(/M/g) ?? []).length, layout.domains.length + layout.groups.length);
+  // Each one a single run: straight up a trunk (or to a group that stands on its domain's own angle), else a curve.
+  assert.equal((skeleton.match(/[LC]/g) ?? []).length, layout.domains.length + layout.groups.length);
+  assert.ok((skeleton.match(/L/g) ?? []).length >= layout.domains.length);
   const leaf = layout.leaves[Math.floor(total / 2)];
   const one = branchPath(layout, [leaf.index], 500);
-  assert.equal((one.match(/L/g) ?? []).length, 3, 'its own spoke, its group\'s and its domain\'s trunk');
-  assert.ok((one.match(/A/g) ?? []).length <= 2);
-  // Two skills of one group share the group's spoke and the trunk.
+  assert.equal((one.match(/M/g) ?? []).length, 3, "its own curve, its group's and its domain's trunk");
+  assert.equal((one.match(/[LC]/g) ?? []).length, 3, 'three runs, the first the straight trunk');
+  assert.match(one.slice(one.lastIndexOf('M')), /^M[-\d. ]+L[-\d. ]+$/, 'the trunk is a straight run');
+  assert.ok(!/A/.test(one), 'no arcs: the way is curves');
+  // Two skills of one group share the group's curve and the trunk.
   const group = layout.groups.find((candidate) => candidate.last > candidate.first);
   assert.ok(group);
   const two = branchPath(layout, [group.first, group.last], 500);
-  assert.equal((two.match(/L/g) ?? []).length, 4);
+  assert.equal((two.match(/M/g) ?? []).length, 4);
   // Every skill at once: every leaf, every group, every domain.
   const all = branchPath(layout, layout.leaves.map((l) => l.index), 500);
-  assert.equal((all.match(/L/g) ?? []).length, total + layout.groups.length + layout.domains.length);
+  assert.equal((all.match(/M/g) ?? []).length, total + layout.groups.length + layout.domains.length);
   assert.equal(branchPath(layout, [], 500), '');
   assert.equal(branchPath(layout, [total + 5], 500), '');
 });
@@ -239,26 +276,40 @@ test('names set round a ring make room for each other across the seam too', () =
   });
 });
 
-test('an open domain names its groups, an open group its skills', () => {
-  const pitch = { group: 0.03, skill: 0.035 };
+test('rows set in a span stay inside it, keep their order and do not meet', () => {
+  assert.deepEqual(spreadWithin([], [], 0, 1), []);
+  // Room for all: nothing moves.
+  assert.deepEqual(spreadWithin([0.2, 0.5, 0.8], [0.1, 0.1, 0.1], 0, 1), [0.2, 0.5, 0.8]);
+  // Asked for past the ends: brought inside.
+  const pushed = spreadWithin([-1, -1, 5], [0.2, 0.2, 0.2], 0, 1);
+  assert.ok(pushed[0] - 0.1 >= -1e-9 && pushed[2] + 0.1 <= 1 + 1e-9);
+  for (let i = 1; i < pushed.length; i++) assert.ok(pushed[i] - pushed[i - 1] >= 0.2 - 1e-9);
+  // More than fit: set closer, still inside and in order.
+  const tight = spreadWithin([0.5, 0.5, 0.5, 0.5], [0.4, 0.4, 0.4, 0.4], 0, 1);
+  assert.ok(tight[0] >= 0.125 - 1e-9 && tight[3] <= 0.875 + 1e-9);
+  for (let i = 1; i < tight.length; i++) assert.ok(tight[i] - tight[i - 1] >= 0.25 - 1e-9);
+});
+
+test('an open domain names its groups level in a column, an open group its skills in its place', () => {
+  const rows = { group: 0.05, skill: 0.05, top: -1, bottom: 1 };
   for (const domain of layout.domains) {
-    const labels = placeLabels(layout, domain, null, pitch);
-    assert.equal(labels.length, domain.lastGroup - domain.firstGroup + 1);
-    assert.ok(labels.every((label) => label.kind === 'group' && !label.far));
-    for (let i = 1; i < labels.length; i++) assert.ok(labels[i].angle - labels[i - 1].angle >= pitch.group - 1e-9, `${domain.slug}: labels do not overlap`);
+    const camera = cameraOn(domain.angle, 2.2, GEOMETRY.ring, 0.2);
+    const labels = placeLabels(layout, domain, null, camera, rows);
+    assert.equal(labels.length, domain.lastGroup - domain.firstGroup + 1, `${domain.slug}: one name per group, and none of another domain`);
+    assert.ok(labels.every((label) => label.kind === 'group' && layout.groups[label.index].domain === domain.index));
+    for (let i = 1; i < labels.length; i++) assert.ok(labels[i].y - labels[i - 1].y >= rows.group - 1e-9, `${domain.slug}: rows in order and apart`);
+    assert.ok(labels.every((label) => label.y >= rows.top + rows.group / 2 - 1e-9 && label.y <= rows.bottom - rows.group / 2 + 1e-9), `${domain.slug}: inside the frame`);
+    // A name stands level with its group's place on the rim, as near as its neighbours let it.
+    const middle = labels[Math.floor(labels.length / 2)];
+    const [, rimY] = project(camera, middle.from, GEOMETRY.ring);
+    assert.ok(Math.abs(middle.y - rimY) <= rows.group * labels.length, `${domain.slug}: near its place`);
     const open = layout.groups[domain.firstGroup];
-    const withSkills = placeLabels(layout, domain, open, pitch);
+    const withSkills = placeLabels(layout, domain, open, camera, rows);
     const skills = withSkills.filter((label) => label.kind === 'skill');
     assert.equal(skills.length, open.last - open.first + 1);
     assert.equal(withSkills.length, labels.length - 1 + skills.length);
-    for (let i = 1; i < withSkills.length; i++) assert.ok(withSkills[i].angle - withSkills[i - 1].angle >= pitch.group - 1e-9);
+    for (let i = 1; i < withSkills.length; i++) assert.ok(withSkills[i].y - withSkills[i - 1].y >= rows.group - 1e-9);
   }
-  // Neighbouring domains' groups are named as far as the frame reaches, across the seam too.
-  const first = layout.domains[0];
-  const wide = placeLabels(layout, first, null, pitch, 0.5);
-  assert.ok(wide.some((label) => label.far && layout.groups[label.index].domain === layout.domains.length - 1));
-  assert.ok(wide.some((label) => label.far && layout.groups[label.index].domain === 1));
-  for (let i = 1; i < wide.length; i++) assert.ok(wide[i].angle - wide[i - 1].angle >= pitch.group - 1e-9);
 });
 
 test('the camera turns a domain to three o\'clock by the shortest way, and a point of the frame can be read back', () => {
@@ -272,6 +323,12 @@ test('the camera turns a domain to three o\'clock by the shortest way, and a poi
     const seen = unproject(camera, 0.1, 0);
     assert.ok(near(seen.radius, GEOMETRY.ring, 1e-9));
     assert.ok(Math.abs(between(seen.angle, domain.angle)) < 1e-9);
+    // And a point of the plate is projected back to where it is seen.
+    const [x, y] = project(camera, domain.angle, GEOMETRY.ring);
+    assert.ok(near(x, 0.1, 1e-9) && near(y, 0, 1e-9));
+    const [px, py] = project(camera, domain.a0, 0.6);
+    const back = unproject(camera, px, py);
+    assert.ok(near(back.radius, 0.6, 1e-9) && Math.abs(between(back.angle, domain.a0)) < 1e-9);
   }
   const back = cameraWhole(turned);
   assert.equal(back.scale, 1);
