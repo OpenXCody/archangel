@@ -142,13 +142,22 @@ async function main() {
     const entry = tools.entry(args[0]);
     const adapter = tools.systems[entry.system];
     const { listAll } = await import('./postings/systems/shared.mjs');
-    const { beforeText } = await import('./postings/jobs.mjs');
+    const { beforeText, locationLine } = await import('./postings/jobs.mjs');
     say(`ingest: fetch ${args[0]}: ${adapter.feed(entry.board)}`);
     say(`  ${adapter.name}. ${adapter.how} Asked as "${tools.userAgent}".`);
     const session = tools.fetcher.session(entry.slug, { pace: adapter.pace, ceiling: entry.ceiling });
     const listed = await listAll(adapter, entry.board, { get: session.get, post: session.post, today: new Date().toISOString().slice(0, 10) });
-    const ours = listed.filter((posting) => beforeText(tools.reader, posting, { employer: entry.employer, title: posting.title }, tools.vocab).could);
-    return say(`fetched: ${listed.length.toLocaleString('en-US')} postings listed, ${ours.length.toLocaleString('en-US')} with a title that could be one of our careers, in ${session.requests} requests. Nothing was kept.`);
+    const { titleLines, titleTally } = await import('./postings/titles.mjs');
+    // The titles that could not be ours are counted, as a run's report counts them: titles only, kept nowhere.
+    const turnedAway = titleTally();
+    const ours = listed.filter((posting) => {
+      const could = beforeText(tools.reader, posting, { employer: entry.employer, title: posting.title }, tools.vocab).could;
+      if (!could) turnedAway.add(posting.title, locationLine(posting));
+      return could;
+    });
+    say(`fetched: ${listed.length.toLocaleString('en-US')} postings listed, ${ours.length.toLocaleString('en-US')} with a title that could be one of our careers, in ${session.requests} requests. Nothing was kept.`);
+    for (const line of titleLines(turnedAway.summary(), { as: 'not one of our careers on the title alone' })) say(line);
+    return;
   }
   if (command === 'fetch') {
     const [slug] = args;
