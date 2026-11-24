@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { ShowAll } from '../layout/Page';
 import { panelClass } from '../layout/Panel';
-import { Tree, TreeBranch, TreeItem, TreeLink, TreeMore, TreeRoot } from '../layout/Tree';
+import { Tree, TreeBranch, TreeItem, TreeLink, TreeRoot } from '../layout/Tree';
 import type { LadderCareer } from '../path/model';
 
-/** How many careers a side names before the rest wait behind "N more": a career leads to at most this many. */
+/** How many careers a side names before the rest wait behind "Show all": a career leads to at most this many. */
 const SHOWN = 3;
 
 /**
@@ -14,7 +15,9 @@ const SHOWN = 3;
  * (Comes from, This career, Leads to), the career's line running out to a
  * spine on each side and an elbow to each career there; under 640 px the
  * same tree stands down the page. Each career beside it is a node that opens
- * its page. Several on a side are alternatives, not a sequence.
+ * its page. Several on a side are alternatives, not a sequence. A side of
+ * more than four names three, and "Show all", the frame's last row under the
+ * tree, shows the rest in place: more of a list is a button, never a node.
  *
  * Its frame is the place the career's own Atlas will take (`atlas`,
  * `data-career-atlas-slot`), over the same careers. The frame, its heading and
@@ -34,10 +37,10 @@ export function CareerLadder({
   /** The career's Atlas, when there is one to draw: it stands at the top of the frame. */
   atlas?: React.ReactNode;
 }) {
-  const [allFrom, setAllFrom] = useState(false);
-  const [allTo, setAllTo] = useState(false);
-  const from = cut(comesFrom, allFrom);
-  const to = cut(leadsTo, allTo);
+  const [all, setAll] = useState(false);
+  const from = cut(comesFrom, all);
+  const to = cut(leadsTo, all);
+  const cutShort = comesFrom.length > SHOWN + 1 || leadsTo.length > SHOWN + 1;
   if (comesFrom.length === 0 && leadsTo.length === 0) return null;
   const hasFrom = from.shown.length > 0;
   const hasTo = to.shown.length > 0;
@@ -54,7 +57,6 @@ export function CareerLadder({
             {from.shown.map((career) => (
               <TreeItem key={career.id} node={<TreeLink to={`/occupations/${career.id}`}>{career.title}</TreeLink>} />
             ))}
-            {from.more > 0 && <TreeItem node={<TreeMore more={from.more} onMore={() => setAllFrom(true)} />} />}
           </TreeBranch>
         )}
         <TreeRoot label="This career" sub="This career" data-ladder-this="">
@@ -65,16 +67,17 @@ export function CareerLadder({
             {to.shown.map((career) => (
               <TreeItem key={career.id} node={<TreeLink to={`/occupations/${career.id}`}>{career.title}</TreeLink>} />
             ))}
-            {to.more > 0 && <TreeItem node={<TreeMore more={to.more} onMore={() => setAllTo(true)} />} />}
           </TreeBranch>
         )}
       </Tree>
+      {cutShort && (
+        <ShowAll open={all} total={comesFrom.length + leadsTo.length} onToggle={() => setAll((value) => !value)} data-ladder-more="" />
+      )}
     </div>
   );
 }
 
 /** A list cut at `SHOWN`, unless it is only one longer. */
-function cut(careers: LadderCareer[], all: boolean): { shown: LadderCareer[]; more: number } {
-  const shown = all || careers.length <= SHOWN + 1 ? careers : careers.slice(0, SHOWN);
-  return { shown, more: careers.length - shown.length };
+function cut(careers: LadderCareer[], all: boolean): { shown: LadderCareer[] } {
+  return { shown: all || careers.length <= SHOWN + 1 ? careers : careers.slice(0, SHOWN) };
 }

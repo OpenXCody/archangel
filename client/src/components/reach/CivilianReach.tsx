@@ -1,8 +1,10 @@
 import { useId, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { cn, focusRing } from '@/lib/utils';
 import type { CareerWithinReach } from '../../lib/api';
-import { DetailSection } from '../layout/Page';
-import { panelClass } from '../layout/Panel';
-import { Tree, TreeBranch, TreeItem, TreeLeaf, TreeLink, TreeMore, TreeRoot, TreeToggle } from '../layout/Tree';
+import { DetailSection, ShowAll } from '../layout/Page';
+import { panelClass, secondaryActionClass } from '../layout/Panel';
+import { Tree, TreeBranch, TreeCard, TreeCardList, TreeItem, TreeRoot, TreeToggle } from '../layout/Tree';
 
 /**
  * "Civilian careers within reach", on a military career's page, after its
@@ -10,11 +12,12 @@ import { Tree, TreeBranch, TreeItem, TreeLeaf, TreeLink, TreeMore, TreeRoot, Tre
  * tree as the skills above it (`Tree`). The military career is the root; an
  * elbow runs to each civilian career whose path this one covers a third or
  * more of, the closest first, each one row with its figure at the right end
- * ("13 of 18 skills"); five, then "N more" as the branch's last node (a list
- * one or two longer is shown whole). A career is a node that opens its own
- * branch, one at a time and none on arrival: what it asks that this path does
- * not (the first five, in its own route's order, with no level named, the
- * rest behind "N more"), and last "Career page", the way to it.
+ * ("13 of 18 skills"); five, then "Show all" as the frame's last row, under
+ * the tree (a list one or two longer is shown whole). A career is a node that
+ * opens its card straight under it, one at a time and none on arrival: what
+ * it asks that this path does not, as a plain list of names (the first five,
+ * in its own route's order, with no level named, the rest behind "N more"),
+ * and the way to its page as a button.
  * What carries over is not listed again: the skills above are this path's.
  * Computed from the two paths: nothing here is a stored link.
  */
@@ -31,15 +34,15 @@ export function CivilianReach({ title, careers }: { title: string; careers: Care
   );
 }
 
-/** How many careers are listed before "N more". */
+/** How many careers are listed before "Show all". */
 const LISTED = 5;
 /** How many of the skills a career still asks are named before "N more". */
 const MISSING_SHOWN = 5;
 
 /** A list cut at `limit`, unless it is only one or two longer. */
-function cutAt<T>(items: T[], limit: number, all: boolean): { shown: T[]; more: number } {
-  const shown = all || items.length <= limit + 2 ? items : items.slice(0, limit);
-  return { shown, more: items.length - shown.length };
+function cutAt<T>(items: T[], limit: number, all: boolean): { shown: T[]; cut: boolean } {
+  const cut = items.length > limit + 2;
+  return { shown: all || !cut ? items : items.slice(0, limit), cut };
 }
 
 /** "11 of 14 skills". */
@@ -47,12 +50,17 @@ function covers(career: CareerWithinReach): string {
   return `${career.held} of ${career.total} ${career.total === 1 ? 'skill' : 'skills'}`;
 }
 
-/** The careers as the root's branch, each opening its own: one at a time, none to begin with. */
+/** The careers as the root's branch, each opening its card: one at a time, none to begin with. */
 function ReachTree({ title, careers }: { title: string; careers: CareerWithinReach[] }) {
   const base = useId();
   const [all, setAll] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
-  const { shown, more } = cutAt(careers, LISTED, all);
+  const { shown, cut } = cutAt(careers, LISTED, all);
+  const showFewer = () => {
+    // A card left open on a career that the shorter list no longer shows closes with it.
+    if (open && !careers.slice(0, LISTED).some((career) => career.id === open)) setOpen(null);
+    setAll(false);
+  };
   return (
     <div className={panelClass} data-reach-list="">
       <Tree across="lg" shape="tree" after data-reach-tree="">
@@ -60,11 +68,10 @@ function ReachTree({ title, careers }: { title: string; careers: CareerWithinRea
         <TreeBranch aria-label="Civilian careers within reach">
           {shown.map((career, index) => {
             const isOpen = career.id === open;
-            const branchId = `${base}-career-${index}`;
+            const cardId = `${base}-career-${index}`;
             return (
               <TreeItem
                 key={career.id}
-                branches
                 open={isOpen}
                 data-reach-career={career.id}
                 node={
@@ -74,44 +81,57 @@ function ReachTree({ title, careers }: { title: string; careers: CareerWithinRea
                     figure={covers(career)}
                     open={isOpen}
                     onToggle={() => setOpen(isOpen ? null : career.id)}
-                    controls={branchId}
+                    controls={cardId}
                   />
                 }
               >
-                {isOpen && <Missing id={branchId} career={career} />}
+                {isOpen && <ReachCard id={cardId} career={career} />}
               </TreeItem>
             );
           })}
-          {more > 0 && <TreeItem node={<TreeMore more={more} onMore={() => setAll(true)} />} />}
         </TreeBranch>
       </Tree>
+      {cut && <ShowAll open={all} total={careers.length} onToggle={() => (all ? showFewer() : setAll(true))} />}
     </div>
   );
 }
 
 /**
- * What one career asks that this path does not, in its own route's order and
- * with no level named, then the way to its page.
+ * One career's card: what it asks that this path does not, in its own route's
+ * order and with no level named, as names; then the way to its page.
  */
-function Missing({ id, career }: { id: string; career: CareerWithinReach }) {
+function ReachCard({ id, career }: { id: string; career: CareerWithinReach }) {
   const [all, setAll] = useState(false);
   const missing = career.missing;
   const shown = all || missing.length <= MISSING_SHOWN + 1 ? missing : missing.slice(0, MISSING_SHOWN);
   const more = missing.length - shown.length;
   return (
-    <TreeBranch nested id={id} aria-label={`${career.title}: the skills it asks that this path does not`} data-reach-panel={career.id}>
-      {shown.map((skill) => (
-        <TreeItem key={skill.id} node={<TreeLeaf data-reach-missing="">{skill.name}</TreeLeaf>} />
-      ))}
-      {more > 0 && <TreeItem node={<TreeMore more={more} onMore={() => setAll(true)} />} />}
-      <TreeItem
-        node={
-          <TreeLink to={`/occupations/${career.id}`} data-reach-open="">
-            <span className="sr-only">{career.title}: </span>
-            Career page
-          </TreeLink>
-        }
-      />
-    </TreeBranch>
+    <TreeCard id={id} aria-label={`${career.title}: the skills it asks that this path does not`} data-reach-panel={career.id}>
+      {missing.length > 0 && (
+        <TreeCardList label="Missing" data-reach-missing="">
+          {shown.map((skill) => (
+            <li key={skill.id} className="break-words">
+              {skill.name}
+            </li>
+          ))}
+        </TreeCardList>
+      )}
+      {more > 0 && (
+        <button
+          type="button"
+          onClick={() => setAll(true)}
+          className={cn('inline-flex min-h-11 items-center text-sm text-text-2 underline transition-colors hover:text-text-1 sm:min-h-8', focusRing)}
+          data-reach-more=""
+        >
+          {more} more
+        </button>
+      )}
+      <div>
+        <Link to={`/occupations/${career.id}`} className={cn(secondaryActionClass, 'mt-4 sm:h-9 sm:px-3')} data-reach-open="">
+          <span className="sr-only">{career.title}: </span>
+          Career page
+        </Link>
+      </div>
+    </TreeCard>
   );
 }

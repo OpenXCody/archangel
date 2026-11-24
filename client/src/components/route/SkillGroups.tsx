@@ -41,10 +41,11 @@ interface SkillGroupsProps {
  * skills"; "1 of 2 held" for a seeker who holds some of it).
  *
  * A group is a node that opens its own branch: its skills, in the route's
- * order, each on an elbow off the group's own spine (across, from 1024 px, in
- * the next column, level with the group; under that, stacked under the group
- * and indented). A skill is a node that opens what it is under itself
- * (`SkillPreview`). Every group and every skill starts closed, for everyone.
+ * order, each on an elbow off the group's own spine, straight under the group
+ * and indented, at every width, the groups after it following straight after
+ * its last skill. A skill is a node that opens its card under itself
+ * (`SkillPreview`), the skill's line running into the card; one card at a
+ * time in a group. Every group and every skill starts closed, for everyone.
  *
  * A seeker's held skills carry the product's mark on their node in place of
  * the open ring; nothing else about them changes. No skill is called next or
@@ -128,7 +129,6 @@ export function SkillGroups({ title, skills, marks, keepAs, after, before }: Ski
               return (
                 <TreeItem
                   key={group.key}
-                  branches
                   open={isOpen}
                   data-route-section={group.key}
                   node={
@@ -177,7 +177,7 @@ const MARK: Record<MarkStatus, TreeMark> = { held: 'held', learning: 'learning',
 /** What a screen reader hears after a skill's name, for a seeker. */
 const SAID: Record<MarkStatus, string> = { held: ', held', learning: ', learning', none: ', not held' };
 
-/** One skill on its group's branch: a node that opens what it is under itself. */
+/** One skill on its group's branch: a node that opens its card under itself. */
 function SkillNode({
   skill,
   status,

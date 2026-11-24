@@ -739,7 +739,8 @@ input {
    * node's first line is --tree-mid from its top (12px of room and a 20px
    * line), so the lines meet a node there whatever wraps under it. A branch
    * stands --tree-indent in from its parent's edge, its spine --tree-spine
-   * in: across, in the room between the columns; down, under the parent's
+   * in: the root's branch across, in the room between the root and its
+   * column; down, and every nested branch at every width, under the parent's
    * mark. An elbow runs from the spine to the edge of its node's ring.
    */
   .tree {
@@ -752,8 +753,14 @@ input {
     --tree-dot: 11px;
     --tree-reach: calc(var(--tree-pad) + (var(--tree-mark) - var(--tree-ring)) / 2);
     --tree-text: calc(var(--tree-pad) + var(--tree-mark) + var(--tree-gap));
-    /* Across, the width a node that opens a branch keeps, its branch in the rest. */
-    --tree-node-width: 16rem;
+    /* How far under the middle of a node's first line its mark ends: half a ring, half a seeker's mark. */
+    --tree-under: calc(var(--tree-ring) / 2);
+    /*
+     * How wide a `tree`'s rows are: every row of a branch and of the branches
+     * it opens ends on one upright, so a figure and a chevron stay near their
+     * name, and a card two levels in has a reading measure.
+     */
+    --tree-width: 30rem;
     min-width: 0;
   }
   .tree[data-layout='wide'] {
@@ -787,19 +794,17 @@ input {
   }
   /*
    * Across: a tree is its root, only as wide as its name needs (one line for
-   * most careers, two at most, balanced), and its branches in the rest, level
-   * with the first node. A node that opens a branch keeps room for most
-   * groups' names on one line beside their figure. Its lines are measured as
-   * a ladder's are, so the two read as one drawing.
+   * most careers, two at most, balanced), and its branch in the next column,
+   * level with the first node; what a node of it opens stands under that
+   * node, in the same column. Its lines are measured as a ladder's are, so
+   * the two read as one drawing.
    */
   .tree[data-layout='wide'][data-shape='tree'] {
-    --tree-node-width: 20rem;
     grid-template-columns: fit-content(16rem) minmax(0, 1fr);
     grid-template-areas: 'this after';
   }
-  /* A military career's civilian careers: names of careers, and a longer figure ("13 of 18 skills"), beside the root. */
-  .tree[data-layout='wide'][data-reach-tree] {
-    --tree-node-width: 24rem;
+  .tree[data-shape='tree'] .tree-side > .tree-branch {
+    max-width: calc(var(--tree-indent) + var(--tree-width));
   }
   .tree[data-layout='wide'] .tree-this,
   .tree[data-layout='wide'] .tree-side {
@@ -947,12 +952,21 @@ input {
     bottom: auto;
     height: calc(var(--tree-mid) + 1px);
   }
-  /* Across, the parent's line meets the spine at the first node; down, it comes into the spine from above. */
-  .tree[data-layout='wide'] .tree-item:first-child::after {
+  /*
+   * Across, the root's line meets its branch's spine at the first node; down,
+   * and in every nested branch, the parent's line comes into the spine from
+   * above.
+   */
+  .tree[data-layout='wide'] .tree-side > .tree-branch > .tree-item:first-child::after {
     top: var(--tree-mid);
   }
-  .tree[data-layout='wide'] .tree-item:only-child::after {
+  .tree[data-layout='wide'] .tree-side > .tree-branch > .tree-item:only-child::after {
     display: none;
+  }
+  /* A nested branch, at every width: indented under its node, its spine straight under the node's mark. */
+  .tree-branch[data-nested] {
+    --tree-indent: 24px;
+    --tree-spine: calc(var(--tree-pad) + var(--tree-mark) / 2);
   }
   /*
    * A ladder's side of one career stands centred on the career; when its name
@@ -987,34 +1001,20 @@ input {
   }
 
   /*
-   * A node that opens a branch of its own. Across, it keeps one column and
-   * its branch stands in the next, level with it, and while it is open a line
-   * runs from it to its branch's spine. Down, its branch stands under it,
-   * indented, and the line runs down from under its ring.
+   * A node that is open, at every width: its line runs on down from under its
+   * mark to the foot of its row, where its branch's spine or its card's top
+   * edge takes it up. A seeker's mark is a little larger than a ring, so the
+   * line starts a little lower under it.
    */
-  .tree[data-layout='wide'] .tree-item[data-branches] {
-    display: grid;
-    grid-template-columns: minmax(0, var(--tree-node-width)) minmax(0, 1fr);
-    align-items: start;
+  .tree-node:has(.tree-mark[data-mark='held'], .tree-mark[data-mark='learning']) {
+    --tree-under: 6px;
   }
-  /* Across, an opened branch is no wider than what its nodes open at a reading measure, so a chevron stays near its name. */
-  .tree[data-layout='wide'] .tree-branch[data-nested] {
-    max-width: calc(var(--tree-indent) + var(--tree-text) + 60ch + var(--tree-pad));
-  }
-  .tree[data-layout='wide'] .tree-item[data-branches][data-open] > .tree-node::after {
+  .tree-item[data-open] > .tree-node::after {
     content: '';
     position: absolute;
-    top: var(--tree-mid);
-    left: 100%;
-    width: var(--tree-spine);
-    border-top: 1px solid var(--tree-line);
-  }
-  .tree[data-layout='stacked'] .tree-item[data-branches][data-open] > .tree-node::after {
-    content: '';
-    position: absolute;
-    top: calc(var(--tree-mid) + var(--tree-ring) / 2);
+    top: calc(var(--tree-mid) + var(--tree-under));
     bottom: 0;
-    left: var(--tree-spine);
+    left: calc(var(--tree-pad) + var(--tree-mark) / 2);
     border-left: 1px solid var(--tree-line);
   }
 
@@ -1056,16 +1056,27 @@ input {
     }
   }
 
-  /* What a node is, opened under it: indented to its name, beside its own length of the spine, at a reading measure. */
-  .tree-detail {
+  /*
+   * A node's card: what it is, opened straight under it as the node's body. A
+   * hairline frame of the lines' own strength with no fill, its left edge
+   * straight under the node's mark, so the line that runs down from the mark
+   * runs on as the card's edge: that corner is square, the other three 8px.
+   * Its words start under the node's name. The rows of its branch set its
+   * width, so its words keep a reading measure.
+   */
+  .tree-card {
     min-width: 0;
-    max-width: calc(var(--tree-text) + 60ch);
-    padding: 0 var(--tree-pad) 20px var(--tree-text);
+    margin-left: calc(var(--tree-pad) + var(--tree-mark) / 2);
+    padding: 14px 16px 16px calc(var(--tree-gap) + var(--tree-mark) / 2 - 1px);
+    border: 1px solid var(--tree-line);
+    border-radius: 0 8px 8px 8px;
   }
-  /* Down, it starts under the node's mark: a phone's measure is too short to give the indent away. */
-  .tree[data-layout='stacked'] .tree-detail {
-    max-width: none;
-    padding-left: var(--tree-reach);
+  .tree[data-layout='stacked'] .tree-card {
+    padding-right: 12px;
+  }
+  /* The room under a card before the next node, inside the node's own item so its spine runs on through it. */
+  .tree-item:has(> .tree-card) {
+    padding-bottom: 12px;
   }
 
   /* A route whose rows are another control (the employer's editor): no trunk, and nothing stands on it. */

@@ -9,14 +9,20 @@ import { OpenChevron } from './Panel';
 /*
  * The connector tree: one thing (the root) and what hangs off it, drawn as
  * nodes joined by hairlines. A career's ladder (`CareerLadder`: where people
- * come to it from, where it leads) and a career's skills (`SkillGroups`: the
- * career, its skill groups, each group's skills) are both one.
+ * come to it from, where it leads), a career's skills (`SkillGroups`: the
+ * career, its skill groups, each group's skills) and a military career's
+ * civilian careers within reach (`CivilianReach`) are each one.
+ *
+ * The rule: everything in a tree is a node on a line, or inside a node's own
+ * card that the node's line runs into. Nothing stands loose, no stretch of
+ * line runs past nothing, and nothing that acts (a page to go to, more of a
+ * list) is drawn as a node: it is a button, inside a card or under the tree.
  *
  * The grammar, the same at every level:
  * - The root is the one filled dot, its name beside it.
  * - A branch is a spine (an upright hairline) with an elbow out to each of
  *   its nodes. The parent's own line meets the spine; every line is whole and
- *   ends on a node or on the spine.
+ *   ends on a node, on the spine, or on the edge of a card.
  * - A node is one row, the same height everywhere (44px for a name of one
  *   line): its mark (an open ring; a skill a seeker holds, the product's
  *   mark), its name, and at the right end, level with the name's first line,
@@ -25,17 +31,22 @@ import { OpenChevron } from './Panel';
  *   here (`TreeToggle`), up while it is open. A second line under the name is
  *   for what is particular to one node (the makes a company runs on a skill),
  *   never for a figure every node has.
- *   A node that opens a branch of its own (`branches` on `TreeItem`) draws its
- *   line on to that branch while it is open; a node that opens what it is
- *   (`TreeDetail`) shows it under itself, inside its own place on the spine.
+ * - What a node opens stands straight under it, at every width, and its
+ *   siblings follow straight after: either a branch of its own (`TreeBranch
+ *   nested`), indented, its spine running down from under the node's mark and
+ *   its elbows down the left, or a card (`TreeCard`), a hairline frame hung
+ *   from the node, its line running down from under the mark into the card's
+ *   top edge. A card holds what the node is (a skill's level, what it is, how
+ *   it is learned) and its actions as buttons; a list inside it that is only
+ *   names is a plain list, not more nodes.
  *
- * Across (from `across`): the root on the left, each branch in the next
- * column, the lines running right; a branch on the root's other side
- * (`side="before"`) is mirrored, its lines running left into the root. Down
- * (under that width, a phone): the root at the top and each branch stacked
- * under its parent, indented, its spine running down from the parent's mark
- * and its elbows drawn down the left. The lines and their measures are the
- * `.tree*` rules in `globals.css`; nothing here draws a line.
+ * The root's own branch stands across from `across` (the root on the left,
+ * its branch in the next column, the lines running right; a branch on the
+ * root's other side, `side="before"`, mirrored, its lines running left into
+ * the root) and down under that width (the root at the top, its branch
+ * indented under it). A nested branch is never another column. The lines
+ * and their measures are the `.tree*` rules in `globals.css`; nothing here
+ * draws a line.
  */
 
 /** From which width a tree stands across: a ladder from a tablet up, a career's skills from a laptop. */
@@ -182,7 +193,7 @@ interface TreeBranchProps {
   side?: 'before' | 'after';
   /** The branch's name, in small capitals: above its column across, above its first node down. */
   label?: string;
-  /** A branch opened by a node of another branch: it stands inside that node's item. */
+  /** A branch opened by a node of another branch: it stands straight under that node, indented, at every width. */
   nested?: boolean;
   id?: string;
   /** What a screen reader hears the list called: the group whose skills it is. */
@@ -211,20 +222,18 @@ export function TreeBranch({ side = 'after', label, nested = false, id, children
 }
 
 interface TreeItemProps {
-  /** The node's row: a `TreeLink`, a `TreeToggle` or a `TreeMore`. */
+  /** The node's row: a `TreeLink` or a `TreeToggle`. */
   node: ReactNode;
-  /** It opens a branch of its own: across, the node keeps one column and its branch stands in the next. */
-  branches?: boolean;
-  /** What it opens is open: a node that branches then draws its line on to its branch. */
+  /** What it opens is open: the node then draws its line on from under its mark, down to its branch or into its card. */
   open?: boolean;
-  /** What it opened: its branch (`TreeBranch nested`) or what it is (`TreeDetail`). */
+  /** What it opened, straight under it: its branch (`TreeBranch nested`) or its card (`TreeCard`). */
   children?: ReactNode;
 }
 
 /** One node on a branch: the elbow from the spine, the node, and what it opened. */
-export function TreeItem({ node, branches = false, open = false, children, ...rest }: TreeItemProps & Record<`data-${string}`, string | boolean | undefined>) {
+export function TreeItem({ node, open = false, children, ...rest }: TreeItemProps & Record<`data-${string}`, string | boolean | undefined>) {
   return (
-    <li className="tree-item" data-branches={branches || undefined} data-open={open || undefined} {...rest}>
+    <li className="tree-item" data-open={open || undefined} {...rest}>
       <div className="tree-node">{node}</div>
       {children}
     </li>
@@ -283,16 +292,6 @@ export function TreeLink({
   );
 }
 
-/** A node that is only what it says (a skill a career asks that a path does not have): no chevron, nothing to press. */
-export function TreeLeaf({ mark = 'node', meta, children, ...rest }: { mark?: TreeMark; meta?: ReactNode; children: ReactNode } & Record<`data-${string}`, string | undefined>) {
-  return (
-    <div className={rowClass} data-tree-leaf="" {...rest}>
-      <TreeMarker mark={mark} />
-      <Words title={children} meta={meta} />
-    </div>
-  );
-}
-
 interface TreeToggleProps {
   mark?: TreeMark;
   title: ReactNode;
@@ -326,21 +325,27 @@ export function TreeToggle({ mark = 'node', title, meta, figure, open, onToggle,
   return Heading ? <Heading className="m-0 font-normal">{button}</Heading> : button;
 }
 
-/** The last node of a branch that was cut: "2 more", which shows the rest in place. */
-export function TreeMore({ more, onMore }: { more: number; onMore: () => void }) {
+/**
+ * What a node is, opened straight under it as its card: a hairline frame with
+ * an 8px corner, hung from the node, the node's line running down from under
+ * its mark into the card's top edge, its words at a reading measure. It holds
+ * what the node is and what can be done with it, as buttons; a list in it
+ * that is only names is a plain list (`TreeCardList`), never more nodes.
+ */
+export function TreeCard({ id, children, ...rest }: { id: string; children: ReactNode; 'aria-label': string } & Record<`data-${string}`, string | undefined>) {
   return (
-    <button type="button" onClick={onMore} className={cn(rowClass, 'text-sm leading-5 text-text-2 hover:text-text-1')} data-ladder-more="" data-tree-more="">
-      <TreeMarker mark="node" />
-      {more} more
-    </button>
+    <div id={id} role="region" className="tree-card" {...rest}>
+      {children}
+    </div>
   );
 }
 
-/** What a node is, opened under it: indented to its name, inside its own place on the spine. */
-export function TreeDetail({ id, children, ...rest }: { id: string; children: ReactNode; 'aria-label': string } & Record<`data-${string}`, string | undefined>) {
+/** A list of names inside a card, under its label in small capitals: no marks, no lines, nothing to press. */
+export function TreeCardList({ label, children, ...rest }: { label: string; children: ReactNode } & Record<`data-${string}`, string | undefined>) {
   return (
-    <div id={id} role="region" className="tree-detail" {...rest}>
-      {children}
+    <div {...rest}>
+      <h4 className={labelClass}>{label}</h4>
+      <ul className="mt-1.5 text-sm leading-6 text-text-1">{children}</ul>
     </div>
   );
 }

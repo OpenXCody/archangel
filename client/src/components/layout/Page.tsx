@@ -414,9 +414,16 @@ export function RecordRow({
  * fewer". Inside a panel (a `RecordList`'s `footer`) it is the panel's last
  * row; under a stack of panels (`alone`) it is one more panel-shaped button.
  */
-export function ShowAll({ open, total, onToggle, alone = false }: { open: boolean; total: number; onToggle: () => void; alone?: boolean }) {
+export function ShowAll({
+  open,
+  total,
+  onToggle,
+  alone = false,
+  ...rest
+}: { open: boolean; total: number; onToggle: () => void; alone?: boolean } & Record<`data-${string}`, string | undefined>) {
   return (
     <button
+      {...rest}
       type="button"
       onClick={onToggle}
       aria-expanded={open}

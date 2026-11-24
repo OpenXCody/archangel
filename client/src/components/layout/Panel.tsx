@@ -11,8 +11,8 @@ import { cn, focusRing } from '@/lib/utils';
  * - `Panel`: the frame. A hairline edge (`--line`) with an 8px corner, no
  *   fill, no shadow. Anything made of several parts sits in one: a list of
  *   records, a skill group of the Skills list, a connector tree. A
- *   panel never holds another panel; inside it, parts are parted by
- *   hairlines. `PanelHead` is its heading row.
+ *   panel never holds another panel (but for a tree node's card, below);
+ *   inside it, parts are parted by hairlines. `PanelHead` is its heading row.
  * - `Disclosure`: a panel whose heading row is the button that opens it. The
  *   chevron stands at the row's right end and points down while it is closed,
  *   up while it is open; open, the frame's edge strengthens and the body
@@ -27,7 +27,9 @@ import { cn, focusRing } from '@/lib/utils';
  *   whether it is open or not: it is never a state.
  * - `Tree` (`components/layout/Tree.tsx`): one thing and what hangs off it,
  *   as nodes joined by hairlines inside one panel (a career's skills, where
- *   it leads, the civilian careers a military one reaches).
+ *   it leads, the civilian careers a military one reaches). What a node is
+ *   opens as its card (`TreeCard`), the one frame a panel holds: the node's
+ *   own line runs into it, so it is never loose.
  *
  * Two marks at a row's right end, each meaning one thing: a chevron pointing
  * down (up when open) opens something here; a chevron pointing right goes to
