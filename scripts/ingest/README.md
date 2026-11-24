@@ -314,12 +314,20 @@ runner reads a location line that is one of them (in any letter case) as the
 place beside it, in the listing and in the posting's record alike, before the
 reader sees it. A site not written out has no place: a state is never
 guessed, and its name is in the run's report under "places named and not
-read" until someone writes it out. The check holds each place to exactly one
-US city and state written "City, ST". A posting whose places are only in its
-own record ("2 Locations") is read again when the board's sites change; one
-listed at a site that is written out is read the first time its site is.
-GE Aerospace's line writes out the towns where we list a factory of the
-board's companies; the others wait for a person.
+read" until someone writes it out. A site is written out only where the board
+uses that name, and as the town it is in: the check holds each place to
+exactly one US city and state written "City, ST", whose city is the site's
+name or in it ("Evendale" is "Evendale, OH", never the town a factory there is
+filed under). A place in another town's name says why on the line,
+`{ "<site>": { "place": "City, ST", "why": "..." } }`.
+Where the factory is filed under another town (its mailing town), the place
+is pointed at it in `data/employers/places.json` (below), as GE Aerospace's
+Evendale is at the factory at 1 Neumann Way we list under Cincinnati. A
+posting whose places are only in its own record ("2 Locations") is read again
+when the board's sites change; one listed at a site that is written out is
+read the first time its site is. GE Aerospace's line writes out the board's
+sites where we list a factory of the board's companies, and no name the board
+does not use (it writes no Cincinnati); the others wait for a person.
 
 ```bash
 node scripts/ingest/postings/registry.mjs --check     # or: node scripts/ingest/run.mjs postings --check
@@ -491,7 +499,8 @@ research file added it) needs no entry: the next run finds it.
 `scripts/build-posting-places-sql.mjs` checks the file (`--check`: every
 employer is in the registry, every pointed plant is named exactly once in the
 research files or is marked `stored`, no place twice) and generates the
-migration (`0067_posting_places.sql`). The migration writes `posting_places`
+migration (`0067_posting_places.sql` first, `0079_posting_places_2.sql` now,
+which points GE Aerospace's Evendale). The migration writes `posting_places`
 rows as Admin Tools does, with `decided_at` set and no `decided_by`. A place a
 person decided is never changed: one with `decided_by` set, and one a person
 pointed, left or took back before (Admin Tools writes an audit line by the
@@ -1219,7 +1228,7 @@ const reading = readPosting({ employer, title, location, department, text, count
 - A make is written as its maker writes it and is not the employer's own name. It goes to its skill the posting names (the same line first), else to its one skill on the career's path, else nowhere; an everyday word or a few capitals ("Star", "NI") only beside its skill.
 - `unknown` holds up to eight codes and names per posting that nothing matched, from requirement lines: the catalogue's next pass.
 
-**Facts** (`facts.mjs`). Places from the location field in each feed's form ("Bastrop, TX", "US-TX-Austin", "United States-Utah-Salt Lake City", "City, Region, CC, postcode", a Workday site written "Auburn AL USA" or "Saint George UT US 1"); a part that only says there are more places ("Dallas, Multiple Locations, TX") is not the city; a town alone ("Evendale") is no place, since it says no state (the registry's `sites` write such a site out before the reader sees it); the text only when the field is empty; remote and abroad are no place. A posting that carries a `country` other than the United States has no place whatever its location looks like ("Amsterdam, NH" is North Holland): an adapter passes the feed's country where it has one, and leaves it out where it has none. Years: the first requirement stated, a range as min and max. Education: the least that qualifies. Certificates by name (NADCAP is a company's, not a person's). Clearance by the level named. A U.S. citizen where citizenship is required; a U.S. person where the export rules are cited. Pay as dollars and a period; where a band is given per level the title's level picks it, and with no level the span.
+**Facts** (`facts.mjs`). Places from the location field in each feed's form ("Bastrop, TX", "US-TX-Austin", "United States-Utah-Salt Lake City", "City, Region, CC, postcode", a Workday site written "Auburn AL USA" or "Saint George UT US 1"); a part that only says there are more places ("Dallas, Multiple Locations, TX") is not the city; in every form, what stands where the town would and is none is no place: a building or a site of the employer's ("Fab 6", "Plant", "Plant 3"), a way of working or a kind of site ("Hybrid", "Onsite", "Telework", "Home Office", "HQ", "Factory", "Warehouse"), the country ("United States TX USA"), and a state's name where it is the state the line names ("Texas TX USA") or the line names no other, while a town named for a plant or for another state is a town ("Plant City, FL", "Delaware, OH", "Indiana PA USA"); a Workday site whose town carries the employer's word for its business ("W Chester AEROSPACE OH US") is read as a town so named, which no factory is in, and waits for a person; a town alone ("Evendale") is no place, since it says no state (the registry's `sites` write such a site out before the reader sees it); the text only when the field is empty; remote and abroad are no place. A posting that carries a `country` other than the United States has no place whatever its location looks like ("Amsterdam, NH" is North Holland): an adapter passes the feed's country where it has one, and leaves it out where it has none. Years: the first requirement stated, a range as min and max. Education: the least that qualifies. Certificates by name (NADCAP is a company's, not a person's). Clearance by the level named. A U.S. citizen where citizenship is required; a U.S. person where the export rules are cited. Pay as dollars and a period; where a band is given per level the title's level picks it, and with no level the span.
 
 **Measured.** `tests/fixtures/postings/gold.json` is 480 hand-labelled postings (half a naive word match would keep, half it would refuse), in reduced form: title, department, location, a few lines, the labels. Half was tuned on; half was not looked at until the reader was done. `tests/unit/postings-read.unit.ts` holds the figures as a floor and names every trap. The labels are as they were written; the figures were raised once, after the vocabulary pass below. On the held-out half, whole text: no wrong career among 62 kept, nothing kept of 127 that are plainly not ours, and 11 of 84 of ours refused where refusing is not accepted (17 before the pass). On the labelled lines: of the skills read 89 in 100 are ones the lines ask for, and of those they ask for 75 in 100 are read.
 

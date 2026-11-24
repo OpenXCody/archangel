@@ -21,6 +21,8 @@ import { countryFacet, postedDay } from '../../scripts/ingest/postings/systems/w
 // @ts-expect-error a plain script, no types
 import { placeOf } from '../../scripts/ingest/postings/systems/icims.mjs';
 // @ts-expect-error a plain script, no types
+import { sitesOf } from '../../scripts/ingest/postings/systems/jibe.mjs';
+// @ts-expect-error a plain script, no types
 import { countryOf, dayOf } from '../../scripts/ingest/postings/systems/successfactors-site.mjs';
 // @ts-expect-error a plain script, no types
 import { listAll, unescapeHtml, webAddress } from '../../scripts/ingest/postings/systems/shared.mjs';
@@ -102,6 +104,14 @@ test('the check holds the registry to its shape', () => {
   assert.match(problems([line({ sites: { Perth: 'Perth, WA; Seattle, WA' } })]), /not one US place/);
   assert.match(problems([line({ sites: { Evendale: 'Evendale, OH', EVENDALE: 'Evendale, OH' } })]), /"EVENDALE" is named twice/, 'a name in any letter case is one name');
   assert.match(problems([line({ sites: {} })]), /sites is an object of the board's names for its sites/);
+  // A site is written out as the town it is in: the city is the site's name or in it, unless the line says why.
+  assert.match(problems([line({ sites: { Evendale: 'Cincinnati, OH' } })]), /"Evendale" is written out as Cincinnati, OH, whose city is not the site's name or in it/);
+  assert.deepEqual(checkRegistry(registry([line({ sites: { Evendale: { place: 'Cincinnati, OH', why: 'The board writes the village for a site in the city.' } } })])), []);
+  assert.match(problems([line({ sites: { Evendale: { place: 'Cincinnati, OH' } } })]), /"Evendale" is written as an object, which is for a place that says why: its why is missing/);
+  assert.match(problems([line({ sites: { Evendale: { place: 'Evendale, OH', why: 'x', city: 'Evendale' } } })]), /"city" is not something a site holds/);
+  assert.match(problems([line({ sites: { Evendale: { why: 'x' } } })]), /not one US place written "City, ST"/);
+  assert.deepEqual(checkRegistry(registry([line({ sites: { 'Evendale Campus': 'Evendale, OH', 'St. George': 'Saint George, UT', 'W Chester AEROSPACE OH US': { place: 'West Chester, OH', why: 'The board shortens the town.' } } })])), [],
+    'a city inside the site\'s name, written either way, and one that is not with its why');
   assert.match(problems([line({ sites: ['Evendale, OH'] })]), /sites is an object/);
   assert.match(problems([line()], [{ employer: 'Acme', why: 'refused', what: 'robots.txt answered 403', when: '2026-11-19' }]), /also among the employers that are read/);
   assert.match(problems([], [{ employer: 'Tesla', why: 'unknown', what: 'x', when: '2026-11-19' }]), /why is one of/);
@@ -377,6 +387,18 @@ test('iCIMS/Jibe: a posting at several sites names each, each with its own count
   assert.equal(collected.counts.abroad, 1, 'the posting at sites abroad alone');
   assert.equal(collected.counts.notCareer, 1);
   assert.deepEqual(collected.unplaced, [], 'every site at home was read as a place');
+
+  // Where the job's own fields name no city or state, its location line stands for its first site: the whole line
+  // only for a posting at one site; at several it names every site, those abroad among them, and the first is its name.
+  const bare = { title: 'Welder', country_code: 'US', location_name: 'Normal Works' };
+  assert.deepEqual(sitesOf({ ...bare, full_location: 'Normal, Illinois' }).locations, ['Normal, Illinois']);
+  const several = {
+    ...bare, full_location: 'Normal, Illinois; Social Circle, Georgia; Windsor, Ontario', multipleLocations: true,
+    additional_locations: [{ city: 'Social Circle', state: 'Georgia', country_code: 'US' }, { city: 'Windsor', state: 'Ontario', country_code: 'CA' }],
+  };
+  assert.deepEqual(sitesOf(several).locations, ['Normal Works', 'Social Circle, Georgia']);
+  assert.deepEqual(sitesOf({ ...bare, full_location: 'Normal, Illinois; Windsor, Ontario', multipleLocations: true }).locations, ['Normal Works'],
+    'a posting said to be at several sites whose others are not listed');
 });
 
 test('Oracle: a list without text, then one request for a posting\'s text', async () => {
@@ -580,6 +602,10 @@ test('before a text is asked for: a title that is a career, one that could be, a
   assert.deepEqual(listed.locations, ['Evendale, OH'], 'in any letter case, with any spaces');
   assert.deepEqual(beforeText(reader, listed, { employer: 'Acme', title: 'Welder' }, vocab).places, [{ city: 'Evendale', state: 'OH' }]);
   assert.deepEqual(named.posting({ title: 'Welder', location: 'Lynn', locations: ['Lynn'] }).locations, ['Lynn'], 'a site not written out is as the feed gave it');
+  // A site written out with its why is read as the place it names; the key is what the places are, the why aside.
+  const why = siteNames({ sites: { Evendale: { place: 'Evendale, OH', why: 'The board writes the village.' } } });
+  assert.deepEqual(why.posting({ title: 'Welder', location: 'Evendale', locations: ['Evendale'] }).locations, ['Evendale, OH']);
+  assert.equal(why.key, named.key);
   // A board with no sites written out reads exactly as before.
   const plain = { title: 'Welder', location: 'Evendale', locations: ['Evendale'] };
   assert.equal(siteNames({}).posting(plain), plain);
@@ -820,6 +846,10 @@ test('the committed registry writes out GE Aerospace\'s sites where we list a fa
   const ge = loadRegistry().employers.find((entry: { slug: string }) => entry.slug === 'ge-aerospace');
   assert.equal(ge.sites.Evendale, 'Evendale, OH');
   assert.equal(ge.sites.Lynn, 'Lynn, MA');
+  // Only names the board uses, each as the town it is in: the board writes no Cincinnati (the factory filed there is
+  // the Evendale plant, which places.json points Evendale, OH at).
+  assert.equal(ge.sites.Cincinnati, undefined);
+  for (const [name, place] of Object.entries(ge.sites)) assert.equal(place, `${name}, ${String(place).slice(-2)}`, name);
 });
 
 // --- A platform's budget, and a listing that is cut -------------------------------------

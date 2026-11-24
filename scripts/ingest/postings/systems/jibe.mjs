@@ -26,19 +26,22 @@ function siteOf(site) {
 }
 
 /**
- * Every site a posting is at: the first as the job's own fields say it (its location line where they name no city or
- * state), then each of `additional_locations` (a posting with `multipleLocations`), once each. Each site's own country
- * is checked: a site abroad is left out and the others are kept. A posting at no site in the United States is said as
- * its first site, whose country then says it is abroad.
+ * Every site a posting is at: the first as the job's own fields say it, then each of `additional_locations` (a
+ * posting with `multipleLocations`), once each. Where the job's fields name no city or state, the first is its
+ * location line: `full_location` only for a posting at one site (at several it names them all, the ones abroad
+ * among them, and is not the first's), else `location_name`. Each site's own country is checked: a site abroad is
+ * left out and the others are kept. A posting at no site in the United States is said as its first site, whose
+ * country then says it is abroad.
  *
  * { location, locations, address, country }: the places in order, the street of each (semicolons between), and the
  * country of the first, as the contract asks. A posting at one site reads exactly as it did before others were read.
  */
 export function sitesOf(job) {
   const first = siteOf(job);
-  first.place ??= words(job.full_location) ?? words(job.location_name);
-  const others = (Array.isArray(job.additional_locations) ? job.additional_locations : [])
-    .filter((site) => site && typeof site === 'object').map(siteOf).filter((site) => site.place);
+  const listed = (Array.isArray(job.additional_locations) ? job.additional_locations : []).filter((site) => site && typeof site === 'object');
+  const several = listed.length > 0 || job.multipleLocations === true;
+  first.place ??= (several ? null : words(job.full_location)) ?? words(job.location_name);
+  const others = listed.map(siteOf).filter((site) => site.place);
   const home = [first, ...others].filter((site) => site.place && (!site.country || isUnitedStates(site.country)));
   const shown = home.length > 0 ? home : [first];
   const places = new Map();

@@ -209,13 +209,32 @@ test('the places the work is at, from the field as each feed writes it', () => {
   assert.deepEqual(places('New York NY USA'), ['New York, NY']);
   // A part that says there are more places is not the city.
   assert.deepEqual(places('Dallas, Multiple Locations, TX'), ['Dallas, TX']);
+  // A town named for a plant or for another state is a town, in every form: the state is the one the line names.
+  for (const [line, place] of [
+    ['Plant City, FL', 'Plant City, FL'], ['Delaware, OH', 'Delaware, OH'], ['Wyoming, MI', 'Wyoming, MI'], ['Oregon, OH', 'Oregon, OH'],
+    ['Nevada, IA', 'Nevada, IA'], ['Indiana, PA', 'Indiana, PA'], ['Indiana, Pennsylvania', 'Indiana, PA'],
+    ['Wyoming, Michigan, United States of America', 'Wyoming, MI'], ['US-OH-Delaware', 'Delaware, OH'],
+    ['United States-Ohio-Delaware', 'Delaware, OH'], ['USA - Delaware, OH', 'Delaware, OH'],
+    ['Plant City FL USA', 'Plant City, FL'], ['Delaware OH USA', 'Delaware, OH'], ['Wyoming MI USA', 'Wyoming, MI'], ['Oregon OH USA', 'Oregon, OH'],
+    ['Nevada IA USA', 'Nevada, IA'], ['Indiana PA USA', 'Indiana, PA'],
+  ]) {
+    assert.deepEqual(places(line), [place], line);
+  }
+  // A site written with spaces whose town carries the employer's word for its business is read as a town of that name
+  // ("W Chester AEROSPACE", West Chester, Ohio, as GE Aerospace's board writes one site): it is a place, no factory is
+  // in a town so named, and the place waits for a person in Admin Tools.
+  assert.deepEqual(places('W Chester AEROSPACE OH US'), ['W Chester AEROSPACE, OH']);
   // No place: remote, a country alone, and abroad, even where a country's code is a state's; a town with no state; a
   // count of places; a site abroad named the same way; and a site named with spaces whose city is not one (a count of
-  // places, a building or a site, a way of working, a state's name), held as the comma form's city is.
+  // places, a building or a site, a way of working, the country, a state's name where it is the state the line names
+  // or the line names no other), held as the comma form's city is.
   for (const none of ['Remote', 'Remote (Houston, TX)', 'United States', 'Auckland, NZ', 'Toronto, CAN', 'Munich, BY', 'Laval, Canada',
     'Altona, Manitoba, CA, R0G 0B0', 'Bruchsal, BW, DE, 76646', 'GRANADERO BAIGORRIA, Santa Fe, AR, S2152FXA', 'Dublin, Dublin, Ireland',
     'Evendale', 'Lynn', '2 Locations', 'Istanbul TR 6', 'Carrara IT 2', 'Changwon 48 KR 6', 'Perth WA', 'Chennai TN',
-    'Multiple Locations TX USA', 'Plant TX USA', 'Site AL USA', 'Building TX USA', 'Virtual TX USA', 'Texas TX USA']) {
+    'Multiple Locations TX USA', 'Plant TX USA', 'Plant 3 TX USA', 'Site AL USA', 'Building TX USA', 'Virtual TX USA', 'Texas TX USA',
+    'Home Office TX USA', 'Telework TX USA', 'Onsite TX USA', 'On-site TX USA', 'Hybrid TX USA', 'Factory TX USA', 'Warehouse TX USA',
+    'Office TX USA', 'HQ TX USA', 'United States TX USA', 'Texas, TX', 'Ohio', 'Texas, US', 'Plant, TX', 'Plant 3, TX', 'Plant #2, TX',
+    'Fab 6, NY', 'Home Office, TX', 'Telework, VA', 'Onsite, TX', 'Factory, MI', 'Warehouse, OH', 'HQ, TX', 'US-AL-REMOTE', 'USA - Texas - Remote']) {
     assert.deepEqual(places(none), [], none);
   }
   // A feed that knows the country says so: abroad there is no place, whatever the field looks like.

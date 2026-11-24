@@ -15,7 +15,7 @@ import { canonical, recordHash } from '../lib/hash.mjs';
 import { diffRun } from '../lib/diff.mjs';
 import { chunks, inTransaction, note, registerSource, runRow, seconds } from '../lib/pipeline.mjs';
 import { BudgetSpent, CeilingReached, FeedError, Refusal } from './fetch.mjs';
-import { siteKey, sourceOf } from './registry.mjs';
+import { siteKey, sitePlace, sourceOf } from './registry.mjs';
 import { SYSTEMS } from './systems/index.mjs';
 import { isUnitedStates } from './systems/shared.mjs';
 import { titleLines, titleTally } from './titles.mjs';
@@ -57,13 +57,13 @@ export const locationLine = (posting) => linesOf(posting).join('; ');
 /**
  * The board's sites as its line in the registry writes them out (`sites`): a
  * location line that is one of them ("Evendale", in any letter case) is the
- * place a person wrote beside it ("Evendale, OH"); every other line is as the
- * feed gave it. `posting` names a listed posting's lines, and a posting's own
- * record's once its text is read. `key` is what the names were, or null for a
- * board that has none.
+ * place a person wrote beside it ("Evendale, OH", or the `place` of a site
+ * written with its why); every other line is as the feed gave it. `posting`
+ * names a listed posting's lines, and a posting's own record's once its text
+ * is read. `key` is what the names were, or null for a board that has none.
  */
 export function siteNames(entry) {
-  const named = new Map(Object.entries(entry?.sites ?? {}).map(([name, place]) => [siteKey(name), place]));
+  const named = new Map(Object.entries(entry?.sites ?? {}).map(([name, written]) => [siteKey(name), sitePlace(written)]));
   const line = (value) => (typeof value === 'string' && named.get(siteKey(value))) || value;
   return {
     key: named.size > 0 ? short(canonical(Object.fromEntries([...named].sort(([a], [b]) => a.localeCompare(b))))) : null,

@@ -439,6 +439,20 @@
       ]
     },
     {
+      "employer": "GE Aerospace",
+      "city": "Evendale",
+      "state": "OH",
+      "decision": "point",
+      "company": "GE Aerospace",
+      "plant": "GE Aerospace Evendale",
+      "kind": "jet engine assembly and test plant, with GE Aerospace's headquarters",
+      "why": "A plant, GE Aerospace's, running, and ours already: the board names the site by the village it stands in, Evendale, and we list the factory at 1 Neumann Way under its mailing town, Cincinnati, as its OSHA filing ('Integrated Manufacturing Evendale OH', One Neumann Way) and the research file write it, so the place needs pointing at it. Pointed, a posting at Evendale is a job there even when it also names another of GE's sites, such as Lynn, where the nearest factory would make it none.",
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://geaerospace.wd5.myworkdayjobs.com/GE_ExternalSite/job/Evendale/C-SC-Quality-Operations-Leader_R5042643-1"
+      ]
+    },
+    {
       "employer": "GlobalFoundries",
       "city": "Richardson",
       "state": "TX",
