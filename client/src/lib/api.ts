@@ -379,6 +379,8 @@ export interface CareerService {
   name: string;
   slug: string | null;
   key: ServiceKey;
+  /** The service's website, which its mark is found from as any company's is. */
+  domain?: string | null;
 }
 
 // Occupation with relations

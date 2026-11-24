@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { plural } from '@/lib/utils';
@@ -7,13 +7,12 @@ import { signInPath, useAccount } from '../../lib/account';
 import { type OccupationDetail } from '../../lib/api';
 import { isNoVersion, useVersion, type Version } from '../../lib/versions';
 import { useViewer } from '../../lib/viewer';
-import { BackLink, DetailHeader, DetailSection, EmptyState } from '../layout/Page';
-import { ShareRing } from '../path/HeldShare';
+import { BackLink, DetailHeader, EmptyState } from '../layout/Page';
 import { SkillTag, SkillTags } from '../path/SkillTag';
 import { shareOf, type PlacedSkill } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
 import { Route } from '../route/Route';
-import { type Head, OpenJobsSection } from './parts';
+import { type Head, OpenJobsSection, SkillsHeading } from './parts';
 import { CareerTag, CompanyTag, RecordTags } from '../layout/RecordTag';
 
 /** Where a company's people change its version of a career: Your jobs, with the version in the address. */
@@ -96,7 +95,8 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
     added: skill.added,
     makes: skill.makes.filter((make) => make.runs).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })),
   }));
-  const whole = marks && skills.length > 0 ? shareOf(skills, marks) : null;
+  const whole = marks && !marks.pending && skills.length > 0 ? shareOf(skills, marks) : null;
+  const headingId = useId();
   const leftOut = version.leftOut;
   const same = leftOut.length === 0 && !skills.some((skill) => skill.added);
 
@@ -123,18 +123,6 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         kind="Career"
         title={version.title}
         description={data.description}
-        action={
-          <>
-            {whole && (
-              <span className="inline-flex items-center gap-2 text-sm text-text-2" data-held-count>
-                <ShareRing share={whole} className="h-[22px] w-[22px]" />
-                <span>
-                  You have <span className="font-medium tabular-nums text-text-1">{whole.held}</span> of {whole.total} {whole.total === 1 ? 'skill' : 'skills'}
-                </span>
-              </span>
-            )}
-          </>
-        }
       >
         {/* Whose version this is, and the one tap back to the standard. */}
         <RecordTags>
@@ -143,10 +131,24 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         </RecordTags>
       </DetailHeader>
 
-      <DetailSection id="skills" title="Path">
+      <section id="skills" aria-labelledby={headingId} className="mt-12 scroll-mt-20">
         {marks && <ErrorNote error={markError} className="mb-3" />}
-        {skills.length === 0 && <p className="text-sm text-text-2">No skills on this path yet.</p>}
-        <Route skills={skills} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} keepAs={`${data.id}@${company.id}`} />
+        {skills.length === 0 && (
+          <>
+            <SkillsHeading id={headingId} held={null} />
+            <p className="mt-3 text-sm text-text-2">None yet.</p>
+          </>
+        )}
+        {/* The same skills by group as the standard's page, the company's changes applied. */}
+        <Route
+          grouped
+          skills={skills}
+          marks={marks}
+          comesFrom={data.comesFrom}
+          leadsTo={data.leadsTo}
+          keepAs={`${data.id}@${company.id}`}
+          heading={<SkillsHeading id={headingId} held={whole} />}
+        />
 
         {/* What the company leaves out of the standard is not drawn: one line says how many, and opens them. */}
         {leftOut.length > 0 && (
@@ -174,7 +176,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
             to see which of these skills you have.
           </p>
         )}
-      </DetailSection>
+      </section>
 
       {/* Open jobs for this career at this company. */}
       {(version.jobs?.length ?? 0) > 0 && <OpenJobsSection jobs={version.jobs ?? []} showCareer />}

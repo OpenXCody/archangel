@@ -24,9 +24,9 @@ interface RouteSectionProps {
 /**
  * A section of a route: a run of skills of one skill group. One line, a full
  * finger tall, that opens and closes its rows: on the trunk the section's
- * ring, then the group's name, then a figure that says something or is not
- * there ("2 of 4" part done, "4 skills" untouched, nothing when it is whole),
- * then the chevron. Closed, its rows are hidden and out of the tab order.
+ * ring, then the group's name with a figure after it that says something or
+ * is not there ("· 2 of 4" part done, "· 4" untouched, nothing when it is
+ * whole), then the chevron. Closed, its rows are hidden and out of the tab order.
  */
 export function RouteSection({ section, open, onToggle, marks, seeker, plain, first, last, children }: RouteSectionProps) {
   const id = useId();
@@ -48,20 +48,27 @@ export function RouteSection({ section, open, onToggle, marks, seeker, plain, fi
               {seeker ? <ShareRing share={share} /> : <span className="route-dot" />}
             </span>
           )}
-          <span className="route-head-name">{section.group.name}</span>
-          {!whole && (
-            <span className="shrink-0 whitespace-nowrap text-xs tabular-nums text-text-3" data-section-count>
-              {share && share.held > 0 ? (
-                <>
-                  <span className="font-medium text-text-1">{share.held}</span> of {size}
-                  <span className="sr-only"> held</span>
-                </>
-              ) : (
-                `${size} skills`
-              )}
-            </span>
-          )}
-          {whole && <span className="sr-only">All {size} held</span>}
+          {/* "Arc welding · 4": the group, and how many of the path's skills are in it ("2 of 4" once some are held). */}
+          <span className="route-head-name">
+            <span className="route-head-group">{section.group.name}</span>
+            {!whole && (
+              <span className="route-head-count" data-section-count>
+                <span aria-hidden="true">· </span>
+                {share && share.held > 0 ? (
+                  <>
+                    <span className="font-medium text-text-1">{share.held}</span> of {size}
+                    <span className="sr-only"> held</span>
+                  </>
+                ) : (
+                  <>
+                    {size}
+                    <span className="sr-only">{size === 1 ? ' skill' : ' skills'}</span>
+                  </>
+                )}
+              </span>
+            )}
+            {whole && <span className="sr-only">, all {size} held</span>}
+          </span>
           <ChevronDown aria-hidden="true" className={cn('h-4 w-4 shrink-0 text-text-3 transition-transform motion-reduce:transition-none', open && 'rotate-180')} />
         </button>
       </div>

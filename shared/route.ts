@@ -57,6 +57,33 @@ export function buildRoute<S extends RouteSkillLike>(skills: readonly S[]): Rout
   return stops;
 }
 
+/**
+ * A path by skill group, as a career's page lists it: each group once, where
+ * the route first reaches it, with its skills in the route's order under it.
+ * Every group is a section, however few skills it holds, so the path reads as
+ * one line per group; a skill no taxonomy placed (no group) is a stop of its
+ * own. The key is the group's, steady while the career's groups are.
+ */
+export function groupRoute<S extends RouteSkillLike>(skills: readonly S[]): RouteStop<S>[] {
+  const stops: RouteStop<S>[] = [];
+  const sections = new Map<string, RouteSection<S>>();
+  for (const skill of skills) {
+    if (!skill.group) {
+      stops.push({ kind: 'single', key: skill.id, skill });
+      continue;
+    }
+    const found = sections.get(skill.group.slug);
+    if (found) {
+      found.skills.push(skill);
+      continue;
+    }
+    const section: RouteSection<S> = { kind: 'section', key: skill.group.slug, group: skill.group, skills: [skill] };
+    sections.set(skill.group.slug, section);
+    stops.push(section);
+  }
+  return stops;
+}
+
 /** A route's skills again, in order. */
 export function routeSkills<S>(route: readonly RouteStop<S>[]): S[] {
   return route.flatMap((stop) => (stop.kind === 'section' ? stop.skills : [stop.skill]));
