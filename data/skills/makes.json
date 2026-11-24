@@ -2280,13 +2280,6 @@
       ]
     },
     {
-      "skill": "Time Study",
-      "makes": [
-        "MODAPTS",
-        "MTM"
-      ]
-    },
-    {
       "skill": "Tube Bending and Flaring",
       "makes": [
         "BLM"
@@ -2295,11 +2288,6 @@
     {
       "skill": "Industrial Network Troubleshooting",
       "makes": [
-        "EtherNet/IP",
-        "PROFINET",
-        "EtherCAT",
-        "Modbus",
-        "PROFIBUS",
         "Wireshark"
       ]
     },

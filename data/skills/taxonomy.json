@@ -1119,7 +1119,7 @@
             },
             {
               "name": "Log Breakdown Sawing",
-              "level": 2
+              "level": 3
             }
           ]
         },
@@ -5574,10 +5574,6 @@
             {
               "name": "Ordnance Handling",
               "level": 2
-            },
-            {
-              "name": "Process Hazard Analysis",
-              "level": 3
             }
           ]
         }

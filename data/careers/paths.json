@@ -28,17 +28,21 @@
   { "from": "Sterilization Technician", "to": "Validation Specialist", "why": "Validation proves the cycles the technician runs: the sterilization methods and GMP carry; writing and executing qualification protocols, mapping and the statistics are new." },
   { "from": "Powertrain Test Technician", "to": "Test Engineer", "why": "The test engineer designs the tests and the stands the technician runs: the test methods and the data carry; designing the test equipment and the campaign is new. (Made weak by the earlier plan's change to Test Engineer's path.)" },
   { "from": "Baker", "to": "Food Scientist", "why": "The scientist designs what the baker makes by hand: the formula, the ingredients and food safety carry, the hand skills do not." },
-  { "from": "Biomanufacturing Technician", "to": "Validation Specialist", "why": "Validation proves the cycles the technician runs: GMP, the cleaning and sterilizing cycles, filtration and the record carry; writing and executing protocols is new." },
   { "from": "Plastics Process Technician", "to": "Process Engineer", "why": "The engineer owns the process across a plant and its scale-up; the technician brings the plastics processes and the data habits." },
   { "from": "Paper Machine Operator", "to": "Process Engineer", "why": "The engineer owns the process the crew runs: the papermaking and its chemistry carry, the engineering methods are new." },
   { "from": "Sawmill Operator", "to": "Millwright", "why": "Sawmills fill their millwright apprenticeships from the mill floor; the operator brings the machines, the mechanical trade is new." },
+  { "from": "Sawmill Operator", "to": "Saw Filer", "why": "The filing room is filled from the mill floor: the operator knows how a saw runs and fails; grinding, swaging, tipping and benching are new." },
   { "from": "Truss Builder", "to": "Truss Designer", "why": "Plants promote builders into design: reading the plans and the truss drawing carry; the software and the loads are new." },
   { "from": "Sewing Machine Operator", "to": "Textile Machine Technician", "why": "The mechanic keeps the machines the sewer runs: lubrication and sewing carry, the repair trade is new." },
   { "from": "Fabric Cutter", "to": "Apparel Patternmaker", "why": "The marker and the tech pack carry; drafting, grading and fitting are new. O*NET lists cutters among patternmaker titles, so the step is real." },
   { "from": "RV Assembler", "to": "Quality Control Inspector", "why": "The RV plant's way up: an assembler who knows every station becomes its inspector; the print and the eye for a defect carry, the gauges are new." },
   { "from": "Shipfitter", "to": "CAD Designer", "why": "The shipyard's way up from the trades: fitters become the marine designers who draw the structure they built; the drawing carries, the CAD is new." },
   { "from": "Pipefitter", "to": "CAD Designer", "why": "The same for piping: the pipefitter becomes the piping designer; the drawing and the P&ID carry, the CAD is new." },
-  { "from": "Brazer", "to": "TIG Welder", "why": "Brazers move on to fusion welding: the joint preparation, the weld symbols, the print and the leak test carry; the arc is new." }
+  { "from": "Brazer", "to": "TIG Welder", "why": "Brazers move on to fusion welding: the joint preparation, the weld symbols, the print and the leak test carry; the arc is new." },
+  { "from": "Welder", "to": "Pipefitter", "why": "The welder takes on laying out and fitting the pipe they weld: the drawing, the cut, the fit-up and the pipe weld carry; supports, valves and the piping systems are new." },
+  { "from": "Casting Finisher", "to": "Welder", "why": "Foundries train their casting welders in the cleaning room: the cutting, the stick rod and the crane carry; the other processes and positions are new." },
+  { "from": "Foundry Molder", "to": "Melter", "why": "The melt deck is the next rung of the same foundry: the floor and its records carry; the furnaces, the treatment of the iron and the ladle are new." },
+  { "from": "Machine Builder", "to": "Equipment Field Service Technician", "why": "The builder goes out to install and service what the shop built: leveling, alignment, bearings and commissioning carry; the drives, the controls and troubleshooting in the field are new." }
  ],
  "careers": [
   {
@@ -341,8 +345,6 @@
    "title": "Sawmill Operator",
    "basis": "The production trade of every sawmill (3211), the core of Wood's 401,820 people. Sawyer, edger, trimmer, kiln and planer are stations of one career a person moves through, so they are other names; the filer, the grader and the millwright are the trades a sawmill fills from its own floor.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Shop Math",
     "Forklift Operation",
@@ -362,8 +364,6 @@
    "title": "Saw Filer",
    "basis": "A distinct apprenticed trade in every sawmill: British Columbia trains and certifies saw filers and benchpersons, Ontario publishes a Saw Filer-Fitter standard, and US mills post filer apprentice jobs. Few people, but plainly a trade, and the rung a sawmill operator climbs to in the filing room.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Shop Math",
     "Caliper Measurement",
@@ -382,8 +382,6 @@
    "title": "Woodworking Machine Operator",
    "basis": "O*NET's 51-7042, the main machine trade of cabinet, furniture, door and millwork plants; the metal CNC Machine Operator's path (micrometers, CNC turning) does not describe a wood plant. The machines are other names of one trade, and the WCA credentials them machine by machine.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Blueprint Reading",
     "Shop Math",
@@ -865,8 +863,6 @@
    "title": "Plastics Extrusion Operator",
    "basis": "Extrusion is the largest plastics process by people: film and bag, sheet, pipe, profile and compounding plants, plus wire and cable insulation lines in electrical equipment. Employers post it as Extrusion Operator, Extruder Operator and Blown Film Operator. O*NET keeps extrusion as an occupation of its own (51-4021), apart from molding (51-4072).",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Lot Tracking",
@@ -875,8 +871,8 @@
     "5S Workplace Organization",
     "Caliper Measurement",
     "Micrometer Measurement",
-    { "skill": "Resin Drying and Handling", "why": "Resin Drying and Handling and Plastic Extrusion are there because inline lines extrude their own sheet; Packaging Line Operation is the stacking, counting and casing at the trim press." },
-    { "skill": "Plastic Extrusion", "why": "Resin Drying and Handling and Plastic Extrusion are there because inline lines extrude their own sheet; Packaging Line Operation is the stacking, counting and casing at the trim press." },
+    "Resin Drying and Handling",
+    "Plastic Extrusion",
     "In-Process Inspection",
     "Statistical Process Control",
     "Thermoforming"
@@ -886,8 +882,6 @@
    "title": "Rubber Molding Operator",
    "basis": "Rubber products (3262: tires, hose and belting, molded and extruded goods) hire their own operators. The Banbury, mill, calender, extruder, molding press and curing press are single machines of one trade; Canada's NOC files them under one occupation, rubber processing machine operators.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Chemical Safety",
     "Work Instruction Reading",
@@ -907,7 +901,6 @@
    "title": "Plastics Process Technician",
    "basis": "The skilled rung of every plastics plant, above the injection, extrusion and blow molding operators: molders hire it as process technician or molding technician, and those names are its own. It is one trade over the processes, as CNC Machinist is over mill and lathe: a person adds injection, extrusion, blow molding and thermoforming as skills.",
    "skills": [
-    "Shop Safety Practices",
     "Lockout Tagout",
     "Blueprint Reading",
     "Shop Math",
@@ -935,8 +928,6 @@
    "title": "Blow Molding Operator",
    "basis": "Plastics bottle and container plants and industrial blow molders hire under this title, apart from injection molding. 'Bottle Blow Molder' stays folded into Beverage Production Operator, for the beverage plant that blows its own bottles.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Lot Tracking",
@@ -955,8 +946,6 @@
    "title": "Tire Builder",
    "basis": "O*NET's own occupation (51-9197 Tire Builders) and the highest-paid hands-on rung of a tire plant (Goodyear, Michelin, Bridgestone, Continental, Yokohama, Toyo, Hankook, Sumitomo). People bid into it from curing and stock preparation. Building a tire on a drum is a trade of its own with nothing like it in the catalogue: neither a machine nor a product variant of another career.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Lot Tracking",
@@ -971,8 +960,6 @@
    "title": "Converting Machine Operator",
    "basis": "Converted paper products (3222: boxes, folding cartons, bags, tissue, cups) are most of Paper's 351,677 people, and their machine operators are the industry's largest trade. Box, carton, bag and tissue plants hire 'Converting Operator', 'Die Cutter Operator' and 'Folder Gluer Operator'.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Shop Math",
@@ -993,8 +980,6 @@
    "title": "Corrugator Operator",
    "basis": "Every corrugated box plant (more than a thousand in the US) has a corrugator crew with its own line of progression, separate from converting. The trade is a continuous steam-and-starch combining line, not a cut-and-fold machine. O*NET names the title among paper goods operators, and box plants hire under it.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Shop Math",
@@ -1013,7 +998,6 @@
    "title": "Bindery Operator",
    "basis": "A separate O*NET occupation, and the post-press department of every commercial printer and book plant. The machines (cutter, folder, stitcher, binder, foil press) are other names of one trade.",
    "skills": [
-    "Shop Safety Practices",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Shop Math",
@@ -1034,7 +1018,6 @@
    "basis": "Dental laboratories are a manufacturing industry (NAICS 339116, in Miscellaneous) and the technician is a trade with its own national certification (CDT, with specialties). Ceramist, denture technician and CAD designer are its specializations and stay other names.",
    "skills": [
     "Shop Safety Practices",
-    "PPE Selection",
     "Work Instruction Reading",
     "Lot Tracking",
     "Dental Model and Die Preparation",
@@ -1054,7 +1037,6 @@
    "basis": "Sign manufacturing (NAICS 339950) is one of the largest parts of Miscellaneous Manufacturing after medical devices, and sign plants hire under this title. It is a trade of its own: no metal fabricator path covers letters, prints, vinyl or UL 48 wiring. Installing signs in the field is construction and is left out.",
    "skills": [
     "Shop Safety Practices",
-    "PPE Selection",
     "Electrical Safety",
     "Blueprint Reading",
     "Shop Math",
@@ -1115,8 +1097,6 @@
    "title": "Rolling Mill Operator",
    "basis": "O*NET has one occupation for it (51-4023). Its reported titles run from Rolling Mill Operator, Cold Mill Operator, Temper Mill Operator and Roughing Mill Operator to Tube Mill Operator, and its scope includes roll forming. Hot, cold, tube and roll-forming mills are the trade's machines, each a skill on the path, as mill and lathe are CNC Machinist's.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Lot Tracking",
@@ -1138,8 +1118,6 @@
    "title": "Casting Finisher",
    "basis": "Foundries hire into the cleaning room under this name, and it is the largest group on a foundry floor after molding. The first rung grinds and cuts. It is not Precision Grinder (machine grinding to tenths) and not the trim press of Die Casting Machine Operator.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Respiratory Protection",
     "Lockout Tagout",
     "Blueprint Reading",
@@ -1161,7 +1139,6 @@
    "basis": "Glass products made from purchased glass are the largest part of the glass industry. Its plants run one floor of stations: cut, edge, temper, laminate and IG. Each station is a skill a person adds, and the trade is the fabricator. The National Glass Association trains and certifies at the tempering station, the only station with a credential.",
    "skills": [
     "Shop Safety Practices",
-    "PPE Selection",
     "Blueprint Reading",
     "Shop Math",
     "Work Instruction Reading",
@@ -1181,8 +1158,6 @@
    "title": "Foundry Molder",
    "basis": "O*NET has one occupation for molders and coremakers (51-4071), with green sand, no-bake and core machine titles under it. The methods are skills on one path. Investment shell building is the same work for a ceramic mold and is folded in. Iron, steel and nonferrous foundries hire under these titles.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Blueprint Reading",
     "Work Instruction Reading",
@@ -1202,8 +1177,6 @@
    "title": "Melter",
    "basis": "O*NET's metal-refining furnace operators (51-4051) and its pourers and casters (51-4052, whose titles include both Melter and Pourer) work one floor in most shops. The pourer is the melt deck's first rung and the melter its skilled one. The arc, induction and ladle furnaces are the trade's machines, each a skill.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Lot Tracking",
@@ -1216,7 +1189,6 @@
     "Electric Arc Furnace Operation",
     "Ductile Iron Treatment",
     "Furnace and Ladle Refractory Maintenance",
-    "Sand Casting",
     "Positive Material Identification",
     "Ladle Metallurgy"
    ]
@@ -1225,8 +1197,6 @@
    "title": "Forge Operator",
    "basis": "O*NET has one occupation for it (51-4022). Its reported titles run from Forge Operator, Forge Press Operator, Hammer Operator and Forger to Cold Header Operator and Header Set-Up Operator: hot and cold forging are one trade on different machines. Hammersmith and setup are its levels.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Blueprint Reading",
     "Work Instruction Reading",
@@ -1250,8 +1220,6 @@
    "title": "Extrusion Press Operator",
    "basis": "It has been a registered apprenticeship of its own since 2024, and extruders hire under this title. The press crew's stations (die setter, puller, stretcher, saw) are cross-trained levels of one crew and are other names.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Lot Tracking",
@@ -1272,8 +1240,6 @@
    "title": "Caster Operator",
    "basis": "The caster is its own crew in every steel mill, between the melt shop and the rolling mill, and aluminum casthouses run direct-chill casting the same way. O*NET's pourers and casters list DC Caster. Nucor, ArcelorMittal, SSAB and CMC post the job under this title.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Lot Tracking",
@@ -1293,8 +1259,6 @@
    "title": "Glass Forming Operator",
    "basis": "Container glass plants hire into the hot end under these titles and train through a forming apprenticeship of about 4,000 hours. The forming operator is the plant's skilled trade, and its machine-repair side leads on to Maintenance Technician. It is not Blow Molding, which is plastic.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Lot Tracking",
@@ -1315,14 +1279,12 @@
    "basis": "An apprenticeable trade at every large shipyard: the Apprentice School of Newport News Shipbuilding teaches Shipfitter as its own discipline ('all structural phases of the ship's hull construction, including fabrication, assembly and alignment'). Metal Fabricator's path has pressure vessels and the press brake, not hull layout, unit fit-up or straightening.",
    "skills": [
     "Shop Safety Practices",
-    "PPE Selection",
     "Blueprint Reading",
     "Shop Math",
     "Weld Symbol Interpretation",
     "Oxy-Fuel Cutting",
     "Overhead Crane Operation",
     "Confined Space Entry",
-    "Fall Protection",
     "Rigging and Slinging",
     "Weld Joint Fit-Up",
     "Flux-Cored Welding",
@@ -1340,8 +1302,6 @@
    "title": "Pipefitter",
    "basis": "An apprenticeable trade at every shipyard (Newport News: 'install, inspect and test shipboard piping systems... steel, copper, copper-nickel and stainless steel pipe', with a separate Maintenance Pipefitter for the yard's own systems), a skilled-trades classification in vehicle plants, and a core maintenance craft in refineries, chemical plants and paper mills.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Blueprint Reading",
     "Shop Math",
@@ -1366,7 +1326,6 @@
    "basis": "HVAC, appliance and heat-exchanger plants hire 'Brazer' as a job of its own, qualified to AWS B2.2 or ASME Section IX; the catalogue has the brazing skills (Torch Brazing, Furnace Brazing) but no career whose path is them, and Welder, MIG Welder and TIG Welder are fusion welding.",
    "skills": [
     "Shop Safety Practices",
-    "PPE Selection",
     "Safety Data Sheet Reading",
     "Blueprint Reading",
     "Work Instruction Reading",
@@ -1387,8 +1346,6 @@
    "title": "Wire and Cable Operator",
    "basis": "Wire and cable plants hire one operator to draw, strand and insulate, and a steel wire mill's drawer runs the same drawing skill. The cable's insulation and jacket are Plastic Extrusion under other names, and Hi-Pot Testing stands for the in-line spark test and the reel's withstand test.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Shop Math",
@@ -1770,7 +1727,6 @@
    "title": "Printing Press Operator",
    "basis": "The largest trade in Printing (344,394 people), and also the pressroom of folding carton, label and flexible packaging plants. Offset, flexo, digital and screen are specialisations of one trade, as mill, lathe and Swiss are of CNC Machinist. The FTA certifies flexo press operators, and PRINTING United Alliance runs G7 for press color.",
    "skills": [
-    "Shop Safety Practices",
     "Lockout Tagout",
     "Chemical Safety",
     "Work Instruction Reading",
@@ -1805,10 +1761,7 @@
    "title": "Furniture Finisher",
    "basis": "A separate O*NET occupation from industrial painters (51-7021 against 51-9124), and the finishing room of every cabinet and furniture plant. It reuses the paint skills (spray gun, color matching, film checks) and adds the wood trade's own: staining, glazing and toning, flatline roll and UV coating, and touch-up.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Respiratory Protection",
-    "Safety Data Sheet Reading",
     "Finish Sanding",
     "Paint Masking",
     "Coating Thickness Measurement",
@@ -1825,8 +1778,6 @@
    "title": "Textile Machine Operator",
    "basis": "The operator of a textile mill, with the fixer above it: the first rung of a process with a skilled rung over it. Spinner, weaver, knitter and tufter are one trade on different machines, as CNC Machine Operator covers mill and lathe; each machine family is a skill a person adds.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Lot Tracking",
@@ -1849,10 +1800,7 @@
    "title": "Dyeing and Finishing Operator",
    "basis": "The wet-processing operator of a textile mill (BLS SOC 51-6061), with the colorist above it. Dyeing and finishing are run by the same department of a finishing plant and share the recipe and the shade check, so they are one career. Bare 'Finishing Operator' is left out: metal and wood finishing plants use it.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Chemical Safety",
-    "Safety Data Sheet Reading",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Lot Tracking",
@@ -2224,8 +2172,6 @@
    "title": "Truss Builder",
    "basis": "Truss manufacturing (321214) is one of the largest parts of Wood, and is strong in Texas, the first focus area. Component plants hire 'Truss Builder' and 'Truss Assembler', and their saws, jigs and plate presses are not Production Assembler's metal-assembly path.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Blueprint Reading",
     "Shop Math",
     "Work Instruction Reading",
@@ -2244,7 +2190,6 @@
    "basis": "O*NET's 51-7011 Cabinetmakers and Bench Carpenters is the largest skilled trade in Furniture (kitchen cabinets alone are about a third of 337) and in architectural millwork. It is apprenticed and credentialed (WCA). A cabinet assembler is its first level and a furniture frame builder its bench-carpentry variant, so both are other names.",
    "skills": [
     "Shop Safety Practices",
-    "PPE Selection",
     "Blueprint Reading",
     "Shop Math",
     "Hand Tool Woodworking",
@@ -2326,8 +2271,6 @@
    "title": "Fabric Cutter",
    "basis": "The cutting room is the other half of every cut-and-sew plant and has its own trade (BLS SOC 51-6062). Leather cutting (clicking) is the same trade on hides: another name and a skill on the path, not a second career. Bare 'Cutter' is not used: metal shops use it.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Work Instruction Reading",
     "Shop Math",
@@ -2363,7 +2306,6 @@
    "basis": "RV plants hire production workers by department (lamination, roofing, plumbing, electrical, cabinet set, final finish), and the skills are building-trade skills done on a line: Production Assembler's and Automotive Assembler's paths have no plumbing, propane, lamination or roofing.",
    "skills": [
     "Shop Safety Practices",
-    "PPE Selection",
     "Work Instruction Reading",
     "Blueprint Reading",
     "Shop Math",
@@ -2656,7 +2598,6 @@
    "basis": "Transformer makers are building plants across the country (Hitachi Energy, Virginia Transformer, Prolec GE, ERMCO, Howard Industries, Delta Star, Siemens Energy and others) and hire assemblers by the core, the coil, the tank and the test floor; the path is those stations.",
    "skills": [
     "Shop Safety Practices",
-    "PPE Selection",
     "Work Instruction Reading",
     "Blueprint Reading",
     "Shop Math",
@@ -2682,15 +2623,11 @@
    "title": "PCB Fabrication Technician",
    "basis": "Bare-board fabrication (NAICS 334412) is a different process from board assembly, which the catalogue covers well (SMT Line Operator, Electronics Assembler, PCB Rework Technician): chemistry, imaging, presses and drills instead of paste, placement and solder. Domestic board supply is a defence concern, and the semiconductor packaging push needs the same skills.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Chemical Safety",
-    "Safety Data Sheet Reading",
     "Work Instruction Reading",
     "Lot Tracking",
     "Cleanroom Gowning",
     "Process Recipe Execution",
-    "Hazardous Materials Handling",
     "Electroplating",
     "Wet Chemical Etching",
     "Statistical Process Control",
@@ -3637,7 +3574,6 @@
     "Root Cause Analysis",
     "Process FMEA",
     "PID Loop Tuning",
-    "Process Hazard Analysis",
     "Wet End Chemistry Control"
    ],
    "lacks": ["mass and energy balances", "scale-up"]
@@ -3646,8 +3582,6 @@
    "title": "Meat Cutter",
    "basis": "The largest single job in food manufacturing (O*NET 51-3022, meat, poultry and fish cutters and trimmers, almost all of it in meat and poultry plants). Beef, pork and poultry packers and processors hire under this title and its station names (trimmer, boner, deboner).",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     { "skill": "Lockout Tagout", "why": "Band saws, conveyors and trimmers are cleared under lockout." },
     "Knife Sharpening and Steeling",
     "Current Good Manufacturing Practice",
@@ -3663,14 +3597,11 @@
    "title": "Slaughterer",
    "basis": "This is O*NET 51-3023 (slaughterers and meat packers). Every beef, pork, lamb and poultry slaughter plant hires for the harvest floor, a department apart from fabrication with its own regulated work: humane handling under the Humane Methods of Slaughter Act, dressing held to USDA's zero tolerance, and the antimicrobial step.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Knife Sharpening and Steeling",
     "Current Good Manufacturing Practice",
     { "skill": "HACCP Food Safety", "why": "The zero-tolerance trim and the final wash are control points at the slaughterer's own station." },
     "Sanitation Procedures",
-    { "skill": "Chemical Safety", "why": "Lactic and peracetic acid are handled at the cabinets on the same line." },
     "Humane Handling and Stunning",
     "Carcass Dressing",
     "Carcass Antimicrobial Intervention"
@@ -3680,7 +3611,6 @@
    "title": "Baker",
    "basis": "O*NET 51-3011 (bakers). Commercial and retail bakeries (NAICS 3118) are manufacturing and hire Baker, Production Baker, Mixer and Oven Operator. The trade is developing dough, fermenting it, making it up and baking it; AIB International trains industrial bakers.",
    "skills": [
-    "Shop Safety Practices",
     "Lockout Tagout",
     { "skill": "Shop Math", "why": "Baker's percentages and the water temperature that brings a dough off at its target." },
     "Current Good Manufacturing Practice",
@@ -3701,15 +3631,11 @@
    "title": "Sanitation Technician",
    "basis": "Every food plant has a sanitation department, usually a full night shift, and FDA and USDA rules make its work a written, verified program: sanitation SOPs, allergen cleans and the environmental pathogen program. It is taking apart and sanitizing food-contact machinery under lockout, and plants post it as Sanitation Technician or Sanitation Worker.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
-    "Safety Data Sheet Reading",
     "Chemical Safety",
     "Current Good Manufacturing Practice",
     { "skill": "HACCP Food Safety", "why": "Sanitation is the prerequisite program the plan stands on." },
     "Sanitation Procedures",
-    { "skill": "Confined Space Entry", "why": "Tanks, silos and spiral freezers are entered to clean them." },
     "Allergen Changeover Cleaning",
     "Clean-in-Place Operation",
     { "skill": "Environmental Monitoring", "why": "A Listeria-positive swab is answered by the crew finding and breaking the harborage." },
@@ -3743,7 +3669,6 @@
    "title": "Brewer",
    "basis": "Breweries (NAICS 312120) hire Brewer, Cellar Operator and Head Brewer, and the trade is examined by the Chartered Institute of Brewers and Distillers' General Certificate in Brewing, which runs from raw materials to packaged beer. Beverage Production Operator is the bottling and canning line; this is the brewing.",
    "skills": [
-    "PPE Selection",
     "Chemical Safety",
     "Current Good Manufacturing Practice",
     "Sanitation Procedures",
@@ -3763,7 +3688,6 @@
    "title": "Winemaker",
    "basis": "Wineries (NAICS 312130) are manufacturing. They hire a cellar crew (Cellar Worker, Cellar Technician I to III, Cellar Master) under a winemaker, and the cellar technician is the first rung of the same trade, so the cellar titles are other names. The work is the crush, fermentation, barrel, filtration and blending.",
    "skills": [
-    "PPE Selection",
     "Chemical Safety",
     { "skill": "Forklift Operation", "why": "Bins and barrels are named in most cellar postings." },
     "Current Good Manufacturing Practice",
@@ -3784,7 +3708,6 @@
    "title": "Grain Miller",
    "basis": "Flour, rice and dry corn mills (NAICS 3112) and feed mills (3111) hire Miller, Shift Miller and Feed Mill Operator. The operative miller is a trade with its own schooling (IAOM's courses with Kansas State University, and IAOM's online milling technician certificate with Cowley College) and its own OSHA standard (1910.272, grain handling).",
    "skills": [
-    "Shop Safety Practices",
     "Lockout Tagout",
     "Current Good Manufacturing Practice",
     { "skill": "HACCP Food Safety", "why": "Mills are under FDA's preventive controls rules for human and animal food." },
@@ -3840,7 +3763,6 @@
    "title": "Cheesemaker",
    "basis": "A licensed trade. Wisconsin, the largest cheese state, requires a cheesemaker license to make cheese in a licensed plant: 18 months as a cheesemaker assistant under a licensed cheesemaker, approved courses and a state exam. Cheese plants (NAICS 311513) hire Cheesemaker and Cheesemaker Assistant.",
    "skills": [
-    "PPE Selection",
     "Lockout Tagout",
     "Current Good Manufacturing Practice",
     "HACCP Food Safety",
@@ -3858,8 +3780,6 @@
    "title": "Distiller",
    "basis": "Distilleries (NAICS 312140), from Kentucky bourbon houses to craft distillers in every state, hire Distiller and Still Operator. The trade is examined by the Chartered Institute of Brewers and Distillers' General Certificate in Distilling and taught in university certificates in Kentucky.",
    "skills": [
-    "PPE Selection",
-    "Chemical Safety",
     { "skill": "Forklift Operation", "why": "Barrels are moved by forklift." },
     "Current Good Manufacturing Practice",
     "Sanitation Procedures",
@@ -3900,7 +3820,6 @@
    "title": "Biomanufacturing Technician",
    "basis": "Biologics are a large and growing share of pharmaceutical manufacturing (3254). Their production floor runs bioreactors, harvest, chromatography and ultrafiltration. Pharmaceutical Manufacturing Operator makes tablets and Aseptic Filling Technician fills vials; neither grows or purifies a product.",
    "skills": [
-    "PPE Selection",
     "Work Instruction Reading",
     "Lot Tracking",
     "Manufacturing Execution System Use",
@@ -3925,13 +3844,10 @@
    "title": "Refinery Operator",
    "basis": "O*NET keeps refinery operators as their own occupation (51-8093), apart from chemical plant operators (51-8091, 51-9011), and petroleum and coal products (324, the highest average pay in manufacturing) hire them as their own operators. The work is continuous, high-temperature and under hydrogen: fired heaters, process gas compressors and catalytic units.",
    "skills": [
-    "PPE Selection",
     { "skill": "Respiratory Protection", "why": "Respiratory Protection is for H2S (supplied air and escape respirators); Bulk Chemical Transfer is the tank farm and loading racks; Boiler Operation is because units make and use their own steam." },
     "Lockout Tagout",
-    "Chemical Safety",
     "P&ID Reading",
     "Bulk Chemical Transfer",
-    "Hazardous Materials Handling",
     "Boiler Operation",
     "Distillation Column Operation",
     "Fired Heater Operation",
@@ -3969,10 +3885,7 @@
    "title": "Paper Machine Operator",
    "basis": "The trade of every paper, board and tissue mill. The crew positions (fifth, fourth and third hand, back tender, machine tender) are levels of one career on one line of progression, so they are other names.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
-    "Chemical Safety",
     "P&ID Reading",
     "Overhead Crane Operation",
     "Stock Preparation",
@@ -3991,15 +3904,10 @@
    "title": "Pulp Mill Operator",
    "basis": "About a hundred US kraft mills run pulp and recovery operators on their own lines of progression. The trade is a chemical process one (O*NET counts them among chemical equipment operators), and Chemical Operator's path describes none of it. Digester, bleach plant, evaporator, causticizing, lime kiln and recovery boiler are positions of one career.",
    "skills": [
-    "PPE Selection",
-    "Respiratory Protection",
     "Lockout Tagout",
-    "Safety Data Sheet Reading",
-    "Chemical Safety",
     "P&ID Reading",
     "Bulk Chemical Transfer",
     "Confined Space Entry",
-    "Hazardous Materials Handling",
     "Kraft Pulping",
     "Pulp Washing and Screening",
     "Pulp Bleaching",
@@ -4015,11 +3923,8 @@
    "title": "Engineered Wood Operator",
    "basis": "Panel and engineered wood mills (3212 and 321219) employ tens of thousands of operators on a drying, resin and press process. OSB mills post generic titles, and plywood mills post the stations ('Lathe Operator', 'Dryer Grader', 'Press Operator' at layup). So the career is named for the work, with the stations as other names.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Respiratory Protection",
-    "Chemical Safety",
     "Work Instruction Reading",
     "Wood Moisture Content Measurement",
     "Veneer Peeling",
@@ -4038,9 +3943,6 @@
    "title": "Mineral Kiln Operator",
    "basis": "O*NET lists Kiln Operator among its furnace, kiln and oven titles (51-9051). Cement and lime plants run the kiln and the mills from one control room and promote mill operators to the kiln, so the mill titles are earlier rungs and other names. Brick and ceramics kilns are the same trade at a smaller scale.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
-    "Respiratory Protection",
     "Lockout Tagout",
     "P&ID Reading",
     "Work Instruction Reading",
@@ -4245,8 +4147,6 @@
    "title": "Lumber Grader",
    "basis": "A certified trade: softwood graders are certified and checked by agencies the American Lumber Standard Committee accredits (WWPA issues Grading Certificates; SPIB marks lumber graded by 'a qualified mill grader'), and hardwood inspectors train at the NHLA's Inspector Training School.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Shop Math",
     "Caliper Measurement",
     "Inspection Record Keeping",
@@ -4722,8 +4622,7 @@
     { "skill": "Building Automation System Operation", "why": "Named in 4 of 8 facilities engineer postings." },
     "Root Cause Analysis",
     "Condition-Based Maintenance",
-    "Equipment Reliability Metrics",
-    "Process Hazard Analysis"
+    "Equipment Reliability Metrics"
    ]
   },
   {
@@ -4781,12 +4680,10 @@
    "basis": "Meat, poultry, dairy, frozen food and beverage plants run large ammonia systems and hire for them apart from general maintenance, as Refrigeration Technician or Refrigeration Operator. RETA certifies the trade at three levels (CARO, CIRO, CRST). The catalogue's Refrigeration System Repair is the halocarbon trade under EPA 608; ammonia is outside 608 and under OSHA's process safety management standard.",
    "skills": [
     "Lockout Tagout",
-    { "skill": "Respiratory Protection", "why": "Ammonia line breaks and release response need them." },
-    "Chemical Safety",
     "CMMS Use",
     "P&ID Reading",
     "Electrical Schematic Reading",
-    { "skill": "Hazardous Materials Handling", "why": "Ammonia line breaks and release response need them." },
+    { "skill": "Hazardous Materials Handling", "why": "Ammonia: breaking into a line and answering a release." },
     "Preventive Maintenance",
     "Pump Maintenance",
     "Valve Maintenance and Repair",
@@ -4796,15 +4693,13 @@
     { "skill": "Boiler Operation", "why": "The same utilities crew runs them." },
     { "skill": "Water Treatment System Operation", "why": "The same utilities crew runs them." },
     "Motor Control Troubleshooting",
-    { "skill": "Shaft Alignment", "why": "Compressor couplings." },
-    { "skill": "Process Hazard Analysis", "why": "PSM applies over 10,000 pounds of ammonia." }
+    { "skill": "Shaft Alignment", "why": "Compressor couplings." }
    ]
   },
   {
    "title": "Textile Machine Technician",
    "basis": "The fixer is the skilled trade of a textile mill and the mechanic of a sewing floor: hired by these titles, paid above the operator, and trained on the machine family, as the die maintenance technician is on dies.",
    "skills": [
-    "Shop Safety Practices",
     "Lockout Tagout",
     "Electrical Safety",
     "CMMS Use",
@@ -4833,7 +4728,6 @@
    "title": "Equipment Field Service Technician",
    "basis": "Machinery, electrical and electronic equipment makers hire field service technicians apart from their customers' maintenance staff: the work is the builder's own machines, at many plants, and installation and start-up are its core. Postings ask for commissioning and start-up experience over plant maintenance, and for travel.",
    "skills": [
-    "Shop Safety Practices",
     "Lockout Tagout",
     "Electrical Safety",
     "Blueprint Reading",
@@ -4849,7 +4743,6 @@
     "Motor Control Troubleshooting",
     "Variable Frequency Drive Setup",
     "Servo Drive Configuration",
-    "Ballbar Testing",
     "PLC Troubleshooting",
     "Hydraulic System Troubleshooting",
     "Industrial Network Troubleshooting",
@@ -4862,8 +4755,6 @@
    "title": "Railcar Mechanic",
    "basis": "O*NET lists Rail Car Repairers (49-3043), and NAICS 336510 counts the rebuilding of railcars and locomotives as manufacturing, so the carman of a railcar builder's or lessor's shop (TrinityRail, Greenbrier, Union Tank Car, GATX and others) is a manufacturing career; welders and fitters at the same plants are Welder and Metal Fabricator.",
    "skills": [
-    "Shop Safety Practices",
-    "PPE Selection",
     "Lockout Tagout",
     "Blueprint Reading",
     "Oxy-Fuel Cutting",
@@ -4872,7 +4763,6 @@
     "Torque Wrench Use",
     "Rigging and Slinging",
     "Confined Space Entry",
-    "Hazardous Materials Handling",
     "MIG Welding",
     "Flux-Cored Welding",
     "Carbon Arc Gouging",

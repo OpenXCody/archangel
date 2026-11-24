@@ -6538,7 +6538,12 @@
         "Industrial Networks",
         "Industrial Communication Protocols",
         "Industrial Ethernet",
-        "Fieldbus Networks"
+        "Fieldbus Networks",
+        "EtherNet/IP",
+        "PROFINET",
+        "EtherCAT",
+        "Modbus",
+        "PROFIBUS"
       ],
       "what": "Finding faults on the networks that tie controllers, drives and I/O together. A person who has it checks addresses, switches, cables and connectors and reads device and switch diagnostics.",
       "learned": "Automation programs; on the job.",
@@ -8248,6 +8253,10 @@
     {
       "name": "Time Study",
       "category": "Quality & Measurement",
+      "aliases": [
+        "MTM",
+        "MODAPTS"
+      ],
       "what": "Measuring how long a job takes: breaking it into elements, timing them over many cycles and applying allowances to set a standard time. A person who has it gets a figure both operators and planners accept.",
       "learned": "Industrial engineering study; on the job.",
       "tools": [
@@ -10774,7 +10783,6 @@
       "name": "Failure Analysis of Materials",
       "category": "Finishing & Heat Treatment",
       "aliases": [
-        "Failure Analysis",
         "Fractography",
         "Metallurgical Failure Analysis"
       ],
@@ -11791,7 +11799,7 @@
         "Mirror Finishing"
       ],
       "what": "Bringing a metal surface to a specified finish, from satin to mirror, with abrasive belts, wheels, buffs and compounds: choosing the sequence of grits, holding the part so edges and features stay sharp, and checking finish and size. A person who has it polishes implants, instruments, jewelry or hardware to the finish called for without overheating, rounding or rippling the surface.",
-      "learned": "On the job; implant and jewelry makers train polishers for months. O*NET 51-9022 and 51-4033 are the polishing occupations.",
+      "learned": "On the job; implant and jewelry makers train polishers for months.",
       "tools": [
         "Polishing lathes and buffing wheels",
         "Belt grinders and abrasive belts",
@@ -15732,7 +15740,7 @@
         "Shore Power Wiring"
       ],
       "what": "Wiring 120- and 240-volt AC circuits: the panelboard, branch circuits to receptacles, lights and appliances, ground-fault and arc-fault protection, and the shore power or utility inlet. A person who has it wires to the electrical code, keeps polarity and grounding right and proves each circuit before it is energized.",
-      "learned": "Electrical apprenticeships and programs; on the job at RV, boat and modular building plants, which wire to the RV and marine articles of the National Electrical Code and the ABYC standards.",
+      "learned": "Electrical apprenticeships and programs; on the job at RV, boat and modular building plants, which wire to the National Electrical Code (RVs to its Article 551) and boats to ABYC E-11.",
       "tools": [
         "Panelboards and breakers",
         "Nonmetallic cable and boxes",
@@ -15918,26 +15926,6 @@
         "Phase checklists and timing plans",
         "FMEAs and control plans",
         "Part approval packages"
-      ]
-    },
-    {
-      "name": "Process Hazard Analysis",
-      "category": "Safety",
-      "aliases": [
-        "PHA",
-        "HAZOP",
-        "What-If Analysis",
-        "Process Safety Management",
-        "PSM"
-      ],
-      "what": "Finding what can go wrong in a process that holds a highly hazardous chemical, such as ammonia or a flammable liquid, before it does. A team works through the P&IDs node by node (HAZOP, what-if, checklist), rates each consequence and its safeguards, and follows the recommendations to closure. OSHA's process safety management standard requires the study every five years and at each change. A person who has it can lead the study or take a full part in it, and keeps the process safety information it rests on current.",
-      "learned": "Process hazard analysis leader courses from process safety training providers; on the job at a chemical or refrigerated food plant; engineering study.",
-      "tools": [
-        "P&IDs and process safety information",
-        "HAZOP and what-if worksheets",
-        "Risk matrices",
-        "Recommendation tracking",
-        "Management of change records"
       ]
     }
   ],
