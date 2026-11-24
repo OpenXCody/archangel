@@ -25,15 +25,25 @@
 # apart, spent on the boards whose complete listing is oldest; the rest are
 # taken up the next day (scripts/ingest/README.md, "A platform's budget").
 #
+# Workday's boards alone are read three more times a day (03:23, 15:23 and
+# 21:23 UTC), each with the same budget, six hours apart: with the boards the
+# registry names, one run a day took weeks to list them all once, and a board
+# the budget never reached had no run at all. A day is then at most 1,200
+# requests to that platform, never more than 300 in an hour. The other boards
+# are read once a day, in the 09:23 run.
+#
 # By hand: mode "rehearse" reads every board, does everything inside
 # transactions that are rolled back, and reports what it would do; "undo"
 # takes one run back, by its number in the report; "only" names employers by
-# their slug in the registry, with commas between.
+# their slug in the registry, with commas between; "system" names hiring
+# systems the same way (workday), and only their boards are read.
 name: Postings
 on:
   schedule:
     # 09:23 UTC: before the working day in every US time zone.
     - cron: '23 9 * * *'
+    # Workday's boards alone, between the daily runs (see above).
+    - cron: '23 3,15,21 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -47,6 +57,10 @@ on:
           - undo
       only:
         description: 'Employers to read, by slug, with commas between (all of them when empty)'
+        required: false
+        type: string
+      system:
+        description: 'Hiring systems to read, with commas between (all of them when empty)'
         required: false
         type: string
       run:
@@ -71,6 +85,8 @@ jobs:
       DATABASE_URL: ${{ secrets.INGEST_DATABASE_URL }}
       MODE: ${{ inputs.mode || 'apply' }}
       ONLY: ${{ inputs.only }}
+      # The runs between the daily ones read Workday's boards and nothing else.
+      SYSTEM: ${{ inputs.system || (github.event.schedule == '23 3,15,21 * * *' && 'workday') || '' }}
       RUN_NUMBER: ${{ inputs.run }}
     steps:
       - name: The database is named
@@ -98,10 +114,10 @@ jobs:
         run: node scripts/ingest/run.mjs postings --check
       - name: Read every employer's board and bring the jobs in line
         if: steps.database.outputs.ready == 'true' && env.MODE == 'apply'
-        run: node scripts/ingest/run.mjs postings ${ONLY:+--only "$ONLY"} --yes-this-database "$DATABASE_HOST" --report postings-report.txt
+        run: node scripts/ingest/run.mjs postings ${ONLY:+--only "$ONLY"} ${SYSTEM:+--system "$SYSTEM"} --yes-this-database "$DATABASE_HOST" --report postings-report.txt
       - name: Rehearse
         if: steps.database.outputs.ready == 'true' && env.MODE == 'rehearse'
-        run: node scripts/ingest/run.mjs postings --rehearse ${ONLY:+--only "$ONLY"} --yes-this-database "$DATABASE_HOST" --report postings-report.txt
+        run: node scripts/ingest/run.mjs postings --rehearse ${ONLY:+--only "$ONLY"} ${SYSTEM:+--system "$SYSTEM"} --yes-this-database "$DATABASE_HOST" --report postings-report.txt
       - name: Undo
         if: steps.database.outputs.ready == 'true' && env.MODE == 'undo'
         run: node scripts/ingest/run.mjs undo "$RUN_NUMBER" --yes-this-database "$DATABASE_HOST" --report postings-report.txt

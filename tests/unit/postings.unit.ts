@@ -25,7 +25,7 @@ import { dayOf } from '../../scripts/ingest/postings/systems/successfactors-site
 // @ts-expect-error a plain script, no types
 import { listAll, unescapeHtml, webAddress } from '../../scripts/ingest/postings/systems/shared.mjs';
 // @ts-expect-error a plain script, no types
-import { beforeText, collect } from '../../scripts/ingest/postings/jobs.mjs';
+import { beforeText, collect, inTurn } from '../../scripts/ingest/postings/jobs.mjs';
 // @ts-expect-error a plain script, no types
 import * as reader from '../../scripts/ingest/postings/read/index.mjs';
 // @ts-expect-error a plain script, no types
@@ -590,6 +590,25 @@ function longBoard(tenant: string, count: number, without: number[] = []) {
   }
   put(`workday/${tenant}/list.json`, JSON.stringify({ jobPostings, facets: [] }));
 }
+
+test('the budget is spent where it is most needed: a cut listing, then a board a week past its last whole listing, then one never read', async () => {
+  const day = 86_400_000;
+  const now = Date.parse('2026-11-24T09:23:00Z');
+  const history: Record<string, { cut?: boolean; whole?: number }> = {
+    'postings-fresh': { whole: now - 2 * day },
+    'postings-never': {},
+    'postings-stale': { whole: now - 9 * day },
+    'postings-cut': { cut: true, whole: now - 3 * day },
+  };
+  const db = async (strings: TemplateStringsArray, slug: string) => {
+    const known = history[slug] ?? {};
+    if (strings.join('').includes('max(started_at)')) return [{ at: known.whole ? new Date(known.whole) : null }];
+    return known.cut ? [{ counts: { read: 40, resume: { next: { offset: 40 } } } }] : [];
+  };
+  const entry = (slug: string, system: string) => ({ slug, employer: slug, company: slug, system, board: slug });
+  const order = await inTurn(db, [entry('fresh', 'workday'), entry('one', 'greenhouse'), entry('never', 'workday'), entry('stale', 'workday'), entry('cut', 'workday')], { now });
+  assert.deepEqual(order.map((line: { slug: string }) => line.slug), ['one', 'cut', 'stale', 'never', 'fresh'], 'a board with no budget first; jobs already on the lists are kept before new boards are read in');
+});
 
 test('a listing cut by the budget has read everything up to the cut, and the next run takes it up there', async () => {
   longBoard('cut', 85);

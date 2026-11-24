@@ -122,7 +122,7 @@ const runNumber = (text) => {
 const USAGE = `Usage: node scripts/ingest/run.mjs <command>
   list | fetch <source> [--to dir] | rehearse <source> <file> | stage <source> <file> | resolve <run> [--again]
   apply <run> [--all] | load <source> <file> | report <run> [--all] | undo <run> | forget <source>
-  postings [--only a,b] [--rehearse] [--again] [--check]     (a posting source, postings-<slug>, takes no file)
+  postings [--only a,b] [--system workday] [--rehearse] [--again] [--check]     (a posting source, postings-<slug>, takes no file)
 Options: --yes-this-database <host>  --report <file>  --adapter <file.mjs>  --registry <file.json>  --budget <requests>  --feeds <local server>`;
 
 async function main() {
@@ -203,8 +203,13 @@ async function main() {
       const jobs = await import('./postings/jobs.mjs');
       const one = command !== 'postings';
       const only = one ? null : options.only ? new Set(String(options.only).split(',').map((slug) => slug.trim()).filter(Boolean)) : null;
-      const named = one ? [tools.entry(args[0])] : tools.employers.employers.filter((entry) => !only || only.has(entry.slug));
-      if (only) for (const slug of only) if (!named.some((entry) => entry.slug === slug)) throw new Error(`There is no employer "${slug}" in the registry.`);
+      // --system names hiring systems, with commas between: only their boards are read (a run between the daily ones
+      // that spends a platform's budget and asks nothing of the others).
+      const systems = one || !options.system ? null : new Set(String(options.system).split(',').map((name) => name.trim()).filter(Boolean));
+      if (systems) for (const name of systems) if (!Object.hasOwn(tools.systems, name)) throw new Error(`There is no hiring system "${name}" (there are: ${Object.keys(tools.systems).sort().join(', ')}).`);
+      const named = one ? [tools.entry(args[0])] : tools.employers.employers.filter((entry) => (!only || only.has(entry.slug)) && (!systems || systems.has(entry.system)));
+      if (only) for (const slug of only) if (!tools.employers.employers.some((entry) => entry.slug === slug)) throw new Error(`There is no employer "${slug}" in the registry.`);
+      if (named.length === 0) throw new Error('No employer in the registry is on a board that was asked for.');
       // The boards of a platform with a budget come last, the one whose complete listing is oldest first.
       const entries = await jobs.inTurn(sql, named);
       const rehearse = command === 'rehearse' || Boolean(options.rehearse);
@@ -216,6 +221,9 @@ async function main() {
           : `  will read ${entries.length === 1 ? `${entries[0].employer}'s board` : `${entries.length} employers' boards`} and bring the jobs in line: jobs change. \`undo <run>\` takes a run back`);
       say(`  asked as "${tools.userAgent}"${tools.standIn ? `, of the stand-in at ${options.feeds}` : ''}; robots files are read first and obeyed; a refusal ends that employer for this run`);
       for (const [platform, budget] of Object.entries(tools.fetcher.budgets)) say(`  ${platform}: at most ${budget} requests in this run, across all of its boards`);
+      // Every employer that is to be read is a source from now on, whether or not this run reaches its board: one the
+      // platform's budget does not reach has no run yet, and Admin Tools lists it as waiting for its first.
+      if (!rehearse) for (const entry of entries) await pipeline.registerSource(sql, tools.registry.sourceOf(entry));
       const started = Date.now();
       const lines = [];
       const texts = [];

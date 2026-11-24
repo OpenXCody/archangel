@@ -295,7 +295,9 @@ list has no text, `text(board, posting)`:
 |--------|------------|--------------------|
 | `greenhouse`, `lever`, `ashby` | its token | 1: the whole board with text |
 | `successfactors` | the address of its feed | 1: every posting with text (John Deere) |
+| `successfactors-site` (SAP SuccessFactors career sites) | the career site's host | 1 per page of the site's own search (10 to 100 postings), then 1 per posting that could be ours and is new or changed |
 | `jibe` (iCIMS career sites) | the career site's host | 1 per 100 postings, text included |
+| `icims` (iCIMS career portals, `<name>.icims.com`) | the portal's host | 1 per page of the portal's own search (20 to 50 postings), then 1 per posting that could be ours and is new or changed |
 | `oracle` | `<host>/<site number>` | 1 per 100 postings, then 1 per posting that could be ours and is new or changed |
 | `workday` | its address under `/wday/cxs` | 1 per 20 postings (narrowed to the United States where the board offers that filter), then 1 per posting that could be ours and is new or changed |
 
@@ -307,6 +309,18 @@ reading is 30 days old (60 for Workday: `rereadDays`); `--again` reads every
 one again (after the reader changed). An adapter decides nothing: a field the
 feed states on its own (Lever's and Ashby's pay, a shift, full-time) is
 passed as a hint and used where the text says nothing.
+
+Two adapters read web pages, where the system publishes no feed a robot may
+read: `successfactors-site` (the listing is `/search/?startrow=<n>`, as a
+table or as tiles, and a posting's text is its page; the feed under
+`/services/` is disallowed by these sites' robots files and is never asked
+for, and no keyword is sent, which some of them disallow too) and `icims`
+(the listing is `/jobs/search?pr=<page>`, a place is written `US-CT-Groton`,
+and a posting's text is the schema.org data on its page). They ask the
+fetcher for pages (`accept: 'html'`), so a challenge page in place of the
+listing is a refusal and not a changed shape. Both take 60 texts a board a
+run, as Oracle does. A site whose robots file disallows its search (Lam
+Research's) or that answers 403 (Gulfstream's) is left out like any other.
 
 ### The fetcher's manners
 
@@ -330,9 +344,16 @@ requests (`budget` in `systems/workday.mjs`; `--budget <n>` for another
 number), four seconds apart, twenty minutes. The boards without a budget are
 read first, in the registry's order. Then the budget is spent where it is
 most needed (`inTurn` in `jobs.mjs`): a listing an earlier run left cut first,
-then a board never listed to its end, then the board whose last complete
-listing is oldest; the registry's order settles a tie. A board the budget did
-not reach has no run that day and is said in the summary. Listing all twelve
+then a board whose last complete listing is a week old or more (its jobs
+expire a week after that, and must not leave the lists while new boards are
+read in), then a board never listed to its end, then the board whose last
+complete listing is oldest; the registry's order settles a tie. A board the
+budget did not reach has no run that day and is said in the summary; it is a
+source all the same (every line of the registry is registered when a run
+starts), so Admin Tools lists it as not run yet. The workflow reads Workday's
+boards alone three more times a day (`postings --system workday`), each run
+with the same budget: 1,200 requests a day at most, never more than 300 in an
+hour. Listing all twelve
 Workday boards is about 930 requests, so in the steady state each is listed
 in full every three to four days; while they are first read in, the texts
 (about one posting in five could be ours) take most of the budget, and the
@@ -434,6 +455,7 @@ node scripts/ingest/run.mjs fetch postings-spacex             # read one board a
 node scripts/ingest/run.mjs rehearse postings-spacex          # everything, rolled back
 node scripts/ingest/run.mjs postings --rehearse               # every employer, rolled back
 node scripts/ingest/run.mjs postings [--only spacex,boeing]   # every employer, one run each
+node scripts/ingest/run.mjs postings --system workday         # only the boards on the systems named
 node scripts/ingest/run.mjs report 31 --all
 node scripts/ingest/run.mjs undo 31
 ```
@@ -454,7 +476,8 @@ are first read in, a minute and a half the two Jibe sites, and the rest
 seconds.
 
 **On production** the workflow `.github/workflows/postings.yml` runs every
-employer daily (09:23 UTC) and by hand, against `INGEST_DATABASE_URL`, and
+employer daily (09:23 UTC), Workday's boards alone three more times a day
+(03:23, 15:23, 21:23 UTC), and by hand, against `INGEST_DATABASE_URL`, and
 keeps the report as an artifact. Without the secret it says so and ends
 green. A refusal or a site that does not answer is recorded and is not a red
 run; a changed feed is. Admin Tools, Activity shows each employer's latest run
@@ -466,7 +489,8 @@ job there at once, or leave it.
 `tests/unit/postings.unit.ts` checks the registry, the fetcher against a
 local server that plays each refusal, a platform's budget, a listing cut and
 taken up again, and every adapter against a reduced copy of what its system
-answered (`tests/fixtures/postings/`); `tests/api/postings.sh` runs made-up
+answered (`tests/fixtures/postings/`; the two that read web pages against
+made-up postings in the pages' shape); `tests/api/postings.sh` runs made-up
 boards, written as an employer writes a posting, through all of it with the
 reader that ships.
 
