@@ -112,7 +112,9 @@ test('the SQL is a load, or a rehearsal that says so', () => {
   const { file } = normaliseFile({ brief: 'texas-test', companies: [company()] }, STATES);
   const load = buildSql({ files: [file], states: STATES, loaderSql: '-- functions', sources: ['data/employers/texas-test.json'] });
   assert.match(load, /^-- Employers and plants from data\/employers\/texas-test\.json/);
-  assert.match(load, /SELECT pg_temp\.el_load\(\$el_data\$\{.*\}\$el_data\$::jsonb\);\n$/s);
+  assert.match(load, /SELECT pg_temp\.el_load\(\$el_data\$\{.*\}\$el_data\$::jsonb\);\nDROP TRIGGER el_merge_guard ON companies;\n$/s);
+  // A company merged away that carries what the loader's merge does not move stops the load (a version of a career).
+  assert.match(load, /CREATE TRIGGER el_merge_guard BEFORE DELETE ON companies FOR EACH ROW EXECUTE FUNCTION pg_temp\.el_merge_guard\(\);/);
   assert.ok(!load.includes('BEGIN;'), 'the migration runner opens the transaction');
   const rehearsal = buildSql({ files: [file], states: STATES, loaderSql: '-- functions', rehearse: true, schemaSql: 'SELECT 1;' });
   assert.match(rehearsal, /A REHEARSAL/);
