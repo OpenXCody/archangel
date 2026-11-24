@@ -105,9 +105,6 @@ export function OpenJobsSection({ jobs, showCareer = false, total, all }: { jobs
   );
 }
 
-/** A skill with no level: only in a database no taxonomy was loaded into. */
-export const UNPLACED = 'Not yet placed';
-
 /** How many industries are listed before "Show all". */
 const INDUSTRIES_SHOWN = 4;
 

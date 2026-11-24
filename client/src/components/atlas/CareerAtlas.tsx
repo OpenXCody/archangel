@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { ArrowLeft } from 'lucide-react';
 import { cn, focusRing, plural } from '@/lib/utils';
 import { LoadError } from '../account/parts';
-import type { PlacedSkill, SkillMarks, SkillPath } from '../path/model';
+import { buildRoute } from '@shared/route';
+import type { PlacedSkill, SkillMarks } from '../path/model';
 import { SkillTag, SkillTags } from '../path/SkillTag';
 import AtlasDrawing, { type AtlasMarks, type AtlasOverlay, type AtlasTarget } from './AtlasDrawing';
 import PlateSkeleton from './PlateSkeleton';
@@ -30,16 +31,15 @@ import { pathViewSearch } from './pathView';
  */
 
 interface CareerAtlasProps {
+  /** The career, with its skills in the route's order. */
   career: { id: string; title: string; skills: readonly PlacedSkill[] };
-  /** The same path the flow draws: levels, then groups, then skills. */
-  path: SkillPath;
   /** A seeker's marks; null for a visitor and for someone here to hire. */
   marks: SkillMarks | null;
 }
 
 const EYEBROW = 'text-[11px] font-medium uppercase tracking-[0.08em] text-text-2';
 
-export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
+export default function CareerAtlas({ career, marks }: CareerAtlasProps) {
   const { layout, taxonomy } = useAtlasLayout();
   const [params] = useSearchParams();
   const { search } = useLocation();
@@ -117,9 +117,16 @@ export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
     return <LoadError error={taxonomy.error} onRetry={() => void taxonomy.refetch()} retrying={taxonomy.isFetching} />;
   }
 
-  const levels = path.levels
-    .map((level) => ({ ...level, groups: domain ? level.groups.filter((group) => group.domain?.slug === domain.slug) : level.groups }))
-    .filter((level) => level.groups.length > 0);
+  // The tags follow the route: its stops in order, a section under its group's line, the single skills
+  // between two sections as one run of tags, each with its group under its name. No level is named.
+  const stops = buildRoute(domain ? career.skills.filter((skill) => skill.domain?.slug === domain.slug) : career.skills);
+  const parts: ({ key: string; group: string; skills: PlacedSkill[] } | { key: string; group: null; skills: PlacedSkill[] })[] = [];
+  for (const stop of stops) {
+    const last = parts[parts.length - 1];
+    if (stop.kind === 'section') parts.push({ key: stop.key, group: stop.group.name, skills: stop.skills });
+    else if (last && last.group === null) last.skills.push(stop.skill);
+    else parts.push({ key: stop.key, group: null, skills: [stop.skill] });
+  }
   const label = `${career.title} on the Atlas of Manufacturing: ${plural(overlay?.first.size ?? 0, 'skill', 'skills')} across ${plural(reached.length, 'domain', 'domains')}. The skills follow as a list.`;
   const crumb = cn('inline-flex min-h-11 items-center transition-colors hover:text-text-1 hover:underline sm:min-h-8', focusRing);
 
@@ -187,31 +194,37 @@ export default function CareerAtlas({ career, path, marks }: CareerAtlasProps) {
           </nav>
         )}
 
-        {levels.map((level) => (
-          <section key={level.level} className="mt-4 first:mt-0" data-career-atlas-level={level.level}>
-            <h3 className={cn(EYEBROW, 'mb-2')}>{level.name}</h3>
-            <ul className="career-atlas-groups">
-              {level.groups.map((group) => {
-                const whole = marking ? group.skills.every((skill) => marking.statusOf(skill.id) === 'held') : false;
-                return (
-                  <li key={group.slug} className="min-w-0">
-                    {/* The same frame the flow uses, with no figure of its own: here the plate says how much is held. */}
-                    <fieldset className="skill-group" data-group-box data-complete={whole || undefined}>
-                      <legend className="skill-group-name">
-                        <span className="min-w-0 break-words">{group.name}</span>
-                      </legend>
-                      <SkillTags>
-                        {group.skills.map((skill) => (
-                          <SkillTag key={skill.id} skill={skill} marks={marking} />
-                        ))}
-                      </SkillTags>
-                    </fieldset>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ))}
+        <ul className="career-atlas-groups mt-2" data-career-atlas-route>
+          {parts.map((part) => {
+            if (part.group === null) {
+              return (
+                <li key={part.key} className="min-w-0">
+                  <SkillTags>
+                    {part.skills.map((skill) => (
+                      <SkillTag key={skill.id} skill={{ ...skill, note: skill.group?.name }} marks={marking} readOnly />
+                    ))}
+                  </SkillTags>
+                </li>
+              );
+            }
+            const whole = marking ? part.skills.every((skill) => marking.statusOf(skill.id) === 'held') : false;
+            return (
+              <li key={part.key} className="min-w-0">
+                {/* A section of the route, with no figure of its own: here the plate says how much is held. */}
+                <fieldset className="skill-group" data-group-box data-complete={whole || undefined}>
+                  <legend className={EYEBROW}>
+                    <span className="min-w-0 break-words">{part.group}</span>
+                  </legend>
+                  <SkillTags>
+                    {part.skills.map((skill) => (
+                      <SkillTag key={skill.id} skill={skill} marks={marking} readOnly />
+                    ))}
+                  </SkillTags>
+                </fieldset>
+              </li>
+            );
+          })}
+        </ul>
 
         <p className="mt-4">
           <Link

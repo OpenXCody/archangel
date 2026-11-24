@@ -220,11 +220,13 @@ expect "the one added is at its own level too" "Blueprint Reading:2 Plasma Etchi
 check "a path entry needs a skill"    400 "$(req a PUT /occupations/$OA/path '{"skills":[{"stage":1}]}')"
 check "the editor reads the path fresh" 200 "$(req a GET /admin/records/career/$OA)" "\"path\":\[{\"id\":\"$SB\""
 expect "each skill with its level and group" "1:$GRP 2:$GRP" "$(req a GET /admin/records/career/$OA | j "path.map((s) => s.level + ':' + s.group.slug).join(' ')")"
+# One order for a path, wherever it is read: the editor's is the page's (the route's).
+expect "the editor's path is in the order the career's page draws" "$(req p GET /occupations/$OA | j "skills.map((s) => s.id).join(' ')")" "$(req a GET /admin/records/career/$OA | j "path.map((s) => s.id).join(' ')")"
 # The career's page: every skill of the path carries its level, group and domain.
 OUT=$(req p GET /occupations/$OA)
 expect "a career's path carries level, group and domain" "$REC Plasma Etching|1|$GRP|$(groupName "$GRP")|$(domainOf "$GRP")" "$(printf '%s' "$OUT" | j "skills.map((s) => [s.name, s.level, s.group.slug, s.group.name, s.domain.name].join('|'))[0]")"
 expect "lowest level first"           "1 2" "$(printf '%s' "$OUT" | j "skills.map((s) => s.level).join(' ')")"
-expect "and no stage or category of its own" "domain,group,id,importance,level,name" "$(printf '%s' "$OUT" | j "skills.map((s) => Object.keys(s).sort().join())[0]")"
+expect "how it is learned, and no stage or category of its own" "domain,group,howLearned,id,importance,level,name" "$(printf '%s' "$OUT" | j "skills.map((s) => Object.keys(s).sort().join())[0]")"
 # A skill's level is the skill's: changing it moves the skill in every path it is on.
 sql "INSERT INTO occupation_skills (occupation_id, skill_id) VALUES ('$OB', '$SC')" >/dev/null
 check "change a skill's level"        200 "$(req a PUT /skills/$SC '{"level":3}')" '"level":3'

@@ -10,7 +10,6 @@ import {
   companies,
   factories,
   occupations,
-  occupationSkills,
   skills,
 } from '../db/index.js';
 import { canManageCompany, cleanText, getSessionUser, handle, requireUser } from '../lib/auth.js';
@@ -26,6 +25,7 @@ import { countOpenJobs, jobIsOpen, jobsInOrder, listOpenJobs } from '../lib/open
 import { hasVersionOf, readVersion, versionPathSkills } from '../lib/versions.js';
 import { placeOf, placeSql, type SkillPlace } from '../lib/taxonomy.js';
 import { jobPath, readJobNumber } from '../../shared/jobs.js';
+import { routeOf, routeOrder } from '../lib/route.js';
 
 /**
  * Jobs and applications.
@@ -226,8 +226,7 @@ async function readJobPath(
       added = new Set(version.skills.filter((skill) => skill.added).map((skill) => skill.id));
     } else {
       of = 'career';
-      const standard = await db.select({ id: occupationSkills.skillId }).from(occupationSkills).where(eq(occupationSkills.occupationId, job.occupationId));
-      onPath = new Set(standard.map((row) => row.id));
+      onPath = new Set((await routeOf(db, job.occupationId)).map((skill) => skill.id));
     }
   }
   // What the job's own words name: its skills, and the skill of every make it names.
@@ -243,7 +242,7 @@ async function readJobPath(
       FROM skills s
       ${place.joins}
       WHERE s.id IN (${sql.join(all.map((id) => sql`${id}`), sql`, `)})
-      ORDER BY s.level ASC NULLS LAST, sd.position ASC NULLS LAST, sg.position ASC NULLS LAST, s.group_position ASC NULLS LAST, s.name
+      ORDER BY ${routeOrder()}
     `)
   );
   const skills: JobPathSkill[] = [];
@@ -550,10 +549,8 @@ router.post(
       const version = await versionPathSkills(companyId, occupationId);
       const defaults =
         version?.map((row) => ({ skillId: row.skillId, stage: row.level })) ??
-        (await db
-          .select({ skillId: occupationSkills.skillId, stage: occupationSkills.stage })
-          .from(occupationSkills)
-          .where(eq(occupationSkills.occupationId, occupationId)));
+        // In route order, so the cut below keeps the first skills of the path and not whichever came back first.
+        (await routeOf(db, occupationId)).map((skill) => ({ skillId: skill.id, stage: skill.level }));
       skillRows = defaults.slice(0, MAX_JOB_SKILLS).map((row) => ({ skillId: row.skillId, required: row.stage !== 3 }));
     }
 

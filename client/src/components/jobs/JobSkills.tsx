@@ -6,7 +6,8 @@ import { companyShortName, versionTitle } from '@shared/versions';
 import { SkillMark } from '../account/SkillStatusButton';
 import { DetailSection, RecordList, RecordRow, detailActionClass } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
-import { buildPath, shareOf, type MarkStatus, type PathSkillItem, type SkillMarks } from '../path/model';
+import { shareOf, type MarkStatus, type PathSkillItem, type PlacedSkill, type SkillMarks } from '../path/model';
+import { LEVELS } from '../../lib/stages';
 import { SkillGroupBox } from '../path/SkillGroupBox';
 import { SkillTags } from '../path/SkillTag';
 import { useSkillMarks } from '../path/useSkillMarks';
@@ -28,6 +29,31 @@ import { useSkillMarks } from '../path/useSkillMarks';
 
 /** A section of the job's page: set apart by a hairline over its heading, so no block floats between two others. */
 export const jobSectionClass = 'mt-10 border-t border-line pt-8';
+
+/**
+ * A job's skills by level, and within a level by skill group, in the order
+ * they arrive (the server's path order). A career's own page draws its path
+ * as a route to walk (components/route/); a job's page is a list to read, so
+ * it keeps the groups side by side under their level.
+ */
+function byLevelAndGroup(skills: readonly PlacedSkill[]) {
+  const levels = LEVELS.map(({ id, name }) => ({ level: id, name, groups: [] as { slug: string; name: string; skills: PathSkillItem[] }[] }));
+  const unplaced: PathSkillItem[] = [];
+  for (const skill of skills) {
+    const level = levels.find((each) => each.level === skill.level);
+    if (!level || !skill.group) {
+      unplaced.push(skill);
+      continue;
+    }
+    let group = level.groups.find((each) => each.slug === skill.group?.slug);
+    if (!group) {
+      group = { slug: skill.group.slug, name: skill.group.name, skills: [] };
+      level.groups.push(group);
+    }
+    group.skills.push(skill);
+  }
+  return { levels, unplaced };
+}
 
 /** What a tag says under a skill's name on this page. */
 function secondLine(skill: JobPathSkill): string | null {
@@ -87,7 +113,7 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
       : null;
 
   const placed = path.skills.map((skill) => ({ id: skill.id, name: skill.name, level: skill.level, group: skill.group, domain: skill.domain, note: secondLine(skill) }));
-  const laid = buildPath(placed);
+  const laid = byLevelAndGroup(placed);
   const levels = laid.levels.filter((level) => level.groups.length > 0);
   const share = marks && path.skills.length > 0 ? shareOf(path.skills, marks) : null;
   const named = new Set(path.skills.concat(path.alsoNamed).filter((skill) => skill.named).map((skill) => skill.id));

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { SkillHeldToggle } from '../account/SkillStatusButton';
+import { SkillHeldToggle, SkillMark } from '../account/SkillStatusButton';
 import type { PathSkillItem, SkillMarks } from './model';
 
 /**
@@ -15,7 +15,20 @@ import type { PathSkillItem, SkillMarks } from './model';
  *
  * It is a list item: put it in a `ul` (`SkillTags`, or `SkillGroupBox`).
  */
-export function SkillTag({ skill, marks, current, className }: { skill: PathSkillItem; marks?: SkillMarks | null; current?: boolean; className?: string }) {
+export function SkillTag({
+  skill,
+  marks,
+  readOnly,
+  current,
+  className,
+}: {
+  skill: PathSkillItem;
+  marks?: SkillMarks | null;
+  /** The mark is shown and cannot be pressed: a career's page reads a person's marks and changes none. */
+  readOnly?: boolean;
+  current?: boolean;
+  className?: string;
+}) {
   const status = marks ? marks.statusOf(skill.id) : undefined;
   const name = (
     <>
@@ -35,7 +48,13 @@ export function SkillTag({ skill, marks, current, className }: { skill: PathSkil
       data-added={skill.added || undefined}
       className={cn('skill-tag', className)}
     >
-      {marks && (
+      {marks && readOnly && (
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center">
+          <SkillMark status={status ?? 'none'} />
+          <span className="sr-only">{status === 'held' ? 'Held: ' : status === 'learning' ? 'Learning: ' : 'Not held: '}</span>
+        </span>
+      )}
+      {marks && !readOnly && (
         <SkillHeldToggle
           label={skill.name}
           value={status ?? 'none'}
@@ -57,14 +76,24 @@ export function SkillTag({ skill, marks, current, className }: { skill: PathSkil
   );
 }
 
-/** A tag's second line: what narrows the skill here. Nothing when there is nothing to say. */
-function SecondLine({ skill }: { skill: PathSkillItem }) {
+/**
+ * A tag's second line: what narrows the skill here. Nothing when there is
+ * nothing to say. `lead` goes first on it: a skill's group, where the skill
+ * stands by itself on a route.
+ */
+export function SecondLine({ skill, lead }: { skill: PathSkillItem; lead?: string | null }) {
   const makes = skill.makes ?? [];
+  const said = lead ?? skill.note;
   if (!skill.added && makes.length === 0) {
-    return skill.note ? <span className="block text-xs font-normal text-text-3">{skill.note}</span> : null;
+    return said ? (
+      <span className="block text-xs font-normal text-text-3" data-tag-note>
+        {said}
+      </span>
+    ) : null;
   }
   return (
     <span className="block text-xs font-normal text-text-3" data-tag-line>
+      {lead && <span data-tag-note>{lead} · </span>}
       {skill.added && <span data-tag-added>Added</span>}
       {skill.added && makes.length > 0 && ' · '}
       {makes.map((make, index) => (

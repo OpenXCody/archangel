@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { cn, plural } from '@/lib/utils';
-import GoalButton from '../account/GoalButton';
 import { ErrorNote, LoadError } from '../account/parts';
 import { signInPath, useAccount } from '../../lib/account';
 import { type OccupationDetail } from '../../lib/api';
@@ -10,12 +9,11 @@ import { isNoVersion, useVersion, type Version } from '../../lib/versions';
 import { useViewer } from '../../lib/viewer';
 import { BackLink, DetailHeader, DetailSection, EmptyState, sectionLinkClass } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
-import { PathFlow } from '../path/PathFlow';
-import { SkillGroupBox } from '../path/SkillGroupBox';
 import { SkillTag, SkillTags } from '../path/SkillTag';
-import { buildPath, shareOf, type PlacedSkill } from '../path/model';
+import { shareOf, type PlacedSkill } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
-import { type Head, UNPLACED, OpenJobsSection } from './parts';
+import { Route } from '../route/Route';
+import { type Head, OpenJobsSection } from './parts';
 import { CareerTag, CompanyTag, RecordTags } from '../layout/RecordTag';
 
 /** Where a company's people change its version of a career: Your jobs, with the version in the address. */
@@ -25,7 +23,7 @@ export function versionEditorPath(companyId: string, occupationId: string): stri
 
 /**
  * A company's version of a career ("Boeing CNC Operator"): the career's own
- * page, at the company. The same heading block and the same path, drawn from
+ * page, at the company. The same heading block and the same route, drawn from
  * the standard's skills with the company's changes applied: a skill it adds
  * says "Added", one it leaves out is not drawn (a line under the path says how
  * many, and opens them), and a skill's tag names the makes the company runs.
@@ -78,7 +76,7 @@ export default function CareerVersionView({ data, at, head }: { data: Occupation
 }
 
 function VersionPage({ data, version, head }: { data: OccupationDetail; version: Version; head: Head }) {
-  // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same diagram without them.
+  // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same route without them.
   const { marks, canSignIn, error: markError, ranMakes } = useSkillMarks();
   const { pathname, search } = useLocation();
   const { data: account } = useAccount();
@@ -94,11 +92,11 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
     level: skill.level,
     group: skill.group,
     domain: skill.domain,
+    howLearned: skill.howLearned,
     added: skill.added,
     makes: skill.makes.filter((make) => make.runs).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })),
   }));
-  const path = buildPath(skills);
-  const hasPath = path.levels.some((level) => level.groups.length > 0);
+  const hasPath = skills.length > 0;
   const whole = marks && skills.length > 0 ? shareOf(skills, marks) : null;
   const leftOut = version.leftOut;
   const same = leftOut.length === 0 && !skills.some((skill) => skill.added);
@@ -128,10 +126,9 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         description={data.description}
         action={
           <>
-            <GoalButton occupationId={data.id} />
             {whole && (
               <span className="inline-flex items-center gap-2 text-sm text-text-2" data-held-count>
-                <ShareRing share={whole} className="h-5 w-5" />
+                <ShareRing share={whole} className="h-[22px] w-[22px]" />
                 <span>
                   You have <span className="font-medium tabular-nums text-text-1">{whole.held}</span> of {whole.total} {whole.total === 1 ? 'skill' : 'skills'}
                 </span>
@@ -149,7 +146,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
 
       <DetailSection
         id="skills"
-        title={hasPath || skills.length === 0 ? 'Path' : 'Skills'}
+        title="Path"
         action={
           hasPath ? (
             <Link to={`/atlas?career=${data.id}&at=${encodeURIComponent(company.slug ?? company.id)}`} className={cn(sectionLinkClass, '-my-3 py-3')} data-atlas-link>
@@ -160,8 +157,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
       >
         {marks && <ErrorNote error={markError} className="mb-3" />}
         {skills.length === 0 && <p className="text-sm text-text-2">No skills on this path yet.</p>}
-        {hasPath && <PathFlow path={path} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} />}
-        {path.unplaced.length > 0 && <SkillGroupBox name={UNPLACED} skills={path.unplaced} marks={marks} className={hasPath ? 'mt-4' : undefined} />}
+        <Route skills={skills} marks={marks} comesFrom={data.comesFrom} leadsTo={data.leadsTo} keepAs={`${data.id}@${company.id}`} />
 
         {/* What the company leaves out of the standard is not drawn: one line says how many, and opens them. */}
         {leftOut.length > 0 && (
@@ -186,7 +182,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
             <Link to={signInPath(`${pathname}${search}`)} className="text-text-1 underline">
               Sign in
             </Link>{' '}
-            to mark the skills you have.
+            to see which of these skills you have.
           </p>
         )}
       </DetailSection>
