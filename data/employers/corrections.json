@@ -1035,6 +1035,16 @@
         }
       }
     },
+    "Frito-Lay": {
+      "why": "Frito-Lay Rosenberg's point (29.570963, -95.857038) is 1.3 km from both EPA registry facilities at 3310 Hwy 36 N, and the registry id the earlier file cited (110070738254) is not in the ECHO Texas extract; the point is the registry's 110000599362 (review of 2026-11-24). A stored row keeps its own point: production's is moved in Admin Tools.",
+      "plants": {
+        "Frito-Lay Rosenberg": {
+          "latitude": 29.577917,
+          "longitude": -95.867639,
+          "coordinatesFrom": "EPA registry facility 110000599362 (\"FRITO-LAY, INC.\", 3310 HIGHWAY 36 NORTH; ours 3310 State Highway 36 N)"
+        }
+      }
+    },
     "Sanden Vendo America": {
       "why": "The row SANDEN INTERNATIONAL U.S.A., INC, 107 m from 10710 Sanden Dr, is the same Sanden site in Dallas under the group's former US name. Without this the rehearsal inserted the plant beside it.",
       "plants": {

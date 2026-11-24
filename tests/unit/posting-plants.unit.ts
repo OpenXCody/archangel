@@ -38,9 +38,35 @@ interface Registry {
   employers: { slug: string; employer: string; company: string; also?: string[] }[];
 }
 
+// The research files beside it when 0065 was generated. A research file added since (texas-hubs.json, 0076) is
+// not part of 0065, which is applied, so the builder is given these alone.
+const KNOWN_AT_0065 = [
+  'texas-chemicals',
+  'texas-electronics',
+  'texas-food-consumer',
+  'texas-metals-materials',
+  'texas-osha-additions',
+  'texas-transport-machinery',
+  'us-largest-plants',
+].flatMap((name) => ['--known', `data/employers/${name}.json`]);
+
+// A load's SQL split into its text and its data, and the data's `protect` (the names no merge may take) apart:
+// a correction laid in since 0065 can name one more company to protect, and that changes nothing 0065 loads.
+const loadParts = (sql: string) => {
+  const at = sql.indexOf('$el_data$');
+  const end = sql.lastIndexOf('$el_data$');
+  const { protect, ...data } = JSON.parse(sql.slice(at + '$el_data$'.length, end)) as { protect: string[] };
+  return { text: sql.slice(0, at) + sql.slice(end), data, protect };
+};
+
 test('the research file loads as the migration says, and the builder changes nothing in it', () => {
-  const out = execFileSync('node', ['scripts/build-employers-sql.mjs', RESEARCH], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 });
-  assert.equal(readFileSync(EMPLOYERS_MIGRATION, 'utf8'), out, `run: node scripts/build-employers-sql.mjs --out ${EMPLOYERS_MIGRATION} ${RESEARCH}`);
+  const out = execFileSync('node', ['scripts/build-employers-sql.mjs', ...KNOWN_AT_0065, RESEARCH], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 });
+  const run = `run: node scripts/build-employers-sql.mjs ${KNOWN_AT_0065.join(' ')} --out ${EMPLOYERS_MIGRATION} ${RESEARCH}`;
+  const [stored, now] = [loadParts(readFileSync(EMPLOYERS_MIGRATION, 'utf8')), loadParts(out)];
+  assert.equal(stored.text, now.text, run);
+  assert.deepEqual(stored.data, now.data, run);
+  const protectedNow = new Set(now.protect);
+  for (const name of stored.protect) assert.ok(protectedNow.has(name), `${name}: protected by 0065, and still protected`);
   const report = execFileSync('node', ['scripts/build-employers-sql.mjs', '--check', RESEARCH], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   assert.equal(/changed: posting-employers/.test(report), false, 'no value of the file is dropped or changed by the builder');
 });

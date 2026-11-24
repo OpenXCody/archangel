@@ -5,7 +5,7 @@
     "name": "Texas hubs: Austin (its five metro counties and the ring to Temple, Killeen and Waco), Houston and Beaumont-Port Arthur, Dallas-Fort Worth and Sherman-Denison, San Antonio, the Rio Grande Valley and Laredo, and the rest of Texas",
     "publisher": "Archangel research, six briefs of 2026-11-24 combined",
     "url": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-    "licence": "Facts read from public pages and records: OSHA Form 300A establishment files for 2025 (2024 where a site filed none), read from the copies downloaded on 2026-11-18 (osha.gov was not asked again); company, economic development, state and press pages; points from the Census Bureau geocoder, county address points, ArcGIS point addresses and the EPA registry. Every plant cites its sources; every headcount its own."
+    "licence": "Facts read from public pages and records: OSHA Form 300A establishment files for 2025 (2024 where a site filed none, or where the 2025 filing reports hours that do not fit a headcount: 1,000 to 3,000 a person), read from the copies downloaded on 2026-11-18 (osha.gov was not asked again); company, economic development, state and press pages; points from the Census Bureau geocoder, Williamson County's address points, the EPA registry and the stored rows (no ArcGIS or OpenStreetMap point is kept). Every plant cites its sources; every headcount its own."
   },
   "companies": [
     {
@@ -59,7 +59,7 @@
           ],
           "coordinatesFrom": "EPA registry facility 110072242824 (\"CONGRESS\", 305 S CONGRESS AVE; ours 305 S Congress Ave)",
           "confidence": "high",
-          "note": "The Austin American-Statesman (4 Feb 2026, read in Yahoo's copy): Base Power 'moved into the former Austin American-Statesman waterfront building at 305 S. Congress Ave. in October of last year' as 'a temporary factory', and 'has operated manufacturing and shipping from the site'. Solar Power World (5 Aug 2026): 'already producing thousands of Base Core units a month in Austin'. The site is slated for redevelopment, so this factory is temporary by the company's own account. The Census geocoder puts the address 250 m west on the street (30.25806, -97.74646); the Esri address point is the building. OSHA Form 300A for 2025 lists 'Base Factory 1' (Base Power Company), 305 S Congress Ave, with 42 annual average employees; the factory opened in October 2025, so a figure averaged over the year is not written as the site's people.",
+          "note": "The Austin American-Statesman (4 Feb 2026, read in Yahoo's copy): Base Power 'moved into the former Austin American-Statesman waterfront building at 305 S. Congress Ave. in October of last year' as 'a temporary factory', and 'has operated manufacturing and shipping from the site'. Solar Power World (5 Aug 2026): 'already producing thousands of Base Core units a month in Austin'. The site is slated for redevelopment, so this factory is temporary by the company's own account. The point is the EPA registry's facility at the address, on the building; the Census geocoder puts the address 250 m west on the street (30.25806, -97.74646). OSHA Form 300A for 2025 lists 'Base Factory 1' (Base Power Company), 305 S Congress Ave, with 42 annual average employees; the factory opened in October 2025, so a figure averaged over the year is not written as the site's people.",
           "hub": "austin-core"
         },
         {
@@ -252,7 +252,7 @@
           ],
           "coordinatesFrom": "EPA registry facility 110071345575 (\"BEN\", 5900 E BEN WHITE BLVD; ours 5900 E Ben White Blvd, Building B, Suite 100)",
           "confidence": "high",
-          "note": "The company's contact page: 'Aalo Atomics, Inc. Headquarters & Manufacturing 5900 E Ben White Blvd, Building B, Suite 100 Austin, Texas 78741'. Its factory page: 40,000 sq ft, 'The first advanced-reactor manufacturing line in the world', and gives 30.2124 N, 97.715 W for the site. The move was announced 21 Aug 2024; the year production began was not found. The article says the first reactor 'was fabricated at its Austin pilot factory'. The Esri address point is used; the company's rounded coordinate is 430 m from it and the Census street point (30.21362, -97.71844) 400 m: 5900 E Ben White is a multi-building park and Building B itself was not located.",
+          "note": "The company's contact page: 'Aalo Atomics, Inc. Headquarters & Manufacturing 5900 E Ben White Blvd, Building B, Suite 100 Austin, Texas 78741'. Its factory page: 40,000 sq ft, 'The first advanced-reactor manufacturing line in the world', and gives 30.2124 N, 97.715 W for the site. The move was announced 21 Aug 2024; the year production began was not found. The article says the first reactor 'was fabricated at its Austin pilot factory'. The point is the EPA registry's facility at the address; 5900 E Ben White is a multi-building park and Building B itself was not located.",
           "hub": "austin-core"
         }
       ]
@@ -533,14 +533,15 @@
       "alsoKnownAs": [
         "ZT Group International"
       ],
-      "parent": null,
+      "parent": "Sanmina",
       "domain": "ztsystems.com",
       "industry": "Computer hardware",
       "description": "Builds custom servers for cloud and AI data centres.",
       "headquarters": null,
       "stateEmployees": null,
       "sources": [
-        "https://ztsystems.com/zt-systems-unveils-future-cloud-computing-manufacturing-site-in-greater-austin-texas-area"
+        "https://ztsystems.com/zt-systems-unveils-future-cloud-computing-manufacturing-site-in-greater-austin-texas-area",
+        "https://ztsystems.com/"
       ],
       "plants": [
         {
@@ -569,7 +570,8 @@
           "note": "Company release, 13 Oct 2023: the Georgetown site 'enables ZT Systems to assemble, integrate, test, and deploy purpose-built server solutions', expected to employ over 1,500 at full capacity (a plan, not written). State registration TABS2024004053 ('ZT Systems - Production Facility', Northpark 35 Building VI, 1809 Titan Drive): build-out of a 435,714 sq ft shell for production, shipping, storage, testing and offices 'for the manufacturing of custom servers', 2024 to October 2025. Search summaries say AMD, which bought ZT Systems, agreed to sell its manufacturing to Sanmina; no page saying the sale closed was read, so no parent is written.",
           "hub": "austin-core"
         }
-      ]
+      ],
+      "note": "ztsystems.com (read 2026-11-24): 'ZT Systems is Now Part of Sanmina', with the news 'Sanmina Completes Acquisition of ZT Systems Data Center Infrastructure Manufacturing Business from AMD'."
     },
     {
       "name": "CelLink",
@@ -751,8 +753,8 @@
           "state": "TX",
           "address": "3310 State Highway 36 N",
           "zip": "77471",
-          "latitude": 29.570963,
-          "longitude": -95.857038,
+          "latitude": 29.577917,
+          "longitude": -95.867639,
           "subsector": "Food Manufacturing",
           "naics": "311919",
           "products": "Corn and tortilla chips, Funyuns and other snacks",
@@ -763,12 +765,13 @@
           "opened": 1982,
           "status": "operating",
           "sources": [
-            "https://echo.epa.gov/detailed-facility-report?fid=110070738254",
             "https://www.pepsico.com/newsroom/press-releases/2021/frito-lay-to-create-160-jobs-with-rosenberg-texas-plant-expansion",
             "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://echo.epa.gov/detailed-facility-report?fid=110000599362"
           ],
-          "hub": "houston"
+          "hub": "houston",
+          "coordinatesFrom": "EPA registry facility 110000599362 (\"FRITO-LAY, INC.\", 3310 HIGHWAY 36 NORTH; ours 3310 State Highway 36 N)"
         }
       ]
     },
@@ -2841,17 +2844,18 @@
           "subsector": "Plastics and Rubber Products Manufacturing",
           "naics": null,
           "products": "Hefty waste bags and plastic film",
-          "employees": 350,
-          "employeesYear": 2026,
-          "employeesSource": "https://templeedc.com/doing-business-here/major-employers/",
-          "employeesNote": "Temple EDC's major-employers table as read on 2026-11-24 (the table carries no date): 'Reynolds Consumer Products 350'. Reynolds has one plant in Temple; the EDC's own Reynolds page also says 350 employees in Temple.",
+          "employees": 280,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Temple PE' (Reynolds Consumer Products LLC), 3000 Pegasus Drive: 280 annual average employees, 650,486 hours (280 again in 2024; the employer's own people at the address; contractors are not counted). Temple EDC's table of major employers, which carries no date, says 350.",
           "opened": 1970,
           "status": "operating",
           "sources": [
             "https://templeedc.com/success-story/reynolds/",
             "https://templeedc.com/reynolds-consumer-products-adds-production-temple-manufacturing-plant/",
             "https://templeedc.com/doing-business-here/major-employers/",
-            "https://echo.epa.gov/detailed-facility-report?fid=110071285886"
+            "https://echo.epa.gov/detailed-facility-report?fid=110071285886",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
           ],
           "hub": "austin-ring",
           "coordinatesFrom": "EPA registry facility 110071285886 (\"PEGASUS\", 3000 PEGASUS RD; ours 3000 Pegasus Dr)"
@@ -2890,16 +2894,17 @@
           "subsector": "Food Manufacturing",
           "naics": null,
           "products": "Pet food",
-          "employees": 78,
-          "employeesYear": 2014,
-          "employeesSource": "https://templeedc.com/mars-petcare-invests-20-million-to-upgrade-temple-manufacturing-plant/",
-          "employeesNote": "Temple EDC release of 2014-11-06: Mars Petcare 'locally employs 78 associates' at its 109,000 sq ft facility. No later figure for the site was found.",
+          "employees": 115,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'TXT' (Mars Petcare), 3401 Eberhardt Rd: 115 annual average employees, 263,504 hours (110 in 2024; the employer's own people at the address; contractors are not counted). Temple EDC said 78 in 2014.",
           "opened": 2006,
           "status": "operating",
           "sources": [
             "https://templeedc.com/mars-petcare-invests-20-million-to-upgrade-temple-manufacturing-plant/",
             "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2023008953",
-            "https://echo.epa.gov/detailed-facility-report?fid=110000460288"
+            "https://echo.epa.gov/detailed-facility-report?fid=110000460288",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
           ],
           "hub": "austin-ring",
           "coordinatesFrom": "EPA registry facility 110000460288 (\"EBERHARDT\", 3401 EBERHARDT ST.; ours 3401 Eberhardt Rd)"
@@ -2937,16 +2942,17 @@
           "subsector": "Machinery Manufacturing",
           "naics": null,
           "products": "Custom hydraulic cylinders and swivels",
-          "employees": 350,
-          "employeesYear": 2026,
-          "employeesSource": "https://templeedc.com/doing-business-here/major-employers/",
-          "employeesNote": "Temple EDC's major-employers table as read on 2026-11-24 (undated): 'Texas Hydraulics, Inc. 350'. The company's Texas manufacturing space is in Temple.",
+          "employees": 278,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Texas Hydraulics Inc', 3410 Range Road: 278 annual average employees, 434,779 hours (278 again in 2024; the employer's own people at the address; contractors are not counted). Temple EDC's undated table says 350.",
           "opened": 1978,
           "status": "operating",
           "sources": [
             "https://www.texashydraulics.com/about-us/",
             "https://www.tdlr.texas.gov/TABS/Search/Print/EABPRJB0802778",
-            "https://templeedc.com/doing-business-here/major-employers/"
+            "https://templeedc.com/doing-business-here/major-employers/",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
           ],
           "hub": "austin-ring",
           "coordinatesFrom": "the stored row it fills (\"TEXAS HYDRAULICS INC\", a point from the EPA registry)"
@@ -2984,14 +2990,15 @@
           "naics": null,
           "products": "Polyurethane foam cushioning",
           "employees": 280,
-          "employeesYear": 2026,
-          "employeesSource": "https://templeedc.com/doing-business-here/major-employers/",
-          "employeesNote": "Temple EDC's major-employers table as read on 2026-11-24 (undated): 'E.R. Carpenter L.P. 280'.",
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Temple Pouring Plant' (E.R. Carpenter, L.P.), 2611 N General Bruce Dr: 280 annual average employees, 543,097 hours (277 in 2024; the employer's own people at the address; contractors are not counted). Temple EDC's undated table also says 280.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://templeedc.com/doing-business-here/major-employers/",
-            "https://echo.epa.gov/detailed-facility-report?fid=110040949141"
+            "https://echo.epa.gov/detailed-facility-report?fid=110040949141",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
           ],
           "hub": "austin-ring",
           "coordinatesFrom": "EPA registry facility 110040949141 (\"GENERAL\", 2611 N GENERAL BRUCE DR; ours 2611 N General Bruce Dr)"
@@ -3145,16 +3152,17 @@
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327993",
           "products": "Fiberglass building insulation for homes and commercial buildings",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 176,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Knauf Insulation McGregor', 3000 Judith Road: 176 annual average employees, 383,440 hours (130 in 2024; the employer's own people at the address; contractors are not counted).",
           "opened": 2024,
           "status": "operating",
           "sources": [
             "https://www.wconline.com/articles/96668-knauf-announces-opening-of-texas-facility",
             "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2022025126",
-            "https://echo.epa.gov/detailed-facility-report?fid=110071938429"
+            "https://echo.epa.gov/detailed-facility-report?fid=110071938429",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
           ],
           "hub": "austin-ring",
           "coordinatesFrom": "EPA registry facility 110071938429 (\"JUDITH\", 3000 JUDITH DR.; ours 3000 Judith Rd)"
@@ -3369,14 +3377,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": null,
           "products": "Specialty process chemicals for semiconductor and display manufacturing",
-          "employees": null,
-          "employeesYear": null,
-          "employeesSource": null,
-          "employeesNote": null,
+          "employees": 25,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'ENF (Kyle) Technology, LLC', 1550 Kohlers Crossing: 25 annual average employees (the employer's own people at the address; contractors are not counted). The hours reported, 52,000, are 2,080 a person, a standard year rather than a count; the 2024 filing had 23 with 45,720 hours.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2020004559"
+            "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2020004559",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
           ],
           "hub": "austin-ring",
           "coordinatesFrom": "the stored row it fills (\"ENF KYLE TECHNOLOGY LLC\", a point from the EPA registry)"
@@ -3459,17 +3468,18 @@
           "subsector": "Food Manufacturing",
           "naics": "311520",
           "products": "Frozen novelties: Twin Pops and other ice pops",
-          "employees": 90,
-          "employeesYear": 2026,
-          "employeesSource": "https://lockhartedc.com/ziegenfelder",
-          "employeesNote": "Lockhart EDC's page for the company as read on 2026-11-24: 'Number of Employees 90'. At the opening in May 2025 the company had hired 70.",
+          "employees": 78,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Lockhart' (Ziegenfelder), 2707 Dewitt Street: 78 annual average employees, 137,001 hours (the employer's own people at the address; contractors are not counted); the factory opened in May 2025 with 70 hired. Lockhart EDC's undated page says 90.",
           "opened": 2025,
           "status": "operating",
           "sources": [
             "https://lockhartedc.com/ziegenfelder",
             "https://hayscaldwelledp.com/about/news-and-publications/ziegenfelder-celebrates-grand-opening-of-texas-facility-in-lockhart",
             "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2024001888",
-            "https://echo.epa.gov/detailed-facility-report?fid=110071525064"
+            "https://echo.epa.gov/detailed-facility-report?fid=110071525064",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
           ],
           "hub": "austin-ring",
           "coordinatesFrom": "EPA registry facility 110071525064 (\"DEWITT\", 2707 DEWITT STREET; ours 2707 Dewitt St)"
@@ -3554,15 +3564,16 @@
           "subsector": "Primary Metal Manufacturing",
           "naics": null,
           "products": "Precision investment castings in ferrous and non-ferrous metals",
-          "employees": 75,
-          "employeesYear": 2026,
-          "employeesSource": "https://lockhartedc.com/pure-castings",
-          "employeesNote": "Lockhart EDC's page for the company as read on 2026-11-24: 'Number of Employees 75'.",
+          "employees": 57,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Pure Castings Co.', 112 E MLK Jr Industrial Blvd: 57 annual average employees, 120,647 hours (59 in 2024; the employer's own people at the address; contractors are not counted). The filing also confirms the address. Lockhart EDC's undated page says 75.",
           "opened": 2017,
           "status": "operating",
           "sources": [
             "https://lockhartedc.com/pure-castings",
-            "https://echo.epa.gov/detailed-facility-report?fid=110070366455"
+            "https://echo.epa.gov/detailed-facility-report?fid=110070366455",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
           ],
           "hub": "austin-ring",
           "coordinatesFrom": "EPA registry facility 110070366455 (\"MLK\", 112 E MLK JR INDUSTRIAL BLVD; ours 112 E MLK Jr Industrial Blvd)"
@@ -3798,14 +3809,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325199",
           "products": "Organic chemicals (filed as NAICS 325199, other basic organic chemicals)",
-          "employees": 236,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
-          "employeesNote": "OSHA Form 300A, 2025: 'The Dow Chemical Company - Bayport, TX', 13300 Bay Area Blvd: 236 annual average employees. The employer's own people at the address, offices on the site included; contractors are not counted.",
+          "employees": 102,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'The Dow Chemical Company - Bayport, TX', 13300 Bay Area Blvd: 102 annual average employees, 221,828 hours (the employer's own people at the address; contractors are not counted). The 2025 filing (236) reports 187,312 hours, 793 a person, so the 2024 figure is written.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
           ],
           "hub": "houston",
           "coordinatesFrom": "the stored row it fills (\"BAYPORT_TX\", a point from the EPA registry)"
@@ -4937,10 +4949,10 @@
         "Hiland Dairy Foods LLC",
         "Hiland Dairy Foods Company"
       ],
-      "parent": "Prairie Farms Dairy and Dairy Farmers of America",
+      "parent": null,
       "domain": "hilanddairy.com",
       "industry": "Milk & Dairy",
-      "description": "Bottles milk and makes dairy products.",
+      "description": "Bottles milk and makes dairy products; a joint venture of Prairie Farms Dairy and Dairy Farmers of America.",
       "headquarters": {
         "city": "Springfield",
         "state": "MO",
@@ -5545,10 +5557,10 @@
           "subsector": "Machinery Manufacturing",
           "naics": "333132",
           "products": "Well-service and fracturing equipment (filed as NAICS 333132, gas well machinery)",
-          "employees": 250,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
-          "employeesNote": "OSHA Form 300A, 2025: 'Alegacy Equipment', 1475 Alegacy Place: 250 annual average employees. The employer's own people at the address, offices on the site included; contractors are not counted. Hours worked fit about 95 people working full time all year, against 250 reported: read with care. A second establishment, 1225 Alegacy Place, filed 220 for 2024.",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
           "opened": null,
           "status": "operating",
           "sources": [
@@ -7091,52 +7103,6 @@
       ]
     },
     {
-      "name": "Axiom Space",
-      "alsoKnownAs": [
-        "Axiom Space Inc",
-        "Axiom Space, Inc."
-      ],
-      "parent": null,
-      "domain": "axiomspace.com",
-      "industry": "Spacecraft",
-      "description": "Builds a commercial space station and the spacesuits for NASA's Artemis Moon landings.",
-      "headquarters": {
-        "city": "Houston",
-        "state": "TX",
-        "country": "US"
-      },
-      "stateEmployees": null,
-      "sources": [
-        "https://www.click2houston.com/news/local/2026/04/08/made-for-the-moon-houston-company-building-next-generation-spacewalk-suits-for-next-artemis-moon-missions/",
-        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
-      ],
-      "plants": [
-        {
-          "name": "Axiom Space Gemini Street",
-          "city": "Houston",
-          "state": "TX",
-          "address": "600 Gemini St",
-          "zip": "77058",
-          "latitude": 29.54948,
-          "longitude": -95.12478,
-          "subsector": "Transportation Equipment Manufacturing",
-          "naics": "336414",
-          "products": "Spacesuits and space station hardware (filed as NAICS 336414, space vehicles)",
-          "employees": 300,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
-          "employeesNote": "OSHA Form 300A, 2025: 'Headquarters' (filed under Axiom Space), 600 Gemini St: 300 annual average employees. The employer's own people at the address, offices on the site included; contractors are not counted. Filed as 'Headquarters', so offices are in the figure. KPRC (April 2026): Axiom's spacewalk suits for Artemis are sewn and built in Houston; the report does not name the building. Axiom's other filings for 2025 are 'SSDF', 21300 Gulf Freeway, Webster (250, NAICS 541715, research) and 'Spaceport' (10).",
-          "opened": null,
-          "status": "operating",
-          "sources": [
-            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
-            "https://www.click2houston.com/news/local/2026/04/08/made-for-the-moon-houston-company-building-next-generation-spacewalk-suits-for-next-artemis-moon-missions/"
-          ],
-          "hub": "houston"
-        }
-      ]
-    },
-    {
       "name": "Venus Aerospace",
       "alsoKnownAs": [
         "Venus Aerospace Corp"
@@ -7350,14 +7316,15 @@
           "naics": "311991",
           "products": "Fresh-cut vegetables and packaged salads",
           "employees": 531,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-          "employeesNote": "OSHA Form 300A, 2025: 'Taylor Farms Texas, Inc', 1001 N. Cockrell Hill Rd., annual average employees. The employer's own people at the site; contractors are not counted. Placed at the EPA registry point for 1001 N Cockrell Hill Rd (Pinnacle Park). A second establishment from the Taylor Farms Deli at",
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'Taylor Farms Texas, Inc', 1001 N. Cockrell Hill Rd.: 531 annual average employees, 1,512,214 hours (the employer's own people at the address; contractors are not counted). The 2025 filing (531 again) reports 3,011 hours a person, just over the rule, so the 2024 filing is cited.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-            "https://echo.epa.gov/detailed-facility-report?fid=110070366752"
+            "https://echo.epa.gov/detailed-facility-report?fid=110070366752",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
           ],
           "hub": "dfw"
         }
@@ -8009,14 +7976,15 @@
           "subsector": "Chemical Manufacturing",
           "naics": "325992",
           "products": "Photomasks for semiconductor manufacturing",
-          "employees": 121,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-          "employeesNote": "OSHA Form 300A, 2025: 'Photronics Texas Allen Inc', 601 Millennium Drive, annual average employees. The employer's own people at the site; contractors are not counted.",
+          "employees": 123,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'Photronics Texas Allen Inc', 601 Millennium Drive: 123 annual average employees, 225,234 hours (the employer's own people at the address; contractors are not counted). The 2025 filing (121) reports 993 hours a person, so the 2024 figure is written.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
           ],
           "hub": "dfw"
         }
@@ -8523,14 +8491,15 @@
           "subsector": "Food Manufacturing",
           "naics": "311942",
           "products": "Flavors and seasonings",
-          "employees": 290,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-          "employeesNote": "OSHA Form 300A, 2025: 'International Flavor  Frangrances Carrollton', 1620 W Crosby Road, annual average employees. The employer's own people at the site; contractors are not counted.",
+          "employees": 101,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'International Flavor Frangrances Carrollton', 1620 W Crosby Road: 101 annual average employees, 221,450 hours (the employer's own people at the address; contractors are not counted). The 2025 filing (290) reports 286,213 hours, 986 a person, so the 2024 figure is written.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
           ],
           "hub": "dfw"
         }
@@ -9374,14 +9343,15 @@
           "subsector": "Primary Metal Manufacturing",
           "naics": "331318",
           "products": "Aluminum extrusion billet",
-          "employees": 150,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-          "employeesNote": "OSHA Form 300A, 2025: 'Tower Extrusions LLC', 1405 Martinez Lane, annual average employees. The employer's own people at the site; contractors are not counted.",
+          "employees": 200,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'Tower Extrusions Martinez LLC', 1405 Martinez Lane: 200 annual average employees, 504,523 hours (the employer's own people at the address; contractors are not counted). The 2025 filing (150) reports 3,255 hours a person, so the 2024 figure is written.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
           ],
           "hub": "dfw"
         }
@@ -9488,14 +9458,15 @@
           "subsector": "Transportation Equipment Manufacturing",
           "naics": "336320",
           "products": "Wiring harnesses and electrical assemblies for aircraft",
-          "employees": 240,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-          "employeesNote": "OSHA Form 300A, 2025: 'InterConnect Wiring', 5024 W. Vickery, annual average employees. The employer's own people at the site; contractors are not counted.",
+          "employees": 184,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'InterConnect Wiring', 5024 W. Vickery: 184 annual average employees, 365,300 hours (the employer's own people at the address; contractors are not counted). The 2025 filing (240) reports 364 hours in all, so the 2024 figure is written.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
           ],
           "hub": "dfw"
         }
@@ -9842,10 +9813,10 @@
           "subsector": "Fabricated Metal Product Manufacturing",
           "naics": "332312",
           "products": "Fabricated structural steel and steel transmission structures",
-          "employees": 230,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-          "employeesNote": "OSHA Form 300A, 2025: 'Structural and Steel Products', 3001 W. Pafford St, annual average employees. The employer's own people at the site; contractors are not counted.",
+          "employees": null,
+          "employeesYear": null,
+          "employeesSource": null,
+          "employeesNote": null,
           "opened": null,
           "status": "operating",
           "sources": [
@@ -9881,14 +9852,15 @@
           "subsector": "Fabricated Metal Product Manufacturing",
           "naics": "332722",
           "products": "Bolts and custom fasteners",
-          "employees": 230,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-          "employeesNote": "OSHA Form 300A, 2025: 'All Pro Fasteners Inc', 1916 Peyco Dr, annual average employees. The employer's own people at the site; contractors are not counted.",
+          "employees": 158,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'All Pro Fasteners Inc', 1916 Peyco Dr: 158 annual average employees, 240,082 hours (the employer's own people at the address; contractors are not counted). The 2025 filing (230) reports 149,450 hours, 649 a person, so the 2024 figure is written.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
           ],
           "hub": "dfw"
         }
@@ -12206,14 +12178,15 @@
           "subsector": "Transportation Equipment Manufacturing",
           "naics": "336390",
           "products": "Trailer hitches and coupling parts",
-          "employees": 125,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-          "employeesNote": "OSHA Form 300A, 2025: 'SAFH - Wylie', 1301 Martinez Ln, annual average employees. The employer's own people at the site; contractors are not counted.",
+          "employees": 165,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'SAF Holland', 1301 S Martinez Lane: 165 annual average employees, 210,158 hours (the employer's own people at the address; contractors are not counted). The 2025 filing (125) reports 837,143 hours, 6,697 a person, which cannot be a headcount, so the 2024 figure is written.",
           "opened": null,
           "status": "operating",
           "sources": [
-            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
           ],
           "hub": "dfw"
         }
@@ -12630,7 +12603,7 @@
           "longitude": -98.56478,
           "subsector": "Machinery Manufacturing",
           "naics": "333120",
-          "products": "Loadall telescopic handlers and aerial access platforms (production due to start in late 2026)",
+          "products": "Loadall telescopic handlers and aerial access platforms",
           "employees": null,
           "employeesYear": null,
           "employeesSource": null,
@@ -12672,25 +12645,28 @@
           "name": "Teijin Automotive Technologies Seguin",
           "city": "Seguin",
           "state": "TX",
-          "address": null,
-          "zip": null,
-          "latitude": 29.59128,
-          "longitude": -97.97806,
+          "address": "2050 8th St",
+          "zip": "78155",
+          "latitude": 29.590208,
+          "longitude": -97.976569,
           "subsector": "Plastics and Rubber Products Manufacturing",
           "naics": "326199",
           "products": "Compression-moulded composite pickup boxes and tailgates for the Toyota Tundra",
-          "employees": 200,
-          "employeesYear": 2022,
-          "employeesSource": "https://www.compositesworld.com/news/teijin-automotive-technologies-to-produce-pickup-box-for-next-gen-toyota-tundra",
-          "employeesNote": "CompositesWorld (2022): the Seguin facility 'employs approximately 200 people in engineering, administrative and production positions'.",
+          "employees": 247,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'CSP Innovations Texas, LLC', 2050 8th St: 247 annual average employees, 415,705 hours (the employer's own people at the address; contractors are not counted). The 2024 filing at the address, as 'Teijin Automotive Technologies Texas, LLC', also has 247 (513,179 hours). CompositesWorld said about 200 in 2022.",
           "opened": null,
           "status": "operating",
           "sources": [
             "https://www.compositesworld.com/news/teijin-automotive-technologies-to-produce-pickup-box-for-next-gen-toyota-tundra",
             "https://gov.texas.gov/news/post/governor-abbott-announces-new-continental-structural-plastics-facility-in-seguin",
-            "https://www.openstreetmap.org/search?query=Teijin%20Automotive%20Technologies%20Seguin"
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+            "https://echo.epa.gov/detailed-facility-report?fid=110071241065"
           ],
-          "hub": "sanantonio"
+          "hub": "sanantonio",
+          "coordinatesFrom": "EPA registry facility 110071241065 (\"TEIJIN AUTOMOTIVE TECHNOLOGIES TEXAS\", 2050 8TH ST; ours 2050 8th St)"
         }
       ]
     },
@@ -12719,10 +12695,10 @@
           "name": "Knight Aerospace San Antonio",
           "city": "San Antonio",
           "state": "TX",
-          "address": "1119 S Acme Rd",
-          "zip": "78237",
-          "latitude": 29.41103,
-          "longitude": -98.58787,
+          "address": "3606 SW 36th St, Suite 101",
+          "zip": "78226",
+          "latitude": 29.3921,
+          "longitude": -98.56842,
           "subsector": "Transportation Equipment Manufacturing",
           "naics": "336413",
           "products": "Aeromedical and biocontainment modules, passenger modules and palletised seating kits for military cargo aircraft",
@@ -12735,9 +12711,12 @@
           "sources": [
             "https://portsanantonio.us/node/149",
             "https://www.tpr.org/technology-entrepreneurship/2022-09-27/san-antonios-knight-aerospace-sells-flying-mobile-biocontainment-emergency-room-to-canada",
-            "https://www.openstreetmap.org/search?query=Knight%20Aerospace%20San%20Antonio"
+            "https://knightaerospace.com/contact-us/",
+            "https://knightaerospace.com/about-us/"
           ],
-          "hub": "sanantonio"
+          "hub": "sanantonio",
+          "coordinatesFrom": "EPA registry facility 110071864108 (3606 SW 36TH ST, another tenant of the same building; ours 3606 SW 36th St). The Census geocoder has no answer for the address.",
+          "note": "The company's contact and about pages (read 2026-11-24): '3606 SW 36th Street, Suite 101, San Antonio, TX 78226', 'We operate from the Port San Antonio technology campus', and its palletized systems are 'designed and manufactured entirely in-house'. The EPA registry's older entry for the company is at 5400-3 Hwy 90 W (110008167795)."
         }
       ]
     },
@@ -13280,7 +13259,7 @@
           "longitude": -98.99789,
           "subsector": "Nonmetallic Mineral Product Manufacturing",
           "naics": "327110",
-          "products": "Vitreous china toilets, tanks and lavatories",
+          "products": "Vitreous china toilets, tanks and lavatories; plastic bathtubs and showers",
           "employees": 506,
           "employeesYear": 2025,
           "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
@@ -19023,6 +19002,105 @@
           "hub": "rest"
         }
       ]
+    },
+    {
+      "name": "GE Aerospace",
+      "alsoKnownAs": [
+        "GE Aviation",
+        "GE Aircraft Engines"
+      ],
+      "parent": null,
+      "domain": "geaerospace.com",
+      "industry": "Aircraft Engines",
+      "description": "Makes jet engines for airliners and military aircraft.",
+      "headquarters": {
+        "city": "Evendale",
+        "state": "OH",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://careers.geaerospace.com/global/en/mcallen-tx"
+      ],
+      "plants": [
+        {
+          "name": "GE Aerospace McAllen",
+          "city": "McAllen",
+          "state": "TX",
+          "address": "6200 S 42nd St",
+          "zip": "78503",
+          "latitude": 26.15515,
+          "longitude": -98.27608,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336412",
+          "products": "Repair of jet engine components (turbine nozzles and hangers) for commercial and military aircraft",
+          "employees": 450,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Services McAllen TX' (GE Engine Services McAllen LP), 6200 S. 42nd Street: 450 annual average employees, 1,172,344 hours (450 in 2024; the employer's own people at the address; contractors are not counted).",
+          "addSources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ],
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://careers.geaerospace.com/global/en/mcallen-tx",
+            "https://echo.epa.gov/detailed-facility-report?fid=110070744737"
+          ],
+          "note": "GE Aerospace's careers page for the site (read 2026-11-24): 'one of our centers of expertise specializing in the repair of engine components used in commercial and military aircraft. These include LPT Nozzles, HPT Nozzles, and HPT Hangars.'",
+          "coordinatesFrom": "EPA registry facility 110070744737 (\"GE ENGINE SERVICES MCALLEN\", 6200 S 42ND ST, NAICS 336412)",
+          "hub": "review"
+        }
+      ]
+    },
+    {
+      "name": "Pratt & Whitney Canada",
+      "alsoKnownAs": [],
+      "parent": "Pratt & Whitney",
+      "domain": null,
+      "industry": "Aircraft Engines",
+      "description": "Designs, builds and maintains engines for business, regional and general aviation aircraft and helicopters.",
+      "headquarters": {
+        "city": "Longueuil",
+        "state": null,
+        "country": "CA"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://raytheon.mediaroom.com/2023-05-12-Pratt-Whitney-Canada-to-Invest-10-Million-in-Technology-Upgrades-at-Component-Repair-Facility-in-Wichita-Falls,-Texas"
+      ],
+      "plants": [
+        {
+          "name": "Pratt & Whitney Canada Wichita Falls",
+          "city": "Wichita Falls",
+          "state": "TX",
+          "address": "3101 Hammon Rd",
+          "zip": "76310",
+          "latitude": 33.87878,
+          "longitude": -98.44571,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336412",
+          "products": "Repair and coating of the hot (combustion) sections of Pratt & Whitney Canada engines, turbine blades among them",
+          "employees": 175,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'P&Wc Component Repairs' (Pratt & Whitney), 3101 Hammon Road: 175 annual average employees, 340,003 hours (172 in 2024; the employer's own people at the address; contractors are not counted).",
+          "addSources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ],
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://raytheon.mediaroom.com/2023-05-12-Pratt-Whitney-Canada-to-Invest-10-Million-in-Technology-Upgrades-at-Component-Repair-Facility-in-Wichita-Falls,-Texas",
+            "https://echo.epa.gov/detailed-facility-report?fid=110000460055"
+          ],
+          "note": "RTX's release of 2023-05-12: the Wichita Falls engine component repair facility 'joined the Pratt & Whitney Canada family in 1997' and 'repairs the \"hot\" (combustion) sections of a variety of Pratt & Whitney Canada engines'; turbine blades are coated there.",
+          "coordinatesFrom": "EPA registry facility 110000460055 (\"WICHITA FALLS REFURBISHMENT\", 3101 HAMMON RD., NAICS 336412)",
+          "hub": "review"
+        }
+      ]
     }
   ],
   "unplaced": [
@@ -19355,12 +19433,23 @@
       "why": "Its only point came from the ArcGIS World Geocoding Service, whose terms forbid storing an answer; neither the EPA registry nor the Census Bureau geocoder has the address. To be placed by hand."
     }
   ],
+  "held": [
+    {
+      "hub": "houston",
+      "company": "Axiom Space",
+      "name": "Axiom Space Gemini Street",
+      "address": "600 Gemini St",
+      "city": "Houston",
+      "state": "TX",
+      "why": "The only filing is OSHA's 'Headquarters', 600 Gemini St: 300 people with 624,000 hours, exactly 300 x 2,080, so an estimate; Axiom's other 2025 filings are SSDF in Webster (research, NAICS 541715) and Spaceport. KPRC (April 2026) says the suits are sewn in Houston but names no building. Nothing read puts production at 600 Gemini St; held until a source does."
+    }
+  ],
   "notes": {
     "austin-core": "HEADCOUNTS: the annual average number of employees each establishment reported to OSHA on Form 300A for 2025, read in the file the other Texas research files cite (ITA_300A_Summary_Data_2025_through_08-31-2026.csv), from a copy already on hand: osha.gov was not asked. A figure is written only when the hours the establishment reported make it credible (1,000 to 3,000 hours a person); two are not (Texas Electric Cooperatives, Georgetown: 2,256 people and 431,589 hours; UCT Austin Techridge: 705 and 203,822), and are in the plants' oshaNotWritten. COORDINATES: Williamson County's address points where the county has them, otherwise the Census geocoder's point on the street; where a plant fills a stored row, that row's point is kept. SUBSECTORS follow the NAICS code the establishment reported. The five factories from w22/startups.json are copied as that file has them.",
-    "austin-ring": "Factories added or filled in the ring around Austin. Headcounts are written only where a source states one for the site, with its year; the economic development corporations' tables of major employers (Temple, Lockhart) carry no date and are given the year they were read (2026). Coordinates are the address as Esri's World Geocoder (a point address) or the Census Bureau's geocoder answered it, except Lehigh White Cement, whose point is the one on its state air permit. Two addresses were read only in search summaries of directory listings and are less certain: Mensor (201 Barnes Dr) and Pure Castings (112 E MLK Jr Industrial Blvd). See notes.md beside this file.",
-    "houston": "WHAT THIS FILE IS. Factories of the Houston (Houston-Pasadena-The Woodlands metro area: Harris, Fort Bend, Montgomery, Brazoria, Galveston, Chambers, Liberty, Waller and Austin counties) and Beaumont-Port Arthur (Jefferson, Orange, Hardin) hubs that the seven earlier research files miss or describe without people, measured against a migrated copy of production on 2026-11-24 into which the seven files had been reloaded (the copy had their rows without their facts). Largest by people first. Evadale (Jasper County) is included because it is the Beaumont area's paper mill.\n\nHOW FACTS WERE GOT. Headcounts are the 'annual average number of employees' each establishment reported to OSHA on Form 300A for 2025 (2024 where there is no 2025 row), read from the copies of OSHA's establishment files already on disk from the earlier research (osha.gov itself was not asked). The figure is the employer's own people at that address, offices on the site included, contractors not included; each employeesNote names the filed establishment. Hours worked were checked against each figure; where they do not fit, the note says so. Products are one line from the industry the establishment filed (its NAICS description), sharpened only where a page read says more (PV Hardware, Mahindra, Methanex, Plug Power, Intuitive Machines, Axiom Space, Venus Aerospace, Solugen, Syzygy). opened is given only where a page states it (Intuitive Machines 2023, PV Hardware 2024).\n\nCOORDINATES. US Census Bureau geocoder (batch and single), exact house-number match, where it gave one; otherwise the ArcGIS World Geocoding Service, accepted only when its answer was a PointAddress or StreetAddress with the same house number and street (SLB Katy, SLB Bits, Dessert Holdings, Buckhead Meat & Seafood, TPC Group, MOGAS, TAS Energy Robin Street, Jindal Saw, Dover Pearland, Ball Conroe, SUHM, Crown Sugar Land, Solugen, Builders FirstSource Beltway, Starplast, Buckeye Corrugated, Emerson Jersey Village, Dow Bayport, Riviana, Arlanxeo, Biotics, Cameron Houston, Methanex, Baker Hughes Deer Park, Crown Conroe, Conrad Orange, Syzygy). ArcGIS's terms for storing results without a key are the owner's call; every such point is listed in notes.md. The filled plants keep the earlier files' coordinates.\n\nFILLED, NOT NEW. Dow Deer Park Operations, Frito-Lay Rosenberg, Celanese Clear Lake, Smurfit Westrock Evadale and JSW Steel USA Baytown are copied from their earlier files with the newer OSHA figure; every other field is as those files have it, so a second load keeps the newer headcount and changes nothing else.\n\nLEFT OUT ON PURPOSE (OSHA rows of 200 or more people in the hubs). Offices and headquarters: HP Inc. Houston (Spring, 2,662), Pennzoil Quaker State / Shell Oil (716), Yokogawa (599), ChampionX Sugar Land (565), Cimarron Energy (522), Innovex Corporate (Humble, 295), Emerson MSOL NA Sales (372), Sensia (292), Sulzer (285), American Alloy Steel (298), Star Pipe Products (330), Tally Energy Services (340), Lockheed Martin 2100 Space Park (200). Services, repair or distribution: UPS Industrial Services and Universal Plant Services (Deer Park, 4,028 and 1,193: plant maintenance contractors), Equipment Depot (483), Coca-Cola Southpoint DC (481), Vault Pressure Control (436), NOV Houston Service & Repair and Spares Warehouse (348, 201), AMS of NJ (330), Aeris Services (329), Doosan Turbomachinery Services (211), Carvana (254), International Cooling Tower (375), B&E Resources (618, an office suite). Hours that do not fit the headcount: Tubular Services (852), Colgan-Wilson Metal (235), Madden Bolt (260), Third Coast Pearland (211). Not identified well enough to describe: J Kraft (Humble), Labelleco Fab (Beaumont), Gas Chromatography Systems MAXUM (owner unclear), Dickson Administration. Outside the two metro areas: Tenaris Bay City, UFP New Waverly, Nan Ya Wharton. Already in an earlier file with a current figure: the rest.\n\nDOUBTS. Syzygy Plasmonics' site is described by the National Association of Manufacturers as an industrial demonstration plant, and the OSHA filing calls it Pearland at a Houston address. Axiom Space's 600 Gemini Street filing is its headquarters; KPRC says the suits are built in Houston without naming the building. Plug Power's Houston site also repairs cryogenic equipment. Dover Precision Components' parent (Dover Corporation) is how the copy files the two rows at the site, not a page read.",
+    "austin-ring": "In the combined file no ArcGIS point is kept: each was re-placed by the EPA registry's facility at the address, the stored row or the Census Bureau geocoder, or the plant waits in `unplaced`. Factories added or filled in the ring around Austin. Headcounts are written only where a source states one for the site, with its year; the economic development corporations' tables of major employers (Temple, Lockhart) carry no date and are given the year they were read (2026). Coordinates are the address as Esri's World Geocoder (a point address) or the Census Bureau's geocoder answered it, except Lehigh White Cement, whose point is the one on its state air permit. Two addresses were read only in search summaries of directory listings and are less certain: Mensor (201 Barnes Dr) and Pure Castings (112 E MLK Jr Industrial Blvd). See notes.md beside this file.",
+    "houston": "In the combined file no ArcGIS point is kept: each was re-placed by the EPA registry's facility at the address, the stored row or the Census Bureau geocoder, or the plant waits in `unplaced`. WHAT THIS FILE IS. Factories of the Houston (Houston-Pasadena-The Woodlands metro area: Harris, Fort Bend, Montgomery, Brazoria, Galveston, Chambers, Liberty, Waller and Austin counties) and Beaumont-Port Arthur (Jefferson, Orange, Hardin) hubs that the seven earlier research files miss or describe without people, measured against a migrated copy of production on 2026-11-24 into which the seven files had been reloaded (the copy had their rows without their facts). Largest by people first. Evadale (Jasper County) is included because it is the Beaumont area's paper mill.\n\nHOW FACTS WERE GOT. Headcounts are the 'annual average number of employees' each establishment reported to OSHA on Form 300A for 2025 (2024 where there is no 2025 row), read from the copies of OSHA's establishment files already on disk from the earlier research (osha.gov itself was not asked). The figure is the employer's own people at that address, offices on the site included, contractors not included; each employeesNote names the filed establishment. Hours worked were checked against each figure; where they do not fit, the note says so. Products are one line from the industry the establishment filed (its NAICS description), sharpened only where a page read says more (PV Hardware, Mahindra, Methanex, Plug Power, Intuitive Machines, Axiom Space, Venus Aerospace, Solugen, Syzygy). opened is given only where a page states it (Intuitive Machines 2023, PV Hardware 2024).\n\nCOORDINATES. US Census Bureau geocoder (batch and single), exact house-number match, where it gave one; otherwise the ArcGIS World Geocoding Service, accepted only when its answer was a PointAddress or StreetAddress with the same house number and street (SLB Katy, SLB Bits, Dessert Holdings, Buckhead Meat & Seafood, TPC Group, MOGAS, TAS Energy Robin Street, Jindal Saw, Dover Pearland, Ball Conroe, SUHM, Crown Sugar Land, Solugen, Builders FirstSource Beltway, Starplast, Buckeye Corrugated, Emerson Jersey Village, Dow Bayport, Riviana, Arlanxeo, Biotics, Cameron Houston, Methanex, Baker Hughes Deer Park, Crown Conroe, Conrad Orange, Syzygy). ArcGIS's terms for storing results without a key are the owner's call; every such point is listed in notes.md. The filled plants keep the earlier files' coordinates.\n\nFILLED, NOT NEW. Dow Deer Park Operations, Frito-Lay Rosenberg, Celanese Clear Lake, Smurfit Westrock Evadale and JSW Steel USA Baytown are copied from their earlier files with the newer OSHA figure; every other field is as those files have it, so a second load keeps the newer headcount and changes nothing else.\n\nLEFT OUT ON PURPOSE (OSHA rows of 200 or more people in the hubs). Offices and headquarters: HP Inc. Houston (Spring, 2,662), Pennzoil Quaker State / Shell Oil (716), Yokogawa (599), ChampionX Sugar Land (565), Cimarron Energy (522), Innovex Corporate (Humble, 295), Emerson MSOL NA Sales (372), Sensia (292), Sulzer (285), American Alloy Steel (298), Star Pipe Products (330), Tally Energy Services (340), Lockheed Martin 2100 Space Park (200). Services, repair or distribution: UPS Industrial Services and Universal Plant Services (Deer Park, 4,028 and 1,193: plant maintenance contractors), Equipment Depot (483), Coca-Cola Southpoint DC (481), Vault Pressure Control (436), NOV Houston Service & Repair and Spares Warehouse (348, 201), AMS of NJ (330), Aeris Services (329), Doosan Turbomachinery Services (211), Carvana (254), International Cooling Tower (375), B&E Resources (618, an office suite). Hours that do not fit the headcount: Tubular Services (852), Colgan-Wilson Metal (235), Madden Bolt (260), Third Coast Pearland (211). Not identified well enough to describe: J Kraft (Humble), Labelleco Fab (Beaumont), Gas Chromatography Systems MAXUM (owner unclear), Dickson Administration. Outside the two metro areas: Tenaris Bay City, UFP New Waverly, Nan Ya Wharton. Already in an earlier file with a current figure: the rest.\n\nDOUBTS. Syzygy Plasmonics' site is described by the National Association of Manufacturers as an industrial demonstration plant, and the OSHA filing calls it Pearland at a Houston address. Axiom Space's 600 Gemini Street filing is its headquarters; KPRC says the suits are built in Houston without naming the building. Plug Power's Houston site also repairs cryogenic equipment. Dover Precision Components' parent (Dover Corporation) is how the copy files the two rows at the site, not a page read.",
     "dfw": "WHAT THIS FILE IS. Dallas-Fort Worth (the 11 counties of the Dallas-Fort Worth-Arlington metro area) and Sherman-Denison (Grayson County), with two sites just outside them (Mineral Wells, Palo Pinto County). Factories the earlier Texas files did not carry, and one fact filled on a factory they do (Bell Fort Worth (Plant 1): opened 1952). Built on 2026-11-24 after measuring a copy of production with every earlier research file replayed onto it: 1,783 factories in the two metro areas, 149 with a headcount. HEADCOUNTS come from OSHA's establishment files (Form 300A, https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data), read from the copies already on disk from the 2026-11-18 download; nothing was asked of osha.gov. The figure is the establishment's own annual average number of employees at that address for 2025, or for 2024 when there is no 2025 filing (the note says so); offices on the site are included, contractors are not. WHICH: every manufacturing establishment (NAICS 31 to 33) in the two metro areas that filed 150 or more people, is a factory, and is not already in a research file, chosen by hand; below 150 only those picked for a reason (a known employer, a new or growing company); plus the plants the earlier OSHA brief left unplaced in this area (US Conec, Taylor Farms Texas, Sterilite, Freshpet, Petmate, MSI Express, Parker Filtration Mineral Wells) and two it left in doubt that sources settle (Shield AI's V-BAT building, Qorvo's Campbell Road site). Emerging and new factories added from company pages and news: MP Materials (Fort Worth magnets, 2024), Foxlink (Fort Worth circuit board assembly, opened July 2026), LiquidStack (Carrollton data-center cooling, 2023), GD-OTS Mesquite (155 mm projectile metal parts, 2024), Repkon USA (bought GD-OTS Garland in 2025), Louis Vuitton's Rochambeau Ranch workshop (2019), Aspire MRO and Mammoth Freighters (777 freighter conversions at Alliance), Shield AI (V-BAT, 2023). COORDINATES: the US Census geocoder's answer for the filed street address, accepted only when its house number, street name and street direction agree with the filing (a match on the other side of a street direction was refused: 1001 N Cockrell Hill answered as S Cockrell Hill, 803 W Carrier answered as N Carrier); otherwise the EPA registry's point for a facility at the same address (ECHO Exporter, published 2026-11-15, read from disk; the plant's sources then carry its detailed facility report). Five were placed by hand at the registry's point (ATCO on ATCO Drive, Carolina Beverage at 13300 Park Vista, UFP Grandview on Highway 81, Taylor Farms at 1001 N Cockrell Hill, MSI Express at 803 W Carrier Pkwy); Louis Vuitton is at the Census answer for 5500 County Road 316. Seven could not be placed and are in unplaced. PRODUCTS are one plain line from the filing's industry and the company's own description; treat them as descriptions. COMPANIES: a company already in another research file keeps that file's name, domain and parent. A domain is given only where the company's own site was reached or is well known; 'alsoKnownAs' are the exact names the rehearsal found rows stored under. GROUPING CALLS: ATCO Rubber Products under parent Mueller Industries (the filing names Mueller); Pottorff under parent PCI Industries (the filing names PCI); Meyer Utility Structures under parent Arcosa; Teledyne Micropac under Teledyne; Presto Products under Reynolds Consumer Products; Fresh Express under Chiquita; TurboChef under Middleby; EF Johnson under JVCKenwood; Owen Oil Tools under Core Laboratories; Progress Rail under Caterpillar; Heritage Bag under Novolex; BrassCraft under Masco; Whitmore under CSW Industrials; Continental Electronics under OSI Systems. The rehearsal on the copy of production (load texas-dfw) found 65 of the 124 companies and created 59; the corrections file in this folder names seven rows that are these factories under a former owner's name. LEFT OUT: repair and overhaul sites (StandardAero Dallas Airmotive, Pratt & Whitney Grand Prairie, Gulfstream Dallas and Alliance, Trinity Rail Maintenance, MTU Fort Worth), offices and engineering campuses filing a manufacturing code (Collins Aerospace Richardson, CAE Arlington, Raytheon Plano and Expressway, Motorola Allen and Dallas, Analog Devices Dallas, STMicroelectronics Coppell, Boeing Richardson, Crestron Plano, Delta Electronics Plano, Applied Materials Richardson), distribution and fulfilment (Amazon, Carvana, HelloFresh, Coca-Cola Southwest's distribution centers, Frito-Lay's service center), ready-mix, precast and asphalt (NAICS 32732, 32733, 32739, 324121), and those whose site or product could not be told from the filing (Standard Motor Products Lewisville, Salcomp Arlington, Jabil Richardson, OmniOn Plano, Honeywell Richardson, Peterbilt's 1700 Woodbrook St, Kroger's Irving beverage plant code 256-PL002, True Velocity Garland on a 2024 filing only, Koya Medical, axium solar).",
     "sanantonio": "San Antonio, New Braunfels, Seguin, the Rio Grande Valley and Laredo (Webb, Maverick, Val Verde). Measured on a migrated copy of archangel_mil2_prod with counties assigned. The large plants of the hub that the Texas files already describe (Toyota, International Motors, H-E-B, CMC, Caterpillar, Schaeffler, Tyson, Aisin, SpaceX Starbase and the OSHA additions) are not repeated here. This file adds what they left out: Boeing's and StandardAero's Port San Antonio sites (Boeing was unplaced in texas-transport-machinery for want of a coordinate; the registry row at 375 Airlift Dr is used), Johnson Controls' chiller plant and Avanzar's seat plant (unplaced in texas-osha-additions; their registry rows are used), JCB's factory under construction, Teijin's composites plant in Seguin and the start-up Knight Aerospace. OSHA figures are taken only from the files already in data/ and cited by the OSHA file's address, as those files cite them. O.F. Mossberg & Sons is listed without a plant to give the row stored as 'Of Mossberg & Sons' its name.",
-    "rest": "WHAT THIS FILE IS. Factories of the rest of Texas that the seven earlier research files miss, describe without people, or describe with a figure years old: the metro areas of El Paso, Corpus Christi, Victoria, College Station-Bryan, Tyler, Longview, Lubbock, Amarillo, Midland, Odessa, Abilene and Wichita Falls (with the towns next to them: Calhoun County, Navasota, Brenham, Athens, Jacksonville, Borger, Pampa, Big Spring, Sweetwater and Snyder, Olney and Vernon), and the largest factories elsewhere in Texas outside the Austin, Dallas-Fort Worth, Houston-Beaumont and San Antonio-Valley-Laredo briefs (the Rio Grande Valley, Laredo and the border towns are that brief's and are left to it). Measured against a migrated copy of production on 2026-11-24 into which the seven files had been reloaded (the copy had their rows without their facts). Largest by people first.\n\nHOW FACTS WERE GOT. Headcounts are the 'annual average number of employees' each establishment reported to OSHA on Form 300A for 2025 (2024 where there is no usable 2025 row), read from the copies of OSHA's establishment files already on disk from the earlier research (osha.gov itself was not asked). The figure is the employer's own people at that address, offices on the site included, contractors not included; each employeesNote names the filed establishment. A figure is written only when the hours reported give 1,000 to 3,000 hours a person; otherwise the plant carries oshaNotWritten and no headcount. The Pantex Plant files no Form 300A; its figure is the plant's own page. Products are one line from the industry the establishment filed (its NAICS description), sharpened only where a page read says more (Cheniere, Tesla's refinery, Pantex, AST SpaceMobile, BioVeritas, Skeeter, Tige, Novipax, Handgards and the other company pages cited). opened is given only where a page states it (Corpus Christi Liquefaction, 2018).\n\nCOORDINATES. US Census Bureau geocoder (batch, Public_AR_Current) for the filed street address, used only when the house number and street agree; otherwise the ArcGIS World geocoder's point address for the same street address; where neither finds the building (a post office box, a highway, a plant on a federal reservation) the EPA registry's point from the ECHO Exporter extract already on disk, cited by its facility report.\n\nFILLS. Thirteen factories other files already describe are given here again with the newer OSHA figure (the loader keeps the newer headcount): Steel Dynamics Sinton, Howmet Wichita Falls, Tyson Vernon, Blue Bell Brenham, Valmont Brenham, Pilgrim's Lufkin and Nacogdoches, Kohler Brownwood (two filings at one address, added), Georgia-Pacific Camden and Pineland, Graphic Packaging Texarkana, W&W-AFCO San Angelo, LyondellBasell Victoria. Each copies the earlier file's place, products and sources and says the earlier figure.\n\nLEFT OUT ON PURPOSE. Distribution centres that file under a maker's industry code (Coca-Cola Southwest Beverages' DCs in Abilene, Lubbock, Tyler, Odessa, Bryan, Corpus Christi, Wichita Falls, Amarillo); repair and overhaul sites (GE Aerospace engine services McAllen, Pratt & Whitney Canada component repairs Wichita Falls, Rolls-Royce at NAS Kingsville, DynaTen at Bell Amarillo, Raytheon at Biggs Army Airfield); ready-mix, precast and other concrete products (Jobe Materials, Permian Basin Materials, Thomas Redi-Mix, Summit Precast, Texas Concrete Partners and others: NOT_COVERED); asphalt paving (Longview Asphalt); Blue Origin's West Texas launch site at Van Horn (587 in 2025), where New Shepard is launched and engines are tested but which no page read says builds anything; Helen of Troy, which designs and sells products made by others and has no factory in El Paso (its old headquarters at 1 Helen of Troy Plaza is now Eaton's plant, already in the data); Smallwood (Longview), whose filing is a management company and whose products are not stated."
+    "rest": "In the combined file no ArcGIS point is kept: each was re-placed by the EPA registry's facility at the address, the stored row or the Census Bureau geocoder, or the plant waits in `unplaced`. WHAT THIS FILE IS. Factories of the rest of Texas that the seven earlier research files miss, describe without people, or describe with a figure years old: the metro areas of El Paso, Corpus Christi, Victoria, College Station-Bryan, Tyler, Longview, Lubbock, Amarillo, Midland, Odessa, Abilene and Wichita Falls (with the towns next to them: Calhoun County, Navasota, Brenham, Athens, Jacksonville, Borger, Pampa, Big Spring, Sweetwater and Snyder, Olney and Vernon), and the largest factories elsewhere in Texas outside the Austin, Dallas-Fort Worth, Houston-Beaumont and San Antonio-Valley-Laredo briefs (the Rio Grande Valley, Laredo and the border towns are that brief's and are left to it). Measured against a migrated copy of production on 2026-11-24 into which the seven files had been reloaded (the copy had their rows without their facts). Largest by people first.\n\nHOW FACTS WERE GOT. Headcounts are the 'annual average number of employees' each establishment reported to OSHA on Form 300A for 2025 (2024 where there is no usable 2025 row), read from the copies of OSHA's establishment files already on disk from the earlier research (osha.gov itself was not asked). The figure is the employer's own people at that address, offices on the site included, contractors not included; each employeesNote names the filed establishment. A figure is written only when the hours reported give 1,000 to 3,000 hours a person; otherwise the plant carries oshaNotWritten and no headcount. The Pantex Plant files no Form 300A; its figure is the plant's own page. Products are one line from the industry the establishment filed (its NAICS description), sharpened only where a page read says more (Cheniere, Tesla's refinery, Pantex, AST SpaceMobile, BioVeritas, Skeeter, Tige, Novipax, Handgards and the other company pages cited). opened is given only where a page states it (Corpus Christi Liquefaction, 2018).\n\nCOORDINATES. US Census Bureau geocoder (batch, Public_AR_Current) for the filed street address, used only when the house number and street agree; otherwise the ArcGIS World geocoder's point address for the same street address; where neither finds the building (a post office box, a highway, a plant on a federal reservation) the EPA registry's point from the ECHO Exporter extract already on disk, cited by its facility report.\n\nFILLS. Thirteen factories other files already describe are given here again with the newer OSHA figure (the loader keeps the newer headcount): Steel Dynamics Sinton, Howmet Wichita Falls, Tyson Vernon, Blue Bell Brenham, Valmont Brenham, Pilgrim's Lufkin and Nacogdoches, Kohler Brownwood (two filings at one address, added), Georgia-Pacific Camden and Pineland, Graphic Packaging Texarkana, W&W-AFCO San Angelo, LyondellBasell Victoria. Each copies the earlier file's place, products and sources and says the earlier figure.\n\nLEFT OUT ON PURPOSE. Distribution centres that file under a maker's industry code (Coca-Cola Southwest Beverages' DCs in Abilene, Lubbock, Tyler, Odessa, Bryan, Corpus Christi, Wichita Falls, Amarillo); repair and overhaul sites (GE Aerospace engine services McAllen, Pratt & Whitney Canada component repairs Wichita Falls, Rolls-Royce at NAS Kingsville, DynaTen at Bell Amarillo, Raytheon at Biggs Army Airfield); ready-mix, precast and other concrete products (Jobe Materials, Permian Basin Materials, Thomas Redi-Mix, Summit Precast, Texas Concrete Partners and others: NOT_COVERED); asphalt paving (Longview Asphalt); Blue Origin's West Texas launch site at Van Horn (587 in 2025), where New Shepard is launched and engines are tested but which no page read says builds anything; Helen of Troy, which designs and sells products made by others and has no factory in El Paso (its old headquarters at 1 Helen of Troy Plaza is now Eaton's plant, already in the data); Smallwood (Longview), whose filing is a management company and whose products are not stated."
   }
 }
