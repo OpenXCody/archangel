@@ -204,7 +204,7 @@ router.get('/', async (req: Request, res: Response) => {
       const serviceKey = req.query.military === 'named' ? namedService(query) : null;
       const service = serviceKey ? await findService(db, serviceKey) : null;
       const serviceItems: SearchResultItem[] = service
-        ? [{ id: service.id, name: service.name, type: 'companies' as const, subtitle: 'Military service', domain: null, service: true as const }]
+        ? [{ id: service.id, name: service.name, type: 'companies' as const, subtitle: 'Military service', domain: service.domain, service: true as const }]
         : [];
 
       results.results.companies = {

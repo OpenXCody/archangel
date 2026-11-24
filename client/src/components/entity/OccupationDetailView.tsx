@@ -86,11 +86,17 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
         // Diagnostic Equipment Maintenance Support Specialist"): at the page-title size it fills a phone's screen.
         longTitle={Boolean(service) && (data.officialTitle ?? data.title).length > LONG_TITLE}
         // A military career belongs to its service: named under the title as the record the page belongs to, the way
-        // a factory names its company. No mark: a service's is a lettermark on purpose, and three of them are a "U".
+        // a factory names its company, with the service's own mark as a company tag carries its mark.
         qualifier={
           service && (
             <RecordTags>
-              <RecordTag to={`/companies/${service.slug ?? service.id}`} kind="Military service" name={service.name} data-career-service="" />
+              <RecordTag
+                to={`/companies/${service.slug ?? service.id}`}
+                kind="Military service"
+                lead={<CompanyLogo name={service.name} domain={service.domain} size={20} />}
+                name={service.name}
+                data-career-service=""
+              />
             </RecordTags>
           )
         }
