@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ADMIN_PAGES, adminPath, useAdminOverview, type AdminPage } from '../../lib/admin';
+import { useAdminOverview } from '../../lib/admin';
+import { ADMIN_PAGES, adminPath, type AdminPage } from '../../lib/adminPages';
 import { useAdminCompanyRequests } from '../../lib/employerCompanies';
 import { rowClass, rowHoverClass } from '../account/parts';
 import Panel from './Panel';
