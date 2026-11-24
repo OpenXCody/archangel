@@ -10,7 +10,7 @@ import { cn, focusRing } from '@/lib/utils';
  *
  * - `Panel`: the frame. A hairline edge (`--line`) with an 8px corner, no
  *   fill, no shadow. Anything made of several parts sits in one: a list of
- *   records, a skill group, the ladder, a call to act, a skill's preview. A
+ *   records, a skill group of the Skills list, a connector tree. A
  *   panel never holds another panel; inside it, parts are parted by
  *   hairlines. `PanelHead` is its heading row.
  * - `Disclosure`: a panel whose heading row is the button that opens it. The
@@ -25,12 +25,9 @@ import { cn, focusRing } from '@/lib/utils';
  *   header so nobody loses which part they are in. Bands stack as an index
  *   while closed. The raised fill marks the bar as the start of a part,
  *   whether it is open or not: it is never a state.
- * - `ActionPanel`: a sentence and one button, on one row from a tablet up,
- *   for a call to act (sign in to see your skills). Never a link in a line of
- *   text.
- * - `chosenClass`: a row inside a panel that is chosen rather than followed
- *   (a skill whose preview stands beside the list): no chevron; the chosen
- *   one has a bar of ink at its left edge and its name at medium weight.
+ * - `Tree` (`components/layout/Tree.tsx`): one thing and what hangs off it,
+ *   as nodes joined by hairlines inside one panel (a career's skills, where
+ *   it leads, the civilian careers a military one reaches).
  *
  * Two marks at a row's right end, each meaning one thing: a chevron pointing
  * down (up when open) opens something here; a chevron pointing right goes to
@@ -45,16 +42,6 @@ export const panelClass = 'min-w-0 overflow-clip rounded-lg border border-line';
 
 /** A row inside a panel: its own padding, the hover reaching the frame (only where there is a pointer), the focus ring drawn inside it. */
 export const panelRowClass = cn('flex min-h-12 w-full min-w-0 items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-hover focus-visible:-outline-offset-2', focusRing);
-
-/**
- * A row inside a panel that is chosen rather than followed: on the row's own
- * element (an `li`, so the bar runs down whatever opens under the row), a bar
- * of ink at its left edge while it is chosen. See the notes at the top of
- * this file.
- */
-export function chosenClass(chosen: boolean): string {
-  return cn("relative before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-[1] before:w-0.5 before:content-['']", chosen ? 'before:bg-text-1' : 'before:bg-transparent');
-}
 
 /** The primary button: the inverse pair, a full finger tall on a phone. */
 export const primaryActionClass = cn(
@@ -191,33 +178,6 @@ export function Band({ title, meta, description, open, onToggle, actions, childr
         )}
       </div>
     </section>
-  );
-}
-
-interface ActionPanelProps {
-  /** The sentence: first what it is about (in full ink), then what the button gives (in secondary ink). */
-  children: ReactNode;
-  /** The one button (a link styled as one, or a button). */
-  action: ReactNode;
-  /** A figure that leads the sentence (a seeker's ring). */
-  lead?: ReactNode;
-  className?: string;
-}
-
-/**
- * A sentence and one button, in a panel: a call to act. On one row from a
- * tablet up, the button at the right; on a phone the button under the
- * sentence, the full width. See the notes at the top of this file.
- */
-export function ActionPanel({ children, action, lead, className, ...rest }: ActionPanelProps & Record<`data-${string}`, string | undefined>) {
-  return (
-    <div className={cn(panelClass, 'flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-5', className)} data-action-panel="" {...rest}>
-      <div className="flex min-w-0 items-center gap-3">
-        {lead}
-        <div className="min-w-0 text-sm leading-relaxed">{children}</div>
-      </div>
-      <div className="flex shrink-0 [&>*]:w-full sm:[&>*]:w-auto">{action}</div>
-    </div>
   );
 }
 

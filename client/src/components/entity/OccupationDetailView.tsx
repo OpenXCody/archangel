@@ -36,7 +36,9 @@ import { type Head, OpenJobsSection, MilitaryCareerRows } from './parts';
  *    come from, this career, where it leads, as the same connector tree
  *    (`CareerLadder`). Its frame is the place the career's own Atlas will take.
  * 4. What else a person can do with it. A military career: the civilian
- *    careers within reach (`CivilianReach`). A civilian career: its open
+ *    careers within reach (`CivilianReach`), the same connector tree, the
+ *    career its root and each civilian career a node that opens to what it
+ *    asks that this path does not. A civilian career: its open
  *    jobs, the companies with their own version of it, the factories that
  *    have it on record, and last the military careers that reach it. Each a
  *    panel of rows. A section with nothing in it is not drawn, and nothing is
@@ -108,7 +110,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       )}
 
       {/* A military career: what else its skills are for, the civilian careers they reach. */}
-      {service && <CivilianReach key={data.id} careers={withinReach} />}
+      {service && <CivilianReach key={data.id} title={data.officialTitle ?? data.title} careers={withinReach} />}
 
       {/* Like the company and factory pages: a section only when there is a job to show. */}
       {/* The newest five; "All N" leads to the rest on Jobs. */}

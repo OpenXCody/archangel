@@ -34,10 +34,11 @@ interface SkillGroupsProps {
  * A career's skills (`#skills`), drawn as the same connector tree as where it
  * leads (`Tree`, `components/layout/Tree.tsx`): the heading with "Open all",
  * one sentence that says how many skills in how many groups and why they stand
- * in this order (and, for a seeker who holds some, how many), then one frame
- * holding the tree. The career is the root; an elbow runs to each skill
- * group, in the order the route first reaches it, the group's name and its
- * size under it ("10 skills"; "1 held · 2 skills" for a seeker who holds some).
+ * in this order (and, on a line of its own, how many a seeker holds, once
+ * they hold one), then one frame holding the tree. The career is the root; an
+ * elbow runs to each skill group, in the order the route first reaches it,
+ * each one row: the group's name and, at its right end, its size ("10
+ * skills"; "1 of 2 held" for a seeker who holds some of it).
  *
  * A group is a node that opens its own branch: its skills, in the route's
  * order, each on an elbow off the group's own spine (across, from 1024 px, in
@@ -92,12 +93,12 @@ export function SkillGroups({ title, skills, marks, keepAs, after, before }: Ski
         title="Skills"
         description={
           <>
-            <span data-skills-size>
+            <span className="block" data-skills-size>
               {plural(skills.length, 'skill', 'skills')} in {plural(groups.length, 'group', 'groups')}, in the order a person usually comes to them.
             </span>
+            {/* A seeker's one line of progress, under the sentence and never inside it; nothing while they hold none. */}
             {share && share.held > 0 && (
-              <span data-held-count>
-                {' '}
+              <span className="mt-1 block" data-held-count>
                 You hold <span className="tabular-nums">{share.held}</span> of these {plural(skills.length, 'skill', 'skills')}.
               </span>
             )}
@@ -117,7 +118,7 @@ export function SkillGroups({ title, skills, marks, keepAs, after, before }: Ski
         }
       />
       <div className={cn(panelClass, 'mt-1')} data-skill-groups="">
-        <Tree across="lg" shape="tree" after className="px-2 py-2 sm:px-3 lg:py-3" data-skill-tree="">
+        <Tree across="lg" shape="tree" after data-skill-tree="">
           <TreeRoot>{title}</TreeRoot>
           <TreeBranch>
             {groups.map((group, index) => {
@@ -133,12 +134,10 @@ export function SkillGroups({ title, skills, marks, keepAs, after, before }: Ski
                   node={
                     <TreeToggle
                       as="h3"
-                      strong
                       title={group.name}
-                      meta={
-                        <span className="tabular-nums" data-group-figure>
-                          {held > 0 && `${held} held · `}
-                          {plural(group.skills.length, 'skill', 'skills')}
+                      figure={
+                        <span data-group-figure>
+                          {held > 0 ? `${held} of ${group.skills.length} held` : plural(group.skills.length, 'skill', 'skills')}
                         </span>
                       }
                       open={isOpen}

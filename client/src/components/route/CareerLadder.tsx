@@ -48,7 +48,7 @@ export function CareerLadder({
           {atlas}
         </div>
       )}
-      <Tree across="sm" shape="ladder" before={hasFrom} after={hasTo} className="px-3 py-3 sm:px-4 sm:py-5">
+      <Tree across="sm" shape="ladder" before={hasFrom} after={hasTo}>
         {hasFrom && (
           <TreeBranch side="before" label="Comes from" data-path-ladder="before">
             {from.shown.map((career) => (

@@ -1,7 +1,7 @@
 import { createContext, useContext, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-import { cn, focusRing, labelClass } from '@/lib/utils';
+import { cn, labelClass } from '@/lib/utils';
 import { useMediaQuery } from '../../lib/media';
 import { SkillMark } from '../account/SkillStatusButton';
 import { OpenChevron } from './Panel';
@@ -17,10 +17,14 @@ import { OpenChevron } from './Panel';
  * - A branch is a spine (an upright hairline) with an elbow out to each of
  *   its nodes. The parent's own line meets the spine; every line is whole and
  *   ends on a node or on the spine.
- * - A node is a row: its mark (an open ring; a skill a seeker holds, the
- *   product's mark), its name, a second line in meta ink, and at the right end
- *   what it does: a chevron pointing right goes to another page (`TreeLink`),
- *   one pointing down opens something here (`TreeToggle`), up while it is open.
+ * - A node is one row, the same height everywhere (44px for a name of one
+ *   line): its mark (an open ring; a skill a seeker holds, the product's
+ *   mark), its name, and at the right end, level with the name's first line,
+ *   its figure in meta ink ("10 skills") and what it does: a chevron pointing
+ *   right goes to another page (`TreeLink`), one pointing down opens something
+ *   here (`TreeToggle`), up while it is open. A second line under the name is
+ *   for what is particular to one node (the makes a company runs on a skill),
+ *   never for a figure every node has.
  *   A node that opens a branch of its own (`branches` on `TreeItem`) draws its
  *   line on to that branch while it is open; a node that opens what it is
  *   (`TreeDetail`) shows it under itself, inside its own place on the spine.
@@ -72,7 +76,8 @@ export function Tree({ across, shape, before = false, after = false, className, 
   return (
     <LayoutContext.Provider value={layout}>
       <div
-        className={cn('tree', className)}
+        // One frame's room around every tree, so two trees on a page start their roots on one upright.
+        className={cn('tree px-3 py-3 sm:px-4 sm:py-5', className)}
         data-tree=""
         data-layout={layout}
         data-shape={shape}
@@ -93,7 +98,8 @@ export type TreeMark = 'root' | 'node' | 'held' | 'learning';
 export function TreeMarker({ mark }: { mark: TreeMark }) {
   return (
     <span className="tree-mark" aria-hidden="true" data-mark={mark}>
-      {mark === 'held' || mark === 'learning' ? <SkillMark status={mark} className="h-3.5 w-3.5" /> : <span className="tree-dot" />}
+      {/* A seeker's mark at the size of a ring, so a held skill is never louder than the career it belongs to. */}
+      {mark === 'held' || mark === 'learning' ? <SkillMark status={mark} className="h-3 w-3" /> : <span className="tree-dot" />}
     </span>
   );
 }
@@ -225,49 +231,75 @@ export function TreeItem({ node, branches = false, open = false, children, ...re
   );
 }
 
-/** A node's row: the mark, the words, and what it does at the right end, the focus ring inside it. */
-const rowClass = cn(
-  'flex w-full min-w-0 items-start gap-2.5 rounded-md px-2 py-3 text-left transition-colors hover:bg-surface-hover',
-  focusRing,
-  // After the ring's own offset, so the ring stands inside the row and never over the line or the words under it.
-  'focus-visible:-outline-offset-2'
-);
+/**
+ * A node's row: the mark, the words, and at the right end its figure and what
+ * it does. The hover fill and the focus ring (`.tree-row` in `globals.css`)
+ * start at the mark's edge, where the line from the spine ends, so neither is
+ * ever laid over a line.
+ */
+const rowClass = 'tree-row flex w-full min-w-0 items-start gap-2.5 px-2 py-3 text-left';
 
-/** The name and its second line. */
-function Words({ title, meta, strong = false }: { title: ReactNode; meta?: ReactNode; strong?: boolean }) {
+/** The name and, for what is particular to this node, a second line. */
+function Words({ title, meta }: { title: ReactNode; meta?: ReactNode }) {
   return (
     <span className="min-w-0 flex-1">
-      <span className={cn('block break-words text-sm leading-5 text-text-1', strong && 'font-medium')}>{title}</span>
+      <span className="block break-words text-sm leading-5 text-text-1">{title}</span>
       {meta && <span className="block break-words text-xs font-normal leading-[18px] text-text-3">{meta}</span>}
     </span>
   );
 }
 
-/** The mark at a row's right end, level with its first line. */
-function End({ children }: { children: ReactNode }) {
-  return <span className="flex h-5 shrink-0 items-center">{children}</span>;
+/** The right end of a row, level with its first line: the node's figure in meta ink, then its chevron. */
+function End({ figure, children }: { figure?: ReactNode; children: ReactNode }) {
+  return (
+    <span className="flex h-5 shrink-0 items-center gap-3">
+      {figure != null && figure !== false && (
+        <span className="whitespace-nowrap text-xs tabular-nums text-text-3" data-tree-figure="">
+          {figure}
+        </span>
+      )}
+      {children}
+    </span>
+  );
 }
 
 /** A node that goes to another page: a chevron pointing right. */
-export function TreeLink({ to, mark = 'node', meta, children, ...rest }: { to: string; mark?: TreeMark; meta?: ReactNode; children: ReactNode } & Record<`data-${string}`, string | undefined>) {
+export function TreeLink({
+  to,
+  mark = 'node',
+  meta,
+  figure,
+  children,
+  ...rest
+}: { to: string; mark?: TreeMark; meta?: ReactNode; figure?: ReactNode; children: ReactNode } & Record<`data-${string}`, string | undefined>) {
   return (
     <Link to={to} className={cn(rowClass, 'group')} {...rest}>
       <TreeMarker mark={mark} />
       <Words title={children} meta={meta} />
-      <End>
+      <End figure={figure}>
         <ChevronRight aria-hidden="true" className="h-4 w-4 text-text-3 group-hover:text-text-1" />
       </End>
     </Link>
   );
 }
 
+/** A node that is only what it says (a skill a career asks that a path does not have): no chevron, nothing to press. */
+export function TreeLeaf({ mark = 'node', meta, children, ...rest }: { mark?: TreeMark; meta?: ReactNode; children: ReactNode } & Record<`data-${string}`, string | undefined>) {
+  return (
+    <div className={rowClass} data-tree-leaf="" {...rest}>
+      <TreeMarker mark={mark} />
+      <Words title={children} meta={meta} />
+    </div>
+  );
+}
+
 interface TreeToggleProps {
   mark?: TreeMark;
   title: ReactNode;
-  /** The second line, in meta ink ("10 skills"). */
+  /** A second line under the name, for what is particular to this node (a company's makes on a skill). */
   meta?: ReactNode;
-  /** The name at the weight of a heading: a node whose branch holds others. */
-  strong?: boolean;
+  /** Its figure, at the right end before the chevron ("10 skills", "1 of 2 held"). */
+  figure?: ReactNode;
   open: boolean;
   onToggle: () => void;
   /** The id of what it opens. */
@@ -279,14 +311,14 @@ interface TreeToggleProps {
 }
 
 /** A node that opens something here (its branch, or what it is): a button with the chevron that points down, up while open. */
-export function TreeToggle({ mark = 'node', title, meta, strong = false, open, onToggle, controls, said, as: Heading, ...rest }: TreeToggleProps & Record<`data-${string}`, string | undefined>) {
+export function TreeToggle({ mark = 'node', title, meta, figure, open, onToggle, controls, said, as: Heading, ...rest }: TreeToggleProps & Record<`data-${string}`, string | undefined>) {
   const button = (
     // It names what it opens only while that is there to name.
     <button type="button" aria-expanded={open} aria-controls={open ? controls : undefined} onClick={onToggle} className={rowClass} {...rest}>
       <TreeMarker mark={mark} />
-      <Words title={title} meta={meta} strong={strong} />
+      <Words title={title} meta={meta} />
       {said && <span className="sr-only">{said}</span>}
-      <End>
+      <End figure={figure}>
         <OpenChevron open={open} />
       </End>
     </button>
@@ -297,7 +329,7 @@ export function TreeToggle({ mark = 'node', title, meta, strong = false, open, o
 /** The last node of a branch that was cut: "2 more", which shows the rest in place. */
 export function TreeMore({ more, onMore }: { more: number; onMore: () => void }) {
   return (
-    <button type="button" onClick={onMore} className={cn(rowClass, 'text-sm leading-5 text-text-2 hover:text-text-1')} data-ladder-more="">
+    <button type="button" onClick={onMore} className={cn(rowClass, 'text-sm leading-5 text-text-2 hover:text-text-1')} data-ladder-more="" data-tree-more="">
       <TreeMarker mark="node" />
       {more} more
     </button>

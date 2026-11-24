@@ -185,7 +185,9 @@ export default function EntityDetail() {
   };
 
   return (
-    <PageContainer size="narrow">
+    // A career's page is wider from a laptop up (1120 px at most), every panel on it together, so its tree
+    // of skills stands across with room for a skill opened at a reading measure; its sentences keep theirs.
+    <PageContainer size="narrow" className={entityType === 'occupations' ? 'lg:max-w-[73rem]' : undefined}>
       {/* The address says which kind of record this is; the shape checks only
           narrow the type. A response that gains a field can then never draw
           another kind's page. `data-entity-view` names the view for tests. */}

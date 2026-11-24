@@ -786,16 +786,20 @@ input {
     grid-template-areas: 'lb lt' 'before this';
   }
   /*
-   * Across: a tree is its root, only as wide as its name needs, and its
-   * branches in the rest, level with the first node. Its columns stand a
-   * little closer than a ladder's, so a node's last column keeps room for
-   * what it opens under itself.
+   * Across: a tree is its root, only as wide as its name needs (one line for
+   * most careers, two at most, balanced), and its branches in the rest, level
+   * with the first node. A node that opens a branch keeps room for most
+   * groups' names on one line beside their figure. Its lines are measured as
+   * a ladder's are, so the two read as one drawing.
    */
   .tree[data-layout='wide'][data-shape='tree'] {
-    --tree-indent: 32px;
-    --tree-spine: 16px;
-    grid-template-columns: fit-content(9.5rem) minmax(0, 1fr);
+    --tree-node-width: 20rem;
+    grid-template-columns: fit-content(16rem) minmax(0, 1fr);
     grid-template-areas: 'this after';
+  }
+  /* A military career's civilian careers: names of careers, and a longer figure ("13 of 18 skills"), beside the root. */
+  .tree[data-layout='wide'][data-reach-tree] {
+    --tree-node-width: 24rem;
   }
   .tree[data-layout='wide'] .tree-this,
   .tree[data-layout='wide'] .tree-side {
@@ -874,6 +878,7 @@ input {
     align-items: flex-start;
     gap: var(--tree-gap);
     padding: 12px 0 12px var(--tree-pad);
+    text-wrap: balance;
   }
   /* Across, the line out runs from the name to the spine of the branch after it; the line in, from the spine before it to the dot. */
   .tree[data-layout='wide'][data-after] .tree-root::after {
@@ -949,6 +954,17 @@ input {
   .tree[data-layout='wide'] .tree-item:only-child::after {
     display: none;
   }
+  /*
+   * A ladder's side of one career stands centred on the career; when its name
+   * takes two lines, its elbow (at the first line) and the career's line (at
+   * the middle) part, so a short spine joins them.
+   */
+  .tree[data-layout='wide'][data-shape='ladder'] .tree-side > .tree-branch > .tree-item:only-child::after {
+    display: block;
+    top: var(--tree-mid);
+    bottom: 50%;
+    height: auto;
+  }
   /* Across, a branch before the root is mirrored: each elbow leaves its node's right end for a spine on the right. */
   .tree[data-layout='wide'] .tree-branch[data-side='before'] {
     padding-left: 0;
@@ -981,6 +997,10 @@ input {
     grid-template-columns: minmax(0, var(--tree-node-width)) minmax(0, 1fr);
     align-items: start;
   }
+  /* Across, an opened branch is no wider than what its nodes open at a reading measure, so a chevron stays near its name. */
+  .tree[data-layout='wide'] .tree-branch[data-nested] {
+    max-width: calc(var(--tree-indent) + var(--tree-text) + 60ch + var(--tree-pad));
+  }
   .tree[data-layout='wide'] .tree-item[data-branches][data-open] > .tree-node::after {
     content: '';
     position: absolute;
@@ -998,10 +1018,54 @@ input {
     border-left: 1px solid var(--tree-line);
   }
 
-  /* What a node is, opened under it: indented to its name, beside its own length of the spine. */
+  /*
+   * A node's row. Its fill under the pointer and its focus ring are one box
+   * that starts just before the mark, where the elbow ends, so the line runs
+   * up to the ring and stops there, never through it; the ring is the global
+   * one (2px of the accent, 2px clear of the mark), drawn inside that box.
+   */
+  .tree-row {
+    position: relative;
+    isolation: isolate;
+  }
+  .tree-row::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 0 calc(var(--tree-reach) - 4px);
+    border-radius: 6px;
+    pointer-events: none;
+    transition: background-color 150ms;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    button.tree-row:hover::after,
+    a.tree-row:hover::after {
+      background-color: var(--surface-hover);
+    }
+  }
+  .tree-row:focus-visible {
+    outline: none;
+  }
+  .tree-row:focus-visible::after {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tree-row::after {
+      transition: none;
+    }
+  }
+
+  /* What a node is, opened under it: indented to its name, beside its own length of the spine, at a reading measure. */
   .tree-detail {
     min-width: 0;
+    max-width: calc(var(--tree-text) + 60ch);
     padding: 0 var(--tree-pad) 20px var(--tree-text);
+  }
+  /* Down, it starts under the node's mark: a phone's measure is too short to give the indent away. */
+  .tree[data-layout='stacked'] .tree-detail {
+    max-width: none;
+    padding-left: var(--tree-reach);
   }
 
   /* A route whose rows are another control (the employer's editor): no trunk, and nothing stands on it. */
