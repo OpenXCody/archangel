@@ -344,16 +344,18 @@ function AreaTile({ area }: { area: ExploreArea }) {
 function Plants({ areas, states }: { areas: ExploreArea[]; states: ExploreState[] }) {
   if (areas.length === 0 && states.length === 0) return null;
   const rows = Math.ceil(states.length / 2);
+  // Two areas stand beside the states; more take the width in pairs, and the states follow under them.
+  const many = areas.length > 2;
   return (
     <PageSection title="Factories" actions={<TextLink to={exploreHref('factories')}>All factories</TextLink>} className={SECTION}>
       <div
         className={cn(
           'grid grid-cols-1 gap-x-12 gap-y-8',
-          areas.length > 0 && states.length > 0 && 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]'
+          !many && areas.length > 0 && states.length > 0 && 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]'
         )}
       >
         {areas.length > 0 && (
-          <div className="grid grid-cols-1 content-start gap-3 sm:gap-4">
+          <div className={cn('grid grid-cols-1 content-start gap-3 sm:gap-4', many && 'sm:grid-cols-2')}>
             {areas.map((area) => (
               <AreaTile key={area.id} area={area} />
             ))}
