@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # End-to-end check of the military careers' data: the four services as employers
 # (migration 0062, their descriptions brought up to date by 0077), the careers with their service and code (0063) and their paths
-# (0064), all from scripts/build-military-sql.mjs, as the database holds them and
+# (0064, now 0078), all from scripts/build-military-sql.mjs, as the database holds them and
 # as the API serves them: a military career has its page and is listed when asked
 # for, and every default list, count, search and suggestion is of civilian careers.
 # Then where a military career is used: the site's search when the query names it,
@@ -10,7 +10,7 @@
 # Prints one line per check and exits non-zero if any fail.
 #
 # It reads what the migrations loaded (data/careers/military/: the database must
-# have had 0059 to 0064 applied, as `scripts/create-db.mjs --sample` leaves it),
+# have had 0059 to 0064 and 0078 applied, as `scripts/create-db.mjs --sample` leaves it),
 # then lays out rows as production might hold them (a service stored in other
 # letters and with plants, a company that carries a service under another name, a
 # name that only resembles a service's; a career that carries a code under another
@@ -55,7 +55,7 @@ expect "the military files pass their check" 0 "$?"
 expect "the employers' migration in the repository is what the file generates" 0 "$(cmp -s "$D/employers.sql" "$ROOT/migrations/0077_military_employers_2.sql"; echo $?)"
 (cd "$ROOT" && node scripts/build-military-sql.mjs careers "$D/careers.sql" && node scripts/build-military-sql.mjs paths "$D/paths.sql") > /dev/null 2>&1
 expect "so is the careers'"                        0 "$(cmp -s "$D/careers.sql" "$ROOT/migrations/0063_military_careers.sql"; echo $?)"
-expect "and the paths'"                            0 "$(cmp -s "$D/paths.sql" "$ROOT/migrations/0064_military_paths.sql"; echo $?)"
+expect "and the paths'"                            0 "$(cmp -s "$D/paths.sql" "$ROOT/migrations/0078_military_paths_2.sql"; echo $?)"
 
 # --- The four services are stored ----------------------------------------------------
 expect "one company for each service"              "$(emp 'companies.map((c)=>c.service+"="+c.name).sort().join("|")')" "$(sql "SELECT string_agg(service || '=' || name, '|' ORDER BY service) FROM companies WHERE service IS NOT NULL")"
@@ -355,7 +355,7 @@ expect "the hand count for MIG Welder"              "10 of 14" "$(shared 'Navy H
 expect "for Metal Fabricator"                       "13 of 19" "$(shared 'Navy Hull Maintenance Technician' 'Metal Fabricator')"
 expect "for Welder"                                 "12 of 20" "$(shared 'Navy Hull Maintenance Technician' 'Welder')"
 OUT=$(req anon GET /occupations/$HT)
-expect "a military career's civilian careers within reach, the most covered first" "MIG Welder 10 of 14|Metal Fabricator 13 of 19|Shipfitter 12 of 18" "$(printf '%s' "$OUT" | j 'withinReach.slice(0, 3).map((c) => c.title + " " + c.held + " of " + c.total).join("|")')"
+expect "a military career's civilian careers within reach, the most covered first" "Shipfitter 13 of 18|MIG Welder 10 of 14|Metal Fabricator 13 of 19" "$(printf '%s' "$OUT" | j 'withinReach.slice(0, 3).map((c) => c.title + " " + c.held + " of " + c.total).join("|")')"
 # The floor: a third of the civilian career's path, which is written and has five skills or more.
 FLOOR="WITH pairs AS (SELECT c.id, (SELECT COUNT(*) FROM occupation_skills x WHERE x.occupation_id = c.id) AS total, (SELECT COUNT(*) FROM occupation_skills x INNER JOIN occupation_skills y ON y.skill_id = x.skill_id AND y.occupation_id = '$HT' WHERE x.occupation_id = c.id) AS held FROM occupations c WHERE c.service_company_id IS NULL AND c.path_status IS NOT NULL) SELECT COUNT(*) FROM pairs WHERE total >= 5 AND held * 3 >= total"
 expect "every career of the floor, and no other"    "$(sql "$FLOOR")" "$(printf '%s' "$OUT" | j withinReach.length)"

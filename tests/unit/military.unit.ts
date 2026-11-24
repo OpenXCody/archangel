@@ -80,7 +80,7 @@ type PathEntry = string | { skill: string };
 const CAREERS = 'data/careers/military/careers.json';
 const PATHS = 'data/careers/military/paths.json';
 const CAREERS_MIGRATION = 'migrations/0063_military_careers.sql';
-const PATHS_MIGRATION = 'migrations/0064_military_paths.sql';
+const PATHS_MIGRATION = 'migrations/0078_military_paths_2.sql';
 const careersFile = read<{ careers: MilitaryCareer[]; dropped: { code: string; codeSystem: string; why: string }[] }>(CAREERS);
 const pathsFile = read<{ careers: MilitaryPath[] }>(PATHS);
 const careers = careersFile.careers;
@@ -329,9 +329,9 @@ test('the civilian careers a military career reaches are computed from the two p
   const reach = reaches(pathsFile, civilianPaths);
   // The owner's own test of the rule: the Hull Maintenance Technician, read against the Navy's standard.
   const ht = reach.get('Navy Hull Maintenance Technician') ?? [];
-  // Shipfitter, the rating's own trade ashore (0073), stands above Welder, whose path took Forklift Operation.
-  // Its path has no PPE Selection or Fall Protection, so it is 12 of 18.
-  assert.deepEqual(ht.map((r) => `${r.career} ${r.held}/${r.of}`), ['MIG Welder 10/14', 'Metal Fabricator 13/19', 'Shipfitter 12/18']);
+  // Shipfitter, the rating's own trade ashore (0073), stands first since the rating's path took Hull Structure
+  // Fit-Up (0078); its path has no PPE Selection or Fall Protection, so it is 13 of 18.
+  assert.deepEqual(ht.map((r) => `${r.career} ${r.held}/${r.of}`), ['Shipfitter 13/18', 'MIG Welder 10/14', 'Metal Fabricator 13/19']);
   for (const [title, list] of reach) {
     assert.ok(list.length <= 3, title);
     for (const r of list) assert.ok(r.held >= 1 && r.held <= r.of, `${title} reaches ${r.career}`);
@@ -373,6 +373,9 @@ test('the careers\' and the paths\' migrations are what the files generate', () 
   const list = MIGRATIONS as string[];
   const from = list.indexOf('0059_skills_catalogue_4.sql');
   assert.deepEqual(list.slice(from, from + 6), ['0059_skills_catalogue_4.sql', '0060_skill_taxonomy_3.sql', '0061_career_service.sql', '0062_military_employers.sql', '0063_military_careers.sql', '0064_military_paths.sql']);
+  // The paths again, once the catalogue has the skills they now name (0070) and after the services' descriptions.
+  assert.ok(list.indexOf('0078_military_paths_2.sql') > list.indexOf('0070_skills_catalogue_5.sql'));
+  assert.equal(list[list.indexOf('0077_military_employers_2.sql') + 1], '0078_military_paths_2.sql');
 });
 
 test('the check refuses military files that are not whole', () => {

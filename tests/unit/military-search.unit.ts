@@ -335,8 +335,8 @@ test('the rule lists what the paths say: the Hull Maintenance Technician against
   const all = reaches(militaryPaths, civilianPaths, 1000) as Map<string, { career: string; held: number; of: number }[]>;
   const within = (title: string) => reached((all.get(title) ?? []).map((reach) => ({ title: reach.career, held: reach.held, total: reach.of })));
   const ht = within('Navy Hull Maintenance Technician');
-  // Shipfitter, the rating's own trade ashore, stands third since it was added (0073), above Welder, whose path took Forklift Operation.
-  assert.deepEqual(ht.slice(0, 3).map((career) => `${career.title} ${career.held}/${career.total}`), ['MIG Welder 10/14', 'Metal Fabricator 13/19', 'Shipfitter 12/18']);
+  // Shipfitter, the rating's own trade ashore (0073), stands first since the rating's path took Hull Structure Fit-Up (0078).
+  assert.deepEqual(ht.slice(0, 3).map((career) => `${career.title} ${career.held}/${career.total}`), ['Shipfitter 13/18', 'MIG Welder 10/14', 'Metal Fabricator 13/19']);
   assert.ok(ht.some((career) => career.title === 'Welder' && career.held === 12 && career.total === 20));
   assert.ok(ht.some((career) => career.title === 'Pipefitter'));
   assert.ok(ht.every((career) => career.held * 3 >= career.total && career.total >= 5));
