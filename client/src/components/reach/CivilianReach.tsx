@@ -42,9 +42,10 @@ export function CivilianReach({
   const wide = useMediaQuery(WIDE);
   const [showAll, setShowAll] = useState(false);
   const [chosenId, choose] = useState(careers[0]?.id ?? '');
-  // A list a row or two longer than the cut is shown whole.
-  const cut = careers.length > SHOWN + 2;
-  const shown = showAll || !cut ? careers : careers.slice(0, SHOWN);
+  // A list a row or two longer than the cut is shown whole. The drawing holds a dozen; a phone's list, five.
+  const limit = wide ? SHOWN : LISTED;
+  const cut = careers.length > limit + 2;
+  const shown = showAll || !cut ? careers : careers.slice(0, limit);
   const chosen = shown.find((career) => career.id === chosenId) ?? shown[0];
   const panelId = useId();
   if (!chosen) return null;
@@ -82,8 +83,9 @@ export function CivilianReach({
 
 /** From this width the flow is drawn; under it the careers are a list. */
 const WIDE = '(min-width: 768px)';
-/** How many careers are drawn before "Show all". */
+/** How many careers are drawn before "Show all", and how many a phone lists. */
 const SHOWN = 12;
+const LISTED = 5;
 
 /** Arrow keys move through the careers and choose; a key pressed inside the open career's part is its own. */
 function arrowKeys(careers: CareerWithinReach[], chosen: string, onChoose: (id: string) => void) {
@@ -151,7 +153,7 @@ function ReachFlow({
           aria-label={`${careerTitle}: its skills by group, the ${careers.length === 1 ? 'civilian career' : `${careers.length} civilian careers`} they carry into, and the ${industries === 1 ? 'industry' : 'industries'} ${careers.length === 1 ? 'it is' : 'those are'} typical of.`}
           className="absolute inset-0"
         >
-          <FlowDrawing layout={layout} chosen={chosen} />
+          <FlowDrawing layout={layout} chosen={chosen} groupsOn={groupsOn} industriesOn={industriesOn} />
           {layout.groups.map((group) => (
             <span
               key={group.key}
@@ -191,7 +193,7 @@ function ReachFlow({
                 data-reach-career={career.id}
                 data-on={on || undefined}
               >
-                <span className={cn('min-w-0 truncate', optionTitleClass(on), on && 'font-medium')}>{career.title}</span>
+                <span className={cn('reach-flow-career-name', optionTitleClass(on), on && 'font-medium')}>{career.title}</span>
                 <Covers career={career} className={cn('text-xs', optionDetailClass(on))} />
               </button>
             );
@@ -209,7 +211,7 @@ const LABEL_GAP = 12;
  * The lines and the ends they leave from and arrive at. The chosen career's
  * are drawn last, in the accent, over the rest.
  */
-function FlowDrawing({ layout, chosen }: { layout: FlowLayout; chosen: string }) {
+function FlowDrawing({ layout, chosen, groupsOn, industriesOn }: { layout: FlowLayout; chosen: string; groupsOn: Set<string>; industriesOn: Set<string> }) {
   const line = (from: number, to: number) => curve(FLOW.groupEnd, from, FLOW.careerStart, to);
   const link = (from: number, to: number) => curve(FLOW.careerEnd, from, FLOW.industryStart, to);
   const ends = (ys: number[]) => [Math.min(...ys) - 1, Math.max(...ys) + 1];
@@ -226,12 +228,12 @@ function FlowDrawing({ layout, chosen }: { layout: FlowLayout; chosen: string })
       {layout.groups.filter((group) => group.lines > 0).map((group) => {
         const ys = layout.lines.filter((each) => each.group === group.key).map((each) => each.from);
         const [top, bottom] = ends(ys);
-        return <line key={group.key} className="reach-end" x1={FLOW.groupEnd} x2={FLOW.groupEnd} y1={top} y2={bottom} />;
+        return <line key={group.key} className="reach-end" data-on={groupsOn.has(group.key) || undefined} x1={FLOW.groupEnd} x2={FLOW.groupEnd} y1={top} y2={bottom} />;
       })}
       {layout.industries.map((industry) => {
         const ys = layout.links.filter((each) => each.industry === industry.key).map((each) => each.to);
         const [top, bottom] = ends(ys);
-        return <line key={industry.key} className="reach-end" x1={FLOW.industryStart} x2={FLOW.industryStart} y1={top} y2={bottom} />;
+        return <line key={industry.key} className="reach-end" data-on={industriesOn.has(industry.key) || undefined} x1={FLOW.industryStart} x2={FLOW.industryStart} y1={top} y2={bottom} />;
       })}
       <g data-reach-chosen={chosen}>
         {layout.lines.filter((each) => each.career === chosen).map((each) => (

@@ -2649,8 +2649,10 @@ test("a military career's flow into industry: drawn from a tablet up, a list on 
   };
   const careers = record.withinReach;
   expect(careers.length, 'the rating reaches more than one civilian career').toBeGreaterThan(2);
-  // A list a row or two longer than twelve is drawn whole; a longer one is cut at twelve.
-  const shown = careers.length > 14 ? careers.slice(0, 12) : careers;
+  // A list a row or two longer than its cut is shown whole; a longer one is cut: at twelve in the drawing, at five on a phone.
+  const wide = (page.viewportSize()?.width ?? 0) >= 768;
+  const cut = wide ? 12 : 5;
+  const shown = careers.length > cut + 2 ? careers.slice(0, cut) : careers;
   const linksOf = (career: (typeof careers)[number]) => career.industries.length || (career.everywhere ? 1 : 0);
   const nameOf = new Map(record.skills.map((skill) => [skill.id, skill.name]));
 
@@ -2658,7 +2660,6 @@ test("a military career's flow into industry: drawn from a tablet up, a list on 
   const reach = page.locator('#reach');
   const radios = reach.getByRole('radio');
   await expect(radios).toHaveCount(shown.length);
-  const wide = (page.viewportSize()?.width ?? 0) >= 768;
   const flow = reach.locator('[data-reach-flow]');
   if (wide) {
     // The drawing: one image with a name, a line for every skill shared and one for every career's industry.
@@ -2711,4 +2712,12 @@ test("a military career's flow into industry: drawn from a tablet up, a list on 
   await expect(reach.locator(`[data-reach-panel="${careers[2].id}"]`)).toBeVisible();
   await expect(reach.locator('[data-reach-panel]')).toHaveCount(1);
   await assertHealthyLayout(page, '/occupations/:id military, a career chosen');
+  // The rest are one press away; the one chosen stays chosen.
+  if (careers.length > shown.length) {
+    await reach.getByRole('button', { name: `Show all ${careers.length}` }).click();
+    await expect(radios).toHaveCount(careers.length);
+    await expect(radios.nth(2)).toHaveAttribute('aria-checked', 'true');
+    if (wide) await expect(flow.locator('path.reach-line')).toHaveCount(careers.reduce((sum, career) => sum + career.held + linksOf(career), 0));
+    await assertHealthyLayout(page, '/occupations/:id military, every career within reach');
+  }
 });
