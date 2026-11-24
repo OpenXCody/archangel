@@ -78,7 +78,7 @@ export const GEOMETRY: AtlasGeometry = {
   domain: 0.14,
   group: 0.4,
   bands: {
-    1: { from: 0.47, to: 0.52, rows: 2 },
+    1: { from: 0.465, to: 0.53, rows: 4 },
     2: { from: 0.58, to: 0.71, rows: 4 },
     3: { from: 0.76, to: 0.85, rows: 3 },
   },
@@ -87,9 +87,9 @@ export const GEOMETRY: AtlasGeometry = {
 
 /**
  * The radius of a leaf: its level's band, and within the band the row it
- * takes (`turn` counts the leaves of that level in its group, from 0, plus
- * where the group starts). Every Fundamentals leaf is nearer the centre than
- * every Intermediate one, and those nearer than every Advanced one.
+ * takes (`turn` counts the leaves of that level round the plate, from 0).
+ * Every Fundamentals leaf is nearer the centre than every Intermediate one,
+ * and those nearer than every Advanced one.
  */
 export function leafRadius(geometry: AtlasGeometry, level: SkillLevel, turn = 0): number {
   const band = geometry.bands[level] ?? geometry.bands[2];
@@ -195,6 +195,8 @@ export function layoutAtlas(taxonomy: Pick<Taxonomy, 'domains'>, geometry: Atlas
   const groups: AtlasGroup[] = [];
   const leaves: AtlasLeaf[] = [];
   let maxCareers = 0;
+  // The leaves of each level take their band's rows in turn round the whole plate: two that share a row have a band's worth of rows of others between them.
+  const turns: Record<SkillLevel, number> = { 1: 0, 2: 0, 3: 0 };
   // The seam between the last domain and the first is centred on `start`.
   const origin = step > 0 ? geometry.start / step : 0;
   let cursor = origin + geometry.domainGap / 2;
@@ -229,11 +231,7 @@ export function layoutAtlas(taxonomy: Pick<Taxonomy, 'domains'>, geometry: Atlas
         a1: 0,
         angle: 0,
       };
-      let runLevel: SkillLevel | null = null;
-      let run = 0;
       for (const skill of g.skills) {
-        run = skill.level === runLevel ? run + 1 : 0;
-        runLevel = skill.level;
         // A leaf sits in the middle of its step.
         leaves.push({
           index: leaves.length,
@@ -243,12 +241,12 @@ export function layoutAtlas(taxonomy: Pick<Taxonomy, 'domains'>, geometry: Atlas
           careers: skill.careers,
           militaryCareers: skill.militaryCareers ?? 0,
           angle: (cursor + 0.5) * step,
-          // Each group starts on another row, so the rows of a band fill evenly.
-          radius: leafRadius(geometry, skill.level, run + group.index),
+          radius: leafRadius(geometry, skill.level, turns[skill.level] ?? 0),
           group: group.index,
           domain: domain.index,
         });
         if (skill.careers > maxCareers) maxCareers = skill.careers;
+        if (skill.level in turns) turns[skill.level] += 1;
         cursor += 1;
       }
       group.a0 = leaves[group.first].angle;
