@@ -35,8 +35,35 @@ export function dayOf(said) {
   return found ? isoTime(`${found[1]} ${found[2]}, ${found[3]} UTC`)?.slice(0, 10) ?? null : null;
 }
 
-/** The country a location line ends in, when it says the United States; a line that does not say is left to the reader. */
-const countryOf = (line) => (String(line ?? '').split(',').some((part) => isUnitedStates(part) || /^US\s+United States$/i.test(part.trim())) ? 'US' : null);
+/** A US ZIP code: a postal code that is not one says the line is not in the United States. */
+const ZIP = /^\d{5}(-\d{4})?$/;
+/** The two letters of a state, which a line may end in without being abroad ("Dallas, Multiple Locations, TX"). */
+const STATES = new Set(('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND ' +
+  'OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY').split(' '));
+
+/**
+ * The country a location line names, as its two letters. These sites write a
+ * place "City, Region, CC, postal code" ("Bangalore, KA, IN, 560066";
+ * "Giron, Santander, CO Colombia, 687541") or "City, CC, postal code"
+ * ("Hyderabad, IN, 500 008"): the code after the region, or before a postal
+ * code that is not a ZIP, is the country, so India is not read as Indiana.
+ * A line that does not say ("Lafayette, IN") is left to the reader.
+ */
+export function countryOf(line) {
+  const parts = String(line ?? '').split(',').map((part) => part.trim());
+  if (parts.some((part) => isUnitedStates(part) || /^US\b/.test(part))) return 'US';
+  const code = (part) => /^([A-Z]{2})(?:\s|$)/.exec(part ?? '')?.[1] ?? null;
+  const notZip = (part) => part !== undefined && /\d/.test(part) && !ZIP.test(part);
+  for (let at = 2; at < parts.length; at += 1) {
+    const found = code(parts[at]);
+    if (!found) continue;
+    // "CO Colombia": the code with the country's name. A bare code that is also a state's is the country only after
+    // a region's code ("Pune, MH, IN") or before a postal code that is not a ZIP.
+    if (parts[at] !== found || !STATES.has(found) || /^[A-Z0-9]{1,3}$/.test(parts[at - 1]) || notZip(parts[at + 1])) return found;
+  }
+  if (code(parts[1]) && notZip(parts[2])) return code(parts[1]);
+  return null;
+}
 
 /** A search page's postings where the site lists them as a table: one row each. */
 function tableRows(html, url) {

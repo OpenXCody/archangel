@@ -21,7 +21,7 @@ import { countryFacet, postedDay } from '../../scripts/ingest/postings/systems/w
 // @ts-expect-error a plain script, no types
 import { placeOf } from '../../scripts/ingest/postings/systems/icims.mjs';
 // @ts-expect-error a plain script, no types
-import { dayOf } from '../../scripts/ingest/postings/systems/successfactors-site.mjs';
+import { countryOf, dayOf } from '../../scripts/ingest/postings/systems/successfactors-site.mjs';
 // @ts-expect-error a plain script, no types
 import { listAll, unescapeHtml, webAddress } from '../../scripts/ingest/postings/systems/shared.mjs';
 // @ts-expect-error a plain script, no types
@@ -239,6 +239,18 @@ test('requests to one host keep their distance: the longer of our pace and the r
   await assert.rejects(fetcher.session('crawl').get(feed('crawl.test')), (error: Error) => error instanceof Refusal && /600 s between requests/.test(error.message));
 });
 
+test('a platform with a budget keeps its distance across its tenants: one board after another is still four seconds apart', async () => {
+  const waits: number[] = [];
+  let clock = 2_000_000;
+  const fetcher = fetcherHere({ pace: 1000, budgets: { 'spaced.test': 20 }, now: () => clock, sleep: async (ms: number) => { waits.push(ms); clock += ms; } });
+  await fetcher.session('first', { pace: 4000 }).get(feed('a.spaced.test'));
+  await fetcher.session('second', { pace: 4000 }).get(feed('b.spaced.test'));
+  assert.deepEqual(waits, [4000, 4000, 4000], 'the first board\'s feed, then the second board\'s robots file and feed: each 4 s after the one before');
+  waits.length = 0;
+  await fetcher.session('elsewhere', { pace: 4000 }).get(feed('c.unbudgeted.test'));
+  assert.deepEqual(waits, [4000], 'a host with no budget is paced on its own: its robots file goes at once');
+});
+
 test('an employer has a ceiling of requests for a run', async () => {
   const session: Session = fetcherHere().session('acme', { ceiling: 3 });
   await session.get(feed('ceiling.test'));
@@ -440,6 +452,14 @@ test('SuccessFactors career sites: the search pages are the listing, as a table 
   assert.equal(tiled.listed[1].postedAt, '2026-11-20');
   assert.equal(dayOf('Mon Oct 26 00:00:00 UTC 2026'), '2026-10-26');
   assert.equal(dayOf('soon'), null);
+  // A place abroad is said by its country, so it is not read as a state and costs no request for its text.
+  const lines: [string, string | null][] = [
+    ['Arden Hills, MN, US, 55112', 'US'], ['Newport News, Virginia, United States', 'US'], ['Manhattan, NY, US +3 more', 'US'],
+    ['Bangalore, KA, IN, 560066', 'IN'], ['Pune, MH, IN', 'IN'], ['Hyderabad, IN, 500 008', 'IN'], ['Giron, Santander, CO Colombia, 687541', 'CO'],
+    ['Oakville, ON, CA', 'CA'], ['Curitiba, BR, 81260-900', 'BR'],
+    ['Lafayette, IN', null], ['Kingsport, TN, 37660', null], ['Dallas, Multiple Locations, TX', null], ['Wenzhou, CN', null],
+  ];
+  for (const [line, country] of lines) assert.equal(countryOf(line), country, line);
 });
 
 test('a career site that answers with a challenge page where its listing was asked for is a refusal, not a changed shape', async () => {
