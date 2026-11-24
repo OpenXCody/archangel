@@ -184,8 +184,9 @@ export default function CareerAtlas({ career, marks }: CareerAtlasProps) {
                     to={pathViewSearch(search, 'atlas', each.slug)}
                     aria-current={domain?.index === each.index ? 'true' : undefined}
                     data-career-atlas-domain-link={each.slug}
-                    className={cn(crumb, domain?.index === each.index && 'font-medium text-text-1')}
+                    className={cn(crumb, 'gap-1.5', domain?.index === each.index && 'font-medium text-text-1')}
                   >
+                    <span aria-hidden="true" className="domain-swatch" data-domain={each.slug} />
                     {each.name}
                   </Link>
                 </li>
