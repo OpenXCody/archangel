@@ -622,7 +622,7 @@
       }
     },
     "GE Aerospace": {
-      "why": "The existing company named General Electric holds fifty plants of every former GE business (lamps, healthcare, power, flow control), most of which are not GE Aerospace. It is left as it is; only the Evendale plant, which that company holds, moves.",
+      "why": "The existing company named General Electric holds fifty plants of every former GE business (lamps, healthcare, power, flow control), most of which are not GE Aerospace. It is left as it is; only the Evendale plant, which that company holds, moves. The row GE ENGINE SERVICES MCALLEN LP, under the company General Electric, 83 m from 6200 S 42nd St, is GE Aerospace's McAllen engine component repair site (OSHA 2025: GE Engine Services McAllen LP). Without this the rehearsal inserted the factory beside it (review of 2026-11-24).",
       "dropAlsoKnownAs": [
         "General Electric",
         "General Electric Company"
@@ -630,6 +630,9 @@
       "plants": {
         "GE Aerospace Evendale": {
           "sameAs": "GE AEROSPACE EVENDALE PLANT"
+        },
+        "GE Aerospace McAllen": {
+          "sameAs": "GE ENGINE SERVICES MCALLEN LP"
         }
       }
     },

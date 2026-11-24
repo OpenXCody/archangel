@@ -19053,54 +19053,6 @@
           "hub": "review"
         }
       ]
-    },
-    {
-      "name": "Pratt & Whitney Canada",
-      "alsoKnownAs": [],
-      "parent": "Pratt & Whitney",
-      "domain": null,
-      "industry": "Aircraft Engines",
-      "description": "Designs, builds and maintains engines for business, regional and general aviation aircraft and helicopters.",
-      "headquarters": {
-        "city": "Longueuil",
-        "state": null,
-        "country": "CA"
-      },
-      "stateEmployees": null,
-      "sources": [
-        "https://raytheon.mediaroom.com/2023-05-12-Pratt-Whitney-Canada-to-Invest-10-Million-in-Technology-Upgrades-at-Component-Repair-Facility-in-Wichita-Falls,-Texas"
-      ],
-      "plants": [
-        {
-          "name": "Pratt & Whitney Canada Wichita Falls",
-          "city": "Wichita Falls",
-          "state": "TX",
-          "address": "3101 Hammon Rd",
-          "zip": "76310",
-          "latitude": 33.87878,
-          "longitude": -98.44571,
-          "subsector": "Transportation Equipment Manufacturing",
-          "naics": "336412",
-          "products": "Repair and coating of the hot (combustion) sections of Pratt & Whitney Canada engines, turbine blades among them",
-          "employees": 175,
-          "employeesYear": 2025,
-          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
-          "employeesNote": "OSHA Form 300A, 2025: 'P&Wc Component Repairs' (Pratt & Whitney), 3101 Hammon Road: 175 annual average employees, 340,003 hours (172 in 2024; the employer's own people at the address; contractors are not counted).",
-          "addSources": [
-            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
-          ],
-          "opened": null,
-          "status": "operating",
-          "sources": [
-            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
-            "https://raytheon.mediaroom.com/2023-05-12-Pratt-Whitney-Canada-to-Invest-10-Million-in-Technology-Upgrades-at-Component-Repair-Facility-in-Wichita-Falls,-Texas",
-            "https://echo.epa.gov/detailed-facility-report?fid=110000460055"
-          ],
-          "note": "RTX's release of 2023-05-12: the Wichita Falls engine component repair facility 'joined the Pratt & Whitney Canada family in 1997' and 'repairs the \"hot\" (combustion) sections of a variety of Pratt & Whitney Canada engines'; turbine blades are coated there.",
-          "coordinatesFrom": "EPA registry facility 110000460055 (\"WICHITA FALLS REFURBISHMENT\", 3101 HAMMON RD., NAICS 336412)",
-          "hub": "review"
-        }
-      ]
     }
   ],
   "unplaced": [
