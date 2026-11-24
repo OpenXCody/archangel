@@ -689,7 +689,7 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
       await expect(whole).toContainText(`${held.size} of ${path.length} skills`);
       await check('two held');
       // A section's figure: "1 of N" part done, its size untouched, nothing when it is whole.
-      expect(await figure(place.locator('[data-section-count]'))).toEqual([path[0].group?.slug === section.skills[0].group?.slug && section.skills.includes(path[0]) ? 2 : 1, section.skills.length]);
+      expect(await figure(place.locator('[data-section-count]'))).toEqual([section.skills.filter((skill) => held.has(skill.id)).length, section.skills.length]);
       const untouched = sections[sections.length - 1];
       await expect(sectionOf(untouched.skills[0]).locator('[data-section-count]')).toHaveText(`${untouched.skills.length} skills`);
       for (const skill of section.skills) await hold(skill);
