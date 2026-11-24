@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # End-to-end check of the military careers' data: the four services as employers
-# (migration 0062), the careers with their service and code (0063) and their paths
+# (migration 0062, their descriptions brought up to date by 0077), the careers with their service and code (0063) and their paths
 # (0064), all from scripts/build-military-sql.mjs, as the database holds them and
 # as the API serves them: a military career has its page and is listed when asked
 # for, and every default list, count, search and suggestion is of civilian careers.
@@ -52,7 +52,7 @@ id_of() { sql "SELECT id FROM occupations WHERE title = '$1'"; }
 (cd "$ROOT" && node scripts/build-military-sql.mjs --check) > "$D/check.log" 2>&1
 expect "the military files pass their check" 0 "$?"
 (cd "$ROOT" && node scripts/build-military-sql.mjs employers "$D/employers.sql") > /dev/null 2>&1
-expect "the employers' migration in the repository is what the file generates" 0 "$(cmp -s "$D/employers.sql" "$ROOT/migrations/0062_military_employers.sql"; echo $?)"
+expect "the employers' migration in the repository is what the file generates" 0 "$(cmp -s "$D/employers.sql" "$ROOT/migrations/0077_military_employers_2.sql"; echo $?)"
 (cd "$ROOT" && node scripts/build-military-sql.mjs careers "$D/careers.sql" && node scripts/build-military-sql.mjs paths "$D/paths.sql") > /dev/null 2>&1
 expect "so is the careers'"                        0 "$(cmp -s "$D/careers.sql" "$ROOT/migrations/0063_military_careers.sql"; echo $?)"
 expect "and the paths'"                            0 "$(cmp -s "$D/paths.sql" "$ROOT/migrations/0064_military_paths.sql"; echo $?)"
@@ -542,6 +542,56 @@ expect "a name that carries another service is not given a second" \
   "$(got 'third look')"
 expect "and no company is created beside it"       "3 already stored as the service, 1 not set; companies that are a service: 3" "$(got 'third quiet' | sed 's/.*found by name, //')"
 expect "nothing of the fixture is left"            0 "$(sql "SELECT COUNT(*) FROM companies WHERE name ILIKE 'E2E Mil %'")"
+
+# --- A description the file wrote before is brought up to date; one a person wrote is kept ---------
+cat > "$D/employers-2.json" <<'JSON'
+{ "companies": [
+  { "name": "E2E Mil Navy", "service": "navy", "slug": "e2e-mil-navy", "domain": "navy.e2e.test", "description": "Newer words.", "descriptionWas": ["Older words."], "headquarters": { "city": "Arlington", "state": "VA", "country": "US" } },
+  { "name": "E2E Mil Army", "service": "army", "slug": "e2e-mil-army", "domain": "army.e2e.test", "description": "Newer words.", "descriptionWas": ["Older words."], "headquarters": { "city": "Arlington", "state": "VA", "country": "US" } },
+  { "name": "E2E Mil Air Force", "service": "air-force", "slug": "e2e-mil-air-force", "domain": "af.e2e.test", "description": "Newer words.", "descriptionWas": ["Oldest words.", "Older words."], "headquarters": { "city": "Arlington", "state": "VA", "country": "US" }, "sources": ["A fixture: not loaded."] },
+  { "name": "E2E Mil Marine Corps", "service": "marine-corps", "slug": "e2e-mil-marine-corps", "domain": "marines.e2e.test", "description": "Newer words.", "descriptionWas": ["Older words."], "headquarters": { "city": "Arlington", "state": "VA", "country": "US" } } ] }
+JSON
+node "$D/build.mjs" "$ROOT" "$D/employers-2.json" "$D/migration-2.sql" > "$D/build-2.log" 2>&1
+expect "the builder takes a file's earlier descriptions" 0 "$?"
+expect "and loads no source"                       0 "$(grep -c 'A fixture: not loaded' "$D/migration-2.sql")"
+cat > "$D/read-2.sql" <<'SQL'
+SELECT :'at' || ' state', md5(string_agg(c::text, '~' ORDER BY c.id)) FROM companies c WHERE c.service IS NOT NULL;
+SELECT :'at' || ' said', string_agg(c.service || '=' || COALESCE(c.description, 'none'), '; ' ORDER BY c.service) FROM companies c WHERE c.service IS NOT NULL;
+SELECT :'at' || ' quiet', string_agg(action || ': ' || detail, ' / ' ORDER BY id) FROM load_log WHERE load = 'military-employers' AND id > :mark AND NOT look;
+SELECT :'at' || ' look', COUNT(*) FROM load_log WHERE load = 'military-employers' AND id > :mark AND look;
+SQL
+cat > "$D/run-2.sql" <<SQL
+BEGIN;
+UPDATE companies SET service = NULL WHERE service IS NOT NULL;
+-- The Navy still says what the file said before. The Army's was written by a person. The Air Force's is an
+-- earlier one of the file's, with a space after it. The Marine Corps is not stored.
+INSERT INTO companies (name, service, slug, domain, description, headquarters_city, headquarters_state, headquarters_country) VALUES
+  ('E2E Mil Navy', 'navy', 'e2e-mil-navy', 'navy.e2e.test', 'Older words.', 'Arlington', 'VA', 'US'),
+  ('E2E Mil Army', 'army', 'e2e-mil-army', 'army.e2e.test', 'Written by a person.', 'Arlington', 'VA', 'US'),
+  ('E2E Mil Air Force', 'air-force', 'e2e-mil-air-force', 'af.e2e.test', 'Oldest words. ', 'Arlington', 'VA', 'US');
+SELECT COALESCE(MAX(id), 0) AS mark FROM load_log \\gset
+\\i $D/migration-2.sql
+\\set at first
+\\i $D/read-2.sql
+SELECT COALESCE(MAX(id), 0) AS mark FROM load_log \\gset
+\\i $D/migration-2.sql
+\\set at second
+\\i $D/read-2.sql
+ROLLBACK;
+SQL
+psql "$DB" -qtA -v ON_ERROR_STOP=1 -f "$D/run-2.sql" > "$D/run-2.out" 2> "$D/run-2.err"
+expect "the migration applies, twice"              0 "$?"
+got2() { grep "^$1|" "$D/run-2.out" | head -n1 | cut -d'|' -f2-; }
+expect "the file's earlier words are replaced, a person's are kept" \
+  "air-force=Newer words.; army=Written by a person.; marine-corps=Newer words.; navy=Newer words." \
+  "$(got2 'first said')"
+expect "and the log says which" \
+  "kept: E2E Mil Navy is the service \"navy\"; description: the file's earlier one, replaced by the file's / kept: E2E Mil Air Force is the service \"air-force\"; description: the file's earlier one, replaced by the file's / created: E2E Mil Marine Corps: no company has that name. Created as the service \"marine-corps\", with no plants / summary: 4 services of the file: 1 created, 0 found by name, 3 already stored as the service, 0 not set; companies that are a service: 4" \
+  "$(got2 'first quiet')"
+expect "with nothing to look at"                   0 "$(got2 'first look')"
+expect "a second run changes nothing"              "$(got2 'first state')" "$(got2 'second state')"
+expect "and says only its summary"                 "summary: 4 services of the file: 0 created, 0 found by name, 4 already stored as the service, 0 not set; companies that are a service: 4" "$(got2 'second quiet')"
+expect "nothing of this fixture is left"           0 "$(sql "SELECT COUNT(*) FROM companies WHERE name ILIKE 'E2E Mil %'")"
 
 # --- The careers' and the paths' loaders, on rows as production might hold them ---------------
 # Five careers. Alpha is new. Beta is stored with its code under another title. Gamma's title is a

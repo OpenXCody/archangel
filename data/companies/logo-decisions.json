@@ -2,12 +2,10 @@
  "_about": "Decisions a person made about company logos, read by scripts/fetch-logos.mjs and never undone by a run. `none`: domains left on the lettermark, each with the reason. `kept`: marks placed by hand (the file is in client/public/logos/), each with where it came from. Add to either with: node scripts/fetch-logos.mjs --place a.com=mark.svg --note \"...\" or --none a.com --note \"...\"",
  "none": {
   "aervoe.com": "the icon the services hold is its wordmark cut off at the fourth letter; the site refuses automated requests",
-  "af.mil": "a military service: its emblem is an official insignia whose use is controlled, not a company mark; it keeps the lettermark, and nothing was fetched",
   "agfa.com": "agfa.com does not answer automated requests, and the icon services hold no icon for it",
   "ahlstrom.com": "its front page offers a photograph, and its icon is 16 px",
   "alamoconcrete.com": "its icon is the mark of its owner, Buzzi, not its own",
   "allieduniversal.com": "its icon is its logo cut off at both sides",
-  "army.mil": "a military service: its emblem is an official insignia whose use is controlled, not a company mark; it keeps the lettermark, and nothing was fetched",
   "atcreman.com": "its front page offers a photograph of the plant and names no icon",
   "aztecamilling.com": "aztecamilling.com does not answer automated requests, and the icon services hold no icon for it",
   "baf.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
@@ -29,10 +27,8 @@
   "hmhw.com": "its icon is the default of the software its site runs on, not its own mark",
   "justinbrands.com": "its icon is the initials of its holding company, not its own mark",
   "kraftheinzcompany.com": "its logo is a ten-letter wordmark, 4.4 to 1, and its site serves no icon",
-  "marines.mil": "a military service: its emblem is an official insignia whose use is controlled, not a company mark; it keeps the lettermark, and nothing was fetched",
   "michaelangelos.com": "its front page names no icon or logo file that can be stored, and the icon services hold none",
   "milliken.com": "the logo in its header is drawn in white for a dark page, its icon is 16 px, and the other logos on the page are its brands'",
-  "navy.mil": "a military service: its emblem is an official insignia whose use is controlled, not a company mark; it keeps the lettermark, and nothing was fetched",
   "onxlti.com": "its front page offers a photograph and names no icon",
   "overwraps.com": "the logo in its header is a nine-letter wordmark, and its icon carries another name, RWR Flexible",
   "oxychem.com": "its icon is a generic picture of a flask, not its mark",
@@ -63,6 +59,10 @@
   "advchem.com": {
    "ext": "png",
    "from": "the icon of advchem.com"
+  },
+  "af.mil": {
+   "ext": "svg",
+   "from": "The owner chose to show each service's own logo (November 2026), only to identify the service on its page, on its careers and in lists, as a company's mark is; this replaces the lettermark kept until then because a service's emblem is a controlled insignia. The Air Force Symbol: the solid-colour version in Air Force blue (#00529b) from the Air Force Trademark and Licensing Office's downloads (trademark.af.mil), as Wikimedia Commons holds it (File:US Air Force Logo Solid Colour.svg), without the line U.S. AIR FORCE, as airforce.com shows the Symbol alone. af.mil refused the request"
   },
   "aftonchemical.com": {
    "ext": "png",
@@ -199,6 +199,10 @@
   "arcticglacier.com": {
    "ext": "png",
    "from": "the logo in the header of arcticglacier.com (its icon is a picture of a truck)"
+  },
+  "army.mil": {
+   "ext": "svg",
+   "from": "The owner chose to show each service's own logo (November 2026), only to identify the service on its page, on its careers and in lists, as a company's mark is; this replaces the lettermark kept until then because a service's emblem is a controlled insignia. The U.S. Army's star logo: the star of the Army's own logo file on army.mil (www.army.mil/e2/global/rv7/brand/army_logo_horiz.svg; the same star goarmy.com names as the Army's logo, armystar.svg), gold #FFCC01 on the near-black square (#231F20) of army.mil's and goarmy.com's own icon (army_star_icon_152.png), without the words U.S. ARMY, as that icon is drawn"
   },
   "asisignage.com": {
    "ext": "png",
@@ -664,6 +668,10 @@
    "ext": "svg",
    "from": "the symbol from the logo on magna.com; the wordmark is left out"
   },
+  "marines.mil": {
+   "ext": "svg",
+   "from": "The owner chose to show each service's own logo (November 2026), only to identify the service on its page, on its careers and in lists, as a company's mark is; this replaces the lettermark kept until then because a service's emblem is a controlled insignia. The U.S. Marine Corps eagle, globe and anchor: cut from the logo marines.com, the Marine Corps' recruiting site, draws (www.marines.com/content/dam/marines-v2-assets/marines-logo/Marines_HorizontalLogo.svg), without the word MARINES, in black as marines.com's own icon draws it (its favicon.ico); coordinates rounded to two places to keep the file under 20 KB. marines.mil refused the request"
+  },
   "martinmarietta.com": {
    "ext": "png",
    "from": "the symbol from the header logo on martinmarietta.com; the wordmark is left out"
@@ -699,6 +707,10 @@
   "nailor.com": {
    "ext": "png",
    "from": "the symbol from the header logo on nailor.com, the same one its favicon shows; the wordmark is left out"
+  },
+  "navy.mil": {
+   "ext": "svg",
+   "from": "The owner chose to show each service's own logo (November 2026), only to identify the service on its page, on its careers and in lists, as a company's mark is; this replaces the lettermark kept until then because a service's emblem is a controlled insignia. The U.S. Navy's logo: the eagle and anchor of the logo navy.com, the Navy's recruiting site, draws (www.navy.com/themes/custom/navycom/logo.svg, America's Navy, Forged by the Sea), without its words, in the ink of navy.com's own icon for a light page (#092939, its android-chrome-256x256.png); coordinates rounded to three places. www.navy.mil refuses automated requests and was not asked"
   },
   "nestle.com": {
    "ext": "png",

@@ -71,9 +71,10 @@ psql "$DB" -qtAc "DELETE FROM jobs WHERE created_by IN (SELECT id FROM users WHE
 FA=$(sql "SELECT id FROM factories WHERE company_id IS NOT NULL ORDER BY id LIMIT 1")
 CA=$(sql "SELECT company_id FROM factories WHERE id='$FA'")
 CANAME=$(sql "SELECT name FROM companies WHERE id='$CA'")
-CB=$(sql "SELECT id FROM companies WHERE id <> '$CA' ORDER BY id LIMIT 1 OFFSET 0")
-CC=$(sql "SELECT id FROM companies WHERE id <> '$CA' ORDER BY id LIMIT 1 OFFSET 1")
-CD=$(sql "SELECT id FROM companies WHERE id <> '$CA' ORDER BY id LIMIT 1 OFFSET 2")
+# Companies a person can ask to join: a military service is not one (a request for it answers 400).
+CB=$(sql "SELECT id FROM companies WHERE id <> '$CA' AND service IS NULL ORDER BY id LIMIT 1 OFFSET 0")
+CC=$(sql "SELECT id FROM companies WHERE id <> '$CA' AND service IS NULL ORDER BY id LIMIT 1 OFFSET 1")
+CD=$(sql "SELECT id FROM companies WHERE id <> '$CA' AND service IS NULL ORDER BY id LIMIT 1 OFFSET 2")
 # The civilian career with the most skills: a job is for a civilian career.
 OCC=$(sql "SELECT os.occupation_id FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id WHERE o.service_company_id IS NULL GROUP BY 1 ORDER BY COUNT(*) DESC, 1 LIMIT 1")
 R1=$(sql "SELECT id FROM skills ORDER BY name, id LIMIT 1 OFFSET 0")

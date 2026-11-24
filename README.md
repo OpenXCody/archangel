@@ -174,7 +174,7 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
 
 ## Logos
 
-A company's logo is found from its website domain (`companies.domain`). The marks are stored in `client/public/logos/` and listed in `client/src/lib/logos.json`, so the page shows them from this site, and shows the lettermark, with no request, for a domain known to have no usable mark. Only a domain that is not in the list (one an admin has just set) is looked up from Google's favicon service. After adding domains to `data/companies/profiles.json`, `data/companies/domains.json` or `data/employers/`:
+A company's logo is found from its website domain (`companies.domain`). The marks are stored in `client/public/logos/` and listed in `client/src/lib/logos.json`, so the page shows them from this site, and shows the lettermark, with no request, for a domain known to have no usable mark. Only a domain that is not in the list (one an admin has just set) is looked up from Google's favicon service. After adding domains to `data/companies/profiles.json`, `data/companies/domains.json`, `data/careers/military/employers.json` or `data/employers/`:
 
 ```bash
 node scripts/fetch-logos.mjs --sheet /tmp/new-logos.html     # needs curl and ImageMagick

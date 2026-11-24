@@ -65,7 +65,7 @@ export interface CareerService {
   name: string;
   slug: string | null;
   key: ServiceKey;
-  /** The service's website, which its mark is found from as any company's is. */
+  /** Its website domain, which its mark is found by, as a company's is. */
   domain: string | null;
 }
 
@@ -108,7 +108,7 @@ interface ServiceRow {
   serviceName: string | null;
   serviceSlug: string | null;
   serviceKey: string | null;
-  serviceDomain?: string | null;
+  serviceDomain: string | null;
   code: string | null;
   codeSystem: string | null;
   officialTitle: string | null;
@@ -119,7 +119,7 @@ export function militaryOf(row: ServiceRow): MilitaryFacts {
   if (!row.serviceId || !row.serviceName || !isServiceKey(row.serviceKey)) return NOT_MILITARY;
   const codeSystem = isCodeSystem(row.codeSystem) ? row.codeSystem : null;
   return {
-    service: { id: row.serviceId, name: row.serviceName, slug: row.serviceSlug, key: row.serviceKey, domain: row.serviceDomain ?? null },
+    service: { id: row.serviceId, name: row.serviceName, slug: row.serviceSlug, key: row.serviceKey, domain: row.serviceDomain },
     code: row.code,
     codeSystem,
     kind: careerKind(codeSystem),
