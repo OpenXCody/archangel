@@ -380,6 +380,7 @@ router.post('/', async (req: Request, res: Response) => {
     const state = stateCode(req.body?.state);
     const city = optionalText(req.body?.city, 120);
     const address = optionalText(req.body?.address, 300);
+    const zip = optionalText(req.body?.zip, 10);
     const workforce = count(workforceSize);
     const openings = count(openPositions);
     if (!isUuid(companyId) || !cleanName || !state || lat === null || lng === null) {
@@ -388,6 +389,10 @@ router.post('/', async (req: Request, res: Response) => {
     }
     if (city === false || address === false) {
       res.status(400).json({ error: 'A city is text of up to 120 characters and an address of up to 300.' });
+      return;
+    }
+    if (zip === false || (zip && !/^\d{5}(-\d{4})?$/.test(zip))) {
+      res.status(400).json({ error: 'A ZIP code is five digits.', field: 'zip' });
       return;
     }
     if (workforce === false || openings === false) {
@@ -422,6 +427,7 @@ router.post('/', async (req: Request, res: Response) => {
       longitude: lng,
       address,
       city,
+      zipCode: zip,
       state,
       workforceSize: workforce,
       openPositions: openings,
@@ -432,7 +438,7 @@ router.post('/', async (req: Request, res: Response) => {
     await adminSetFacts(
       db,
       result[0].id,
-      ['coordinates' as const, ...(city ? ['city' as const] : []), ...(address ? ['address' as const] : []), ...(workforce !== null && workforce !== undefined ? ['headcount' as const] : [])],
+      ['coordinates' as const, ...(city ? ['city' as const] : []), ...(address ? ['address' as const] : []), ...(zip ? ['zip' as const] : []), ...(workforce !== null && workforce !== undefined ? ['headcount' as const] : [])],
       req.user!.id
     );
     res.status(201).json(result[0]);

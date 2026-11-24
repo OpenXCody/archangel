@@ -168,3 +168,95 @@ export async function searchPlaces(query: string, signal?: AbortSignal): Promise
   }
   return places;
 }
+
+// ---------------------------------------------------------------------------
+// An address typed in a form (Admin Tools: a factory's address)
+// ---------------------------------------------------------------------------
+
+/** An address as people write one. */
+export interface TypedAddress {
+  street: string;
+  city: string;
+  /** The state's two-letter code. */
+  state: string;
+  zip: string;
+}
+
+/** Where a typed address was found. */
+export interface FoundAddress {
+  /** "1 Tesla Road, Travis County, TX 78725": the place found, as one line. */
+  label: string;
+  latitude: number;
+  longitude: number;
+  /**
+   * What was found: the address itself, its street (the number was not
+   * found on it), or only its town or ZIP code, whose middle the point is.
+   */
+  precision: 'address' | 'street' | 'town';
+}
+
+/** A typed address needs less of a match than a search does: the state is checked, and the person is shown what was found. */
+const MIN_ADDRESS_RELEVANCE = 0.7;
+
+function featureState(feature: GeocodingFeature): string | undefined {
+  const region = feature.context?.find((c) => c.id?.startsWith('region.'))?.text?.trim();
+  return region ? (STATE_CODE_BY_NAME[region] ?? region) : undefined;
+}
+
+function addressLabel(feature: GeocodingFeature): string {
+  const part = (kind: string): string | undefined => feature.context?.find((c) => c.id?.startsWith(`${kind}.`))?.text?.trim() || undefined;
+  const [first] = (feature.place_name ?? feature.text ?? '').split(',').map((piece) => piece.trim());
+  const state = featureState(feature);
+  const type = feature.place_type?.[0] ?? '';
+  const town = part('municipality') ?? part('joint_municipality') ?? part('place');
+  const county = part('county');
+  const within = type === 'address' || type === 'postal_code' ? (town ?? (county ? countyName(county, state) : undefined)) : undefined;
+  const zip = type === 'postal_code' ? undefined : part('postal_code');
+  return [first, within === first ? undefined : within, [state, zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+}
+
+async function geocode(query: string, types: string[], signal?: AbortSignal): Promise<GeocodingFeature[]> {
+  const url = `${GEOCODING_BASE}/${encodeURIComponent(query)}.json?key=${encodeURIComponent(mapKey())}&country=us&limit=5&types=${types.join(',')}`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`Address lookup failed: HTTP ${res.status}`);
+  return ((await res.json()) as { features?: GeocodingFeature[] }).features ?? [];
+}
+
+/**
+ * Find a typed address in its state: the address itself when the geocoder
+ * knows it, else its town or ZIP code. Null when nothing in that state
+ * matches. Throws when there is no map key or the request fails: the form
+ * then says the address could not be looked up and offers the coordinates.
+ */
+export async function findAddress(typed: TypedAddress, signal?: AbortSignal): Promise<FoundAddress | null> {
+  if (!mapKey()) throw new Error('No map key is set, so an address cannot be looked up.');
+  const street = typed.street.trim();
+  const city = typed.city.trim();
+  const zip = typed.zip.trim();
+  const usable = (feature: GeocodingFeature): feature is GeocodingFeature & { center: [number, number] } =>
+    Boolean(feature.center && feature.center.length >= 2 && feature.center.every(Number.isFinite)) && featureState(feature) === typed.state;
+  const found = (feature: GeocodingFeature & { center: [number, number] }, precision: FoundAddress['precision']): FoundAddress => ({
+    label: addressLabel(feature),
+    latitude: Number(feature.center[1].toFixed(6)),
+    longitude: Number(feature.center[0].toFixed(6)),
+    precision,
+  });
+
+  if (street) {
+    const features = await geocode([street, city, `${typed.state} ${zip}`.trim()].filter(Boolean).join(', '), ['address'], signal);
+    const match = features.find((feature) => usable(feature) && (feature.relevance ?? 1) >= MIN_ADDRESS_RELEVANCE);
+    if (match && usable(match)) {
+      // A number typed and none in what came back: the street was found, the building was not.
+      const numbered = /^\d/.test(street) && !/^\d/.test((match.place_name ?? '').trim());
+      return found(match, numbered ? 'street' : 'address');
+    }
+  }
+  // The town, or failing that the ZIP code: enough to put the factory on the map, and said as such.
+  for (const query of [city ? `${city}, ${typed.state}` : '', zip]) {
+    if (!query) continue;
+    const features = await geocode(query, ['municipality', 'joint_municipality', 'place', 'locality', 'postal_code'], signal);
+    const match = features.find((feature) => usable(feature) && (feature.relevance ?? 1) >= MIN_ADDRESS_RELEVANCE);
+    if (match && usable(match)) return found(match, 'town');
+  }
+  return null;
+}

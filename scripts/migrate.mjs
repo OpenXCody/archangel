@@ -32,7 +32,10 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   // The military careers, then their paths, every one a draft.
   '0063_military_careers.sql', '0064_military_paths.sql',
   // The domains in a new order, Safety last. No group or skill moves.
-  '0068_skill_taxonomy_4.sql'];
+  '0068_skill_taxonomy_4.sql',
+
+  // A company's mark set by hand (one table, no rows).
+  '0069_company_marks.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # End-to-end check of data upkeep in Admin Tools: correcting, merging and
 # deleting records, the audit log, people (roles, corrections, sessions, the
-# first admin), access decisions taken back, and invites. Prints one line per
+# first admin), access decisions taken back, invites, a company added with its
+# first factory in one request, and a company's mark set by hand. Prints one line per
 # check and exits non-zero if any fail.
 #
 # LOCAL ONLY: it creates and deletes users and invites (emails ending
@@ -459,6 +460,75 @@ expect "earlier invites: accepted and expired" 'accepted expired' "$(printf '%s'
 OUT=$(req a POST /admin/invites "{\"email\":\"rev-$RUN@admin.test\",\"role\":\"user\"}")
 check "revoke an invite"              200 "$(req a DELETE /admin/invites/$(printf '%s' "$OUT" | j invite.id))"
 expect "invites are on record"        'invite revoked,invited,invited,invited,invited' "$(req a GET '/admin/audit?kind=invite' | j "entries.filter((e) => e.recordName.endsWith('-$RUN@admin.test')).map((e) => e.action).join(',')")"
+
+# --- A company with its first factory, in one request --------------------------
+FIRST="{\"address\":\"1 E2E Admin Way\",\"city\":\"Austin\",\"state\":\"TX\",\"zip\":\"78725\",\"latitude\":30.2241,\"longitude\":-97.6134}"
+check "sign-up someone who is no admin" 201 "$(req q POST /auth/sign-up "{\"email\":\"plain-$RUN@admin.test\",\"name\":\"Quin Plain\",$PW}")"
+check "401 add a company with a factory" 401 "$(req anon POST /companies "{\"name\":\"$REC Anvils\",\"factory\":$FIRST}")"
+check "403 add a company with a factory" 403 "$(req q POST /companies "{\"name\":\"$REC Anvils\",\"factory\":$FIRST}")"
+check "a factory needs a state"       400 "$(req a POST /companies "{\"name\":\"$REC Anvils\",\"factory\":{\"city\":\"Austin\",\"latitude\":30.2,\"longitude\":-97.6}}")" '"field":"factory.state"'
+check "a factory needs its point"     400 "$(req a POST /companies "{\"name\":\"$REC Anvils\",\"factory\":{\"city\":\"Austin\",\"state\":\"TX\"}}")" '"field":"factory.latitude"'
+check "a ZIP code is five digits"     400 "$(req a POST /companies "{\"name\":\"$REC Anvils\",\"factory\":{\"city\":\"Austin\",\"state\":\"TX\",\"zip\":\"787\",\"latitude\":30.2,\"longitude\":-97.6}}")" '"field":"factory.zip"'
+check "a website that is not one"     400 "$(req a POST /companies "{\"name\":\"$REC Anvils\",\"domain\":\"not a site\",\"factory\":$FIRST}")" '"field":"domain"'
+expect "a refused factory leaves no company" 0 "$(sql "SELECT COUNT(*) FROM companies WHERE name = '$REC Anvils'")"
+OUT=$(req a POST /companies "{\"name\":\"$REC Anvils\",\"domain\":\"https://www.E2E-Anvils.example.com/about\",\"description\":\"Makes test anvils.\",\"factory\":$FIRST}")
+check "add a company and its first factory" 201 "$OUT" '"domain":"e2e-anvils.example.com"'
+ANV=$(printf '%s' "$OUT" | j id)
+ANVF=$(printf '%s' "$OUT" | j factory.id)
+expect "the factory is named for the company and its city" "$REC Anvils Austin" "$(printf '%s' "$OUT" | j factory.name)"
+expect "the factory is the company's, where the address says" "$ANV|1 E2E Admin Way|Austin|TX|78725|30.2241|-97.6134" "$(sql "SELECT company_id || '|' || address || '|' || city || '|' || state || '|' || zip_code || '|' || latitude || '|' || longitude FROM factories WHERE id='$ANVF'")"
+expect "both are on record as added"  'company:added,factory:added' "$(sql "SELECT string_agg(kind || ':' || action, ',' ORDER BY kind) FROM audit_log WHERE record_id IN ('$ANV','$ANVF')")"
+expect "what the admin typed is the admin's" 'address,city,coordinates,zip' "$(sql "SELECT string_agg(fact, ',' ORDER BY fact) FROM fact_sources WHERE factory_id='$ANVF' AND source='admin'")"
+check "the company's page lists the factory" 200 "$(req anon GET /companies/$ANV)" "\"name\":\"$REC Anvils Austin\""
+check "the same company again"        409 "$(req a POST /companies "{\"name\":\"$REC ANVILS\",\"factory\":$FIRST}")" "\"existing\":{\"id\":\"$ANV\""
+expect "and no second factory"        1 "$(sql "SELECT COUNT(*) FROM factories WHERE company_id='$ANV'")"
+OUT=$(req a POST /companies "{\"name\":\"$REC Alone\"}")
+check "a company with no factory"     201 "$OUT" '"factory":null'
+check "a factory's own name is kept"  201 "$(req a POST /companies "{\"name\":\"$REC Named\",\"factory\":{\"name\":\"$REC Works\",\"state\":\"TX\",\"latitude\":30.2,\"longitude\":-97.6}}")" "\"name\":\"$REC Works\""
+OUT=$(req a POST /factories "{\"companyId\":\"$ANV\",\"name\":\"$REC Second\",\"state\":\"TX\",\"city\":\"Round Rock\",\"address\":\"2 E2E Admin Way\",\"zip\":\"78664\",\"latitude\":30.5,\"longitude\":-97.68}")
+check "a factory for a listed company takes the same address" 201 "$OUT" '"zipCode":"78664"'
+ANV2=$(printf '%s' "$OUT" | j id)
+check "a factory's ZIP code is corrected" 200 "$(req a PUT /factories/$ANV2 '{"zip":"78665"}')" '"zipCode":"78665"'
+check "the editor reads it"           200 "$(req a GET /admin/records/factory/$ANV2)" '"zip":"78665"'
+
+# --- A company's mark set by hand --------------------------------------------
+PNG='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+SVG=$(printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3"/></svg>' | base64 | tr -d '\n')
+BAD=$(printf '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>' | base64 | tr -d '\n')
+check "401 set a mark"                401 "$(req anon PUT /companies/$ANV/mark "{\"image\":\"$PNG\"}")"
+check "403 set a mark"                403 "$(req q PUT /companies/$ANV/mark "{\"image\":\"$PNG\"}")"
+check "403 clear a mark"              403 "$(req q DELETE /companies/$ANV/mark)"
+check "no mark set by hand yet"       404 "$(req anon GET /companies/$ANV/mark)"
+check "a mark needs an image"         400 "$(req a PUT /companies/$ANV/mark '{}')" '"field":"image"'
+check "what is not an image"          400 "$(req a PUT /companies/$ANV/mark "{\"image\":\"$(printf 'not an image at all' | base64)\"}")" 'PNG, an SVG or a JPEG'
+check "an SVG that carries script"    400 "$(req a PUT /companies/$ANV/mark "{\"image\":\"$BAD\"}")" 'plain SVG'
+expect "an image over the limit is refused" 400 "$(node -e "const png=Buffer.concat([Buffer.from('$PNG','base64'),Buffer.alloc(210*1024)]);process.stdout.write(JSON.stringify({image:png.toString('base64')}))" | curl -s -o /dev/null -w '%{http_code}' -b "$D/a" -X PUT -H 'Content-Type: application/json' --data-binary @- "$API/companies/$ANV/mark")"
+check "a mark for no company"         404 "$(req a PUT /companies/$NOBODY/mark "{\"image\":\"$PNG\"}")"
+OUT=$(req a PUT /companies/$ANV/mark "{\"image\":\"data:image/png;base64,$PNG\"}")
+check "set a mark by hand"            200 "$OUT" '"version":"[0-9a-f]\{12\}"'
+V1=$(printf '%s' "$OUT" | j version)
+check "the list of marks names it"    200 "$(req anon GET /companies/marks)" "\"id\":\"$ANV\",\"name\":\"$REC Anvils\",\"domain\":\"e2e-anvils.example.com\",\"version\":\"$V1\""
+HDR=$(curl -s -D - -o "$D/mark.png" "$API/companies/$ANV/mark?v=$V1" | tr -d '\r')
+case "$HDR" in *"Content-Type: image/png"*) echo "ok    the mark is served as an image";; *) echo "FAIL  mark type: $HDR"; fail=1;; esac
+case "$HDR" in *immutable*) echo "ok    under its version it is cached for good";; *) echo "FAIL  mark cache: $HDR"; fail=1;; esac
+case "$HDR" in *"default-src 'none'"*) echo "ok    and may load nothing";; *) echo "FAIL  mark policy: $HDR"; fail=1;; esac
+expect "the bytes are the ones sent"  "$PNG" "$(base64 < "$D/mark.png" | tr -d '\n')"
+HDR=$(curl -s -D - -o /dev/null "$API/companies/$ANV/mark" | tr -d '\r' | grep -i '^cache-control')
+case "$HDR" in *immutable*) echo "FAIL  an unversioned mark is cached for good: $HDR"; fail=1;; *) echo "ok    without a version it is not";; esac
+check "the same image again changes nothing" 200 "$(req a PUT /companies/$ANV/mark "{\"image\":\"$PNG\"}")" "\"version\":\"$V1\""
+OUT=$(req a PUT /companies/$ANV/mark "{\"image\":\"$SVG\"}")
+check "replace it with an SVG"        200 "$OUT"
+expect "a replaced mark is a new address" t "$([ "$(printf '%s' "$OUT" | j version)" != "$V1" ] && echo t)"
+HDR=$(curl -s -D - -o /dev/null "$API/companies/$ANV/mark" | tr -d '\r')
+case "$HDR" in *"Content-Type: image/svg+xml"*) echo "ok    an SVG is served as one";; *) echo "FAIL  svg type: $HDR"; fail=1;; esac
+check "go back to the automatic mark" 200 "$(req a DELETE /companies/$ANV/mark)" '"cleared":true'
+check "cleared twice says so"         200 "$(req a DELETE /companies/$ANV/mark)" '"cleared":false'
+check "the mark is gone"              404 "$(req anon GET /companies/$ANV/mark)"
+expect "the list no longer names it"  0 "$(req anon GET /companies/marks | j "marks.filter((m) => m.id === '$ANV').length")"
+expect "each change is a company line" 'mark set by hand,mark replaced,mark back to automatic' "$(sql "SELECT string_agg(action, ',' ORDER BY at) FROM audit_log WHERE kind='company' AND record_id='$ANV' AND action LIKE 'mark%'")"
+req a PUT /companies/$ANV/mark "{\"image\":\"$PNG\"}" >/dev/null
+check "deleting the company"          200 "$(req a DELETE /companies/$ANV)"
+expect "takes its mark with it"       0 "$(sql "SELECT COUNT(*) FROM company_marks WHERE company_id='$ANV'")"
 
 # --- The log itself ----------------------------------------------------------
 OUT=$(req a GET '/admin/audit?limit=3')

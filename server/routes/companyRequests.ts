@@ -17,7 +17,7 @@ import { uuidParam } from '../middleware/validateUuid.js';
  * and the admin's, mounted under /api/admin (a signed-in admin).
  *
  * An admin answers a request for a company by choosing the company once it is
- * in the data (added under Admin Tools, Data): the person becomes an active
+ * in the data (added under Admin Tools, Add): the person becomes an active
  * member of it at once. A request for a plant is marked added once the plant
  * is. Either can be declined. The person is told by email, and reads the
  * answer on their employer page for 30 days.

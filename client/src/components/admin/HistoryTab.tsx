@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { AUDIT_KINDS } from '../../lib/records';
 import { selectContentClass, selectTriggerClass } from '../account/parts';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import HistoryList from './HistoryList';
 
 /**
@@ -23,9 +23,8 @@ export default function HistoryTab() {
   };
 
   return (
-    <PageSection>
+    <Panel title="History" description="Every change an admin makes is kept here, with who made it and when.">
       <div className="mb-3 flex flex-wrap items-center gap-3">
-        <p className="min-w-0 flex-1 basis-64 text-sm text-text-2">Every change an admin makes is kept here, with who made it and when.</p>
         <Select value={kind || 'all'} onValueChange={choose}>
           <SelectTrigger aria-label="Show" className={cn(selectTriggerClass, 'w-full xs:w-48')}>
             <SelectValue />
@@ -43,6 +42,6 @@ export default function HistoryTab() {
         </Select>
       </div>
       <HistoryList key={kind} filter={kind ? { kind } : {}} empty="None yet." />
-    </PageSection>
+    </Panel>
   );
 }

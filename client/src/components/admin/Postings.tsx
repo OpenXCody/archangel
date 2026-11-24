@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
 import { formatFactoryName } from '@shared/displayName';
 import { useDecidePlace, usePostingSources, useWaitingPlaces, type PostingSource, type WaitingPlace } from '../../lib/postings';
 import { formatDayCapital } from '../../lib/dates';
-import { Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass, rowHoverClass } from '../account/parts';
-import { PageSection } from '../layout/Page';
+import { CardNote, Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass } from '../account/parts';
+import Panel from './Panel';
 import { useAdminNotice } from './AdminNotice';
 
 const n = (value: number) => value.toLocaleString('en-US');
@@ -100,32 +100,12 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
   );
 }
 
-/** Where the list of places that wait lives: the Data tab, taken over by it. */
-export const PLACES_PATH = '/admin?tab=data&postings=places';
+/** Where the list of places that wait lives: Review, taken over by it. */
+export const PLACES_PATH = '/admin/review?postings=places';
 
-/**
- * The way into the places employers' postings name where we list no factory of
- * theirs. Drawn only while some wait, and as one line: a first run leaves
- * dozens, and the tab is for more than them.
- */
-export function PlacesWaiting() {
-  const places = useWaitingPlaces();
-  const total = places.data?.total ?? 0;
-  if (total === 0) return null;
-  return (
-    <PageSection title="Postings with no factory" description="Places employers' postings name where we list no factory of theirs.">
-      <Link
-        to={PLACES_PATH}
-        className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}
-        data-posting-places-waiting
-      >
-        <span className="min-w-0 text-sm text-text-1">Open the list</span>
-        <span className="shrink-0 text-xs tabular-nums text-text-3">
-          {n(total)} {total === 1 ? 'place' : 'places'}
-        </span>
-      </Link>
-    </PageSection>
-  );
+/** How many places wait for a factory: the count beside "Postings with no factory" on Review. */
+export function usePlacesWaiting(): number | undefined {
+  return useWaitingPlaces().data?.total;
 }
 
 /**
@@ -138,11 +118,11 @@ export function PlacesView() {
   const total = places.data?.total ?? 0;
   return (
     <>
-      <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-text-2 transition-colors hover:text-text-1">
+      <Link to="/admin/review" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-text-2 transition-colors hover:text-text-1">
         <ArrowLeft className="h-4 w-4" />
-        Back
+        Everything to review
       </Link>
-      <PageSection
+      <Panel
         title="Postings with no factory"
         description="Employers' postings that name a place where we list no factory of theirs. Point the place at a factory, and every posting naming it becomes a job there."
       >
@@ -168,7 +148,7 @@ export function PlacesView() {
             {n(rows.length)} of {n(total)} places, the ones most postings name.
           </p>
         )}
-      </PageSection>
+      </Panel>
     </>
   );
 }
@@ -223,22 +203,28 @@ function RunLine({ source }: { source: PostingSource }) {
 /**
  * Every employer whose public postings the intake runner reads, with its
  * latest run: postings read and kept, jobs new, changed and closed, postings
- * waiting for a factory; or what refused. Drawn once a run has been made.
+ * waiting for a factory; or what refused.
  */
 export function PostingRuns() {
   const sources = usePostingSources();
   if (sources.isPending) return null;
   if (sources.isError) {
     return (
-      <PageSection title="Postings">
+      <Panel title="Postings">
         <LoadError error={sources.error} onRetry={() => void sources.refetch()} retrying={sources.isFetching} />
-      </PageSection>
+      </Panel>
     );
   }
-  if (sources.data.length === 0) return null;
+  if (sources.data.length === 0) {
+    return (
+      <Panel title="Postings" description="Employers' public job postings, read every day by the intake runner.">
+        <CardNote>No run yet.</CardNote>
+      </Panel>
+    );
+  }
   const open = sources.data.reduce((sum, source) => sum + source.openJobs, 0);
   return (
-    <PageSection
+    <Panel
       title="Postings"
       description={`Employers' public job postings, read every day by the intake runner. ${n(open)} ${open === 1 ? 'job is' : 'jobs are'} open from them.`}
     >
@@ -267,6 +253,6 @@ export function PostingRuns() {
           ))}
         </ul>
       )}
-    </PageSection>
+    </Panel>
   );
 }

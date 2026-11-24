@@ -48,6 +48,7 @@ export type NewRecord =
       longitude: number;
       city?: string;
       address?: string;
+      zip?: string;
     }
   | { kind: 'career'; title: string; description?: string; /** The slug of its home domain. */ home?: string }
   | { kind: 'skill'; name: string; /** The slug of its skill group, which fixes its domain. */ group: string; level: SkillLevel; description?: string; howLearned?: string; tools?: string[] };
@@ -132,13 +133,57 @@ export function useAddRecord() {
   });
 }
 
+/** A factory's place as a form sends it: the address as typed and the point it was found at. */
+export interface NewFactoryPlace {
+  /** Left out, the factory is named for its company and town: "Acme Austin". */
+  name?: string;
+  address?: string;
+  city?: string;
+  state: string;
+  zip?: string;
+  latitude: number;
+  longitude: number;
+}
+
+/** A company to add, with its first factory when it has one. */
+export interface NewCompany {
+  name: string;
+  domain?: string;
+  description?: string;
+  factory?: NewFactoryPlace;
+}
+
+/** What adding a company made: the company, and its first factory when one was given. */
+export interface AddedCompany {
+  company: RecordLink & { id: string };
+  factory: (RecordLink & { id: string; city: string | null; state: string | null }) | null;
+}
+
+/** Add a company and, in the same write, its first factory. Both are there afterwards, or neither. */
+export function useAddCompany() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: NewCompany): Promise<AddedCompany> => {
+      const saved = await request<SavedRecord & { factory: (SavedRecord & { city: string | null; state: string | null }) | null }>(PATH.company, { method: 'POST', body });
+      return {
+        company: { ...linkTo('company', saved), id: saved.id },
+        factory: saved.factory ? { ...linkTo('factory', saved.factory), id: saved.factory.id, city: saved.factory.city, state: saved.factory.state } : null,
+      };
+    },
+    onSuccess: (added) => {
+      recordsChanged(queryClient, 'company');
+      if (added.factory) recordsChanged(queryClient, 'factory');
+    },
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Correcting, merging and deleting
 // ---------------------------------------------------------------------------
 
-/** Where a record is corrected: Admin Tools, Data, with the record in the address. */
+/** Where a record is corrected: Admin Tools, Records, with the record in the address. */
 export function editPath(kind: RecordKind, id: string): string {
-  return `/admin?tab=data&kind=${kind}&id=${id}`;
+  return `/admin/records?kind=${kind}&id=${id}`;
 }
 
 /** A record found by search, or one a name comes close to. */

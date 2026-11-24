@@ -18,7 +18,7 @@
 # changed, or an error of ours. The report (the requests made by platform,
 # which boards were listed in full, which were cut short and why, and what
 # each employer's run read, kept and changed) is kept as the run's artifact,
-# and Admin Tools, Data, "Postings" shows the same.
+# and Admin Tools, Activity, "Postings" shows the same.
 #
 # A day's run is under half an hour. Twenty minutes of it is Workday: that
 # platform is given 300 requests a run across all of its boards, four seconds
