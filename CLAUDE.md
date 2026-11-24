@@ -224,7 +224,7 @@ While a seeker fills in the one career laid over the atlas (on `/atlas?career=`,
 
 What moves is never in the plate's SVG. The ring at the centre and the answer to a mark (the way drawn in from the centre, the mark arriving, one ring opening from the leaf: about a second, off under `prefers-reduced-motion`) are a second small SVG laid exactly over the plate under the same camera (`.atlas-moving`, its own compositor layer): a frame of motion inside the plate would repaint all of it. The lasting line and mark are added to the plate's layers at once but unseen (`data-arriving`) until the answer is done (`useFreshMark`). A mark adds or removes one path and one mark; nothing in `Plate` changes.
 
-Profile shows each goal's career as a small plate (`GoalPlate`: no names, no camera, none of the leaves, and no hue: it is a career laid over the plate, so ink, the accent and bright; it shares the layout, so its seam is at the lower left too): one shared ground on the page (`GoalPlateGround`, an SVG symbol) and at most five paths per goal, drawn from `skillIds` on `GET /api/me/goals` and the person's skills. It opens the career's Atlas view (`careerAtlasHref`). Careers within reach stay words.
+Profile shows each goal's career as a small plate (`GoalPlate`: no names, no camera, none of the leaves, and no hue: it is a career laid over the plate, so ink, the accent and bright; it shares the layout, so its seam is at the lower left too): one shared ground on the page (`GoalPlateGround`, an SVG symbol: the rim as one hairline circle) and at most five paths per goal, drawn from `skillIds` on `GET /api/me/goals` and the person's skills. It opens the career's Atlas view (`careerAtlasHref`). Careers within reach stay words.
 
 ## Detail pages
 

@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { arcPath, branchPath, type AtlasLayout } from './layout';
+import { branchPath, type AtlasLayout } from './layout';
 import { dotsPath, walkOf } from './walk';
 
 /**
@@ -8,12 +8,13 @@ import { dotsPath, walkOf } from './walk';
  * in the accent, as on the Atlas; what the person holds is bright, from the
  * centre out to each held skill; a career held whole is all bright.
  *
- * Many of these must cost little. The plate's own ground (the ring of
- * domains, the same for every career) is drawn once on the page and shown in
- * each plate (`GoalPlateGround`, an SVG symbol); a career adds five paths to
- * it whatever its size: its branches, the walked ones, and its skills still
- * ahead, being learned and held, each set of dots one path. None of the
- * Atlas's 650 leaves is drawn.
+ * Many of these must cost little. The plate's own ground (its rim, one
+ * hairline circle: at the size of a thumb sixteen arcs would read as a
+ * dashed dial) is drawn once on the page and shown in each plate
+ * (`GoalPlateGround`, an SVG symbol); a career adds five paths to it whatever
+ * its size: its branches, the walked ones, and its skills still ahead, being
+ * learned and held, each set of dots one path. None of the Atlas's 722 leaves
+ * is drawn.
  */
 
 /** The plate's radius in the drawing's own units, and half the frame. */
@@ -21,26 +22,13 @@ const S = 100;
 const BOX = 92;
 const GROUND = 'goal-plate-ground';
 
-const grounds = new WeakMap<AtlasLayout, string>();
-
-/** The ring of domains, as one path: worked out once per taxonomy. */
-function groundPath(layout: AtlasLayout): string {
-  let d = grounds.get(layout);
-  if (d === undefined) {
-    d = '';
-    for (const domain of layout.domains) d += arcPath(layout.geometry.ring, domain.from, domain.to, S);
-    grounds.set(layout, d);
-  }
-  return d;
-}
-
 /** The ground every small plate on the page shows. Render it once, anywhere on the page that has plates. */
 export const GoalPlateGround = memo(function GoalPlateGround({ layout }: { layout: AtlasLayout }) {
   return (
     <svg width="0" height="0" aria-hidden="true" className="absolute" data-goal-plate-ground>
       <defs>
         <symbol id={GROUND} viewBox={`${-BOX} ${-BOX} ${2 * BOX} ${2 * BOX}`} overflow="visible">
-          <path className="goal-plate-ring" d={groundPath(layout)} />
+          <circle className="goal-plate-ring" r={layout.geometry.ring * S} />
           <circle className="goal-plate-root" r={layout.geometry.root * S} />
         </symbol>
       </defs>
