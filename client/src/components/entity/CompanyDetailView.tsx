@@ -6,7 +6,7 @@ import { industryByName, industryLabel, industryPath } from '@shared/industry';
 import { versionPath } from '@shared/versions';
 import { versionLine } from '../../lib/versions';
 import CompanyLogo from '../CompanyLogo';
-import { CompanyFamily, CompanyStanding, PlantFacts, peopleCount } from './RecordFacts';
+import { CompanyFamily, CompanyStanding, PlantFacts, ownCareerLine, peopleCount } from './RecordFacts';
 import { useMapStore } from '../../stores/mapStore';
 import { cityState, stateName } from '../../lib/places';
 import {
@@ -38,7 +38,6 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
   const navigate = useNavigate();
   const [showAllPlants, setShowAllPlants] = useState(false);
   const [showAllCareers, setShowAllCareers] = useState(false);
-  const [showAllTypical, setShowAllTypical] = useState(false);
   const name = formatCompanyName(data.name);
   const plants = useMemo(() => data.factories ?? [], [data.factories]);
   const jobs = data.jobs ?? [];
@@ -111,25 +110,20 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
     navigate('/map');
   };
 
-  // The careers the company has its own version of come first, each opening that version; then the
-  // careers on record at its factories that it has said nothing about.
-  const versions = data.versions ?? [];
-  const versioned = new Set(versions.map((version) => version.occupation.id));
-  const recorded = (data.occupations ?? []).filter((career) => !versioned.has(career.id));
-  const careers = [
-    ...versions.map((version) => ({ id: version.occupation.id, title: version.occupation.title, to: versionPath(version.occupation.id, data), line: versionLine(version), version: true })),
-    ...recorded.map((career) => ({
+  // Its own careers, as the server orders them: those of its open jobs (with how many are open), then the
+  // ones it has its own version of, then those recorded at its factories. A career it has a version of opens
+  // that version. The careers typical of its industry are not the company's and are not listed here.
+  const versions = new Map((data.versions ?? []).map((version) => [version.occupation.id, version]));
+  const careers = (data.careers ?? []).map((career) => {
+    const version = versions.get(career.id);
+    return {
       id: career.id,
       title: career.title,
-      to: `/occupations/${career.id}`,
-      line: [only ? null : plural(career.factoryCount, 'factory', 'factories'), career.headcount ? peopleCount(career.headcount) : null].filter(Boolean).join(' · ') || null,
-      version: false,
-    })),
-  ];
-  // Then the careers typical of its industry, which say what kind of work a company like this has and
-  // never that it employs them: they stand under their own heading, without the ones already listed.
-  const listed = new Set(careers.map((career) => career.id));
-  const typical = (data.typicalCareers ?? []).filter((career) => !listed.has(career.id));
+      to: version ? versionPath(career.id, data) : `/occupations/${career.id}`,
+      line: [ownCareerLine(career), version ? versionLine(version) : null].filter(Boolean).join(' · ') || null,
+      version: Boolean(version),
+    };
+  });
   // A military service: its careers are the page. Each keeps its full title, with its code and home in the grey line.
   const service = data.service ?? null;
   const serviceCareers = data.serviceCareers ?? [];
@@ -222,9 +216,9 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
       )}
 
       {/* Under the heading and the map, the page's two lists stand side by side on a desktop: its factories on
-          the left and its careers on the right (its own versions first, then those recorded at its factories,
-          then the careers typical of its industry). One column on a phone, and when there is only one of the two. */}
-      <div className={cn('grid grid-cols-1 gap-x-12', plants.length > 1 && (careers.length > 0 || typical.length > 0) && 'lg:grid-cols-2')} data-company-lists>
+          the left and its own careers on the right. One column on a phone. With no careers of its own there is
+          no Careers section, and the factories take the width. */}
+      <div className={cn('grid grid-cols-1 gap-x-12', plants.length > 1 && careers.length > 0 && 'lg:grid-cols-2')} data-company-lists>
         {/* Every factory: where it is and what it makes */}
         {plants.length > 1 && (
           <DetailSection id="factories" title="Factories" className="min-w-0">
@@ -252,7 +246,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
             )}
           </DetailSection>
         )}
-        {(careers.length > 0 || typical.length > 0) && (
+        {careers.length > 0 && (
           <div className="min-w-0">
             {/* Its careers: the ones it has its own version of, then those recorded across its factories */}
             {careers.length > 0 && (
@@ -270,19 +264,6 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
                 </RecordList>
                 {careers.length > CAREERS_SHOWN && (
                   <ShowAll open={showAllCareers} total={careers.length} onToggle={() => setShowAllCareers((value) => !value)} />
-                )}
-              </DetailSection>
-            )}
-            {/* What kind of work its industry has. */}
-            {typical.length > 0 && (
-              <DetailSection id={careers.length > 0 ? 'industry-careers' : 'occupations'} title="Careers in this industry">
-                <RecordList data-typical-careers="">
-                  {(showAllTypical ? typical : typical.slice(0, CAREERS_SHOWN)).map((career) => (
-                    <RecordRow key={career.id} to={`/occupations/${career.id}`} title={career.title} />
-                  ))}
-                </RecordList>
-                {typical.length > CAREERS_SHOWN && (
-                  <ShowAll open={showAllTypical} total={typical.length} onToggle={() => setShowAllTypical((value) => !value)} />
                 )}
               </DetailSection>
             )}

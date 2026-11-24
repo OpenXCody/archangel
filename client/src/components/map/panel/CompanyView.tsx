@@ -5,7 +5,7 @@ import { cityState } from '../../../lib/places';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../../CompanyLogo';
 import { leadingIndustry, shownIndustry } from '@shared/industry';
-import { Heading, Section, JobRows, More, RowList, NodeRow, PageLink, Figures, SECONDARY_BUTTON } from './parts';
+import { Heading, Section, JobRows, CareerRows, More, RowList, NodeRow, PageLinks, ListLink, Figures, SECONDARY_BUTTON, ownCareerLine } from './parts';
 
 export default function CompanyView({ company }: { company: CompanyDetail }) {
   const { flyTo, selectFactory, setHoveredFactory } = useMapStore();
@@ -15,6 +15,7 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
   const jobs = company.jobs ?? [];
   // The record lists the first few open jobs and says how many there are in all.
   const openJobs = company.openJobCount ?? jobs.length;
+  const careers = company.careers ?? [];
   const points = plants
     .filter((f) => f.latitude && f.longitude)
     .map((f): [number, number] => [parseFloat(f.longitude as string), parseFloat(f.latitude as string)])
@@ -29,6 +30,9 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
         // The industry most of its factories are in.
         subtitle={shownIndustry(leadingIndustry(plants.map((plant) => plant.industry))) ?? undefined}
       />
+      {/* The way on, at the top, named for where it goes; what the company is, with it. */}
+      <PageLinks links={[{ to: `/companies/${company.slug || company.id}`, label: 'Company page' }]} />
+      {company.description && <p className="-mt-2 mb-6 text-[15px] leading-relaxed text-text-2">{company.description}</p>}
       <Figures
         items={[
           ...(plants.length > 0 ? [{ label: 'Factories', value: plants.length }] : []),
@@ -36,18 +40,21 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
           ...(openJobs > 0 ? [{ label: 'Open jobs', value: openJobs }] : []),
         ]}
       />
-      {company.description && (
-        <Section title="About">
-          <p className="text-[15px] leading-relaxed text-text-2">{company.description}</p>
-        </Section>
-      )}
       {plants.length === 0 && <p className="mb-8 text-[15px] text-text-2">No factories are listed for this company.</p>}
 
       {/* What work is here */}
       {jobs.length > 0 && (
         <Section title="Open jobs">
           <JobRows jobs={jobs} limit={4} />
-          <More shown={Math.min(4, jobs.length)} total={openJobs} noun="on the company's page" />
+          {openJobs > 4 && <ListLink to={`/jobs?company=${company.id}`}>All {openJobs.toLocaleString()} open jobs</ListLink>}
+        </Section>
+      )}
+
+      {/* Its own careers: of its open jobs, its versions, those recorded at its factories. None of its own, no section. */}
+      {careers.length > 0 && (
+        <Section title="Careers">
+          <CareerRows careers={careers.map((career) => ({ id: career.id, title: career.title, subtitle: ownCareerLine(career) }))} limit={6} />
+          <More shown={Math.min(6, careers.length)} total={careers.length} noun="on the company's page" />
         </Section>
       )}
 
@@ -84,8 +91,6 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
         </Section>
       )}
 
-      {/* Where next */}
-      <PageLink to={`/companies/${company.slug || company.id}`}>Company page</PageLink>
     </>
   );
 }

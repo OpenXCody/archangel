@@ -3,6 +3,8 @@ import { db, occupationLinks, occupations, skillDomains } from '../db/index.js';
 import type { Executor } from './audit.js';
 import { rowsOf } from './rows.js';
 import { civilianCareer } from './military.js';
+import { jobIsOpen } from './openJobs.js';
+import { factoryInScope } from './scope.js';
 
 /**
  * What a career has beyond its path: a home (the domain most of its work is
@@ -129,4 +131,75 @@ export async function militaryCareerDomains(): Promise<(CareerHome & { services:
     `)
   );
   return rows.map((row) => ({ slug: String(row.slug), name: String(row.name), services: Array.isArray(row.services) ? row.services.map(String) : [] }));
+}
+
+/**
+ * The careers a company, or one of its factories, has: what its page and its
+ * panel on the map list under Careers. Only what is known of the subject
+ * itself, in this order:
+ *
+ * 1. the careers of its open jobs, the one with the most open first, each
+ *    with how many are open (`openJobs`);
+ * 2. the careers the company has its own version of (`version`);
+ * 3. the careers recorded for the factory, or across the company's factories
+ *    (factory_occupations: `factories`, `people`).
+ *
+ * A career that is several of these stands once, where it first belongs. The
+ * careers typical of the subject's industry are never among them: they say
+ * what kind of work an industry has, and belong on the industry's page and on
+ * a state's or an area's panel. A subject with none of its own has no careers
+ * to list, and its surfaces draw no Careers section.
+ */
+export interface OwnCareer {
+  id: string;
+  title: string;
+  /** Open jobs for it here; 0 when it is listed for another reason. */
+  openJobs: number;
+  /** The company has its own version of it. */
+  version: boolean;
+  /** Recorded at this many of the subject's factories, with this many people; null when not recorded. */
+  factories: number | null;
+  people: number | null;
+}
+
+export async function ownCareers(subject: { companyId: string } | { factoryId: string; companyId: string | null }): Promise<OwnCareer[]> {
+  const factoryId = 'factoryId' in subject ? subject.factoryId : null;
+  const companyId = subject.companyId;
+  // The subject's factories: the one, or every factory of the company.
+  const here = factoryId ? sql`oc_f.id = ${factoryId}` : sql`oc_f.company_id = ${companyId}`;
+  const rows = rowsOf(
+    await db.execute(sql`
+      WITH open AS (
+        SELECT j.occupation_id, COUNT(*)::int AS n
+        FROM jobs j
+        INNER JOIN factories oc_f ON oc_f.id = j.factory_id
+        WHERE ${jobIsOpen('j')} AND ${here} AND ${factoryInScope('oc_f')}
+        GROUP BY j.occupation_id
+      ), versioned AS (
+        SELECT cc.occupation_id FROM company_careers cc WHERE cc.company_id = ${companyId}
+      ), recorded AS (
+        SELECT fo.occupation_id, COUNT(DISTINCT fo.factory_id)::int AS factories, NULLIF(COALESCE(SUM(fo.headcount), 0), 0)::int AS people
+        FROM factory_occupations fo
+        INNER JOIN factories oc_f ON oc_f.id = fo.factory_id
+        WHERE ${here} AND ${factoryInScope('oc_f')}
+        GROUP BY fo.occupation_id
+      )
+      SELECT o.id, o.title, COALESCE(open.n, 0) AS open_jobs, (versioned.occupation_id IS NOT NULL) AS version,
+             recorded.factories, recorded.people
+      FROM occupations o
+      LEFT JOIN open ON open.occupation_id = o.id
+      LEFT JOIN versioned ON versioned.occupation_id = o.id
+      LEFT JOIN recorded ON recorded.occupation_id = o.id
+      WHERE open.occupation_id IS NOT NULL OR versioned.occupation_id IS NOT NULL OR recorded.occupation_id IS NOT NULL
+      ORDER BY (open.occupation_id IS NULL), open.n DESC NULLS LAST, (versioned.occupation_id IS NULL), lower(o.title), o.id
+    `)
+  );
+  return rows.map((row) => ({
+    id: String(row.id),
+    title: String(row.title),
+    openJobs: Number(row.open_jobs) || 0,
+    version: Boolean(row.version),
+    factories: row.factories === null || row.factories === undefined ? null : Number(row.factories),
+    people: row.people === null || row.people === undefined ? null : Number(row.people),
+  }));
 }

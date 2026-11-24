@@ -215,6 +215,20 @@ export interface CompanyOccupation {
   headcount: number;
 }
 
+/**
+ * A career a company, or one of its factories, has: of its open jobs (with how many are open), one the
+ * company has its own version of, or one recorded at its factories. Never a career that is only typical
+ * of its industry.
+ */
+export interface OwnCareer {
+  id: string;
+  title: string;
+  openJobs: number;
+  version: boolean;
+  factories: number | null;
+  people: number | null;
+}
+
 export interface CompanyDetail extends Company {
   /** Open jobs here, the newest few. */
   jobs?: CareerJob[];
@@ -230,8 +244,8 @@ export interface CompanyDetail extends Company {
   /** People in a state, where a source says how many. */
   peopleByState?: { state: string; people: number; year: number | null; source: string | null; note: string | null }[];
   sources?: RecordSource[];
-  /** For a company with one factory and no careers recorded there: the careers typical of that factory's industry. */
-  typicalCareers?: { id: string; title: string }[];
+  /** The careers it has: of its open jobs, its versions, those recorded at its factories. Its own only. */
+  careers?: OwnCareer[];
   /** The careers the company has its own version of. */
   versions?: VersionSummary[];
   /** Which military service the company is; null for every other company. */
@@ -319,8 +333,10 @@ export interface FactoryDetail extends Factory {
   company: FactoryCompany | null;
   /** The company's other sites, closest first (up to five). */
   nearby?: SisterSite[];
-  /** Careers typical of this factory's industry, when none are recorded for the factory itself. */
+  /** Careers typical of this factory's industry, when none are recorded for it. Shown on no page: the job form offers them. */
   typicalCareers?: { id: string; title: string }[];
+  /** The careers it has: of its open jobs, its company's versions, those recorded for it. Its own only. */
+  careers?: OwnCareer[];
   occupations: RelatedOccupation[];
   /** Where the factory's facts came from. */
   sources?: RecordSource[];

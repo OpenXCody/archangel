@@ -10,7 +10,8 @@ import { answerRefusal, changeRecord, recordAdded, removeRecord } from '../lib/r
 import { sourcesOf } from '../lib/sources.js';
 import { int, rowsOf, text, type Row } from '../lib/rows.js';
 import { byCompanyStanding, companyIndustries, companyIndustry, companyStandings, standingOf } from '../lib/industries.js';
-import { industryByName, industryBySlug, leadingIndustry } from '../../shared/industry.js';
+import { industryByName, industryBySlug } from '../../shared/industry.js';
+import { ownCareers } from '../lib/careers.js';
 import { versionsOfCompany } from '../lib/versions.js';
 import { careersOfService } from '../lib/military.js';
 
@@ -220,24 +221,6 @@ router.get('/:id', async (req: Request, res: Response) => {
     `);
 
     const occupationRows = rowsOf(companyOccupations);
-    // The careers typical of the company's industry (the one most of its
-    // factories are in), in the industry's own order: what kind of work a
-    // company like this has, never a claim about it. The page lists them
-    // after the company's own careers, leaving out any it already lists.
-    const industry = leadingIndustry(companyFactories.map((factory) => factory.industry));
-    const typicalCareers = industry
-      ? rowsOf(
-          await db.execute(sql`
-            SELECT o.id, o.title
-            FROM industry_occupations io
-            INNER JOIN occupations o ON o.id = io.occupation_id
-            WHERE io.industry = ${industry}
-            ORDER BY io.rank ASC, o.title ASC
-            LIMIT 24
-          `)
-        ).map((r) => ({ id: String(r.id), title: String(r.title) }))
-      : [];
-
     res.json({
       ...company,
       parent: parent ?? null,
@@ -252,7 +235,8 @@ router.get('/:id', async (req: Request, res: Response) => {
       // How many are open in all: the page lists the newest few and links to the rest.
       openJobCount: await countOpenJobs(eq(jobs.companyId, id)),
       occupations: occupationRows,
-      typicalCareers,
+      // The careers it has, its own only: those of its open jobs, its versions, those recorded at its factories.
+      careers: await ownCareers({ companyId: id }),
       // The careers the company has its own version of.
       versions: await versionsOfCompany(id),
       // A military service has no plants: its page lists its careers. Empty for every other company.

@@ -1,10 +1,11 @@
 import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Factory, Briefcase, ChevronRight } from 'lucide-react';
-import { type CareerJob } from '../../../lib/api';
+import { type CareerJob, type OwnCareer } from '../../../lib/api';
 import { useMapStore } from '../../../stores/mapStore';
 import { formatCompanyName } from '@shared/displayName';
 import { formatPay } from '../../../lib/jobFormat';
+import { ownCareerLine as careerLine } from '../../entity/RecordFacts';
 
 /*
  * Words, the same in every panel:
@@ -135,6 +136,35 @@ export function PageLink({ to, children }: { to: string; children: ReactNode }) 
     </Link>
   );
 }
+
+/**
+ * The way on from a panel to a page, as real buttons named for where they go,
+ * directly under the subject's name: "Factory page", "Company page". Two stand
+ * side by side, each half the panel's width; one takes all of it.
+ */
+export function PageLinks({ links }: { links: { to: string; label: string }[] }) {
+  return (
+    <div className={`mb-5 grid gap-2 ${links.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`} data-page-links>
+      {links.map((link) => (
+        <Link key={link.to} to={link.to} className={`flex min-w-0 px-3 py-2.5 ${SECONDARY_BUTTON}`}>
+          <span className="truncate">{link.label}</span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+/** A link out of the panel that ends a list, as a button: "All 49 open jobs". */
+export function ListLink({ to, children }: { to: string; children: ReactNode }) {
+  return (
+    <Link to={to} className={`mt-3 flex w-full px-4 py-2.5 ${SECONDARY_BUTTON}`}>
+      {children}
+    </Link>
+  );
+}
+
+/** What a subject's own career says under its title: the one line its page says too. */
+export const ownCareerLine = (career: OwnCareer): string | undefined => careerLine(career) ?? undefined;
 
 export function CareerRows({ careers, limit }: { careers: { id: string; title: string; subtitle?: string }[]; limit: number }) {
   const selectEntity = useMapStore((s) => s.selectEntity);

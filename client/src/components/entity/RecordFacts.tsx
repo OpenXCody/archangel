@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { formatCompanyName } from '@shared/displayName';
 import { stateName } from '../../lib/places';
-import type { CompanyDetail, FactoryDetail } from '../../lib/api';
+import type { CompanyDetail, FactoryDetail, OwnCareer } from '../../lib/api';
 import CompanyLogo from '../CompanyLogo';
 import { RecordList, RecordRow } from '../layout/Page';
 
@@ -121,4 +121,15 @@ export function CompanyFamily({ companies }: { companies: NonNullable<CompanyDet
       })}
     </RecordList>
   );
+}
+
+/**
+ * What stands under one of a subject's own careers: how many jobs are open for
+ * it ("12 open"), else how many people are recorded in it. Null when the
+ * career is listed only because the company has its own version of it.
+ */
+export function ownCareerLine(career: OwnCareer): string | null {
+  if (career.openJobs > 0) return `${career.openJobs.toLocaleString()} open`;
+  if (career.people) return peopleCount(career.people);
+  return null;
 }
