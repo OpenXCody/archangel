@@ -32,6 +32,9 @@
 //     career, with a line in load_log, and says once which names it did not add
 //     because another career holds them. It deletes no other name. A second run
 //     changes nothing and writes nothing.
+//
+// 0047 was the first and 0056 the second, each as it was applied; 0074 lists the
+// careers 0073 added. Only the latest is what this script writes today.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
@@ -41,7 +44,7 @@ const [
   catalogueFile = 'data/careers/catalogue.json',
   industriesFile = 'data/careers/industries.json',
   aliasesFile = 'data/careers/aliases.json',
-  output = 'migrations/0056_career_lists_2.sql',
+  output = 'migrations/0074_career_lists_3.sql',
 ] = args.filter((arg) => arg !== '--check');
 
 const text = (value) => typeof value === 'string' && value.trim().length > 0 && value === value.trim();

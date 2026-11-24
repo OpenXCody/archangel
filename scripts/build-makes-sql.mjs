@@ -35,13 +35,14 @@
 // file does not have).
 //
 // 0050 was the first and is as it was applied; 0058 adds the makes employers'
-// postings name. Only the latest is what this script writes today.
+// postings name, 0072 the makes of the skills 0070 added. Only the latest is what
+// this script writes today.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
-const [input = 'data/skills/makes.json', catalogueFile = 'data/skills/catalogue.json', output = 'migrations/0058_skill_makes_2.sql'] = args.filter((arg) => arg !== '--check');
+const [input = 'data/skills/makes.json', catalogueFile = 'data/skills/catalogue.json', output = 'migrations/0072_skill_makes_3.sql'] = args.filter((arg) => arg !== '--check');
 
 export const MAKES_MAX = 12;
 export const MAKE_NAME_MAX = 60;

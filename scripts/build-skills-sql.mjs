@@ -27,8 +27,9 @@
 //
 // 0033 was the first, 0048 the pass that added the trades and folded the brand
 // names, 0057 the other names employers' postings use, 0059 the skills of the
-// military careers (66 added, none renamed or removed). Each is as it was applied;
-// only the latest is what this script writes today.
+// military careers (66 added, none renamed or removed), 0070 the trades of the
+// industries the catalogue lacked (318 added, seven names back from the removed
+// list). Each is as it was applied; only the latest is what this script writes today.
 //
 // It attaches no skill to a career: a path is written in data/paths/. (The
 // first catalogue migration, 0033, did; the file no longer carries "careers".)
@@ -36,7 +37,7 @@
 // whose migration follows this one and places every skill this one leaves.
 import { readFile, writeFile } from 'node:fs/promises';
 
-const [input = 'data/skills/catalogue.json', output = 'migrations/0059_skills_catalogue_4.sql'] = process.argv.slice(2);
+const [input = 'data/skills/catalogue.json', output = 'migrations/0070_skills_catalogue_5.sql'] = process.argv.slice(2);
 const q = (text) => `'${String(text).replace(/'/g, "''")}'`;
 const data = JSON.parse(await readFile(input, 'utf8'));
 

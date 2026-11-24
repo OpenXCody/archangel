@@ -38,12 +38,15 @@
 //   - leaves a career the file does not name as it is;
 //   - makes the links between the file's careers exactly the file's.
 // Every step is a no-op once it has been done.
+//
+// 0046 was the first and is as it was applied; 0073 adds the trades of the
+// industries the catalogue lacked. Only the latest is what this script writes today.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
-const [input = 'data/careers/catalogue.json', taxonomyFile = 'data/skills/taxonomy.json', output = 'migrations/0046_careers_catalogue.sql'] = args.filter((arg) => arg !== '--check');
+const [input = 'data/careers/catalogue.json', taxonomyFile = 'data/skills/taxonomy.json', output = 'migrations/0073_careers_catalogue_2.sql'] = args.filter((arg) => arg !== '--check');
 
 /** The most careers one career leads to. */
 export const MAX_LEADS_TO = 3;
