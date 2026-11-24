@@ -236,7 +236,9 @@
         "Shop Safety Practices",
         "PPE Selection",
         "Preventive Maintenance",
-        "P&ID Reading"
+        "P&ID Reading",
+        "Lockout Tagout",
+        "CMMS Use"
       ]
     },
     {
@@ -351,7 +353,9 @@
         "Motor Rewinding",
         "Battery and UPS Maintenance",
         "CMMS Use",
-        "Wire Crimping and Termination"
+        "Wire Crimping and Termination",
+        "Shipboard Cable Installation",
+        "Cable Penetration Sealing"
       ]
     },
     {
@@ -372,12 +376,14 @@
         "Instrumentation Calibration",
         "Inertial Navigation System Maintenance",
         "Preventive Maintenance",
-        "Lockout Tagout"
+        "Lockout Tagout",
+        "Shipboard Cable Installation",
+        "Cable Penetration Sealing"
       ]
     },
     {
       "title": "Navy Hull Maintenance Technician",
-      "basis": "Read against the Navy occupational standard for the rating (NAVPERS 18068F, HT chapter, July 2026: 107 tasks). Shop Math and PPE Selection are floor basics the standard does not name.",
+      "basis": "Read against the Navy occupational standard for the rating (NAVPERS 18068F, HT chapter, July 2026: 107 tasks). Shop Math and PPE Selection are floor basics the standard does not name. Hull Structure Fit-Up and Bolted Flange Joint Assembly, skills the catalogue gained later, are added for the rating's structural repair and piping work.",
       "skills": [
         "Shop Safety Practices",
         "PPE Selection",
@@ -404,7 +410,9 @@
         "Inspection Record Keeping",
         "Pipe Fitting and Layout",
         "Carbon Arc Gouging",
-        "Stud Welding"
+        "Stud Welding",
+        "Hull Structure Fit-Up",
+        "Bolted Flange Joint Assembly"
       ]
     },
     {
@@ -808,7 +816,8 @@
         "Blueprint Reading",
         "Generator Set Maintenance",
         "Medium Voltage Distribution",
-        "Aerial Lift Operation"
+        "Aerial Lift Operation",
+        "Branch Circuit Wiring"
       ]
     },
     {
@@ -870,7 +879,9 @@
         "Chiller and HVAC Maintenance",
         "Boiler Operation",
         "Compressed Air System Maintenance",
-        "Preventive Maintenance"
+        "Preventive Maintenance",
+        "Bolted Flange Joint Assembly",
+        "Potable Water and Drain Plumbing"
       ]
     },
     {
@@ -904,7 +915,6 @@
         "Aircraft Turbine Engine Maintenance",
         "Aircraft Engine Removal and Installation",
         "Borescope Inspection",
-        "Engine Assembly",
         "Bearing Installation",
         "Dynamic Balancing",
         "Aircraft Fuel System Maintenance",
@@ -1178,10 +1188,11 @@
         "Pipe Fitting and Layout",
         "Torch Brazing",
         "Blueprint Reading",
-        "Water Treatment System Operation",
         "Pump Maintenance",
         "Proof Pressure and Leak Testing",
-        "Boiler Operation"
+        "Shop Math",
+        "Potable Water and Drain Plumbing",
+        "Valve Maintenance and Repair"
       ]
     },
     {
@@ -1219,7 +1230,8 @@
         "480 V Power Distribution",
         "Preventive Maintenance",
         "Conduit Bending",
-        "Blueprint Reading"
+        "Blueprint Reading",
+        "Branch Circuit Wiring"
       ]
     },
     {
@@ -1314,7 +1326,6 @@
         "Ordnance Handling",
         "Hazardous Materials Handling",
         "Munitions Serviceability Inspection",
-        "Munitions Assembly",
         "Forklift Operation",
         "Lot Tracking",
         "Material Traceability Records",
@@ -1566,11 +1577,11 @@
       "basis": "Drafted from the specialty's published scope and title. Not yet read against its official task list.",
       "skills": [
         "Fuel Quality Testing",
-        "Bulk Chemical Transfer",
         "Safety Data Sheet Reading",
         "Chemical Safety",
         "Hazardous Materials Handling",
-        "Inspection Record Keeping"
+        "Inspection Record Keeping",
+        "Wet Chemical Analysis"
       ]
     },
     {
@@ -1579,7 +1590,6 @@
       "skills": [
         "Parachute Packing",
         "Industrial Sewing",
-        "Survival Equipment Inspection",
         "Inspection Record Keeping",
         "Tool Control",
         "Rigging and Slinging"
@@ -1603,7 +1613,8 @@
         "Weapon Control System Maintenance",
         "Functional Testing",
         "Automatic Test Equipment Operation",
-        "Laser Safety"
+        "Laser Safety",
+        "Optics Cleaning and Handling"
       ]
     },
     {
@@ -2517,7 +2528,8 @@
         "Conduit Bending",
         "Blueprint Reading",
         "Medium Voltage Distribution",
-        "Aerial Lift Operation"
+        "Aerial Lift Operation",
+        "Branch Circuit Wiring"
       ]
     },
     {
@@ -2574,7 +2586,9 @@
         "Pump Maintenance",
         "Proof Pressure and Leak Testing",
         "Bulk Chemical Transfer",
-        "Valve Maintenance and Repair"
+        "Valve Maintenance and Repair",
+        "Potable Water and Drain Plumbing",
+        "Bolted Flange Joint Assembly"
       ]
     },
     {

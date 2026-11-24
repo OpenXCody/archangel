@@ -13,8 +13,8 @@ import { dotsPath, walkOf } from './walk';
  * dashed dial) is drawn once on the page and shown in each plate
  * (`GoalPlateGround`, an SVG symbol); a career adds five paths to it whatever
  * its size: its branches, the walked ones, and its skills still ahead, being
- * learned and held, each set of dots one path. None of the Atlas's 722 leaves
- * is drawn.
+ * learned and held, each set of dots one path. None of the Atlas's thousand
+ * leaves is drawn.
  */
 
 /** The plate's radius in the drawing's own units, and half the frame. */

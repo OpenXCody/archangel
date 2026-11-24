@@ -555,6 +555,22 @@ interface Zoom {
   bottom: number;
 }
 
+/** The smallest the names beside an open domain are set, on a phone and wider. */
+const LABEL_FONT_MIN = { phone: 9, wide: 10 };
+
+/**
+ * The size the names beside an open domain are set at: the column's own, or,
+ * where a domain has more names than its rows hold at their pitch (they are then
+ * set closer, `spreadWithin`), smaller with them, so no name runs into the next.
+ * A line of type stands about 1.3 of its size tall.
+ */
+function labelFont(zoom: Zoom, count: number, radiusPx: number): number {
+  const span = (zoom.bottom - zoom.top) * radiusPx;
+  const pitch = Math.min(zoom.groupPitchPx, span / Math.max(1, count));
+  const least = radiusPx < 240 ? LABEL_FONT_MIN.phone : LABEL_FONT_MIN.wide;
+  return Math.min(zoom.fontPx, Math.max(least, (pitch + 1.5) / 1.3));
+}
+
 /**
  * The open domain turned to three o'clock and enlarged so the whole of it,
  * from its groups' branches out to the rim, stands in the frame's left part
@@ -718,6 +734,8 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
       bottom: zoom.bottom,
     });
   }, [layout, domain, group, camera, zoom, radiusPx]);
+  // The names' size follows how many there are: a domain of many groups sets them smaller to keep them apart.
+  const labelZoom = useMemo(() => ({ ...zoom, fontPx: labelFont(zoom, labels.length, radiusPx) }), [zoom, labels.length, radiusPx]);
 
   /** What is at a point of the screen. */
   const targetAt = (clientX: number, clientY: number, fine: boolean): AtlasTarget | null => {
@@ -847,7 +865,7 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
       </g>
       {/* The names beside the open domain stand level, in the frame's own units: they never turn with the plate. */}
       {domain && (
-        <Labels key={domain.slug} layout={layout} labels={labels} zoom={zoom} camera={camera} radiusPx={radiusPx} leaf={leaf} preview={preview} overlay={overlay} />
+        <Labels key={domain.slug} layout={layout} labels={labels} zoom={labelZoom} camera={camera} radiusPx={radiusPx} leaf={leaf} preview={preview} overlay={overlay} />
       )}
     </svg>
     {/* What moves while a career is filled in: a drawing of its own over the plate, under the same camera. */}

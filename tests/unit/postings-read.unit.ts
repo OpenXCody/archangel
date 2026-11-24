@@ -294,13 +294,14 @@ test('a make goes to the skill the posting names, else to the one on the career\
 });
 
 test('words the catalogue does not have are kept for its next pass, a few per posting', () => {
-  const r = read('CNC Machinist', 'Requirements:\n- Familiar with Fanuc controls and Mastercam; runs a ZoomTRAK and writes APQP reports\n- Experience with Rexford-Hall drives');
-  assert.deepEqual(r.unknown.map((u) => u.phrase), ['ZoomTRAK', 'APQP', 'Rexford-Hall']);
-  // What the catalogue has since learned is read, not listed: a make, and another name of a skill.
-  const known = read('CNC Machinist', 'Requirements:\n- Familiar with Fanuc controls; runs a ProtoTRAK and writes RCCA reports');
+  const r = read('CNC Machinist', 'Requirements:\n- Familiar with Fanuc controls and Mastercam; runs a ZoomTRAK and writes QFD reports\n- Experience with Rexford-Hall drives');
+  assert.deepEqual(r.unknown.map((u) => u.phrase), ['ZoomTRAK', 'QFD', 'Rexford-Hall']);
+  // What the catalogue has since learned is read, not listed: a make, another name of a skill, and a skill of its own (APQP, 0070).
+  const known = read('CNC Machinist', 'Requirements:\n- Familiar with Fanuc controls; runs a ProtoTRAK and writes RCCA and APQP reports');
   assert.deepEqual(known.unknown, []);
   assert.ok(known.makes.some((m) => m.make === 'ProtoTRAK' && m.skill === 'CNC Control Operation'));
   assert.ok(known.skills.some((k) => k.name === 'Root Cause Analysis' && k.on === 'RCCA'));
+  assert.ok(known.skills.some((k) => k.name === 'Advanced Product Quality Planning' && k.on === 'APQP'));
   const many = read('CNC Machinist', `Requirements:\n- Experience with ${Array.from({ length: 20 }, (_, i) => `ZX${i}00A`).join(', ')}`);
   assert.equal(many.unknown.length, 8);
 });
@@ -435,11 +436,20 @@ const gold: Gold[] = JSON.parse(readFileSync(path.join(root, 'tests/fixtures/pos
 // they are named here, counted neither way, and any other unlabelled make is wrong.
 const MAKES_SINCE = ['81 Allen-Bradley>PLC Troubleshooting', '81 Siemens>PLC Troubleshooting', '106 ProtoTRAK>CNC Control Operation'];
 // The same for skills. The labels name only skills the catalogue had when they were
-// written. This one was added since (0059, with the skills of the military careers) and
-// is read from a labelled line that plainly asks for it ("Support maintenance of
-// generators, uninterruptible power supply (UPS) systems"): it is named here, counted
-// neither way, and any other unlabelled skill is wrong as before.
-const SKILLS_SINCE = ['42 Battery and UPS Maintenance'];
+// written. The first was added since with the skills of the military careers (0059), the
+// rest with the trades of the industries the catalogue lacked (0070), and each is read
+// from a labelled line that plainly asks for it ("Support maintenance of generators,
+// uninterruptible power supply (UPS) systems"; "APQP, PPAP, FMEA"; "Conduct trade studies";
+// "hand calculations and finite element methods"; "IPC-7711/7721 certification"): each is
+// named here, counted neither way, and any other unlabelled skill is wrong as before. A skill read from a
+// tool in a list of shop tools ("table saws" at a metal fabricator, 202) is not asked for, and counts wrong.
+const SKILLS_SINCE = [
+  '20 Advanced Product Quality Planning', '24 Engineering Change Management', '35 Environmental Chamber Testing',
+  '42 Battery and UPS Maintenance',
+  '44 Serial Bus Diagnostics', '44 Environmental Chamber Testing', '81 Equipment Commissioning', '93 Materials Selection',
+  '122 Trade Studies', '130 Board Bring-Up', '130 Trade Studies', '156 Trade Studies', '161 Structural Hand Calculations',
+  '189 Structural Hand Calculations', '223 PCB Rework and Repair',
+];
 
 function score(split: 'tune' | 'held') {
   const s = {

@@ -767,7 +767,15 @@ One JSON file per source or research brief, in `data/employers/`.
 - **Nothing is invented.** A figure with no source is `null`. A headcount
   needs `employeesSource` (the loader drops one without) and should carry its
   year; it is the people working at that site, never a company total divided
-  up.
+  up. A table that carries no date (an economic development corporation's list
+  of major employers) gives no year: a dated filing for the site wins over it.
+- **An OSHA Form 300A figure** is written only when the hours the filing
+  reports come to 1,000 to 3,000 a person; otherwise the other year's filing
+  when it passes, else none (a figure on hours that do not fit is not a
+  headcount: 649 hours a person, 6,697, or 364 hours in all). Hours of exactly
+  2,080 a person are an estimate and say so in `employeesNote`. A site whose
+  only filing is a headquarters or an office is not loaded on it: it waits in
+  the file's `held`, with why, until a source puts production there.
 - `name` is how a person says it ("Lockheed Martin", not "LOCKHEED MARTIN
   CORP"). A subsidiary that hires under its own name is its own company with
   `parent` set.
@@ -778,14 +786,27 @@ One JSON file per source or research brief, in `data/employers/`.
   (of the plant, not the town) and a `subsector`, one of the 21 in
   `SUBSECTORS` (`scripts/build-employers-sql.mjs`). `status` is `operating`,
   `under construction`, `announced` or `closed`; the last two are not loaded.
+- The point comes from a source whose terms let it be kept: the Census
+  Bureau's geocoder (an answer for the same house number and street), a
+  county's own address points, the EPA registry's facility at the address, or
+  the row the plant fills. The ArcGIS World Geocoding Service forbids storing
+  an answer asked for without a paid token (`forStorage`), so its points are
+  never written; it may say which public point is right, never be one, and
+  neither is a building OpenStreetMap's search finds. A plant with no public
+  point waits in the file's `unplaced` (`texas-hubs.json` holds thirteen so).
+- A site counts as a factory as CLAUDE.md says ("What counts as
+  manufacturing"): aircraft and engine overhaul on the operator's own site,
+  filed under 336411 to 336413, does; a crew inside another's site (a hangar on
+  a military base, a maintenance team in a manufacturer's factory), a
+  warehouse, an office or a site filed under services does not.
 - Not loaded either, and logged as such: a plant in Puerto Rico, and
   construction materials, which are not manufacturing here (NAICS 32732
   ready-mix, 32733 concrete pipe, brick and block, 32739 other concrete
   products, and 324121 asphalt paving mixtures: `NOT_COVERED`). A cement
   plant (32731) is loaded. Both were taken off the map and do not come back through a
   file.
-- Anything else in a file (a `rank`, notes, `unplaced`) is for people and is
-  left behind.
+- Anything else in a file (a `rank`, notes, `unplaced`, `held`) is for people
+  and is left behind.
 - `source` (file level) says what the file was made from: name, publisher,
   address, licence. A research brief may leave it out; an adapter never does.
 

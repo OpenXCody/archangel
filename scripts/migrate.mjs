@@ -39,8 +39,18 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
 
   // A company's mark set by hand (one table, no rows).
   '0069_company_marks.sql',
+  // The trades of the industries the catalogue lacked: the skills, placed in their groups, and their makes;
+  '0070_skills_catalogue_5.sql', '0071_skill_taxonomy_5.sql', '0072_skill_makes_3.sql',
+  // then the careers, their industries and other names, and every career's path.
+  '0073_careers_catalogue_2.sql', '0074_career_lists_3.sql', '0075_career_paths_2.sql',
+
+  // Texas completed hub by hub: Austin and its ring, Houston and Beaumont, Dallas-Fort Worth, San Antonio
+  // and the Valley, the rest of Texas (data/employers/texas-hubs.json).
+  '0076_texas_hubs.sql',
   // The four services' descriptions, replaced where each is still the file's earlier one.
-  '0077_military_employers_2.sql'];
+  '0077_military_employers_2.sql',
+  // The military careers' paths again, with the skills the catalogue gained in 0070 (data/careers/military/paths.json).
+  '0078_military_paths_2.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 

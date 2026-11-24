@@ -6,6 +6,7 @@
   "ahlstrom.com": "its front page offers a photograph, and its icon is 16 px",
   "alamoconcrete.com": "its icon is the mark of its owner, Buzzi, not its own",
   "allieduniversal.com": "its icon is its logo cut off at both sides",
+  "ast-science.com": "The site's touch icon is a cropped photograph of a satellite, not the company's mark (looked at 2026-11-24).",
   "atcreman.com": "its front page offers a photograph of the plant and names no icon",
   "aztecamilling.com": "aztecamilling.com does not answer automated requests, and the icon services hold no icon for it",
   "baf.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
@@ -17,8 +18,10 @@
   "burnco.com": "its front page offers a photograph and a 20 px icon, nothing that can be stored",
   "burndy.com": "its icon is the mark of its owner, Hubbell; its own logo is a wide wordmark",
   "cavco.com": "cavco.com forwards to cavcohomes.com, which refuses automated requests; Wikimedia has no logo for Cavco and the icon services hold none",
+  "cesiumastro.com": "The favicon draws as a plain black square at tile size (looked at 2026-11-24).",
   "corning.com": "its logo is a thin one-line wordmark, 6.8 to 1 (Commons File:Corning Incorporated Logo.svg); corning.com refuses automated requests and the icon services hold nothing for it",
   "crjackson.com": "its marks are white, drawn for a dark page",
+  "dayzim.com": "The site's favicon is Mason & Hanger's, a Day & Zimmermann subsidiary, not Day & Zimmermann's own mark (looked at 2026-11-24).",
   "ebaratech.com": "its logo is a one-line wordmark, 7.9 to 1, and the site names no icon",
   "epiroc.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
   "flowserve.com": "its logo is a nine-letter wordmark, 4.5 to 1; its icon, a white wave on red, is 16 px and is not a part of the logo that can be cut out",
@@ -27,6 +30,7 @@
   "hmhw.com": "its icon is the default of the software its site runs on, not its own mark",
   "justinbrands.com": "its icon is the initials of its holding company, not its own mark",
   "kraftheinzcompany.com": "its logo is a ten-letter wordmark, 4.4 to 1, and its site serves no icon",
+  "lehighwhitecement.com": "Google's favicon for the domain is a maroon C, probably its owner Cementir's mark, not Lehigh White Cement's own; the site refused our researcher (looked at 2026-11-24).",
   "michaelangelos.com": "its front page names no icon or logo file that can be stored, and the icon services hold none",
   "milliken.com": "the logo in its header is drawn in white for a dark page, its icon is 16 px, and the other logos on the page are its brands'",
   "onxlti.com": "its front page offers a photograph and names no icon",
@@ -37,7 +41,8 @@
   "schwanscompany.com": "The site's icon is its owner's (CJ) logo, not Schwan's.",
   "tecowestinghouse.com": "its logo is a one-line wordmark, 8 to 1, and its site serves no icon",
   "thecampbellscompany.com": "its icon is a campaign badge, not the company's mark",
-  "vintonsteel.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px"
+  "vintonsteel.com": "its icon is its wordmark shrunk into a square, which cannot be read at 28 px",
+  "ztsystems.com": "The site's logo is a white SVG (ZT with Sanmina) that is blank on the tile (looked at 2026-11-24)."
  },
  "kept": {
   "3dsystems.com": {

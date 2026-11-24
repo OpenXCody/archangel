@@ -5,7 +5,7 @@
 //   node scripts/build-military-sql.mjs --report           the same check, then the figures behind it
 //   node scripts/build-military-sql.mjs employers [out]    the four services as companies (0062 first, 0077 now)
 //   node scripts/build-military-sql.mjs careers [out]      the careers, each with its service and code (0063)
-//   node scripts/build-military-sql.mjs paths [out]        each career's skills, every path a draft (0064)
+//   node scripts/build-military-sql.mjs paths [out]        each career's skills, every path a draft (0064 first, 0078 now)
 //
 // A military job (a Navy rating, an Army MOS, an Air Force specialty) is a
 // career, and each service is an employer: a row in `companies` whose
@@ -600,7 +600,7 @@ const json = async (file) => JSON.parse(await readFile(path.join(ROOT, file), 'u
 const DEFAULT_OUTPUT = {
   employers: 'migrations/0077_military_employers_2.sql',
   careers: 'migrations/0063_military_careers.sql',
-  paths: 'migrations/0064_military_paths.sql',
+  paths: 'migrations/0078_military_paths_2.sql',
 };
 
 async function main() {

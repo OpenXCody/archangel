@@ -57,9 +57,11 @@ export interface AtlasGeometry {
   group: number;
   /**
    * The level's bands, Fundamentals nearest the centre. Leaves of one level
-   * in one group take the band's rows in turn, so 722 skills keep a mark of
-   * their own: on one ring they would run together into a line. Intermediate
-   * holds most of the skills and has the deepest band.
+   * in one group take the band's rows in turn, so a thousand skills keep a
+   * mark of their own: on one ring they would run together into a line. A band
+   * has as many rows as its level's leaves need to stay apart where a group
+   * runs them close (Fundamentals sit nearest the centre, where a step of angle
+   * is shortest). Intermediate holds most of the skills and has the deepest band.
    */
   bands: Record<SkillLevel, AtlasBand>;
   /** The rim: one arc per domain. */
@@ -78,9 +80,9 @@ export const GEOMETRY: AtlasGeometry = {
   domain: 0.14,
   group: 0.4,
   bands: {
-    1: { from: 0.465, to: 0.53, rows: 4 },
-    2: { from: 0.58, to: 0.71, rows: 4 },
-    3: { from: 0.76, to: 0.85, rows: 3 },
+    1: { from: 0.465, to: 0.53, rows: 6 },
+    2: { from: 0.58, to: 0.71, rows: 5 },
+    3: { from: 0.76, to: 0.85, rows: 4 },
   },
   ring: 0.905,
 };
