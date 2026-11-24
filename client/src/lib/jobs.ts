@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryString, request, retryUnlessClientError } from './http';
 import { accountKeys, invalidate } from './queryKeys';
+import type { CareerJob, SkillLevel, TaxonomyRef } from './api';
 
 /**
  * Jobs and applications: the open jobs anyone can read, applying to one, and
@@ -55,6 +56,8 @@ export interface JobSummary {
   expiresAt: string;
   companyId: string;
   companyName: string;
+  /** The company's slug, for the job's address (`jobPath` in shared/jobs.ts). */
+  companySlug?: string | null;
   /** The company's web domain, for its logo. */
   companyDomain?: string | null;
   factoryId: string;
@@ -89,6 +92,8 @@ export interface JobDetail extends JobSummary {
   /** What the posting asks for, as facts: only the keys that were said. */
   requirements?: JobRequirements | null;
   lastSeenAt?: string | null;
+  /** The job's address as links are written today: the page puts it in place of an older one. */
+  href?: string;
 }
 
 export interface JobRequirements {
@@ -110,9 +115,45 @@ export interface JobSkill {
   makes?: { id: string; name: string }[];
 }
 
+/** A skill on a job's page: its place in the taxonomy, and what this job and this reader say of it. */
+export interface JobPathSkill {
+  id: string;
+  name: string;
+  level: SkillLevel | null;
+  group: TaxonomyRef | null;
+  domain: TaxonomyRef | null;
+  /** The posting's own words name it. Always false on a job posted here by hand. */
+  named: boolean;
+  /** On a job posted here by hand: good to have, not needed. */
+  optional: boolean;
+  /** The company's version of the career adds it to the standard path. */
+  added: boolean;
+  /** The signed-in reader holds it. */
+  held: boolean;
+  /** The makes of the skill the job names. */
+  makes: { id: string; name: string }[];
+}
+
+/**
+ * The skills a job's page draws (see `readJobPath` in server/routes/jobs.ts).
+ * `skills` is, in path order: the company's version of the job's career
+ * (`of: 'version'`) or the career's standard path (`'career'`) for a job from
+ * a careers site; the skills the company chose (`'job'`) for one posted here.
+ * `alsoNamed` is what a posting names that is not on that path.
+ */
+export interface JobPath {
+  of: 'version' | 'career' | 'job';
+  skills: JobPathSkill[];
+  alsoNamed: JobPathSkill[];
+}
+
 export interface JobDetailResponse {
   job: JobDetail;
+  /** The job's own skills (`job_skills`), by name. The page draws `path`. */
   skills: JobSkill[];
+  path: JobPath;
+  /** Other open jobs: for this career at this company, and for other careers at this factory. */
+  others: { career: { jobs: CareerJob[]; total: number }; factory: { jobs: CareerJob[]; total: number } };
   myApplication: { id: string; status: ApplicationStatus; createdAt: string } | null;
   canManage: boolean;
 }
@@ -197,6 +238,7 @@ const jobsApi = {
   page: (filters: JobFilters = {}) => request<JobPage>(`/jobs${queryString({ ...filters })}`),
   summary: () => request<JobsSummary>('/jobs/summary'),
   get: (id: string) => request<JobDetailResponse>(`/jobs/${id}`),
+  byNumber: (serial: number) => request<JobDetailResponse>(`/jobs/by-number/${serial}`),
   create: (job: NewJob) => request<{ id: string; serial: number }>('/jobs', { method: 'POST', body: job }),
   update: (id: string, patch: JobPatch) => request<{ ok: true }>(`/jobs/${id}`, { method: 'PATCH', body: patch }),
   apply: (id: string, note?: string) =>
@@ -255,6 +297,20 @@ export function useJob(id: string | undefined) {
   });
 }
 
+/**
+ * A job as its page reads it, by what the address gives: its number
+ * (/jobs/<company>/<career>/<number>) or, on an older link, its id.
+ */
+export function useJobPage(ref: { serial: number } | { id: string } | null) {
+  return useQuery({
+    queryKey: accountKeys.job(ref ? ('serial' in ref ? `number:${ref.serial}` : ref.id) : ''),
+    queryFn: () => ('serial' in ref! ? jobsApi.byNumber(ref.serial) : jobsApi.get(ref!.id)),
+    enabled: Boolean(ref),
+    staleTime: 30_000,
+    retry: retryUnlessClientError,
+  });
+}
+
 export function useCreateJob() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -281,7 +337,8 @@ export function useApply(jobId: string) {
     onSettled: () =>
       invalidate(
         queryClient,
-        accountKeys.job(jobId),
+        // Every copy of the job: its page reads it by number, other places by id.
+        accountKeys.jobDetails,
         accountKeys.applicants(jobId),
         accountKeys.applications,
         accountKeys.employer,

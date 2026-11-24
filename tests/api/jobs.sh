@@ -63,6 +63,7 @@ TAGS="[{\"skillId\":\"$R1\",\"required\":true},{\"skillId\":\"$R2\",\"required\"
 OUT=$(req emp POST /jobs "{$POST_A,\"title\":\"Line Lead\",\"payMin\":2400,\"payMax\":2900,\"shift\":\"Days\",\"skills\":$TAGS}")
 check "post job"                      201 "$OUT" '"serial":'
 JOB=$(printf '%s' "$OUT" | j id)
+SERIAL=$(printf '%s' "$OUT" | j serial)
 jobskills() { sql "SELECT COALESCE(string_agg(skill_id::text || ':' || required::text, ',' ORDER BY skill_id), '') FROM job_skills WHERE job_id='$1'"; }
 SKILLS0=$(jobskills $JOB)
 expect "job has the three tagged skills" 3 "$(sql "SELECT COUNT(*) FROM job_skills WHERE job_id='$JOB'")"
@@ -116,6 +117,34 @@ expect "the list sent is the whole list" 2 "$(printf '%s' "$OUT" | j skills.leng
 expect "a kept skill takes its new group" false "$(printf '%s' "$OUT" | j "skills.find(s => s.id === '$R1').required")"
 expect "a skill without a group is required" true "$(printf '%s' "$OUT" | j "skills.find(s => s.id === '$X1').required")"
 SKILLS1=$(jobskills $JOB)
+
+# --- The job's page: its skills as a path, and its address --------------------
+# A job posted here by hand shows the skills the company chose, in path order, each with its place.
+expect "the page's path is the job's own choice" "job 2 0" "$(printf '%s' "$OUT" | j "path.of + ' ' + o.path.skills.length + ' ' + o.path.alsoNamed.length")"
+expect "the same skills as the job's rows" "$(printf '%s' "$OUT" | j "skills.map(s => s.id).sort().join(',')")" "$(printf '%s' "$OUT" | j "path.skills.map(s => s.id).sort().join(',')")"
+expect "nothing is named in a posting, and an optional skill says so" "false true false" "$(printf '%s' "$OUT" | j "path.skills.some(s => s.named) + ' ' + o.path.skills.find(s => s.id === '$R1').optional + ' ' + o.path.skills.find(s => s.id === '$X1').optional")"
+expect "each skill carries its place" true "$(printf '%s' "$OUT" | j "path.skills.every(s => 'level' in s && 'group' in s && 'domain' in s && Array.isArray(s.makes))")"
+expect "in path order: lowest level first" true "$(printf '%s' "$OUT" | j "path.skills.every((s, i, all) => i === 0 || (all[i - 1].level ?? 9) <= (s.level ?? 9))")"
+expect "signed out, nothing is held" false "$(printf '%s' "$OUT" | j "path.skills.some(s => s.held)")"
+expect "other open jobs are listed apart" "0 0" "$(printf '%s' "$OUT" | j "others.career.jobs.filter(x => x.id === '$JOB').length + ' ' + o.others.factory.jobs.filter(x => x.id === '$JOB').length")"
+# The address: /jobs/<company>/<career>/<number>. Only the number is read.
+HREF=$(printf '%s' "$OUT" | j job.href)
+expect "the job says its address" true "$(printf '%s' "$HREF" | grep -Eq "^/jobs/[a-z0-9-]+/[a-z0-9-]+/$SERIAL$" && echo true)"
+expect "the career's word is its title in lower case with hyphens" "$(sql "SELECT trim(both '-' from regexp_replace(lower(title), '[^a-z0-9]+', '-', 'g')) FROM occupations WHERE id='$OCC'")" "$(printf '%s' "$HREF" | cut -d/ -f4)"
+BYNUM=$(req anon GET /jobs/by-number/$SERIAL)
+check "a job is found by its number"  200 "$BYNUM" "\"id\":\"$JOB\""
+expect "with the same answer as by its id" "$(printf '%s' "$OUT" | j "job.href + ' ' + o.skills.length + ' ' + o.path.skills.length")" "$(printf '%s' "$BYNUM" | j "job.href + ' ' + o.skills.length + ' ' + o.path.skills.length")"
+check "a number no job has"           404 "$(req anon GET /jobs/by-number/2000000000)"
+check "a number that is not one"      404 "$(req anon GET /jobs/by-number/abc)"
+check "zero is no job's number"       404 "$(req anon GET /jobs/by-number/0)"
+expect "the jobs list carries what an address is written from" true "$(req anon GET "/jobs?companyId=$CA" | j "jobs.every(x => typeof x.serial === 'number' && 'companySlug' in x && typeof x.occupationTitle === 'string')")"
+# A renamed career changes the words, never the number: the old address still finds the job.
+sql "UPDATE occupations SET title = title || ' Renamed' WHERE id='$OCC'" >/dev/null
+expect "a renamed career gives the address new words, the same number" "true true" "$(req anon GET /jobs/by-number/$SERIAL | j "job.href.endsWith('-renamed/$SERIAL') + ' ' + (o.job.href !== '$HREF')")"
+sql "UPDATE occupations SET title = regexp_replace(title, ' Renamed$', '') WHERE id='$OCC'" >/dev/null
+check "a signed-in holder is told"    200 "$(req s1 PUT /me/skills/$X1 '{"status":"held"}')"
+expect "the path says which skills the reader holds" "$X1" "$(req s1 GET /jobs/by-number/$SERIAL | j "path.skills.filter(s => s.held).map(s => s.id).join(',')")"
+check "and the mark is taken back"    200 "$(req s1 DELETE /me/skills/$X1)"
 check "skill that does not exist"     400 "$(req emp PATCH /jobs/$JOB "{\"title\":\"Not saved\",\"skills\":[{\"skillId\":\"$NOBODY\"}]}")" 'does not exist'
 check "skills must be a list"         400 "$(req emp PATCH /jobs/$JOB '{"skills":"all"}')"
 MANY=$(sql "SELECT json_agg(json_build_object('skillId', id)) FROM (SELECT id FROM skills LIMIT 61) s")

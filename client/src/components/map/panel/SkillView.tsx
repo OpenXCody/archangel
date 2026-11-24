@@ -1,7 +1,7 @@
 import { type SkillDetail } from '../../../lib/api';
 import { levelName } from '../../../lib/stages';
 import { useMapStore } from '../../../stores/mapStore';
-import { Heading, Section, CareerRows, More, PageLink, CHIP } from './parts';
+import { Heading, Section, CareerRows, More, PageLinks, CHIP } from './parts';
 
 export default function SkillView({ skill }: { skill: SkillDetail }) {
   const selectEntity = useMapStore((s) => s.selectEntity);
@@ -11,6 +11,8 @@ export default function SkillView({ skill }: { skill: SkillDetail }) {
     <>
       {/* "Hand measurement tools · Fundamentals" */}
       <Heading title={skill.name} subtitle={[skill.group?.name, levelName(skill.level)].filter(Boolean).join(' · ') || undefined} />
+      {/* The way on, at the top, named for where it goes. */}
+      <PageLinks links={[{ to: `/skills/${skill.id}`, label: 'Skill page' }]} />
       {skill.description && (
         <Section title="About">
           <p className="text-[15px] leading-relaxed text-text-2">{skill.description}</p>
@@ -41,7 +43,6 @@ export default function SkillView({ skill }: { skill: SkillDetail }) {
         </Section>
       )}
 
-      <PageLink to={`/skills/${skill.id}`}>Skill page</PageLink>
     </>
   );
 }

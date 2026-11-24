@@ -48,6 +48,7 @@ import ConfirmDialog from '../components/layout/ConfirmDialog';
 import { useDebouncedValue } from '../lib/useDebouncedValue';
 import { DAY_MS, formatDay, formatOnDay } from '../lib/dates';
 import { EmptyState, PageContainer, PageHeader, PageSection } from '../components/layout/Page';
+import { jobPath } from '@shared/jobs';
 
 export default function Employer() {
   return <AccountGate>{(account) => <EmployerPage user={account.user} />}</AccountGate>;
@@ -344,7 +345,7 @@ function JobFormPage({ mode, jobId, fromJob }: { mode: 'edit' | 'copy'; jobId: s
     if (job.data) setSource((current) => current ?? job.data);
   }, [job.data]);
 
-  const back = fromJob ? { to: `/jobs/${jobId}`, label: 'Job' } : { to: '/employer', label: 'Your jobs' };
+  const back = fromJob ? { to: job.data ? jobPath(job.data.job) : `/jobs/${jobId}`, label: 'Job' } : { to: '/employer', label: 'Your jobs' };
 
   if (job.isError || (job.data && !job.data.canManage)) {
     const gone = !job.isError || (job.error instanceof ApiError && (job.error.status === 404 || job.error.status === 400));
@@ -783,7 +784,7 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
         {jobs.map(({ job, state }) => (
           <li key={job.id} className={cn(rowClass, 'flex items-stretch')} data-job-row={job.id}>
             <Link
-              to={`/jobs/${job.id}`}
+              to={jobPath(job)}
               className={cn(rowHoverClass, 'grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center')}
             >
               <div className="min-w-0">

@@ -281,7 +281,8 @@ export function companyRequestAnsweredEmail(input: {
 
 export function newApplicantEmail(input: {
   to: string;
-  jobId: string;
+  /** The job's address in the app (`jobPath` in shared/jobs.ts). */
+  jobPath: string;
   jobTitle: string;
   companyName: string;
   place: string | null;
@@ -306,7 +307,7 @@ export function newApplicantEmail(input: {
     to: input.to,
     subject: `New applicant for ${title}`,
     body,
-    action: { label: 'See the applicants', url: appUrl(`/jobs/${input.jobId}`) },
+    action: { label: 'See the applicants', url: appUrl(input.jobPath) },
     why: `you post jobs for ${oneLine(input.companyName)} on Archangel`,
     notice: true,
   });

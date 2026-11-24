@@ -9,6 +9,8 @@ interface SkillGroupBoxProps {
   skills: PathSkillItem[];
   /** A seeker's marks; without them the box shows no marks and no progress. */
   marks?: SkillMarks | null;
+  /** The marks are shown and cannot be pressed: a skill's page reads them and changes none. */
+  readOnly?: boolean;
   /**
    * How much of the group is held, where the box does not hold the whole
    * group (a person's own skills from it). Left out, it is counted from `skills`.
@@ -37,7 +39,7 @@ interface SkillGroupBoxProps {
  * legend, so the name labels the skills for a screen reader. It knows nothing
  * of the page it is on.
  */
-export function SkillGroupBox({ name, skills, marks, share: given, currentId, parts, renderSkill, className }: SkillGroupBoxProps) {
+export function SkillGroupBox({ name, skills, marks, readOnly, share: given, currentId, parts, renderSkill, className }: SkillGroupBoxProps) {
   const share = marks ? given ?? shareOf(skills, marks) : null;
   return (
     <fieldset className={cn('skill-group', className)} data-group-box data-complete={(share && share.total > 0 && share.held === share.total) || undefined}>
@@ -52,7 +54,7 @@ export function SkillGroupBox({ name, skills, marks, share: given, currentId, pa
           {part.label && <p className="skill-group-part-label">{part.label}</p>}
           <SkillTags>
             {part.skills.map((skill) =>
-              renderSkill ? renderSkill(skill) : <SkillTag key={skill.id} skill={skill} marks={marks} current={skill.id === currentId} />
+              renderSkill ? renderSkill(skill) : <SkillTag key={skill.id} skill={skill} marks={marks} readOnly={readOnly} current={skill.id === currentId} />
             )}
           </SkillTags>
         </div>

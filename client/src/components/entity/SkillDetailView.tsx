@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import SkillStatusButton from '../account/SkillStatusButton';
 import { type SkillDetail } from '../../lib/api';
 import {
   DetailFacts,
@@ -11,8 +10,7 @@ import {
   ShowAll,
 } from '../layout/Page';
 import { LEVELS, levelName } from '../../lib/stages';
-import { SkillHeldToggle } from '../account/SkillStatusButton';
-import { ErrorNote } from '../account/parts';
+import { SkillMark } from '../account/SkillStatusButton';
 import { SkillGroupBox } from '../path/SkillGroupBox';
 import type { SkillMarks } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
@@ -37,8 +35,9 @@ function SkillCareers({ careers }: { careers: SkillDetail['occupations'] }) {
 
 /**
  * A skill's group, with this skill among the others: the group's frame, its
- * skills as tags under their levels, the person's marks on each and how much
- * of the group they hold. This skill's tag is the one that is not a link.
+ * skills as tags under their levels, the person's marks on each (read here,
+ * never pressed: a skill is marked on Profile) and how much of the group they
+ * hold. This skill's tag is the one that is not a link.
  */
 function SkillGroup({ data, marks }: { data: SkillDetail; marks: SkillMarks | null }) {
   // The response lists the others; this skill takes its place at its own level.
@@ -53,6 +52,7 @@ function SkillGroup({ data, marks }: { data: SkillDetail; marks: SkillMarks | nu
       // One level says nothing the heading has not said.
       parts={parts.length > 1 ? parts : undefined}
       marks={marks}
+      readOnly
       currentId={data.id}
     />
   );
@@ -71,10 +71,10 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
   const industries = data.industries ?? [];
   const jobs = data.jobs ?? [];
   const military = data.militaryOccupations ?? [];
-  const { marks, error: markError } = useSkillMarks();
+  const { marks } = useSkillMarks();
   return (
     <>
-      <DetailHeader {...head} kind="Skill" title={data.name} description={data.description} action={<SkillStatusButton skillId={data.id} />}>
+      <DetailHeader {...head} kind="Skill" title={data.name} description={data.description}>
         {/* The domain and the group each open the skills list narrowed to it; the level is the skill's own. */}
         {data.group && data.domain && (
           <DetailFacts>
@@ -98,7 +98,6 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
       {/* What it is, first of all: one of a group. Alone in its group there is nothing to show. */}
       {data.group && (data.groupSkills?.length ?? 0) > 0 && (
         <DetailSection id="group" title="Group">
-          {marks && <ErrorNote error={markError} className="mb-3" />}
           <SkillGroup data={data} marks={marks} />
         </DetailSection>
       )}
@@ -157,7 +156,11 @@ export default function SkillDetailView({ data, head }: { data: SkillDetail; hea
                 subtitle={skill.group && skill.group.slug !== data.group?.slug ? skill.group.name : null}
                 control={
                   marks ? (
-                    <SkillHeldToggle label={skill.name} value={marks.statusOf(skill.id)} disabled={marks.pending} onChange={(next) => marks.mark(skill, next)} />
+                    // The person's mark, read and not pressed: nothing on a skill's page marks a skill.
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center" data-related-mark={marks.statusOf(skill.id)}>
+                      <SkillMark status={marks.statusOf(skill.id)} />
+                      <span className="sr-only">{marks.statusOf(skill.id) === 'held' ? 'Held' : marks.statusOf(skill.id) === 'learning' ? 'Learning' : 'Not held'}</span>
+                    </span>
                   ) : undefined
                 }
               />

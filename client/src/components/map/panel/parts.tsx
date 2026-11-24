@@ -6,6 +6,7 @@ import { useMapStore } from '../../../stores/mapStore';
 import { formatCompanyName } from '@shared/displayName';
 import { formatPay } from '../../../lib/jobFormat';
 import { ownCareerLine as careerLine } from '../../entity/RecordFacts';
+import { jobPath } from '@shared/jobs';
 
 /*
  * Words, the same in every panel:
@@ -190,7 +191,7 @@ export function JobRows({ jobs, limit, company = false }: { jobs: CareerJob[]; l
       {jobs.slice(0, limit).map((job) => (
         <Link
           key={job.id}
-          to={`/jobs/${job.id}`}
+          to={jobPath(job)}
           className={`${ROW} justify-between py-2.5`}
         >
           <span className="min-w-0">

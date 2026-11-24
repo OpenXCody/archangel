@@ -148,6 +148,8 @@ interface SkillStatusButtonProps {
 
 /**
  * Set a skill as learning, held or not held for the signed-in person.
+ * No page draws it at present: it stood in the heading of a skill's page, which
+ * no longer marks anything (marking is Profile's). Kept for Profile.
  * Signed out, it is a link to sign in that returns to this page.
  * Someone here to hire keeps no skills: for them it draws nothing.
  */

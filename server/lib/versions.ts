@@ -9,6 +9,7 @@ import { rowsOf } from './rows.js';
 import { companyInScope } from './scope.js';
 import { byCompanyStanding, companyStandings } from './industries.js';
 import { placeOf, placeSql, type SkillPlace } from './taxonomy.js';
+import { routeOrder } from './route.js';
 import { isUuid } from './writes.js';
 import { VERSION_ADDED_MAX, VERSION_MAKES_MAX, versionTitle, type VersionOrigin } from '../../shared/versions.js';
 
@@ -61,6 +62,8 @@ export interface VersionMake {
 export interface VersionSkill extends SkillPlace {
   id: string;
   name: string;
+  /** How the skill is learned, in the catalogue's sentence. */
+  howLearned: string | null;
   /** Not on the standard path: the company adds it. */
   added: boolean;
   /** Every make of the skill, in the skill's order, each saying whether the company runs it. */
@@ -133,8 +136,7 @@ async function listVersions(where: SQL, order: SQL, limit: number): Promise<Vers
         (SELECT COALESCE(json_agg(g.name ORDER BY g.place), '[]'::json) FROM (
            -- Each name once, where it first stands on the path: in the skills' order, then the makes' own.
            SELECT r.name, MIN(r.place) AS place FROM (
-             SELECT m.name, ROW_NUMBER() OVER (ORDER BY s.level NULLS LAST, sd.position NULLS LAST, sg.position NULLS LAST,
-                                                         s.group_position NULLS LAST, s.name, m.position, lower(m.name)) AS place
+             SELECT m.name, ROW_NUMBER() OVER (ORDER BY ${routeOrder()}, m.position, lower(m.name)) AS place
              FROM company_career_makes cm
              INNER JOIN skill_makes m ON m.id = cm.make_id
              INNER JOIN skills s ON s.id = cm.skill_id
@@ -200,15 +202,15 @@ export async function readVersion(executor: Executor, companyId: string, occupat
 
   // Every skill the version touches: the standard's, and the ones it adds. In path order.
   const place = placeSql('s');
-  const skillRows = rowsOf<{ id: string; name: string; standard: boolean; change: string | null; level: unknown; group_slug: unknown; group_name: unknown; domain_slug: unknown; domain_name: unknown }>(
+  const skillRows = rowsOf<{ id: string; name: string; how_learned: string | null; standard: boolean; change: string | null; level: unknown; group_slug: unknown; group_name: unknown; domain_slug: unknown; domain_name: unknown }>(
     await executor.execute(sql`
-      SELECT s.id, s.name, ${place.columns}, (os.skill_id IS NOT NULL) AS standard, x.change
+      SELECT s.id, s.name, s.how_learned, ${place.columns}, (os.skill_id IS NOT NULL) AS standard, x.change
       FROM skills s
       LEFT JOIN occupation_skills os ON os.skill_id = s.id AND os.occupation_id = ${occupationId}
       LEFT JOIN company_career_skills x ON x.skill_id = s.id AND x.company_career_id = ${head.id}
       ${place.joins}
       WHERE os.skill_id IS NOT NULL OR x.change = 'added'
-      ORDER BY s.level ASC NULLS LAST, sd.position ASC NULLS LAST, sg.position ASC NULLS LAST, s.group_position ASC NULLS LAST, s.name
+      ORDER BY ${routeOrder()}
     `)
   );
   const makeRows = rowsOf<{ id: string; name: string; skill_id: string; runs: boolean }>(
@@ -241,6 +243,7 @@ export async function readVersion(executor: Executor, companyId: string, occupat
       id: String(row.id),
       name: String(row.name),
       ...placeOf(row),
+      howLearned: row.how_learned,
       added: !standard,
       // A skill that is left out runs nothing here, whatever was stored before it was.
       makes: out ? makes.map((make) => ({ ...make, runs: false })) : makes,

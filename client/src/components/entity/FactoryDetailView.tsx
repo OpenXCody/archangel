@@ -18,11 +18,12 @@ import {
   ShowAll,
   detailActionClass,
 } from '../layout/Page';
+import { CompanyTag, RecordTags } from '../layout/RecordTag';
 import { type Head, streetAddress, factLinkClass, Footprint, OpenJobsSection, CAREERS_SHOWN } from './parts';
 
 /**
  * A factory's page. It is about this factory and shows only what is known of
- * it: headed Factory, with its company as the first of its facts (a link to
+ * it: headed Factory, with its company as a tag under the name (the way to
  * the company's page); how many people, what it makes; where it is, drawn
  * alone on the map so the page is not taken for the company's; its open jobs;
  * its own careers (of its open jobs, its company's versions, those recorded
@@ -45,6 +46,10 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
   const latitude = parseFloat(data.latitude);
   const longitude = parseFloat(data.longitude);
   const located = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const plantCount = company?.siteCount ?? 0;
+  // A company whose one factory this is, under the same name, would only repeat the heading.
+  const companyIsThisPlant =
+    companyName !== null && plantCount <= 1 && !company?.description && name.toLowerCase().startsWith(companyName.toLowerCase());
   const street = streetAddress(data);
   const careers = data.careers ?? [];
 
@@ -60,7 +65,8 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
         {...head}
         kind="Factory"
         title={name}
-        mark={companyName ? <CompanyLogo name={companyName} domain={company?.domain} size={44} /> : undefined}
+        // The company's mark stands before the name only where no tag under it names the company.
+        mark={companyName && companyIsThisPlant ? <CompanyLogo name={companyName} domain={company?.domain} size={44} /> : undefined}
         description={data.description}
         action={
           located ? (
@@ -70,15 +76,8 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
           ) : undefined
         }
       >
-        {(company || place || industry || underConstruction) && (
+        {(place || industry || underConstruction) && (
           <DetailFacts>
-            {/* Whose it is, first: the way to the company's page. */}
-            {company && companyName && (
-              <Link to={`/companies/${company.slug ?? company.id}`} className={factLinkClass} data-factory-company>
-                {companyName}
-              </Link>
-            )}
-            {company && companyName && (place || industry) ? ' · ' : ''}
             {place}
             {place && industry ? ' · ' : ''}
             {industry && industryPage ? (
@@ -90,6 +89,12 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
             )}
             {underConstruction ? `${place || industry ? ' · ' : ''}Under construction` : ''}
           </DetailFacts>
+        )}
+        {/* Who runs it: the company, as the tag every heading names a company with. */}
+        {company && !companyIsThisPlant && (
+          <RecordTags>
+            <CompanyTag company={company} data-factory-company="" />
+          </RecordTags>
         )}
       </DetailHeader>
 

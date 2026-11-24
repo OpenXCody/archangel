@@ -131,11 +131,13 @@ export interface Taxonomy {
   domains: TaxonomyDomain[];
 }
 
-/** A skill on a career's path (GET /api/occupations/:id → `skills`), in path order: by level, then domain and group. */
+/** A skill on a career's path (GET /api/occupations/:id → `skills`), in route order: the order to learn them in. */
 export interface PathSkill extends SkillPlace {
   id: string;
   name: string;
   importance?: 'required' | 'preferred' | 'nice_to_have';
+  /** How the skill is learned, in the catalogue's sentence. */
+  howLearned?: string | null;
 }
 
 /** A skill that shares careers with another (GET /api/skills/:id → `relatedSkills`). */
@@ -162,6 +164,8 @@ export interface CareerJob {
   payMax: number | null;
   payPeriod: 'hour' | 'year';
   companyName: string;
+  /** The company's slug, for the job's address. */
+  companySlug?: string | null;
   factoryName: string;
   city: string | null;
   occupationId?: string;
@@ -411,7 +415,7 @@ export interface CareerWithinReach {
   title: string;
   held: number;
   total: number;
-  /** The skills of its path the military career does not have, lowest level first. */
+  /** The skills of its path the military career does not have, in that path's order. */
   missing: { id: string; name: string; level: SkillLevel | null }[];
 }
 
@@ -555,6 +559,8 @@ export interface SearchResultItem {
   type: SearchEntityType;
   subtitle?: string;
   meta?: string;
+  /** Jobs only: the job's address. */
+  href?: string;
   /** Companies only: the web domain their logo is looked up from. */
   domain?: string | null;
   /** Careers only: a military career the query named (its code, or its service with words of its title). */

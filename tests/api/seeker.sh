@@ -116,7 +116,8 @@ expect "ranked by share, then title"  "A|B|Filler 1|Filler 2|Filler 3|Filler 4|F
 expect "held of total"                "2/6 2/6 1/6 1/6 1/6 1/6 1/6 1/6" "$(printf '%s' "$OUT" | figures)"
 expect "short path left out"          false "$(printf '%s' "$OUT" | j "careers.some(c=>c.id==='$SHORT')")"
 expect "a career with no path left out" false "$(printf '%s' "$OUT" | j "careers.some(c=>c.id==='$UNWRITTEN')")"
-expect "next skills, lowest level first" "S03:2 S04:2 S05:3" "$(printf '%s' "$OUT" | nextOf $A)"
+# Next follows the career's page: the first three not held, in the route's order (S04 stands before S03 in its group).
+expect "next skills, in the route's order" "S04:2 S03:2 S05:3" "$(printf '%s' "$OUT" | nextOf $A)"
 expect "next skills carry id, name, level" "id,level,name" "$(printf '%s' "$OUT" | j "careers[0].next.map(n=>Object.keys(n).sort().join(','))[0]")"
 expect "career carries only what is shown" "held,id,next,openJobs,title,total" "$(printf '%s' "$OUT" | j "careers.map(c=>Object.keys(c).sort().join(','))[0]")"
 expect "the figure is the held skills on record" 2 "$(sql "SELECT COUNT(*) FROM occupation_skills os JOIN user_skills us ON us.skill_id=os.skill_id AND us.status='held' JOIN users u ON u.id=us.user_id WHERE os.occupation_id='$A' AND u.email='reach-$RUN@seeker.test'")"
@@ -127,7 +128,7 @@ check "learning S08"                  200 "$(req s PUT /me/skills/$S08 '{"status
 OUT=$(req s GET /me/careers/reach)
 expect "learning lifts a career"      "B|A|Filler 1|Filler 2|Filler 3|Filler 4|Filler 5|Filler 6" "$(printf '%s' "$OUT" | titles)"
 expect "learning is not held"         "2/6 2/6 1/6 1/6 1/6 1/6 1/6 1/6" "$(printf '%s' "$OUT" | figures)"
-expect "a skill being learned comes first in its level" "S08:2 S07:2 S09:3" "$(printf '%s' "$OUT" | nextOf $B)"
+expect "a skill being learned is still next, and keeps its place on the route" "S07:2 S08:2 S09:3" "$(printf '%s' "$OUT" | nextOf $B)"
 check "hold S03"                      200 "$(req s PUT /me/skills/$S03 '{"status":"held"}')"
 OUT=$(req s GET /me/careers/reach)
 expect "a held skill outranks one being learned" "A|B" "$(printf '%s' "$OUT" | j "careers.slice(0,2).map(c=>c.title.replace('$P ','')).join('|')")"
@@ -145,7 +146,7 @@ expect "goal shows its next skills"   "S04:2 S05:3 S06:3" "$(printf '%s' "$OUT" 
 expect "goal lists every skill of its career by id" "$(sql "SELECT string_agg(skill_id::text, ' ' ORDER BY skill_id) FROM occupation_skills WHERE occupation_id='$A'")" "$(printf '%s' "$OUT" | j "goals.find(g=>g.occupationId==='$A').skillIds.join(' ')")"
 expect "as many ids as the goal counts skills" true "$(printf '%s' "$OUT" | j "goals.every(g=>g.skillIds.length===g.totalSkills)")"
 check "aim at Unwritten"              200 "$(req s PUT /me/goals/$UNWRITTEN)"
-expect "a goal with no path written still lists next skills, by level" "S04:2 S05:3 S06:3" "$(req s GET /me/goals | j "goals.find(g=>g.occupationId==='$UNWRITTEN').next.map(n=>n.name.replace('$P ','')+':'+n.level).join(' ')")"
+expect "a goal with no path written still lists next skills, in the same order" "S04:2 S05:3 S06:3" "$(req s GET /me/goals | j "goals.find(g=>g.occupationId==='$UNWRITTEN').next.map(n=>n.name.replace('$P ','')+':'+n.level).join(' ')")"
 check "stop aiming at A"              200 "$(req s DELETE /me/goals/$A)"
 expect "an unchosen career is suggested again" true "$(req s GET /me/careers/reach | j "careers.some(c=>c.id==='$A')")"
 
@@ -162,20 +163,23 @@ case "$HDR" in *no-store*) echo "ok    reach is not cacheable";; *) echo "FAIL  
 
 # --- Suggested skills ---------------------------------------------------------
 # A third person, starting from nothing. Suggestions are the skills of their
-# goals (lowest level first), then of the careers within reach (the ones most
-# of those careers share first), none of them on the person's list.
+# goals, then of the careers within reach, each by its earliest place on any of
+# those careers' routes, then by how many of them share it; none of them on the
+# person's list.
 suggested() { j "skills.map(s=>s.name.replace('$P ','')).join(' ')"; }
 check "suggested requires sign-in"    401 "$(req anon GET /me/skills/suggested)"
 check "sign-up third seeker"          201 "$(req g POST /auth/sign-up '{"email":"goal-'"$RUN"'@seeker.test","name":"Gia Goal","password":"correct horse"}')"
 check "nothing to go on, nothing suggested" 200 "$(req g GET /me/skills/suggested)" '"skills":\[\]'
 check "aim at A"                      200 "$(req g PUT /me/goals/$A)"
 OUT=$(req g GET /me/skills/suggested)
-expect "a goal's skills, lowest level first" "S01 S02 S03 S04 S05 S06" "$(printf '%s' "$OUT" | suggested)"
+expect "a goal's skills, in its route's order" "S01 S02 S04 S03 S05 S06" "$(printf '%s' "$OUT" | suggested)"
 expect "a suggestion carries what is shown" "career,careers,id,level,name" "$(printf '%s' "$OUT" | j "skills.map(s=>Object.keys(s).sort().join(','))[0]")"
 expect "a suggestion names its career" "$P A" "$(printf '%s' "$OUT" | j "skills[0].career")"
 check "hold S01"                      200 "$(req g PUT /me/skills/$S01 '{"status":"held"}')"
 OUT=$(req g GET /me/skills/suggested)
-expect "goal skills first, then careers within reach" "S02 S03 S04 S05 S06 S08 S09 S10 S11 S12 S07" "$(printf '%s' "$OUT" | suggested)"
+# Within reach: B (S07 third on its route) and seven fillers (S11 second, S08 third, S12 fourth). Of two skills
+# at one place, the one more careers share comes first.
+expect "goal skills first, then careers within reach, by place on their routes" "S02 S04 S03 S05 S06 S11 S08 S07 S12 S09 S10" "$(printf '%s' "$OUT" | suggested)"
 expect "a held skill is not suggested" false "$(printf '%s' "$OUT" | j "skills.some(s=>s.id==='$S01')")"
 expect "how many careers call for it" 8 "$(printf '%s' "$OUT" | j "skills.find(s=>s.id==='$S08').careers")"
 check "learning S02"                  200 "$(req g PUT /me/skills/$S02 '{"status":"learning"}')"

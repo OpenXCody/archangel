@@ -11,9 +11,9 @@ import { ErrorNote, LoadError, PageLoading, busyButtonClass, outlineButtonClass,
 import { SkillAdder } from '../jobs/JobSkillTags';
 import ConfirmDialog from '../layout/ConfirmDialog';
 import { EmptyState, PageContainer, PageHeader } from '../layout/Page';
-import { PathFlow } from '../path/PathFlow';
-import { SkillGroupBox } from '../path/SkillGroupBox';
-import { buildPath, type PathSkillItem } from '../path/model';
+import type { PlacedSkill } from '../path/model';
+import { Route } from '../route/Route';
+import type { RowContext } from '../route/RouteRow';
 
 /**
  * The editor of a company's version of a career, for the company's own
@@ -106,16 +106,17 @@ function Editor({ companyId, occupationId, source, onReload }: { companyId: stri
   const add = (skill: Skill) => change(addSkill(latest.current, skill), `${skill.name} added.`);
 
   const byId = useMemo(() => new Map(draft.skills.map((skill) => [skill.id, skill])), [draft.skills]);
-  const path = useMemo(() => buildPath(draft.skills), [draft.skills]);
   const on = draft.skills.filter((skill) => isOn(draft, skill));
   const addedCount = on.filter((skill) => !skill.standard).length;
   const outCount = draft.skills.filter((skill) => skill.standard && !isOn(draft, skill)).length;
   const pageOf = versionPath(occupationId, source.company);
 
-  const renderSkill = (item: PathSkillItem) => {
+  const renderRow = (item: PlacedSkill, context: RowContext) => {
     const skill = byId.get(item.id);
     if (!skill) return null;
-    return <EditTag key={skill.id} skill={skill} on={isOn(draft, skill)} runs={draft.runs} onTap={() => tapSkill(skill)} onMake={(make) => tapMake(skill, make)} />;
+    return (
+      <EditTag key={skill.id} skill={skill} group={context.group} on={isOn(draft, skill)} runs={draft.runs} onTap={() => tapSkill(skill)} onMake={(make) => tapMake(skill, make)} />
+    );
   };
 
   return (
@@ -149,8 +150,7 @@ function Editor({ companyId, occupationId, source, onReload }: { companyId: stri
         <p className="text-sm text-text-2">The standard path has no skills yet. Add the ones this career needs here.</p>
       ) : (
         <div data-version-editor>
-          <PathFlow path={path} renderSkill={renderSkill} />
-          {path.unplaced.length > 0 && <SkillGroupBox name="Not yet placed" skills={path.unplaced} renderSkill={renderSkill} className="mt-4" />}
+          <Route skills={draft.skills} renderRow={renderRow} />
         </div>
       )}
 
@@ -238,6 +238,8 @@ const chipClass =
 
 interface EditTagProps {
   skill: DraftSkill;
+  /** The skill's group, when it stands by itself on the route: said under its name. */
+  group: string | null;
   on: boolean;
   runs: string[];
   onTap: () => void;
@@ -249,8 +251,9 @@ interface EditTagProps {
  * On, it is lit and its makes stand under it as chips; off, it is quiet, a
  * standard skill struck through and said to be left out.
  */
-function EditTag({ skill, on, runs, onTap, onMake }: EditTagProps) {
-  const second = skill.standard ? (on ? null : 'Left out') : on ? 'Added' : 'Not added';
+function EditTag({ skill, group, on, runs, onTap, onMake }: EditTagProps) {
+  const change = skill.standard ? (on ? null : 'Left out') : on ? 'Added' : 'Not added';
+  const second = [group, change].filter(Boolean).join(' · ') || null;
   return (
     <li data-edit-skill={skill.id} data-on={on} data-status={on ? undefined : 'none'} className="skill-tag flex-col">
       <button

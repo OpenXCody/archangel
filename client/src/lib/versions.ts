@@ -47,6 +47,8 @@ export interface VersionSkill extends Omit<SkillPlace, 'level' | 'group' | 'doma
   level: SkillPlace['level'] | null;
   group: SkillPlace['group'] | null;
   domain: SkillPlace['domain'] | null;
+  /** How the skill is learned, in the catalogue's sentence. */
+  howLearned?: string | null;
   /** Not on the standard path: the company adds it. */
   added: boolean;
   /** Every make of the skill, each saying whether the company runs it. */

@@ -14,6 +14,7 @@ import {
 } from '../db/index.js';
 import { cleanText, clearAttempts, endSession, handle, requireUser, tooManyAttempts, verifyPassword } from '../lib/auth.js';
 import { civilianCareer, isMilitaryCareer } from '../lib/military.js';
+import { routeJoins, routeOrder } from '../lib/route.js';
 import { uuidParam } from '../middleware/validateUuid.js';
 import { newsFor } from '../lib/notices.js';
 import { hasCompanyTie, isPurpose, purposeFrom, type Purpose } from '../lib/purpose.js';
@@ -47,18 +48,20 @@ const NEXT_SKILLS = 3;
 
 /**
  * The first skills of a career the person does not hold yet, as a JSON array
- * of { id, name, level }: the lowest level first, and within a level the ones
- * they are already learning ahead of the rest. (A path row's stage is the
- * skill's level.)
+ * of { id, name, level }: the first three not held in the route's own order
+ * (`routeOrder`), which is what the career's page marks Next and Then. A skill
+ * being learned is not held, so it can be one of them. (A path row's stage is
+ * the skill's level.)
  */
 function nextSkillsSql(occupationId: SQL, userId: string): SQL<NextSkill[]> {
   return sql<NextSkill[]>`COALESCE((
     SELECT json_agg(json_build_object('id', n.id, 'name', n.name, 'level', n.stage) ORDER BY n.ord)
     FROM (
       SELECT s.id, s.name, os.stage,
-             ROW_NUMBER() OVER (ORDER BY os.stage ASC NULLS LAST, (us.status IS NULL), s.name) AS ord
+             ROW_NUMBER() OVER (ORDER BY ${routeOrder()}) AS ord
       FROM occupation_skills os
       JOIN skills s ON s.id = os.skill_id
+      ${routeJoins()}
       LEFT JOIN user_skills us ON us.skill_id = os.skill_id AND us.user_id = ${userId}
       WHERE os.occupation_id = ${occupationId} AND us.status IS DISTINCT FROM 'held'
       ORDER BY ord
@@ -198,8 +201,9 @@ const SUGGESTED_SKILLS_MAX = 30;
 
 // GET /api/me/skills/suggested?limit= - skills the person is likely to have
 // or want, none of them on their list yet: first the skills of the careers
-// they chose as goals (lowest level first), then those of the careers within
-// reach (the ones most of those careers share first). Each names one career it
+// they chose as goals, then those of the careers within reach, each by its
+// earliest place on any of those careers' routes, then by how many of them
+// share it. Each names one career it
 // is for (`career`) and how many (`careers`). Empty for a person with no goal
 // and no held skill: there is nothing to go on.
 router.get(
@@ -212,13 +216,20 @@ router.get(
         SELECT skill_id, status FROM user_skills WHERE user_id = ${userId}
       ),
       goal AS (
-        SELECT os.skill_id, MIN(os.stage) AS stage, COUNT(*)::int AS careers, MIN(o.title) AS career
-        FROM user_goals g
-        JOIN occupation_skills os ON os.occupation_id = g.occupation_id
-        JOIN occupations o ON o.id = g.occupation_id
-        WHERE g.user_id = ${userId} AND ${civilianCareer('o')}
-          AND NOT EXISTS (SELECT 1 FROM mine m WHERE m.skill_id = os.skill_id)
-        GROUP BY os.skill_id
+        SELECT l.skill_id, MIN(l.stage) AS stage, MIN(l.place) AS place, COUNT(*)::int AS careers, MIN(l.title) AS career
+        FROM (
+          -- Each goal's path with every skill's place on it, in the route's order.
+          SELECT os.skill_id, os.stage, o.title,
+                 ROW_NUMBER() OVER (PARTITION BY os.occupation_id ORDER BY ${routeOrder()}) AS place
+          FROM user_goals g
+          JOIN occupation_skills os ON os.occupation_id = g.occupation_id
+          JOIN occupations o ON o.id = g.occupation_id
+          JOIN skills s ON s.id = os.skill_id
+          ${routeJoins()}
+          WHERE g.user_id = ${userId} AND ${civilianCareer('o')}
+        ) l
+        WHERE NOT EXISTS (SELECT 1 FROM mine m WHERE m.skill_id = l.skill_id)
+        GROUP BY l.skill_id
       ),
       reach_careers AS (
         SELECT os.occupation_id, o.title,
@@ -240,25 +251,30 @@ router.get(
         LIMIT ${REACH_LIMIT}
       ),
       reach AS (
-        SELECT os.skill_id, MIN(os.stage) AS stage, COUNT(*)::int AS careers,
-               (array_agg(rc.title ORDER BY rc.share DESC, rc.title ASC))[1] AS career
-        FROM reach_careers rc
-        JOIN occupation_skills os ON os.occupation_id = rc.occupation_id
-        WHERE NOT EXISTS (SELECT 1 FROM mine m WHERE m.skill_id = os.skill_id)
-          AND NOT EXISTS (SELECT 1 FROM goal g WHERE g.skill_id = os.skill_id)
-        GROUP BY os.skill_id
+        SELECT l.skill_id, MIN(l.stage) AS stage, MIN(l.place) AS place, COUNT(*)::int AS careers,
+               (array_agg(l.title ORDER BY l.share DESC, l.title ASC))[1] AS career
+        FROM (
+          SELECT os.skill_id, os.stage, rc.title, rc.share,
+                 ROW_NUMBER() OVER (PARTITION BY os.occupation_id ORDER BY ${routeOrder()}) AS place
+          FROM reach_careers rc
+          JOIN occupation_skills os ON os.occupation_id = rc.occupation_id
+          JOIN skills s ON s.id = os.skill_id
+          ${routeJoins()}
+        ) l
+        WHERE NOT EXISTS (SELECT 1 FROM mine m WHERE m.skill_id = l.skill_id)
+          AND NOT EXISTS (SELECT 1 FROM goal g WHERE g.skill_id = l.skill_id)
+        GROUP BY l.skill_id
       )
+      -- A goal's skills, then those of careers within reach: each by its earliest place on any of those
+      -- routes, then by how many of the careers share it, then by name.
       SELECT s.id, s.name, x.stage, x.career, x.careers
       FROM (
-        SELECT skill_id, stage, career, careers, 0 AS src FROM goal
+        SELECT skill_id, stage, place, career, careers, 0 AS src FROM goal
         UNION ALL
-        SELECT skill_id, stage, career, careers, 1 AS src FROM reach
+        SELECT skill_id, stage, place, career, careers, 1 AS src FROM reach
       ) x
       JOIN skills s ON s.id = x.skill_id
-      ORDER BY x.src,
-               CASE WHEN x.src = 0 THEN COALESCE(x.stage, 9) ELSE -x.careers END,
-               CASE WHEN x.src = 0 THEN -x.careers ELSE COALESCE(x.stage, 9) END,
-               s.name ASC
+      ORDER BY x.src, x.place, x.careers DESC, s.name ASC
       LIMIT ${limit}
     `);
     const suggested = rowsOf(rows).map((row) => ({
@@ -594,6 +610,9 @@ router.get(
         jobStatus: jobs.status,
         companyId: companies.id,
         companyName: companies.name,
+        // With the number, what the job's address is written from (shared/jobs.ts).
+        companySlug: companies.slug,
+        occupationTitle: sql<string>`(SELECT o.title FROM occupations o WHERE o.id = ${jobs.occupationId})`,
         city: factories.city,
         state: factories.state,
       })

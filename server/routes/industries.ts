@@ -178,7 +178,8 @@ router.get('/:slug', async (req: Request, res: Response) => {
 
       db.execute(sql`
         SELECT j.id, j.serial, j.title, j.pay_min, j.pay_max, j.pay_period,
-               c.name AS company_name, f.name AS factory_name, f.city,
+               c.name AS company_name, c.slug AS company_slug, f.name AS factory_name, f.city,
+               (SELECT o.title FROM occupations o WHERE o.id = j.occupation_id) AS occupation_title,
                COUNT(*) OVER ()::int AS total
         FROM jobs j
         INNER JOIN factories f ON f.id = j.factory_id
@@ -272,6 +273,8 @@ router.get('/:slug', async (req: Request, res: Response) => {
         payMax: r.pay_max ?? null,
         payPeriod: r.pay_period,
         companyName: String(r.company_name),
+        companySlug: text(r.company_slug),
+        occupationTitle: text(r.occupation_title) ?? undefined,
         factoryName: String(r.factory_name),
         city: text(r.city),
       })),

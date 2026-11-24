@@ -74,8 +74,8 @@ export function useViewer(): Viewer {
 }
 
 /**
- * Whether the seeker's controls belong on the page: a career's "Set as goal",
- * the marks on a path's skills, a skill's status, Apply. True for a seeker and
+ * Whether the seeker's tools belong on the page: the marks and progress a
+ * path shows (read on a career's page, changed on Profile), Apply. True for a seeker and
  * for a visitor (to whom they are the way in); false for someone here to hire.
  * One answer for every such control, so they appear and disappear together.
  */

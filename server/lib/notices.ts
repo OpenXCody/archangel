@@ -1,5 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm';
-import { db, users, companies, companyMembers, jobs, factories, applications, applicationEvents, passwordResets } from '../db/index.js';
+import { db, users, companies, companyMembers, jobs, factories, occupations, applications, applicationEvents, passwordResets } from '../db/index.js';
 import { hashToken, newToken } from './auth.js';
 import { emailEnabled, sendEmail, sendEmails, type EmailMessage } from './email.js';
 import {
@@ -17,6 +17,7 @@ import {
 import { INVITE_DAYS, invitePath, type InviteRole } from './invites.js';
 import { RESET_HOURS, resetPath } from './passwordResets.js';
 import { rowsOf } from './rows.js';
+import { jobPath } from '../../shared/jobs.js';
 
 /**
  * What the app tells people, and when.
@@ -321,10 +322,20 @@ export async function applicationReceived(input: { applicationId: string; jobId:
   try {
     if (!emailEnabled()) return;
     const [job] = await db
-      .select({ title: jobs.title, companyId: jobs.companyId, companyName: companies.name, city: factories.city, state: factories.state })
+      .select({
+        title: jobs.title,
+        serial: jobs.serial,
+        companyId: jobs.companyId,
+        companyName: companies.name,
+        companySlug: companies.slug,
+        occupationTitle: occupations.title,
+        city: factories.city,
+        state: factories.state,
+      })
       .from(jobs)
       .innerJoin(companies, eq(companies.id, jobs.companyId))
       .innerJoin(factories, eq(factories.id, jobs.factoryId))
+      .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
       .where(eq(jobs.id, input.jobId))
       .limit(1);
     const [applicant] = await db.select({ name: users.name }).from(users).where(eq(users.id, input.applicantId)).limit(1);
@@ -363,7 +374,7 @@ export async function applicationReceived(input: { applicationId: string; jobId:
       messages.push(
         newApplicantEmail({
           to: member.email,
-          jobId: input.jobId,
+          jobPath: jobPath({ id: input.jobId, ...job }),
           jobTitle: job.title,
           companyName: job.companyName,
           place: [job.city, job.state].filter(Boolean).join(', ') || null,

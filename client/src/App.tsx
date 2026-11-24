@@ -70,6 +70,9 @@ function App() {
               <Route path="/sign-in" element={<PageBoundary><SignIn /></PageBoundary>} />
               <Route path="/me" element={<PageBoundary><Me /></PageBoundary>} />
               <Route path="/jobs" element={<PageBoundary><Jobs /></PageBoundary>} />
+              {/* A job's address ends in its number; the words before it are for the reader (shared/jobs.ts). */}
+              <Route path="/jobs/:company/:career/:serial" element={<PageBoundary><JobDetail /></PageBoundary>} />
+              {/* The older address, by id: the page replaces it with the one above. */}
               <Route path="/jobs/:id" element={<PageBoundary><JobDetail /></PageBoundary>} />
               <Route path="/employer" element={<PageBoundary><Employer /></PageBoundary>} />
               <Route path="/settings" element={<PageBoundary><Settings /></PageBoundary>} />

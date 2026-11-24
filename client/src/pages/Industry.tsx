@@ -34,6 +34,7 @@ import {
   type PagePlace,
 } from '../components/industry/parts';
 import { publicKeys } from '../lib/queryKeys';
+import { jobPath } from '@shared/jobs';
 
 const CAREERS_SHOWN = 8;
 /** The states (or a state's towns) listed before "Show all": the section sits near the top of the page, so it starts short. */
@@ -141,7 +142,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
             {data.jobs.map((job) => (
               <RecordRow
                 key={job.id}
-                to={`/jobs/${job.id}`}
+                to={jobPath(job)}
                 title={job.title}
                 subtitle={[formatCompanyName(job.companyName), job.city ? titleCase(job.city) : null, job.payMin !== null && job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null]
                   .filter(Boolean)
