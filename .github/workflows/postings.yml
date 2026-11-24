@@ -20,10 +20,13 @@
 # each employer's run read, kept and changed) is kept as the run's artifact,
 # and Admin Tools, Activity, "Postings" shows the same.
 #
-# A day's run is under half an hour. Twenty minutes of it is Workday: that
+# A day's run is under an hour. Twenty minutes of it is Workday: that
 # platform is given 300 requests a run across all of its boards, four seconds
-# apart, spent on the boards whose complete listing is oldest; the rest are
-# taken up the next day (scripts/ingest/README.md, "A platform's budget").
+# apart whichever board they are for, spent where they are most needed; the
+# rest are taken up at the next run (scripts/ingest/README.md, "A platform's
+# budget"). The other boards' listings take about a quarter of an hour; while
+# boards are first read in, their texts add up to half an hour more (the 27
+# employers added in November 2026 took 29 minutes the first time).
 #
 # Workday's boards alone are read three more times a day (03:23, 15:23 and
 # 21:23 UTC), each with the same budget, six hours apart: with the boards the
@@ -79,8 +82,9 @@ permissions:
 jobs:
   postings:
     runs-on: ubuntu-latest
-    # A run takes under half an hour; this is for a database or a runner that is slow, not for a longer run.
-    timeout-minutes: 60
+    # A day's run takes under an hour, a Workday run about twenty minutes; this is for a database or a runner that is
+    # slow, not for a longer run.
+    timeout-minutes: 90
     env:
       DATABASE_URL: ${{ secrets.INGEST_DATABASE_URL }}
       MODE: ${{ inputs.mode || 'apply' }}

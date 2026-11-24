@@ -479,10 +479,13 @@ for runs over saved boards; `--registry <file.json>` is another registry,
 (against the budget where there is one), the boards listed in full, the ones
 cut short and why (and whether each is taken up there or started again), and
 the ones the budget did not reach; then a line per employer and each run's
-report. A day's run of every employer is under half an hour: twenty minutes
-of it is Workday's budget, about four are Oracle's texts while those boards
-are first read in, a minute and a half the two Jibe sites, and the rest
-seconds.
+report. A day's run of every employer is under an hour: twenty minutes of it
+is Workday's budget, and about a quarter of an hour the listings of the other
+boards (Cargill's 77 pages of SuccessFactors search, two seconds apart, are
+the longest). While boards are first read in, their texts add up to half an
+hour more: the 27 employers added in November 2026 took 29 minutes the first
+time (962 requests, 700 of them texts), with no refusal. A run of Workday's
+boards alone is about twenty minutes.
 
 **On production** the workflow `.github/workflows/postings.yml` runs every
 employer daily (09:23 UTC), Workday's boards alone three more times a day
