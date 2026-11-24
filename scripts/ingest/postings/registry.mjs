@@ -32,9 +32,11 @@ const BOARD = {
   greenhouse: (board) => /^[a-z0-9][a-z0-9_-]*$/i.test(board) || 'a Greenhouse board is its token, such as "spacex"',
   lever: (board) => /^[a-z0-9][a-z0-9_-]*$/i.test(board) || 'a Lever board is the company\'s name there, such as "hermeus"',
   ashby: (board) => /^[a-z0-9][a-z0-9_.-]*$/i.test(board) || 'an Ashby board is the company\'s name there, such as "saronic"',
+  icims: (board) => /^[a-z0-9][a-z0-9-]*\.icims\.com$/.test(board) || 'an iCIMS board is the portal\'s host, such as "careers-gdeb.icims.com"',
   jibe: (board) => /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(board) || 'a Jibe board is the career site\'s host, such as "careers.rivian.com"',
   oracle: (board) => /^[a-z0-9.-]+\.oraclecloud\.com\/[A-Za-z0-9_]+$/.test(board) || 'an Oracle board is "<host>/<site number>", such as "efds.fa.em5.oraclecloud.com/CX_1"',
   workday: (board) => /^https:\/\/[a-z0-9.-]+\.myworkdayjobs\.com\/wday\/cxs\/[^/]+\/[^/]+$/.test(board) || 'a Workday board is its address under /wday/cxs, such as "https://boeing.wd1.myworkdayjobs.com/wday/cxs/boeing/EXTERNAL_CAREERS"',
+  'successfactors-site': (board) => /^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}$/.test(board) || 'a SuccessFactors career site is its host, such as "careers.huntingtoningalls.com"',
   successfactors: (board) => /^https:\/\/[a-z0-9.-]+\/[^\s]*$/.test(board) || 'a SuccessFactors board is the address of its feed, such as "https://jobs.deere.com/sitemap.xml"',
 };
 

@@ -205,7 +205,8 @@ export function createFetcher({
     totals.platforms[platform] = (totals.platforms[platform] ?? 0) + 1;
     const headers = {
       'User-Agent': userAgent,
-      Accept: accept === 'json' ? 'application/json' : accept === 'xml' ? 'application/xml, text/xml;q=0.9, */*;q=0.1' : 'text/plain, */*;q=0.1',
+      Accept: accept === 'json' ? 'application/json' : accept === 'xml' ? 'application/xml, text/xml;q=0.9, */*;q=0.1'
+        : accept === 'html' ? 'text/html, */*;q=0.1' : 'text/plain, */*;q=0.1',
     };
     if (body !== null) headers['Content-Type'] = 'application/json';
     let response;
@@ -277,7 +278,8 @@ export function createFetcher({
           }
           if (status === 404 || status === 410) throw new FeedError(`${shown(url)} answered ${status}`, { url, status });
           if (status < 200 || status >= 300) throw new FeedError(`${shown(url)} answered ${status}`, { url, status });
-          if (html && (opts.accept ?? 'json') !== 'text') throw new FeedError(`${shown(url)} answered with a web page where the feed was expected`, { url, status });
+          // A career site whose listing is its pages (accept 'html') is expected to answer with one: a challenge page is still a refusal.
+          if (html && !['text', 'html'].includes(opts.accept ?? 'json')) throw new FeedError(`${shown(url)} answered with a web page where the feed was expected`, { url, status });
           if ((opts.accept ?? 'json') === 'json') {
             try {
               return { status, text, json: JSON.parse(text) };
