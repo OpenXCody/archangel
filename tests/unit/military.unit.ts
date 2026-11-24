@@ -3,7 +3,7 @@
 // `npm run test:unit`. No browser, no database.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -38,7 +38,9 @@ import {
 const COLUMNS = 'migrations/0061_career_service.sql';
 const BUILDER = 'scripts/build-military-sql.mjs';
 const EMPLOYERS = 'data/careers/military/employers.json';
-const EMPLOYERS_MIGRATION = 'migrations/0062_military_employers.sql';
+/** The latest employers' migration: what the file generates now. 0062 was the first. */
+const EMPLOYERS_MIGRATION = 'migrations/0077_military_employers_2.sql';
+const FIRST_EMPLOYERS_MIGRATION = 'migrations/0062_military_employers.sql';
 
 interface Employer {
   name: string;
@@ -46,7 +48,9 @@ interface Employer {
   slug: string;
   domain: string;
   description: string;
+  descriptionWas?: string[];
   headquarters: { city: string; state: string; country: string };
+  sources?: string[];
 }
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
 const employers = read<{ companies: Employer[] }>(EMPLOYERS).companies;
@@ -180,7 +184,9 @@ test('the four services are employers: one company each, named as the code names
   assert.deepEqual(employers.map((company) => company.service), SERVICES.map((service) => service.key));
   for (const company of employers) assert.equal(company.name, serviceName(company.service), company.service);
   // Tags are derived and careers are counted: the file carries neither.
-  for (const company of employers) assert.deepEqual(Object.keys(company).sort(), ['description', 'domain', 'headquarters', 'name', 'service', 'slug']);
+  for (const company of employers) assert.deepEqual(Object.keys(company).sort(), ['description', 'descriptionWas', 'domain', 'headquarters', 'name', 'service', 'slug', 'sources']);
+  // Each description says where it was read, in the data and never on screen.
+  for (const company of employers) assert.ok((company.sources ?? []).some((line) => /^https:\/\/www\.[a-z]+\.(com|mil)\//.test(line)), `${company.name} names the page its description was read from`);
 });
 
 test('the employers\' migration is what the file generates, and adds no plant', () => {
@@ -195,6 +201,21 @@ test('the employers\' migration is what the file generates, and adds no plant', 
   for (const action of ['created', 'found', 'kept', 'not set', 'summary']) assert.ok(sql.includes(`pg_temp.mil_log('${action}'`), action);
   const list = MIGRATIONS as string[];
   assert.equal(list.indexOf('0062_military_employers.sql'), list.indexOf('0061_career_service.sql') + 1);
+  assert.ok(list.indexOf(path.basename(EMPLOYERS_MIGRATION)) > list.indexOf('0069_company_marks.sql'), 'the latest employers\' migration is in the list, after 0069');
+});
+
+test('a description is replaced only where it is still the file\'s earlier one', () => {
+  const sql = readFileSync(EMPLOYERS_MIGRATION, 'utf8');
+  // Filled where empty, replaced where it is word for word what the file said before; one a person wrote stays.
+  assert.ok(sql.includes("CASE WHEN c.description IS NULL OR btrim(c.description) = '' THEN 'description' END"));
+  assert.ok(sql.includes('coalesce(btrim(c.description) = ANY (e.description_was), false)'));
+  assert.ok(sql.includes("description = CASE WHEN 'description' = ANY (v_filled) OR v_newer THEN e.description ELSE c.description END"));
+  // The earlier descriptions are the ones the first migration wrote, so production's are the ones replaced.
+  const first = readFileSync(FIRST_EMPLOYERS_MIGRATION, 'utf8');
+  for (const company of employers) {
+    assert.ok((company.descriptionWas ?? []).length > 0, `${company.name} says what it replaces`);
+    for (const was of company.descriptionWas ?? []) assert.ok(first.includes(`'${was.replace(/'/g, "''")}'`), `${company.name}: "${was}" is what 0062 wrote`);
+  }
 });
 
 test('the check refuses an employers file that is not whole', () => {
@@ -211,14 +232,23 @@ test('the check refuses an employers file that is not whole', () => {
   refused((list) => { list[0].slug = 'US Navy'; }, /not lowercase words joined by hyphens/);
   refused((list) => { list[0].headquarters.state = 'Virginia'; }, /headquarters are a city, a two-letter state and a two-letter country/);
   refused((list) => { (list[0] as Employer & { tags?: string[] }).tags = ['military']; }, /unknown key "tags"/);
+  refused((list) => { list[0].descriptionWas = [list[0].description]; }, /"descriptionWas" names the description itself/);
+  refused((list) => { list[0].descriptionWas = ['One.', 'One.']; }, /names a description twice/);
+  refused((list) => { list[0].sources = ['one\ntwo']; }, /"sources" is a list of lines/);
 });
 
-test('a service keeps the lettermark: its emblem is not fetched', () => {
+test('a service shows its own mark, placed by hand, and says where it came from', () => {
+  // The owner chose to show each service's own logo; it is placed by hand, never fetched by a run.
   const list = read<Record<string, string | null>>('client/src/lib/logos.json');
-  const decisions = read<{ none: Record<string, string> }>('data/companies/logo-decisions.json');
+  const decisions = read<{ none: Record<string, string>; kept: Record<string, { ext: string; from: string }> }>('data/companies/logo-decisions.json');
   for (const company of employers) {
-    assert.equal(list[company.domain], null, `${company.domain} is listed, with no mark`);
-    assert.ok(decisions.none[company.domain]?.includes('military service'), `${company.domain} says why`);
+    const kept = decisions.kept[company.domain];
+    assert.ok(kept, `${company.domain} is a mark placed by hand`);
+    assert.equal(decisions.none[company.domain], undefined, `${company.domain} is not left on the lettermark`);
+    assert.equal(list[company.domain], kept.ext, `${company.domain} is listed with its mark`);
+    assert.ok(existsSync(`client/public/logos/${company.domain}.${kept.ext}`), `${company.domain}'s mark is stored`);
+    assert.match(kept.from, /owner chose/, `${company.domain} says the owner chose to show it`);
+    assert.match(kept.from, /https?:|www\.|Commons/, `${company.domain} says where the file came from`);
   }
 });
 

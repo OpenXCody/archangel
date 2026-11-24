@@ -3,7 +3,7 @@
 //
 //   node scripts/build-military-sql.mjs --check            validate the files; writes nothing
 //   node scripts/build-military-sql.mjs --report           the same check, then the figures behind it
-//   node scripts/build-military-sql.mjs employers [out]    the four services as companies (0062)
+//   node scripts/build-military-sql.mjs employers [out]    the four services as companies (0062 first, 0077 now)
 //   node scripts/build-military-sql.mjs careers [out]      the careers, each with its service and code (0063)
 //   node scripts/build-military-sql.mjs paths [out]        each career's skills, every path a draft (0064)
 //
@@ -16,6 +16,9 @@
 // employers.json: the four services. --check fails unless each has a name, a
 // service key that is one of the four (once each), a bare domain, a well
 // formed slug, a description and a headquarters of city, state and country.
+// `descriptionWas`, when there, lists the file's earlier descriptions (none
+// of them the description); `sources`, when there, are notes for the data on
+// where the description was read, and are not loaded.
 //
 // careers.json: the careers. --check fails unless:
 //   - every career has a title, a `what`, a home that is a domain of the
@@ -47,6 +50,9 @@
 //   - the company's `service` is set; its slug, domain, description and
 //     headquarters are filled only where it has none (a slug another company
 //     has is left unset);
+//   - its description is also replaced where it is still, word for word, one
+//     of the file's earlier descriptions (`descriptionWas`): one a person
+//     wrote is kept;
 //   - a company that carries a different service under one of these names is
 //     left alone, and said;
 //   - it adds no plant: a service has none.
@@ -122,11 +128,17 @@ export function employerProblems(file) {
     slugs.add(company.slug);
     if (typeof company.domain !== 'string' || !BARE_DOMAIN.test(company.domain)) problems.push(`${where}: ${JSON.stringify(company.domain)} is not a bare domain such as example.com`);
     if (!text(company.description)) problems.push(`${where} needs a description`);
+    if (company.descriptionWas !== undefined) {
+      if (!Array.isArray(company.descriptionWas) || !company.descriptionWas.every(sentence)) problems.push(`${where}: "descriptionWas" is a list of the file's earlier descriptions, each one line`);
+      else if (company.descriptionWas.includes(company.description)) problems.push(`${where}: "descriptionWas" names the description itself`);
+      else if (new Set(company.descriptionWas).size < company.descriptionWas.length) problems.push(`${where}: "descriptionWas" names a description twice`);
+    }
+    if (company.sources !== undefined && (!Array.isArray(company.sources) || !company.sources.every(sentence))) problems.push(`${where}: "sources" is a list of lines`);
     const hq = company.headquarters;
     if (!text(hq?.city) || !/^[A-Z]{2}$/.test(hq?.state ?? '') || !/^[A-Z]{2}$/.test(hq?.country ?? '')) {
       problems.push(`${where}: headquarters are a city, a two-letter state and a two-letter country`);
     }
-    const extra = Object.keys(company).filter((key) => !['name', 'service', 'slug', 'domain', 'description', 'headquarters'].includes(key));
+    const extra = Object.keys(company).filter((key) => !['name', 'service', 'slug', 'domain', 'description', 'descriptionWas', 'headquarters', 'sources'].includes(key));
     if (extra.length > 0) problems.push(`${where}: unknown key ${extra.map((key) => `"${key}"`).join(', ')} (tags are derived from the service, and careers are counted)`);
   }
   return problems;
@@ -285,6 +297,7 @@ export function employersSql(file, source) {
     q(company.slug),
     q(company.domain),
     q(company.description.trim()),
+    `ARRAY[${(company.descriptionWas ?? []).map((was) => q(was.trim())).join(', ')}]::text[]`,
     q(company.headquarters.city),
     q(company.headquarters.state),
     q(company.headquarters.country),
@@ -296,16 +309,19 @@ export function employersSql(file, source) {
     '--',
     `-- ${rows.length} companies, one for each service, with no plants. A service is the company that already`,
     '-- carries its key (companies.service, migration 0061), else the company with exactly its name in any',
-    '-- letter case, else a new company. What it decided on this database is in load_log (load',
+    '-- letter case, else a new company. Its slug, domain, description and headquarters are filled where it has',
+    "-- none; its description is also replaced where it is still one of the file's earlier descriptions, and one",
+    '-- a person wrote is kept. What it decided on this database is in load_log (load',
     "-- 'military-employers'; the lines with look = true are the ones to read).",
     '',
     '-- The file, as rows -------------------------------------------------------------',
     '',
     'DROP TABLE IF EXISTS pg_temp.mil_employers;',
     'CREATE TEMP TABLE mil_employers (position integer PRIMARY KEY, name text NOT NULL, service text NOT NULL UNIQUE, slug text NOT NULL,',
-    '  domain text NOT NULL, description text NOT NULL, hq_city text NOT NULL, hq_state text NOT NULL, hq_country text NOT NULL);',
+    '  domain text NOT NULL, description text NOT NULL, description_was text[] NOT NULL, hq_city text NOT NULL, hq_state text NOT NULL,',
+    '  hq_country text NOT NULL);',
     '',
-    'INSERT INTO mil_employers (position, name, service, slug, domain, description, hq_city, hq_state, hq_country) VALUES',
+    'INSERT INTO mil_employers (position, name, service, slug, domain, description, description_was, hq_city, hq_state, hq_country) VALUES',
     ...values(rows),
     '',
     '-- One line of the log.',
@@ -323,6 +339,7 @@ DECLARE
   v_service text;
   v_plants integer;
   v_filled text[];
+  v_newer boolean;
   n_created integer := 0;
   n_found integer := 0;
   n_kept integer := 0;
@@ -362,31 +379,36 @@ BEGIN
         CASE WHEN c.domain IS NULL OR btrim(c.domain) = '' THEN 'domain' END,
         CASE WHEN c.description IS NULL OR btrim(c.description) = '' THEN 'description' END,
         CASE WHEN c.headquarters_city IS NULL OR btrim(c.headquarters_city) = '' THEN 'headquarters' END
-      ], NULL) INTO v_filled FROM companies c WHERE c.id = v_id;
+      ], NULL),
+      -- A description the file gave before and nobody has changed since: the file's own words, brought up to date.
+      coalesce(btrim(c.description) = ANY (e.description_was), false)
+      INTO v_filled, v_newer FROM companies c WHERE c.id = v_id;
     UPDATE companies c SET
         service = e.service,
         slug = CASE WHEN 'slug' = ANY (v_filled) THEN e.slug ELSE c.slug END,
         domain = CASE WHEN 'domain' = ANY (v_filled) THEN e.domain ELSE c.domain END,
-        description = CASE WHEN 'description' = ANY (v_filled) THEN e.description ELSE c.description END,
+        description = CASE WHEN 'description' = ANY (v_filled) OR v_newer THEN e.description ELSE c.description END,
         headquarters_city = CASE WHEN 'headquarters' = ANY (v_filled) THEN e.hq_city ELSE c.headquarters_city END,
         headquarters_state = CASE WHEN 'headquarters' = ANY (v_filled) THEN e.hq_state ELSE c.headquarters_state END,
         headquarters_country = CASE WHEN 'headquarters' = ANY (v_filled) THEN e.hq_country ELSE c.headquarters_country END,
         updated_at = now()
-      WHERE c.id = v_id AND (c.service IS DISTINCT FROM e.service OR cardinality(v_filled) > 0);
+      WHERE c.id = v_id AND (c.service IS DISTINCT FROM e.service OR cardinality(v_filled) > 0 OR v_newer);
     IF v_service = e.service THEN
       n_kept := n_kept + 1;
-      -- Already the service: nothing to look at. Said only when something was filled or it goes by another name.
-      IF cardinality(v_filled) > 0 OR lower(v_name) <> lower(e.name) THEN
-        PERFORM pg_temp.mil_log('kept', false, v_name, format('%s is the service "%s"%s%s', v_name, e.service,
+      -- Already the service: nothing to look at. Said only when something was filled or replaced, or it goes by another name.
+      IF cardinality(v_filled) > 0 OR v_newer OR lower(v_name) <> lower(e.name) THEN
+        PERFORM pg_temp.mil_log('kept', false, v_name, format('%s is the service "%s"%s%s%s', v_name, e.service,
           CASE WHEN lower(v_name) <> lower(e.name) THEN format(' (the file calls it %s; the stored name is kept)', e.name) ELSE '' END,
-          CASE WHEN cardinality(v_filled) > 0 THEN '; filled: ' || array_to_string(v_filled, ', ') ELSE '' END), v_id);
+          CASE WHEN cardinality(v_filled) > 0 THEN '; filled: ' || array_to_string(v_filled, ', ') ELSE '' END,
+          CASE WHEN v_newer THEN '; description: the file''s earlier one, replaced by the file''s' ELSE '' END), v_id);
       END IF;
     ELSE
       n_found := n_found + 1;
       -- A company that was here before is now a service: somebody should look, most of all if it has plants.
-      PERFORM pg_temp.mil_log('found', true, v_name, format('%s was stored already%s. It is now the service "%s"%s', v_name,
+      PERFORM pg_temp.mil_log('found', true, v_name, format('%s was stored already%s. It is now the service "%s"%s%s', v_name,
         CASE WHEN v_plants > 0 THEN format(', with %s plants, which a service does not have', v_plants) ELSE ', with no plants' END, e.service,
-        CASE WHEN cardinality(v_filled) > 0 THEN '; filled: ' || array_to_string(v_filled, ', ') ELSE '' END), v_id);
+        CASE WHEN cardinality(v_filled) > 0 THEN '; filled: ' || array_to_string(v_filled, ', ') ELSE '' END,
+        CASE WHEN v_newer THEN '; description: the file''s earlier one, replaced by the file''s' ELSE '' END), v_id);
     END IF;
   END LOOP;
 
@@ -576,7 +598,7 @@ export function militaryPathsSql(paths, source) {
 
 const json = async (file) => JSON.parse(await readFile(path.join(ROOT, file), 'utf8'));
 const DEFAULT_OUTPUT = {
-  employers: 'migrations/0062_military_employers.sql',
+  employers: 'migrations/0077_military_employers_2.sql',
   careers: 'migrations/0063_military_careers.sql',
   paths: 'migrations/0064_military_paths.sql',
 };
