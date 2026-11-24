@@ -10,6 +10,14 @@ import type { SkillLevel, Taxonomy } from '../../lib/api';
  * plate and angles grow the way the domains are read. A radius is a fraction
  * of the plate's.
  *
+ * The domains do not start at the top. The seam between the last domain and
+ * the first is at `start` (half past seven, lower left), so the first domain
+ * opens on the left where a line is begun, the trades that follow it hold the
+ * top of the plate, and the last domain (Safety) ends at the lower left, the
+ * quietest place on a circle. Angles run on from `start` without wrapping:
+ * every angle of the layout is in [start, start + 2π), and grows with the
+ * order of the leaves.
+ *
  * The tree is: centre → domain → skill group → skill. Every skill is a leaf
  * and takes one step of angle; a gap separates two groups and a wider one two
  * domains. A branch is an arc at the parent's radius and a spoke out to the
@@ -20,6 +28,8 @@ import type { SkillLevel, Taxonomy } from '../../lib/api';
 export const TAU = Math.PI * 2;
 
 export interface AtlasGeometry {
+  /** Where the seam between the last domain and the first is: radians clockwise from twelve o'clock. */
+  start: number;
   /** The gap between two groups of one domain, in leaf steps. */
   groupGap: number;
   /** The gap between two domains, in leaf steps. */
@@ -46,7 +56,11 @@ export interface AtlasGeometry {
   ring: number;
 }
 
+/** Half past seven: the last domain ends at the lower left, the first begins there and climbs the left side. */
+export const START = (Math.PI * 5) / 4;
+
 export const GEOMETRY: AtlasGeometry = {
+  start: START,
   groupGap: 1,
   domainGap: 4,
   ringPad: 1.25,
@@ -74,7 +88,7 @@ export function leafRadius(geometry: AtlasGeometry, level: SkillLevel, turnInRun
 }
 
 export interface AtlasLeaf {
-  /** Position in `leaves`: clockwise from the top. */
+  /** Position in `leaves`: clockwise from the seam. */
   index: number;
   id: string;
   name: string;
@@ -171,8 +185,9 @@ export function layoutAtlas(taxonomy: Pick<Taxonomy, 'domains'>, geometry: Atlas
   const groups: AtlasGroup[] = [];
   const leaves: AtlasLeaf[] = [];
   let maxCareers = 0;
-  // The seam between the last domain and the first is centred on twelve o'clock.
-  let cursor = geometry.domainGap / 2;
+  // The seam between the last domain and the first is centred on `start`.
+  const origin = step > 0 ? geometry.start / step : 0;
+  let cursor = origin + geometry.domainGap / 2;
 
   for (const d of source) {
     const domain: AtlasDomain = {
@@ -385,9 +400,10 @@ export interface AtlasHit {
  */
 export function locate(layout: AtlasLayout, angle: number): AtlasHit | null {
   if (layout.leaves.length === 0) return null;
-  const a = turn(angle);
+  // Brought into the layout's own turn: [start, start + 2π).
+  const a = layout.geometry.start + turn(angle - layout.geometry.start);
   const pad = (layout.geometry.domainGap / 2) * layout.step;
-  // The seam at the top belongs to the first domain on its right and the last on its left.
+  // The seam belongs to the first domain on its clockwise side and the last on the other.
   let domain = layout.domains[layout.domains.length - 1];
   for (const candidate of layout.domains) {
     if (a < candidate.a1 + pad) {
@@ -446,6 +462,34 @@ export function spread(wanted: number[], sizes: number[]): number[] {
   return placed;
 }
 
+/**
+ * `spread` round a circle: labels set along a ring, where the last is also the
+ * first one's neighbour. `wanted` are angles in order within one turn. The
+ * line is cut between each pair of neighbours in turn and the cut kept is the
+ * one where the two ends do not meet, then the one that moves the labels
+ * least. `moved` is how far they were moved in total, `overlap` how far the
+ * ends still run into each other when the ring is too short for them all.
+ */
+export function spreadRound(wanted: number[], sizes: number[]): { placed: number[]; moved: number; overlap: number } {
+  const count = wanted.length;
+  let best: { placed: number[]; moved: number; overlap: number } = { placed: [], moved: 0, overlap: 0 };
+  for (let cut = 0; cut < count; cut++) {
+    const order = wanted.map((_, i) => (cut + i) % count);
+    const asked = order.map((index, i) => wanted[index] + (i >= count - cut ? TAU : 0));
+    const size = order.map((index) => sizes[index]);
+    const got = spread(asked, size);
+    const overlap = Math.max(0, got[count - 1] + size[count - 1] / 2 - (got[0] + TAU - size[0] / 2));
+    let moved = 0;
+    const placed = new Array<number>(count);
+    got.forEach((angle, i) => {
+      moved += Math.abs(angle - asked[i]);
+      placed[order[i]] = angle - (i >= count - cut ? TAU : 0);
+    });
+    if (cut === 0 || overlap < best.overlap - 1e-9 || (overlap < best.overlap + 1e-9 && moved < best.moved - 1e-9)) best = { placed, moved, overlap };
+  }
+  return best;
+}
+
 /** A label beside the enlarged plate: a group's name, or a skill's in the open group. */
 export interface AtlasLabel {
   kind: 'group' | 'skill';
@@ -479,7 +523,7 @@ export function placeLabels(
   pitch: { group: number; skill: number },
   reach = 0
 ): AtlasLabel[] {
-  // Measured from the open domain's middle, so the seam at the top of the plate is no seam here.
+  // Measured from the open domain's middle, so the plate's seam is no seam here.
   const inSight = layout.groups
     .map((group) => ({ group, offset: between(group.angle, domain.angle) }))
     .filter(({ group, offset }) => group.domain === domain.index || Math.abs(offset) <= reach)

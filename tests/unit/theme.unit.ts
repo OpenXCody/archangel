@@ -76,6 +76,63 @@ for (const theme of ['dark', 'light'] as const) {
   });
 }
 
+// The Atlas's domains: the one place a kind of thing has a hue (components/atlas/, the `[data-domain]` rules).
+const taxonomy = JSON.parse(readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'data', 'skills', 'taxonomy.json'), 'utf8')) as { domains: { slug: string }[] };
+const DOMAINS = taxonomy.domains.map((domain) => domain.slug);
+
+/** How far apart two colours are to the eye: the distance in OKLab, where 0.02 is about the least seen. */
+function oklab(hex: string): [number, number, number] {
+  const [r, g, b] = channels(hex).map((value) => {
+    const c = value / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s, 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s, 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s];
+}
+const apart = (a: string, b: string) => Math.hypot(...oklab(a).map((value, i) => value - oklab(b)[i]));
+
+for (const theme of ['dark', 'light'] as const) {
+  test(`${theme}: every domain of the taxonomy has a hue, legible as its 10px name on the rim on both surfaces`, () => {
+    const found = tokens(theme);
+    for (const slug of DOMAINS) {
+      const hue = found.get(`--domain-${slug}`);
+      assert.ok(hue, `${theme} has no --domain-${slug}`);
+      // A domain's name is small text (10 to 12.5px) in its hue: 4.5:1, as for the ink.
+      for (const ground of ['--bg', '--surface']) {
+        const ratio = contrast(hue, found.get(ground)!);
+        assert.ok(ratio >= 4.5, `${theme}: --domain-${slug} on ${ground} is ${ratio.toFixed(2)}:1, under 4.5:1`);
+      }
+    }
+    // And no hue for a domain the taxonomy does not have.
+    const named = [...found.keys()].filter((name) => name.startsWith('--domain-')).map((name) => name.slice('--domain-'.length));
+    assert.deepEqual(named.sort(), [...DOMAINS].sort());
+  });
+
+  test(`${theme}: the hues are muted and near one lightness, and neighbours on the plate are told apart`, () => {
+    const found = tokens(theme);
+    const hues = DOMAINS.map((slug) => found.get(`--domain-${slug}`)!);
+    const lightness = hues.map((hue) => oklab(hue)[0]);
+    assert.ok(Math.max(...lightness) - Math.min(...lightness) <= 0.1, `${theme}: the hues span ${(Math.max(...lightness) - Math.min(...lightness)).toFixed(3)} of lightness`);
+    for (const hue of hues) assert.ok(Math.hypot(oklab(hue)[1], oklab(hue)[2]) <= 0.12, `${theme}: ${hue} is not muted`);
+    // Round the plate, the last beside the first: each domain is far from its neighbour, and clear of the next but one.
+    hues.forEach((hue, i) => {
+      const next = hues[(i + 1) % hues.length];
+      const second = hues[(i + 2) % hues.length];
+      assert.ok(apart(hue, next) >= 0.08, `${theme}: ${DOMAINS[i]} and ${DOMAINS[(i + 1) % hues.length]} are ${apart(hue, next).toFixed(3)} apart`);
+      assert.ok(apart(hue, second) >= 0.06, `${theme}: ${DOMAINS[i]} and its next but one are ${apart(hue, second).toFixed(3)} apart`);
+      // No hue passes for the accent, which keeps its meaning on the plate.
+      assert.ok(apart(hue, found.get('--accent')!) >= 0.08, `${theme}: ${DOMAINS[i]} is ${apart(hue, found.get('--accent')!).toFixed(3)} from the accent`);
+    });
+  });
+
+  test(`${theme}: Safety has no hue of its own`, () => {
+    const safety = oklab(tokens(theme).get('--domain-safety')!);
+    assert.ok(Math.hypot(safety[1], safety[2]) < 0.03);
+  });
+}
+
 test('each theme is set by hand: light is not dark with its lightness flipped', () => {
   const dark = tokens('dark');
   const light = tokens('light');

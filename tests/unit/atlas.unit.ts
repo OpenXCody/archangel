@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import {
   GEOMETRY,
+  START,
   TAU,
   WHOLE,
   between,
@@ -19,6 +20,8 @@ import {
   placeLabels,
   point,
   spread,
+  spreadRound,
+  turn,
   unproject,
 } from '../../client/src/components/atlas/layout';
 import { atlasHref, readAtlasState, skillsListHref } from '../../client/src/components/atlas/state';
@@ -80,11 +83,35 @@ test('the angles sum to the circle', () => {
   const groupGaps = layout.groups.length - layout.domains.length;
   const steps = total + groupGaps * GEOMETRY.groupGap + layout.domains.length * GEOMETRY.domainGap;
   assert.ok(near(steps * layout.step, TAU), 'the leaves and the gaps between them take one full turn');
-  // The seam between the last domain and the first is centred on twelve o'clock.
+  // The seam between the last domain and the first is centred on the start angle, and the angles run on from it unwrapped.
   const first = layout.leaves[0];
   const last = layout.leaves[total - 1];
-  assert.ok(near(first.angle - layout.step / 2, (GEOMETRY.domainGap / 2) * layout.step));
-  assert.ok(near(TAU - (last.angle + layout.step / 2), (GEOMETRY.domainGap / 2) * layout.step));
+  assert.ok(near(first.angle - layout.step / 2 - START, (GEOMETRY.domainGap / 2) * layout.step));
+  assert.ok(near(START + TAU - (last.angle + layout.step / 2), (GEOMETRY.domainGap / 2) * layout.step));
+  for (let i = 1; i < total; i++) assert.ok(layout.leaves[i].angle > layout.leaves[i - 1].angle);
+});
+
+test('Safety, the last domain, is never at the top: it ends at the lower left, and the trades hold the top', () => {
+  assert.equal(GEOMETRY.start, START);
+  const clock = (slug: string) => {
+    const domain = layout.domainBySlug.get(slug);
+    assert.ok(domain, slug);
+    return { from: turn(domain.from), to: turn(domain.to), middle: turn(domain.angle) };
+  };
+  const lastDomain = layout.domains[layout.domains.length - 1];
+  assert.equal(lastDomain.slug, 'safety', 'the taxonomy ends in Safety');
+  // Safety lies wholly in the lower left quarter: between six and nine o'clock.
+  const safety = clock('safety');
+  assert.ok(safety.from > Math.PI && safety.to < Math.PI * 1.5, `Safety runs from ${safety.from.toFixed(2)} to ${safety.to.toFixed(2)}`);
+  // Twelve o'clock, where the eye starts, is one of the making trades.
+  const top = locate(layout, 0);
+  assert.ok(top && ['machining', 'fabrication', 'assembly'].includes(top.domain.slug), `the top of the plate is ${top?.domain.slug}`);
+  // Machining, Fabrication and Assembly are all in the upper half; the first domain opens on the left.
+  for (const slug of ['machining', 'fabrication', 'assembly']) assert.ok(Math.cos(clock(slug).middle) > 0, `${slug} is in the upper half`);
+  assert.ok(Math.sin(turn(layout.domains[0].angle)) < 0, 'the first domain is on the left');
+  // No domain's middle is nearer the top than Safety's is to the bottom-left seam... and Safety is the furthest domain from the top but for its neighbours.
+  const fromTop = (angle: number) => Math.abs(between(angle, 0));
+  assert.ok(fromTop(safety.middle) > Math.PI * 0.6);
 });
 
 test('no two leaves overlap', () => {
@@ -167,10 +194,13 @@ test('a point on the plate finds its domain, group and skill', () => {
     assert.equal(hit.group.index, leaf.group);
     assert.equal(hit.domain.index, leaf.domain);
   }
-  // The seam at the top is shared: just right of it is the first domain, just left of it the last.
-  assert.equal(locate(layout, 0.0001)?.domain.index, 0);
-  assert.equal(locate(layout, -0.0001)?.domain.index, layout.domains.length - 1);
-  assert.equal(locate(layout, TAU * 3 + 0.0001)?.domain.index, 0);
+  // The seam is shared: just clockwise of it is the first domain, just before it the last, whatever turn the angle is given in.
+  assert.equal(locate(layout, START + 0.0001)?.domain.index, 0);
+  assert.equal(locate(layout, START - 0.0001)?.domain.index, layout.domains.length - 1);
+  assert.equal(locate(layout, START + TAU * 3 + 0.0001)?.domain.index, 0);
+  assert.equal(locate(layout, START - TAU * 2 - 0.0001)?.domain.index, layout.domains.length - 1);
+  // A point of the screen comes back as an angle in [0, 2π): every leaf is still found from there.
+  for (const leaf of layout.leaves) assert.equal(locate(layout, turn(leaf.angle))?.leaf.index, leaf.index);
   assert.equal(locate(layoutAtlas({ domains: [] }), 1), null);
 });
 
@@ -182,6 +212,31 @@ test('labels are spread so none sits on another, and moved no further than they 
   const mixed = spread([0, 1, 1.5, 20], [2, 4, 2, 2]);
   for (let i = 1; i < mixed.length; i++) assert.ok(mixed[i] - mixed[i - 1] >= ([2, 4, 2, 2][i] + [2, 4, 2, 2][i - 1]) / 2 - 1e-9);
   assert.equal(mixed[3], 20);
+});
+
+test('names set round a ring make room for each other across the seam too', () => {
+  // Room for all: nothing moves.
+  const easy = spreadRound([1, 3, 5], [0.5, 0.5, 0.5]);
+  assert.deepEqual(easy.placed, [1, 3, 5]);
+  assert.equal(easy.overlap, 0);
+  // The last and the first are neighbours: two names either side of the seam part from each other.
+  const seam = spreadRound([0.05, 3, TAU - 0.05], [0.6, 0.6, 0.6]);
+  assert.equal(seam.overlap, 0);
+  assert.ok(seam.placed[0] + TAU - seam.placed[2] >= 0.6 - 1e-9);
+  assert.ok(Math.abs(seam.placed[1] - 3) < 1e-9, 'a name with room stays where it is');
+  // The domains' own names at a phone's size of plate: one row is too short, which the answer says.
+  const sizes = layout.domains.map((domain) => (domain.name.length * 6 + 11) / 160);
+  const crowded = spreadRound(layout.domains.map((domain) => domain.angle), sizes);
+  assert.equal(crowded.placed.length, layout.domains.length);
+  assert.ok(crowded.overlap > 0, 'sixteen names do not fit one row round a phone');
+  // On a desktop's they do, and then every name is clear of the next, round the seam as well.
+  const wide = sizes.map((size) => size * 0.45);
+  const fits = spreadRound(layout.domains.map((domain) => domain.angle), wide);
+  assert.equal(fits.overlap, 0);
+  fits.placed.forEach((angle, i) => {
+    const j = (i + 1) % fits.placed.length;
+    assert.ok(turn(fits.placed[j] - angle) >= (wide[i] + wide[j]) / 2 - 1e-9, `${layout.domains[i].name} is clear of ${layout.domains[j].name}`);
+  });
 });
 
 test('an open domain names its groups, an open group its skills', () => {
@@ -198,7 +253,7 @@ test('an open domain names its groups, an open group its skills', () => {
     assert.equal(withSkills.length, labels.length - 1 + skills.length);
     for (let i = 1; i < withSkills.length; i++) assert.ok(withSkills[i].angle - withSkills[i - 1].angle >= pitch.group - 1e-9);
   }
-  // Neighbouring domains' groups are named as far as the frame reaches, across the seam at the top too.
+  // Neighbouring domains' groups are named as far as the frame reaches, across the seam too.
   const first = layout.domains[0];
   const wide = placeLabels(layout, first, null, pitch, 0.5);
   assert.ok(wide.some((label) => label.far && layout.groups[label.index].domain === layout.domains.length - 1));

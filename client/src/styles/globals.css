@@ -22,7 +22,9 @@
  * There are two surface levels and no third grey. Beside the eleven:
  * --danger (an error has to read as one), --logo-backing (a company's mark
  * is drawn for a white page) and --mask (the opaque stop of a mask: never
- * painted). tests/unit/theme.unit.ts holds the ink to 4.5:1 on both surfaces.
+ * painted), the map's five and the Atlas's sixteen domain hues (--domain-*:
+ * the Atlas alone is coloured, see its rules below).
+ * tests/unit/theme.unit.ts holds the ink and the hues to 4.5:1 on both surfaces.
  */
 @layer base {
   :root {
@@ -51,6 +53,27 @@
     --map-border: var(--line-strong);
     --map-road: #333333;
 
+    /* The Atlas's sixteen domains (components/atlas/): the one place a kind of thing has a hue. A domain's
+       rim arc, its name and its leaves take it; a small swatch beside the domain's word in the Atlas's own
+       lists repeats it. Muted and near one lightness, neighbours on the plate far apart in hue and a step
+       apart in lightness; Safety, last, is the one with no hue. Each is held to 4.5:1 on both surfaces. */
+    --domain-materials: #e8a1ab;
+    --domain-engineering: #aba868;
+    --domain-production: #70c8cf;
+    --domain-machining: #ab99d3;
+    --domain-fabrication: #e8a494;
+    --domain-assembly: #93b077;
+    --domain-electronics: #79c3e1;
+    --domain-automation: #be93c4;
+    --domain-semiconductor: #e1aa81;
+    --domain-battery: #7ab58c;
+    --domain-process: #8ebcec;
+    --domain-test: #cc8fb0;
+    --domain-maintenance: #d3b378;
+    --domain-quality: #65b6a5;
+    --domain-ndt: #a6b4ee;
+    --domain-safety: #999fa6;
+
     --danger: #f87171;
     --logo-backing: #ffffff;
     --mask: #000000;
@@ -77,6 +100,24 @@
     --map-water: #dfe4ea;
     --map-border: #cfcfcf;
     --map-road: #e5e5e5;
+
+    /* The Atlas's domains on white: the same hues as inks. */
+    --domain-materials: #934956;
+    --domain-engineering: #5d5800;
+    --domain-production: #057178;
+    --domain-machining: #5c4785;
+    --domain-fabrication: #934c3c;
+    --domain-assembly: #42601d;
+    --domain-electronics: #006e8d;
+    --domain-automation: #6f4176;
+    --domain-semiconductor: #8d5321;
+    --domain-battery: #1a653b;
+    --domain-process: #32669a;
+    --domain-test: #7c3c61;
+    --domain-maintenance: #7f5d09;
+    --domain-quality: #036455;
+    --domain-ndt: #525e9c;
+    --domain-safety: #5e646a;
 
     --danger: #b91c1c;
   }
@@ -667,11 +708,44 @@ input {
 
 /*
  * The Atlas of Manufacturing (components/atlas/): every skill in one radial
- * tree. The drawing is monochrome; the one accent marks a career laid over it
- * and the thing selected. Lines keep their width however far the plate is
+ * tree. It is the one coloured thing in the product: a domain's rim arc, its
+ * name and its leaves take the domain's hue (--domain-* in the token file,
+ * handed to whatever carries `data-domain` as --domain-hue). The branches stay
+ * ink. The one accent still marks a career laid over it and the thing
+ * selected, and under a career the plate steps back to ink so the accent
+ * reads alone, the domains the career reaches keeping their hue on the rim.
+ * A person's own skills are bright ink. Lines keep their width however far the plate is
  * enlarged (non-scaling strokes); the camera's move is one transform on one
  * group, so turning and enlarging re-renders nothing.
  */
+[data-domain='materials'] { --domain-hue: var(--domain-materials); }
+[data-domain='engineering'] { --domain-hue: var(--domain-engineering); }
+[data-domain='production'] { --domain-hue: var(--domain-production); }
+[data-domain='machining'] { --domain-hue: var(--domain-machining); }
+[data-domain='fabrication'] { --domain-hue: var(--domain-fabrication); }
+[data-domain='assembly'] { --domain-hue: var(--domain-assembly); }
+[data-domain='electronics'] { --domain-hue: var(--domain-electronics); }
+[data-domain='automation'] { --domain-hue: var(--domain-automation); }
+[data-domain='semiconductor'] { --domain-hue: var(--domain-semiconductor); }
+[data-domain='battery'] { --domain-hue: var(--domain-battery); }
+[data-domain='process'] { --domain-hue: var(--domain-process); }
+[data-domain='test'] { --domain-hue: var(--domain-test); }
+[data-domain='maintenance'] { --domain-hue: var(--domain-maintenance); }
+[data-domain='quality'] { --domain-hue: var(--domain-quality); }
+[data-domain='ndt'] { --domain-hue: var(--domain-ndt); }
+[data-domain='safety'] { --domain-hue: var(--domain-safety); }
+/* The domain's hue beside its word, in the Atlas's own lists: a short upright bar, a piece of its rim. */
+.domain-swatch {
+  display: inline-block;
+  flex: none;
+  width: 3px;
+  height: 0.875rem;
+  border-radius: 1.5px;
+  background: var(--domain-hue, var(--text-3));
+}
+.domain-swatch[data-tall] {
+  height: 1.125rem;
+}
 .atlas-plate {
   display: block;
   width: 100%;
@@ -716,12 +790,16 @@ input {
   stroke-width: 0.5px;
 }
 .atlas-leaf {
-  fill: var(--text-1);
+  fill: var(--domain-hue, var(--text-1));
 }
 .atlas-ring {
   fill: none;
-  stroke: var(--text-3);
+  stroke: var(--domain-hue, var(--text-3));
   stroke-width: 2.5px;
+}
+/* A career is laid over the atlas: the plate is ink again, and only the accent and the reached domains' rims are coloured. */
+.atlas-base[data-dim] [data-domain] {
+  --domain-hue: initial;
 }
 .atlas-group-ring {
   fill: none;
@@ -755,10 +833,13 @@ input {
   animation: none;
 }
 .atlas-name {
-  fill: var(--text-2);
+  fill: var(--domain-hue, var(--text-2));
   font-weight: 500;
   letter-spacing: 0.04em;
-  transition: opacity 0.25s ease;
+  transition: fill 0.2s ease;
+}
+.atlas-name[data-off] {
+  fill: var(--text-3);
 }
 .atlas-name[data-on] {
   fill: var(--text-1);
@@ -907,13 +988,20 @@ input {
     animation: none;
   }
 }
-/* The drawing is the full width on a phone. On a wide screen it is as large as fits the window with the page's heading above it. */
+/* On a phone the drawing runs out to the screen's edges. On a wide screen it is as large as fits the window under the page's tabs. */
 .atlas-frame {
-  width: 100%;
+  width: auto;
+  margin-inline: -0.75rem;
+}
+@media (min-width: 640px) {
+  .atlas-frame {
+    width: 100%;
+    margin-inline: auto;
+  }
 }
 @media (min-width: 1024px) {
   .atlas-frame {
-    max-width: max(30rem, calc(100dvh - 16.5rem));
+    max-width: max(32rem, calc(100dvh - 13.5rem));
   }
 }
 
@@ -1104,13 +1192,12 @@ input {
 }
 .career-atlas-plate {
   z-index: 5;
-  margin: 0 -0.25rem;
-  padding: 0 0.25rem;
+  margin: 0 -0.75rem;
   background: var(--bg);
 }
-/* The plate is never taller than about half the screen, so tags are always in reach under it. */
+/* The plate runs out to the screen's edges, and is never taller than about half the screen, so tags are always in reach under it. */
 .career-atlas-plate > * {
-  width: min(100%, 47dvh);
+  width: min(100%, 50dvh);
   margin: 0 auto;
 }
 @media (min-height: 560px) {
@@ -1156,13 +1243,21 @@ input {
     padding: 0;
   }
   .career-atlas-plate > * {
-    width: min(100%, calc(100dvh - 7rem));
+    width: min(100%, calc(100dvh - 6rem));
   }
   .career-atlas-plate::after {
     display: none;
   }
   .career-atlas-list {
     padding-top: 0;
+  }
+}
+/* A detail page's column is narrow for a plate: from 1280px the view is wider than the column, about its middle. */
+@media (min-width: 1280px) {
+  .career-atlas {
+    --career-atlas-wide: min(68rem, calc(100vw - 6rem));
+    width: var(--career-atlas-wide);
+    margin-inline: calc((100% - var(--career-atlas-wide)) / 2);
   }
 }
 
