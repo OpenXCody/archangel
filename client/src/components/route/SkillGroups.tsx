@@ -4,7 +4,7 @@ import { cn, plural } from '@/lib/utils';
 import { readStored, writeStored } from '../../lib/storage';
 import { SectionHeading } from '../layout/Page';
 import { panelClass, secondaryActionClass } from '../layout/Panel';
-import { Tree, TreeBranch, TreeItem, TreeRoot, TreeToggle, type TreeMark } from '../layout/Tree';
+import { Tree, TreeBranch, TreeCard, TreeCardNames, TreeItem, TreeRoot, TreeToggle, type TreeMark } from '../layout/Tree';
 import { SecondLine } from '../path/SkillTag';
 import { shareOf, type MarkStatus, type PlacedSkill, type SkillMarks } from '../path/model';
 import { SkillPreview } from './SkillPreview';
@@ -24,7 +24,12 @@ interface SkillGroupsProps {
   marks: SkillMarks | null;
   /** What a person's own opening and closing is kept under for the visit: the career, or the career at a company. */
   keepAs: string;
-  /** What follows the tree inside the section (a company's version: the skills it leaves out). */
+  /**
+   * A company's version: the skills of the standard path it leaves out. They
+   * are the root's last node, "Left out", which opens its card of their names.
+   */
+  leftOut?: readonly { id: string; name: string }[];
+  /** What follows the tree inside the section (a company's version that changes nothing says so). */
   after?: ReactNode;
   /** What stands above the heading inside the section (a note that the marks could not be read). */
   before?: ReactNode;
@@ -47,11 +52,14 @@ interface SkillGroupsProps {
  * (`SkillPreview`), the skill's line running into the card; one card at a
  * time in a group. Every group and every skill starts closed, for everyone.
  *
+ * A company's version that leaves skills of the standard out ends in one more
+ * node off the career, "Left out", which opens their names as its card.
+ *
  * A seeker's held skills carry the product's mark on their node in place of
  * the open ring; nothing else about them changes. No skill is called next or
  * then, and nothing asks anyone to sign in: a visitor reads the same tree.
  */
-export function SkillGroups({ title, skills, marks, keepAs, after, before }: SkillGroupsProps) {
+export function SkillGroups({ title, skills, marks, keepAs, leftOut = [], after, before }: SkillGroupsProps) {
   const headingId = useId();
   const base = useId();
   const route = useMemo(() => groupRoute(skills), [skills]);
@@ -76,6 +84,7 @@ export function SkillGroups({ title, skills, marks, keepAs, after, before }: Ski
     writeStored(storeKey, JSON.stringify(next), 'session');
   };
   const allOpen = groups.every((group) => open[group.key]);
+  const [leftOutOpen, setLeftOutOpen] = useState(false);
 
   // The skill opened in each group: none until one is pressed; pressing it again, or another, closes it.
   const [chosenIn, setChosenIn] = useState<Record<string, string | null>>({});
@@ -163,6 +172,28 @@ export function SkillGroups({ title, skills, marks, keepAs, after, before }: Ski
                 </TreeItem>
               );
             })}
+            {leftOut.length > 0 && (
+              <TreeItem
+                open={leftOutOpen}
+                data-left-out=""
+                node={
+                  <TreeToggle
+                    as="h3"
+                    title="Left out of the standard"
+                    figure={plural(leftOut.length, 'skill', 'skills')}
+                    open={leftOutOpen}
+                    onToggle={() => setLeftOutOpen((value) => !value)}
+                    controls={`${base}-left-out`}
+                  />
+                }
+              >
+                {leftOutOpen && (
+                  <TreeCard id={`${base}-left-out`} aria-label="Skills of the standard path left out">
+                    <TreeCardNames names={leftOut} data-left-out-names="" />
+                  </TreeCard>
+                )}
+              </TreeItem>
+            )}
           </TreeBranch>
         </Tree>
       </div>

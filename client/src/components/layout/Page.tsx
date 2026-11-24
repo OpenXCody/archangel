@@ -413,14 +413,17 @@ export function RecordRow({
  * The way to the rest of a list that was cut: "Show all 19", then "Show
  * fewer". Inside a panel (a `RecordList`'s `footer`) it is the panel's last
  * row; under a stack of panels (`alone`) it is one more panel-shaped button.
+ * `label` says what "all" is where the count alone would not ("Show all 9 it
+ * comes from", when only one side of a ladder was cut).
  */
 export function ShowAll({
   open,
   total,
+  label,
   onToggle,
   alone = false,
   ...rest
-}: { open: boolean; total: number; onToggle: () => void; alone?: boolean } & Record<`data-${string}`, string | undefined>) {
+}: { open: boolean; total: number; label?: string; onToggle: () => void; alone?: boolean } & Record<`data-${string}`, string | undefined>) {
   return (
     <button
       {...rest}
@@ -434,7 +437,7 @@ export function ShowAll({
       )}
       data-show-all
     >
-      <span>{open ? 'Show fewer' : `Show all ${total.toLocaleString()}`}</span>
+      <span>{open ? 'Show fewer' : (label ?? `Show all ${total.toLocaleString()}`)}</span>
       <ChevronRight aria-hidden="true" className={cn('h-4 w-4 shrink-0 text-text-2 transition-transform motion-reduce:transition-none', open ? '-rotate-90' : 'rotate-90')} />
     </button>
   );

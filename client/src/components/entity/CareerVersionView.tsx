@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Loader2 } from 'lucide-react';
-import { cn, plural } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { ErrorNote, LoadError } from '../account/parts';
 import { useAccount } from '../../lib/account';
 import { type OccupationDetail } from '../../lib/api';
 import { isNoVersion, useVersion, type Version } from '../../lib/versions';
 import { useViewer } from '../../lib/viewer';
 import { BackLink, DetailHeader, DetailSection, EmptyState } from '../layout/Page';
-import { Disclosure, panelRowClass, secondaryActionClass } from '../layout/Panel';
+import { secondaryActionClass } from '../layout/Panel';
 import { type PlacedSkill } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
 import { SkillGroups } from '../route/SkillGroups';
@@ -24,8 +24,9 @@ export function versionEditorPath(companyId: string, occupationId: string): stri
  * A company's version of a career ("Boeing CNC Operator"): the career's own
  * page, at the company. The same heading block and the same route, drawn from
  * the standard's skills with the company's changes applied: a skill it adds
- * says "Added", one it leaves out is not drawn (a line under the path says how
- * many, and opens them), and a skill's tag names the makes the company runs.
+ * says "Added", one it leaves out is not among the groups (the tree's last
+ * node, "Left out of the standard", says how many and opens their names), and
+ * a skill's node names the makes the company runs.
  *
  * A seeker's marks and progress work as on the standard, counted against the
  * version's skills; a make the company runs that the person has run too is
@@ -99,7 +100,6 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
       })),
     [version.skills, ranMakes]
   );
-  const [leftOutOpen, setLeftOutOpen] = useState(false);
   const leftOut = version.leftOut;
   const same = leftOut.length === 0 && !skills.some((skill) => skill.added);
 
@@ -146,35 +146,14 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
           marks={marks}
           keepAs={`${data.id}@${company.id}`}
           before={marks && <ErrorNote error={markError} className="mb-3" />}
+          // What the company leaves out of the standard is not among the groups: the tree's last node holds it, closed.
+          leftOut={leftOut}
           after={
-            <>
-              {/* What the company leaves out of the standard is not among the groups: one more panel holds it, closed. */}
-              {leftOut.length > 0 && (
-                <Disclosure
-                  className="mt-2"
-                  title={`${plural(leftOut.length, 'skill', 'skills')} of the standard path left out`}
-                  open={leftOutOpen}
-                  onToggle={() => setLeftOutOpen((value) => !value)}
-                  data-left-out=""
-                >
-                  <ul>
-                    {leftOut.map((skill) => (
-                      <li key={skill.id} className="border-t border-line first:border-t-0">
-                        <Link to={`/skills/${skill.id}`} className={cn(panelRowClass, 'min-h-11 justify-between text-sm text-text-2')}>
-                          <span className="min-w-0 break-words">{skill.name}</span>
-                          <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0 text-text-3" />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </Disclosure>
-              )}
-              {same && (
-                <p className="mt-4 text-sm text-text-3" data-version-same>
-                  The same skills as the standard path.
-                </p>
-              )}
-            </>
+            same && (
+              <p className="mt-4 text-sm text-text-3" data-version-same>
+                The same skills as the standard path.
+              </p>
+            )
           }
         />
       )}

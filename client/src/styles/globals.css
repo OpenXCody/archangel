@@ -755,12 +755,6 @@ input {
     --tree-text: calc(var(--tree-pad) + var(--tree-mark) + var(--tree-gap));
     /* How far under the middle of a node's first line its mark ends: half a ring, half a seeker's mark. */
     --tree-under: calc(var(--tree-ring) / 2);
-    /*
-     * How wide a `tree`'s rows are: every row of a branch and of the branches
-     * it opens ends on one upright, so a figure and a chevron stay near their
-     * name, and a card two levels in has a reading measure.
-     */
-    --tree-width: 30rem;
     min-width: 0;
   }
   .tree[data-layout='wide'] {
@@ -776,9 +770,18 @@ input {
     --tree-spine: calc(var(--tree-pad) + var(--tree-mark) / 2);
   }
 
-  /* Across: a ladder is three columns under their labels, the career in the middle of what hangs off it. */
+  /*
+   * Across: a ladder is three columns under their labels, the career in the
+   * middle of what hangs off it. When a side runs past three careers
+   * (`data-top`), the career and both sides start on the first row instead,
+   * so each label stands straight over its first node and the career's line
+   * meets each spine at its top, as a career's skills do.
+   */
   .tree[data-layout='wide'][data-shape='ladder'] {
     align-items: center;
+  }
+  .tree[data-layout='wide'][data-shape='ladder'][data-top] {
+    align-items: start;
   }
   .tree[data-layout='wide'][data-shape='ladder'][data-before][data-after] {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
@@ -795,16 +798,14 @@ input {
   /*
    * Across: a tree is its root, only as wide as its name needs (one line for
    * most careers, two at most, balanced), and its branch in the next column,
-   * level with the first node; what a node of it opens stands under that
-   * node, in the same column. Its lines are measured as a ladder's are, so
-   * the two read as one drawing.
+   * level with the first node, its rows running to the frame's right edge as
+   * a ladder's do; what a node of it opens stands under that node, in the
+   * same column. Its lines are measured as a ladder's are, so the two read as
+   * one drawing.
    */
   .tree[data-layout='wide'][data-shape='tree'] {
     grid-template-columns: fit-content(16rem) minmax(0, 1fr);
     grid-template-areas: 'this after';
-  }
-  .tree[data-shape='tree'] .tree-side > .tree-branch {
-    max-width: calc(var(--tree-indent) + var(--tree-width));
   }
   .tree[data-layout='wide'] .tree-this,
   .tree[data-layout='wide'] .tree-side {
@@ -820,7 +821,7 @@ input {
     grid-area: after;
   }
 
-  /* A column's label, over the marks across; down, over the names, the spine running past the one between the root and its branch. */
+  /* A column's label, over the marks, only across: down, a ladder's sides are nodes of their own (`TreeHeading`). */
   .tree-label {
     min-width: 0;
   }
@@ -836,21 +837,6 @@ input {
   .tree[data-layout='wide'] .tree-label[data-for='after'] {
     grid-area: la;
     padding-left: calc(var(--tree-indent) + var(--tree-reach));
-  }
-  .tree[data-layout='stacked'] .tree-label {
-    position: relative;
-    display: flex;
-    min-height: 32px;
-    align-items: flex-end;
-    padding: 0 0 4px calc(var(--tree-indent) + var(--tree-text));
-  }
-  .tree[data-layout='stacked'] .tree-label[data-for='after']::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: var(--tree-spine);
-    border-left: 1px solid var(--tree-line);
   }
 
   /* A mark, in its box: an open ring, or the root's filled dot. A seeker's mark on a skill is the product's own. */
@@ -968,12 +954,19 @@ input {
     --tree-indent: 24px;
     --tree-spine: calc(var(--tree-pad) + var(--tree-mark) / 2);
   }
+  /* On a phone each level steps in less, so a card three levels in keeps its width. */
+  @media (max-width: 639px) {
+    .tree[data-layout='stacked'],
+    .tree .tree-branch[data-nested] {
+      --tree-indent: 16px;
+    }
+  }
   /*
    * A ladder's side of one career stands centred on the career; when its name
    * takes two lines, its elbow (at the first line) and the career's line (at
    * the middle) part, so a short spine joins them.
    */
-  .tree[data-layout='wide'][data-shape='ladder'] .tree-side > .tree-branch > .tree-item:only-child::after {
+  .tree[data-layout='wide'][data-shape='ladder']:not([data-top]) .tree-side > .tree-branch > .tree-item:only-child::after {
     display: block;
     top: var(--tree-mid);
     bottom: 50%;
@@ -1020,9 +1013,9 @@ input {
 
   /*
    * A node's row. Its fill under the pointer and its focus ring are one box
-   * that starts just before the mark, where the elbow ends, so the line runs
-   * up to the ring and stops there, never through it; the ring is the global
-   * one (2px of the accent, 2px clear of the mark), drawn inside that box.
+   * that starts just after the mark, so the elbow runs up to the ring and
+   * stops there, and neither the fill nor the ring is ever laid over a line
+   * or the mark; the ring is the accent's 2px, drawn inside that box.
    */
   .tree-row {
     position: relative;
@@ -1032,7 +1025,7 @@ input {
     content: '';
     position: absolute;
     z-index: -1;
-    inset: 0 0 0 calc(var(--tree-reach) - 4px);
+    inset: 0 0 0 calc(var(--tree-pad) + var(--tree-mark) + 2px);
     border-radius: 6px;
     pointer-events: none;
     transition: background-color 150ms;
@@ -1061,18 +1054,38 @@ input {
    * hairline frame of the lines' own strength with no fill, its left edge
    * straight under the node's mark, so the line that runs down from the mark
    * runs on as the card's edge: that corner is square, the other three 8px.
-   * Its words start under the node's name. The rows of its branch set its
-   * width, so its words keep a reading measure.
+   * Its words start under the node's name. It spans its row, to the frame's
+   * right edge; its words keep a reading measure (60 characters), and where
+   * it is wide enough its parts stand two abreast (`.tree-card-columns`).
    */
   .tree-card {
     min-width: 0;
     margin-left: calc(var(--tree-pad) + var(--tree-mark) / 2);
-    padding: 14px 16px 16px calc(var(--tree-gap) + var(--tree-mark) / 2 - 1px);
+    padding: 14px 16px 12px calc(var(--tree-gap) + var(--tree-mark) / 2 - 1px);
     border: 1px solid var(--tree-line);
     border-radius: 0 8px 8px 8px;
+    container-type: inline-size;
   }
   .tree[data-layout='stacked'] .tree-card {
     padding-right: 12px;
+  }
+  .tree-card-body > p,
+  .tree-card-part {
+    max-width: 60ch;
+  }
+  .tree-card-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  @container (min-width: 40rem) {
+    .tree-card-columns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 32px;
+    }
+    .tree-card-columns > :only-child {
+      grid-column: 1 / -1;
+    }
   }
   /* The room under a card before the next node, inside the node's own item so its spine runs on through it. */
   .tree-item:has(> .tree-card) {
