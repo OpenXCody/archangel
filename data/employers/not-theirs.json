@@ -1,0 +1,1057 @@
+{
+  "note": "Rows filed under an employer of the postings registry that are not that employer's plants, as the research of 2026-11-23 found them (scripts/build-not-theirs-sql.mjs builds the migration). 'to' moves the row to the company it is: the firm the research names, or the firm the row's own name names (a dealer, a namesake, a business sold long ago), found by exact name or other name and created bare when there is none. 'mergeInto' folds a row that is the same plant written twice into the row that is it (plant_merge). 'from' is the company the row is filed under today: a row that is no longer there is left alone. No row is deleted. A dealer is no plant: it stays, under a company of its own name, until the owner decides.",
+  "rows": [
+    {
+      "id": "76c59898-17eb-4fb2-8b4a-61e1ffccbe04",
+      "from": "Boeing",
+      "name": "AT&T MOBILITY - OC0284-01 BOEING HB (104262)",
+      "city": "HUNTINGTON BEACH",
+      "state": "CA",
+      "to": "AT&T Mobility",
+      "why": "AT&T Mobility's cell site on Boeing's Huntington Beach ground: one of the names the registry holds for 5301 Bolsa Ave. Not a plant and not Boeing's.",
+      "checked": "Its name and address in our data show it is another firm's or another thing's, carrying the word Boeing from a street, a creek, a field or a family name; nothing in the row or the research points to a Boeing plant.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=BOEING&state_abbr=CA&program_output=yes&output=JSON"
+      ]
+    },
+    {
+      "id": "cf62dc25-01b7-4b59-bf52-54081b86716f",
+      "from": "Boeing",
+      "name": "BOEING STREET INVESTORS LLC",
+      "city": "BOISE",
+      "state": "ID",
+      "to": "Boeing Street Investors",
+      "why": "Boeing Street Investors LLC, a property firm at 911 W Boeing St, Boise: named for the street. Not Boeing's and not a plant.",
+      "checked": "Its name and address in our data show it is another firm's or another thing's, carrying the word Boeing from a street, a creek, a field or a family name; nothing in the row or the research points to a Boeing plant.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=BOEING&state_abbr=ID&program_output=yes&output=JSON"
+      ]
+    },
+    {
+      "id": "6e4d71e0-1c06-490d-9d04-fa6a154ba28d",
+      "from": "Boeing",
+      "name": "ALLSTATE ELECTRONIC RECYCLING - BOEING D",
+      "city": "GREENSBORO",
+      "state": "NC",
+      "to": "Allstate Electronic Recycling",
+      "why": "Allstate Electronic Recycling, a recycler on Boeing Drive, Greensboro: named for the street. Not Boeing's and not a plant.",
+      "checked": "Its name and address in our data show it is another firm's or another thing's, carrying the word Boeing from a street, a creek, a field or a family name; nothing in the row or the research points to a Boeing plant.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=BOEING&state_abbr=NC&program_output=yes&output=JSON"
+      ]
+    },
+    {
+      "id": "363431ef-1e48-4878-bbf7-3d58015635db",
+      "from": "Boeing",
+      "name": "CONCRETE SUPPLY CO LLC - BOEING DR",
+      "city": "GREENSBORO",
+      "state": "NC",
+      "to": "Concrete Supply Co",
+      "why": "Concrete Supply Co's ready-mix plant on Boeing Drive, Greensboro: another firm's, named for the street, and ready-mix concrete is outside what we cover.",
+      "checked": "Its name and address in our data show it is another firm's or another thing's, carrying the word Boeing from a street, a creek, a field or a family name; nothing in the row or the research points to a Boeing plant.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=BOEING&state_abbr=NC&program_output=yes&output=JSON",
+        "https://data.epa.gov/efservice/tri_facility/tri_facility_id/2740WCNCRT762BE/JSON",
+        "https://data.epa.gov/efservice/tri_reporting_form/tri_facility_id/2740WCNCRT762BE/JSON"
+      ]
+    },
+    {
+      "id": "dc72d87e-6839-44be-abd1-757c1f661e6f",
+      "from": "Boeing",
+      "name": "BOEING 250TPH ASPHALT",
+      "city": "PORTABLE SOURCE",
+      "state": "NM",
+      "to": "A and S Construction",
+      "why": "A and S Construction Co's portable asphalt plant: the registry's full name for the record. Another firm's, and asphalt paving mixtures are outside what we cover.",
+      "checked": "Its name and address in our data show it is another firm's or another thing's, carrying the word Boeing from a street, a creek, a field or a family name; nothing in the row or the research points to a Boeing plant.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=BOEING&state_abbr=NM&program_output=yes&output=JSON"
+      ]
+    },
+    {
+      "id": "eea7df2d-ea8e-469a-bcd9-a99570d65b5b",
+      "from": "Boeing",
+      "name": "BOEING OAK RIDGE CO",
+      "city": "OAK RIDGE",
+      "state": "TN",
+      "mergeInto": "01f31d3b-7b36-4cde-9aeb-549d34d75663",
+      "intoName": "AMERICAN CENTRIFUGE OPERATING, LLC DBA TECHNOLOGY MANUFACTURING CENTER",
+      "intoCompany": "American Centrifuge Operating",
+      "why": "The former Boeing Oak Ridge plant at 767 Boeing Rd: today Centrus Energy's Technology and Manufacturing Center, which makes centrifuges. That plant is already in our data as \"AMERICAN CENTRIFUGE OPERATING, LLC DBA TECHNOLOGY MANUFACTURING CENTER\" (01f31d3b-7b36-4cde-9aeb-549d34d75663, under the…",
+      "checked": "Right that it is not Boeing's, wrong to move it: the plant is already listed under American Centrifuge Operating (a Centrus company), so moving it would list it twice.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=BOEING&state_abbr=TN&program_output=yes&output=JSON",
+        "https://data.epa.gov/efservice/tri_facility/tri_facility_id/37830BNGTN767BO/JSON",
+        "https://data.epa.gov/efservice/tri_reporting_form/tri_facility_id/37830BNGTN767BO/JSON",
+        "https://www.centrusenergy.com/contact/location-page-tennessee/"
+      ]
+    },
+    {
+      "id": "e190341b-b7fc-47ad-9f32-a5be37b9e443",
+      "from": "Boeing",
+      "name": "ATT MOBILITY BOEING FIELD",
+      "city": "SEATTLE",
+      "state": "WA",
+      "to": "AT&T Mobility",
+      "why": "AT&T's cell site at Boeing Field. Not Boeing's and not a plant.",
+      "checked": "Its name and address in our data show it is another firm's or another thing's, carrying the word Boeing from a street, a creek, a field or a family name; nothing in the row or the research points to a Boeing plant.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=BOEING&state_abbr=WA&program_output=yes&output=JSON"
+      ]
+    },
+    {
+      "id": "852a044e-4722-4a9e-89a0-35c689fc0dbc",
+      "from": "Boeing",
+      "name": "BOEING OAK RIDGE COMPANY",
+      "city": "OAK RIDGE",
+      "state": "TN",
+      "mergeInto": "01f31d3b-7b36-4cde-9aeb-549d34d75663",
+      "intoName": "AMERICAN CENTRIFUGE OPERATING, LLC DBA TECHNOLOGY MANUFACTURING CENTER",
+      "intoCompany": "American Centrifuge Operating",
+      "why": "The second record of the former Boeing Oak Ridge plant at 767 Boeing Rd, now Centrus Energy's Technology and Manufacturing Center, already listed as 01f31d3b (American Centrifuge Operating), 240 m away.",
+      "checked": "Same site as eea7df2d, which is not Boeing's; listed so the two go together.",
+      "sources": [
+        "https://www.centrusenergy.com/contact/location-page-tennessee/"
+      ]
+    },
+    {
+      "id": "5c3e6e63-4da4-41ca-8a4a-56bae9825aec",
+      "from": "Caterpillar",
+      "name": "ARCTIC CAT INC - SAINT CLOUD",
+      "city": "ST. CLOUD",
+      "state": "MN",
+      "to": "Arctic Cat",
+      "why": "Arctic Cat's plant at St. Cloud (its engine plant, by a search engine's summary of the Star Tribune). Arctic Cat, of Thief River Falls, MN, makes snowmobiles, ATVs and side-by-sides. It has never been Caterpillar's. Textron owned Arctic Cat from 2017 and sold it in April 2025 to a group led by…",
+      "checked": "Not Caterpillar's, and the doubt the researcher left is settled: the St. Cloud engine plant restarted under its new owner in 2025, so it can move to a company \"Arctic Cat\" as a running plant.",
+      "sources": [
+        "https://www.valleynewslive.com/2025/04/24/thief-river-falls-based-arctic-cat-sold/",
+        "https://powersportsbusiness.com/news/arctic-cat/2025/08/12/arctic-cat-restarts-snowmobile-sxs-production-at-minnesota-facility/"
+      ]
+    },
+    {
+      "id": "002a36db-bb3e-4a4d-ad67-7f8ca2e71ba1",
+      "from": "Caterpillar",
+      "name": "CATERPILLAR INC FOREST PRODUCTS",
+      "city": "LAGRANGE",
+      "state": "GA",
+      "to": "Weiler Forestry",
+      "why": "The forestry machine plant at 100 S L White Blvd, now Weiler Forestry's: Weiler (of Knoxville, IA) bought Caterpillar's purpose-built forestry business (wheel skidders, feller-bunchers, knuckleboom loaders) after a preliminary agreement of August 2018, and \"Weiler Forestry facilities now include…",
+      "checked": "Weiler's plant now: the EPA registry itself files the address as Weiler Forestry, Inc., and the row's point is the address's own.",
+      "sources": [
+        "https://timberharvesting.com/weiler-forestry-comes-of-age/",
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?latitude83=33.03549&longitude83=-84.97321&search_radius=0.3&output=JSON"
+      ]
+    },
+    {
+      "id": "1feeaaa2-aff6-42b5-8d0b-a14c601e9a27",
+      "from": "Caterpillar",
+      "name": "CATERPILLAR INC LAGRANGE",
+      "city": "LAGRANGE",
+      "state": "GA",
+      "mergeInto": "002a36db-bb3e-4a4d-ad67-7f8ca2e71ba1",
+      "intoName": "CATERPILLAR INC FOREST PRODUCTS",
+      "intoCompany": "Caterpillar",
+      "why": "A second row of the same LaGrange plant (100 S L White Blvd), from another registry record with a point 5 km from the first. Now Weiler Forestry's, as above.",
+      "checked": "The same plant as 002a36db, but its point is 5 km north of the address: it must be merged into 002a36db, never carried to Weiler as a second plant with these coordinates.",
+      "sources": [
+        "https://timberharvesting.com/weiler-forestry-comes-of-age/",
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=CATERPILLAR&state_abbr=GA&output=JSON",
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?latitude83=33.03549&longitude83=-84.97321&search_radius=0.3&output=JSON"
+      ]
+    },
+    {
+      "id": "6c39f4e2-6bc5-403c-95c7-64fc9357092b",
+      "from": "John Deere",
+      "name": "AHW JOHN DEERE",
+      "city": "HOOPESTON",
+      "state": "IL",
+      "to": "AHW",
+      "why": "A dealer: AHW LLC, an independent John Deere dealer (sales, service and parts) with stores in Illinois and Indiana, one of them in Hoopeston. Not a plant, and not Deere's.",
+      "checked": "A dealer's store, by the dealer's own site and its own filing: not a plant and not Deere's. No company it could be moved to makes anything there, so it should go.",
+      "sources": [
+        "https://www.ahwllc.com/locations/",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110063748342"
+      ]
+    },
+    {
+      "id": "40cc5be1-e3f8-4d78-99e9-40077aa21d45",
+      "from": "Ford",
+      "name": "FORD METER BOX CO INC",
+      "city": "PELL CITY",
+      "state": "AL",
+      "to": "Ford Meter Box",
+      "why": "A plant of The Ford Meter Box Company of Wabash, Indiana, a family-owned maker of waterworks products (founded by Edwin Ford, 1898): repair clamps, couplings, tapping sleeves and pipe restraints are made at Pell City. No connection with Ford Motor.",
+      "checked": "Right, and now on two sources: another manufacturer's working plant, which its owner reports under its own name. belongsTo 'Ford Meter Box' stands. What I add is what a research file needs to move the row: the company block and the plant's facts, with a point that is on the building and a headcount with its source.",
+      "sources": [
+        "https://www.fordmeterbox.com/about/",
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=FORD%20METER%20BOX&state_abbr=AL&output=JSON",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ]
+    },
+    {
+      "id": "05694dbf-5323-489a-b57f-0c94a1ebe398",
+      "from": "Ford",
+      "name": "FORD WIRE & CABLE CORP",
+      "city": "SEBASTIAN",
+      "state": "FL",
+      "to": "Ford Wire & Cable",
+      "why": "Another firm by its name (a wire and cable business called Ford). I could not find what it is or whether it still exists: the only record is the EPA's registry line.",
+      "checked": "Stands as the researcher left it: not Ford Motor by its name, not identified, nowhere to move it. Whether it is a plant at all is not known.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=FORD%20WIRE&state_abbr=FL&output=JSON"
+      ]
+    },
+    {
+      "id": "f87dbfe3-a731-4af8-8017-052670d013ae",
+      "from": "Ford",
+      "name": "BLANKENAU FORD MOTOR COMPANY",
+      "city": "DODGE",
+      "state": "NE",
+      "to": "Blankenau Ford",
+      "why": "A car dealer by its name (a small-town 'Ford Motor Company' named for its owner). Nothing found beyond the EPA's registry line.",
+      "checked": "Stands, on the name alone, as the researcher says. A firm named for a person in a village's main street is a dealer; no source was found to say so.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=BLANKENAU&state_abbr=NE&output=JSON"
+      ]
+    },
+    {
+      "id": "d6b2dee2-5e9d-4a62-afd7-b8dbc37c02fc",
+      "from": "Ford",
+      "name": "FORD FASTENERS INC",
+      "city": "HACKENSACK",
+      "state": "NJ",
+      "to": "Ford Fasteners",
+      "why": "Ford Fasteners, Inc., an independent New Jersey distributor of stainless steel screws ('a leading distributor of industrial ... fastener screws'), which assembles sealing washers; its address today is in Fairfield, NJ. No connection with Ford Motor.",
+      "checked": "Stands: another firm, and a distributor by its own account.",
+      "sources": [
+        "https://www.fordfasteners.com/",
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=FORD%20FASTENERS&state_abbr=NJ&output=JSON"
+      ]
+    },
+    {
+      "id": "dcc6c322-380d-49c0-885b-5bb6c6ab9cbc",
+      "from": "Ford",
+      "name": "METRO FORD TRUCK SALES INC",
+      "city": "DALLAS",
+      "state": "TX",
+      "to": "Metro Ford Truck Sales",
+      "why": "A truck dealer by its name. No source found for it.",
+      "checked": "Stands, on the name alone ('Truck Sales'). No source found.",
+      "sources": []
+    },
+    {
+      "id": "2ba9bad3-cf41-42da-82fd-d384d9420e29",
+      "from": "Ford",
+      "name": "JACK ROACH FORD",
+      "city": "HOUSTON",
+      "state": "TX",
+      "to": "Jack Roach Ford",
+      "why": "A former Houston Ford dealer ('Jack Roach had moved ... to Bissonnet and Buffalo Speedway about 1953'; named in a list of 'Houston car dealers that are no more').",
+      "checked": "Stands: a dealer, long gone, and Ford's only row in Houston.",
+      "sources": [
+        "https://bill37mccurdy.com/2010/11/11/old-houston-car-dealers/"
+      ]
+    },
+    {
+      "id": "0d117006-a12e-4ac4-a1e1-0b470e1b877c",
+      "from": "Ford",
+      "name": "KLEIBER FORD TRACTOR",
+      "city": "LA GRANGE, TX",
+      "state": "TX",
+      "to": "Kleiber Ford Tractor",
+      "why": "A farm equipment dealer: 'Kleiber Tractor and Equipment, originally called Kleiber Ford Tractor, started in 1970 ... selling Ford tractors and implements'; a New Holland dealer today.",
+      "checked": "Stands: a tractor dealer.",
+      "sources": [
+        "https://ironsolutions.com/dealer-perspectives-david-and-ryan-kleiber/",
+        "https://www.kleibertractor.com/"
+      ]
+    },
+    {
+      "id": "eab62802-f9d5-4c5f-b0eb-f1e804e59fc2",
+      "from": "Ford",
+      "name": "A C COLLINS FORD INC",
+      "city": "PASADENA",
+      "state": "TX",
+      "to": "A C Collins Ford",
+      "why": "A Ford dealer in Pasadena, TX ('Being from the Pasadena area, A.C. Collins was there for years', under a post on old Houston car dealers).",
+      "checked": "Stands: a dealer, on a reader's word and its name.",
+      "sources": [
+        "https://bill37mccurdy.com/2010/11/11/old-houston-car-dealers/"
+      ]
+    },
+    {
+      "id": "c84ff7d0-84d8-4158-bc9e-1809610bf78d",
+      "from": "Ford",
+      "name": "BAILLARGEON FORD",
+      "city": "RICHARDSON",
+      "state": "TX",
+      "to": "Baillargeon Ford",
+      "why": "A car dealer by its name, and a Ford dealership stands at the same address today: Texas's Department of Licensing and Regulation has a building project registered on 5 August 2026 for 'North Central Ford', 1819 N Central Expy, Richardson, TX 75080, owner Sonic Automotive.",
+      "checked": "Right, and no longer unread: the state's own record puts a Ford dealership at the row's address. Nothing names Baillargeon itself; the row's name is an earlier owner's by the look of it.",
+      "sources": [
+        "https://www.tdlr.texas.gov/TABS/Search/Project/TABS2026027079"
+      ]
+    },
+    {
+      "id": "b28f8e95-954f-4b2e-874f-1b94f2a43851",
+      "from": "Ford",
+      "name": "JOHNSON BROTHERS FORD",
+      "city": "TEMPLE",
+      "state": "TX",
+      "to": "Johnson Brothers Ford",
+      "why": "A car dealer: Johnson Brothers Ford II, Ltd. of Temple, TX files with OSHA as a new car dealer (441110; 96 people for 2025), today at 7455 S General Bruce Dr; the row's 503 General Bruce Dr is an earlier address on the same road.",
+      "checked": "Right, and no longer on the name alone: the firm reports itself as a car dealer. That 503 General Bruce Dr was its earlier lot is my inference from the name and the road, not something a source says.",
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ]
+    },
+    {
+      "id": "15f054f3-8335-4df3-8cc6-6aa9fbbed26a",
+      "from": "Ford",
+      "name": "FORD MOTOR COMPANY",
+      "city": "LOUISVILLE",
+      "state": null,
+      "mergeInto": "71b3d071-f792-4a24-91e8-50346646684a",
+      "intoName": "Louisville Assembly Plant",
+      "intoCompany": "Ford",
+      "why": "A second row of Louisville Assembly Plant (ours, 71b3d071-f792-4a24-91e8-50346646684a): the same address, 2000 Fern Valley Rd, at the point (38.15763, -85.72715) of the Kentucky permit records the EPA's registry holds for the plant; the row has no state.",
+      "checked": "Stands: Louisville Assembly Plant written again from a permit record, with no state. A row to merge into the plant's own; a research file cannot do that.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=FORD&state_abbr=KY&output=JSON"
+      ]
+    },
+    {
+      "id": "09be6653-17ce-4473-9118-e944b73fa3c1",
+      "from": "Ford",
+      "name": "FORD MOTOR COMPANY - LOUISVILLE ASSEMBLY PLANT",
+      "city": "LOUISVILLE",
+      "state": null,
+      "mergeInto": "71b3d071-f792-4a24-91e8-50346646684a",
+      "intoName": "Louisville Assembly Plant",
+      "intoCompany": "Ford",
+      "why": "A second row of Louisville Assembly Plant (ours, 71b3d071-f792-4a24-91e8-50346646684a): same address and point as the row above; no state.",
+      "checked": "Stands: Louisville Assembly Plant written again from a permit record, with no state. A row to merge into the plant's own; a research file cannot do that.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=FORD&state_abbr=KY&output=JSON"
+      ]
+    },
+    {
+      "id": "98252959-d12e-4fd3-a171-8474acb3d0a9",
+      "from": "General Motors",
+      "name": "BELLWOOD CHEVROLET",
+      "city": "BELL",
+      "state": "CA",
+      "to": "Bellwood Chevrolet",
+      "why": "a car dealer",
+      "checked": "A dealer by its name on a retail street, with no site on GM's list; not looked up one by one (a search for Bob Myers Buick found only a later 'Myers Auto World' in Anderson), which does not matter: nothing makes it a GM plant.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "28159e76-832f-47e1-ada4-d2c6db3a9c18",
+      "from": "General Motors",
+      "name": "BILL JACOBS CHEVROLET MAZDA",
+      "city": "JOLIET",
+      "state": "IL",
+      "to": "Bill Jacobs Chevrolet Mazda",
+      "why": "a car dealer",
+      "checked": "A dealer by its name on a retail street, with no site on GM's list; not looked up one by one (a search for Bob Myers Buick found only a later 'Myers Auto World' in Anderson), which does not matter: nothing makes it a GM plant.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "e4c11082-b5a6-46fc-a6b1-ce0bbef8be62",
+      "from": "General Motors",
+      "name": "BOB MYERS BUICK",
+      "city": "ANDERSON",
+      "state": "IN",
+      "to": "Bob Myers Buick",
+      "why": "a car dealer",
+      "checked": "A dealer by its name on a retail street, with no site on GM's list; not looked up one by one (a search for Bob Myers Buick found only a later 'Myers Auto World' in Anderson), which does not matter: nothing makes it a GM plant.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "af49fb85-5f8b-4b63-a4ba-b4fd669eb36b",
+      "from": "General Motors",
+      "name": "BUFF WHELAN CHEVROLET",
+      "city": "STERLING HTS",
+      "state": "MI",
+      "to": "Buff Whelan Chevrolet",
+      "why": "a car dealer",
+      "checked": "A dealer by its name on a retail street, with no site on GM's list; not looked up one by one (a search for Bob Myers Buick found only a later 'Myers Auto World' in Anderson), which does not matter: nothing makes it a GM plant.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "3d76a3d2-aed6-49d2-86eb-2ecd3387b00a",
+      "from": "General Motors",
+      "name": "BARLOW BUICK",
+      "city": "CINNAMINSON",
+      "state": "NJ",
+      "to": "Barlow Buick",
+      "why": "a car dealer",
+      "checked": "A dealer by its name on a retail street, with no site on GM's list; not looked up one by one (a search for Bob Myers Buick found only a later 'Myers Auto World' in Anderson), which does not matter: nothing makes it a GM plant.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "3593898b-4b88-4422-bc77-84e884e0984a",
+      "from": "General Motors",
+      "name": "ARMEN CHEVROLET BUICK SVC CTR",
+      "city": "ARDMORE",
+      "state": "PA",
+      "to": "Armen Chevrolet Buick",
+      "why": "a car dealer",
+      "checked": "A dealer by its name on a retail street, with no site on GM's list; not looked up one by one (a search for Bob Myers Buick found only a later 'Myers Auto World' in Anderson), which does not matter: nothing makes it a GM plant.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "87686d48-3e1c-4a94-8a54-7a682c3cbc87",
+      "from": "General Motors",
+      "name": "AVERY SMITH CHEVY-BUICK, INC",
+      "city": "LAWRENCEBURG",
+      "state": "TN",
+      "to": "Avery Smith Chevy-Buick",
+      "why": "a car dealer",
+      "checked": "A dealer by its name on a retail street, with no site on GM's list; not looked up one by one (a search for Bob Myers Buick found only a later 'Myers Auto World' in Anderson), which does not matter: nothing makes it a GM plant.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "bc677524-55d9-42e3-b145-7c6c5bb2f5aa",
+      "from": "General Motors",
+      "name": "A WEBSTER CHEVROLET",
+      "city": "MEMPHIS",
+      "state": "TN",
+      "to": "A Webster Chevrolet",
+      "why": "a car dealer",
+      "checked": "A dealer by its name on a retail street, with no site on GM's list; not looked up one by one (a search for Bob Myers Buick found only a later 'Myers Auto World' in Anderson), which does not matter: nothing makes it a GM plant.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "a7732029-5431-4a31-9974-f4e912c4e592",
+      "from": "General Motors",
+      "name": "AIRPORT CHEVROLET",
+      "city": "MEMPHIS",
+      "state": "TN",
+      "to": "Airport Chevrolet",
+      "why": "a car dealer",
+      "checked": "A dealer by its name on a retail street, with no site on GM's list; not looked up one by one (a search for Bob Myers Buick found only a later 'Myers Auto World' in Anderson), which does not matter: nothing makes it a GM plant.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "97dc5407-f83f-4e9c-81cd-9d5a8d950956",
+      "from": "General Motors",
+      "name": "PAUL YOUNG CHEVROLET",
+      "city": "LAREDO",
+      "state": "TX",
+      "to": "Paul Young Chevrolet",
+      "why": "a car dealer",
+      "checked": "A dealer by its name on a retail street, with no site on GM's list; not looked up one by one (a search for Bob Myers Buick found only a later 'Myers Auto World' in Anderson), which does not matter: nothing makes it a GM plant.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "c599283c-b4d8-44b3-bb3a-2cabedc40239",
+      "from": "General Motors",
+      "name": "CADILLAC PRODUCTS AUTOMOTIVE CO",
+      "city": "WARREN",
+      "state": "MI",
+      "to": "Cadillac Products",
+      "why": "a plant of Cadillac Products Automotive Company, an automotive supplier that is not General Motors",
+      "checked": "Not GM's: CPAC is 'a fourth-generation, family-owned and managed automotive supplier' (its own site); but its list of locations today is Troy (corporate and a plant), Roseville, Rogers City and Schertz, TX, with no Warren site, so 14237 Frazho Rd cannot be written as one of its plants from a source: it leaves General Motors and goes to no company.",
+      "sources": [
+        "https://cadprodauto.premiercg.com/about-us/",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "e4547419-bdb7-4a2d-b3a8-0c85cebe634b",
+      "from": "General Motors",
+      "name": "CADILLAC PRODUCTS AUTOMOTIVE CO",
+      "city": "ROGERS CITY",
+      "state": "MI",
+      "to": "Cadillac Products",
+      "why": "a plant of Cadillac Products Automotive Company, an automotive supplier that is not General Motors",
+      "checked": "Confirmed: the same address is on CPAC's own list of locations; the firm is family-owned, not GM's.",
+      "sources": [
+        "https://cadprodauto.premiercg.com/about-us/",
+        "https://www.deq.state.mi.us/Aps/downloads/SRN/N1754/N1754_SAR_20220621.pdf"
+      ]
+    },
+    {
+      "id": "bf0b8e4a-b879-485b-93f0-1ce78ec70e47",
+      "from": "General Motors",
+      "name": "CADILLAC PRODUCTS INC",
+      "city": "STERLING HEIGHTS",
+      "state": "MI",
+      "to": "Cadillac Products",
+      "why": "by its name the same Cadillac Products firm (we file it under Paper Manufacturing), not General Motors",
+      "checked": "Not GM's, but whether Cadillac Products still runs 7000 E 15 Mile Rd I could not find: its history says the Sterling Heights plant opened in the 1950s and that automotive work was later 'transferred from Sterling Heights Plant' to Roseville, and no current list names Sterling Heights. It leaves GM and goes to no company.",
+      "sources": [
+        "https://cadprodauto.premiercg.com/about-us/"
+      ]
+    },
+    {
+      "id": "91065f86-12a6-41f7-b09e-9a8f7ff3a87b",
+      "from": "General Motors",
+      "name": "CADILLAC PRODUCTS",
+      "city": "DALLAS",
+      "state": "GA",
+      "to": "Cadillac Products",
+      "why": "by its name a plant of the same Cadillac Products firm (we file it under Printing), on a street named Cadillac Parkway; not General Motors",
+      "checked": "Confirmed a working plant of Cadillac Products Packaging Company, the family's packaging company, as recently as 2026; not GM's.",
+      "sources": [
+        "https://www.packagingstrategies.com/articles/104457-cadillac-products-packaging-company-earns-iso-certification-for-georgia-facility",
+        "https://www.healthcarepackaging.com/design-materials/materials/news/22893179/cadillac-products-packaging-co-cadillac-products-packaging-achieves-dual-certifications-for-georgia-facility"
+      ]
+    },
+    {
+      "id": "f16ebf8a-f930-4151-9215-4acae338475e",
+      "from": "General Motors",
+      "name": "CADILLAC PRODUCTS PACKAGING CO",
+      "city": "PARIS",
+      "state": "IL",
+      "to": "Cadillac Products",
+      "why": "a plant of Cadillac Products Packaging Company (we file it under Plastics and Rubber Products), not General Motors",
+      "checked": "Confirmed a working plant of Cadillac Products Packaging Company; not GM's. One new company 'Cadillac Products' for the automotive and packaging companies is acceptable: both are the Williams family's Cadillac Products of Troy, MI, by CPAC's own history.",
+      "sources": [
+        "https://www.businesswire.com/news/home/20230427005790/en/Cadillac-Products-Packaging-Companys-film-plant-passes-ISO-90012015-and-FSSC-22000-registration-audits"
+      ]
+    },
+    {
+      "id": "5a64ea4f-1695-42f8-90be-2e716edc04d0",
+      "from": "General Motors",
+      "name": "CADILLAC PLATING CORP",
+      "city": "WARREN",
+      "state": "MI",
+      "to": "Cadillac Plating",
+      "why": "Cadillac Plating Corporation, an independent zinc plating shop",
+      "checked": "Confirmed: an independent plater at that very address.",
+      "sources": [
+        "https://www.cadillacplating.com/"
+      ]
+    },
+    {
+      "id": "852fa8e0-e146-4f1c-be84-38d24a0b9b34",
+      "from": "General Motors",
+      "name": "CADILLAC PLATING INC",
+      "city": "ORANGE",
+      "state": "CA",
+      "to": "Cadillac Plating Inc",
+      "why": "by its name a plating shop of its own in Orange, CA (we file it under Fabricated Metal Products); not General Motors, and not the Warren, MI plater either as far as I can tell",
+      "checked": "Not General Motors': GM's list has no such site, and the name is another firm's.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "d91ab6ca-7f10-4732-9a0f-aff8ae6f211d",
+      "from": "General Motors",
+      "name": "CADILLAC OIL CO",
+      "city": "DETROIT",
+      "state": "MI",
+      "to": "Cadillac Oil",
+      "why": "Cadillac Oil Company, an independent maker of industrial lubricants",
+      "checked": "Confirmed as a firm of its own that makes lubricants; the Helen Street address is not checked.",
+      "sources": [
+        "https://www.cadillacoil.com/"
+      ]
+    },
+    {
+      "id": "284fa05c-7924-455a-90d5-c7e31cca47df",
+      "from": "General Motors",
+      "name": "CADILLAC ENAMELING TECHNOLOGIES LLC",
+      "city": "DETROIT",
+      "state": "MI",
+      "to": "Cadillac Enameling Technologies",
+      "why": "by its name an enameling shop of its own (the EPA has it as Cadillac Enameling Works Inc); not General Motors",
+      "checked": "Not General Motors': GM's list has no such site, and the name is another firm's.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110001299121",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "6b0ac086-e436-4e4f-9997-b7548f21245e",
+      "from": "General Motors",
+      "name": "CADILLAC IRON INC",
+      "city": "STERLING HEIGHTS",
+      "state": "MI",
+      "to": "Cadillac Iron",
+      "why": "by its name an ironwork maker of its own; not General Motors",
+      "checked": "Not General Motors': GM's list has no such site, and the name is another firm's.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000593082",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110012705108",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "a48e7bec-f579-4600-91e3-9f87843f6ebc",
+      "from": "General Motors",
+      "name": "AKWEL CADILLAC USA, INC",
+      "city": "CADILLAC",
+      "state": "MI",
+      "to": "Akwel",
+      "why": "Akwel's plant in the city of Cadillac, MI: Akwel is a French maker of car parts (fluid lines, mechanisms)",
+      "checked": "Confirmed at that address; Cadillac is the town. Akwel is not a company row in our data today, so belongsTo 'Akwel' makes a new one.",
+      "sources": [
+        "https://akwel-automotive.com/en/group/global-presence/"
+      ]
+    },
+    {
+      "id": "788439f0-1687-4e49-9f05-489a116b699e",
+      "from": "General Motors",
+      "name": "CADILLAC RUBBOR AND PLASTICS",
+      "city": "CADILLAC",
+      "state": "MI",
+      "to": "Cadillac Rubbor and Plastics",
+      "why": "by its name a rubber and plastics works in the city of Cadillac, MI, 350 m along 7th Street from Akwel's plant; not General Motors",
+      "checked": "Not GM's; whose it is is not sourced, and belongsTo is rightly empty.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110003617998",
+        "https://akwel-automotive.com/en/group/global-presence/"
+      ]
+    },
+    {
+      "id": "bb4b1023-65d4-4f5b-9377-5c0e0c15d9d1",
+      "from": "General Motors",
+      "name": "CADILLAC CASTING, INCORPORATED",
+      "city": "CADILLAC",
+      "state": "MI",
+      "to": "Cadillac Casting",
+      "why": "Cadillac Casting, Inc., a foundry in the city of Cadillac, MI; not General Motors",
+      "checked": "Not General Motors': GM's list has no such site, and the name is another firm's.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000411956",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "4389d5d6-8425-4e08-b40f-4eaeb3caa376",
+      "from": "General Motors",
+      "name": "CADILLAC FABRICATION",
+      "city": "CADILLAC",
+      "state": "MI",
+      "to": "Cadillac Fabrication",
+      "why": "by its name a metal fabricator in the city of Cadillac, MI; not General Motors",
+      "checked": "Not General Motors': GM's list has no such site, and the name is another firm's.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "4f52b92b-1e77-4b49-a973-93b0f6d2e55b",
+      "from": "General Motors",
+      "name": "CADILLAC PRINTING COMPANY",
+      "city": "CADILLAC",
+      "state": "MI",
+      "to": "Cadillac Printing",
+      "why": "by its name a printer in the city of Cadillac, MI; not General Motors",
+      "checked": "Not General Motors': GM's list has no such site, and the name is another firm's.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110015791348",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "84d4bc19-47a0-445e-8317-d55b82cbb887",
+      "from": "General Motors",
+      "name": "CADILLAC BROACHING & MACHINING IN C",
+      "city": "LEROY",
+      "state": "MI",
+      "to": "Cadillac Broaching & Machining",
+      "why": "by its name a machine shop near Cadillac, MI; not General Motors",
+      "checked": "Not General Motors': GM's list has no such site, and the name is another firm's.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110022919706",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "24e53598-ff23-49d5-bd18-e3d556022b75",
+      "from": "General Motors",
+      "name": "BUICK RESOURCE RECYCLING FACILITY",
+      "city": "BOSS",
+      "state": "MO",
+      "mergeInto": "652f0a80-2354-4ed1-ac75-5475a793ec02",
+      "intoName": "BUICK RESOURCE RECYCLING FACILITY LLC",
+      "intoCompany": "Renco Group",
+      "why": "The Doe Run Company's lead battery recycling plant at Boss, MO (Buick is the name of the old mine and smelter there, not the car)",
+      "checked": "Not GM's: the same plant is already under Renco Group 500 m away, so moving it there writes one plant twice; the builder should treat the two as one. Doe Run's ownership by Renco today is not checked.",
+      "sources": [
+        "https://doerun.com/what-we-do/lead-battery-recycling/",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110017990478"
+      ]
+    },
+    {
+      "id": "9bc7f2f1-8b70-401c-bdad-c8b747256abf",
+      "from": "General Motors",
+      "name": "ALLISON TRANSMISSION DIV PLANT 12/14",
+      "city": "INDIANAPOLIS",
+      "state": "IN",
+      "to": "Allison Transmission",
+      "why": "part of Allison Transmission's main works in Indianapolis; Allison has been a company of its own since 2007",
+      "checked": "Confirmed not GM's since 2007. Very likely one plant written twice: our Allison Transmission rows 'Allison Transmission Indianapolis' (a4b787d3, curated) and 'ALLISON TRANSMISSION INC' (4b571dce) stand 490 m and 1.3 km away; that it still runs as Plants 12 and 14 is not checked.",
+      "sources": [
+        "https://www.allisontransmission.com/company/history---heritage"
+      ]
+    },
+    {
+      "id": "8f22c8b2-8d95-414f-8b9d-a59bae8faa58",
+      "from": "General Motors",
+      "name": "ALLISON TRANSMISSION PLANT 2",
+      "city": "INDIANAPOLIS",
+      "state": "IN",
+      "to": "Allison Transmission",
+      "why": "an Allison Transmission plant that the EPA's registry now calls 'Former Allison Transmission Plant 2'; Allison has been a company of its own since 2007",
+      "checked": "Not a plant at all now: EPA says manufacturing there 'ended in the mid-1990s, and many of the structures were demolished in 2004', and the Speedway Redevelopment Commission bought and resold the 20 acres for a racing team, a brewery and other businesses. Moving it to Allison Transmission would put a demolished plant on Allison's map, so belongsTo is emptied: it leaves General Motors and goes to no company.",
+      "sources": [
+        "https://www.epa.gov/system/files/documents/2022-05/Former%20Allison%20Transmission%20Plant%202%20Econ%20Profile_05202022_508.pdf",
+        "https://www.allisontransmission.com/company/history---heritage"
+      ]
+    },
+    {
+      "id": "9f81c9ff-b460-4f5f-bec7-0906dad6c404",
+      "from": "General Motors",
+      "name": "HUGHES MISSILE SYSTEMS CO",
+      "city": "EAST CAMDEN",
+      "state": "AR",
+      "mergeInto": "2d326199-7dcc-455a-9980-c86ac4e7fe8f",
+      "intoName": "RAYTHEON COMPANY - RAYTHEON MISSLE SYSTSEMS",
+      "intoCompany": "Raytheon",
+      "why": "the Hughes Missile Systems plant in the Highland Industrial Park at Camden, AR; Hughes' missile business is Raytheon's in our own data",
+      "checked": "Not GM's: Hughes' defense business went to Raytheon in 1997. Moving it to Raytheon very likely writes Raytheon's Camden plant twice (2d326199 is 780 m away): the builder should treat the two as one, or leave this row out.",
+      "sources": [
+        "https://money.cnn.com/1997/01/16/deals/hughes/"
+      ]
+    },
+    {
+      "id": "881057e4-621a-4721-81d8-38ab06f78810",
+      "from": "General Motors",
+      "name": "HUGHES AIRCRAFT CO FULLERTON BUSINESS UNIT",
+      "city": "FULLERTON",
+      "state": "CA",
+      "to": "Hughes Aircraft",
+      "why": "Hughes Aircraft's Ground Systems Group works at Fullerton; not a General Motors site today",
+      "checked": "Not a GM site today by GM's own list; whose it is now is not asserted (belongsTo empty) except where said.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000913423",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "53cf9db2-90c2-448e-bd04-482bea9dc0bf",
+      "from": "General Motors",
+      "name": "HUGHES AIRCRAFT CO MICROWAVE PRODUTS DIV",
+      "city": "TORRANCE",
+      "state": "CA",
+      "to": "Hughes Aircraft",
+      "why": "Hughes' microwave tube works at 3100 W Lomita Blvd, Torrance (the EPA also has it as Hughes Electron-Dynamics Inc and as 'Hughes Aircraft Company (Former)'); not a General Motors site today",
+      "checked": "Not a GM site today by GM's own list; whose it is now is not asserted (belongsTo empty) except where said.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110024423630",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110060931309",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "c5ba12d5-d3fd-40f3-8bbc-ba82c0d11764",
+      "from": "General Motors",
+      "name": "HUGHES AIRCRAFT CO SPACE & COMMUNICATIONS GROUP",
+      "city": "TORRANCE",
+      "state": "CA",
+      "to": "Hughes Aircraft",
+      "why": "a Hughes Space and Communications works at 19300 Gramercy Place, Torrance; not a General Motors site today",
+      "checked": "Not a GM site today by GM's own list; whose it is now is not asserted (belongsTo empty) except where said.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000621355",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "50a60290-a390-46ab-acec-08172e2ab1c8",
+      "from": "General Motors",
+      "name": "HUGHES TRAINING INC",
+      "city": "WEST COVINA",
+      "state": "CA",
+      "to": "Hughes Training",
+      "why": "Hughes Training Inc at West Covina (a Hughes company that made training simulators, as far as its name tells); not a General Motors site today",
+      "checked": "Not a GM site today by GM's own list; whose it is now is not asserted (belongsTo empty) except where said.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110002143788",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "4c532bee-0632-48f7-bd51-ee322f1c29c6",
+      "from": "General Motors",
+      "name": "MAGNAVOX ELECTRONIC SYS CO",
+      "city": "FORT WAYNE",
+      "state": "IN",
+      "to": "Magnavox Electronic Systems",
+      "why": "Magnavox Electronic Systems at 4624 Executive Blvd, Fort Wayne (military electronics); not a General Motors site today",
+      "checked": "Not a GM site today by GM's own list; whose it is now is not asserted (belongsTo empty) except where said.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110003084206",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "61db2dc0-03ed-4419-8ff3-8b06470f776b",
+      "from": "General Motors",
+      "name": "DELPHI DELCO ELECTRONICS SYSTEM PLANT 1",
+      "city": "KOKOMO",
+      "state": "IN",
+      "to": "Delphi Delco Electronics Systems",
+      "why": "Delphi Delco Electronics' Plant 1 and offices at 700 E Firmin St, Kokomo: Delphi's, not General Motors', and not the works General Motors runs in Kokomo today",
+      "checked": "Not the works GM lists in Kokomo; that it is Delphi's (Aptiv's) today, or still runs, is not sourced, and belongsTo is rightly empty.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000401388",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "9a22597c-bc07-4c80-8ad9-c668951543af",
+      "from": "General Motors",
+      "name": "DELPHI CHASSIS SYS, KETTERING OPS (K-2)",
+      "city": "KETTERING",
+      "state": "OH",
+      "to": "Delphi Chassis Systems",
+      "why": "a Delphi Chassis plant at Kettering (the EPA also knows it as GMC Delco Chassis Div and as Ovonic Energy Products); not a General Motors site today",
+      "checked": "Not a GM site today by GM's own list; whose it is now is not asserted (belongsTo empty) except where said.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110001225139",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "1b9e9375-e422-45ff-b8af-b047aadf1a26",
+      "from": "General Motors",
+      "name": "DELCO ELECTRONICS MCALLEN WARE HOUSE",
+      "city": "MC ALLEN",
+      "state": "TX",
+      "to": "Delco Electronics",
+      "why": "a warehouse by its own name (the EPA also has it under Delphi Automotive Systems LLC): not a plant, and not General Motors' today",
+      "checked": "Not General Motors': GM's list has no such site, and the name is another firm's.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110002134832",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "d440860f-e0fe-4e51-b7d1-6c93474213be",
+      "from": "General Motors",
+      "name": "DELPHI ENERGY & ENGINE MANAGEMENT SYSTEMS",
+      "city": "WICHITA FALLS",
+      "state": "TX",
+      "to": "Delphi Energy & Engine Management Systems",
+      "why": "a Delphi plant at 8600 Central Fwy N, Wichita Falls; not a General Motors site today",
+      "checked": "Not a GM site today by GM's own list; whose it is now is not asserted (belongsTo empty) except where said.",
+      "sources": [
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "19ba148a-0b75-49eb-a1e0-3171f06e14a5",
+      "from": "General Motors",
+      "name": "DELCO ELECTRONICS CORP",
+      "city": "MILWAUKEE",
+      "state": "WI",
+      "to": "Delco Electronics",
+      "why": "a Delco Electronics site at 4066 N Port Washington Rd, Milwaukee; not a General Motors site today",
+      "checked": "Not a GM site today by GM's own list; whose it is now is not asserted (belongsTo empty) except where said.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110002346284",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "f7fbab97-4a8e-45df-bd9b-28d191b23247",
+      "from": "General Motors",
+      "name": "GENERAL MOTORS CORP DELPHI CHASSIS SYSTEMS SAGNAW OPERATIONS",
+      "city": "SAGINAW",
+      "state": "MI",
+      "to": "Delphi Chassis Systems",
+      "why": "the chassis plant at 2328 E Genesee Ave, Saginaw, which the EPA's registry also knows as 'Delphi TRW Saginaw' and 'TRW Integrated Chassis Systems LLC': another firm's today, not General Motors'",
+      "checked": "Not a GM site today by GM's own list; whose it is now is not asserted (belongsTo empty) except where said.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110000852159",
+        "https://www.gm.com/company/us-operations"
+      ]
+    },
+    {
+      "id": "253bfc7a-e09e-4c12-8aa9-fce371742549",
+      "from": "Northrop Grumman",
+      "name": "NEW NGC INC D/B/A NATIONAL GYPSUM CO",
+      "city": "EAST GREENBUSH",
+      "state": "NY",
+      "to": "National Gypsum",
+      "why": "National Gypsum's wallboard and joint compound plant at East Greenbush (the EPA's record: 'New NGC Inc d/b/a National Gypsum Co', 301 American Oil Rd, industry 327420); National Gypsum filed a WARN notice for its wallboard division there on 21 November 2008, reported at the time as the plant's…",
+      "checked": "National Gypsum's, not Northrop's, but reported closed in 2008: belongsTo set to null so it is not loaded as a working plant.",
+      "sources": [
+        "https://echo.epa.gov/files/echodownloads/echo_exporter.zip",
+        "https://www.warntracker.com/layoff/national-gypsum-wallboard-division-2008-11-21"
+      ]
+    },
+    {
+      "id": "2231f3fa-b854-4d1a-935d-e4384ec24699",
+      "from": "Northrop Grumman",
+      "name": "NEW NGC INC (DBA NATIONAL GYPSUM CO)",
+      "city": "GRAND PRAIRIE",
+      "state": "TX",
+      "to": "National Gypsum",
+      "why": "National Gypsum's plant at 1502 W North Carrier Pkwy (the EPA's record: industry 327420, gypsum products, active).",
+      "checked": "National Gypsum's plant, active in the EPA's registry; it belongs under National Gypsum.",
+      "sources": [
+        "https://echo.epa.gov/files/echodownloads/echo_exporter.zip"
+      ]
+    },
+    {
+      "id": "446a908c-0b04-43c4-8297-e044d56e4bfa",
+      "from": "Northrop Grumman",
+      "name": "NEW NGC INC",
+      "city": "ROTAN",
+      "state": "TX",
+      "to": "National Gypsum",
+      "why": "National Gypsum's plant at 832 County Rd 311 (the EPA's record: industry 327420, active). We already list this plant under National Gypsum as 'National Gypsum Rotan' (970199e4-8f22-4377-98ac-303217c958e3), written from sources, 380 m away: the two rows are one plant.",
+      "checked": "One plant, two rows: a merge into National Gypsum Rotan, as the researcher says.",
+      "sources": [
+        "https://echo.epa.gov/files/echodownloads/echo_exporter.zip"
+      ]
+    },
+    {
+      "id": "b4f2600d-9a04-461e-a30f-1c91e4a86b15",
+      "from": "Northrop Grumman",
+      "name": "ALLIED-SIGNAL PRECISION PRODS, PLANT 2",
+      "city": "NORWOOD",
+      "state": "MA",
+      "to": "Alliedsignal",
+      "why": "AlliedSignal's, by its own name: one of the Norwood precision products plants AlliedSignal bought from Northrop Grumman in 1995 (AlliedSignal later became Honeywell, which I did not read on a page). There is a company row 'Allied-signal'. I found no current record of the plant and do not know that…",
+      "checked": "Not Northrop's since 1995; left with belongsTo null, since none is shown to be anyone's working plant today.",
+      "sources": [
+        "https://www.flightglobal.com/alliedsignal-buys-inertial-business/12189.article"
+      ]
+    },
+    {
+      "id": "fc471cea-a313-4244-b91e-f711ee7062f3",
+      "from": "Raytheon",
+      "name": "RAYTHEON AIRCRAFT CO(WAS BEECH AIRCRAFT)",
+      "city": "BOULDER",
+      "state": "CO",
+      "to": "Raytheon Aircraft",
+      "why": "Beech Aircraft's Boulder works, as the row's own name says ('RAYTHEON AIRCRAFT CO(WAS BEECH AIRCRAFT)'). Raytheon Aircraft was sold on 2007-03-26 to Hawker Beechcraft; it has not been Raytheon's since. I could not check whether the plant still works or under whom.",
+      "checked": "The 2007 sale of Raytheon Aircraft to Hawker Beechcraft is well recorded; no Raytheon filing in Boulder with OSHA in 2024 or 2025.",
+      "sources": [
+        "https://ainonline.com/aviation-news/business-aviation/2007-03-27/raytheon-concludes-sale-its-aircraft-subsidiary"
+      ]
+    },
+    {
+      "id": "f58f8e40-9e0f-4415-b818-493fa40d3cc9",
+      "from": "Raytheon",
+      "name": "RAYTHEON AIRCRAFT CO",
+      "city": "ANDOVER",
+      "state": "KS",
+      "to": "Raytheon Aircraft",
+      "why": "A Raytheon Aircraft (Beechcraft) site at 16121 East 13th Street, Andover, KS. Raytheon Aircraft was sold on 2007-03-26 to Hawker Beechcraft. I could not check whether it still works or under whom.",
+      "checked": "Sold with Raytheon Aircraft in 2007; no Raytheon filing in Andover, KS with OSHA (Raytheon's Andover filings are Andover, MA).",
+      "sources": [
+        "https://ainonline.com/aviation-news/business-aviation/2007-03-27/raytheon-concludes-sale-its-aircraft-subsidiary"
+      ]
+    },
+    {
+      "id": "ec918c11-1ef5-4716-8d8d-fa46035f8c0f",
+      "from": "Raytheon",
+      "name": "AMANA DELAWARE OPS",
+      "city": "DELAWARE",
+      "state": "OH",
+      "to": "Amana",
+      "why": "An Amana appliance plant. Raytheon sold Amana to Goodman Holding in 1997; the plant's toxics reports run 1987 to 1996, all under Raytheon. I could not check whether it works today or under whom.",
+      "checked": "EPA TRI 43015CLRCC435PA: 'AMANA DELAWARE OPS', parent Raytheon Co, reports 1987 to 1996 only; no RTX filing in Delaware, OH.",
+      "sources": [
+        "https://money.cnn.com/1997/07/14/deals/raytheon/",
+        "https://data.epa.gov/efservice/tri_facility/tri_facility_id/43015CLRCC435PA/JSON",
+        "https://data.epa.gov/efservice/tri_reporting_form/tri_facility_id/43015CLRCC435PA/JSON"
+      ]
+    },
+    {
+      "id": "fe8bb3b1-4844-4a75-affa-e636d5e707b4",
+      "from": "Raytheon",
+      "name": "CALORIC CORP RAYTHEON COMPANY",
+      "city": "TOPTON",
+      "state": "PA",
+      "to": "Caloric",
+      "why": "Caloric Corp, which the toxics inventory lists under Raytheon Co (a maker of home appliances as far as I know; no source I read says what it made). Its reports run 1987 to 1991 and stop: closed as far as the record shows, though the inventory does not mark it closed and I found no account of the…",
+      "checked": "EPA TRI 19562CLRCC403NO: 'CALORIC CORP', parent Raytheon Co, reports 1987 to 1991 only. The inventory's address is 403 N Main St and our row's is 'Washington & Heffner Sts': one small town, very likely one plant, not confirmed.",
+      "sources": [
+        "https://data.epa.gov/efservice/tri_facility/tri_facility_id/19562CLRCC403NO/JSON",
+        "https://data.epa.gov/efservice/tri_reporting_form/tri_facility_id/19562CLRCC403NO/JSON",
+        "https://money.cnn.com/1997/07/14/deals/raytheon/"
+      ]
+    },
+    {
+      "id": "18619965-7a17-48a7-aadb-39eacf5763bf",
+      "from": "Raytheon",
+      "name": "RESY-W MAEHR RD/TSTC AMF",
+      "city": "WACO",
+      "state": "TX",
+      "mergeInto": "775bf94f-3fa6-4ed0-b1bd-6cee079308b5",
+      "intoName": "L3Harris Waco",
+      "intoCompany": "L3Harris",
+      "why": "L3Harris's aircraft modification plant at Waco (7500 Maehr Rd, at the TSTC airfield): L3Harris files it with OSHA as 'L3Harris AS IAS Waco', aircraft manufacturing (336411), 1,400 people in 2024 and in 2025. It was Raytheon's until L-3 bought Raytheon's Aircraft Integration Systems in 2002. We…",
+      "checked": "The research left it with no owner for want of a source other than l3harris.com; OSHA's 2024 and 2025 files show L3Harris working it with 1,400 people, and our L3Harris row 'L3Harris Waco' is the same plant.",
+      "sources": [
+        "https://aviationweek.com/l-3-communications-completes-acquisition-ais-unit-renamed",
+        "https://aviationweek.com/raytheons-former-ais-unit-integrated-l-3-communications",
+        "https://data.epa.gov/efservice/tri_facility/tri_facility_id/76715CHRYS7500M/JSON",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ]
+    },
+    {
+      "id": "6c3c8a9a-d311-4cf6-94e2-0a58688d1498",
+      "from": "Raytheon",
+      "name": "MACHLETT LABORATORIES INC C/O TUBE HOLDING CO",
+      "city": "STAMFORD",
+      "state": "CT",
+      "to": "Machlett Laboratories",
+      "why": "Machlett Laboratories, a tube maker by its row's own name ('C/O TUBE HOLDING CO'), which the toxics inventory lists under Raytheon Co at 1063 Hope St, Stamford; its reports run 1987 to 1989 and stop. Closed as far as the record shows; I found no account of what became of it.",
+      "checked": "EPA TRI 06907MCHLT1063H: parent Raytheon Co, reports 1987 to 1989 only, not marked closed; no RTX filing in Stamford.",
+      "sources": [
+        "https://data.epa.gov/efservice/tri_facility/tri_facility_id/06907MCHLT1063H/JSON",
+        "https://data.epa.gov/efservice/tri_reporting_form/tri_facility_id/06907MCHLT1063H/JSON"
+      ]
+    },
+    {
+      "id": "df2a4885-f1a4-433a-a858-9346362d8fe2",
+      "from": "Texas Instruments",
+      "name": "TEXAS INSTRUMENTS INC",
+      "city": "LEWISVILLE",
+      "state": "TX",
+      "mergeInto": "820ec88a-4f04-4ddc-b011-f4aa804c9cf3",
+      "intoName": "RAYTHEON TI SYSTEMS INCORPORATED",
+      "intoCompany": "Raytheon",
+      "why": "A plant of TI's defense business (the EPA's record calls it Lewisville Defense Systems & Electronics), which TI sold in 1997; the Texas regulator's name for the site is now \"Raytheon Lewisville former Raytheon TI Systems\", and the Toxics Release Inventory holds TI's reports from it for 1987 to…",
+      "checked": "Right that it is not TI's; added that it is the same site as a Raytheon row 81 m away, so it is one site listed twice and nothing should be moved onto Raytheon from here: it is a pair for the plant merge or a row to leave, belongsTo stays null.",
+      "sources": [
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110005027327",
+        "https://data.epa.gov/efservice/tri_reporting_form/tri_facility_id/75067TXSNS2501S/JSON",
+        "https://www.fundinguniverse.com/company-histories/texas-instruments-inc-history/"
+      ]
+    }
+  ]
+}
