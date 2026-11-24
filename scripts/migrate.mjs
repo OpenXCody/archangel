@@ -35,7 +35,9 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   '0068_skill_taxonomy_4.sql',
 
   // A company's mark set by hand (one table, no rows).
-  '0069_company_marks.sql'];
+  '0069_company_marks.sql',
+  // The four services' descriptions, replaced where each is still the file's earlier one.
+  '0077_military_employers_2.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 

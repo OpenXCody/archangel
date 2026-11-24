@@ -2200,6 +2200,13 @@ async function militaryCareer(request: APIRequestContext, code: string) {
 }
 
 const SERVICE_TITLE = /^(Navy|Army|Air Force) /;
+
+/** A service's own mark is drawn in this part of the page: its image, loaded (the lettermark under it is covered). */
+async function expectMarkShown(scope: Locator, src: string) {
+  const mark = scope.locator(`img[src="${src}"]`).first();
+  await expect(mark).toBeAttached();
+  await expect.poll(() => mark.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0), { message: `${src} loads` }).toBe(true);
+}
 const KIND_LINE = /(Navy rating|Army MOS|Air Force specialty) · [A-Z0-9]+/;
 
 test('military careers stay out of the lists until asked for: the Careers filter, a civilian career, the header search and the map search', async ({ page, request }) => {
@@ -2224,6 +2231,8 @@ test('military careers stay out of the lists until asked for: the Careers filter
   const rows = page.locator('main a[href^="/occupations/"]');
   await expect(rows.first()).toContainText(KIND_LINE);
   for (const text of await rows.allInnerTexts()) expect(text, 'every row is a military career').toMatch(KIND_LINE);
+  // Each row's grey line is led by its service's own mark, as a factory's is by its company's.
+  await expect(rows.first().locator('img[src^="/logos/"][src$=".mil.svg"]')).toHaveCount(1);
   await assertHealthyLayout(page, '/explore?tab=occupations&military=1');
 
   // Narrowed to one service, and back.
@@ -2495,6 +2504,8 @@ test("a military career's page: its kind and code above the service's own title,
   await expect(view.locator('[data-detail-header] [data-record-tag]')).toHaveCount(0);
   // Nothing else stands in the heading block: no home, no facts line, no progress.
   await expect(view.locator('[data-detail-header] [data-career-home], [data-detail-header] [data-held-count]')).toHaveCount(0);
+  // The service's own mark leads the kind line.
+  await expectMarkShown(view.locator('[data-detail-kind]'), '/logos/navy.mil.svg');
   // It is no goal, and its page has no action: nothing here sets a goal or marks a skill, for anyone.
   await expect(view.getByRole('button', { name: /goal/i })).toHaveCount(0);
   await expect(view.getByRole('link', { name: /goal/i })).toHaveCount(0);
@@ -2612,6 +2623,8 @@ test("a military career's page: its kind and code above the service's own title,
   const company = page.locator('[data-entity-view="companies"]');
   await expect(company.locator('[data-detail-kind]')).toHaveText('Military service');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(ht.service.name);
+  // Its own mark stands before its name, as a company's does.
+  await expectMarkShown(company, '/logos/navy.mil.svg');
   await expect(company.locator('[data-open-map]')).toHaveCount(0);
   await expect(company.locator('[data-service-career]').first()).toContainText(/^Navy /);
   await assertHealthyLayout(page, '/companies/us-navy');

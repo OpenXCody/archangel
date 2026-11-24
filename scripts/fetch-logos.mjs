@@ -25,10 +25,11 @@
 //   node scripts/fetch-logos.mjs --show a.com,b.com --sheet out.html
 //                                                 fetch nothing: a sheet of the marks stored for these domains
 //
-// Domains come from three places, and a domain named in any of them counts:
+// Domains come from these files, and a domain named in any of them counts:
 //   data/companies/profiles.json    the curated profiles
 //   data/companies/domains.json     domains for the companies people meet first
 //   data/companies/domains-2.json   the same, a later pass (each file has its own migration)
+//   data/careers/military/employers.json   the four military services
 //   data/employers/*.json           researched employers, when the folder exists
 //                                   (and any folder given with --employers)
 //
@@ -141,6 +142,8 @@ function readDomains() {
     const full = path.join(curated, file);
     if (existsSync(full)) for (const c of companiesIn(full)) add(c.domain, c.name);
   }
+  const services = path.join(ROOT, 'data', 'careers', 'military', 'employers.json');
+  if (existsSync(services)) for (const c of companiesIn(services)) add(c.domain, c.name);
   for (const folder of [path.join(ROOT, 'data', 'employers'), ...valuesOf('--employers').map((f) => path.resolve(f))]) {
     if (!existsSync(folder)) continue;
     for (const file of readdirSync(folder).filter((f) => f.endsWith('.json')).sort()) {
