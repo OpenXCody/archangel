@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ChevronRight, Loader2 } from 'lucide-react';
 import { cn, plural } from '@/lib/utils';
 import { ErrorNote, LoadError } from '../account/parts';
-import { signInPath, useAccount } from '../../lib/account';
+import { useAccount } from '../../lib/account';
 import { type OccupationDetail } from '../../lib/api';
 import { isNoVersion, useVersion, type Version } from '../../lib/versions';
 import { useViewer } from '../../lib/viewer';
@@ -76,8 +76,7 @@ export default function CareerVersionView({ data, at, head }: { data: Occupation
 
 function VersionPage({ data, version, head }: { data: OccupationDetail; version: Version; head: Head }) {
   // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same route without them.
-  const { marks, canSignIn, error: markError, ranMakes } = useSkillMarks();
-  const { pathname, search } = useLocation();
+  const { marks, error: markError, ranMakes } = useSkillMarks();
   const { data: account } = useAccount();
   const viewer = useViewer();
 
@@ -100,7 +99,6 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
       })),
     [version.skills, ranMakes]
   );
-  const signIn = canSignIn ? signInPath(`${pathname}${search}`) : null;
   const [leftOutOpen, setLeftOutOpen] = useState(false);
   const leftOut = version.leftOut;
   const same = leftOut.length === 0 && !skills.some((skill) => skill.added);
@@ -143,10 +141,10 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
       ) : (
         // The same skills by group as the standard's page, the company's changes applied.
         <SkillGroups
+          title={version.title}
           skills={skills}
           marks={marks}
           keepAs={`${data.id}@${company.id}`}
-          signIn={signIn}
           before={marks && <ErrorNote error={markError} className="mb-3" />}
           after={
             <>

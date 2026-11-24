@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ErrorNote } from '../account/parts';
-import { signInPath } from '../../lib/account';
 import { type CareerService, type OccupationDetail } from '../../lib/api';
 import { cn, focusRing } from '@/lib/utils';
 import { serviceShortName } from '@shared/military';
@@ -27,15 +26,15 @@ import { type Head, OpenJobsSection, MilitaryCareerRows } from './parts';
  *    service's word is the way to its page ("Air Force specialty · 2A7X1");
  *    its name is the service's own title for the job.
  * 2. Its skills, straight after (`SkillGroups`): one sentence that says how
- *    many skills in how many groups and why they stand in this order, then one
- *    panel per skill group, every one closed when the page arrives, each
- *    opening in place to its skills and what one of them is (`SkillPreview`:
- *    beside the rows from 1024 px, under the chosen row below that). Under the
- *    groups, the person's own panel: a visitor's question and Sign in button,
- *    a seeker's share and the way to Profile.
+ *    many skills in how many groups and why they stand in this order (and,
+ *    for a seeker who holds some, how many), then one frame holding a
+ *    connector tree (`Tree`): the career as the root, an elbow to each skill
+ *    group, every group closed when the page arrives; a group opens its own
+ *    branch of skills, and a skill opens what it is under itself
+ *    (`SkillPreview`). Nothing asks anyone to sign in.
  * 3. Where it leads (a civilian career on a ladder): one panel, where people
- *    come from, this career, where it leads, joined by lines (`CareerLadder`).
- *    Its frame is the place the career's own Atlas will take.
+ *    come from, this career, where it leads, as the same connector tree
+ *    (`CareerLadder`). Its frame is the place the career's own Atlas will take.
  * 4. What else a person can do with it. A military career: the civilian
  *    careers within reach (`CivilianReach`). A civilian career: its open
  *    jobs, the companies with their own version of it, the factories that
@@ -49,8 +48,7 @@ import { type Head, OpenJobsSection, MilitaryCareerRows } from './parts';
 
 export default function OccupationDetailView({ data, head }: { data: OccupationDetail; head: Head }) {
   // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same skills without them.
-  const { marks, canSignIn, error: markError } = useSkillMarks();
-  const { pathname, search } = useLocation();
+  const { marks, error: markError } = useSkillMarks();
 
   const skills = useMemo(() => data.skills ?? [], [data.skills]);
   const jobs = data.jobs ?? [];
@@ -59,7 +57,6 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   // Any career with skills has a path to draw, whether or not anyone has written one for it. Whether a
   // person has reviewed it (`pathStatus`) is said inside the admin's editor, behind Edit, never on the page.
   // The skills arrive in the route's order.
-  const signIn = canSignIn ? signInPath(`${pathname}${search}`) : null;
   const onLadder = (data.comesFrom?.length ?? 0) + (data.leadsTo?.length ?? 0) > 0;
   // Companies that say how this career is done with them: each row opens that company's version.
   const versions = data.versions ?? [];
@@ -90,7 +87,13 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           <p className="text-sm text-text-2">None yet.</p>
         </DetailSection>
       ) : (
-        <SkillGroups skills={skills} marks={marks} keepAs={data.id} signIn={signIn} before={marks && <ErrorNote error={markError} className="mb-3" />} />
+        <SkillGroups
+          title={service ? (data.officialTitle ?? data.title) : data.title}
+          skills={skills}
+          marks={marks}
+          keepAs={data.id}
+          before={marks && <ErrorNote error={markError} className="mb-3" />}
+        />
       )}
 
       {/* Where it stands among careers: the place the career's own Atlas will take. */}

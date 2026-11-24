@@ -729,137 +729,279 @@ input {
     gap: 0 16px;
   }
   /*
-   * A career's ladder (components/route/CareerLadder.tsx), from 640 px: the
-   * career in the middle, a line out from it to a bracket on each side, and
-   * on each bracket the careers of that side. Under 640 px it is drawn with
-   * the route's own parts above. The lines are the strong hairline; the
-   * career itself is the one filled stop.
+   * The connector tree (components/layout/Tree.tsx): a root, and nodes
+   * joined to it by hairlines. Every line is the strong hairline, is whole,
+   * and ends on a node's mark, on a spine, or on the line a parent sends to
+   * its branch; nothing else is drawn.
+   *
+   * The measures every line is placed by: a node's row has --tree-pad before
+   * its mark, the mark stands in a box --tree-mark wide, and the middle of a
+   * node's first line is --tree-mid from its top (12px of room and a 20px
+   * line), so the lines meet a node there whatever wraps under it. A branch
+   * stands --tree-indent in from its parent's edge, its spine --tree-spine
+   * in: across, in the room between the columns; down, under the parent's
+   * mark. An elbow runs from the spine to the edge of its node's ring.
    */
-  /* Under 640 px the ladder is drawn with the route's stops: the same mark size, no room above or under a line. */
-  .ladder-route {
-    --route-mark: 44px;
-    --route-pad: 0px;
+  .tree {
+    --tree-line: var(--line-strong);
+    --tree-pad: 8px;
+    --tree-mark: 16px;
+    --tree-gap: 10px;
+    --tree-mid: 22px;
+    --tree-ring: 9px;
+    --tree-dot: 11px;
+    --tree-reach: calc(var(--tree-pad) + (var(--tree-mark) - var(--tree-ring)) / 2);
+    --tree-text: calc(var(--tree-pad) + var(--tree-mark) + var(--tree-gap));
+    /* Across, the width a node that opens a branch keeps, its branch in the rest. */
+    --tree-node-width: 16rem;
+    min-width: 0;
   }
-  .ladder {
-    grid-template-columns: minmax(0, 1fr);
+  .tree[data-layout='wide'] {
+    --tree-indent: 40px;
+    --tree-spine: 20px;
+    display: grid;
+    align-items: start;
     column-gap: 0;
     row-gap: 10px;
+  }
+  .tree[data-layout='stacked'] {
+    --tree-indent: 24px;
+    --tree-spine: calc(var(--tree-pad) + var(--tree-mark) / 2);
+  }
+
+  /* Across: a ladder is three columns under their labels, the career in the middle of what hangs off it. */
+  .tree[data-layout='wide'][data-shape='ladder'] {
     align-items: center;
   }
-  .ladder[data-from][data-to] {
+  .tree[data-layout='wide'][data-shape='ladder'][data-before][data-after] {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
-    grid-template-areas: 'lf lt lto' 'from this to';
+    grid-template-areas: 'lb lt la' 'before this after';
   }
-  .ladder[data-to]:not([data-from]) {
+  .tree[data-layout='wide'][data-shape='ladder'][data-after]:not([data-before]) {
     grid-template-columns: minmax(0, 0.75fr) minmax(0, 1fr);
-    grid-template-areas: 'lt lto' 'this to';
+    grid-template-areas: 'lt la' 'this after';
   }
-  .ladder[data-from]:not([data-to]) {
+  .tree[data-layout='wide'][data-shape='ladder'][data-before]:not([data-after]) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.75fr);
-    grid-template-areas: 'lf lt' 'from this';
+    grid-template-areas: 'lb lt' 'before this';
   }
-  .ladder-label-from {
-    grid-area: lf;
-    padding-left: 8px;
+  /*
+   * Across: a tree is its root, only as wide as its name needs, and its
+   * branches in the rest, level with the first node. Its columns stand a
+   * little closer than a ladder's, so a node's last column keeps room for
+   * what it opens under itself.
+   */
+  .tree[data-layout='wide'][data-shape='tree'] {
+    --tree-indent: 32px;
+    --tree-spine: 16px;
+    grid-template-columns: fit-content(9.5rem) minmax(0, 1fr);
+    grid-template-areas: 'this after';
   }
-  .ladder-label-this {
+  .tree[data-layout='wide'] .tree-this,
+  .tree[data-layout='wide'] .tree-side {
+    display: contents;
+  }
+  .tree[data-layout='wide'] .tree-root {
+    grid-area: this;
+  }
+  .tree[data-layout='wide'] .tree-side[data-side='before'] > .tree-branch {
+    grid-area: before;
+  }
+  .tree[data-layout='wide'] .tree-side[data-side='after'] > .tree-branch {
+    grid-area: after;
+  }
+
+  /* A column's label, over the marks across; down, over the names, the spine running past the one between the root and its branch. */
+  .tree-label {
+    min-width: 0;
+  }
+  .tree[data-layout='wide'] .tree-label {
+    padding-left: var(--tree-reach);
+  }
+  .tree[data-layout='wide'] .tree-label[data-for='before'] {
+    grid-area: lb;
+  }
+  .tree[data-layout='wide'] .tree-label[data-for='this'] {
     grid-area: lt;
   }
-  .ladder-label-to {
-    grid-area: lto;
-    padding-left: 48px;
+  .tree[data-layout='wide'] .tree-label[data-for='after'] {
+    grid-area: la;
+    padding-left: calc(var(--tree-indent) + var(--tree-reach));
   }
-  .ladder-from {
-    grid-area: from;
-    padding-right: 40px;
-  }
-  .ladder-to {
-    grid-area: to;
-    padding-left: 40px;
-  }
-  .ladder-this {
-    grid-area: this;
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: 12px;
-  }
-  /* The line out from the career to each side's bracket: on the right it runs from the name, on the left it reaches the stop. */
-  .ladder[data-to] .ladder-this::after {
-    content: '';
-    flex: 1 1 24px;
-    min-width: 24px;
-    height: 0;
-    margin-right: -20px;
-    border-top: 1px solid var(--line-strong);
-  }
-  .ladder[data-from] .ladder-this::before {
-    content: '';
-    flex: none;
-    width: 20px;
-    height: 0;
-    margin-left: -20px;
-    margin-right: -12px;
-    border-top: 1px solid var(--line-strong);
-  }
-  .ladder-item {
+  .tree[data-layout='stacked'] .tree-label {
     position: relative;
+    display: flex;
+    min-height: 32px;
+    align-items: flex-end;
+    padding: 0 0 4px calc(var(--tree-indent) + var(--tree-text));
   }
-  /* Each career's stub, and the bracket's upright: from the middle of the first to the middle of the last. */
-  .ladder-to .ladder-item::before,
-  .ladder-from .ladder-item::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    border-top: 1px solid var(--line-strong);
-  }
-  .ladder-to .ladder-item::before {
-    left: -20px;
-    width: 28px;
-  }
-  .ladder-from .ladder-item::before {
-    left: 100%;
-    width: 20px;
-  }
-  .ladder-to .ladder-item::after,
-  .ladder-from .ladder-item::after {
+  .tree[data-layout='stacked'] .tree-label[data-for='after']::before {
     content: '';
     position: absolute;
     top: 0;
     bottom: 0;
-    border-left: 1px solid var(--line-strong);
+    left: var(--tree-spine);
+    border-left: 1px solid var(--tree-line);
   }
-  .ladder-to .ladder-item::after {
-    left: -20px;
-  }
-  .ladder-from .ladder-item::after {
-    left: calc(100% + 20px);
-  }
-  .ladder-item:first-child::after {
-    top: 50%;
-  }
-  .ladder-item:last-child::after {
-    bottom: 50%;
-  }
-  .ladder-item:only-child::after {
-    display: none;
-  }
-  /* A stop: a career beside this one is an open ring; this career is the filled one. */
-  .ladder-dot {
-    position: relative;
-    z-index: 1;
+
+  /* A mark, in its box: an open ring, or the root's filled dot. A seeker's mark on a skill is the product's own. */
+  .tree-mark {
+    display: flex;
     flex: none;
-    width: 9px;
-    height: 9px;
+    width: var(--tree-mark);
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+  }
+  .tree-dot {
+    width: var(--tree-ring);
+    height: var(--tree-ring);
     border: 1.5px solid var(--text-3);
     border-radius: 9999px;
-    background-color: var(--bg);
   }
-  .ladder-dot-this {
-    width: 11px;
-    height: 11px;
+  .tree-mark[data-mark='root'] .tree-dot {
+    width: var(--tree-dot);
+    height: var(--tree-dot);
     border-color: var(--text-1);
     background-color: var(--text-1);
+  }
+
+  /* The root: the filled dot and the name, with its line out to each branch. */
+  .tree-root {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: var(--tree-gap);
+    padding: 12px 0 12px var(--tree-pad);
+  }
+  /* Across, the line out runs from the name to the spine of the branch after it; the line in, from the spine before it to the dot. */
+  .tree[data-layout='wide'][data-after] .tree-root::after {
+    content: '';
+    flex: 1 1 12px;
+    min-width: 12px;
+    height: 0;
+    margin-top: 10px;
+    margin-right: calc(-1 * var(--tree-spine));
+    border-top: 1px solid var(--tree-line);
+  }
+  .tree[data-layout='wide'][data-before] .tree-root::before {
+    content: '';
+    position: absolute;
+    top: var(--tree-mid);
+    left: calc(-1 * var(--tree-spine));
+    width: calc(var(--tree-spine) + var(--tree-pad) + (var(--tree-mark) - var(--tree-dot)) / 2);
+    border-top: 1px solid var(--tree-line);
+  }
+  /* Down, the spine runs into the dot from above and on from under it. */
+  .tree[data-layout='stacked'][data-before] .tree-root::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: var(--tree-spine);
+    height: calc(var(--tree-mid) - var(--tree-dot) / 2);
+    border-left: 1px solid var(--tree-line);
+  }
+  .tree[data-layout='stacked'][data-after] .tree-root::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--tree-mid) + var(--tree-dot) / 2);
+    bottom: 0;
+    left: var(--tree-spine);
+    border-left: 1px solid var(--tree-line);
+  }
+
+  /* A branch: its nodes, each with its elbow and its length of the spine, from the first node's middle to the last's. */
+  .tree-branch {
+    position: relative;
+    min-width: 0;
+    padding-left: var(--tree-indent);
+  }
+  .tree-item,
+  .tree-node {
+    position: relative;
+    min-width: 0;
+  }
+  .tree-item::before {
+    content: '';
+    position: absolute;
+    top: var(--tree-mid);
+    left: calc(var(--tree-spine) - var(--tree-indent));
+    width: calc(var(--tree-indent) - var(--tree-spine) + var(--tree-reach));
+    border-top: 1px solid var(--tree-line);
+  }
+  .tree-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--tree-spine) - var(--tree-indent));
+    border-left: 1px solid var(--tree-line);
+  }
+  .tree-item:last-child::after {
+    bottom: auto;
+    height: calc(var(--tree-mid) + 1px);
+  }
+  /* Across, the parent's line meets the spine at the first node; down, it comes into the spine from above. */
+  .tree[data-layout='wide'] .tree-item:first-child::after {
+    top: var(--tree-mid);
+  }
+  .tree[data-layout='wide'] .tree-item:only-child::after {
+    display: none;
+  }
+  /* Across, a branch before the root is mirrored: each elbow leaves its node's right end for a spine on the right. */
+  .tree[data-layout='wide'] .tree-branch[data-side='before'] {
+    padding-left: 0;
+    padding-right: var(--tree-indent);
+  }
+  .tree[data-layout='wide'] .tree-branch[data-side='before'] > .tree-item::before {
+    left: 100%;
+    width: var(--tree-spine);
+  }
+  .tree[data-layout='wide'] .tree-branch[data-side='before'] > .tree-item::after {
+    left: calc(100% + var(--tree-spine));
+  }
+  /* Down, a branch before the root runs on past its last node into the root under it. */
+  .tree[data-layout='stacked'] .tree-branch[data-side='before'] > .tree-item::after {
+    bottom: 0;
+    height: auto;
+  }
+  .tree[data-layout='stacked'] .tree-branch[data-side='before'] > .tree-item:first-child::after {
+    top: var(--tree-mid);
+  }
+
+  /*
+   * A node that opens a branch of its own. Across, it keeps one column and
+   * its branch stands in the next, level with it, and while it is open a line
+   * runs from it to its branch's spine. Down, its branch stands under it,
+   * indented, and the line runs down from under its ring.
+   */
+  .tree[data-layout='wide'] .tree-item[data-branches] {
+    display: grid;
+    grid-template-columns: minmax(0, var(--tree-node-width)) minmax(0, 1fr);
+    align-items: start;
+  }
+  .tree[data-layout='wide'] .tree-item[data-branches][data-open] > .tree-node::after {
+    content: '';
+    position: absolute;
+    top: var(--tree-mid);
+    left: 100%;
+    width: var(--tree-spine);
+    border-top: 1px solid var(--tree-line);
+  }
+  .tree[data-layout='stacked'] .tree-item[data-branches][data-open] > .tree-node::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--tree-mid) + var(--tree-ring) / 2);
+    bottom: 0;
+    left: var(--tree-spine);
+    border-left: 1px solid var(--tree-line);
+  }
+
+  /* What a node is, opened under it: indented to its name, beside its own length of the spine. */
+  .tree-detail {
+    min-width: 0;
+    padding: 0 var(--tree-pad) 20px var(--tree-text);
   }
 
   /* A route whose rows are another control (the employer's editor): no trunk, and nothing stands on it. */
