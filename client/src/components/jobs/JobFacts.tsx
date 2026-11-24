@@ -70,12 +70,12 @@ interface JobFactsProps {
   className?: string;
 }
 
-/** The facts panel: a hairline above and below, the facts between, and the job's one way out as its last row. */
+/** The facts panel: a hairline above it (the section after it draws the one below), the facts, and the job's one way out as its last row. */
 export default function JobFacts({ job, applications, notice, action, className }: JobFactsProps) {
   const paid = job.payMin !== null || job.payMax !== null;
   const asks = requirementFacts(job.requirements);
   return (
-    <div className={cn('border-y border-line', className)} data-job-panel>
+    <div className={cn('border-t border-line', className)} data-job-panel>
       {notice && <div className="border-b border-line py-3">{notice}</div>}
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 py-4 sm:grid-cols-4" data-job-terms>
       {paid && <Fact label="Pay">{formatPay(job.payMin, job.payMax, job.payPeriod)}</Fact>}
