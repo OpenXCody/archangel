@@ -415,8 +415,14 @@ export interface CareerWithinReach {
   title: string;
   held: number;
   total: number;
+  /** The `held` skills by id, in the route's order: the part of the military career's path that carries into this one. */
+  shared: string[];
   /** The skills of its path the military career does not have, in that path's order. */
   missing: { id: string; name: string; level: SkillLevel | null }[];
+  /** The industries it is typical of, by their full names (`industryLabel` says them). */
+  industries: string[];
+  /** True when it is typical of no industry in particular and found in all of them. */
+  everywhere: boolean;
 }
 
 /** A military career that reaches a civilian one: how much of the civilian path it holds. */
