@@ -132,7 +132,8 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       {service && <CivilianReach key={data.id} careers={withinReach} />}
 
       {/* Like the company and factory pages: a section only when there is a job to show. */}
-      {jobs.length > 0 && <OpenJobsSection jobs={jobs} total={data.openJobCount} all={`/jobs?career=${data.id}`} />}
+      {/* The newest five; "All N" leads to the rest on Jobs. */}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs.slice(0, JOBS_SHOWN)} total={data.openJobCount ?? jobs.length} all={`/jobs?career=${data.id}`} />}
 
       {/* Companies with their own version of this career: the page stays the standard, and says where it differs. */}
       {versions.length > 0 && (
@@ -187,7 +188,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
 
       {/* Last, and only when some do: the military careers whose path covers a third or more of this one's. */}
       {reachedBy.length > 0 && (
-        <DetailSection id="military" title="Military careers that reach this" description="How much of this path each already covers.">
+        <DetailSection id="military" title="Military careers that reach this" description="How much of this career's skills each already has.">
           <MilitaryCareerRows careers={reachedBy} data-reached-by="" />
         </DetailSection>
       )}
@@ -225,6 +226,9 @@ function ServiceKind({ service, kind, code }: { service: CareerService; kind?: s
 
 /** The longest title a career of the catalogue has, in letters: a military career's own title past this is set smaller on a phone. */
 const LONG_TITLE = 40;
+
+/** How many open jobs a career's page lists before "All N". */
+const JOBS_SHOWN = 5;
 
 /** How many companies with a version are listed before "Show all". */
 const VERSIONS_SHOWN = 8;

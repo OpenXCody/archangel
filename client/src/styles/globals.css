@@ -627,7 +627,7 @@ input {
     flex: 1 1 auto;
     min-width: 0;
     min-height: var(--route-mark);
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     padding-right: 4px;
     border-radius: var(--radius);
@@ -636,30 +636,41 @@ input {
   .route-head-button > .route-node {
     margin-right: -2px;
   }
+  /* The chevron stands level with the group's name, on the first line. */
+  .route-head-button > svg {
+    margin-top: 14px;
+  }
+  /* The group's name in sentence case at body size, its figure after it, the skills' names under it. */
   .route-head-name {
     flex: 1 1 auto;
     min-width: 0;
-    line-height: 16px;
+    padding: 11px 0;
+    font-size: 15px;
+    line-height: 22px;
   }
   .route-head-group {
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     overflow-wrap: anywhere;
     color: var(--text-1);
   }
-  /* The figure follows the name on its line, in the meta size: "· 4". */
   .route-head-count {
-    margin-left: 0.375rem;
     font-size: 13px;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     color: var(--text-3);
   }
-  .route[data-route-marked] [data-route-section]:not([data-open]) .route-head-group,
-  .route[data-route-marked] [data-route-section][data-complete] .route-head-group {
+  .route-head-count::before {
+    content: ' ';
+  }
+  /* One quiet line of the skills' names, two at most: secondary ink, a seeker's held ones in full ink. */
+  .route-head-names {
+    display: block;
+    margin-top: 1px;
+    font-size: 13px;
+    line-height: 18px;
     color: var(--text-2);
+  }
+  .route-head-names > [data-name] {
+    overflow-wrap: anywhere;
   }
   /* A skill's row: the name opens the skill's page, and wraps when it is long. */
   .route-row-name {

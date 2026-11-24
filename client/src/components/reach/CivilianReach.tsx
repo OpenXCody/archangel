@@ -19,7 +19,7 @@ import { DetailSection, ShowAll, detailActionClass, rowHoverClass } from '../lay
 export function CivilianReach({ careers }: { careers: CareerWithinReach[] }) {
   if (careers.length === 0) return null;
   return (
-    <DetailSection id="reach" title="Civilian careers within reach" description="Civilian careers whose skills this path already covers a third or more of.">
+    <DetailSection id="reach" title="Civilian careers within reach" description="Where these skills carry over.">
       <ReachRows careers={careers} />
     </DetailSection>
   );
