@@ -425,12 +425,17 @@
       ]
     },
     "Smurfit Westrock": {
-      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. The row SMURFIT-STONE CONTAINER CORP EL PASO EAST (company Smurfit Stone Container), 123 m away, is this box plant under a former owner's name; WestRock CP files with OSHA for 7350 Stiles Road.",
       "addAlsoKnownAs": [
         "Smurfit Westrock U.s. Holding",
         "Rock-tenn Specialty Products",
         "Smurfit Kappa Orange County"
-      ]
+      ],
+      "plants": {
+        "Smurfit Westrock El Paso East": {
+          "sameAs": "SMURFIT-STONE CONTAINER CORP EL PASO EAST"
+        }
+      }
     },
     "L3Harris": {
       "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. E-Systems' divisions in Florida and Virginia went to Raytheon, not L3Harris.",
@@ -494,18 +499,31 @@
       }
     },
     "SLB": {
-      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. The Smith Bits plant's row is 'SMITH INTERNATIONAL INC', filed under a company named Smith International, 220 m from 16740 E Hardy Rd, where SLB files with OSHA as 'SLB Bits'. SLB took over Smith International in 2010. SLB has two establishments on Industrial Blvd in Sugar Land, 1.1 km apart: 555 Industrial Blvd (in texas-osha-additions.json) and 1333 Industrial Blvd (electronics, this file). The rehearsal took the curated 555 row for this one by a shared word; it is another factory.",
       "addAlsoKnownAs": [
         "Schlumberger Holdings",
         "Schlumberger Technology",
         "Dowell Schlumberger"
-      ]
+      ],
+      "plants": {
+        "SLB Bits Houston (East Hardy Road)": {
+          "sameAs": "SMITH INTERNATIONAL INC"
+        },
+        "SLB Sugar Land Electronics": {
+          "isNew": true
+        }
+      }
     },
     "Halliburton": {
-      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal.",
+      "why": "Existing rows for the same company under a legal or divisional name, seen in the rehearsal. The plant's row is 'WELLDYNAMICS INC', filed under a company named Welldynamics, 12 m from 445 Woodline Dr, Spring, where Halliburton Energy Services files with OSHA. WellDynamics is Halliburton's intelligent-completions business.",
       "addAlsoKnownAs": [
         "Halliburton Geophysical Services"
-      ]
+      ],
+      "plants": {
+        "Halliburton Spring (Woodline Drive)": {
+          "sameAs": "WELLDYNAMICS INC"
+        }
+      }
     },
     "HMH": {
       "why": "Hydril's pressure control business is part of HMH.",
@@ -626,6 +644,404 @@
       "dropAlsoKnownAs": [
         "MSD"
       ]
+    },
+    "XBiotech": {
+      "why": "The stored row XBIOTECH WINNEBAGO is filed under Winnebago, the motor home maker, because the site is on Winnebago Lane in Austin. It is XBiotech's site, which files at 5217 Winnebago Ln (OSHA 2025).",
+      "plants": {
+        "XBiotech Austin": {
+          "sameAs": "XBIOTECH WINNEBAGO"
+        }
+      }
+    },
+    "Builders FirstSource": {
+      "why": "The stored row Bmc West Corporation (company Bmc West), 1920 East Whitestone Blvd, Cedar Park, is the site Builders FirstSource files for as 'Cedar Park TX Millwork' (OSHA 2025); BMC is part of Builders FirstSource.",
+      "plants": {
+        "Builders FirstSource Cedar Park": {
+          "sameAs": "Bmc West Corporation"
+        }
+      }
+    },
+    "Firefly Aerospace": {
+      "why": "The Hive (5900 183A Toll Rd, Leander) is a site of its own, 2 km from the stored Firefly Aerospace Cedar Park row, which a research file already describes; the loader must not take that row for it.",
+      "plants": {
+        "Firefly Aerospace Hive": {
+          "isNew": true
+        }
+      }
+    },
+    "Wilsonart": {
+      "why": "Two Temple rows are Wilsonart's own sites filed under former owners: 'WILSONART LLC-ADHESIVE DIV' under Clayton Dubilier & Rice (its private-equity owner) and 'WILSONART INTERNATIONALGIBRALT AR' under Illinois Tool Works (which sold Wilsonart in 2012). Wilsonart's ISO 9001 certificate (revised 2025-01-10) lists its Temple sites as Temple North, the Adhesive Plant at 10601 NW H K Dodgen Loop and the Specialty Products Center at 3301 Center St; the Gibraltar row is 240 to 410 m from the Center St address, the only listed site near it.",
+      "plants": {
+        "Wilsonart Adhesive Plant": {
+          "sameAs": "WILSONART LLC-ADHESIVE DIV"
+        },
+        "Wilsonart Specialty Products Center": {
+          "sameAs": "WILSONART INTERNATIONALGIBRALT AR"
+        }
+      }
+    },
+    "Lehigh White Cement": {
+      "why": "The plant's row is filed as 'LEHIGH PORTLAND CEMENT - WACO PLANT' under a company named Lehigh Portland Cement, 153 m from the point on the plant's state air permit (Lehigh White Cement Company, LLC, 100 S Wickson Rd, Woodway). It is the same cement plant, but neither its company nor its name is this company's, so the loader would not take it unless told to.",
+      "plants": {
+        "Lehigh White Cement Waco Plant": {
+          "sameAs": "LEHIGH PORTLAND CEMENT - WACO PLANT"
+        }
+      }
+    },
+    "Texas Hydraulics": {
+      "why": "The plant's row 'TEXAS HYDRAULICS INC' is filed under Dover Corporation. The company's own history says it was acquired by a private equity firm in 2016; it is not Dover's.",
+      "plants": {
+        "Texas Hydraulics Temple": {
+          "sameAs": "TEXAS HYDRAULICS INC"
+        }
+      }
+    },
+    "Mars Petcare": {
+      "why": "The Temple pet food plant's row 'MARS PET CARE US' is filed under the company Mars, 25 m from 3401 Eberhardt Rd. Named so the match does not rest on distance alone.",
+      "plants": {
+        "Mars Petcare Temple": {
+          "sameAs": "MARS PET CARE US"
+        }
+      }
+    },
+    "VanTran Transformers": {
+      "why": "MGM Transformers acquired VanTran in 2024 (KWBU, 2025-04-25, at the opening of VanTran's 430,000 sq ft Waco plant).",
+      "set": {
+        "parent": "MGM Transformers"
+      }
+    },
+    "O-I Glass": {
+      "why": "O-I closed its Waco glass container plant in 2023: production ceased in mid-October and the plant closed on 2023-12-01, about 300 people (KWBU, 2023-09-22). texas-metals-materials lists it as operating; a closed plant is not loaded, so the row already on production has to be marked closed in Admin Tools.",
+      "plants": {
+        "O-I Waco": {
+          "status": "closed"
+        }
+      }
+    },
+    "Methanex": {
+      "why": "The plant's row is 'OCI BEAUMONT LLC', filed under a company named Oci Beaumont, 1.9 km from the point of the filed address (5470 N Twin City Hwy, Nederland), so the loader would not take it by distance alone. Methanex completed its purchase of OCI Global's methanol business, this plant included, in June 2025 (Chemical Engineering), and the plant's 2025 OSHA filing is under 'Methanex Beaumont LLC' at the address the 2024 filing gave for 'OCI Beaumont LLC'. The row is wrong today in company and name.",
+      "plants": {
+        "Methanex Beaumont": {
+          "sameAs": "OCI BEAUMONT LLC"
+        }
+      }
+    },
+    "Plug Power": {
+      "why": "The plant's row is 'APPLIED CRYO TECHNOLOGIES', filed under a company of that name, 56 m from 7150 Almeda Genoa Rd. Plug Power bought Applied Cryo Technologies in 2021, and the site files with OSHA as 'Plug Power: Houston, TX Manufacturing Facility'. Named so the match does not rest on distance alone.",
+      "plants": {
+        "Plug Power Houston (Applied Cryo Technologies)": {
+          "sameAs": "APPLIED CRYO TECHNOLOGIES"
+        }
+      }
+    },
+    "Dover Precision Components": {
+      "why": "The copy has two rows at 11951 N Spectrum Blvd, 'DOVER PEARLAND OPERATIONS' and 'DOVER PRECISION COMPONENTS', both under Dover Corporation, 0 m apart: one factory twice. The OSHA filing is 'Dover Pearland Operations' by Dover Precision Components. This names the row to take; the other is listed in notes.md for a merge in Admin Tools.",
+      "plants": {
+        "Dover Pearland Operations": {
+          "sameAs": "DOVER PEARLAND OPERATIONS"
+        }
+      }
+    },
+    "Cornerstone Building Brands": {
+      "why": "The plant's row is 'METAL BUILDING COMPONENTS, LP', filed under a company of that name, 13 m from 14031 W Hardy Rd, where 'Cornerstone Building Brands - MBCI' files with OSHA. Metal Building Components is MBCI's legal name.",
+      "plants": {
+        "MBCI Houston (West Hardy Road)": {
+          "sameAs": "METAL BUILDING COMPONENTS, LP"
+        }
+      }
+    },
+    "AkzoNobel": {
+      "why": "The plant's row is 'INTERNATIONAL PAINT LLC' under the company Akzo Nobel, 104 m from 6001 Antoine Dr, where 'International Paint- Houston Manufacturing' files with OSHA as 'AkzoNobel'. Named so the match does not rest on distance alone.",
+      "plants": {
+        "AkzoNobel Houston (International Paint)": {
+          "sameAs": "INTERNATIONAL PAINT LLC"
+        }
+      }
+    },
+    "MOGAS Industries": {
+      "why": "The plant's row is 'MOGAS INDUSTRIES-PLANT - 14202 E HARDY RD', filed under a company named 'Mogas Industries-plant', 92 m from 14204 E Hardy Rd.",
+      "plants": {
+        "MOGAS Industries Houston": {
+          "sameAs": "MOGAS INDUSTRIES-PLANT - 14202 E HARDY RD"
+        }
+      }
+    },
+    "S+S Industries": {
+      "why": "The copy has two rows 136 m apart at 5614 Nunn St, 'S & S PLATING CO' and 'S & S PLATING', both under the company 'S & S Plating': one factory twice. This names the row to take; the other is listed in notes.md for a merge in Admin Tools.",
+      "plants": {
+        "S+S Industries Houston (Nunn Street)": {
+          "sameAs": "S & S PLATING CO"
+        }
+      }
+    },
+    "Siemens Energy": {
+      "why": "The rehearsal took the curated row 'Enerflex Houston (Telge Road)', 235 m away, for this plant by the shared words of the road's name. Enerflex and Siemens Energy are neighbours on Telge Road, not one factory.",
+      "plants": {
+        "Siemens Energy Houston": {
+          "isNew": true
+        }
+      }
+    },
+    "Arlanxeo": {
+      "why": "The site's rows are 'ARLANXEO' (Arlanxeo USA), 'LANXESS CORP' (58 m from it) and 'BAYER CORPORATION - ORANGE SITE' (257 m): the plant under its owners since Bayer. This names the current owner's row; the other two are listed in notes.md.",
+      "plants": {
+        "Arlanxeo Orange": {
+          "sameAs": "ARLANXEO"
+        }
+      }
+    },
+    "General Dynamics Ordnance and Tactical Systems": {
+      "why": "The registry row 140 m from the Mesquite projectile plant, stored under General Dynamics, is that plant.",
+      "plants": {
+        "GD-OTS Mesquite": {
+          "sameAs": "GENERAL DYNAMICS ORDINANCE AND TACTICAL SYSTEMS"
+        }
+      }
+    },
+    "Repkon USA": {
+      "why": "Wrong company today: the Garland row stored under General Dynamics is the 38-acre plant Repkon USA bought from General Dynamics OTS in April 2025 (Defence Industry Europe); General Dynamics OTS filed with OSHA for 1200 N Glenbrook Dr in 2024 and Repkon USA for the same address in 2025.",
+      "plants": {
+        "Repkon USA Garland": {
+          "sameAs": "GENERAL DYNAMICS ORDNANCE & TACTICAL SYSTEMS GARLAND"
+        }
+      }
+    },
+    "Pottorff": {
+      "why": "The row named PCI INDUSTRIES, 46 m away, is this plant under its parent's name (the OSHA filing for Pottorff Texas gives PCI Industries as the company).",
+      "plants": {
+        "Pottorff Fort Worth": {
+          "sameAs": "PCI INDUSTRIES"
+        }
+      }
+    },
+    "Sherwin-Williams": {
+      "why": "Wrong company today: the row VALSPAR COATINGS (company Valspar) is the Shiloh Road paint plant, which the EPA registry lists under both names at 701 S Shiloh Rd; Sherwin-Williams owns Valspar.",
+      "plants": {
+        "Sherwin-Williams Garland (Shiloh Road)": {
+          "sameAs": "VALSPAR COATINGS"
+        }
+      }
+    },
+    "Berry Global": {
+      "why": "Wrong company today: the row AEP INDUSTRIES INC (company Aep Industries) is this film plant; the EPA registry names it 'Berry Global Films formerly known as AEP Waxahachie' at 6250 N Interstate 35 E.",
+      "plants": {
+        "Berry Global Waxahachie": {
+          "sameAs": "AEP INDUSTRIES INC"
+        }
+      }
+    },
+    "ClarkDietrich": {
+      "why": "Wrong company today: the row CLARK STEEL FRAMING SYSTEMS, 57 m away, is this steel framing plant under the name of one of the two companies ClarkDietrich was formed from.",
+      "plants": {
+        "ClarkDietrich Dallas": {
+          "sameAs": "CLARK STEEL FRAMING SYSTEMS"
+        }
+      }
+    },
+    "American Woodmark": {
+      "why": "Wrong company today: the row RSI HOME PRODUCTS MANUFACTURING INC, 4 m away, is this cabinet plant under the name of RSI Home Products, which American Woodmark bought; the EPA registry lists it as American Woodmark Kiest, 5800 W Kiest Blvd.",
+      "plants": {
+        "American Woodmark Dallas (Kiest)": {
+          "sameAs": "RSI HOME PRODUCTS MANUFACTURING INC"
+        }
+      }
+    },
+    "Syensqo": {
+      "why": "Wrong place (texas-osha-additions.json): the point given for Syensqo Greenville (33.1288, -96.1477) is the Masonite door plant at 6308 Industrial Dr (EPA registry 110031000510, 33.12884, -96.14765). The EPA registry has the Cytec Engineered Materials plant at 4300 Jackson St at 33.1252, -96.14774 (registry 110000457880). The file is already loaded, so the row in production also needs 'Find the address again' in Admin Tools or a cleanup.",
+      "plants": {
+        "Syensqo Greenville": {
+          "latitude": 33.1252,
+          "longitude": -96.14774,
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://echo.epa.gov/detailed-facility-report?fid=110000457880"
+          ]
+        }
+      }
+    },
+    "Boeing": {
+      "why": "Boeing's main Port San Antonio site (Building 375) is stored as \"BOEING - SAN ANTONIO\" at 375 Airlift Dr, from the EPA registry. Its north campus on Frank Luke Dr (four rows) is a separate part of the site and is left alone.",
+      "plants": {
+        "Boeing San Antonio": {
+          "sameAs": "BOEING - SAN ANTONIO"
+        }
+      }
+    },
+    "StandardAero": {
+      "why": "StandardAero's San Antonio engine site is stored three times under two misspelt companies (\"Standard Aero (san Antonio)\", \"Standardaero (san Antonio)\"); the file's alsoKnownAs gathers the companies, and the plant is placed on the first of the three rows. The other two are the same site and are listed for a merge in Admin Tools.",
+      "plants": {
+        "StandardAero San Antonio": {
+          "sameAs": "STANDARD AERO (SAN ANTONIO) INC"
+        }
+      }
+    },
+    "Johnson Controls": {
+      "why": "The chiller plant at 5680 E Houston St is stored as \"YORK INTERNATIONAL CORPORATION\" under the company York International; York has been Johnson Controls' brand since 2005.",
+      "plants": {
+        "Johnson Controls San Antonio": {
+          "sameAs": "YORK INTERNATIONAL CORPORATION"
+        }
+      }
+    },
+    "Avanzar Interior Technologies": {
+      "why": "Avanzar's plant on the Toyota campus is stored under its legal name.",
+      "plants": {
+        "Avanzar Interior Technologies San Antonio": {
+          "sameAs": "AVANZAR INTERIOR TECHNOLOGIES, LTD"
+        }
+      }
+    },
+    "Owens Corning": {
+      "why": "Wrong company today: the row OWENS CORNING-RANDALL COUNTY, at 1701 Hollywood Rd (the EPA registry's record), is filed under Corning, a different company; Owens Corning files with OSHA for the same address.",
+      "plants": {
+        "Owens Corning Amarillo": {
+          "sameAs": "OWENS CORNING-RANDALL COUNTY"
+        }
+      }
+    },
+    "Seadrift Coke": {
+      "why": "Wrong company today: the row SEADRIFT COKE LP, 191 m from the EPA registry's point for the plant, is filed under Coca-Cola (the word coke); it is the petroleum coke plant at 8618 State Highway 185 N.",
+      "plants": {
+        "Seadrift Coke Plant": {
+          "sameAs": "SEADRIFT COKE LP"
+        }
+      }
+    },
+    "LiquidPower Specialty Products": {
+      "why": "Wrong company today: the row CONOCOPHILLIPS LIQUIDPOWER FLOW IMPROVER PLANT, at 1331 Independence Ave (33 m), is filed under Phillips 66; LiquidPower Specialty Products files with OSHA for that address as 'LSPI Bryan Manufacturing Plant'.",
+      "plants": {
+        "LiquidPower Bryan Plant": {
+          "sameAs": "CONOCOPHILLIPS LIQUIDPOWER FLOW IMPROVER PLANT"
+        }
+      }
+    },
+    "Holley": {
+      "why": "The row MSD LLC (company Msd), 75 m away, is this plant: OSHA's 2025 filing for 1350 Pullman Drive is 'Holley Inc. - MSD' by Holley Performance Products.",
+      "plants": {
+        "Holley MSD El Paso": {
+          "sameAs": "MSD LLC"
+        }
+      }
+    },
+    "Broadwind": {
+      "why": "The row TOWER TECH SYSTEMS, 81 m away, is this plant under the name of Broadwind's tower business; Broadwind Heavy Fabrications files with OSHA for 1126 N Arnold Blvd.",
+      "plants": {
+        "Broadwind Abilene": {
+          "sameAs": "TOWER TECH SYSTEMS"
+        }
+      }
+    },
+    "Tyco Fire Protection Products": {
+      "why": "The row TYCO FIRE PRODUCTS LUBBOCK, 190 m away, is filed under a company named Ty (not this business); Johnson Controls files with OSHA for the sprinkler plant at 8902 N I-27.",
+      "plants": {
+        "Tyco Fire Protection Lubbock": {
+          "sameAs": "TYCO FIRE PRODUCTS LUBBOCK"
+        }
+      }
+    },
+    "Closure Systems International": {
+      "why": "The row SOUTHERN PLASTICS, 63 m away, is this plant: Closure Systems International files with OSHA for 1010 Energy Drive as 'Southern Plastics'.",
+      "plants": {
+        "CSI Kilgore (Southern Plastics)": {
+          "sameAs": "SOUTHERN PLASTICS"
+        }
+      }
+    },
+    "Trinity Industries": {
+      "why": "The row TRINITY TANK CAR INC PLT 200, 156 m away, is this plant; two other Trinity rows are within 700 m.",
+      "plants": {
+        "Trinity Tank Car Plant 200": {
+          "sameAs": "TRINITY TANK CAR INC PLT 200"
+        }
+      }
+    },
+    "Friedman Industries": {
+      "why": "The row TEXAS TUBULAR PRODUCTS, 583 m away, is Friedman Industries' Texas Tubular Products plant (OSHA filing 'Texas Tubulars Products' by Friedman Industries, 3681 FM 250).",
+      "plants": {
+        "Friedman Texas Tubular Products": {
+          "sameAs": "TEXAS TUBULAR PRODUCTS"
+        }
+      }
+    },
+    "Smith Industries": {
+      "why": "The row SMITH INDUSTRIES (company 'Smith Ind'), 123 m away, is this plant.",
+      "plants": {
+        "Smith Industries Midland": {
+          "sameAs": "SMITH INDUSTRIES"
+        }
+      }
+    },
+    "ChampionX": {
+      "why": "The row CHAMPION TECHNOLOGIES INC, 26 m away, is this chemical plant at 115 S Proctor Ave under the name it had before ChampionX.",
+      "plants": {
+        "ChampionX Odessa": {
+          "sameAs": "CHAMPION TECHNOLOGIES INC"
+        }
+      }
+    },
+    "Stemco": {
+      "why": "The row STEMCO LP (filed under Enpro Industries), 620 m away, is this plant; Stemco files with OSHA for 300 Industrial Drive.",
+      "plants": {
+        "Stemco Longview": {
+          "sameAs": "STEMCO LP"
+        }
+      }
+    },
+    "Kent Moore Cabinets": {
+      "why": "Plant 2 (350 Stone City Dr) is 215 m from the curated row at 501 Industrial Blvd, which is where Kent Moore files with OSHA for its corporate office (62 people in 2025); without isNew the loader would put Plant 2's facts on the office's row.",
+      "plants": {
+        "Kent Moore Cabinets Bryan Plant 2": {
+          "isNew": true
+        }
+      }
+    },
+    "Day & Zimmermann": {
+      "why": "The row AREA U DAY & ZIMMERMANN LLC TEXARKANA TEXAS (company 'Area U Day & Zimmermann') is this plant, at the EPA registry's point.",
+      "plants": {
+        "Day & Zimmermann Lone Star": {
+          "sameAs": "AREA U DAY & ZIMMERMANN LLC TEXARKANA TEXAS"
+        }
+      }
+    },
+    "Dairy Farmers of America": {
+      "why": "The row CREAMLAND DAIRIES INC DBA PRICES DAIRIES (company Creamland Dairies), 35 m from DFA's El Paso plant, is that plant under Dean Foods' former name: Price's Creameries was Dean's El Paso dairy and came to DFA with Dean's plants in 2020. Without this the rehearsal inserted the plant beside its own row.",
+      "plants": {
+        "DFA El Paso": {
+          "sameAs": "CREAMLAND DAIRIES INC DBA PRICES DAIRIES"
+        }
+      }
+    },
+    "Tige Boats": {
+      "why": "Tige has one plant, in Abilene; the bare row TIGE BOATS INC is it with a point 6.5 km off (the town's). Without this the rehearsal inserted a second Tige row.",
+      "plants": {
+        "Tige Boats Abilene": {
+          "sameAs": "TIGE BOATS INC"
+        }
+      }
+    },
+    "Martin Sprocket & Gear": {
+      "why": "The bare row MARTIN SPROCKET & GEAR INC in Abilene is this plant with a point 6 km off. Without this the rehearsal inserted a second row.",
+      "plants": {
+        "Martin Sprocket & Gear Abilene": {
+          "sameAs": "MARTIN SPROCKET & GEAR INC"
+        }
+      }
+    },
+    "Xylem": {
+      "why": "The row GOULDS PUMPS INC (company Goulds Pumps), 309 m away, is Xylem's Lubbock pump plant under its brand's name. Without this the rehearsal inserted the plant beside it.",
+      "plants": {
+        "Xylem Lubbock": {
+          "sameAs": "GOULDS PUMPS INC"
+        }
+      }
+    },
+    "Sanden Vendo America": {
+      "why": "The row SANDEN INTERNATIONAL U.S.A., INC, 107 m from 10710 Sanden Dr, is the same Sanden site in Dallas under the group's former US name. Without this the rehearsal inserted the plant beside it.",
+      "plants": {
+        "Sanden Vendo America Dallas": {
+          "sameAs": "SANDEN INTERNATIONAL U.S.A., INC"
+        }
+      }
     }
   }
 }
