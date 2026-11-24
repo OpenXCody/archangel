@@ -185,8 +185,7 @@ export default function EntityDetail() {
   };
 
   return (
-    // A career's page has a column beside its sections from 1024 px (the person's panel, a skill's preview): it takes the list pages' width.
-    <PageContainer size={entityType === 'occupations' ? 'default' : 'narrow'}>
+    <PageContainer size="narrow">
       {/* The address says which kind of record this is; the shape checks only
           narrow the type. A response that gains a field can then never draw
           another kind's page. `data-entity-view` names the view for tests. */}

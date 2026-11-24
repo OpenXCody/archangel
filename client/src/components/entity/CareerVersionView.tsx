@@ -1,21 +1,17 @@
-import { useEffect, useId, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { ChevronRight, Loader2 } from 'lucide-react';
 import { cn, plural } from '@/lib/utils';
 import { ErrorNote, LoadError } from '../account/parts';
 import { signInPath, useAccount } from '../../lib/account';
 import { type OccupationDetail } from '../../lib/api';
 import { isNoVersion, useVersion, type Version } from '../../lib/versions';
 import { useViewer } from '../../lib/viewer';
-import { BackLink, DetailHeader, DetailSection, DetailWithRail, EmptyState } from '../layout/Page';
-import { secondaryActionClass } from '../layout/Panel';
-import { SkillTag, SkillTags } from '../path/SkillTag';
+import { BackLink, DetailHeader, DetailSection, EmptyState } from '../layout/Page';
+import { Disclosure, panelRowClass, secondaryActionClass } from '../layout/Panel';
 import { type PlacedSkill } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
 import { SkillGroups } from '../route/SkillGroups';
-import { SkillPreview } from '../route/SkillPreview';
-import { useSkillChoice } from '../route/useSkillChoice';
-import { YourSkills } from '../route/YourSkills';
 import { type Head, OpenJobsSection } from './parts';
 import { CareerTag, CompanyTag, RecordTags } from '../layout/RecordTag';
 
@@ -98,15 +94,14 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         group: skill.group,
         domain: skill.domain,
         howLearned: skill.howLearned,
+        description: skill.description,
         added: skill.added,
         makes: skill.makes.filter((make) => make.runs).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })),
       })),
     [version.skills, ranMakes]
   );
-  const choice = useSkillChoice(skills, marks);
   const signIn = canSignIn ? signInPath(`${pathname}${search}`) : null;
-  const you = skills.length > 0 ? <YourSkills total={skills.length} share={choice.share} signIn={signIn} next={choice.next} /> : null;
-  const headingId = useId();
+  const [leftOutOpen, setLeftOutOpen] = useState(false);
   const leftOut = version.leftOut;
   const same = leftOut.length === 0 && !skills.some((skill) => skill.added);
 
@@ -141,59 +136,53 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         </RecordTags>
       </DetailHeader>
 
-      <DetailWithRail
-        label="Your skills, and the skill chosen"
-        rail={
-          skills.length > 0 ? (
+      {skills.length === 0 ? (
+        <DetailSection id="skills" title="Skills">
+          <p className="text-sm text-text-2">None yet.</p>
+        </DetailSection>
+      ) : (
+        // The same skills by group as the standard's page, the company's changes applied.
+        <SkillGroups
+          skills={skills}
+          marks={marks}
+          keepAs={`${data.id}@${company.id}`}
+          signIn={signIn}
+          before={marks && <ErrorNote error={markError} className="mb-3" />}
+          after={
             <>
-              {you}
-              <SkillPreview skill={choice.shown} next={choice.showingNext} />
+              {/* What the company leaves out of the standard is not among the groups: one more panel holds it, closed. */}
+              {leftOut.length > 0 && (
+                <Disclosure
+                  className="mt-2"
+                  title={`${plural(leftOut.length, 'skill', 'skills')} of the standard path left out`}
+                  open={leftOutOpen}
+                  onToggle={() => setLeftOutOpen((value) => !value)}
+                  data-left-out=""
+                >
+                  <ul>
+                    {leftOut.map((skill) => (
+                      <li key={skill.id} className="border-t border-line first:border-t-0">
+                        <Link to={`/skills/${skill.id}`} className={cn(panelRowClass, 'min-h-11 justify-between text-sm text-text-2')}>
+                          <span className="min-w-0 break-words">{skill.name}</span>
+                          <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0 text-text-3" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </Disclosure>
+              )}
+              {same && (
+                <p className="mt-4 text-sm text-text-3" data-version-same>
+                  The same skills as the standard path.
+                </p>
+              )}
             </>
-          ) : undefined
-        }
-      >
-        {skills.length === 0 ? (
-          <DetailSection id="skills" title="Skills">
-            <p className="text-sm text-text-2">None yet.</p>
-          </DetailSection>
-        ) : (
-          <section id="skills" aria-labelledby={headingId} className="mt-14 scroll-mt-20">
-            {marks && <ErrorNote error={markError} className="mb-3" />}
-            {/* The same skills by group as the standard's page, the company's changes applied. */}
-            <SkillGroups
-              skills={skills}
-              marks={marks}
-              keepAs={`${data.id}@${company.id}`}
-              headingId={headingId}
-              onSelect={choice.wide ? choice.choose : undefined}
-              selected={choice.wide ? (choice.shown?.id ?? null) : null}
-              lead={you && <div className="mb-4 lg:hidden">{you}</div>}
-            />
+          }
+        />
+      )}
 
-            {/* What the company leaves out of the standard is not drawn: one line says how many, and opens them. */}
-            {leftOut.length > 0 && (
-              <details className="group mt-4" data-left-out>
-                <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-sm text-text-1 underline [&::-webkit-details-marker]:hidden">
-                  {plural(leftOut.length, 'skill', 'skills')} of the standard path left out
-                </summary>
-                <SkillTags className="mt-1">
-                  {leftOut.map((skill) => (
-                    <SkillTag key={skill.id} skill={{ id: skill.id, name: skill.name }} className="grow-0 text-text-2" />
-                  ))}
-                </SkillTags>
-              </details>
-            )}
-            {same && (
-              <p className="mt-4 text-sm text-text-3" data-version-same>
-                The same skills as the standard path.
-              </p>
-            )}
-          </section>
-        )}
-
-        {/* Open jobs for this career at this company. */}
-        {(version.jobs?.length ?? 0) > 0 && <OpenJobsSection jobs={version.jobs ?? []} showCareer />}
-      </DetailWithRail>
+      {/* Open jobs for this career at this company. */}
+      {(version.jobs?.length ?? 0) > 0 && <OpenJobsSection jobs={version.jobs ?? []} showCareer />}
     </>
   );
 }

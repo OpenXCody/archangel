@@ -31,6 +31,8 @@
     color-scheme: dark;
 
     --radius: 0.5rem;
+    /* The header's height with its hairline (components/layout/Layout.tsx): what holds under it, a Band, stands this far down. */
+    --header-height: 57px;
 
     --bg: #0e0e0f;
     --surface: #18181a;
@@ -726,6 +728,140 @@ input {
     align-items: flex-start;
     gap: 0 16px;
   }
+  /*
+   * A career's ladder (components/route/CareerLadder.tsx), from 640 px: the
+   * career in the middle, a line out from it to a bracket on each side, and
+   * on each bracket the careers of that side. Under 640 px it is drawn with
+   * the route's own parts above. The lines are the strong hairline; the
+   * career itself is the one filled stop.
+   */
+  /* Under 640 px the ladder is drawn with the route's stops: the same mark size, no room above or under a line. */
+  .ladder-route {
+    --route-mark: 44px;
+    --route-pad: 0px;
+  }
+  .ladder {
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 0;
+    row-gap: 10px;
+    align-items: center;
+  }
+  .ladder[data-from][data-to] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
+    grid-template-areas: 'lf lt lto' 'from this to';
+  }
+  .ladder[data-to]:not([data-from]) {
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1fr);
+    grid-template-areas: 'lt lto' 'this to';
+  }
+  .ladder[data-from]:not([data-to]) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.75fr);
+    grid-template-areas: 'lf lt' 'from this';
+  }
+  .ladder-label-from {
+    grid-area: lf;
+    padding-left: 8px;
+  }
+  .ladder-label-this {
+    grid-area: lt;
+  }
+  .ladder-label-to {
+    grid-area: lto;
+    padding-left: 48px;
+  }
+  .ladder-from {
+    grid-area: from;
+    padding-right: 40px;
+  }
+  .ladder-to {
+    grid-area: to;
+    padding-left: 40px;
+  }
+  .ladder-this {
+    grid-area: this;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 12px;
+  }
+  /* The line out from the career to each side's bracket: on the right it runs from the name, on the left it reaches the stop. */
+  .ladder[data-to] .ladder-this::after {
+    content: '';
+    flex: 1 1 24px;
+    min-width: 24px;
+    height: 0;
+    margin-right: -20px;
+    border-top: 1px solid var(--line-strong);
+  }
+  .ladder[data-from] .ladder-this::before {
+    content: '';
+    flex: none;
+    width: 20px;
+    height: 0;
+    margin-left: -20px;
+    margin-right: -12px;
+    border-top: 1px solid var(--line-strong);
+  }
+  .ladder-item {
+    position: relative;
+  }
+  /* Each career's stub, and the bracket's upright: from the middle of the first to the middle of the last. */
+  .ladder-to .ladder-item::before,
+  .ladder-from .ladder-item::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    border-top: 1px solid var(--line-strong);
+  }
+  .ladder-to .ladder-item::before {
+    left: -20px;
+    width: 28px;
+  }
+  .ladder-from .ladder-item::before {
+    left: 100%;
+    width: 20px;
+  }
+  .ladder-to .ladder-item::after,
+  .ladder-from .ladder-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-left: 1px solid var(--line-strong);
+  }
+  .ladder-to .ladder-item::after {
+    left: -20px;
+  }
+  .ladder-from .ladder-item::after {
+    left: calc(100% + 20px);
+  }
+  .ladder-item:first-child::after {
+    top: 50%;
+  }
+  .ladder-item:last-child::after {
+    bottom: 50%;
+  }
+  .ladder-item:only-child::after {
+    display: none;
+  }
+  /* A stop: a career beside this one is an open ring; this career is the filled one. */
+  .ladder-dot {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border: 1.5px solid var(--text-3);
+    border-radius: 9999px;
+    background-color: var(--bg);
+  }
+  .ladder-dot-this {
+    width: 11px;
+    height: 11px;
+    border-color: var(--text-1);
+    background-color: var(--text-1);
+  }
+
   /* A route whose rows are another control (the employer's editor): no trunk, and nothing stands on it. */
   .route[data-route-plain] .route-item::before {
     display: none;

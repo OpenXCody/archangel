@@ -303,27 +303,6 @@ export function DetailSection({ id, title, note, column, action, description, cl
   );
 }
 
-/**
- * A detail page whose sections have a column beside them from 1024 px (a
- * career's: the person's panel and a skill's preview), holding still under the
- * header while the sections scroll. Every section keeps the one width of the
- * main column. Under 1024 px there is no column: what it holds is drawn in the
- * sections, where it belongs.
- */
-export function DetailWithRail({ rail, label, children }: { rail?: ReactNode; label: string; children: ReactNode }) {
-  return (
-    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_304px] lg:gap-x-10 xl:gap-x-12" data-detail-rail-layout>
-      <div className="min-w-0">{children}</div>
-      {rail && (
-        <aside className="hidden min-w-0 lg:block" aria-label={label} data-detail-rail>
-          {/* Level with the first panel under the first section's heading, then holding under the header. */}
-          <div className="sticky top-20 mt-[116px] space-y-3">{rail}</div>
-        </aside>
-      )}
-    </div>
-  );
-}
-
 /** A link at the right of a section's heading. */
 export const sectionLinkClass = cn('shrink-0 text-sm text-text-1 underline transition-colors', focusRing);
 

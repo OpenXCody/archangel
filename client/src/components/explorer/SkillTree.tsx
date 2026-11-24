@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { cn, plural } from '@/lib/utils';
 import type { TaxonomyDomain } from '../../lib/api';
-import { LEVEL_NAME } from '../../lib/stages';
 import { readStored, writeStored } from '../../lib/storage';
 import { Band, Panel, PanelHead, panelRowClass, secondaryActionClass } from '../layout/Panel';
 
@@ -12,13 +11,14 @@ import { Band, Panel, PanelHead, panelRowClass, secondaryActionClass } from '../
  * contained system (`components/layout/Panel.tsx`).
  *
  * Each domain is a `Band`: a raised bar with its name at section size and how
- * many groups and skills it holds, closed when the page arrives, so the list
- * opens as an index of the sixteen domains. Opened, the bar holds under the
- * header while its domain is on screen, its sentence and the way to it on the
- * atlas stand under it, and its skill groups follow as panels, each the
- * group's name and size over its skills, set in two balanced columns from a
- * laptop up (no group waits beside a longer one, so the columns leave no
- * holes). A skill is a row: its name, and its level in meta ink. The next
+ * many skills and groups it holds, closed when the page arrives, so the list
+ * opens as an index of the sixteen domains with nothing cut short. Opened, the
+ * bar holds under the header while its domain is on screen, its sentence
+ * stands under it, and its skill groups follow in the taxonomy's order, one
+ * panel each, the width of the page: the group's name and size over its
+ * skills, which stand in columns that read down (two from a tablet, three
+ * from a laptop). A skill is its name alone: its level is said on its page.
+ * The domain ends in the way to it on the atlas, a button, and the next
  * domain begins with its own bar, which nobody can miss.
  */
 export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
@@ -51,26 +51,23 @@ export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
             open={isOpen(open, domain.slug)}
             onToggle={() => toggle(domain.slug)}
             actions={
-              <Link to={`/atlas?domain=${encodeURIComponent(domain.slug)}`} className={cn(secondaryActionClass, 'h-9 px-3 sm:h-9')}>
-                On the atlas
-                <ArrowUpRight aria-hidden="true" className="h-4 w-4 text-text-2" />
+              <Link to={`/atlas?domain=${encodeURIComponent(domain.slug)}`} className={secondaryActionClass} data-band-atlas>
+                {domain.name} on the atlas
+                <ArrowRight aria-hidden="true" className="h-4 w-4 text-text-2" />
               </Link>
             }
             data-skill-domain={domain.slug}
           >
-            {/* Columns, not a grid: a short group never stands beside a long one with a hole under it. */}
-            <div className="gap-3 lg:columns-2">
+            <div className="space-y-3">
               {domain.groups.map((group) => (
-                <Panel key={group.slug} className="mb-3 break-inside-avoid" data-skill-group={group.slug}>
+                <Panel key={group.slug} data-skill-group={group.slug}>
                   <PanelHead title={group.name} meta={plural(group.skills.length, 'skill', 'skills')} />
-                  <ul>
+                  {/* Columns read down: the group's skills stay in its own order, top to bottom, then across. */}
+                  <ul className="-mt-px gap-0 [column-rule:1px_solid_var(--line)] md:columns-2 lg:columns-3">
                     {group.skills.map((skill) => (
-                      <li key={skill.id} className="border-t border-line first:border-t-0">
-                        <Link to={`/skills/${skill.id}`} className={cn(panelRowClass, 'min-h-11 justify-between gap-4 py-2')}>
+                      <li key={skill.id} className="break-inside-avoid border-t border-line">
+                        <Link to={`/skills/${skill.id}`} className={cn(panelRowClass, 'min-h-11 py-2')}>
                           <span className="min-w-0 break-words text-sm leading-snug text-text-1">{skill.name}</span>
-                          <span className="shrink-0 whitespace-nowrap text-[13px] text-text-3" data-skill-level>
-                            {LEVEL_NAME[skill.level]}
-                          </span>
                         </Link>
                       </li>
                     ))}
