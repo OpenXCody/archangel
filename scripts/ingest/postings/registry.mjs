@@ -5,6 +5,13 @@
 // its board runs on, and the board's token or address. Adding an employer is
 // a line here, never code. An employer that is left out says why.
 //
+// A board that names its sites by their town alone ("Evendale", "Lynn": a
+// Workday tenant's own names for its locations, which say no state) has them
+// written out on its line by a person, `sites`: { "<the site as the board
+// writes it>": "City, ST" }. The runner reads a site so named as the place
+// beside it; a site that is not on the line has no place, because a state is
+// never guessed.
+//
 //   node scripts/ingest/postings/registry.mjs --check     holds the file to its shape; writes nothing
 //
 // The runner (scripts/ingest/run.mjs) reads it through `loadRegistry` and
@@ -13,6 +20,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SYSTEMS } from './systems/index.mjs';
+import { readPlaces } from './read/facts.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 export const REGISTRY_FILE = path.join(ROOT, 'data', 'employers', 'boards.json');
@@ -21,11 +29,32 @@ export const REGISTRY_FILE = path.join(ROOT, 'data', 'employers', 'boards.json')
 export const SOURCE_PREFIX = 'postings-';
 
 const LEFT_OUT = new Set(['refused', 'not verified', 'no adapter']);
-const EMPLOYER_KEYS = new Set(['slug', 'employer', 'company', 'also', 'system', 'board', 'ceiling', 'note']);
+const EMPLOYER_KEYS = new Set(['slug', 'employer', 'company', 'also', 'system', 'board', 'ceiling', 'sites', 'note']);
 const LEFT_OUT_KEYS = new Set(['employer', 'why', 'what', 'when', 'system']);
 const MOST_REQUESTS = 2000;
 
 const text = (value) => typeof value === 'string' && value.trim() !== '' && value === value.trim();
+
+/** A site's name as the runner matches it: its words, in any letter case. */
+export const siteKey = (name) => String(name ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+
+/** What is wrong with a line's `sites`, as sentences: each name once, each place one US city and state as "City, ST". */
+function siteProblems(sites) {
+  if (!sites || typeof sites !== 'object' || Array.isArray(sites) || Object.keys(sites).length === 0) {
+    return ['sites is an object of the board\'s names for its sites, each with its place as "City, ST"'];
+  }
+  const problems = [];
+  const seen = new Set();
+  for (const [name, place] of Object.entries(sites)) {
+    if (!text(name)) problems.push(`sites: "${name}" is not a site's name`);
+    else if (seen.has(siteKey(name))) problems.push(`sites: "${name}" is named twice`);
+    seen.add(siteKey(name));
+    // The place is held to what the reader will read in it: exactly one US city and state, written as it reads.
+    const read = typeof place === 'string' ? readPlaces(place, '', () => []) : [];
+    if (read.length !== 1 || `${read[0].city}, ${read[0].state}` !== place) problems.push(`sites: "${name}" is "${place}", which is not one US place written "City, ST"`);
+  }
+  return problems;
+}
 
 /** What a board must look like for each system, and why not when it does not. */
 const BOARD = {
@@ -77,6 +106,7 @@ export function checkRegistry(registry) {
     if (entry.ceiling !== undefined && !(Number.isInteger(entry.ceiling) && entry.ceiling >= 1 && entry.ceiling <= MOST_REQUESTS)) {
       say(where, `ceiling is a whole number of requests from 1 to ${MOST_REQUESTS}`);
     }
+    if (entry.sites !== undefined) for (const problem of siteProblems(entry.sites)) say(where, problem);
     if (entry.note !== undefined && !text(entry.note)) say(where, 'note is text');
   }
   for (const [index, entry] of (Array.isArray(registry.leftOut) ? registry.leftOut : []).entries()) {

@@ -25,7 +25,7 @@ import { countryOf, dayOf } from '../../scripts/ingest/postings/systems/successf
 // @ts-expect-error a plain script, no types
 import { listAll, unescapeHtml, webAddress } from '../../scripts/ingest/postings/systems/shared.mjs';
 // @ts-expect-error a plain script, no types
-import { beforeText, collect, inTurn } from '../../scripts/ingest/postings/jobs.mjs';
+import { beforeText, collect, inTurn, report, siteNames } from '../../scripts/ingest/postings/jobs.mjs';
 // @ts-expect-error a plain script, no types
 import * as reader from '../../scripts/ingest/postings/read/index.mjs';
 // @ts-expect-error a plain script, no types
@@ -93,6 +93,14 @@ test('the check holds the registry to its shape', () => {
   assert.match(problems([line({ also: ['Acme Works'] })]), /also repeats a company/);
   assert.match(problems([line({ ceiling: 100000 })]), /ceiling is a whole number/);
   assert.match(problems([line({ secret: 'x' })]), /"secret" is not something/);
+  // A board's sites named by their town alone, each written out as one US place.
+  assert.deepEqual(checkRegistry(registry([line({ sites: { Evendale: 'Evendale, OH', 'Loves Park': 'Loves Park, IL' } })])), []);
+  assert.match(problems([line({ sites: { Evendale: 'Evendale' } })]), /sites: "Evendale" is "Evendale", which is not one US place written "City, ST"/);
+  assert.match(problems([line({ sites: { Evendale: 'Evendale, Ohio' } })]), /not one US place written "City, ST"/, 'the state as its two letters');
+  assert.match(problems([line({ sites: { Perth: 'Perth, WA; Seattle, WA' } })]), /not one US place/);
+  assert.match(problems([line({ sites: { Evendale: 'Evendale, OH', EVENDALE: 'Evendale, OH' } })]), /"EVENDALE" is named twice/, 'a name in any letter case is one name');
+  assert.match(problems([line({ sites: {} })]), /sites is an object of the board's names for its sites/);
+  assert.match(problems([line({ sites: ['Evendale, OH'] })]), /sites is an object/);
   assert.match(problems([line()], [{ employer: 'Acme', why: 'refused', what: 'robots.txt answered 403', when: '2026-11-19' }]), /also among the employers that are read/);
   assert.match(problems([], [{ employer: 'Tesla', why: 'unknown', what: 'x', when: '2026-11-19' }]), /why is one of/);
   assert.match(problems([], [{ employer: 'Tesla', why: 'refused', what: 'robots.txt answered 403', when: 'last week' }]), /when is a day/);
@@ -386,6 +394,23 @@ test('Workday: the filter is found wherever the board puts it, and "Posted 6 Day
   assert.equal(postedDay('', '2026-11-19'), null);
 });
 
+/** A board shaped as GE Aerospace's answers (tests/fixtures/postings/workday/townsites): its sites by their town alone, and no filter for a country. */
+const TOWNSITES = 'https://townsites.wd5.myworkdayjobs.com/wday/cxs/townsites/Careers';
+
+test('Workday: a board that names its sites by their town alone says no state, in its list or in a posting\'s own record', async () => {
+  const { listed, session, tools } = await read('workday', TOWNSITES);
+  wellFormed(listed, false);
+  assert.equal(session.requests, 2, 'the robots file and one page: with no filter for a country, the first page is the list');
+  assert.deepEqual(listed.map((posting) => posting.location), ['Evendale', null, 'Bohemia', 'Auburn AL USA', null, 'Singapore', null], '"2 Locations" is not a place');
+  assert.ok(listed.every((posting) => posting.country === null), 'a list that could not be narrowed says no country');
+  const several = listed.find((posting) => posting.id === 'R5000002-1');
+  assert.deepEqual(several?.locations, []);
+  const detail = await SYSTEMS.workday.text(TOWNSITES, several, tools);
+  assert.deepEqual(detail.locations, ['Lynn', 'Evendale'], 'the sites are in the posting\'s own record, its first and the others, there too by town alone');
+  assert.equal(detail.country, 'US', 'the record says the country of its first site');
+  assert.equal(session.requests, 3);
+});
+
 test('SuccessFactors: one feed with every posting; the place in the title is taken out of it', async () => {
   const { listed, session } = await read('successfactors', 'https://jobs.deere.com/sitemap.xml');
   wellFormed(listed, true);
@@ -517,6 +542,17 @@ test('before a text is asked for: a title that is a career, one that could be, a
   assert.deepEqual(ask('Welder', 'Melbourne, Victoria, Australia').places, []);
   assert.equal(ask('Welder', null).places, null, 'no line: the places are in the posting itself');
   assert.equal(ask('Welder', null).could, true);
+  // A site named by its town alone says no state. Written out on the board's line, it is the place written there.
+  assert.deepEqual(ask('Welder', 'Evendale').places, []);
+  const named = siteNames({ sites: { Evendale: 'Evendale, OH' } });
+  const listed = named.posting({ title: 'Welder', location: 'evendale ', locations: ['evendale '] });
+  assert.deepEqual(listed.locations, ['Evendale, OH'], 'in any letter case, with any spaces');
+  assert.deepEqual(beforeText(reader, listed, { employer: 'Acme', title: 'Welder' }, vocab).places, [{ city: 'Evendale', state: 'OH' }]);
+  assert.deepEqual(named.posting({ title: 'Welder', location: 'Lynn', locations: ['Lynn'] }).locations, ['Lynn'], 'a site not written out is as the feed gave it');
+  // A board with no sites written out reads exactly as before.
+  const plain = { title: 'Welder', location: 'Evendale', locations: ['Evendale'] };
+  assert.equal(siteNames({}).posting(plain), plain);
+  assert.equal(siteNames({}).key, null);
 });
 
 test('only postings that are one of our careers at a US place are kept, as facts and a link: never the text', async () => {
@@ -582,6 +618,82 @@ test('where the text costs a request it is asked for only postings whose title i
   assert.equal(third.collected.stopped.outcome, 'cut');
   assert.equal(third.collected.complete, true, 'the listing itself was read to its end');
   assert.deepEqual([...third.collected.present], ['JR2026516085-1'], 'listed, so not gone');
+});
+
+// --- Sites named by their town alone ---------------------------------------------------
+
+interface Kept { same?: boolean; hash: string; payload: unknown; facts: { location: string; reading: { places: { city: string; state: string }[] } } }
+
+test('a site named by its town alone is the place its line in the registry writes out; any other is listed in the report and costs no text', async () => {
+  const vocab = reader.loadVocabulary(ROOT);
+  const host = 'townsites.wd5.myworkdayjobs.com';
+  const entry = { slug: 'townsites', employer: 'Townsites', company: 'Townsites Works', system: 'workday', board: TOWNSITES, sites: { Evendale: 'Evendale, OH', LYNN: 'Lynn, MA' } };
+  /** One run over the board, with what staging holds: the texts it asked for, by the end of each one's path. */
+  const run = async (line: Record<string, unknown>, records: unknown[] = [], passes: unknown[] = []) => {
+    const db = Object.assign(async (strings: TemplateStringsArray) => {
+      const sql = strings.join('');
+      return sql.includes('FROM intake_records') ? records : sql.includes('FROM posting_passes') ? passes : [];
+    }, { json: (value: unknown) => value });
+    const from = saved.requests.length;
+    const session: Session = createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session('townsites', { pace: 0 });
+    const collected = await collect(db, line, { session, reader, vocab, today: '2026-11-19' });
+    const asked = saved.requests.slice(from).filter((request) => request.host === host && request.path.includes('/job/')).map((request) => request.path.split('/').pop());
+    return { collected, asked, kept: collected.kept as Map<string, Kept> };
+  };
+  const placesOf = (record: Kept | undefined) => record?.facts.reading.places.map((place) => `${place.city}, ${place.state}`);
+
+  // Without the line's sites the board gives what GE Aerospace's gave: nothing at a town alone, and one posting kept,
+  // at the one site that says its state.
+  const before = await run({ ...entry, sites: undefined });
+  assert.deepEqual([...before.kept.keys()], ['R5000004-1']);
+  assert.deepEqual(before.asked, ['CNC-Machinist_R5000002-1', 'Welder_R5000004-1', 'CNC-Machinist_R5000007-1']);
+  assert.deepEqual(before.collected.unplaced, [['Bohemia', 2], ['Evendale', 2], ['Lynn', 1], ['Norwich', 1], ['Singapore', 1]]);
+
+  const first = await run(entry);
+  assert.deepEqual(first.collected.counts, { read: 7, abroad: 0, notCareer: 1, noPlace: 3, noAddress: 0, vanished: 0, texts: 4, spared: 0, kept: 3 });
+  assert.deepEqual(first.asked, ['Welder_R5000001-1', 'CNC-Machinist_R5000002-1', 'Welder_R5000004-1', 'CNC-Machinist_R5000007-1'],
+    'a text for each posting that could be ours at a place, or whose places are only in its record: none at Bohemia or Singapore alone, none for the payroll analyst');
+  assert.deepEqual(placesOf(first.kept.get('R5000001-1')), ['Evendale, OH']);
+  assert.deepEqual(placesOf(first.kept.get('R5000002-1')), ['Lynn, MA', 'Evendale, OH'], 'a posting at two sites is at both, each to be a job at its own factory');
+  assert.equal(first.kept.get('R5000002-1')?.facts.location, 'Lynn, MA; Evendale, OH');
+  assert.deepEqual(placesOf(first.kept.get('R5000004-1')), ['Auburn, AL'], 'a site that says its state is read as it is');
+  assert.deepEqual(first.collected.unplaced, [['Bohemia', 2], ['Norwich', 1], ['Singapore', 1]], 'where postings that could be ours are at no place we read: for a person to write out');
+  assert.deepEqual([...first.collected.passes.keys()], ['R5000007-1'], 'its text was read and it is at no place: noted, so it is not asked about again while nothing changes');
+
+  // The next day nothing has changed: no text is asked for.
+  const staged = [...first.kept].map(([id, record]) => ({ source_id: id, hash: record.hash, payload: record.payload, facts: record.facts }));
+  const passed = [...first.collected.passes].map(([id, listing]) => ({ source_id: id, listing, read_on: '2026-11-19' }));
+  const second = await run(entry, staged, passed);
+  assert.deepEqual(second.asked, []);
+  assert.equal(second.collected.counts.spared, 1);
+  assert.deepEqual(second.kept.get('R5000001-1'), { same: true, hash: first.kept.get('R5000001-1')?.hash });
+
+  // A site written out since: the postings listed there are read, and so are those whose places are only in their own
+  // record; the rest stand as they were.
+  const third = await run({ ...entry, sites: { ...entry.sites, Bohemia: 'Bohemia, NY' } }, staged, passed);
+  assert.deepEqual(third.asked, ['CNC-Machinist_R5000002-1', 'Welder_R5000003-1', 'CNC-Machinist_R5000007-1']);
+  assert.deepEqual(placesOf(third.kept.get('R5000003-1')), ['Bohemia, NY']);
+  assert.deepEqual(placesOf(third.kept.get('R5000007-1')), ['Bohemia, NY']);
+  assert.deepEqual(third.kept.get('R5000004-1'), { same: true, hash: first.kept.get('R5000004-1')?.hash });
+  assert.deepEqual(third.collected.unplaced, [['Norwich', 1], ['Singapore', 1]], 'a site of a posting kept at another is still one to write out');
+});
+
+test('the run\'s report names the places that were not read, the commonest first', async () => {
+  const db = Object.assign(async (strings: TemplateStringsArray) => {
+    if (!strings.join('').includes('JOIN intake_sources')) return [];
+    return [{
+      id: 7, source: 'postings-townsites', state: 'applied', input: `${TOWNSITES}/jobs`, note: null, source_name: 'Townsites job postings', system: 'workday', company: 'Townsites Works',
+      counts: { read: 7, notCareer: 1, abroad: 0, noPlace: 3, kept: 3, unplaced: [['Bohemia', 2], ['Norwich', 1]] }, timings: {},
+    }];
+  }, { json: (value: unknown) => value });
+  const text = await report(db, 7);
+  assert.match(text, /places named and not read as a US city and state \(the 2 commonest, with how many postings; a site named by its town alone is written out under "sites" on the board's line\): Bohemia 2; Norwich 1/);
+});
+
+test('the committed registry writes out GE Aerospace\'s sites where we list a factory of the board\'s companies', () => {
+  const ge = loadRegistry().employers.find((entry: { slug: string }) => entry.slug === 'ge-aerospace');
+  assert.equal(ge.sites.Evendale, 'Evendale, OH');
+  assert.equal(ge.sites.Lynn, 'Lynn, MA');
 });
 
 // --- A platform's budget, and a listing that is cut -------------------------------------

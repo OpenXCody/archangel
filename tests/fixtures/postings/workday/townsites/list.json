@@ -1,0 +1,123 @@
+{
+ "total": 7,
+ "jobPostings": [
+  {
+   "title": "Welder",
+   "externalPath": "/job/Evendale/Welder_R5000001-1",
+   "locationsText": "Evendale",
+   "postedOn": "Posted Yesterday",
+   "bulletFields": [
+    "R5000001"
+   ]
+  },
+  {
+   "title": "CNC Machinist",
+   "externalPath": "/job/Lynn/CNC-Machinist_R5000002-1",
+   "locationsText": "2 Locations",
+   "postedOn": "Posted 3 Days Ago",
+   "bulletFields": [
+    "R5000002"
+   ]
+  },
+  {
+   "title": "Welder",
+   "externalPath": "/job/Bohemia/Welder_R5000003-1",
+   "locationsText": "Bohemia",
+   "postedOn": "Posted Today",
+   "bulletFields": [
+    "R5000003"
+   ]
+  },
+  {
+   "title": "Welder",
+   "externalPath": "/job/Auburn-AL-USA/Welder_R5000004-1",
+   "locationsText": "Auburn AL USA",
+   "postedOn": "Posted Today",
+   "bulletFields": [
+    "R5000004"
+   ]
+  },
+  {
+   "title": "Payroll Analyst",
+   "externalPath": "/job/Lynn/Payroll-Analyst_R5000005-1",
+   "locationsText": "2 Locations",
+   "postedOn": "Posted Today",
+   "bulletFields": [
+    "R5000005"
+   ]
+  },
+  {
+   "title": "Welder",
+   "externalPath": "/job/Singapore/Welder_R5000006-1",
+   "locationsText": "Singapore",
+   "postedOn": "Posted 30+ Days Ago",
+   "bulletFields": [
+    "R5000006"
+   ]
+  },
+  {
+   "title": "CNC Machinist",
+   "externalPath": "/job/Bohemia/CNC-Machinist_R5000007-1",
+   "locationsText": "2 Locations",
+   "postedOn": "Posted 6 Days Ago",
+   "bulletFields": [
+    "R5000007"
+   ]
+  }
+ ],
+ "facets": [
+  {
+   "facetParameter": "timeType",
+   "descriptor": "Full/Part-time",
+   "values": [
+    {
+     "descriptor": "Full time",
+     "id": "8fa66b8353bc1002dd02c0098eae0000",
+     "count": 7
+    }
+   ]
+  },
+  {
+   "facetParameter": "locationMainGroup",
+   "values": [
+    {
+     "facetParameter": "locations",
+     "descriptor": "Locations",
+     "values": [
+      {
+       "descriptor": "Auburn AL USA",
+       "id": "1b2c3d4e5f60718293a4b5c6d7e8f900",
+       "count": 1
+      },
+      {
+       "descriptor": "Bohemia",
+       "id": "1b2c3d4e5f60718293a4b5c6d7e8f901",
+       "count": 2
+      },
+      {
+       "descriptor": "Evendale",
+       "id": "1b2c3d4e5f60718293a4b5c6d7e8f902",
+       "count": 2
+      },
+      {
+       "descriptor": "Lynn",
+       "id": "1b2c3d4e5f60718293a4b5c6d7e8f903",
+       "count": 2
+      },
+      {
+       "descriptor": "Norwich",
+       "id": "1b2c3d4e5f60718293a4b5c6d7e8f904",
+       "count": 1
+      },
+      {
+       "descriptor": "Singapore",
+       "id": "1b2c3d4e5f60718293a4b5c6d7e8f905",
+       "count": 1
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "userAuthenticated": false
+}

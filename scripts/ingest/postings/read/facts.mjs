@@ -23,11 +23,16 @@ function onePlace(raw) {
   let s = String(raw).split('~')[0].replace(/\s+/g, ' ').trim();
   if (!s || /^remote\b/i.test(s) || /^(hybrid|virtual|various|multiple locations?)$/i.test(s)) return null;
   s = s.replace(/\((?:remote|hybrid|onsite|on-site)\)/gi, '').trim();
+  // "Auburn AL USA", "Saint George UT US 1": a site named by its town, its state's letters and the country with
+  // spaces between, and the site's number after.
+  const spaced = /^([A-Za-z][A-Za-z .'-]*?)\s+([A-Z]{2})\s+(?:US|USA)(?:\s+\d{1,3})?$/.exec(s);
+  if (spaced && STATE_CODES.has(spaced[2])) return { city: tidyCity(spaced[1]), state: spaced[2] };
   const lower = s.toLowerCase();
   if (ABROAD_NAMES.some((n) => lower.includes(n))) return null;
-  // "United States-Utah-Salt Lake City", "US-NC-WILSON-4200": parts joined by bare hyphens.
+  // "United States-Utah-Salt Lake City", "US-NC-WILSON-4200": parts joined by bare hyphens. A part that only says
+  // there are other places ("Dallas, Multiple Locations, TX") is not the city.
   const bare = /^(US|USA|United States)-\S/.test(s);
-  const parts = (bare ? s.split('-') : s.split(/,|\s+-\s+/)).map((p) => p.trim()).filter(Boolean);
+  const parts = (bare ? s.split('-') : s.split(/,|\s+-\s+/)).map((p) => p.trim()).filter((p) => p && !/^(multiple|various|several|\d+) locations?$/i.test(p));
   if (!parts.length) return null;
   // "City, Region, CC, postcode": the third part is the country, whatever state shares its letters.
   if (parts.length >= 3 && !US.test(parts[0]) && /^[A-Z]{2}$/.test(parts[2]) && !US.test(parts[2]) && !STATE_BY_NAME.has(parts[1].toLowerCase()) && !STATE_CODES.has(parts[1])) return null;
