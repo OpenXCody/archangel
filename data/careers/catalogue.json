@@ -18,7 +18,7 @@
         "Razor Assembly Operator",
         "Blade Manufacturing Op"
       ],
-      "note": "The folded titles are single consumer-goods lines (diapers, tissue, razors). Paper converting has no skill in the catalogue; the path is the shared floor skills."
+      "note": "The folded titles are single consumer-goods lines (diapers, tissue, razors). The path is the shared floor skills; a converting line's own skills are Converting Machine Operator's, since 0073."
     },
     {
       "title": "Setup Technician",
@@ -2038,7 +2038,7 @@
         "CIP Operator",
         "Food Plant Water Treatment Operator"
       ],
-      "note": "Nineteen single machines. Path: HACCP Food Safety, Sanitation Procedures, Allergen Changeover Cleaning, Food Batching and Blending, Clean-in-Place Operation, Pasteurization, Retort Operation, Spray Drying, Metal Detection and Checkweighing. Frying, extrusion, forming and enrobing have no skills in the catalogue."
+      "note": "Nineteen single machines. Path: HACCP Food Safety, Sanitation Procedures, Allergen Changeover Cleaning, Food Batching and Blending, Clean-in-Place Operation, Pasteurization, Retort Operation, Spray Drying, Metal Detection and Checkweighing. Frying, extrusion cooking, forming and depositing, and tempering and enrobing are skills of their own since 0070, and are on the path."
     },
     {
       "title": "Beverage Production Operator",
@@ -2115,7 +2115,7 @@
         "Coating Pan Operator",
         "Encapsulation Operator"
       ],
-      "note": "Path: Current Good Manufacturing Practice, Granulation and Blending, Tablet Compression, Tablet Film Coating, Lot Tracking, Process Validation. Encapsulation has no skill of its own."
+      "note": "Path: Current Good Manufacturing Practice, Granulation and Blending, Tablet Compression, Tablet Film Coating, Lot Tracking, Process Validation. Encapsulation is Capsule Filling since 0070, and is on the path."
     },
     {
       "title": "Aseptic Filling Technician",
@@ -2161,7 +2161,7 @@
         "In-Process Analyst",
         "Release Analyst"
       ],
-      "note": "Each folded title is one instrument or one sample type. Path: HPLC Analysis, Gas Chromatography, Dissolution Testing, Karl Fischer Titration, Current Good Manufacturing Practice. Mass spectrometry is not in the catalogue."
+      "note": "Each folded title is one instrument or one sample type. Path: HPLC Analysis, Gas Chromatography, Dissolution Testing, Karl Fischer Titration, Current Good Manufacturing Practice. Mass spectrometry, spectroscopy and method validation are skills since 0070, and are on the path."
     },
     {
       "title": "Quality Control Microbiologist",
