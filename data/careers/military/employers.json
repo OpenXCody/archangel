@@ -6,7 +6,7 @@
       "service": "navy",
       "slug": "us-navy",
       "domain": "navy.mil",
-      "description": "The Navy is the nation's force at sea, operating on, above and below the oceans and in cyberspace. Its mission is to defend the nation, preserve global stability and defeat adversaries when it must. Its enlisted jobs are ratings, among more than 150 roles in fields from aviation and construction to electronics and technology, industrial and mechanical work, and science, engineering and nuclear power.",
+      "description": "The Navy is the nation's force at sea, operating on, above and below the oceans and in cyberspace. Its mission is to defend the nation, preserve global stability and defeat adversaries when it must. Its enlisted jobs are ratings, among more than 150 roles in fields from aviation and construction to electronics, industrial and mechanical work, and nuclear power.",
       "descriptionWas": [
         "The naval service. Its enlisted jobs are ratings."
       ],
@@ -26,7 +26,7 @@
       "service": "army",
       "slug": "us-army",
       "domain": "army.mil",
-      "description": "The Army is the nation's land force: it deploys, fights and wins the nation's wars as part of the joint force. About 450,000 Soldiers serve in the Regular Army, 330,000 in the Army National Guard and 170,000 in the Army Reserve. Its enlisted jobs are military occupational specialties (MOS), each with a code such as 15T, more than 200 of them in six career categories: aviation, ground forces, mechanics and engineering, science and medicine, signal and intelligence, and support and logistics.",
+      "description": "The Army is the nation's land force: it deploys, fights and wins the nation's wars as part of the joint force. About 450,000 Soldiers serve in the Regular Army, 330,000 in the Army National Guard and 170,000 in the Army Reserve. Its enlisted jobs are military occupational specialties (MOS), each with a code such as 15T: more than 200 of them, in six career categories from aviation and ground forces to mechanics and engineering.",
       "descriptionWas": [
         "The land service. Its enlisted jobs are military occupational specialties."
       ],
@@ -47,7 +47,7 @@
       "service": "air-force",
       "slug": "us-air-force",
       "domain": "af.mil",
-      "description": "The Air Force is the nation's air service: its mission is to fly, fight and win, with airpower anytime, anywhere. Its enlisted jobs are Air Force specialties, each with a code (AFSC) such as 3E0X2, in career areas from aviation and flight and maintenance and repair to science and technology, cyber and intelligence, and logistics and administration.",
+      "description": "The Air Force is the nation's air service: its mission is to fly, fight and win, with airpower anytime, anywhere. Its enlisted jobs are Air Force specialties, each with a code (AFSC) such as 3E0X2, in career areas from aviation and flight to maintenance and repair, science and technology, and cyber and intelligence.",
       "descriptionWas": [
         "The air service. Its enlisted jobs are Air Force specialties."
       ],
