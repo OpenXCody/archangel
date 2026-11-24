@@ -27,17 +27,16 @@ import {
   cardClass,
   fieldClass,
   outlineButtonClass,
-  textButtonClass,
   busyButtonClass,
 } from '../components/account/parts';
 import { DAY_MS, formatDay } from '../lib/dates';
 import ApplicantList from '../components/jobs/ApplicantList';
 import JobDescription from '../components/jobs/JobDescription';
 import JobFacts from '../components/jobs/JobFacts';
-import JobSkills from '../components/jobs/JobSkills';
-import { FromSourceNote, SourcedApply } from '../components/jobs/SourcedJob';
+import JobSkills, { jobSectionClass } from '../components/jobs/JobSkills';
+import { SourcedApply, SourcedView } from '../components/jobs/SourcedJob';
 import ConfirmDialog from '../components/layout/ConfirmDialog';
-import { DetailHeader, DetailSection, EmptyState, PageContainer, RecordList, RecordRow, sectionLinkClass } from '../components/layout/Page';
+import { DetailHeader, DetailSection, EmptyState, PageContainer, RecordList, RecordRow, detailActionClass, sectionLinkClass } from '../components/layout/Page';
 import { CareerTag, CompanyTag, FactoryTag, RecordTags } from '../components/layout/RecordTag';
 import { versionPath, versionTitle } from '@shared/versions';
 
@@ -173,10 +172,23 @@ export default function JobDetail() {
       job={data.job}
       // Applicants meet this as the Apply panel; the company has none.
       applications={manages && !sourced ? <ApplicationsGoTo job={data.job} /> : undefined}
+      notice={!data.job.isOpen && !manages ? <ClosedNotice job={data.job} justClosed={justClosed} /> : undefined}
+      // A job from the company's careers site has one way out, and every reader has it as a button:
+      // Apply for a seeker and a visitor; for everyone else (someone here to hire, the company's own
+      // people, an admin) the posting itself, with one line for the people who manage the company's jobs.
+      action={
+        sourced ? (
+          !manages && (!signedIn || viewer.seeker) ? (
+            <SourcedApply job={data.job} />
+          ) : (
+            <SourcedView job={data.job} managed={manages} />
+          )
+        ) : undefined
+      }
     />
   );
   const apply = (
-    <DetailSection id="apply" title="Apply">
+    <DetailSection id="apply" title="Apply" className={jobSectionClass}>
       <ApplyPanel data={data} signedIn={signedIn} here={here} />
     </DetailSection>
   );
@@ -200,8 +212,6 @@ export default function JobDetail() {
         // (A job from the company's careers site is not one of the jobs it posted here: no number.)
         kind={managesPosted ? `Job #${data.job.serial}` : 'Job'}
         title={data.job.title}
-        // A job from the company's careers site has one action, and it is the page's: Apply, there.
-        action={sourced && (manages ? false : !signedIn || viewer.seeker) ? <SourcedApply job={data.job} /> : undefined}
       >
         {/* Whose job it is, where, and for which career: each opens its own page. */}
         <RecordTags data-job-tags="">
@@ -218,23 +228,19 @@ export default function JobDetail() {
       </DetailHeader>
 
       {lostAccess && !manages && (
-        <p role="status" className={cn(cardClass, 'mt-6 text-sm text-text-1')} data-lost-access>
+        <p role="status" className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-line px-4 py-3 text-sm text-text-1" data-lost-access>
           {signedIn ? (
             `You no longer manage jobs for ${data.job.companyName.replace(/\.$/, '')}.`
           ) : (
             <>
-              You are signed out.{' '}
-              <Link to={signInPath(here)} className="font-medium underline hover:no-underline">
+              <span className="min-w-0 flex-1 basis-48">You are signed out. Sign in to manage this job.</span>
+              <Link to={signInPath(here)} className={detailActionClass}>
                 Sign in
-              </Link>{' '}
-              to manage this job.
+              </Link>
             </>
           )}
         </p>
       )}
-
-      {sourced && manages && <FromSourceNote job={data.job} />}
-      {!data.job.isOpen && !manages && <ClosedNotice job={data.job} justClosed={justClosed} />}
 
       {managesPosted && (
         // The company's view comes first: the job's state, then who applied.
@@ -247,7 +253,7 @@ export default function JobDetail() {
       )}
 
       {!sourced && data.job.description && (
-        <DetailSection title="About the job">
+        <DetailSection title="About the job" className={jobSectionClass}>
           <div className={cn(cardClass, 'text-sm leading-relaxed text-text-1')}>
             <JobDescription text={data.job.description} />
           </div>
@@ -267,7 +273,7 @@ export default function JobDetail() {
           // Offered to someone whose account is for finding work and who also manages this job.
           viewer.seeker &&
           !data.job.applyUrl && (
-            <button type="button" onClick={() => setApplyAsManager(true)} className={cn(textButtonClass, 'mt-8 inline-flex min-h-11 items-center')}>
+            <button type="button" onClick={() => setApplyAsManager(true)} className={cn(detailActionClass, 'mt-8')}>
               Apply to this job myself
             </button>
           )
@@ -299,7 +305,7 @@ export default function JobDetail() {
 function ClosedNotice({ job, justClosed = false }: { job: JobDetailData; justClosed?: boolean }) {
   const closed = job.status === 'closed';
   return (
-    <div className={cn(cardClass, 'mt-6 flex items-start gap-3')} role="status" data-job-closed>
+    <div className="flex items-start gap-3" role="status" data-job-closed>
       <Lock className="mt-0.5 h-4 w-4 shrink-0 text-text-2" />
       <p className="min-w-0 break-words text-sm text-text-1">
         {justClosed
@@ -343,6 +349,7 @@ function OtherJobs({
     <DetailSection
       id={id}
       title={title}
+      className={jobSectionClass}
       action={
         list.total > list.jobs.length ? (
           <Link to={all} className={sectionLinkClass} data-all-jobs>
@@ -629,7 +636,7 @@ function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applica
               remove.reset();
               setDeleting(true);
             }}
-            className={cn(textButtonClass, 'ml-2 h-10')}
+            className={cn(detailActionClass, 'h-10')}
           >
             Delete
           </button>

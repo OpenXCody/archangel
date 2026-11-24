@@ -4,7 +4,7 @@ import { signInPath } from '../../lib/account';
 import type { JobDetail, JobPath, JobPathSkill } from '../../lib/jobs';
 import { companyShortName, versionTitle } from '@shared/versions';
 import { SkillMark } from '../account/SkillStatusButton';
-import { DetailSection, RecordList, RecordRow } from '../layout/Page';
+import { DetailSection, RecordList, RecordRow, detailActionClass } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
 import { buildPath, shareOf, type MarkStatus, type PathSkillItem, type SkillMarks } from '../path/model';
 import { SkillGroupBox } from '../path/SkillGroupBox';
@@ -25,6 +25,9 @@ import { useSkillMarks } from '../path/useSkillMarks';
  * tick and one line says how many they hold, and nothing here is a control.
  * Skills are marked on Profile and on a skill's own page.
  */
+
+/** A section of the job's page: set apart by a hairline over its heading, so no block floats between two others. */
+export const jobSectionClass = 'mt-10 border-t border-line pt-8';
 
 /** What a tag says under a skill's name on this page. */
 function secondLine(skill: JobPathSkill): string | null {
@@ -88,6 +91,7 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
   const levels = laid.levels.filter((level) => level.groups.length > 0);
   const share = marks && path.skills.length > 0 ? shareOf(path.skills, marks) : null;
   const named = new Set(path.skills.concat(path.alsoNamed).filter((skill) => skill.named).map((skill) => skill.id));
+  const onPathNamed = path.skills.filter((skill) => skill.named).length;
   const tag = (skill: PathSkillItem) => <ReadTag key={skill.id} skill={skill} status={marks?.statusOf(skill.id)} named={named.has(skill.id)} />;
 
   // The equipment the posting names: a skill's makes on one row, beside the skill they are makes of.
@@ -105,6 +109,14 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
           {path.of === 'version' ? versionTitle(job.companyName, career.title) : career.title}
         </Link>
         .
+        {/* How much of this the posting itself says. */}
+        {named.size > 0 && (
+          <span data-job-named-count>
+            {' '}
+            The posting names {onPathNamed} of {path.skills.length === 1 ? 'it' : `these ${path.skills.length}`}
+            {path.alsoNamed.length > 0 ? `, and ${path.alsoNamed.length} more` : ''}.
+          </span>
+        )}
       </>
     );
 
@@ -112,7 +124,7 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
 
   return (
     <>
-      <DetailSection id="skills" title="Skills" description={path.skills.length > 0 ? whose : undefined}>
+      <DetailSection id="skills" title="Skills" className={jobSectionClass} description={path.skills.length > 0 ? whose : undefined}>
         {path.skills.length > 0 && share && (
           <p className="mb-5 flex min-w-0 items-center gap-2 text-sm text-text-2" data-job-overlap>
             <ShareRing share={share} className="h-5 w-5" />
@@ -125,11 +137,11 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
           </p>
         )}
         {path.skills.length > 0 && forApplicant && found.canSignIn && (
-          <p className="mb-5 text-sm text-text-2" data-job-overlap-sign-in>
-            <Link to={signInPath(`${pathname}${search}`)} className="font-medium text-text-1 underline hover:no-underline">
+          <p className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-text-2" data-job-overlap-sign-in>
+            <Link to={signInPath(`${pathname}${search}`)} className={detailActionClass}>
               Sign in
-            </Link>{' '}
-            to see how many of these skills you hold.
+            </Link>
+            <span className="min-w-0">to see how many of these skills you hold.</span>
           </p>
         )}
 
@@ -160,7 +172,7 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
       </DetailSection>
 
       {equipment.length > 0 && (
-        <DetailSection id="equipment" title="Equipment" description="The machines and software the posting names.">
+        <DetailSection id="equipment" title="Equipment" className={jobSectionClass} description="The machines and software the posting names.">
           <RecordList data-job-equipment="">
             {equipment.map((skill) => (
               <RecordRow

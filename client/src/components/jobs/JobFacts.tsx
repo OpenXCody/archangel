@@ -59,11 +59,25 @@ function Fact({ label, children, wide }: { label: string; children: ReactNode; w
   );
 }
 
-export default function JobFacts({ job, applications, className }: { job: JobDetail; /** Where applications go: said to the people who manage the job. */ applications?: ReactNode; className?: string }) {
+interface JobFactsProps {
+  job: JobDetail;
+  /** Where applications go: said to the people who manage the job. */
+  applications?: ReactNode;
+  /** What stands above the facts in the panel: that the job is closed. */
+  notice?: ReactNode;
+  /** The panel's last row: the button that opens the posting, and the line beside it. */
+  action?: ReactNode;
+  className?: string;
+}
+
+/** The facts panel: a hairline above and below, the facts between, and the job's one way out as its last row. */
+export default function JobFacts({ job, applications, notice, action, className }: JobFactsProps) {
   const paid = job.payMin !== null || job.payMax !== null;
   const asks = requirementFacts(job.requirements);
   return (
-    <dl className={cn('grid grid-cols-2 gap-x-6 gap-y-4 border-y border-line py-4 sm:grid-cols-4', className)} data-job-terms>
+    <div className={cn('border-y border-line', className)} data-job-panel>
+      {notice && <div className="border-b border-line py-3">{notice}</div>}
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 py-4 sm:grid-cols-4" data-job-terms>
       {paid && <Fact label="Pay">{formatPay(job.payMin, job.payMax, job.payPeriod)}</Fact>}
       {job.levelWord && <Fact label="Level">{job.levelWord}</Fact>}
       {job.employmentType && <Fact label="Type">{employmentLabel(job.employmentType)}</Fact>}
@@ -79,6 +93,12 @@ export default function JobFacts({ job, applications, className }: { job: JobDet
           {applications}
         </Fact>
       )}
-    </dl>
+      </dl>
+      {action && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-line py-4 empty:hidden" data-job-action>
+          {action}
+        </div>
+      )}
+    </div>
   );
 }

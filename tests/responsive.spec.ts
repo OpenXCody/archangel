@@ -1736,6 +1736,11 @@ test("a job from a company's careers site, as a visitor: tags, facts, one way to
   await expect(path.locator(`[data-skill-tag="${SKILL(2)}"]`)).toContainText('Named in the posting');
   await expect(path.locator(`[data-skill-tag="${SKILL(5)}"]`)).not.toContainText('Named in the posting');
   await expect(page.locator('[data-job-also-named]')).toContainText('Also named in the posting');
+  // One sentence says how much of the path the posting itself names.
+  await expect(page.locator('[data-job-named-count]')).toHaveText('The posting names 3 of these 8, and 1 more.');
+  // The way out is one button in the facts panel; for a visitor it is Apply, and there is no second one.
+  await expect(page.locator('[data-job-panel] [data-job-action] [data-apply-on-site]')).toHaveCount(1);
+  await expect(page.locator('[data-view-on-site]')).toHaveCount(0);
   await expect(page.locator('[data-job-also-named] [data-skill-tag]')).toHaveCount(1);
   // Read, not worked on: no mark and no control on a tag; a visitor is shown the way to sign in, and back.
   await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
@@ -1805,7 +1810,13 @@ test("a job from a company's careers site, as a seeker and as the company: a cou
   );
   await standInForPostedJobs(page, { canManage: true });
   await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-job-from-source]')).toContainText("careers site and is kept in step with it");
+  // One quiet line in the facts panel, beside the button that opens the posting on the company's site.
+  await expect(page.locator('[data-job-panel] [data-job-from-source]')).toContainText("careers site and is kept in step with it");
+  const view = page.locator('[data-job-panel] [data-view-on-site]');
+  await expect(view).toHaveText(/^View on Space Exploration Technologies' careers site/);
+  await expect(view).toHaveAttribute('href', 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002');
+  await expect(view).toHaveAttribute('target', '_blank');
+  expect((await view.boundingBox())?.height ?? 0, 'the way to the posting is a button').toBeGreaterThanOrEqual(40);
   await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
   await expect(page.locator('[data-apply-on-site], #applicants, #manage-job')).toHaveCount(0);
   await expect(page.getByRole('link', { name: /^Edit$|Post another like this/ })).toHaveCount(0);
@@ -1813,6 +1824,16 @@ test("a job from a company's careers site, as a seeker and as the company: a cou
   await expect(page.locator('[data-job-path] [data-skill-tag]')).toHaveCount(9);
   await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
   await assertHealthyLayout(page, 'a job from a posting, the company');
+
+  // Someone here to hire who is not of this company: the same button to the posting, no line about managing, no Apply.
+  await page.unroute('**/api/auth/me');
+  await page.unroute(`**/api/jobs/${POSTED_JOB}`);
+  await page.unroute('**/api/jobs/by-number/1000');
+  await page.route('**/api/auth/me', (route) => route.fulfill({ json: person('hire') }));
+  await standInForPostedJobs(page);
+  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-view-on-site]')).toHaveCount(1);
+  await expect(page.locator('[data-apply-on-site], [data-job-from-source], [data-job-overlap], [data-job-overlap-sign-in]')).toHaveCount(0);
 
   // Your jobs, for a member who has posted nothing: what is already listed from the company's site is said before the form.
   await page.route('**/api/employer', (route) =>
