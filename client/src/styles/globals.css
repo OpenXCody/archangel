@@ -803,34 +803,30 @@ input {
 .atlas-base[data-dim] {
   opacity: 0.42;
 }
-/* Enlarged, the open domain's own leaves have to stay readable under a career. */
-.atlas-plate:not([data-atlas-view='whole']) .atlas-base[data-dim] {
-  opacity: 0.62;
-}
 /* A person's own marks are the bright ones: the plate under them is a little quieter. */
 .atlas-base[data-marked]:not([data-dim]) {
   opacity: 0.72;
 }
-/* A group is open: the plate steps back under its skills, which are drawn again at full strength. */
-.atlas-plate:is([data-atlas-view='group'], [data-atlas-view='skill']) .atlas-base {
+/*
+ * A domain is open: the plate steps back to a whisper and the domain is drawn
+ * again over it at full strength (OpenDomain), so nothing is veiled by a
+ * shape and no edge is drawn across the plate. An open group's skills are
+ * drawn again over the rest of the domain, which steps back a little.
+ */
+.atlas-plate:not([data-atlas-view='whole']) .atlas-base {
+  opacity: 0.09;
+}
+.atlas-open-domain {
+  animation: atlas-arrive 0.3s ease both;
+}
+.atlas-plate[data-still] .atlas-open-domain {
+  animation: none;
+}
+.atlas-open-domain[data-group] .atlas-open-rest {
   opacity: 0.45;
 }
 .atlas-open-leaf {
   fill: var(--domain-hue, var(--text-2));
-  animation: atlas-arrive 0.3s ease 0.3s both;
-}
-.atlas-plate[data-still] .atlas-open-leaf {
-  animation: none;
-}
-/* A domain is open: the rest of the plate is veiled to a whisper, in one shape. */
-.atlas-veil {
-  fill: var(--bg);
-  fill-opacity: 0.94;
-  pointer-events: none;
-  animation: atlas-arrive 0.45s ease 0.25s both;
-}
-.atlas-plate[data-still] .atlas-veil {
-  animation: none;
 }
 /* An open group's own branches, on from its tip to each of its skills. */
 .atlas-stems {
@@ -993,9 +989,8 @@ input {
     transition: none;
   }
   .atlas-labels,
-  .atlas-veil,
-  .atlas-stems,
-  .atlas-open-leaf {
+  .atlas-open-domain,
+  .atlas-stems {
     animation: none;
   }
 }

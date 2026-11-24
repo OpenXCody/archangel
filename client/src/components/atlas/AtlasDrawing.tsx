@@ -1,6 +1,5 @@
 import { memo, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent } from 'react';
 import {
-  TAU,
   arcPath,
   arcPathReversed,
   between,
@@ -160,15 +159,34 @@ const Plate = memo(function Plate({ layout }: { layout: AtlasLayout }) {
   );
 });
 
-/** The open group's skills, drawn again at full strength: the rest of the plate steps back under them. */
-const OpenLeaves = memo(function OpenLeaves({ layout, group, hued }: { layout: AtlasLayout; group: AtlasGroup; hued: boolean }) {
-  const domain = layout.domains[group.domain];
+/**
+ * An open domain, drawn again over the plate, which steps back to a whisper
+ * under it: its rim and its skills, and, when one of its groups is open, that
+ * group's skills at full strength over the rest of it. Under a career it is
+ * ink, as the plate is. A few dozen elements; the plate itself is not drawn
+ * again, it only fades (one opacity on its group), so nothing is cut in two.
+ */
+const OpenDomain = memo(function OpenDomain({ layout, domain, group, hued }: { layout: AtlasLayout; domain: AtlasDomain; group: AtlasGroup | null; hued: boolean }) {
+  const g = layout.geometry;
+  const leaves = (first: number, last: number, className: string, grow = 0) =>
+    layout.leaves.slice(first, last + 1).map((leaf) => {
+      const [x, y] = point(leaf.angle, leaf.radius);
+      return (
+        <circle
+          key={leaf.id}
+          className={className}
+          cx={fixed(x * S)}
+          cy={fixed(y * S)}
+          r={fixed((dotRadius(layout, leaf) + grow) * S)}
+          opacity={className === 'atlas-leaf' ? fixed(leafOpacity(layout, leaf)) : undefined}
+        />
+      );
+    });
   return (
-    <g data-domain={hued ? domain.slug : undefined} data-atlas-open={group.slug}>
-      {layout.leaves.slice(group.first, group.last + 1).map((leaf) => {
-        const [x, y] = point(leaf.angle, leaf.radius);
-        return <circle key={leaf.id} className="atlas-open-leaf" cx={fixed(x * S)} cy={fixed(y * S)} r={fixed((dotRadius(layout, leaf) + 0.0008) * S)} />;
-      })}
+    <g className="atlas-open-domain" data-domain={hued ? domain.slug : undefined} data-atlas-open={domain.slug} data-group={group ? true : undefined}>
+      <path className="atlas-ring" d={arcPath(g.ring, domain.from, domain.to, S)} />
+      <g className="atlas-open-rest">{leaves(domain.first, domain.last, 'atlas-leaf')}</g>
+      {group && <g data-atlas-open-group={group.slug}>{leaves(group.first, group.last, 'atlas-open-leaf', 0.0008)}</g>}
     </g>
   );
 });
@@ -778,7 +796,6 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
   const pointed = preview && (!domain || preview.domain.index !== domain.index) ? preview.domain : null;
   const pointedGroup = domain && preview?.group && preview.domain.index === domain.index && !preview.leaf ? preview.group : null;
   const ringed = preview?.leaf ?? leaf;
-  const half = (g.domainGap / 2) * layout.step;
   // A group's own share of the plate, from its branch's tip to the rim.
   const groupSector = (each: AtlasGroup) => sectorPath(g.group, g.ring, each.a0 - 0.5 * layout.step, each.a1 + 0.5 * layout.step, S);
 
@@ -809,11 +826,9 @@ export default function AtlasDrawing({ layout, domain, group, leaf, overlay, mar
           <Plate layout={layout} />
         </g>
         {pointed && <path className="atlas-hover" d={sectorPath(g.group, g.ring, pointed.from, pointed.to, S)} />}
-        {/* Everything but the open domain, veiled. */}
-        {domain && <path key={`veil-${domain.slug}`} className="atlas-veil" d={sectorPath(0.0001, 3, domain.a1 + half, domain.a0 - half + TAU, S)} />}
-        {/* An open group: its own branches, on from its tip to each of its skills, and its skills at full strength over the stepped-back plate. */}
+        {/* An open domain over the plate, which steps back under it; an open group's own branches on from its tip to each of its skills. */}
+        {domain && <OpenDomain key={domain.slug} layout={layout} domain={domain} group={group} hued={!overlay} />}
         {group && <path key={`stems-${group.slug}`} className="atlas-stems" d={stemsPath(layout, group, S)} />}
-        {group && <OpenLeaves layout={layout} group={group} hued={!overlay} />}
         {overlay && <Overlay layout={layout} overlay={overlay} ahead={walking} />}
         {walking && overlay && <Walk layout={layout} career={overlay.first} marks={marks} arriving={arriving} />}
         {marks && marks.size > 0 && <Marks layout={layout} marks={marks} overlay={overlay} fresh={arriving} />}

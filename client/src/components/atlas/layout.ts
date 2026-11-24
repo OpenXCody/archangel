@@ -326,7 +326,7 @@ export function linkPath(a0: number, r0: number, a1: number, r1: number, scale: 
   return `${start}C${at(a0, middle, scale)} ${at(a1, middle, scale)} ${at(a1, r1, scale)}`;
 }
 
-/** A closed sector of an annulus: the veil, and what the pointer is on. */
+/** A closed sector of an annulus: what the pointer is on. */
 export function sectorPath(r0: number, r1: number, a0: number, a1: number, scale: number): string {
   const large = a1 - a0 > Math.PI ? 1 : 0;
   const inner = n(r0 * scale);
